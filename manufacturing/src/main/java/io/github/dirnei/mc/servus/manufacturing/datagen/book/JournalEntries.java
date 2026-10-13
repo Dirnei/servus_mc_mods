@@ -15,7 +15,7 @@ import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItem
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 
-/** The entries of the journal. Story text is a first draft; facts are limited to well known parts of his life. */
+/** The entries of the journal. Facts are limited to well known parts of Paracelsus' life. */
 final class JournalEntries {
 
     private JournalEntries() {

@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTierData;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import net.minecraft.core.registries.BuiltInRegistries;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierLayout;
@@ -42,9 +43,18 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
 
     @Override
     public void buildMultiblocks() {
-        // The wall is one block deep: each layer, top to bottom, is a single row. Visualize anchors the
-        // center one block above the block the player clicks, so the Ash Pan at the bottom is the center
-        // and the build stands on the clicked ground. Forming checks with CalcinerLayout itself.
+        calciner();
+        coagulator();
+        purifier();
+        athanors();
+    }
+
+    /**
+     * The wall is one block deep: each layer, top to bottom, is a single row. Visualize anchors the
+     * center one block above the clicked block, so the Ash Pan at the bottom is the center and the
+     * build stands on the clicked ground.
+     */
+    private void calciner() {
         DenseMultiblockBuilder calciner = new DenseMultiblockBuilder();
         for (String row : CalcinerLayout.patternRows()) {
             calciner.layer(row.replace(Role.CALCINER.symbol(), CALCINER_SYMBOL).replace(Role.ASH_PAN.symbol(), '0'));
@@ -62,8 +72,10 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
             calciner.block(symbol, () -> CalcinerStructure.expected(role));
         }
         add(CALCINER, calciner.build(false, 1));
+    }
 
-        // The Coagulator is the bottom middle, so it is the center and stands on the clicked ground.
+    /** The Coagulator is the bottom middle, so it is the center and stands on the clicked ground. */
+    private void coagulator() {
         DenseMultiblockBuilder coagulator = new DenseMultiblockBuilder();
         for (String row : CoagulatorLayout.patternRows()) {
             coagulator.layer(row);
@@ -72,23 +84,27 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
             coagulator.block(role.symbol(), () -> CoagulatorStructure.expected(role));
         }
         add(COAGULATOR, coagulator.build(false, 1));
+    }
 
-        // The Purifier: the log is the bottom middle, so it is the anchor; any wood, and anything beside the Vat.
+    /** The log of any wood is the bottom middle, so it is the anchor; anything may stand beside the Vat. */
+    private void purifier() {
         DenseMultiblockBuilder purifier = new DenseMultiblockBuilder();
         for (String row : PurifierLayout.patternRows()) {
             purifier.layer(row.replace(PurifierLayout.Role.LOG.symbol(), '0'));
         }
-        purifier.block(PurifierLayout.Role.VAT.symbol(), () -> PurifierStructure.shown(PurifierLayout.Role.VAT));
-        purifier.block(PurifierLayout.Role.BASIN.symbol(), () -> PurifierStructure.shown(PurifierLayout.Role.BASIN));
-        purifier.block(PurifierLayout.Role.CROCK.symbol(), () -> PurifierStructure.shown(PurifierLayout.Role.CROCK));
+        for (PurifierLayout.Role role : List.of(PurifierLayout.Role.VAT, PurifierLayout.Role.BASIN, PurifierLayout.Role.CROCK)) {
+            purifier.block(role.symbol(), () -> PurifierStructure.shown(role));
+        }
         purifier.tag('0', BlockTags.LOGS, () -> Blocks.OAK_LOG);
         add(PURIFIER, purifier.build(false, 1));
+    }
 
-        // The Athanor on its hearth, then each shipped tier with every tier below it.
+    /** The Athanor on its hearth, then each shipped tier with every tier below it. */
+    private void athanors() {
         athanor("nigredo", List.of());
         List<AthanorTiers.BlockAt> blocks = new ArrayList<>();
         for (AthanorTiers.TierDef tier : AthanorTierData.SHIPPED.stream().map(AthanorTierData::readShipped)
-                .sorted(java.util.Comparator.comparingInt(AthanorTiers.TierDef::number)).toList()) {
+                .sorted(Comparator.comparingInt(AthanorTiers.TierDef::number)).toList()) {
             blocks.addAll(tier.blocks());
             athanor(tier.name(), List.copyOf(blocks));
         }

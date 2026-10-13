@@ -33,7 +33,7 @@ public final class ServusManufacturingDataGen {
         PackOutput output = generator.getPackOutput();
         CompletableFuture<HolderLookup.Provider> lookup = event.getLookupProvider();
 
-        // The book and research providers fill the language cache, so they run before the language provider writes it.
+        // The book and research providers fill the language cache, so they must run before the language provider.
         LanguageProviderCache bookLang = new LanguageProviderCache("en_us");
         ResearchCache research = new ResearchCache();
         event.addProvider(NeoBookProvider.of(event, bookLang, research, new JournalBook()));
@@ -49,7 +49,7 @@ public final class ServusManufacturingDataGen {
         event.addProvider(new LootTableProvider(output, Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(ServusManufacturingBlockLoot::new, LootContextParamSets.BLOCK)),
                 lookup));
-        // Last: reads the recipes and lang file written above.
+        // Last: reads the recipes and the lang file written above.
         event.addProvider(new GameDataExportProvider());
     }
 }

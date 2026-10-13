@@ -19,12 +19,12 @@ import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 
 /**
- * Models of the Calciner, built from boxes with vanilla textures. Every block has an unformed
- * model of its own and a formed piece; the formed pieces overhang into their neighbours so the
- * whole structure reads as one brick furnace with a copper still. In model space the front faces
- * north, so the player's right when looking at it is west (-x).
+ * Models of the Calciner, the Purifier and the Coagulator builds, made of boxes with vanilla textures.
+ * Every block has an unformed model of its own and a formed piece; the formed pieces overhang into their
+ * neighbours so each build reads as one piece. In model space the front faces north, so the player's
+ * right when looking at it is west (-x).
  */
-final class CalcinerModels {
+final class AlchemyModels {
 
     private static final String BRICKS = "block/bricks";
     private static final String COPPER = "block/copper_block";
@@ -44,7 +44,7 @@ final class CalcinerModels {
 
     private final BlockStateProvider states;
 
-    CalcinerModels(BlockStateProvider states) {
+    AlchemyModels(BlockStateProvider states) {
         this.states = states;
     }
 
@@ -71,7 +71,7 @@ final class CalcinerModels {
         vat();
     }
 
-    /** The Coagulator: the old block while unformed; formed, a stone casting table with an iron mold. */
+    /** The Coagulator: a cobblestone block with its front while unformed; formed, a stone casting table with an iron mold. */
     private void coagulator() {
         ModelFile unlit = states.models().orientable("coagulator", states.mcLoc("block/cobblestone"), states.modLoc("block/coagulator_front"),
                 states.mcLoc(STONE));
@@ -167,9 +167,8 @@ final class CalcinerModels {
             box(model, 15, y, 1, 15.25F, y + 1, 15, "#iron");
         }
         if (formed) {
-            // The spouts reach far outside the block, where ambient occlusion samples the wrong neighbours and turns them black.
+            // Ambient occlusion samples the wrong neighbours this far outside the block and turns the spouts black.
             model.ao(false);
-            // One spout out of each side wall, through the open cell beside the vat, down into the Basin or the Crock.
             for (boolean west : new boolean[] {true, false}) {
                 spoutBox(model, west, -9, 9, 7, 1, 11, 9, "#spout");
                 spoutBox(model, west, -9, -5, 7, -7, 9, 9, "#spout");
@@ -189,9 +188,8 @@ final class CalcinerModels {
     }
 
     /**
-     * A box with its UVs pinned to the texture's corner. Without explicit UVs Minecraft derives
-     * them from the position, and outside the block (below 0 or above 16) they leave the sprite and
-     * show its neighbours in the atlas.
+     * A box with its UVs pinned to the texture's corner. Derived UVs of a box reaching outside the
+     * block (below 0 or above 16) leave the sprite and show its neighbours in the atlas.
      */
     static void uvBox(BlockModelBuilder model, float x1, float y1, float z1, float x2, float y2, float z2, String texture) {
         float dx = Math.min(16, x2 - x1);
@@ -308,11 +306,12 @@ final class CalcinerModels {
         return model;
     }
 
-    private static int rotation(Direction facing) {
+    /** Block state rotation Y that turns a north facing model toward {@code facing}. */
+    static int rotation(Direction facing) {
         return ((int) facing.toYRot() + 180) % 360;
     }
 
-    /** The mouth: a stone brick box with the old front while unformed, an arch with the crucible when formed. */
+    /** The mouth: a stone brick box with its front while unformed, an arch with the crucible when formed. */
     private void calciner() {
         ModelFile unlit = states.models().orientable("calciner", states.mcLoc("block/stone_bricks"), states.modLoc("block/calciner_front"),
                 states.mcLoc(STONE));
@@ -446,7 +445,6 @@ final class CalcinerModels {
         box(model, 4, 3, 4, 12, 10, 12, "#copper");
         box(model, 6, 10, 6, 10, 13, 10, "#copper");
         box(model, 5, 13, 5, 11, 15, 11, "#cut");
-        // Formed, the spout crosses the air cell to the Receiver beyond it.
         box(model, formed ? -16 : 0, 8, 7, 4, 10, 9, "#cut");
         return model;
     }
@@ -461,7 +459,6 @@ final class CalcinerModels {
         box(model, 4, 1, 4, 12, 9, 12, "#glass");
         box(model, 6, 9, 6, 10, 14, 10, "#glass");
         if (formed) {
-            // The end of the Alembic's spout, dipping into the flask's neck.
             box(model, 10, 8, 7, 16, 10, 9, "#cut");
         }
         return model;

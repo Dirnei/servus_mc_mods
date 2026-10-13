@@ -4,6 +4,7 @@ import net.minecraft.world.level.block.Block;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleText;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
@@ -22,7 +23,6 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
-        // Texts of the journal, collected by the Modonomicon book provider.
         book.data().forEach(this::add);
         add(ServusManufacturingBlocks.CALCINER.get(), "Calciner");
         add(ServusManufacturingBlocks.FIREBOX.get(), "Firebox");
@@ -132,11 +132,7 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingItems.SULFUR.get(), "Sulfur");
         add(ServusManufacturingItems.QUICKSILVER.get(), "Quicksilver");
         for (Principle principle : Principle.values()) {
-            String name = switch (principle) {
-                case SALT -> "Salt";
-                case SULFUR -> "Sulfur";
-                case MERCURY -> "Mercury";
-            };
+            String name = PrincipleText.name(principle);
             PrincipleFluids.Entry entry = PrincipleFluids.entry(principle);
             add("fluid_type." + ServusManufacturingIds.MOD_ID + "." + principle.id(), name);
             add(entry.block().get(), name);

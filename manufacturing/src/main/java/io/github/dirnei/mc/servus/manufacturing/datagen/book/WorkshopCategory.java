@@ -19,7 +19,7 @@ import net.minecraft.world.item.Items;
 /**
  * The Workshop: how to build and use each alchemy machine, with its crafting recipe and the list
  * of what it works, read from the same table that writes the recipes. Nigredo entries are open
- * from the start; Albedo entries open with the Schwaz chapter.
+ * from the start; Albedo entries open with the Schwaz chapter, once Villach is finished.
  */
 final class WorkshopCategory extends CategoryProvider {
 
@@ -52,7 +52,7 @@ final class WorkshopCategory extends CategoryProvider {
         add(albedo(hollow().generate('h').withParent(elixir)));
     }
 
-    /** Albedo entries stay locked until the Villach chapter is finished, like the Schwaz chapter. */
+    /** Locks an Albedo entry until the Villach chapter is finished. */
     private BookEntryModel albedo(BookEntryModel entry) {
         return entry.withCondition(condition().researchNodeUnlocked(JournalResearch.VILLACH));
     }
@@ -222,8 +222,7 @@ final class WorkshopCategory extends CategoryProvider {
                 ElementalSight.ELIXIR.get(), e -> {
             e.spotlight("elixir", ElementalSight.ELIXIR.get(), "Elixir of Sight",
                     "Drink it and for a few minutes you see the spirits of the earth and what they tend.");
-            e.text("brewing", "Brewing It",
-                    "Lay " + craft.inputLabel() + " on a white Athanor and feed it " + PrincipleText.amounts(craft.principles()) + ".");
+            e.text("brewing", "Brewing It", albedoCraftText(craft));
         });
     }
 
@@ -233,14 +232,17 @@ final class WorkshopCategory extends CategoryProvider {
                 ServusManufacturingItems.GNOME_HOLLOW.get(), e -> {
             e.spotlight("hollow", ServusManufacturingItems.GNOME_HOLLOW.get(), "Gnome Hollow",
                     "A home for a gnome. To common eyes it is only stone.");
-            e.text("making", "Making It",
-                    "Lay " + craft.inputLabel() + " on a white Athanor and feed it " + PrincipleText.amounts(craft.principles()) + ".");
+            e.text("making", "Making It", albedoCraftText(craft));
             e.text("growing", "Growing a Vein",
                     "Put a raw ore or an ore block into its sample slot. Feed it Salt and Mercury by pipe or bucket, "
                             + "and step by step the vein ripens.\n\n"
                             + "When it is ripe, drink the Elixir of Sight and use a Salt Crystal on the Hollow. A gnome takes it "
                             + "and digs that ore for you, as long as the Hollow stands.");
         });
+    }
+
+    private static String albedoCraftText(AlchemyRecipeTable.AthanorCraft craft) {
+        return "Lay " + craft.inputLabel() + " on a white Athanor and feed it " + PrincipleText.amounts(craft.principles()) + ".";
     }
 
     private static AlchemyRecipeTable.AthanorCraft athanorCraft(String name) {

@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen.gamedata;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -44,7 +43,6 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.VanillaPackResources;
 import net.minecraft.server.packs.repository.ServerPacksSource;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.fml.ModList;
 
 /**
@@ -95,9 +93,6 @@ public final class GameDataExportProvider implements DataProvider {
     }
 
     private GameData collect(List<Path> resourceRoots, List<Path> generatedRoots) throws IOException {
-        // The first root is Manufacturing's own; machine stats come from every mod's resources.
-        Path mainData = resourceRoots.get(0).resolve("data").resolve(NS);
-
         List<Machine> machines = machines(resourceRoots);
         List<Recipe> recipes = new ArrayList<>();
         List<Crafting> crafting = new ArrayList<>();
@@ -106,8 +101,9 @@ public final class GameDataExportProvider implements DataProvider {
                 servusRecipes(namespace.getFileName().toString(), namespace.resolve("recipe"), recipes, crafting);
             }
         }
-        List<Deposit> deposits = deposits(mainData.resolve("deposit"));
-        List<Tech> techs = techs(mainData.resolve(NS).resolve("tech"));
+        // Deposits and techs are gone from the game; their sections stay empty for the docs schema.
+        List<Deposit> deposits = List.of();
+        List<Tech> techs = List.of();
 
         Set<String> referenced = new HashSet<>();
         recipes.forEach(recipe -> referenceAll(referenced, recipe));
@@ -128,7 +124,6 @@ public final class GameDataExportProvider implements DataProvider {
                 names(referenced, generatedRoots));
     }
 
-    // Machines
 
     /** Each machine's stats file sits at {@code data/<namespace>/machine/<path>.json} in its own mod's resources. */
     private static List<Machine> machines(List<Path> resourceRoots) throws IOException {
@@ -159,7 +154,6 @@ public final class GameDataExportProvider implements DataProvider {
         return machines;
     }
 
-    // Recipes
 
     /** The {@code servus_*} namespace folders under a generated {@code data} or {@code assets} folder, sorted. */
     private static List<Path> servusNamespaces(Path dir) throws IOException {
@@ -182,7 +176,6 @@ public final class GameDataExportProvider implements DataProvider {
             JsonObject json = readJson(file).getAsJsonObject();
             String type = json.get("type").getAsString();
             switch (type) {
-                // Alchemy recipes join the export with the Balance lab rebuild (M9 item 7).
                 case NS + ":calcination", NS + ":coagulation" -> {
                 }
                 case SMELTING, BLASTING -> recipes.add(cooking(id, type, json));
@@ -231,16 +224,6 @@ public final class GameDataExportProvider implements DataProvider {
                 intOr(json, "cookingtime", VANILLA_COOKING_TIME));
     }
 
-    private static List<Stack> sizedIngredients(JsonArray array) {
-        List<Stack> stacks = new ArrayList<>();
-        array.forEach(element -> stacks.add(sizedIngredient(element)));
-        return stacks;
-    }
-
-    private static Stack sizedIngredient(JsonElement element) {
-        return ingredient(element, intOr(element.getAsJsonObject(), "count", 1));
-    }
-
     /** An ingredient as item or tag. A list ingredient keeps its first entry. */
     private static Stack ingredient(JsonElement element, int count) {
         Stack stack = CraftingRecipeReader.ingredient(element, count);
@@ -258,19 +241,6 @@ public final class GameDataExportProvider implements DataProvider {
         return Stack.item(object.get("id").getAsString(), intOr(object, "count", 1));
     }
 
-    // Deposits and techs
-
-    /** Deposits are gone since the alchemy rethink; the section stays empty for the docs schema. */
-    private static List<Deposit> deposits(Path dir) {
-        return List.of();
-    }
-
-    /** Techs are gone since Paracelsus' journal replaced research; the section stays empty for the docs schema. */
-    private static List<Tech> techs(Path dir) {
-        return List.of();
-    }
-
-    // Fuels and names
 
     /** Burn times from NeoForge's furnace fuel data map, for referenced items and coal and charcoal. */
     private static Map<String, Integer> fuels(Set<String> referenced) throws IOException {
@@ -322,7 +292,8 @@ public final class GameDataExportProvider implements DataProvider {
         return names;
     }
 
-    static String titleCase(String path) {
+    /** An id path as English words: {@code caput_mortuum} gives Caput Mortuum. */
+    public static String titleCase(String path) {
         StringBuilder name = new StringBuilder();
         for (String word : path.split("_")) {
             if (!word.isEmpty()) {
@@ -335,7 +306,6 @@ public final class GameDataExportProvider implements DataProvider {
         return name.toString();
     }
 
-    // Helpers
 
     private static void referenceAll(Set<String> referenced, Recipe recipe) {
         recipe.inputs().forEach(stack -> reference(referenced, stack));
@@ -346,10 +316,6 @@ public final class GameDataExportProvider implements DataProvider {
         if (stack.item() != null) {
             referenced.add(stack.item());
         }
-    }
-
-    private static Stack stack(ItemStack stack) {
-        return Stack.item(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), stack.getCount());
     }
 
     private static String modVersion() {

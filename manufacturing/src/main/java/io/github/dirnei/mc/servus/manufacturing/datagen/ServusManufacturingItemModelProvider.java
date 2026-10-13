@@ -25,8 +25,7 @@ final class ServusManufacturingItemModelProvider extends ItemModelProvider {
         basicItem(ServusManufacturingItems.QUICKSILVER.get());
         basicItem(ElementalSight.ELIXIR.get());
         basicItem(ServusManufacturingItems.PARACELSUS_JOURNAL.get());
-        // Buckets draw their principle with NeoForge's fluid container item model, tinted like the fluid,
-        // with the same textures as NeoForge's own bucket model (no cover layer).
+        // NeoForge's fluid container model with the textures of its own bucket model, without a cover layer.
         for (Principle principle : Principle.values()) {
             PrincipleFluids.Entry entry = PrincipleFluids.entry(principle);
             JsonObject textures = new JsonObject();

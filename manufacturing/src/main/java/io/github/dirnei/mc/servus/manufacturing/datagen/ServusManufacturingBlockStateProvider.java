@@ -23,13 +23,11 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
 
     @Override
     protected void registerStatesAndModels() {
-        // Alchemy is masonry: vanilla stone on the sides and top, our own fronts.
-        new CalcinerModels(this).register();
+        new AlchemyModels(this).register();
         simpleBlockWithItem(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get(), cubeAll(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get()));
         athanor();
         athanorCrown();
         gnomeHollow();
-        // Liquid blocks are drawn by the fluid renderer; the model only gives the particle.
         for (Principle principle : Principle.values()) {
             PrincipleFluids.Entry entry = PrincipleFluids.entry(principle);
             simpleBlock(entry.block().get(), models().getBuilder(principle.id())
@@ -40,7 +38,7 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
     /**
      * The Athanor: unformed, a stone brick block with a front per tier, lit or not; formed, a brick
      * tower furnace with an iron fire door showing the tier's flame, an iron plate on top for the item
-     * and copper sockets for the pipes the renderer draws to the tanks. Both turned by facing.
+     * and copper collars for the ducts. Both turned by facing.
      */
     private void athanor() {
         Identifier side = mcLoc("block/stone_bricks");
@@ -55,7 +53,7 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         }
         getVariantBuilder(ServusManufacturingBlocks.ATHANOR.get()).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile((state.getValue(AthanorBlock.FORMED) ? formed : models)[state.getValue(AthanorBlock.TIER)][state.getValue(MachineBlock.LIT) ? 1 : 0])
-                .rotationY(((int) state.getValue(MachineBlock.FACING).toYRot() + 180) % 360)
+                .rotationY(AlchemyModels.rotation(state.getValue(MachineBlock.FACING)))
                 .build());
         simpleBlockItem(ServusManufacturingBlocks.ATHANOR.get(), models[0][0]);
     }
@@ -74,24 +72,22 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
                 .texture("front", front).texture("particle", mcLoc("block/stone_bricks"));
         // The tall faces have no neighbour to take light from; ambient occlusion would darken them.
         model.ao(false);
-        CalcinerModels.uvBox(model, 0, 0, 0, 16, 2, 16, "#stone");
-        CalcinerModels.uvBox(model, 1, 2, 1, 15, 16, 15, "#stone");
-        CalcinerModels.uvBox(model, 1.5F, 16, 1.5F, 14.5F, 20, 14.5F, "#stone");
-        CalcinerModels.uvBox(model, 2.5F, 20, 2.5F, 13.5F, 22, 13.5F, "#stone");
-        CalcinerModels.uvBox(model, 2, 22, 2, 14, 23, 14, "#iron");
-        // The fire door: an iron frame around the flame arch of the tier's front texture.
+        AlchemyModels.uvBox(model, 0, 0, 0, 16, 2, 16, "#stone");
+        AlchemyModels.uvBox(model, 1, 2, 1, 15, 16, 15, "#stone");
+        AlchemyModels.uvBox(model, 1.5F, 16, 1.5F, 14.5F, 20, 14.5F, "#stone");
+        AlchemyModels.uvBox(model, 2.5F, 20, 2.5F, 13.5F, 22, 13.5F, "#stone");
+        AlchemyModels.uvBox(model, 2, 22, 2, 14, 23, 14, "#iron");
         model.element().from(4, 3, 0.5F).to(12, 13, 1)
                 .allFaces((direction, face) -> face.uvs(0, 0, 1, 1).texture("#iron"))
                 .face(Direction.NORTH).uvs(4, 5, 12, 15).texture("#front").end()
                 .end();
-        CalcinerModels.uvBox(model, 3.25F, 2.5F, 0.25F, 4, 13.75F, 1, "#iron");
-        CalcinerModels.uvBox(model, 12, 2.5F, 0.25F, 12.75F, 13.75F, 1, "#iron");
-        CalcinerModels.uvBox(model, 4, 13, 0.25F, 12, 13.75F, 1, "#iron");
-        // Collars for the Copper Ducts, whose pipe lies at the bottom of the block above; a bit larger
-        // than the pipe so no face lies in the plane of the shoulder's, which would flicker.
-        CalcinerModels.uvBox(model, 0, 15.5F, 5.5F, 2.5F, 20.5F, 10.5F, "#copper");
-        CalcinerModels.uvBox(model, 13.5F, 15.5F, 5.5F, 16, 20.5F, 10.5F, "#copper");
-        CalcinerModels.uvBox(model, 5.5F, 15.5F, 13.5F, 10.5F, 20.5F, 16, "#copper");
+        AlchemyModels.uvBox(model, 3.25F, 2.5F, 0.25F, 4, 13.75F, 1, "#iron");
+        AlchemyModels.uvBox(model, 12, 2.5F, 0.25F, 12.75F, 13.75F, 1, "#iron");
+        AlchemyModels.uvBox(model, 4, 13, 0.25F, 12, 13.75F, 1, "#iron");
+        // Duct collars, a bit larger than the pipe so no face shares the shoulder's plane and flickers.
+        AlchemyModels.uvBox(model, 0, 15.5F, 5.5F, 2.5F, 20.5F, 10.5F, "#copper");
+        AlchemyModels.uvBox(model, 13.5F, 15.5F, 5.5F, 16, 20.5F, 10.5F, "#copper");
+        AlchemyModels.uvBox(model, 5.5F, 15.5F, 13.5F, 10.5F, 20.5F, 16, "#copper");
         return model;
     }
 
@@ -100,20 +96,5 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         ModelFile model = models().cubeAll("gnome_hollow", mcLoc("block/stone"));
         getVariantBuilder(ServusManufacturingBlocks.GNOME_HOLLOW.get()).forAllStates(state -> ConfiguredModel.builder().modelFile(model).build());
         simpleBlockItem(ServusManufacturingBlocks.GNOME_HOLLOW.get(), model);
-    }
-
-    /** Orientable machine with a lit and an unlit front, rotated by facing. */
-    private void machine(Block block, String name, Identifier side, Identifier top) {
-        ModelFile unlit = models().orientable(name, side, modLoc("block/" + name + "_front"), top);
-        ModelFile lit = models().orientable(name + "_lit", side, modLoc("block/" + name + "_front_lit"), top);
-        getVariantBuilder(block).forAllStates(state -> {
-            Direction facing = state.getValue(MachineBlock.FACING);
-            boolean isLit = state.getValue(MachineBlock.LIT);
-            return ConfiguredModel.builder()
-                    .modelFile(isLit ? lit : unlit)
-                    .rotationY(((int) facing.toYRot() + 180) % 360)
-                    .build();
-        });
-        simpleBlockItem(block, unlit);
     }
 }

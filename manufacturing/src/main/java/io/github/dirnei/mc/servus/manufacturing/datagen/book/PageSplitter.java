@@ -28,7 +28,7 @@ public final class PageSplitter {
     static List<String> split(String text, int titledBudget, int plainBudget) {
         List<String> pieces = new ArrayList<>();
         for (String paragraph : text.split("\n\n")) {
-            // Runs fit even the smaller titled page, so any run can open a page.
+            // Runs fit the smaller titled budget, so any run can open a page.
             pieces.addAll(sentences(paragraph.strip(), Math.min(titledBudget, plainBudget)));
         }
         List<String> pages = new ArrayList<>();

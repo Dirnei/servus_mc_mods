@@ -57,9 +57,8 @@ public final class CraftingRecipeReader {
     }
 
     /**
-     * An item or tag ingredient: {@code "minecraft:stick"} or {@code "#minecraft:planks"} (1.21.2 and later),
-     * a sized {@code {"ingredient": ..., "count": n}} or the old {@code {"item": ...}} and {@code {"tag": ...}}
-     * objects. A list keeps its first entry; other ingredient types give null.
+     * An item or tag ingredient: {@code "minecraft:stick"} or {@code "#minecraft:planks"}, a sized
+     * {@code {"ingredient": ..., "count": n}}, or an {@code {"item": ...}} or {@code {"tag": ...}} object. A list keeps its first entry; other ingredient types give null.
      */
     static Stack ingredient(JsonElement element, int count) {
         if (element.isJsonArray()) {

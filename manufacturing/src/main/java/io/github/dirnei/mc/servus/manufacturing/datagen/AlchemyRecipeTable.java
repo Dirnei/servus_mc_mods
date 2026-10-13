@@ -9,6 +9,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.world.level.block.Block;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
+import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataExportProvider;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
@@ -19,13 +20,12 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.common.Tags;
 
 /**
- * The calcination, coagulation and Athanor recipes Manufacturing ships, in one table that both
+ * The calcination, purification, coagulation and Athanor recipes Manufacturing ships, in one table that both
  * the recipe provider and the journal's Workshop read, so the book always lists the shipped
  * recipes. Every row carries an English label for the book. The numbers are datapack examples.
  */
 public final class AlchemyRecipeTable {
 
-    /** One calcination: what goes in, and the principles it gives. */
     /** A recipe input as datagen knows it: one item or an item tag, made into an ingredient with the registries of the run. */
     public record Input(@Nullable Item item, @Nullable TagKey<Item> tag) {
 
@@ -47,6 +47,7 @@ public final class AlchemyRecipeTable {
         }
     }
 
+    /** One calcination: what goes in, and the principles it gives. */
     public record Calcine(String name, String label, Input input, Principles output) {
     }
 
@@ -133,15 +134,6 @@ public final class AlchemyRecipeTable {
 
     /** An item's English name from its id path, for the journal's tables: caput_mortuum gives Caput Mortuum. */
     public static String label(ItemStackTemplate stack) {
-        String path = stack.item().unwrapKey().orElseThrow().identifier().getPath();
-        StringBuilder out = new StringBuilder();
-        for (String word : path.split("_")) {
-            if (!out.isEmpty()) {
-                out.append(' ');
-            }
-            out.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
-        }
-        return out.toString();
+        return GameDataExportProvider.titleCase(stack.item().unwrapKey().orElseThrow().identifier().getPath());
     }
-
 }

@@ -9,6 +9,8 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
 import java.util.Optional;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.tags.ItemTags;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import java.util.concurrent.CompletableFuture;
@@ -49,19 +51,23 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
     protected void buildRecipes() {
         crafting(output);
         calcination(output);
-        for (AlchemyRecipeTable.Purify row : AlchemyRecipeTable.purification()) {
-            output.accept(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purification/" + row.name())),
-                    new PurificationRecipe(new SizedIngredient(row.input().ingredient(items), row.count()), row.water(), row.salt(), Optional.of(row.residue()), row.time()), null);
-        }
+        purification(output);
         coagulation(output);
         athanor(output);
+    }
+
+    /** What the Purifier leaches, from the shared table the journal lists. */
+    private void purification(RecipeOutput output) {
+        for (AlchemyRecipeTable.Purify row : AlchemyRecipeTable.purification()) {
+            output.accept(key("purification/" + row.name()), new PurificationRecipe(new SizedIngredient(row.input().ingredient(items), row.count()),
+                    row.water(), row.salt(), Optional.of(row.residue()), row.time()), null);
+        }
     }
 
     /** Crafts on the Athanor, from the shared table the journal lists. */
     private void athanor(RecipeOutput output) {
         for (AlchemyRecipeTable.AthanorCraft craft : AlchemyRecipeTable.athanor()) {
-            Identifier id = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor/" + craft.name());
-            output.accept(ServusRecipes.key(id), new AthanorRecipe(new SizedIngredient(craft.input().ingredient(items), 1), craft.principles(), craft.tier(),
+            output.accept(key("athanor/" + craft.name()), new AthanorRecipe(new SizedIngredient(craft.input().ingredient(items), 1), craft.principles(), craft.tier(),
                     craft.result(), craft.time()), null);
         }
     }
@@ -69,8 +75,7 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
     /** What the Coagulator makes from the principles, from the shared table the journal lists. */
     private void coagulation(RecipeOutput output) {
         for (AlchemyRecipeTable.Coagulate row : AlchemyRecipeTable.coagulation()) {
-            Identifier id = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulation/" + row.name());
-            output.accept(ServusRecipes.key(id), new CoagulationRecipe(row.input(), Optional.empty(), row.result(),
+            output.accept(key("coagulation/" + row.name()), new CoagulationRecipe(row.input(), Optional.empty(), row.result(),
                     CoagulationRecipe.DEFAULT_TIME, Optional.empty()), null);
         }
     }
@@ -78,14 +83,16 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
     /** What the Calciner burns common matter into, from the shared table the journal lists. */
     private void calcination(RecipeOutput output) {
         for (AlchemyRecipeTable.Calcine row : AlchemyRecipeTable.calcination()) {
-            Identifier id = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calcination/" + row.name());
-            output.accept(ServusRecipes.key(id), new CalcinationRecipe(new SizedIngredient(row.input().ingredient(items), 1), row.output(),
+            output.accept(key("calcination/" + row.name()), new CalcinationRecipe(new SizedIngredient(row.input().ingredient(items), 1), row.output(),
                     CalcinationRecipe.DEFAULT_TIME), null);
         }
     }
 
-    private void crafting(RecipeOutput output) {
+    private static ResourceKey<Recipe<?>> key(String path) {
+        return ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, path));
+    }
 
+    private void crafting(RecipeOutput output) {
         ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusManufacturingItems.CALCINER.get())
                 .pattern("BIB")
                 .pattern("BCB")
@@ -130,7 +137,7 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_brick", has(Items.BRICK))
                 .save(output);
 
-        // The parts of the Calciner structure, all from vanilla materials.
+
         ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusManufacturingItems.FIREBOX.get())
                 .pattern("BIB")
                 .pattern("BFB")
@@ -187,12 +194,11 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_blast_furnace", has(Items.BLAST_FURNACE))
                 .save(output);
 
-        // Paracelsus' Journal: a book and a piece of coal, the first fire.
         ShapelessRecipeBuilder.shapeless(items, RecipeCategory.MISC, ServusManufacturingItems.PARACELSUS_JOURNAL.get())
                 .requires(Items.BOOK)
                 .requires(ItemTags.COALS)
                 .unlockedBy("has_book", has(Items.BOOK))
-                .save(output, ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "journal")));
+                .save(output, key("journal"));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusManufacturingItems.COAGULATOR.get())
                 .pattern("IGI")

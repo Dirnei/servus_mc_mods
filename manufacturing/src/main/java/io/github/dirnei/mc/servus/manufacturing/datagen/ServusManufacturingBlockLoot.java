@@ -36,7 +36,6 @@ final class ServusManufacturingBlockLoot extends BlockLootSubProvider {
     @Override
     protected void generate() {
         SELF_DROPPING.forEach(this::dropSelf);
-        // A brick of a formed Calciner gives the Bricks back.
         dropOther(ServusManufacturingBlocks.CALCINER_SHELL.get(), Items.BRICKS);
     }
 
