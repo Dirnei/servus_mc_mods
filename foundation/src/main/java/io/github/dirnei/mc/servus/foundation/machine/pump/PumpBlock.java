@@ -152,8 +152,11 @@ public abstract class PumpBlock extends MachineBlock {
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
                                    boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
-        PumpBlocks.requestCheck(level, pos);
         if (level instanceof ServerLevel server) {
+            if (level.getBlockEntity(pos) instanceof PumpMachine pump) {
+                pump.pump().requestCheck();
+            }
+
             BlockState updated = withStubs(state, server, pos);
             if (updated != state) {
                 level.setBlock(pos, updated, Block.UPDATE_CLIENTS);

@@ -40,15 +40,9 @@ public class SinkMenu extends AbstractContainerMenu {
         this.data = data;
         this.access = ContainerLevelAccess.create(sink.getLevel(), sink.getBlockPos());
         addSlot(new TrashSlot(new TrashContainer(sink), TRASH_X, TRASH_Y));
-        for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, 84 + row * 18));
-            }
-        }
-        for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(playerInventory, column, 8 + column * 18, 142));
-        }
+        PlayerInventorySlots.add(this::addSlot, playerInventory, 8, 84);
         addDataSlots(data);
+
     }
 
     public static SinkMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {

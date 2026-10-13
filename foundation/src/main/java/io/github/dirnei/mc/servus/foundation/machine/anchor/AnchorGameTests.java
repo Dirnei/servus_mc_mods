@@ -2,8 +2,8 @@ package io.github.dirnei.mc.servus.foundation.machine.anchor;
 
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.machine.anchor.AnchorArea.Shift;
 import io.github.dirnei.mc.servus.foundation.machine.menu.EnderAnchorMenu;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
@@ -16,18 +16,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 
 /** The Ender Anchor's area: upgrades, offset, FE per chunk and the team cap in chunks. */
 public final class AnchorGameTests {
@@ -226,9 +221,8 @@ public final class AnchorGameTests {
             helper.setBlock(ANCHOR, Blocks.AIR.defaultBlockState());
             helper.assertTrue(!anchor.ticketHeld(), "breaking releases every chunk");
             helper.assertTrue(data(helper).load(team) == 0, "the team load is free again");
-            List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(ANCHOR)).inflate(1));
-            int upgrades = drops.stream().map(ItemEntity::getItem).filter(stack -> stack.is(MachineContent.ANCHOR_UPGRADE.get()))
-                    .mapToInt(ItemStack::getCount).sum();
+            List<ItemEntity> drops = MachineTestSupport.drops(helper, ANCHOR, 1);
+            int upgrades = MachineTestSupport.count(drops, MachineContent.ANCHOR_UPGRADE.get());
             helper.assertTrue(upgrades == 1, "the upgrade drops, got " + upgrades);
             drops.forEach(ItemEntity::discard);
             helper.succeed();
@@ -259,13 +253,9 @@ public final class AnchorGameTests {
         anchor.shift(Shift.EAST);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);
-        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
-        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
-        BlockPos pos = helper.absolutePos(ANCHOR);
-        ((ConfigurationCarrotItem) carrot.getItem()).useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, carrot,
-                new BlockHitResult(Vec3.atCenterOf(pos), Direction.NORTH, pos, false)));
+        MachineTestSupport.useCarrot(helper, player, ANCHOR, Direction.NORTH);
         helper.assertBlockNotPresent(MachineContent.ENDER_ANCHOR.get(), ANCHOR);
-        List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(1));
+        List<ItemEntity> drops = MachineTestSupport.drops(helper, ANCHOR, 1);
         helper.assertTrue(drops.stream().noneMatch(drop -> drop.getItem().is(MachineContent.ANCHOR_UPGRADE.get())), "no upgrade drops on its own");
         ItemStack item = drops.stream().map(ItemEntity::getItem)
                 .filter(stack -> stack.is(MachineContent.ENDER_ANCHOR_ITEM.get())).findFirst().orElseThrow();

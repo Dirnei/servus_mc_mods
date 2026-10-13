@@ -4,7 +4,10 @@ import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -30,24 +33,12 @@ import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
  */
 public final class PumpLogic {
 
-    /**
-     * A pump has no side settings: front and bottom are fixed Off, every other
-     * side is fixed Auto, which offers and pushes water and takes fuel.
-     */
-    public static void lockSides(SideConfig config) {
-        config.lock(RelativeSide.BOTTOM, SideMode.DISABLED);
-        for (RelativeSide side : new RelativeSide[] {RelativeSide.BACK, RelativeSide.LEFT, RelativeSide.RIGHT, RelativeSide.TOP}) {
-            config.lock(side, SideMode.AUTO);
-        }
-    }
-
     private static final int PUSH_INTERVAL = 10;
     private static final Direction[] HORIZONTAL = {Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST};
 
     private final FluidSlot tank;
     private final ResourceHandler<FluidResource> drainOnly;
     private boolean sourceValid;
-    /** Set on load and by neighbour changes: check the source on the next tick, whatever the progress. */
     private boolean checkRequested = true;
     private int ticksSinceCheck;
     private int pushCooldown;
@@ -64,6 +55,18 @@ public final class PumpLogic {
             }
         };
         this.drainOnly = new DrainOnlyHandler(tank);
+    }
+
+    /**
+     * Locks a beam pump's sides: front, bottom and top (the upper half) Off, back and
+     * sides Auto, which offers and pushes water and takes fuel.
+     */
+    public static void lockSides(SideConfig config) {
+        config.lock(RelativeSide.BOTTOM, SideMode.DISABLED);
+        config.lock(RelativeSide.TOP, SideMode.DISABLED);
+        for (RelativeSide side : new RelativeSide[] {RelativeSide.BACK, RelativeSide.LEFT, RelativeSide.RIGHT}) {
+            config.lock(side, SideMode.AUTO);
+        }
     }
 
     public FluidSlot tank() {
@@ -154,6 +157,17 @@ public final class PumpLogic {
     /** Registry index of the buffered fluid, for menu sync. */
     public int fluidId() {
         return BuiltInRegistries.FLUID.getId(tank.getFluid().getFluid());
+    }
+
+    /** The pump's menu data entries, or {@code fallback} for every other index. */
+    public int data(int index, MachineStats stats, IntUnaryOperator fallback) {
+        return switch (index) {
+            case MachineBlockEntity.DATA_FLUID_AMOUNT -> tank.getFluidAmount();
+            case MachineBlockEntity.DATA_FLUID_CAPACITY -> stats.fluidCapacity();
+            case MachineBlockEntity.DATA_FLUID_ID -> fluidId();
+            case MachineBlockEntity.DATA_SOURCE_VALID -> sourceValid ? 1 : 0;
+            default -> fallback.applyAsInt(index);
+        };
     }
 
     public void save(ValueOutput output) {

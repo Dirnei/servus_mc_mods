@@ -1,7 +1,5 @@
 package io.github.dirnei.mc.servus.foundation.machine.menu;
 
-import io.github.dirnei.mc.servus.foundation.machine.menu.MachineSlot;
-import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;

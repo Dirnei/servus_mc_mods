@@ -31,7 +31,7 @@ public abstract class MachineMenu extends AbstractContainerMenu {
     private final ContainerData data;
     private final ContainerLevelAccess access;
     private final Block block;
-    private int machineSlots;
+    private final int machineSlots;
 
     protected MachineMenu(MenuType<?> type, int containerId, Inventory playerInventory, MachineBlockEntity machine) {
         this(type, containerId, playerInventory, machine, machine.containerData());
@@ -45,7 +45,7 @@ public abstract class MachineMenu extends AbstractContainerMenu {
         this.block = machine.getBlockState().getBlock();
         addMachineSlots();
         this.machineSlots = slots.size();
-        addPlayerSlots(playerInventory);
+        PlayerInventorySlots.add(this::addSlot, playerInventory, playerInventoryX(), playerInventoryY());
         addDataSlots(data);
     }
 
@@ -73,22 +73,9 @@ public abstract class MachineMenu extends AbstractContainerMenu {
         return 8;
     }
 
-    /** Top edge of the player inventory; taller GUIs move it down. The hotbar sits 58 below. */
+    /** Top edge of the player inventory; taller GUIs move it down. */
     protected int playerInventoryY() {
         return 84;
-    }
-
-    private void addPlayerSlots(Inventory playerInventory) {
-        int x = playerInventoryX();
-        int y = playerInventoryY();
-        for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, x + column * 18, y + row * 18));
-            }
-        }
-        for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(playerInventory, column, x + column * 18, y + 58));
-        }
     }
 
     public MachineBlockEntity machine() {
@@ -98,8 +85,6 @@ public abstract class MachineMenu extends AbstractContainerMenu {
     protected ContainerData data() {
         return data;
     }
-
-    // Data for screens
 
     public int progressScaled(int pixels) {
         int work = data.get(MachineBlockEntity.DATA_WORK_TICKS);
@@ -133,8 +118,7 @@ public abstract class MachineMenu extends AbstractContainerMenu {
         return capacity <= 0 ? 0 : (int) ((long) energyStored() * pixels / capacity);
     }
 
-    // Fluid buffer, only synced by machines that have one
-
+    /** Fluid entries are only synced by machines with a fluid buffer. */
     private int dataOrZero(int index) {
         return index < data.getCount() ? data.get(index) : 0;
     }
@@ -157,10 +141,8 @@ public abstract class MachineMenu extends AbstractContainerMenu {
         return dataOrZero(MachineBlockEntity.DATA_SOURCE_VALID) != 0;
     }
 
-    // Side configuration
-
     /** Button ids from this value on cycle the relative side with that offset. */
-    public static final int SIDE_BUTTON_FIRST = io.github.dirnei.mc.servus.foundation.block.SideConfigMenus.BUTTON_FIRST;
+    public static final int SIDE_BUTTON_FIRST = SideConfigMenus.BUTTON_FIRST;
 
     public SideMode sideMode(RelativeSide side) {
         return SideMode.byOrdinal(data.get(MachineBlockEntity.DATA_SIDE_FIRST + side.ordinal()));
@@ -171,9 +153,8 @@ public abstract class MachineMenu extends AbstractContainerMenu {
         return data.get(MachineBlockEntity.DATA_FLUID_SIDE_FIRST + side.ordinal());
     }
 
-    // Vanilla contract
-
     @Override
+
     public boolean clickMenuButton(Player player, int id) {
         RelativeSide side = SideConfigMenus.sideOf(id);
         if (side != null) {

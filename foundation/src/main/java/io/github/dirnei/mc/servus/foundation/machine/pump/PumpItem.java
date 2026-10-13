@@ -18,10 +18,8 @@ import net.minecraft.world.phys.HitResult;
  * pad, instead of sinking to the pond floor. Without water in the line of sight
  * it places like any block item.
  *
- * <p>Follows the 1.21.1 {@code PlaceOnWaterBlockItem}: {@code Item.getPlayerPOVHitResult}
- * with {@code ClipContext.Fluid.SOURCE_ONLY}, then {@code BlockHitResult.withPosition}
- * one block up.
  */
+
 public class PumpItem extends BlockItem {
 
     public PumpItem(Block block, Properties properties) {
@@ -47,8 +45,7 @@ public class PumpItem extends BlockItem {
         if (water == null) {
             return super.use(level, player, hand);
         }
-        InteractionResult result = super.useOn(new UseOnContext(player, hand, water));
-        return result;
+        return super.useOn(new UseOnContext(player, hand, water));
     }
 
     /** The spot above the water source the player looks at, or null when something else is nearer. */

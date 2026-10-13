@@ -40,7 +40,7 @@ public abstract class MachineBlock extends BaseEntityBlock implements Wrenchable
     protected MachineBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any()
-                .setValue(FACING, net.minecraft.core.Direction.NORTH)
+                .setValue(FACING, Direction.NORTH)
                 .setValue(LIT, false));
     }
 

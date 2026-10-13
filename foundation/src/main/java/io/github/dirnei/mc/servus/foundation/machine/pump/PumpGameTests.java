@@ -1,20 +1,24 @@
 package io.github.dirnei.mc.servus.foundation.machine.pump;
 
+import static io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.bothHalvesGone;
+import static io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.count;
+import static io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.duct;
+import static io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.isHalf;
+import static io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.placeWithItem;
+import static io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.useCarrot;
+
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.MenuRecorder;
 import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.pump.BeamPumpBlock;
-import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
-import io.github.dirnei.mc.servus.foundation.machine.pump.PumpMachine;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import java.util.List;
@@ -34,22 +38,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import com.mojang.authlib.GameProfile;
-import java.util.OptionalInt;
-import java.util.UUID;
 import net.minecraft.world.MenuProvider;
 import io.github.dirnei.mc.servus.foundation.machine.menu.ElectricPumpMenu;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -60,35 +58,13 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 /** The pumps on a pond: water into a buffer, fixed sides, stubs and energy. */
 public final class PumpGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
+    /** Where the pond tests put the pump; an empty vanilla cauldron beside it is the fluid sink. */
+    private static final BlockPos PUMP = new BlockPos(3, 2, 3);
+    /** Where the two block engine tests put the pump. */
+    private static final BlockPos ENGINE = new BlockPos(6, 2, 6);
 
     private PumpGameTests() {
     }
-
-    private static BlockState facing(Block block, Direction direction) {
-        return block.defaultBlockState().setValue(MachineBlock.FACING, direction);
-    }
-
-    /**
-     * Places a Utility Duct carrying the given lines with default modes and
-     * line 1. {@code setBlock} skips placement logic, so the connection
-     * flags are refreshed from the neighbours afterwards.
-     */
-    private static void duct(GameTestHelper helper, BlockPos pos, Line... lines) {
-        helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
-        for (Line line : lines) {
-            duct.addLine(line);
-        }
-        BlockPos absolute = helper.absolutePos(pos);
-        BlockState state = helper.getLevel().getBlockState(absolute);
-        helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
-    }
-
-    // Pumps. The Fluid Tank is built in a parallel change, so an empty vanilla cauldron (NeoForge's
-    // CauldronWrapper) is the fluid sink, and the pump buffer is read through its capability.
-
-    private static final BlockPos PUMP = new BlockPos(3, 2, 3);
 
     /** Stone at y 1 around and under the pump with up to four water sources in a 2 by 2 pool below it. */
     private static void pool(GameTestHelper helper, int sources) {
@@ -143,7 +119,7 @@ public final class PumpGameTests {
     }
 
     private static void placeBeamPump(GameTestHelper helper, BlockPos pos, BeamPumpBlock block) {
-        BlockState lower = facing(block, Direction.NORTH);
+        BlockState lower = block.defaultBlockState().setValue(MachineBlock.FACING, Direction.NORTH);
         helper.setBlock(pos, lower);
         helper.setBlock(pos.above(), block.upperOf(lower));
     }
@@ -384,42 +360,26 @@ public final class PumpGameTests {
         helper.succeed();
     }
 
-    // The Burner Pump as a two block engine.
-
-    private static final BlockPos ENGINE = new BlockPos(6, 2, 6);
-
-    /** Uses a Burner Pump item on the top of the block below {@code pos} as a survival player facing north. */
-    private static ItemStack placeWithItem(GameTestHelper helper, BlockPos pos) {
+    private static ItemStack placeBurnerPumpItem(GameTestHelper helper, BlockPos pos) {
         return placeWithItem(helper, pos, new ItemStack(MachineContent.BURNER_PUMP_ITEM.get()));
     }
 
-    /** Uses a pump item on the top of the block below {@code pos} as a survival player facing north. */
-    private static ItemStack placeWithItem(GameTestHelper helper, BlockPos pos, ItemStack stack) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        BlockPos below = helper.absolutePos(pos.below());
-        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(below).add(0, 0.5, 0), Direction.UP, below, false);
-        stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack, hit));
-        return stack;
-    }
-
-    private static boolean isHalf(GameTestHelper helper, BlockPos pos, DoubleBlockHalf half) {
+    private static boolean burnerHalf(GameTestHelper helper, BlockPos pos, DoubleBlockHalf half) {
         return isHalf(helper, pos, half, MachineContent.BURNER_PUMP.get());
     }
 
-    private static boolean isHalf(GameTestHelper helper, BlockPos pos, DoubleBlockHalf half, Block block) {
-        BlockState state = helper.getBlockState(pos);
-        return state.is(block) && state.getValue(BeamPumpBlock.HALF) == half;
+    private static boolean electricHalf(GameTestHelper helper, BlockPos pos, DoubleBlockHalf half) {
+        return isHalf(helper, pos, half, MachineContent.ELECTRIC_PUMP.get());
     }
 
     /** One item fills the clicked spot and the block above, facing the same way. */
     @ServusGameTest(timeoutTicks = 20)
     public static void burnerPumpPlacesTwoHalves(GameTestHelper helper) {
         helper.setBlock(ENGINE.below(), Blocks.STONE.defaultBlockState());
-        ItemStack left = placeWithItem(helper, ENGINE);
+        ItemStack left = placeBurnerPumpItem(helper, ENGINE);
         helper.assertTrue(left.isEmpty(), "the item is used up");
-        helper.assertTrue(isHalf(helper, ENGINE, DoubleBlockHalf.LOWER), "the lower half is placed");
-        helper.assertTrue(isHalf(helper, ENGINE.above(), DoubleBlockHalf.UPPER), "the upper half is placed above");
+        helper.assertTrue(burnerHalf(helper, ENGINE, DoubleBlockHalf.LOWER), "the lower half is placed");
+        helper.assertTrue(burnerHalf(helper, ENGINE.above(), DoubleBlockHalf.UPPER), "the upper half is placed above");
         helper.assertTrue(helper.getBlockState(ENGINE).getValue(MachineBlock.FACING) == helper.getBlockState(ENGINE.above()).getValue(MachineBlock.FACING),
                 "both halves face the same way");
         helper.assertTrue(helper.getBlockEntity(ENGINE, BlockEntity.class) instanceof BurnerPumpBlockEntity, "the lower half holds the machine");
@@ -432,7 +392,7 @@ public final class PumpGameTests {
     public static void burnerPumpNeedsRoomAbove(GameTestHelper helper) {
         helper.setBlock(ENGINE.below(), Blocks.STONE.defaultBlockState());
         helper.setBlock(ENGINE.above(), Blocks.STONE.defaultBlockState());
-        ItemStack left = placeWithItem(helper, ENGINE);
+        ItemStack left = placeBurnerPumpItem(helper, ENGINE);
         helper.assertTrue(left.getCount() == 1, "the item stays in the hand");
         helper.assertTrue(helper.getBlockState(ENGINE).isAir(), "nothing is placed");
         helper.succeed();
@@ -460,8 +420,8 @@ public final class PumpGameTests {
     public static void burnerPumpPlacesOnWaterSurface(GameTestHelper helper) {
         ItemStack left = placeOnWater(helper, ENGINE, new ItemStack(MachineContent.BURNER_PUMP_ITEM.get()));
         helper.assertTrue(left.isEmpty(), "the item is used up");
-        helper.assertTrue(isHalf(helper, ENGINE, DoubleBlockHalf.LOWER), "the lower half sits on the water");
-        helper.assertTrue(isHalf(helper, ENGINE.above(), DoubleBlockHalf.UPPER), "the upper half is placed above");
+        helper.assertTrue(burnerHalf(helper, ENGINE, DoubleBlockHalf.LOWER), "the lower half sits on the water");
+        helper.assertTrue(burnerHalf(helper, ENGINE.above(), DoubleBlockHalf.UPPER), "the upper half is placed above");
         helper.assertTrue(helper.getBlockState(ENGINE.below()).is(Blocks.WATER), "the water source stays");
         helper.succeed();
     }
@@ -471,19 +431,14 @@ public final class PumpGameTests {
     public static void electricPumpPlacesOnWaterSurface(GameTestHelper helper) {
         ItemStack left = placeOnWater(helper, ENGINE, new ItemStack(MachineContent.ELECTRIC_PUMP_ITEM.get()));
         helper.assertTrue(left.isEmpty(), "the item is used up");
-        helper.assertTrue(isHalf(helper, ENGINE, DoubleBlockHalf.LOWER, MachineContent.ELECTRIC_PUMP.get()), "the lower half sits on the water");
-        helper.assertTrue(isHalf(helper, ENGINE.above(), DoubleBlockHalf.UPPER, MachineContent.ELECTRIC_PUMP.get()),
-                "the upper half is placed above");
+        helper.assertTrue(electricHalf(helper, ENGINE, DoubleBlockHalf.LOWER), "the lower half sits on the water");
+        helper.assertTrue(electricHalf(helper, ENGINE.above(), DoubleBlockHalf.UPPER), "the upper half is placed above");
         helper.assertTrue(helper.getBlockState(ENGINE.below()).is(Blocks.WATER), "the water source stays");
         helper.succeed();
     }
 
     private static List<ItemEntity> drops(GameTestHelper helper, BlockPos pos) {
-        return helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(pos)).inflate(2));
-    }
-
-    private static int count(List<ItemEntity> drops, net.minecraft.world.item.Item item) {
-        return drops.stream().filter(drop -> drop.getItem().is(item)).mapToInt(drop -> drop.getItem().getCount()).sum();
+        return MachineTestSupport.drops(helper, pos, 2);
     }
 
     /** Breaking either half removes both and drops one pump plus the fuel. */
@@ -498,7 +453,7 @@ public final class PumpGameTests {
         helper.getLevel().destroyBlock(helper.absolutePos(ENGINE.above()), true);
         helper.getLevel().destroyBlock(helper.absolutePos(second), true);
         for (BlockPos pos : new BlockPos[] {ENGINE, second}) {
-            helper.assertTrue(helper.getBlockState(pos).isAir() && helper.getBlockState(pos.above()).isAir(), "both halves are gone at " + pos);
+            helper.assertTrue(bothHalvesGone(helper, pos), "both halves are gone at " + pos);
             List<ItemEntity> drops = drops(helper, pos);
             helper.assertTrue(count(drops, MachineContent.BURNER_PUMP_ITEM.get()) == 1, "exactly one Burner Pump drops at " + pos);
             helper.assertTrue(count(drops, Items.COAL) == 5, "the fuel drops at " + pos);
@@ -545,12 +500,6 @@ public final class PumpGameTests {
         helper.succeed();
     }
 
-    // The Electric Pump as a two block engine.
-
-    private static boolean electricHalf(GameTestHelper helper, BlockPos pos, DoubleBlockHalf half) {
-        return isHalf(helper, pos, half, MachineContent.ELECTRIC_PUMP.get());
-    }
-
     /** One item fills the clicked spot and the block above, facing the same way; only the lower half is a machine. */
     @ServusGameTest(timeoutTicks = 20)
     public static void electricPlacesTwoHalves(GameTestHelper helper) {
@@ -582,7 +531,7 @@ public final class PumpGameTests {
     public static void electricBreakTopDropsOne(GameTestHelper helper) {
         placeElectricPump(helper, ENGINE);
         helper.getLevel().destroyBlock(helper.absolutePos(ENGINE.above()), true);
-        helper.assertTrue(helper.getBlockState(ENGINE).isAir() && helper.getBlockState(ENGINE.above()).isAir(), "both halves are gone");
+        helper.assertTrue(bothHalvesGone(helper, ENGINE), "both halves are gone");
         List<ItemEntity> drops = drops(helper, ENGINE);
         helper.assertTrue(count(drops, MachineContent.ELECTRIC_PUMP_ITEM.get()) == 1, "exactly one Electric Pump drops");
         drops.forEach(ItemEntity::discard);
@@ -598,7 +547,7 @@ public final class PumpGameTests {
         BlockState upper = helper.getLevel().getBlockState(top);
         upper.getBlock().playerWillDestroy(helper.getLevel(), top, upper, player);
         helper.getLevel().removeBlock(top, false);
-        helper.assertTrue(helper.getBlockState(ENGINE).isAir() && helper.getBlockState(ENGINE.above()).isAir(), "both halves are gone");
+        helper.assertTrue(bothHalvesGone(helper, ENGINE), "both halves are gone");
         helper.assertTrue(count(drops(helper, ENGINE), MachineContent.ELECTRIC_PUMP_ITEM.get()) == 0, "no Electric Pump drops in creative");
         helper.succeed();
     }
@@ -612,14 +561,10 @@ public final class PumpGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);
         for (BlockPos clicked : new BlockPos[] {ENGINE, second.above()}) {
-            ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
-            player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
-            BlockPos pos = helper.absolutePos(clicked);
-            carrot.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, carrot,
-                    new BlockHitResult(Vec3.atCenterOf(pos), Direction.EAST, pos, false)));
+            useCarrot(helper, player, clicked, Direction.EAST);
         }
         for (BlockPos pos : new BlockPos[] {ENGINE, second}) {
-            helper.assertTrue(helper.getBlockState(pos).isAir() && helper.getBlockState(pos.above()).isAir(), "both halves are gone at " + pos);
+            helper.assertTrue(bothHalvesGone(helper, pos), "both halves are gone at " + pos);
             List<ItemEntity> drops = drops(helper, pos);
             helper.assertTrue(count(drops, MachineContent.ELECTRIC_PUMP_ITEM.get()) == 1, "exactly one Electric Pump drops at " + pos);
             drops.forEach(ItemEntity::discard);
@@ -644,35 +589,18 @@ public final class PumpGameTests {
         });
     }
 
-    /**
-     * Right clicking the fan grille opens the Electric Pump GUI. A mock server
-     * player cannot receive the open screen payload, so a plain player records
-     * the menu it is asked to open.
-     */
+    /** Right clicking the fan grille opens the Electric Pump GUI. */
     @ServusGameTest(timeoutTicks = 20)
     public static void electricTopOpensGui(GameTestHelper helper) {
         placeElectricPump(helper, ENGINE);
-        MenuProvider[] opened = new MenuProvider[1];
-        BlockPos[] openedAt = new BlockPos[1];
-        Player player = new Player(helper.getLevel(), new GameProfile(UUID.randomUUID(), "pump-test")) {
-            @Override
-            public GameType gameMode() {
-                return GameType.SURVIVAL;
-            }
-
-            @Override
-            public OptionalInt openMenu(MenuProvider provider, BlockPos pos) {
-                opened[0] = provider;
-                openedAt[0] = pos;
-                return OptionalInt.of(1);
-            }
-        };
+        MenuRecorder player = new MenuRecorder(helper, "pump-test");
         BlockPos top = helper.absolutePos(ENGINE.above());
         helper.getLevel().getBlockState(top).useWithoutItem(helper.getLevel(), player,
                 new BlockHitResult(Vec3.atCenterOf(top), Direction.WEST, top, false));
-        helper.assertTrue(opened[0] instanceof ElectricPumpBlockEntity, "the Electric Pump opens its GUI, got " + opened[0]);
-        helper.assertTrue(helper.absolutePos(ENGINE).equals(openedAt[0]), "the GUI belongs to the lower half");
-        helper.assertTrue(opened[0].createMenu(0, player.getInventory(), player) instanceof ElectricPumpMenu, "its menu is the Electric Pump menu");
+        MenuProvider opened = player.opened();
+        helper.assertTrue(opened instanceof ElectricPumpBlockEntity, "the Electric Pump opens its GUI, got " + opened);
+        helper.assertTrue(helper.absolutePos(ENGINE).equals(player.openedAt()), "the GUI belongs to the lower half");
+        helper.assertTrue(opened.createMenu(0, player.getInventory(), player) instanceof ElectricPumpMenu, "its menu is the Electric Pump menu");
         helper.succeed();
     }
 

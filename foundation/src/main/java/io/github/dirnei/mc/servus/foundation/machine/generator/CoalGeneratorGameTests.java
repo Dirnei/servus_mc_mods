@@ -1,42 +1,34 @@
 package io.github.dirnei.mc.servus.foundation.machine.generator;
 
-import com.mojang.authlib.GameProfile;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.TwoHalves;
 import io.github.dirnei.mc.servus.foundation.machine.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpGameTests;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import java.util.List;
-import java.util.OptionalInt;
-import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
+import static io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.bothHalvesGone;
+import static io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.count;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -61,30 +53,15 @@ public final class CoalGeneratorGameTests {
     }
 
     private static boolean isHalf(GameTestHelper helper, BlockPos pos, DoubleBlockHalf half) {
-        BlockState state = helper.getBlockState(pos);
-        return state.is(MachineContent.COAL_GENERATOR.get()) && state.getValue(TwoHalves.HALF) == half;
+        return MachineTestSupport.isHalf(helper, pos, half, MachineContent.COAL_GENERATOR.get());
     }
 
     private static ItemStack placeWithItem(GameTestHelper helper, BlockPos pos) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack stack = new ItemStack(MachineContent.COAL_GENERATOR_ITEM.get());
-        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        BlockPos below = helper.absolutePos(pos.below());
-        stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack,
-                new BlockHitResult(Vec3.atCenterOf(below).add(0, 0.5, 0), Direction.UP, below, false)));
-        return stack;
+        return MachineTestSupport.placeWithItem(helper, pos, new ItemStack(MachineContent.COAL_GENERATOR_ITEM.get()));
     }
 
     private static List<ItemEntity> drops(GameTestHelper helper, BlockPos pos) {
-        return helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(pos)).inflate(2));
-    }
-
-    private static int count(List<ItemEntity> drops, Item item) {
-        return drops.stream().filter(drop -> drop.getItem().is(item)).mapToInt(drop -> drop.getItem().getCount()).sum();
-    }
-
-    private static boolean gone(GameTestHelper helper, BlockPos pos) {
-        return helper.getBlockState(pos).isAir() && helper.getBlockState(pos.above()).isAir();
+        return MachineTestSupport.drops(helper, pos, 2);
     }
 
     /** One item fills the clicked spot and the block above; only the cube is a machine. */
@@ -120,7 +97,7 @@ public final class CoalGeneratorGameTests {
         helper.getBlockEntity(GEN, CoalGeneratorBlockEntity.class).inventory()
                 .setStackInSlot(CoalGeneratorBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 5));
         helper.getLevel().destroyBlock(helper.absolutePos(GEN.above()), true);
-        helper.assertTrue(gone(helper, GEN), "both halves are gone");
+        helper.assertTrue(bothHalvesGone(helper, GEN), "both halves are gone");
         List<ItemEntity> drops = drops(helper, GEN);
         helper.assertTrue(count(drops, MachineContent.COAL_GENERATOR_ITEM.get()) == 1, "exactly one Coal Generator drops");
         helper.assertTrue(count(drops, Items.COAL) == 5, "the coal drops");
@@ -142,7 +119,7 @@ public final class CoalGeneratorGameTests {
             helper.getLevel().removeBlock(pos, false);
         }
         for (BlockPos pos : new BlockPos[] {GEN, second}) {
-            helper.assertTrue(gone(helper, pos), "both halves are gone at " + pos);
+            helper.assertTrue(bothHalvesGone(helper, pos), "both halves are gone at " + pos);
             helper.assertTrue(count(drops(helper, pos), MachineContent.COAL_GENERATOR_ITEM.get()) == 0, "no generator drops at " + pos);
         }
         helper.succeed();
@@ -150,11 +127,7 @@ public final class CoalGeneratorGameTests {
 
     private static void carrot(GameTestHelper helper, Player player, BlockPos at, boolean sneak) {
         player.setShiftKeyDown(sneak);
-        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
-        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
-        BlockPos pos = helper.absolutePos(at);
-        carrot.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, carrot,
-                new BlockHitResult(Vec3.atCenterOf(pos), Direction.EAST, pos, false)));
+        MachineTestSupport.useCarrot(helper, player, at, Direction.EAST);
         player.setShiftKeyDown(false);
     }
 
@@ -169,7 +142,7 @@ public final class CoalGeneratorGameTests {
         helper.assertTrue(isHalf(helper, GEN.above(), DoubleBlockHalf.UPPER), "a plain click leaves the chimney");
         helper.assertTrue(generator.sideMode(Direction.EAST) == before, "a plain click on the chimney changes no side");
         carrot(helper, player, GEN.above(), true);
-        helper.assertTrue(gone(helper, GEN), "both halves are gone");
+        helper.assertTrue(bothHalvesGone(helper, GEN), "both halves are gone");
         List<ItemEntity> drops = drops(helper, GEN);
         helper.assertTrue(count(drops, MachineContent.COAL_GENERATOR_ITEM.get()) == 1, "exactly one Coal Generator drops");
         drops.forEach(ItemEntity::discard);
@@ -193,34 +166,18 @@ public final class CoalGeneratorGameTests {
         });
     }
 
-    /**
-     * Right clicking the chimney opens the generator's GUI. A mock server player
-     * cannot receive the open screen payload, so a plain player records the menu.
-     */
+    /** Right clicking the chimney opens the generator's GUI. */
     @ServusGameTest(timeoutTicks = 20)
     public static void chimneyOpensGui(GameTestHelper helper) {
         place(helper, GEN, Direction.NORTH);
-        MenuProvider[] opened = new MenuProvider[1];
-        BlockPos[] openedAt = new BlockPos[1];
-        Player player = new Player(helper.getLevel(), new GameProfile(UUID.randomUUID(), "generator-test")) {
-            @Override
-            public GameType gameMode() {
-                return GameType.SURVIVAL;
-            }
-
-            @Override
-            public OptionalInt openMenu(MenuProvider provider, BlockPos pos) {
-                opened[0] = provider;
-                openedAt[0] = pos;
-                return OptionalInt.of(1);
-            }
-        };
+        MachineTestSupport.MenuRecorder player = new MachineTestSupport.MenuRecorder(helper, "generator-test");
         BlockPos top = helper.absolutePos(GEN.above());
         helper.getLevel().getBlockState(top).useWithoutItem(helper.getLevel(), player,
                 new BlockHitResult(Vec3.atCenterOf(top), Direction.WEST, top, false));
-        helper.assertTrue(opened[0] instanceof CoalGeneratorBlockEntity, "the generator opens its GUI, got " + opened[0]);
-        helper.assertTrue(helper.absolutePos(GEN).equals(openedAt[0]), "the GUI belongs to the cube");
-        helper.assertTrue(opened[0].createMenu(0, player.getInventory(), player) instanceof CoalGeneratorMenu, "its menu is the generator menu");
+        MenuProvider opened = player.opened();
+        helper.assertTrue(opened instanceof CoalGeneratorBlockEntity, "the generator opens its GUI, got " + opened);
+        helper.assertTrue(helper.absolutePos(GEN).equals(player.openedAt()), "the GUI belongs to the cube");
+        helper.assertTrue(opened.createMenu(0, player.getInventory(), player) instanceof CoalGeneratorMenu, "its menu is the generator menu");
         helper.succeed();
     }
 
@@ -236,13 +193,8 @@ public final class CoalGeneratorGameTests {
             helper.assertTrue(helper.getLevel().getCapability(ServusFoundationCapabilities.UPKEEP, top, side) == null, "no upkeep on " + side);
         }
         BlockPos ductPos = GEN.above().east();
-        helper.setBlock(ductPos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
+        MachineTestSupport.duct(helper, ductPos, Line.ENERGY, Line.ITEM);
         UtilityDuctBlockEntity duct = helper.getBlockEntity(ductPos, UtilityDuctBlockEntity.class);
-        duct.addLine(Line.ENERGY);
-        duct.addLine(Line.ITEM);
-        BlockPos absolute = helper.absolutePos(ductPos);
-        BlockState state = helper.getLevel().getBlockState(absolute);
-        helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
         helper.assertFalse(duct.hasArm(Line.ENERGY, Direction.WEST), "no Power Cable arm toward the chimney");
         helper.assertFalse(duct.hasArm(Line.ITEM, Direction.WEST), "no Item Pipe arm toward the chimney");
         helper.succeed();

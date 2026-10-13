@@ -43,22 +43,17 @@ public abstract class PoweredMachineBlockEntity extends MachineBlockEntity {
             capacityApplied = true;
         }
         if (!canWork()) {
-            if (progress != 0) {
-                progress = 0;
-                setChanged();
-            }
+            resetProgress();
             return false;
         }
         if (!energy.consume(energyPerTickNow())) {
             return false;
         }
-        progress++;
-        if (progress >= workTicks()) {
-            progress = 0;
+        if (stepProgress()) {
             finishWork();
         }
-        setChanged();
         return true;
+
     }
 
     @Override

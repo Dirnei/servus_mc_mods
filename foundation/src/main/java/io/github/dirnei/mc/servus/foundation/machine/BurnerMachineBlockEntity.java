@@ -86,10 +86,7 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
             burnTime--;
         }
         if (!hasWork) {
-            if (progress != 0) {
-                progress = 0;
-                setChanged();
-            }
+            resetProgress();
             return false;
         }
         if (burnTime <= 0) {
@@ -98,21 +95,15 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
         if (burnTime <= 0) {
             return false;
         }
-        progress++;
-        if (progress >= workTicks()) {
-            progress = 0;
+        if (stepProgress()) {
             finishWork();
         }
-        setChanged();
         return true;
     }
 
     private void consumeFuel() {
         ItemStack fuel = inventory.getStackInSlot(fuelSlot());
-        if (fuel.isEmpty()) {
-            return;
-        }
-        if (level == null) {
+        if (fuel.isEmpty() || level == null) {
             return;
         }
         int time = fuel.getBurnTime(RecipeType.SMELTING, level.fuelValues());
@@ -125,11 +116,8 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
         ItemStackTemplate remainderTemplate = fuel.getCraftingRemainder();
         ItemStack remainder = remainderTemplate == null ? ItemStack.EMPTY : remainderTemplate.create();
         fuel.shrink(1);
-        if (fuel.isEmpty()) {
-            inventory.setStackInSlot(fuelSlot(), remainder);
-        } else {
-            inventory.setStackInSlot(fuelSlot(), fuel);
-        }
+        inventory.setStackInSlot(fuelSlot(), fuel.isEmpty() ? remainder : fuel);
+
     }
 
     @Override

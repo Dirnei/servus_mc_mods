@@ -7,8 +7,6 @@ import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlock;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
@@ -26,21 +24,15 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /** The shared machine rules and fuel upkeep, on Foundation's own burner machines. */
 public final class MachineBaseGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos POS = new BlockPos(3, 2, 3);
 
     private MachineBaseGameTests() {
-    }
-
-    private static BlockState facing(Block block, Direction direction) {
-        return block.defaultBlockState().setValue(MachineBlock.FACING, direction);
     }
 
     private static UpkeepHolder upkeep(GameTestHelper helper, BlockPos pos, Direction side) {
@@ -112,15 +104,6 @@ public final class MachineBaseGameTests {
         helper.succeed();
     }
 
-    private static void dataDuct(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
-        duct.addLine(Line.DATA);
-        BlockPos absolute = helper.absolutePos(pos);
-        BlockState state = helper.getLevel().getBlockState(absolute);
-        helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
-    }
-
     private static Optional<DataMember> member(GameTestHelper helper, BlockPos duct, BlockPos pos) {
         return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(duct)).flatMap(network ->
                 network.dataMembers().stream().filter(member -> member.pos().equals(helper.absolutePos(pos))).findFirst());
@@ -132,7 +115,7 @@ public final class MachineBaseGameTests {
         BlockPos generator = new BlockPos(5, 2, 3);
         BlockPos duct = new BlockPos(4, 2, 3);
         CoalGeneratorGameTests.place(helper, generator, Direction.NORTH);
-        dataDuct(helper, duct);
+        MachineTestSupport.duct(helper, duct, Line.DATA);
         helper.succeedWhen(() -> {
             DataMember generatorMember = member(helper, duct, generator).orElse(null);
             helper.assertTrue(generatorMember != null && generatorMember.roles().equals(Set.of(DataRole.UPKEEP)),

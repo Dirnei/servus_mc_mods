@@ -16,6 +16,9 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
@@ -49,7 +52,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     public static final int DATA_BURN_DURATION = 3;
     public static final int DATA_ENERGY = 4;
     public static final int DATA_ENERGY_CAPACITY = 5;
-    /** Index 6 is free for machine specific data, see the assembler. */
+    /** Index 6 is free for machine specific data. */
     public static final int DATA_SIDE_FIRST = 7;
     /** The six Fluids layer values; 0 for machines without a Fluids layer. */
     public static final int DATA_FLUID_SIDE_FIRST = DATA_SIDE_FIRST + 6;
@@ -92,19 +95,15 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
 
     protected MachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, int slots) {
         super(type, pos, state);
-        // The raw inventory accepts anything so the machine itself can fill
-        // output slots. Role rules live in the side handlers and the menu slots.
+        // Accepts anything so the machine can fill its own output slots; slot roles apply in the side handlers and menu slots.
         this.inventory = new ItemSlots(slots) {
             @Override
             protected void onContentsChanged(int slot) {
                 setChanged();
             }
         };
-        // The front is where the player stands: never an item side.
         sideConfig.lock(RelativeSide.FRONT, SideMode.DISABLED);
     }
-
-    // Subclass contract
 
     /** Id used to look up stats in {@code data/<ns>/machine/}. */
     protected abstract Identifier machineId();
@@ -130,12 +129,29 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         return DATA_COUNT;
     }
 
-    // Shared behavior
-
     public static void serverTick(Level level, BlockPos pos, BlockState state, MachineBlockEntity machine) {
         boolean working = machine.tick();
         machine.pushOutputs();
-        machine.updateLit(state, working);
+        machine.updateLit(working);
+    }
+
+    /** Resets the progress of an idle machine. */
+    protected void resetProgress() {
+        if (progress != 0) {
+            progress = 0;
+            setChanged();
+        }
+    }
+
+    /** Advances the progress one tick; true when a work cycle finished and the progress started over. */
+    protected boolean stepProgress() {
+        progress++;
+        setChanged();
+        if (progress < workTicks()) {
+            return false;
+        }
+        progress = 0;
+        return true;
     }
 
     public MachineStats stats() {
@@ -170,8 +186,6 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     public ContainerData containerData() {
         return data;
     }
-
-    // Sides
 
     public SideConfig sideConfig() {
         return sideConfig;
@@ -208,7 +222,6 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     public FluidSides fluidSides() {
         if (fluidSides == null && !sideTanks().isEmpty()) {
             fluidSides = new FluidSides(sideTanks().size());
-            // The front is where the player stands: never a fluid side either.
             fluidSides.lock(RelativeSide.FRONT);
         }
         return fluidSides;
@@ -293,12 +306,15 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
             if (!sideMode(direction).pulls()) {
                 continue;
             }
-            ResourceHandler<ItemResource> neighbour = level.getCapability(Capabilities.Item.BLOCK,
-                    worldPosition.relative(direction), direction.getOpposite());
+            ResourceHandler<ItemResource> neighbour = neighbourItems(direction);
             if (neighbour != null) {
                 pullFrom(neighbour);
             }
         }
+    }
+
+    private ResourceHandler<ItemResource> neighbourItems(Direction direction) {
+        return level.getCapability(Capabilities.Item.BLOCK, worldPosition.relative(direction), direction.getOpposite());
     }
 
     private boolean pullFrom(ResourceHandler<ItemResource> neighbour) {
@@ -335,39 +351,41 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
             if (!sideMode(direction).pushes()) {
                 continue;
             }
-            ResourceHandler<ItemResource> neighbour = level.getCapability(Capabilities.Item.BLOCK,
-                    worldPosition.relative(direction), direction.getOpposite());
-            if (neighbour == null) {
-                continue;
-            }
-            for (int slot = 0; slot < inventory.getSlots(); slot++) {
-                if (!isOutputSlot(slot)) {
-                    continue;
-                }
-                ItemStack stack = inventory.getStackInSlot(slot);
-                if (stack.isEmpty()) {
-                    continue;
-                }
-                ItemStack remaining = Transfer.insertItem(neighbour, stack.copy(), false);
-                if (remaining.getCount() != stack.getCount()) {
-                    inventory.setStackInSlot(slot, remaining);
-                }
+            ResourceHandler<ItemResource> neighbour = neighbourItems(direction);
+            if (neighbour != null) {
+                pushTo(neighbour);
             }
         }
     }
 
-    private void updateLit(BlockState ticked, boolean working) {
+    private void pushTo(ResourceHandler<ItemResource> neighbour) {
+        for (int slot = 0; slot < inventory.getSlots(); slot++) {
+            if (!isOutputSlot(slot)) {
+                continue;
+            }
+            ItemStack stack = inventory.getStackInSlot(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            ItemStack remaining = Transfer.insertItem(neighbour, stack.copy(), false);
+            if (remaining.getCount() != stack.getCount()) {
+                inventory.setStackInSlot(slot, remaining);
+            }
+        }
+    }
+
+    private void updateLit(boolean working) {
         if (level == null) {
             return;
         }
-        // The tick may have changed other properties of the block; build on the current state.
+        // Read the state again: the tick may have changed other properties.
         BlockState state = level.getBlockState(worldPosition);
         if (state.hasProperty(MachineBlock.LIT) && state.getValue(MachineBlock.LIT) != working) {
             level.setBlock(worldPosition, state.setValue(MachineBlock.LIT, working), Block.UPDATE_CLIENTS);
         }
     }
 
-    /** Drops the inventory when the block is removed (replaces the old block removal hook). */
+    /** Drops the inventory when the block is removed. */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
@@ -386,8 +404,6 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         Containers.dropContents(level, worldPosition, stacks);
     }
 
-    // Persistence
-
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
@@ -405,7 +421,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        // Loads into the fixed size inventory: a saved size must never resize the machine.
+        // A saved inventory size must never resize the machine.
         if (input.child("Inventory").isPresent()) {
             inventory.load(input, "Inventory");
         }
@@ -417,8 +433,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         }
     }
 
-    // Client sync: the side markers need the modes
-
+    /** Sends the side modes along, for the client side markers. */
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
@@ -431,11 +446,9 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     }
 
     @Override
-    public net.minecraft.network.protocol.Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getUpdatePacket() {
-        return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
-
-    // MenuProvider
 
     @Override
     public Component getDisplayName() {

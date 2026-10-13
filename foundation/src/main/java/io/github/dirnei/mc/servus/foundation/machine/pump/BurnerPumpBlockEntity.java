@@ -8,7 +8,7 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.menu.BurnerPumpMenu;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
-import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -34,8 +34,6 @@ public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements P
     public BurnerPumpBlockEntity(BlockPos pos, BlockState state) {
         super(MachineContent.BURNER_PUMP_ENTITY.get(), pos, state, 1);
         PumpLogic.lockSides(sideConfig());
-        // The upper half of the engine sits on top: nothing passes there.
-        sideConfig().lock(RelativeSide.TOP, SideMode.DISABLED);
     }
 
     @Override
@@ -107,13 +105,7 @@ public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements P
 
     @Override
     protected int getData(int index) {
-        return switch (index) {
-            case DATA_FLUID_AMOUNT -> pump.tank().getFluidAmount();
-            case DATA_FLUID_CAPACITY -> stats().fluidCapacity();
-            case DATA_FLUID_ID -> pump.fluidId();
-            case DATA_SOURCE_VALID -> pump.sourceValid() ? 1 : 0;
-            default -> super.getData(index);
-        };
+        return pump.data(index, stats(), super::getData);
     }
 
     @Override

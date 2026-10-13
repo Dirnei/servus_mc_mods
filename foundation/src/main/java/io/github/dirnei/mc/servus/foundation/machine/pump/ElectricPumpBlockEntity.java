@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.foundation.machine.pump;
 
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
@@ -33,8 +33,6 @@ public class ElectricPumpBlockEntity extends PoweredMachineBlockEntity implement
     public ElectricPumpBlockEntity(BlockPos pos, BlockState state) {
         super(MachineContent.ELECTRIC_PUMP_ENTITY.get(), pos, state, 0);
         PumpLogic.lockSides(sideConfig());
-        // The upper half of the engine sits on top: nothing passes there.
-        sideConfig().lock(RelativeSide.TOP, SideMode.DISABLED);
     }
 
     @Override
@@ -101,13 +99,7 @@ public class ElectricPumpBlockEntity extends PoweredMachineBlockEntity implement
 
     @Override
     protected int getData(int index) {
-        return switch (index) {
-            case DATA_FLUID_AMOUNT -> pump.tank().getFluidAmount();
-            case DATA_FLUID_CAPACITY -> stats().fluidCapacity();
-            case DATA_FLUID_ID -> pump.fluidId();
-            case DATA_SOURCE_VALID -> pump.sourceValid() ? 1 : 0;
-            default -> super.getData(index);
-        };
+        return pump.data(index, stats(), super::getData);
     }
 
     @Override

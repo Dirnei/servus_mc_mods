@@ -21,16 +21,21 @@ import io.github.dirnei.mc.servus.foundation.machine.pump.PumpItem;
 import io.github.dirnei.mc.servus.foundation.upgrade.AnchorUpgradeItem;
 import java.util.List;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
+import net.neoforged.neoforge.network.IContainerFactory;
+
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -50,38 +55,33 @@ public final class MachineContent {
                     () -> machine().noOcclusion().pushReaction(PushReaction.BLOCK));
     public static final DeferredItem<BlockItem> COAL_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(COAL_GENERATOR);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoalGeneratorBlockEntity>> COAL_GENERATOR_ENTITY =
-            BLOCK_ENTITIES.register("coal_generator", () -> new BlockEntityType<>(CoalGeneratorBlockEntity::new, COAL_GENERATOR.get()));
+            blockEntity("coal_generator", CoalGeneratorBlockEntity::new, COAL_GENERATOR);
     public static final DeferredHolder<MenuType<?>, MenuType<CoalGeneratorMenu>> COAL_GENERATOR_MENU =
-            MENUS.register("coal_generator", () -> IMenuTypeExtension.create(CoalGeneratorMenu::fromNetwork));
+            menu("coal_generator", CoalGeneratorMenu::fromNetwork);
 
     public static final DeferredBlock<BurnerPumpBlock> BURNER_PUMP =
             BLOCKS.registerBlock("burner_pump", BurnerPumpBlock::new,
                     () -> machine().noOcclusion().pushReaction(PushReaction.BLOCK));
-    public static final DeferredItem<PumpItem> BURNER_PUMP_ITEM =
-            ITEMS.registerItem("burner_pump", properties -> new PumpItem(BURNER_PUMP.get(), properties),
-            Item.Properties::useBlockDescriptionPrefix);
+    public static final DeferredItem<PumpItem> BURNER_PUMP_ITEM = pumpItem("burner_pump", BURNER_PUMP);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BurnerPumpBlockEntity>> BURNER_PUMP_ENTITY =
-            BLOCK_ENTITIES.register("burner_pump", () -> new BlockEntityType<>(BurnerPumpBlockEntity::new, BURNER_PUMP.get()));
+            blockEntity("burner_pump", BurnerPumpBlockEntity::new, BURNER_PUMP);
     public static final DeferredHolder<MenuType<?>, MenuType<BurnerPumpMenu>> BURNER_PUMP_MENU =
-            MENUS.register("burner_pump", () -> IMenuTypeExtension.create(BurnerPumpMenu::fromNetwork));
+            menu("burner_pump", BurnerPumpMenu::fromNetwork);
 
     public static final DeferredBlock<ElectricPumpBlock> ELECTRIC_PUMP =
             BLOCKS.registerBlock("electric_pump", ElectricPumpBlock::new,
                     () -> machine().noOcclusion().pushReaction(PushReaction.BLOCK));
-    public static final DeferredItem<PumpItem> ELECTRIC_PUMP_ITEM =
-            ITEMS.registerItem("electric_pump", properties -> new PumpItem(ELECTRIC_PUMP.get(), properties),
-            Item.Properties::useBlockDescriptionPrefix);
+    public static final DeferredItem<PumpItem> ELECTRIC_PUMP_ITEM = pumpItem("electric_pump", ELECTRIC_PUMP);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricPumpBlockEntity>> ELECTRIC_PUMP_ENTITY =
-            BLOCK_ENTITIES.register("electric_pump", () -> new BlockEntityType<>(ElectricPumpBlockEntity::new, ELECTRIC_PUMP.get()));
+            blockEntity("electric_pump", ElectricPumpBlockEntity::new, ELECTRIC_PUMP);
     public static final DeferredHolder<MenuType<?>, MenuType<ElectricPumpMenu>> ELECTRIC_PUMP_MENU =
-            MENUS.register("electric_pump", () -> IMenuTypeExtension.create(ElectricPumpMenu::fromNetwork));
+            menu("electric_pump", ElectricPumpMenu::fromNetwork);
 
     public static final DeferredBlock<SinkBlock> SINK = BLOCKS.registerBlock("sink", SinkBlock::new, () -> brick().noOcclusion());
     public static final DeferredItem<BlockItem> SINK_ITEM = ITEMS.registerSimpleBlockItem(SINK);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SinkBlockEntity>> SINK_ENTITY =
-            BLOCK_ENTITIES.register("sink", () -> new BlockEntityType<>(SinkBlockEntity::new, SINK.get()));
-    public static final DeferredHolder<MenuType<?>, MenuType<SinkMenu>> SINK_MENU =
-            MENUS.register("sink", () -> IMenuTypeExtension.create(SinkMenu::fromNetwork));
+            blockEntity("sink", SinkBlockEntity::new, SINK);
+    public static final DeferredHolder<MenuType<?>, MenuType<SinkMenu>> SINK_MENU = menu("sink", SinkMenu::fromNetwork);
     public static final DeferredBlock<ChimneyBlock> CHIMNEY = BLOCKS.registerBlock("chimney", ChimneyBlock::new, () -> brick().noOcclusion());
     public static final DeferredItem<BlockItem> CHIMNEY_ITEM = ITEMS.registerSimpleBlockItem(CHIMNEY);
 
@@ -89,14 +89,28 @@ public final class MachineContent {
             BLOCKS.registerBlock("ender_anchor", EnderAnchorBlock::new, () -> machine());
     public static final DeferredItem<BlockItem> ENDER_ANCHOR_ITEM = ITEMS.registerSimpleBlockItem(ENDER_ANCHOR);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EnderAnchorBlockEntity>> ENDER_ANCHOR_ENTITY =
-            BLOCK_ENTITIES.register("ender_anchor", () -> new BlockEntityType<>(EnderAnchorBlockEntity::new, ENDER_ANCHOR.get()));
+            blockEntity("ender_anchor", EnderAnchorBlockEntity::new, ENDER_ANCHOR);
     public static final DeferredHolder<MenuType<?>, MenuType<EnderAnchorMenu>> ENDER_ANCHOR_MENU =
-            MENUS.register("ender_anchor", () -> IMenuTypeExtension.create(EnderAnchorMenu::fromNetwork));
+            menu("ender_anchor", EnderAnchorMenu::fromNetwork);
     /** Widens an Ender Anchor's area and lets a Storage warehouse site wake. */
     public static final DeferredItem<AnchorUpgradeItem> ANCHOR_UPGRADE =
             ITEMS.registerItem("anchor_upgrade", AnchorUpgradeItem::new, () -> new Item.Properties().stacksTo(16));
 
     private MachineContent() {
+    }
+
+    private static <T extends BlockEntity> DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> blockEntity(
+            String name, BlockEntityType.BlockEntitySupplier<T> factory, DeferredBlock<?> block) {
+        return BLOCK_ENTITIES.register(name, () -> new BlockEntityType<>(factory, block.get()));
+    }
+
+    private static <M extends AbstractContainerMenu> DeferredHolder<MenuType<?>, MenuType<M>> menu(
+            String name, IContainerFactory<M> factory) {
+        return MENUS.register(name, () -> IMenuTypeExtension.create(factory));
+    }
+
+    private static DeferredItem<PumpItem> pumpItem(String name, DeferredBlock<? extends Block> block) {
+        return ITEMS.registerItem(name, properties -> new PumpItem(block.get(), properties), Item.Properties::useBlockDescriptionPrefix);
     }
 
     /** Creative tab order of Foundation's machines. */

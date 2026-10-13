@@ -1,15 +1,9 @@
 package io.github.dirnei.mc.servus.foundation.machine.sink;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
-import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.machine.menu.SinkMenu;
-import io.github.dirnei.mc.servus.foundation.machine.sink.ChimneyBlock;
-import io.github.dirnei.mc.servus.foundation.machine.sink.SinkBlock;
-import io.github.dirnei.mc.servus.foundation.machine.sink.SinkBlockEntity;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import java.util.HashSet;
 import java.util.List;
@@ -24,13 +18,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HopperBlock;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -42,36 +34,14 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 /** The Sink: forming with the carrot, voiding through every outer face, chimney rates and the trash GUI. */
 public final class SinkGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
+    /**
+     * The controller of the standard cube, which spans x 2..3, y 0..1, z 2..3 and faces north: the front
+     * lower east block (east is the left of a player looking at the front), west is right and south is back.
+     */
+    private static final BlockPos SINK = new BlockPos(3, 0, 2);
 
     private SinkGameTests() {
     }
-
-    private static BlockState facing(Block block, Direction direction) {
-        return block.defaultBlockState().setValue(MachineBlock.FACING, direction);
-    }
-
-    /**
-     * Places a Utility Duct carrying the given lines with default modes and
-     * line 1. {@code setBlock} skips placement logic, so the connection
-     * flags are refreshed from the neighbours afterwards.
-     */
-    private static void duct(GameTestHelper helper, BlockPos pos, Line... lines) {
-        helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
-        for (Line line : lines) {
-            duct.addLine(line);
-        }
-        BlockPos absolute = helper.absolutePos(pos);
-        BlockState state = helper.getLevel().getBlockState(absolute);
-        helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
-    }
-
-    // Sink: a 2x2x2 cube of Sink blocks formed with the carrot. The standard cube spans
-    // x 2..3, y 0..1, z 2..3 and faces north: its controller is the front lower east block
-    // (east is the left of a player looking at the front), west is right and south is back.
-
-    private static final BlockPos SINK = new BlockPos(3, 0, 2);
 
     /** Places eight unformed Sink blocks in the box from {@code min} to {@code min + (1, 1, 1)}, except {@code skip}. */
     private static void sinkBox(GameTestHelper helper, BlockPos min, BlockPos skip) {
@@ -199,9 +169,8 @@ public final class SinkGameTests {
                         "the rest should be unformed casings, not " + state);
             }
         }
-        List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(broken)).inflate(2));
-        int dropped = drops.stream().filter(entity -> entity.getItem().is(MachineContent.SINK_ITEM.get()))
-                .mapToInt(entity -> entity.getItem().getCount()).sum();
+        List<ItemEntity> drops = MachineTestSupport.drops(helper, broken, 2);
+        int dropped = MachineTestSupport.count(drops, MachineContent.SINK_ITEM.get());
         helper.assertTrue(dropped == 1, "one Sink block should drop, dropped " + dropped);
         drops.forEach(ItemEntity::discard);
         helper.setBlock(broken, MachineContent.SINK.get().defaultBlockState());
@@ -217,7 +186,7 @@ public final class SinkGameTests {
         carrot(helper, SINK, Direction.NORTH, true);
         helper.assertBlockNotPresent(MachineContent.SINK.get(), SINK);
         helper.assertTrue(!formed(helper, new BlockPos(2, 0, 2)), "the rest should be unformed");
-        List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(SINK)).inflate(2));
+        List<ItemEntity> drops = MachineTestSupport.drops(helper, SINK, 2);
         helper.assertTrue(drops.stream().anyMatch(entity -> entity.getItem().is(MachineContent.SINK_ITEM.get())),
                 "the block should drop as a Sink item");
         helper.succeed();
