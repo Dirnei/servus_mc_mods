@@ -1,56 +1,65 @@
 package io.github.dirnei.mc.servus.storage.controller;
 
-import io.github.dirnei.mc.servus.foundation.upgrade.AnchorUpgradeSlots;
-import net.minecraft.world.level.Level;
-import net.minecraft.core.UUIDUtil;
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.production.StockProvider;
-import io.github.dirnei.mc.servus.foundation.production.StockSink;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.upgrade.AnchorUpgradeSlots;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
-import io.github.dirnei.mc.servus.storage.order.StockRules;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.storage.order.StockRules;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
+import io.github.dirnei.mc.servus.storage.site.SiteCapacity;
+import io.github.dirnei.mc.servus.storage.site.SiteChunks;
+import io.github.dirnei.mc.servus.storage.site.SiteName;
+import io.github.dirnei.mc.servus.storage.site.SiteRegistry;
+import io.github.dirnei.mc.servus.storage.site.SiteWakes;
+import io.github.dirnei.mc.servus.storage.site.WakeMachine;
+import io.github.dirnei.mc.servus.storage.site.WirelessCost;
+import io.github.dirnei.mc.servus.storage.site.WirelessReach;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
-import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
-import io.github.dirnei.mc.servus.storage.site.SiteCapacity;
-import io.github.dirnei.mc.servus.storage.site.SiteChunks;
-import io.github.dirnei.mc.servus.storage.site.SiteName;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.model.data.ModelData;
 
 /** Exactly one per network makes the warehouse online. Shuttles live in garages. */
-public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity implements WoodHolder, net.minecraft.world.MenuProvider {
+public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity implements WoodHolder, MenuProvider {
 
     private final WoodSlot woodSlot = new WoodSlot(this);
 
-    /** Shuttles saved by an older build, dropped as items on the first load. */
+    /** Shuttles an older save kept in the controller; dropped as items on load. */
     private int legacyShuttles;
     private final StockRules rules = new StockRules();
 
-    // The site: its name, its team, the chunks it spans and the upgrades that let it wake.
     private String siteName = "";
     private UUID team;
     private final Set<Long> span = new LinkedHashSet<>();
@@ -76,8 +85,6 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         rules.onChanged(this::setChanged);
         span.add(homeChunk());
     }
-
-    // Site
 
     /** The name the player gave the site, empty when unnamed. */
     public String siteName() {
@@ -114,16 +121,15 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     /** Writes the site's record; only on the server and only while the controller is in the world. */
     private void syncRecord() {
         if (level instanceof ServerLevel server && !isRemoved()) {
-            io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(server).update(this);
+            SiteRegistry.of(server).update(this);
         }
     }
 
     @Override
     public void onChunkUnloaded() {
         unloading = true;
-        // The record keeps the FE for the wake: a sleeping controller neither gains nor spends any.
         if (level instanceof ServerLevel server) {
-            io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(server).updateEnergy(this);
+            SiteRegistry.of(server).updateEnergy(this);
         }
         super.onChunkUnloaded();
     }
@@ -133,8 +139,8 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     public void setRemoved() {
         if (level instanceof ServerLevel server && !unloading && server.isLoaded(worldPosition)
                 && !(server.getBlockState(worldPosition).getBlock() instanceof WarehouseControllerBlock)) {
-            io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(server).remove(server.dimension(), worldPosition);
-            io.github.dirnei.mc.servus.storage.site.SiteWakes.forget(server, worldPosition);
+            SiteRegistry.of(server).remove(server.dimension(), worldPosition);
+            SiteWakes.forget(server, worldPosition);
         }
         super.setRemoved();
     }
@@ -164,11 +170,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
 
     /** A placed controller starts with its own chunk; a span carried in an item would point at the old place. */
     public void resetSpan() {
-        span.clear();
-        span.add(homeChunk());
-        setChanged();
-        refreshSiteLamp();
-        syncRecord();
+        setSpan(Set.of());
     }
 
     public AnchorUpgradeSlots upgrades() {
@@ -186,32 +188,29 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     }
 
     /** The wake line of the GUI; empty while nobody wakes the site. */
-    public net.minecraft.network.chat.Component wakeLine() {
+    public Component wakeLine() {
         if (level == null) {
-            return net.minecraft.network.chat.Component.empty();
+            return Component.empty();
         }
-        return io.github.dirnei.mc.servus.storage.site.SiteWakes.line(level.dimension(), worldPosition)
-                .orElse(net.minecraft.network.chat.Component.empty());
+        return SiteWakes.line(level.dimension(), worldPosition)
+                .orElse(Component.empty());
     }
 
     /** Whether the wake line explains a problem: the site waits to wake. */
     public boolean wakeAlert() {
-        return level != null && io.github.dirnei.mc.servus.storage.site.SiteWakes.status(level.dimension(), worldPosition)
-                .map(status -> status.state() == io.github.dirnei.mc.servus.storage.site.WakeMachine.State.WAITING).orElse(false);
+        return level != null && SiteWakes.status(level.dimension(), worldPosition)
+                .map(status -> status.state() == WakeMachine.State.WAITING).orElse(false);
     }
 
     @Override
-    public net.minecraft.network.chat.Component getDisplayName() {
-        return net.minecraft.network.chat.Component.literal(displayName());
+    public Component getDisplayName() {
+        return Component.literal(displayName());
     }
 
     @Override
-    public net.minecraft.world.inventory.AbstractContainerMenu createMenu(int containerId, net.minecraft.world.entity.player.Inventory playerInventory,
-                                                                         net.minecraft.world.entity.player.Player player) {
-        return new io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu(containerId, playerInventory, this);
+    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        return new WarehouseControllerMenu(containerId, playerInventory, this);
     }
-
-    // Wireless and energy
 
     public WirelessUpgradeSlots wirelessUpgrade() {
         return wireless;
@@ -305,7 +304,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
 
     /** Whether the controller holds the FE of one item at the smallest wireless cost. */
     public boolean poweredForWireless() {
-        return io.github.dirnei.mc.servus.storage.site.WirelessCost.powered(energy.stored(), StorageStatsManager.INSTANCE.wirelessFePerItem());
+        return WirelessCost.powered(energy.stored(), StorageStatsManager.INSTANCE.wirelessFePerItem());
     }
 
     /**
@@ -313,7 +312,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
      * and is powered. A site whose controller is not capable neither sends nor receives.
      */
     public boolean capable() {
-        return io.github.dirnei.mc.servus.storage.site.WirelessReach.capable(hasWirelessUpgrade(), energy.stored(),
+        return WirelessReach.capable(hasWirelessUpgrade(), energy.stored(),
                 StorageStatsManager.INSTANCE.wirelessFePerItem());
     }
 
@@ -333,10 +332,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     private void wirelessUpgradeChanged() {
         setChanged();
         wasCapable = capable();
-        // The record keeps the upgrade itself, so every change is reported, not only a flip.
-        if (level != null && !level.isClientSide()) {
-            network().ifPresent(WarehouseNetwork::wirelessChanged);
-        }
+        tellNetworkWireless();
     }
 
     /** Compares the capable state with the last one; on a flip the warehouse and the site record learn it. */
@@ -348,6 +344,10 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         }
         wasCapable = now;
         wasPowered = powered;
+        tellNetworkWireless();
+    }
+
+    private void tellNetworkWireless() {
         if (level != null && !level.isClientSide()) {
             network().ifPresent(WarehouseNetwork::wirelessChanged);
         }
@@ -364,7 +364,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         if (siteState() == SiteCapacity.State.OVER || noPower()) {
             return StorageNodeBlocks.Activity.BLOCKED;
         }
-        boolean awake = level != null && io.github.dirnei.mc.servus.storage.site.SiteWakes.isAwake(level.dimension(), worldPosition);
+        boolean awake = level != null && SiteWakes.isAwake(level.dimension(), worldPosition);
         return awake ? StorageNodeBlocks.Activity.WORKING : StorageNodeBlocks.Activity.IDLE;
     }
 
@@ -452,7 +452,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
             rules.load(tag.getCompoundOrEmpty("StockRules"), registries);
         }
         siteName = SiteName.clean(input.getStringOr("SiteName", ""));
-        team = tag.read("Team", UUIDUtil.CODEC).isPresent() ? tag.read("Team", UUIDUtil.CODEC).orElseThrow() : null;
+        team = tag.read("Team", UUIDUtil.CODEC).orElse(null);
         span.clear();
         for (long key : tag.getLongArray("Span").orElse(new long[0])) {
             span.add(key);
@@ -474,8 +474,6 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         wasCapable = capable();
         wasPowered = poweredForWireless();
     }
-
-    // Wood: the planks the block was crafted from, shown as its boards
 
     @Override
     public WoodSlot woodSlot() {
@@ -518,16 +516,17 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         return woodSlot.modelData();
     }
 
-    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
-        Level level = this.level;
-        if (level == null) {
-            return;
+        if (level != null) {
+            dropUpgrades(level, pos);
         }
-        WarehouseControllerBlockEntity controller = this;
-        controller.upgrades().takeAll().forEach(stack -> Block.popResource(level, pos, stack));
-        controller.wirelessUpgrade().takeAll().forEach(stack -> Block.popResource(level, pos, stack));
+    }
+
+    /** Drops the Anchor and Wireless Upgrades at the position. */
+    public void dropUpgrades(Level level, BlockPos pos) {
+        upgrades.takeAll().forEach(stack -> Block.popResource(level, pos, stack));
+        wireless.takeAll().forEach(stack -> Block.popResource(level, pos, stack));
     }
 }

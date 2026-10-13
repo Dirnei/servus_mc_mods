@@ -1,12 +1,10 @@
 package io.github.dirnei.mc.servus.storage.controller;
 
-import org.jspecify.annotations.Nullable;
-import net.minecraft.world.level.redstone.Orientation;
 import io.github.dirnei.mc.servus.foundation.block.BlockEntityItems;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
-import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -80,7 +78,7 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer
                 && level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
-            serverPlayer.openMenu(controller, buf -> io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu.writeOpening(buf, controller));
+            serverPlayer.openMenu(controller, buf -> WarehouseControllerMenu.writeOpening(buf, controller));
         }
         return InteractionResult.SUCCESS;
     }
@@ -98,8 +96,7 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
         }
     }
 
-    /** Anchor and Wireless Upgrades drop when the controller goes. */
-
+    /** The carrot turns the block; sneaking dismantles it, the item keeping the name and the rules. */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         Level level = context.getLevel();
@@ -110,9 +107,7 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
             if (dismantle) {
                 ItemStack drop = new ItemStack(this);
                 if (level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
-                    // Upgrades drop on their own; the item carries the name and the rules.
-                    controller.upgrades().takeAll().forEach(stack -> Block.popResource(level, pos, stack));
-                    controller.wirelessUpgrade().takeAll().forEach(stack -> Block.popResource(level, pos, stack));
+                    controller.dropUpgrades(level, pos);
                     controller.clearEnergyForItem();
                     BlockEntityItems.saveToItem(controller, drop, level.registryAccess());
                 }

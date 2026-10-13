@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage.controller;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.site.SiteCapacity;
+import io.github.dirnei.mc.servus.storage.terminal.SiteRow;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -37,7 +38,7 @@ import net.minecraft.resources.Identifier;
 public record SiteStatusPayload(String name, String title, int online, Component summary, List<Long> chunks, long home,
                                 int upgrades, int capacity, int state, Component wake, boolean wakeAlert,
                                 int energy, int energyCapacity, boolean capable, int hint, long needs, long used, boolean noPower,
-                                List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sites) implements CustomPacketPayload {
+                                List<SiteRow> sites) implements CustomPacketPayload {
 
     public static final int HINT_NONE = 0;
     public static final int HINT_NO_UPGRADE = 1;
@@ -78,9 +79,9 @@ public record SiteStatusPayload(String name, String title, int online, Component
         buf.writeVarLong(needs);
         buf.writeVarLong(Math.max(0, used));
         buf.writeBoolean(noPower);
-        List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sent = sites.subList(0, Math.min(sites.size(), 256));
+        List<SiteRow> sent = sites.subList(0, Math.min(sites.size(), 256));
         buf.writeVarInt(sent.size());
-        sent.forEach(row -> io.github.dirnei.mc.servus.storage.terminal.SiteRow.STREAM_CODEC.encode(buf, row));
+        sent.forEach(row -> SiteRow.STREAM_CODEC.encode(buf, row));
     }
 
     private static SiteStatusPayload read(RegistryFriendlyByteBuf buf) {
@@ -107,9 +108,9 @@ public record SiteStatusPayload(String name, String title, int online, Component
         long used = buf.readVarLong();
         boolean noPower = buf.readBoolean();
         int siteCount = Math.min(buf.readVarInt(), 256);
-        List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sites = new ArrayList<>(siteCount);
+        List<SiteRow> sites = new ArrayList<>(siteCount);
         for (int i = 0; i < siteCount; i++) {
-            sites.add(io.github.dirnei.mc.servus.storage.terminal.SiteRow.STREAM_CODEC.decode(buf));
+            sites.add(SiteRow.STREAM_CODEC.decode(buf));
         }
         return new SiteStatusPayload(name, title, online, summary, chunks, home, upgrades, capacity, state, wake, wakeAlert,
                 energy, energyCapacity, capable, hint, needs, used, noPower, sites);

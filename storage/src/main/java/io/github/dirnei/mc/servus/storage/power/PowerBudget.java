@@ -4,7 +4,7 @@ package io.github.dirnei.mc.servus.storage.power;
  * The accounting of one site's FE buffer: draws are paid in full or not at
  * all, a refused draw holds the no power state for a second, and the FE used
  * per tick is kept for the last second. The buffer itself lives elsewhere;
- * every method gets the FE stored and the game tick. Pure, no Minecraft imports.
+ * every method gets the FE stored and the game tick.
  */
 public final class PowerBudget {
 

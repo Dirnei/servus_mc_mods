@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.power;
 /**
  * The pay and wait decisions of the warehouse's moving parts: what a shuttle
  * segment costs, whether a shuttle may start it, and how a Crafting Station's
- * progress moves on a tick. Pure, no Minecraft imports.
+ * progress moves on a tick.
  */
 public final class StepPower {
 

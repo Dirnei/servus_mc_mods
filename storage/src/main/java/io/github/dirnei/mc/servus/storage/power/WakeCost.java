@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.power;
 
-/** What a wake costs: FE per chunk of the site each tick it is held, and one second of that to start. Pure. */
+/** What a wake costs: FE per chunk of the site each tick it is held, and one second of that to start. */
 public final class WakeCost {
 
     /** Ticks of FE a sleeping site must hold to wake. */
