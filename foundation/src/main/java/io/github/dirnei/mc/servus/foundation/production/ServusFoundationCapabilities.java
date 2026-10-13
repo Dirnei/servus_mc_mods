@@ -14,26 +14,19 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
  */
 public final class ServusFoundationCapabilities {
 
-    public static final BlockCapability<ProductionProvider, Direction> PRODUCTION =
-            BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "production"), ProductionProvider.class);
+    public static final BlockCapability<ProductionProvider, Direction> PRODUCTION = sided("production", ProductionProvider.class);
 
-    public static final BlockCapability<StockProvider, Direction> STOCK_PROVIDER =
-            BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "stock_provider"), StockProvider.class);
+    public static final BlockCapability<StockProvider, Direction> STOCK_PROVIDER = sided("stock_provider", StockProvider.class);
 
-    public static final BlockCapability<StockSink, Direction> STOCK_SINK =
-            BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "stock_sink"), StockSink.class);
+    public static final BlockCapability<StockSink, Direction> STOCK_SINK = sided("stock_sink", StockSink.class);
 
-    public static final BlockCapability<DataLink, Direction> DATA_LINK =
-            BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "data_link"), DataLink.class);
+    public static final BlockCapability<DataLink, Direction> DATA_LINK = sided("data_link", DataLink.class);
 
-    public static final BlockCapability<ItemSupplier, Direction> SUPPLIER =
-            BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "supplier"), ItemSupplier.class);
+    public static final BlockCapability<ItemSupplier, Direction> SUPPLIER = sided("supplier", ItemSupplier.class);
 
-    public static final BlockCapability<UpkeepHolder, Direction> UPKEEP =
-            BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "upkeep"), UpkeepHolder.class);
+    public static final BlockCapability<UpkeepHolder, Direction> UPKEEP = sided("upkeep", UpkeepHolder.class);
 
-    public static final BlockCapability<TransferGate, Direction> TRANSFER_GATE =
-            BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "transfer_gate"), TransferGate.class);
+    public static final BlockCapability<TransferGate, Direction> TRANSFER_GATE = sided("transfer_gate", TransferGate.class);
 
     /**
      * The door through which data line packets enter a block. It has the same
@@ -42,9 +35,12 @@ public final class ServusFoundationCapabilities {
      * pipes registers this instead of the item capability. A block whose items
      * the data line collects lets this handler give them out as well.
      */
-    public static final BlockCapability<ResourceHandler<ItemResource>, Direction> PACKET_INLET =
-            BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "packet_inlet"), ResourceHandler.asClass());
+    public static final BlockCapability<ResourceHandler<ItemResource>, Direction> PACKET_INLET = sided("packet_inlet", ResourceHandler.asClass());
 
     private ServusFoundationCapabilities() {
+    }
+
+    private static <T> BlockCapability<T, Direction> sided(String name, Class<T> type) {
+        return BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, name), type);
     }
 }

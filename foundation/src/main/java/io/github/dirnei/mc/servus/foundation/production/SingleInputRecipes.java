@@ -62,7 +62,7 @@ public final class SingleInputRecipes {
         for (Object entry : manager.recipeMap().byType((RecipeType) type)) {
             RecipeHolder<?> holder = (RecipeHolder<?>) entry;
             Recipe<?> recipe = holder.value();
-            // Recipes are not synced in 26.1; on the server the placement info lists the ingredients.
+            // The placement info is the only ingredient list a server side recipe exposes.
             List<Ingredient> ingredients = recipe.placementInfo().isImpossibleToPlace() ? List.of()
                     : recipe.placementInfo().ingredients().stream().filter(ingredient -> !ingredient.isEmpty()).toList();
             if (ingredients.size() != 1) {
@@ -87,8 +87,8 @@ public final class SingleInputRecipes {
     }
 
     /**
-     * The result of a one item recipe for {@code input}. Recipes no longer have a fixed result
-     * item, so the recipe is assembled; recipes that do not take a single item give nothing.
+     * The result of a one item recipe for {@code input}, by assembling the recipe;
+     * recipes that do not take a single item give nothing.
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static ItemStack resultFor(Recipe<?> recipe, ItemStack input) {

@@ -13,8 +13,7 @@ import java.util.Set;
  * Explodes a wanted item into production steps: stock on hand is reserved
  * first, the rest is produced; when several recipes make an item, those
  * whose inputs are on hand go first, then the one whose plan misses least.
- * Steps come leaves first, surplus is reused. Pure, no
- * Minecraft imports.
+ * Steps come leaves first, surplus is reused.
  */
 public final class OrderPlanner {
 
@@ -110,7 +109,6 @@ public final class OrderPlanner {
 
         void need(K key, int amount, int depth) {
             int rest = amount;
-            // Surplus from earlier steps first, then stock on hand.
             int fromSurplus = Math.min(rest, surplus.getOrDefault(key, 0));
             if (fromSurplus > 0) {
                 surplus.merge(key, -fromSurplus, Integer::sum);
@@ -130,8 +128,7 @@ public final class OrderPlanner {
                 missing.merge(key, rest, Integer::sum);
             } else if (producers.size() == 1) {
                 Recipe<K> recipe = producers.get(0);
-                int perBatch = recipe.outputs().get(key);
-                run(recipe, (rest + perBatch - 1) / perBatch, key, rest, depth, Set.of());
+                run(recipe, batchesFor(recipe, key, rest), key, rest, depth, Set.of());
             } else {
                 chooseAmong(producers, key, rest, depth);
             }
@@ -159,8 +156,7 @@ public final class OrderPlanner {
                 if (best == null) {
                     break;
                 }
-                int perBatch = best.outputs().get(key);
-                int batches = Math.min((rest + perBatch - 1) / perBatch, bestCovered);
+                int batches = Math.min(batchesFor(best, key, rest), bestCovered);
                 if (!steps.containsKey(best)) {
                     inserted.add(best);
                 }
@@ -177,8 +173,7 @@ public final class OrderPlanner {
             int missingBefore = total(missing);
             for (Recipe<K> recipe : producers) {
                 Walk<K> trial = copy();
-                int perBatch = recipe.outputs().get(key);
-                trial.run(recipe, (rest + perBatch - 1) / perBatch, key, rest, depth, inserted);
+                trial.run(recipe, batchesFor(recipe, key, rest), key, rest, depth, inserted);
                 int addedMissing = total(trial.missing) - missingBefore;
                 int addedSteps = trial.steps.size() - steps.size();
                 if (chosen == null || better(addedMissing, addedSteps, used.contains(recipe),
@@ -222,8 +217,9 @@ public final class OrderPlanner {
             int covered = 0;
             for (Map.Entry<K, Integer> output : recipe.outputs().entrySet()) {
                 int produced = output.getValue() * batches;
-                int used = output.getKey().equals(key) ? Math.min(rest, produced) : 0;
+                int used = 0;
                 if (output.getKey().equals(key)) {
+                    used = Math.min(rest, produced);
                     covered = used;
                 }
                 if (produced > used) {
@@ -231,6 +227,12 @@ public final class OrderPlanner {
                 }
             }
             return covered;
+        }
+
+        /** How many batches of the recipe make at least {@code amount} of the key. */
+        private static <K> int batchesFor(Recipe<K> recipe, K key, int amount) {
+            int perBatch = recipe.outputs().get(key);
+            return (amount + perBatch - 1) / perBatch;
         }
 
         /** How many whole batches the inputs on hand cover, without producing anything. */

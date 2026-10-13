@@ -29,12 +29,10 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 
 /**
- * Recipe lookups that the 1.21.1 recipe manager offered on every level. Since
- * 1.21.2 the server no longer sends recipes to clients; the recipe types the
- * Servus mods read on the client (their machine recipes, crafting for the
- * pattern editor) are sent with NeoForge's datapack sync and kept here, so a
- * lookup on a client level reads those and a lookup on a server level reads
- * the recipe manager.
+ * Recipe lookups that work on both sides. The server does not send recipes to
+ * clients, so the recipe types registered with {@link #syncToClients} are sent
+ * with NeoForge's datapack sync and kept here: a lookup on a client level reads
+ * those, a lookup on a server level reads the recipe manager.
  */
 @EventBusSubscriber(modid = ServusFoundationIds.MOD_ID)
 public final class ServusRecipes {
@@ -69,6 +67,7 @@ public final class ServusRecipes {
         return clientRecipes;
     }
 
+    /** The registry key of a recipe id. */
     public static ResourceKey<Recipe<?>> key(Identifier id) {
         return ResourceKey.create(Registries.RECIPE, id);
     }
@@ -130,7 +129,7 @@ public final class ServusRecipes {
         return ingredient.items().findFirst().map(ItemStack::new).orElse(ItemStack.EMPTY);
     }
 
-    /** Every item an ingredient accepts, one of each, what {@code Ingredient#getItems} gave. */
+    /** Every item an ingredient accepts, one of each. */
     public static List<ItemStack> items(Ingredient ingredient) {
         return ingredient.items().map(ItemStack::new).toList();
     }
@@ -139,5 +138,4 @@ public final class ServusRecipes {
     public static List<ItemStack> items(SizedIngredient ingredient) {
         return ingredient.ingredient().items().map(item -> new ItemStack(item, ingredient.count())).toList();
     }
-
 }
