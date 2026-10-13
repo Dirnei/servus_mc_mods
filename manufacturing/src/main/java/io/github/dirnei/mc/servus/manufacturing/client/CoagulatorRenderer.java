@@ -3,7 +3,6 @@ package io.github.dirnei.mc.servus.manufacturing.client;
 import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
 import io.github.dirnei.mc.servus.foundation.client.SubmitBuffers;
 import io.github.dirnei.mc.servus.foundation.client.BufferedBlockEntityRenderer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
@@ -35,7 +34,6 @@ public final class CoagulatorRenderer extends BufferedBlockEntityRenderer<Coagul
     @Override
     protected void render(CoagulatorBlockEntity coagulator, float partialTick, PoseStack poseStack, SubmitBuffers buffers,
                           int packedLight) {
-        int packedOverlay = OverlayTexture.NO_OVERLAY;
         if (!coagulator.formed()) {
             return;
         }

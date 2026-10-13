@@ -54,7 +54,6 @@ public final class CalcinerRenderer extends BufferedBlockEntityRenderer<Calciner
     @Override
     protected void render(CalcinerBlockEntity calciner, float partialTick, PoseStack poseStack, SubmitBuffers buffers,
                           int packedLight) {
-        int packedOverlay = OverlayTexture.NO_OVERLAY;
         if (!calciner.formed()) {
             return;
         }

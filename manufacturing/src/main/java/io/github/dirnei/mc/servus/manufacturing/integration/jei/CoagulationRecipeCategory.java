@@ -2,88 +2,34 @@ package io.github.dirnei.mc.servus.manufacturing.integration.jei;
 
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
-import mezz.jei.api.gui.drawable.IDrawable;
-import mezz.jei.api.gui.drawable.IDrawableAnimated;
-import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
-import mezz.jei.api.recipe.RecipeType;
-import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
-/** JEI category for coagulation: the principles and item it takes, an arrow, the result and the time. */
-public final class CoagulationRecipeCategory implements IRecipeCategory<RecipeHolder<CoagulationRecipe>> {
-
-    private static final int WIDTH = 130;
-    private static final int HEIGHT = 36;
-
-    private final IDrawable icon;
-    private final IDrawableAnimated arrow;
+/** JEI category for coagulation: the principles and the item it takes, an arrow, the result and the time. */
+public final class CoagulationRecipeCategory extends AlchemyRecipeCategory<CoagulationRecipe> {
 
     public CoagulationRecipeCategory(IGuiHelper guiHelper) {
-        this.icon = guiHelper.createDrawableItemLike(ServusManufacturingItems.COAGULATOR.get());
-        this.arrow = guiHelper.createAnimatedRecipeArrow(40);
+        super(guiHelper, ServusManufacturingJeiPlugin.COAGULATION, "gui.servus_manufacturing.jei.coagulation",
+                ServusManufacturingItems.COAGULATOR.get(), 40, 80, 130, 36);
     }
 
     @Override
-    public RecipeType<RecipeHolder<CoagulationRecipe>> getRecipeType() {
-        return ServusManufacturingJeiPlugin.COAGULATION;
-    }
-
-    @Override
-    public Component getTitle() {
-        return Component.translatable("gui.servus_manufacturing.jei.coagulation");
-    }
-
-    @Override
-    public IDrawable getIcon() {
-        return icon;
-    }
-
-    @Override
-    public int getWidth() {
-        return WIDTH;
-    }
-
-    @Override
-    public int getHeight() {
-        return HEIGHT;
+    int time(CoagulationRecipe recipe) {
+        return recipe.time();
     }
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<CoagulationRecipe> holder, IFocusGroup focuses) {
         CoagulationRecipe recipe = holder.value();
-        int x = 1;
-        for (Principle principle : Principle.values()) {
-            int amount = recipe.input().get(principle);
-            if (amount > 0) {
-                builder.addInputSlot(x, 5)
-                        .setStandardSlotBackground()
-                        .addFluidStack(PrincipleFluids.fluid(principle), amount);
-                x += 18;
-            }
-        }
-        int itemX = x;
-        recipe.ingredient().ifPresent(sized -> builder.addInputSlot(itemX, 5)
+        int itemX = principleSlots(builder, false, recipe.input(), 1, 18);
+        recipe.ingredient().ifPresent(sized -> builder.addInputSlot(itemX, SLOT_Y)
                 .setStandardSlotBackground()
                 .addItemStacks(ServusRecipes.items(sized)));
-        builder.addOutputSlot(110, 5)
+        builder.addOutputSlot(110, SLOT_Y)
                 .setStandardSlotBackground()
                 .addItemStack(recipe.result());
-    }
-
-    @Override
-    public void draw(RecipeHolder<CoagulationRecipe> holder, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics,
-                     double mouseX, double mouseY) {
-        arrow.draw(guiGraphics, 80, 5);
-        Component time = Component.literal(String.format("%.1f s", holder.value().time() / 20.0));
-        guiGraphics.text(Minecraft.getInstance().font, time, 80, 25, 0xFF808080, false);
     }
 }

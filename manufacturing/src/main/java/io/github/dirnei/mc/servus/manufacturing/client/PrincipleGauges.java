@@ -3,7 +3,10 @@ package io.github.dirnei.mc.servus.manufacturing.client;
 import io.github.dirnei.mc.servus.foundation.client.FluidGauge;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleBuckets;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleMenu;
+import java.util.function.IntPredicate;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -19,6 +22,8 @@ final class PrincipleGauges {
 
     private final FluidGauge[] gauges = new FluidGauge[Principle.values().length];
     private final PrincipleMenu menu;
+    private int left;
+    private int top;
 
     PrincipleGauges(PrincipleMenu menu) {
         this.menu = menu;
@@ -26,9 +31,6 @@ final class PrincipleGauges {
             gauges[i] = new FluidGauge(WIDTH, HEIGHT);
         }
     }
-
-    private int left;
-    private int top;
 
     void place(int leftPos, int topPos) {
         left = leftPos;
@@ -50,16 +52,13 @@ final class PrincipleGauges {
         return null;
     }
 
-    /** Sends a gauge click when a container is on the cursor; returns whether the click was a gauge click. */
-    boolean click(net.minecraft.client.Minecraft minecraft, int containerId, net.minecraft.world.item.ItemStack carried,
-                  double mouseX, double mouseY) {
+    /**
+     * Sends the click on a gauge through {@code clickButton} when a container is on the cursor; returns whether a
+     * gauge click was sent.
+     */
+    boolean click(IntPredicate clickButton, ItemStack carried, double mouseX, double mouseY) {
         Principle principle = principleAt(mouseX, mouseY);
-        if (principle == null || carried.isEmpty() || minecraft.gameMode == null) {
-            return false;
-        }
-        minecraft.gameMode.handleInventoryButtonClick(containerId,
-                io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleBuckets.GAUGE_BUTTON_FIRST + principle.ordinal());
-        return true;
+        return principle != null && !carried.isEmpty() && clickButton.test(PrincipleBuckets.GAUGE_BUTTON_FIRST + principle.ordinal());
     }
 
     private FluidStack stack(Principle principle) {

@@ -12,7 +12,7 @@ import net.minecraft.client.resources.model.sprite.Material;
 import net.neoforged.neoforge.client.event.RegisterFluidModelsEvent;
 import net.neoforged.neoforge.client.fluid.FluidTintSource;
 
-/** Client looks of the principles: tinted water textures. The buckets use NeoForge's fluid container item model (see the item model datagen). */
+/** Client looks of the principles: tinted water textures. */
 @EventBusSubscriber(modid = ServusManufacturingIds.MOD_ID, value = Dist.CLIENT)
 public final class AlchemyClient {
 

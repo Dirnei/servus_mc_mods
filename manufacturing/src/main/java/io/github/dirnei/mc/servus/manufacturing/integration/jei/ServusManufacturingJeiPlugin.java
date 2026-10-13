@@ -20,7 +20,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
-/** Shows calcination and coagulation recipes in JEI. Only loaded when JEI is present. */
+/** Shows the calcination, purification, coagulation and Athanor recipes in JEI. Only loaded when JEI is present. */
 @JeiPlugin
 public final class ServusManufacturingJeiPlugin implements IModPlugin {
 

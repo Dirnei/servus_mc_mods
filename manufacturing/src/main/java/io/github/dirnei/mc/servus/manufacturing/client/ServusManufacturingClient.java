@@ -26,7 +26,6 @@ public final class ServusManufacturingClient {
         event.register(ServusManufacturingMenus.GNOME_HOLLOW.get(), GnomeHollowScreen::new);
     }
 
-    /** Every machine draws its side modes on the block. */
     @SubscribeEvent
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.CALCINER.get(), CalcinerRenderer::new);
@@ -41,7 +40,7 @@ public final class ServusManufacturingClient {
         IconExporter.registerRendererIfRequested(event);
     }
 
-    /** Dev only icon export for the docs, when the iconExport run asks for it. */
+    /** The dev only icon export, when the iconExport run asks for it, and the Elemental Sight renderers. */
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         IconExporter.registerIfRequested();

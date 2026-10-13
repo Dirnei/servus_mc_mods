@@ -4,12 +4,12 @@ import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
 import net.minecraft.data.AtlasIds;
 import io.github.dirnei.mc.servus.foundation.client.SubmitBuffers;
 import io.github.dirnei.mc.servus.foundation.client.BufferedBlockEntityRenderer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierStructure;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -21,7 +21,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 /** Draws the Purifier: the Ash still to wash on the Vat's floor with the water over it, the Salt in the Catch Basin and the Caput Mortuum in the Residue Crock. */
 public final class PurifierRenderer extends BufferedBlockEntityRenderer<PurifierBlockEntity> {
 
-    /** The inside of the vat in sixteenths: above the floor, inside the walls, below the rim. */
+    /** The inside of the vat in blocks: above the floor, inside the walls, below the rim. */
     private static final float INSIDE_MIN = 3 / 16F;
     private static final float INSIDE_MAX = 13 / 16F;
     private static final float FLOOR = 2 / 16F;
@@ -37,23 +37,22 @@ public final class PurifierRenderer extends BufferedBlockEntityRenderer<Purifier
     /** The Caput Mortuum is a dark violet brown powder. */
     private static final Identifier RESIDUE = Identifier.withDefaultNamespace("block/brown_concrete_powder");
 
-    public PurifierRenderer(BlockEntityRendererProvider.Context context) {
-    }
-
     /** The Ash waiting in the vat lies on its floor as grey powder. */
     private static final Identifier ASH = Identifier.withDefaultNamespace("block/light_gray_concrete_powder");
     /** The ash layer grows from one sixteenth to this height with a full stack. */
     private static final float ASH_MAX = 3 / 16F;
 
+    public PurifierRenderer(BlockEntityRendererProvider.Context context) {
+    }
+
     @Override
-    public net.minecraft.world.phys.AABB getRenderBoundingBox(PurifierBlockEntity purifier) {
-        return new net.minecraft.world.phys.AABB(purifier.getBlockPos()).inflate(1, 0, 1).expandTowards(0, -1, 0);
+    public AABB getRenderBoundingBox(PurifierBlockEntity purifier) {
+        return new AABB(purifier.getBlockPos()).inflate(1, 0, 1).expandTowards(0, -1, 0);
     }
 
     @Override
     protected void render(PurifierBlockEntity purifier, float partialTick, PoseStack poseStack, SubmitBuffers buffers,
                           int packedLight) {
-        int packedOverlay = OverlayTexture.NO_OVERLAY;
         float floor = FLOOR;
         int items = purifier.shownItems();
         if (items > 0) {
@@ -67,7 +66,6 @@ public final class PurifierRenderer extends BufferedBlockEntityRenderer<Purifier
         if (!purifier.formed() || purifier.getLevel() == null) {
             return;
         }
-        // The Salt runs down into the Catch Basin, the Caput Mortuum into the Residue Crock.
         BlockPos vat = purifier.getBlockPos();
         BlockPos basin = PurifierStructure.partPos(purifier.getLevel(), vat, PurifierLayout.Role.BASIN).subtract(vat);
         poseStack.pushPose();

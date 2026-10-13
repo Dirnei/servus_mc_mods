@@ -94,7 +94,7 @@ public class CoagulatorScreen extends MachineScreen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-        // While the popup is open nothing below it reacts to the mouse.
+        // An open popup hides the mouse from everything below it.
         super.extractRenderState(guiGraphics, popupOpen ? -1 : mouseX, popupOpen ? -1 : mouseY, partialTick);
         List<RecipeHolder<CoagulationRecipe>> recipes = recipes();
         if (!popupOpen) {
@@ -110,10 +110,7 @@ public class CoagulatorScreen extends MachineScreen {
                 Component.translatable("gui.servus_manufacturing.coagulator.pick"), results, selected(), mouseX, mouseY);
         int index = popup.indexAt(mouseX, mouseY, results.size());
         if (index >= 0) {
-            guiGraphics.pose().pushMatrix();
-            guiGraphics.pose().translate(0, 0);
             guiGraphics.setComponentTooltipForNextFrame(font, tooltip(recipes.get(index).value()), mouseX, mouseY);
-            guiGraphics.pose().popMatrix();
         }
     }
 
@@ -142,19 +139,17 @@ public class CoagulatorScreen extends MachineScreen {
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x();
         double mouseY = event.y();
-        int button = event.button();
         if (popupOpen) {
             int count = recipes().size();
             int index = popup.indexAt(mouseX, mouseY, count);
-            if (index >= 0 && minecraft != null && minecraft.gameMode != null) {
-                minecraft.gameMode.handleInventoryButtonClick(menu.containerId, CoagulatorMenu.RECIPE_BUTTON_FIRST + index);
+            if (index >= 0 && clickButton(CoagulatorMenu.RECIPE_BUTTON_FIRST + index)) {
                 popupOpen = false;
             } else if (!popup.clickBar(mouseX, mouseY, count) && !popup.contains(mouseX, mouseY)) {
                 popupOpen = false;
             }
             return true;
         }
-        if (minecraft != null && gauges.click(minecraft, menu.containerId, menu.getCarried(), mouseX, mouseY)) {
+        if (gauges.click(this::clickButton, menu.getCarried(), mouseX, mouseY)) {
             return true;
         }
         if (buttonHovered(mouseX, mouseY)) {
@@ -167,11 +162,8 @@ public class CoagulatorScreen extends MachineScreen {
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
-        double mouseX = event.x();
-        double mouseY = event.y();
-        int button = event.button();
         if (popupOpen) {
-            popup.drag(mouseY, recipes().size());
+            popup.drag(event.y(), recipes().size());
             return true;
         }
         return super.mouseDragged(event, dragX, dragY);
@@ -179,9 +171,6 @@ public class CoagulatorScreen extends MachineScreen {
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
-        double mouseX = event.x();
-        double mouseY = event.y();
-        int button = event.button();
         if (popupOpen) {
             popup.release();
             return true;
@@ -200,11 +189,8 @@ public class CoagulatorScreen extends MachineScreen {
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        int keyCode = event.key();
-        int scanCode = event.scancode();
-        int modifiers = event.modifiers();
         if (popupOpen) {
-            if (keyCode == KEY_ESCAPE) {
+            if (event.key() == KEY_ESCAPE) {
                 popupOpen = false;
             }
             return true;

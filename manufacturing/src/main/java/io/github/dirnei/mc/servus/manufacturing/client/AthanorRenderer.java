@@ -9,7 +9,6 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlockEntity;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
@@ -34,14 +33,12 @@ public class AthanorRenderer extends BufferedBlockEntityRenderer<AthanorBlockEnt
     @Override
     protected void render(AthanorBlockEntity athanor, float partialTick, PoseStack poseStack, SubmitBuffers buffers,
                           int packedLight) {
-        int packedOverlay = OverlayTexture.NO_OVERLAY;
         if (athanor.getLevel() == null) {
             return;
         }
         boolean formed = athanor.formed();
         ItemStack stack = athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT);
         if (stack.isEmpty()) {
-            // Once the work is done the result lies there instead.
             stack = athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT);
         }
         if (stack.isEmpty()) {

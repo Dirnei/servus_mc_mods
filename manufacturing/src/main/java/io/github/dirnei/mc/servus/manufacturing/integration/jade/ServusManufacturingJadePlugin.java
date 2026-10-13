@@ -48,7 +48,7 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
 
     @Override
     public void register(IWailaCommonRegistration registration) {
-        BLOCKS.forEach(block -> registration.registerBlockDataProvider(Provider.INSTANCE, block));
+        BLOCKS.forEach(block -> registration.registerBlockDataProvider(CalcinerProvider.INSTANCE, block));
         registration.registerBlockDataProvider(PurifierProvider.INSTANCE, PurifierBlock.class);
         registration.registerBlockDataProvider(PurifierProvider.INSTANCE, PurifierSideBlock.class);
         registration.registerBlockDataProvider(AthanorProvider.INSTANCE, AthanorBlock.class);
@@ -56,8 +56,8 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
 
     @Override
     public void registerClient(IWailaClientRegistration registration) {
-        // Since Minecraft 1.21.6 Jade wants the tooltip in a client provider apart from the data provider; both share the uid.
-        IBlockComponentProvider calciner = new ClientProvider(Provider.UID, Provider.INSTANCE::appendTooltip);
+        // Jade draws tooltips in client providers apart from the data providers; each pair shares its uid.
+        IBlockComponentProvider calciner = new ClientProvider(CalcinerProvider.UID, CalcinerProvider.INSTANCE::appendTooltip);
         IBlockComponentProvider purifier = new ClientProvider(PurifierProvider.UID, PurifierProvider.INSTANCE::appendTooltip);
         BLOCKS.forEach(block -> registration.registerBlockComponent(calciner, block));
         registration.registerBlockComponent(purifier, PurifierBlock.class);
@@ -72,6 +72,23 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
             }
             return accessor;
         });
+    }
+
+    private static CompoundTag saveStack(BlockAccessor accessor, ItemStack stack) {
+        return ValueIo.saveStack(accessor.getLevel().registryAccess(), stack);
+    }
+
+    private static ItemStack parseStack(BlockAccessor accessor, CompoundTag tag) {
+        return ValueIo.parseStack(accessor.getLevel().registryAccess(), tag);
+    }
+
+    private static Component stackText(ItemStack stack) {
+        return stack.isEmpty() ? Component.translatable("jade.servus_manufacturing.calciner.empty")
+                : Component.translatable("jade.servus_manufacturing.calciner.stack", stack.getCount(), stack.getHoverName());
+    }
+
+    private static Component principleName(Principle principle) {
+        return new FluidStack(PrincipleFluids.fluid(principle), 1).getHoverName();
     }
 
     /** Draws the tooltip of one data provider on the client. */
@@ -107,8 +124,8 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
             CompoundTag tag = new CompoundTag();
             tag.putString("Tier", athanor.tierName());
             tag.putBoolean("Formed", athanor.formed());
-            tag.put("Input", ValueIo.saveStack(accessor.getLevel().registryAccess(), athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT)));
-            tag.put("Output", ValueIo.saveStack(accessor.getLevel().registryAccess(), athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT)));
+            tag.put("Input", saveStack(accessor, athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT)));
+            tag.put("Output", saveStack(accessor, athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT)));
             tag.putInt("Progress", athanor.progressPercent());
             Principles held = athanor.principles();
             for (Principle principle : Principle.values()) {
@@ -125,14 +142,14 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
             CompoundTag tag = data.getCompoundOrEmpty("Athanor");
             tooltip.add(Component.translatable(tag.getBooleanOr("Formed", false) ? "jade.servus_manufacturing.athanor.stage"
                     : "jade.servus_manufacturing.athanor.unformed", tag.getStringOr("Tier", "")));
-            ItemStack input = ValueIo.parseStack(accessor.getLevel().registryAccess(), tag.getCompoundOrEmpty("Input"));
-            ItemStack output = ValueIo.parseStack(accessor.getLevel().registryAccess(), tag.getCompoundOrEmpty("Output"));
-            tooltip.add(Component.translatable("jade.servus_manufacturing.athanor.input", Provider.stackText(input)));
-            tooltip.add(Component.translatable("jade.servus_manufacturing.athanor.output", Provider.stackText(output)));
+            ItemStack input = parseStack(accessor, tag.getCompoundOrEmpty("Input"));
+            ItemStack output = parseStack(accessor, tag.getCompoundOrEmpty("Output"));
+            tooltip.add(Component.translatable("jade.servus_manufacturing.athanor.input", stackText(input)));
+            tooltip.add(Component.translatable("jade.servus_manufacturing.athanor.output", stackText(output)));
             tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.progress", tag.getIntOr("Progress", 0)));
             for (Principle principle : Principle.values()) {
-                FluidStack stack = new FluidStack(PrincipleFluids.fluid(principle), 1);
-                tooltip.add(Component.translatable("jade.servus_manufacturing.athanor.principle", tag.getIntOr(principle.id(), 0), stack.getHoverName()));
+                tooltip.add(Component.translatable("jade.servus_manufacturing.athanor.principle", tag.getIntOr(principle.id(), 0),
+                        principleName(principle)));
             }
         }
 
@@ -173,7 +190,7 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
             tooltip.add(Component.translatable("jade.servus_manufacturing.purifier.items", tag.getIntOr("Items", 0)));
             tooltip.add(Component.translatable("jade.servus_manufacturing.purifier.water", tag.getIntOr("Water", 0), capacity));
             tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.principle", tag.getIntOr("Salt", 0), capacity,
-                    new FluidStack(PrincipleFluids.fluid(Principle.SALT), 1).getHoverName()));
+                    principleName(Principle.SALT)));
             tooltip.add(Component.translatable("jade.servus_manufacturing.purifier.residue", tag.getIntOr("Residue", 0)));
             tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.progress", tag.getIntOr("Progress", 0)));
         }
@@ -184,7 +201,7 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
         }
     }
 
-    private enum Provider implements IServerDataProvider<BlockAccessor> {
+    private enum CalcinerProvider implements IServerDataProvider<BlockAccessor> {
         INSTANCE;
 
         private static final Identifier UID = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner");
@@ -196,14 +213,13 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
                 return;
             }
             CompoundTag tag = new CompoundTag();
-            tag.put("Input", ValueIo.saveStack(accessor.getLevel().registryAccess(), calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_INPUT)));
-            tag.put("Fuel", ValueIo.saveStack(accessor.getLevel().registryAccess(), calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_FUEL)));
+            tag.put("Input", saveStack(accessor, calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_INPUT)));
+            tag.put("Fuel", saveStack(accessor, calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_FUEL)));
             tag.putInt("Progress", calciner.progressPercent());
             tag.putInt("Capacity", calciner.tanks().capacity());
             for (Principle principle : Principle.values()) {
                 tag.putInt(principle.id(), calciner.tanks().amount(principle));
             }
-            // The Salt waits in the Ash Pan as whole Ash.
             tag.putInt("Ash", calciner.ashCount());
             data.put("Calciner", tag);
         }
@@ -214,8 +230,8 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
                 return;
             }
             CompoundTag tag = data.getCompoundOrEmpty("Calciner");
-            ItemStack input = ValueIo.parseStack(accessor.getLevel().registryAccess(), tag.getCompoundOrEmpty("Input"));
-            ItemStack fuel = ValueIo.parseStack(accessor.getLevel().registryAccess(), tag.getCompoundOrEmpty("Fuel"));
+            ItemStack input = parseStack(accessor, tag.getCompoundOrEmpty("Input"));
+            ItemStack fuel = parseStack(accessor, tag.getCompoundOrEmpty("Fuel"));
             tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.input", stackText(input)));
             tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.fuel", stackText(fuel)));
             tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.progress", tag.getIntOr("Progress", 0)));
@@ -225,15 +241,9 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
                 if (principle == Principle.SALT) {
                     continue;
                 }
-                FluidStack stack = new FluidStack(PrincipleFluids.fluid(principle), 1);
                 tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.principle",
-                        tag.getIntOr(principle.id(), 0), capacity, stack.getHoverName()));
+                        tag.getIntOr(principle.id(), 0), capacity, principleName(principle)));
             }
-        }
-
-        private static Component stackText(ItemStack stack) {
-            return stack.isEmpty() ? Component.translatable("jade.servus_manufacturing.calciner.empty")
-                    : Component.translatable("jade.servus_manufacturing.calciner.stack", stack.getCount(), stack.getHoverName());
         }
 
         @Override

@@ -8,7 +8,6 @@ import net.minecraft.resources.Identifier;
 /** Screen layouts of Manufacturing's machines on the shared {@link MachineScreen}. */
 public final class MachineScreens {
 
-
     private MachineScreens() {
     }
 
