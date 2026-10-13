@@ -29,6 +29,8 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 - [x] 6.1 `machine/menu/EnderAnchorMenu.java` (slots, data slots, `clickMenuButton` shifts), `client/EnderAnchorScreen.java` (arrows, size, status, team load, toggle), GUI texture `textures/gui/ender_anchor.png` by job script, lang keys via datagen (design.md D5). Run `gradlew :foundation:runData`, `gradlew build`.
 - [x] 6.2 `client/AnchorRangeView.java` and `client/AnchorRangeRenderer.java` (new, design.md D6), radius and offset in the anchor's update tag; verify `RenderLevelStageEvent.AfterTranslucentBlocks` usage against `client/PlacementAssistRenderer.java`. Run `gradlew build`.
 
+- [ ] 6.3 GUI redesign (design.md D8): `client/EnderAnchorScreen.java` (larger layout, chunk map, 16 px arrows round it, Area, Upkeep FE/t and Team lines, status only while inactive, light text, restyled toggle and energy bar), `machine/menu/EnderAnchorMenu.java` (slot positions, upkeep data slot), new `textures/gui/ender_anchor.png` by the job script `gui.py` (obsidian and purple, follow the "Models and textures" rules in CLAUDE.md), lang keys via datagen. Run `gradlew :foundation:runData`, `gradlew build` and the Foundation GameTests.
+
 ## 7. Docs and plan
 
 - [x] 7.1 `PLAN.md` (section 2.1 Ender Anchor: area, offset, chunk cap, Anchor Upgrade; the M11 site text: Anchor Upgrade), `README.md` (config key), `docs/src/content/docs/mods/foundation.md`, `storage.md`, `reference/datapack/machines.md` (`energy_per_tick` per chunk, new capacity); regenerate `docs/src/data/gamedata.json` with `gradlew :manufacturing:runData`. Run `cd docs && npm test`.

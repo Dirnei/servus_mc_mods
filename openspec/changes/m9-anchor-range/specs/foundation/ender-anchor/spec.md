@@ -93,7 +93,7 @@ The Anchor Upgrade SHALL be a Foundation item crafted at a crafting table from a
 - **THEN** the slot refuses it
 
 ### Requirement: Anchor GUI
-Right clicking an Ender Anchor SHALL open its GUI with the energy bar, the two upgrade slots, four arrow buttons that shift the offset one chunk north, south, east or west (a button that would leave the limit is greyed out and does nothing), the area size ("3 x 3"), the status line, the team's load against the cap ("14 / 49 chunks") and a "Show range" toggle. The GUI SHALL refresh while open. The toggle SHALL be the viewing player's own choice, off whenever the game starts, and SHALL NOT change the anchor for anyone else.
+Right clicking an Ender Anchor SHALL open its GUI in the anchor's style (obsidian dark with purple accents, light text) with the energy bar, the two upgrade slots, a chunk map of the largest area (5 by 5) that shows which chunks the current area covers and where the anchor's own chunk is, four arrow buttons round the map that shift the offset one chunk north, south, east or west (a button that would leave the limit is greyed out and does nothing), the area size ("3 x 3"), the upkeep of the current area in FE per tick, the team's load against the cap ("14 / 49 chunks") and a "Show range" toggle. While the anchor is active the GUI SHALL show no status line; while it is inactive it SHALL show the reason in red (no power, team limit reached, use FTB Chunks, no owner). The GUI SHALL refresh while open. The toggle SHALL be the viewing player's own choice, off whenever the game starts, and SHALL NOT change the anchor for anyone else.
 
 #### Scenario: Team load
 - **WHEN** a team's anchors hold 14 chunks with a cap of 49 and a player of the team opens an anchor
@@ -101,7 +101,15 @@ Right clicking an Ender Anchor SHALL open its GUI with the energy bar, the two u
 
 #### Scenario: Shift
 - **WHEN** the player clicks the east arrow on an anchor with one upgrade and no offset
-- **THEN** the area moves one chunk east and the east arrow is greyed out
+- **THEN** the area moves one chunk east, the chunk map shows the lit square one chunk further east, and the east arrow is greyed out
+
+#### Scenario: Upkeep
+- **WHEN** an anchor with one upgrade costs 10 FE per chunk
+- **THEN** the GUI shows an upkeep of 90 FE per tick
+
+#### Scenario: Reason only while inactive
+- **WHEN** an active anchor runs out of power
+- **THEN** a red "no power" line appears, and it disappears once the anchor is active again
 
 ### Requirement: Range outline
 While a player has "Show range" on for an anchor, that player SHALL see the area's outline in the world: the outer chunk borders of the square as a purple line at the anchor's height and a purple column at each corner from below the anchor to well above it. The outline SHALL follow upgrade and offset changes, SHALL show while the anchor is inactive too, and SHALL disappear when the toggle is turned off, the anchor is broken, or the player is far away.

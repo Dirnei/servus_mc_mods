@@ -48,6 +48,19 @@ New pure `machine/anchor/AnchorArea` (record: `radius`, `offsetX`, `offsetZ`): `
 
 `EnderAnchorMenu` gets the two upgrade slots plus the player inventory and data slots for status, radius, offset x and z, team load and cap. Buttons use `clickMenuButton(player, id)`: ids 0 to 3 shift north, south, east, west on the server through `AnchorArea.shift`. `EnderAnchorScreen` draws the arrows (greyed when `canShift` is false), the size "3 x 3", the status line, "14 / 49 chunks" and the "Show range" toggle. A new GUI texture `textures/gui/ender_anchor.png` with slot frames, drawn by the job script.
 
+### D8. GUI redesign (play check 2026-10-13)
+
+The first GUI worked but was too small and plain, missed the FE cost and repeated "active", which the block's eye already shows. It becomes:
+
+- **Size.** A larger panel (about 196 wide, about 210 tall with the player inventory), drawn from a 256x256 texture.
+- **Ender look.** Obsidian black background with faint purple veins, a purple bevelled frame, dark purple slot frames (upgrades and the player inventory), light lavender text (title, labels, inventory label). Drawn by the job script, matching the anchor block's obsidian and purple.
+- **Chunk map.** A 5 by 5 grid (the largest area) in the middle: chunks of the current area glow purple, the anchor's own chunk carries a marker, the rest stay dark. It follows upgrades and offset live.
+- **Arrows.** 16 px arrow buttons round the map (north above, south below, west left, east right), greyed out at the limit as before.
+- **Info lines.** "Area 3 x 3", "Upkeep 90 FE/t" (energy per chunk times the area size, synced through a menu data slot) and "Team 14 / 49".
+- **Status.** No line while active. While inactive one red line gives the reason (no power, team limit reached, use FTB Chunks, no owner).
+- **Toggle.** "Show range" checkbox kept, restyled in purple.
+- **Energy bar.** Kept on the right, restyled to fit.
+
 ### D6. Range outline
 
 The toggle lives in a client only `client/AnchorRangeView` (a set of anchor positions per dimension, cleared on logout, never sent to the server). A new `client/AnchorRangeRenderer` on `RenderLevelStageEvent.AfterTranslucentBlocks`, like `PlacementAssistRenderer`, draws for each shown anchor within 128 blocks that is still an Ender Anchor block entity on the client: a purple line along the square's outer chunk borders at the anchor's y plus 0.05, and a column of lines at each of the four corners from y minus 16 to y plus 32. The area comes from the anchor's synced block entity data (radius and offset in the update tag). Look only.
