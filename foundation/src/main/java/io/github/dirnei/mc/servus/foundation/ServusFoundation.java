@@ -1,27 +1,27 @@
 package io.github.dirnei.mc.servus.foundation;
 
-import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.adapter.AdapterGameTests;
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
-import io.github.dirnei.mc.servus.foundation.logistics.ServusLogisticsContent;
-import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
-import io.github.dirnei.mc.servus.foundation.network.NetworkTypes;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationComponents;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
-import io.github.dirnei.mc.servus.foundation.adapter.AdapterGameTests;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTests;
+import io.github.dirnei.mc.servus.foundation.logistics.ServusLogisticsContent;
 import io.github.dirnei.mc.servus.foundation.logistics.gametest.DataCableTierGameTests;
 import io.github.dirnei.mc.servus.foundation.logistics.gametest.FluidTankGameTests;
 import io.github.dirnei.mc.servus.foundation.logistics.gametest.ServusLogisticsGameTests;
 import io.github.dirnei.mc.servus.foundation.logistics.gametest.UpgradeGameTests;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBaseGameTests;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.MachineGameTests;
 import io.github.dirnei.mc.servus.foundation.machine.anchor.AnchorGameTests;
+import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpGameTests;
 import io.github.dirnei.mc.servus.foundation.machine.sink.SinkGameTests;
+import io.github.dirnei.mc.servus.foundation.network.NetworkTypes;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationComponents;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import java.util.List;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -30,9 +30,7 @@ import net.neoforged.fml.config.ModConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Mod entrypoint for Servus: Foundation.
- */
+/** Mod entrypoint for Servus: Foundation. */
 @Mod(ServusFoundationIds.MOD_ID)
 public final class ServusFoundation {
 

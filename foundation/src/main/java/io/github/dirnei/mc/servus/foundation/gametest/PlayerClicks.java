@@ -4,24 +4,24 @@ import com.mojang.authlib.GameProfile;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.embedded.EmbeddedChannel;
 import java.util.UUID;
-import net.minecraft.network.Connection;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.PacketFlow;
-import org.jspecify.annotations.Nullable;
-import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Right clicks the way a client does: a server player sends a use packet and the server's packet listener
@@ -51,7 +51,6 @@ public final class PlayerClicks {
         new ServerGamePacketListenerImpl(helper.getLevel().getServer(), connection, player, cookie) {
             @Override
             public void send(Packet<?> packet, @Nullable ChannelFutureListener listener) {
-                // No client: drop what the server sends, mod payloads included.
             }
         };
         player.setGameMode(gameType);
@@ -64,8 +63,13 @@ public final class PlayerClicks {
 
     /** Right clicks the block at {@code pos} where the look hits {@code location} (absolute) on its north face. */
     public static void use(GameTestHelper helper, ServerPlayer player, BlockPos pos, Vec3 location) {
-        BlockHitResult hit = new BlockHitResult(location, Direction.NORTH, helper.absolutePos(pos), false);
-        player.connection.handleUseItemOn(new ServerboundUseItemOnPacket(InteractionHand.MAIN_HAND, hit, 0));
+        send(player, new BlockHitResult(location, Direction.NORTH, helper.absolutePos(pos), false));
+    }
+
+    /** Right clicks the centre of the north face of the block at {@code pos}. */
+    public static void use(GameTestHelper helper, ServerPlayer player, BlockPos pos) {
+        BlockPos absolute = helper.absolutePos(pos);
+        use(helper, player, pos, new Vec3(absolute.getX() + 0.5, absolute.getY() + 0.5, absolute.getZ()));
     }
 
     /**
@@ -77,14 +81,12 @@ public final class PlayerClicks {
         Vec3 end = eye.add(target.subtract(eye).normalize().scale(player.blockInteractionRange()));
         BlockHitResult hit = helper.getLevel().clip(new ClipContext(eye, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
         if (hit.getType() == HitResult.Type.BLOCK) {
-            player.connection.handleUseItemOn(new ServerboundUseItemOnPacket(InteractionHand.MAIN_HAND, hit, 0));
+            send(player, hit);
         }
         return hit;
     }
 
-    /** Right clicks the centre of the north face of the block at {@code pos}. */
-    public static void use(GameTestHelper helper, ServerPlayer player, BlockPos pos) {
-        BlockPos absolute = helper.absolutePos(pos);
-        use(helper, player, pos, new Vec3(absolute.getX() + 0.5, absolute.getY() + 0.5, absolute.getZ()));
+    private static void send(ServerPlayer player, BlockHitResult hit) {
+        player.connection.handleUseItemOn(new ServerboundUseItemOnPacket(InteractionHand.MAIN_HAND, hit, 0));
     }
 }

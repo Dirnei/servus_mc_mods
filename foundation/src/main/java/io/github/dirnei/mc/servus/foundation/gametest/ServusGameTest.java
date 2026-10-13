@@ -8,8 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Marks a {@code public static void name(GameTestHelper helper)} method as a
  * GameTest. {@link ServusGameTests} registers it as a test function and a test
- * instance, the registry based replacement of the annotation driven GameTests
- * that vanilla dropped in 1.21.5.
+ * instance.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

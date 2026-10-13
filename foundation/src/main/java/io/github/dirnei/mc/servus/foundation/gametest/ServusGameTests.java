@@ -24,7 +24,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * Registers the {@link ServusGameTest} methods of a mod. Each method becomes a
  * test function in {@code minecraft:test_function} and a function test
  * instance with an empty default environment, named
- * {@code <mod>:<class>.<method>} in lower case like the old annotation names.
+ * {@code <mod>:<class>.<method>} in lower case.
  */
 public final class ServusGameTests {
 
