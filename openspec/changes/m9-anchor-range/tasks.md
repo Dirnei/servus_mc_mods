@@ -5,7 +5,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 ## 1. Pure logic
 
 - [x] 1.1 `machine/anchor/AnchorArea.java` (new, design.md D1). JUnit `machine/anchor/AnchorAreaTest.java`: `sizesAreOneNineTwentyFive`, `offsetClampedToRadius`, `ownChunkAlwaysInside`, `shiftStopsAtTheLimit`, `shrinkingRadiusClampsOffset`, `chunksListTheSquare`. Run `gradlew :foundation:test`.
-- [ ] 1.2 `machine/anchor/TeamLoad.java` (new, design.md D2). JUnit `machine/anchor/TeamLoadTest.java`: `overlapCountedOnce`, `ownEntryIgnoredOnRecheck`, `exactlyAtTheCapFits`, `oneOverTheCapRefused`, `emptyTeamHasNoLoad`. Run `gradlew :foundation:test`.
+- [x] 1.2 `machine/anchor/TeamLoad.java` (new, design.md D2). JUnit `machine/anchor/TeamLoadTest.java`: `overlapCountedOnce`, `ownEntryIgnoredOnRecheck`, `exactlyAtTheCapFits`, `oneOverTheCapRefused`, `emptyTeamHasNoLoad`. Run `gradlew :foundation:test`.
 
 ## 2. Team load and config
 
