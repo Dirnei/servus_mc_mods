@@ -59,6 +59,13 @@ openspec view                      # dashboard of specs and changes
 - Block, GUI and worldgen behavior: launch the client run config and check it in game. GameTests where practical.
 - Do not report a task as done without a green build.
 
+## Models and textures
+- No two faces may share a plane where they overlap, or they flicker (z-fighting). This covers datagen model elements, standalone models drawn by renderers, and parts drawn several times (rings of segments, turned copies, overlapping belt or rail pieces).
+- Before a model or renderer task is done, list for every pair of overlapping boxes whether any faces share a plane. Fix by ending a part exactly at its neighbour's edge, insetting the inner part (about 0.05 px), or giving repeated parts a tiny depth step per copy (about 0.005 px).
+- A part that should read as solid needs real geometry. A flat textured face has no thickness and looks like paper from the side.
+- Moving and metal parts use the family's steel textures, on every face including top and bottom, not vanilla `iron_block` (reads white) or a stone texture left on one face.
+- In the play check, look for flicker on every new part from several angles and while it moves.
+
 ## Git
 - Small commits with clear messages, subject line only.
 - Commit at the end of each task, or more often when it helps.
