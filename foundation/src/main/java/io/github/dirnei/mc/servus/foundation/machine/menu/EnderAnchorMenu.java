@@ -18,8 +18,14 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
  */
 public class EnderAnchorMenu extends MachineMenu {
 
+    /** Panel size of the GUI texture {@code textures/gui/ender_anchor.png}. */
+    public static final int WIDTH = 204;
+    public static final int HEIGHT = 212;
     public static final int UPGRADE_X = 8;
     public static final int UPGRADE_Y = 18;
+    /** The player inventory, centred, with its label 12 above. */
+    public static final int INVENTORY_X = 21;
+    public static final int INVENTORY_Y = HEIGHT - 82;
 
     public EnderAnchorMenu(int containerId, Inventory playerInventory, MachineBlockEntity machine) {
         super(MachineContent.ENDER_ANCHOR_MENU.get(), containerId, playerInventory, machine);
@@ -42,6 +48,16 @@ public class EnderAnchorMenu extends MachineMenu {
         }
     }
 
+    @Override
+    protected int playerInventoryX() {
+        return INVENTORY_X;
+    }
+
+    @Override
+    protected int playerInventoryY() {
+        return INVENTORY_Y;
+    }
+
     public EnderAnchorBlockEntity anchor() {
         return (EnderAnchorBlockEntity) machine;
     }
@@ -62,6 +78,11 @@ public class EnderAnchorMenu extends MachineMenu {
 
     public int teamCap() {
         return data().get(EnderAnchorBlockEntity.DATA_TEAM_CAP);
+    }
+
+    /** FE per tick the current area costs. */
+    public int upkeep() {
+        return data().get(EnderAnchorBlockEntity.DATA_UPKEEP);
     }
 
     @Override
