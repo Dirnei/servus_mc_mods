@@ -9,19 +9,16 @@ import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.BurnerMachineBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import net.minecraft.server.level.ServerLevel;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
-import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPorts;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.SlotPort;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import java.util.Optional;
-import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -31,16 +28,18 @@ import net.minecraft.world.entity.player.Player;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurificationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * The controller of the Calciner structure: burns its input into Salt, Sulfur and Mercury over the
  * Firebox's fire while formed, and pushes each principle out of its own port. It has no GUI.
  */
-public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements OwnedMachine {
+public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements TeamOwned {
 
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_FUEL = 1;
@@ -51,28 +50,25 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     private static final int FALLBACK_SALT_PER_ASH = 100;
 
     private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), true, this::setChanged);
-    private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
-    private final LegacyItemHandler inputPort = new CalcinerPorts.InsertOnly(inventory, SLOT_INPUT, this::calcinable);
+    private final TeamOwnership ownership = new TeamOwnership(this);
+    private final LegacyItemHandler inputPort = SlotPort.insertOnly(inventory, SLOT_INPUT, this::calcinable);
+    private final LegacyItemHandler fuelPort = SlotPort.insertOnly(inventory, SLOT_FUEL, this::burns);
     private final LegacyItemHandler ashPort = new CalcinerPorts.AshPort(this);
     private int saltPerAsh = FALLBACK_SALT_PER_ASH;
+    /** The recipe list {@link #saltPerAsh} was read from. */
     private List<RecipeHolder<PurificationRecipe>> saltPerAshFrom;
-    private final LegacyItemHandler fuelPort = new CalcinerPorts.InsertOnly(inventory, SLOT_FUEL, this::burns);
     private int pushCooldown;
     /** The lit state last given to the Firebox and the Hood. */
     private boolean partsLit;
-    /** The fill of each principle in sixteenths, -1 for empty, as last sent to the clients that draw it. */
-    private final int[] drawnFill = {-1, -1, -1};
+    private final DrawnFill drawnFill = new DrawnFill();
     /** The input item as last sent to the clients, null before the first send. */
-    private net.minecraft.world.item.Item sentInput;
+    private Item sentInput;
     /** On the client: the matter shown in the crucible. */
     private ItemStack shownInput = ItemStack.EMPTY;
 
     public CalcinerBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.CALCINER.get(), pos, state, 2);
-        // Items enter only through the ports of the structure, never through a side of this block.
-        for (RelativeSide side : RelativeSide.values()) {
-            sideConfig().lock(side, SideMode.DISABLED);
-        }
+        AlchemyMachines.closeAllSides(this);
     }
 
     /** Whether the structure around this Calciner is formed; only then it works. */
@@ -91,25 +87,9 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
         return fuelPort;
     }
 
-    // Owner
-
     @Override
-    public Optional<UUID> owner() {
-        return ownership.owner();
-    }
-
-    @Override
-    public void setOwner(UUID player) {
-        ownership.setOwner(level, player);
-    }
-
-    public void setTeam(UUID team) {
-        ownership.setTeam(team);
-    }
-
-    /** The owning team, or {@code null} for a machine nobody placed. */
-    public UUID team() {
-        return ownership.team();
+    public TeamOwnership ownership() {
+        return ownership;
     }
 
     public PrincipleTanks tanks() {
@@ -143,11 +123,6 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     @Override
     protected boolean isInputSlot(int slot) {
         return slot == SLOT_INPUT;
-    }
-
-    @Override
-    protected boolean isOutputSlot(int slot) {
-        return false;
     }
 
     @Override
@@ -275,19 +250,12 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
 
     /** Sends the tanks and the matter to the clients when a drawn fill level changed by a sixteenth or the matter changed. */
     private void syncFill() {
-        net.minecraft.world.item.Item input = inventory.getStackInSlot(SLOT_INPUT).getItem();
+        Item input = inventory.getStackInSlot(SLOT_INPUT).getItem();
         boolean changed = input != sentInput;
         sentInput = input;
-        for (Principle principle : Principle.values()) {
-            int amount = tanks.amount(principle);
-            int fill = amount == 0 ? -1 : amount * 16 / Math.max(1, tanks.capacity());
-            if (fill != drawnFill[principle.ordinal()]) {
-                drawnFill[principle.ordinal()] = fill;
-                changed = true;
-            }
-        }
+        changed |= drawnFill.update(tanks);
         if (changed && level != null) {
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
 
@@ -296,7 +264,8 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
         tag.put("Principles", tanks.save(registries));
-        tag.put("ShownInput", inventory.getStackInSlot(SLOT_INPUT).copyWithCount(1).isEmpty() ? new CompoundTag() : ValueIo.saveStack(registries, inventory.getStackInSlot(SLOT_INPUT).copyWithCount(1)));
+        ItemStack shown = inventory.getStackInSlot(SLOT_INPUT).copyWithCount(1);
+        tag.put("ShownInput", shown.isEmpty() ? new CompoundTag() : ValueIo.saveStack(registries, shown));
         return tag;
     }
 
@@ -332,5 +301,4 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     private boolean burns(ItemStack stack) {
         return level != null && stack.getBurnTime(null, level.fuelValues()) > 0;
     }
-
 }

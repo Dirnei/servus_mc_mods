@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Offset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -112,7 +113,7 @@ public final class CalcinerLayout {
 
     /** Where {@code cell} lies from the Calciner when the front faces {@code facing}. */
     public static Offset worldOffset(Cell cell, Facing facing) {
-        return new Offset(cell.right() * facing.rightX(), cell.up(), cell.right() * facing.rightZ());
+        return facing.offset(cell.right(), cell.up());
     }
 
     /** Where the Calciner lies from {@code cell} when the front faces {@code facing}. */
@@ -134,7 +135,7 @@ public final class CalcinerLayout {
         for (Cell cell : CELLS) {
             rows[MAX_UP - cell.up()].setCharAt(cell.right() - MIN_RIGHT, cell.role().symbol());
         }
-        return java.util.Arrays.stream(rows).map(StringBuilder::toString).toList();
+        return Arrays.stream(rows).map(StringBuilder::toString).toList();
     }
 
     /** How a cell lies next to its anchor part. */

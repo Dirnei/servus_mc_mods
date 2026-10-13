@@ -1,24 +1,20 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.athanor;
 
 import net.minecraft.world.item.ItemStackTemplate;
-import net.minecraft.world.item.crafting.RecipeBookCategories;
-import net.minecraft.world.item.crafting.RecipeBookCategory;
-import net.minecraft.world.item.crafting.PlacementInfo;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleCodecs;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.AlchemyRecipe;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
 
 /**
@@ -31,7 +27,7 @@ import net.neoforged.neoforge.common.crafting.SizedIngredient;
  * @param time       ticks per craft
  */
 public record AthanorRecipe(SizedIngredient input, Principles principles, int tier, ItemStackTemplate resultTemplate, int time)
-        implements Recipe<SingleRecipeInput> {
+        implements AlchemyRecipe.CountedInput {
 
     public static final int DEFAULT_TIME = 100;
 
@@ -51,51 +47,14 @@ public record AthanorRecipe(SizedIngredient input, Principles principles, int ti
             ByteBufCodecs.VAR_INT, AthanorRecipe::time,
             AthanorRecipe::new);
 
-    /** A new stack of what it makes. Recipes hold templates since 1.21.5; stacks need bound item components. */
+    /** A new stack of what it makes. */
     public ItemStack result() {
         return resultTemplate.create();
     }
 
     @Override
-    public boolean matches(SingleRecipeInput recipeInput, Level level) {
-        ItemStack stack = recipeInput.item();
-        return accepts(stack) && stack.getCount() >= input.count();
-    }
-
-    /** Whether the item matches regardless of count. */
-    public boolean accepts(ItemStack stack) {
-        return !stack.isEmpty() && input.ingredient().test(stack);
-    }
-
-    @Override
     public ItemStack assemble(SingleRecipeInput recipeInput) {
         return result();
-    }
-
-    @Override
-    public boolean showNotification() {
-        return false;
-    }
-
-    @Override
-    public String group() {
-        return "";
-    }
-
-    /** Never placed by the recipe book; the machines and JEI read the recipe's own fields. */
-    @Override
-    public PlacementInfo placementInfo() {
-        return PlacementInfo.NOT_PLACEABLE;
-    }
-
-    @Override
-    public RecipeBookCategory recipeBookCategory() {
-        return RecipeBookCategories.CRAFTING_MISC;
-    }
-
-    @Override
-    public boolean isSpecial() {
-        return true;
     }
 
     @Override

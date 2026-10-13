@@ -12,12 +12,14 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineStatsManager;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.TeamOwned;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.TeamOwnership;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.SlotPort;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.TankPort;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
 import java.util.Optional;
-import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -49,7 +51,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
  * the Catch Basin and the residue out of the Residue Crock, so pipes and hoppers see one thing at each
  * block without any setting.
  */
-public class PurifierBlockEntity extends BlockEntity {
+public class PurifierBlockEntity extends BlockEntity implements TeamOwned {
 
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purifier");
     private static final int PUSH_INTERVAL = 10;
@@ -81,11 +83,11 @@ public class PurifierBlockEntity extends BlockEntity {
             setChanged();
         }
     };
-    private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
-    private final LegacyItemHandler itemPort = new ItemPort();
-    private final LegacyItemHandler residuePort = new ResiduePort();
-    private final LegacyFluidHandler fluidPort = new FluidPort();
-    private final LegacyFluidHandler saltPort = new SaltPort();
+    private final TeamOwnership ownership = new TeamOwnership(this);
+    private final LegacyItemHandler itemPort = SlotPort.insertOnly(inventory, SLOT_INPUT, this::purifiable);
+    private final LegacyItemHandler residuePort = SlotPort.extractOnly(inventory, SLOT_RESIDUE);
+    private final LegacyFluidHandler fluidPort = TankPort.fillOnly(water);
+    private final LegacyFluidHandler saltPort = TankPort.drainOnly(salt);
     private int progress;
     private int pushCooldown;
     /** The brine level last sent to the clients, in sixteenths with the fluid kind, -1 before the first send. */
@@ -111,21 +113,11 @@ public class PurifierBlockEntity extends BlockEntity {
         return MachineStatsManager.INSTANCE.get(ID, MachineDefaults.stats(ID.toString()));
     }
 
-    // Owner
-
-    public Optional<UUID> owner() {
-        return ownership.owner();
+    @Override
+    public TeamOwnership ownership() {
+        return ownership;
     }
 
-    public void setOwner(UUID player) {
-        ownership.setOwner(level, player);
-    }
-
-    public void setTeam(UUID team) {
-        ownership.setTeam(team);
-    }
-
-    // Contents
 
     public ItemSlots inventory() {
         return inventory;
@@ -207,7 +199,6 @@ public class PurifierBlockEntity extends BlockEntity {
         return currentRecipe().map(recipe -> Math.min(100, progress * 100 / Math.max(1, recipe.time()))).orElse(0);
     }
 
-    // Work
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, PurifierBlockEntity purifier) {
         purifier.tick();
@@ -255,7 +246,7 @@ public class PurifierBlockEntity extends BlockEntity {
             inventory.setStackInSlot(SLOT_RESIDUE, held.isEmpty() ? recipe.residue().copy() : held.copyWithCount(held.getCount() + recipe.residue().getCount()));
         }
         if (level instanceof ServerLevel server) {
-            Journal.recordEvent(server, ownership.team(), "purify", recipe.salt());
+            Journal.recordEvent(server, team(), "purify", recipe.salt());
         }
     }
 
@@ -308,7 +299,7 @@ public class PurifierBlockEntity extends BlockEntity {
         return (waterFill + 1) * 100 + saltFill + 1;
     }
 
-    /** A broken Purifier drops its stock, as the block's removal did before 1.21.5. */
+    /** A broken Purifier drops its stock. */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         dropContents();
@@ -321,7 +312,6 @@ public class PurifierBlockEntity extends BlockEntity {
         }
     }
 
-    // Saving and sync
 
     @Override
     protected void saveAdditional(ValueOutput output) {
@@ -368,151 +358,5 @@ public class PurifierBlockEntity extends BlockEntity {
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
-    }
-
-    /** The Vat: one slot that takes what a purification recipe accepts and gives nothing. */
-    private final class ItemPort extends LegacyItemHandler {
-
-        @Override
-        public int getSlots() {
-            return 1;
-        }
-
-        @Override
-        public ItemStack getStackInSlot(int slot) {
-            return inventory.getStackInSlot(SLOT_INPUT);
-        }
-
-        @Override
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            return purifiable(stack) ? inventory.insertItem(SLOT_INPUT, stack, simulate) : stack;
-        }
-
-        @Override
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return ItemStack.EMPTY;
-        }
-
-        @Override
-        public int getSlotLimit(int slot) {
-            return inventory.getSlotLimit(SLOT_INPUT);
-        }
-
-        @Override
-        public boolean isItemValid(int slot, ItemStack stack) {
-            return purifiable(stack);
-        }
-    }
-
-    /** The Crock: one slot that gives the residue and takes nothing. */
-    private final class ResiduePort extends LegacyItemHandler {
-
-        @Override
-        public int getSlots() {
-            return 1;
-        }
-
-        @Override
-        public ItemStack getStackInSlot(int slot) {
-            return inventory.getStackInSlot(SLOT_RESIDUE);
-        }
-
-        @Override
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            return stack;
-        }
-
-        @Override
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return inventory.extractItem(SLOT_RESIDUE, amount, simulate);
-        }
-
-        @Override
-        public int getSlotLimit(int slot) {
-            return inventory.getSlotLimit(SLOT_RESIDUE);
-        }
-
-        @Override
-        public boolean isItemValid(int slot, ItemStack stack) {
-            return false;
-        }
-    }
-
-    /** The Vat: the water tank, filled only with water and never drained from outside. */
-    private final class FluidPort extends LegacyFluidHandler {
-
-        @Override
-        public int getTanks() {
-            return 1;
-        }
-
-        @Override
-        public FluidStack getFluidInTank(int tank) {
-            return water.getFluid();
-        }
-
-        @Override
-        public int getTankCapacity(int tank) {
-            return water.getCapacity();
-        }
-
-        @Override
-        public boolean isFluidValid(int tank, FluidStack stack) {
-            return water.isFluidValid(stack);
-        }
-
-        @Override
-        public int fill(FluidStack resource, boolean simulate) {
-            return water.isFluidValid(resource) ? water.fill(resource, simulate) : 0;
-        }
-
-        @Override
-        public FluidStack drain(FluidStack resource, boolean simulate) {
-            return FluidStack.EMPTY;
-        }
-
-        @Override
-        public FluidStack drain(int maxDrain, boolean simulate) {
-            return FluidStack.EMPTY;
-        }
-    }
-
-    /** The Basin: the Salt tank, drained only and never filled from outside. */
-    private final class SaltPort extends LegacyFluidHandler {
-
-        @Override
-        public int getTanks() {
-            return 1;
-        }
-
-        @Override
-        public FluidStack getFluidInTank(int tank) {
-            return salt.getFluid();
-        }
-
-        @Override
-        public int getTankCapacity(int tank) {
-            return salt.getCapacity();
-        }
-
-        @Override
-        public boolean isFluidValid(int tank, FluidStack stack) {
-            return false;
-        }
-
-        @Override
-        public int fill(FluidStack resource, boolean simulate) {
-            return 0;
-        }
-
-        @Override
-        public FluidStack drain(FluidStack resource, boolean simulate) {
-            return salt.isFluidValid(resource) ? salt.drain(resource, simulate) : FluidStack.EMPTY;
-        }
-
-        @Override
-        public FluidStack drain(int maxDrain, boolean simulate) {
-            return salt.drain(maxDrain, simulate);
-        }
     }
 }

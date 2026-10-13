@@ -62,7 +62,7 @@ public final class PurifierLayout {
     }
 
     public static Offset worldOffset(Cell cell, Facing facing) {
-        return new Offset(cell.right() * facing.rightX(), cell.up(), cell.right() * facing.rightZ());
+        return facing.offset(cell.right(), cell.up());
     }
 
     /** The front view top to bottom, each row left to right. */

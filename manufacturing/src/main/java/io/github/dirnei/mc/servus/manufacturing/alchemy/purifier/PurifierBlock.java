@@ -5,6 +5,7 @@ import net.minecraft.server.level.ServerLevel;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.redstone.Orientation;
 import com.mojang.serialization.MapCodec;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.PlayerItems;
 import io.github.dirnei.mc.servus.manufacturing.journal.ParacelsusJournalItem;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
@@ -114,10 +115,7 @@ public class PurifierBlock extends BaseEntityBlock {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof PurifierBlockEntity purifier) {
-            ItemStack taken = purifier.takeItems();
-            if (!taken.isEmpty() && !player.addItem(taken)) {
-                player.drop(taken, false);
-            }
+            PlayerItems.give(player, purifier.takeItems());
         }
         return InteractionResult.SUCCESS;
     }
@@ -132,7 +130,6 @@ public class PurifierBlock extends BaseEntityBlock {
 
     @Override
     protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
-        // The contents drop in PurifierBlockEntity#preRemoveSideEffects, while the block entity still exists.
         PurifierStructure.broken(level, state, pos);
         super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }

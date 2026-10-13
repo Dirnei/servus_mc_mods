@@ -2,8 +2,6 @@ package io.github.dirnei.mc.servus.manufacturing.alchemy.athanor;
 
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.util.ExtraCodecs;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
@@ -13,6 +11,9 @@ import io.github.dirnei.mc.servus.manufacturing.ServusManufacturing;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers.BlockAt;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers.TierDef;
 import java.util.Comparator;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.resources.Identifier;
@@ -43,8 +44,6 @@ public final class AthanorTierData extends SimpleJsonResourceReloadListener<Json
         ).apply(instance, TierJson::new));
     }
 
-    private static final Gson GSON = new GsonBuilder().create();
-
     public static final AthanorTierData INSTANCE = new AthanorTierData();
 
     /** The tiers Manufacturing ships, by file name; the journal draws a schematic for each. */
@@ -57,10 +56,10 @@ public final class AthanorTierData extends SimpleJsonResourceReloadListener<Json
             if (stream == null) {
                 throw new IllegalStateException("Missing shipped Athanor tier " + path);
             }
-            JsonElement json = JsonParser.parseReader(new java.io.InputStreamReader(stream, java.nio.charset.StandardCharsets.UTF_8));
+            JsonElement json = JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
             TierJson tier = TierJson.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow();
             return new TierDef(name, tier.tier(), parseColor(tier.color()), tier.blocks());
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             throw new IllegalStateException("Cannot read shipped Athanor tier " + path, e);
         }
     }

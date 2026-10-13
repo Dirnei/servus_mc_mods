@@ -3,10 +3,12 @@ package io.github.dirnei.mc.servus.manufacturing.alchemy;
 import io.github.dirnei.mc.servus.foundation.team.Teams;
 import java.util.Optional;
 import java.util.UUID;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 /**
  * The team an alchemy block works for: journal progress is counted for it and its chapters gate
@@ -16,11 +18,11 @@ public final class TeamOwnership {
 
     private static final String TAG = "Team";
 
-    private final Runnable changed;
+    private final BlockEntity holder;
     private UUID team;
 
-    public TeamOwnership(Runnable changed) {
-        this.changed = changed;
+    public TeamOwnership(BlockEntity holder) {
+        this.holder = holder;
     }
 
     /** The owning team, or {@code null} for a block nobody placed. */
@@ -33,19 +35,19 @@ public final class TeamOwnership {
     }
 
     /** Takes the placing player's id and stores their team. */
-    public void setOwner(Level level, UUID player) {
-        team = resolveTeam(level, player);
-        changed.run();
+    public void setOwner(UUID player) {
+        team = resolveTeam(holder.getLevel(), player);
+        holder.setChanged();
     }
 
     /** Sets the owning team directly, for tests and commands. */
     public void setTeam(UUID team) {
         this.team = team;
-        changed.run();
+        holder.setChanged();
     }
 
     /** The team of a player who is online, else the player's own id. */
-    public static UUID resolveTeam(Level level, UUID player) {
+    private static UUID resolveTeam(Level level, UUID player) {
         if (level instanceof ServerLevel server) {
             ServerPlayer online = server.getServer().getPlayerList().getPlayer(player);
             if (online != null) {
@@ -57,11 +59,11 @@ public final class TeamOwnership {
 
     public void save(CompoundTag tag) {
         if (team != null) {
-            tag.store(TAG, net.minecraft.core.UUIDUtil.CODEC, team);
+            tag.store(TAG, UUIDUtil.CODEC, team);
         }
     }
 
     public void load(CompoundTag tag) {
-        team = tag.read(TAG, net.minecraft.core.UUIDUtil.CODEC).orElse(null);
+        team = tag.read(TAG, UUIDUtil.CODEC).orElse(null);
     }
 }

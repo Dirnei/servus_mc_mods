@@ -10,10 +10,10 @@ import net.minecraft.world.level.block.Blocks;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
-import io.github.dirnei.mc.servus.foundation.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.TeamOwned;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.TeamOwnership;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
@@ -31,8 +31,8 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.FormingEffect;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
-import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -57,7 +57,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
  * The alchemist's furnace: burns principles for the craft of the item lying on it, as far as its
  * structure allows. It holds no principles itself; it reads and drains the three Fluid Tanks of its build.
  */
-public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachine {
+public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned {
 
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_OUTPUT = 1;
@@ -66,7 +66,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
     /** Ticks between tier checks while nothing else asks for one. */
     private static final int TIER_INTERVAL = 100;
 
-    private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
+    private final TeamOwnership ownership = new TeamOwnership(this);
     private int tier;
     private int tierCooldown;
     private ItemStack shownInput = ItemStack.EMPTY;
@@ -84,7 +84,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         return AthanorTiers.nameOf(AthanorTierData.INSTANCE.tiers(), tier);
     }
 
-    // Tanks
 
     /** Where the tank on {@code tank}'s side stands, by the Athanor's front. */
     public BlockPos tankPos(Tank tank) {
@@ -178,7 +177,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         return held;
     }
 
-
     /** Drains {@code amounts} from the tanks, each principle from whichever tanks hold it. */
     private void drain(Principles amounts) {
         List<FluidView> handlers = tankHandlers();
@@ -194,27 +192,11 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         }
     }
 
-    // Owner
-
     @Override
-    public Optional<UUID> owner() {
-        return ownership.owner();
+    public TeamOwnership ownership() {
+        return ownership;
     }
 
-    @Override
-    public void setOwner(UUID player) {
-        ownership.setOwner(level, player);
-    }
-
-    public void setTeam(UUID team) {
-        ownership.setTeam(team);
-    }
-
-    public UUID team() {
-        return ownership.team();
-    }
-
-    // Tier
 
     /** Reads the structure around the Athanor and stores the tier in the block state. A handful of block reads. */
     public void checkTier() {
@@ -237,7 +219,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         }
     }
 
-    // Hearth
 
     /** Whether the Athanor stands formed on its hearth with its tanks. */
     public boolean formed() {
@@ -271,14 +252,12 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         }
         Tank tank = missingTank();
         if (tank != null) {
-            player.sendSystemMessage(Component.translatable("message.servus_manufacturing.athanor.missing_tank",
-                    Component.translatable("message.servus_manufacturing.athanor.tank." + tank.side().name().toLowerCase(java.util.Locale.ROOT))));
+            player.sendSystemMessage(Component.translatable("message.servus_manufacturing.athanor.missing_tank", sideName(tank.side())));
             return;
         }
         Duct duct = missingDuct();
         if (duct != null) {
-            player.sendSystemMessage(Component.translatable("message.servus_manufacturing.athanor.missing_duct",
-                    Component.translatable("message.servus_manufacturing.athanor.tank." + duct.side().name().toLowerCase(java.util.Locale.ROOT))));
+            player.sendSystemMessage(Component.translatable("message.servus_manufacturing.athanor.missing_duct", sideName(duct.side())));
             return;
         }
         setFormed(true);
@@ -292,6 +271,10 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         player.sendOverlayMessage(Component.translatable("message.servus_manufacturing.athanor.formed"));
     }
 
+    private static Component sideName(Enum<?> side) {
+        return Component.translatable("message.servus_manufacturing.athanor.tank." + side.name().toLowerCase(Locale.ROOT));
+    }
+
     /** Unforms a formed Athanor whose hearth lost a brick or that lost a tank or a duct. */
     public void checkHearth() {
         if (level != null && !level.isClientSide() && formed() && (missingHearthBrick() != null || missingTank() != null || missingDuct() != null)) {
@@ -299,7 +282,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         }
     }
 
-    /** Unforms a formed Athanor, as when the space above it was taken. */
+    /** Unforms a formed Athanor, for when the space above it is taken. */
     public void unform() {
         if (level != null && !level.isClientSide()) {
             setFormed(false);
@@ -326,7 +309,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         }
     }
 
-    // Crafting
 
     private Optional<RecipeHolder<AthanorRecipe>> currentHolder() {
         ItemStack stack = inventory.getStackInSlot(SLOT_INPUT);
@@ -355,22 +337,16 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         }
         Optional<AthanorRecipe> recipe = currentRecipe();
         if (recipe.isPresent() && progress == 0 && canCraft(recipe.get())) {
-            // A craft is about to start: read the structure now rather than trust a tier up to five seconds old.
+            // The periodic tier may be stale; a craft starts on the structure as it stands.
             checkTier();
         }
         if (recipe.isEmpty() || !canCraft(recipe.get())) {
-            if (progress != 0) {
-                progress = 0;
-                setChanged();
-            }
+            resetProgress();
             return false;
         }
-        progress++;
-        if (progress >= Math.max(1, recipe.get().time())) {
-            progress = 0;
+        if (stepProgress()) {
             finishCraft(recipe.get());
         }
-        setChanged();
         return true;
     }
 
@@ -399,7 +375,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         return currentRecipe().map(recipe -> Math.max(1, recipe.time())).orElse(0);
     }
 
-    // Machine contract
 
     @Override
     protected Identifier machineId() {
@@ -465,7 +440,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         };
     }
 
-    // Persistence and sync
 
     @Override
     protected void saveAdditional(ValueOutput output) {

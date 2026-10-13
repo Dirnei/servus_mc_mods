@@ -2,7 +2,6 @@ package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
 import net.minecraft.world.level.Level;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
-import net.minecraft.world.item.crafting.Recipe;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -10,10 +9,7 @@ import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
-import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
@@ -23,7 +19,6 @@ import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingReci
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -33,13 +28,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Makes its selected recipe's result from piped principles and an optional item. It needs no power:
  * the joined principles only take the recipe's time to cool and set.
  */
-public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMachine {
+public class CoagulatorBlockEntity extends MachineBlockEntity implements TeamOwned {
 
     public static final int SLOT_INGREDIENT = 0;
     public static final int SLOT_OUTPUT = 1;
@@ -48,43 +44,23 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
     public static final int DATA_COUNT = DATA_SELECTED + 1;
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulator");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
+    private static final int SYNC_INTERVAL = 10;
 
     private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), false, this::setChanged);
-    private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
-    private Identifier selected;
-
+    private final TeamOwnership ownership = new TeamOwnership(this);
     private final LegacyItemHandler itemPort = new ItemPort();
-    /** The fill of each principle in sixteenths, -1 for empty, as last sent to the clients that draw the Vats. */
-    private final int[] drawnFill = {-1, -1, -1};
+    private final DrawnFill drawnFill = new DrawnFill();
+    private Identifier selected;
     private int syncCooldown;
 
     public CoagulatorBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.COAGULATOR.get(), pos, state, 2);
-        // Items enter and leave only through the Coagulator's own port, never through a configured side.
-        for (RelativeSide side : RelativeSide.values()) {
-            sideConfig().lock(side, SideMode.DISABLED);
-        }
-    }
-
-    // Owner
-
-    @Override
-    public Optional<UUID> owner() {
-        return ownership.owner();
+        AlchemyMachines.closeAllSides(this);
     }
 
     @Override
-    public void setOwner(UUID player) {
-        ownership.setOwner(level, player);
-    }
-
-    public void setTeam(UUID team) {
-        ownership.setTeam(team);
-    }
-
-    /** The owning team, or {@code null} for a machine nobody placed. */
-    public UUID team() {
-        return ownership.team();
+    public TeamOwnership ownership() {
+        return ownership;
     }
 
     /** Every coagulation recipe in a fixed order, the same on server and client. */
@@ -132,17 +108,8 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
 
     /** Sends the tanks to the clients when a Vat's drawn level changed by a sixteenth. */
     private void syncFill() {
-        boolean changed = false;
-        for (Principle principle : Principle.values()) {
-            int amount = tanks.amount(principle);
-            int fill = amount == 0 ? -1 : amount * 16 / Math.max(1, tanks.capacity());
-            if (fill != drawnFill[principle.ordinal()]) {
-                drawnFill[principle.ordinal()] = fill;
-                changed = true;
-            }
-        }
-        if (changed && level != null) {
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+        if (drawnFill.update(tanks) && level != null) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
 
@@ -221,7 +188,7 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
 
     private boolean canWork() {
         tanks.setCapacity(stats().fluidCapacity());
-        if (++syncCooldown >= 10) {
+        if (++syncCooldown >= SYNC_INTERVAL) {
             syncCooldown = 0;
             syncFill();
         }
@@ -233,18 +200,12 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
     @Override
     protected boolean tick() {
         if (!canWork()) {
-            if (progress != 0) {
-                progress = 0;
-                setChanged();
-            }
+            resetProgress();
             return false;
         }
-        progress++;
-        if (progress >= workTicks()) {
-            progress = 0;
+        if (stepProgress()) {
             finishWork();
         }
-        setChanged();
         return true;
     }
 

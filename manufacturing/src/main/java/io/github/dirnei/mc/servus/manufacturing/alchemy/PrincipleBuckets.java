@@ -46,8 +46,6 @@ public final class PrincipleBuckets {
         if (container == null) {
             return false;
         }
-        // Fill the container from the tank first, else empty it into the tank; the cursor access
-        // replaces the cursor stack or puts the filled container into the inventory.
         LegacyFluidHandler tank = tanks.view(principle);
         return ResourceHandlerUtil.moveFirst(tank, container, resource -> true, Integer.MAX_VALUE, null) != null
                 || ResourceHandlerUtil.moveFirst(container, tank, resource -> true, Integer.MAX_VALUE, null) != null;

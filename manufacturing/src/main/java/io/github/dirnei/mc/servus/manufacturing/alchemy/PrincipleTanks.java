@@ -38,17 +38,6 @@ public final class PrincipleTanks extends LegacyFluidHandler {
         return views[principle.ordinal()];
     }
 
-    /** The tanks a machine with these tanks offers in its Fluids layer, in principle order. */
-    public static java.util.List<io.github.dirnei.mc.servus.foundation.side.SideTank> sideTanks(boolean input) {
-        java.util.List<io.github.dirnei.mc.servus.foundation.side.SideTank> list = new java.util.ArrayList<>();
-        for (Principle principle : Principle.values()) {
-            list.add(new io.github.dirnei.mc.servus.foundation.side.SideTank(
-                    "fluid_type." + io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds.MOD_ID + "." + principle.id(),
-                    principle.color(), input));
-        }
-        return java.util.List.copyOf(list);
-    }
-
     public void setCapacity(int capacity) {
         for (FluidSlot tank : tanks) {
             tank.setCapacity(capacity);
@@ -59,7 +48,7 @@ public final class PrincipleTanks extends LegacyFluidHandler {
         return tanks[0].getCapacity();
     }
 
-    /** What the three tanks hold now. */
+    /** What the three tanks hold. */
     public Principles contents() {
         return new Principles(amount(Principle.SALT), amount(Principle.SULFUR), amount(Principle.MERCURY));
     }

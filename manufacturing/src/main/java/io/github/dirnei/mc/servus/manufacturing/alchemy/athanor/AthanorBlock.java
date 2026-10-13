@@ -73,7 +73,7 @@ public class AthanorBlock extends MachineBlock {
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation,
                                    boolean movedByPiston) {
         super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
-        // The neighbour update no longer names its source (1.21.2); every update checks the hearth.
+        // The update does not name the changed neighbour, so every update checks the hearth.
         if (!level.isClientSide() && state.getValue(FORMED)
                 && level.getBlockEntity(pos) instanceof AthanorBlockEntity athanor) {
             athanor.checkHearth();
@@ -104,7 +104,6 @@ public class AthanorBlock extends MachineBlock {
             AthanorBlockEntity.setDucts(level, pos, state.getValue(FACING), false);
             AthanorBlockEntity.setCrown(level, pos, false);
         }
-    
         super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 

@@ -1,9 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
 import net.minecraft.world.item.ItemStackTemplate;
-import net.minecraft.world.item.crafting.RecipeBookCategories;
-import net.minecraft.world.item.crafting.RecipeBookCategory;
-import net.minecraft.world.item.crafting.PlacementInfo;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -14,7 +11,6 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
@@ -32,7 +28,7 @@ import net.neoforged.neoforge.common.crafting.SizedIngredient;
  */
 public record CoagulationRecipe(Principles input, Optional<SizedIngredient> ingredient, ItemStackTemplate resultTemplate, int time,
                                 Optional<Identifier> chapter)
-        implements Recipe<SingleRecipeInput> {
+        implements AlchemyRecipe {
 
     public static final int DEFAULT_TIME = 40;
 
@@ -63,7 +59,7 @@ public record CoagulationRecipe(Principles input, Optional<SizedIngredient> ingr
         return ingredient.map(sized -> sized.ingredient().test(stack)).orElse(false);
     }
 
-    /** A new stack of what it makes. Recipes hold templates since 1.21.5; stacks need bound item components. */
+    /** A new stack of what it makes. */
     public ItemStack result() {
         return resultTemplate.create();
     }
@@ -76,32 +72,6 @@ public record CoagulationRecipe(Principles input, Optional<SizedIngredient> ingr
     @Override
     public ItemStack assemble(SingleRecipeInput recipeInput) {
         return result();
-    }
-
-    @Override
-    public boolean showNotification() {
-        return false;
-    }
-
-    @Override
-    public String group() {
-        return "";
-    }
-
-    /** Never placed by the recipe book; the machines and JEI read the recipe's own fields. */
-    @Override
-    public PlacementInfo placementInfo() {
-        return PlacementInfo.NOT_PLACEABLE;
-    }
-
-    @Override
-    public RecipeBookCategory recipeBookCategory() {
-        return RecipeBookCategories.CRAFTING_MISC;
-    }
-
-    @Override
-    public boolean isSpecial() {
-        return true;
     }
 
     @Override

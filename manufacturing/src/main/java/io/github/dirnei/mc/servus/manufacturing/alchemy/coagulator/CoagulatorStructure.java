@@ -9,8 +9,8 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorLay
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.FormingEffect;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures.Check;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
@@ -29,14 +29,6 @@ import net.minecraft.world.level.block.state.BlockState;
 public final class CoagulatorStructure {
 
     private static boolean changing;
-
-    /** The result of checking the structure in its best facing. */
-    public record Check(Facing facing, Optional<Cell> firstWrong) {
-
-        public boolean complete() {
-            return firstWrong.isEmpty();
-        }
-    }
 
     private CoagulatorStructure() {
     }
@@ -61,32 +53,9 @@ public final class CoagulatorStructure {
     }
 
     /** Checks every facing, the Coagulator's own first, and returns a complete one or the one that matched most. */
-    public static Check check(Level level, BlockPos controller) {
-        List<Facing> order = new ArrayList<>(List.of(Facing.values()));
-        Facing own = Structures.facing(level.getBlockState(controller).getValue(MachineBlock.FACING));
-        order.remove(own);
-        order.addFirst(own);
-        Check best = null;
-        int bestMatches = -1;
-        for (Facing facing : order) {
-            Optional<Cell> firstWrong = Optional.empty();
-            int matches = 0;
-            for (Cell cell : CoagulatorLayout.cells()) {
-                if (matches(level.getBlockState(pos(controller, cell, facing)), cell)) {
-                    matches++;
-                } else if (firstWrong.isEmpty()) {
-                    firstWrong = Optional.of(cell);
-                }
-            }
-            if (firstWrong.isEmpty()) {
-                return new Check(facing, firstWrong);
-            }
-            if (matches > bestMatches) {
-                bestMatches = matches;
-                best = new Check(facing, firstWrong);
-            }
-        }
-        return best;
+    public static Check<Cell> check(Level level, BlockPos controller) {
+        return Structures.check(level.getBlockState(controller).getValue(MachineBlock.FACING), CoagulatorLayout.cells(),
+                (facing, cell) -> matches(level.getBlockState(pos(controller, cell, facing)), cell));
     }
 
     /** The Journal's click: forms a complete structure and makes the player its owner, else names what is missing. */
@@ -94,7 +63,7 @@ public final class CoagulatorStructure {
         if (level.getBlockState(controller).getValue(CoagulatorBlock.FORMED)) {
             return true;
         }
-        Check check = check(level, controller);
+        Check<Cell> check = check(level, controller);
         if (!check.complete()) {
             Cell wrong = check.firstWrong().orElseThrow();
             player.sendSystemMessage(Component.translatable("message.servus_manufacturing.coagulator.missing",

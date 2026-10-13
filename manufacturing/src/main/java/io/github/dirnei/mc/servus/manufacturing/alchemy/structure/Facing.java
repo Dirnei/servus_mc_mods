@@ -21,4 +21,9 @@ public enum Facing {
     public int rightZ() {
         return -dx;
     }
+
+    /** The offset {@code right} to the player's right and {@code up} of a front facing this way. */
+    public Offset offset(int right, int up) {
+        return new Offset(right * rightX(), up, right * rightZ());
+    }
 }

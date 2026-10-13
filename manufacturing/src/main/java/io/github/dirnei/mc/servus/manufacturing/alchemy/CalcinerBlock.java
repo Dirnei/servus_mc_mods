@@ -78,10 +78,7 @@ public class CalcinerBlock extends MachineBlock {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof CalcinerBlockEntity calciner) {
-            ItemStack taken = calciner.takeInput();
-            if (!taken.isEmpty() && !player.addItem(taken)) {
-                player.drop(taken, false);
-            }
+            PlayerItems.give(player, calciner.takeInput());
         }
         return InteractionResult.SUCCESS;
     }

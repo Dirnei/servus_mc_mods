@@ -12,7 +12,6 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleTanks;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Cell;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
 import java.util.Optional;
-import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -21,7 +20,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 
 /**
@@ -165,50 +163,6 @@ public final class CalcinerPorts {
         @Override
         public boolean isItemValid(int index, ItemStack stack) {
             return false;
-        }
-    }
-
-    /** One slot of a machine inventory that only takes what {@code accepts} allows and never gives out. */
-    public static final class InsertOnly extends LegacyItemHandler {
-
-        private final ItemSlots inventory;
-        private final int slot;
-        private final Predicate<ItemStack> accepts;
-
-        public InsertOnly(ItemSlots inventory, int slot, Predicate<ItemStack> accepts) {
-            this.inventory = inventory;
-            this.slot = slot;
-            this.accepts = accepts;
-        }
-
-        @Override
-        public int getSlots() {
-            return 1;
-        }
-
-        @Override
-        public ItemStack getStackInSlot(int index) {
-            return inventory.getStackInSlot(slot);
-        }
-
-        @Override
-        public ItemStack insertItem(int index, ItemStack stack, boolean simulate) {
-            return accepts.test(stack) ? inventory.insertItem(slot, stack, simulate) : stack;
-        }
-
-        @Override
-        public ItemStack extractItem(int index, int amount, boolean simulate) {
-            return ItemStack.EMPTY;
-        }
-
-        @Override
-        public int getSlotLimit(int index) {
-            return inventory.getSlotLimit(slot);
-        }
-
-        @Override
-        public boolean isItemValid(int index, ItemStack stack) {
-            return accepts.test(stack);
         }
     }
 }

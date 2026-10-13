@@ -7,6 +7,7 @@ import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.redstone.Orientation;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.PlayerItems;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -72,7 +73,6 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
         }
         if (CalcinerPorts.principle(CalcinerLayout.part(role)) != null && state.getValue(FORMED)
                 && Transfer.isFluidContainer(stack)) {
-            // Empty containers fill with the port's principle; filled ones do nothing here.
             LegacyFluidHandler port = CalcinerPorts.fluid(level, pos, state);
             if (port != null && !level.isClientSide()) {
                 FluidUtil.interactWithFluidHandler(player, hand, pos, port, null);
@@ -80,7 +80,6 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
             return InteractionResult.SUCCESS;
         }
         if (role == Role.ASH_PAN && state.getValue(FORMED) && !stack.isEmpty()) {
-            // Only an empty hand takes the Ash; anything held keeps its own use.
             return InteractionResult.PASS;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -100,10 +99,7 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
             int ash = calciner.takeAsh(calciner.ashCount(), false);
             while (ash > 0) {
                 int count = Math.min(ash, 64);
-                ItemStack stack = new ItemStack(ServusManufacturingItems.ASH.get(), count);
-                if (!player.addItem(stack)) {
-                    player.drop(stack, false);
-                }
+                PlayerItems.give(player, new ItemStack(ServusManufacturingItems.ASH.get(), count));
                 ash -= count;
             }
         }

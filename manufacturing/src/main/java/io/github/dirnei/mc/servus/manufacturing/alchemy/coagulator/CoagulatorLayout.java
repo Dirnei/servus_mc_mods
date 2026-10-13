@@ -74,7 +74,7 @@ public final class CoagulatorLayout {
     }
 
     public static Offset worldOffset(Cell cell, Facing facing) {
-        return new Offset(cell.right() * facing.rightX(), cell.up(), cell.right() * facing.rightZ());
+        return facing.offset(cell.right(), cell.up());
     }
 
     public static Offset controllerOffset(Cell cell, Facing facing) {

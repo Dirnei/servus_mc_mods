@@ -7,10 +7,10 @@ import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
-import io.github.dirnei.mc.servus.foundation.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.TeamOwned;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.TeamOwnership;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.AlchemyMachines;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleTanks;
@@ -23,7 +23,6 @@ import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBloc
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -41,7 +40,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * A Gnome Hollow: seeded with a sample of ore, ripened with principles, and once a gnome is bound
  * it yields the vein's ore forever. Clients get the vein's look for drawing under Elemental Sight.
  */
-public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedMachine {
+public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOwned {
 
     public static final int SLOT_SAMPLE = 0;
     public static final int SLOT_OUTPUT = 1;
@@ -59,9 +58,9 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
 
     private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), false, this::setChanged);
     private final State growth = new State();
-    private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
+    private final TeamOwnership ownership = new TeamOwnership(this);
     private Identifier vein;
-    // Client copies from the update tag, for drawing.
+    /** On the client: the vein's yield and its ripening steps, from the update tag. */
     private ItemStack shownYield = ItemStack.EMPTY;
     private int shownSteps;
 
@@ -90,27 +89,11 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
         return side == null || sideMode(side).allowsInsert() ? tanks : null;
     }
 
-    // Owner
-
     @Override
-    public Optional<UUID> owner() {
-        return ownership.owner();
+    public TeamOwnership ownership() {
+        return ownership;
     }
 
-    @Override
-    public void setOwner(UUID player) {
-        ownership.setOwner(level, player);
-    }
-
-    public void setTeam(UUID team) {
-        ownership.setTeam(team);
-    }
-
-    public UUID team() {
-        return ownership.team();
-    }
-
-    // Seeding
 
     /** Whether the owner's team may grow this vein: its chapter must be finished. */
     public boolean mayGrow(VeinDef def) {
@@ -143,7 +126,6 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
         });
     }
 
-    // Binding
 
     /** A Salt Crystal offered by a player: binds a gnome to a ripe vein if the player sees it. */
     public Binding bind(Player player) {
@@ -169,7 +151,6 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
         return Binding.BOUND;
     }
 
-    // Work
 
     @Override
     protected boolean tick() {
@@ -202,7 +183,6 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
         }
     }
 
-    // Machine contract
 
     @Override
     protected Identifier machineId() {
@@ -276,7 +256,6 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
         };
     }
 
-    // Client view
 
     /** The vein's yield as the client knows it, empty without a vein. */
     public ItemStack shownYield() {
@@ -312,7 +291,6 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
         HollowTracker.remove(this);
     }
 
-    // Persistence and sync
 
     @Override
     protected void saveAdditional(ValueOutput output) {

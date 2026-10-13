@@ -5,12 +5,12 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Offset;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.FormingEffect;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures.Check;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Cell;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -34,14 +34,6 @@ public final class CalcinerStructure {
 
     /** Set while this class swaps blocks, so the removals it causes do not unform again. */
     private static boolean changing;
-
-    /** The result of checking the structure in its best facing. */
-    public record Check(Facing facing, Optional<Cell> firstWrong) {
-
-        public boolean complete() {
-            return firstWrong.isEmpty();
-        }
-    }
 
     private CalcinerStructure() {
     }
@@ -77,32 +69,9 @@ public final class CalcinerStructure {
     }
 
     /** Checks every facing, the Calciner's own first, and returns a complete one or the one that matched most. */
-    public static Check check(Level level, BlockPos controller) {
-        List<Facing> order = new ArrayList<>(List.of(Facing.values()));
-        Facing own = facing(level.getBlockState(controller).getValue(MachineBlock.FACING));
-        order.remove(own);
-        order.addFirst(own);
-        Check best = null;
-        int bestMatches = -1;
-        for (Facing facing : order) {
-            Optional<Cell> firstWrong = Optional.empty();
-            int matches = 0;
-            for (Cell cell : CalcinerLayout.cells()) {
-                if (matches(level.getBlockState(pos(controller, cell, facing)), cell)) {
-                    matches++;
-                } else if (firstWrong.isEmpty()) {
-                    firstWrong = Optional.of(cell);
-                }
-            }
-            if (firstWrong.isEmpty()) {
-                return new Check(facing, firstWrong);
-            }
-            if (matches > bestMatches) {
-                bestMatches = matches;
-                best = new Check(facing, firstWrong);
-            }
-        }
-        return best;
+    public static Check<Cell> check(Level level, BlockPos controller) {
+        return Structures.check(level.getBlockState(controller).getValue(MachineBlock.FACING), CalcinerLayout.cells(),
+                (facing, cell) -> matches(level.getBlockState(pos(controller, cell, facing)), cell));
     }
 
     private static boolean matches(BlockState state, Cell cell) {
@@ -127,7 +96,7 @@ public final class CalcinerStructure {
         if (level.getBlockState(controller).getValue(CalcinerBlock.FORMED)) {
             return true;
         }
-        Check check = check(level, controller);
+        Check<Cell> check = check(level, controller);
         if (!check.complete()) {
             Cell wrong = check.firstWrong().orElseThrow();
             player.sendSystemMessage(Component.translatable("message.servus_manufacturing.calciner.missing",
@@ -170,7 +139,7 @@ public final class CalcinerStructure {
                     default -> state.setValue(CalcinerPartBlock.FACING, direction).setValue(CalcinerPartBlock.FORMED, true);
                 };
                 level.setBlock(pos, formed, Block.UPDATE_ALL);
-                // The ports are capabilities by block state; a changed property alone keeps stale caches.
+                // Ports are capabilities by block state; a changed property alone keeps stale caches.
                 level.invalidateCapabilities(pos);
             }
         } finally {
@@ -272,9 +241,7 @@ public final class CalcinerStructure {
         if (changing || level.isClientSide()) {
             return;
         }
-        controllerOf(state, pos).ifPresent(controller -> {
-            unform(level, controller, facingOf(state), pos);
-        });
+        controllerOf(state, pos).ifPresent(controller -> unform(level, controller, facingOf(state), pos));
     }
 
     /** The facing a formed block of the structure carries. */

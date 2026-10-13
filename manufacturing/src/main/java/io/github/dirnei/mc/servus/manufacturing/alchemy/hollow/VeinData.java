@@ -3,8 +3,6 @@ package io.github.dirnei.mc.servus.manufacturing.alchemy.hollow;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.util.ExtraCodecs;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
@@ -44,7 +42,7 @@ public final class VeinData extends SimpleJsonResourceReloadListener<JsonElement
      */
     public record VeinDef(List<TagKey<Item>> samples, ItemStackTemplate yieldTemplate, Optional<Identifier> chapter, Vein growth) {
 
-        /** A new stack of what a bound gnome digs; stacks need bound item components, so the data holds a template. */
+        /** A new stack of what a bound gnome digs. */
         public ItemStack yield() {
             return yieldTemplate.create();
         }
@@ -64,8 +62,6 @@ public final class VeinData extends SimpleJsonResourceReloadListener<JsonElement
             Codec.intRange(1, Integer.MAX_VALUE).fieldOf("yield_ticks").forGetter(def -> def.growth().yieldTicks())
     ).apply(instance, (samples, yield, chapter, steps, stepTicks, stepCost, yieldTicks) ->
             new VeinDef(samples, yield, chapter, new Vein(steps, stepTicks, stepCost, yieldTicks))));
-
-    private static final Gson GSON = new GsonBuilder().create();
 
     public static final VeinData INSTANCE = new VeinData();
 

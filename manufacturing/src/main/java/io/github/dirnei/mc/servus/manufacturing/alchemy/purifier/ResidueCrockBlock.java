@@ -1,9 +1,9 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.purifier;
 
+import io.github.dirnei.mc.servus.manufacturing.alchemy.PlayerItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -22,10 +22,7 @@ public class ResidueCrockBlock extends PurifierSideBlock {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide() && level.getBlockEntity(vat(pos, state)) instanceof PurifierBlockEntity purifier && purifier.formed()) {
-            ItemStack taken = purifier.takeResidue();
-            if (!taken.isEmpty() && !player.addItem(taken)) {
-                player.drop(taken, false);
-            }
+            PlayerItems.give(player, purifier.takeResidue());
         }
         return InteractionResult.SUCCESS;
     }
