@@ -2,8 +2,10 @@ package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.storage.production.ProductionPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.DuctRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.JobRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.PackingRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternsView;
 import java.util.List;
 import net.minecraft.client.Minecraft;
@@ -77,11 +79,11 @@ public final class ClientProduction {
         return shown == null ? List.of() : shown.machines();
     }
 
-    public static List<io.github.dirnei.mc.servus.storage.production.ProductionRows.PackingRow> packing() {
+    public static List<PackingRow> packing() {
         return shown == null ? List.of() : shown.packing();
     }
 
-    public static List<io.github.dirnei.mc.servus.storage.production.ProductionRows.DuctRow> busiest() {
+    public static List<DuctRow> busiest() {
         return shown == null ? List.of() : shown.busiest();
     }
 

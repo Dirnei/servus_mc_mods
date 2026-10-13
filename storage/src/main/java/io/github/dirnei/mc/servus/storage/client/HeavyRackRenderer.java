@@ -1,7 +1,6 @@
 package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.foundation.client.RenderSubmit;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import io.github.dirnei.mc.servus.foundation.client.LiveBlockEntityRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -34,7 +33,6 @@ public class HeavyRackRenderer extends LiveBlockEntityRenderer<HeavyRackBlockEnt
     @Override
     protected void render(HeavyRackBlockEntity rack, float partialTick, PoseStack poseStack, SubmitNodeCollector collector,
                           int packedLight) {
-        int packedOverlay = OverlayTexture.NO_OVERLAY;
         List<ItemStack> sample = rack.displayed();
         if (rack.getLevel() == null || (sample.isEmpty() && rack.zone().isEmpty())) {
             return;

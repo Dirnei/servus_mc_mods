@@ -1,7 +1,6 @@
 package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.foundation.client.RenderSubmit;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import io.github.dirnei.mc.servus.foundation.client.LiveBlockEntityRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -13,7 +12,6 @@ import io.github.dirnei.mc.servus.storage.shuttle.ShuttleView;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleLook;
 import java.util.List;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
@@ -59,7 +57,6 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
     @Override
     protected void render(ShuttleGarageBlockEntity garage, float partialTick, PoseStack poseStack, SubmitNodeCollector collector,
                           int packedLight) {
-        int packedOverlay = OverlayTexture.NO_OVERLAY;
         ClientShuttles.Fleet fleet = ClientShuttles.fleet(garage.getBlockPos());
         if (fleet == null || fleet.views().isEmpty() || garage.getLevel() == null) {
             return;
