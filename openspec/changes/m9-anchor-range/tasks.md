@@ -18,7 +18,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 ## 4. Anchor area
 
 - [x] 4.1 `machine/PoweredMachineBlockEntity.java` hook `energyPerTickNow()`; `machine/anchor/EnderAnchorBlockEntity.java`: two Anchor Upgrade slots, saved offset, area from `AnchorArea`, activation through `EnderAnchorData.fits`, multi chunk `syncTickets` with the held set saved, area change while active, FE per chunk, drops and dismantle contents; `machine/anchor/EnderAnchorBlock.java` drops; `machine/ender_anchor.json` data `energy_capacity` 20000 via `datagen/MachineDataParts.java` (design.md D3). Run `gradlew :foundation:runData`, `gradlew build`.
-- [ ] 4.2 Foundation GameTests in `machine/MachineGameTests.java` (or a new `machine/anchor/AnchorGameTests.java`): `anchorLoadsItsSquare`, `anchorOffsetKeepsOwnChunk`, `anchorRefusedOverCap`, `anchorOverlapCountedOnce`, `anchorGrowOverCapReleases`, `anchorPaysPerChunk`, `anchorSlotsTakeOnlyAnchorUpgrades`, `anchorBreakReleasesArea`; existing anchor tests updated to the chunk cap. Run the Foundation GameTests.
+- [x] 4.2 Foundation GameTests in `machine/MachineGameTests.java` (or a new `machine/anchor/AnchorGameTests.java`): `anchorLoadsItsSquare`, `anchorOffsetKeepsOwnChunk`, `anchorRefusedOverCap`, `anchorOverlapCountedOnce`, `anchorGrowOverCapReleases`, `anchorPaysPerChunk`, `anchorSlotsTakeOnlyAnchorUpgrades`, `anchorBreakReleasesArea`; existing anchor tests updated to the chunk cap. Run the Foundation GameTests.
 
 ## 5. Warehouse wakes
 
