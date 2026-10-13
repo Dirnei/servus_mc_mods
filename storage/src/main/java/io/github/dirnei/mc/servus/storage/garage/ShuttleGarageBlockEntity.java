@@ -177,8 +177,6 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
         }
     }
 
-    // Menu
-
     @Override
     public Component getDisplayName() {
         return Component.translatable(getBlockState().getBlock().getDescriptionId());
@@ -188,8 +186,6 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new ShuttleGarageMenu(containerId, playerInventory, this);
     }
-
-    // Persistence
 
     @Override
     protected void saveAdditional(ValueOutput output) {
@@ -216,15 +212,13 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
                 shuttles.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
             }
         } else if (tag.contains("Shuttles")) {
-            // Older saves kept a plain count.
+            // A plain count from older saves.
             int count = Math.min(input.getIntOr("Shuttles", 0), shuttles.getSlots());
             for (int i = 0; i < count; i++) {
                 shuttles.setStackInSlot(i, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
             }
         }
     }
-
-    // Wood: the planks the block was crafted from, shown as its boards
 
     @Override
     public WoodSlot woodSlot() {
@@ -267,15 +261,12 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
         return woodSlot.modelData();
     }
 
-    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
+    /** Drops the shuttle items on the server when the block is removed. */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
-        Level level = this.level;
-        if (level == null) {
-            return;
+        if (level != null) {
+            dropShuttles(level, pos);
         }
-        ShuttleGarageBlockEntity garage = this;
-        garage.dropShuttles(level, pos);
     }
 }
