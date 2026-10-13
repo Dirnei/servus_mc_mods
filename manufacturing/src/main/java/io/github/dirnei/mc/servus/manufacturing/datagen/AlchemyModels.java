@@ -405,8 +405,7 @@ final class AlchemyModels {
     private ModelFile firebox(String name, String coals) {
         BlockModelBuilder model = brickFrame(name, 2, 12)
                 .texture("coals", states.mcLoc(coals))
-                .texture("bars", states.mcLoc(IRON_BARS))
-                .renderType("cutout");
+                .texture("bars", states.mcLoc(IRON_BARS));
         // Behind the grate, never in its plane.
         box(model, 3, 2, 1.5F, 13, 5, 3, "#coals");
         plane(model, 3, 2, 13, 12, 1, "#bars");
@@ -453,8 +452,7 @@ final class AlchemyModels {
     private ModelFile receiver(String name, boolean formed) {
         BlockModelBuilder model = builder(name)
                 .texture("glass", states.mcLoc(GLASS)).texture("cut", states.mcLoc(CUT_COPPER))
-                .texture("particle", states.mcLoc(GLASS))
-                .renderType("cutout");
+                .texture("particle", states.mcLoc(GLASS));
         box(model, 3, 0, 3, 13, 1, 13, "#cut");
         box(model, 4, 1, 4, 12, 9, 12, "#glass");
         box(model, 6, 9, 6, 10, 14, 10, "#glass");

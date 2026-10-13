@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.foundation.wood.client;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import java.util.function.Function;
 import net.minecraft.resources.Identifier;
@@ -18,7 +19,7 @@ import net.neoforged.neoforge.model.data.ModelProperty;
 public final class WoodSkin {
 
     /** The Servus wood blocks: {@link Wood#BOARD}, {@link Wood#PROPERTY}, {@link Wood#of}. */
-    public static final WoodSkin WOOD = new WoodSkin(Identifier.fromNamespaceAndPath("servus_foundation", "wood"),
+    public static final WoodSkin WOOD = new WoodSkin(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "wood"),
             Wood.BOARD, Wood.PROPERTY, Wood.DEFAULT, Wood::of, true);
 
     private final Identifier itemModelType;

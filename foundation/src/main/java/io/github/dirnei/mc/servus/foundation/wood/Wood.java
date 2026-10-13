@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.wood;
 
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -23,7 +24,7 @@ public final class Wood {
     /** The wood in a block entity's model data. */
     public static final ModelProperty<Identifier> PROPERTY = new ModelProperty<>();
     /** The board texture of layered models; quads with this sprite show the wood. */
-    public static final Identifier BOARD = Identifier.fromNamespaceAndPath("servus_foundation", "block/wood_board");
+    public static final Identifier BOARD = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/wood_board");
     /**
      * Further textures a block swaps besides its wood, from its model data:
      * texture name to the texture drawn in its place (block atlas), for

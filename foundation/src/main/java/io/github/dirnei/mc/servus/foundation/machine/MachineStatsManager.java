@@ -1,23 +1,24 @@
 package io.github.dirnei.mc.servus.foundation.machine;
 
-import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.util.ExtraCodecs;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import io.github.dirnei.mc.servus.foundation.ServusFoundation;
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 /** Loads machine stats from datapacks. */
 public final class MachineStatsManager extends SimpleJsonResourceReloadListener<JsonElement> {
 
     /** Key of this listener in the reload event. */
-    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath("servus_foundation", "machine_stats_manager");
+    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "machine_stats_manager");
 
     public static final String DIRECTORY = "machine";
 

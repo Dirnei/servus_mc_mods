@@ -81,7 +81,6 @@ final class FluidTankModels {
     private static BlockModelBuilder base(BlockStateProvider provider, String name, Identifier glass, Identifier frame) {
         return provider.models().getBuilder(name)
                 .parent(new ModelFile.UncheckedModelFile(provider.mcLoc("block/block")))
-                .renderType("cutout")
                 .texture("particle", frame)
                 .texture("glass", glass)
                 .texture("frame", frame)

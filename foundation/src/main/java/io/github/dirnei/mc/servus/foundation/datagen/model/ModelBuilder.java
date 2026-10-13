@@ -66,11 +66,6 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
         return self();
     }
 
-    /** Writes nothing: the render layer of each quad follows the transparency of its texture. */
-    public T renderType(String renderType) {
-        return self();
-    }
-
     public T ao(boolean ambientOcclusion) {
         this.ambientOcclusion = ambientOcclusion;
         return self();

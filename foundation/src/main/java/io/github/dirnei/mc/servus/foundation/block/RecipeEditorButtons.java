@@ -10,8 +10,6 @@ public final class RecipeEditorButtons {
     public static final int SAVE = 103;
     public static final int DELETE = 104;
     public static final int CANCEL = 105;
-    /** Opens the editor on recipe {@code i} with the id {@code OPEN_EDIT_FIRST + i}. */
-    public static final int OPEN_EDIT_FIRST = 200;
 
     /** Editor state: the popup is closed. */
     public static final int EDIT_CLOSED = -1;

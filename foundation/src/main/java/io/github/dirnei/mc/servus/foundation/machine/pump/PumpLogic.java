@@ -1,13 +1,14 @@
 package io.github.dirnei.mc.servus.foundation.machine.pump;
 
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
-import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -15,16 +16,14 @@ import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.FluidStack;
-import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.DelegatingResourceHandler;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 
 /**
  * Shared by both pumps: the infinite water check below the pump, the water

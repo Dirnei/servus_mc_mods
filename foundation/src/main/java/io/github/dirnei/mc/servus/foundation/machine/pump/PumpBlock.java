@@ -156,7 +156,6 @@ public abstract class PumpBlock extends MachineBlock {
             if (level.getBlockEntity(pos) instanceof PumpMachine pump) {
                 pump.pump().requestCheck();
             }
-
             BlockState updated = withStubs(state, server, pos);
             if (updated != state) {
                 level.setBlock(pos, updated, Block.UPDATE_CLIENTS);

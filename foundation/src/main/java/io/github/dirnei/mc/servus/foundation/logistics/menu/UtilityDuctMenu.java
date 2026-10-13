@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsMenus;
+import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import net.minecraft.core.BlockPos;
@@ -17,7 +18,6 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.SimpleContainerData;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -32,7 +32,6 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
     public static final int SLOT_X = 8;
     public static final int FILTER_Y = 72;
     public static final int INVENTORY_Y = 122;
-    public static final int HOTBAR_Y = 180;
 
     /** Mode button of a line: {@code BUTTON_CYCLE_MODE + line.ordinal()}. */
     public static final int BUTTON_CYCLE_MODE = 10;
@@ -67,14 +66,7 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
                 }
             });
         }
-        for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, SLOT_X + column * 18, INVENTORY_Y + row * 18));
-            }
-        }
-        for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(playerInventory, column, SLOT_X + column * 18, HOTBAR_Y));
-        }
+        PlayerInventorySlots.add(this::addSlot, playerInventory, SLOT_X, INVENTORY_Y);
         data.set(DATA_PRIORITY, duct.priority(side));
     }
 

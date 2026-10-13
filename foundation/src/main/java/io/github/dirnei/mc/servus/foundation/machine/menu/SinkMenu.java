@@ -42,7 +42,6 @@ public class SinkMenu extends AbstractContainerMenu {
         addSlot(new TrashSlot(new TrashContainer(sink), TRASH_X, TRASH_Y));
         PlayerInventorySlots.add(this::addSlot, playerInventory, 8, 84);
         addDataSlots(data);
-
     }
 
     public static SinkMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {

@@ -1,23 +1,23 @@
 package io.github.dirnei.mc.servus.foundation.machine;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
-import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlock;
-import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorBlock;
 import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlock;
+import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.menu.BurnerPumpMenu;
-import io.github.dirnei.mc.servus.foundation.machine.menu.EnderAnchorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.ElectricPumpMenu;
+import io.github.dirnei.mc.servus.foundation.machine.menu.EnderAnchorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.SinkMenu;
-import io.github.dirnei.mc.servus.foundation.machine.sink.ChimneyBlock;
-import io.github.dirnei.mc.servus.foundation.machine.sink.SinkBlock;
-import io.github.dirnei.mc.servus.foundation.machine.sink.SinkBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpItem;
+import io.github.dirnei.mc.servus.foundation.machine.sink.ChimneyBlock;
+import io.github.dirnei.mc.servus.foundation.machine.sink.SinkBlock;
+import io.github.dirnei.mc.servus.foundation.machine.sink.SinkBlockEntity;
 import io.github.dirnei.mc.servus.foundation.upgrade.AnchorUpgradeItem;
 import java.util.List;
 import net.minecraft.core.registries.Registries;
@@ -35,7 +35,6 @@ import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.network.IContainerFactory;
-
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;

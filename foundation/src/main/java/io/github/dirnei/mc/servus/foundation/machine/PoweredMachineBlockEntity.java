@@ -53,7 +53,6 @@ public abstract class PoweredMachineBlockEntity extends MachineBlockEntity {
             finishWork();
         }
         return true;
-
     }
 
     @Override

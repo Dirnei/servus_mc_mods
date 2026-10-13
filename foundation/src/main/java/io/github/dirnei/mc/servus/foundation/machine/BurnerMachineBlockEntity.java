@@ -117,7 +117,6 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
         ItemStack remainder = remainderTemplate == null ? ItemStack.EMPTY : remainderTemplate.create();
         fuel.shrink(1);
         inventory.setStackInSlot(fuelSlot(), fuel.isEmpty() ? remainder : fuel);
-
     }
 
     @Override
