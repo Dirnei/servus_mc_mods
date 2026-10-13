@@ -16,9 +16,9 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ResolvableModel;
 import net.minecraft.client.resources.model.ResolvedModel;
-import net.minecraft.client.resources.model.sprite.TextureSlots;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.resources.model.geometry.QuadCollection;
+import net.minecraft.client.resources.model.sprite.TextureSlots;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.ItemOwner;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -29,9 +29,9 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The item model of a wood block item: the block model's quads with the
- * boards retextured onto the planks of the stack's wood. Since 1.21.4 items
- * have their own model type; item model definitions of wood blocks name
- * {@code servus_foundation:wood} (see the model datagen).
+ * boards retextured onto the planks of the stack's wood. Item model
+ * definitions of wood blocks name the skin's item model type, such as
+ * {@code servus_foundation:wood}.
  */
 public final class WoodItemModel implements ItemModel {
 
@@ -43,10 +43,10 @@ public final class WoodItemModel implements ItemModel {
     private final WoodSkin skin;
 
     private WoodItemModel(QuadCollection quads, ModelRenderProperties properties, Matrix4fc transformation, WoodSkin skin) {
-        this.skin = skin;
         this.quads = quads;
         this.properties = properties;
         this.transformation = transformation;
+        this.skin = skin;
         this.extents = CuboidItemModelWrapper.computeExtents(quads.getAll());
     }
 

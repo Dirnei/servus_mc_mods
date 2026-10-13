@@ -2,12 +2,13 @@ package io.github.dirnei.mc.servus.foundation.wood;
 
 import java.util.Objects;
 import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,7 +67,7 @@ public final class WoodSlot {
     }
 
     /** For update tags built by hand; read back by {@link #load}. */
-    public void save(net.minecraft.nbt.CompoundTag tag) {
+    public void save(CompoundTag tag) {
         if (wood != null) {
             tag.putString(KEY, wood.toString());
         }

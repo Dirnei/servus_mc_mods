@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.foundation.wood;
 
-import net.minecraft.world.item.component.TooltipDisplay;
 import io.github.dirnei.mc.servus.foundation.block.TooltipBlock;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
@@ -8,6 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.block.Block;
 
 /** The item of a wood block; its tooltip names the planks it was crafted from. */
