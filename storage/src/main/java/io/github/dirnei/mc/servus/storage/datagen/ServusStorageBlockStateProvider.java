@@ -1,29 +1,31 @@
 package io.github.dirnei.mc.servus.storage.datagen;
 
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
-import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
-import net.minecraft.data.PackOutput;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import io.github.dirnei.mc.servus.foundation.datagen.LayeredModels;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
-import io.github.dirnei.mc.servus.foundation.datagen.LayeredModels;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
+import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
-import io.github.dirnei.mc.servus.storage.field.FieldHeadBlock;
-import io.github.dirnei.mc.servus.storage.field.FieldHeadLook;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.cpu.CpuTiles;
+import io.github.dirnei.mc.servus.storage.field.FieldHeadBlock;
+import io.github.dirnei.mc.servus.storage.field.FieldHeadLook;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLights;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.core.Direction;
+import net.minecraft.data.PackOutput;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 final class ServusStorageBlockStateProvider extends BlockStateProvider {
 
@@ -95,6 +97,29 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         simpleBlockItem(block, casing);
     }
 
+    /** The y rotation that turns a north built model to face that way. */
+    static int rotationY(Direction facing) {
+        return ((int) facing.toYRot() + 180) % 360;
+    }
+
+    private static int rotationY(BlockState state) {
+        return rotationY(state.getValue(HorizontalDirectionalBlock.FACING));
+    }
+
+    /** A front facing block whose online lamp switches between two models; the item shows the dark one. */
+    private void onlineLamp(Block block, ModelFile dark, ModelFile lit) {
+        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(StorageNodeBlocks.ONLINE) ? lit : dark)
+                .rotationY(rotationY(state))
+                .build());
+        simpleBlockItem(block, dark);
+    }
+
+    /** An orientable model with the side and top textures of {@code name} and the given front. */
+    private ModelFile orientable(String name, String model, String front) {
+        return LayeredModels.orientable(this, model, modLoc("block/" + name + "_side"), modLoc("block/" + front), modLoc("block/" + name + "_top"));
+    }
+
     private static Map<Direction, Identifier> allFaces(Identifier texture) {
         Map<Direction, Identifier> faces = new EnumMap<>(Direction.class);
         for (Direction direction : Direction.values()) {
@@ -109,13 +134,12 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         for (int online = 0; online < 2; online++) {
             for (int lit = 0; lit <= PatternLights.LIGHTS; lit++) {
                 String suffix = "_" + lit + (online == 1 ? "_online" : "");
-                models[online][lit] = LayeredModels.orientable(this, name + suffix, modLoc("block/" + name + "_side"),
-                        modLoc("block/" + name + "_front" + suffix), modLoc("block/" + name + "_top"));
+                models[online][lit] = orientable(name, name + suffix, name + "_front" + suffix);
             }
         }
         getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(models[state.getValue(StorageNodeBlocks.ONLINE) ? 1 : 0][state.getValue(PatternStorageBlock.LIGHTS)])
-                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
+                .rotationY(rotationY(state))
                 .build());
         simpleBlockItem(block, models[0][0]);
     }
@@ -126,14 +150,12 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         for (int online = 0; online < 2; online++) {
             for (int lit = 0; lit < 2; lit++) {
                 String suffix = (lit == 1 ? "_lit" : "") + (online == 1 ? "_online" : "");
-                models[online][lit] = LayeredModels.orientable(this, name + suffix, modLoc("block/" + name + "_side"),
-                        modLoc("block/" + name + "_front" + suffix), modLoc("block/" + name + "_top"));
+                models[online][lit] = orientable(name, name + suffix, name + "_front" + suffix);
             }
         }
         getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(models[state.getValue(StorageNodeBlocks.ONLINE) ? 1 : 0]
-                        [state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT) ? 1 : 0])
-                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
+                .modelFile(models[state.getValue(StorageNodeBlocks.ONLINE) ? 1 : 0][state.getValue(BlockStateProperties.LIT) ? 1 : 0])
+                .rotationY(rotationY(state))
                 .build());
         simpleBlockItem(block, models[0][0]);
     }
@@ -166,21 +188,17 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile((state.getValue(FieldHeadBlock.CORRODED) ? corroded : models)
                         [state.getValue(FieldHeadBlock.PROBLEM) ? problemModel : state.getValue(FieldHeadBlock.RIPE)])
-                .rotationY(((int) state.getValue(FieldHeadBlock.FACING).toYRot() + 180) % 360)
+                .rotationY(rotationY(state.getValue(FieldHeadBlock.FACING)))
                 .build());
         simpleBlockItem(block, models[0]);
     }
 
-    /** Like {@link #oriented} with an activity lamp: idle, working and blocked fronts while online. */
+    /** A front facing block with an activity lamp: idle, working and blocked fronts while online. */
     private void station(Block block, String name) {
-        ModelFile dark = LayeredModels.orientable(this, name, modLoc("block/" + name + "_side"),
-                modLoc("block/" + name + "_front"), modLoc("block/" + name + "_top"));
-        ModelFile idle = LayeredModels.orientable(this, name + "_idle", modLoc("block/" + name + "_side"),
-                modLoc("block/" + name + "_front_idle"), modLoc("block/" + name + "_top"));
-        ModelFile working = LayeredModels.orientable(this, name + "_working", modLoc("block/" + name + "_side"),
-                modLoc("block/" + name + "_front_working"), modLoc("block/" + name + "_top"));
-        ModelFile blocked = LayeredModels.orientable(this, name + "_blocked", modLoc("block/" + name + "_side"),
-                modLoc("block/" + name + "_front_blocked"), modLoc("block/" + name + "_top"));
+        ModelFile dark = orientable(name, name, name + "_front");
+        ModelFile idle = orientable(name, name + "_idle", name + "_front_idle");
+        ModelFile working = orientable(name, name + "_working", name + "_front_working");
+        ModelFile blocked = orientable(name, name + "_blocked", name + "_front_blocked");
         getVariantBuilder(block).forAllStates(state -> {
             ModelFile model = dark;
             if (state.getValue(StorageNodeBlocks.ONLINE)) {
@@ -192,7 +210,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
             }
             return ConfiguredModel.builder()
                     .modelFile(model)
-                    .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
+                    .rotationY(rotationY(state))
                     .build();
         });
         simpleBlockItem(block, dark);
@@ -201,16 +219,10 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
     /**
      * The garage: the lamp on the front, the doorway with the rail on the back,
      * the side texture left and right, the top texture above and below, and a
-     * lit lamp while online. Rotated by the facing like {@link #oriented}.
+     * lit lamp while online.
      */
     private void garage(Block block, String name) {
-        ModelFile dark = garageModel(name, name + "_front");
-        ModelFile lit = garageModel(name + "_online", name + "_front_online");
-        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(state.getValue(StorageNodeBlocks.ONLINE) ? lit : dark)
-                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
-                .build());
-        simpleBlockItem(block, dark);
+        onlineLamp(block, garageModel(name, name + "_front"), garageModel(name + "_online", name + "_front_online"));
     }
 
     private ModelFile garageModel(String model, String front) {
@@ -226,32 +238,9 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         return LayeredModels.cube(this, model, faces);
     }
 
-    /** {@link #oriented} for a wood block: board panels under the iron overlay textures named after the block. */
+    /** A wood block: board panels under the iron overlay textures named after the block, with a lit front while online. */
     private void woodOriented(Block block, String name) {
-        ModelFile dark = LayeredModels.orientable(this, name, modLoc("block/" + name + "_side"),
-                modLoc("block/" + name + "_front"), modLoc("block/" + name + "_top"));
-        ModelFile lit = LayeredModels.orientable(this, name + "_online", modLoc("block/" + name + "_side"),
-                modLoc("block/" + name + "_front_online"), modLoc("block/" + name + "_top"));
-        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(state.getValue(StorageNodeBlocks.ONLINE) ? lit : dark)
-                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
-                .build());
-        simpleBlockItem(block, dark);
+        onlineLamp(block, orientable(name, name, name + "_front"), orientable(name, name + "_online", name + "_front_online"));
     }
 
-    /**
-     * Horizontal block with its own front texture, side and top textures named
-     * after {@code body}, and a lit front while online.
-     */
-    private void oriented(Block block, String name, String body) {
-        ModelFile dark = models().orientable(name, modLoc("block/" + body + "_side"),
-                modLoc("block/" + name + "_front"), modLoc("block/" + body + "_top"));
-        ModelFile lit = models().orientable(name + "_online", modLoc("block/" + body + "_side"),
-                modLoc("block/" + name + "_front_online"), modLoc("block/" + body + "_top"));
-        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(state.getValue(StorageNodeBlocks.ONLINE) ? lit : dark)
-                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
-                .build());
-        simpleBlockItem(block, dark);
-    }
 }

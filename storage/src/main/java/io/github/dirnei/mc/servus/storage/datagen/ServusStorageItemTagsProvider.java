@@ -7,7 +7,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.ItemTagsProvider;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
 
 /** Item tags: the anti-corrosion items a Field Head takes (honeycomb) and the fertilizers a Spreader doses with (bone meal). */
 final class ServusStorageItemTagsProvider extends ItemTagsProvider {

@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage.registry;
 
 import io.github.dirnei.mc.servus.foundation.wood.WoodBlockItem;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.storage.controller.WirelessUpgradeItem;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackItem;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorItem;
 import io.github.dirnei.mc.servus.storage.rail.RailItem;
@@ -76,8 +77,8 @@ public final class ServusStorageItems {
             properties -> new ShuttleItem(3, properties), () -> new Item.Properties().stacksTo(16));
     public static final DeferredItem<Item> HANDLING_UPGRADE = ITEMS.registerSimpleItem("handling_upgrade");
     public static final DeferredItem<Item> RANGE_UPGRADE = ITEMS.registerSimpleItem("range_upgrade");
-    public static final DeferredItem<io.github.dirnei.mc.servus.storage.controller.WirelessUpgradeItem> WIRELESS_UPGRADE =
-            ITEMS.registerItem("wireless_upgrade", io.github.dirnei.mc.servus.storage.controller.WirelessUpgradeItem::new,
+    public static final DeferredItem<WirelessUpgradeItem> WIRELESS_UPGRADE =
+            ITEMS.registerItem("wireless_upgrade", WirelessUpgradeItem::new,
                     () -> new Item.Properties().stacksTo(16));
     public static final DeferredItem<ShuttleModuleItem> HARVESTER = ITEMS.registerItem("harvester",
             properties -> new ShuttleModuleItem(new ModuleSpec(ModuleSpec.HARVESTER, true, true), properties),

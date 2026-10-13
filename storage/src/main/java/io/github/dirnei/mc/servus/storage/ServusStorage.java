@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTests;
 import io.github.dirnei.mc.servus.foundation.network.NetworkTypes;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import io.github.dirnei.mc.servus.storage.gametest.StorageGameTests;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
@@ -11,15 +12,15 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageRecipes;
+import java.util.List;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Mod entrypoint for Servus: Storage.
- */
+/** Mod entrypoint for Servus: Storage. */
 @Mod(ServusStorageIds.MOD_ID)
 public final class ServusStorage {
 
@@ -33,7 +34,7 @@ public final class ServusStorage {
         ServusStorageComponents.COMPONENTS.register(modEventBus);
         ServusStorageRecipes.RECIPE_SERIALIZERS.register(modEventBus);
         NetworkTypes.register(WarehouseNetwork.TYPE);
-        for (var block : java.util.List.of(ServusStorageBlocks.CRAFTING_CPU, ServusStorageBlocks.CPU_BUFFER, ServusStorageBlocks.PACKING_STATION,
+        for (var block : List.of(ServusStorageBlocks.CRAFTING_CPU, ServusStorageBlocks.CPU_BUFFER, ServusStorageBlocks.PACKING_STATION,
                 ServusStorageBlocks.INBOUND_STATION, ServusStorageBlocks.OUTBOUND_STATION, ServusStorageBlocks.STORAGE_TERMINAL,
                 ServusStorageBlocks.PRODUCTION_TERMINAL, ServusStorageBlocks.PATTERN_STORAGE, ServusStorageBlocks.CRAFTING_STATION,
                 ServusStorageBlocks.WAREHOUSE_CONTROLLER, ServusStorageBlocks.SHUTTLE_GARAGE, ServusStorageBlocks.FIELD_HEAD,
@@ -41,7 +42,7 @@ public final class ServusStorage {
             Wood.register(block.getId());
         }
         // The pattern editor matches crafting grids on the client too.
-        io.github.dirnei.mc.servus.foundation.production.ServusRecipes.syncToClients(() -> net.minecraft.world.item.crafting.RecipeType.CRAFTING);
+        ServusRecipes.syncToClients(() -> RecipeType.CRAFTING);
         ServusGameTests.register(modEventBus, ServusStorageIds.MOD_ID, StorageGameTests.CLASSES);
         LOGGER.info("Servus: Storage loaded");
     }

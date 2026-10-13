@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.power;
 
+import java.util.Arrays;
+
 /**
  * The accounting of one site's FE buffer: draws are paid in full or not at
  * all, a refused draw holds the no power state for a second, and the FE used
@@ -18,7 +20,7 @@ public final class PowerBudget {
     private long lastRefusal = Long.MIN_VALUE;
 
     public PowerBudget() {
-        java.util.Arrays.fill(usedTick, Long.MIN_VALUE);
+        Arrays.fill(usedTick, Long.MIN_VALUE);
     }
 
     /** Whether a draw of that amount is paid from what is stored: all or nothing, nothing for a free draw. */

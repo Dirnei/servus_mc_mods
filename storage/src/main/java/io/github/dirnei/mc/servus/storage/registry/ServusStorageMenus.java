@@ -1,8 +1,11 @@
 package io.github.dirnei.mc.servus.storage.registry;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
+import io.github.dirnei.mc.servus.storage.menu.PackingStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
+import io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu;
 import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu;
 import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
@@ -33,11 +36,11 @@ public final class ServusStorageMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<InboundStationMenu>> INBOUND_STATION =
             MENUS.register("inbound_station", () -> IMenuTypeExtension.create(InboundStationMenu::fromNetwork));
 
-    public static final DeferredHolder<MenuType<?>, MenuType<io.github.dirnei.mc.servus.storage.menu.PackingStationMenu>> PACKING_STATION =
-            MENUS.register("packing_station", () -> IMenuTypeExtension.create(io.github.dirnei.mc.servus.storage.menu.PackingStationMenu::fromNetwork));
+    public static final DeferredHolder<MenuType<?>, MenuType<PackingStationMenu>> PACKING_STATION =
+            MENUS.register("packing_station", () -> IMenuTypeExtension.create(PackingStationMenu::fromNetwork));
 
-    public static final DeferredHolder<MenuType<?>, MenuType<io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu>> WAREHOUSE_CONTROLLER =
-            MENUS.register("warehouse_controller", () -> IMenuTypeExtension.create(io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu::fromNetwork));
+    public static final DeferredHolder<MenuType<?>, MenuType<WarehouseControllerMenu>> WAREHOUSE_CONTROLLER =
+            MENUS.register("warehouse_controller", () -> IMenuTypeExtension.create(WarehouseControllerMenu::fromNetwork));
 
     public static final DeferredHolder<MenuType<?>, MenuType<ElevatorMenu>> ELEVATOR =
             MENUS.register("elevator", () -> IMenuTypeExtension.create(ElevatorMenu::fromNetwork));
@@ -57,8 +60,8 @@ public final class ServusStorageMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<ShuttleWorkshopMenu>> SHUTTLE_WORKSHOP =
             MENUS.register("shuttle_workshop", () -> IMenuTypeExtension.create(ShuttleWorkshopMenu::fromNetwork));
 
-    public static final DeferredHolder<MenuType<?>, MenuType<io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu>> FIELD_HEAD =
-            MENUS.register("field_head", () -> IMenuTypeExtension.create(io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu::fromNetwork));
+    public static final DeferredHolder<MenuType<?>, MenuType<FieldHeadMenu>> FIELD_HEAD =
+            MENUS.register("field_head", () -> IMenuTypeExtension.create(FieldHeadMenu::fromNetwork));
 
     private ServusStorageMenus() {
     }

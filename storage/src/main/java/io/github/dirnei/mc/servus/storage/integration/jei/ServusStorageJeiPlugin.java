@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.integration.jei;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.client.StorageTerminalScreen;
 import io.github.dirnei.mc.servus.storage.client.JeiSearchBridge;
+import io.github.dirnei.mc.servus.storage.client.WarehouseControllerScreen;
 import java.util.List;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -45,10 +46,10 @@ public final class ServusStorageJeiPlugin implements IModPlugin {
                 return screen.extraAreas();
             }
         });
-        registration.addGuiContainerHandler(io.github.dirnei.mc.servus.storage.client.WarehouseControllerScreen.class,
-                new IGuiContainerHandler<io.github.dirnei.mc.servus.storage.client.WarehouseControllerScreen>() {
+        registration.addGuiContainerHandler(WarehouseControllerScreen.class,
+                new IGuiContainerHandler<WarehouseControllerScreen>() {
                     @Override
-                    public List<Rect2i> getGuiExtraAreas(io.github.dirnei.mc.servus.storage.client.WarehouseControllerScreen screen) {
+                    public List<Rect2i> getGuiExtraAreas(WarehouseControllerScreen screen) {
                         return screen.extraAreas();
                     }
                 });

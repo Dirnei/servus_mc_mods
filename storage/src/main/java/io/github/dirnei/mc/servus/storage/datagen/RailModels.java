@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.storage.rail.RailLook.Box;
 import io.github.dirnei.mc.servus.storage.rail.RailLook.Piece;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
@@ -39,7 +40,7 @@ final class RailModels {
         Identifier dockTexture = provider.modLoc("block/" + name + "_dock");
         Map<Piece, BlockModelBuilder> pieces = new EnumMap<>(Piece.class);
         for (Piece piece : Piece.values()) {
-            pieces.put(piece, model(provider, name + "_" + piece.name().toLowerCase(java.util.Locale.ROOT), head, dockTexture,
+            pieces.put(piece, model(provider, name + "_" + piece.name().toLowerCase(Locale.ROOT), head, dockTexture,
                     RailLook.boxes(piece)));
         }
         BlockModelBuilder dock = model(provider, name + "_dock", head, dockTexture, RailLook.dock());

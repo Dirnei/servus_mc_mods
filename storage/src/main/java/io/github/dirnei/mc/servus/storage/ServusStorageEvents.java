@@ -8,9 +8,6 @@ import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import net.minecraft.network.chat.Component;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -39,7 +36,6 @@ public final class ServusStorageEvents {
             if (!event.getLevel().isClientSide() && event.getAction() == PlayerInteractEvent.LeftClickBlock.Action.START) {
                 event.getEntity().sendOverlayMessage(Component.translatable("message.servus_storage.garage.occupied"));
             }
-            return;
         }
     }
 
@@ -80,7 +76,7 @@ public final class ServusStorageEvents {
                     (point, side) -> point);
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.CRAFTING_CPU.get(),
                     (cpu, side) -> cpu.dataLink());
-            // The CPU takes packets into its buffer through the packet inlet only; no item capability, so pipes and hoppers never see it.
+            // Packets enter the CPU's buffer through its inlet; pipes and hoppers see no item capability.
             event.registerBlockEntity(ServusFoundationCapabilities.PACKET_INLET, ServusStorageBlockEntities.CRAFTING_CPU.get(),
                     (cpu, side) -> cpu.packetInlet());
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.PRODUCTION_TERMINAL.get(),

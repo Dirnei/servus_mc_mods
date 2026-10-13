@@ -49,7 +49,7 @@ final class HeavyRackModels {
 
         MultiPartBlockStateBuilder builder = provider.getMultipartBuilder(block);
         for (Direction facing : Direction.Plane.HORIZONTAL) {
-            int angle = ((int) facing.toYRot() + 180) % 360;
+            int angle = ServusStorageBlockStateProvider.rotationY(facing);
             builder.part().modelFile(core).rotationY(angle).addModel().condition(HeavyRackBlock.FACING, facing);
             builder.part().modelFile(postLeft).rotationY(angle).addModel()
                     .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.LEFT, false);
