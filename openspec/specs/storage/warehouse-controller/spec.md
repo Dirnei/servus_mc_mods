@@ -150,19 +150,8 @@ The controller SHALL know the set of chunks its site spans: every chunk that hol
 - **WHEN** the rail that linked the rack in the neighbouring chunk is broken while both chunks are loaded
 - **THEN** the controller reports 1 chunk
 
-### Requirement: Chunk Loader Upgrade slots
-The controller SHALL have `chunk_loader_upgrade_slots` upgrade slots (example 4, `warehouse.json`) that take only the Chunk Loader Upgrade, one per slot. The site's capacity SHALL be the number of upgrades times `chunks_per_upgrade` (example 9, `warehouse.json`). Upgrades SHALL drop when the controller is broken or dismantled. Hoppers and ducts SHALL NOT reach the slots.
-
-#### Scenario: Two upgrades
-- **WHEN** a controller holds two Chunk Loader Upgrades with 9 chunks per upgrade
-- **THEN** its capacity is 18 chunks
-
-#### Scenario: Wrong item
-- **WHEN** the player tries to put a Speed Upgrade into a controller slot
-- **THEN** the slot refuses it
-
 ### Requirement: Over capacity is an error
-A controller with at least one Chunk Loader Upgrade whose site spans more chunks than its capacity SHALL be in an error state: its GUI SHALL say the site is over capacity in red and its activity lamp SHALL be red. A controller in the no power state SHALL show the red lamp as well, and its GUI SHALL say which of the two applies. Otherwise the lamp SHALL be green while online. A controller without upgrades SHALL show no capacity error.
+A controller with at least one Anchor Upgrade whose site spans more chunks than its capacity SHALL be in an error state: its GUI SHALL say the site is over capacity in red and its activity lamp SHALL be red. A controller in the no power state SHALL show the red lamp as well, and its GUI SHALL say which of the two applies. Otherwise the lamp SHALL be green while online. A controller without upgrades SHALL show no capacity error.
 
 #### Scenario: Over capacity
 - **WHEN** a controller with one upgrade of 9 chunks spans 10 chunks
@@ -181,7 +170,7 @@ A controller with at least one Chunk Loader Upgrade whose site spans more chunks
 - **THEN** its lamp is red and the GUI says the warehouse has no power
 
 ### Requirement: Controller GUI
-Right clicking a controller with an empty hand SHALL open its GUI with the site name as title, a name field, the online state with the warehouse summary as its tooltip, the chunk count and capacity, a chunk map, the Chunk Loader Upgrade slots, the Wireless Upgrade slot, the FE stored with the capacity, the "Other sites" panel and the player inventory. The chunk map SHALL draw every chunk of the span as a square around the controller's chunk, mark the controller's chunk, and draw in red while over capacity. The GUI SHALL refresh while open and SHALL close when the player leaves reach.
+Right clicking a controller with an empty hand SHALL open its GUI with the site name as title, a name field, the online state with the warehouse summary as its tooltip, the chunk count and capacity, a chunk map, the Anchor Upgrade slots, the Wireless Upgrade slot, the FE stored with the capacity, the "Other sites" panel and the player inventory. The chunk map SHALL draw every chunk of the span as a square around the controller's chunk, mark the controller's chunk, and draw in red while over capacity. The GUI SHALL refresh while open and SHALL close when the player leaves reach.
 
 #### Scenario: Map
 - **WHEN** a site spans its own chunk and the chunk to the east
@@ -190,13 +179,6 @@ Right clicking a controller with an empty hand SHALL open its GUI with the site 
 #### Scenario: Energy shown
 - **WHEN** a controller holds 12,000 of 100,000 FE and a player opens its GUI
 - **THEN** the GUI shows 12,000 of 100,000 FE and the value follows while FE arrives
-
-### Requirement: Chunk Loader Upgrade is obtainable
-The Chunk Loader Upgrade SHALL be a Storage item crafted at a crafting table from a Foundation Ender Anchor, ender pearls, iron ingots and redstone (example), with a tooltip saying it lets a warehouse site wake for transfers. It SHALL NOT be a Foundation multiplier upgrade.
-
-#### Scenario: Recipe
-- **WHEN** the player crafts the pattern with an Ender Anchor in the middle
-- **THEN** one Chunk Loader Upgrade is produced
 
 ### Requirement: Controller shows the wake
 While its site is awake by a wake, the controller's activity lamp SHALL be orange, unless the site is over capacity or in the no power state (red). The controller GUI SHALL show a wake line: awake for a transfer, staying awake for the grace time with the seconds left, or waiting to wake with the reason; nothing while the site is not being woken.
@@ -271,14 +253,14 @@ The index SHALL include only the storage nodes of the network that hold stock, w
 - **THEN** the index soon reports 10 bread from that rack, and breaking the rail removes them again
 
 ### Requirement: Wireless Upgrade slot
-The controller SHALL have one slot that takes only the Wireless Upgrade, apart from its Chunk Loader Upgrade slots. A second Wireless Upgrade SHALL add nothing and does not fit. The upgrade SHALL drop when the controller is broken or dismantled. Hoppers and ducts SHALL NOT reach the slot.
+The controller SHALL have one slot that takes only the Wireless Upgrade, apart from its Anchor Upgrade slots. A second Wireless Upgrade SHALL add nothing and does not fit. The upgrade SHALL drop when the controller is broken or dismantled. Hoppers and ducts SHALL NOT reach the slot.
 
 #### Scenario: Insert the upgrade
 - **WHEN** the player puts a Wireless Upgrade into the controller's wireless slot
 - **THEN** the slot takes it and the controller reports that it holds a Wireless Upgrade
 
 #### Scenario: Wrong item
-- **WHEN** the player tries to put a Chunk Loader Upgrade or a Speed Upgrade into the wireless slot
+- **WHEN** the player tries to put a Anchor Upgrade or a Speed Upgrade into the wireless slot
 - **THEN** the slot refuses it
 
 #### Scenario: Dismantled
@@ -399,3 +381,14 @@ The controller GUI SHALL show, next to the FE stored and the capacity, the FE us
 #### Scenario: No power line
 - **WHEN** the controller is in the no power state and a player opens its GUI
 - **THEN** the GUI shows the no power line in red
+
+### Requirement: Anchor Upgrade slots
+The controller SHALL have `anchor_upgrade_slots` upgrade slots (example 4, `warehouse.json`) that take only the Foundation Anchor Upgrade, one per slot. The site's capacity SHALL be the number of upgrades times `chunks_per_upgrade` (example 9, `warehouse.json`). Upgrades SHALL drop when the controller is broken or dismantled. Hoppers and ducts SHALL NOT reach the slots.
+
+#### Scenario: Two upgrades
+- **WHEN** a controller holds two Anchor Upgrades with 9 chunks per upgrade
+- **THEN** its capacity is 18 chunks
+
+#### Scenario: Wrong item
+- **WHEN** the player tries to put a Speed Upgrade into a controller slot
+- **THEN** the slot refuses it
