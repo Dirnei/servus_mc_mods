@@ -76,7 +76,7 @@ public final class PowerBudget {
     }
 
     /** Whether a draw was refused within the last {@link #WINDOW} ticks. */
-    public boolean refusedRecently(long tick) {
+    private boolean refusedRecently(long tick) {
         return lastRefusal != Long.MIN_VALUE && tick - lastRefusal < WINDOW;
     }
 

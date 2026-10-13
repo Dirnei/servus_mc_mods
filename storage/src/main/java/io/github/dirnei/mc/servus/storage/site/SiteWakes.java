@@ -227,9 +227,8 @@ public final class SiteWakes {
     }
 
     /**
-     * Pays one tick of an awake wake from the woken site's controller: FE per
-     * chunk of the site. A tick is paid once, however often the wake is looked
-     * at; while the controller is not loaded yet nothing is paid. A refused
+     * Pays one tick of an awake wake from the site's controller, FE per chunk,
+     * once per game tick; nothing while the controller is not loaded. A refused
      * tick ends the wake with the reason no power.
      *
      * @return false when the wake had to end

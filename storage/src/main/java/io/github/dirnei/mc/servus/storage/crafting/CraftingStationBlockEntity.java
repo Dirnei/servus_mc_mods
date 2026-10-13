@@ -57,9 +57,9 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
  * Storage's own producer and the hands of the Crafting CPU: crafts the
- * pattern the CPU hands it as a job, without power. A job's results wait in the
- * outputs for the CPU; without a job it crafts nothing, automation inserts
- * nothing and leftover outputs are pushed into neighbours.
+ * pattern the CPU hands it as a job, paid from the warehouse's FE. A job's
+ * results wait in the outputs for the CPU; without a job it crafts nothing,
+ * automation inserts nothing and leftover outputs are pushed into neighbours.
  */
 public class CraftingStationBlockEntity extends DataLineBlockEntity implements MenuProvider, SidedBlockEntity {
 

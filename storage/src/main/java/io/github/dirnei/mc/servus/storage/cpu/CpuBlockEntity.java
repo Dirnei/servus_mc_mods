@@ -204,10 +204,9 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
     }
 
     /**
-     * Hands every buffered stack to the line toward the Packing Station that
-     * takes collected outputs; the shipment settles by the line's own rule
-     * once the CPU has left it. Without a Packing Station, or when a send
-     * fails at once, the stack drops at the removed block.
+     * Sends every buffered stack as packets to the Packing Station that takes
+     * collected outputs; without one, or when a send fails at once, the stack
+     * drops at the removed block.
      */
     private void emptyBuffer(ServerLevel server, BlockPos removed) {
         List<ItemStack> stacks = CpuBufferNbt.stacks(buffer.clear());
