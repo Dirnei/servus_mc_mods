@@ -92,7 +92,6 @@ public final class CalcinerLayout {
         return CELLS;
     }
 
-    /** The cell at {@code index}. */
     public static Cell cell(int index) {
         return CELLS.get(index);
     }

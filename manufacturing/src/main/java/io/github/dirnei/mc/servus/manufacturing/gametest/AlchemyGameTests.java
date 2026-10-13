@@ -66,7 +66,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 
-/** The principles as fluids. */
+/** GameTests of the principles as fluids, the Calciner and Coagulator at work, the journal and the Athanor. */
 public final class AlchemyGameTests {
 
     private AlchemyGameTests() {

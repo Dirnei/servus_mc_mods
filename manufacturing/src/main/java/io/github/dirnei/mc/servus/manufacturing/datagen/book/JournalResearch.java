@@ -7,10 +7,9 @@ import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import net.minecraft.resources.Identifier;
 
 /**
- * The journal's research: Modonomicon 2 unlocks entries by research nodes.
- * The Villach node unlocks when the team's
- * Villach chapter advancement is granted, which opens the Schwaz chapter and
- * the Albedo workshop entries.
+ * The journal's research: Modonomicon 2 unlocks entries by research nodes. The Villach node unlocks
+ * when the team's Villach chapter advancement is granted, which opens the Schwaz chapter and the
+ * Albedo workshop entries.
  */
 public final class JournalResearch extends SingleResearchSubProvider {
 

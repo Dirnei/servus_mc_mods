@@ -48,8 +48,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 /**
  * The Leaching Vat, controller of the Purifier build: washes Ash with water into liquid Salt over
  * time, with no power and no GUI, and keeps the residue. Water goes into the Vat, Salt comes out of
- * the Catch Basin and the residue out of the Residue Crock, so pipes and hoppers see one thing at each
- * block without any setting.
+ * the Catch Basin and the residue out of the Residue Crock.
  */
 public class PurifierBlockEntity extends BlockEntity implements TeamOwned {
 

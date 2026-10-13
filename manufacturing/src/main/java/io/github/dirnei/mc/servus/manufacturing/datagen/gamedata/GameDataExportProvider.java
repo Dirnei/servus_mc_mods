@@ -50,7 +50,7 @@ import net.neoforged.fml.ModList;
  * item names) to the documentation site. Runs last in the data run, so this run's recipes and lang file exist.
  *
  * <p>Paths come from system properties set by the Manufacturing data run: {@code servus.gamedata.output} (the
- * JSON file), {@code servus.gamedata.resources} (the hand written {@code src/main/resources} of every mod, Manufacturing's first) and
+ * JSON file), {@code servus.gamedata.resources} (the hand written {@code src/main/resources} of every mod) and
  * {@code servus.gamedata.generated} (the generated resource folders of all Servus mods, joined with the path
  * separator). Recipes and language files of the other mods are read from those folders as plain files, so mods
  * that are not loaded in this run still take part. Without the properties the provider does nothing, so other
