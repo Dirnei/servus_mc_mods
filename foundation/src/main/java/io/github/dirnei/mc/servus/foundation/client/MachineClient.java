@@ -53,6 +53,11 @@ public final class MachineClient {
         ModelKeys.register(event, ElectricPumpRenderer.CON_ROD_MODEL, "block/electric_pump_con_rod");
         ModelKeys.register(event, ElectricPumpRenderer.WHEEL_MODEL, "block/electric_pump_wheel");
         ModelKeys.register(event, ElectricPumpRenderer.FAN_MODEL, "block/electric_pump_fan");
+        ModelKeys.register(event, ElectricPumpRenderer.RIM_MODEL, "block/electric_pump_rim");
+        ModelKeys.register(event, ElectricPumpRenderer.AXLE_MODEL, "block/electric_pump_axle");
+        ModelKeys.register(event, ElectricPumpRenderer.MOTOR_PULLEY_MODEL, "block/electric_pump_motor_pulley");
+        ModelKeys.register(event, ElectricPumpRenderer.BELT_MODEL, "block/electric_pump_belt");
+        ModelKeys.register(event, ElectricPumpRenderer.BELT_MARK_MODEL, "block/electric_pump_belt_mark");
     }
 
     /** Every machine draws its side modes on the block. */
