@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage.zone;
 
 import java.util.Locale;
 
-/** Zone names as the player typed them versus the key they are matched by. Pure, no Minecraft imports. */
+/** Zone names as the player typed them versus the key they are matched by. Pure Java. */
 public final class ZoneNames {
 
     public static final int MAX_LENGTH = 32;

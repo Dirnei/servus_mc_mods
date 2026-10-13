@@ -10,8 +10,7 @@ import java.util.Set;
 
 /**
  * Aggregated stock over many sources. Each source contributes a snapshot
- * (key to count); replacing a snapshot updates totals incrementally. Pure
- * Java, no Minecraft imports.
+ * (key to count); replacing a snapshot updates totals incrementally. Pure Java.
  *
  * @param <S> source identity
  * @param <K> item key

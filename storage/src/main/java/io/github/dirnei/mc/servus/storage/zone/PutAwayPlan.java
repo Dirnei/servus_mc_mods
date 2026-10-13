@@ -16,7 +16,7 @@ import java.util.function.Predicate;
  * Decides which zoned blocks take an item: those listing the exact item
  * first, then those matching by tag. Everything else is general storage,
  * which the caller tries last. Within a tier the racks already holding the
- * item come first, then the other racks. Pure, no Minecraft imports.
+ * item come first, then the other racks. Pure Java.
  */
 public final class PutAwayPlan {
 

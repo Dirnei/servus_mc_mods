@@ -103,8 +103,7 @@ public record ZoneFilter(List<ItemStack> items, List<String> tags) {
         return List.copyOf(parsed);
     }
 
-    // NBT, for block entities
-
+    /** The filter as NBT, for block entities. */
     public CompoundTag save(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
         ListTag itemList = new ListTag();
