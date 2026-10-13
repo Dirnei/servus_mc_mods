@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.shuttle.module.build;
 
-/** A point on a board, in pixels from its top left corner. Pure, no Minecraft imports. */
+/** A point on a board, in pixels from its top left corner. Pure Java. */
 public record Spot(int x, int y) {
 
     /** Whether the point lies within the radius of this spot. */

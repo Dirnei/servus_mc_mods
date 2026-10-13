@@ -7,7 +7,7 @@ import java.util.Random;
 /**
  * The weld step: one seam after another, each a gentle curve across the
  * board. Dragging over a seam welds the points close to the pointer; a seam
- * is done once most of it is welded. Pure, no Minecraft imports.
+ * is done once most of it is welded. Pure Java.
  */
 public final class WeldBoard {
 

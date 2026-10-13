@@ -6,7 +6,7 @@ import java.util.function.IntPredicate;
 /**
  * Speed upgrades of an elevator shaft: what they do to its car and which
  * segment of a column keeps them. Segments are given by y in one column.
- * Pure, no Minecraft imports.
+ * Pure Java.
  */
 public final class LiftUpgrades {
 

@@ -3,9 +3,7 @@ package io.github.dirnei.mc.servus.storage.shuttle.module;
 /**
  * Which parts a shuttle shows. Counts fall into look steps so a few upgrades
  * more change the look only now and then; the last step is open ended, so
- * packs that raise the max counts still get sensible looks. The steps are
- * visual, not balance, so they live here and not in shuttle.json. Pure, no
- * Minecraft imports.
+ * packs that raise the max counts still get sensible looks. Pure Java.
  */
 public final class ShuttleLook {
 

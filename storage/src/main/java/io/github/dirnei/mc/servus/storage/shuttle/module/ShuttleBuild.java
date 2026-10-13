@@ -4,7 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Checks a build sheet against the supplies in a workshop, counted by item id. Pure, no Minecraft imports. */
+/** Checks a build sheet against the supplies in a workshop, counted by item id. Pure Java. */
 public final class ShuttleBuild {
 
     private ShuttleBuild() {

@@ -7,7 +7,7 @@ import java.util.Set;
 /**
  * The ways of a shuttle too wide for a lift car: every step up or down an
  * elevator shaft is left out, so it still drives straight through a shaft on
- * its own floor but never rides. Pure, no Minecraft imports.
+ * its own floor but never rides. Pure Java.
  */
 public final class LiftlessSteps {
 

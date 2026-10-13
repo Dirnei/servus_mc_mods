@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * The shuttle stats from {@code storage/shuttle.json}: speed, stop times and
  * the tiers with their stacks, upgrade maxes and build sheets. Counts are
- * always clamped to the tier's max. Pure, no Minecraft imports.
+ * always clamped to the tier's max. Pure Java.
  *
  * @param baseSpeed      blocks per tick without Speed upgrades
  * @param speedPerCount  blocks per tick each Speed upgrade adds

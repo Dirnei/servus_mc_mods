@@ -8,7 +8,7 @@ import java.util.function.IntPredicate;
 
 /**
  * A shuttle travelling along a node path: which segment it is on and how far
- * along it. Pure, no Minecraft imports.
+ * along it. Pure Java.
  */
 public final class ShuttleMotion {
 

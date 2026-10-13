@@ -10,7 +10,7 @@ import java.util.Map;
  * The lift car of one shaft: where it is, who rides it, who waits for it and
  * who crosses its decks. Floors are the y of a segment; the car stands at a
  * floor when its y equals that floor. One rider per trip, calls served in
- * order. Pure, no Minecraft imports.
+ * order. Pure Java.
  */
 public final class LiftCar {
 

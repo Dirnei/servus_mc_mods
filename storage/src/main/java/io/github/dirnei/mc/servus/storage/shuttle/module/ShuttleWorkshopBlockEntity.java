@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.storage.shuttle.module;
 
-import net.minecraft.world.level.Level;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
@@ -158,9 +157,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
         if (!handBuild) {
             return false;
         }
-        handBuild = false;
-        buildStep = 0;
-        setChanged();
+        endHandBuild();
         return true;
     }
 
@@ -172,9 +169,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
         if (!handDone()) {
             return false;
         }
-        handBuild = false;
-        buildStep = 0;
-        setChanged();
+        endHandBuild();
         if (!buildNow()) {
             return false;
         }
@@ -182,6 +177,16 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
         ShuttleItem.engrave(built, NamePlate.clean(name));
         shuttle.setStackInSlot(0, built);
         return true;
+    }
+
+    private void endHandBuild() {
+        handBuild = false;
+        buildStep = 0;
+        setChanged();
+    }
+
+    private static String itemId(ItemStack stack) {
+        return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
     }
 
     /** The supplies in the workshop counted by item id. */
@@ -195,7 +200,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
         for (int i = 0; i < handler.getSlots(); i++) {
             ItemStack stack = handler.getStackInSlot(i);
             if (!stack.isEmpty()) {
-                counts.merge(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), stack.getCount(), Integer::sum);
+                counts.merge(itemId(stack), stack.getCount(), Integer::sum);
             }
         }
         return counts;
@@ -228,7 +233,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
             int left = need.getValue();
             for (int i = 0; i < supplies.getSlots() && left > 0; i++) {
                 ItemStack stack = supplies.getStackInSlot(i);
-                if (!stack.isEmpty() && BuiltInRegistries.ITEM.getKey(stack.getItem()).toString().equals(need.getKey())) {
+                if (!stack.isEmpty() && itemId(stack).equals(need.getKey())) {
                     left -= supplies.extractItem(i, left, false).getCount();
                 }
             }
@@ -243,8 +248,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
      * dropping anything; the carrot dismantle has copied them into the item.
      */
     public void clearForDismantle() {
-        handBuild = false;
-        buildStep = 0;
+        endHandBuild();
         shuttle.setStackInSlot(0, ItemStack.EMPTY);
         for (int i = 0; i < supplies.getSlots(); i++) {
             supplies.setStackInSlot(i, ItemStack.EMPTY);
@@ -317,8 +321,6 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
         woodSlot.load(input);
     }
 
-    // Wood: the planks the block was crafted from, shown as its boards
-
     @Override
     public WoodSlot woodSlot() {
         return woodSlot;
@@ -375,15 +377,12 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
         return woodSlot.modelData();
     }
 
-    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
+    /** Drops the contents on the server when the block is removed. */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
-        Level level = this.level;
-        if (level == null) {
-            return;
+        if (level != null) {
+            dropContents();
         }
-        ShuttleWorkshopBlockEntity workshop = this;
-        workshop.dropContents();
     }
 }

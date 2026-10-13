@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-/** Breadth first search over rail nodes. Pure, no Minecraft imports. */
+/** Breadth first search over rail nodes. Pure Java. */
 public final class RailPaths {
 
     private RailPaths() {

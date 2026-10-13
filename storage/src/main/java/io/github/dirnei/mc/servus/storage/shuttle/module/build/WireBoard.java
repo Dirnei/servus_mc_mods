@@ -10,7 +10,7 @@ import java.util.Random;
  * The wires step: contacts in the duct colours on the left, the same colours
  * shuffled on the right. A wire only connects a left contact to the right
  * contact of its colour; a wrong pair does nothing. Colours are channel
- * indexes 0 to 7. Pure, no Minecraft imports.
+ * indexes 0 to 7. Pure Java.
  */
 public final class WireBoard {
 

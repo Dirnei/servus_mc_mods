@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** Groups elevator segments into shafts: maximal runs of stacked segments in one column. Pure, no Minecraft imports. */
+/** Groups elevator segments into shafts: maximal runs of stacked segments in one column. Pure Java. */
 public final class Shafts {
 
     private Shafts() {

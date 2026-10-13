@@ -72,6 +72,15 @@ abstract class FieldRun {
         return reach;
     }
 
+    /** How many items the cargo holds in all. */
+    int cargoCount() {
+        int count = 0;
+        for (FieldCargo.Entry<ItemKey> entry : cargo.entries()) {
+            count += entry.count();
+        }
+        return count;
+    }
+
     /** Everything the shuttle holds, cargo and stacks being put away, as item stacks. */
     List<ItemStack> everything() {
         List<ItemStack> all = new ArrayList<>();

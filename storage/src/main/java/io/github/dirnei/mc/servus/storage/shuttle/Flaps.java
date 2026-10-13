@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.shuttle;
 /**
  * How far a deck's flaps are folded up for the lift car. Server (may a
  * shuttle cross?) and client (how to draw the deck) use the same numbers.
- * Pure, no Minecraft imports.
+ * Pure Java.
  */
 public final class Flaps {
 

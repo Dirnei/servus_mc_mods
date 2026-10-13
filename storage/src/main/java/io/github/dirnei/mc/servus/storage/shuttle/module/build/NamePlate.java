@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.shuttle.module.build;
 
-/** The rule for a name plate: plain text, trimmed, at most {@link #MAX} characters. Pure, no Minecraft imports. */
+/** The rule for a name plate: plain text, trimmed, at most {@link #MAX} characters. Pure Java. */
 public final class NamePlate {
 
     /** The longest name a plate takes. */

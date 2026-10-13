@@ -5,7 +5,7 @@ import io.github.dirnei.mc.servus.storage.shuttle.Shafts.Shaft;
 import java.util.List;
 import java.util.function.Function;
 
-/** Classifies the steps of a shuttle path by how they meet elevator shafts. Pure, no Minecraft imports. */
+/** Classifies the steps of a shuttle path by how they meet elevator shafts. Pure Java. */
 public final class ShaftSteps {
 
     /** What a step from node i to node i + 1 does. */

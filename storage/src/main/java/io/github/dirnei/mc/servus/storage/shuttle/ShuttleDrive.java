@@ -7,7 +7,7 @@ import java.util.function.IntPredicate;
  * and brakes so it stands still where it has to stop, at the end of its path
  * and before a vertical step, which only the lift car makes. The server moves
  * shuttles with it and clients extrapolate them with it, so both agree.
- * Path segments are one block long. Pure, no Minecraft imports.
+ * Path segments are one block long. Pure Java.
  */
 public final class ShuttleDrive {
 

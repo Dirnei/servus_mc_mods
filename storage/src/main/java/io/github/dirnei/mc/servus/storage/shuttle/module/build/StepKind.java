@@ -5,7 +5,7 @@ import java.util.Optional;
 
 /**
  * The kinds of step a build by hand is made of, each with the range its
- * count is clamped to. Pure, no Minecraft imports.
+ * count is clamped to. Pure Java.
  */
 public enum StepKind {
     /** Click glowing spots in order; the count is the number of bolts. */

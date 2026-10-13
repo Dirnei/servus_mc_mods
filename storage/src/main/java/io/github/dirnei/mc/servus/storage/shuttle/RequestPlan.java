@@ -5,8 +5,7 @@ import java.util.List;
 
 /**
  * Splits a terminal request into shuttle pick jobs from the stock a shuttle
- * can reach. Stock no shuttle reaches is never picked. Pure, no Minecraft
- * imports.
+ * can reach. Stock no shuttle reaches is never picked. Pure Java.
  */
 public final class RequestPlan {
 

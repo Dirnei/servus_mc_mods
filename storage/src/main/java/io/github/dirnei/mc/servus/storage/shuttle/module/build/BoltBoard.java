@@ -7,7 +7,7 @@ import java.util.Random;
 /**
  * The bolts step: spots spread over the board, tightened in order. Only a
  * click on the glowing spot counts; any other click does nothing, so the
- * step cannot fail. Pure, no Minecraft imports.
+ * step cannot fail. Pure Java.
  */
 public final class BoltBoard {
 

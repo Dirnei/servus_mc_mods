@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.shuttle.module.build;
 /**
  * The order of a build by hand as the server sees it: which step it is on,
  * which report it accepts and when it is done. The client plays the steps;
- * the server only counts them. Pure, no Minecraft imports.
+ * the server only counts them. Pure Java.
  */
 public final class HandBuild {
 

@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * One step of a build by hand: its kind and how many bolts, wires or seams.
- * The count is clamped to the kind's range. Pure, no Minecraft imports.
+ * The count is clamped to the kind's range. Pure Java.
  */
 public record BuildStep(StepKind kind, int count) {
 
