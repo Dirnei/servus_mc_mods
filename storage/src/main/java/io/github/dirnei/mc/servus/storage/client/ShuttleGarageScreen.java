@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu;
 import net.minecraft.client.gui.GuiGraphicsExtractor;

@@ -198,11 +198,7 @@ public abstract class MachineMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
             }
         }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
+        QuickMoves.settle(slot, stack);
         if (stack.getCount() == copy.getCount()) {
             return ItemStack.EMPTY;
         }

@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.client;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.UtilityDuctMenu;
@@ -111,9 +112,8 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
     }
 
     private void press(int id) {
-        if (minecraft != null && minecraft.gameMode != null) {
+        if (MenuButtons.press(minecraft, menu, id)) {
             menu.clickMenuButton(minecraft.player, id);
-            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
         }
     }
 

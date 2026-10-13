@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
+import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;

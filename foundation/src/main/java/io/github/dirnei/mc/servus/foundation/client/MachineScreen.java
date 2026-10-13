@@ -87,11 +87,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     /** Sends a menu button click to the server; returns whether it was sent. */
     protected boolean clickButton(int buttonId) {
-        if (minecraft == null || minecraft.gameMode == null) {
-            return false;
-        }
-        minecraft.gameMode.handleInventoryButtonClick(menu.containerId, buttonId);
-        return true;
+        return MenuButtons.press(minecraft, menu, buttonId);
     }
 
     @Override

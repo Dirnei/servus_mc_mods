@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.adapter;
 
+import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -37,9 +38,7 @@ public class AdapterScreen extends AbstractContainerScreen<AdapterMenu> {
     }
 
     private void click(int id) {
-        if (minecraft != null && minecraft.gameMode != null) {
-            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
-        }
+        MenuButtons.press(minecraft, menu, id);
     }
 
     @Override
