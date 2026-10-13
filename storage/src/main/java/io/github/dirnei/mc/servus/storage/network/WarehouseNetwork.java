@@ -43,7 +43,6 @@ import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
-import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -55,9 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -101,8 +98,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final Set<NodePos> elevators = new HashSet<>();
     private Map<NodePos, Shaft> shaftFloors = Map.of();
     private boolean shaftsDirty;
-    /** The zone each zoned stock node carries. Unzoned nodes are absent. */
-    private final Map<BlockPos, ZoneDefinition> zoneOf = new LinkedHashMap<>();
+    private final WarehouseZones zones = new WarehouseZones();
     /** Set when a zone or room changed; stations with waiting stacks retry on the next tick. */
     private boolean zonesDirty;
     /** Inbound, outbound and Packing Stations. */
@@ -164,7 +160,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (node.stock() != null) {
                 addSource(blockPos);
             }
-            rememberZone(blockPos, node);
+            zones.set(blockPos, node.zoneDefinition());
             zonesDirty = true;
         } else if (node.kind() == WarehouseConnectionRule.NodeKind.STATION) {
             stations.add(blockPos);
@@ -196,7 +192,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         stations.remove(blockPos);
         pendingStations.remove(blockPos);
         blockedStations.remove(blockPos);
-        zoneOf.remove(blockPos);
+        zones.remove(blockPos);
         dropSource(blockPos);
         if (garages.remove(blockPos)) {
             fleet.releaseGarage(blockPos);
@@ -237,7 +233,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         pendingStations.addAll(that.stations);
         garages.addAll(that.garages);
         that.held.forEach((pos, loads) -> held.computeIfAbsent(pos, p -> new ArrayList<>()).addAll(loads));
-        zoneOf.putAll(that.zoneOf);
+        zones.absorb(that.zones);
         that.sources.forEach((pos, source) -> {
             sources.put(pos, source);
             index.update(pos, that.index.snapshot(pos));
@@ -260,7 +256,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         held.clear();
         pendingStations.clear();
         blockedStations.clear();
-        zoneOf.clear();
+        zones.clear();
         dirtyQueue.clear();
         dirtySet.clear();
         pollOrder.clear();
@@ -318,68 +314,20 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return loaded(pos) instanceof HeavyRackBlockEntity;
     }
 
-    private void rememberZone(BlockPos pos, StorageNodeBlockEntity node) {
-        ZoneDefinition definition = node.zoneDefinition();
-        if (definition == null) {
-            zoneOf.remove(pos);
-        } else {
-            zoneOf.put(pos, definition);
-        }
-    }
-
-    /** Tag ids of an item, as the pure plan sees them. */
-    private static Set<String> tagsOf(ItemKey key) {
-        return key.stack(1).typeHolder().tags().map(tag -> tag.location().toString()).collect(Collectors.toSet());
-    }
-
-    /** Sources with a non empty filter, as the pure plan sees them. */
-    private Map<BlockPos, PutAwayPlan.Filter<ItemKey>> filtered() {
-        Map<BlockPos, PutAwayPlan.Filter<ItemKey>> map = new LinkedHashMap<>();
-        for (Map.Entry<BlockPos, ZoneDefinition> entry : zoneOf.entrySet()) {
-            if (!entry.getValue().filter().isEmpty() && sources.containsKey(entry.getKey())) {
-                map.put(entry.getKey(), entry.getValue().filter().toPure());
-            }
-        }
-        return map;
-    }
-
     /** The zoned blocks that take this key, by exact item and by tag. */
-    public PutAwayPlan.Tiers<BlockPos> tiers(ItemKey key) {
-        return PutAwayPlan.tiers(key, filtered(), WarehouseNetwork::tagsOf);
-    }
-
-    /** The zone name of the first block that matched, or null when none did. */
-    private String matchedZone(PutAwayPlan.Tiers<BlockPos> tiers) {
-        String exact = firstZoneName(tiers.exact());
-        return exact != null ? exact : firstZoneName(tiers.byTag());
-    }
-
-    private String firstZoneName(Set<BlockPos> blocks) {
-        for (BlockPos pos : blocks) {
-            ZoneDefinition zone = zoneOf.get(pos);
-            if (zone != null) {
-                return zone.name();
-            }
-        }
-        return null;
+    private PutAwayPlan.Tiers<BlockPos> tiers(ItemKey key) {
+        return zones.tiers(key, sources.keySet());
     }
 
     /** The target lists in order: exact matches, tag matches, then general storage; holders first within each. */
     private List<List<BlockPos>> targetTiers(ItemKey key, PutAwayPlan.Tiers<BlockPos> tiers) {
-        Set<BlockPos> general = new LinkedHashSet<>();
-        for (Source source : sources.values()) {
-            ZoneDefinition zone = zoneOf.get(source.pos());
-            if (zone == null || zone.filter().isEmpty()) {
-                general.add(source.pos());
-            }
-        }
         List<BlockPos> holders = new ArrayList<>();
         for (BlockPos pos : index.sourcesHolding(key)) {
             if (sources.containsKey(pos)) {
                 holders.add(pos);
             }
         }
-        return PutAwayPlan.targets(tiers, general, holders);
+        return zones.targets(tiers, sources.keySet(), holders);
     }
 
     /** The first target in tier order that passes the test. */
@@ -396,41 +344,16 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     /** Stock blocks per zone key, sorted by key. */
     public Map<String, Integer> zoneBlockCounts() {
-        Map<String, Integer> counts = new TreeMap<>();
-        for (ZoneDefinition zone : zoneOf.values()) {
-            counts.merge(zone.key(), 1, Integer::sum);
-        }
-        return counts;
+        return zones.blockCounts();
     }
 
     /** One zone as its blocks carry it: the union of their filters. */
     public record ZoneSummary(String key, String display, int blocks, List<String> items, List<String> tags) {
     }
 
-    private ZoneSummary zoneSummary(String key) {
-        String display = key;
-        int blocks = 0;
-        Set<String> items = new LinkedHashSet<>();
-        Set<String> tags = new LinkedHashSet<>();
-        for (ZoneDefinition zone : zoneOf.values()) {
-            if (!zone.key().equals(key)) {
-                continue;
-            }
-            blocks++;
-            display = zone.name();
-            items.addAll(zone.filter().itemNames());
-            tags.addAll(zone.filter().tags());
-        }
-        return new ZoneSummary(key, display, blocks, List.copyOf(items), List.copyOf(tags));
-    }
-
     /** Every zone of the warehouse, sorted by key. */
     public List<ZoneSummary> zoneSummaries() {
-        List<ZoneSummary> list = new ArrayList<>();
-        for (String key : zoneBlockCounts().keySet()) {
-            list.add(zoneSummary(key));
-        }
-        return list;
+        return zones.summaries();
     }
 
     @Override
@@ -972,7 +895,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
         } else if (event instanceof WarehouseEvent.ZoneChanged zoned) {
             if (loaded(zoned.pos()) instanceof StorageNodeBlockEntity node && node.holdsStock()) {
-                rememberZone(zoned.pos(), node);
+                zones.set(zoned.pos(), node.zoneDefinition());
                 zonesDirty = true;
             }
         }
@@ -1108,7 +1031,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (target.isEmpty()) {
                 if (blockedKey == null) {
                     blockedKey = key;
-                    blockedZone = matchedZone(tiers);
+                    blockedZone = zones.matchedZone(tiers);
                     blockedByRack = firstTarget(key, tiers, rack -> isRack(rack) && hasRoom(rack, stack)).isPresent();
                 }
                 continue;
