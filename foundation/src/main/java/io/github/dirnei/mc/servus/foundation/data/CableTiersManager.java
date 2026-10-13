@@ -2,8 +2,6 @@ package io.github.dirnei.mc.servus.foundation.data;
 
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.util.ExtraCodecs;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.dirnei.mc.servus.foundation.ServusFoundation;
@@ -24,12 +22,11 @@ import net.minecraft.util.profiling.ProfilerFiller;
 public final class CableTiersManager extends SimpleJsonResourceReloadListener<JsonElement> {
 
     /** Key of this listener in the reload event. */
-    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath("servus_foundation", "cable_tiers_manager");
+    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "cable_tiers_manager");
 
     public static final String DIRECTORY = "data";
     public static final Identifier BASE_TIER = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "data_cable");
 
-    private static final Gson GSON = new GsonBuilder().create();
     private static final String FILE = "cable_tiers";
 
     public static final CableTiersManager INSTANCE = new CableTiersManager();
@@ -41,7 +38,7 @@ public final class CableTiersManager extends SimpleJsonResourceReloadListener<Js
     }
 
     /** The tiers the mod ships, used until a datapack is loaded. */
-    public static Map<Identifier, CableTier> defaults() {
+    private static Map<Identifier, CableTier> defaults() {
         Map<Identifier, CableTier> map = new HashMap<>();
         map.put(BASE_TIER, CableTier.BASE);
         map.put(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "duplex_data_cable"), new CableTier(32, true));
@@ -79,17 +76,5 @@ public final class CableTiersManager extends SimpleJsonResourceReloadListener<Js
             return tier;
         }
         return tiers.getOrDefault(BASE_TIER, CableTier.BASE);
-    }
-
-    /** For tests: sets one tier as if a datapack had been loaded. */
-    public void set(Identifier id, CableTier tier) {
-        Map<Identifier, CableTier> copy = new HashMap<>(tiers);
-        copy.put(id, tier);
-        tiers = Map.copyOf(copy);
-    }
-
-    /** For tests: back to the shipped tiers. */
-    public void reset() {
-        tiers = defaults();
     }
 }

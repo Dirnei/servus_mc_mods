@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.data.packet;
 
-/** How many items a delivery may move in one tick. Pure, no Minecraft imports. */
+/** How many items a delivery may move in one tick. */
 public final class TransferAmount {
 
     /** The allowance of a member that is no gate. */

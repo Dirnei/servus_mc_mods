@@ -2,8 +2,7 @@ package io.github.dirnei.mc.servus.foundation.data.packet;
 
 /**
  * Data line limits from datapack JSON. The network is instant, so only the
- * retry interval is left; throughput comes from transfer gates. Pure, no
- * Minecraft imports.
+ * retry interval is left; throughput comes from transfer gates.
  *
  * @param retryTicks how often a delivery whose target was full offers its items again
  */

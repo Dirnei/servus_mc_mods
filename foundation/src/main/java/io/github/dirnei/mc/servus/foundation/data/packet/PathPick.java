@@ -17,12 +17,12 @@ import java.util.function.ToDoubleFunction;
 /**
  * Picks the route of a delivery: among the shortest paths from any start to
  * any goal, the one whose slowest node has the most bandwidth. No max flow,
- * no detours for bandwidth. Ties resolve the same way every time. Pure, no
- * Minecraft imports.
+ * no detours for bandwidth. Ties resolve the same way every time.
  */
 public final class PathPick {
 
-    private static final Comparator<NodePos> ORDER =
+    /** The fixed order ties resolve in: by x, then y, then z. */
+    public static final Comparator<NodePos> NODE_ORDER =
             Comparator.comparingInt(NodePos::x).thenComparingInt(NodePos::y).thenComparingInt(NodePos::z);
 
     private PathPick() {
@@ -85,18 +85,9 @@ public final class PathPick {
         return Optional.empty();
     }
 
-    /** The narrowest bandwidth along a path. */
-    public static double bottleneck(List<NodePos> path, ToDoubleFunction<NodePos> bandwidth) {
-        double min = Double.POSITIVE_INFINITY;
-        for (NodePos pos : path) {
-            min = Math.min(min, bandwidth.applyAsDouble(pos));
-        }
-        return min;
-    }
-
     private static List<NodePos> sorted(Set<NodePos> positions) {
         List<NodePos> list = new ArrayList<>(positions);
-        list.sort(ORDER);
+        list.sort(NODE_ORDER);
         return list;
     }
 

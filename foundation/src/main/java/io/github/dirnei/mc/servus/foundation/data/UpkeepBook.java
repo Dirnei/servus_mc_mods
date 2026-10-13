@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Open upkeep requests per member. Arrivals are counted from the member's
  * own count: every rise since the last check is credited against the open
- * request, which ends once complete or timed out. Pure, no Minecraft imports.
+ * request, which ends once complete or timed out.
  *
  * @param <K> member key
  */

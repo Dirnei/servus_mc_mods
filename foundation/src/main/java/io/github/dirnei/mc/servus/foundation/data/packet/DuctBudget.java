@@ -6,12 +6,15 @@ package io.github.dirnei.mc.servus.foundation.data.packet;
  * both directions share; a duplex duct holds one per direction. A new budget
  * starts full (one second's worth), as an idle duct would be. It also counts
  * the items that passed in each of the last {@link #WINDOW} ticks, so the
- * load over the last second can be shown. Pure, no Minecraft imports.
+ * load over the last second can be shown.
  */
 public final class DuctBudget {
 
     /** Ticks of the load window: one second. */
     public static final int WINDOW = RateBudget.TICKS_PER_SECOND;
+
+    /** The highest load level, a duct at or near its full bandwidth. */
+    public static final int FULL = 4;
 
     private final RateBudget forward;
     private final RateBudget backward;
@@ -90,9 +93,6 @@ public final class DuctBudget {
     public boolean idle() {
         return used(true) == 0 && used(false) == 0;
     }
-
-    /** The highest load level, a duct at or near its full bandwidth. */
-    public static final int FULL = 4;
 
     /**
      * A load bucketed for display: 0 idle, 1 up to a quarter, 2 up to half,

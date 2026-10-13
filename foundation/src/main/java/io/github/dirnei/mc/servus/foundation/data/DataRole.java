@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.data;
 
-/** What a data member offers the network. Pure, no Minecraft types. */
+/** What a data member offers the network. */
 public enum DataRole {
     /** Exposes the production capability: it can make items. */
     PRODUCER,

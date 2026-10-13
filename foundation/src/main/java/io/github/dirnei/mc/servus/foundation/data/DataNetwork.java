@@ -167,15 +167,13 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
         }).filter(route -> route.size() >= 2);
     }
 
-    // Bandwidth
-
     /** One duct a delivery crosses and in which direction: forward runs from the lower to the higher neighbour position. */
     public record Hop(NodePos pos, boolean forward) {
     }
 
     /** Items per second the node at {@code pos} lets through; unlimited for a carrier or a position that is no node. */
     public double bandwidth(NodePos pos) {
-        CableTier tier = owner().graph().node(pos).map(DataNode::dataTier).orElse(null);
+        CableTier tier = tierOf(pos);
         return tier == null ? Double.POSITIVE_INFINITY : tier.itemsPerSecond();
     }
 
@@ -185,18 +183,20 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
         int last = route.size() - 1;
         for (int i = 0; i <= last; i++) {
             NodePos at = route.get(i);
-            if (owner().graph().node(at).map(DataNode::dataTier).orElse(null) == null) {
+            if (tierOf(at) == null) {
                 continue;
             }
             NodePos before = route.get(Math.max(0, i - 1));
             NodePos after = route.get(Math.min(last, i + 1));
-            hops.add(new Hop(at, NODE_ORDER.compare(before, after) <= 0));
+            hops.add(new Hop(at, PathPick.NODE_ORDER.compare(before, after) <= 0));
         }
         return hops;
     }
 
-    private static final Comparator<NodePos> NODE_ORDER =
-            Comparator.comparingInt(NodePos::x).thenComparingInt(NodePos::y).thenComparingInt(NodePos::z);
+    /** The tier of the data node at {@code pos}, null for a carrier or a position that is no node. */
+    private CableTier tierOf(NodePos pos) {
+        return owner().graph().node(pos).map(DataNode::dataTier).orElse(null);
+    }
 
     /** How many items may cross every duct of the hops this tick: the smallest remaining budget. */
     public int pathAllowance(List<Hop> hops) {
@@ -226,7 +226,7 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
         if (budget != null) {
             return budget;
         }
-        CableTier tier = owner().graph().node(pos).map(DataNode::dataTier).orElse(null);
+        CableTier tier = tierOf(pos);
         if (tier == null || !owns(pos)) {
             return null;
         }
@@ -242,12 +242,6 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
     public int load(NodePos pos) {
         DuctBudget budget = budgets.get(pos);
         return budget == null ? 0 : budget.load();
-    }
-
-    /** Items that crossed the duct at {@code pos} in one direction during the last second. */
-    public int used(NodePos pos, boolean forward) {
-        DuctBudget budget = budgets.get(pos);
-        return budget == null ? 0 : budget.used(forward);
     }
 
     /** One duct with its load over the last second and its bandwidth. */
@@ -279,7 +273,7 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
     /** Refills the budgets of busy ducts, follows tier changes and forgets ducts idle for a second. */
     private void tickBudgets() {
         budgets.entrySet().removeIf(entry -> {
-            CableTier tier = owner().graph().node(entry.getKey()).map(DataNode::dataTier).orElse(null);
+            CableTier tier = tierOf(entry.getKey());
             if (tier == null || !owns(entry.getKey())) {
                 return true;
             }
@@ -355,20 +349,26 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
                 suppliers = new ArrayList<>(dataMembers());
                 suppliers.sort(Comparator.comparingLong(candidate -> candidate.pos().asLong()));
             }
-            for (DataMember candidate : suppliers) {
-                if (candidate.pos().equals(member.pos()) || !server.isLoaded(candidate.pos())) {
-                    continue;
-                }
-                ItemSupplier supplier = server.getCapability(ServusFoundationCapabilities.SUPPLIER, candidate.pos(), null);
-                if (supplier == null) {
-                    continue;
-                }
-                int answer = supplier.supply(member.pos(), holder.upkeepItem().copyWithCount(1), missing);
-                if (answer > 0) {
-                    upkeep.asked(member.pos(), answer, count, now, UPKEEP_TIMEOUT);
-                    holder.upkeepRequested(answer, now + UPKEEP_TIMEOUT);
-                    break;
-                }
+            askSuppliers(server, suppliers, member.pos(), holder, count, missing, now);
+        }
+    }
+
+    /** Asks the suppliers in order until one sends the missing upkeep, and opens the request with it. */
+    private void askSuppliers(ServerLevel server, List<DataMember> suppliers, BlockPos target, UpkeepHolder holder,
+                              int count, int missing, long now) {
+        for (DataMember candidate : suppliers) {
+            if (candidate.pos().equals(target) || !server.isLoaded(candidate.pos())) {
+                continue;
+            }
+            ItemSupplier supplier = server.getCapability(ServusFoundationCapabilities.SUPPLIER, candidate.pos(), null);
+            if (supplier == null) {
+                continue;
+            }
+            int answer = supplier.supply(target, holder.upkeepItem().copyWithCount(1), missing);
+            if (answer > 0) {
+                upkeep.asked(target, answer, count, now, UPKEEP_TIMEOUT);
+                holder.upkeepRequested(answer, now + UPKEEP_TIMEOUT);
+                return;
             }
         }
     }
@@ -409,7 +409,6 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
         BlockPos blockPos = Conversions.toBlockPos(pos);
         Runnable invalidated = () -> postTo(server, pos);
         if (!node.dataCable()) {
-            // A carrier is a member itself and never makes its neighbours members.
             selfProbes.put(pos, probe(server, blockPos, null, node, invalidated));
             post(new DataEvent.SidesChanged(pos));
             return;

@@ -141,7 +141,6 @@ public final class Shipment {
         int max = Math.min(allowed, toTake);
         int has = PacketIo.available(level, from, sourceFace, sourceView, like, max);
         if (has <= 0) {
-            // The source ran out: the move ends with what it moved.
             toTake = 0;
             return 0;
         }

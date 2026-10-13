@@ -4,8 +4,7 @@ package io.github.dirnei.mc.servus.foundation.data.packet;
  * A rate in items per second turned into a whole number of items per tick.
  * Fractions carry over between ticks, so 8 per second allows 8 items over 20
  * ticks, not 0 per tick. The budget never grows beyond one second's worth
- * (at least one item), so a member that was idle cannot burst. Pure, no
- * Minecraft imports.
+ * (at least one item), so a member that was idle cannot burst.
  */
 public final class RateBudget {
 

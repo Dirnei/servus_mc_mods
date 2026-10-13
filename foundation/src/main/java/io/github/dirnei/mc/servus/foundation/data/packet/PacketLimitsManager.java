@@ -2,8 +2,6 @@ package io.github.dirnei.mc.servus.foundation.data.packet;
 
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.util.ExtraCodecs;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.dirnei.mc.servus.foundation.ServusFoundation;
@@ -18,11 +16,10 @@ import net.minecraft.util.profiling.ProfilerFiller;
 public final class PacketLimitsManager extends SimpleJsonResourceReloadListener<JsonElement> {
 
     /** Key of this listener in the reload event. */
-    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath("servus_foundation", "packet_limits_manager");
+    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "packet_limits_manager");
 
     public static final String DIRECTORY = "data";
 
-    private static final Gson GSON = new GsonBuilder().create();
     private static final Identifier PACKETS = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "packets");
 
     public static final PacketLimitsManager INSTANCE = new PacketLimitsManager();
@@ -43,12 +40,8 @@ public final class PacketLimitsManager extends SimpleJsonResourceReloadListener<
         ServusFoundation.LOGGER.info("Data packets: retry every {} ticks", read.retryTicks());
     }
 
+    /** The limits of the loaded datapacks, the defaults before any is loaded. */
     public PacketLimits limits() {
         return limits;
-    }
-
-    /** For tests: sets the limits as if a datapack had been loaded. */
-    public void set(PacketLimits limits) {
-        this.limits = limits;
     }
 }

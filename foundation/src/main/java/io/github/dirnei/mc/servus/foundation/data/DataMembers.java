@@ -13,8 +13,7 @@ import java.util.Set;
 /**
  * Which cable sides of a data network touch which member, and with which
  * roles. A member touched by several cable sides is one member whose roles
- * are the union of its touches; it goes away with its last touch. Pure, no
- * Minecraft imports.
+ * are the union of its touches; it goes away with its last touch.
  */
 public final class DataMembers {
 
@@ -32,11 +31,9 @@ public final class DataMembers {
     public void touch(NodePos cable, Side side, NodePos member, Set<DataRole> roles) {
         Touch touch = new Touch(cable, side);
         untouch(touch);
-        if (roles.isEmpty()) {
-            return;
+        if (!roles.isEmpty()) {
+            add(touch, member, roles);
         }
-        byMember.computeIfAbsent(member, m -> new LinkedHashMap<>()).put(touch, EnumSet.copyOf(roles));
-        byTouch.put(touch, member);
     }
 
     /**
@@ -59,8 +56,7 @@ public final class DataMembers {
     public void absorb(DataMembers other) {
         other.byMember.forEach((member, touches) -> touches.forEach((touch, roles) -> {
             untouch(touch);
-            byMember.computeIfAbsent(member, m -> new LinkedHashMap<>()).put(touch, EnumSet.copyOf(roles));
-            byTouch.put(touch, member);
+            add(touch, member, roles);
         }));
     }
 
@@ -88,6 +84,11 @@ public final class DataMembers {
 
     public int size() {
         return byMember.size();
+    }
+
+    private void add(Touch touch, NodePos member, Set<DataRole> roles) {
+        byMember.computeIfAbsent(member, m -> new LinkedHashMap<>()).put(touch, EnumSet.copyOf(roles));
+        byTouch.put(touch, member);
     }
 
     private void untouch(Touch touch) {

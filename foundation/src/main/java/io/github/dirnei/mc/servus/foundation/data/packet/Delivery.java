@@ -7,7 +7,6 @@ import java.util.function.Consumer;
 /**
  * The state of one delivery: how many items were asked for and arrived, and
  * whether it is running, done or failed. Listeners run once when it ends.
- * Pure, no Minecraft imports.
  */
 public final class Delivery {
 

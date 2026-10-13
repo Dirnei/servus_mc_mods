@@ -7,10 +7,7 @@ import io.github.dirnei.mc.servus.foundation.graph.NodePos;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
 import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import net.minecraft.core.BlockPos;
@@ -20,7 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /**
- * Starts deliveries over the data line and finds them again by id. The data
+ * Starts deliveries over the data line. The data
  * line is instant: items do not travel, each tick a delivery moves what the
  * source gives, the target takes and the transfer gates of both allow. A send
  * hands over a stack the caller holds; a move takes items from the source
@@ -29,11 +26,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
  */
 public final class DataPackets {
 
-    /** Ended deliveries kept for polling, oldest dropped first. */
-    private static final int KEEP_ENDED = 1024;
-
     private static final AtomicLong NEXT_ID = new AtomicLong(1);
-    private static final Map<Long, Delivery> DELIVERIES = new LinkedHashMap<>();
 
     private DataPackets() {
     }
@@ -75,11 +68,6 @@ public final class DataPackets {
         return Optional.of(delivery);
     }
 
-    /** A delivery by id, while it runs and for a while after it ended. */
-    public static synchronized Optional<Delivery> delivery(long id) {
-        return Optional.ofNullable(DELIVERIES.get(id));
-    }
-
     /** Settles every running delivery of every level; called before the server saves on stop. */
     public static void settleAll(MinecraftServer server) {
         for (ServerLevel level : server.getAllLevels()) {
@@ -109,16 +97,7 @@ public final class DataPackets {
         return Optional.empty();
     }
 
-    private static synchronized Delivery create(int requested) {
-        Delivery delivery = new Delivery(NEXT_ID.getAndIncrement(), requested);
-        DELIVERIES.put(delivery.id(), delivery);
-        if (DELIVERIES.size() > KEEP_ENDED) {
-            for (Iterator<Delivery> it = DELIVERIES.values().iterator(); it.hasNext() && DELIVERIES.size() > KEEP_ENDED; ) {
-                if (it.next().ended()) {
-                    it.remove();
-                }
-            }
-        }
-        return delivery;
+    private static Delivery create(int requested) {
+        return new Delivery(NEXT_ID.getAndIncrement(), requested);
     }
 }

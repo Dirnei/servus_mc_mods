@@ -48,10 +48,6 @@ public final class DataCarrier implements DataNode, NetworkNode<DataNode> {
         }
     }
 
-    public boolean joined() {
-        return joined;
-    }
-
     @Override
     public NetworkType<DataNode, ?, ?> networkType() {
         return DataNetwork.TYPE;

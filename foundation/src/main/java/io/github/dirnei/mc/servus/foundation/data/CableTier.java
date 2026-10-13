@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.data;
 
 /**
- * The stats of one data cable tier from datapack JSON. Pure, no Minecraft imports.
+ * The stats of one data cable tier from datapack JSON.
  *
  * @param itemsPerSecond how many items pass one duct per second
  * @param duplex         true when each direction has the full bandwidth, false when both share it

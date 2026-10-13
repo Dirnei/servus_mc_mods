@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.ToDoubleFunction;
 import org.junit.jupiter.api.Test;
 
 class PathPickTest {
@@ -30,6 +31,14 @@ class PathPickTest {
         return new NodePos(x, 0, z);
     }
 
+    private static double bottleneck(List<NodePos> path, ToDoubleFunction<NodePos> bandwidth) {
+        double min = Double.POSITIVE_INFINITY;
+        for (NodePos pos : path) {
+            min = Math.min(min, bandwidth.applyAsDouble(pos));
+        }
+        return min;
+    }
+
     @Test
     void shortestWins() {
         // A straight run of three slow ducts and a detour of five fast ones: the short run wins.
@@ -41,7 +50,7 @@ class PathPickTest {
         List<NodePos> path = PathPick.best(Set.of(p(0, 0)), Set.of(p(4, 0)), at -> neighbours(nodes, at),
                 at -> bandwidth.getOrDefault(at, Double.POSITIVE_INFINITY)).orElseThrow();
         assertEquals(List.of(p(0, 0), p(1, 0), p(2, 0), p(3, 0), p(4, 0)), path);
-        assertEquals(32.0, PathPick.bottleneck(path, bandwidth::get), 1e-9);
+        assertEquals(32.0, bottleneck(path, bandwidth::get), 1e-9);
     }
 
     @Test
@@ -55,12 +64,26 @@ class PathPickTest {
                 bandwidth::get).orElseThrow();
         assertEquals(5, path.size());
         assertTrue(!path.contains(p(1, 0)), "the path avoids the slow duct, got " + path);
-        assertEquals(128.0, PathPick.bottleneck(path, bandwidth::get), 1e-9);
+        assertEquals(128.0, bottleneck(path, bandwidth::get), 1e-9);
         // Swapped, the other side is slow and the first path wins.
         bandwidth.put(p(1, 0), 128.0);
         bandwidth.put(p(0, 1), 32.0);
         List<NodePos> other = PathPick.best(Set.of(p(0, 0)), Set.of(p(2, 2)), at -> neighbours(nodes, at),
                 bandwidth::get).orElseThrow();
         assertTrue(!other.contains(p(0, 1)), "the path avoids the slow duct, got " + other);
+    }
+
+    @Test
+    void noRoute() {
+        Set<NodePos> nodes = Set.of(p(0, 0), p(2, 0));
+        assertTrue(PathPick.best(Set.of(p(0, 0)), Set.of(p(2, 0)), at -> neighbours(nodes, at),
+                at -> Double.POSITIVE_INFINITY).isEmpty());
+    }
+
+    @Test
+    void startIsGoal() {
+        Set<NodePos> nodes = Set.of(p(0, 0));
+        assertEquals(List.of(p(0, 0)), PathPick.best(Set.of(p(0, 0)), Set.of(p(0, 0)), at -> neighbours(nodes, at),
+                at -> Double.POSITIVE_INFINITY).orElseThrow());
     }
 }

@@ -37,8 +37,6 @@ public record DuctLoadPayload(Map<Long, Integer> levels) implements CustomPacket
                 return new DuctLoadPayload(levels);
             });
 
-    public static final DuctLoadPayload EMPTY = new DuctLoadPayload(Map.of());
-
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;

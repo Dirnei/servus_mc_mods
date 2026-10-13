@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.foundation.data.packet;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.data.CableTiersManager;
+import io.github.dirnei.mc.servus.foundation.upgrade.UpgradesManager;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -8,7 +10,7 @@ import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
-/** Game bus hooks for data packets: limits from data, and stashed items dropping once their place loads. */
+/** Game bus hooks for data packets: the Foundation reload listeners, settling on stop, and the stash dropping items once their place loads. */
 @EventBusSubscriber(modid = ServusFoundationIds.MOD_ID)
 public final class DataPacketEvents {
 
@@ -18,8 +20,8 @@ public final class DataPacketEvents {
     @SubscribeEvent
     public static void onAddReloadListeners(AddServerReloadListenersEvent event) {
         event.addListener(PacketLimitsManager.LISTENER_ID, PacketLimitsManager.INSTANCE);
-        event.addListener(io.github.dirnei.mc.servus.foundation.data.CableTiersManager.LISTENER_ID, io.github.dirnei.mc.servus.foundation.data.CableTiersManager.INSTANCE);
-        event.addListener(io.github.dirnei.mc.servus.foundation.upgrade.UpgradesManager.LISTENER_ID, io.github.dirnei.mc.servus.foundation.upgrade.UpgradesManager.INSTANCE);
+        event.addListener(CableTiersManager.LISTENER_ID, CableTiersManager.INSTANCE);
+        event.addListener(UpgradesManager.LISTENER_ID, UpgradesManager.INSTANCE);
     }
 
     /** Packets are not saved: settle them while every chunk is still loaded, before the worlds save. */
