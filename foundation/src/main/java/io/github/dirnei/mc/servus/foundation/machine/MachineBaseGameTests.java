@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.machine;
 
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlock;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
@@ -115,7 +116,7 @@ public final class MachineBaseGameTests {
         BlockPos generator = new BlockPos(5, 2, 3);
         BlockPos duct = new BlockPos(4, 2, 3);
         CoalGeneratorGameTests.place(helper, generator, Direction.NORTH);
-        MachineTestSupport.duct(helper, duct, Line.DATA);
+        GameTestSteps.duct(helper, duct, Line.DATA);
         helper.succeedWhen(() -> {
             DataMember generatorMember = member(helper, duct, generator).orElse(null);
             helper.assertTrue(generatorMember != null && generatorMember.roles().equals(Set.of(DataRole.UPKEEP)),

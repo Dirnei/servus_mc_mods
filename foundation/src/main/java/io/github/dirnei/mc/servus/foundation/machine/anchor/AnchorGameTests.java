@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.machine.anchor;
 
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
@@ -221,7 +222,7 @@ public final class AnchorGameTests {
             helper.setBlock(ANCHOR, Blocks.AIR.defaultBlockState());
             helper.assertTrue(!anchor.ticketHeld(), "breaking releases every chunk");
             helper.assertTrue(data(helper).load(team) == 0, "the team load is free again");
-            List<ItemEntity> drops = MachineTestSupport.drops(helper, ANCHOR, 1);
+            List<ItemEntity> drops = GameTestSteps.drops(helper, ANCHOR, 1);
             int upgrades = MachineTestSupport.count(drops, MachineContent.ANCHOR_UPGRADE.get());
             helper.assertTrue(upgrades == 1, "the upgrade drops, got " + upgrades);
             drops.forEach(ItemEntity::discard);
@@ -253,9 +254,9 @@ public final class AnchorGameTests {
         anchor.shift(Shift.EAST);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);
-        MachineTestSupport.useCarrot(helper, player, ANCHOR, Direction.NORTH);
+        GameTestSteps.useCarrot(helper, player, ANCHOR, Direction.NORTH);
         helper.assertBlockNotPresent(MachineContent.ENDER_ANCHOR.get(), ANCHOR);
-        List<ItemEntity> drops = MachineTestSupport.drops(helper, ANCHOR, 1);
+        List<ItemEntity> drops = GameTestSteps.drops(helper, ANCHOR, 1);
         helper.assertTrue(drops.stream().noneMatch(drop -> drop.getItem().is(MachineContent.ANCHOR_UPGRADE.get())), "no upgrade drops on its own");
         ItemStack item = drops.stream().map(ItemEntity::getItem)
                 .filter(stack -> stack.is(MachineContent.ENDER_ANCHOR_ITEM.get())).findFirst().orElseThrow();

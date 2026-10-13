@@ -1,10 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.machine;
 
 import com.mojang.authlib.GameProfile;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.UUID;
@@ -22,7 +18,6 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -30,26 +25,6 @@ import net.minecraft.world.phys.Vec3;
 public final class MachineTestSupport {
 
     private MachineTestSupport() {
-    }
-
-    /**
-     * Places a Utility Duct carrying the given lines with default modes and line 1.
-     * {@code setBlock} skips placement logic, so the connections are refreshed from the neighbours afterwards.
-     */
-    public static void duct(GameTestHelper helper, BlockPos pos, Line... lines) {
-        helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
-        for (Line line : lines) {
-            duct.addLine(line);
-        }
-        BlockPos absolute = helper.absolutePos(pos);
-        BlockState state = helper.getLevel().getBlockState(absolute);
-        helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
-    }
-
-    /** Item entities within {@code range} blocks of the block at {@code pos}. */
-    public static List<ItemEntity> drops(GameTestHelper helper, BlockPos pos, int range) {
-        return helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(pos)).inflate(range));
     }
 
     /** How many of {@code item} the drops hold together. */
@@ -76,15 +51,6 @@ public final class MachineTestSupport {
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(below).add(0, 0.5, 0), Direction.UP, below, false);
         stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack, hit));
         return stack;
-    }
-
-    /** Clicks the centre of the block at {@code pos} with a Configuration Carrot, as {@code player} on {@code face}. */
-    public static void useCarrot(GameTestHelper helper, Player player, BlockPos pos, Direction face) {
-        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
-        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
-        BlockPos absolute = helper.absolutePos(pos);
-        carrot.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, carrot,
-                new BlockHitResult(Vec3.atCenterOf(absolute), face, absolute, false)));
     }
 
     /**

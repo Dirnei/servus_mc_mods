@@ -1,9 +1,9 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
@@ -221,9 +221,9 @@ public final class FieldGameTests {
         BlockPos ductC = new BlockPos(4, 1, 6);
         helper.setBlock(ductA.north(), Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3));
         helper.setBlock(ductC.north(), ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        MachineTestSupport.duct(helper, ductA, Line.FLUID);
-        MachineTestSupport.duct(helper, ductB, Line.FLUID);
-        MachineTestSupport.duct(helper, ductC, Line.FLUID);
+        GameTestSteps.duct(helper, ductA, Line.FLUID);
+        GameTestSteps.duct(helper, ductB, Line.FLUID);
+        GameTestSteps.duct(helper, ductC, Line.FLUID);
         UtilityDuctBlockEntity a = helper.getBlockEntity(ductA, UtilityDuctBlockEntity.class);
         a.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
         FieldHeadBlockEntity head = helper.getBlockEntity(ductC.north(), FieldHeadBlockEntity.class);

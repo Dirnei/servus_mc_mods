@@ -1,59 +1,59 @@
 package io.github.dirnei.mc.servus.foundation.machine.pump;
 
+import static io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps.duct;
+import static io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps.useCarrot;
 import static io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.bothHalvesGone;
 import static io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.count;
-import static io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.duct;
 import static io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.isHalf;
 import static io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.placeWithItem;
-import static io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.useCarrot;
 
-import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
-import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.MenuRecorder;
 import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
+import io.github.dirnei.mc.servus.foundation.machine.menu.ElectricPumpMenu;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import java.util.List;
 import java.util.Optional;
-import net.minecraft.world.item.crafting.CraftingInput;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.MenuProvider;
-import io.github.dirnei.mc.servus.foundation.machine.menu.ElectricPumpMenu;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /** The pumps on a pond: water into a buffer, fixed sides, stubs and energy. */
 public final class PumpGameTests {
@@ -438,7 +438,7 @@ public final class PumpGameTests {
     }
 
     private static List<ItemEntity> drops(GameTestHelper helper, BlockPos pos) {
-        return MachineTestSupport.drops(helper, pos, 2);
+        return GameTestSteps.drops(helper, pos, 2);
     }
 
     /** Breaking either half removes both and drops one pump plus the fuel. */

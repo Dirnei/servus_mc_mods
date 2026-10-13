@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
@@ -174,12 +174,12 @@ public final class ShuttleGameTests {
         helper.assertTrue(garage.shuttleCount() == capacity - 2, "count should drop by two");
 
         player.setShiftKeyDown(true);
-        MachineTestSupport.useCarrot(helper, player, GA_GARAGE, Direction.UP);
+        GameTestSteps.useCarrot(helper, player, GA_GARAGE, Direction.UP);
         helper.assertTrue(helper.getBlockState(GA_GARAGE).getBlock() instanceof ShuttleGarageBlock, "an occupied garage must not be dismantled");
         while (garage.takeShuttle()) {
             // empty it
         }
-        MachineTestSupport.useCarrot(helper, player, GA_GARAGE, Direction.UP);
+        GameTestSteps.useCarrot(helper, player, GA_GARAGE, Direction.UP);
         helper.runAfterDelay(2, () -> {
             helper.assertBlockPresent(Blocks.AIR, GA_GARAGE);
             helper.assertItemEntityPresent(ServusStorageItems.SHUTTLE_GARAGE.get(), GA_GARAGE, 2.0);

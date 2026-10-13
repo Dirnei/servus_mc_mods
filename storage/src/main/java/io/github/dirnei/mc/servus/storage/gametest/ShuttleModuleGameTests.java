@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
@@ -212,7 +212,7 @@ public final class ShuttleModuleGameTests {
     /** Uses the carrot on the block at the position, sneaking or not. */
     private static void carrot(GameTestHelper helper, Player player, BlockPos at, boolean sneak) {
         player.setShiftKeyDown(sneak);
-        MachineTestSupport.useCarrot(helper, player, at, Direction.NORTH);
+        GameTestSteps.useCarrot(helper, player, at, Direction.NORTH);
         player.setShiftKeyDown(false);
     }
 

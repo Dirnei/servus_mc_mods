@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import static io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps.duct;
+
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
@@ -9,7 +11,6 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
-import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
@@ -44,11 +45,6 @@ public final class DataCableGameTests {
     private static final BlockPos ABOVE_B = new BlockPos(4, 2, 3);
 
     private DataCableGameTests() {
-    }
-
-    private static UtilityDuctBlockEntity duct(GameTestHelper helper, BlockPos pos, Line... lines) {
-        MachineTestSupport.duct(helper, pos, lines);
-        return helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
     }
 
     private static UtilityDuctBlockEntity data(GameTestHelper helper, BlockPos pos) {

@@ -1,9 +1,9 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
@@ -141,7 +141,7 @@ public final class RackDockGameTests {
     public static void ductArmFollowsDock(GameTestHelper helper) {
         WarehouseFixtures.rack(helper, RACK, Direction.NORTH);
         BlockPos ductPos = RACK.east();
-        MachineTestSupport.duct(helper, ductPos, Line.ITEM);
+        GameTestSteps.duct(helper, ductPos, Line.ITEM);
         UtilityDuctBlockEntity duct = helper.getBlockEntity(ductPos, UtilityDuctBlockEntity.class);
         duct.recomputeArms();
         helper.assertTrue(duct.hasArm(Line.ITEM, Direction.WEST), "the duct shows an arm toward the open rack");

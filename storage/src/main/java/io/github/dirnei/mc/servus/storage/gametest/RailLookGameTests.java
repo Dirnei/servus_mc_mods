@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
@@ -93,7 +93,7 @@ public final class RailLookGameTests {
         helper.assertBlockPresent(ServusStorageBlocks.RAIL.get(), AT);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);
-        MachineTestSupport.useCarrot(helper, player, AT, Direction.UP);
+        GameTestSteps.useCarrot(helper, player, AT, Direction.UP);
         BlockPos absolute = helper.absolutePos(AT);
         helper.runAfterDelay(2, () -> {
             helper.assertBlockPresent(Blocks.AIR, AT);

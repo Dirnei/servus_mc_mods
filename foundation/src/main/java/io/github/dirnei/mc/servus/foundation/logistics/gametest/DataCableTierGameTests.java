@@ -1,8 +1,10 @@
 package io.github.dirnei.mc.servus.foundation.logistics.gametest;
 
+import static io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps.dataDuct;
+
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.DataCableItem;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
@@ -30,13 +32,8 @@ public final class DataCableTierGameTests {
     private DataCableTierGameTests() {
     }
 
-    /** A duct carrying the data line in the tier of {@code cable}, with its connection flags refreshed. */
-    private static UtilityDuctBlockEntity dataDuct(GameTestHelper helper, BlockPos pos, DataCableItem cable) {
-        return LogisticsTestSupport.duct(helper, pos, duct -> duct.addDataLine(cable.tierId()));
-    }
-
     private static void use(GameTestHelper helper, Player player, Item item, BlockPos pos, Direction face) {
-        LogisticsTestSupport.useOn(helper, player, new ItemStack(item), pos, face);
+        GameTestSteps.useOn(helper, player, new ItemStack(item), pos, face);
     }
 
     private static int dropped(GameTestHelper helper, Item item) {

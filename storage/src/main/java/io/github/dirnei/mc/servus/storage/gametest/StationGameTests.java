@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
@@ -99,7 +99,7 @@ public final class StationGameTests {
             }
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
             player.setShiftKeyDown(true);
-            MachineTestSupport.useCarrot(helper, player, DK_STATION, Direction.UP);
+            GameTestSteps.useCarrot(helper, player, DK_STATION, Direction.UP);
             helper.runAfterDelay(2, () -> {
                 helper.assertBlockPresent(Blocks.AIR, DK_STATION);
                 helper.assertItemEntityPresent(ServusStorageItems.INBOUND_STATION.get(), DK_STATION, 2.0);

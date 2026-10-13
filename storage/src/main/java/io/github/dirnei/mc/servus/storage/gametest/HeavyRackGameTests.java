@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.block.BlockEntityItems;
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
@@ -355,7 +355,7 @@ public final class HeavyRackGameTests {
         player.setYRot(0.0F);
         placeRackByHand(helper, player, NR_RACK);
         placeRackByHand(helper, player, NR_RACK.east());
-        MachineTestSupport.useCarrot(helper, player, NR_RACK, Direction.UP);
+        GameTestSteps.useCarrot(helper, player, NR_RACK, Direction.UP);
         BlockState after = helper.getBlockState(NR_RACK);
         helper.assertTrue(after.getBlock() instanceof HeavyRackBlock, "the rack is still there");
         helper.assertTrue(after.getValue(HeavyRackBlock.FACING) == Direction.NORTH, "the carrot must not turn the rack");

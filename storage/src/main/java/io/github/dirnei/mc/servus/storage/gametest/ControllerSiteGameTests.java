@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
-import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.storage.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
@@ -154,7 +154,7 @@ public final class ControllerSiteGameTests {
         controller.setSpan(Set.of(controller.homeChunk(), SiteChunks.key(9999, 9999)));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);
-        MachineTestSupport.useCarrot(helper, player, at, Direction.NORTH);
+        GameTestSteps.useCarrot(helper, player, at, Direction.NORTH);
         BlockPos pos = helper.absolutePos(at);
         helper.assertBlockNotPresent(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), at);
         List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(1));

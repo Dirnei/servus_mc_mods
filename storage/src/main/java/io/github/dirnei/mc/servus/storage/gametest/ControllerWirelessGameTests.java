@@ -1,11 +1,11 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
-import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
@@ -193,7 +193,7 @@ public final class ControllerWirelessGameTests {
         CoalGeneratorGameTests.place(helper, generatorPos, Direction.NORTH);
         helper.getBlockEntity(generatorPos, CoalGeneratorBlockEntity.class).inventory()
                 .setStackInSlot(CoalGeneratorBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 4));
-        MachineTestSupport.duct(helper, ductPos, Line.ENERGY);
+        GameTestSteps.duct(helper, ductPos, Line.ENERGY);
         UtilityDuctBlockEntity duct = helper.getBlockEntity(ductPos, UtilityDuctBlockEntity.class);
         helper.assertTrue(energyAt(helper, controllerPos, Direction.WEST) != null, "the controller offers an energy handler");
         Waits.when(helper, () -> controller.energyStored() > 0, 180,
@@ -242,7 +242,7 @@ public final class ControllerWirelessGameTests {
         controller.setEnergy(12000);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);
-        MachineTestSupport.useCarrot(helper, player, at, Direction.NORTH);
+        GameTestSteps.useCarrot(helper, player, at, Direction.NORTH);
         BlockPos pos = helper.absolutePos(at);
         helper.assertBlockNotPresent(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), at);
         List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(1));

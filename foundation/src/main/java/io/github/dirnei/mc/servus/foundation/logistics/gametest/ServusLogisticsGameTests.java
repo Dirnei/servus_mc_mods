@@ -1,9 +1,13 @@
 package io.github.dirnei.mc.servus.foundation.logistics.gametest;
 
+import static io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps.drops;
+import static io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps.duct;
+
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataSummary;
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctModelData;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
@@ -61,15 +65,6 @@ public final class ServusLogisticsGameTests {
     private static final BlockPos CHEST_C = DUCT_C.north();
 
     private ServusLogisticsGameTests() {
-    }
-
-    /** Places a Utility Duct carrying the given lines with default modes and channel 1. */
-    private static UtilityDuctBlockEntity duct(GameTestHelper helper, BlockPos pos, Line... lines) {
-        return LogisticsTestSupport.duct(helper, pos, duct -> {
-            for (Line line : lines) {
-                duct.addLine(line);
-            }
-        });
     }
 
     private static ChestBlockEntity chest(GameTestHelper helper, BlockPos pos) {
@@ -227,7 +222,7 @@ public final class ServusLogisticsGameTests {
 
     /** Uses a facade stack on a face of the duct at {@code pos} as a survival player; returns what is left. */
     private static ItemStack usePanel(GameTestHelper helper, BlockPos pos, Direction face, ItemStack stack) {
-        LogisticsTestSupport.useOn(helper, helper.makeMockPlayer(GameType.SURVIVAL), stack, pos, face);
+        GameTestSteps.useOn(helper, helper.makeMockPlayer(GameType.SURVIVAL), stack, pos, face);
         return stack;
     }
 
@@ -319,7 +314,7 @@ public final class ServusLogisticsGameTests {
         helper.assertTrue(helper.getBlockState(DUCT).is(ServusLogisticsBlocks.UTILITY_DUCT.get()), "the duct stays");
         helper.assertTrue(duct.panel(Direction.NORTH) == null, "the clicked panel is gone");
         helper.assertTrue(duct.panel(Direction.UP) != null, "the other panel stays");
-        List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(absolute).inflate(2));
+        List<ItemEntity> drops = drops(helper, DUCT, 2);
         helper.assertTrue(drops.size() == 1 && drops.get(0).getItem().is(ServusLogisticsItems.FACADE.get())
                 && FacadeItem.blockOf(drops.get(0).getItem()) == Blocks.STONE, "a stone facade drops, got " + drops);
         helper.succeed();
@@ -332,7 +327,7 @@ public final class ServusLogisticsGameTests {
         duct.setPanel(Direction.NORTH, Blocks.STONE.defaultBlockState(), false);
         duct.setPanel(Direction.SOUTH, Blocks.BRICKS.defaultBlockState(), true);
         helper.destroyBlock(DUCT);
-        List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(DUCT)).inflate(2));
+        List<ItemEntity> drops = drops(helper, DUCT, 2);
         helper.assertTrue(drops.stream().anyMatch(e -> e.getItem().is(ServusLogisticsItems.ITEM_PIPE.get())), "the item pipe drops");
         helper.assertTrue(drops.stream().anyMatch(e -> e.getItem().is(ServusLogisticsItems.FACADE.get())
                 && FacadeItem.blockOf(e.getItem()) == Blocks.STONE), "the stone facade drops");
@@ -539,7 +534,7 @@ public final class ServusLogisticsGameTests {
 
     /** Uses a line item on a face of the block at {@code pos}, like a player's right click. */
     private static void useLine(GameTestHelper helper, Player player, Item item, BlockPos pos, Direction face) {
-        LogisticsTestSupport.useOn(helper, player, new ItemStack(item), pos, face);
+        GameTestSteps.useOn(helper, player, new ItemStack(item), pos, face);
     }
 
     /**

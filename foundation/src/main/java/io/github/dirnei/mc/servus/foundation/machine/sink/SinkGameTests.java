@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.machine.sink;
 
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
@@ -169,7 +170,7 @@ public final class SinkGameTests {
                         "the rest should be unformed casings, not " + state);
             }
         }
-        List<ItemEntity> drops = MachineTestSupport.drops(helper, broken, 2);
+        List<ItemEntity> drops = GameTestSteps.drops(helper, broken, 2);
         int dropped = MachineTestSupport.count(drops, MachineContent.SINK_ITEM.get());
         helper.assertTrue(dropped == 1, "one Sink block should drop, dropped " + dropped);
         drops.forEach(ItemEntity::discard);
@@ -186,7 +187,7 @@ public final class SinkGameTests {
         carrot(helper, SINK, Direction.NORTH, true);
         helper.assertBlockNotPresent(MachineContent.SINK.get(), SINK);
         helper.assertTrue(!formed(helper, new BlockPos(2, 0, 2)), "the rest should be unformed");
-        List<ItemEntity> drops = MachineTestSupport.drops(helper, SINK, 2);
+        List<ItemEntity> drops = GameTestSteps.drops(helper, SINK, 2);
         helper.assertTrue(drops.stream().anyMatch(entity -> entity.getItem().is(MachineContent.SINK_ITEM.get())),
                 "the block should drop as a Sink item");
         helper.succeed();

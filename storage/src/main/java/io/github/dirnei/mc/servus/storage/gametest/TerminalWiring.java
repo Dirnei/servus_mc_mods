@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule;
@@ -89,7 +89,7 @@ public final class TerminalWiring {
 
     /** A Utility Duct carrying only the data line. */
     public static UtilityDuctBlockEntity dataDuct(GameTestHelper helper, BlockPos pos) {
-        MachineTestSupport.duct(helper, pos, Line.DATA);
+        GameTestSteps.duct(helper, pos, Line.DATA);
         return helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
     }
 }

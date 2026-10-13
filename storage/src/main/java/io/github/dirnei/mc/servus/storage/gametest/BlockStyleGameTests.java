@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
@@ -151,7 +151,7 @@ public final class BlockStyleGameTests {
         ((WoodHolder) helper.getLevel().getBlockEntity(helper.absolutePos(AT))).woodSlot().set(SPRUCE);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);
-        MachineTestSupport.useCarrot(helper, player, AT, Direction.NORTH);
+        GameTestSteps.useCarrot(helper, player, AT, Direction.NORTH);
         BlockPos pos = helper.absolutePos(AT);
         helper.assertBlockNotPresent(ServusStorageBlocks.PACKING_STATION.get(), AT);
         List<ItemEntity> items = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(1),

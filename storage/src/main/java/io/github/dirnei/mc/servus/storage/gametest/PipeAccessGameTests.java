@@ -1,9 +1,9 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
@@ -41,7 +41,7 @@ public final class PipeAccessGameTests {
 
     /** A Utility Duct carrying only the item line, its arms computed from the neighbours. */
     private static UtilityDuctBlockEntity itemDuct(GameTestHelper helper, BlockPos pos) {
-        MachineTestSupport.duct(helper, pos, Line.ITEM);
+        GameTestSteps.duct(helper, pos, Line.ITEM);
         UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
         duct.recomputeArms();
         return duct;
