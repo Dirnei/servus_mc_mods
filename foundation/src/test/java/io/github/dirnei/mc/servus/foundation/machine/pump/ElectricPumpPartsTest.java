@@ -90,6 +90,30 @@ class ElectricPumpPartsTest {
         assertTrue(rim[4] - rim[1] >= segment * 0.95, "the segments close the rim");
     }
 
+    /** Modelled spokes run from inside the hub into the rim, the hub holds the axle and the crank pin sits on a spoke. */
+    @Test
+    void spokesFromHubToRim() {
+        float cx = ElectricPumpParts.CRANK_X;
+        float cy = ElectricPumpParts.CRANK_Y;
+        float[] hub = ElectricPumpParts.HUB;
+        float[] spoke = ElectricPumpParts.SPOKE;
+        float[] rim = ElectricPumpParts.RIM_SEGMENT;
+        float[] axle = ElectricPumpParts.AXLE;
+        assertTrue(hub[0] < axle[0] && axle[3] < hub[3] && hub[1] < axle[1] && axle[4] < hub[4], "the hub is round the axle");
+        assertTrue(hub[5] > axle[2], "the axle reaches into the hub");
+        assertTrue(spoke[0] < hub[3], "the spoke starts inside the hub");
+        assertTrue(spoke[3] > rim[0] && spoke[3] <= rim[3], "the spoke ends inside the rim");
+        assertEquals(cy, (spoke[1] + spoke[4]) / 2, 1e-5, "the spoke points at the centre");
+        assertTrue(spoke[2] >= rim[2] && spoke[5] <= rim[5], "no thicker than the wheel");
+        assertTrue(ElectricPumpParts.SPOKES >= 4, "spokes all round");
+        float[] pin = ElectricPumpParts.PIN;
+        assertEquals(spoke[2], pin[5], 1e-5, "the pin sits on the front of the spoke at angle 0");
+        float pinX = (pin[0] + pin[3]) / 2;
+        float pinY = (pin[1] + pin[4]) / 2;
+        assertTrue(spoke[0] < pinX && pinX < spoke[3] && spoke[1] < pinY && pinY < spoke[4], "the pin is on the spoke");
+        assertTrue(hub[0] < cx && cx < hub[3], "the hub is centred");
+    }
+
     /** The column stands on the cap and carries the bearing, nothing floats. */
     @Test
     void bearingStandsOnTheCap() {
@@ -116,12 +140,10 @@ class ElectricPumpPartsTest {
     @Test
     void beltClearsTheBackStub() {
         BeltDrive drive = ElectricPumpParts.DRIVE;
-        for (int side = 0; side < 2; side++) {
-            for (int i = 0; i <= 200; i++) {
-                float[] point = drive.pointAlong(side, drive.length(side) * i / 200);
-                assertTrue(fromBackStub(point[0], point[1]) > ElectricPumpParts.BELT_T / 2,
-                        "strand " + side + " at " + point[0] + ", " + point[1]);
-            }
+        for (int i = 0; i <= 400; i++) {
+            float[] point = drive.pointOnLoop(drive.loopLength() * i / 400);
+            assertTrue(fromBackStub(point[0], point[1]) > ElectricPumpParts.BELT_T / 2,
+                    "belt at " + point[0] + ", " + point[1]);
         }
         float[] pulley = ElectricPumpParts.MOTOR_PULLEY;
         assertTrue(pulley[0] > 11 || pulley[4] < 5, "motor pulley");
@@ -137,12 +159,10 @@ class ElectricPumpPartsTest {
     void beltInsideTheBlock() {
         BeltDrive drive = ElectricPumpParts.DRIVE;
         float half = ElectricPumpParts.BELT_T / 2;
-        for (int side = 0; side < 2; side++) {
-            float[] s = drive.strand(side);
-            for (int end = 0; end < 4; end += 2) {
-                assertTrue(s[end] - half >= 0 && s[end] + half <= 16, "strand " + side + " x");
-                assertTrue(s[end + 1] >= 0 && s[end + 1] <= 32, "strand " + side + " y");
-            }
+        for (int i = 0; i <= 400; i++) {
+            float[] point = drive.pointOnLoop(drive.loopLength() * i / 400);
+            assertTrue(point[0] - half >= 0 && point[0] + half <= 16, "belt x at " + point[0] + ", " + point[1]);
+            assertTrue(point[1] - half >= 0 && point[1] + half <= 32, "belt y at " + point[0] + ", " + point[1]);
         }
         for (int quarters = 0; quarters < 4; quarters++) {
             assertTrue(inside(BeamPumpParts.rotated(ElectricPumpParts.MOTOR_PULLEY, quarters)), "motor pulley turned " + quarters);

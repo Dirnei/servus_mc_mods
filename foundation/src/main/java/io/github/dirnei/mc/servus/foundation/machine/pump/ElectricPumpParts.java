@@ -48,8 +48,20 @@ public final class ElectricPumpParts {
     public static final float CRANK_R = 3;
     /** The crank pin's distance from the wheel centre. */
     public static final float PIN_R = 2;
-    /** The wheel disc, two pixels thick, behind the beam. */
+    /**
+     * The space the wheel turns in, two pixels thick, behind the beam: for the
+     * shape only. The wheel itself is modelled as hub, spokes and rim.
+     */
     public static final float[] WHEEL = {CRANK_X - CRANK_R, CRANK_Y - CRANK_R, 6, CRANK_X + CRANK_R, CRANK_Y + CRANK_R, 8};
+    /** The hub round the axle, a little proud of the wheel on both sides; the renderer draws it twice, the second turned by 45 degrees. */
+    public static final float[] HUB = {CRANK_X - 0.9F, CRANK_Y - 0.9F, 5.8F, CRANK_X + 0.9F, CRANK_Y + 0.9F, 8.2F};
+    /** Spokes from the hub to the rim; the renderer turns one spoke by 360 / this each time. */
+    public static final int SPOKES = 6;
+    /**
+     * One spoke at crank angle 0, from inside the hub into the rim, flush with
+     * the wheel's front so the crank pin sits on it.
+     */
+    public static final float[] SPOKE = {CRANK_X + 0.6F, CRANK_Y - 0.3F, 6, CRANK_X + CRANK_R - 0.4F, CRANK_Y + 0.3F, 7.4F};
     /** Segments of the rim band around the wheel; the renderer turns one segment by 360 / this each time. */
     public static final int RIM_SEGMENTS = 12;
     /** One rim segment at crank angle 0: tangent to the wheel's edge, as thick as the wheel. */
@@ -77,6 +89,8 @@ public final class ElectricPumpParts {
     public static final float[] BELT = {8 - BELT_T / 2, 0, BELT_Z1, 8 + BELT_T / 2, 16, BELT_Z2};
     /** The lacing mark, centred on (8, 0) and a little proud of the strand, moved along it by the renderer. */
     public static final float[] BELT_MARK = {8 - BELT_T / 2 - 0.05F, -0.4F, BELT_Z1 - 0.05F, 8 + BELT_T / 2 + 0.05F, 0.4F, BELT_Z2 + 0.05F};
+    /** Short straight pieces the renderer builds each of the belt's two arcs round the pulleys from. */
+    public static final int BELT_ARC_SEGMENTS = 8;
     /** The belt running over both pulleys: motor pulley drives, axle pulley driven, lower half frame. */
     public static final BeltDrive DRIVE = new BeltDrive(MOTOR_X, MOTOR_Y, MOTOR_PULLEY_R + BELT_T / 2,
             CRANK_X, 16 + CRANK_Y, AXLE_PULLEY_R + BELT_T / 2);

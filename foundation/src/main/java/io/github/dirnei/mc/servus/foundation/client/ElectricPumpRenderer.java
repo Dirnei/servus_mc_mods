@@ -25,9 +25,10 @@ import net.neoforged.neoforge.client.model.standalone.StandaloneModelKey;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Turns the Electric Pump's crank wheel while it works: the drive belt runs
- * from the motor pulley up to the axle pulley with its lacing marks moving,
- * the wheel turns with its rim and axle, the con rod follows the crank pin up
+ * Turns the Electric Pump's crank wheel while it works: the drive belt loops
+ * from under the motor pulley up over the axle pulley with its lacing marks
+ * running round the whole loop, the wheel turns with its hub, spokes, rim and
+ * axle, the con rod follows the crank pin up
  * to the beam, the beam rocks about its pivot, the pump rod follows the beam's
  * other end and the fan spins behind its grille, all from the stroke phase its
  * block entity keeps on the client. Drawn from the lower
@@ -39,6 +40,7 @@ public class ElectricPumpRenderer implements BlockEntityRenderer<ElectricPumpBlo
     public static final StandaloneModelKey<BlockStateModelPart> ROD_MODEL = ModelKeys.key("block/electric_pump_rod");
     public static final StandaloneModelKey<BlockStateModelPart> CON_ROD_MODEL = ModelKeys.key("block/electric_pump_con_rod");
     public static final StandaloneModelKey<BlockStateModelPart> WHEEL_MODEL = ModelKeys.key("block/electric_pump_wheel");
+    public static final StandaloneModelKey<BlockStateModelPart> SPOKE_MODEL = ModelKeys.key("block/electric_pump_spoke");
     public static final StandaloneModelKey<BlockStateModelPart> FAN_MODEL = ModelKeys.key("block/electric_pump_fan");
     public static final StandaloneModelKey<BlockStateModelPart> RIM_MODEL = ModelKeys.key("block/electric_pump_rim");
     public static final StandaloneModelKey<BlockStateModelPart> AXLE_MODEL = ModelKeys.key("block/electric_pump_axle");
@@ -82,8 +84,8 @@ public class ElectricPumpRenderer implements BlockEntityRenderer<ElectricPumpBlo
         state.pinY = CRANK.pinY(phase);
         double turns = phase / StrokeClock.PERIOD;
         state.motor = ElectricPumpParts.DRIVE.driverAngle(turns);
-        for (int side = 0; side < 2; side++) {
-            state.marks[side] = ElectricPumpParts.DRIVE.markAlong(turns, side);
+        for (int i = 0; i < state.marks.length; i++) {
+            state.marks[i] = ElectricPumpParts.DRIVE.markOnLoop(turns, ElectricPumpParts.DRIVE.loopLength() * i / state.marks.length);
         }
         state.light = pump.getLevel() == null ? state.lightCoords : LevelRenderer.getLightCoords(pump.getLevel(), pump.getBlockPos().above());
         state.facing = blockState.getValue(MachineBlock.FACING);
@@ -107,8 +109,11 @@ public class ElectricPumpRenderer implements BlockEntityRenderer<ElectricPumpBlo
         // The motor pulley and the belt up to the crank axle, also in the lower half's frame.
         rotateAbout(poseStack, ElectricPumpParts.MOTOR_X, ElectricPumpParts.MOTOR_Y, 0, Axis.ZP, state.motor,
                 () -> ModelKeys.submit(MOTOR_PULLEY_MODEL, poseStack, collector, light));
-        for (int side = 0; side < 2; side++) {
-            belt(state, side, poseStack, collector, light);
+        for (float[] piece : BELT_PIECES) {
+            strap(piece, BELT_MODEL, poseStack, collector, light);
+        }
+        for (float mark : state.marks) {
+            mark(mark, poseStack, collector, light);
         }
 
         poseStack.translate(0.0F, 1.0F, 0.0F);
@@ -116,6 +121,10 @@ public class ElectricPumpRenderer implements BlockEntityRenderer<ElectricPumpBlo
         rotateAbout(poseStack, ElectricPumpParts.CRANK_X, ElectricPumpParts.CRANK_Y, 0, Axis.ZP, state.crank, () -> {
             ModelKeys.submit(WHEEL_MODEL, poseStack, collector, light);
             ModelKeys.submit(AXLE_MODEL, poseStack, collector, light);
+            for (int i = 0; i < ElectricPumpParts.SPOKES; i++) {
+                rotateAbout(poseStack, ElectricPumpParts.CRANK_X, ElectricPumpParts.CRANK_Y, 0, Axis.ZP,
+                        360.0F * i / ElectricPumpParts.SPOKES, () -> ModelKeys.submit(SPOKE_MODEL, poseStack, collector, light));
+            }
             for (int i = 0; i < ElectricPumpParts.RIM_SEGMENTS; i++) {
                 rotateAbout(poseStack, ElectricPumpParts.CRANK_X, ElectricPumpParts.CRANK_Y, 0, Axis.ZP,
                         360.0F * i / ElectricPumpParts.RIM_SEGMENTS, () -> ModelKeys.submit(RIM_MODEL, poseStack, collector, light));
@@ -168,26 +177,60 @@ public class ElectricPumpRenderer implements BlockEntityRenderer<ElectricPumpBlo
         poseStack.popPose();
     }
 
+    /** How far each arc piece reaches past its ends, in pixels. */
+    private static final float OVERLAP = 0.06F;
+
     /**
-     * One belt strand: the strand model stands straight up from (8, 0) for a
-     * block; here it is tilted and stretched from its tangent point on the
-     * motor pulley to the one on the axle pulley, and its lacing mark is put
-     * where the belt has carried it.
+     * The belt's static pieces as {x1, y1, x2, y2}, lower half frame: both
+     * straight strands from tangent point to tangent point, and the arcs over
+     * the axle pulley's top and under the motor pulley's bottom as short
+     * chords, each a little longer than its share so the joints stay closed.
      */
-    private static void belt(State state, int side, PoseStack poseStack, SubmitNodeCollector collector, int light) {
-        float[] strand = ElectricPumpParts.DRIVE.strand(side);
-        float dx = strand[2] - strand[0];
-        float dy = strand[3] - strand[1];
-        float angle = (float) Math.atan2(-dx, dy);
+    private static final float[][] BELT_PIECES = beltPieces();
+
+    private static float[][] beltPieces() {
+        int segments = ElectricPumpParts.BELT_ARC_SEGMENTS;
+        float[][] pieces = new float[2 + 2 * segments][];
+        pieces[0] = ElectricPumpParts.DRIVE.strand(0);
+        pieces[1] = ElectricPumpParts.DRIVE.strand(1);
+        for (int pulley = 0; pulley < 2; pulley++) {
+            for (int i = 0; i < segments; i++) {
+                float[] a = ElectricPumpParts.DRIVE.arcPoint(pulley, (double) i / segments);
+                float[] b = ElectricPumpParts.DRIVE.arcPoint(pulley, (double) (i + 1) / segments);
+                float dx = b[0] - a[0];
+                float dy = b[1] - a[1];
+                float stretch = OVERLAP / (float) Math.hypot(dx, dy);
+                pieces[2 + pulley * segments + i] = new float[] {
+                        a[0] - dx * stretch, a[1] - dy * stretch, b[0] + dx * stretch, b[1] + dy * stretch};
+            }
+        }
+        return pieces;
+    }
+
+    /**
+     * One belt piece: the strand model stands straight up from (8, 0) for a
+     * block; here it is tilted and stretched from one end of the piece to the other.
+     */
+    private static void strap(float[] piece, StandaloneModelKey<BlockStateModelPart> model, PoseStack poseStack,
+                              SubmitNodeCollector collector, int light) {
+        float dx = piece[2] - piece[0];
+        float dy = piece[3] - piece[1];
         poseStack.pushPose();
-        poseStack.translate(strand[0] / 16.0F, strand[1] / 16.0F, 0.0F);
-        poseStack.mulPose(Axis.ZP.rotation(angle));
-        poseStack.pushPose();
-        poseStack.scale(1.0F, ElectricPumpParts.DRIVE.length(side) / 16.0F, 1.0F);
+        poseStack.translate(piece[0] / 16.0F, piece[1] / 16.0F, 0.0F);
+        poseStack.mulPose(Axis.ZP.rotation((float) Math.atan2(-dx, dy)));
+        poseStack.scale(1.0F, (float) Math.hypot(dx, dy) / 16.0F, 1.0F);
         poseStack.translate(-0.5F, 0.0F, 0.0F);
-        ModelKeys.submit(BELT_MODEL, poseStack, collector, light);
+        ModelKeys.submit(model, poseStack, collector, light);
         poseStack.popPose();
-        poseStack.translate(-0.5F, state.marks[side] / 16.0F, 0.0F);
+    }
+
+    /** A lacing mark where the belt has carried it on the loop, on a strand or round a pulley, turned along the belt. */
+    private static void mark(float distance, PoseStack poseStack, SubmitNodeCollector collector, int light) {
+        float[] point = ElectricPumpParts.DRIVE.pointOnLoop(distance);
+        poseStack.pushPose();
+        poseStack.translate(point[0] / 16.0F, point[1] / 16.0F, 0.0F);
+        poseStack.mulPose(Axis.ZP.rotation(point[2] - (float) Math.PI / 2));
+        poseStack.translate(-0.5F, 0.0F, 0.0F);
         ModelKeys.submit(BELT_MARK_MODEL, poseStack, collector, light);
         poseStack.popPose();
     }

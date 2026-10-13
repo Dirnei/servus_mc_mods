@@ -3,40 +3,153 @@
   "elements": [
     {
       "faces": {
-        "north": {
-          "texture": "#wheel",
+        "down": {
+          "texture": "#steel",
           "uv": [
-            1.5,
-            1.5,
-            13.5,
-            13.5
+            11.1,
+            7.8,
+            12.9,
+            10.2
+          ]
+        },
+        "east": {
+          "texture": "#steel",
+          "uv": [
+            7.8,
+            10.1,
+            10.2,
+            11.9
+          ]
+        },
+        "north": {
+          "texture": "#steel",
+          "uv": [
+            3.1000004,
+            10.1,
+            4.8999996,
+            11.9
           ]
         },
         "south": {
-          "texture": "#wheel",
+          "texture": "#steel",
           "uv": [
-            1.5,
-            1.5,
-            13.5,
-            13.5
+            11.1,
+            10.1,
+            12.9,
+            11.9
+          ]
+        },
+        "up": {
+          "texture": "#steel",
+          "uv": [
+            11.1,
+            5.8,
+            12.9,
+            8.2
+          ]
+        },
+        "west": {
+          "texture": "#steel",
+          "uv": [
+            5.8,
+            10.1,
+            8.2,
+            11.9
           ]
         }
       },
       "from": [
-        9,
-        2,
-        6
+        11.1,
+        4.1,
+        5.8
       ],
       "to": [
-        15,
-        8,
-        8
+        12.9,
+        5.9,
+        8.2
       ]
     },
     {
       "faces": {
         "down": {
-          "texture": "#iron",
+          "texture": "#steel",
+          "uv": [
+            11.1,
+            7.8,
+            12.9,
+            10.2
+          ]
+        },
+        "east": {
+          "texture": "#steel",
+          "uv": [
+            7.8,
+            10.1,
+            10.2,
+            11.9
+          ]
+        },
+        "north": {
+          "texture": "#steel",
+          "uv": [
+            3.1000004,
+            10.1,
+            4.8999996,
+            11.9
+          ]
+        },
+        "south": {
+          "texture": "#steel",
+          "uv": [
+            11.1,
+            10.1,
+            12.9,
+            11.9
+          ]
+        },
+        "up": {
+          "texture": "#steel",
+          "uv": [
+            11.1,
+            5.8,
+            12.9,
+            8.2
+          ]
+        },
+        "west": {
+          "texture": "#steel",
+          "uv": [
+            5.8,
+            10.1,
+            8.2,
+            11.9
+          ]
+        }
+      },
+      "from": [
+        11.1,
+        4.1,
+        5.8
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "z",
+        "origin": [
+          12,
+          5,
+          7
+        ]
+      },
+      "to": [
+        12.9,
+        5.9,
+        8.2
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#steel",
           "uv": [
             13.5,
             10,
@@ -45,7 +158,7 @@
           ]
         },
         "east": {
-          "texture": "#iron",
+          "texture": "#steel",
           "uv": [
             10,
             10.5,
@@ -54,7 +167,7 @@
           ]
         },
         "north": {
-          "texture": "#iron",
+          "texture": "#steel",
           "uv": [
             1.5,
             10.5,
@@ -63,7 +176,7 @@
           ]
         },
         "south": {
-          "texture": "#iron",
+          "texture": "#steel",
           "uv": [
             13.5,
             10.5,
@@ -72,7 +185,7 @@
           ]
         },
         "up": {
-          "texture": "#iron",
+          "texture": "#steel",
           "uv": [
             13.5,
             5,
@@ -81,7 +194,7 @@
           ]
         },
         "west": {
-          "texture": "#iron",
+          "texture": "#steel",
           "uv": [
             5,
             10.5,
@@ -108,12 +221,11 @@
     "fan": "servus_foundation:block/electric_pump_fan",
     "grille": "servus_foundation:block/electric_pump_grille",
     "housing": "servus_foundation:block/electric_pump_housing",
-    "iron": "minecraft:block/iron_block",
     "oxidized": "minecraft:block/oxidized_copper",
     "particle": "servus_foundation:block/electric_pump_housing",
     "pulley": "servus_foundation:block/electric_pump_pulley",
+    "steel": "servus_foundation:block/electric_pump_steel",
     "stone": "minecraft:block/polished_blackstone",
-    "terminal": "servus_foundation:block/electric_pump_terminal",
-    "wheel": "servus_foundation:block/electric_pump_wheel"
+    "terminal": "servus_foundation:block/electric_pump_terminal"
   }
 }

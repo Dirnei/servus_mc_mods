@@ -52,6 +52,7 @@ public final class MachineClient {
         ModelKeys.register(event, ElectricPumpRenderer.ROD_MODEL, "block/electric_pump_rod");
         ModelKeys.register(event, ElectricPumpRenderer.CON_ROD_MODEL, "block/electric_pump_con_rod");
         ModelKeys.register(event, ElectricPumpRenderer.WHEEL_MODEL, "block/electric_pump_wheel");
+        ModelKeys.register(event, ElectricPumpRenderer.SPOKE_MODEL, "block/electric_pump_spoke");
         ModelKeys.register(event, ElectricPumpRenderer.FAN_MODEL, "block/electric_pump_fan");
         ModelKeys.register(event, ElectricPumpRenderer.RIM_MODEL, "block/electric_pump_rim");
         ModelKeys.register(event, ElectricPumpRenderer.AXLE_MODEL, "block/electric_pump_axle");
