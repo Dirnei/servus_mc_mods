@@ -263,50 +263,64 @@ public final class TerminalRequests {
         return rows;
     }
 
-    static RequestState state(ServerLevel level, StorageTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses) {
-        if (request.remote != null) {
-            if (!request.shipped) {
-                return RemoteTransfers.receiverUnpowered(level, terminal.getBlockPos()) || wakeWaitsForPower(level, request.remote)
-                        ? RequestState.NO_POWER : RequestState.WAKING;
-            }
-            for (Tracked tracked : request.shipments) {
-                if (level.isLoaded(tracked.packingStation()) && level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point
-                        && point.isSending(tracked.shipmentId())) {
-                    return RequestState.SENDING;
-                }
-            }
-            if (!request.shipments.isEmpty() && RemoteTransfers.receiverUnpowered(level, terminal.getBlockPos())) {
-                // This site's controller lost its upgrade or power: the transfer waits until it is capable again.
-                return RequestState.NO_POWER;
-            }
-            for (Tracked tracked : request.shipments) {
-                // The sending site's controller, or this one as the sender sees it, is not wireless capable,
-                // or the sending site's shuttles wait for power.
-                if (level.isLoaded(tracked.packingStation()) && level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point
-                        && (point.waitsForPower(tracked.shipmentId()) || point.network().map(WarehouseNetwork::noPower).orElse(false))) {
-                    return RequestState.NO_POWER;
-                }
-            }
-            if (request.relay != null && level.isLoaded(request.relay.packingStation())
-                    && level.getBlockEntity(request.relay.packingStation()) instanceof PackingStationBlockEntity receiver
-                    && receiver.isSending(request.relay.shipmentId())) {
-                // Packets from this site's receiving Packing Station, like those of a request of this site.
-                return fits(terminal, request) ? RequestState.SENDING : RequestState.WAITING_ROOM;
-            }
-            if (request.shipments.isEmpty()) {
-                // The other site sent everything: the rest waits at this site's receiving Packing Station.
-                return request.relay == null ? RequestState.MISSING : fits(terminal, request) ? RequestState.SENDING : RequestState.WAITING_ROOM;
-            }
-            return RequestState.PICKING;
+    private static RequestState state(ServerLevel level, StorageTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses) {
+        return request.remote != null ? remoteState(level, terminal, request) : localState(level, terminal, request, warehouses);
+    }
+
+    /** The Packing Station running a shipment, while its chunk is loaded. */
+    private static Optional<PackingStationBlockEntity> station(ServerLevel level, Tracked tracked) {
+        return level.isLoaded(tracked.packingStation()) && level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point
+                ? Optional.of(point) : Optional.empty();
+    }
+
+    private static boolean sending(ServerLevel level, Tracked tracked) {
+        return station(level, tracked).filter(point -> point.isSending(tracked.shipmentId())).isPresent();
+    }
+
+    /** Packets that find no room in the output slots wait at the terminal. */
+    private static RequestState delivering(StorageTerminalBlockEntity terminal, Request request) {
+        return fits(terminal, request) ? RequestState.SENDING : RequestState.WAITING_ROOM;
+    }
+
+    /**
+     * A transfer from another site waits for power while this site's
+     * controller lost its upgrade or power, or the sending site's controller,
+     * or this one as the sender sees it, is not wireless capable, or the
+     * sending site's shuttles wait for power. Once the other site sent
+     * everything, the rest comes from this site's receiving Packing Station.
+     */
+    private static RequestState remoteState(ServerLevel level, StorageTerminalBlockEntity terminal, Request request) {
+        if (!request.shipped) {
+            return RemoteTransfers.receiverUnpowered(level, terminal.getBlockPos()) || wakeWaitsForPower(level, request.remote)
+                    ? RequestState.NO_POWER : RequestState.WAKING;
+        }
+        if (request.shipments.stream().anyMatch(tracked -> sending(level, tracked))) {
+            return RequestState.SENDING;
+        }
+        if (!request.shipments.isEmpty() && RemoteTransfers.receiverUnpowered(level, terminal.getBlockPos())) {
+            return RequestState.NO_POWER;
         }
         for (Tracked tracked : request.shipments) {
-            if (level.isLoaded(tracked.packingStation()) && level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point
-                    && point.isSending(tracked.shipmentId())) {
-                // Packets that find no room wait at the terminal.
-                return fits(terminal, request) ? RequestState.SENDING : RequestState.WAITING_ROOM;
+            if (station(level, tracked).filter(point -> point.waitsForPower(tracked.shipmentId())
+                    || point.network().map(WarehouseNetwork::noPower).orElse(false)).isPresent()) {
+                return RequestState.NO_POWER;
             }
         }
-        // Shuttles and Crafting Stations stop without power: what waits for them waits for power.
+        if (request.relay != null && sending(level, request.relay)) {
+            return delivering(terminal, request);
+        }
+        if (request.shipments.isEmpty()) {
+            return request.relay == null ? RequestState.MISSING : delivering(terminal, request);
+        }
+        return RequestState.PICKING;
+    }
+
+    /** Shuttles and Crafting Stations stop without power: what waits for them waits for power. */
+    private static RequestState localState(ServerLevel level, StorageTerminalBlockEntity terminal, Request request,
+                                           List<WarehouseNetwork> warehouses) {
+        if (request.shipments.stream().anyMatch(tracked -> sending(level, tracked))) {
+            return delivering(terminal, request);
+        }
         boolean noPower = warehouses.stream().anyMatch(WarehouseNetwork::noPower);
         if (!request.shipments.isEmpty()) {
             return noPower ? RequestState.NO_POWER : RequestState.PICKING;
