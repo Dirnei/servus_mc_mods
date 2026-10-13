@@ -4,8 +4,10 @@ package io.github.dirnei.mc.servus.foundation.machine.pump;
  * The Electric Pump's own parts in pixels on the shared {@link BeamPumpParts}
  * frame, built facing north (front at z 0, the viewer's right toward x 0), as
  * {x1, y1, z1, x2, y2, z2}. The lower half carries the motor housing with
- * copper windings, a terminal box and a motor cap; the upper half a cap, the
- * crank wheel that drives the beam through the con rod, and a fan grille.
+ * copper windings, a terminal box, a motor cap and the motor shaft for the
+ * drive belt; the upper half a cap, the crank wheel that drives the beam
+ * through the con rod, its axle in a bearing on a column, and a fan grille.
+ * The drive belt runs on the back from the motor pulley up to the axle pulley.
  * Upper half boxes are relative to the upper block.
  */
 public final class ElectricPumpParts {
@@ -24,9 +26,19 @@ public final class ElectricPumpParts {
     public static final float SPARK_X = 13.6F;
     public static final float SPARK_Y = 10.6F;
     public static final float SPARK_Z = 8;
+    /**
+     * The motor pulley's centre on the back, lower half frame: below and right
+     * of the back stub (x, y 5..11), so pipes and cables never cut the belt.
+     */
+    public static final float MOTOR_X = 13;
+    public static final float MOTOR_Y = 3.2F;
+    public static final float MOTOR_PULLEY_R = 0.9F;
+    /** The motor shaft stub out of the housing back to the motor pulley. */
+    public static final float[] MOTOR_SHAFT = {MOTOR_X - 0.4F, MOTOR_Y - 0.4F, 12.6F, MOTOR_X + 0.4F, MOTOR_Y + 0.4F, 13.5F};
 
     // Upper half.
-    public static final float[] CAP = {4, 0, 4, 12, 2, 12};
+    /** The cap, widened toward the crank side as the mounting plate under the wheel. */
+    public static final float[] CAP = {4, 0, 4, 14, 2, 12};
     /** Carries the shared post down to the cap. */
     public static final float[] POST_FOOT = {7, 2, 3, 9, 3, 5};
 
@@ -36,8 +48,38 @@ public final class ElectricPumpParts {
     public static final float CRANK_R = 3;
     /** The crank pin's distance from the wheel centre. */
     public static final float PIN_R = 2;
-    /** The wheel disc, one pixel thick, behind the beam. */
-    public static final float[] WHEEL = {CRANK_X - CRANK_R, CRANK_Y - CRANK_R, 6, CRANK_X + CRANK_R, CRANK_Y + CRANK_R, 7};
+    /** The wheel disc, two pixels thick, behind the beam. */
+    public static final float[] WHEEL = {CRANK_X - CRANK_R, CRANK_Y - CRANK_R, 6, CRANK_X + CRANK_R, CRANK_Y + CRANK_R, 8};
+    /** Segments of the rim band around the wheel; the renderer turns one segment by 360 / this each time. */
+    public static final int RIM_SEGMENTS = 12;
+    /** One rim segment at crank angle 0: tangent to the wheel's edge, as thick as the wheel. */
+    public static final float[] RIM_SEGMENT = {CRANK_X + CRANK_R - 0.6F, CRANK_Y - 0.8F, WHEEL[2], CRANK_X + CRANK_R, CRANK_Y + 0.8F, WHEEL[5]};
+    /** The iron axle from the wheel back through the bearing to the axle pulley; it turns with the wheel. */
+    public static final float[] AXLE = {CRANK_X - 0.5F, CRANK_Y - 0.5F, WHEEL[5], CRANK_X + 0.5F, CRANK_Y + 0.5F, 14.8F};
+    /** The bearing block holding the axle, on its column down to the cap. */
+    public static final float[] BEARING = {10.5F, 3.5F, 10, 13.5F, 6.5F, 11.5F};
+    public static final float[] BEARING_COLUMN = {11, 2, 10.25F, 13, 3.5F, 11.25F};
+
+    /** The drive belt's plane on the back, clear of the windings (z 13.4), and its thickness. */
+    public static final float BELT_Z1 = 13.5F;
+    public static final float BELT_Z2 = 14.5F;
+    public static final float BELT_T = 0.4F;
+    public static final float AXLE_PULLEY_R = 1.2F;
+    /** The axle pulley on the crank axle and the motor pulley (lower half frame), drawn as discs with spokes. */
+    public static final float[] AXLE_PULLEY = {CRANK_X - AXLE_PULLEY_R, CRANK_Y - AXLE_PULLEY_R, BELT_Z1,
+            CRANK_X + AXLE_PULLEY_R, CRANK_Y + AXLE_PULLEY_R, BELT_Z2};
+    public static final float[] MOTOR_PULLEY = {MOTOR_X - MOTOR_PULLEY_R, MOTOR_Y - MOTOR_PULLEY_R, BELT_Z1,
+            MOTOR_X + MOTOR_PULLEY_R, MOTOR_Y + MOTOR_PULLEY_R, BELT_Z2};
+    /**
+     * One belt strand modelled standing straight up from (8, 0) for a block;
+     * the renderer moves, tilts and stretches it from tangent point to tangent point.
+     */
+    public static final float[] BELT = {8 - BELT_T / 2, 0, BELT_Z1, 8 + BELT_T / 2, 16, BELT_Z2};
+    /** The lacing mark, centred on (8, 0) and a little proud of the strand, moved along it by the renderer. */
+    public static final float[] BELT_MARK = {8 - BELT_T / 2 - 0.05F, -0.4F, BELT_Z1 - 0.05F, 8 + BELT_T / 2 + 0.05F, 0.4F, BELT_Z2 + 0.05F};
+    /** The belt running over both pulleys: motor pulley drives, axle pulley driven, lower half frame. */
+    public static final BeltDrive DRIVE = new BeltDrive(MOTOR_X, MOTOR_Y, MOTOR_PULLEY_R + BELT_T / 2,
+            CRANK_X, 16 + CRANK_Y, AXLE_PULLEY_R + BELT_T / 2);
     /** The crank pin at rest (crank angle 0), sticking out of the wheel toward the con rod. */
     public static final float[] PIN = {CRANK_X + PIN_R - 0.5F, CRANK_Y - 0.5F, 5, CRANK_X + PIN_R + 0.5F, CRANK_Y + 0.5F, 6};
     /**
@@ -62,11 +104,11 @@ public final class ElectricPumpParts {
 
     /** The solid parts of the lower half, for its shape and its model. */
     public static float[][] lowerParts() {
-        return new float[][] {BeamPumpParts.BASE, HOUSING, WINDINGS[0], WINDINGS[1], WINDINGS[2], TERMINAL, MOTOR_CAP};
+        return new float[][] {BeamPumpParts.BASE, HOUSING, WINDINGS[0], WINDINGS[1], WINDINGS[2], TERMINAL, MOTOR_CAP, MOTOR_SHAFT};
     }
 
     /** The parts of the upper half that do not move, for its shape and its model. */
     public static float[][] upperParts() {
-        return new float[][] {CAP, POST_FOOT, BeamPumpParts.POST, GRILLE_FRAME, GRILLE_BOX, WHEEL};
+        return new float[][] {CAP, POST_FOOT, BeamPumpParts.POST, GRILLE_FRAME, GRILLE_BOX, WHEEL, BEARING_COLUMN, BEARING};
     }
 }
