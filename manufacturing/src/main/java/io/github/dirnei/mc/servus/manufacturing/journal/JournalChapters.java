@@ -2,8 +2,6 @@ package io.github.dirnei.mc.servus.manufacturing.journal;
 
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.util.ExtraCodecs;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
@@ -45,8 +43,6 @@ public final class JournalChapters extends SimpleJsonResourceReloadListener<Json
         ).apply(instance, ChapterJson::new));
     }
 
-    private static final Gson GSON = new GsonBuilder().create();
-
     public static final JournalChapters INSTANCE = new JournalChapters();
 
     private volatile List<ChapterDef> chapters = List.of();
@@ -72,9 +68,5 @@ public final class JournalChapters extends SimpleJsonResourceReloadListener<Json
     /** Every chapter in order. */
     public List<ChapterDef> chapters() {
         return chapters;
-    }
-
-    public Optional<ChapterDef> chapter(String id) {
-        return chapters.stream().filter(chapter -> chapter.id().equals(id)).findFirst();
     }
 }

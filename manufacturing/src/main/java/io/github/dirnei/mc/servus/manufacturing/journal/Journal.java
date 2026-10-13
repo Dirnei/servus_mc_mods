@@ -24,6 +24,7 @@ public final class Journal {
     public static final String CRITERION = "done";
     /** The root of the journal's advancement tab, given to everyone so the tab shows. */
     public static final Identifier ROOT = Identifier.fromNamespaceAndPath("servus_manufacturing", "journal/root");
+    private static final String TIER_FILTER = "tier:";
 
     private Journal() {
     }
@@ -36,37 +37,30 @@ public final class Journal {
 
     /** An item event, such as {@code calcine} or {@code coagulate}. Filters are an item id or {@code #tag}. */
     public static void recordItem(ServerLevel level, UUID team, String event, ItemStack stack, int amount) {
-        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        record(level, team, event, task -> {
-            String filter = task.filter();
-            if (filter.isEmpty()) {
-                return true;
-            }
-            if (filter.startsWith("#")) {
-                Identifier tag = Identifier.tryParse(filter.substring(1));
-                return tag != null && stack.is(TagKey.create(Registries.ITEM, tag));
-            }
-            return filter.equals(id);
-        }, amount);
+        record(level, team, event, task -> task.filter().isEmpty() || matchesItem(task.filter(), stack), amount);
     }
 
     /** An {@code athanor} event: a finished Athanor craft. Filters are {@code tier:<name>}, an item id or {@code #tag}. */
     public static void recordAthanor(ServerLevel level, UUID team, ItemStack result, String tierName) {
-        String id = BuiltInRegistries.ITEM.getKey(result.getItem()).toString();
         record(level, team, "athanor", task -> {
             String filter = task.filter();
             if (filter.isEmpty()) {
                 return true;
             }
-            if (filter.startsWith("tier:")) {
-                return filter.substring(5).equals(tierName);
+            if (filter.startsWith(TIER_FILTER)) {
+                return filter.substring(TIER_FILTER.length()).equals(tierName);
             }
-            if (filter.startsWith("#")) {
-                Identifier tag = Identifier.tryParse(filter.substring(1));
-                return tag != null && result.is(TagKey.create(Registries.ITEM, tag));
-            }
-            return filter.equals(id);
+            return matchesItem(filter, result);
         }, 1);
+    }
+
+    /** Whether {@code stack} is the item id or in the {@code #tag} that {@code filter} names. */
+    private static boolean matchesItem(String filter, ItemStack stack) {
+        if (filter.startsWith("#")) {
+            Identifier tag = Identifier.tryParse(filter.substring(1));
+            return tag != null && stack.is(TagKey.create(Registries.ITEM, tag));
+        }
+        return filter.equals(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
     }
 
     /** An event without a filter, such as {@code sight}. */

@@ -4,12 +4,12 @@ import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabili
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPorts;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorStructure;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierStructure;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -43,7 +43,15 @@ public final class ServusManufacturingEvents {
 
         @SubscribeEvent
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
-            // The Purifier build: Ash and water into the Vat, the Salt out of the Catch Basin, the residue out of the Residue Crock.
+            registerPurifier(event);
+            registerCalciner(event);
+            registerCoagulator(event);
+            registerAthanor(event);
+            registerGnomeHollow(event);
+        }
+
+        /** Ash and water go into the Vat, the Salt comes out of the Catch Basin, the residue out of the Residue Crock. */
+        private static void registerPurifier(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusManufacturingBlockEntities.PURIFIER.get(),
                     (purifier, side) -> purifier.formed() ? purifier.itemPort() : null);
             event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusManufacturingBlockEntities.PURIFIER.get(),
@@ -52,24 +60,36 @@ public final class ServusManufacturingEvents {
                     ServusManufacturingBlocks.CATCH_BASIN.get());
             event.registerBlock(Capabilities.Item.BLOCK, (level, pos, state, entity, side) -> PurifierStructure.crockHandler(level, pos, state),
                     ServusManufacturingBlocks.RESIDUE_CROCK.get());
-            // The Calciner structure has fixed ports by position instead of sides.
+        }
+
+        /** The Calciner structure has fixed ports by position, not by side. */
+        private static void registerCalciner(RegisterCapabilitiesEvent event) {
             event.registerBlock(Capabilities.Item.BLOCK, (level, pos, state, entity, side) -> CalcinerPorts.items(level, pos, state),
                     ServusManufacturingBlocks.CALCINER.get(), ServusManufacturingBlocks.FIREBOX.get(), ServusManufacturingBlocks.ASH_PAN.get());
             event.registerBlock(ServusFoundationCapabilities.UPKEEP, (level, pos, state, entity, side) -> CalcinerPorts.upkeep(level, pos, state),
                     ServusManufacturingBlocks.FIREBOX.get());
             event.registerBlock(Capabilities.Fluid.BLOCK, (level, pos, state, entity, side) -> CalcinerPorts.fluid(level, pos, state),
                     ServusManufacturingBlocks.RECEIVER.get(), ServusManufacturingBlocks.COPPER_DUCT.get());
-            // The Coagulator build: items at the casting table while formed, each principle into its Vat.
+        }
+
+        /** Items at the casting table while formed, each principle into its Vat. */
+        private static void registerCoagulator(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusManufacturingBlockEntities.COAGULATOR.get(),
                     (machine, side) -> machine.formed() ? machine.itemPort() : null);
             event.registerBlock(Capabilities.Fluid.BLOCK, (level, pos, state, entity, side) -> CoagulatorStructure.vatHandler(level, pos, state),
                     ServusManufacturingBlocks.VAT.get());
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusManufacturingBlockEntities.COAGULATOR.get(),
                     (machine, side) -> machine.production());
+        }
+
+        private static void registerAthanor(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusManufacturingBlockEntities.ATHANOR.get(),
                     (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusManufacturingBlockEntities.ATHANOR.get(),
                     (machine, side) -> machine.production());
+        }
+
+        private static void registerGnomeHollow(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusManufacturingBlockEntities.GNOME_HOLLOW.get(),
                     (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusManufacturingBlockEntities.GNOME_HOLLOW.get(),

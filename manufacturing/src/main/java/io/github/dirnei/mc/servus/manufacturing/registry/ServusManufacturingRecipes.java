@@ -2,14 +2,14 @@ package io.github.dirnei.mc.servus.manufacturing.registry;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinationRecipe;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurificationRecipe;
-import net.minecraft.resources.Identifier;
-import net.neoforged.neoforge.registries.DeferredHolder;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class ServusManufacturingRecipes {

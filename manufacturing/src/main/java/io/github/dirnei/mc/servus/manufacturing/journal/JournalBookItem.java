@@ -6,10 +6,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
-/**
- * The journal as an item: Modonomicon's book item with its {@code modonomicon:book_id} component set to
- * the journal. Looked up through the registries, so only Modonomicon's ids are relied on.
- */
+/** The journal's Modonomicon book id and the journal every player gets once. */
 public final class JournalBookItem {
 
     public static final Identifier BOOK = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "journal");
@@ -18,7 +15,7 @@ public final class JournalBookItem {
     private JournalBookItem() {
     }
 
-    /** A fresh journal; the item sets its book id itself when first used. */
+    /** A fresh journal. */
     public static ItemStack create() {
         return new ItemStack(ServusManufacturingItems.PARACELSUS_JOURNAL.get());
     }

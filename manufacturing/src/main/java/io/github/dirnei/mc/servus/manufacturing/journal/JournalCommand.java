@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.journal;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.dirnei.mc.servus.foundation.team.Teams;
 import io.github.dirnei.mc.servus.manufacturing.journal.JournalLedger.ChapterDef;
 import io.github.dirnei.mc.servus.manufacturing.journal.JournalLedger.TaskDef;
@@ -19,29 +20,34 @@ public final class JournalCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("servus_manufacturing")
-                .then(Commands.literal("journal").executes(context -> {
-                    ServerPlayer player = context.getSource().getPlayerOrException();
-                    TeamJournal journal = Journal.journalOf(player.level().getServer(), Teams.teamOf(player));
-                    CommandSourceStack source = context.getSource();
-                    source.sendSuccess(() -> Component.translatable("commands.servus_manufacturing.journal.header"), false);
-                    int shown = 0;
-                    for (ChapterDef chapter : JournalChapters.INSTANCE.chapters()) {
-                        boolean finished = journal.isFinished(chapter.id());
-                        if (!finished && !JournalLedger.isOpen(chapter, journal)) {
-                            continue;
-                        }
-                        shown++;
-                        Identifier id = Identifier.parse(chapter.id());
-                        Component name = Component.translatable("journal." + id.getNamespace() + "." + id.getPath());
-                        Component state = Component.translatable("commands.servus_manufacturing.journal." + (finished ? "finished" : "open"));
-                        source.sendSuccess(() -> Component.translatable("commands.servus_manufacturing.journal.chapter", name, state), false);
-                        for (TaskDef task : chapter.tasks()) {
-                            int count = journal.count(chapter.id(), task.id());
-                            source.sendSuccess(() -> Component.translatable("commands.servus_manufacturing.journal.task",
-                                    task.id(), count, task.count()), false);
-                        }
-                    }
-                    return shown;
-                })));
+                .then(Commands.literal("journal").executes(context -> show(context.getSource()))));
+    }
+
+    /** Lists every open or finished chapter; returns how many were shown. */
+    private static int show(CommandSourceStack source) throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        TeamJournal journal = Journal.journalOf(player.level().getServer(), Teams.teamOf(player));
+        source.sendSuccess(() -> Component.translatable("commands.servus_manufacturing.journal.header"), false);
+        int shown = 0;
+        for (ChapterDef chapter : JournalChapters.INSTANCE.chapters()) {
+            boolean finished = journal.isFinished(chapter.id());
+            if (finished || JournalLedger.isOpen(chapter, journal)) {
+                showChapter(source, journal, chapter, finished);
+                shown++;
+            }
+        }
+        return shown;
+    }
+
+    private static void showChapter(CommandSourceStack source, TeamJournal journal, ChapterDef chapter, boolean finished) {
+        Identifier id = Identifier.parse(chapter.id());
+        Component name = Component.translatable("journal." + id.getNamespace() + "." + id.getPath());
+        Component state = Component.translatable("commands.servus_manufacturing.journal." + (finished ? "finished" : "open"));
+        source.sendSuccess(() -> Component.translatable("commands.servus_manufacturing.journal.chapter", name, state), false);
+        for (TaskDef task : chapter.tasks()) {
+            int count = journal.count(chapter.id(), task.id());
+            source.sendSuccess(() -> Component.translatable("commands.servus_manufacturing.journal.task",
+                    task.id(), count, task.count()), false);
+        }
     }
 }

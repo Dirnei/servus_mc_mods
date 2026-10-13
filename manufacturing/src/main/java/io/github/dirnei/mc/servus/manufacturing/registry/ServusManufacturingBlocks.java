@@ -1,33 +1,32 @@
 package io.github.dirnei.mc.servus.manufacturing.registry;
 
-import net.minecraft.world.level.material.PushReaction;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorCrownBlock;
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
-import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.VatBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.CatchBasinBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.ResidueCrockBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorCrownBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerShellBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.VatBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.hollow.GnomeHollowBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.CatchBasinBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.ResidueCrockBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class ServusManufacturingBlocks {
 
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(ServusManufacturingIds.MOD_ID);
-
 
     public static final DeferredBlock<CalcinerBlock> CALCINER =
             BLOCKS.registerBlock("calciner", CalcinerBlock::new, () -> MachineContent.machine());
@@ -47,11 +46,11 @@ public final class ServusManufacturingBlocks {
 
     /** The Purifier, a wooden vat that leaches Ash into liquid Salt. */
     public static final DeferredBlock<PurifierBlock> PURIFIER = BLOCKS.registerBlock("purifier", PurifierBlock::new,
-            () -> BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD).noOcclusion());
+            () -> wood());
 
     /** The Catch Basin below one plank of the Purifier, where the Salt gathers. */
     public static final DeferredBlock<CatchBasinBlock> CATCH_BASIN = BLOCKS.registerBlock("catch_basin", CatchBasinBlock::new,
-            () -> BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD).noOcclusion());
+            () -> wood());
 
     /** The Residue Crock below the other plank of the Purifier, where the Caput Mortuum falls. */
     public static final DeferredBlock<ResidueCrockBlock> RESIDUE_CROCK = BLOCKS.registerBlock("residue_crock", ResidueCrockBlock::new,
@@ -85,6 +84,10 @@ public final class ServusManufacturingBlocks {
     private static BlockBehaviour.Properties bricks() {
         return BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(2.0F, 6.0F).requiresCorrectToolForDrops()
                 .sound(SoundType.STONE).noOcclusion();
+    }
+
+    private static BlockBehaviour.Properties wood() {
+        return BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD).noOcclusion();
     }
 
     private static BlockBehaviour.Properties copper() {
