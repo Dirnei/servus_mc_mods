@@ -1,40 +1,39 @@
 package io.github.dirnei.mc.servus.storage.garage;
 
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
-import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
-import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.model.data.ModelData;
 
 /**
@@ -168,13 +167,7 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
 
     /** Drops every shuttle item at the garage, for when the block is destroyed anyway. */
     public void dropShuttles(Level level, BlockPos pos) {
-        for (int i = 0; i < shuttles.getSlots(); i++) {
-            ItemStack stack = shuttles.getStackInSlot(i);
-            if (!stack.isEmpty()) {
-                Block.popResource(level, pos, stack);
-                shuttles.setStackInSlot(i, ItemStack.EMPTY);
-            }
-        }
+        shuttles.dropAll(level, pos);
     }
 
     @Override
@@ -206,13 +199,9 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
         woodSlot.load(input);
         active = !tag.contains("Active") || input.getBooleanOr("Active", false);
         if (tag.contains("ShuttleItems")) {
-            ItemSlots saved = new ItemSlots();
-            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("ShuttleItems"));
-            for (int i = 0; i < shuttles.getSlots(); i++) {
-                shuttles.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
-            }
+            shuttles.fillFrom(registries, tag.getCompoundOrEmpty("ShuttleItems"));
         } else if (tag.contains("Shuttles")) {
-            // A plain count from older saves.
+            // A saved count instead of shuttle items fills that many slots with Mk1 shuttles.
             int count = Math.min(input.getIntOr("Shuttles", 0), shuttles.getSlots());
             for (int i = 0; i < count; i++) {
                 shuttles.setStackInSlot(i, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));

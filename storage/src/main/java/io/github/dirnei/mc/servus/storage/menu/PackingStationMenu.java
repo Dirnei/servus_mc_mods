@@ -84,7 +84,7 @@ public class PackingStationMenu extends AbstractContainerMenu {
         upgradesY = upgradesLabelY + 10;
         statusY = upgradesY + 18 + 4;
         inventoryY = statusY + 22;
-        imageHeight = inventoryY + 3 * 18 + 4 + 18 + 6;
+        imageHeight = inventoryY + PlayerInventorySlots.HOTBAR_OFFSET + 18 + 6;
         addRow(toStorage, toStorageY);
         addRow(toNetwork, toNetworkY);
         for (int slot = 0; slot < upgradeSlots; slot++) {
@@ -169,7 +169,7 @@ public class PackingStationMenu extends AbstractContainerMenu {
     }
 
     public int hotbarY() {
-        return inventoryY + 3 * 18 + 4;
+        return inventoryY + PlayerInventorySlots.HOTBAR_OFFSET;
     }
 
     public int imageHeight() {

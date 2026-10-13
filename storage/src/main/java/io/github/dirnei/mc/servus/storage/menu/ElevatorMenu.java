@@ -26,7 +26,7 @@ public class ElevatorMenu extends AbstractContainerMenu {
 
     public static final int UPGRADES_Y = 30;
     public static final int INVENTORY_Y = 74;
-    public static final int IMAGE_HEIGHT = INVENTORY_Y + 3 * 18 + 4 + 18 + 6;
+    public static final int IMAGE_HEIGHT = INVENTORY_Y + PlayerInventorySlots.HOTBAR_OFFSET + 18 + 6;
     private static final int WIDTH = 176;
 
     private final ContainerLevelAccess access;
@@ -71,7 +71,7 @@ public class ElevatorMenu extends AbstractContainerMenu {
     }
 
     public int hotbarY() {
-        return INVENTORY_Y + 3 * 18 + 4;
+        return INVENTORY_Y + PlayerInventorySlots.HOTBAR_OFFSET;
     }
 
     /** Shift click moves Speed upgrades between the upgrade row and the player inventory. */

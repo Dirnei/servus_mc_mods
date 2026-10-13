@@ -48,7 +48,7 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
     public static final int SUPPLY_X = 8;
     public static final int SUPPLY_Y = 90;
     public static final int INVENTORY_Y = 122;
-    public static final int HOTBAR_Y = 180;
+    public static final int HOTBAR_Y = INVENTORY_Y + PlayerInventorySlots.HOTBAR_OFFSET;
     public static final int SHUTTLE_SLOT = 0;
     public static final int INSTALL_SLOT = 1;
     public static final int SUPPLY_START = 2;

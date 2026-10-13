@@ -93,18 +93,7 @@ public abstract class StationBlockEntity extends StorageNodeBlockEntity implemen
 
     /** Drops every stack in the buffer at the station. */
     public void dropContents(Level level, BlockPos pos) {
-        dropSlots(buffer(), level, pos);
-    }
-
-    /** Pops every stack of the slots at the position and empties them. */
-    protected static void dropSlots(ItemSlots slots, Level level, BlockPos pos) {
-        for (int i = 0; i < slots.getSlots(); i++) {
-            ItemStack stack = slots.getStackInSlot(i);
-            if (!stack.isEmpty()) {
-                Block.popResource(level, pos, stack);
-                slots.setStackInSlot(i, ItemStack.EMPTY);
-            }
-        }
+        buffer().dropAll(level, pos);
     }
 
     /** How many of the key the slots hold. */
@@ -127,14 +116,6 @@ public abstract class StationBlockEntity extends StorageNodeBlockEntity implemen
         BlockState state = getBlockState();
         if (state.hasProperty(StorageNodeBlocks.ACTIVITY) && state.getValue(StorageNodeBlocks.ACTIVITY) != activity) {
             level.setBlock(worldPosition, state.setValue(StorageNodeBlocks.ACTIVITY, activity), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
-        }
-    }
-
-    /** Fills a saved buffer's slots from the tag; slots the tag lacks are emptied. */
-    protected static void loadSlots(ItemSlots into, ItemSlots saved, CompoundTag tag, HolderLookup.Provider registries) {
-        saved.deserializeNBT(registries, tag);
-        for (int i = 0; i < into.getSlots(); i++) {
-            into.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
         }
     }
 

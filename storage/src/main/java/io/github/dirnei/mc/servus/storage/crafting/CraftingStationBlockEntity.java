@@ -512,15 +512,8 @@ public class CraftingStationBlockEntity extends DataLineBlockEntity implements M
 
     /** Drops every item in the inputs and outputs. */
     public void dropContents(Level level, BlockPos pos) {
-        for (ItemSlots handler : List.of(inputs, outputs)) {
-            for (int i = 0; i < handler.getSlots(); i++) {
-                ItemStack stack = handler.getStackInSlot(i);
-                if (!stack.isEmpty()) {
-                    Block.popResource(level, pos, stack);
-                    handler.setStackInSlot(i, ItemStack.EMPTY);
-                }
-            }
-        }
+        inputs.dropAll(level, pos);
+        outputs.dropAll(level, pos);
     }
 
     @Override

@@ -1,34 +1,30 @@
 package io.github.dirnei.mc.servus.storage.packing;
 
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.data.packet.RateBudget;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.foundation.production.TransferGate;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.foundation.upgrade.UpgradeSlots;
-import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.storage.menu.PackingStationMenu;
 import io.github.dirnei.mc.servus.storage.network.DeliveryTarget;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
-import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
-import io.github.dirnei.mc.servus.storage.menu.PackingStationMenu;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
-import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
-import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
-import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.site.SiteRecord;
 import io.github.dirnei.mc.servus.storage.site.SiteRegistry;
 import io.github.dirnei.mc.servus.storage.site.WirelessCost;
+import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -39,13 +35,17 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * The warehouse's door to the data line and its only throughput limit. Items
@@ -830,7 +830,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     public void dropContents(Level level, BlockPos pos) {
         super.dropContents(level, pos);
         upgrades.takeAll().forEach(stack -> Block.popResource(level, pos, stack));
-        dropSlots(outgoing, level, pos);
+        outgoing.dropAll(level, pos);
     }
 
     @Override
@@ -860,10 +860,10 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
         if (tag.contains("Outgoing")) {
-            loadSlots(outgoing, new ItemSlots(), tag.getCompoundOrEmpty("Outgoing"), registries);
+            outgoing.fillFrom(registries, tag.getCompoundOrEmpty("Outgoing"));
         }
         if (tag.contains("Upgrades")) {
-            loadSlots(upgrades, new ItemSlots(), tag.getCompoundOrEmpty("Upgrades"), registries);
+            upgrades.fillFrom(registries, tag.getCompoundOrEmpty("Upgrades"));
         }
         shipments.clear();
         unresolved.clear();

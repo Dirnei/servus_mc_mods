@@ -459,16 +459,10 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         }
         span.add(homeChunk());
         if (tag.contains("AnchorUpgrades")) {
-            AnchorUpgradeSlots saved = new AnchorUpgradeSlots(0, null);
-            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("AnchorUpgrades"));
-            for (int slot = 0; slot < upgrades.getSlots(); slot++) {
-                upgrades.setStackInSlot(slot, slot < saved.getSlots() ? saved.getStackInSlot(slot) : ItemStack.EMPTY);
-            }
+            upgrades.fillFrom(registries, tag.getCompoundOrEmpty("AnchorUpgrades"), new AnchorUpgradeSlots(0, null));
         }
         if (tag.contains("WirelessUpgrade")) {
-            WirelessUpgradeSlots saved = new WirelessUpgradeSlots(null);
-            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("WirelessUpgrade"));
-            wireless.setStackInSlot(0, saved.getSlots() > 0 ? saved.getStackInSlot(0) : ItemStack.EMPTY);
+            wireless.fillFrom(registries, tag.getCompoundOrEmpty("WirelessUpgrade"), new WirelessUpgradeSlots(null));
         }
         energy.load(input.getIntOr("Energy", 0));
         wasCapable = capable();

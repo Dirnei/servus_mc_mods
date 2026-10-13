@@ -50,7 +50,7 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
     /** The Wireless Upgrade slot, right of the Anchor Upgrade row, in line with the last inventory column. */
     public static final int WIRELESS_X = 152;
     public static final int INVENTORY_Y = 144;
-    public static final int IMAGE_HEIGHT = INVENTORY_Y + 3 * 18 + 4 + 18 + 6;
+    public static final int IMAGE_HEIGHT = INVENTORY_Y + PlayerInventorySlots.HOTBAR_OFFSET + 18 + 6;
 
     private final WarehouseControllerBlockEntity controller;
     private final ContainerLevelAccess access;

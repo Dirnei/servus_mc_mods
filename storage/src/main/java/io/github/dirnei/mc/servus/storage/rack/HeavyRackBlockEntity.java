@@ -1,19 +1,17 @@
 package io.github.dirnei.mc.servus.storage.rack;
 
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
-import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,6 +20,7 @@ import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -41,9 +40,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.model.data.ModelData;
 import net.neoforged.neoforge.model.data.ModelProperty;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
  * Chest sized inventory of a rack bay. Clients only receive the sample: the
@@ -295,11 +295,7 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
         if (tag.contains("Items")) {
-            ItemSlots saved = new ItemSlots();
-            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("Items"));
-            for (int i = 0; i < items.getSlots(); i++) {
-                items.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
-            }
+            items.fillFrom(registries, tag.getCompoundOrEmpty("Items"));
             displayed = sample();
         }
         if (tag.contains("Display")) {
@@ -346,12 +342,6 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
         if (level == null) {
             return;
         }
-        for (int i = 0; i < items.getSlots(); i++) {
-            ItemStack stack = items.getStackInSlot(i);
-            if (!stack.isEmpty()) {
-                Block.popResource(level, pos, stack);
-                items.setStackInSlot(i, ItemStack.EMPTY);
-            }
-        }
+        items.dropAll(level, pos);
     }
 }

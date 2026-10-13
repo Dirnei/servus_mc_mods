@@ -220,7 +220,7 @@ public class InboundStationBlockEntity extends StationBlockEntity {
         loadStation(input, tag);
         Arrays.fill(claimed, false);
         if (tag.contains("Items")) {
-            loadSlots(buffer, new ItemSlots(), tag.getCompoundOrEmpty("Items"), registries);
+            buffer.fillFrom(registries, tag.getCompoundOrEmpty("Items"));
         }
     }
 }

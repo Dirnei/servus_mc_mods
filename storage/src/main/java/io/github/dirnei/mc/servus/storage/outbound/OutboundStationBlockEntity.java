@@ -220,10 +220,10 @@ public class OutboundStationBlockEntity extends StationBlockEntity implements De
         HolderLookup.Provider registries = input.lookup();
         loadStation(input, tag);
         if (tag.contains("Items")) {
-            loadSlots(buffer, keepSized(), tag.getCompoundOrEmpty("Items"), registries);
+            buffer.fillFrom(registries, tag.getCompoundOrEmpty("Items"), keepSized());
         }
         if (tag.contains("Keep")) {
-            loadSlots(keep, keepSized(), tag.getCompoundOrEmpty("Keep"), registries);
+            keep.fillFrom(registries, tag.getCompoundOrEmpty("Keep"), keepSized());
         }
     }
 

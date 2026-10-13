@@ -1,37 +1,42 @@
 package io.github.dirnei.mc.servus.storage.terminal;
 
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
 import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
-import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
-import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
-import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -43,16 +48,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
-import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.model.data.ModelData;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
  * The pickup desk on the data line: opens the stock GUI of the warehouses it
@@ -371,15 +371,8 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
 
     /** Drops every stack in the output and input slots at the terminal. */
     public void dropOutput(Level level, BlockPos pos) {
-        for (ItemSlots handler : List.of(output, input)) {
-            for (int i = 0; i < handler.getSlots(); i++) {
-                ItemStack stack = handler.getStackInSlot(i);
-                if (!stack.isEmpty()) {
-                    Block.popResource(level, pos, stack);
-                    handler.setStackInSlot(i, ItemStack.EMPTY);
-                }
-            }
-        }
+        output.dropAll(level, pos);
+        input.dropAll(level, pos);
     }
 
     @Override
@@ -454,18 +447,6 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         return Optional.of(request);
     }
 
-    /** Fills the slots from a saved list, clearing those it has no stack for. */
-    private static void loadSlots(ItemSlots target, HolderLookup.Provider registries, CompoundTag tag, String key) {
-        if (!tag.contains(key)) {
-            return;
-        }
-        ItemSlots saved = new ItemSlots();
-        saved.deserializeNBT(registries, tag.getCompoundOrEmpty(key));
-        for (int i = 0; i < target.getSlots(); i++) {
-            target.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
-        }
-    }
-
     private static CompoundTag tracked(Tracked tracked) {
         CompoundTag shipment = new CompoundTag();
         shipment.put("PackingStation", ValueIo.posTag(tracked.packingStation()));
@@ -485,8 +466,12 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
         woodSlot.load(input);
-        loadSlots(this.output, registries, tag, "Output");
-        loadSlots(this.input, registries, tag, "Input");
+        if (tag.contains("Output")) {
+            this.output.fillFrom(registries, tag.getCompoundOrEmpty("Output"));
+        }
+        if (tag.contains("Input")) {
+            this.input.fillFrom(registries, tag.getCompoundOrEmpty("Input"));
+        }
         requests.clear();
         idsSeen = false;
         for (Tag raw : tag.getListOrEmpty("Requests")) {

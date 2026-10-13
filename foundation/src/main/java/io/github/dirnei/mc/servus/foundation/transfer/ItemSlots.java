@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.transfer;
 
 import java.util.Optional;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -8,6 +9,8 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.transfer.item.ItemResource;
@@ -45,6 +48,33 @@ public class ItemSlots extends ItemStacksResourceHandler {
         Tag list = tag.get(VALUE_IO_KEY);
         if (list != null) {
             codec.parse(registries.createSerializationContext(NbtOps.INSTANCE), list).result().ifPresent(this::setStacks);
+        }
+    }
+
+    /**
+     * Fills these fixed size slots from a tag of {@link #serializeNBT}: extra saved
+     * slots are dropped and missing ones are emptied.
+     */
+    public void fillFrom(HolderLookup.Provider registries, CompoundTag tag) {
+        fillFrom(registries, tag, new ItemSlots());
+    }
+
+    /** As {@link #fillFrom(HolderLookup.Provider, CompoundTag)}, reading the tag through {@code reader} first. */
+    public void fillFrom(HolderLookup.Provider registries, CompoundTag tag, ItemSlots reader) {
+        reader.deserializeNBT(registries, tag);
+        for (int slot = 0; slot < getSlots(); slot++) {
+            setStackInSlot(slot, slot < reader.getSlots() ? reader.getStackInSlot(slot) : ItemStack.EMPTY);
+        }
+    }
+
+    /** Pops every stack at {@code pos} and empties its slot. Server side. */
+    public void dropAll(Level level, BlockPos pos) {
+        for (int slot = 0; slot < getSlots(); slot++) {
+            ItemStack stack = getStackInSlot(slot);
+            if (!stack.isEmpty()) {
+                Block.popResource(level, pos, stack);
+                setStackInSlot(slot, ItemStack.EMPTY);
+            }
         }
     }
 

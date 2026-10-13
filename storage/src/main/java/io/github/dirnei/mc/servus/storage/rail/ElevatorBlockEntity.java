@@ -1,33 +1,32 @@
 package io.github.dirnei.mc.servus.storage.rail;
 
-import io.github.dirnei.mc.servus.storage.shuttle.LiftUpgrades;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import java.util.OptionalInt;
-import java.util.List;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.menu.ElevatorMenu;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
-import io.github.dirnei.mc.servus.storage.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
+import io.github.dirnei.mc.servus.storage.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import io.github.dirnei.mc.servus.storage.shuttle.LiftUpgrades;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
+import java.util.List;
+import java.util.OptionalInt;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import io.github.dirnei.mc.servus.storage.menu.ElevatorMenu;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * Connector node: joins the warehouse graph but holds no stock. The lowest
@@ -132,12 +131,8 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
             liftY = input.getFloatOr(LIFT_Y, 0F);
         }
         if (tag.contains(UPGRADES)) {
-            ItemSlots saved = new ItemSlots();
-            saved.deserializeNBT(registries, tag.getCompoundOrEmpty(UPGRADES));
             loading = true;
-            for (int i = 0; i < upgrades.getSlots(); i++) {
-                upgrades.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
-            }
+            upgrades.fillFrom(registries, tag.getCompoundOrEmpty(UPGRADES));
             loading = false;
         }
     }
