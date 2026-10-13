@@ -12,25 +12,25 @@ class WakeAllowanceTest {
 
     @Test
     void capacityComesFirst() {
-        assertEquals(Reason.NO_UPGRADE, WakeAllowance.check(false, true, State.NO_UPGRADE, false, 9, 4));
-        assertEquals(Reason.OVER_CAPACITY, WakeAllowance.check(false, true, State.OVER, false, 9, 4));
+        assertEquals(Reason.NO_UPGRADE, WakeAllowance.check(false, true, State.NO_UPGRADE, false, false));
+        assertEquals(Reason.OVER_CAPACITY, WakeAllowance.check(false, true, State.OVER, false, false));
     }
 
     @Test
-    void thenOwnerThenFtbThenCap() {
-        assertEquals(Reason.NO_OWNER, WakeAllowance.check(false, true, State.COVERED, false, 9, 4));
-        assertEquals(Reason.FTB_CHUNKS, WakeAllowance.check(true, true, State.COVERED, false, 9, 4));
-        assertEquals(Reason.TEAM_LIMIT, WakeAllowance.check(true, false, State.COVERED, false, 4, 4));
+    void thenOwnerThenFtbThenChunkCap() {
+        assertEquals(Reason.NO_OWNER, WakeAllowance.check(false, true, State.COVERED, false, false));
+        assertEquals(Reason.FTB_CHUNKS, WakeAllowance.check(true, true, State.COVERED, false, false));
+        assertEquals(Reason.TEAM_LIMIT, WakeAllowance.check(true, false, State.COVERED, false, false));
     }
 
     @Test
     void registeredSiteNeverHitsTheCap() {
-        assertEquals(Reason.ALLOWED, WakeAllowance.check(true, false, State.COVERED, true, 4, 4));
+        assertEquals(Reason.ALLOWED, WakeAllowance.check(true, false, State.COVERED, true, false));
     }
 
     @Test
-    void belowTheCapIsAllowed() {
-        assertEquals(Reason.ALLOWED, WakeAllowance.check(true, false, State.COVERED, false, 3, 4));
+    void fittingSpanIsAllowed() {
+        assertEquals(Reason.ALLOWED, WakeAllowance.check(true, false, State.COVERED, false, true));
     }
 
     @Test
@@ -43,16 +43,16 @@ class WakeAllowanceTest {
 
     @Test
     void noPowerAfterCapacityBeforeOwner() {
-        assertEquals(Reason.NO_UPGRADE, WakeAllowance.check(true, false, State.NO_UPGRADE, false, 0, 4, 100, 360));
-        assertEquals(Reason.OVER_CAPACITY, WakeAllowance.check(true, false, State.OVER, false, 0, 4, 100, 360));
-        assertEquals(Reason.NO_POWER, WakeAllowance.check(true, false, State.COVERED, false, 0, 4, 100, 360));
-        assertEquals(Reason.NO_POWER, WakeAllowance.check(false, true, State.COVERED, false, 9, 4, 100, 360));
+        assertEquals(Reason.NO_UPGRADE, WakeAllowance.check(true, false, State.NO_UPGRADE, false, true, 100, 360));
+        assertEquals(Reason.OVER_CAPACITY, WakeAllowance.check(true, false, State.OVER, false, true, 100, 360));
+        assertEquals(Reason.NO_POWER, WakeAllowance.check(true, false, State.COVERED, false, true, 100, 360));
+        assertEquals(Reason.NO_POWER, WakeAllowance.check(false, true, State.COVERED, false, false, 100, 360));
     }
 
     @Test
     void enoughStoredWakes() {
-        assertEquals(Reason.ALLOWED, WakeAllowance.check(true, false, State.COVERED, false, 0, 4, 5000, 360));
-        assertEquals(Reason.ALLOWED, WakeAllowance.check(true, false, State.COVERED, false, 0, 4, 360, 360));
+        assertEquals(Reason.ALLOWED, WakeAllowance.check(true, false, State.COVERED, false, true, 5000, 360));
+        assertEquals(Reason.ALLOWED, WakeAllowance.check(true, false, State.COVERED, false, true, 360, 360));
     }
 
     @Test

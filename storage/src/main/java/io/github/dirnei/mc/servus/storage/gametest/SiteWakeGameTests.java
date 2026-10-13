@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.gametest;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
+import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorData;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
@@ -112,7 +113,7 @@ public final class SiteWakeGameTests {
         });
     }
 
-    /** A wake forces the span and takes a team slot, the lamp turns orange; after the grace all is released. */
+    /** A wake forces the span and counts it in the team's load, the lamp turns orange; after the grace all is released. */
     @ServusGameTest(timeoutTicks = 200)
     public static void wakeLoadsAndReleasesAfterGrace(GameTestHelper helper) {
         UUID team = UUID.randomUUID();
@@ -121,11 +122,11 @@ public final class SiteWakeGameTests {
             SiteWakes.Status woken = SiteWakes.request(helper.getLevel(), helper.absolutePos(CONTROLLER)).orElseThrow();
             helper.assertTrue(woken.awake(), "the site wakes, was " + woken);
             helper.assertTrue(woken.forced() == 1, "its one chunk is forced, had " + woken.forced());
-            helper.assertTrue(loaders(helper, team) == 1, "the wake takes one slot of the team");
+            helper.assertTrue(loaders(helper, team) == 1, "the wake counts its one chunk in the team load");
             helper.assertTrue(lamp(helper) == StorageNodeBlocks.Activity.WORKING, "the lamp is orange while awake");
             TerminalWiring.when(helper, () -> status(helper).isEmpty(), GRACE + 40,
                     () -> "the site sleeps after the grace time, was " + status(helper), () -> {
-                helper.assertTrue(loaders(helper, team) == 0, "the slot is free again");
+                helper.assertTrue(loaders(helper, team) == 0, "the team load is free again");
                 helper.assertTrue(lamp(helper) == StorageNodeBlocks.Activity.IDLE, "the lamp is green again");
                 helper.succeed();
             });
@@ -145,7 +146,7 @@ public final class SiteWakeGameTests {
         helper.runAfterDelay(3, () -> {
             SiteWakes.Status refused = SiteWakes.request(helper.getLevel(), helper.absolutePos(CONTROLLER)).orElseThrow();
             helper.assertTrue(!refused.awake() && refused.reason() == WakeAllowance.Reason.OVER_CAPACITY, "over capacity, was " + refused);
-            helper.assertTrue(refused.forced() == 0 && loaders(helper, team) == 0, "nothing loads, no slot taken");
+            helper.assertTrue(refused.forced() == 0 && loaders(helper, team) == 0, "nothing loads, no load counted");
             helper.succeed();
         });
     }
@@ -158,12 +159,12 @@ public final class SiteWakeGameTests {
         helper.runAfterDelay(3, () -> {
             SiteWakes.Status refused = SiteWakes.request(helper.getLevel(), helper.absolutePos(CONTROLLER)).orElseThrow();
             helper.assertTrue(!refused.awake() && refused.reason() == WakeAllowance.Reason.NO_UPGRADE, "no upgrade, was " + refused);
-            helper.assertTrue(loaders(helper, team) == 0, "no slot taken");
+            helper.assertTrue(loaders(helper, team) == 0, "no load counted");
             helper.succeed();
         });
     }
 
-    /** A full team waits with the reason and wakes once a slot frees up while the wake is still held. */
+    /** A team at its chunk cap waits with the reason and wakes once enough chunks free up while the wake is still held. */
     @ServusGameTest(timeoutTicks = 200)
     public static void teamCapWaitsThenWakes(GameTestHelper helper) {
         UUID team = UUID.randomUUID();
@@ -188,7 +189,7 @@ public final class SiteWakeGameTests {
                 data.unregister(team, level, base.offset(i * 16, 0, 0));
             }
             TerminalWiring.when(helper, () -> status(helper).map(SiteWakes.Status::awake).orElse(false), 20,
-                    () -> "a free slot lets the held wake through, was " + status(helper), () -> {
+                    () -> "free chunks let the held wake through, was " + status(helper), () -> {
                 helper.assertTrue(loaders(helper, team) == cap, "the site took the free chunks, load " + loaders(helper, team));
                 SiteWakes.release(token);
                 for (int i = span; i < cap; i++) {
@@ -196,9 +197,40 @@ public final class SiteWakeGameTests {
                 }
                 TerminalWiring.when(helper, () -> status(helper).isEmpty(), GRACE + 40,
                         () -> "released after the grace time, was " + status(helper), () -> {
-                    helper.assertTrue(loaders(helper, team) == 0, "no slot left");
+                    helper.assertTrue(loaders(helper, team) == 0, "no load left");
                     helper.succeed();
                 });
+            });
+        });
+    }
+
+    /**
+     * A site whose span shares chunks with an anchor of the same team adds only
+     * its other chunks to the team load, and takes them away again when it sleeps.
+     */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void wakeOverlapWithAnchorCountedOnce(GameTestHelper helper) {
+        UUID team = UUID.randomUUID();
+        WarehouseControllerBlockEntity controller = site(helper, team, 1);
+        BlockPos anchorPos = CONTROLLER.above(2);
+        helper.setBlock(anchorPos, MachineContent.ENDER_ANCHOR.get().defaultBlockState());
+        EnderAnchorBlockEntity anchor = helper.getBlockEntity(anchorPos, EnderAnchorBlockEntity.class);
+        anchor.setOwner(team);
+        anchor.energyStorage().receiveEnergy(20000, false);
+        long home = controller.homeChunk();
+        // The anchor holds the home chunk; a far chunk that nothing loads stays in the span until the wake loads it.
+        controller.setSpan(Set.of(home, SiteChunks.key(SiteChunks.x(home) + 2000, SiteChunks.z(home))));
+        helper.runAfterDelay(5, () -> {
+            helper.assertTrue(anchor.status() == EnderAnchorBlockEntity.STATUS_ACTIVE, "the anchor is active, status " + anchor.status());
+            helper.assertTrue(loaders(helper, team) == 1, "the anchor holds its chunk, load " + loaders(helper, team));
+            helper.assertTrue(record(helper).orElseThrow().span().size() == 2, "the site spans two chunks");
+            SiteWakes.Status woken = SiteWakes.request(helper.getLevel(), helper.absolutePos(CONTROLLER)).orElseThrow();
+            helper.assertTrue(woken.awake(), "the site wakes, was " + woken);
+            helper.assertTrue(loaders(helper, team) == 2, "the load grows by the one chunk the anchor does not hold, was " + loaders(helper, team));
+            TerminalWiring.when(helper, () -> status(helper).isEmpty(), GRACE + 60,
+                    () -> "the site sleeps after the grace time, was " + status(helper), () -> {
+                helper.assertTrue(loaders(helper, team) == 1, "only the anchor is left, load " + loaders(helper, team));
+                helper.succeed();
             });
         });
     }

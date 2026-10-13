@@ -22,7 +22,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 
 ## 5. Warehouse wakes
 
-- [ ] 5.1 Storage `site/SiteWakes.java` (register the span's chunks, `fits` against `maxLoadedChunksPerTeam`), `site/WakeAllowance.java` (`fits` instead of active and cap) and its JUnit test, `site/SiteRecord.java` and `controller/*` for the renamed upgrade count, `command/ServusStorageCommands.java` messages (design.md D4). Storage GameTests `SiteWakeGameTests`: team cap by chunks, overlap with an anchor counted once. Run `gradlew :storage:test` and the Storage GameTests.
+- [x] 5.1 Storage `site/SiteWakes.java` (register the span's chunks, `fits` against `maxLoadedChunksPerTeam`), `site/WakeAllowance.java` (`fits` instead of active and cap) and its JUnit test, `site/SiteRecord.java` and `controller/*` for the renamed upgrade count, `command/ServusStorageCommands.java` messages (design.md D4). Storage GameTests `SiteWakeGameTests`: team cap by chunks, overlap with an anchor counted once. Run `gradlew :storage:test` and the Storage GameTests.
 
 ## 6. GUI and outline
 

@@ -24,9 +24,9 @@ import net.neoforged.fml.ModList;
 
 /**
  * The sites being woken right now. A wake loads every chunk of a site's
- * recorded span with a ticket of {@link SiteTickets}, holds one Ender Anchor
- * slot of the site's team while awake, and releases both after the work and
- * the grace time. Server thread only.
+ * recorded span with a ticket of {@link SiteTickets}, counts those chunks in
+ * its team's chunk load of the Ender Anchor cap while awake, and releases both
+ * after the work and the grace time. Server thread only.
  */
 public final class SiteWakes {
 
@@ -42,6 +42,8 @@ public final class SiteWakes {
         final Set<Long> forced = new HashSet<>();
         boolean requested;
         UUID registered;
+        /** The span the team load holds for this wake, to follow a span that changes while awake. */
+        Set<Long> registeredSpan;
         /** Game time of the last tick this wake was paid for; a wake pays once per tick. */
         long paidAt = Long.MIN_VALUE;
 
@@ -155,7 +157,7 @@ public final class SiteWakes {
         WAKES.clear();
     }
 
-    /** A team slot a wake held when the server stopped without releasing it is freed on start. */
+    /** Team load a wake held when the server stopped without releasing it is freed on start. */
     public static void clearTeamSlots(MinecraftServer server) {
         WAKES.clear();
         EnderAnchorData data = EnderAnchorData.get(server);
@@ -188,10 +190,9 @@ public final class SiteWakes {
         WakeMachine.State before = wake.machine.state();
         WakeMachine.Action action = wake.machine.tick(wanted, busy(level, wake.pos), allowance, StorageStatsManager.INSTANCE.wakeGraceTicks());
         if (action == WakeMachine.Action.LOAD) {
-            UUID team = site.team().orElseThrow();
-            EnderAnchorData.get(server).register(team, EnderAnchorData.key(level, wake.pos),
-                    EnderAnchorData.chunks(level.dimension(), site.span()));
-            wake.registered = team;
+            wake.registered = site.team().orElseThrow();
+            wake.registeredSpan = null;
+            register(level, wake, site.span());
         } else if (action == WakeMachine.Action.RELEASE) {
             unload(level, wake);
         }
@@ -200,6 +201,7 @@ public final class SiteWakes {
         }
         if (wake.machine.awake()) {
             follow(level, wake, site.span());
+            register(level, wake, site.span());
         }
         if (before != wake.machine.state() && level.isLoaded(wake.pos)
                 && level.getBlockEntity(wake.pos) instanceof WarehouseControllerBlockEntity controller) {
@@ -214,12 +216,13 @@ public final class SiteWakes {
         EnderAnchorData data = EnderAnchorData.get(server);
         UUID team = site.team().orElse(null);
         boolean registered = team != null && data.isRegistered(team, level, wake.pos);
-        boolean fits = team != null && data.fits(team, EnderAnchorData.key(level, wake.pos),
+        // The union is only worked out while the site waits: an awake site already counts.
+        boolean fits = team != null && !registered && data.fits(team, EnderAnchorData.key(level, wake.pos),
                 EnderAnchorData.chunks(level.dimension(), site.span()), ServusFoundationConfig.maxLoadedChunksPerTeam());
         // A loaded controller tells its FE; a sleeping one is known by its record.
         long stored = controller(level, wake.pos).map(controller -> (long) controller.energyStored()).orElse((long) site.energy());
         long toStart = WakeCost.toStart(site.span().size(), StorageStatsManager.INSTANCE.wakeFePerChunkPerTick());
-        return WakeAllowance.check(team != null, ftbBlocks(), site.capacityState(), registered, fits ? 0 : 1, 1, stored, toStart);
+        return WakeAllowance.check(team != null, ftbBlocks(), site.capacityState(), registered, fits, stored, toStart);
     }
 
     /**
@@ -273,6 +276,16 @@ public final class SiteWakes {
         }
     }
 
+    /** Keeps the team load holding exactly the chunks of the span while the site is awake. */
+    private static void register(ServerLevel level, Wake wake, Set<Long> span) {
+        if (wake.registered == null || span.equals(wake.registeredSpan)) {
+            return;
+        }
+        EnderAnchorData.get(level.getServer()).register(wake.registered, EnderAnchorData.key(level, wake.pos),
+                EnderAnchorData.chunks(level.dimension(), span));
+        wake.registeredSpan = Set.copyOf(span);
+    }
+
     private static void unload(ServerLevel level, Wake wake) {
         for (long key : wake.forced) {
             SiteTickets.CONTROLLER.forceChunk(level, wake.pos, SiteChunks.x(key), SiteChunks.z(key), false, true);
@@ -281,6 +294,7 @@ public final class SiteWakes {
         if (wake.registered != null) {
             EnderAnchorData.get(level.getServer()).unregister(wake.registered, level, wake.pos);
             wake.registered = null;
+            wake.registeredSpan = null;
         }
     }
 }

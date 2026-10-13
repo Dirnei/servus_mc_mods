@@ -25,13 +25,13 @@ public final class WakeAllowance {
      * @param hasTeam    whether the site has an owner team
      * @param ftbBlocks  whether FTB Chunks is installed and Servus loaders respect it
      * @param capacity   the site's capacity state
-     * @param registered whether the site already holds a slot of its team
-     * @param teamActive active loaders of the team, this site's slot included when registered
-     * @param teamCap    the team's cap of active loaders
+     * @param registered whether the site's chunks already count in its team's load
+     * @param fits       whether the site's span fits into its team's chunk cap, counted once with the
+     *                   chunks the team's anchors and other sites already hold
      */
     public static Reason check(boolean hasTeam, boolean ftbBlocks, SiteCapacity.State capacity, boolean registered,
-                               int teamActive, int teamCap) {
-        return check(hasTeam, ftbBlocks, capacity, registered, teamActive, teamCap, 1, 0);
+                               boolean fits) {
+        return check(hasTeam, ftbBlocks, capacity, registered, fits, 1, 0);
     }
 
     /**
@@ -42,7 +42,7 @@ public final class WakeAllowance {
      * @param toStart FE one second awake costs
      */
     public static Reason check(boolean hasTeam, boolean ftbBlocks, SiteCapacity.State capacity, boolean registered,
-                               int teamActive, int teamCap, long stored, long toStart) {
+                               boolean fits, long stored, long toStart) {
         if (capacity == SiteCapacity.State.NO_UPGRADE) {
             return Reason.NO_UPGRADE;
         }
@@ -58,7 +58,7 @@ public final class WakeAllowance {
         if (ftbBlocks) {
             return Reason.FTB_CHUNKS;
         }
-        if (!registered && teamActive >= teamCap) {
+        if (!registered && !fits) {
             return Reason.TEAM_LIMIT;
         }
         return Reason.ALLOWED;
