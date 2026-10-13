@@ -140,8 +140,19 @@ class TerminalLayoutTest {
     void cpuRowPartsDisjointAndInsideTheList() {
         assertDisjoint(Production.cpuAreas());
         assertInside(Production.cpuAreas(), Production.LIST.w(), Production.CPU_HEIGHT);
-        assertInside(java.util.List.of(new TerminalLayout.Area("buffer line", Production.BUFFER_LINE)),
+        assertInside(List.of(new Area("buffer line", Production.BUFFER_LINE)),
                 Production.LIST.w(), Production.BUFFER_LINE_HEIGHT);
+    }
+
+    @Test
+    void slotRowCoversItsFrameAndLabel() {
+        Rect row = new Rect(8, 30, 36, 18);
+        assertTrue(row.coversRow(7, 19, 19), "left frame pixel on the label line");
+        assertTrue(row.coversRow(44, 47, 19), "right frame pixel on the last row line");
+        assertFalse(row.coversRow(6, 30, 19), "left of the frame");
+        assertFalse(row.coversRow(45, 30, 19), "right of the frame");
+        assertFalse(row.coversRow(20, 18, 19), "above the label");
+        assertFalse(row.coversRow(20, 48, 19), "below the row");
     }
 
     @Test

@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEnt
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
@@ -77,7 +78,7 @@ public final class TerminalWarehouses {
         }
         List<WarehouseNetwork> key = List.copyOf(warehouses);
         Merged merged = MERGED.get(key);
-        if (merged != null && java.util.Arrays.equals(merged.versions(), versions)) {
+        if (merged != null && Arrays.equals(merged.versions(), versions)) {
             return merged.stock();
         }
         if (warehouses.size() == 1) {

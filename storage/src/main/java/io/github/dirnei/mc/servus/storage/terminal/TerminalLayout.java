@@ -25,6 +25,11 @@ public final class TerminalLayout {
             return px >= x && py >= y && px < right() && py < bottom();
         }
 
+        /** Whether a point is on this slot row with its one pixel frame, or on its label from {@code labelY} down. */
+        public boolean coversRow(int px, int py, int labelY) {
+            return px >= x - 1 && px < right() + 1 && py >= labelY && py < bottom();
+        }
+
         public boolean overlaps(Rect other) {
             return x < other.right() && other.x < right() && y < other.bottom() && other.y < bottom();
         }
@@ -201,9 +206,7 @@ public final class TerminalLayout {
             return TABS.x() + index * (TAB_WIDTH + TAB_GAP);
         }
 
-        // Rows of the list. Their parts are relative to the row's top left corner on the list.
-
-        /** The Crafting tab's one line CPU header. */
+        /** The Crafting tab's one line CPU header. Row parts below are relative to the row's top left corner on the list. */
         public static final int HEADER_HEIGHT = 12;
         /** One job of the Crafting tab. */
         public static final int JOB_HEIGHT = 22;

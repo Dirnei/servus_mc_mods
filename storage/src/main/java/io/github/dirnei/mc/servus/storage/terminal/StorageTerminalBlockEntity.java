@@ -170,8 +170,6 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         return count;
     }
 
-    // Requests
-
     public List<Request> requests() {
         return Collections.unmodifiableList(requests);
     }
@@ -238,8 +236,6 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             }
         }
     }
-
-    // Ticking
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, StorageTerminalBlockEntity terminal) {
         if (level instanceof ServerLevel server) {
@@ -391,8 +387,6 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         }
     }
 
-    // Menu
-
     @Override
     public Component getDisplayName() {
         return Component.translatable(getBlockState().getBlock().getDescriptionId());
@@ -402,8 +396,6 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new StorageTerminalMenu(containerId, playerInventory, this);
     }
-
-    // Persistence
 
     @Override
     protected void saveAdditional(ValueOutput output) {
@@ -415,31 +407,68 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         tag.put("Input", this.input.serializeNBT(registries));
         ListTag list = new ListTag();
         for (Request request : requests) {
-            CompoundTag entry = new CompoundTag();
-            entry.putInt("Id", request.id);
-            entry.put("Item", ValueIo.saveStack(registries, request.key.stack(1)));
-            entry.putInt("Requested", request.requested);
-            entry.putInt("Delivered", request.delivered);
-            entry.putInt("Missing", request.missing);
-            if (request.orderCpu != null) {
-                entry.put("OrderCpu", ValueIo.posTag(request.orderCpu));
-            }
-            if (request.remote != null) {
-                entry.putString("Remote", request.remote);
-                entry.putBoolean("Shipped", request.shipped);
-                if (request.relay != null) {
-                    entry.put("Relay", tracked(request.relay));
-                }
-            }
-            ListTag shipments = new ListTag();
-            for (Tracked tracked : request.shipments) {
-                shipments.add(tracked(tracked));
-            }
-            entry.put("Shipments", shipments);
-            list.add(entry);
+            list.add(requestTag(registries, request));
         }
         tag.put("Requests", list);
         output.store(tag);
+    }
+
+    private static CompoundTag requestTag(HolderLookup.Provider registries, Request request) {
+        CompoundTag entry = new CompoundTag();
+        entry.putInt("Id", request.id);
+        entry.put("Item", ValueIo.saveStack(registries, request.key.stack(1)));
+        entry.putInt("Requested", request.requested);
+        entry.putInt("Delivered", request.delivered);
+        entry.putInt("Missing", request.missing);
+        if (request.orderCpu != null) {
+            entry.put("OrderCpu", ValueIo.posTag(request.orderCpu));
+        }
+        if (request.remote != null) {
+            entry.putString("Remote", request.remote);
+            entry.putBoolean("Shipped", request.shipped);
+            if (request.relay != null) {
+                entry.put("Relay", tracked(request.relay));
+            }
+        }
+        ListTag shipments = new ListTag();
+        for (Tracked tracked : request.shipments) {
+            shipments.add(tracked(tracked));
+        }
+        entry.put("Shipments", shipments);
+        return entry;
+    }
+
+    /** A saved request, or empty when its item no longer exists. */
+    private static Optional<Request> readRequest(HolderLookup.Provider registries, CompoundTag entry) {
+        ItemStack item = ValueIo.parseStack(registries, entry.getCompoundOrEmpty("Item"));
+        if (item.isEmpty()) {
+            return Optional.empty();
+        }
+        Request request = new Request(entry.getIntOr("Id", 0), ItemKey.of(item), entry.getIntOr("Requested", 0));
+        request.delivered = entry.getIntOr("Delivered", 0);
+        request.missing = entry.getIntOr("Missing", 0);
+        request.orderCpu = ValueIo.readPos(entry, "OrderCpu").orElse(null);
+        request.remote = entry.contains("Remote") ? entry.getStringOr("Remote", "") : null;
+        request.shipped = entry.getBooleanOr("Shipped", false);
+        if (entry.contains("Relay")) {
+            request.relay = tracked(entry.getCompoundOrEmpty("Relay")).orElse(null);
+        }
+        for (Tag rawShipment : entry.getListOrEmpty("Shipments")) {
+            tracked((CompoundTag) rawShipment).ifPresent(request.shipments::add);
+        }
+        return Optional.of(request);
+    }
+
+    /** Fills the slots from a saved list, clearing those it has no stack for. */
+    private static void loadSlots(ItemSlots target, HolderLookup.Provider registries, CompoundTag tag, String key) {
+        if (!tag.contains(key)) {
+            return;
+        }
+        ItemSlots saved = new ItemSlots();
+        saved.deserializeNBT(registries, tag.getCompoundOrEmpty(key));
+        for (int i = 0; i < target.getSlots(); i++) {
+            target.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
+        }
     }
 
     private static CompoundTag tracked(Tracked tracked) {
@@ -461,41 +490,12 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
         woodSlot.load(input);
-        if (tag.contains("Output")) {
-            ItemSlots saved = new ItemSlots();
-            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("Output"));
-            for (int i = 0; i < this.output.getSlots(); i++) {
-                this.output.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
-            }
-        }
-        if (tag.contains("Input")) {
-            ItemSlots saved = new ItemSlots();
-            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("Input"));
-            for (int i = 0; i < this.input.getSlots(); i++) {
-                this.input.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
-            }
-        }
+        loadSlots(this.output, registries, tag, "Output");
+        loadSlots(this.input, registries, tag, "Input");
         requests.clear();
         idsSeen = false;
         for (Tag raw : tag.getListOrEmpty("Requests")) {
-            CompoundTag entry = (CompoundTag) raw;
-            ItemStack item = ValueIo.parseStack(registries, entry.getCompoundOrEmpty("Item"));
-            if (item.isEmpty()) {
-                continue;
-            }
-            Request request = new Request(entry.getIntOr("Id", 0), ItemKey.of(item), entry.getIntOr("Requested", 0));
-            request.delivered = entry.getIntOr("Delivered", 0);
-            request.missing = entry.getIntOr("Missing", 0);
-            request.orderCpu = ValueIo.readPos(entry, "OrderCpu").orElse(null);
-            request.remote = entry.contains("Remote") ? entry.getStringOr("Remote", "") : null;
-            request.shipped = entry.getBooleanOr("Shipped", false);
-            if (entry.contains("Relay")) {
-                request.relay = tracked(entry.getCompoundOrEmpty("Relay")).orElse(null);
-            }
-            for (Tag rawShipment : entry.getListOrEmpty("Shipments")) {
-                tracked((CompoundTag) rawShipment).ifPresent(request.shipments::add);
-            }
-            requests.add(request);
+            readRequest(registries, (CompoundTag) raw).ifPresent(requests::add);
         }
     }
 
@@ -553,8 +553,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         }
     }
 
-    // Wood: the planks the block was crafted from, shown as its boards
-
+    /** The planks the block was crafted from, shown as its boards. */
     @Override
     public WoodSlot woodSlot() {
         return woodSlot;
@@ -596,8 +595,6 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         return woodSlot.modelData();
     }
 
-    // Data carrier
-
     @Override
     public void onLoad() {
         super.onLoad();
@@ -622,15 +619,12 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         carrier.leave();
     }
 
-    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
+    /** Drops the output and input slots when the block is removed. Server side. */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
-        Level level = this.level;
-        if (level == null) {
-            return;
+        if (level != null) {
+            dropOutput(level, pos);
         }
-        StorageTerminalBlockEntity terminal = this;
-        terminal.dropOutput(level, pos);
     }
 }

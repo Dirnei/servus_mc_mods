@@ -6,6 +6,9 @@ import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
+import io.github.dirnei.mc.servus.storage.site.SiteRegistry;
+import io.github.dirnei.mc.servus.storage.site.SiteWakes;
+import io.github.dirnei.mc.servus.storage.site.WakeAllowance;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity.Request;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity.RequestState;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity.Tracked;
@@ -321,9 +324,9 @@ public final class TerminalRequests {
 
     /** Whether the wake of the other site waits because its controller had too little FE to wake. */
     private static boolean wakeWaitsForPower(ServerLevel level, String siteKey) {
-        return io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(level).site(siteKey)
-                .flatMap(site -> io.github.dirnei.mc.servus.storage.site.SiteWakes.status(site.dimension(), site.pos()))
-                .map(status -> status.reason() == io.github.dirnei.mc.servus.storage.site.WakeAllowance.Reason.NO_POWER)
+        return SiteRegistry.of(level).site(siteKey)
+                .flatMap(site -> SiteWakes.status(site.dimension(), site.pos()))
+                .map(status -> status.reason() == WakeAllowance.Reason.NO_POWER)
                 .orElse(false);
     }
 
