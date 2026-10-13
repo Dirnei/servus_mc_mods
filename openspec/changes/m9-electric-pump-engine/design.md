@@ -80,6 +80,12 @@ The play check found the crank wheel paper thin (only its two flat faces are dra
 - **Pure helpers.** The tangent points of the strands, the motor pulley angle and the lacing mark position come from a small pure `machine/pump/BeltDrive` with JUnit tests, next to `CrankDrive`.
 - **New models and textures.** Standalone `electric_pump_rim`, `electric_pump_axle` (axle with axle pulley), `electric_pump_motor_pulley`, `electric_pump_belt_mark`; static belt strands in the renderer from one `electric_pump_belt` model stretched and tilted like the con rod. Textures `electric_pump_belt.png` (dark leather) and `electric_pump_pulley.png` (spokes), drawn by the job script.
 
+### D9. Play check fixes (2026-10-13)
+
+- **Modelled spokes.** The painted wheel faces read as a 0 px card. The wheel becomes geometry: a hub around the axle, spokes (example 6) as thin boxes from hub to rim, drawn by the renderer like the rim segments, turned with the crank; no flat textured disc any more.
+- **Steel.** `iron_block` reads almost white. The beam, pump rod, con rod, crank pin, axle, pulleys and the electric post take one new `electric_pump_steel.png` (mid grey steel with darker edges); the Burner Pump keeps its look.
+- **Belt round the pulleys.** Besides the two straight strands the belt wraps half way (the outer side) round the axle pulley on top and the motor pulley at the bottom, built from short arc segments drawn like the rim. The lacing mark travels the whole closed loop: strands and arcs. `BeltDrive` gives the loop length and the mark position on it.
+
 PLAN.md open decisions settled: none.
 
 ## Decisions made during apply

@@ -33,6 +33,8 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 - [x] 6.2 Textures by the job script `gen_electric_pump.py`: `textures/block/electric_pump_belt.png`, `electric_pump_pulley.png`; check 16x16 RGBA. `datagen/ElectricPumpModels.java`: rim, axle with axle pulley, motor pulley, belt strand and belt mark models, the thicker wheel, the widened cap with bearing and column, the item model with belt and rim. Run `gradlew :foundation:runData` and `gradlew build`.
 - [x] 6.3 `client/ElectricPumpRenderer.java`: rim drawn 12 times inside the wheel rotation, axle and axle pulley turn with the crank, motor pulley turns by `BeltDrive`, two belt strands placed from tangent to tangent, lacing marks moving; register the new model keys. `machine/pump/ElectricPumpBlock.java` shapes follow the new static parts. Existing pump GameTests stay green. Run `gradlew build` and the Foundation GameTests.
 
+- [ ] 6.4 Play check fixes 2026-10-13 (design.md D9): the crank wheel gets modelled spokes and a hub inside the rim instead of the painted flat faces; the moving and rod parts (beam, pump rod, con rod, crank pin, axle, pulleys, post) take a new darker `electric_pump_steel.png` instead of `iron_block`; the belt wraps half way round the top of the axle pulley and the bottom of the motor pulley with arc segments, the lacing mark runs round the whole loop. JUnit in `BeltDriveTest` for the loop length and the mark on the arcs. Run `gradlew :foundation:runData`, `gradlew build`, `gradlew test` and the Foundation GameTests.
+
 ## 7. Verification
 
 
