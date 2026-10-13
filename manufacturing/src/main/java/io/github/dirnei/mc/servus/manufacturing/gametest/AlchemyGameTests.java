@@ -61,8 +61,6 @@ import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 /** The principles as fluids. */
 public final class AlchemyGameTests {
 
-    static final String EMPTY = "empty_12x6x12";
-
     private AlchemyGameTests() {
     }
 
@@ -250,8 +248,7 @@ public final class AlchemyGameTests {
         Journal.recordItem(level, team, "coagulate", new ItemStack(ServusManufacturingItems.SALT_CRYSTAL.get()), 1);
         helper.assertTrue(Journal.isFinished(level.getServer(), team, VILLACH), "Villach should be finished");
         helper.assertTrue(coagulator.unlocked(locked), "the recipe opens with its chapter");
-        // Awarding to a mock player is left to the play check: Modonomicon syncs book data on every award,
-        // which a mock connection cannot carry.
+        // Awarding is not tested: Modonomicon syncs book data on every award, which a mock connection cannot carry.
         AdvancementHolder advancement = level.getServer().getAdvancements().get(Journal.advancementId(VILLACH));
         helper.assertTrue(advancement != null, "the Villach advancement should exist");
         helper.succeed();
@@ -722,7 +719,7 @@ public final class AlchemyGameTests {
                 "the Workshop category should exist");
         for (String entry : java.util.List.of("principles", "calciner", "purifier", "coagulator", "athanor", "pipes", "salt_crystal_block",
                 "elixir_of_sight", "gnome_hollow")) {
-            // The server keeps only categories until the book is built for clients, so look at the loaded data files.
+            // The server keeps only categories until the book is built for clients, so look at the data files.
             Identifier file = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID,
                     "modonomicon/books/journal/entries/workshop/" + entry + ".json");
             helper.assertTrue(helper.getLevel().getServer().getResourceManager().getResource(file).isPresent(),

@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.gametest.AlchemyGameTests;
 import io.github.dirnei.mc.servus.manufacturing.gametest.CalcinerGameTests;
 import io.github.dirnei.mc.servus.manufacturing.gametest.CoagulatorGameTests;
+import io.github.dirnei.mc.servus.manufacturing.gametest.HollowGameTests;
 import io.github.dirnei.mc.servus.manufacturing.gametest.PurifierGameTests;
 import io.github.dirnei.mc.servus.manufacturing.machine.ManufacturingMachines;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
@@ -38,7 +39,7 @@ public final class ServusManufacturing {
         ServusManufacturingRecipes.RECIPE_TYPES.register(modEventBus);
         ServusManufacturingRecipes.RECIPE_SERIALIZERS.register(modEventBus);
         ServusGameTests.register(modEventBus, ServusManufacturingIds.MOD_ID, List.of(
-                AlchemyGameTests.class, CalcinerGameTests.class, PurifierGameTests.class, CoagulatorGameTests.class));
+                AlchemyGameTests.class, CalcinerGameTests.class, PurifierGameTests.class, CoagulatorGameTests.class, HollowGameTests.class));
         ServusRecipes.syncToClients(ServusManufacturingRecipes.CALCINATION);
         ServusRecipes.syncToClients(ServusManufacturingRecipes.COAGULATION);
         ServusRecipes.syncToClients(ServusManufacturingRecipes.ATHANOR);

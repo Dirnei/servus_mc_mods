@@ -30,7 +30,6 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 /** The Gnome Hollow: seeding, ripening, binding, working. */
 public final class HollowGameTests {
 
-    private static final String EMPTY = AlchemyGameTests.EMPTY;
     private static final BlockPos MACHINE = AlchemyGameTests.MACHINE;
     private static final int IRON_STEPS = 20;
 
