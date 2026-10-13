@@ -1,10 +1,11 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ItemModelProvider;
 import io.github.dirnei.mc.servus.foundation.logistics.datagen.LogisticsDataParts;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import net.minecraft.data.PackOutput;
-import io.github.dirnei.mc.servus.foundation.datagen.model.ItemModelProvider;
 
 final class ServusFoundationItemModelProvider extends ItemModelProvider {
 
@@ -17,7 +18,7 @@ final class ServusFoundationItemModelProvider extends ItemModelProvider {
         basicItem(ServusFoundationItems.CONFIGURATION_CARROT.get());
         basicItem(ServusFoundationItems.GOGGLES.get());
         basicItem(ServusFoundationItems.SPEED_UPGRADE.get());
-        basicItem(io.github.dirnei.mc.servus.foundation.machine.MachineContent.ANCHOR_UPGRADE.get());
+        basicItem(MachineContent.ANCHOR_UPGRADE.get());
         LogisticsDataParts.itemModels(this);
     }
 }

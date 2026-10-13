@@ -4,8 +4,6 @@ import java.util.concurrent.CompletableFuture;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.Item;
 
 /** Writes item models and their item model definitions for one mod. Subclasses fill it in {@link #registerModels()}. */
 public abstract class ItemModelProvider extends ModelProvider.Items implements DataProvider {
@@ -18,16 +16,6 @@ public abstract class ItemModelProvider extends ModelProvider.Items implements D
     }
 
     protected abstract void registerModels();
-
-    @Override
-    public ItemModelBuilder basicItem(Item item) {
-        return super.basicItem(item);
-    }
-
-    @Override
-    public ItemModelBuilder basicItem(Identifier item) {
-        return super.basicItem(item);
-    }
 
     @Override
     public CompletableFuture<?> run(CachedOutput cache) {

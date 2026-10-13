@@ -40,7 +40,6 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
     private final List<ElementBuilder> elements = new ArrayList<>();
     private @Nullable Boolean ambientOcclusion;
     private @Nullable TransformsBuilder transforms;
-    private @Nullable JsonObject loader;
 
     protected ModelBuilder(Identifier location) {
         super(location);
@@ -67,29 +66,13 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
         return self();
     }
 
-    /**
-     * Kept for the existing model code. Since 26.1 the render layer of each
-     * quad follows the transparency of its texture, so nothing is written.
-     */
+    /** Writes nothing: the render layer of each quad follows the transparency of its texture. */
     public T renderType(String renderType) {
-        return self();
-    }
-
-    /** See {@link #renderType(String)}. */
-    public T renderType(Identifier renderType) {
         return self();
     }
 
     public T ao(boolean ambientOcclusion) {
         this.ambientOcclusion = ambientOcclusion;
-        return self();
-    }
-
-    /** A custom loader block, written as is together with the {@code loader} key. */
-    public T customLoader(Identifier loaderId, JsonObject data) {
-        JsonObject json = data.deepCopy();
-        json.addProperty("loader", loaderId.toString());
-        this.loader = json;
         return self();
     }
 
@@ -108,9 +91,6 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
 
     public JsonObject toJson() {
         JsonObject root = new JsonObject();
-        if (loader != null) {
-            loader.entrySet().forEach(entry -> root.add(entry.getKey(), entry.getValue()));
-        }
         if (parent != null) {
             root.addProperty("parent", parent.getLocation().toString());
         }
@@ -133,11 +113,11 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
         return root;
     }
 
-    private static JsonArray vec(float x, float y, float z) {
+    private static JsonArray numbers(float[] values) {
         JsonArray array = new JsonArray();
-        array.add(num(x));
-        array.add(num(y));
-        array.add(num(z));
+        for (float value : values) {
+            array.add(num(value));
+        }
         return array;
     }
 
@@ -154,7 +134,6 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
         private final Map<Direction, FaceBuilder> faces = new EnumMap<>(Direction.class);
         private final List<Direction> faceOrder = new ArrayList<>();
         private @Nullable RotationBuilder rotation;
-        private boolean shade = true;
 
         public ElementBuilder from(float x, float y, float z) {
             from = new float[] {x, y, z};
@@ -163,11 +142,6 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
 
         public ElementBuilder to(float x, float y, float z) {
             to = new float[] {x, y, z};
-            return this;
-        }
-
-        public ElementBuilder shade(boolean shade) {
-            this.shade = shade;
             return this;
         }
 
@@ -180,10 +154,7 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
         }
 
         public ElementBuilder allFaces(BiConsumer<Direction, FaceBuilder> action) {
-            for (Direction direction : Direction.values()) {
-                action.accept(direction, face(direction));
-            }
-            return this;
+            return allFacesExcept(action, Set.of());
         }
 
         public ElementBuilder allFacesExcept(BiConsumer<Direction, FaceBuilder> action, Set<Direction> except) {
@@ -192,11 +163,6 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
                     action.accept(direction, face(direction));
                 }
             }
-            return this;
-        }
-
-        public ElementBuilder faces(BiConsumer<Direction, FaceBuilder> action) {
-            faceOrder.forEach(direction -> action.accept(direction, faces.get(direction)));
             return this;
         }
 
@@ -213,13 +179,10 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
 
         JsonObject toJson() {
             JsonObject json = new JsonObject();
-            json.add("from", vec(from[0], from[1], from[2]));
-            json.add("to", vec(to[0], to[1], to[2]));
+            json.add("from", numbers(from));
+            json.add("to", numbers(to));
             if (rotation != null) {
                 json.add("rotation", rotation.toJson());
-            }
-            if (!shade) {
-                json.addProperty("shade", false);
             }
             JsonObject faceJson = new JsonObject();
             for (Direction direction : faceOrder) {
@@ -276,11 +239,7 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
             JsonObject toJson() {
                 JsonObject json = new JsonObject();
                 if (uvs != null) {
-                    JsonArray array = new JsonArray();
-                    for (float uv : uvs) {
-                        array.add(num(uv));
-                    }
-                    json.add("uv", array);
+                    json.add("uv", numbers(uvs));
                 }
                 if (rotation != FaceRotation.ZERO) {
                     json.addProperty("rotation", rotation.degrees);
@@ -302,7 +261,6 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
             private float[] origin = {8, 8, 8};
             private Direction.Axis axis = Direction.Axis.Y;
             private float angle;
-            private boolean rescale;
 
             public RotationBuilder origin(float x, float y, float z) {
                 origin = new float[] {x, y, z};
@@ -319,23 +277,15 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
                 return this;
             }
 
-            public RotationBuilder rescale(boolean rescale) {
-                this.rescale = rescale;
-                return this;
-            }
-
             public ElementBuilder end() {
                 return ElementBuilder.this;
             }
 
             JsonElement toJson() {
                 JsonObject json = new JsonObject();
-                json.add("origin", vec(origin[0], origin[1], origin[2]));
+                json.add("origin", numbers(origin));
                 json.addProperty("axis", axis.getSerializedName());
                 json.addProperty("angle", num(angle));
-                if (rescale) {
-                    json.addProperty("rescale", true);
-                }
                 return json;
             }
         }
@@ -392,9 +342,9 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
 
             JsonObject toJson() {
                 JsonObject json = new JsonObject();
-                json.add("rotation", vec(rotation[0], rotation[1], rotation[2]));
-                json.add("translation", vec(translation[0], translation[1], translation[2]));
-                json.add("scale", vec(scale[0], scale[1], scale[2]));
+                json.add("rotation", numbers(rotation));
+                json.add("translation", numbers(translation));
+                json.add("scale", numbers(scale));
                 return json;
             }
         }

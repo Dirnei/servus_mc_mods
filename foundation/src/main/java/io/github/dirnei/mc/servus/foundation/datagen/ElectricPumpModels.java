@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
-import static io.github.dirnei.mc.servus.foundation.datagen.BurnerPumpModels.box;
-import static io.github.dirnei.mc.servus.foundation.datagen.BurnerPumpModels.display;
+import static io.github.dirnei.mc.servus.foundation.datagen.MachineModels.blockModel;
+import static io.github.dirnei.mc.servus.foundation.datagen.MachineModels.box;
 
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
@@ -13,23 +13,18 @@ import io.github.dirnei.mc.servus.foundation.machine.pump.BeamPumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BeamPumpParts;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BeltDrive;
 import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpParts;
-import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
-import java.util.Map;
 import net.minecraft.core.Direction;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-import net.minecraft.world.level.block.state.properties.IntegerProperty;
 
 /**
  * The Electric Pump's models: a lower half (dark stone base, motor housing with
  * copper windings, terminal box, motor cap, motor shaft, rod socket), an upper
  * half (cap, post, bearing on its column, fan grille), the moving beam, pump
  * rod, con rod, crank hub with its pin, spoke, rim segment, axle with its
- * pulley, motor pulley,
- * belt strand, lacing mark and fan for the renderer, and an item model with
- * the whole engine. Everything is built
- * facing north from {@link BeamPumpParts} and {@link ElectricPumpParts}.
+ * pulley, motor pulley, belt strand, lacing mark and fan for the renderer, and
+ * an item model with the whole engine. Everything is built facing north from
+ * {@link BeamPumpParts} and {@link ElectricPumpParts}.
  */
 final class ElectricPumpModels {
 
@@ -40,9 +35,9 @@ final class ElectricPumpModels {
 
     static void electricPump(BlockStateProvider provider) {
         Block block = MachineContent.ELECTRIC_PUMP.get();
-        BlockModelBuilder lower = part(provider, NAME + "_lower", false);
+        BlockModelBuilder lower = part(provider, NAME + "_lower");
         addLower(lower, 0);
-        BlockModelBuilder upper = part(provider, NAME + "_upper", true);
+        BlockModelBuilder upper = part(provider, NAME + "_upper");
         addUpper(upper, 0);
         MultiPartBlockStateBuilder builder = provider.getMultipartBuilder(block);
         for (Direction facing : Direction.Plane.HORIZONTAL) {
@@ -52,28 +47,23 @@ final class ElectricPumpModels {
             builder.part().modelFile(upper).rotationY(rotation).addModel()
                     .condition(BeamPumpBlock.HALF, DoubleBlockHalf.UPPER).condition(MachineBlock.FACING, facing).end();
         }
-        for (Map.Entry<Direction, IntegerProperty> stub : PumpBlock.STUBS.entrySet()) {
-            for (int size = 1; size <= PumpBlock.MAX_STUB; size++) {
-                builder.part().modelFile(MachineDataParts.pumpStub(provider, stub.getKey(), size)).addModel()
-                        .condition(stub.getValue(), size).condition(BeamPumpBlock.HALF, DoubleBlockHalf.LOWER).end();
-            }
-        }
-        addBeam(part(provider, NAME + "_beam", false), 0);
-        addRod(part(provider, NAME + "_rod", false), BeamPumpParts.ROD, 0);
-        addRod(part(provider, NAME + "_con_rod", false), ElectricPumpParts.CON_ROD, 0);
-        addWheel(part(provider, NAME + "_wheel", false), 0);
-        box(part(provider, NAME + "_spoke", false), ElectricPumpParts.SPOKE, 0, "#steel", "#steel");
-        addFan(part(provider, NAME + "_fan", true), 0);
-        box(part(provider, NAME + "_rim", false), ElectricPumpParts.RIM_SEGMENT, 0, "#steel", "#steel");
-        addAxle(part(provider, NAME + "_axle", true), 0);
-        disc(part(provider, NAME + "_motor_pulley", true), ElectricPumpParts.MOTOR_PULLEY, 0);
-        strap(part(provider, NAME + "_belt", false), ElectricPumpParts.BELT, "#belt");
-        strap(part(provider, NAME + "_belt_mark", false), ElectricPumpParts.BELT_MARK, "#stone");
+        MachineModels.pumpStubParts(provider, builder);
+        addBeam(part(provider, NAME + "_beam"), 0);
+        MachineModels.rod(part(provider, NAME + "_rod"), BeamPumpParts.ROD, 0, "#steel");
+        MachineModels.rod(part(provider, NAME + "_con_rod"), ElectricPumpParts.CON_ROD, 0, "#steel");
+        addWheel(part(provider, NAME + "_wheel"), 0);
+        box(part(provider, NAME + "_spoke"), ElectricPumpParts.SPOKE, 0, "#steel", "#steel");
+        addFan(part(provider, NAME + "_fan"), 0);
+        box(part(provider, NAME + "_rim"), ElectricPumpParts.RIM_SEGMENT, 0, "#steel", "#steel");
+        addAxle(part(provider, NAME + "_axle"), 0);
+        disc(part(provider, NAME + "_motor_pulley"), ElectricPumpParts.MOTOR_PULLEY, 0);
+        strap(part(provider, NAME + "_belt"), ElectricPumpParts.BELT, "#belt");
+        strap(part(provider, NAME + "_belt_mark"), ElectricPumpParts.BELT_MARK, "#stone");
         provider.simpleBlockItem(block, item(provider));
     }
 
-    private static BlockModelBuilder part(BlockStateProvider provider, String name, boolean cutout) {
-        BlockModelBuilder model = provider.models().withExistingParent(name, provider.mcLoc("block/block"))
+    private static BlockModelBuilder part(BlockStateProvider provider, String name) {
+        return blockModel(provider, name)
                 .texture("particle", provider.modLoc("block/" + NAME + "_housing"))
                 .texture("stone", provider.mcLoc("block/polished_blackstone"))
                 .texture("copper", provider.mcLoc("block/copper_block"))
@@ -85,7 +75,6 @@ final class ElectricPumpModels {
                 .texture("fan", provider.modLoc("block/" + NAME + "_fan"))
                 .texture("belt", provider.modLoc("block/" + NAME + "_belt"))
                 .texture("pulley", provider.modLoc("block/" + NAME + "_pulley"));
-        return cutout ? model.renderType("cutout") : model;
     }
 
     private static void addLower(BlockModelBuilder model, float dy) {
@@ -127,7 +116,7 @@ final class ElectricPumpModels {
     /**
      * A part modelled at crank angle 0, turned about the crank axle by an
      * element rotation, for the item model, which cannot turn it at run time.
-     * Minecraft 26.1 takes any angle here.
+     * Element rotations take any angle.
      */
     private static void turned(BlockModelBuilder model, float[] b, float dy, float degrees) {
         box(model, b, dy, "#steel", "#steel").rotation()
@@ -192,14 +181,6 @@ final class ElectricPumpModels {
         box(model, BeamPumpParts.BEAM, dy, "#steel", "#steel");
     }
 
-    /** A thin steel rod; its sides take a strip of the texture, since it can be taller than a block. */
-    private static void addRod(BlockModelBuilder model, float[] rod, float dy) {
-        model.element().from(rod[0], rod[1] + dy, rod[2]).to(rod[3], rod[4] + dy, rod[5])
-                .allFaces((direction, face) -> face.texture("#steel").uvs(7, 0, 8, 16))
-                .face(Direction.UP).uvs(7, 7, 8, 8).end()
-                .face(Direction.DOWN).uvs(7, 7, 8, 8).end();
-    }
-
     /**
      * The crank hub round the axle, drawn twice with the second turned by 45
      * degrees so it reads round, and the crank pin; both turn with the wheel.
@@ -219,27 +200,21 @@ final class ElectricPumpModels {
                 .face(Direction.EAST).texture("#fan").uvs(0, 0, 16, 16).end();
     }
 
-    /** Both halves stacked with every moving part at rest, scaled down so the two block engine fits a slot. */
+    /** Both halves stacked with every moving part at rest. */
     private static ModelFile item(BlockStateProvider provider) {
-        BlockModelBuilder model = part(provider, NAME + "_item", true);
+        BlockModelBuilder model = part(provider, NAME + "_item");
         addLower(model, 0);
         addUpper(model, 16);
         addBeam(model, 16);
-        addRod(model, BeamPumpParts.ROD, 0);
-        addRod(model, ElectricPumpParts.CON_ROD, 16);
+        MachineModels.rod(model, BeamPumpParts.ROD, 0, "#steel");
+        MachineModels.rod(model, ElectricPumpParts.CON_ROD, 16, "#steel");
         addWheel(model, 16);
         addItemSpokesAndRim(model, 16);
         addAxle(model, 16);
         disc(model, ElectricPumpParts.MOTOR_PULLEY, 0);
         addItemBelt(model);
         addFan(model, 16);
-        display(model, ItemDisplayContext.GUI, 30, 225, 0.4F);
-        display(model, ItemDisplayContext.GROUND, 0, 0, 0.2F);
-        display(model, ItemDisplayContext.FIXED, 0, 0, 0.4F);
-        display(model, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, 75, 45, 0.3F);
-        display(model, ItemDisplayContext.THIRD_PERSON_LEFT_HAND, 75, 45, 0.3F);
-        display(model, ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, 0, 45, 0.3F);
-        display(model, ItemDisplayContext.FIRST_PERSON_LEFT_HAND, 0, 225, 0.3F);
+        MachineModels.twoBlockDisplay(model);
         return model;
     }
 }

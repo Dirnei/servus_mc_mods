@@ -15,7 +15,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
-/** One client data run generates assets and data together, as NeoForge recommends since 21.4. */
+/** Registers Foundation's data providers; one client data run generates assets and data together. */
 @EventBusSubscriber(modid = ServusFoundationIds.MOD_ID, value = Dist.CLIENT)
 public final class ServusFoundationDataGen {
 

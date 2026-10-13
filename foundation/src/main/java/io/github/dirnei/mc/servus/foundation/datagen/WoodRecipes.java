@@ -1,16 +1,14 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
-import com.mojang.serialization.JsonOps;
 import io.github.dirnei.mc.servus.foundation.wood.WoodRecipe;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.recipes.RecipeOutput;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
@@ -23,13 +21,13 @@ public final class WoodRecipes {
     private WoodRecipes() {
     }
 
+    /** Wraps {@code output} so every shaped recipe saved to it is written as a {@link WoodRecipe}. */
     public static RecipeOutput output(RecipeOutput output, HolderLookup.Provider registries) {
-        RegistryOps<com.google.gson.JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, registries);
         return new RecipeOutput() {
             @Override
             public void accept(ResourceKey<Recipe<?>> id, Recipe<?> recipe, @Nullable AdvancementHolder advancement,
                                ICondition... conditions) {
-                output.accept(id, toWood((ShapedRecipe) recipe, ops), advancement, conditions);
+                output.accept(id, toWood((ShapedRecipe) recipe), advancement, conditions);
             }
 
             @Override
@@ -45,7 +43,7 @@ public final class WoodRecipes {
     }
 
     /** The same recipe as a wood recipe, built from the shaped recipe's public data. */
-    private static WoodRecipe toWood(ShapedRecipe recipe, RegistryOps<com.google.gson.JsonElement> ops) {
+    private static WoodRecipe toWood(ShapedRecipe recipe) {
         ShapedCraftingRecipeDisplay display = (ShapedCraftingRecipeDisplay) recipe.display().getFirst();
         ItemStackTemplate result = ((SlotDisplay.ItemStackSlotDisplay) display.result()).stack();
         return new WoodRecipe(new Recipe.CommonInfo(recipe.showNotification()),

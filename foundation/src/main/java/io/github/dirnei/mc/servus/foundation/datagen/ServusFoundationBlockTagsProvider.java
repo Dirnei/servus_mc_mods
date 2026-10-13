@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
-import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.logistics.datagen.LogisticsDataParts;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;

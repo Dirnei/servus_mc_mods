@@ -1,5 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
+import static io.github.dirnei.mc.servus.foundation.datagen.MachineModels.blockModel;
+
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.sink.ChimneyBlock;
 import io.github.dirnei.mc.servus.foundation.machine.sink.SinkBlock;
@@ -8,11 +15,6 @@ import java.util.EnumSet;
 import java.util.Set;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
-import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
-import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
-import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
-import io.github.dirnei.mc.servus.foundation.datagen.model.ModelBuilder;
-import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 
 /** Models of the Sink, its Chimney and the fan its block entity renderer draws. */
 final class SinkModels {
@@ -37,10 +39,9 @@ final class SinkModels {
             if (!state.getValue(SinkBlock.FORMED)) {
                 return ConfiguredModel.builder().modelFile(casing).build();
             }
-            Direction facing = state.getValue(SinkBlock.FACING);
             return ConfiguredModel.builder()
                     .modelFile(parts[state.getValue(SinkBlock.PART)])
-                    .rotationY(((int) facing.toYRot() + 180) % 360)
+                    .rotationY(MachineModels.rotationY(state.getValue(SinkBlock.FACING)))
                     .uvLock(true)
                     .build();
         });
@@ -53,9 +54,7 @@ final class SinkModels {
      */
     private static ModelFile sinkPart(BlockStateProvider provider, int part) {
         Identifier bricks = provider.mcLoc("block/bricks");
-        BlockModelBuilder model = provider.models().getBuilder("sink_part_" + part)
-                .parent(provider.models().getExistingFile(provider.mcLoc("block/block")))
-                .renderType("cutout")
+        BlockModelBuilder model = blockModel(provider, "sink_part_" + part)
                 .texture("particle", bricks)
                 .texture("bricks", bricks);
         boolean right = (part & SinkLayout.RIGHT) != 0;
@@ -112,12 +111,10 @@ final class SinkModels {
         return model;
     }
 
-    /** Full brick block inside a column; the top block carries a wider cap with an open flue. */
+    /** A brick shaft ten pixels wide; the top block ends in a cap twelve pixels wide with an open flue. */
     static void chimney(BlockStateProvider provider) {
         Identifier bricks = provider.mcLoc("block/bricks");
-        // A slim shaft, ten pixels wide; the top block ends in a cap twelve pixels wide with an open flue.
-        BlockModelBuilder column = provider.models().getBuilder("chimney")
-                .parent(provider.models().getExistingFile(provider.mcLoc("block/block")))
+        BlockModelBuilder column = blockModel(provider, "chimney")
                 .texture("particle", bricks)
                 .texture("bricks", bricks);
         column.element().from(3, 0, 3).to(13, 16, 13)
@@ -128,8 +125,7 @@ final class SinkModels {
                 .face(Direction.UP).texture("#bricks").uvs(3, 3, 13, 13).cullface(Direction.UP).end()
                 .face(Direction.DOWN).texture("#bricks").uvs(3, 3, 13, 13).cullface(Direction.DOWN).end()
                 .end();
-        BlockModelBuilder top = provider.models().getBuilder("chimney_top")
-                .parent(provider.models().getExistingFile(provider.mcLoc("block/block")))
+        BlockModelBuilder top = blockModel(provider, "chimney_top")
                 .texture("particle", bricks)
                 .texture("bricks", bricks)
                 .texture("top", provider.modLoc("block/chimney_top"));
@@ -184,13 +180,12 @@ final class SinkModels {
 
     private static void fanBlade(BlockModelBuilder fan, float x0, float y0, float x1, float y1, float z0, float z1,
                                  Direction.Axis axis, float angle) {
-        boolean upright = axis == Direction.Axis.Y;
+        ModelBuilder.FaceRotation faceRotation = axis == Direction.Axis.Y
+                ? ModelBuilder.FaceRotation.ZERO : ModelBuilder.FaceRotation.CLOCKWISE_90;
         fan.element().from(x0, y0, z0).to(x1, y1, z1)
                 .allFaces((direction, face) -> face.texture("#fan").uvs(8, 8, 16, 9))
-                .face(Direction.NORTH).uvs(0, 0, 8, 16).rotation(upright ? ModelBuilder.FaceRotation.ZERO
-                        : ModelBuilder.FaceRotation.CLOCKWISE_90).end()
-                .face(Direction.SOUTH).uvs(0, 0, 8, 16).rotation(upright ? ModelBuilder.FaceRotation.ZERO
-                        : ModelBuilder.FaceRotation.CLOCKWISE_90).end()
+                .face(Direction.NORTH).uvs(0, 0, 8, 16).rotation(faceRotation).end()
+                .face(Direction.SOUTH).uvs(0, 0, 8, 16).rotation(faceRotation).end()
                 .rotation().origin((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2).axis(axis).angle(angle).end()
                 .end();
     }

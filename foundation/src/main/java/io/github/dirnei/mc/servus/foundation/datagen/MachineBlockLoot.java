@@ -8,7 +8,10 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
-/** Foundation's machines drop themselves; their contents drop from the block entity. */
+/**
+ * Foundation's machines drop themselves; their contents drop from the block
+ * entity. Two block machines drop only from the lower half, like a door.
+ */
 final class MachineBlockLoot extends BlockLootSubProvider {
 
     MachineBlockLoot(HolderLookup.Provider registries) {
@@ -19,7 +22,6 @@ final class MachineBlockLoot extends BlockLootSubProvider {
     protected void generate() {
         for (Block block : MachineDataParts.selfDropping()) {
             if (block.defaultBlockState().hasProperty(TwoHalves.HALF)) {
-                // Two blocks tall: only the lower half drops the item, like a door.
                 add(block, createSinglePropConditionTable(block, TwoHalves.HALF, DoubleBlockHalf.LOWER));
             } else {
                 dropSelf(block);

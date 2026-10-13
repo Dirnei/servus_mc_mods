@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
-import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.logistics.datagen.LogisticsDataParts;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import net.minecraft.data.PackOutput;

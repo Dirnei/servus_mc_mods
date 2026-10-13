@@ -3,10 +3,9 @@ package io.github.dirnei.mc.servus.foundation.datagen.model;
 import net.minecraft.resources.Identifier;
 
 /**
- * A model by location, for the Servus model datagen. Vanilla's model
- * generators (26.1) have no free form element builder, so the Servus mods keep
- * their own small JSON model writers in this package; the output is the plain
- * vanilla block and item model format.
+ * A model by location. The builders in this package write plain vanilla block
+ * and item model JSON, since vanilla's model generators have no free form
+ * element builder.
  */
 public abstract class ModelFile {
 
@@ -32,7 +31,7 @@ public abstract class ModelFile {
         }
     }
 
-    /** A model that exists as a resource; the 26.1 datagen has no file helper to check it. */
+    /** A model that exists as a resource; not checked, the datagen has no file helper for it. */
     public static class ExistingModelFile extends UncheckedModelFile {
 
         public ExistingModelFile(Identifier location) {

@@ -1,29 +1,19 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
-import net.minecraft.world.item.Item;
-import net.minecraft.core.HolderGetter;
-import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
-import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.criterion.InventoryChangeTrigger;
-import net.minecraft.core.Direction;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
-import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
-import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
-import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
-import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
-import io.github.dirnei.mc.servus.foundation.datagen.model.MultiPartBlockStateBuilder;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
 /** Datagen of the machines Foundation owns: models, loot, tags, lang and recipes. */
@@ -34,7 +24,7 @@ final class MachineDataParts {
 
     static void blockStates(BlockStateProvider provider) {
         CoalGeneratorModels.coalGenerator(provider);
-        enderAnchor(provider);
+        MachineModels.enderAnchor(provider);
         BurnerPumpModels.burnerPump(provider);
         ElectricPumpModels.electricPump(provider);
         SinkModels.sink(provider);
@@ -115,7 +105,6 @@ final class MachineDataParts {
                 .unlockedBy("has_bucket", has.apply(Items.BUCKET))
                 .save(output);
 
-        // No research and no assembler in Foundation: the Electric Pump is crafted from a Burner Pump by hand.
         ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.ELECTRIC_PUMP_ITEM.get())
                 .pattern("CRC")
                 .pattern("IPI")
@@ -127,7 +116,6 @@ final class MachineDataParts {
                 .unlockedBy("has_burner_pump", has.apply(MachineContent.BURNER_PUMP_ITEM.get()))
                 .save(output);
 
-        // No assembler in Foundation: the Ender Anchor is crafted by hand.
         ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.ENDER_ANCHOR_ITEM.get())
                 .pattern("ICI")
                 .pattern("RER")
@@ -140,7 +128,6 @@ final class MachineDataParts {
                 .unlockedBy("has_ender_pearl", has.apply(Items.ENDER_PEARL))
                 .save(output);
 
-        // An Ender Anchor in the middle: widens another anchor's area or lets a warehouse site wake.
         ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, MachineContent.ANCHOR_UPGRADE.get())
                 .pattern(" E ")
                 .pattern("IAI")
@@ -152,7 +139,6 @@ final class MachineDataParts {
                 .unlockedBy("has_ender_anchor", has.apply(MachineContent.ENDER_ANCHOR_ITEM.get()))
                 .save(output);
 
-        // Eight Sink blocks build one 2x2x2 Sink.
         ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.SINK_ITEM.get(), 8)
                 .pattern("BBB")
                 .pattern("BRB")
@@ -169,40 +155,5 @@ final class MachineDataParts {
                 .define('B', Items.BRICK)
                 .unlockedBy("has_brick", has.apply(Items.BRICK))
                 .save(output);
-    }
-
-    /** A short pipe from the pump body to the block edge, as thick as a duct arm with {@code size} lines; shared by both pumps. */
-    static ModelFile pumpStub(BlockStateProvider provider, Direction direction, int size) {
-        BlockModelBuilder model = provider.models()
-                .withExistingParent("pump_stub_" + direction.getSerializedName() + "_" + size, provider.mcLoc("block/block"))
-                .texture("particle", provider.modLoc("block/machine_side"))
-                .texture("side", provider.modLoc("block/machine_side"))
-                .texture("top", provider.modLoc("block/machine_top"));
-        int[] box = PumpBlock.stubBox(direction, size);
-        int lo = 8 - PumpBlock.stubRadius(size);
-        int hi = 8 + PumpBlock.stubRadius(size);
-        model.element().from(box[0], box[1], box[2]).to(box[3], box[4], box[5])
-                .allFaces((face, builder) -> builder.texture(face == direction || face == direction.getOpposite() ? "#top" : "#side")
-                        .uvs(lo, lo, hi, hi))
-                .face(direction).cullface(direction).end();
-        return model;
-    }
-
-    /**
-     * The Ender Anchor: obsidian front with the shut eye in
-     * its socket (the renderer draws the open eye over it), chunk grid sides,
-     * and a top whose purple core brightens while it holds its chunk.
-     */
-    static void enderAnchor(BlockStateProvider provider) {
-        Block block = MachineContent.ENDER_ANCHOR.get();
-        Identifier side = provider.modLoc("block/ender_anchor_side");
-        Identifier front = provider.modLoc("block/ender_anchor_front");
-        ModelFile unlit = provider.models().orientable("ender_anchor", side, front, provider.modLoc("block/ender_anchor_top"));
-        ModelFile lit = provider.models().orientable("ender_anchor_lit", side, front, provider.modLoc("block/ender_anchor_top_lit"));
-        provider.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(state.getValue(MachineBlock.LIT) ? lit : unlit)
-                .rotationY(((int) state.getValue(MachineBlock.FACING).toYRot() + 180) % 360)
-                .build());
-        provider.simpleBlockItem(block, unlit);
     }
 }

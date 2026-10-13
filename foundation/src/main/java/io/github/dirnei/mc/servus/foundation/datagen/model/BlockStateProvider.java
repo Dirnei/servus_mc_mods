@@ -81,8 +81,8 @@ public abstract class BlockStateProvider implements DataProvider {
         return models().cubeAll(id.getPath(), id.withPrefix("block/"));
     }
 
+    /** One {@code ""} variant with {@code model} for every state. */
     public void simpleBlock(Block block, ModelFile model) {
-        // One "" variant covers every state, as the old builder wrote it.
         getVariantBuilder(block).single(new ConfiguredModel(model));
     }
 
