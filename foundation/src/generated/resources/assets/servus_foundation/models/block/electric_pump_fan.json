@@ -35,6 +35,7 @@
     }
   ],
   "textures": {
+    "belt": "servus_foundation:block/electric_pump_belt",
     "copper": "minecraft:block/copper_block",
     "fan": "servus_foundation:block/electric_pump_fan",
     "grille": "servus_foundation:block/electric_pump_grille",
@@ -42,6 +43,7 @@
     "iron": "minecraft:block/iron_block",
     "oxidized": "minecraft:block/oxidized_copper",
     "particle": "servus_foundation:block/electric_pump_housing",
+    "pulley": "servus_foundation:block/electric_pump_pulley",
     "stone": "minecraft:block/polished_blackstone",
     "terminal": "servus_foundation:block/electric_pump_terminal",
     "wheel": "servus_foundation:block/electric_pump_wheel"

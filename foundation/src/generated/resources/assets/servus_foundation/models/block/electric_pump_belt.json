@@ -1,0 +1,87 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#belt",
+          "uv": [
+            2,
+            7,
+            14,
+            8
+          ]
+        },
+        "east": {
+          "texture": "#belt",
+          "uv": [
+            2,
+            0,
+            14,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#belt",
+          "uv": [
+            2,
+            0,
+            14,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#belt",
+          "uv": [
+            2,
+            0,
+            14,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#belt",
+          "uv": [
+            2,
+            7,
+            14,
+            8
+          ]
+        },
+        "west": {
+          "texture": "#belt",
+          "uv": [
+            2,
+            0,
+            14,
+            16
+          ]
+        }
+      },
+      "from": [
+        7.8,
+        0,
+        13.5
+      ],
+      "to": [
+        8.2,
+        16,
+        14.5
+      ]
+    }
+  ],
+  "textures": {
+    "belt": "servus_foundation:block/electric_pump_belt",
+    "copper": "minecraft:block/copper_block",
+    "fan": "servus_foundation:block/electric_pump_fan",
+    "grille": "servus_foundation:block/electric_pump_grille",
+    "housing": "servus_foundation:block/electric_pump_housing",
+    "iron": "minecraft:block/iron_block",
+    "oxidized": "minecraft:block/oxidized_copper",
+    "particle": "servus_foundation:block/electric_pump_housing",
+    "pulley": "servus_foundation:block/electric_pump_pulley",
+    "stone": "minecraft:block/polished_blackstone",
+    "terminal": "servus_foundation:block/electric_pump_terminal",
+    "wheel": "servus_foundation:block/electric_pump_wheel"
+  }
+}

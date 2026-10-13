@@ -22,9 +22,11 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 
 /**
  * The Electric Pump's models: a lower half (dark stone base, motor housing with
- * copper windings, terminal box, motor cap, rod socket), an upper half (cap,
- * post, fan grille), the moving beam, pump rod, con rod, crank wheel and fan for
- * the renderer, and an item model with the whole engine. Everything is built
+ * copper windings, terminal box, motor cap, motor shaft, rod socket), an upper
+ * half (cap, post, bearing on its column, fan grille), the moving beam, pump
+ * rod, con rod, crank wheel, rim segment, axle with its pulley, motor pulley,
+ * belt strand, lacing mark and fan for the renderer, and an item model with
+ * the whole engine. Everything is built
  * facing north from {@link BeamPumpParts} and {@link ElectricPumpParts}.
  */
 final class ElectricPumpModels {
@@ -59,6 +61,11 @@ final class ElectricPumpModels {
         addRod(part(provider, NAME + "_con_rod", false), ElectricPumpParts.CON_ROD, 0);
         addWheel(part(provider, NAME + "_wheel", true), 0);
         addFan(part(provider, NAME + "_fan", true), 0);
+        box(part(provider, NAME + "_rim", false), ElectricPumpParts.RIM_SEGMENT, 0, "#iron", "#iron");
+        addAxle(part(provider, NAME + "_axle", true), 0);
+        disc(part(provider, NAME + "_motor_pulley", true), ElectricPumpParts.MOTOR_PULLEY, 0);
+        strap(part(provider, NAME + "_belt", false), ElectricPumpParts.BELT, "#belt");
+        strap(part(provider, NAME + "_belt_mark", false), ElectricPumpParts.BELT_MARK, "#stone");
         provider.simpleBlockItem(block, item(provider));
     }
 
@@ -73,7 +80,9 @@ final class ElectricPumpModels {
                 .texture("terminal", provider.modLoc("block/" + NAME + "_terminal"))
                 .texture("grille", provider.modLoc("block/" + NAME + "_grille"))
                 .texture("fan", provider.modLoc("block/" + NAME + "_fan"))
-                .texture("wheel", provider.modLoc("block/" + NAME + "_wheel"));
+                .texture("wheel", provider.modLoc("block/" + NAME + "_wheel"))
+                .texture("belt", provider.modLoc("block/" + NAME + "_belt"))
+                .texture("pulley", provider.modLoc("block/" + NAME + "_pulley"));
         return cutout ? model.renderType("cutout") : model;
     }
 
@@ -86,15 +95,78 @@ final class ElectricPumpModels {
         box(model, ElectricPumpParts.TERMINAL, dy, "#terminal", "#terminal");
         box(model, ElectricPumpParts.MOTOR_CAP, dy, "#stone", "#stone");
         box(model, BeamPumpParts.SOCKET, dy, "#oxidized", "#oxidized");
+        box(model, ElectricPumpParts.MOTOR_SHAFT, dy, "#iron", "#iron");
     }
 
-    /** Cap, post and the fan grille: slats with open gaps in front of a dark box, the fan spins between them. */
+    /** Cap, post, the axle's bearing on its column and the fan grille: slats with open gaps in front of a dark box, the fan spins between them. */
     private static void addUpper(BlockModelBuilder model, float dy) {
         box(model, ElectricPumpParts.CAP, dy, "#stone", "#stone");
         box(model, ElectricPumpParts.POST_FOOT, dy, "#iron", "#iron");
         box(model, BeamPumpParts.POST, dy, "#iron", "#iron");
         box(model, ElectricPumpParts.GRILLE_BOX, dy, "#stone", "#stone");
         box(model, ElectricPumpParts.GRILLE_FRAME, dy, "#stone", "#stone").face(Direction.WEST).texture("#grille").end();
+        box(model, ElectricPumpParts.BEARING_COLUMN, dy, "#stone", "#stone");
+        box(model, ElectricPumpParts.BEARING, dy, "#housing", "#housing");
+    }
+
+    /** The iron axle and the pulley on its back end; both turn with the crank. */
+    private static void addAxle(BlockModelBuilder model, float dy) {
+        box(model, ElectricPumpParts.AXLE, dy, "#iron", "#iron");
+        disc(model, ElectricPumpParts.AXLE_PULLEY, dy);
+    }
+
+    /** A pulley disc showing its spokes on both flat faces, so it stays round while it turns. */
+    private static void disc(BlockModelBuilder model, float[] d, float dy) {
+        model.element().from(d[0], d[1] + dy, d[2]).to(d[3], d[4] + dy, d[5])
+                .face(Direction.NORTH).texture("#pulley").uvs(0, 0, 16, 16).end()
+                .face(Direction.SOUTH).texture("#pulley").uvs(0, 0, 16, 16).end();
+    }
+
+    /**
+     * The rim for the item model, which cannot turn one segment twelve times:
+     * eight segments, four turned by quarter turns and four more by an element
+     * rotation of 45 degrees.
+     */
+    private static void addItemRim(BlockModelBuilder model, float dy) {
+        float cx = ElectricPumpParts.CRANK_X;
+        float cy = ElectricPumpParts.CRANK_Y;
+        float[] r = ElectricPumpParts.RIM_SEGMENT;
+        for (int quarter = 0; quarter < 4; quarter++) {
+            float x1 = r[0] - cx;
+            float y1 = r[1] - cy;
+            float x2 = r[3] - cx;
+            float y2 = r[4] - cy;
+            for (int i = 0; i < quarter; i++) {
+                float nx1 = -y2;
+                float nx2 = -y1;
+                y1 = x1;
+                y2 = x2;
+                x1 = nx1;
+                x2 = nx2;
+            }
+            float[] turned = {cx + x1, cy + y1, r[2], cx + x2, cy + y2, r[5]};
+            box(model, turned, dy, "#iron", "#iron");
+            box(model, turned, dy, "#iron", "#iron")
+                    .rotation().origin(cx, cy + dy, (r[2] + r[5]) / 2).axis(Direction.Axis.Z).angle(45).end();
+        }
+    }
+
+    /** The two belt strands for the item model, standing straight between their tangent points. */
+    private static void addItemBelt(BlockModelBuilder model) {
+        float half = ElectricPumpParts.BELT_T / 2;
+        for (int side = 0; side < 2; side++) {
+            float[] s = ElectricPumpParts.DRIVE.strand(side);
+            float x = (s[0] + s[2]) / 2;
+            strap(model, new float[] {x - half, s[1], ElectricPumpParts.BELT_Z1, x + half, s[3], ElectricPumpParts.BELT_Z2}, "#belt");
+        }
+    }
+
+    /** A thin strap or mark with fixed UVs, since it may reach below or above its block. */
+    private static void strap(BlockModelBuilder model, float[] b, String texture) {
+        model.element().from(b[0], b[1], b[2]).to(b[3], b[4], b[5])
+                .allFaces((direction, face) -> face.texture(texture).uvs(2, 0, 14, 16))
+                .face(Direction.UP).uvs(2, 7, 14, 8).end()
+                .face(Direction.DOWN).uvs(2, 7, 14, 8).end();
     }
 
     private static void addBeam(BlockModelBuilder model, float dy) {
@@ -135,6 +207,10 @@ final class ElectricPumpModels {
         addRod(model, BeamPumpParts.ROD, 0);
         addRod(model, ElectricPumpParts.CON_ROD, 16);
         addWheel(model, 16);
+        addItemRim(model, 16);
+        addAxle(model, 16);
+        disc(model, ElectricPumpParts.MOTOR_PULLEY, 0);
+        addItemBelt(model);
         addFan(model, 16);
         display(model, ItemDisplayContext.GUI, 30, 225, 0.4F);
         display(model, ItemDisplayContext.GROUND, 0, 0, 0.2F);
