@@ -10,8 +10,7 @@ import io.github.dirnei.mc.servus.foundation.graph.Side;
  * only to rails (racks also to bays of their own section), so they never join
  * or pass on a warehouse by touching it. Rails link sideways to rails and to
  * elevator segments. Segments link vertically to segments and sideways to
- * rails, never straight to the controller, a rack or a station. Pure, no
- * Minecraft imports.
+ * rails, never straight to the controller, a rack or a station.
  */
 public final class WarehouseConnectionRule {
 
@@ -35,9 +34,7 @@ public final class WarehouseConnectionRule {
         boolean vertical = side == Side.UP || side == Side.DOWN;
         return switch (from) {
             case STOCK -> to == NodeKind.STOCK || to == NodeKind.RAIL;
-            // Shuttle served blocks join only through rails; which faces take a rail is up to the block.
             case STATION, GARAGE -> to == NodeKind.RAIL;
-            // A rack links only to rails (its front, checked by the network) and to bays of its own section.
             case RACK -> to == NodeKind.RAIL || to == NodeKind.RACK;
             case RAIL -> to == NodeKind.STOCK || to == NodeKind.STATION || to == NodeKind.GARAGE || to == NodeKind.RACK || !vertical;
             case ELEVATOR -> switch (to) {

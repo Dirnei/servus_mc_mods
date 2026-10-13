@@ -1,28 +1,27 @@
 package io.github.dirnei.mc.servus.storage.network;
 
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.network.NetworkBlockEntity;
 import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
-import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.NetworkType;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
 import io.github.dirnei.mc.servus.storage.zone.ZoneFilter;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import java.util.Objects;
-import org.jspecify.annotations.Nullable;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 
 /** Base of every block that takes part in a warehouse network. */
 public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageNodeBlockEntity> {
@@ -33,8 +32,6 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
     protected StorageNodeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
-
-    // Zones
 
     /** The zone name for display, empty when unzoned. */
     public String zone() {
@@ -58,8 +55,7 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
 
     /**
      * The node's own slots as the warehouse reads and fills them, or null for
-     * nodes that hold no stock. The warehouse never goes through the item
-     * capability, which a docked rack does not expose.
+     * nodes that hold no stock. A docked rack exposes no item capability.
      */
     public @Nullable ItemView stock() {
         return null;
@@ -112,8 +108,6 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         zone = tag.contains("Zone") ? ZoneDefinition.load(tag.getCompoundOrEmpty("Zone"), registries) : null;
     }
 
-    // Linking
-
     @Override
     public NetworkType<StorageNodeBlockEntity, ?, ?> networkType() {
         return WarehouseNetwork.TYPE;
@@ -137,7 +131,7 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         return NodeKind.STOCK;
     }
 
-    /** Whether rails dock onto this node: stock blocks, inbound stations and garages. */
+    /** Whether rails dock onto this node. */
     public final boolean docksRail() {
         NodeKind kind = kind();
         return kind == NodeKind.STOCK || kind == NodeKind.STATION || kind == NodeKind.GARAGE || kind == NodeKind.RACK;
