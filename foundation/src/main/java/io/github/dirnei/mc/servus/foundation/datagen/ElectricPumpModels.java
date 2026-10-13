@@ -141,7 +141,10 @@ final class ElectricPumpModels {
             turned(model, ElectricPumpParts.SPOKE, dy, 360.0F * i / ElectricPumpParts.SPOKES);
         }
         for (int i = 0; i < ElectricPumpParts.RIM_SEGMENTS; i++) {
-            turned(model, ElectricPumpParts.RIM_SEGMENT, dy, 360.0F * i / ElectricPumpParts.RIM_SEGMENTS);
+            float[] r = ElectricPumpParts.RIM_SEGMENT.clone();
+            r[2] -= i * ElectricPumpParts.DEPTH_STEP;
+            r[5] -= i * ElectricPumpParts.DEPTH_STEP;
+            turned(model, r, dy, 360.0F * i / ElectricPumpParts.RIM_SEGMENTS);
         }
     }
 
@@ -186,7 +189,7 @@ final class ElectricPumpModels {
     }
 
     private static void addBeam(BlockModelBuilder model, float dy) {
-        box(model, BeamPumpParts.BEAM, dy, "#steel", "#stone");
+        box(model, BeamPumpParts.BEAM, dy, "#steel", "#steel");
     }
 
     /** A thin steel rod; its sides take a strip of the texture, since it can be taller than a block. */
@@ -204,7 +207,7 @@ final class ElectricPumpModels {
      */
     private static void addWheel(BlockModelBuilder model, float dy) {
         box(model, ElectricPumpParts.HUB, dy, "#steel", "#steel");
-        turned(model, ElectricPumpParts.HUB, dy, 45);
+        turned(model, ElectricPumpParts.HUB_TURNED, dy, 45);
         box(model, ElectricPumpParts.PIN, dy, "#steel", "#steel");
     }
 

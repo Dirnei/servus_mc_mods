@@ -109,8 +109,11 @@ public class ElectricPumpRenderer implements BlockEntityRenderer<ElectricPumpBlo
         // The motor pulley and the belt up to the crank axle, also in the lower half's frame.
         rotateAbout(poseStack, ElectricPumpParts.MOTOR_X, ElectricPumpParts.MOTOR_Y, 0, Axis.ZP, state.motor,
                 () -> ModelKeys.submit(MOTOR_PULLEY_MODEL, poseStack, collector, light));
-        for (float[] piece : BELT_PIECES) {
-            strap(piece, BELT_MODEL, poseStack, collector, light);
+        for (int i = 0; i < BELT_PIECES.length; i++) {
+            poseStack.pushPose();
+            poseStack.translate(0.0F, 0.0F, -i * ElectricPumpParts.DEPTH_STEP / 16.0F);
+            strap(BELT_PIECES[i], BELT_MODEL, poseStack, collector, light);
+            poseStack.popPose();
         }
         for (float mark : state.marks) {
             mark(mark, poseStack, collector, light);
@@ -126,8 +129,14 @@ public class ElectricPumpRenderer implements BlockEntityRenderer<ElectricPumpBlo
                         360.0F * i / ElectricPumpParts.SPOKES, () -> ModelKeys.submit(SPOKE_MODEL, poseStack, collector, light));
             }
             for (int i = 0; i < ElectricPumpParts.RIM_SEGMENTS; i++) {
+                float depth = -i * ElectricPumpParts.DEPTH_STEP / 16.0F;
                 rotateAbout(poseStack, ElectricPumpParts.CRANK_X, ElectricPumpParts.CRANK_Y, 0, Axis.ZP,
-                        360.0F * i / ElectricPumpParts.RIM_SEGMENTS, () -> ModelKeys.submit(RIM_MODEL, poseStack, collector, light));
+                        360.0F * i / ElectricPumpParts.RIM_SEGMENTS, () -> {
+                            poseStack.pushPose();
+                            poseStack.translate(0.0F, 0.0F, depth);
+                            ModelKeys.submit(RIM_MODEL, poseStack, collector, light);
+                            poseStack.popPose();
+                        });
             }
         });
         conRod(state, poseStack, collector, light);

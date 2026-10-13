@@ -55,13 +55,20 @@ public final class ElectricPumpParts {
     public static final float[] WHEEL = {CRANK_X - CRANK_R, CRANK_Y - CRANK_R, 6, CRANK_X + CRANK_R, CRANK_Y + CRANK_R, 8};
     /** The hub round the axle, a little proud of the wheel on both sides; the renderer draws it twice, the second turned by 45 degrees. */
     public static final float[] HUB = {CRANK_X - 0.9F, CRANK_Y - 0.9F, 5.8F, CRANK_X + 0.9F, CRANK_Y + 0.9F, 8.2F};
+    /** The hub's second box, turned 45 degrees, set a hair inside the first so their faces never share a plane. */
+    public static final float[] HUB_TURNED = {HUB[0], HUB[1], HUB[2] + 0.05F, HUB[3], HUB[4], HUB[5] - 0.05F};
+    /**
+     * How far each further rim segment or belt piece sits toward the front, in
+     * pixels: overlapping neighbours in one plane would flicker.
+     */
+    public static final float DEPTH_STEP = 0.005F;
     /** Spokes from the hub to the rim; the renderer turns one spoke by 360 / this each time. */
     public static final int SPOKES = 6;
     /**
      * One spoke at crank angle 0, from inside the hub into the rim, flush with
      * the wheel's front so the crank pin sits on it.
      */
-    public static final float[] SPOKE = {CRANK_X + 0.6F, CRANK_Y - 0.3F, 6, CRANK_X + CRANK_R - 0.4F, CRANK_Y + 0.3F, 7.4F};
+    public static final float[] SPOKE = {CRANK_X + 0.6F, CRANK_Y - 0.3F, 6, CRANK_X + CRANK_R - 0.6F, CRANK_Y + 0.3F, 7.4F};
     /** Segments of the rim band around the wheel; the renderer turns one segment by 360 / this each time. */
     public static final int RIM_SEGMENTS = 12;
     /** One rim segment at crank angle 0: tangent to the wheel's edge, as thick as the wheel. */

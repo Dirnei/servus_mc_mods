@@ -4,7 +4,7 @@
     {
       "faces": {
         "down": {
-          "texture": "#stone",
+          "texture": "#steel",
           "uv": [
             0.5,
             11,
@@ -40,7 +40,7 @@
           ]
         },
         "up": {
-          "texture": "#stone",
+          "texture": "#steel",
           "uv": [
             0.5,
             3,
