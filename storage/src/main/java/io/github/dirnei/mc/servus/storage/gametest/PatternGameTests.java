@@ -79,7 +79,7 @@ public final class PatternGameTests {
     }
 
     private static DataNetwork line(GameTestHelper helper) {
-        return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(DUCT)).orElseThrow();
+        return DataLines.at(helper, DUCT);
     }
 
     private static boolean storagesOnLine(GameTestHelper helper, int count) {

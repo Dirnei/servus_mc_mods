@@ -52,10 +52,7 @@ public final class ChainHandoffGameTests {
     }
 
     private static boolean twoProducers(GameTestHelper helper) {
-        return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(4, 2, 2)))
-                .map(network -> network.dataMembers(DataRole.PRODUCER).size() == 2
-                        && CpuOrders.cpus(helper.getLevel(), network).size() == 1)
-                .orElse(false);
+        return DataLines.ready(helper, new BlockPos(4, 2, 2), 2);
     }
 
     /** The most of the key the warehouse held at any tick so far, kept in {@code seen[0]}. */
@@ -149,7 +146,7 @@ public final class ChainHandoffGameTests {
                 .map(network -> network.dataMembers(DataRole.PRODUCER).size() == 2
                         && CpuOrders.cpus(helper.getLevel(), network).size() == 1).orElse(false), 60,
                 () -> "the adapter, the station and the CPU should join the line", () -> {
-            DataNetwork network = DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(line)).orElseThrow();
+            DataNetwork network = DataLines.at(helper, line);
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), network, STONE_BRICKS, 4, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();

@@ -1,9 +1,8 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
-import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
+import io.github.dirnei.mc.servus.storage.menu.PackingStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
@@ -15,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -32,10 +32,7 @@ public final class TerminalCraftGameTests {
     }
 
     private static boolean ready(GameTestHelper helper) {
-        return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(TerminalWiring.terminalPos(ACCESS)))
-                .map(network -> network.dataMembers(DataRole.PRODUCER).size() == 2
-                        && CpuOrders.cpus(helper.getLevel(), network).size() == 1)
-                .orElse(false);
+        return DataLines.ready(helper, TerminalWiring.terminalPos(ACCESS), 2);
     }
 
     /** Ready and the warehouse index lists the planks. */
@@ -48,7 +45,7 @@ public final class TerminalCraftGameTests {
         return new StorageTerminalMenu(1, player.getInventory(), terminal);
     }
 
-    private static int count(List<StockEntry> rows, net.minecraft.world.item.Item item) {
+    private static int count(List<StockEntry> rows, Item item) {
         return rows.stream().filter(row -> row.stack().is(item)).mapToInt(row -> (int) row.count()).sum();
     }
 
@@ -152,8 +149,8 @@ public final class TerminalCraftGameTests {
         BlockPos absolute = helper.absolutePos(ACCESS);
         player.snapTo(absolute.getX() + 0.5, absolute.getY() + 1, absolute.getZ() + 1.5);
         PackingStationBlockEntity point = helper.getBlockEntity(ACCESS, PackingStationBlockEntity.class);
-        io.github.dirnei.mc.servus.storage.menu.PackingStationMenu menu =
-                new io.github.dirnei.mc.servus.storage.menu.PackingStationMenu(1, player.getInventory(), point);
+        PackingStationMenu menu =
+                new PackingStationMenu(1, player.getInventory(), point);
         helper.assertTrue(menu.stillValid(player), "the Packing Station GUI should stay open");
         helper.succeed();
     }

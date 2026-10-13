@@ -1,9 +1,8 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
@@ -152,11 +151,8 @@ public final class BlockStyleGameTests {
         ((WoodHolder) helper.getLevel().getBlockEntity(helper.absolutePos(AT))).woodSlot().set(SPRUCE);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);
-        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
-        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
+        MachineTestSupport.useCarrot(helper, player, AT, Direction.NORTH);
         BlockPos pos = helper.absolutePos(AT);
-        ((ConfigurationCarrotItem) carrot.getItem()).useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, carrot,
-                new BlockHitResult(Vec3.atCenterOf(pos), Direction.NORTH, pos, false)));
         helper.assertBlockNotPresent(ServusStorageBlocks.PACKING_STATION.get(), AT);
         List<ItemEntity> items = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(1),
                 entity -> entity.getItem().is(ServusStorageItems.PACKING_STATION.get()));

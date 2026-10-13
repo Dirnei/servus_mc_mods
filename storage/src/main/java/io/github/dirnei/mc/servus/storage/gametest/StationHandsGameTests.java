@@ -3,7 +3,9 @@ package io.github.dirnei.mc.servus.storage.gametest;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
+import io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
@@ -15,6 +17,7 @@ import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
+import io.github.dirnei.mc.servus.storage.production.ProductionView;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import java.util.List;
@@ -64,14 +67,11 @@ public final class StationHandsGameTests {
     }
 
     static DataNetwork line(GameTestHelper helper) {
-        return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(4, 2, 2))).orElseThrow();
+        return DataLines.at(helper, new BlockPos(4, 2, 2));
     }
 
     private static boolean ready(GameTestHelper helper) {
-        return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(4, 2, 2)))
-                .map(network -> network.dataMembers(DataRole.PRODUCER).size() == 2
-                        && CpuOrders.cpus(helper.getLevel(), network).size() == 1)
-                .orElse(false);
+        return DataLines.ready(helper, new BlockPos(4, 2, 2), 2);
     }
 
     private static CpuBlockEntity cpu(GameTestHelper helper) {
@@ -100,7 +100,7 @@ public final class StationHandsGameTests {
                         "the step should run on the free station, ran on " + order.steps().get(0).producer());
                 helper.assertTrue(held.job().isEmpty() && held.outputs().getStackInSlot(0).is(Items.COBBLESTONE),
                         "the blocked station got no job and keeps its leftovers");
-                var row = io.github.dirnei.mc.servus.storage.production.ProductionView.of(helper.getLevel(),
+                var row = ProductionView.of(helper.getLevel(),
                                 helper.absolutePos(new BlockPos(4, 2, 2))).machines().stream().filter(machine -> machine.pos().equals(helper.absolutePos(STATION_A))).findFirst();
                 helper.assertTrue(row.isPresent() && row.get().state().equals("blocked"),
                         "the Machines tab shows the station as blocked, got " + row.map(r -> r.state()).orElse("none"));
@@ -190,7 +190,7 @@ public final class StationHandsGameTests {
     public static void stationWithoutJobRefusesPackets(GameTestHelper helper) {
         helper.setBlock(LONE, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
         CraftingStationBlockEntity station = helper.getBlockEntity(LONE, CraftingStationBlockEntity.class);
-        io.github.dirnei.mc.servus.foundation.transfer.ItemView inlet = io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets
+        ItemView inlet = PacketInlets
                 .handler(helper.getLevel(), helper.absolutePos(LONE), Direction.UP);
         helper.assertTrue(inlet != null, "the station has a packet inlet");
         helper.assertTrue(inlet.insertItemStacked(new ItemStack(Items.OAK_PLANKS, 4), false).getCount() == 4, "without a job the planks are refused");

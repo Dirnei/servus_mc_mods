@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
@@ -119,7 +120,7 @@ public final class CraftingStationGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void craftingStationRefusesUnusedItems(GameTestHelper helper) {
         CraftingStationBlockEntity station = craftingStationWithSticks(helper, CR_STATION);
-        ItemView handler = io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets.handler(helper.getLevel(), helper.absolutePos(CR_STATION), Direction.UP);
+        ItemView handler = PacketInlets.handler(helper.getLevel(), helper.absolutePos(CR_STATION), Direction.UP);
         helper.assertTrue(handler != null, "the station should expose a packet inlet");
         helper.assertTrue(handler.insertItem(new ItemStack(Items.COBBLESTONE, 5), false).getCount() == 5, "cobblestone is refused");
         helper.assertTrue(handler.insertItem(new ItemStack(Items.OAK_PLANKS, 5), false).isEmpty(), "planks are accepted");

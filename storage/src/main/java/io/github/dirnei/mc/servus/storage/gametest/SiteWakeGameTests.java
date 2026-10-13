@@ -19,6 +19,7 @@ import io.github.dirnei.mc.servus.storage.site.WakeAllowance;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -29,6 +30,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 
@@ -73,7 +75,7 @@ public final class SiteWakeGameTests {
     private static void farChunk(EnderAnchorData data, ServerLevel level, UUID team, BlockPos base, int i) {
         BlockPos pos = base.offset(i * 16, 0, 0);
         data.register(team, EnderAnchorData.key(level, pos),
-                EnderAnchorData.chunks(level.dimension(), java.util.List.of(net.minecraft.world.level.ChunkPos.pack(pos))));
+                EnderAnchorData.chunks(level.dimension(), List.of(ChunkPos.pack(pos))));
     }
 
     /** The record names the site, keeps its chunks and the stock it reported. */

@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.gametest;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
@@ -22,11 +22,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 
 /**
@@ -45,12 +43,8 @@ public final class PipeAccessGameTests {
 
     /** A Utility Duct carrying only the item line, its arms computed from the neighbours. */
     private static UtilityDuctBlockEntity itemDuct(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
+        MachineTestSupport.duct(helper, pos, Line.ITEM);
         UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
-        duct.addLine(Line.ITEM);
-        BlockPos absolute = helper.absolutePos(pos);
-        BlockState state = helper.getLevel().getBlockState(absolute);
-        helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
         duct.recomputeArms();
         return duct;
     }

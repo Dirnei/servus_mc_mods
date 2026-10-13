@@ -2,11 +2,13 @@ package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.block.BlockEntityItems;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.RackClimbing;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
@@ -60,7 +62,7 @@ public final class HeavyRackGameTests {
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(above), Direction.UP, above, false);
         ItemStack rackItem = new ItemStack(ServusStorageBlocks.HEAVY_RACK.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, rackItem);
-        net.minecraft.world.InteractionResult placed = rackItem.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+        InteractionResult placed = rackItem.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
         helper.runAfterDelay(2, () -> {
             BlockState top = helper.getBlockState(STACK_BASE.above());
             helper.assertTrue(top.getBlock() instanceof HeavyRackBlock, "a rack should have been placed on top, got " + top.getBlock() + " result " + placed);
@@ -353,11 +355,7 @@ public final class HeavyRackGameTests {
         player.setYRot(0.0F);
         placeRackByHand(helper, player, NR_RACK);
         placeRackByHand(helper, player, NR_RACK.east());
-        BlockPos absolute = helper.absolutePos(NR_RACK);
-        ItemStack carrot = new ItemStack(io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems.CONFIGURATION_CARROT.get());
-        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
-        carrot.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
-                new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false)));
+        MachineTestSupport.useCarrot(helper, player, NR_RACK, Direction.UP);
         BlockState after = helper.getBlockState(NR_RACK);
         helper.assertTrue(after.getBlock() instanceof HeavyRackBlock, "the rack is still there");
         helper.assertTrue(after.getValue(HeavyRackBlock.FACING) == Direction.NORTH, "the carrot must not turn the rack");
@@ -378,12 +376,12 @@ public final class HeavyRackGameTests {
         player.fallDistance = 4.0F;
         player.setDeltaMovement(0.0, -0.5, 0.0);
         player.horizontalCollision = false;
-        io.github.dirnei.mc.servus.storage.rack.RackClimbing.tick(player);
+        RackClimbing.tick(player);
         helper.assertTrue(player.fallDistance == 0.0F, "hanging on the side clears the fall distance");
         helper.assertTrue(Math.abs(player.getDeltaMovement().y + 0.15) < 1.0E-9, "hanging slides at the ladder speed, got " + player.getDeltaMovement().y);
 
         player.horizontalCollision = true;
-        io.github.dirnei.mc.servus.storage.rack.RackClimbing.tick(player);
+        RackClimbing.tick(player);
         helper.assertTrue(Math.abs(player.getDeltaMovement().y - (0.2 - gravity) * 0.98) < 1.0E-9, "pushing climbs at the ladder speed, got " + player.getDeltaMovement().y);
 
         // Front: the player's south face rests on the rack's north face.
@@ -391,14 +389,14 @@ public final class HeavyRackGameTests {
         player.fallDistance = 4.0F;
         player.setDeltaMovement(0.0, -0.5, 0.0);
         player.horizontalCollision = true;
-        io.github.dirnei.mc.servus.storage.rack.RackClimbing.tick(player);
+        RackClimbing.tick(player);
         helper.assertTrue(player.fallDistance == 4.0F, "the front is not climbable");
         helper.assertTrue(player.getDeltaMovement().y == -0.5, "the front leaves the motion alone");
 
         // Back: the player's north face rests on the rack's south face.
         player.setPos(rack.getX() + 0.5, rack.getY() + 0.3, rack.getZ() + 1.3);
         player.horizontalCollision = true;
-        io.github.dirnei.mc.servus.storage.rack.RackClimbing.tick(player);
+        RackClimbing.tick(player);
         helper.assertTrue(player.fallDistance == 4.0F, "the back is not climbable");
         helper.succeed();
     }

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
@@ -105,9 +106,14 @@ public final class WarehouseFixtures {
 
     /** How many of the item the rack holds. */
     public static int count(HeavyRackBlockEntity rack, Item item) {
+        return count(rack.items(), item);
+    }
+
+    /** How many of the item the slots hold together. */
+    public static int count(ItemSlots slots, Item item) {
         int total = 0;
-        for (int slot = 0; slot < rack.items().getSlots(); slot++) {
-            ItemStack stack = rack.items().getStackInSlot(slot);
+        for (int slot = 0; slot < slots.getSlots(); slot++) {
+            ItemStack stack = slots.getStackInSlot(slot);
             if (stack.is(item)) {
                 total += stack.getCount();
             }

@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
+import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
@@ -247,7 +248,7 @@ public final class WarehousePowerGameTests {
                 helper.assertTrue(station.waitingForPower(), "the station says it waits for power");
                 helper.assertTrue(station.outputs().getStackInSlot(0).isEmpty(), "nothing crafted yet");
                 helper.assertTrue(!helper.getBlockState(CraftingCpuGameTests.STATION).getValue(
-                        io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock.LIT), "the working face is off");
+                        CraftingStationBlock.LIT), "the working face is off");
                 PowerFixtures.fill(controller);
                 Waits.when(helper, () -> station.outputs().getStackInSlot(0).getCount() == 4, station.workTicks() - kept + 10,
                         () -> "the craft finishes the rest, progress " + station.progress(), () -> {

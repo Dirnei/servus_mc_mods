@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
@@ -24,18 +24,14 @@ import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 
 /** Inbound and Outbound Stations: docking, buffers, side modes and feeding. */
@@ -107,12 +103,8 @@ public final class StationGameTests {
                         "rail " + direction + " of the station should dock towards it");
             }
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-            ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
-            player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
             player.setShiftKeyDown(true);
-            BlockPos absolute = helper.absolutePos(DK_STATION);
-            carrot.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
-                    new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false)));
+            MachineTestSupport.useCarrot(helper, player, DK_STATION, Direction.UP);
             helper.runAfterDelay(2, () -> {
                 helper.assertBlockPresent(Blocks.AIR, DK_STATION);
                 helper.assertItemEntityPresent(ServusStorageItems.INBOUND_STATION.get(), DK_STATION, 2.0);

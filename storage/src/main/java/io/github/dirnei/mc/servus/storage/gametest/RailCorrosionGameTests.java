@@ -1,8 +1,10 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlock;
@@ -277,7 +279,7 @@ public final class RailCorrosionGameTests {
         helper.assertTrue(upkeep != null && upkeep.upkeepItem().is(Items.HONEYCOMB)
                         && upkeep.upkeepLevel() == StorageStatsManager.INSTANCE.fieldAntiCorrosionLevel(),
                 "the head keeps honeycomb as upkeep");
-        io.github.dirnei.mc.servus.foundation.transfer.ItemView inlet = io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets
+        ItemView inlet = PacketInlets
                 .handler(helper.getLevel(), helper.absolutePos(HEAD), Direction.UP);
         helper.assertTrue(inlet != null, "the head has a packet inlet");
         helper.assertTrue(inlet.insertItemStacked(new ItemStack(Items.HONEYCOMB, 2), false).isEmpty(), "both honeycomb go in");

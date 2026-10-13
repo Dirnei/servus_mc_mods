@@ -4,9 +4,6 @@ import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.data.packet.DeliveryReason;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
@@ -23,9 +20,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
 /**
@@ -47,15 +42,6 @@ public final class DataPacketGameTests {
     private record Setup(ItemSlots stock, StorageTerminalBlockEntity terminal, CraftingStationBlockEntity station) {
     }
 
-    private static void data(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
-        duct.addLine(Line.DATA);
-        BlockPos absolute = helper.absolutePos(pos);
-        BlockState state = helper.getLevel().getBlockState(absolute);
-        helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
-    }
-
     /** Terminal with a stock of 32 planks, six data ducts, a sticks station whose outputs are full so it never crafts. */
     private static Setup setup(GameTestHelper helper, boolean ducts) {
         ItemSlots stock = new ItemSlots(1);
@@ -72,20 +58,10 @@ public final class DataPacketGameTests {
         }
         if (ducts) {
             for (int x = FIRST_DUCT; x <= LAST_DUCT; x++) {
-                data(helper, new BlockPos(x, 1, 3));
+                TerminalWiring.dataDuct(helper, new BlockPos(x, 1, 3));
             }
         }
         return new Setup(stock, terminal, station);
-    }
-
-    private static int count(ItemSlots handler, Item item) {
-        int total = 0;
-        for (int slot = 0; slot < handler.getSlots(); slot++) {
-            if (handler.getStackInSlot(slot).is(item)) {
-                total += handler.getStackInSlot(slot).getCount();
-            }
-        }
-        return total;
     }
 
     private static int dropped(GameTestHelper helper, Item item) {
@@ -113,8 +89,8 @@ public final class DataPacketGameTests {
             Delivery delivery = movePlanks(helper, setup, 16);
             helper.succeedWhen(() -> {
                 helper.assertTrue(delivery.state() == Delivery.State.DONE, "delivery should be done, is " + delivery);
-                helper.assertTrue(count(setup.stock(), Items.OAK_PLANKS) == 16, "16 planks should remain, got " + count(setup.stock(), Items.OAK_PLANKS));
-                helper.assertTrue(count(setup.station().inputs(), Items.OAK_PLANKS) == 16, "16 planks should be in the station");
+                helper.assertTrue(WarehouseFixtures.count(setup.stock(), Items.OAK_PLANKS) == 16, "16 planks should remain, got " + WarehouseFixtures.count(setup.stock(), Items.OAK_PLANKS));
+                helper.assertTrue(WarehouseFixtures.count(setup.station().inputs(), Items.OAK_PLANKS) == 16, "16 planks should be in the station");
                 helper.assertTrue(delivery.delivered() == 16, "delivered 16, got " + delivery.delivered());
             });
         });
@@ -127,7 +103,7 @@ public final class DataPacketGameTests {
         helper.runAfterDelay(2, () -> {
             Delivery delivery = movePlanks(helper, setup, 8);
             helper.runAfterDelay(2, () -> {
-                helper.assertTrue(count(setup.station().inputs(), Items.OAK_PLANKS) == 8, "8 planks should have arrived after 2 ticks");
+                helper.assertTrue(WarehouseFixtures.count(setup.station().inputs(), Items.OAK_PLANKS) == 8, "8 planks should have arrived after 2 ticks");
                 helper.assertTrue(delivery.state() == Delivery.State.DONE, "delivery done, " + delivery);
                 helper.succeed();
             });
@@ -143,8 +119,8 @@ public final class DataPacketGameTests {
                     new ItemStack(Items.OAK_PLANKS, 20)).orElseThrow();
             helper.runAfterDelay(2, () -> {
                 helper.assertTrue(delivery.state() == Delivery.State.DONE && delivery.delivered() == 20, "all 20 delivered, " + delivery);
-                helper.assertTrue(count(setup.station().inputs(), Items.OAK_PLANKS) == 20, "20 planks in the station");
-                helper.assertTrue(count(setup.stock(), Items.OAK_PLANKS) == 32, "a send takes nothing from the stock");
+                helper.assertTrue(WarehouseFixtures.count(setup.station().inputs(), Items.OAK_PLANKS) == 20, "20 planks in the station");
+                helper.assertTrue(WarehouseFixtures.count(setup.stock(), Items.OAK_PLANKS) == 32, "a send takes nothing from the stock");
                 helper.succeed();
             });
         });
@@ -162,7 +138,7 @@ public final class DataPacketGameTests {
             Delivery delivery = movePlanks(helper, setup, 8);
             helper.runAfterDelay(10, () -> {
                 helper.assertTrue(delivery.delivered() == 3 && !delivery.ended(), "3 delivered and 5 waiting, " + delivery);
-                helper.assertTrue(count(setup.stock(), Items.OAK_PLANKS) == 29, "the 5 waiting planks stay in the stock, got " + count(setup.stock(), Items.OAK_PLANKS));
+                helper.assertTrue(WarehouseFixtures.count(setup.stock(), Items.OAK_PLANKS) == 29, "the 5 waiting planks stay in the stock, got " + WarehouseFixtures.count(setup.stock(), Items.OAK_PLANKS));
                 inputs.setStackInSlot(1, ItemStack.EMPTY);
                 helper.runAfterDelay(25, () -> {
                     helper.assertTrue(delivery.state() == Delivery.State.DONE && delivery.delivered() == 8, "all 8 delivered after the retry, " + delivery);
@@ -184,8 +160,8 @@ public final class DataPacketGameTests {
             Delivery delivery = move(helper, STATION, SOURCE, Items.STICK, 16);
             helper.succeedWhen(() -> {
                 helper.assertTrue(delivery.state() == Delivery.State.DONE && delivery.delivered() == 4, "done with 4, " + delivery);
-                helper.assertTrue(count(setup.terminal().input(), Items.STICK) == 4, "the 4 sticks should be in the terminal's Input row, got "
-                        + count(setup.terminal().input(), Items.STICK));
+                helper.assertTrue(WarehouseFixtures.count(setup.terminal().input(), Items.STICK) == 4, "the 4 sticks should be in the terminal's Input row, got "
+                        + WarehouseFixtures.count(setup.terminal().input(), Items.STICK));
             });
         });
     }
@@ -200,7 +176,7 @@ public final class DataPacketGameTests {
             helper.assertTrue(delivery.state() == Delivery.State.FAILED && delivery.reason() == DeliveryReason.NO_ROUTE,
                     "the move should fail with no route, " + delivery);
             helper.runAfterDelay(10, () -> {
-                helper.assertTrue(count(setup.stock(), Items.OAK_PLANKS) == 32, "the stock keeps its planks");
+                helper.assertTrue(WarehouseFixtures.count(setup.stock(), Items.OAK_PLANKS) == 32, "the stock keeps its planks");
                 helper.succeed();
             });
         });
@@ -218,8 +194,8 @@ public final class DataPacketGameTests {
             String command = "servus_foundation data move %d %d %d %d %d %d minecraft:stick 8"
                     .formatted(from.getX(), from.getY(), from.getZ(), to.getX(), to.getY(), to.getZ());
             helper.getLevel().getServer().getCommands().performPrefixedCommand(source, command);
-            helper.succeedWhen(() -> helper.assertTrue(count(setup.terminal().input(), Items.STICK) == 8,
-                    "the command should move 8 sticks, got " + count(setup.terminal().input(), Items.STICK)));
+            helper.succeedWhen(() -> helper.assertTrue(WarehouseFixtures.count(setup.terminal().input(), Items.STICK) == 8,
+                    "the command should move 8 sticks, got " + WarehouseFixtures.count(setup.terminal().input(), Items.STICK)));
         });
     }
 
@@ -227,9 +203,9 @@ public final class DataPacketGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void packetDetourArrives(GameTestHelper helper) {
         Setup setup = setup(helper, true);
-        data(helper, new BlockPos(4, 1, 4));
-        data(helper, new BlockPos(5, 1, 4));
-        data(helper, new BlockPos(6, 1, 4));
+        TerminalWiring.dataDuct(helper, new BlockPos(4, 1, 4));
+        TerminalWiring.dataDuct(helper, new BlockPos(5, 1, 4));
+        TerminalWiring.dataDuct(helper, new BlockPos(6, 1, 4));
         ItemSlots inputs = fillInputs(setup, 3);
         helper.runAfterDelay(2, () -> {
             Delivery delivery = movePlanks(helper, setup, 8);
@@ -237,7 +213,7 @@ public final class DataPacketGameTests {
             helper.runAfterDelay(10, () -> inputs.setStackInSlot(1, ItemStack.EMPTY));
             helper.succeedWhen(() -> {
                 helper.assertTrue(delivery.state() == Delivery.State.DONE && delivery.delivered() == 8, "delivered by the detour, " + delivery);
-                helper.assertTrue(count(setup.stock(), Items.OAK_PLANKS) == 24, "8 planks left the stock, " + count(setup.stock(), Items.OAK_PLANKS));
+                helper.assertTrue(WarehouseFixtures.count(setup.stock(), Items.OAK_PLANKS) == 24, "8 planks left the stock, " + WarehouseFixtures.count(setup.stock(), Items.OAK_PLANKS));
             });
         });
     }
@@ -256,7 +232,7 @@ public final class DataPacketGameTests {
             helper.runAfterDelay(15, () -> {
                 helper.assertTrue(delivery.state() == Delivery.State.FAILED && delivery.reason() == DeliveryReason.ROUTE_BROKEN,
                         "the delivery should fail with route broken, " + delivery);
-                helper.assertTrue(count(setup.stock(), Items.OAK_PLANKS) == 29, "29 planks stay in the stock, got " + count(setup.stock(), Items.OAK_PLANKS));
+                helper.assertTrue(WarehouseFixtures.count(setup.stock(), Items.OAK_PLANKS) == 29, "29 planks stay in the stock, got " + WarehouseFixtures.count(setup.stock(), Items.OAK_PLANKS));
                 helper.assertTrue(dropped(helper, Items.OAK_PLANKS) == 0, "nothing is dropped");
                 helper.succeed();
             });

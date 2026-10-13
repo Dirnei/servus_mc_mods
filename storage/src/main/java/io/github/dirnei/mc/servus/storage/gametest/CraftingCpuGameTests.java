@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
@@ -20,6 +21,7 @@ import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.StockRule;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
@@ -27,15 +29,19 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -43,10 +49,13 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.capabilities.Capabilities;
 
 /**
  * Crafting CPUs on the data line. The warehouse is a controller at (2,1,2)
@@ -152,22 +161,12 @@ public final class CraftingCpuGameTests {
             if (helper.getBlockEntity(CONTROLLER, BlockEntity.class) instanceof WarehouseControllerBlockEntity controller) {
                 count += controller.network().map(network -> (int) network.available(key)).orElse(0);
             }
-            if (helper.getBlockEntity(ACCESS, BlockEntity.class) instanceof io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity point) {
-                count += countIn(point.buffer(), item) + countIn(point.outgoing(), item);
+            if (helper.getBlockEntity(ACCESS, BlockEntity.class) instanceof PackingStationBlockEntity point) {
+                count += WarehouseFixtures.count(point.buffer(), item) + WarehouseFixtures.count(point.outgoing(), item);
             }
             seen[0] = Math.max(seen[0], count);
         });
         return seen;
-    }
-
-    static int countIn(io.github.dirnei.mc.servus.foundation.transfer.ItemSlots slots, Item item) {
-        int count = 0;
-        for (int i = 0; i < slots.getSlots(); i++) {
-            if (slots.getStackInSlot(i).is(item)) {
-                count += slots.getStackInSlot(i).getCount();
-            }
-        }
-        return count;
     }
 
     /** Runs {@code then} once, on the first tick the order holds the key in its CPU's buffer. */
@@ -185,7 +184,7 @@ public final class CraftingCpuGameTests {
     }
 
     static DataNetwork line(GameTestHelper helper) {
-        return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(4, 2, 2))).orElseThrow();
+        return DataLines.at(helper, new BlockPos(4, 2, 2));
     }
 
     static HeavyRackBlockEntity stock(GameTestHelper helper, BlockPos pos, Item item, int count) {
@@ -270,7 +269,7 @@ public final class CraftingCpuGameTests {
     /** A 3x2x2 box of 4 CPU blocks and 8 Buffer blocks forms from a Buffer block: 4 slots, 8 stacks. */
     @ServusGameTest(timeoutTicks = 40)
     public static void cpuBoxWithBuffersForms(GameTestHelper helper) {
-        java.util.Set<BlockPos> cpus = java.util.Set.of(new BlockPos(0, 0, 0), new BlockPos(2, 1, 1), new BlockPos(1, 0, 1), new BlockPos(2, 0, 0));
+        Set<BlockPos> cpus = Set.of(new BlockPos(0, 0, 0), new BlockPos(2, 1, 1), new BlockPos(1, 0, 1), new BlockPos(2, 0, 0));
         CpuBuild.box(helper, CPU_A, 3, 2, 2, offset -> !cpus.contains(offset));
         helper.assertTrue(helper.getBlockState(CPU_A.offset(1, 1, 0)).is(ServusStorageBlocks.CPU_BUFFER.get()), "the clicked block is a Buffer block");
         CpuBox.Result result = CpuBuild.form(helper, CPU_A.offset(1, 1, 0));
@@ -498,7 +497,7 @@ public final class CraftingCpuGameTests {
                     "the third waits for the CPU: " + orders.get(2).state());
             Component summary = cpu.summary();
             helper.assertTrue(summary.getContents() instanceof TranslatableContents contents
-                            && java.util.Arrays.equals(contents.getArgs(), new Object[] {2, 2, 1, 0, 6}),
+                            && Arrays.equals(contents.getArgs(), new Object[] {2, 2, 1, 0, 6}),
                     "summary should say 2 of 2 in use, 1 waiting and 0 of 6 buffer stacks, got " + summary.getString());
             helper.succeed();
         });
@@ -645,7 +644,7 @@ public final class CraftingCpuGameTests {
     public static void stockRulesPersist(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, CONTROLLER);
         controller.rules().set(new StockRule(STICK, 8, 16));
-        net.minecraft.nbt.CompoundTag tag = controller.saveWithoutMetadata(helper.getLevel().registryAccess());
+        CompoundTag tag = controller.saveWithoutMetadata(helper.getLevel().registryAccess());
         WarehouseControllerBlockEntity copy = new WarehouseControllerBlockEntity(helper.absolutePos(CONTROLLER), controller.getBlockState());
         copy.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), tag));
         StockRule rule = copy.rules().get(STICK);
@@ -786,8 +785,8 @@ public final class CraftingCpuGameTests {
         Waits.when(helper, () -> lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
             WorkOrder order = cpu.book().create(CRAFTING_TABLE, 1, 0).order();
             whenBuffered(helper, cpu, order, PLANKS, () -> {
-                io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity point =
-                        helper.getBlockEntity(ACCESS, io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity.class);
+                PackingStationBlockEntity point =
+                        helper.getBlockEntity(ACCESS, PackingStationBlockEntity.class);
                 for (int i = 0; i < point.buffer().getSlots(); i++) {
                     point.buffer().setStackInSlot(i, new ItemStack(Items.COBBLESTONE, 64));
                 }
@@ -822,12 +821,12 @@ public final class CraftingCpuGameTests {
         cpu.buffer().expect(1, 7, PLANKS, 4, 64);
         BlockPos hopperPos = CPU_A.offset(0, 2, 0);
         helper.setBlock(hopperPos, Blocks.HOPPER.defaultBlockState());
-        net.minecraft.world.level.block.entity.HopperBlockEntity hopper =
-                helper.getBlockEntity(hopperPos, net.minecraft.world.level.block.entity.HopperBlockEntity.class);
+        HopperBlockEntity hopper =
+                helper.getBlockEntity(hopperPos, HopperBlockEntity.class);
         hopper.setItem(0, new ItemStack(Items.OAK_PLANKS, 4));
-        helper.assertTrue(helper.getLevel().getCapability(net.neoforged.neoforge.capabilities.Capabilities.Item.BLOCK,
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK,
                 helper.absolutePos(CPU_A.offset(0, 1, 0)), Direction.UP) == null, "a CPU block has no item capability");
-        helper.assertTrue(helper.getLevel().getCapability(io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities.PACKET_INLET,
+        helper.assertTrue(helper.getLevel().getCapability(ServusFoundationCapabilities.PACKET_INLET,
                 helper.absolutePos(CPU_A.offset(0, 1, 0)), Direction.UP) != null, "a formed CPU block has a packet inlet");
         helper.runAfterDelay(40, () -> {
             helper.assertTrue(hopper.getItem(0).getCount() == 4, "the hopper keeps its planks");
@@ -851,7 +850,7 @@ public final class CraftingCpuGameTests {
             cpu.buffer().land(PLANKS, 12);
             Component summary = cpu.summary();
             helper.assertTrue(summary.getContents() instanceof TranslatableContents contents
-                            && java.util.Arrays.equals(contents.getArgs(), new Object[] {2, 2, 1, 3, 6}),
+                            && Arrays.equals(contents.getArgs(), new Object[] {2, 2, 1, 3, 6}),
                     "summary should say 2 of 2 in use, 1 waiting and 3 of 6 buffer stacks, got " + summary.getString());
             helper.succeed();
         });
@@ -860,10 +859,10 @@ public final class CraftingCpuGameTests {
     /** Planks lying as items within {@code radius} of a test position. */
     static int droppedNear(GameTestHelper helper, BlockPos at, int radius, Item item) {
         BlockPos pos = helper.absolutePos(at);
-        net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(pos).inflate(radius);
+        AABB box = new AABB(pos).inflate(radius);
         int count = 0;
-        for (net.minecraft.world.entity.item.ItemEntity entity
-                : helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, box)) {
+        for (ItemEntity entity
+                : helper.getLevel().getEntitiesOfClass(ItemEntity.class, box)) {
             if (entity.getItem().is(item)) {
                 count += entity.getItem().getCount();
             }

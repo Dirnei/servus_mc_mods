@@ -3,7 +3,6 @@ package io.github.dirnei.mc.servus.storage.gametest;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
-import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
@@ -20,10 +19,13 @@ import io.github.dirnei.mc.servus.storage.production.ProductionPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.JobRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows;
 import io.github.dirnei.mc.servus.storage.production.ProductionTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.production.ProductionView;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -84,7 +86,7 @@ public final class ProductionTerminalGameTests {
     }
 
     private static DataNetwork line(GameTestHelper helper) {
-        return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(5, 2, 2))).orElseThrow();
+        return DataLines.at(helper, new BlockPos(5, 2, 2));
     }
 
     private static CpuBlockEntity cpu(GameTestHelper helper) {
@@ -105,7 +107,7 @@ public final class ProductionTerminalGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void cpuRowsShowSlotsAndBuffer(GameTestHelper helper) {
         setup(helper, false);
-        java.util.Set<BlockPos> cpus = java.util.Set.of(new BlockPos(0, 0, 0), new BlockPos(1, 0, 0), new BlockPos(2, 0, 0), new BlockPos(0, 1, 0));
+        Set<BlockPos> cpus = Set.of(new BlockPos(0, 0, 0), new BlockPos(1, 0, 0), new BlockPos(2, 0, 0), new BlockPos(0, 1, 0));
         CpuBuild.box(helper, CPU, 3, 2, 2, offset -> !cpus.contains(offset));
         CpuBuild.formed(helper, CPU);
         Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
@@ -140,7 +142,7 @@ public final class ProductionTerminalGameTests {
             buffer(cpu, 1, placed.created().order().id(), PLANKS, 4);
             JobRow job = view(helper, TERMINAL).jobs().get(0);
             helper.assertTrue(job.buffer().size() == 1, "one buffer line, got " + job.buffer());
-            io.github.dirnei.mc.servus.storage.production.ProductionRows.BufferLine line = job.buffer().get(0);
+            ProductionRows.BufferLine line = job.buffer().get(0);
             helper.assertTrue(line.machine().equals(ServusStorageBlocks.CRAFTING_STATION.get().getName().getString())
                             && line.items().size() == 1 && line.items().get(0).item().is(Items.OAK_PLANKS) && line.items().get(0).count() == 4,
                     "In CPU buffer for Crafting Station: 4 Oak Planks, got " + line);
@@ -247,7 +249,7 @@ public final class ProductionTerminalGameTests {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             boolean[] sawWorking = {false};
-            java.util.Set<String> seen = new java.util.LinkedHashSet<>();
+            Set<String> seen = new LinkedHashSet<>();
             Waits.when(helper, () -> {
                 JobRow job = view(helper, TERMINAL).jobs().get(0);
                 seen.add(job.status() + job.args());

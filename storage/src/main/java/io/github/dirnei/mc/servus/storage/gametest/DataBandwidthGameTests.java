@@ -9,12 +9,17 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.DataCableItem;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
+import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
+import io.github.dirnei.mc.servus.storage.production.ProductionView;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.function.IntFunction;
 import java.util.function.IntPredicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -39,7 +44,7 @@ public final class DataBandwidthGameTests {
 
     private static final BlockPos SOURCE = new BlockPos(2, 1, 3);
     /** The planks each running test moves out of the terminal, keyed by its helper. */
-    private static final java.util.Map<GameTestHelper, ItemSlots> STOCKS = new java.util.WeakHashMap<>();
+    private static final Map<GameTestHelper, ItemSlots> STOCKS = new WeakHashMap<>();
     private static final BlockPos STATION = new BlockPos(9, 1, 3);
     private static final int FIRST_DUCT = 3;
     private static final int LAST_DUCT = 8;
@@ -63,7 +68,7 @@ public final class DataBandwidthGameTests {
     }
 
     /** Terminal with a stock of 1024 planks, six ducts of the tier {@code tierAt} gives per x, a station with full outputs that never crafts. */
-    private static CraftingStationBlockEntity setup(GameTestHelper helper, java.util.function.IntFunction<DataCableItem> tierAt) {
+    private static CraftingStationBlockEntity setup(GameTestHelper helper, IntFunction<DataCableItem> tierAt) {
         ItemSlots stock = new ItemSlots(16);
         for (int slot = 0; slot < stock.getSlots(); slot++) {
             stock.setStackInSlot(slot, new ItemStack(Items.OAK_PLANKS, 64));
@@ -195,7 +200,7 @@ public final class DataBandwidthGameTests {
                             && Integer.valueOf(32).equals(contents.getArgs()[4]),
                     "the summary should say about 32 of 32 items/s, got " + summary.getString());
             UtilityDuctBlockEntity idle = dataDuct(helper, new BlockPos(5, 1, 5), ServusLogisticsItems.DATA_CABLE.get());
-            helper.assertTrue(network.load(io.github.dirnei.mc.servus.foundation.network.Conversions.toNodePos(idle.getBlockPos())) == 0,
+            helper.assertTrue(network.load(Conversions.toNodePos(idle.getBlockPos())) == 0,
                     "a duct off the path is idle");
             helper.succeed();
         });
@@ -210,7 +215,7 @@ public final class DataBandwidthGameTests {
         helper.runAfterDelay(2 + WARM_UP + MEASURE, () -> {
             UtilityDuctBlockEntity duct = helper.getBlockEntity(slow, UtilityDuctBlockEntity.class);
             DataNetwork network = duct.dataNetwork().orElseThrow(() -> new AssertionError("the duct has a data network"));
-            var rows = io.github.dirnei.mc.servus.storage.production.ProductionView.busiest(helper.getLevel(), network);
+            var rows = ProductionView.busiest(helper.getLevel(), network);
             helper.assertTrue(rows.size() == 1, "one busiest duct, got " + rows);
             var row = rows.get(0);
             helper.assertTrue(row.pos().equals(helper.absolutePos(slow)), "the Data Cable duct is the busiest, got " + row);

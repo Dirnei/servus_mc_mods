@@ -2,11 +2,12 @@ package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
+import io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
@@ -24,16 +25,12 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 
 /** Shuttles and garages: picks, put-aways, parking, pausing and recalls. */
 public final class ShuttleGameTests {
@@ -168,7 +165,7 @@ public final class ShuttleGameTests {
         ShuttleGarageBlockEntity garage = WarehouseFixtures.garage(helper, GA_GARAGE, Direction.SOUTH, 0);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         int capacity = garage.capacity();
-        io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu menu = new io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu(1, player.getInventory(), garage);
+        ShuttleGarageMenu menu = new ShuttleGarageMenu(1, player.getInventory(), garage);
         player.getInventory().setItem(0, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get(), capacity + 1));
         for (int i = 0; i <= capacity; i++) {
             menu.quickMoveStack(player, menu.inventoryStart() + 27);
@@ -179,16 +176,13 @@ public final class ShuttleGameTests {
         helper.assertTrue(garage.takeShuttle() && garage.takeShuttle(), "two shuttles can be taken back");
         helper.assertTrue(garage.shuttleCount() == capacity - 2, "count should drop by two");
 
-        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
-        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
         player.setShiftKeyDown(true);
-        BlockPos absolute = helper.absolutePos(GA_GARAGE);
-        carrot.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false)));
+        MachineTestSupport.useCarrot(helper, player, GA_GARAGE, Direction.UP);
         helper.assertTrue(helper.getBlockState(GA_GARAGE).getBlock() instanceof ShuttleGarageBlock, "an occupied garage must not be dismantled");
         while (garage.takeShuttle()) {
             // empty it
         }
-        carrot.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false)));
+        MachineTestSupport.useCarrot(helper, player, GA_GARAGE, Direction.UP);
         helper.runAfterDelay(2, () -> {
             helper.assertBlockPresent(Blocks.AIR, GA_GARAGE);
             helper.assertItemEntityPresent(ServusStorageItems.SHUTTLE_GARAGE.get(), GA_GARAGE, 2.0);

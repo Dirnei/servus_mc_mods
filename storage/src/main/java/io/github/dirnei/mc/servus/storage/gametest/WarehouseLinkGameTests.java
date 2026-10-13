@@ -16,6 +16,7 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.permissions.LevelBasedPermissionSet;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -359,7 +360,7 @@ public final class WarehouseLinkGameTests {
         helper.runAfterDelay(10, () -> {
             BlockPos at = helper.absolutePos(warehouse.controllerPos());
             var source = helper.getLevel().getServer().createCommandSourceStack().withLevel(helper.getLevel())
-                    .withPermission(net.minecraft.server.permissions.LevelBasedPermissionSet.OWNER).withSuppressedOutput();
+                    .withPermission(LevelBasedPermissionSet.OWNER).withSuppressedOutput();
             helper.getLevel().getServer().getCommands().performPrefixedCommand(source,
                     "servus_warehouse take " + at.getX() + " " + at.getY() + " " + at.getZ() + " minecraft:cobblestone 12");
             helper.assertTrue(warehouse.rackCount(Items.COBBLESTONE) == 18, "the command takes 12 from the rack, it holds " + warehouse.rackCount(Items.COBBLESTONE));

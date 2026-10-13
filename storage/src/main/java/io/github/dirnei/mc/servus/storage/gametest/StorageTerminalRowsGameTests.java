@@ -1,15 +1,20 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Storage;
+import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -34,7 +39,7 @@ public final class StorageTerminalRowsGameTests {
     }
 
     /** A mini warehouse whose rack holds planks, full unless {@code room}, and the terminal on its Packing Station. */
-    private static void setup(GameTestHelper helper, boolean room, java.util.function.Consumer<Fixture> test) {
+    private static void setup(GameTestHelper helper, boolean room, Consumer<Fixture> test) {
         MiniWarehouse warehouse = MiniWarehouse.build(helper, ORIGIN).withTerminal();
         HeavyRackBlockEntity rack = warehouse.rack();
         int slots = room ? 1 : rack.items().getSlots();
@@ -112,7 +117,7 @@ public final class StorageTerminalRowsGameTests {
     public static void packetRouting(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             BlockPos pos = helper.absolutePos(TerminalWiring.terminalPos(TERMINAL));
-            ItemView handler = io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets.handler(helper.getLevel(), pos, Direction.UP);
+            ItemView handler = PacketInlets.handler(helper.getLevel(), pos, Direction.UP);
             helper.assertTrue(handler != null, "the terminal should take packets through its inlet");
             ItemStack rest = handler.insertItemStacked(new ItemStack(Items.COBBLESTONE, 10), false);
             helper.assertTrue(rest.isEmpty(), "the cobblestone should be taken, left " + rest);
@@ -203,9 +208,9 @@ public final class StorageTerminalRowsGameTests {
     @ServusGameTest(timeoutTicks = 400)
     public static void fullToStorageKeepsInput(GameTestHelper helper) {
         setup(helper, false, fixture -> {
-            io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity point =
-                    helper.getBlockEntity(TERMINAL, io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity.class);
-            io.github.dirnei.mc.servus.foundation.transfer.ItemSlots buffer = point.buffer();
+            PackingStationBlockEntity point =
+                    helper.getBlockEntity(TERMINAL, PackingStationBlockEntity.class);
+            ItemSlots buffer = point.buffer();
             // Nothing can be put away (the only rack is full), so the buffer stays as it is.
             for (int slot = 0; slot < buffer.getSlots(); slot++) {
                 buffer.setStackInSlot(slot, slot == 0 ? new ItemStack(Items.COBBLESTONE, 48) : new ItemStack(Items.DIAMOND, 64));
@@ -235,11 +240,11 @@ public final class StorageTerminalRowsGameTests {
     public static void inputWithoutRoomShowsBlocked(GameTestHelper helper) {
         setup(helper, false, fixture -> {
             BlockPos pos = TERMINAL;
-            io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity point =
-                    helper.getBlockEntity(pos, io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity.class);
+            PackingStationBlockEntity point =
+                    helper.getBlockEntity(pos, PackingStationBlockEntity.class);
             fixture.terminal().input().setStackInSlot(0, new ItemStack(Items.OAK_LOG, 64));
-            Waits.when(helper, () -> helper.getBlockState(pos).getValue(io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks.ACTIVITY)
-                    == io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks.Activity.BLOCKED, 150,
+            Waits.when(helper, () -> helper.getBlockState(pos).getValue(StorageNodeBlocks.ACTIVITY)
+                    == StorageNodeBlocks.Activity.BLOCKED, 150,
                     () -> "the Packing Station shows the blocked lamp", () -> {
                 helper.assertTrue(point.status().alert() && !point.status().line().getString().isEmpty(),
                         "its status line says why, was " + point.status().line().getString());

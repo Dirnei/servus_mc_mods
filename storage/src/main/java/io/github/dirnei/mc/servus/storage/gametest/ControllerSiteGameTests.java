@@ -1,14 +1,15 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.storage.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.storage.order.StockRule;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
@@ -20,17 +21,15 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 /** A controller is a site: name, chunk span, Anchor Upgrades and the over capacity lamp. */
@@ -58,19 +57,14 @@ public final class ControllerSiteGameTests {
         return helper.getBlockEntity(pos, WarehouseControllerBlockEntity.class);
     }
 
-    /** A rail on stone. */
-    static void rail(GameTestHelper helper, BlockPos pos) {
-        WarehouseFixtures.railOnStone(helper, pos);
-    }
-
     /**
      * Controller two blocks before the border, rails on both sides of it, a rack
      * just past it facing the last rail: the site spans the controller's chunk and the next one.
      */
     static WarehouseControllerBlockEntity acrossBorder(GameTestHelper helper, int border) {
         WarehouseControllerBlockEntity controller = controller(helper, new BlockPos(border - 2, 1, ROW_Z));
-        rail(helper, new BlockPos(border - 1, 1, ROW_Z));
-        rail(helper, new BlockPos(border, 1, ROW_Z));
+        WarehouseFixtures.railOnStone(helper, new BlockPos(border - 1, 1, ROW_Z));
+        WarehouseFixtures.railOnStone(helper, new BlockPos(border, 1, ROW_Z));
         helper.setBlock(new BlockPos(border + 1, 1, ROW_Z), ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState()
                 .setValue(HeavyRackBlock.FACING, Direction.WEST));
         return controller;
@@ -99,7 +93,7 @@ public final class ControllerSiteGameTests {
         WarehouseControllerBlockEntity controller = controller(helper, new BlockPos(border - 1, 1, ROW_Z));
         BlockPos chest = new BlockPos(border, 1, ROW_Z);
         helper.setBlock(chest, Blocks.CHEST.defaultBlockState());
-        helper.getBlockEntity(chest, net.minecraft.world.level.block.entity.ChestBlockEntity.class).setItem(0, new ItemStack(Items.BREAD, 5));
+        helper.getBlockEntity(chest, ChestBlockEntity.class).setItem(0, new ItemStack(Items.BREAD, 5));
         helper.runAfterDelay(60, () -> {
             helper.assertTrue(controller.span().size() == 1 && controller.span().contains(controller.homeChunk()),
                     "only the controller's chunk counts, had " + controller.span().size());
@@ -155,16 +149,13 @@ public final class ControllerSiteGameTests {
         BlockPos again = new BlockPos(28, 1, ROW_Z);
         WarehouseControllerBlockEntity controller = controller(helper, at);
         controller.setSiteName("  North Mine ");
-        controller.rules().set(new io.github.dirnei.mc.servus.storage.order.StockRule(ItemKey.of(new ItemStack(Items.STICK)), 8, 16));
+        controller.rules().set(new StockRule(ItemKey.of(new ItemStack(Items.STICK)), 8, 16));
         controller.upgrades().insertItem(0, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
         controller.setSpan(Set.of(controller.homeChunk(), SiteChunks.key(9999, 9999)));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);
-        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
-        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
+        MachineTestSupport.useCarrot(helper, player, at, Direction.NORTH);
         BlockPos pos = helper.absolutePos(at);
-        ((ConfigurationCarrotItem) carrot.getItem()).useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, carrot,
-                new BlockHitResult(Vec3.atCenterOf(pos), Direction.NORTH, pos, false)));
         helper.assertBlockNotPresent(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), at);
         List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(1));
         ItemStack item = drops.stream().map(ItemEntity::getItem)

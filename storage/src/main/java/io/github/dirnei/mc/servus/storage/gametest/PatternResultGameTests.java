@@ -1,7 +1,5 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
-import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
@@ -16,6 +14,7 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalCraftables;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -25,6 +24,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -67,16 +67,14 @@ public final class PatternResultGameTests {
     }
 
     private static boolean ready(GameTestHelper helper) {
-        return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(TerminalWiring.terminalPos(ACCESS)))
-                .map(network -> network.dataMembers(DataRole.PRODUCER).size() == 2 && CpuOrders.cpus(helper.getLevel(), network).size() == 1)
-                .orElse(false);
+        return DataLines.ready(helper, TerminalWiring.terminalPos(ACCESS), 2);
     }
 
     private static StorageTerminalMenu menu(GameTestHelper helper, Player player) {
         return TerminalWiring.menu(helper, player, ACCESS);
     }
 
-    private static boolean stocked(GameTestHelper helper, Player player, net.minecraft.world.item.Item item) {
+    private static boolean stocked(GameTestHelper helper, Player player, Item item) {
         return ready(helper) && menu(helper, player).stock().entries().stream().anyMatch(entry -> entry.stack().is(item));
     }
 
@@ -145,7 +143,7 @@ public final class PatternResultGameTests {
         Waits.when(helper, () -> stocked(helper, player, Items.BIRCH_PLANKS) && stocked(helper, player, Items.CHEST)
                 && stocked(helper, player, Items.PAPER) && stocked(helper, player, Items.REDSTONE), 160, () -> "stations, CPU and stock should be ready", () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
-            var preview = io.github.dirnei.mc.servus.storage.terminal.TerminalCraftables.preview(helper.getLevel(),
+            var preview = TerminalCraftables.preview(helper.getLevel(),
                     terminal.getBlockPos(), ItemKey.of(expected), 1);
             helper.assertTrue(preview.refusal().isEmpty() && preview.missing().isEmpty(),
                     "the craft should be possible, refusal '" + preview.refusal() + "' missing " + preview.missing()

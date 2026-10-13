@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
@@ -29,9 +30,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -50,15 +49,8 @@ public final class DataCableGameTests {
     }
 
     private static UtilityDuctBlockEntity duct(GameTestHelper helper, BlockPos pos, Line... lines) {
-        helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
-        for (Line line : lines) {
-            duct.addLine(line);
-        }
-        BlockPos absolute = helper.absolutePos(pos);
-        BlockState state = helper.getLevel().getBlockState(absolute);
-        helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
-        return duct;
+        MachineTestSupport.duct(helper, pos, lines);
+        return helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
     }
 
     private static UtilityDuctBlockEntity data(GameTestHelper helper, BlockPos pos) {

@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 
@@ -33,7 +34,7 @@ public final class PowerFixtures {
      * Lets a Crafting Station that stands without a warehouse on its data line
      * craft, for tests of the station itself.
      */
-    public static void freeStation(io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity station) {
+    public static void freeStation(CraftingStationBlockEntity station) {
         station.setFreePowerForTests(true);
     }
 

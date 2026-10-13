@@ -1,11 +1,8 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
-import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
-import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
@@ -49,10 +46,7 @@ public final class PersistGameTests {
     }
 
     private static boolean ready(GameTestHelper helper) {
-        return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(4, 2, 2)))
-                .map(network -> network.dataMembers(DataRole.PRODUCER).size() == 2
-                        && CpuOrders.cpus(helper.getLevel(), network).size() == 1)
-                .orElse(false);
+        return DataLines.ready(helper, new BlockPos(4, 2, 2), 2);
     }
 
     private static boolean planksIndexed(GameTestHelper helper) {
@@ -74,16 +68,16 @@ public final class PersistGameTests {
     public static void reloadKeepsBuffer(GameTestHelper helper) {
         CpuBlockEntity cpu = CraftingCpuGameTests.bufferedSetup(helper, 6, 1);
         Waits.when(helper, () -> CraftingCpuGameTests.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
-            io.github.dirnei.mc.servus.storage.order.WorkOrder order = cpu.book().create(CraftingCpuGameTests.CRAFTING_TABLE, 1, 0).order();
+            WorkOrder order = cpu.book().create(CraftingCpuGameTests.CRAFTING_TABLE, 1, 0).order();
             int id = order.id();
             CraftingCpuGameTests.whenBuffered(helper, cpu, order, CraftingCpuGameTests.PLANKS, () -> {
                 int held = cpu.buffer().held(id, CraftingCpuGameTests.PLANKS);
                 CpuBlockEntity loaded = reload(helper, cpu.getBlockPos().subtract(helper.absolutePos(BlockPos.ZERO)));
                 helper.assertTrue(loaded != cpu && loaded.buffer().held(id, CraftingCpuGameTests.PLANKS) == held,
                         "the buffer keeps " + held + " planks, has " + loaded.buffer());
-                io.github.dirnei.mc.servus.storage.order.WorkOrder reloaded = loaded.book().order(id);
+                WorkOrder reloaded = loaded.book().order(id);
                 helper.assertTrue(reloaded != null, "the order survives the reload");
-                Waits.when(helper, () -> reloaded.state() == io.github.dirnei.mc.servus.storage.order.WorkOrder.State.DONE
+                Waits.when(helper, () -> reloaded.state() == WorkOrder.State.DONE
                                 && CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.CRAFTING_TABLE) == 1, 1200,
                         () -> "the crafting table should be made, " + reloaded.state() + " " + reloaded.steps().stream()
                                 .map(step -> step.state() + "/" + step.reason()).toList() + " buffer " + loaded.buffer(), helper::succeed);

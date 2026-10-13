@@ -5,7 +5,6 @@ import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
@@ -23,6 +22,8 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerSynchronizer;
+import net.minecraft.world.inventory.RemoteSlot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -46,12 +47,12 @@ public final class TerminalSpeedGameTests {
     /** Stands in for the player's connection: the open path calls it, the test needs no packets. */
     static final ContainerSynchronizer QUIET = new ContainerSynchronizer() {
         @Override
-        public void sendInitialData(AbstractContainerMenu menu, java.util.List<ItemStack> items, ItemStack carried, int[] data) {
+        public void sendInitialData(AbstractContainerMenu menu, List<ItemStack> items, ItemStack carried, int[] data) {
         }
 
         @Override
-        public net.minecraft.world.inventory.RemoteSlot createSlot() {
-            return net.minecraft.world.inventory.RemoteSlot.PLACEHOLDER;
+        public RemoteSlot createSlot() {
+            return RemoteSlot.PLACEHOLDER;
         }
 
         @Override
@@ -86,10 +87,7 @@ public final class TerminalSpeedGameTests {
     }
 
     private static boolean ready(GameTestHelper helper) {
-        return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(LINE))
-                .map(network -> network.dataMembers(DataRole.PRODUCER).size() == 1
-                        && CpuOrders.cpus(helper.getLevel(), network).size() == 1)
-                .orElse(false);
+        return DataLines.ready(helper, LINE, 1);
     }
 
     /** Opening the Storage Terminal the way the game does sends its content in the same tick. */
@@ -135,7 +133,7 @@ public final class TerminalSpeedGameTests {
                 .map(network -> network.dataMembers(DataRole.PRODUCER).size()).orElse(0);
     }
 
-    private static boolean lists(List<ItemStack> items, net.minecraft.world.item.Item item) {
+    private static boolean lists(List<ItemStack> items, Item item) {
         return items.stream().anyMatch(stack -> stack.is(item));
     }
 

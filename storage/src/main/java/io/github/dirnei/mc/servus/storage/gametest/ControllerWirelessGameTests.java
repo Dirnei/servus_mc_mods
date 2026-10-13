@@ -2,11 +2,10 @@ package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
@@ -41,21 +40,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 
@@ -102,19 +94,17 @@ public final class ControllerWirelessGameTests {
     /** A rack north of the controller's first rail and, unless left out, a garage with one shuttle north of the second. */
     private static HeavyRackBlockEntity rackAndGarage(GameTestHelper helper, BlockPos controller, boolean garage) {
         BlockPos rack = new BlockPos(3, controller.getY(), controller.getZ() - 1);
-        WarehouseFixtures.rack(helper, rack, Direction.SOUTH);
+        HeavyRackBlockEntity placed = WarehouseFixtures.rack(helper, rack, Direction.SOUTH);
         if (garage) {
-            BlockPos at = rack.east();
-            WarehouseFixtures.garage(helper, at, Direction.NORTH, 1);
+            WarehouseFixtures.garage(helper, rack.east(), Direction.NORTH, 1);
         }
-        return helper.getBlockEntity(rack, HeavyRackBlockEntity.class);
+        return placed;
     }
 
     /** Rails east of a controller at x 3 and 4 on stone. */
     private static void rails(GameTestHelper helper, BlockPos controller) {
         for (int x = 3; x <= 4; x++) {
-            BlockPos rail = new BlockPos(x, controller.getY(), controller.getZ());
-            WarehouseFixtures.railOnStone(helper, rail);
+            WarehouseFixtures.railOnStone(helper, new BlockPos(x, controller.getY(), controller.getZ()));
         }
     }
 
@@ -146,10 +136,6 @@ public final class ControllerWirelessGameTests {
         // The sender pays nothing but must be powered to be on the wireless line.
         b.setEnergy(SENDER_CHARGE);
         return new Sites(team, a, b, rackA, rackB);
-    }
-
-    private static int count(HeavyRackBlockEntity rack, Item item) {
-        return WarehouseFixtures.count(rack, item);
     }
 
     private static String key(GameTestHelper helper, BlockPos controller) {
@@ -207,12 +193,8 @@ public final class ControllerWirelessGameTests {
         CoalGeneratorGameTests.place(helper, generatorPos, Direction.NORTH);
         helper.getBlockEntity(generatorPos, CoalGeneratorBlockEntity.class).inventory()
                 .setStackInSlot(CoalGeneratorBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 4));
-        helper.setBlock(ductPos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
+        MachineTestSupport.duct(helper, ductPos, Line.ENERGY);
         UtilityDuctBlockEntity duct = helper.getBlockEntity(ductPos, UtilityDuctBlockEntity.class);
-        duct.addLine(Line.ENERGY);
-        BlockPos absolute = helper.absolutePos(ductPos);
-        BlockState state = helper.getLevel().getBlockState(absolute);
-        helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
         helper.assertTrue(energyAt(helper, controllerPos, Direction.WEST) != null, "the controller offers an energy handler");
         Waits.when(helper, () -> controller.energyStored() > 0, 180,
                 () -> "the controller's FE rises, has " + controller.energyStored(), () -> {
@@ -260,11 +242,8 @@ public final class ControllerWirelessGameTests {
         controller.setEnergy(12000);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);
-        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
-        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
+        MachineTestSupport.useCarrot(helper, player, at, Direction.NORTH);
         BlockPos pos = helper.absolutePos(at);
-        ((ConfigurationCarrotItem) carrot.getItem()).useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, carrot,
-                new BlockHitResult(Vec3.atCenterOf(pos), Direction.NORTH, pos, false)));
         helper.assertBlockNotPresent(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), at);
         List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(1));
         long upgrades = drops.stream().map(ItemEntity::getItem).filter(stack -> stack.is(ServusStorageItems.WIRELESS_UPGRADE.get()))
@@ -290,9 +269,9 @@ public final class ControllerWirelessGameTests {
             helper.assertTrue(shipping.shipped(), "the outpost ships, refusal " + shipping.refusal());
             helper.assertTrue(shipping.packingStation().equals(helper.absolutePos(B_PACKING)), "it ships through the outpost's Packing Station");
             long id = shipping.shipment().orElseThrow().id();
-            Waits.when(helper, () -> count(sites.rackA(), Items.IRON_INGOT) == 10, 440,
-                    () -> "10 iron arrive in the base rack, had " + count(sites.rackA(), Items.IRON_INGOT), () -> {
-                helper.assertTrue(count(sites.rackB(), Items.IRON_INGOT) == 22, "22 iron are left at the outpost");
+            Waits.when(helper, () -> WarehouseFixtures.count(sites.rackA(), Items.IRON_INGOT) == 10, 440,
+                    () -> "10 iron arrive in the base rack, had " + WarehouseFixtures.count(sites.rackA(), Items.IRON_INGOT), () -> {
+                helper.assertTrue(WarehouseFixtures.count(sites.rackB(), Items.IRON_INGOT) == 22, "22 iron are left at the outpost");
                 helper.assertTrue(sites.a().energyStored() == 1000 - 10 * COST, "the base paid 50 FE, has " + sites.a().energyStored());
                 helper.assertTrue(sites.b().energyStored() == SENDER_CHARGE, "the outpost paid nothing, has " + sites.b().energyStored());
                 ProductionLedger.Transfer transfer = ProductionLedger.get(helper.getLevel()).transfer(id);
@@ -321,8 +300,8 @@ public final class ControllerWirelessGameTests {
             Waits.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 20 && terminal(helper).requests().isEmpty(), 540,
                     () -> "20 iron arrive in the output slots and the transfer leaves the list, had "
                             + terminal(helper).outputCount(Items.IRON_INGOT) + " and " + terminal(helper).requests().size() + " requests", () -> {
-                helper.assertTrue(count(sites.rackA(), Items.IRON_INGOT) == 0, "nothing is put away at the base");
-                helper.assertTrue(count(sites.rackB(), Items.IRON_INGOT) == 12, "12 iron stay at the outpost");
+                helper.assertTrue(WarehouseFixtures.count(sites.rackA(), Items.IRON_INGOT) == 0, "nothing is put away at the base");
+                helper.assertTrue(WarehouseFixtures.count(sites.rackB(), Items.IRON_INGOT) == 12, "12 iron stay at the outpost");
                 helper.succeed();
             });
         });
@@ -336,7 +315,7 @@ public final class ControllerWirelessGameTests {
             WarehouseNetwork.Shipping shipping = sites.b().network().orElseThrow()
                     .shipWireless(helper.absolutePos(A_PACKING), key(helper, A_CONTROLLER), iron(), 8, 0);
             helper.assertTrue(!shipping.shipped() && shipping.refusal().equals("needs_shuttle"), "refused for a shuttle, was " + shipping.refusal());
-            helper.assertTrue(count(sites.rackB(), Items.IRON_INGOT) == 32, "the iron stays");
+            helper.assertTrue(WarehouseFixtures.count(sites.rackB(), Items.IRON_INGOT) == 32, "the iron stays");
             helper.succeed();
         });
     }
@@ -404,7 +383,7 @@ public final class ControllerWirelessGameTests {
             WarehouseNetwork.Shipping direct = sites.b().network().orElseThrow()
                     .shipWireless(helper.absolutePos(A_PACKING), key(helper, A_CONTROLLER), iron(), 8, 0);
             helper.assertTrue(direct.refusal().equals("no_packing_there"), "the outpost refuses to ship, was " + direct.refusal());
-            helper.assertTrue(count(sites.rackB(), Items.IRON_INGOT) == 32, "nothing leaves the outpost");
+            helper.assertTrue(WarehouseFixtures.count(sites.rackB(), Items.IRON_INGOT) == 32, "nothing leaves the outpost");
             helper.assertTrue(SiteRegistry.of(level).site(key(helper, A_CONTROLLER)).orElseThrow().hasPacking(), "the base has its Packing Station");
             helper.succeed();
         });
@@ -581,7 +560,7 @@ public final class ControllerWirelessGameTests {
             helper.assertTrue(sender.shipments().size() == 2 && targets.size() == 2, "each base station receives one transfer, targets " + targets);
             Waits.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 16 && terminal(helper).requests().isEmpty(), 780,
                     () -> "16 iron arrive in the output slots, had " + terminal(helper).outputCount(Items.IRON_INGOT), () -> {
-                helper.assertTrue(count(sites.rackA(), Items.IRON_INGOT) == 0, "nothing is put away at the base");
+                helper.assertTrue(WarehouseFixtures.count(sites.rackA(), Items.IRON_INGOT) == 0, "nothing is put away at the base");
                 helper.succeed();
             });
         });
@@ -608,7 +587,7 @@ public final class ControllerWirelessGameTests {
                     () -> "the outpost sent all 16 iron to the base's Packing Station", () -> {
                 helper.runAfterDelay(20, () -> {
                     helper.assertTrue(terminal(helper).outputCount(Items.IRON_INGOT) == 0, "no iron fits into the full output slots");
-                    helper.assertTrue(count(sites.rackA(), Items.IRON_INGOT) == 0, "nothing is put away at the base");
+                    helper.assertTrue(WarehouseFixtures.count(sites.rackA(), Items.IRON_INGOT) == 0, "nothing is put away at the base");
                     List<RequestRow> rows = menu.stock().requests();
                     helper.assertTrue(rows.size() == 1 && rows.get(0).state().equals("WAITING_ROOM"), "the transfer waits for room, was " + rows);
                     for (int slot = 0; slot < terminal(helper).output().getSlots(); slot++) {
@@ -616,7 +595,7 @@ public final class ControllerWirelessGameTests {
                     }
                     Waits.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 16 && terminal(helper).requests().isEmpty(), 300,
                             () -> "with room the iron moves on, had " + terminal(helper).outputCount(Items.IRON_INGOT), () -> {
-                        helper.assertTrue(count(sites.rackA(), Items.IRON_INGOT) == 0, "still nothing is put away at the base");
+                        helper.assertTrue(WarehouseFixtures.count(sites.rackA(), Items.IRON_INGOT) == 0, "still nothing is put away at the base");
                         helper.succeed();
                     });
                 });

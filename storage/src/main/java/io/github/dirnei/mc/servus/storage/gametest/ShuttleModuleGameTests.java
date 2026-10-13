@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
@@ -168,7 +168,7 @@ public final class ShuttleModuleGameTests {
         ShuttleTiers.Tier mk2 = StorageStatsManager.INSTANCE.shuttleTiers().tier(2);
         int slot = 0;
         for (ShuttleTiers.Supply supply : mk2.build()) {
-            Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.parse(supply.id()));
+            Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(supply.id()));
             int amount = slot == 0 ? supply.count() - 1 : supply.count();
             workshop.supplies().setStackInSlot(slot++, new ItemStack(item, amount));
         }
@@ -213,11 +213,7 @@ public final class ShuttleModuleGameTests {
     /** Uses the carrot on the block at the position, sneaking or not. */
     private static void carrot(GameTestHelper helper, Player player, BlockPos at, boolean sneak) {
         player.setShiftKeyDown(sneak);
-        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
-        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
-        BlockPos pos = helper.absolutePos(at);
-        ((ConfigurationCarrotItem) carrot.getItem()).useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, carrot,
-                new BlockHitResult(Vec3.atCenterOf(pos), Direction.NORTH, pos, false)));
+        MachineTestSupport.useCarrot(helper, player, at, Direction.NORTH);
         player.setShiftKeyDown(false);
     }
 

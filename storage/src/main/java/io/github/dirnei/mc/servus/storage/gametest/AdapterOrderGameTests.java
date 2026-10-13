@@ -4,8 +4,6 @@ import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlock;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlockEntity;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
-import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
-import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
@@ -13,6 +11,7 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -68,14 +67,11 @@ public final class AdapterOrderGameTests {
     }
 
     private static boolean ready(GameTestHelper helper) {
-        return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(LINE))
-                .map(network -> network.dataMembers(DataRole.PRODUCER).size() == 1
-                        && CpuOrders.cpus(helper.getLevel(), network).size() == 1)
-                .orElse(false);
+        return DataLines.ready(helper, LINE, 1);
     }
 
     private static DataNetwork line(GameTestHelper helper) {
-        return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(LINE)).orElseThrow();
+        return DataLines.at(helper, LINE);
     }
 
     private static AbstractFurnaceBlockEntity furnace(GameTestHelper helper) {
@@ -153,7 +149,7 @@ public final class AdapterOrderGameTests {
             WorkOrder order = placed.created().order();
             helper.assertTrue(order.steps().size() == 1, "one step, got " + order.steps().size());
             OrderStep step = order.steps().get(0);
-            helper.assertTrue(step.inputs().keySet().equals(java.util.Set.of(ItemKey.of(new ItemStack(Items.BIRCH_LOG)))),
+            helper.assertTrue(step.inputs().keySet().equals(Set.of(ItemKey.of(new ItemStack(Items.BIRCH_LOG)))),
                     "the step should smelt birch logs, got " + step.inputs());
             Waits.when(helper, () -> order.state() == WorkOrder.State.DONE, 2300,
                     () -> "the order should finish, state " + order.state() + " " + order.reason() + ", step " + step.state()
