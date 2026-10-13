@@ -118,11 +118,11 @@ A pump SHALL show a short pipe stub from its body to the block edge on every fac
 ## ADDED Requirements
 
 ### Requirement: Electric Pump is a two block electric engine
-The Electric Pump SHALL look like the Burner Pump's electric sibling: a beam engine one block wide and two blocks tall with the Burner Pump's base plate, post, beam, pump rod and socket. Its lower half SHALL rest on the block below with the base plate and carry a motor housing with copper windings and vents, and a terminal box with a red power accent. Its upper half SHALL carry a crank wheel, a con rod from the crank wheel to the beam, the pivot of the beam whose pump rod reaches down beside the motor, and a fan grille with a fan behind it. It SHALL show no chimney, no smoke and no lit window. The outline and collision of each half SHALL follow its parts, so the water and blocks around the pump stay visible.
+The Electric Pump SHALL look like the Burner Pump's electric sibling: a beam engine one block wide and two blocks tall with the Burner Pump's base plate, post, beam, pump rod and socket. Its lower half SHALL rest on the block below with the base plate and carry a motor housing with copper windings and vents, and a terminal box with a red power accent. Its upper half SHALL carry a crank wheel with a visible rim on an axle that runs back to a bearing standing on the cap, a con rod from the crank wheel to the beam, the pivot of the beam whose pump rod reaches down beside the motor, and a fan grille with a fan behind it. A drive belt SHALL run on the back from a small pulley on the motor up to a pulley on the crank wheel's axle, so the motor visibly drives the crank. No moving part SHALL float free of the engine. It SHALL show no chimney, no smoke and no lit window. The outline and collision of each half SHALL follow its parts, so the water and blocks around the pump stay visible.
 
 #### Scenario: Looks like an electric engine
 - **WHEN** a player places an Electric Pump on a pond
-- **THEN** it shows a motor housing with copper windings in the lower block and a crank wheel, con rod, beam and fan grille in the block above
+- **THEN** it shows a motor housing with copper windings in the lower block, a crank wheel on its axle and bearing, con rod, beam and fan grille in the block above, and a drive belt on the back from the motor up to the crank axle
 
 #### Scenario: Water source is checked below the lower half
 - **WHEN** an Electric Pump's lower half stands on a water source with two water source neighbours
@@ -156,15 +156,15 @@ One Electric Pump item SHALL place both halves, facing the same way, and SHALL p
 - **THEN** neither half moves
 
 ### Requirement: Working electric engine moves and sparks
-While the Electric Pump works, its crank wheel SHALL turn, the con rod SHALL follow the crank pin and drive the beam, the beam SHALL rock about its pivot with the Burner Pump's stroke, the pump rod SHALL rise and fall with the beam's end, the fan SHALL spin, and now and then a small electric spark SHALL jump at the motor, never a steady stream. While it does not work, every part SHALL stand still and no spark SHALL jump. The motion and the sparks are look only and do not depend on balance data.
+While the Electric Pump works, the motor pulley SHALL turn and the drive belt SHALL run, its crank wheel SHALL turn with the axle pulley, the con rod SHALL follow the crank pin and drive the beam, the beam SHALL rock about its pivot with the Burner Pump's stroke, the pump rod SHALL rise and fall with the beam's end, the fan SHALL spin, and now and then a small electric spark SHALL jump at the motor, never a steady stream. While it does not work, every part SHALL stand still and no spark SHALL jump. The motion and the sparks are look only and do not depend on balance data.
 
 #### Scenario: Working
 - **WHEN** an Electric Pump on a pond has energy and fills its buffer
-- **THEN** the crank wheel turns, the beam rocks, the pump rod moves up and down, the fan spins, a spark shows at the motor now and then and water splashes at the socket once per stroke
+- **THEN** the belt runs, the crank wheel turns, the beam rocks, the pump rod moves up and down, the fan spins, a spark shows at the motor now and then and water splashes at the socket once per stroke
 
 #### Scenario: No power
 - **WHEN** its energy buffer runs empty
-- **THEN** the crank wheel, beam, rod and fan stop where they are and no sparks or splashes show
+- **THEN** the belt, crank wheel, beam, rod and fan stop where they are and no sparks or splashes show
 
 #### Scenario: Con rod follows the crank
 - **WHEN** the crank pin is at its highest point

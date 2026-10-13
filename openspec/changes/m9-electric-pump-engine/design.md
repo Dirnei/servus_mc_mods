@@ -69,6 +69,17 @@ Textures: vanilla `iron_block` (beam, rods, post), `copper_block` (windings), `p
 
 Each half's outline and collision is the union of its part boxes, rotated per facing, plus the stubs, like the burner (`bodyShape`). The upper half of the electric pump includes the crank wheel, grille, post and beam at rest.
 
+### D8. Wheel rim, axle, bearing and drive belt (play check 2026-10-13)
+
+The play check found the crank wheel paper thin (only its two flat faces are drawn) and floating: nothing holds it, and the right half hangs past the 2 px cap. Changes, all in pixels in the upper half's north built frame unless noted:
+
+- **Wheel.** 2 px thick (`z 6..8`). A rim band of 12 short segments, each a small box tangent to the circle of radius `CRANK_R`, about 1.6 px long, 0.6 px deep radially and as thick as the wheel. The renderer draws one standalone `electric_pump_rim` model 12 times, turned by 30 degrees each, inside the wheel's rotation, so the rim stays round while it turns. The flat faces keep the `electric_pump_wheel` texture.
+- **Axle and bearing.** An iron axle about 1x1 px from the wheel centre back to `z` about 14.5, turning with the wheel. The cap widens to `x 4..14` as a mounting plate under the wheel. A bearing block (about `x 10.5..13.5`, `y 3.5..6.5`, `z 10..11.5`) on a short column down to the cap holds the axle. Cap, column and bearing are static: part of the upper model and of the upper shape.
+- **Drive belt.** On the back, in the plane `z` about `13.5..14.5`, clear of the windings (`z 13.4`). A small motor pulley (radius about 1.2) on a shaft stub out of the housing back in the lower half, below and right of the back stub (`x 5..11`, `y 5..11`) so pipes and cables on the back never cut the belt, about centre `(13, 3.5)` lower half; an axle pulley (radius about 1.5) on the crank axle at `(CRANK_X, CRANK_Y)` upper half. Two straight belt strands tangent to both pulleys, spanning both halves. Positions are tuned in apply; `ElectricPumpPartsTest` checks the belt stays clear of the back stub and inside the block.
+- **Belt motion.** Both pulleys are drawn with spokes and turn: the axle pulley with the crank angle, the motor pulley faster by the radius ratio. The strands are static boxes with a belt texture; one dark lacing mark per strand moves along the strand with the belt speed and wraps, so the belt reads as running. All from the client stroke phase (D4), so the belt stops with the engine.
+- **Pure helpers.** The tangent points of the strands, the motor pulley angle and the lacing mark position come from a small pure `machine/pump/BeltDrive` with JUnit tests, next to `CrankDrive`.
+- **New models and textures.** Standalone `electric_pump_rim`, `electric_pump_axle` (axle with axle pulley), `electric_pump_motor_pulley`, `electric_pump_belt_mark`; static belt strands in the renderer from one `electric_pump_belt` model stretched and tilted like the con rod. Textures `electric_pump_belt.png` (dark leather) and `electric_pump_pulley.png` (spokes), drawn by the job script.
+
 PLAN.md open decisions settled: none.
 
 ## Decisions made during apply
