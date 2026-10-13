@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.adapter;
 
 import io.github.dirnei.mc.servus.foundation.logistics.menu.GhostSlot;
+import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -10,7 +11,6 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.SimpleContainerData;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
@@ -23,7 +23,6 @@ public class AdapterMenu extends AbstractContainerMenu {
     public static final int GHOST_X = 8;
     public static final int GHOST_Y = 40;
     public static final int INVENTORY_Y = 84;
-    public static final int HOTBAR_Y = 142;
     public static final int BUTTON_LEVEL_DOWN = 0;
     public static final int BUTTON_LEVEL_UP = 1;
 
@@ -40,14 +39,7 @@ public class AdapterMenu extends AbstractContainerMenu {
         this.adapter = adapter;
         this.access = ContainerLevelAccess.create(adapter.getLevel(), adapter.getBlockPos());
         addSlot(new GhostSlot(() -> ghost, 0, GHOST_X, GHOST_Y));
-        for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(inventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
-            }
-        }
-        for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(inventory, column, 8 + column * 18, HOTBAR_Y));
-        }
+        PlayerInventorySlots.add(this::addSlot, inventory, 8, INVENTORY_Y);
         addDataSlots(data);
         refresh();
     }
