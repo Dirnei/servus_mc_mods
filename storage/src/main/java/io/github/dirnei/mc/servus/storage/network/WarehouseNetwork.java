@@ -83,15 +83,12 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     private static final int BLOCKED_RETRY_TICKS = 20;
 
-    /** An indexed member, read through {@link StorageNodeBlockEntity#stock()}. */
-    private record Source(BlockPos pos) {
-    }
-
     /** A load that did not fit into its destination's delivery buffer yet. */
     private record HeldLoad(PickJob job, ItemStack stack) {
     }
 
-    private final Map<BlockPos, Source> sources = new LinkedHashMap<>();
+    /** Indexed members, read through {@link StorageNodeBlockEntity#stock()}. */
+    private final Set<BlockPos> sources = new LinkedHashSet<>();
     /** Members that hold no stock, such as rails. Never sources. */
     private final Set<BlockPos> connectors = new HashSet<>();
     /** Elevator segments, a subset of the connectors; grouped into shafts on the tick after a change. */
@@ -234,8 +231,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         garages.addAll(that.garages);
         that.held.forEach((pos, loads) -> held.computeIfAbsent(pos, p -> new ArrayList<>()).addAll(loads));
         zones.absorb(that.zones);
-        that.sources.forEach((pos, source) -> {
-            sources.put(pos, source);
+        that.sources.forEach(pos -> {
+            sources.add(pos);
             index.update(pos, that.index.snapshot(pos));
         });
         pollOrderStale = true;
@@ -316,18 +313,18 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     /** The zoned blocks that take this key, by exact item and by tag. */
     private PutAwayPlan.Tiers<BlockPos> tiers(ItemKey key) {
-        return zones.tiers(key, sources.keySet());
+        return zones.tiers(key, sources);
     }
 
     /** The target lists in order: exact matches, tag matches, then general storage; holders first within each. */
     private List<List<BlockPos>> targetTiers(ItemKey key, PutAwayPlan.Tiers<BlockPos> tiers) {
         List<BlockPos> holders = new ArrayList<>();
         for (BlockPos pos : index.sourcesHolding(key)) {
-            if (sources.containsKey(pos)) {
+            if (sources.contains(pos)) {
                 holders.add(pos);
             }
         }
-        return zones.targets(tiers, sources.keySet(), holders);
+        return zones.targets(tiers, sources, holders);
     }
 
     /** The first target in tier order that passes the test. */
@@ -605,7 +602,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         Map<BlockPos, Integer> stock = new LinkedHashMap<>();
         for (BlockPos pos : index.sourcesHolding(key)) {
             Integer count = index.snapshot(pos).get(key);
-            if (count != null && count > 0 && sources.containsKey(pos)) {
+            if (count != null && count > 0 && sources.contains(pos)) {
                 stock.put(pos, count);
             }
         }
@@ -848,15 +845,14 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     private void addSource(BlockPos pos) {
-        if (!sources.containsKey(pos)) {
-            sources.put(pos, new Source(pos));
+        if (sources.add(pos)) {
             pollOrderStale = true;
         }
         markDirty(pos);
     }
 
     private void dropSource(BlockPos pos) {
-        if (sources.remove(pos) != null) {
+        if (sources.remove(pos)) {
             index.remove(pos);
             dirtySet.remove(pos);
             pollOrderStale = true;
@@ -865,7 +861,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     /** The slots of a source, or null when it is no source, its chunk is not loaded or it holds no stock. */
     private ItemView handlerOf(BlockPos pos) {
-        return sources.containsKey(pos) && loaded(pos) instanceof StorageNodeBlockEntity node ? node.stock() : null;
+        return sources.contains(pos) && loaded(pos) instanceof StorageNodeBlockEntity node ? node.stock() : null;
     }
 
     /**
@@ -880,7 +876,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     @Override
     protected void handle(WarehouseEvent event) {
         if (event instanceof WarehouseEvent.Dirty dirty) {
-            if (sources.containsKey(dirty.pos())) {
+            if (sources.contains(dirty.pos())) {
                 markDirty(dirty.pos());
             }
         } else if (event instanceof WarehouseEvent.OutputChanged output) {
@@ -966,20 +962,20 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         while (budget > 0 && !dirtyQueue.isEmpty()) {
             BlockPos pos = dirtyQueue.poll();
             dirtySet.remove(pos);
-            if (sources.containsKey(pos)) {
+            if (sources.contains(pos)) {
                 poll(pos);
                 budget--;
             }
         }
         if (pollOrderStale) {
             pollOrder.clear();
-            pollOrder.addAll(sources.keySet());
+            pollOrder.addAll(sources);
             pollOrderStale = false;
         }
         for (int i = 0; i < budget && !pollOrder.isEmpty(); i++) {
             cursor = (cursor + 1) % pollOrder.size();
             BlockPos pos = pollOrder.get(cursor);
-            if (sources.containsKey(pos)) {
+            if (sources.contains(pos)) {
                 poll(pos);
             }
         }
