@@ -27,7 +27,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 ## 6. GUI and outline
 
 - [x] 6.1 `machine/menu/EnderAnchorMenu.java` (slots, data slots, `clickMenuButton` shifts), `client/EnderAnchorScreen.java` (arrows, size, status, team load, toggle), GUI texture `textures/gui/ender_anchor.png` by job script, lang keys via datagen (design.md D5). Run `gradlew :foundation:runData`, `gradlew build`.
-- [ ] 6.2 `client/AnchorRangeView.java` and `client/AnchorRangeRenderer.java` (new, design.md D6), radius and offset in the anchor's update tag; verify `RenderLevelStageEvent.AfterTranslucentBlocks` usage against `client/PlacementAssistRenderer.java`. Run `gradlew build`.
+- [x] 6.2 `client/AnchorRangeView.java` and `client/AnchorRangeRenderer.java` (new, design.md D6), radius and offset in the anchor's update tag; verify `RenderLevelStageEvent.AfterTranslucentBlocks` usage against `client/PlacementAssistRenderer.java`. Run `gradlew build`.
 
 ## 7. Docs and plan
 

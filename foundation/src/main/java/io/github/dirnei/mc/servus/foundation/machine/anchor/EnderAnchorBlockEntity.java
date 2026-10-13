@@ -17,7 +17,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
@@ -66,6 +68,8 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
     private final Set<Long> held = new LinkedHashSet<>();
     /** Set while the carrot dismantles the anchor: the upgrades travel on the item instead of dropping. */
     private boolean keepUpgrades;
+    /** Client only: the radius from the last update tag, for the range outline. */
+    private int syncedRadius;
     private final AnchorUpgradeSlots upgrades = new AnchorUpgradeSlots(UPGRADE_SLOTS, this::upgradesChanged);
     private final EyeView eyeView = new EyeView();
 
@@ -107,9 +111,10 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
         return upgrades;
     }
 
-    /** The anchor's square: radius from the upgrades, the saved offset clamped to it. */
+    /** The anchor's square: radius from the upgrades, the saved offset clamped to it. On the client as last synced. */
     public AnchorArea area() {
-        return AnchorArea.of(upgrades.count(), offsetX, offsetZ);
+        int radius = level != null && level.isClientSide() ? syncedRadius : upgrades.count();
+        return AnchorArea.of(radius, offsetX, offsetZ);
     }
 
     /** Every chunk of the square, packed. */
@@ -325,9 +330,13 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         owner = ValueIo.getUuid(input, "Owner");
-        upgrades.load(input, "Upgrades");
+        // The update tag carries no upgrades: the client's slots, filled by an open menu, stay as they are.
+        if (input.child("Upgrades").isPresent()) {
+            upgrades.load(input, "Upgrades");
+        }
         offsetX = input.getIntOr("OffsetX", 0);
         offsetZ = input.getIntOr("OffsetZ", 0);
+        syncedRadius = input.getIntOr("Radius", 0);
         held.clear();
         if (input.getLongOr("TicketsAt", Long.MIN_VALUE) == worldPosition.asLong()) {
             held.addAll(input.read("Tickets", Codec.LONG.listOf()).orElse(List.of()));
@@ -335,6 +344,17 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
             // Saved before the area: the anchor held its own chunk.
             held.add(ChunkPos.pack(worldPosition));
         }
+    }
+
+    /** The client draws the range outline from the radius and the offset. */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        AnchorArea area = area();
+        tag.putInt("Radius", area.radius());
+        tag.putInt("OffsetX", area.offsetX());
+        tag.putInt("OffsetZ", area.offsetZ());
+        return tag;
     }
 
     @Override
