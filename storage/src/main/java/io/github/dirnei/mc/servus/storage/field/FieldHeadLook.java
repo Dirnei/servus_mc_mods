@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage.field;
 
 /**
  * What the Field Head shows on its block: the step of the ripe share bar on
- * its front and the level of the water in its windows. Pure, no Minecraft imports.
+ * its front and the level of the water in its windows. Pure Java.
  */
 public final class FieldHeadLook {
 

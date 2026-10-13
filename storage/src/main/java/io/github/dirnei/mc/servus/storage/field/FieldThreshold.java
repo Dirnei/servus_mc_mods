@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage.field;
 
 /**
  * The ripe share a Field Head waits for before it calls a harvest, in whole
- * percent and steps of ten. Pure, no Minecraft imports.
+ * percent and steps of ten. Pure Java.
  */
 public final class FieldThreshold {
 

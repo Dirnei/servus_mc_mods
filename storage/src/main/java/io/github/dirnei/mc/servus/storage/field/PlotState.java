@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.field;
 
-/** What one plot of a field holds, as far as field work cares. Pure, no Minecraft imports. */
+/** What one plot of a field holds, as far as field work cares. Pure Java. */
 public enum PlotState {
     /** Something else is there: a block on the plot, or no soil to till or plant under it. */
     BLOCKED,

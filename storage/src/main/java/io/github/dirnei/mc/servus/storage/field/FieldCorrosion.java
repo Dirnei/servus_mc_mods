@@ -5,7 +5,7 @@ import java.util.Collection;
 /**
  * Copper corrosion of a field's farm rails: the stages, the stage of a join,
  * aging by water used with anti-corrosion upkeep, and the axe durability a
- * scrape needs. Pure, no Minecraft imports.
+ * scrape needs. Pure Java.
  */
 public final class FieldCorrosion {
 

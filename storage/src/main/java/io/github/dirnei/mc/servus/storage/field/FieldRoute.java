@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-/** The order a harvester visits the rails of a field: always the nearest rail with work next. Pure, no Minecraft imports. */
+/** The order a harvester visits the rails of a field: always the nearest rail with work next. Pure Java. */
 public final class FieldRoute {
 
     private FieldRoute() {

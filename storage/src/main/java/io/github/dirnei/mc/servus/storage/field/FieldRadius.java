@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage.field;
 
 /**
  * How far a field reaches to each side of its rails: the head's base radius
- * plus one per Range Upgrade, never past the maximum. Pure, no Minecraft imports.
+ * plus one per Range Upgrade, never past the maximum. Pure Java.
  */
 public final class FieldRadius {
 

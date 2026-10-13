@@ -12,7 +12,7 @@ import java.util.TreeMap;
 /**
  * The ground a field covers: the square of the field radius around each farm
  * rail. Plots are the positions at rail level, the hydration boxes cover the
- * farmland one level below. Pure, no Minecraft imports.
+ * farmland one level below. Pure Java.
  */
 public final class FieldStrip {
 

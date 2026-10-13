@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * What a harvester carries on a field run: a fixed number of stacks, each of
  * one item type up to its stack size. Additions fill partial stacks of the
- * same type first, then free slots. Pure, no Minecraft imports.
+ * same type first, then free slots. Pure Java.
  *
  * @param <K> the item type, compared by equality
  */

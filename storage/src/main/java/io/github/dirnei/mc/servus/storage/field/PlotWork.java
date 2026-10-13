@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.field;
 
-/** What a harvester does on one plot. Pure, no Minecraft imports. */
+/** What a harvester does on one plot. Pure Java. */
 public final class PlotWork {
 
     /** The steps on one plot, in this order: harvest, till, plant. */

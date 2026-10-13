@@ -8,7 +8,7 @@ import java.util.Set;
 
 /**
  * Which plots of a field hold a crop, which of those are ripe, and which are
- * open for field work: to till or to plant. Pure, no Minecraft imports.
+ * open for field work: to till or to plant. Pure Java.
  */
 public final class FieldRipeness<T> {
 

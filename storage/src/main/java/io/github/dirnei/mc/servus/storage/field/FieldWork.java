@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage.field;
 
 /**
  * What a served field is doing, or the first thing that keeps a harvester
- * away, for the Field Head GUI and the field command. Pure, no Minecraft imports.
+ * away, for the Field Head GUI and the field command. Pure Java.
  */
 public enum FieldWork {
     /** The farm rails are not part of any warehouse. */

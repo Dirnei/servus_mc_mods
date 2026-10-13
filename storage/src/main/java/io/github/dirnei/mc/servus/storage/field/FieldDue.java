@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.field;
 
-/** Whether a field has work worth sending a harvester for. Pure, no Minecraft imports. */
+/** Whether a field has work worth sending a harvester for. Pure Java. */
 public final class FieldDue {
 
     private FieldDue() {

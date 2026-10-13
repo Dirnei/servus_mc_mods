@@ -6,7 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Function;
 
-/** Collects the farm rails of one field: breadth first over farm rail neighbours. Pure, no Minecraft imports. */
+/** Collects the farm rails of one field: breadth first over farm rail neighbours. Pure Java. */
 public final class FieldGraph {
 
     private FieldGraph() {

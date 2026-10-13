@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage.shuttle;
 
 import io.github.dirnei.mc.servus.storage.field.FieldCargo;
 import io.github.dirnei.mc.servus.storage.field.FieldPos;
+import io.github.dirnei.mc.servus.storage.field.FieldPositions;
 import io.github.dirnei.mc.servus.storage.field.PlotReach;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import java.util.ArrayDeque;
@@ -48,22 +49,14 @@ abstract class FieldRun {
     /** The plots worked from each rail, built from the field's current rails, plots and radius. */
     Map<BlockPos, List<BlockPos>> reach(Set<BlockPos> rails, Set<BlockPos> plots, int radius) {
         if (rails != reachRails || radius != reachRadius) {
-            List<FieldPos> railPositions = new ArrayList<>(rails.size());
-            for (BlockPos rail : rails) {
-                railPositions.add(new FieldPos(rail.getX(), rail.getY(), rail.getZ()));
-            }
-            List<FieldPos> plotPositions = new ArrayList<>(plots.size());
-            for (BlockPos plot : plots) {
-                plotPositions.add(new FieldPos(plot.getX(), plot.getY(), plot.getZ()));
-            }
             Map<BlockPos, List<BlockPos>> built = new HashMap<>();
-            for (Map.Entry<FieldPos, List<FieldPos>> entry : PlotReach.assign(railPositions, plotPositions, radius).entrySet()) {
+            for (Map.Entry<FieldPos, List<FieldPos>> entry
+                    : PlotReach.assign(FieldPositions.of(rails), FieldPositions.of(plots), radius).entrySet()) {
                 List<BlockPos> worked = new ArrayList<>(entry.getValue().size());
                 for (FieldPos plot : entry.getValue()) {
-                    worked.add(new BlockPos(plot.x(), plot.y(), plot.z()));
+                    worked.add(FieldPositions.toBlockPos(plot));
                 }
-                FieldPos rail = entry.getKey();
-                built.put(new BlockPos(rail.x(), rail.y(), rail.z()), worked);
+                built.put(FieldPositions.toBlockPos(entry.getKey()), worked);
             }
             reach = built;
             reachRails = rails;

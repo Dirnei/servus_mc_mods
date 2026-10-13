@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage.field;
 
 /**
  * When a field needs a Spreader and how much fertilizer it picks from the
- * warehouse. Pure, no Minecraft imports.
+ * warehouse. Pure Java.
  */
 public final class FertilizePlan {
 

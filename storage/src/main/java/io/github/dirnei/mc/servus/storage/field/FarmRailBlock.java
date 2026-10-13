@@ -16,7 +16,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.common.ItemAbilities;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
@@ -124,10 +123,8 @@ public class FarmRailBlock extends RailBlock {
     }
 
     private static boolean besideStagedRail(Level level, BlockPos pos) {
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockPos next = pos.relative(direction);
-            if (level.isLoaded(next) && level.getBlockEntity(next) instanceof RailBlockEntity rail
-                    && level.getBlockState(next).getBlock() instanceof FarmRailBlock && rail.corrosion() != FieldCorrosion.LOOSE) {
+        for (BlockPos next : FieldHeads.farmNeighbours(level, pos)) {
+            if (level.getBlockEntity(next) instanceof RailBlockEntity rail && rail.corrosion() != FieldCorrosion.LOOSE) {
                 return true;
             }
         }

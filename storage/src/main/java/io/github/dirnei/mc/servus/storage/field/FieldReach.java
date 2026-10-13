@@ -13,7 +13,7 @@ import java.util.function.Predicate;
  * such sides at a right angle, at the end of a run or on the outside of a
  * bend, it also sees the corner between them along an L: straight out on one
  * side, then 90 degrees towards the other, every plot of the L open. Nothing
- * is seen around a blocker. Pure, no Minecraft imports.
+ * is seen around a blocker. Pure Java.
  */
 public final class FieldReach {
 

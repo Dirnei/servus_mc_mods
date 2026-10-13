@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.field;
 
-/** When a Field Head calls a Spreader to its field. Pure, no Minecraft imports. */
+/** When a Field Head calls a Spreader to its field. Pure Java. */
 public enum FertilizeMode {
     /** Never. */
     OFF,

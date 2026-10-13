@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.field;
 
-/** Water a field uses. Pure, no Minecraft imports. */
+/** Water a field uses. Pure Java. */
 public final class FieldWater {
 
     private FieldWater() {

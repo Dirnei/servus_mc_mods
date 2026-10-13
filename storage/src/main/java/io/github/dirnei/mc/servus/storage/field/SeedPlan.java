@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.field;
 
-/** How many crop items a harvester picks from the warehouse before it drives out. Pure, no Minecraft imports. */
+/** How many crop items a harvester picks from the warehouse before it drives out. Pure Java. */
 public final class SeedPlan {
 
     private SeedPlan() {

@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.field;
 
-/** The next thing a harvester on a field run does at each turn. Pure, no Minecraft imports. */
+/** The next thing a harvester on a field run does at each turn. Pure Java. */
 public enum HarvestStep {
     FETCH_SEEDS,
     WORK,

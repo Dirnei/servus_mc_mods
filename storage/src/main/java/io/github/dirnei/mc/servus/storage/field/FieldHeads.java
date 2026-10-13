@@ -67,24 +67,36 @@ public final class FieldHeads {
     /** A farm rail was placed or removed: heads whose field holds it or touches it, and heads beside it, look again. */
     public static void railChanged(Level level, BlockPos pos) {
         for (FieldHeadBlockEntity head : heads(level)) {
-            if (head.touchesRail(pos) || head.getBlockPos().getY() == pos.getY() && head.getBlockPos().distManhattan(pos) == 1) {
+            if (concerns(head, pos)) {
                 head.requestRefresh();
             }
         }
     }
 
+    /** Whether the head's field holds or touches the rail position, or the head stands beside it. */
+    private static boolean concerns(FieldHeadBlockEntity head, BlockPos pos) {
+        return head.touchesRail(pos) || head.getBlockPos().getY() == pos.getY() && head.getBlockPos().distManhattan(pos) == 1;
+    }
+
+    static boolean isFarmRail(Level level, BlockPos pos) {
+        return level.isLoaded(pos) && level.getBlockState(pos).getBlock() instanceof FarmRailBlock;
+    }
+
+    /** The loaded farm rails beside the rail, north, east, south, west. */
+    static List<BlockPos> farmNeighbours(Level level, BlockPos rail) {
+        List<BlockPos> neighbours = new ArrayList<>(4);
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos next = rail.relative(direction);
+            if (isFarmRail(level, next)) {
+                neighbours.add(next);
+            }
+        }
+        return neighbours;
+    }
+
     /** The farm rails of the field that holds this rail, walked over loaded farm rails up to {@code max_rails}. */
     public static FieldGraph.Result<BlockPos> field(Level level, BlockPos rail) {
-        return FieldGraph.collect(rail.immutable(), current -> {
-            List<BlockPos> neighbours = new ArrayList<>(4);
-            for (Direction direction : Direction.Plane.HORIZONTAL) {
-                BlockPos next = current.relative(direction);
-                if (level.isLoaded(next) && level.getBlockState(next).getBlock() instanceof FarmRailBlock) {
-                    neighbours.add(next);
-                }
-            }
-            return neighbours;
-        }, StorageStatsManager.INSTANCE.fieldMaxRails());
+        return FieldGraph.collect(rail.immutable(), current -> farmNeighbours(level, current), StorageStatsManager.INSTANCE.fieldMaxRails());
     }
 
     /**
@@ -94,7 +106,7 @@ public final class FieldHeads {
      */
     static void loosePlaced(Level level, BlockPos pos) {
         for (FieldHeadBlockEntity head : heads(level)) {
-            if (head.touchesRail(pos) || head.getBlockPos().getY() == pos.getY() && head.getBlockPos().distManhattan(pos) == 1) {
+            if (concerns(head, pos)) {
                 return;
             }
         }

@@ -13,7 +13,7 @@ import java.util.Set;
 /**
  * Which plots a harvester works from which rail: every plot from the rail
  * nearest to it, so a shuttle standing on a rail reaches at most the field
- * radius, the strip of the field. Pure, no Minecraft imports.
+ * radius, the strip of the field. Pure Java.
  */
 public final class PlotReach {
 

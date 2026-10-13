@@ -25,7 +25,6 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.shuttle.module.JobNeeds;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,6 +61,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.model.data.ModelData;
 import net.neoforged.neoforge.common.FarmlandWaterManager;
@@ -197,12 +197,10 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         super(ServusStorageBlockEntities.FIELD_HEAD.get(), pos, state);
     }
 
-    // Lifecycle
-
     @Override
     public void onLoad() {
         super.onLoad();
-        if (level != null && !level.isClientSide()) {
+        if (onServer()) {
             FieldHeads.add(this);
             refreshPending = true;
         }
@@ -211,17 +209,22 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     @Override
     public void setRemoved() {
         super.setRemoved();
-        if (level != null && !level.isClientSide()) {
-            dropTickets();
-            hydrated = false;
-            FieldHeads.remove(this);
-        }
+        leave();
     }
 
     @Override
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
-        if (level != null && !level.isClientSide()) {
+        leave();
+    }
+
+    private boolean onServer() {
+        return level != null && !level.isClientSide();
+    }
+
+    /** The head goes away with its block or chunk: its tickets end and it is no longer known. */
+    private void leave() {
+        if (onServer()) {
             dropTickets();
             hydrated = false;
             FieldHeads.remove(this);
@@ -249,7 +252,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             lookDirty = false;
             applyRipeStep();
         } else if (level != null && (level.getGameTime() + worldPosition.asLong()) % PROBLEM_CHECK_TICKS == 0) {
-            // The warehouse side of a problem (controller, harvester, way) has no event here; look now and then.
+            // Warehouse problems (controller, harvester, way) raise no event here.
             applyProblemLook();
         }
         if (status != FieldStatus.SERVING) {
@@ -264,8 +267,6 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         useWater();
     }
 
-    // Field
-
     /** Looks at the field again on the next tick. */
     public void requestRefresh() {
         refreshPending = true;
@@ -273,28 +274,11 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
 
     /** The first farm rail beside the head, north, east, south, west. */
     private BlockPos startRail() {
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockPos neighbour = worldPosition.relative(direction);
-            if (isFarmRail(neighbour)) {
-                return neighbour;
-            }
+        if (level == null) {
+            return null;
         }
-        return null;
-    }
-
-    private boolean isFarmRail(BlockPos pos) {
-        return level != null && level.isLoaded(pos) && level.getBlockState(pos).getBlock() instanceof FarmRailBlock;
-    }
-
-    private Collection<BlockPos> farmNeighbours(BlockPos rail) {
-        List<BlockPos> neighbours = new ArrayList<>(4);
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockPos neighbour = rail.relative(direction);
-            if (isFarmRail(neighbour)) {
-                neighbours.add(neighbour);
-            }
-        }
-        return neighbours;
+        List<BlockPos> neighbours = FieldHeads.farmNeighbours(level, worldPosition);
+        return neighbours.isEmpty() ? null : neighbours.get(0);
     }
 
     private void refreshField() {
@@ -307,7 +291,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         if (start == null) {
             unserve(FieldStatus.NO_FIELD, Set.of());
         } else {
-            FieldGraph.Result<BlockPos> result = FieldGraph.collect(start, this::farmNeighbours, StorageStatsManager.INSTANCE.fieldMaxRails());
+            FieldGraph.Result<BlockPos> result = FieldHeads.field(level, start);
             if (result.tooLarge()) {
                 unserve(FieldStatus.TOO_LARGE, Set.of());
             } else {
@@ -348,13 +332,10 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     private void serve(Set<BlockPos> members) {
         status = FieldStatus.SERVING;
         rails = members;
-        List<FieldPos> railPositions = new ArrayList<>(members.size());
-        for (BlockPos rail : members) {
-            railPositions.add(new FieldPos(rail.getX(), rail.getY(), rail.getZ()));
-        }
+        List<FieldPos> railPositions = FieldPositions.of(members);
         Set<BlockPos> candidateSet = new HashSet<>();
         for (FieldPos plot : FieldStrip.plots(railPositions, radius())) {
-            candidateSet.add(new BlockPos(plot.x(), plot.y(), plot.z()));
+            candidateSet.add(FieldPositions.toBlockPos(plot));
         }
         candidates = Collections.unmodifiableSet(candidateSet);
         plots = Set.of();
@@ -411,11 +392,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         agedWater = 0;
     }
 
-    // Water and hydration
-
     private void useWater() {
         if (stage == FieldCorrosion.CORRODED) {
-            // Corroded rails no longer water the field: no water used, so no further aging.
+            // Corroded rails water nothing, so they use no water and age no further.
             if (hydrated) {
                 hydrated = false;
                 dropTickets();
@@ -471,8 +450,6 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         tickets.forEach(AABBTicket::invalidate);
         tickets.clear();
     }
-
-    // Corrosion
 
     /**
      * Counts water as used by hydration: every {@code corrosion_water} mB one
@@ -548,8 +525,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
 
     /** Takes the anti-corrosion items out, for dropping when the head breaks. */
     public ItemStack takeAntiCorrosion() {
-        ItemStack held = antiCorrosion.getStackInSlot(0).copy();
-        antiCorrosion.setStackInSlot(0, ItemStack.EMPTY);
+        return takeAll(antiCorrosion);
+    }
+
+    private static ItemStack takeAll(ItemSlots slot) {
+        ItemStack held = slot.getStackInSlot(0).copy();
+        slot.setStackInSlot(0, ItemStack.EMPTY);
         return held;
     }
 
@@ -559,13 +540,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             return;
         }
         boolean corroded = status == FieldStatus.SERVING && stage == FieldCorrosion.CORRODED;
-        BlockState state = level.getBlockState(worldPosition);
-        if (state.hasProperty(FieldHeadBlock.CORRODED) && state.getValue(FieldHeadBlock.CORRODED) != corroded) {
-            level.setBlock(worldPosition, state.setValue(FieldHeadBlock.CORRODED, corroded), Block.UPDATE_CLIENTS);
-        }
+        show(level.getBlockState(worldPosition), FieldHeadBlock.CORRODED, corroded);
     }
-
-    // Ripeness
 
     /** Reads every loaded plot again and works out what the rails can see. */
     public void recheckAll() {
@@ -583,18 +559,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
 
     /** The plots the rails see now, and their ripeness rebuilt from {@link #ground}. */
     private void refreshReach() {
-        List<FieldPos> railPositions = new ArrayList<>(rails.size());
-        for (BlockPos rail : rails) {
-            railPositions.add(new FieldPos(rail.getX(), rail.getY(), rail.getZ()));
-        }
         Set<FieldPos> candidatePositions = new HashSet<>();
-        for (BlockPos plot : candidates) {
-            candidatePositions.add(new FieldPos(plot.getX(), plot.getY(), plot.getZ()));
-        }
+        candidatePositions.addAll(FieldPositions.of(candidates));
         Set<BlockPos> seen = new HashSet<>();
-        for (FieldPos plot : FieldReach.connected(railPositions, candidatePositions,
-                pos -> ground.getOrDefault(new BlockPos(pos.x(), pos.y(), pos.z()), PlotState.BLOCKED) != PlotState.BLOCKED, radius())) {
-            seen.add(new BlockPos(plot.x(), plot.y(), plot.z()));
+        for (FieldPos plot : FieldReach.connected(FieldPositions.of(rails), candidatePositions,
+                pos -> ground.getOrDefault(FieldPositions.toBlockPos(pos), PlotState.BLOCKED) != PlotState.BLOCKED, radius())) {
+            seen.add(FieldPositions.toBlockPos(plot));
         }
         plots = Collections.unmodifiableSet(seen);
         ripeness.clear();
@@ -664,8 +634,6 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
                 && chunk.getMaxBlockZ() >= minZ && chunk.getMinBlockZ() <= maxZ;
     }
 
-    // Crop and mode
-
     /** Whether the item plants an age crop and can be the crop of a field. */
     public static boolean isCropItem(ItemStack stack) {
         return stack.getItem() instanceof BlockItem item && item.getBlock() instanceof CropBlock;
@@ -716,12 +684,17 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
      * one controller. Server side.
      */
     public Optional<Map<Identifier, Long>> cropStock() {
-        if (status != FieldStatus.SERVING || rails.isEmpty()) {
+        return stockOf(cropItems());
+    }
+
+    /** The warehouse stock of each of the items with a non zero count, keyed by item id; empty without a served field online. */
+    private Optional<Map<Identifier, Long>> stockOf(Iterable<Item> items) {
+        if (!servesRails()) {
             return Optional.empty();
         }
-        return network().filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE).map(warehouse -> {
+        return onlineNetwork().map(warehouse -> {
             Map<Identifier, Long> counts = new HashMap<>();
-            for (Item item : cropItems()) {
+            for (Item item : items) {
                 long count = warehouse.stockCount(ItemKey.of(new ItemStack(item)));
                 if (count > 0) {
                     counts.put(BuiltInRegistries.ITEM.getKey(item), count);
@@ -757,8 +730,6 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         setChanged();
         syncClients();
     }
-
-    // Fertilizing
 
     /** Whether the item may be a field's fertilizer. */
     public static boolean isFertilizer(ItemStack stack) {
@@ -869,13 +840,13 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
      * keeps a Spreader away. Server side; null when the head serves no field.
      */
     public FertilizeStatus fertilizeStatus() {
-        if (status != FieldStatus.SERVING || rails.isEmpty()) {
+        if (!servesRails()) {
             return null;
         }
         if (!fertilizing()) {
             return FertilizeStatus.OFF;
         }
-        Optional<WarehouseNetwork> network = network().filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE);
+        Optional<WarehouseNetwork> network = onlineNetwork();
         boolean spreader = network.map(warehouse -> warehouse.hasFieldShuttles(JobNeeds.SPREADER)).orElse(false);
         boolean reachable = network.map(warehouse -> warehouse.fieldReachable(worldPosition, JobNeeds.SPREADER)).orElse(false);
         boolean working = network.map(warehouse -> warehouse.hasFertilizeJob(worldPosition)).orElse(false);
@@ -889,24 +860,14 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
      * with its one controller. Server side.
      */
     public Optional<Map<Identifier, Long>> fertilizerStock() {
-        if (status != FieldStatus.SERVING || rails.isEmpty()) {
-            return Optional.empty();
-        }
-        return network().filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE).map(warehouse -> {
-            Map<Identifier, Long> counts = new HashMap<>();
-            BuiltInRegistries.ITEM.getTagOrEmpty(FERTILIZER).forEach(holder -> {
-                long count = warehouse.stockCount(ItemKey.of(new ItemStack(holder.value())));
-                if (count > 0) {
-                    counts.put(BuiltInRegistries.ITEM.getKey(holder.value()), count);
-                }
-            });
-            return counts;
-        });
+        List<Item> items = new ArrayList<>();
+        BuiltInRegistries.ITEM.getTagOrEmpty(FERTILIZER).forEach(holder -> items.add(holder.value()));
+        return stockOf(items);
     }
 
     /** The name plate of the Spreader dosing this field right now, or empty. Server side. */
     public Optional<String> spreaderName() {
-        if (status != FieldStatus.SERVING || rails.isEmpty()) {
+        if (!servesRails()) {
             return Optional.empty();
         }
         return network().flatMap(warehouse -> warehouse.spreadWorker(worldPosition)).flatMap(ShuttleItem::plate);
@@ -917,8 +878,6 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         lastFertilizeCall = now;
         setChanged();
     }
-
-    // Read side for the GUI, the command and m10-harvester
 
     public FieldStatus status() {
         return status;
@@ -937,9 +896,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
 
     /** Takes the Range Upgrades out, for dropping when the head breaks. */
     public ItemStack takeRangeUpgrades() {
-        ItemStack held = rangeUpgrades.getStackInSlot(0).copy();
-        rangeUpgrades.setStackInSlot(0, ItemStack.EMPTY);
-        return held;
+        return takeAll(rangeUpgrades);
     }
 
     /** The farm rails of the field; for a head that sees another head, the field it would serve. */
@@ -1000,7 +957,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
      * head serves no field.
      */
     public FieldWork work() {
-        if (status != FieldStatus.SERVING || rails.isEmpty()) {
+        if (!servesRails()) {
             return null;
         }
         Optional<WarehouseNetwork> network = network();
@@ -1018,9 +975,18 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         return level.getBlockEntity(rails.iterator().next()) instanceof StorageNodeBlockEntity node ? node.network() : Optional.empty();
     }
 
+    private Optional<WarehouseNetwork> onlineNetwork() {
+        return network().filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE);
+    }
+
+    /** Whether the head serves a field with rails, so it has a warehouse to ask. */
+    private boolean servesRails() {
+        return status == FieldStatus.SERVING && !rails.isEmpty();
+    }
+
     /** The name plate of the shuttle working this field right now, or empty. Server side. */
     public Optional<String> workerName() {
-        if (status != FieldStatus.SERVING || rails.isEmpty()) {
+        if (!servesRails()) {
             return Optional.empty();
         }
         return network().flatMap(warehouse -> warehouse.fieldWorker(worldPosition)).flatMap(ShuttleItem::plate);
@@ -1039,8 +1005,6 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         return fillOnly;
     }
 
-    // Look
-
     /** Sets the ripe bar step on the block when it changed. Server side, from the tick. */
     private void applyRipeStep() {
         if (level == null || level.isClientSide()) {
@@ -1049,10 +1013,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         int step = status == FieldStatus.SERVING
                 ? FieldHeadLook.ripeStep(plantedCount(), ripeCount(), harvestPercent(), harvestDue())
                 : FieldHeadLook.EMPTY;
-        BlockState state = getBlockState();
-        if (state.hasProperty(FieldHeadBlock.RIPE) && state.getValue(FieldHeadBlock.RIPE) != step) {
-            level.setBlock(worldPosition, state.setValue(FieldHeadBlock.RIPE, step), Block.UPDATE_CLIENTS);
-        }
+        show(getBlockState(), FieldHeadBlock.RIPE, step);
         applyCorrodedLook();
         applyProblemLook();
     }
@@ -1062,7 +1023,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
      * head is red while it does. Server side.
      */
     public boolean problem() {
-        boolean serving = status == FieldStatus.SERVING && !rails.isEmpty();
+        boolean serving = servesRails();
         return FieldHeadLook.problem(serving, serving ? work() : null, corrosion() == FieldCorrosion.CORRODED, hydrated,
                 serving ? fertilizeStatus() : null);
     }
@@ -1072,10 +1033,13 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         if (level == null || level.isClientSide()) {
             return;
         }
-        boolean problem = problem();
-        BlockState state = level.getBlockState(worldPosition);
-        if (state.hasProperty(FieldHeadBlock.PROBLEM) && state.getValue(FieldHeadBlock.PROBLEM) != problem) {
-            level.setBlock(worldPosition, state.setValue(FieldHeadBlock.PROBLEM, problem), Block.UPDATE_CLIENTS);
+        show(level.getBlockState(worldPosition), FieldHeadBlock.PROBLEM, problem());
+    }
+
+    /** Sets the property on the block when the state has it with another value. */
+    private <T extends Comparable<T>> void show(BlockState state, Property<T> property, T value) {
+        if (state.hasProperty(property) && !state.getValue(property).equals(value)) {
+            level.setBlock(worldPosition, state.setValue(property, value), Block.UPDATE_CLIENTS);
         }
     }
 
@@ -1105,8 +1069,6 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         }
     }
 
-    // Menu
-
     @Override
     public Component getDisplayName() {
         return Component.translatable(getBlockState().getBlock().getDescriptionId());
@@ -1116,8 +1078,6 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new FieldHeadMenu(containerId, playerInventory, this);
     }
-
-    // Saving
 
     @Override
     protected void saveAdditional(ValueOutput output) {
@@ -1196,8 +1156,6 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             clientWaterLevel = input.getByteOr("WaterLevel", (byte) 0);
         }
     }
-
-    // Wood and client sync: the wood, the crop, the mode and the water level in steps
 
     @Override
     public WoodSlot woodSlot() {
@@ -1345,17 +1303,15 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         }
     }
 
-    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
+    /** Tells the field it lost its head and drops the upgrade and upkeep slots when the block is removed. */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
-        Level level = this.level;
         if (level == null) {
             return;
         }
-        FieldHeadBlockEntity head = this;
-        FieldHeads.headRemoved(level, head);
-        Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), head.takeRangeUpgrades());
-        Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), head.takeAntiCorrosion());
+        FieldHeads.headRemoved(level, this);
+        Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), takeRangeUpgrades());
+        Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), takeAntiCorrosion());
     }
 }

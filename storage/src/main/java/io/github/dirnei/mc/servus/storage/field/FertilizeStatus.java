@@ -2,8 +2,7 @@ package io.github.dirnei.mc.servus.storage.field;
 
 /**
  * What the fertilizing of a field is doing, or the first thing that keeps a
- * Spreader away, for the Fertilizer tab and the field command. Pure, no
- * Minecraft imports.
+ * Spreader away, for the Fertilizer tab and the field command. Pure Java.
  */
 public enum FertilizeStatus {
     /** No fertilizer chosen or the mode is off. */
