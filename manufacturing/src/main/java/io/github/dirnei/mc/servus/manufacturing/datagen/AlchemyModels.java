@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelRotations;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlock;
@@ -90,7 +91,7 @@ final class AlchemyModels {
         Block block = ServusManufacturingBlocks.COAGULATOR.get();
         states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(state.getValue(CoagulatorBlock.FORMED) ? formed : state.getValue(MachineBlock.LIT) ? lit : unlit)
-                .rotationY(rotation(state.getValue(MachineBlock.FACING)))
+                .rotationY(ModelRotations.rotationY(state.getValue(MachineBlock.FACING)))
                 .build());
         states.simpleBlockItem(block, unlit);
     }
@@ -102,7 +103,7 @@ final class AlchemyModels {
         Block block = ServusManufacturingBlocks.VAT.get();
         states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(state.getValue(VatBlock.FORMED) ? pieces[state.getValue(VatBlock.PIECE)] : plain)
-                .rotationY(rotation(state.getValue(VatBlock.FACING)))
+                .rotationY(ModelRotations.rotationY(state.getValue(VatBlock.FACING)))
                 .build());
         states.simpleBlockItem(block, plain);
     }
@@ -137,7 +138,7 @@ final class AlchemyModels {
         ModelFile vatFormed = purifierVat("purifier_formed", true);
         Block vatBlock = ServusManufacturingBlocks.PURIFIER.get();
         states.getVariantBuilder(vatBlock).forAllStates(state -> state.getValue(PurifierBlock.FORMED)
-                ? ConfiguredModel.builder().modelFile(vatFormed).rotationY(rotation(state.getValue(PurifierBlock.FACING))).build()
+                ? ConfiguredModel.builder().modelFile(vatFormed).rotationY(ModelRotations.rotationY(state.getValue(PurifierBlock.FACING))).build()
                 : ConfiguredModel.builder().modelFile(vat).build());
         states.simpleBlockItem(vatBlock, vat);
         side(ServusManufacturingBlocks.CATCH_BASIN.get(), catchBasin("catch_basin", false), catchBasin("catch_basin_formed", true));
@@ -146,7 +147,7 @@ final class AlchemyModels {
 
     private void side(Block block, ModelFile plain, ModelFile formed) {
         states.getVariantBuilder(block).forAllStates(state -> state.getValue(PurifierSideBlock.FORMED)
-                ? ConfiguredModel.builder().modelFile(formed).rotationY(rotation(state.getValue(PurifierSideBlock.FACING))).build()
+                ? ConfiguredModel.builder().modelFile(formed).rotationY(ModelRotations.rotationY(state.getValue(PurifierSideBlock.FACING))).build()
                 : ConfiguredModel.builder().modelFile(plain).build());
         states.simpleBlockItem(block, plain);
     }
@@ -262,7 +263,7 @@ final class AlchemyModels {
         Block block = ServusManufacturingBlocks.COPPER_DUCT.get();
         states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(state.getValue(CopperDuctBlock.FORMED) ? pieces[state.getValue(CopperDuctBlock.PIECE)] : straight)
-                .rotationY(rotation(state.getValue(CopperDuctBlock.FACING)))
+                .rotationY(ModelRotations.rotationY(state.getValue(CopperDuctBlock.FACING)))
                 .build());
         states.simpleBlockItem(block, straight);
     }
@@ -306,11 +307,6 @@ final class AlchemyModels {
         return model;
     }
 
-    /** Block state rotation Y that turns a north facing model toward {@code facing}. */
-    static int rotation(Direction facing) {
-        return ((int) facing.toYRot() + 180) % 360;
-    }
-
     /** The mouth: a stone brick box with its front while unformed, an arch with the crucible when formed. */
     private void calciner() {
         ModelFile unlit = states.models().orientable("calciner", states.mcLoc("block/stone_bricks"), states.modLoc("block/calciner_front"),
@@ -322,7 +318,7 @@ final class AlchemyModels {
         Block block = ServusManufacturingBlocks.CALCINER.get();
         states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(pick(state.getValue(CalcinerBlock.FORMED), state.getValue(MachineBlock.LIT), unlit, lit, formed, formedLit))
-                .rotationY(rotation(state.getValue(MachineBlock.FACING)))
+                .rotationY(ModelRotations.rotationY(state.getValue(MachineBlock.FACING)))
                 .build());
         states.simpleBlockItem(block, unlit);
     }
@@ -338,7 +334,7 @@ final class AlchemyModels {
     private void part(Block block, ModelFile unlit, ModelFile lit, ModelFile formed, ModelFile formedLit) {
         states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(pick(state.getValue(CalcinerPartBlock.FORMED), state.getValue(CalcinerPartBlock.LIT), unlit, lit, formed, formedLit))
-                .rotationY(rotation(state.getValue(CalcinerPartBlock.FACING)))
+                .rotationY(ModelRotations.rotationY(state.getValue(CalcinerPartBlock.FACING)))
                 .build());
         states.simpleBlockItem(block, unlit);
     }
@@ -352,7 +348,7 @@ final class AlchemyModels {
             int up = CalcinerLayout.cell(state.getValue(CalcinerShellBlock.CELL)).up();
             return ConfiguredModel.builder()
                     .modelFile(up == 0 ? top : up == -1 ? middle : bottom)
-                    .rotationY(rotation(state.getValue(CalcinerShellBlock.FACING)))
+                    .rotationY(ModelRotations.rotationY(state.getValue(CalcinerShellBlock.FACING)))
                     .build();
         });
     }

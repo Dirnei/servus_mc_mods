@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelBuilder;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelRotations;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.sink.ChimneyBlock;
 import io.github.dirnei.mc.servus.foundation.machine.sink.SinkBlock;
@@ -41,7 +42,7 @@ final class SinkModels {
             }
             return ConfiguredModel.builder()
                     .modelFile(parts[state.getValue(SinkBlock.PART)])
-                    .rotationY(MachineModels.rotationY(state.getValue(SinkBlock.FACING)))
+                    .rotationY(ModelRotations.rotationY(state.getValue(SinkBlock.FACING)))
                     .uvLock(true)
                     .build();
         });

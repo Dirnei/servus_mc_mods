@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelRotations;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
@@ -52,7 +53,7 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         }
         getVariantBuilder(ServusManufacturingBlocks.ATHANOR.get()).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile((state.getValue(AthanorBlock.FORMED) ? formed : models)[state.getValue(AthanorBlock.TIER)][state.getValue(MachineBlock.LIT) ? 1 : 0])
-                .rotationY(AlchemyModels.rotation(state.getValue(MachineBlock.FACING)))
+                .rotationY(ModelRotations.rotationY(state.getValue(MachineBlock.FACING)))
                 .build());
         simpleBlockItem(ServusManufacturingBlocks.ATHANOR.get(), models[0][0]);
     }

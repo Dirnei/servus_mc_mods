@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.datagen.LayeredModels;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelRotations;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
@@ -97,13 +98,8 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         simpleBlockItem(block, casing);
     }
 
-    /** The y rotation that turns a north built model to face that way. */
-    static int rotationY(Direction facing) {
-        return ((int) facing.toYRot() + 180) % 360;
-    }
-
     private static int rotationY(BlockState state) {
-        return rotationY(state.getValue(HorizontalDirectionalBlock.FACING));
+        return ModelRotations.rotationY(state.getValue(HorizontalDirectionalBlock.FACING));
     }
 
     /** A front facing block whose online lamp switches between two models; the item shows the dark one. */
@@ -188,7 +184,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile((state.getValue(FieldHeadBlock.CORRODED) ? corroded : models)
                         [state.getValue(FieldHeadBlock.PROBLEM) ? problemModel : state.getValue(FieldHeadBlock.RIPE)])
-                .rotationY(rotationY(state.getValue(FieldHeadBlock.FACING)))
+                .rotationY(ModelRotations.rotationY(state.getValue(FieldHeadBlock.FACING)))
                 .build());
         simpleBlockItem(block, models[0]);
     }

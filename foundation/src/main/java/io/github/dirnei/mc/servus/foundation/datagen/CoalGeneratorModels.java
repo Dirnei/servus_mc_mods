@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelRotations;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlock;
@@ -33,7 +34,7 @@ final class CoalGeneratorModels {
         provider.getVariantBuilder(block).forAllStates(state -> {
             ModelFile model = CoalGeneratorBlock.isUpper(state) ? chimney : state.getValue(MachineBlock.LIT) ? lit : unlit;
             return ConfiguredModel.builder().modelFile(model)
-                    .rotationY(MachineModels.rotationY(state.getValue(MachineBlock.FACING))).build();
+                    .rotationY(ModelRotations.rotationY(state.getValue(MachineBlock.FACING))).build();
         });
         provider.simpleBlockItem(block, item(provider));
     }

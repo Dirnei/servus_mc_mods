@@ -1,12 +1,13 @@
 package io.github.dirnei.mc.servus.storage.datagen;
 
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelRotations;
+import io.github.dirnei.mc.servus.foundation.datagen.model.MultiPartBlockStateBuilder;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
-import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
-import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
-import io.github.dirnei.mc.servus.foundation.datagen.model.MultiPartBlockStateBuilder;
 
 /**
  * Datagen for the heavy duty rack. Every box is disjoint from every other so
@@ -49,7 +50,7 @@ final class HeavyRackModels {
 
         MultiPartBlockStateBuilder builder = provider.getMultipartBuilder(block);
         for (Direction facing : Direction.Plane.HORIZONTAL) {
-            int angle = ServusStorageBlockStateProvider.rotationY(facing);
+            int angle = ModelRotations.rotationY(facing);
             builder.part().modelFile(core).rotationY(angle).addModel().condition(HeavyRackBlock.FACING, facing);
             builder.part().modelFile(postLeft).rotationY(angle).addModel()
                     .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.LEFT, false);

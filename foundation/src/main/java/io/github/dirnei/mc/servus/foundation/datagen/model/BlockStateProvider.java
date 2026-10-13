@@ -103,7 +103,7 @@ public abstract class BlockStateProvider implements DataProvider {
             return ConfiguredModel.builder()
                     .modelFile(model)
                     .rotationX(direction == Direction.DOWN ? 180 : direction.getAxis().isHorizontal() ? 90 : 0)
-                    .rotationY(direction.getAxis().isVertical() ? 0 : (((int) direction.toYRot()) + 180) % 360)
+                    .rotationY(direction.getAxis().isVertical() ? 0 : ModelRotations.rotationY(direction))
                     .build();
         });
     }

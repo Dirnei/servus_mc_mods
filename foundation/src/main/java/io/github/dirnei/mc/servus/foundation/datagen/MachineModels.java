@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelRotations;
 import io.github.dirnei.mc.servus.foundation.datagen.model.MultiPartBlockStateBuilder;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
@@ -26,11 +27,6 @@ final class MachineModels {
     /** A model under {@code models/block/} with {@code minecraft:block/block} as parent. */
     static BlockModelBuilder blockModel(BlockStateProvider provider, String name) {
         return provider.models().withExistingParent(name, provider.mcLoc("block/block"));
-    }
-
-    /** Block state rotation Y that turns a north facing model toward {@code facing}. */
-    static int rotationY(Direction facing) {
-        return ((int) facing.toYRot() + 180) % 360;
     }
 
     /**
@@ -113,7 +109,7 @@ final class MachineModels {
         ModelFile lit = provider.models().orientable("ender_anchor_lit", side, front, provider.modLoc("block/ender_anchor_top_lit"));
         provider.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(state.getValue(MachineBlock.LIT) ? lit : unlit)
-                .rotationY(rotationY(state.getValue(MachineBlock.FACING)))
+                .rotationY(ModelRotations.rotationY(state.getValue(MachineBlock.FACING)))
                 .build());
         provider.simpleBlockItem(block, unlit);
     }
