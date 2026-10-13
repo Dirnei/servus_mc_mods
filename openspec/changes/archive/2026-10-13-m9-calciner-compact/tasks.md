@@ -75,7 +75,7 @@
 ## 5. Verification
 
 - [x] 5.1 Full `gradlew build`, `gradlew test` and `gradlew :manufacturing:runGameTestServer` green.
-- [ ] 5.2 User play check from the main checkout, with all three mods:
+- [x] 5.2 User play check from the main checkout, with all three mods:
   - Build and form the Calciner in all four facings.
   - Check the models from several angles for flicker.
   - Watch the drip and the puddle.
