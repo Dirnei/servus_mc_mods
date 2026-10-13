@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
-import io.github.dirnei.mc.servus.foundation.machine.loader.ChunkLoaderData;
+import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorData;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
@@ -74,7 +74,7 @@ public final class SiteWakeGameTests {
     }
 
     private static int loaders(GameTestHelper helper, UUID team) {
-        return ChunkLoaderData.get(helper.getLevel().getServer()).countFor(team);
+        return EnderAnchorData.get(helper.getLevel().getServer()).countFor(team);
     }
 
     private static StorageNodeBlocks.Activity lamp(GameTestHelper helper) {
@@ -161,8 +161,8 @@ public final class SiteWakeGameTests {
         UUID team = UUID.randomUUID();
         site(helper, team, 1);
         ServerLevel level = helper.getLevel();
-        ChunkLoaderData data = ChunkLoaderData.get(level.getServer());
-        int cap = ServusFoundationConfig.maxChunkLoadersPerTeam();
+        EnderAnchorData data = EnderAnchorData.get(level.getServer());
+        int cap = ServusFoundationConfig.maxEnderAnchorsPerTeam();
         BlockPos base = helper.absolutePos(CONTROLLER).offset(5000, 0, 0);
         for (int i = 0; i < cap; i++) {
             data.register(team, level, base.offset(i, 0, 0));

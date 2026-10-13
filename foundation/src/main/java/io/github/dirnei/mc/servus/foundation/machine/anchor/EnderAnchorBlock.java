@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.foundation.machine.loader;
+package io.github.dirnei.mc.servus.foundation.machine.anchor;
 
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
@@ -12,15 +12,15 @@ import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
-/** The Chunk Loader, shaped like an ender anchor; it is lit while it holds its chunk. */
-public class ChunkLoaderBlock extends MachineBlock {
+/** The Ender Anchor; it is lit while it holds its chunk. */
+public class EnderAnchorBlock extends MachineBlock {
 
-    public static final MapCodec<ChunkLoaderBlock> CODEC = simpleCodec(ChunkLoaderBlock::new);
+    public static final MapCodec<EnderAnchorBlock> CODEC = simpleCodec(EnderAnchorBlock::new);
 
     /** One portal particle in this many client ticks on average while active. */
     private static final int PARTICLE_CHANCE = 3;
 
-    public ChunkLoaderBlock(Properties properties) {
+    public EnderAnchorBlock(Properties properties) {
         super(properties);
     }
 
@@ -31,7 +31,7 @@ public class ChunkLoaderBlock extends MachineBlock {
 
     @Override
     protected BlockEntityType<? extends MachineBlockEntity> blockEntityType() {
-        return MachineContent.CHUNK_LOADER_ENTITY.get();
+        return MachineContent.ENDER_ANCHOR_ENTITY.get();
     }
 
     /** A few faint portal particles drift around the block while it holds its chunk, like around an ender chest. */

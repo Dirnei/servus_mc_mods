@@ -5,9 +5,9 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
-import io.github.dirnei.mc.servus.foundation.machine.loader.ChunkLoaderBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.loader.EyeMotion;
-import io.github.dirnei.mc.servus.foundation.machine.loader.EyeView;
+import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.anchor.EyeMotion;
+import io.github.dirnei.mc.servus.foundation.machine.anchor.EyeView;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.Sheets;
@@ -30,15 +30,15 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Draws the Chunk Loader's ender eye over the shut lid painted in its front
+ * Draws the Ender Anchor's ender eye over the shut lid painted in its front
  * socket: the green lens, the iris that looks at the nearest player in front,
  * and the two lids that open while the loader holds its chunk and close for a
  * blink now and then. Wraps the {@link SideMarkerRenderer}, so the carrot and
  * the goggles still show the side markers.
  */
-public class EnderAnchorRenderer implements BlockEntityRenderer<ChunkLoaderBlockEntity, EnderAnchorRenderer.State> {
+public class EnderAnchorRenderer implements BlockEntityRenderer<EnderAnchorBlockEntity, EnderAnchorRenderer.State> {
 
-    private static final Identifier EYE = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/chunk_loader_eye");
+    private static final Identifier EYE = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/ender_anchor_eye");
     /** The socket on the north built front, in pixels: x and y 5..11. */
     private static final float LENS_MIN = 5;
     private static final float LENS_MAX = 11;
@@ -46,7 +46,7 @@ public class EnderAnchorRenderer implements BlockEntityRenderer<ChunkLoaderBlock
     /** Each layer sits a little further out than the one below, like the side markers. */
     private static final float LAYER = 1.0F / 256.0F;
 
-    private final SideMarkerRenderer<ChunkLoaderBlockEntity> markers;
+    private final SideMarkerRenderer<EnderAnchorBlockEntity> markers;
 
     /** The side markers plus the eye of one frame. */
     public static final class State extends BlockEntityRenderState {
@@ -69,7 +69,7 @@ public class EnderAnchorRenderer implements BlockEntityRenderer<ChunkLoaderBlock
     }
 
     @Override
-    public void extractRenderState(ChunkLoaderBlockEntity loader, State state, float partialTick, Vec3 cameraPosition,
+    public void extractRenderState(EnderAnchorBlockEntity loader, State state, float partialTick, Vec3 cameraPosition,
                                    ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(loader, state, partialTick, cameraPosition, breakProgress);
         markers.extractRenderState(loader, state.markers, partialTick, cameraPosition, breakProgress);

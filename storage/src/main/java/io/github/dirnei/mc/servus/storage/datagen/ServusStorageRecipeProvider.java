@@ -269,9 +269,9 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .pattern(" R ")
                 .define('E', Items.ENDER_PEARL)
                 .define('I', Items.IRON_INGOT)
-                .define('C', io.github.dirnei.mc.servus.foundation.machine.MachineContent.CHUNK_LOADER_ITEM.get())
+                .define('C', io.github.dirnei.mc.servus.foundation.machine.MachineContent.ENDER_ANCHOR_ITEM.get())
                 .define('R', Items.REDSTONE)
-                .unlockedBy("has_chunk_loader", has(io.github.dirnei.mc.servus.foundation.machine.MachineContent.CHUNK_LOADER_ITEM.get()))
+                .unlockedBy("has_ender_anchor", has(io.github.dirnei.mc.servus.foundation.machine.MachineContent.ENDER_ANCHOR_ITEM.get()))
                 .save(output);
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusStorageItems.WIRELESS_UPGRADE.get())

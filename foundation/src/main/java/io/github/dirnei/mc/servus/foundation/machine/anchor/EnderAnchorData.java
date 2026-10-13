@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.foundation.machine.loader;
+package io.github.dirnei.mc.servus.foundation.machine.anchor;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -16,8 +16,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
 
-/** Which chunk loaders each team has registered, for the per team cap. */
-public final class ChunkLoaderData extends SavedData {
+/** Which Ender Anchors each team has registered, for the per team cap. */
+public final class EnderAnchorData extends SavedData {
 
     /** One team and its loaders, the saved form. */
     private record TeamEntry(UUID team, List<String> loaders) {
@@ -26,16 +26,16 @@ public final class ChunkLoaderData extends SavedData {
                 Codec.STRING.listOf().fieldOf("Loaders").forGetter(TeamEntry::loaders)).apply(i, TeamEntry::new));
     }
 
-    private static final Codec<ChunkLoaderData> CODEC = RecordCodecBuilder.create(i -> i.group(
-            TeamEntry.CODEC.listOf().optionalFieldOf("Teams", List.of()).forGetter(ChunkLoaderData::entries))
-            .apply(i, ChunkLoaderData::fromEntries));
+    private static final Codec<EnderAnchorData> CODEC = RecordCodecBuilder.create(i -> i.group(
+            TeamEntry.CODEC.listOf().optionalFieldOf("Teams", List.of()).forGetter(EnderAnchorData::entries))
+            .apply(i, EnderAnchorData::fromEntries));
 
-    private static final SavedDataType<ChunkLoaderData> TYPE = new SavedDataType<>(
-            Identifier.withDefaultNamespace("servus_chunk_loaders"), ChunkLoaderData::new, CODEC);
+    private static final SavedDataType<EnderAnchorData> TYPE = new SavedDataType<>(
+            Identifier.withDefaultNamespace("servus_ender_anchors"), EnderAnchorData::new, CODEC);
 
     private final Map<UUID, Set<String>> loaders = new HashMap<>();
 
-    public static ChunkLoaderData get(MinecraftServer server) {
+    public static EnderAnchorData get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(TYPE);
     }
 
@@ -69,8 +69,8 @@ public final class ChunkLoaderData extends SavedData {
         }
     }
 
-    private static ChunkLoaderData fromEntries(List<TeamEntry> entries) {
-        ChunkLoaderData data = new ChunkLoaderData();
+    private static EnderAnchorData fromEntries(List<TeamEntry> entries) {
+        EnderAnchorData data = new EnderAnchorData();
         for (TeamEntry entry : entries) {
             data.loaders.put(entry.team(), new LinkedHashSet<>(entry.loaders()));
         }

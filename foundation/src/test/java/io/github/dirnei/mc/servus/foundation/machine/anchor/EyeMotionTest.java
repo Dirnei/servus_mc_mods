@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.foundation.machine.loader;
+package io.github.dirnei.mc.servus.foundation.machine.anchor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

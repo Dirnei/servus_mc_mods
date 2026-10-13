@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.site;
 
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
-import io.github.dirnei.mc.servus.foundation.machine.loader.ChunkLoaderData;
+import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorData;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
@@ -24,7 +24,7 @@ import net.neoforged.fml.ModList;
 
 /**
  * The sites being woken right now. A wake loads every chunk of a site's
- * recorded span with a ticket of {@link SiteTickets}, holds one chunk loader
+ * recorded span with a ticket of {@link SiteTickets}, holds one Ender Anchor
  * slot of the site's team while awake, and releases both after the work and
  * the grace time. Server thread only.
  */
@@ -158,7 +158,7 @@ public final class SiteWakes {
     /** A team slot a wake held when the server stopped without releasing it is freed on start. */
     public static void clearTeamSlots(MinecraftServer server) {
         WAKES.clear();
-        ChunkLoaderData data = ChunkLoaderData.get(server);
+        EnderAnchorData data = EnderAnchorData.get(server);
         for (SiteRecord site : SiteRegistry.get(server).all()) {
             ServerLevel level = server.getLevel(site.dimension());
             if (level != null && site.team().isPresent()) {
@@ -168,7 +168,7 @@ public final class SiteWakes {
     }
 
     private static boolean ftbBlocks() {
-        return ServusFoundationConfig.chunkLoaderRespectsFtbChunks() && ModList.get().isLoaded(FTB_CHUNKS);
+        return ServusFoundationConfig.enderAnchorRespectsFtbChunks() && ModList.get().isLoaded(FTB_CHUNKS);
     }
 
     private static void step(MinecraftServer server, Wake wake) {
@@ -189,7 +189,7 @@ public final class SiteWakes {
         WakeMachine.Action action = wake.machine.tick(wanted, busy(level, wake.pos), allowance, StorageStatsManager.INSTANCE.wakeGraceTicks());
         if (action == WakeMachine.Action.LOAD) {
             UUID team = site.team().orElseThrow();
-            ChunkLoaderData.get(server).register(team, level, wake.pos);
+            EnderAnchorData.get(server).register(team, level, wake.pos);
             wake.registered = team;
         } else if (action == WakeMachine.Action.RELEASE) {
             unload(level, wake);
@@ -210,7 +210,7 @@ public final class SiteWakes {
     }
 
     private static WakeAllowance.Reason allowance(MinecraftServer server, ServerLevel level, SiteRecord site, Wake wake) {
-        ChunkLoaderData data = ChunkLoaderData.get(server);
+        EnderAnchorData data = EnderAnchorData.get(server);
         UUID team = site.team().orElse(null);
         boolean registered = team != null && data.isRegistered(team, level, wake.pos);
         int active = team == null ? 0 : data.countFor(team);
@@ -218,7 +218,7 @@ public final class SiteWakes {
         long stored = controller(level, wake.pos).map(controller -> (long) controller.energyStored()).orElse((long) site.energy());
         long toStart = WakeCost.toStart(site.span().size(), StorageStatsManager.INSTANCE.wakeFePerChunkPerTick());
         return WakeAllowance.check(team != null, ftbBlocks(), site.capacityState(), registered, active,
-                ServusFoundationConfig.maxChunkLoadersPerTeam(), stored, toStart);
+                ServusFoundationConfig.maxEnderAnchorsPerTeam(), stored, toStart);
     }
 
     /**
@@ -278,7 +278,7 @@ public final class SiteWakes {
         }
         wake.forced.clear();
         if (wake.registered != null) {
-            ChunkLoaderData.get(level.getServer()).unregister(wake.registered, level, wake.pos);
+            EnderAnchorData.get(level.getServer()).unregister(wake.registered, level, wake.pos);
             wake.registered = null;
         }
     }

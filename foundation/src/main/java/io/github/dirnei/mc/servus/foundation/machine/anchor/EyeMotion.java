@@ -1,7 +1,7 @@
-package io.github.dirnei.mc.servus.foundation.machine.loader;
+package io.github.dirnei.mc.servus.foundation.machine.anchor;
 
 /**
- * How the Chunk Loader's ender eye moves: it opens while the loader holds its
+ * How the Ender Anchor's ender eye moves: it opens while the loader holds its
  * chunk and closes when it lets go, blinks now and then on a schedule of its
  * own, and turns its iris toward the nearest player in front of it. Pure, look
  * only; the renderer feeds it times in seconds and offsets in blocks.

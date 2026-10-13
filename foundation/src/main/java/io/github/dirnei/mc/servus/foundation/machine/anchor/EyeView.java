@@ -1,7 +1,7 @@
-package io.github.dirnei.mc.servus.foundation.machine.loader;
+package io.github.dirnei.mc.servus.foundation.machine.anchor;
 
 /**
- * Where one Chunk Loader's eye stands on the client: how far it is open, where
+ * Where one Ender Anchor's eye stands on the client: how far it is open, where
  * its iris looks and the frame time these belong to. Kept on the block entity
  * for its renderer, never saved or synced. Look only.
  */

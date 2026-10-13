@@ -21,15 +21,15 @@ public final class ServusFoundationConfig {
             .push("placement")
             .defineInRange("placementAssistReach", 16, 1, 64);
 
-    private static final ModConfigSpec.IntValue MAX_CHUNK_LOADERS_PER_TEAM = BUILDER
+    private static final ModConfigSpec.IntValue MAX_ENDER_ANCHORS_PER_TEAM = BUILDER
             .pop()
-            .comment("How many Chunk Loaders one team may keep active at the same time.")
-            .push("chunkLoader")
-            .defineInRange("maxChunkLoadersPerTeam", 4, 1, 64);
+            .comment("How many Ender Anchors one team may keep active at the same time.")
+            .push("enderAnchor")
+            .defineInRange("maxEnderAnchorsPerTeam", 4, 1, 64);
 
-    private static final ModConfigSpec.BooleanValue CHUNK_LOADER_RESPECTS_FTB_CHUNKS = BUILDER
-            .comment("When FTB Chunks is installed, Servus Chunk Loaders stay inactive and point players to FTB Chunks.")
-            .define("chunkLoaderRespectsFtbChunks", true);
+    private static final ModConfigSpec.BooleanValue ENDER_ANCHOR_RESPECTS_FTB_CHUNKS = BUILDER
+            .comment("When FTB Chunks is installed, Servus Ender Anchors stay inactive and point players to FTB Chunks.")
+            .define("enderAnchorRespectsFtbChunks", true);
 
     public static final ModConfigSpec SPEC;
 
@@ -49,11 +49,11 @@ public final class ServusFoundationConfig {
         return PLACEMENT_ASSIST_REACH.get();
     }
 
-    public static int maxChunkLoadersPerTeam() {
-        return MAX_CHUNK_LOADERS_PER_TEAM.get();
+    public static int maxEnderAnchorsPerTeam() {
+        return MAX_ENDER_ANCHORS_PER_TEAM.get();
     }
 
-    public static boolean chunkLoaderRespectsFtbChunks() {
-        return CHUNK_LOADER_RESPECTS_FTB_CHUNKS.get();
+    public static boolean enderAnchorRespectsFtbChunks() {
+        return ENDER_ANCHOR_RESPECTS_FTB_CHUNKS.get();
     }
 }

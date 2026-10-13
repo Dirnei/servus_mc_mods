@@ -3,10 +3,10 @@ package io.github.dirnei.mc.servus.foundation.machine;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlock;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.loader.ChunkLoaderBlock;
-import io.github.dirnei.mc.servus.foundation.machine.loader.ChunkLoaderBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorBlock;
+import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.menu.BurnerPumpMenu;
-import io.github.dirnei.mc.servus.foundation.machine.menu.ChunkLoaderMenu;
+import io.github.dirnei.mc.servus.foundation.machine.menu.EnderAnchorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.ElectricPumpMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.SinkMenu;
@@ -84,20 +84,20 @@ public final class MachineContent {
     public static final DeferredBlock<ChimneyBlock> CHIMNEY = BLOCKS.registerBlock("chimney", ChimneyBlock::new, () -> brick().noOcclusion());
     public static final DeferredItem<BlockItem> CHIMNEY_ITEM = ITEMS.registerSimpleBlockItem(CHIMNEY);
 
-    public static final DeferredBlock<ChunkLoaderBlock> CHUNK_LOADER =
-            BLOCKS.registerBlock("chunk_loader", ChunkLoaderBlock::new, () -> machine());
-    public static final DeferredItem<BlockItem> CHUNK_LOADER_ITEM = ITEMS.registerSimpleBlockItem(CHUNK_LOADER);
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ChunkLoaderBlockEntity>> CHUNK_LOADER_ENTITY =
-            BLOCK_ENTITIES.register("chunk_loader", () -> new BlockEntityType<>(ChunkLoaderBlockEntity::new, CHUNK_LOADER.get()));
-    public static final DeferredHolder<MenuType<?>, MenuType<ChunkLoaderMenu>> CHUNK_LOADER_MENU =
-            MENUS.register("chunk_loader", () -> IMenuTypeExtension.create(ChunkLoaderMenu::fromNetwork));
+    public static final DeferredBlock<EnderAnchorBlock> ENDER_ANCHOR =
+            BLOCKS.registerBlock("ender_anchor", EnderAnchorBlock::new, () -> machine());
+    public static final DeferredItem<BlockItem> ENDER_ANCHOR_ITEM = ITEMS.registerSimpleBlockItem(ENDER_ANCHOR);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EnderAnchorBlockEntity>> ENDER_ANCHOR_ENTITY =
+            BLOCK_ENTITIES.register("ender_anchor", () -> new BlockEntityType<>(EnderAnchorBlockEntity::new, ENDER_ANCHOR.get()));
+    public static final DeferredHolder<MenuType<?>, MenuType<EnderAnchorMenu>> ENDER_ANCHOR_MENU =
+            MENUS.register("ender_anchor", () -> IMenuTypeExtension.create(EnderAnchorMenu::fromNetwork));
 
     private MachineContent() {
     }
 
     /** Creative tab order of Foundation's machines. */
     public static List<DeferredItem<? extends Item>> creativeTabOrder() {
-        return List.of(BURNER_PUMP_ITEM, ELECTRIC_PUMP_ITEM, COAL_GENERATOR_ITEM, CHUNK_LOADER_ITEM, SINK_ITEM, CHIMNEY_ITEM);
+        return List.of(BURNER_PUMP_ITEM, ELECTRIC_PUMP_ITEM, COAL_GENERATOR_ITEM, ENDER_ANCHOR_ITEM, SINK_ITEM, CHIMNEY_ITEM);
     }
 
     /** Brick blocks of the Sink family: like vanilla bricks. */

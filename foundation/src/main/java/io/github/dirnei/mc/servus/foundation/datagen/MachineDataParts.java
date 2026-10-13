@@ -34,7 +34,7 @@ final class MachineDataParts {
 
     static void blockStates(BlockStateProvider provider) {
         CoalGeneratorModels.coalGenerator(provider);
-        chunkLoader(provider);
+        enderAnchor(provider);
         BurnerPumpModels.burnerPump(provider);
         ElectricPumpModels.electricPump(provider);
         SinkModels.sink(provider);
@@ -45,7 +45,7 @@ final class MachineDataParts {
     /** Blocks that drop themselves and are mined with a pickaxe. */
     static List<Block> selfDropping() {
         return List.of(MachineContent.COAL_GENERATOR.get(), MachineContent.BURNER_PUMP.get(), MachineContent.ELECTRIC_PUMP.get(),
-                MachineContent.SINK.get(), MachineContent.CHIMNEY.get(), MachineContent.CHUNK_LOADER.get());
+                MachineContent.SINK.get(), MachineContent.CHIMNEY.get(), MachineContent.ENDER_ANCHOR.get());
     }
 
     static void lang(LanguageProvider provider) {
@@ -54,15 +54,15 @@ final class MachineDataParts {
         provider.add(MachineContent.ELECTRIC_PUMP.get(), "Electric Pump");
         provider.add("gui.servus_foundation.pump.source_ok", "Infinite water source below");
         provider.add("gui.servus_foundation.pump.source_missing", "Needs an infinite water source below");
-        provider.add(MachineContent.CHUNK_LOADER.get(), "Chunk Loader");
-        provider.add("gui.servus_foundation.chunk_loader.no_power", "Inactive: no power");
-        provider.add("gui.servus_foundation.chunk_loader.active", "Active: chunk kept loaded");
-        provider.add("gui.servus_foundation.chunk_loader.team_limit", "Inactive: team limit reached");
-        provider.add("gui.servus_foundation.chunk_loader.ftb_chunks", "Inactive: use FTB Chunks");
-        provider.add("gui.servus_foundation.chunk_loader.no_owner", "Inactive: no owner");
-        provider.add("servus_foundation.configuration.chunkLoader", "Chunk Loader");
-        provider.add("servus_foundation.configuration.maxChunkLoadersPerTeam", "Max chunk loaders per team");
-        provider.add("servus_foundation.configuration.chunkLoaderRespectsFtbChunks", "Chunk loader respects FTB Chunks");
+        provider.add(MachineContent.ENDER_ANCHOR.get(), "Ender Anchor");
+        provider.add("gui.servus_foundation.ender_anchor.no_power", "Inactive: no power");
+        provider.add("gui.servus_foundation.ender_anchor.active", "Active: chunk kept loaded");
+        provider.add("gui.servus_foundation.ender_anchor.team_limit", "Inactive: team limit reached");
+        provider.add("gui.servus_foundation.ender_anchor.ftb_chunks", "Inactive: use FTB Chunks");
+        provider.add("gui.servus_foundation.ender_anchor.no_owner", "Inactive: no owner");
+        provider.add("servus_foundation.configuration.enderAnchor", "Ender Anchor");
+        provider.add("servus_foundation.configuration.maxEnderAnchorsPerTeam", "Max Ender Anchors per team");
+        provider.add("servus_foundation.configuration.enderAnchorRespectsFtbChunks", "Ender Anchor respects FTB Chunks");
         provider.add(MachineContent.SINK.get(), "Sink");
         provider.add(MachineContent.CHIMNEY.get(), "Chimney");
         provider.add("gui.servus_foundation.sink.height", "Chimney height: %s");
@@ -115,15 +115,16 @@ final class MachineDataParts {
                 .unlockedBy("has_burner_pump", has.apply(MachineContent.BURNER_PUMP_ITEM.get()))
                 .save(output);
 
-        // No assembler in Foundation: the Chunk Loader is crafted by hand.
-        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.CHUNK_LOADER_ITEM.get())
+        // No assembler in Foundation: the Ender Anchor is crafted by hand.
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.ENDER_ANCHOR_ITEM.get())
                 .pattern("ICI")
                 .pattern("RER")
-                .pattern("ICI")
+                .pattern("OCO")
                 .define('I', Items.IRON_INGOT)
                 .define('C', Items.COPPER_INGOT)
                 .define('R', Items.REDSTONE)
                 .define('E', Items.ENDER_PEARL)
+                .define('O', Items.OBSIDIAN)
                 .unlockedBy("has_ender_pearl", has.apply(Items.ENDER_PEARL))
                 .save(output);
 
@@ -164,16 +165,16 @@ final class MachineDataParts {
     }
 
     /**
-     * The Chunk Loader as an ender anchor: obsidian front with the shut eye in
+     * The Ender Anchor: obsidian front with the shut eye in
      * its socket (the renderer draws the open eye over it), chunk grid sides,
      * and a top whose purple core brightens while it holds its chunk.
      */
-    static void chunkLoader(BlockStateProvider provider) {
-        Block block = MachineContent.CHUNK_LOADER.get();
-        Identifier side = provider.modLoc("block/chunk_loader_side");
-        Identifier front = provider.modLoc("block/chunk_loader_front");
-        ModelFile unlit = provider.models().orientable("chunk_loader", side, front, provider.modLoc("block/chunk_loader_top"));
-        ModelFile lit = provider.models().orientable("chunk_loader_lit", side, front, provider.modLoc("block/chunk_loader_top_lit"));
+    static void enderAnchor(BlockStateProvider provider) {
+        Block block = MachineContent.ENDER_ANCHOR.get();
+        Identifier side = provider.modLoc("block/ender_anchor_side");
+        Identifier front = provider.modLoc("block/ender_anchor_front");
+        ModelFile unlit = provider.models().orientable("ender_anchor", side, front, provider.modLoc("block/ender_anchor_top"));
+        ModelFile lit = provider.models().orientable("ender_anchor_lit", side, front, provider.modLoc("block/ender_anchor_top_lit"));
         provider.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(state.getValue(MachineBlock.LIT) ? lit : unlit)
                 .rotationY(((int) state.getValue(MachineBlock.FACING).toYRot() + 180) % 360)

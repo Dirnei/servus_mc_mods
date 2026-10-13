@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.foundation.machine.loader;
+package io.github.dirnei.mc.servus.foundation.machine.anchor;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import net.minecraft.resources.Identifier;
@@ -7,14 +7,14 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
 import net.neoforged.neoforge.common.world.chunk.TicketController;
 
-/** The ticket controller chunk loaders force chunks with. */
+/** The ticket controller Ender Anchors force chunks with. */
 @EventBusSubscriber(modid = ServusFoundationIds.MOD_ID)
-public final class ChunkLoaderTickets {
+public final class EnderAnchorTickets {
 
     public static final TicketController CONTROLLER =
-            new TicketController(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "chunk_loader"));
+            new TicketController(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "ender_anchor"));
 
-    private ChunkLoaderTickets() {
+    private EnderAnchorTickets() {
     }
 
     @SubscribeEvent

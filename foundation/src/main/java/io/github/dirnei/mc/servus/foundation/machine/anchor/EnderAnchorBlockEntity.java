@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.foundation.machine.loader;
+package io.github.dirnei.mc.servus.foundation.machine.anchor;
 
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import net.minecraft.world.level.storage.ValueInput;
@@ -9,7 +9,7 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.menu.ChunkLoaderMenu;
+import io.github.dirnei.mc.servus.foundation.machine.menu.EnderAnchorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,7 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.fml.ModList;
 
 /** Keeps its chunk loaded and ticking while powered, within the team cap. */
-public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements OwnedMachine {
+public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements OwnedMachine {
 
     public static final int DATA_STATUS = 6;
     public static final int STATUS_NO_POWER = 0;
@@ -33,7 +33,7 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
     public static final int STATUS_TEAM_LIMIT = 2;
     public static final int STATUS_FTB_CHUNKS = 3;
     public static final int STATUS_NO_OWNER = 4;
-    public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "chunk_loader");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "ender_anchor");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
     private static final String FTB_CHUNKS = "ftbchunks";
 
@@ -42,8 +42,8 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
     private int status = STATUS_NO_POWER;
     private final EyeView eyeView = new EyeView();
 
-    public ChunkLoaderBlockEntity(BlockPos pos, BlockState state) {
-        super(MachineContent.CHUNK_LOADER_ENTITY.get(), pos, state, 0);
+    public EnderAnchorBlockEntity(BlockPos pos, BlockState state) {
+        super(MachineContent.ENDER_ANCHOR_ENTITY.get(), pos, state, 0);
     }
 
     @Override
@@ -75,15 +75,15 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
         if (owner == null) {
             return STATUS_NO_OWNER;
         }
-        if (ServusFoundationConfig.chunkLoaderRespectsFtbChunks() && ModList.get().isLoaded(FTB_CHUNKS)) {
+        if (ServusFoundationConfig.enderAnchorRespectsFtbChunks() && ModList.get().isLoaded(FTB_CHUNKS)) {
             return STATUS_FTB_CHUNKS;
         }
         if (!(level instanceof ServerLevel server)) {
             return STATUS_NO_POWER;
         }
-        ChunkLoaderData data = ChunkLoaderData.get(server.getServer());
+        EnderAnchorData data = EnderAnchorData.get(server.getServer());
         if (!data.isRegistered(owner, server, worldPosition)) {
-            if (data.countFor(owner) >= ServusFoundationConfig.maxChunkLoadersPerTeam()) {
+            if (data.countFor(owner) >= ServusFoundationConfig.maxEnderAnchorsPerTeam()) {
                 return STATUS_TEAM_LIMIT;
             }
             data.register(owner, server, worldPosition);
@@ -122,7 +122,7 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
             return;
         }
         ChunkPos chunk = ChunkPos.containing(worldPosition);
-        ChunkLoaderTickets.CONTROLLER.forceChunk(server, worldPosition, chunk.x(), chunk.z(), wanted, true);
+        EnderAnchorTickets.CONTROLLER.forceChunk(server, worldPosition, chunk.x(), chunk.z(), wanted, true);
         ticketHeld = wanted;
         setChanged();
     }
@@ -132,7 +132,7 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
         if (level instanceof ServerLevel server) {
             syncTicket(false);
             if (owner != null) {
-                ChunkLoaderData.get(server.getServer()).unregister(owner, server, worldPosition);
+                EnderAnchorData.get(server.getServer()).unregister(owner, server, worldPosition);
             }
         }
         super.setRemoved();
@@ -189,6 +189,6 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
 
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new ChunkLoaderMenu(containerId, playerInventory, this);
+        return new EnderAnchorMenu(containerId, playerInventory, this);
     }
 }
