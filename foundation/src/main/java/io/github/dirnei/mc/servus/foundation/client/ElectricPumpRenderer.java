@@ -9,7 +9,6 @@ import io.github.dirnei.mc.servus.foundation.machine.pump.CrankDrive;
 import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpParts;
 import io.github.dirnei.mc.servus.foundation.machine.pump.StrokeClock;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -28,11 +27,11 @@ import org.jspecify.annotations.Nullable;
  * Turns the Electric Pump's crank wheel while it works: the drive belt loops
  * from under the motor pulley up over the axle pulley with its lacing marks
  * running round the whole loop, the wheel turns with its hub, spokes, rim and
- * axle, the con rod follows the crank pin up
- * to the beam, the beam rocks about its pivot, the pump rod follows the beam's
- * other end and the fan spins behind its grille, all from the stroke phase its
- * block entity keeps on the client. Drawn from the lower
- * half; every part keeps its pose while the pump stands.
+ * axle, the con rod follows the crank pin up to the beam, the beam rocks about
+ * its pivot, the pump rod follows the beam's other end and the fan spins
+ * behind its grille, all from the stroke phase its block entity keeps on the
+ * client. Drawn from the lower half; every part keeps its pose while the pump
+ * stands.
  */
 public class ElectricPumpRenderer implements BlockEntityRenderer<ElectricPumpBlockEntity, ElectricPumpRenderer.State> {
 
@@ -49,6 +48,17 @@ public class ElectricPumpRenderer implements BlockEntityRenderer<ElectricPumpBlo
     public static final StandaloneModelKey<BlockStateModelPart> BELT_MARK_MODEL = ModelKeys.key("block/electric_pump_belt_mark");
 
     private static final CrankDrive CRANK = new CrankDrive(StrokeClock.STROKE, StrokeClock.PERIOD, ElectricPumpParts.PIN_R);
+
+    /** How far each belt arc piece reaches past its ends, in pixels, so the joints stay closed. */
+    private static final float OVERLAP = 0.06F;
+
+    /**
+     * The belt's static pieces as {x1, y1, x2, y2} in pixels, lower half frame:
+     * both straight strands from tangent point to tangent point, and the arcs
+     * over the axle pulley's top and under the motor pulley's bottom as short
+     * chords.
+     */
+    private static final float[][] BELT_PIECES = beltPieces();
 
     /** The angles of one frame and its lighting. */
     public static final class State extends BlockEntityRenderState {
@@ -87,7 +97,7 @@ public class ElectricPumpRenderer implements BlockEntityRenderer<ElectricPumpBlo
         for (int i = 0; i < state.marks.length; i++) {
             state.marks[i] = ElectricPumpParts.DRIVE.markOnLoop(turns, ElectricPumpParts.DRIVE.loopLength() * i / state.marks.length);
         }
-        state.light = pump.getLevel() == null ? state.lightCoords : LevelRenderer.getLightCoords(pump.getLevel(), pump.getBlockPos().above());
+        state.light = PumpRenders.upperLight(pump, state.lightCoords);
         state.facing = blockState.getValue(MachineBlock.FACING);
     }
 
@@ -95,67 +105,53 @@ public class ElectricPumpRenderer implements BlockEntityRenderer<ElectricPumpBlo
     public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         int light = state.light;
         poseStack.pushPose();
-        // The models are built facing north; turn like the blockstate does.
-        poseStack.translate(0.5F, 0.5F, 0.5F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(-((state.facing.toYRot() + 180.0F) % 360.0F)));
-        poseStack.translate(-0.5F, -0.5F, -0.5F);
+        ModelPoses.faceFromNorth(poseStack, state.facing);
 
-        // The pump rod hangs from the beam's short end, in the lower half's frame.
-        poseStack.pushPose();
-        poseStack.translate(0.0F, BeamStroke.rodOffset(state.beam, BeamPumpParts.ROD_X - BeamPumpParts.PIVOT_X) / 16.0F, 0.0F);
-        ModelKeys.submit(ROD_MODEL, poseStack, collector, light);
-        poseStack.popPose();
-
-        // The motor pulley and the belt up to the crank axle, also in the lower half's frame.
-        rotateAbout(poseStack, ElectricPumpParts.MOTOR_X, ElectricPumpParts.MOTOR_Y, 0, Axis.ZP, state.motor,
+        // Rod, motor pulley and belt are placed in the lower half's frame.
+        float rod = BeamStroke.rodOffset(state.beam, BeamPumpParts.ROD_X - BeamPumpParts.PIVOT_X) / 16.0F;
+        ModelPoses.translated(poseStack, 0, rod, 0, () -> ModelKeys.submit(ROD_MODEL, poseStack, collector, light));
+        ModelPoses.rotateAbout(poseStack, ElectricPumpParts.MOTOR_X, ElectricPumpParts.MOTOR_Y, 0, Axis.ZP, state.motor,
                 () -> ModelKeys.submit(MOTOR_PULLEY_MODEL, poseStack, collector, light));
         for (int i = 0; i < BELT_PIECES.length; i++) {
-            poseStack.pushPose();
-            poseStack.translate(0.0F, 0.0F, -i * ElectricPumpParts.DEPTH_STEP / 16.0F);
-            strap(BELT_PIECES[i], BELT_MODEL, poseStack, collector, light);
-            poseStack.popPose();
+            float[] piece = BELT_PIECES[i];
+            ModelPoses.translated(poseStack, 0, 0, depth(i), () -> strap(piece, BELT_MODEL, poseStack, collector, light));
         }
         for (float mark : state.marks) {
             mark(mark, poseStack, collector, light);
         }
 
+        // Everything else is placed in the upper half's frame.
         poseStack.translate(0.0F, 1.0F, 0.0F);
-        // Everything else lives in the upper half's frame.
-        rotateAbout(poseStack, ElectricPumpParts.CRANK_X, ElectricPumpParts.CRANK_Y, 0, Axis.ZP, state.crank, () -> {
-            ModelKeys.submit(WHEEL_MODEL, poseStack, collector, light);
-            ModelKeys.submit(AXLE_MODEL, poseStack, collector, light);
-            for (int i = 0; i < ElectricPumpParts.SPOKES; i++) {
-                rotateAbout(poseStack, ElectricPumpParts.CRANK_X, ElectricPumpParts.CRANK_Y, 0, Axis.ZP,
-                        360.0F * i / ElectricPumpParts.SPOKES, () -> ModelKeys.submit(SPOKE_MODEL, poseStack, collector, light));
-            }
-            for (int i = 0; i < ElectricPumpParts.RIM_SEGMENTS; i++) {
-                float depth = -i * ElectricPumpParts.DEPTH_STEP / 16.0F;
-                rotateAbout(poseStack, ElectricPumpParts.CRANK_X, ElectricPumpParts.CRANK_Y, 0, Axis.ZP,
-                        360.0F * i / ElectricPumpParts.RIM_SEGMENTS, () -> {
-                            poseStack.pushPose();
-                            poseStack.translate(0.0F, 0.0F, depth);
-                            ModelKeys.submit(RIM_MODEL, poseStack, collector, light);
-                            poseStack.popPose();
-                        });
-            }
-        });
+        ModelPoses.rotateAbout(poseStack, ElectricPumpParts.CRANK_X, ElectricPumpParts.CRANK_Y, 0, Axis.ZP, state.crank,
+                () -> wheel(poseStack, collector, light));
         conRod(state, poseStack, collector, light);
-        rotateAbout(poseStack, BeamPumpParts.PIVOT_X, BeamPumpParts.PIVOT_Y, BeamPumpParts.PIVOT_Z, Axis.ZP, state.beam,
+        ModelPoses.rotateAbout(poseStack, BeamPumpParts.PIVOT_X, BeamPumpParts.PIVOT_Y, BeamPumpParts.PIVOT_Z, Axis.ZP, state.beam,
                 () -> ModelKeys.submit(BEAM_MODEL, poseStack, collector, light));
-        rotateAbout(poseStack, ElectricPumpParts.FAN_X, ElectricPumpParts.FAN_Y, ElectricPumpParts.FAN_Z, Axis.XP, state.fan,
+        ModelPoses.rotateAbout(poseStack, ElectricPumpParts.FAN_X, ElectricPumpParts.FAN_Y, ElectricPumpParts.FAN_Z, Axis.XP, state.fan,
                 () -> ModelKeys.submit(FAN_MODEL, poseStack, collector, light));
 
         poseStack.popPose();
     }
 
-    /** Draws a model turned by {@code degrees} about an axis through a point given in pixels. */
-    private static void rotateAbout(PoseStack poseStack, float x, float y, float z, Axis axis, float degrees, Runnable draw) {
-        poseStack.pushPose();
-        poseStack.translate(x / 16.0F, y / 16.0F, z / 16.0F);
-        poseStack.mulPose(axis.rotationDegrees(degrees));
-        poseStack.translate(-x / 16.0F, -y / 16.0F, -z / 16.0F);
-        draw.run();
-        poseStack.popPose();
+    /** The {@code index}th of several stacked parts, each a step further back, in blocks. */
+    private static float depth(int index) {
+        return -index * ElectricPumpParts.DEPTH_STEP / 16.0F;
+    }
+
+    /** The crank wheel with axle, spokes and rim segments, in the wheel's own turn. */
+    private static void wheel(PoseStack poseStack, SubmitNodeCollector collector, int light) {
+        ModelKeys.submit(WHEEL_MODEL, poseStack, collector, light);
+        ModelKeys.submit(AXLE_MODEL, poseStack, collector, light);
+        for (int i = 0; i < ElectricPumpParts.SPOKES; i++) {
+            ModelPoses.rotateAbout(poseStack, ElectricPumpParts.CRANK_X, ElectricPumpParts.CRANK_Y, 0, Axis.ZP,
+                    360.0F * i / ElectricPumpParts.SPOKES, () -> ModelKeys.submit(SPOKE_MODEL, poseStack, collector, light));
+        }
+        for (int i = 0; i < ElectricPumpParts.RIM_SEGMENTS; i++) {
+            float depth = depth(i);
+            ModelPoses.rotateAbout(poseStack, ElectricPumpParts.CRANK_X, ElectricPumpParts.CRANK_Y, 0, Axis.ZP,
+                    360.0F * i / ElectricPumpParts.RIM_SEGMENTS,
+                    () -> ModelPoses.translated(poseStack, 0, 0, depth, () -> ModelKeys.submit(RIM_MODEL, poseStack, collector, light)));
+        }
     }
 
     /**
@@ -185,17 +181,6 @@ public class ElectricPumpRenderer implements BlockEntityRenderer<ElectricPumpBlo
         ModelKeys.submit(CON_ROD_MODEL, poseStack, collector, light);
         poseStack.popPose();
     }
-
-    /** How far each arc piece reaches past its ends, in pixels. */
-    private static final float OVERLAP = 0.06F;
-
-    /**
-     * The belt's static pieces as {x1, y1, x2, y2}, lower half frame: both
-     * straight strands from tangent point to tangent point, and the arcs over
-     * the axle pulley's top and under the motor pulley's bottom as short
-     * chords, each a little longer than its share so the joints stay closed.
-     */
-    private static final float[][] BELT_PIECES = beltPieces();
 
     private static float[][] beltPieces() {
         int segments = ElectricPumpParts.BELT_ARC_SEGMENTS;
@@ -244,9 +229,8 @@ public class ElectricPumpRenderer implements BlockEntityRenderer<ElectricPumpBlo
         poseStack.popPose();
     }
 
-    /** Both halves, so the beam stays drawn while only the upper block is in view. */
     @Override
     public AABB getRenderBoundingBox(ElectricPumpBlockEntity pump) {
-        return new AABB(pump.getBlockPos()).expandTowards(0, 1, 0);
+        return PumpRenders.bothHalves(pump);
     }
 }

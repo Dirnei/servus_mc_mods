@@ -19,7 +19,7 @@ import net.minecraft.world.entity.player.Inventory;
  * current area lit and the anchor's chunk marked, four arrows round the map
  * that shift the area (greyed at the limit), the client only "Show range"
  * toggle, the energy bar and, only while inactive, the reason in red.
- * Positions match the texture drawn by the job script {@code anchor-range/gui.py}.
+ * Positions match the GUI texture.
  */
 public class EnderAnchorScreen extends MachineScreen {
 
@@ -165,24 +165,14 @@ public class EnderAnchorScreen extends MachineScreen {
         int status = anchor.status();
         if (status != EnderAnchorBlockEntity.STATUS_ACTIVE) {
             String key = STATUS_KEYS[Math.max(0, Math.min(status, STATUS_KEYS.length - 1))];
-            fitted(guiGraphics, Component.translatable(KEY + key), LINE_X, STATUS_Y, ENERGY_LEFT + ENERGY_W - LINE_X, ALERT);
+            textFitted(guiGraphics, Component.translatable(KEY + key), LINE_X, STATUS_Y, ENERGY_LEFT + ENERGY_W - LINE_X, ALERT);
         }
     }
 
     /** One info line: the label left, the value in its column, scaled down when it would run into the map. */
     private void info(GuiGraphicsExtractor guiGraphics, String label, Component value, int y) {
         guiGraphics.text(font, Component.translatable(KEY + label), LINE_X, y, LABEL, false);
-        fitted(guiGraphics, value, VALUE_X, y, LINE_END - VALUE_X, VALUE);
-    }
-
-    private void fitted(GuiGraphicsExtractor guiGraphics, Component line, int x, int y, int available, int color) {
-        int width = font.width(line);
-        float scale = width > available ? (float) available / width : 1F;
-        guiGraphics.pose().pushMatrix();
-        guiGraphics.pose().translate(x, y + (1F - scale) * font.lineHeight / 2F);
-        guiGraphics.pose().scale(scale, scale);
-        guiGraphics.text(font, line, 0, 0, color, false);
-        guiGraphics.pose().popMatrix();
+        textFitted(guiGraphics, value, VALUE_X, y, LINE_END - VALUE_X, VALUE);
     }
 
     @Override
@@ -204,8 +194,7 @@ public class EnderAnchorScreen extends MachineScreen {
             for (AnchorArea.Shift shift : AnchorArea.Shift.values()) {
                 int[] at = ARROWS[shift.ordinal()];
                 if (inside(at[0], at[1], ARROW, event.x(), event.y())) {
-                    if (area.canShift(shift) && minecraft != null && minecraft.gameMode != null) {
-                        minecraft.gameMode.handleInventoryButtonClick(menu.containerId, shift.ordinal());
+                    if (area.canShift(shift) && clickButton(shift.ordinal())) {
                         click();
                     }
                     return true;

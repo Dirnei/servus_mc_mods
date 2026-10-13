@@ -70,7 +70,8 @@ public final class AnchorRangeRenderer {
                 AnchorRangeView.forget(level.dimension(), pos);
                 continue;
             }
-            if (Vec3.atCenterOf(pos).distanceToSqr(camera.x, Vec3.atCenterOf(pos).y, camera.z) <= RANGE * RANGE) {
+            Vec3 centre = Vec3.atCenterOf(pos);
+            if (centre.distanceToSqr(camera.x, centre.y, camera.z) <= RANGE * RANGE) {
                 anchors.add(anchor);
             }
         }

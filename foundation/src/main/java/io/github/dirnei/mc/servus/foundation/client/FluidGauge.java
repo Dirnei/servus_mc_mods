@@ -1,8 +1,9 @@
 package io.github.dirnei.mc.servus.foundation.client;
 
-import net.minecraft.client.renderer.RenderPipelines;
+import java.util.List;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -61,12 +62,8 @@ public final class FluidGauge {
         if (!isHovering(mouseX, mouseY)) {
             return;
         }
+        Component name = fluid.isEmpty() ? Component.translatable("gui.servus_foundation.fluid_gauge.empty") : fluid.getHoverName();
         Component amount = Component.literal(fluid.getAmount() + " / " + capacity + " mB");
-        if (fluid.isEmpty()) {
-            graphics.setComponentTooltipForNextFrame(font, java.util.List.of(
-                    Component.translatable("gui.servus_foundation.fluid_gauge.empty"), amount), mouseX, mouseY);
-        } else {
-            graphics.setComponentTooltipForNextFrame(font, java.util.List.of(fluid.getHoverName(), amount), mouseX, mouseY);
-        }
+        graphics.setComponentTooltipForNextFrame(font, List.of(name, amount), mouseX, mouseY);
     }
 }

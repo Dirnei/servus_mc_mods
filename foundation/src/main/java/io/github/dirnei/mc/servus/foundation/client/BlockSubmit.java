@@ -14,9 +14,8 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Submits a whole block model from a block entity renderer, what
- * {@code BlockRenderDispatcher#renderSingleBlock} did before 26.1. Each quad is
- * drawn in its own layer; tints use the block's tint sources without a world.
+ * Submits a whole block model from a block entity renderer. Each quad is drawn
+ * in its own layer; tints use the block's tint sources without a world.
  */
 public final class BlockSubmit {
 

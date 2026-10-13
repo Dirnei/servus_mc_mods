@@ -23,7 +23,6 @@ public final class RecipePickerPopup {
     private static final int BAR_WIDTH = 6;
     private static final int WIDTH = PAD + COLUMNS * CELL + BAR_GAP + BAR_WIDTH + PAD;
     private static final int HEIGHT = TITLE_HEIGHT + PAD + ROWS * CELL + PAD;
-    private static final int DIM = 0x90000000;
     private static final int SELECTED = 0xFF5FA05F;
     private static final int HOVERED = 0x80FFFFFF;
 
@@ -36,22 +35,13 @@ public final class RecipePickerPopup {
     public void open(int left, int top, int width, int height, int count, int selected) {
         x = left + (width - WIDTH) / 2;
         y = top + (height - HEIGHT) / 2;
-        scroll = 0;
+        scroll = selected >= 0 ? Math.min(maxScroll(count), selected / COLUMNS) : 0;
         dragging = false;
-        if (selected >= 0) {
-            scroll = Math.min(maxScroll(count), selected / COLUMNS);
-        }
     }
 
     public void render(GuiGraphicsExtractor graphics, Font font, int dimLeft, int dimTop, int dimWidth, int dimHeight,
                        Component title, List<ItemStack> results, int selected, int mouseX, int mouseY) {
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(0, 0);
-        graphics.fill(dimLeft, dimTop, dimLeft + dimWidth, dimTop + dimHeight, DIM);
-        graphics.fill(x + 2, y + 2, x + WIDTH + 2, y + HEIGHT + 2, DIM);
-        graphics.fill(x, y, x + WIDTH, y + HEIGHT, 0xFF1E1E1E);
-        graphics.fill(x + 1, y + 1, x + WIDTH - 1, y + HEIGHT - 1, 0xFFFFFFFF);
-        graphics.fill(x + 2, y + 2, x + WIDTH - 2, y + HEIGHT - 2, 0xFFC6C6C6);
+        PopupPanel.draw(graphics, dimLeft, dimTop, dimWidth, dimHeight, x, y, WIDTH, HEIGHT);
         graphics.text(font, title, x + PAD, y + 5, 0xFF404040, false);
         int gx = gridX();
         int gy = gridY();
@@ -79,7 +69,6 @@ public final class RecipePickerPopup {
             int ky = gy + (ROWS * CELL - knob) * scroll / max;
             graphics.fill(bx + 1, ky + 1, bx + BAR_WIDTH - 1, ky + knob - 1, 0xFFDDDDDD);
         }
-        graphics.pose().popMatrix();
     }
 
     /** Index of the recipe under the mouse, or -1. */
@@ -128,9 +117,8 @@ public final class RecipePickerPopup {
         scroll = Math.max(0, Math.min(maxScroll(count), scroll - (int) Math.signum(amount)));
     }
 
-    private int knobHeight(int count) {
-        int rows = rows(count);
-        return Math.max(8, ROWS * CELL * ROWS / Math.max(ROWS, rows));
+    private static int knobHeight(int count) {
+        return Math.max(8, ROWS * CELL * ROWS / Math.max(ROWS, rows(count)));
     }
 
     private static int rows(int count) {

@@ -12,9 +12,8 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A block entity renderer that keeps the block entity in its render state and
- * draws from it at submit time, the shape of a 1.21.1 renderer. Both steps run
- * on the render thread in the same frame, so reading the block entity in
- * {@link #render} is what the old {@code render} method did.
+ * draws from it at submit time. Both steps run on the render thread in the
+ * same frame, so {@link #render} may read the block entity directly.
  */
 public abstract class LiveBlockEntityRenderer<T extends BlockEntity>
         implements BlockEntityRenderer<T, LiveBlockEntityRenderer.State<T>> {

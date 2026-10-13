@@ -2,7 +2,6 @@ package io.github.dirnei.mc.servus.foundation.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorBlockEntity;
@@ -125,10 +124,7 @@ public class EnderAnchorRenderer implements BlockEntityRenderer<EnderAnchorBlock
         float irisY = state.irisY;
         int light = state.light;
         poseStack.pushPose();
-        // The front is built facing north; turn like the blockstate does.
-        poseStack.translate(0.5F, 0.5F, 0.5F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(-((state.facing.toYRot() + 180.0F) % 360.0F)));
-        poseStack.translate(-0.5F, -0.5F, -0.5F);
+        ModelPoses.faceFromNorth(poseStack, state.facing);
         collector.submitCustomGeometry(poseStack, Sheets.cutoutBlockSheet(), (pose, consumer) -> {
             float mid = (LENS_MIN + LENS_MAX) / 2;
             // The lens: sclera u, v 0..6.
@@ -160,7 +156,7 @@ public class EnderAnchorRenderer implements BlockEntityRenderer<EnderAnchorBlock
         float a1 = sprite.getU(u1 / 16.0F);
         float b0 = sprite.getV(v0 / 16.0F);
         float b1 = sprite.getV(v1 / 16.0F);
-        // Counter clockwise seen from the front, like the north faces of the Fluid Tank renderer.
+        // Counter clockwise seen from the front.
         vertex(consumer, pose, x1 / 16.0F, y1 / 16.0F, z, a0, b0, light);
         vertex(consumer, pose, x1 / 16.0F, y0 / 16.0F, z, a0, b1, light);
         vertex(consumer, pose, x0 / 16.0F, y0 / 16.0F, z, a1, b1, light);

@@ -6,10 +6,10 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
 
 /**
- * A stand in for the 1.21.1 buffer source in block entity renderers: each
- * render type gets a {@link RecordedGeometry}, and {@link #submit} hands them
- * all to the collector once the drawing is done. Items and text go straight
- * to {@link #collector()}.
+ * A buffer source for block entity renderers: each render type gets a
+ * {@link RecordedGeometry}, and {@link #submit} hands them all to the
+ * collector once the drawing is done. Items and text go straight to
+ * {@link #collector()}.
  */
 public final class SubmitBuffers {
 

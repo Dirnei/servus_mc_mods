@@ -12,16 +12,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
-/**
- * Items and text for block entity renderers, the 26.1 replacements of
- * {@code ItemRenderer#renderStatic} and {@code Font#drawInBatch}.
- */
+/** Submits items and text from block entity renderers. */
 public final class RenderSubmit {
 
     private RenderSubmit() {
     }
 
-    /** Submits an item at the current pose, what {@code renderStatic} drew. */
+    /** Submits an item at the current pose. */
     public static void item(PoseStack poseStack, SubmitNodeCollector collector, ItemStack stack, ItemDisplayContext context,
                             @Nullable Level level, int seed, int light) {
         if (stack.isEmpty()) {
@@ -35,8 +32,7 @@ public final class RenderSubmit {
     /** Submits text at the current pose; an RGB colour without alpha is drawn opaque. */
     public static void text(PoseStack poseStack, SubmitNodeCollector collector, String text, float x, float y, int colour,
                             boolean shadow, int light) {
-        int argb = (colour >>> 24) == 0 ? colour | 0xFF000000 : colour;
         collector.submitText(poseStack, x, y, Component.literal(text).getVisualOrderText(), shadow, Font.DisplayMode.NORMAL,
-                light, argb, 0, 0);
+                light, Argb.opaque(colour), 0, 0);
     }
 }

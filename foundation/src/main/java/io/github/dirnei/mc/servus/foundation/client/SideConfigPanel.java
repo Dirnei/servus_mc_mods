@@ -60,14 +60,10 @@ public final class SideConfigPanel {
     private int y;
 
     /**
-     * @param modes the current mode of a side, usually from the menu's data slots
-     * @param click what to do when a side is clicked, usually send its menu button
+     * @param modes  the current mode of a side, usually from the menu's data slots
+     * @param locked which sides are fixed by the block and drawn greyed
+     * @param click  what to do when a side is clicked, usually send its menu button
      */
-    public SideConfigPanel(Function<RelativeSide, SideMode> modes, Consumer<RelativeSide> click) {
-        this(modes, side -> false, click);
-    }
-
-    /** @param locked which sides are fixed by the block and drawn greyed */
     public SideConfigPanel(Function<RelativeSide, SideMode> modes, Predicate<RelativeSide> locked, Consumer<RelativeSide> click) {
         this.modes = modes;
         this.locked = locked;

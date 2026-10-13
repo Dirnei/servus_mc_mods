@@ -10,8 +10,7 @@ import net.minecraft.world.item.ItemStack;
  * The recipe editor popup drawn over a machine GUI: the machine area dimmed,
  * a framed panel with a title, the frames of the 3 by 3 ghost grid (the menu
  * owns the slots), a preview of the matched result and Save, Delete and Cancel
- * buttons. All positions are relative to the GUI's top left corner. The Assembler
- * and the Crafting Station share it.
+ * buttons. All positions are relative to the GUI's top left corner.
  */
 public final class RecipeEditorPopup {
 
@@ -31,7 +30,6 @@ public final class RecipeEditorPopup {
     private static final int SAVE_OFFSET_Y = 16;
     private static final int DELETE_OFFSET_Y = 34;
     private static final int CANCEL_OFFSET_Y = 52;
-    private static final int DIM = 0x90000000;
 
     private final int x;
     private final int y;
@@ -73,13 +71,9 @@ public final class RecipeEditorPopup {
      */
     public void render(GuiGraphicsExtractor graphics, Font font, int left, int top, int mouseX, int mouseY, Component title,
                        boolean existing, ItemStack preview, Component save, Component delete, Component cancel) {
-        graphics.fill(left, top, left + dimWidth, top + dimHeight, DIM);
         int px = left + x;
         int py = top + y;
-        graphics.fill(px + 2, py + 2, px + WIDTH + 2, py + HEIGHT + 2, DIM);
-        graphics.fill(px, py, px + WIDTH, py + HEIGHT, 0xFF1E1E1E);
-        graphics.fill(px + 1, py + 1, px + WIDTH - 1, py + HEIGHT - 1, 0xFFFFFFFF);
-        graphics.fill(px + 2, py + 2, px + WIDTH - 2, py + HEIGHT - 2, 0xFFC6C6C6);
+        PopupPanel.draw(graphics, left, top, dimWidth, dimHeight, px, py, WIDTH, HEIGHT);
         graphics.text(font, title, px + 6, py + 4, 0xFF404040, false);
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
@@ -98,27 +92,22 @@ public final class RecipeEditorPopup {
             graphics.item(preview, vx, vy);
             graphics.itemDecorations(font, preview, vx, vy);
         }
-        int bx = x + BUTTON_OFFSET_X;
-        drawButton(graphics, font, left + bx, top + y + SAVE_OFFSET_Y, BUTTON_W, BUTTON_H, save.getString(),
-                in(left, top, mouseX, mouseY, bx, y + SAVE_OFFSET_Y, BUTTON_W, BUTTON_H));
+        drawButton(graphics, font, left, top, mouseX, mouseY, Button.SAVE, save);
         if (existing) {
-            drawButton(graphics, font, left + bx, top + y + DELETE_OFFSET_Y, BUTTON_W, BUTTON_H, delete.getString(),
-                    in(left, top, mouseX, mouseY, bx, y + DELETE_OFFSET_Y, BUTTON_W, BUTTON_H));
+            drawButton(graphics, font, left, top, mouseX, mouseY, Button.DELETE, delete);
         }
-        drawButton(graphics, font, left + bx, top + y + CANCEL_OFFSET_Y, BUTTON_W, BUTTON_H, cancel.getString(),
-                in(left, top, mouseX, mouseY, bx, y + CANCEL_OFFSET_Y, BUTTON_W, BUTTON_H));
+        drawButton(graphics, font, left, top, mouseX, mouseY, Button.CANCEL, cancel);
     }
 
     /** The button under the mouse; Delete only counts when an existing recipe is edited. */
     public Button buttonAt(int left, int top, double mouseX, double mouseY, boolean existing) {
-        int bx = x + BUTTON_OFFSET_X;
-        if (in(left, top, mouseX, mouseY, bx, y + SAVE_OFFSET_Y, BUTTON_W, BUTTON_H)) {
+        if (onButton(Button.SAVE, left, top, mouseX, mouseY)) {
             return Button.SAVE;
         }
-        if (existing && in(left, top, mouseX, mouseY, bx, y + DELETE_OFFSET_Y, BUTTON_W, BUTTON_H)) {
+        if (existing && onButton(Button.DELETE, left, top, mouseX, mouseY)) {
             return Button.DELETE;
         }
-        if (in(left, top, mouseX, mouseY, bx, y + CANCEL_OFFSET_Y, BUTTON_W, BUTTON_H)) {
+        if (onButton(Button.CANCEL, left, top, mouseX, mouseY)) {
             return Button.CANCEL;
         }
         return Button.NONE;
@@ -129,6 +118,25 @@ public final class RecipeEditorPopup {
         graphics.fill(x, y, x + w, y + h, 0xFF373737);
         graphics.fill(x + 1, y + 1, x + w - 1, y + h - 1, hovered ? 0xFFDDDDDD : 0xFFA0A0A0);
         graphics.text(font, label, x + (w - font.width(label)) / 2, y + (h - 8) / 2, 0xFF202020, false);
+    }
+
+    private void drawButton(GuiGraphicsExtractor graphics, Font font, int left, int top, int mouseX, int mouseY, Button button,
+                            Component label) {
+        drawButton(graphics, font, left + x + BUTTON_OFFSET_X, top + y + offsetY(button), BUTTON_W, BUTTON_H, label.getString(),
+                onButton(button, left, top, mouseX, mouseY));
+    }
+
+    private boolean onButton(Button button, int left, int top, double mouseX, double mouseY) {
+        return in(left, top, mouseX, mouseY, x + BUTTON_OFFSET_X, y + offsetY(button), BUTTON_W, BUTTON_H);
+    }
+
+    private static int offsetY(Button button) {
+        return switch (button) {
+            case SAVE -> SAVE_OFFSET_Y;
+            case DELETE -> DELETE_OFFSET_Y;
+            case CANCEL -> CANCEL_OFFSET_Y;
+            case NONE -> throw new IllegalArgumentException("NONE has no position");
+        };
     }
 
     private static boolean in(int left, int top, double mouseX, double mouseY, int x, int y, int w, int h) {

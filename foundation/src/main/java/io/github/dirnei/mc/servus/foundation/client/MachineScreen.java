@@ -1,15 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.client;
 
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
-import io.github.dirnei.mc.servus.foundation.client.FluidGauge;
-import io.github.dirnei.mc.servus.foundation.client.SideConfigPanel;
-import io.github.dirnei.mc.servus.foundation.side.SideLayer;
-import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
+import io.github.dirnei.mc.servus.foundation.side.SideLayer;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -19,9 +16,8 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     /** Which indicators a machine screen shows, whether it has the side panel, and its background texture. */
     public record Layout(boolean flame, boolean arrow, boolean energy, boolean fluid, boolean sidePanel, Identifier texture) {
-        /** The shared burner background: fuel, input, arrow and output. */
-        public static final Layout BURNER = new Layout(true, true, false, gui(ServusFoundationIds.MOD_ID, "burner_machine"));
 
+        /** A layout without fluid gauge, with the side panel. */
         public Layout(boolean flame, boolean arrow, boolean energy, Identifier texture) {
             this(flame, arrow, energy, false, true, texture);
         }
@@ -36,13 +32,40 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private static final Identifier LIT_PROGRESS_SPRITE = Identifier.withDefaultNamespace("container/furnace/lit_progress");
     private static final Identifier BURN_PROGRESS_SPRITE = Identifier.withDefaultNamespace("container/furnace/burn_progress");
 
+    protected static final int ENERGY_Y = 17;
+    protected static final int ENERGY_WIDTH = 12;
+    protected static final int ENERGY_HEIGHT = 52;
+
+    /** Where the fluid gauge sits, over the place of an output slot. */
+    protected static final int FLUID_X = 116;
+    protected static final int FLUID_Y = 17;
+    protected static final int FLUID_WIDTH = 16;
+    protected static final int FLUID_HEIGHT = 52;
+    private static final int STATUS_OK = 0xFF3F7F3F;
+    private static final int STATUS_MISSING = 0xFFA03030;
+
+    private final FluidGauge fluidGauge = new FluidGauge(FLUID_WIDTH, FLUID_HEIGHT);
+
+    /** The shared side panel left of the GUI; sides the machine fixes are drawn greyed. */
+    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> menu.machine().sideConfig().isLocked(side),
+            side -> clickButton(SideConfigMenus.buttonOf(side)));
+
+    protected final Layout layout;
+
+    public MachineScreen(MachineMenu menu, Inventory playerInventory, Component title, Layout layout) {
+        this(menu, playerInventory, title, layout, 176, 166);
+    }
+
+    /** A machine screen with its own panel size. */
+    protected MachineScreen(MachineMenu menu, Inventory playerInventory, Component title, Layout layout, int width, int height) {
+        super(menu, playerInventory, title, width, height);
+        this.layout = layout;
+    }
+
     /** Left edge of the energy bar; wider screens override. */
     protected int energyX() {
         return 152;
     }
-    protected static final int ENERGY_Y = 17;
-    protected static final int ENERGY_WIDTH = 12;
-    protected static final int ENERGY_HEIGHT = 52;
 
     /** Top edge of the energy bar; screens with their own bar override. */
     protected int energyY() {
@@ -57,42 +80,18 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         return ENERGY_HEIGHT;
     }
 
-    /** Where the fluid gauge sits, over the place of an output slot. */
-    protected static final int FLUID_X = 116;
-    protected static final int FLUID_Y = 17;
-    protected static final int FLUID_WIDTH = 16;
-    protected static final int FLUID_HEIGHT = 52;
-    private static final int STATUS_OK = 0xFF3F7F3F;
-    private static final int STATUS_MISSING = 0xFFA03030;
-
-    private final FluidGauge fluidGauge = new FluidGauge(FLUID_WIDTH, FLUID_HEIGHT);
-
-    /** The shared side panel left of the GUI; sides the machine fixes are drawn greyed. */
-    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> menu.machine().sideConfig().isLocked(side), side -> {
-        if (minecraft != null && minecraft.gameMode != null) {
-            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, SideConfigMenus.buttonOf(side));
-        }
-    });
-
-    protected final Layout layout;
-
     /** Machines without side settings, like pumps, show no side panel. */
     protected boolean showsSidePanel() {
         return layout.sidePanel();
     }
 
-    public MachineScreen(MachineMenu menu, Inventory playerInventory, Component title, Layout layout) {
-        this(menu, playerInventory, title, layout, 176, 166);
-    }
-
-    /** A machine screen with its own panel size. */
-    protected MachineScreen(MachineMenu menu, Inventory playerInventory, Component title, Layout layout, int width, int height) {
-        super(menu, playerInventory, title, width, height);
-        this.layout = layout;
-    }
-
-    public static MachineScreen burner(MachineMenu menu, Inventory playerInventory, Component title) {
-        return new MachineScreen(menu, playerInventory, title, Layout.BURNER);
+    /** Sends a menu button click to the server; returns whether it was sent. */
+    protected boolean clickButton(int buttonId) {
+        if (minecraft == null || minecraft.gameMode == null) {
+            return false;
+        }
+        minecraft.gameMode.handleInventoryButtonClick(menu.containerId, buttonId);
+        return true;
     }
 
     @Override
@@ -102,11 +101,8 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         if (showsSidePanel()) {
             panel.placeBeside(leftPos, topPos);
             if (menu.machine().fluidSides() != null) {
-                panel.enableFluids(menu::fluidSide, menu.machine().sideTanks(), side -> menu.machine().fluidSides().isLocked(side), side -> {
-                    if (minecraft != null && minecraft.gameMode != null) {
-                        minecraft.gameMode.handleInventoryButtonClick(menu.containerId, SideConfigMenus.buttonOf(SideLayer.FLUIDS, side));
-                    }
-                });
+                panel.enableFluids(menu::fluidSide, menu.machine().sideTanks(), side -> menu.machine().fluidSides().isLocked(side),
+                        side -> clickButton(SideConfigMenus.buttonOf(SideLayer.FLUIDS, side)));
             }
         }
         fluidGauge.place(leftPos + FLUID_X, topPos + FLUID_Y);
@@ -137,22 +133,24 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         guiGraphics.text(font, title, titleLabelX, titleLabelY, 0xFF404040, false);
         Component status = Component.translatable(menu.sourceValid()
                 ? "gui.servus_foundation.pump.source_ok" : "gui.servus_foundation.pump.source_missing");
-        int available = imageWidth - 2 * inventoryLabelX;
-        int width = font.width(status);
+        textFitted(guiGraphics, status, inventoryLabelX, inventoryLabelY, imageWidth - 2 * inventoryLabelX,
+                menu.sourceValid() ? STATUS_OK : STATUS_MISSING);
+    }
+
+    /** Draws one line of text, scaled down about its middle when it is wider than {@code available}. */
+    protected void textFitted(GuiGraphicsExtractor guiGraphics, Component line, int x, int y, int available, int color) {
+        int width = font.width(line);
         float scale = width > available ? (float) available / width : 1F;
         guiGraphics.pose().pushMatrix();
-        guiGraphics.pose().translate(inventoryLabelX, inventoryLabelY + (1F - scale) * font.lineHeight / 2F);
+        guiGraphics.pose().translate(x, y + (1F - scale) * font.lineHeight / 2F);
         guiGraphics.pose().scale(scale, scale);
-        guiGraphics.text(font, status, 0, 0, menu.sourceValid() ? STATUS_OK : STATUS_MISSING, false);
+        guiGraphics.text(font, line, 0, 0, color, false);
         guiGraphics.pose().popMatrix();
     }
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        double mouseX = event.x();
-        double mouseY = event.y();
-        int button = event.button();
-        if (showsSidePanel() && panel.mouseClicked(mouseX, mouseY)) {
+        if (showsSidePanel() && panel.mouseClicked(event.x(), event.y())) {
             return true;
         }
         return super.mouseClicked(event, doubleClick);

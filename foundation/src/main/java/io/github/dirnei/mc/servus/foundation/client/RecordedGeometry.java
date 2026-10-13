@@ -9,9 +9,8 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 
 /**
  * A vertex consumer that records vertices with the pose already applied, then
- * submits them as one custom geometry. It lets drawing code written against a
- * buffer source (1.21.1 renderers) feed the 26.1 submit pipeline unchanged:
- * draw into the recorder, then call {@link #submit}.
+ * submits them as one custom geometry. Drawing code written against a vertex
+ * consumer draws into the recorder, then calls {@link #submit}.
  */
 public final class RecordedGeometry implements VertexConsumer {
 
@@ -96,12 +95,7 @@ public final class RecordedGeometry implements VertexConsumer {
         return this;
     }
 
-    public boolean isEmpty() {
-        return vertices == 0;
-    }
-
-    /** Replays every recorded vertex into a real consumer. */
-    public void replay(VertexConsumer consumer) {
+    private void replay(VertexConsumer consumer) {
         for (int i = 0; i < vertices; i++) {
             int f = i * FLOATS;
             int n = i * 3;

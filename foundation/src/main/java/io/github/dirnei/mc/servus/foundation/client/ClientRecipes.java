@@ -7,7 +7,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RecipesReceivedEvent;
 
-/** Keeps the recipes the server synced (see {@link ServusRecipes#syncToClients}) for client lookups. */
+/** Keeps the recipes the server synced with {@link ServusRecipes#syncToClients} for client lookups. */
 @EventBusSubscriber(modid = ServusFoundationIds.MOD_ID, value = Dist.CLIENT)
 public final class ClientRecipes {
 

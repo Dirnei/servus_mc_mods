@@ -15,9 +15,9 @@ import net.neoforged.neoforge.client.model.standalone.SimpleUnbakedStandaloneMod
 import net.neoforged.neoforge.client.model.standalone.StandaloneModelKey;
 
 /**
- * Standalone block models drawn by block entity renderers (the Sink fan, the
- * Burner Pump beam and rods). Since 26.1 such models are registered with a key
- * and baked into one model part each.
+ * Standalone block models drawn by block entity renderers, such as the Sink
+ * fan and the pump beams. Each is registered with a key and baked into one
+ * model part.
  */
 public final class ModelKeys {
 
@@ -30,9 +30,9 @@ public final class ModelKeys {
         return new StandaloneModelKey<>(id::toString);
     }
 
-    /** Registers a key for loading; {@code path} must match {@link #key(String)}. */
-    public static void register(ModelEvent.RegisterStandalone event, StandaloneModelKey<BlockStateModelPart> key, String path) {
-        event.register(key, SimpleUnbakedStandaloneModel.simpleModelWrapper(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, path)));
+    /** Registers a key made by {@link #key(String)} for loading; its name is the model id. */
+    public static void register(ModelEvent.RegisterStandalone event, StandaloneModelKey<BlockStateModelPart> key) {
+        event.register(key, SimpleUnbakedStandaloneModel.simpleModelWrapper(Identifier.parse(key.getName())));
     }
 
     /** Submits the model in the cutout block layer, untinted. */
