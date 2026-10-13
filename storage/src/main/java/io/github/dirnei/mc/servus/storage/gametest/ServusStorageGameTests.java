@@ -2480,10 +2480,11 @@ public final class ServusStorageGameTests {
                     brokeAt[0] = helper.getTick();
                     helper.setBlock(LC_MIDDLE, Blocks.AIR.defaultBlockState());
                 }
+            } else if (helper.getTick() == brokeAt[0] + 5) {
+                helper.assertItemEntityPresent(Items.BREAD, LC_GARAGE, 1.5);
             } else if (helper.getTick() == brokeAt[0] + 40) {
                 StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, LC_TERMINAL);
                 List<RequestRow> rows = menu[0].stock().requests();
-                helper.assertItemEntityPresent(Items.BREAD, LC_GARAGE, 3.0);
                 helper.assertTrue(rows.size() == 1 && rows.get(0).missing() == 20, "the request shows the bread missing, got " + rows);
                 helper.assertTrue(terminal.outputCount(Items.BREAD) == 0, "no bread arrived");
                 helper.assertTrue(network.garageOut(garagePos) == 0, "the shuttle is back in its garage");

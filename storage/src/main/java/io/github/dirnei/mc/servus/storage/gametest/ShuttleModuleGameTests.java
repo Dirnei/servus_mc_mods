@@ -194,7 +194,7 @@ public final class ShuttleModuleGameTests {
     /** The workshop keeps its shuttle and supplies after the GUI closes and drops them when broken. */
     @ServusGameTest
     public static void workshopKeepsAndDropsContents(GameTestHelper helper) {
-        Player player = helper.makeMockServerPlayerInLevel();
+        Player player = TestPlayers.quiet(helper);
         ShuttleWorkshopMenu menu = workshop(helper, player);
         player.getInventory().setItem(0, shuttle(ServusStorageItems.SHUTTLE_MK1.get(), 1, 0, Optional.empty()));
         player.getInventory().setItem(1, new ItemStack(Items.GOLD_INGOT, 7));

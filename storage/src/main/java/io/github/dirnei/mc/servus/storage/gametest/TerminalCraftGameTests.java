@@ -134,7 +134,7 @@ public final class TerminalCraftGameTests {
     public static void terminalSendsOnOpen(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 16);
         TerminalWiring.when(helper, () -> ready(helper), 100, () -> "stations and CPU should join the line", () -> {
-            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            ServerPlayer player = TestPlayers.quiet(helper);
             StorageTerminalMenu menu = menu(helper, player);
             long now = helper.getLevel().getGameTime();
             try {

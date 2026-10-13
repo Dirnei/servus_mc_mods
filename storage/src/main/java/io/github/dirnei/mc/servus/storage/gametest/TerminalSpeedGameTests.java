@@ -100,7 +100,7 @@ public final class TerminalSpeedGameTests {
     public static void counterSendsOnOpen(GameTestHelper helper) {
         setup(helper);
         TerminalWiring.when(helper, () -> ready(helper), 120, () -> "the adapter and CPU should join the line", () -> {
-            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            ServerPlayer player = TestPlayers.quiet(helper);
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             long now = helper.getLevel().getGameTime();
@@ -119,7 +119,7 @@ public final class TerminalSpeedGameTests {
     public static void productionSendsOnOpen(GameTestHelper helper) {
         setup(helper);
         TerminalWiring.when(helper, () -> ready(helper), 120, () -> "the adapter and CPU should join the line", () -> {
-            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            ServerPlayer player = TestPlayers.quiet(helper);
             ProductionTerminalBlockEntity terminal = helper.getBlockEntity(PRODUCTION, ProductionTerminalBlockEntity.class);
             ProductionTerminalMenu menu = new ProductionTerminalMenu(1, player.getInventory(), terminal);
             long now = helper.getLevel().getGameTime();

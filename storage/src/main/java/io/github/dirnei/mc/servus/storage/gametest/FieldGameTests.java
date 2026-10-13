@@ -45,6 +45,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -283,7 +284,7 @@ public final class FieldGameTests {
     public static void hydrationReachesFourBlocks(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper, 3, 5);
         widen(head, 2);
-        helper.setBlock(new BlockPos(4, 0, RAIL_Z + 4), Blocks.FARMLAND.defaultBlockState());
+        helper.setBlock(new BlockPos(4, 0, RAIL_Z + 4), Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, 7));
         helper.runAfterDelay(3, () -> {
             helper.assertTrue(!head.hydrated() && !wet(helper, 4, 0, RAIL_Z + 4), "no water, no hydration");
             fluid(helper, HEAD).fill(new FluidStack(Fluids.WATER, 1000), false);
@@ -395,7 +396,7 @@ public final class FieldGameTests {
         helper.runAfterDelay(3, () -> {
             helper.assertTrue(head.ripeCount() == 1, "the ripe wheat should be counted");
             @SuppressWarnings("removal")
-            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            ServerPlayer player = TestPlayers.quiet(helper);
             player.setGameMode(GameType.SURVIVAL);
             player.gameMode.destroyBlock(helper.absolutePos(plot));
             helper.runAfterDelay(2, () -> {
@@ -549,7 +550,7 @@ public final class FieldGameTests {
         BlockPos dirtPlot = new BlockPos(4, 1, RAIL_Z + 1);
         BlockPos farmPlot = new BlockPos(5, 1, RAIL_Z - 1);
         helper.setBlock(dirtPlot.below(), Blocks.DIRT.defaultBlockState());
-        helper.setBlock(farmPlot.below(), Blocks.FARMLAND.defaultBlockState());
+        helper.setBlock(farmPlot.below(), Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, 7));
         FieldHeadBlockEntity head = field(helper, 3, 5);
         helper.runAfterDelay(3, () -> {
             helper.assertTrue(head.tillableCount() == 1 && head.plantableCount() == 1,
@@ -561,6 +562,7 @@ public final class FieldGameTests {
             hoe.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, hoe,
                     new BlockHitResult(Vec3.atCenterOf(dirt).add(0, 0.5, 0), Direction.UP, dirt, false)));
             helper.assertBlockPresent(Blocks.FARMLAND, dirtPlot.below());
+            helper.setBlock(dirtPlot.below(), Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, 7));
             ItemStack seeds = new ItemStack(Items.WHEAT_SEEDS);
             player.setItemInHand(InteractionHand.MAIN_HAND, seeds);
             BlockPos farmland = helper.absolutePos(farmPlot.below());
