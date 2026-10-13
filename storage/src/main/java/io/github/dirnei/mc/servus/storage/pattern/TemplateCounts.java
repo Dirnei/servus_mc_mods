@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Counts what a crafting template consumes: one item per used cell, empty
  * cells given as {@code null}. Two templates are the same work when their
- * counts are equal, whatever the layout. Pure, no Minecraft imports.
+ * counts are equal, whatever the layout.
  */
 public final class TemplateCounts {
 

@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.storage.cpu;
 
-import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
@@ -9,9 +8,6 @@ import io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
@@ -24,6 +20,7 @@ import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
+import io.github.dirnei.mc.servus.storage.production.DataLineBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
@@ -40,22 +37,15 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponentGetter;
-import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.model.data.ModelData;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 
@@ -66,12 +56,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
  * work orders. They are saved with the master, pause while it is unloaded and
  * are cancelled when the box unforms.
  */
-public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink {
-
-    /** Carries the data network to touching data nodes, like a piece of cable. */
-    private final DataCarrier carrier = new DataCarrier(this);
-
-    private final WoodSlot woodSlot = new WoodSlot(this);
+public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
 
     private OrderBook book;
 
@@ -406,7 +391,6 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         super.saveAdditional(output);
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
-        woodSlot.save(output);
         if (masterOffset != null) {
             CompoundTag box = new CompoundTag();
             box.putInt("MasterX", masterOffset.getX());
@@ -436,7 +420,6 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
-        woodSlot.load(input);
         BlockState state = getBlockState();
         masterOffset = null;
         boxSize = null;
@@ -906,50 +889,8 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     }
 
     @Override
-    public WoodSlot woodSlot() {
-        return woodSlot;
-    }
-
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = super.getUpdateTag(registries);
-        woodSlot.save(tag);
-        return tag;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
-
-    @Override
-    protected void applyImplicitComponents(DataComponentGetter input) {
-        super.applyImplicitComponents(input);
-        woodSlot.apply(input.get(WoodContent.WOOD.get()));
-    }
-
-    @Override
-    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
-        super.collectImplicitComponents(builder);
-        woodSlot.collect(builder);
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(ValueOutput output) {
-        super.removeComponentsFromTag(output);
-        WoodSlot.removeFromTag(output);
-    }
-
-    @Override
-    public ModelData getModelData() {
-        return woodSlot.modelData();
-    }
-
-    @Override
     public void onLoad() {
         super.onLoad();
-        carrier.carry(CpuBlock.isFormed(getBlockState()));
         if (level instanceof ServerLevel server && !lostBuffer.isEmpty()) {
             for (ItemStack stack : lostBuffer) {
                 Containers.dropItemStack(server, worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5, stack);
@@ -959,24 +900,17 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         }
     }
 
+    @Override
+    protected boolean carriesData(BlockState state) {
+        return CpuBlock.isFormed(state);
+    }
+
     /** A box carries the data network while formed; forming and unforming change the block state. */
     @Override
     public void setBlockState(BlockState state) {
         super.setBlockState(state);
         if (level != null && !level.isClientSide() && !isRemoved()) {
-            carrier.carry(CpuBlock.isFormed(state));
+            carrier().carry(CpuBlock.isFormed(state));
         }
-    }
-
-    @Override
-    public void setRemoved() {
-        carrier.leave();
-        super.setRemoved();
-    }
-
-    @Override
-    public void onChunkUnloaded() {
-        super.onChunkUnloaded();
-        carrier.leave();
     }
 }

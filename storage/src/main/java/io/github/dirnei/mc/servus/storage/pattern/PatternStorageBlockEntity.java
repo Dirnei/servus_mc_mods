@@ -1,12 +1,10 @@
 package io.github.dirnei.mc.servus.storage.pattern;
 
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.storage.production.DataLineBlockEntity;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.core.component.DataComponentGetter;
-import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
-import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
-import io.github.dirnei.mc.servus.storage.production.ProductionView;
 
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
@@ -23,15 +21,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.neoforged.neoforge.model.data.ModelData;
 import net.minecraft.world.level.block.Block;
 
 /**
@@ -40,12 +30,7 @@ import net.minecraft.world.level.block.Block;
  * places. Patterns kept beyond a smaller configured size stay kept. The
  * patterns travel with the dropped block item.
  */
-public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder, DataLink {
-
-    /** Carries the data network to touching data nodes, like a piece of cable. */
-    private final DataCarrier carrier = new DataCarrier(this);
-
-    private final WoodSlot woodSlot = new WoodSlot(this);
+public class PatternStorageBlockEntity extends DataLineBlockEntity implements DataLink {
 
     public static final int MAX_SLOTS = 27;
 
@@ -116,19 +101,8 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
         }
     }
 
-    /** How often the online lamp is refreshed. */
-    private static final int LAMP_TICKS = 20;
-    private int lampTimer;
-
     public static void serverTick(Level level, BlockPos pos, BlockState state, PatternStorageBlockEntity storage) {
-        if (++storage.lampTimer < LAMP_TICKS || !state.hasProperty(StorageNodeBlocks.ONLINE)) {
-            return;
-        }
-        storage.lampTimer = 0;
-        boolean online = ProductionView.online((ServerLevel) level, pos);
-        if (state.getValue(StorageNodeBlocks.ONLINE) != online) {
-            level.setBlock(pos, state.setValue(StorageNodeBlocks.ONLINE, online), Block.UPDATE_CLIENTS);
-        }
+        storage.tickOnlineLamp((ServerLevel) level, state);
     }
 
     /** Sets the front lights to the stored patterns; only a changed count is written. */
@@ -206,7 +180,6 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
         super.saveAdditional(output);
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
-        woodSlot.save(output);
         StoredPatterns.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), stored())
                 .ifSuccess(saved -> tag.put("Patterns", saved));
         output.store(tag);
@@ -217,7 +190,6 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
-        woodSlot.load(input);
         StoredPatterns saved = tag.contains("Patterns")
                 ? StoredPatterns.CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE), tag.get("Patterns"))
                         .result().orElse(null)
@@ -225,19 +197,15 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
         restore(saved);
     }
 
-    // Item components: the patterns travel with the dropped block
-
     @Override
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
-        woodSlot.apply(input.get(WoodContent.WOOD.get()));
         restore(input.get(ServusStorageComponents.PATTERNS.get()));
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
-        woodSlot.collect(builder);
         StoredPatterns stored = stored();
         if (!stored.isEmpty()) {
             builder.set(ServusStorageComponents.PATTERNS.get(), stored);
@@ -248,51 +216,6 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
     @SuppressWarnings("deprecation")
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
-        WoodSlot.removeFromTag(output);
         output.discard("Patterns");
-    }
-
-    // Wood: the planks the block was crafted from, shown as its boards
-
-    @Override
-    public WoodSlot woodSlot() {
-        return woodSlot;
-    }
-
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = super.getUpdateTag(registries);
-        woodSlot.save(tag);
-        return tag;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
-
-    @Override
-    public ModelData getModelData() {
-        return woodSlot.modelData();
-    }
-
-    // Data carrier
-
-    @Override
-    public void onLoad() {
-        super.onLoad();
-        carrier.join();
-    }
-
-    @Override
-    public void setRemoved() {
-        carrier.leave();
-        super.setRemoved();
-    }
-
-    @Override
-    public void onChunkUnloaded() {
-        super.onChunkUnloaded();
-        carrier.leave();
     }
 }

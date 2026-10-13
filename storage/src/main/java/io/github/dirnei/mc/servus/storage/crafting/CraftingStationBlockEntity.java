@@ -1,36 +1,29 @@
 package io.github.dirnei.mc.servus.storage.crafting;
 
-import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
-import io.github.dirnei.mc.servus.storage.power.StepPower;
-import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
-
-import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.core.component.DataComponentGetter;
-import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
-import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
-import io.github.dirnei.mc.servus.storage.production.ProductionView;
-
 import io.github.dirnei.mc.servus.foundation.block.SidedBlockEntity;
-import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
-import io.github.dirnei.mc.servus.foundation.side.SideConfig;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.craft.IngredientGatherer;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.side.SideConfig;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
+import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
-import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.order.StepRef;
+import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
+import io.github.dirnei.mc.servus.storage.power.StepPower;
+import io.github.dirnei.mc.servus.storage.production.DataLineBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,9 +36,6 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
@@ -58,16 +48,12 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
-import net.minecraft.core.component.DataComponentMap;
-import net.neoforged.neoforge.model.data.ModelData;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
  * Storage's own producer and the hands of the Crafting CPU: crafts the
@@ -75,16 +61,13 @@ import net.neoforged.neoforge.model.data.ModelData;
  * outputs for the CPU; without a job it crafts nothing, automation inserts
  * nothing and leftover outputs are pushed into neighbours.
  */
-public class CraftingStationBlockEntity extends BlockEntity implements WoodHolder, MenuProvider, SidedBlockEntity {
-
-    /** Carries the data network to touching data nodes, like a piece of cable. */
-    private final DataCarrier carrier = new DataCarrier(this);
-
-    private final WoodSlot woodSlot = new WoodSlot(this);
+public class CraftingStationBlockEntity extends DataLineBlockEntity implements MenuProvider, SidedBlockEntity {
 
     public static final int INPUT_SLOTS = 9;
     public static final int OUTPUT_SLOTS = 4;
     private static final int PUSH_INTERVAL = 8;
+    private static final int OWNER_CHECK_TICKS = 100;
+    private static final int PAYER_TICKS = 20;
 
     private record Plan(int[] take, ItemStack result, NonNullList<ItemStack> remainders) {
     }
@@ -101,29 +84,21 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
             setChanged();
         }
     };
-    /** The pattern the CPU handed this station, the crafts left and the step that owns it. Not saved. */
+    /** The pattern the CPU handed this station, the crafts left and the step that owns it. */
     private EncodedPattern job;
     private int jobLeft;
     private Object jobOwner;
-    /** How often a station checks that its job's step still exists. */
-    private static final int OWNER_CHECK_TICKS = 100;
     private ItemStack clientJobResult = ItemStack.EMPTY;
     private int clientJobLeft;
     private int progress;
     private int ownerCheck;
-    private int lampTimer;
-    /** How often the online lamp is refreshed. */
-    private static final int LAMP_TICKS = 20;
     private int pushTimer;
     /** Whether the last working tick could not be paid; the craft waits with its progress kept. Not saved. */
     private boolean waitingForPower;
     /** The controller that pays the station's work, looked up over the data line once a second. */
     private BlockPos payer;
     private int payerCheck;
-    /** For GameTests only, not saved: the station works without a warehouse paying for it. */
     private boolean freePower;
-    /** How often the paying controller is looked up again. */
-    private static final int PAYER_TICKS = 20;
 
     private final SideConfig sides = SideConfig.station();
     private final LegacyItemHandler inlet = new InletHandler();
@@ -170,7 +145,6 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
 
     public CraftingStationBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.CRAFTING_STATION.get(), pos, state);
-        // The front is where the player stands: never an item side.
         sides.lock(RelativeSide.FRONT, SideMode.DISABLED);
     }
 
@@ -187,8 +161,6 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         return inlet;
     }
 
-    // Sides
-
     @Override
     public SideConfig sideConfig() {
         return sides;
@@ -202,11 +174,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     @Override
     public SideMode cycleSide(RelativeSide side) {
         SideMode mode = sides.cycle(side);
-        setChanged();
-        if (level != null && !level.isClientSide()) {
-            BlockState state = getBlockState();
-            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
-        }
+        syncToClients();
         return mode;
     }
 
@@ -222,8 +190,6 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     public boolean uses(ItemStack stack) {
         return working() && job.required().containsKey(ItemKey.of(stack));
     }
-
-    // Job
 
     /** The pattern of the current job, if any. */
     public Optional<EncodedPattern> job() {
@@ -271,10 +237,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
      * @return whether the station took the job
      */
     public boolean assign(EncodedPattern pattern, int crafts, Object owner) {
-        if (working() && !Objects.equals(jobOwner, owner)) {
-            return false;
-        }
-        if (blockedFor(owner)) {
+        if (working() && !Objects.equals(jobOwner, owner) || blockedFor(owner)) {
             return false;
         }
         boolean same = job != null && Objects.equals(jobOwner, owner) && job.equals(pattern);
@@ -284,7 +247,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         if (!same) {
             progress = 0;
         }
-        jobChanged();
+        syncToClients();
         return true;
     }
 
@@ -295,11 +258,11 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
             jobLeft = 0;
             jobOwner = null;
             progress = 0;
-            jobChanged();
+            syncToClients();
         }
     }
 
-    private void jobChanged() {
+    private void syncToClients() {
         setChanged();
         if (level != null && !level.isClientSide()) {
             BlockState state = getBlockState();
@@ -317,8 +280,6 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         return clientJobLeft;
     }
 
-    // Production view
-
     /** No fixed recipes: the station crafts the patterns the CPU hands it, and reports the current one as active. */
     public ProductionProvider production() {
         return new ProductionProvider() {
@@ -333,8 +294,6 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
             }
         };
     }
-
-    // Crafting
 
     private Optional<Plan> plan(EncodedPattern recipe) {
         if (level == null) {
@@ -355,7 +314,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         if (take.isEmpty()) {
             return Optional.empty();
         }
-        Optional<RecipeHolder<CraftingRecipe>> holder = resolve(level, recipe.recipe());
+        Optional<RecipeHolder<CraftingRecipe>> holder = ServusRecipes.crafting(level, recipe.recipe());
         if (holder.isEmpty()) {
             return Optional.empty();
         }
@@ -469,11 +428,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
             }
         }
         jobLeft--;
-        jobChanged();
-    }
-
-    private static Optional<RecipeHolder<CraftingRecipe>> resolve(Level level, Identifier id) {
-        return ServusRecipes.crafting(level, id);
+        syncToClients();
     }
 
     private void pushOutputs() {
@@ -493,7 +448,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
             if (mode.pulls()) {
                 pullFrom(neighbour);
             }
-            // A job's outputs are collected by its CPU; pushed away they would never be counted.
+            // A job's outputs wait for its CPU to collect and count them.
             if (!mode.pushes() || job != null) {
                 continue;
             }
@@ -539,10 +494,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         if (next.hasProperty(CraftingStationBlock.LIT) && next.getValue(CraftingStationBlock.LIT) != working) {
             next = next.setValue(CraftingStationBlock.LIT, working);
         }
-        if (++station.lampTimer >= LAMP_TICKS && next.hasProperty(StorageNodeBlocks.ONLINE)) {
-            station.lampTimer = 0;
-            next = next.setValue(StorageNodeBlocks.ONLINE, ProductionView.online((ServerLevel) level, pos));
-        }
+        next = station.withOnlineLamp((ServerLevel) level, next);
         if (next != state) {
             level.setBlock(pos, next, Block.UPDATE_CLIENTS);
         }
@@ -571,8 +523,6 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         }
     }
 
-    // Menu
-
     @Override
     public Component getDisplayName() {
         return Component.translatable(getBlockState().getBlock().getDescriptionId());
@@ -583,14 +533,11 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         return new CraftingStationMenu(containerId, playerInventory, this);
     }
 
-    // Persistence and sync
-
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
-        woodSlot.save(output);
         tag.put("Inputs", inputs.serializeNBT(registries));
         tag.put("Outputs", outputs.serializeNBT(registries));
         tag.putByteArray("Sides", sides.toBytes());
@@ -611,7 +558,6 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
-        woodSlot.load(input);
         if (tag.contains("Inputs")) {
             inputs.deserializeNBT(registries, tag.getCompoundOrEmpty("Inputs"));
         }
@@ -643,7 +589,6 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        woodSlot.save(tag);
         ItemStack result = working() ? job.result() : ItemStack.EMPTY;
         tag.put("JobResult", result.isEmpty() ? new CompoundTag() : ValueIo.saveStack(registries, result));
         tag.putInt("JobLeft", jobLeft());
@@ -652,70 +597,10 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
-
-    // Wood: the planks the block was crafted from, shown as its boards
-
-    @Override
-    public WoodSlot woodSlot() {
-        return woodSlot;
-    }
-
-    @Override
-    protected void applyImplicitComponents(DataComponentGetter input) {
-        super.applyImplicitComponents(input);
-        woodSlot.apply(input.get(WoodContent.WOOD.get()));
-    }
-
-    @Override
-    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
-        super.collectImplicitComponents(builder);
-        woodSlot.collect(builder);
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(ValueOutput output) {
-        super.removeComponentsFromTag(output);
-        WoodSlot.removeFromTag(output);
-    }
-
-    @Override
-    public ModelData getModelData() {
-        return woodSlot.modelData();
-    }
-
-    // Data carrier
-
-    @Override
-    public void onLoad() {
-        super.onLoad();
-        carrier.join();
-    }
-
-    @Override
-    public void setRemoved() {
-        carrier.leave();
-        super.setRemoved();
-    }
-
-    @Override
-    public void onChunkUnloaded() {
-        super.onChunkUnloaded();
-        carrier.leave();
-    }
-
-    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
-    @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
-        Level level = this.level;
-        if (level == null) {
-            return;
+        if (level != null) {
+            dropContents(level, pos);
         }
-        CraftingStationBlockEntity station = this;
-        station.dropContents(level, pos);
     }
 }

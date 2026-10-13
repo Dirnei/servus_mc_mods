@@ -1,54 +1,56 @@
 package io.github.dirnei.mc.servus.storage.production;
 
-import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlockEntity;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
+import io.github.dirnei.mc.servus.foundation.production.TransferGate;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBuffer;
-import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
-import io.github.dirnei.mc.servus.storage.production.ProductionRows.BufferItem;
-import io.github.dirnei.mc.servus.storage.production.ProductionRows.BufferLine;
-import io.github.dirnei.mc.servus.storage.production.ProductionRows.ItemCount;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
+import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
+import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
+import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.BufferItem;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.BufferLine;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.DuctRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.ItemCount;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.JobRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PackingRow;
-import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
-import io.github.dirnei.mc.servus.foundation.production.TransferGate;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternsView;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
-import io.github.dirnei.mc.servus.storage.network.ItemKey;
-import io.github.dirnei.mc.servus.storage.production.ProductionRows.JobRow;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.state.BlockState;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
 
 /** Builds what a Production Terminal shows from the data line it touches. Server thread only. */
 public final class ProductionView {
@@ -74,7 +76,6 @@ public final class ProductionView {
         Map<BlockPos, String> blocked = new HashMap<>();
         for (CpuBlockEntity cpu : CpuOrders.cpus(level, line.get())) {
             int open = cpu.book().openCount();
-            int slots = cpu.slots();
             List<CpuBuffer.Entry<ItemKey>> buffered = cpu.buffer().entries();
             cpus.add(cpuRow(cpu, open, buffered));
             for (WorkOrder order : cpu.book().orders()) {
@@ -89,7 +90,7 @@ public final class ProductionView {
                 }
             }
         }
-        // Open jobs first, then oldest first; ids grow per CPU, so CPU then id keeps creation order per CPU.
+        // Order ids grow per CPU, so CPU then id keeps creation order.
         jobs.sort(Comparator.comparing((JobRow job) -> job.open() ? 0 : 1)
                 .thenComparingLong(job -> job.cpu().asLong()).thenComparingInt(JobRow::id));
         List<MachineRow> machines = machines(level, line.get(), blocked);
@@ -115,7 +116,7 @@ public final class ProductionView {
     public static List<DuctRow> busiest(ServerLevel level, DataNetwork line) {
         return line.busiest().map(load -> {
             String name = level.isLoaded(load.pos()) && level.getBlockEntity(load.pos()) instanceof UtilityDuctBlockEntity duct
-                    ? new ItemStack(duct.lineItem(io.github.dirnei.mc.servus.foundation.logistics.duct.Line.DATA)).getHoverName().getString()
+                    ? new ItemStack(duct.lineItem(Line.DATA)).getHoverName().getString()
                     : name(level, load.pos());
             return List.of(new DuctRow(load.pos(), name, load.load(), (int) Math.round(load.bandwidth())));
         }).orElse(List.of());
@@ -148,7 +149,7 @@ public final class ProductionView {
         if (!order.open()) {
             return List.of();
         }
-        Map<OrderStep, List<ItemCount>> byStep = new java.util.LinkedHashMap<>();
+        Map<OrderStep, List<ItemCount>> byStep = new LinkedHashMap<>();
         for (OrderStep step : order.steps()) {
             byStep.put(step, new ArrayList<>());
         }
@@ -226,8 +227,14 @@ public final class ProductionView {
         if (!level.isLoaded(pos)) {
             return false;
         }
+        UpkeepHolder upkeep = upkeep(level, pos);
+        return upkeep != null && upkeep.upkeepCount() <= 0;
+    }
+
+    /** The upkeep of the block at the position, or null when it keeps none. */
+    private static UpkeepHolder upkeep(ServerLevel level, BlockPos pos) {
         UpkeepHolder upkeep = level.getCapability(ServusFoundationCapabilities.UPKEEP, pos, null);
-        return upkeep != null && !upkeep.upkeepItem().isEmpty() && upkeep.upkeepLevel() > 0 && upkeep.upkeepCount() <= 0;
+        return upkeep != null && !upkeep.upkeepItem().isEmpty() && upkeep.upkeepLevel() > 0 ? upkeep : null;
     }
 
     private static List<MachineRow> machines(ServerLevel level, DataNetwork line, Map<BlockPos, String> blocked) {
@@ -246,22 +253,10 @@ public final class ProductionView {
         BlockPos pos = member.pos();
         ItemStack icon = new ItemStack(level.getBlockState(pos).getBlock());
         if (level.getBlockEntity(pos) instanceof CraftingStationBlockEntity station) {
-            // The CPU's hands: no recipe list, only the job it is crafting.
-            if (station.working() && station.waitingForPower()) {
-                return new MachineRow(pos, icon, name(level, pos), "blocked", station.job().orElseThrow().result().copyWithCount(1),
-                        station.jobLeft(), "no power", ItemStack.EMPTY, 0, 0, -1);
-            }
-            if (station.working()) {
-                return new MachineRow(pos, icon, name(level, pos), "crafting", station.job().orElseThrow().result().copyWithCount(1),
-                        station.jobLeft(), "", ItemStack.EMPTY, 0, 0, -1);
-            }
-            // Leftovers without a job close the station until they are taken out.
-            String reason = blockedReason.isEmpty() && station.job().isEmpty() && station.hasOutputs() ? "outputs not collected" : blockedReason;
-            String state = reason.isEmpty() ? "idle" : "blocked";
-            return new MachineRow(pos, icon, name(level, pos), state, ItemStack.EMPTY, 0, reason, ItemStack.EMPTY, 0, 0, -1);
+            return stationRow(level, pos, icon, station, blockedReason);
         }
-        UpkeepHolder upkeep = level.getCapability(ServusFoundationCapabilities.UPKEEP, pos, null);
-        boolean keeps = upkeep != null && !upkeep.upkeepItem().isEmpty() && upkeep.upkeepLevel() > 0;
+        UpkeepHolder upkeep = upkeep(level, pos);
+        boolean keeps = upkeep != null;
         ItemStack upkeepItem = keeps ? upkeep.upkeepItem().copyWithCount(1) : ItemStack.EMPTY;
         int upkeepCount = keeps ? upkeep.upkeepCount() : 0;
         int upkeepLevel = keeps ? upkeep.upkeepLevel() : 0;
@@ -287,24 +282,44 @@ public final class ProductionView {
                 }
             }
         }
-        String state;
-        if (noMachine) {
-            state = "no_machine";
-        } else if (!working.isEmpty()) {
-            state = "crafting";
-        } else if (keeps && upkeepCount <= 0) {
-            state = "out_of_fuel";
-        } else if (!blockedReason.isEmpty()) {
-            state = "blocked";
-        } else if (!member.has(DataRole.PRODUCER)) {
-            state = "upkeep_only";
-        } else if (recipes.isEmpty()) {
-            state = "no_recipes";
-        } else {
-            state = "idle";
-        }
+        String state = machineState(noMachine, !working.isEmpty(), keeps && upkeepCount <= 0, !blockedReason.isEmpty(),
+                member.has(DataRole.PRODUCER), !recipes.isEmpty());
         return new MachineRow(pos, icon, name, state, working, 0, state.equals("blocked") ? blockedReason : "", upkeepItem, upkeepCount,
                 upkeepLevel, makes(recipes));
+    }
+
+    /** A Crafting Station shows only the job it is crafting, no recipe list. */
+    private static MachineRow stationRow(ServerLevel level, BlockPos pos, ItemStack icon, CraftingStationBlockEntity station,
+                                         String blockedReason) {
+        if (station.working()) {
+            boolean noPower = station.waitingForPower();
+            return new MachineRow(pos, icon, name(level, pos), noPower ? "blocked" : "crafting",
+                    station.job().orElseThrow().result().copyWithCount(1), station.jobLeft(), noPower ? "no power" : "",
+                    ItemStack.EMPTY, 0, 0, -1);
+        }
+        String reason = blockedReason.isEmpty() && station.job().isEmpty() && station.hasOutputs() ? "outputs not collected" : blockedReason;
+        String state = reason.isEmpty() ? "idle" : "blocked";
+        return new MachineRow(pos, icon, name(level, pos), state, ItemStack.EMPTY, 0, reason, ItemStack.EMPTY, 0, 0, -1);
+    }
+
+    private static String machineState(boolean noMachine, boolean working, boolean outOfFuel, boolean blocked, boolean producer,
+                                       boolean hasRecipes) {
+        if (noMachine) {
+            return "no_machine";
+        }
+        if (working) {
+            return "crafting";
+        }
+        if (outOfFuel) {
+            return "out_of_fuel";
+        }
+        if (blocked) {
+            return "blocked";
+        }
+        if (!producer) {
+            return "upkeep_only";
+        }
+        return hasRecipes ? "idle" : "no_recipes";
     }
 
     /** How many different items the recipes make. */

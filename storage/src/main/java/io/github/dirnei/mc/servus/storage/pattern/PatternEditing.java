@@ -44,7 +44,6 @@ public final class PatternEditing {
         if (match.isEmpty()) {
             return "no_match";
         }
-        // The result as the recipe really crafts it from these cells, components included.
         ItemStack result = EncodedPattern.assembledResult(level, match.get().id().identifier(), cells,
                 ServusRecipes.displayResult(level, match.get().value()));
         if (result.isEmpty()) {
@@ -54,26 +53,22 @@ public final class PatternEditing {
         if (PatternLibrary.contains(level, network, pattern, editing)) {
             return "duplicate";
         }
-        if (editing != null) {
-            Optional<PatternStorageBlockEntity> storage = storageAt(level, network, editing);
-            if (storage.isEmpty()) {
+        PatternLibrary.Free target = editing;
+        if (target == null) {
+            if (PatternLibrary.storages(level, network).isEmpty()) {
+                return "no_storage";
+            }
+            Optional<PatternLibrary.Free> free = PatternLibrary.firstFree(level, network);
+            if (free.isEmpty()) {
                 return "full";
             }
-            storage.get().set(editing.slot(), pattern);
-            return "";
+            target = free.get();
         }
-        if (PatternLibrary.storages(level, network).isEmpty()) {
-            return "no_storage";
-        }
-        Optional<PatternLibrary.Free> free = PatternLibrary.firstFree(level, network);
-        if (free.isEmpty()) {
-            return "full";
-        }
-        Optional<PatternStorageBlockEntity> storage = storageAt(level, network, free.get());
+        Optional<PatternStorageBlockEntity> storage = storageAt(level, network, target);
         if (storage.isEmpty()) {
             return "full";
         }
-        storage.get().set(free.get().slot(), pattern);
+        storage.get().set(target.slot(), pattern);
         return "";
     }
 
@@ -95,5 +90,4 @@ public final class PatternEditing {
         }
         return Optional.empty();
     }
-
 }

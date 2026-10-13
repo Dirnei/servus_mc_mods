@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.pattern;
 /**
  * How many of the nine lights on a Pattern Storage front are lit. One per
  * pattern for a block of 9; other capacities show the fill level scaled to
- * 9, rounded up while any pattern is stored. Pure, no Minecraft imports.
+ * 9, rounded up while any pattern is stored.
  */
 public final class PatternLights {
 

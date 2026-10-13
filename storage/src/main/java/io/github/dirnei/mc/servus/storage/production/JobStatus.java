@@ -4,8 +4,7 @@ import java.util.List;
 
 /**
  * Says what a crafting job is doing in plain words: a lang key suffix and its
- * arguments, from facts about the order and its first unfinished step. Pure,
- * no Minecraft imports.
+ * arguments, from facts about the order and its first unfinished step.
  */
 public final class JobStatus {
 

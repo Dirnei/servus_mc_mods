@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.ToLongFunction;
 
-/** Machine rows with a problem first, then by position. Pure, no Minecraft imports. */
+/** Machine rows with a problem first, then by position. */
 public final class MachineOrder {
 
     /** States a player should look at. */
