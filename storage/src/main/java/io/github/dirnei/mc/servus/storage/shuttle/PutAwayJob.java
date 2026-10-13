@@ -4,7 +4,7 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import net.minecraft.core.BlockPos;
 
 /**
- * One stack waiting in a inbound station for a shuttle to carry it to its target.
+ * One stack waiting in an inbound station for a shuttle to carry it to its target.
  *
  * @param station the station whose buffer holds the stack
  * @param slot    the claimed buffer slot
