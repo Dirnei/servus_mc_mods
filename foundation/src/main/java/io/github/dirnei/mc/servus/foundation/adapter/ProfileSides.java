@@ -5,7 +5,7 @@ import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import java.util.List;
 import java.util.Optional;
 
-/** Turns a profile role into the absolute side of the machine to use. Pure. */
+/** Turns a profile role into the absolute side of the machine to use. */
 public final class ProfileSides {
 
     /** The order in which sides are tried when several share a role. */

@@ -22,6 +22,15 @@ public final class AdapterItemHandler extends LegacyItemHandler {
         return adapter.machineHandler(MachineProfile.Role.OUTPUT);
     }
 
+    /** The machine's output handler when {@code slot} mirrors one of its slots, else null. */
+    private ItemView outputFor(int slot) {
+        if (slot == 0) {
+            return null;
+        }
+        ItemView output = output();
+        return output == null || slot - 1 >= output.getSlots() ? null : output;
+    }
+
     @Override
     public int getSlots() {
         ItemView output = output();
@@ -31,11 +40,11 @@ public final class AdapterItemHandler extends LegacyItemHandler {
     @Override
     public ItemStack getStackInSlot(int slot) {
         if (slot == 0) {
-            // The input slot always reads empty, so stacking inserters (packets) offer it any item.
+            // Reads empty so stacking inserters such as packets offer it any item.
             return ItemStack.EMPTY;
         }
-        ItemView output = output();
-        return output == null || slot - 1 >= output.getSlots() ? ItemStack.EMPTY : output.getStackInSlot(slot - 1);
+        ItemView output = outputFor(slot);
+        return output == null ? ItemStack.EMPTY : output.getStackInSlot(slot - 1);
     }
 
     @Override
@@ -53,11 +62,8 @@ public final class AdapterItemHandler extends LegacyItemHandler {
 
     @Override
     public ItemStack extractItem(int slot, int amount, boolean simulate) {
-        if (slot == 0) {
-            return ItemStack.EMPTY;
-        }
-        ItemView output = output();
-        return output == null || slot - 1 >= output.getSlots() ? ItemStack.EMPTY : output.extractItem(slot - 1, amount, simulate);
+        ItemView output = outputFor(slot);
+        return output == null ? ItemStack.EMPTY : output.extractItem(slot - 1, amount, simulate);
     }
 
     @Override

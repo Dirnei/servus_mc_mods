@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * What a Machine Adapter needs to know about a machine: which blocks, which
  * recipe type they run and what each side of the machine is for. Parsed from
- * datapack JSON; no Minecraft types, so it is unit tested.
+ * datapack JSON.
  *
  * @param blocks      block ids, or {@code #tag} ids
  * @param recipeType  the recipe type id, for example {@code minecraft:smelting}

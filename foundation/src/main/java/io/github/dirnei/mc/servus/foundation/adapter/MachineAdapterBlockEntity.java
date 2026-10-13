@@ -119,8 +119,6 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
         return upkeep;
     }
 
-    // The machine
-
     public Direction facing() {
         return getBlockState().getValue(MachineAdapterBlock.FACING);
     }
@@ -164,13 +162,10 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
         if (profile.isEmpty()) {
             return null;
         }
-        BlockState state = machineState();
-        Optional<Side> side = ProfileSides.firstOf(profile.get(), role, machineFacing(state));
+        Optional<Side> side = ProfileSides.firstOf(profile.get(), role, machineFacing(machineState()));
         return side.map(value -> ItemView.of(level.getCapability(Capabilities.Item.BLOCK, machinePos(), Conversions.toDirection(value))))
                 .orElse(null);
     }
-
-    // Recipes
 
     private List<ProductionRecipe> recipes() {
         if (!(level instanceof ServerLevel server)) {
@@ -203,8 +198,6 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
         }
         return Optional.empty();
     }
-
-    // Upkeep
 
     public ItemStack upkeepItem() {
         applyDefaultsOnServer();
@@ -253,7 +246,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
     }
 
     public void setUpkeepLevel(int level) {
-        upkeepLevel = Math.max(MIN_LEVEL, Math.min(MAX_LEVEL, level));
+        upkeepLevel = clampLevel(level);
         upkeepSet = true;
         setChanged();
     }
@@ -293,12 +286,14 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
         }
         Identifier id = Identifier.tryParse(profile.upkeepItem());
         upkeepItem = id == null || profile.upkeepItem().isEmpty() ? ItemStack.EMPTY : new ItemStack(BuiltInRegistries.ITEM.getValue(id));
-        upkeepLevel = Math.max(MIN_LEVEL, Math.min(MAX_LEVEL, profile.upkeepLevel()));
+        upkeepLevel = clampLevel(profile.upkeepLevel());
         upkeepSet = true;
         setChanged();
     }
 
-    // Saving
+    private static int clampLevel(int level) {
+        return Math.max(MIN_LEVEL, Math.min(MAX_LEVEL, level));
+    }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
@@ -338,8 +333,6 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
         }
     }
 
-    // Menu
-
     @Override
     public Component getDisplayName() {
         return Component.translatable("block.servus_foundation.machine_adapter");
@@ -349,8 +342,6 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
     public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
         return new AdapterMenu(containerId, inventory, this);
     }
-
-    // Wood: the planks the block was crafted from, shown as its boards
 
     @Override
     public WoodSlot woodSlot() {

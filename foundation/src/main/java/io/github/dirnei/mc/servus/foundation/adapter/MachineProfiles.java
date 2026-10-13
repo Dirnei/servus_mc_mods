@@ -2,11 +2,10 @@ package io.github.dirnei.mc.servus.foundation.adapter;
 
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.util.ExtraCodecs;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.dirnei.mc.servus.foundation.ServusFoundation;
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,10 +25,9 @@ import net.minecraft.world.level.block.state.BlockState;
 public final class MachineProfiles extends SimpleJsonResourceReloadListener<JsonElement> {
 
     /** Key of this listener in the reload event. */
-    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath("servus_foundation", "machine_profiles");
+    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "machine_profiles");
 
     public static final String DIRECTORY = "machine_profiles";
-    private static final Gson GSON = new GsonBuilder().create();
     public static final MachineProfiles INSTANCE = new MachineProfiles();
 
     private volatile List<MachineProfile> profiles = List.of();

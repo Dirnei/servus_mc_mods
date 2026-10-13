@@ -80,9 +80,4 @@ public class AdapterScreen extends AbstractContainerScreen<AdapterMenu> {
                 : Component.translatable("gui.servus_foundation.machine_adapter.count", menu.count(), menu.level());
         graphics.text(font, count, 8, AdapterMenu.GHOST_Y + 22, TEXT, false);
     }
-
-    @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
-    }
 }
