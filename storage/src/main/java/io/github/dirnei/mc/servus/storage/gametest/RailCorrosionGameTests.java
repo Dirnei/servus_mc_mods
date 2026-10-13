@@ -1,11 +1,10 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
-import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlock;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
@@ -13,6 +12,7 @@ import io.github.dirnei.mc.servus.storage.field.FieldWater;
 import io.github.dirnei.mc.servus.storage.rail.RailBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -36,7 +36,6 @@ import net.neoforged.neoforge.fluids.FluidStack;
 /** Copper corrosion of farm rail fields: aging, upkeep, the corroded field, axe scraping and joins (m10-rail-corrosion). */
 public final class RailCorrosionGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     private static final int RAIL_Z = 5;
     private static final int FIRST = 3;
     private static final int LAST = 7;

@@ -1,28 +1,23 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
-import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorData;
-import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
-import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
-import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
-import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.site.SiteChunks;
 import io.github.dirnei.mc.servus.storage.site.SiteRecord;
 import io.github.dirnei.mc.servus.storage.site.SiteRegistry;
 import io.github.dirnei.mc.servus.storage.site.SiteWakes;
 import io.github.dirnei.mc.servus.storage.site.WakeAllowance;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import java.util.HashSet;
 import java.util.Optional;
@@ -41,7 +36,6 @@ import net.minecraft.world.level.block.Blocks;
 /** Site records with last known stock, and waking a site inside its capacity and its team's cap. */
 public final class SiteWakeGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
     /** For the stock test: a rail east of the controller and a rack east of the rail, facing it. */
     private static final BlockPos RAIL = new BlockPos(3, 1, 2);

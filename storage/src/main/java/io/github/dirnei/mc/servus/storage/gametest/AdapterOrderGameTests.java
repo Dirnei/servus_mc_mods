@@ -1,22 +1,18 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlock;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlockEntity;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
-import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
-import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
-import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -30,7 +26,6 @@ import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 /** A Machine Adapter on a vanilla furnace as a producer of the CPU, with its fuel refilled from the warehouse. */
 public final class AdapterOrderGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
     private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
     /** Racks west of the rails at y 0 under the controller and the Packing Station; the garage north of them. */

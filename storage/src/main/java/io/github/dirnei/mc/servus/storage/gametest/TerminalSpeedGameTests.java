@@ -1,26 +1,24 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
-import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
+import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
-import io.github.dirnei.mc.servus.storage.terminal.TerminalCraftables;
-import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
-import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.production.ProductionTerminalBlock;
 import io.github.dirnei.mc.servus.storage.production.ProductionTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalCraftables;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -33,7 +31,6 @@ import net.minecraft.world.level.block.FurnaceBlock;
 /** Opening a terminal must show its content at once and not rebuild the line's recipe lists. */
 public final class TerminalSpeedGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
     /** The rack west of the rail under the controller. */
     private static final BlockPos RACK = new BlockPos(1, 0, 2);

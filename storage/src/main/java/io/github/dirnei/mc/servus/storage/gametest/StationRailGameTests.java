@@ -1,16 +1,13 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
-import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
-import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
@@ -24,7 +21,6 @@ import net.minecraft.world.level.block.Blocks;
 /** Shuttle served blocks join the warehouse only through rails. */
 public final class StationRailGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
     private static final BlockPos STATION = new BlockPos(3, 1, 2);
     /** The rack {@link MiniWarehouse#under} puts west of the rail under the controller. */
@@ -37,7 +33,6 @@ public final class StationRailGameTests {
         WarehouseFixtures.controller(helper, CONTROLLER);
         return helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
     }
-
 
     private static boolean lit(GameTestHelper helper, BlockPos pos) {
         return helper.getBlockState(pos).getValue(StorageNodeBlocks.ONLINE);

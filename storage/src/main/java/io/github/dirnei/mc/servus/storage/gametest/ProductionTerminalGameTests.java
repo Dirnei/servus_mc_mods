@@ -1,14 +1,11 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlock;
-import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
-import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
-import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
@@ -18,10 +15,12 @@ import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
+import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
+import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.storage.production.ProductionPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
-import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.JobRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.production.ProductionView;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
@@ -45,7 +44,6 @@ import net.minecraft.world.level.block.FurnaceBlock;
  */
 public final class ProductionTerminalGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
     private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
     /** The rack west of the rail under the controller. */

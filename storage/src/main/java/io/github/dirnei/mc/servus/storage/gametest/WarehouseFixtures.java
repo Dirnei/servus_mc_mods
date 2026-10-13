@@ -113,4 +113,9 @@ public final class WarehouseFixtures {
     public static StorageNodeBlocks.Activity activity(GameTestHelper helper, BlockPos pos) {
         return helper.getBlockState(pos).getValue(StorageNodeBlocks.ACTIVITY);
     }
+
+    /** Whether the storage block at {@code pos} shows its red, blocked lamp. */
+    public static boolean blocked(GameTestHelper helper, BlockPos pos) {
+        return activity(helper, pos) == StorageNodeBlocks.Activity.BLOCKED;
+    }
 }

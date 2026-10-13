@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTests;
 import io.github.dirnei.mc.servus.foundation.network.NetworkTypes;
 import io.github.dirnei.mc.servus.foundation.wood.Wood;
+import io.github.dirnei.mc.servus.storage.gametest.StorageGameTests;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
@@ -41,43 +42,7 @@ public final class ServusStorage {
         }
         // The pattern editor matches crafting grids on the client too.
         io.github.dirnei.mc.servus.foundation.production.ServusRecipes.syncToClients(() -> net.minecraft.world.item.crafting.RecipeType.CRAFTING);
-        ServusGameTests.register(modEventBus, ServusStorageIds.MOD_ID, java.util.List.of(
-                io.github.dirnei.mc.servus.storage.gametest.AdapterOrderGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.AdjacentDataGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.BlockStyleGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.ChainHandoffGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.ControllerSiteGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.ControllerWirelessGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.CraftingCpuGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.CraftingGridGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.DataBandwidthGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.DataCableGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.DataPacketGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.FieldGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.FieldLookGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.HarvesterGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.PackingStationGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.PacketInletGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.PatternGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.PatternResultGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.PersistGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.PipeAccessGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.ProductionTerminalGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.RailCorrosionGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.RackDockGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.RailLookGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.MiniWarehouseGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.ServusStorageGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.ShuttleModuleGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.SiteWakeGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.SpreaderGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.StationHandsGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.StationRailGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.StorageTerminalRowsGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.TerminalCableGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.TerminalCraftGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.TerminalSpeedGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.WarehousePowerGameTests.class));
+        ServusGameTests.register(modEventBus, ServusStorageIds.MOD_ID, StorageGameTests.CLASSES);
         LOGGER.info("Servus: Storage loaded");
     }
 }

@@ -1,19 +1,17 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
-import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
+import io.github.dirnei.mc.servus.foundation.data.DataRole;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.CraftPreviewPayload;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import java.util.List;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -25,7 +23,6 @@ import net.minecraft.world.level.block.Blocks;
 /** Crafting from the Storage Terminal: craftable items, previews, starting a craft, instant content, Packing Station GUI. */
 public final class TerminalCraftGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     /** Where {@link StationHandsGameTests#setup} puts the Packing Station; the terminal sits two blocks above. */
     private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
     private static final BlockPos CPU = new BlockPos(6, 1, 1);

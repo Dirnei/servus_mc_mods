@@ -1,9 +1,8 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
-import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
@@ -12,12 +11,11 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
 import io.github.dirnei.mc.servus.storage.order.StepRef;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalRequests;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -28,7 +26,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 /** Requests, CPU orders, station jobs and shipments survive their block entities being saved and loaded again. */
 public final class PersistGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
     private static final BlockPos STATION_A = new BlockPos(4, 1, 2);
     private static final BlockPos STATION_B = new BlockPos(5, 1, 2);

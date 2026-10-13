@@ -1,27 +1,26 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
+import io.github.dirnei.mc.servus.foundation.data.DataSummary;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DataCableItem;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
-import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
+import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
-import io.github.dirnei.mc.servus.foundation.data.DataSummary;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
 import java.util.function.IntPredicate;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -38,7 +37,6 @@ import net.minecraft.world.level.block.state.BlockState;
  */
 public final class DataBandwidthGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos SOURCE = new BlockPos(2, 1, 3);
     /** The planks each running test moves out of the terminal, keyed by its helper. */
     private static final java.util.Map<GameTestHelper, ItemSlots> STOCKS = new java.util.WeakHashMap<>();

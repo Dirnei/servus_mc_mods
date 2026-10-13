@@ -1,17 +1,12 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
-import io.github.dirnei.mc.servus.storage.network.ItemKey;
-import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerInput;
@@ -22,7 +17,6 @@ import net.minecraft.world.level.GameType;
 /** The Storage Terminal's crafting grid: crafting, refill from instant stock, pull, clear, close and JEI fill. */
 public final class CraftingGridGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     /** The mini warehouse's rails start here, so its Packing Station stands at {@link #TERMINAL}. */
     private static final BlockPos ORIGIN = new BlockPos(4, 1, 2);
     private static final BlockPos TERMINAL = new BlockPos(5, 1, 3);
