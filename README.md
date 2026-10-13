@@ -69,7 +69,7 @@ Launch with `gradlew runClientAll`, create a new world, and take the Servus crea
 5. Utility Ducts with an Item Pipe route pushed items to the next inventory on the same channel.
 6. Red packs go into the Research Lab; open the Tech Tree from its GUI and pick a tech.
 7. Researched machines are assembled, not hand crafted: Electric Extractor (twice as fast, powered), Crusher (ore to two grit, grit smelts to ingots). Stone Processing adds stone, stone bricks and glass recipes to the assembler.
-8. The Chunk Loader keeps its chunk running while powered. The per team limit and the FTB Chunks rule are in `config/servus_manufacturing-common.toml`.
+8. The Ender Anchor keeps its chunk running while powered. The per team limit and the FTB Chunks rule are in `config/servus_foundation-common.toml`.
 
 ## Storage playtest guide
 

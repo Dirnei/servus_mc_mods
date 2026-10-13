@@ -17,7 +17,7 @@
       "min_source_neighbours": 2,
       "upkeep_level": 16
     },
-    "servus_foundation:chunk_loader": {
+    "servus_foundation:ender_anchor": {
       "kind": "powered",
       "recipe_types": [],
       "work_ticks": 1,
@@ -423,7 +423,7 @@
         {"item": "servus_foundation:chimney", "count": 2}
       ]
     },
-    "servus_foundation:chunk_loader": {
+    "servus_foundation:ender_anchor": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["ICI", "RER", "ICI"],
       "key": {
@@ -439,7 +439,7 @@
         {"item": "minecraft:redstone", "count": 2}
       ],
       "outputs": [
-        {"item": "servus_foundation:chunk_loader", "count": 1}
+        {"item": "servus_foundation:ender_anchor", "count": 1}
       ]
     },
     "servus_foundation:coal_generator": {
@@ -1135,8 +1135,8 @@
     "servus_foundation:chimney": {
       "name": "Chimney"
     },
-    "servus_foundation:chunk_loader": {
-      "name": "Chunk Loader"
+    "servus_foundation:ender_anchor": {
+      "name": "Ender Anchor"
     },
     "servus_foundation:coal_generator": {
       "name": "Coal Generator"
