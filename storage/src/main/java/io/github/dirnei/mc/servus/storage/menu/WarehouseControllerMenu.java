@@ -1,7 +1,8 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
+import io.github.dirnei.mc.servus.foundation.upgrade.AnchorUpgradeSlots;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
-import io.github.dirnei.mc.servus.storage.controller.ChunkLoaderUpgradeSlots;
 import io.github.dirnei.mc.servus.storage.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
@@ -26,7 +27,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The controller GUI: the site's name, status, FE and chunk map come as a
- * payload; the Chunk Loader Upgrade row, the Wireless Upgrade slot and the
+ * payload; the Anchor Upgrade row, the Wireless Upgrade slot and the
  * player inventory are slots.
  */
 public class WarehouseControllerMenu extends AbstractContainerMenu {
@@ -38,7 +39,7 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
     public static final int MAP_SIZE = 60;
     public static final int STATUS_X = 74;
     public static final int UPGRADES_Y = 112;
-    /** The Wireless Upgrade slot, right of the Chunk Loader Upgrade row, in line with the last inventory column. */
+    /** The Wireless Upgrade slot, right of the Anchor Upgrade row, in line with the last inventory column. */
     public static final int WIRELESS_X = 152;
     public static final int INVENTORY_Y = 144;
     public static final int IMAGE_HEIGHT = INVENTORY_Y + 3 * 18 + 4 + 18 + 6;
@@ -87,7 +88,7 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
         BlockPos pos = buf.readBlockPos();
         int slots = buf.readVarInt();
         String name = buf.readUtf(64);
-        return new WarehouseControllerMenu(containerId, playerInventory, null, pos, new ChunkLoaderUpgradeSlots(slots, null),
+        return new WarehouseControllerMenu(containerId, playerInventory, null, pos, new AnchorUpgradeSlots(slots, null),
                 new io.github.dirnei.mc.servus.storage.controller.WirelessUpgradeSlots(null), name);
     }
 
@@ -128,7 +129,7 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
         }
     }
 
-    /** Shift click moves Chunk Loader and Wireless Upgrades between their slots and the player inventory. */
+    /** Shift click moves Anchor and Wireless Upgrades between their slots and the player inventory. */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         if (index < 0 || index >= slots.size()) {
@@ -145,7 +146,7 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
             if (!moveItemStackTo(stack, own, slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
-        } else if (stack.is(ServusStorageItems.CHUNK_LOADER_UPGRADE.get())) {
+        } else if (stack.is(MachineContent.ANCHOR_UPGRADE.get())) {
             if (!moveItemStackTo(stack, 0, upgradeSlots, false)) {
                 return ItemStack.EMPTY;
             }

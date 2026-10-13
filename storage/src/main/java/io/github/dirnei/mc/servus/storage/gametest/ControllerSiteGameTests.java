@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
@@ -33,7 +34,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-/** A controller is a site: name, chunk span, Chunk Loader Upgrades and the over capacity lamp. */
+/** A controller is a site: name, chunk span, Anchor Upgrades and the over capacity lamp. */
 public final class ControllerSiteGameTests {
 
     /** Wide enough that every row of x positions 2..30 crosses a chunk border. */
@@ -122,13 +123,13 @@ public final class ControllerSiteGameTests {
         BlockPos at = new BlockPos(border - 2, 1, ROW_Z);
         WarehouseControllerBlockEntity controller = acrossBorder(helper, border);
         StorageStatsManager.INSTANCE.setChunksPerUpgrade(1);
-        controller.upgrades().insertItem(0, new ItemStack(ServusStorageItems.CHUNK_LOADER_UPGRADE.get()), false);
+        controller.upgrades().insertItem(0, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
         TerminalWiring.when(helper, () -> controller.span().size() == 2 && lamp(helper, at) == StorageNodeBlocks.Activity.BLOCKED, 60,
                 () -> "two chunks over one upgrade turn the lamp red, span " + controller.span().size() + " lamp " + lamp(helper, at), () -> {
             helper.assertTrue(controller.siteState() == SiteCapacity.State.OVER, "the site is over capacity");
             SiteStatusPayload status = WarehouseControllerMenu.status(controller);
             helper.assertTrue(status.capacityState() == SiteCapacity.State.OVER && status.capacity() == 1, "the GUI says over capacity");
-            controller.upgrades().insertItem(1, new ItemStack(ServusStorageItems.CHUNK_LOADER_UPGRADE.get()), false);
+            controller.upgrades().insertItem(1, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
             helper.assertTrue(lamp(helper, at) == StorageNodeBlocks.Activity.IDLE, "a second upgrade turns the lamp green");
             helper.assertTrue(controller.siteState() == SiteCapacity.State.COVERED && controller.capacity() == 2, "two of two chunks covered");
             StorageStatsManager.INSTANCE.setChunksPerUpgrade(StorageStatsManager.DEFAULT_CHUNKS_PER_UPGRADE);
@@ -136,16 +137,16 @@ public final class ControllerSiteGameTests {
         });
     }
 
-    /** Only Chunk Loader Upgrades go in, one per slot; without one the lamp stays green. */
+    /** Only Anchor Upgrades go in, one per slot; without one the lamp stays green. */
     @ServusGameTest(template = WIDE, timeoutTicks = 40)
-    public static void upgradeSlotsTakeOnlyChunkLoaderUpgrades(GameTestHelper helper) {
+    public static void upgradeSlotsTakeOnlyAnchorUpgrades(GameTestHelper helper) {
         BlockPos at = new BlockPos(2, 1, ROW_Z);
         WarehouseControllerBlockEntity controller = controller(helper, at);
         ItemStack speed = new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get());
         helper.assertTrue(controller.upgrades().insertItem(0, speed, true).getCount() == 1, "a Speed Upgrade does not fit");
-        ItemStack two = new ItemStack(ServusStorageItems.CHUNK_LOADER_UPGRADE.get(), 2);
+        ItemStack two = new ItemStack(MachineContent.ANCHOR_UPGRADE.get(), 2);
         helper.assertTrue(controller.upgrades().insertItem(0, two, false).getCount() == 1, "one upgrade per slot");
-        helper.assertTrue(controller.upgrades().getSlots() == StorageStatsManager.INSTANCE.chunkLoaderUpgradeSlots(), "slot count from warehouse.json");
+        helper.assertTrue(controller.upgrades().getSlots() == StorageStatsManager.INSTANCE.anchorUpgradeSlots(), "slot count from warehouse.json");
         helper.assertTrue(controller.siteState() == SiteCapacity.State.COVERED, "one chunk under one upgrade is covered");
         controller.upgrades().extractItem(0, 1, false);
         helper.assertTrue(controller.siteState() == SiteCapacity.State.NO_UPGRADE, "without upgrades there is nothing to exceed");
@@ -163,7 +164,7 @@ public final class ControllerSiteGameTests {
         WarehouseControllerBlockEntity controller = controller(helper, at);
         controller.setSiteName("  North Mine ");
         controller.rules().set(new io.github.dirnei.mc.servus.storage.order.StockRule(ItemKey.of(new ItemStack(Items.STICK)), 8, 16));
-        controller.upgrades().insertItem(0, new ItemStack(ServusStorageItems.CHUNK_LOADER_UPGRADE.get()), false);
+        controller.upgrades().insertItem(0, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
         controller.setSpan(Set.of(controller.homeChunk(), SiteChunks.key(9999, 9999)));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);
@@ -176,7 +177,7 @@ public final class ControllerSiteGameTests {
         List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(1));
         ItemStack item = drops.stream().map(ItemEntity::getItem)
                 .filter(stack -> stack.is(ServusStorageItems.WAREHOUSE_CONTROLLER.get())).findFirst().orElseThrow();
-        long upgrades = drops.stream().map(ItemEntity::getItem).filter(stack -> stack.is(ServusStorageItems.CHUNK_LOADER_UPGRADE.get()))
+        long upgrades = drops.stream().map(ItemEntity::getItem).filter(stack -> stack.is(MachineContent.ANCHOR_UPGRADE.get()))
                 .mapToInt(ItemStack::getCount).sum();
         helper.assertTrue(upgrades == 1, "the upgrade drops on its own, got " + upgrades);
 

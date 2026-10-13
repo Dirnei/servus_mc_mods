@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorData;
@@ -60,7 +61,7 @@ public final class SiteWakeGameTests {
             controller.setTeam(team);
         }
         for (int i = 0; i < upgrades; i++) {
-            controller.upgrades().insertItem(i, new ItemStack(ServusStorageItems.CHUNK_LOADER_UPGRADE.get()), false);
+            controller.upgrades().insertItem(i, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
         }
         return controller;
     }
@@ -217,7 +218,7 @@ public final class SiteWakeGameTests {
         PowerFixtures.fill(helper, SH_CONTROLLER);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(SH_CONTROLLER, WarehouseControllerBlockEntity.class);
         controller.setTeam(team);
-        controller.upgrades().insertItem(0, new ItemStack(ServusStorageItems.CHUNK_LOADER_UPGRADE.get()), false);
+        controller.upgrades().insertItem(0, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
         TerminalWiring.place(helper, SH_TERMINAL);
         for (int x = 3; x <= 9; x++) {
             helper.setBlock(new BlockPos(x, 0, 6), Blocks.STONE.defaultBlockState());

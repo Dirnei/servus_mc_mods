@@ -20,7 +20,7 @@ import net.minecraft.resources.Identifier;
  * @param summary  the warehouse summary, the tooltip of the online line
  * @param chunks   the chunk keys of the span
  * @param home     the chunk key of the controller
- * @param upgrades Chunk Loader Upgrades held
+ * @param upgrades Anchor Upgrades held
  * @param capacity chunks the upgrades cover
  * @param state    the {@link SiteCapacity.State} ordinal
  * @param wake     the wake line, empty when there is nothing to say

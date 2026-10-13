@@ -253,7 +253,7 @@ public final class ControllerWirelessGameTests {
     public static void wirelessSlotTakesOnlyTheUpgrade(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = controller(helper, A_CONTROLLER, UUID.randomUUID());
         var slot = controller.wirelessUpgrade();
-        helper.assertTrue(!slot.isItemValid(0, new ItemStack(ServusStorageItems.CHUNK_LOADER_UPGRADE.get())), "no Chunk Loader Upgrade");
+        helper.assertTrue(!slot.isItemValid(0, new ItemStack(MachineContent.ANCHOR_UPGRADE.get())), "no Anchor Upgrade");
         helper.assertTrue(!slot.isItemValid(0, new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get())), "no Speed Upgrade");
         ItemStack left = slot.insertItem(0, new ItemStack(ServusStorageItems.WIRELESS_UPGRADE.get(), 2), false);
         helper.assertTrue(left.getCount() == 1, "one Wireless Upgrade fits, the second does not, left " + left.getCount());

@@ -98,7 +98,7 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
         }
     }
 
-    /** Chunk Loader and Wireless Upgrades drop when the controller goes. */
+    /** Anchor and Wireless Upgrades drop when the controller goes. */
 
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {

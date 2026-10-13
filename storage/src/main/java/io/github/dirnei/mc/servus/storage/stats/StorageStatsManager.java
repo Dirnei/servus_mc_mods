@@ -38,7 +38,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     public static final double DEFAULT_LIFT_SPEED_PER_UPGRADE = 0.05;
     public static final double DEFAULT_LIFT_ACCEL_PER_UPGRADE = 0.0025;
     public static final int DEFAULT_RACK_DISPLAY_COUNT = 4;
-    public static final int DEFAULT_CHUNK_LOADER_UPGRADE_SLOTS = 4;
+    public static final int DEFAULT_ANCHOR_UPGRADE_SLOTS = 4;
     public static final int DEFAULT_CHUNKS_PER_UPGRADE = 9;
     public static final int DEFAULT_WAKE_GRACE_SECONDS = 30;
     public static final int DEFAULT_CONTROLLER_ENERGY_CAPACITY = 100000;
@@ -104,7 +104,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     private volatile double liftSpeedPerUpgrade = DEFAULT_LIFT_SPEED_PER_UPGRADE;
     private volatile double liftAccelPerUpgrade = DEFAULT_LIFT_ACCEL_PER_UPGRADE;
     private volatile int rackDisplayCount = DEFAULT_RACK_DISPLAY_COUNT;
-    private volatile int chunkLoaderUpgradeSlots = DEFAULT_CHUNK_LOADER_UPGRADE_SLOTS;
+    private volatile int anchorUpgradeSlots = DEFAULT_ANCHOR_UPGRADE_SLOTS;
     private volatile int chunksPerUpgrade = DEFAULT_CHUNKS_PER_UPGRADE;
     private volatile int wakeGraceTicks = DEFAULT_WAKE_GRACE_SECONDS * 20;
     private volatile int siteSnapshotInterval = DEFAULT_SITE_SNAPSHOT_INTERVAL;
@@ -162,7 +162,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         liftSpeedPerUpgrade = Math.max(0, doubleField(files.get(WAREHOUSE), "lift_speed_per_upgrade", DEFAULT_LIFT_SPEED_PER_UPGRADE));
         liftAccelPerUpgrade = Math.max(0, doubleField(files.get(WAREHOUSE), "lift_accel_per_upgrade", DEFAULT_LIFT_ACCEL_PER_UPGRADE));
         rackDisplayCount = intField(files.get(RACK), "display_count", DEFAULT_RACK_DISPLAY_COUNT);
-        chunkLoaderUpgradeSlots = countField(files.get(WAREHOUSE), "chunk_loader_upgrade_slots", DEFAULT_CHUNK_LOADER_UPGRADE_SLOTS);
+        anchorUpgradeSlots = countField(files.get(WAREHOUSE), "anchor_upgrade_slots", DEFAULT_ANCHOR_UPGRADE_SLOTS);
         chunksPerUpgrade = intField(files.get(WAREHOUSE), "chunks_per_upgrade", DEFAULT_CHUNKS_PER_UPGRADE);
         wakeGraceTicks = countField(files.get(WAREHOUSE), "wake_grace_seconds", DEFAULT_WAKE_GRACE_SECONDS) * 20;
         siteSnapshotInterval = intField(files.get(WAREHOUSE), "site_snapshot_interval", DEFAULT_SITE_SNAPSHOT_INTERVAL);
@@ -334,12 +334,12 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         return liftAccelPerUpgrade;
     }
 
-    /** Chunk Loader Upgrade slots of a Warehouse Controller. */
-    public int chunkLoaderUpgradeSlots() {
-        return chunkLoaderUpgradeSlots;
+    /** Anchor Upgrade slots of a Warehouse Controller. */
+    public int anchorUpgradeSlots() {
+        return anchorUpgradeSlots;
     }
 
-    /** Chunks one Chunk Loader Upgrade covers. */
+    /** Chunks one Anchor Upgrade covers. */
     public int chunksPerUpgrade() {
         return chunksPerUpgrade;
     }

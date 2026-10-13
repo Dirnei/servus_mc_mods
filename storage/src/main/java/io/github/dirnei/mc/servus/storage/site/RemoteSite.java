@@ -6,7 +6,7 @@ public final class RemoteSite {
     public enum State {
         /** Loaded and online: live stock, orders go straight through. */
         ONLINE,
-        /** Asleep with enough Chunk Loader Upgrades: last known stock, an order wakes it. */
+        /** Asleep with enough Anchor Upgrades: last known stock, an order wakes it. */
         SLEEPING,
         /** Asleep without a way to wake: last known stock, no orders. */
         UNREACHABLE;

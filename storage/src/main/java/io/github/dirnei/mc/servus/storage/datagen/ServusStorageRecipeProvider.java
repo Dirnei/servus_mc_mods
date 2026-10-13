@@ -263,17 +263,6 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_shuttle", has(ServusStorageItems.SHUTTLE_MK1.get()))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusStorageItems.CHUNK_LOADER_UPGRADE.get())
-                .pattern(" E ")
-                .pattern("ICI")
-                .pattern(" R ")
-                .define('E', Items.ENDER_PEARL)
-                .define('I', Items.IRON_INGOT)
-                .define('C', io.github.dirnei.mc.servus.foundation.machine.MachineContent.ENDER_ANCHOR_ITEM.get())
-                .define('R', Items.REDSTONE)
-                .unlockedBy("has_ender_anchor", has(io.github.dirnei.mc.servus.foundation.machine.MachineContent.ENDER_ANCHOR_ITEM.get()))
-                .save(output);
-
         ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusStorageItems.WIRELESS_UPGRADE.get())
                 .pattern(" C ")
                 .pattern("IEI")

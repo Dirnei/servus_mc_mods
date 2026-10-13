@@ -124,8 +124,6 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageItems.SHUTTLE_MK3.get(), "Shuttle Mk3");
         add(ServusStorageItems.HANDLING_UPGRADE.get(), "Handling Upgrade");
         add(ServusStorageItems.RANGE_UPGRADE.get(), "Range Upgrade");
-        add(ServusStorageItems.CHUNK_LOADER_UPGRADE.get(), "Chunk Loader Upgrade");
-        add("item.servus_storage.chunk_loader_upgrade.tooltip", "Goes into a Warehouse Controller. Each one covers a few chunks of the site, so the site can wake for transfers");
         add(ServusStorageItems.WIRELESS_UPGRADE.get(), "Wireless Upgrade");
         add("item.servus_storage.wireless_upgrade.tooltip",
                 "Goes into a Warehouse Controller and makes it the site's antenna: with power, the warehouse trades with other sites over a wireless line, for FE per item and distance");
@@ -148,13 +146,13 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.controller.chunks", "Spans %s chunks");
         add("gui.servus_storage.controller.covered", "%s of %s chunks covered");
         add("gui.servus_storage.controller.over", "%s of %s chunks: over capacity");
-        add("gui.servus_storage.controller.upgrades", "Chunk Loader Upgrades");
+        add("gui.servus_storage.controller.upgrades", "Anchor Upgrades");
         add("gui.servus_storage.controller.upgrades.tooltip", "Each upgrade covers more chunks of the site. A site larger than its upgrades cover never wakes");
         add("gui.servus_storage.controller.wake.awake", "Awake for a transfer");
         add("gui.servus_storage.controller.wake.grace", "Awake, sleeps in %s s");
         add("gui.servus_storage.controller.wake.waiting", "Waiting to wake: %s");
         add("gui.servus_storage.wake.reason.allowed", "allowed");
-        add("gui.servus_storage.wake.reason.no_upgrade", "no Chunk Loader Upgrade");
+        add("gui.servus_storage.wake.reason.no_upgrade", "no Anchor Upgrade");
         add("gui.servus_storage.wake.reason.over_capacity", "over capacity");
         add("gui.servus_storage.wake.reason.no_owner", "no owner");
         add("gui.servus_storage.wake.reason.ftb_chunks", "use FTB Chunks");
@@ -361,7 +359,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.message.no_power_there", "That site has no power for wireless");
         add("gui.servus_storage.terminal.message.no_packing_here", "This site has no Packing Station");
         add("gui.servus_storage.terminal.message.no_packing_there", "That site has no Packing Station");
-        add("gui.servus_storage.terminal.message.site_asleep", "That site sleeps and cannot wake without enough Chunk Loader Upgrades");
+        add("gui.servus_storage.terminal.message.site_asleep", "That site sleeps and cannot wake without enough Anchor Upgrades");
         add("gui.servus_storage.controller.sites", "Other sites");
         add("gui.servus_storage.controller.sites.none", "No other sites");
         add("gui.servus_storage.site.state.online", "Online");

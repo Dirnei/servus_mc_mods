@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "servus_storage:item/chunk_loader_upgrade"
+    "layer0": "servus_foundation:item/anchor_upgrade"
   }
 }

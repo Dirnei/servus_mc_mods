@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "servus_storage:chunk_loader_upgrade"
+        "recipe": "servus_foundation:anchor_upgrade"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "servus_storage:chunk_loader_upgrade"
+      "servus_foundation:anchor_upgrade"
     ]
   }
 }

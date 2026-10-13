@@ -52,7 +52,6 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         itemModels().basicItem(ServusStorageItems.ZONE_LABEL.get());
         itemModels().basicItem(ServusStorageItems.HANDLING_UPGRADE.get());
         itemModels().basicItem(ServusStorageItems.RANGE_UPGRADE.get());
-        itemModels().basicItem(ServusStorageItems.CHUNK_LOADER_UPGRADE.get());
         itemModels().basicItem(ServusStorageItems.WIRELESS_UPGRADE.get());
         itemModels().basicItem(ServusStorageItems.HARVESTER.get());
         itemModels().basicItem(ServusStorageItems.SPREADER.get());

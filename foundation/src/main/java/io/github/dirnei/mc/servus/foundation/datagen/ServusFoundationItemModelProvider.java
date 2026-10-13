@@ -17,6 +17,7 @@ final class ServusFoundationItemModelProvider extends ItemModelProvider {
         basicItem(ServusFoundationItems.CONFIGURATION_CARROT.get());
         basicItem(ServusFoundationItems.GOGGLES.get());
         basicItem(ServusFoundationItems.SPEED_UPGRADE.get());
+        basicItem(io.github.dirnei.mc.servus.foundation.machine.MachineContent.ANCHOR_UPGRADE.get());
         LogisticsDataParts.itemModels(this);
     }
 }

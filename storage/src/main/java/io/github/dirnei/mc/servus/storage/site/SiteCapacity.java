@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.site;
 
-/** How many chunks a site's Chunk Loader Upgrades cover, and whether its span fits. */
+/** How many chunks a site's Anchor Upgrades cover, and whether its span fits. */
 public final class SiteCapacity {
 
     /** Whether a site can wake at all as far as its size goes. */

@@ -2,17 +2,17 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "C": "servus_foundation:ender_anchor",
+    "A": "servus_foundation:ender_anchor",
     "E": "minecraft:ender_pearl",
     "I": "minecraft:iron_ingot",
     "R": "minecraft:redstone"
   },
   "pattern": [
     " E ",
-    "ICI",
+    "IAI",
     " R "
   ],
   "result": {
-    "id": "servus_storage:chunk_loader_upgrade"
+    "id": "servus_foundation:anchor_upgrade"
   }
 }

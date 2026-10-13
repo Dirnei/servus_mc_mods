@@ -20,7 +20,7 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import org.lwjgl.glfw.GLFW;
 
-/** The site GUI of a Warehouse Controller: name, status, FE, chunk map, Chunk Loader Upgrades, Wireless Upgrade and other sites. */
+/** The site GUI of a Warehouse Controller: name, status, FE, chunk map, Anchor Upgrades, Wireless Upgrade and other sites. */
 public class WarehouseControllerScreen extends AbstractContainerScreen<WarehouseControllerMenu> {
 
     private static final int COLOUR_TEXT = 0xFF404040;

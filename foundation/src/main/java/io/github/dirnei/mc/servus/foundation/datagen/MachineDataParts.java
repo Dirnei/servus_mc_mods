@@ -60,6 +60,9 @@ final class MachineDataParts {
         provider.add("gui.servus_foundation.ender_anchor.team_limit", "Inactive: team limit reached");
         provider.add("gui.servus_foundation.ender_anchor.ftb_chunks", "Inactive: use FTB Chunks");
         provider.add("gui.servus_foundation.ender_anchor.no_owner", "Inactive: no owner");
+        provider.add(MachineContent.ANCHOR_UPGRADE.get(), "Anchor Upgrade");
+        provider.add("item.servus_foundation.anchor_upgrade.tooltip",
+                "Goes into an Ender Anchor to widen its area by a ring of chunks, or into a Warehouse Controller so the site can wake for transfers");
         provider.add("servus_foundation.configuration.enderAnchor", "Ender Anchor");
         provider.add("servus_foundation.configuration.maxLoadedChunksPerTeam", "Max loaded chunks per team");
         provider.add("servus_foundation.configuration.enderAnchorRespectsFtbChunks", "Ender Anchor respects FTB Chunks");
@@ -126,6 +129,18 @@ final class MachineDataParts {
                 .define('E', Items.ENDER_PEARL)
                 .define('O', Items.OBSIDIAN)
                 .unlockedBy("has_ender_pearl", has.apply(Items.ENDER_PEARL))
+                .save(output);
+
+        // An Ender Anchor in the middle: widens another anchor's area or lets a warehouse site wake.
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, MachineContent.ANCHOR_UPGRADE.get())
+                .pattern(" E ")
+                .pattern("IAI")
+                .pattern(" R ")
+                .define('E', Items.ENDER_PEARL)
+                .define('I', Items.IRON_INGOT)
+                .define('A', MachineContent.ENDER_ANCHOR_ITEM.get())
+                .define('R', Items.REDSTONE)
+                .unlockedBy("has_ender_anchor", has.apply(MachineContent.ENDER_ANCHOR_ITEM.get()))
                 .save(output);
 
         // Eight Sink blocks build one 2x2x2 Sink.

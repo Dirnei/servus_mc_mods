@@ -14,7 +14,7 @@
   "stock_rule_interval": 100,
   "push_interval": 8,
   "outbound_check_interval": 40,
-  "chunk_loader_upgrade_slots": 4,
+  "anchor_upgrade_slots": 4,
   "chunks_per_upgrade": 9,
   "wake_grace_seconds": 30,
   "site_snapshot_interval": 100

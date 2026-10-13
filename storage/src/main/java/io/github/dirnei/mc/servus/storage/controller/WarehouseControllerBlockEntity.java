@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.controller;
 
+import io.github.dirnei.mc.servus.foundation.upgrade.AnchorUpgradeSlots;
 import net.minecraft.world.level.Level;
 import net.minecraft.core.UUIDUtil;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
@@ -53,8 +54,8 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     private String siteName = "";
     private UUID team;
     private final Set<Long> span = new LinkedHashSet<>();
-    private final ChunkLoaderUpgradeSlots upgrades =
-            new ChunkLoaderUpgradeSlots(StorageStatsManager.INSTANCE.chunkLoaderUpgradeSlots(), this::upgradesChanged);
+    private final AnchorUpgradeSlots upgrades =
+            new AnchorUpgradeSlots(StorageStatsManager.INSTANCE.anchorUpgradeSlots(), this::upgradesChanged);
     /** The Wireless Upgrade slot: with it, and powered, the controller is the site's antenna. */
     private final WirelessUpgradeSlots wireless = new WirelessUpgradeSlots(this::wirelessUpgradeChanged);
     /** The site's FE buffer, filled through the energy capability, spent by the controller. */
@@ -170,7 +171,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         syncRecord();
     }
 
-    public ChunkLoaderUpgradeSlots upgrades() {
+    public AnchorUpgradeSlots upgrades() {
         return upgrades;
     }
 
@@ -434,7 +435,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
             tag.store("Team", UUIDUtil.CODEC, team);
         }
         tag.putLongArray("Span", span.stream().mapToLong(Long::longValue).toArray());
-        tag.put("ChunkLoaderUpgrades", upgrades.serializeNBT(registries));
+        tag.put("AnchorUpgrades", upgrades.serializeNBT(registries));
         tag.put("WirelessUpgrade", wireless.serializeNBT(registries));
         output.putInt("Energy", energy.stored());
         output.store(tag);
@@ -457,9 +458,9 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
             span.add(key);
         }
         span.add(homeChunk());
-        if (tag.contains("ChunkLoaderUpgrades")) {
-            ChunkLoaderUpgradeSlots saved = new ChunkLoaderUpgradeSlots(0, null);
-            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("ChunkLoaderUpgrades"));
+        if (tag.contains("AnchorUpgrades")) {
+            AnchorUpgradeSlots saved = new AnchorUpgradeSlots(0, null);
+            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("AnchorUpgrades"));
             for (int slot = 0; slot < upgrades.getSlots(); slot++) {
                 upgrades.setStackInSlot(slot, slot < saved.getSlots() ? saved.getStackInSlot(slot) : ItemStack.EMPTY);
             }

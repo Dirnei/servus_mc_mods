@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
@@ -128,7 +129,7 @@ public final class WarehousePowerGameTests {
         PowerFixtures.fill(helper, SITE);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(SITE, WarehouseControllerBlockEntity.class);
         controller.setTeam(UUID.randomUUID());
-        controller.upgrades().insertItem(0, new ItemStack(ServusStorageItems.CHUNK_LOADER_UPGRADE.get()), false);
+        controller.upgrades().insertItem(0, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
         return controller;
     }
 

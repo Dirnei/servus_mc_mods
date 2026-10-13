@@ -18,6 +18,7 @@ import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpItem;
+import io.github.dirnei.mc.servus.foundation.upgrade.AnchorUpgradeItem;
 import java.util.List;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
@@ -91,13 +92,16 @@ public final class MachineContent {
             BLOCK_ENTITIES.register("ender_anchor", () -> new BlockEntityType<>(EnderAnchorBlockEntity::new, ENDER_ANCHOR.get()));
     public static final DeferredHolder<MenuType<?>, MenuType<EnderAnchorMenu>> ENDER_ANCHOR_MENU =
             MENUS.register("ender_anchor", () -> IMenuTypeExtension.create(EnderAnchorMenu::fromNetwork));
+    /** Widens an Ender Anchor's area and lets a Storage warehouse site wake. */
+    public static final DeferredItem<AnchorUpgradeItem> ANCHOR_UPGRADE =
+            ITEMS.registerItem("anchor_upgrade", AnchorUpgradeItem::new, () -> new Item.Properties().stacksTo(16));
 
     private MachineContent() {
     }
 
     /** Creative tab order of Foundation's machines. */
     public static List<DeferredItem<? extends Item>> creativeTabOrder() {
-        return List.of(BURNER_PUMP_ITEM, ELECTRIC_PUMP_ITEM, COAL_GENERATOR_ITEM, ENDER_ANCHOR_ITEM, SINK_ITEM, CHIMNEY_ITEM);
+        return List.of(BURNER_PUMP_ITEM, ELECTRIC_PUMP_ITEM, COAL_GENERATOR_ITEM, ENDER_ANCHOR_ITEM, ANCHOR_UPGRADE, SINK_ITEM, CHIMNEY_ITEM);
     }
 
     /** Brick blocks of the Sink family: like vanilla bricks. */
