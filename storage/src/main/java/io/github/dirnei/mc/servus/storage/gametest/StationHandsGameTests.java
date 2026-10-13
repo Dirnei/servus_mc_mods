@@ -49,7 +49,7 @@ public final class StationHandsGameTests {
     /** Warehouse with planks, Packing Station, two plain stations, a sticks pattern and a CPU on one data line. */
     static HeavyRackBlockEntity setup(GameTestHelper helper, int planks) {
         MiniWarehouse.under(helper, CONTROLLER);
-        MiniWarehouse.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, planks));
+        WarehouseFixtures.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, planks));
         HeavyRackBlockEntity rack = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
         TerminalWiring.place(helper, ACCESS);
         for (BlockPos station : List.of(STATION_A, STATION_B)) {
@@ -93,11 +93,11 @@ public final class StationHandsGameTests {
         held.outputs().setStackInSlot(0, new ItemStack(Items.COBBLESTONE, 3));
         helper.assertTrue(held.blockedFor(new Object()) && !held.assign(StationJobs.sticks(), 1, new Object()),
                 "a station with leftovers in its outputs refuses a new job");
-        TerminalWiring.when(helper, () -> ready(helper), 60, () -> "stations and CPU should join the line", () -> {
+        Waits.when(helper, () -> ready(helper), 60, () -> "stations and CPU should join the line", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 4, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
-            TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 700,
+            Waits.when(helper, () -> order.state() == WorkOrder.State.DONE, 700,
                     () -> "the order should finish on the free station, state " + order.state() + " " + order.reason(), () -> {
                 helper.assertTrue(order.steps().get(0).producer().equals(helper.absolutePos(STATION_B)),
                         "the step should run on the free station, ran on " + order.steps().get(0).producer());
@@ -116,17 +116,17 @@ public final class StationHandsGameTests {
     @ServusGameTest(timeoutTicks = 800)
     public static void patternOrderOnPlainStation(GameTestHelper helper) {
         setup(helper, 8);
-        TerminalWiring.when(helper, () -> ready(helper), 60, () -> "stations and CPU should join the line", () -> {
+        Waits.when(helper, () -> ready(helper), 60, () -> "stations and CPU should join the line", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 4, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
             BlockPos producer = order.steps().get(0).producer();
             CraftingStationBlockEntity station = helper.getLevel().getBlockEntity(producer) instanceof CraftingStationBlockEntity found ? found : null;
             helper.assertTrue(station != null, "the step runs on a Crafting Station");
-            TerminalWiring.when(helper, station::working, 60, () -> "the station should get a job", () -> {
+            Waits.when(helper, station::working, 60, () -> "the station should get a job", () -> {
                 helper.assertTrue(station.job().map(job -> job.result().is(Items.STICK)).orElse(false) && station.jobLeft() == 1,
                         "a sticks job for one craft, got " + station.jobLeft());
-                TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 700,
+                Waits.when(helper, () -> order.state() == WorkOrder.State.DONE, 700,
                         () -> "the order should finish, state " + order.state() + " " + order.reason(), () -> {
                     helper.assertTrue(station.job().isEmpty(), "the station is idle after the step");
                     helper.succeed();
@@ -146,7 +146,7 @@ public final class StationHandsGameTests {
         helper.setBlock(STATION_A, Blocks.AIR.defaultBlockState());
         helper.setBlock(STATION_B, Blocks.AIR.defaultBlockState());
         helper.setBlock(beside, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        TerminalWiring.when(helper, () -> DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(4, 2, 2)))
+        Waits.when(helper, () -> DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(4, 2, 2)))
                 .map(network -> network.dataMembers(DataRole.PRODUCER).size() == 1
                         && CpuOrders.cpus(helper.getLevel(), network).size() == 1)
                 .orElse(false), 60, () -> "the station beside the Packing Station and the CPU should join the line", () -> {
@@ -155,7 +155,7 @@ public final class StationHandsGameTests {
             WorkOrder order = placed.created().order();
             helper.assertTrue(order.steps().get(0).producer().equals(helper.absolutePos(beside)),
                     "the step should run on the station beside the Packing Station, got " + order.steps().get(0).producer());
-            TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 700,
+            Waits.when(helper, () -> order.state() == WorkOrder.State.DONE, 700,
                     () -> "the order should finish, state " + order.state() + " " + order.reason(), () -> {
                 helper.assertTrue(station(helper, beside).job().isEmpty(), "the station is idle after the step");
                 helper.succeed();
@@ -167,7 +167,7 @@ public final class StationHandsGameTests {
     @ServusGameTest(timeoutTicks = 800)
     public static void twoStationsCraftInParallel(GameTestHelper helper) {
         setup(helper, 16);
-        TerminalWiring.when(helper, () -> ready(helper), 60, () -> "stations and CPU should join the line", () -> {
+        Waits.when(helper, () -> ready(helper), 60, () -> "stations and CPU should join the line", () -> {
             CpuOrders.Placed first = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
             CpuOrders.Placed second = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
             helper.assertTrue(first.made() && second.made(), "both orders should be made");
@@ -176,9 +176,9 @@ public final class StationHandsGameTests {
             helper.assertTrue(!a.equals(b), "the orders should use different stations, both on " + a);
             CraftingStationBlockEntity stationA = station(helper, STATION_A);
             CraftingStationBlockEntity stationB = station(helper, STATION_B);
-            TerminalWiring.when(helper, () -> stationA.working() && stationB.working(), 120,
+            Waits.when(helper, () -> stationA.working() && stationB.working(), 120,
                     () -> "both stations should have a job at once", () -> {
-                TerminalWiring.when(helper, () -> first.created().order().state() == WorkOrder.State.DONE
+                Waits.when(helper, () -> first.created().order().state() == WorkOrder.State.DONE
                                 && second.created().order().state() == WorkOrder.State.DONE, 650,
                         () -> "both orders should finish", () -> {
                     helper.assertTrue(stationA.job().isEmpty() && stationB.job().isEmpty(), "both stations are idle again");
@@ -206,14 +206,14 @@ public final class StationHandsGameTests {
     @ServusGameTest(timeoutTicks = 400)
     public static void cancelReturnsStationToIdle(GameTestHelper helper) {
         setup(helper, 0);
-        TerminalWiring.when(helper, () -> ready(helper), 60, () -> "stations and CPU should join the line", () -> {
-            MiniWarehouse.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, 1));
+        Waits.when(helper, () -> ready(helper), 60, () -> "stations and CPU should join the line", () -> {
+            WarehouseFixtures.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, 1));
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
             OrderStep step = order.steps().get(0);
             CraftingStationBlockEntity station = station(helper, step.producer().equals(helper.absolutePos(STATION_A)) ? STATION_A : STATION_B);
-            TerminalWiring.when(helper, () -> station.working() && station.inputs().getStackInSlot(0).is(Items.OAK_PLANKS), 300,
+            Waits.when(helper, () -> station.working() && station.inputs().getStackInSlot(0).is(Items.OAK_PLANKS), 300,
                     () -> "the station should get the job and the one plank", () -> {
                 cpu(helper).book().cancel(order.id());
                 helper.assertTrue(station.job().isEmpty(), "cancel ends the job");

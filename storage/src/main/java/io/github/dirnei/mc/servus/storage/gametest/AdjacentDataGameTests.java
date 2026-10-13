@@ -81,7 +81,7 @@ public final class AdjacentDataGameTests {
     @ServusGameTest(timeoutTicks = 60)
     public static void stackWithoutDuctIsOneNetwork(GameTestHelper helper) {
         row(helper);
-        TerminalWiring.when(helper, () -> network(helper, TERMINAL)
+        Waits.when(helper, () -> network(helper, TERMINAL)
                         .map(net -> member(net, helper, STATION, DataRole.PRODUCER) && member(net, helper, PATTERNS, DataRole.LINK))
                         .orElse(false), 40,
                 () -> "the row should be one network with its members, got " + network(helper, TERMINAL).map(DataNetwork::dataMembers), () -> {
@@ -98,7 +98,7 @@ public final class AdjacentDataGameTests {
     @ServusGameTest(timeoutTicks = 1000)
     public static void craftThroughStack(GameTestHelper helper) {
         MiniWarehouse.under(helper, CONTROLLER);
-        MiniWarehouse.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, 10));
+        WarehouseFixtures.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, 10));
         HeavyRackBlockEntity planks = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
         helper.setBlock(ACCESS, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         TerminalWiring.railUnder(helper, ACCESS);
@@ -109,7 +109,7 @@ public final class AdjacentDataGameTests {
         cube(helper);
         helper.assertTrue(CpuBuild.form(helper, CPU).formed(), "the box should form");
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        TerminalWiring.when(helper, () -> network(helper, TERMINAL)
+        Waits.when(helper, () -> network(helper, TERMINAL)
                         .map(net -> CpuOrders.cpus(helper.getLevel(), net).size() == 1 && member(net, helper, ACCESS, DataRole.LINK))
                         .orElse(false), 60,
                 () -> "the CPU and the Packing Station should be on the terminal's network", () -> {
@@ -117,10 +117,10 @@ public final class AdjacentDataGameTests {
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(STICK, 8);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request should be accepted, got " + menu.stock().message());
-            TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 8, 900,
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) == 8, 900,
                     () -> "eight sticks should reach the terminal, had " + terminal.outputCount(Items.STICK), () -> {
-                helper.assertTrue(MiniWarehouse.count(planks, Items.OAK_PLANKS) == 6, "four planks should have been used, rack has "
-                        + MiniWarehouse.count(planks, Items.OAK_PLANKS));
+                helper.assertTrue(WarehouseFixtures.count(planks, Items.OAK_PLANKS) == 6, "four planks should have been used, rack has "
+                        + WarehouseFixtures.count(planks, Items.OAK_PLANKS));
                 helper.succeed();
             });
         });
@@ -130,7 +130,7 @@ public final class AdjacentDataGameTests {
     @ServusGameTest(timeoutTicks = 60)
     public static void breakingMiddleSplits(GameTestHelper helper) {
         row(helper);
-        TerminalWiring.when(helper, () -> network(helper, PATTERNS).isPresent()
+        Waits.when(helper, () -> network(helper, PATTERNS).isPresent()
                         && network(helper, PATTERNS).equals(network(helper, STATION)), 20,
                 () -> "the row should join first", () -> {
             helper.setBlock(TERMINAL, Blocks.AIR.defaultBlockState());
@@ -181,7 +181,7 @@ public final class AdjacentDataGameTests {
             helper.assertTrue(CpuOrders.cpus(helper.getLevel(), network(helper, STATION).orElseThrow()).isEmpty(),
                     "an unformed cube carries nothing");
             helper.assertTrue(CpuBuild.form(helper, CPU).formed(), "the box should form");
-            TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), network(helper, STATION).orElseThrow()).size() == 1, 20,
+            Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), network(helper, STATION).orElseThrow()).size() == 1, 20,
                     () -> "the formed CPU should be on the terminal's network", () -> {
                 helper.setBlock(CPU.offset(2, 2, 2), Blocks.AIR.defaultBlockState());
                 helper.runAfterDelay(3, () -> {

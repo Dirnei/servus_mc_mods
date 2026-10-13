@@ -44,7 +44,7 @@ public final class CraftingGridGameTests {
 
     private record Fixture(StorageTerminalMenu menu, HeavyRackBlockEntity rack, Player player) {
         int planks() {
-            return MiniWarehouse.count(rack, Items.OAK_PLANKS);
+            return WarehouseFixtures.count(rack, Items.OAK_PLANKS);
         }
     }
 
@@ -137,7 +137,7 @@ public final class CraftingGridGameTests {
             f.menu().clearGrid();
             helper.assertTrue(gridEmpty(f.menu()), "the grid is empty");
             helper.assertTrue(result(f.menu()).isEmpty(), "no result without ingredients");
-            TerminalWiring.when(helper, () -> f.planks() == 6, 350,
+            Waits.when(helper, () -> f.planks() == 6, 350,
                     () -> "the rack should get the two planks back through the input, holds " + f.planks(), helper::succeed);
         });
     }
@@ -149,7 +149,7 @@ public final class CraftingGridGameTests {
             f.menu().craftSlots().setItem(0, new ItemStack(Items.OAK_PLANKS, 3));
             f.menu().removed(f.player());
             helper.assertTrue(f.player().getInventory().countItem(Items.OAK_PLANKS) == 0, "nothing went to the player");
-            TerminalWiring.when(helper, () -> f.planks() == 7, 350,
+            Waits.when(helper, () -> f.planks() == 7, 350,
                     () -> "the rack should get three planks back through the input, holds " + f.planks(), helper::succeed);
         });
     }

@@ -32,7 +32,7 @@ public final class MiniWarehouseGameTests {
             helper.assertTrue(menu.stock().online(), "online");
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 64);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request should go through, got " + menu.stock().message());
-            TerminalWiring.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 64, MiniWarehouse.TRIP_TICKS * 2,
+            Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 64, MiniWarehouse.TRIP_TICKS * 2,
                     () -> "the shuttle should bring 64 cobblestone, output has " + terminal.outputCount(Items.COBBLESTONE), () -> {
                         helper.assertTrue(warehouse.rackCount(Items.COBBLESTONE) == 0, "the rack should be empty");
                         helper.succeed();
@@ -48,7 +48,7 @@ public final class MiniWarehouseGameTests {
         helper.runAfterDelay(10, () -> {
             ItemStack left = Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 40), false);
             helper.assertTrue(left.isEmpty(), "the intake should take the stack");
-            TerminalWiring.when(helper, () -> warehouse.rackCount(Items.COBBLESTONE) == 40, MiniWarehouse.TRIP_TICKS * 2,
+            Waits.when(helper, () -> warehouse.rackCount(Items.COBBLESTONE) == 40, MiniWarehouse.TRIP_TICKS * 2,
                     () -> "the shuttle should put 40 cobblestone into the rack, it has " + warehouse.rackCount(Items.COBBLESTONE), () -> {
                         helper.assertTrue(station.isEmpty(), "the station buffer should be empty");
                         helper.succeed();

@@ -76,7 +76,7 @@ public final class ChainHandoffGameTests {
 
     /** Waits until a shuttle has put {@code count} sticks away, then succeeds. */
     private static void putAway(GameTestHelper helper, int count) {
-        TerminalWiring.when(helper, () -> CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.STICK) == count,
+        Waits.when(helper, () -> CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.STICK) == count,
                 MiniWarehouse.TRIP_TICKS * 2, () -> count + " sticks should be put away, warehouse has "
                         + CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.STICK), helper::succeed);
     }
@@ -95,13 +95,13 @@ public final class ChainHandoffGameTests {
         WorkOrder[] placedOrder = {null};
         boolean[] handed = {false};
         helper.onEachTick(() -> handed[0] |= placedOrder[0] != null && placedOrder[0].steps().get(0).handing().isPresent());
-        TerminalWiring.when(helper, () -> twoProducers(helper), 60, () -> "both stations and the CPU should join the line", () -> {
+        Waits.when(helper, () -> twoProducers(helper), 60, () -> "both stations and the CPU should join the line", () -> {
             DataNetwork line = CraftingCpuGameTests.line(helper);
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line, CraftingCpuGameTests.STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
             placedOrder[0] = order;
-            TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 1300, () -> "the order should finish, " + steps(order), () -> {
+            Waits.when(helper, () -> order.state() == WorkOrder.State.DONE, 1300, () -> "the order should finish, " + steps(order), () -> {
                 List<OrderStep> steps = order.steps();
                 helper.assertTrue(!steps.get(0).producer().equals(steps.get(1).producer()), "the steps should run on two stations");
                 helper.assertTrue(handed[0], "the planks step should hand off");
@@ -115,23 +115,21 @@ public final class ChainHandoffGameTests {
     @ServusGameTest(timeoutTicks = 2400)
     public static void stoneHandedFromFurnaceToStation(GameTestHelper helper) {
         BlockPos controller = new BlockPos(2, 1, 2);
-        helper.setBlock(controller, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, controller);
+        WarehouseFixtures.controller(helper, controller);
         // Rails at y 0 under the controller and the Packing Station, two racks west of them, a garage north.
         BlockPos access = new BlockPos(2, 1, 3);
         for (BlockPos rail : List.of(controller.below(), access.below())) {
-            TerminalWiring.rail(helper, rail);
+            WarehouseFixtures.rail(helper, rail);
         }
         BlockPos cobbleRack = new BlockPos(1, 0, 2);
         BlockPos coalRack = new BlockPos(1, 0, 3);
         for (BlockPos pos : List.of(cobbleRack, coalRack)) {
-            helper.setBlock(pos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.EAST));
+            WarehouseFixtures.rack(helper, pos, Direction.EAST);
         }
-        MiniWarehouse.stock(helper, cobbleRack, new ItemStack(Items.COBBLESTONE, 16));
-        MiniWarehouse.stock(helper, coalRack, new ItemStack(Items.COAL, 32));
+        WarehouseFixtures.stock(helper, cobbleRack, new ItemStack(Items.COBBLESTONE, 16));
+        WarehouseFixtures.stock(helper, coalRack, new ItemStack(Items.COAL, 32));
         BlockPos garagePos = new BlockPos(2, 0, 1);
-        helper.setBlock(garagePos, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.garage(helper, garagePos, Direction.NORTH, 0);
         helper.assertTrue(helper.getBlockEntity(garagePos, ShuttleGarageBlockEntity.class).addShuttle(), "the garage takes a shuttle");
         TerminalWiring.place(helper, access);
         helper.setBlock(new BlockPos(5, 1, 3), Blocks.FURNACE.defaultBlockState().setValue(FurnaceBlock.FACING, Direction.SOUTH));
@@ -153,7 +151,7 @@ public final class ChainHandoffGameTests {
         CpuBuild.cube(helper, cpuPos);
         helper.assertTrue(CpuBuild.form(helper, cpuPos).formed(), "the box should form");
         int[] seen = watch(helper, controller, STONE);
-        TerminalWiring.when(helper, () -> DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(line))
+        Waits.when(helper, () -> DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(line))
                 .map(network -> network.dataMembers(DataRole.PRODUCER).size() == 2
                         && CpuOrders.cpus(helper.getLevel(), network).size() == 1).orElse(false), 60,
                 () -> "the adapter, the station and the CPU should join the line", () -> {
@@ -162,7 +160,7 @@ public final class ChainHandoffGameTests {
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
             helper.assertTrue(order.steps().size() == 2, "a smelt step and a craft step, got " + steps(order));
-            TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 2300, () -> "the order should finish, " + steps(order), () -> {
+            Waits.when(helper, () -> order.state() == WorkOrder.State.DONE, 2300, () -> "the order should finish, " + steps(order), () -> {
                 helper.assertTrue(seen[0] == 0, "no stone should enter the warehouse, saw " + seen[0]);
                 helper.succeed();
             });
@@ -182,13 +180,13 @@ public final class ChainHandoffGameTests {
         int[] planks = CraftingCpuGameTests.watchStorage(helper, Items.OAK_PLANKS);
         int[] buffered = {0};
         helper.onEachTick(() -> buffered[0] = Math.max(buffered[0], cpu.bufferUsed()));
-        TerminalWiring.when(helper, () -> CraftingCpuGameTests.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+        Waits.when(helper, () -> CraftingCpuGameTests.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CraftingCpuGameTests.line(helper), CraftingCpuGameTests.CRAFTING_TABLE, 1, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
             helper.assertTrue(order.steps().size() == 2 && order.steps().get(0).producer().equals(order.steps().get(1).producer()),
                     "a planks step and a table step on the one station, got " + steps(order));
-            TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE
+            Waits.when(helper, () -> order.state() == WorkOrder.State.DONE
                             && CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.CRAFTING_TABLE) == 1,
                     1300, () -> "the crafting table should be made and put away, " + steps(order), () -> {
                         helper.assertTrue(buffered[0] > 0, "the planks should wait in the buffer");
@@ -213,12 +211,12 @@ public final class ChainHandoffGameTests {
         CraftingStationBlockEntity second = helper.getBlockEntity(STATION_B, CraftingStationBlockEntity.class);
         Object owner = StationJobs.sticksJob(second, 1);
         int[] planks = watch(helper, CraftingCpuGameTests.CONTROLLER, CraftingCpuGameTests.PLANKS);
-        TerminalWiring.when(helper, () -> twoProducers(helper), 60, () -> "both stations and the CPU should join the line", () -> {
+        Waits.when(helper, () -> twoProducers(helper), 60, () -> "both stations and the CPU should join the line", () -> {
             CpuBlockEntity cpu = CraftingCpuGameTests.cpu(helper, CraftingCpuGameTests.CPU_A);
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CraftingCpuGameTests.line(helper), CraftingCpuGameTests.STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
-            TerminalWiring.when(helper, () -> cpu.buffer().held(order.id(), CraftingCpuGameTests.PLANKS) >= 4, 900,
+            Waits.when(helper, () -> cpu.buffer().held(order.id(), CraftingCpuGameTests.PLANKS) >= 4, 900,
                     () -> "the planks should wait in the buffer, " + steps(order), () -> {
                         // Well past the wait: still in the buffer, nothing held at the station, nothing in storage.
                         helper.runAfterDelay(StorageStatsManager.INSTANCE.handoffWaitTicks() + 60, () -> {
@@ -227,7 +225,7 @@ public final class ChainHandoffGameTests {
                             helper.assertTrue(planks[0] == 0, "no planks in storage, saw " + planks[0]);
                             helper.assertTrue(order.overflowed().isEmpty(), "nothing overflowed: " + order.overflowed());
                             second.release(owner);
-                            TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 900, () -> "the order should finish, " + steps(order), () -> {
+                            Waits.when(helper, () -> order.state() == WorkOrder.State.DONE, 900, () -> "the order should finish, " + steps(order), () -> {
                                 helper.assertTrue(planks[0] == 0, "no planks ever in storage, saw " + planks[0]);
                                 putAway(helper, 8);
                             });
@@ -252,12 +250,12 @@ public final class ChainHandoffGameTests {
                 }
             }
         });
-        TerminalWiring.when(helper, () -> CraftingCpuGameTests.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+        Waits.when(helper, () -> CraftingCpuGameTests.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
             helper.assertTrue(cpu.room() == 1, "one stack of room, got " + cpu.room());
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CraftingCpuGameTests.line(helper), CraftingCpuGameTests.CRAFTING_TABLE, 20, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
-            TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE
+            Waits.when(helper, () -> order.state() == WorkOrder.State.DONE
                             && CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.CRAFTING_TABLE) == 20,
                     3400, () -> "20 crafting tables should be made, " + steps(order) + " overflow " + order.overflowed(), () -> {
                         helper.assertTrue(most[0] == 64, "the buffer held one full stack, most " + most[0]);
@@ -277,14 +275,14 @@ public final class ChainHandoffGameTests {
         CraftingStationBlockEntity second = helper.getBlockEntity(STATION_B, CraftingStationBlockEntity.class);
         Object owner = StationJobs.sticksJob(second, 1);
         int[] planks = watch(helper, CraftingCpuGameTests.CONTROLLER, CraftingCpuGameTests.PLANKS);
-        TerminalWiring.when(helper, () -> twoProducers(helper), 60, () -> "both stations and the CPU should join the line", () -> {
+        Waits.when(helper, () -> twoProducers(helper), 60, () -> "both stations and the CPU should join the line", () -> {
             DataNetwork line = CraftingCpuGameTests.line(helper);
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line, CraftingCpuGameTests.STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
-            TerminalWiring.when(helper, () -> planks[0] > 0, 900, () -> "the planks should go to storage after the wait, " + steps(order), () -> {
+            Waits.when(helper, () -> planks[0] > 0, 900, () -> "the planks should go to storage after the wait, " + steps(order), () -> {
                 second.release(owner);
-                TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 600, () -> "the order should finish, " + steps(order), () -> {
+                Waits.when(helper, () -> order.state() == WorkOrder.State.DONE, 600, () -> "the order should finish, " + steps(order), () -> {
                     putAway(helper, 8);
                 });
             });
@@ -295,13 +293,13 @@ public final class ChainHandoffGameTests {
     @ServusGameTest(timeoutTicks = 1600)
     public static void reloadMidHandoffCompletes(GameTestHelper helper) {
         twoStations(helper);
-        TerminalWiring.when(helper, () -> twoProducers(helper), 60, () -> "both stations and the CPU should join the line", () -> {
+        Waits.when(helper, () -> twoProducers(helper), 60, () -> "both stations and the CPU should join the line", () -> {
             DataNetwork line = CraftingCpuGameTests.line(helper);
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line, CraftingCpuGameTests.STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder before = placed.created().order();
             int id = before.id();
-            TerminalWiring.when(helper, () -> before.steps().get(0).handing().isPresent(), 900, () -> "a handoff should start, " + steps(before), () -> {
+            Waits.when(helper, () -> before.steps().get(0).handing().isPresent(), 900, () -> "a handoff should start, " + steps(before), () -> {
                 CpuBlockEntity cpu = CraftingCpuGameTests.cpu(helper, CraftingCpuGameTests.CPU_A);
                 BlockPos cpuRel = cpu.getBlockPos().subtract(helper.absolutePos(BlockPos.ZERO));
                 CpuBlockEntity loaded = PersistGameTests.reload(helper, cpuRel);
@@ -309,7 +307,7 @@ public final class ChainHandoffGameTests {
                 PersistGameTests.reload(helper, STATION_B);
                 WorkOrder order = loaded.book().order(id);
                 helper.assertTrue(order != null, "the order should survive the reload");
-                TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 1300, () -> "the order should finish, " + steps(order), () -> {
+                Waits.when(helper, () -> order.state() == WorkOrder.State.DONE, 1300, () -> "the order should finish, " + steps(order), () -> {
                     long planks = CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.PLANKS);
                     helper.assertTrue(planks == 0, "no planks should be left over in storage, has " + planks);
                     putAway(helper, 8);

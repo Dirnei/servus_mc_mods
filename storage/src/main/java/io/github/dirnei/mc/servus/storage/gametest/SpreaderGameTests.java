@@ -87,14 +87,12 @@ public final class SpreaderGameTests {
         StorageStatsManager.INSTANCE.setFieldCheckInterval(5);
         StorageStatsManager.INSTANCE.setFertilizeInterval(20);
         StorageStatsManager.INSTANCE.setDosesPerPlot(2);
-        helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, CONTROLLER);
+        WarehouseFixtures.controller(helper, CONTROLLER);
         for (int x = 1; x <= 7; x++) {
             rail(helper, new BlockPos(x, 1, RAIL_Z), x <= 3 ? ServusStorageBlocks.RAIL.get() : ServusStorageBlocks.FARM_RAIL.get());
         }
-        helper.setBlock(GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
-        helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.SOUTH));
+        WarehouseFixtures.garage(helper, GARAGE, Direction.SOUTH, 0);
+        WarehouseFixtures.rack(helper, RACK, Direction.SOUTH);
         helper.setBlock(HEAD, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(GARAGE, ShuttleGarageBlockEntity.class);
         garage.shuttles().setStackInSlot(0, shuttle);
@@ -127,7 +125,7 @@ public final class SpreaderGameTests {
     }
 
     private static int held(HeavyRackBlockEntity rack, Item item) {
-        return MiniWarehouse.count(rack, item);
+        return WarehouseFixtures.count(rack, item);
     }
 
     private static WarehouseNetwork network(GameTestHelper helper) {
@@ -171,7 +169,7 @@ public final class SpreaderGameTests {
         BlockPos plot = new BlockPos(5, 1, RAIL_Z - 1);
         crop(helper, plot, 7);
         Farm farm = farm(helper, spreader());
-        MiniWarehouse.put(farm.rack(), new ItemStack(Items.COBBLESTONE, 10));
+        WarehouseFixtures.put(farm.rack(), new ItemStack(Items.COBBLESTONE, 10));
         helper.runAfterDelay(2, () -> {
             Transfer.fill(farm.head().fluidHandler(), new FluidStack(Fluids.WATER, 4000), false);
             farm.head().setCrop(new ItemStack(Items.WHEAT_SEEDS));
@@ -198,13 +196,13 @@ public final class SpreaderGameTests {
         BlockPos[] fresh = {new BlockPos(6, 1, RAIL_Z + 1), new BlockPos(4, 1, RAIL_Z + 1)};
         crop(helper, old, 1);
         Farm farm = farm(helper, spreader());
-        MiniWarehouse.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 20));
+        WarehouseFixtures.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 20));
         helper.runAfterDelay(3, () -> {
             fertilize(farm, FertilizeMode.AFTER_PLANTING, 0);
             for (BlockPos plot : fresh) {
                 planted(helper, farm, plot);
             }
-            TerminalWiring.when(helper, () -> held(farm.rack(), Items.BONE_MEAL) == 16 && out(helper) == 0
+            Waits.when(helper, () -> held(farm.rack(), Items.BONE_MEAL) == 16 && out(helper) == 0
                     && age(helper, fresh[0]) >= 4 && age(helper, fresh[1]) >= 4, 550,
                     () -> "the fresh wheat should have two doses each, rack holds " + held(farm.rack(), Items.BONE_MEAL)
                             + " bone meal, ages " + age(helper, fresh[0]) + " and " + age(helper, fresh[1]) + ", out " + out(helper), () -> {
@@ -221,7 +219,7 @@ public final class SpreaderGameTests {
     public static void reserveRespected(GameTestHelper helper) {
         BlockPos plot = new BlockPos(5, 1, RAIL_Z - 1);
         Farm farm = farm(helper, spreader());
-        MiniWarehouse.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 10));
+        WarehouseFixtures.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 10));
         helper.runAfterDelay(3, () -> {
             fertilize(farm, FertilizeMode.AFTER_PLANTING, 10);
             planted(helper, farm, plot);
@@ -245,11 +243,11 @@ public final class SpreaderGameTests {
             crop(helper, plots[i], 0);
         }
         Farm farm = farm(helper, spreader());
-        MiniWarehouse.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 64));
+        WarehouseFixtures.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 64));
         helper.runAfterDelay(3, () -> {
             fertilize(farm, FertilizeMode.UNTIL_RIPE, 0);
             farm.head().stepFertilizePercent((50 - farm.head().fertilizePercent()) / 10);
-            TerminalWiring.when(helper, () -> farm.head().ripeCount() >= 2 && out(helper) == 0 && network(helper).queuedJobs() == 0, 850,
+            Waits.when(helper, () -> farm.head().ripeCount() >= 2 && out(helper) == 0 && network(helper).queuedJobs() == 0, 850,
                     () -> "two of four should be ripe and the Spreader home, ripe " + farm.head().ripeCount() + ", out " + out(helper), () -> {
                 int stock = held(farm.rack(), Items.BONE_MEAL);
                 helper.runAfterDelay(60, () -> {
@@ -275,12 +273,12 @@ public final class SpreaderGameTests {
         crop(helper, ripe, 7);
         crop(helper, almost, 5);
         Farm farm = farm(helper, spreader());
-        MiniWarehouse.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 20));
+        WarehouseFixtures.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 20));
         helper.runAfterDelay(3, () -> {
             fertilize(farm, FertilizeMode.UNTIL_RIPE, 0);
             farm.head().stepFertilizePercent(10);
             helper.assertTrue(farm.head().fertilizePercent() == 100, "the threshold should be 100 percent");
-            TerminalWiring.when(helper, () -> held(farm.rack(), Items.BONE_MEAL) == 19 && out(helper) == 0 && age(helper, almost) == 7, 550,
+            Waits.when(helper, () -> held(farm.rack(), Items.BONE_MEAL) == 19 && out(helper) == 0 && age(helper, almost) == 7, 550,
                     () -> "one dose should be used and one put back, rack holds " + held(farm.rack(), Items.BONE_MEAL)
                             + ", out " + out(helper) + ", age " + age(helper, almost), () -> {
                 helper.assertTrue(age(helper, ripe) == 7, "the ripe wheat stays ripe");

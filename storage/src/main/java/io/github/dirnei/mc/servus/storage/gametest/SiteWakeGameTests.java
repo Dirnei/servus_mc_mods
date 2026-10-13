@@ -54,9 +54,7 @@ public final class SiteWakeGameTests {
 
     private static WarehouseControllerBlockEntity site(GameTestHelper helper, UUID team, int upgrades) {
         StorageStatsManager.INSTANCE.setWakeGraceTicks(GRACE);
-        helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, CONTROLLER);
+        WarehouseFixtures.controller(helper, CONTROLLER);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
         if (team != null) {
             controller.setTeam(team);
@@ -96,12 +94,12 @@ public final class SiteWakeGameTests {
         StorageStatsManager.INSTANCE.setSiteSnapshotInterval(5);
         WarehouseControllerBlockEntity controller = site(helper, UUID.randomUUID(), 0);
         helper.setBlock(RAIL.below(), Blocks.STONE.defaultBlockState());
-        TerminalWiring.rail(helper, RAIL);
-        helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.WEST));
-        MiniWarehouse.stock(helper, RACK, new ItemStack(Items.IRON_INGOT, 40));
+        WarehouseFixtures.rail(helper, RAIL);
+        WarehouseFixtures.rack(helper, RACK, Direction.WEST);
+        WarehouseFixtures.stock(helper, RACK, new ItemStack(Items.IRON_INGOT, 40));
         controller.setSiteName("Iron Outpost");
         // The rack may stand in the next chunk, so the span is compared, not counted.
-        TerminalWiring.when(helper, () -> record(helper).map(site -> site.stock().getOrDefault(ItemKey.of(new ItemStack(Items.IRON_INGOT)), 0L) == 40L
+        Waits.when(helper, () -> record(helper).map(site -> site.stock().getOrDefault(ItemKey.of(new ItemStack(Items.IRON_INGOT)), 0L) == 40L
                         && site.span().equals(controller.span())).orElse(false), 100,
                 () -> "the record lists 40 iron ingots and the span, had " + record(helper).map(SiteRecord::stock), () -> {
             SiteRecord site = record(helper).orElseThrow();
@@ -124,7 +122,7 @@ public final class SiteWakeGameTests {
             helper.assertTrue(woken.forced() == 1, "its one chunk is forced, had " + woken.forced());
             helper.assertTrue(loaders(helper, team) == 1, "the wake counts its one chunk in the team load");
             helper.assertTrue(lamp(helper) == StorageNodeBlocks.Activity.WORKING, "the lamp is orange while awake");
-            TerminalWiring.when(helper, () -> status(helper).isEmpty(), GRACE + 40,
+            Waits.when(helper, () -> status(helper).isEmpty(), GRACE + 40,
                     () -> "the site sleeps after the grace time, was " + status(helper), () -> {
                 helper.assertTrue(loaders(helper, team) == 0, "the team load is free again");
                 helper.assertTrue(lamp(helper) == StorageNodeBlocks.Activity.IDLE, "the lamp is green again");
@@ -188,14 +186,14 @@ public final class SiteWakeGameTests {
             for (int i = 1; i < span; i++) {
                 data.unregister(team, level, base.offset(i * 16, 0, 0));
             }
-            TerminalWiring.when(helper, () -> status(helper).map(SiteWakes.Status::awake).orElse(false), 20,
+            Waits.when(helper, () -> status(helper).map(SiteWakes.Status::awake).orElse(false), 20,
                     () -> "free chunks let the held wake through, was " + status(helper), () -> {
                 helper.assertTrue(loaders(helper, team) == cap, "the site took the free chunks, load " + loaders(helper, team));
                 SiteWakes.release(token);
                 for (int i = span; i < cap; i++) {
                     data.unregister(team, level, base.offset(i * 16, 0, 0));
                 }
-                TerminalWiring.when(helper, () -> status(helper).isEmpty(), GRACE + 40,
+                Waits.when(helper, () -> status(helper).isEmpty(), GRACE + 40,
                         () -> "released after the grace time, was " + status(helper), () -> {
                     helper.assertTrue(loaders(helper, team) == 0, "no load left");
                     helper.succeed();
@@ -227,7 +225,7 @@ public final class SiteWakeGameTests {
             SiteWakes.Status woken = SiteWakes.request(helper.getLevel(), helper.absolutePos(CONTROLLER)).orElseThrow();
             helper.assertTrue(woken.awake(), "the site wakes, was " + woken);
             helper.assertTrue(loaders(helper, team) == 2, "the load grows by the one chunk the anchor does not hold, was " + loaders(helper, team));
-            TerminalWiring.when(helper, () -> status(helper).isEmpty(), GRACE + 60,
+            Waits.when(helper, () -> status(helper).isEmpty(), GRACE + 60,
                     () -> "the site sleeps after the grace time, was " + status(helper), () -> {
                 helper.assertTrue(loaders(helper, team) == 1, "only the anchor is left, load " + loaders(helper, team));
                 helper.succeed();
@@ -245,9 +243,7 @@ public final class SiteWakeGameTests {
     public static void shuttleJobKeepsSiteAwake(GameTestHelper helper) {
         StorageStatsManager.INSTANCE.setWakeGraceTicks(GRACE);
         UUID team = UUID.randomUUID();
-        helper.setBlock(SH_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, SH_CONTROLLER);
+        WarehouseFixtures.controller(helper, SH_CONTROLLER);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(SH_CONTROLLER, WarehouseControllerBlockEntity.class);
         controller.setTeam(team);
         controller.upgrades().insertItem(0, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
@@ -256,11 +252,9 @@ public final class SiteWakeGameTests {
             helper.setBlock(new BlockPos(x, 0, 6), Blocks.STONE.defaultBlockState());
             helper.setBlock(new BlockPos(x, 1, 6), ServusStorageBlocks.RAIL.get().defaultBlockState());
         }
-        helper.setBlock(SH_FAR_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
-        MiniWarehouse.stock(helper, SH_FAR_RACK, new ItemStack(Items.COBBLESTONE, 40));
-        helper.setBlock(SH_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(SH_GARAGE, ShuttleGarageBlockEntity.class);
-        helper.assertTrue(garage.addShuttle(), "one shuttle fits");
+        WarehouseFixtures.rack(helper, SH_FAR_RACK, Direction.NORTH);
+        WarehouseFixtures.stock(helper, SH_FAR_RACK, new ItemStack(Items.COBBLESTONE, 40));
+        ShuttleGarageBlockEntity garage = WarehouseFixtures.garage(helper, SH_GARAGE, Direction.NORTH, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos at = helper.absolutePos(SH_CONTROLLER);
 
@@ -274,9 +268,9 @@ public final class SiteWakeGameTests {
                 helper.assertTrue(network.siteBusy(), "the shuttle is still on its way");
                 helper.assertTrue(SiteWakes.isAwake(helper.getLevel().dimension(), at), "the busy site stays awake past the grace time");
             });
-            TerminalWiring.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 40, 500,
+            Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 40, 500,
                     () -> "the cobblestone arrives, had " + terminal.outputCount(Items.COBBLESTONE), () ->
-                    TerminalWiring.when(helper, () -> SiteWakes.status(helper.getLevel().dimension(), at).isEmpty(), GRACE + 200,
+                    Waits.when(helper, () -> SiteWakes.status(helper.getLevel().dimension(), at).isEmpty(), GRACE + 200,
                             () -> "the site sleeps once the shuttle is home and the grace is over", () -> {
                         helper.assertTrue(loaders(helper, team) == 0, "the slot is free");
                         helper.succeed();

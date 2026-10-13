@@ -117,7 +117,7 @@ public final class ProductionTerminalGameTests {
         java.util.Set<BlockPos> cpus = java.util.Set.of(new BlockPos(0, 0, 0), new BlockPos(1, 0, 0), new BlockPos(2, 0, 0), new BlockPos(0, 1, 0));
         CpuBuild.box(helper, CPU, 3, 2, 2, offset -> !cpus.contains(offset));
         CpuBuild.formed(helper, CPU);
-        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
+        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
             CpuBlockEntity cpu = cpu(helper);
             int first = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0).created().order().id();
             int second = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0).created().order().id();
@@ -142,7 +142,7 @@ public final class ProductionTerminalGameTests {
         PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(1, StationJobs.planks());
         patterns.set(2, StationJobs.craftingTable());
-        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
+        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
             CpuBlockEntity cpu = cpu(helper);
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), ItemKey.of(new ItemStack(Items.CRAFTING_TABLE)), 1, 0);
             helper.assertTrue(placed.made() && placed.created().order().steps().size() == 2, "a planks and a table step, refused " + placed.refusal());
@@ -162,7 +162,7 @@ public final class ProductionTerminalGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void jobShowsOverflow(GameTestHelper helper) {
         setup(helper, true);
-        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
+        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             placed.created().order().overflowed(PLANKS, 16);
@@ -188,7 +188,7 @@ public final class ProductionTerminalGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void productionTerminalJoinsLineAndLights(GameTestHelper helper) {
         setup(helper, true);
-        TerminalWiring.when(helper, () -> lit(helper, TERMINAL), 60, () -> "the lamp should light", () -> {
+        Waits.when(helper, () -> lit(helper, TERMINAL), 60, () -> "the lamp should light", () -> {
             helper.assertTrue(line(helper).dataMembers(DataRole.LINK).stream()
                     .anyMatch(member -> member.pos().equals(helper.absolutePos(TERMINAL))), "the terminal should be a link member");
             helper.succeed();
@@ -211,7 +211,7 @@ public final class ProductionTerminalGameTests {
     @ServusGameTest(timeoutTicks = 60)
     public static void productionTerminalListsIdleStation(GameTestHelper helper) {
         setup(helper, false);
-        TerminalWiring.when(helper, () -> !view(helper, TERMINAL).machines().isEmpty(), 40, () -> "the station should be listed", () -> {
+        Waits.when(helper, () -> !view(helper, TERMINAL).machines().isEmpty(), 40, () -> "the station should be listed", () -> {
             MachineRow machine = view(helper, TERMINAL).machines().get(0);
             helper.assertTrue(machine.pos().equals(helper.absolutePos(STATION)) && machine.state().equals("idle"),
                     "the station should be idle, got " + machine.state());
@@ -230,7 +230,7 @@ public final class ProductionTerminalGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void productionTerminalListsCpuJob(GameTestHelper helper) {
         setup(helper, true);
-        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
+        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             ProductionPayload view = view(helper, TERMINAL);
@@ -251,13 +251,13 @@ public final class ProductionTerminalGameTests {
     @ServusGameTest(timeoutTicks = 600)
     public static void productionTerminalJobWording(GameTestHelper helper) {
         setup(helper, true);
-        MiniWarehouse.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, 4));
-        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
+        WarehouseFixtures.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, 4));
+        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             boolean[] sawWorking = {false};
             java.util.Set<String> seen = new java.util.LinkedHashSet<>();
-            TerminalWiring.when(helper, () -> {
+            Waits.when(helper, () -> {
                 JobRow job = view(helper, TERMINAL).jobs().get(0);
                 seen.add(job.status() + job.args());
                 if (job.status().equals("working")) {
@@ -280,7 +280,7 @@ public final class ProductionTerminalGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void productionTerminalWaitingForCpu(GameTestHelper helper) {
         setup(helper, true);
-        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
+        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
             for (int i = 0; i < 3; i++) {
                 helper.assertTrue(CpuOrders.create(helper.getLevel(), line(helper), STICK, 4, 0).made(), "order " + i + " should be made");
             }
@@ -300,7 +300,7 @@ public final class ProductionTerminalGameTests {
         BlockPos adapter = new BlockPos(5, 1, 2);
         helper.setBlock(furnace, Blocks.FURNACE.defaultBlockState().setValue(FurnaceBlock.FACING, Direction.WEST));
         helper.setBlock(adapter, AdapterContent.BLOCK.get().defaultBlockState().setValue(MachineAdapterBlock.FACING, Direction.NORTH));
-        TerminalWiring.when(helper, () -> view(helper, TERMINAL).machines().size() == 2, 60, () -> "station and adapter should be listed", () -> {
+        Waits.when(helper, () -> view(helper, TERMINAL).machines().size() == 2, 60, () -> "station and adapter should be listed", () -> {
             List<MachineRow> machines = view(helper, TERMINAL).machines();
             MachineRow first = machines.get(0);
             helper.assertTrue(first.pos().equals(helper.absolutePos(adapter)) && first.state().equals("out_of_fuel") && first.problem(),
@@ -317,9 +317,9 @@ public final class ProductionTerminalGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void productionTerminalCancelsOrder(GameTestHelper helper) {
         setup(helper, true);
-        MiniWarehouse.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, 10));
+        WarehouseFixtures.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, 10));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
+        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made");
             WorkOrder order = placed.created().order();
@@ -336,7 +336,7 @@ public final class ProductionTerminalGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void productionTerminalNoCpuRows(GameTestHelper helper) {
         setup(helper, false);
-        TerminalWiring.when(helper, () -> lit(helper, TERMINAL), 60, () -> "the warehouse should light the lamp", () -> {
+        Waits.when(helper, () -> lit(helper, TERMINAL), 60, () -> "the warehouse should light the lamp", () -> {
             ProductionPayload view = view(helper, TERMINAL);
             helper.assertTrue(view.online() && view.cpus().isEmpty(), "online without CPU rows, got " + view.cpus());
             helper.succeed();
@@ -347,7 +347,7 @@ public final class ProductionTerminalGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void stationAndPatternStorageLampsLight(GameTestHelper helper) {
         setup(helper, true);
-        TerminalWiring.when(helper, () -> lit(helper, STATION) && lit(helper, PATTERNS), 60,
+        Waits.when(helper, () -> lit(helper, STATION) && lit(helper, PATTERNS), 60,
                 () -> "station and pattern storage lamps should light", helper::succeed);
     }
 

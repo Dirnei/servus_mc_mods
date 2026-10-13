@@ -83,7 +83,7 @@ public final class PatternResultGameTests {
 
     /** Puts extra stock into the second rack. */
     private static void extra(GameTestHelper helper, List<ItemStack> stacks) {
-        MiniWarehouse.stock(helper, EXTRA, stacks.toArray(ItemStack[]::new));
+        WarehouseFixtures.stock(helper, EXTRA, stacks.toArray(ItemStack[]::new));
     }
 
     /** A saved rack pattern carries the wood of its oak planks. */
@@ -121,10 +121,10 @@ public final class PatternResultGameTests {
         patterns.set(1, rack(new ItemStack(ServusStorageItems.HEAVY_RACK.get())));
         ItemKey rack = ItemKey.of(patterns.pattern(1).orElseThrow().result());
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        TerminalWiring.when(helper, () -> stocked(helper, player, Items.IRON_INGOT), 160, () -> "stations, CPU and stock should be ready", () -> {
+        Waits.when(helper, () -> stocked(helper, player, Items.IRON_INGOT), 160, () -> "stations, CPU and stock should be ready", () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
             menu(helper, player).craft(rack, 2);
-            TerminalWiring.when(helper, () -> terminal.outputCount(ServusStorageItems.HEAVY_RACK.get()) >= 2, 1400,
+            Waits.when(helper, () -> terminal.outputCount(ServusStorageItems.HEAVY_RACK.get()) >= 2, 1400,
                     () -> "2 racks should land in the output slots, got " + terminal.outputCount(ServusStorageItems.HEAVY_RACK.get()),
                     helper::succeed);
         });
@@ -143,7 +143,7 @@ public final class PatternResultGameTests {
         helper.assertTrue(Identifier.withDefaultNamespace("birch_planks").equals(expected.get(WoodContent.WOOD.get())),
                 "the pattern result should carry birch wood, got " + expected.getComponents());
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        TerminalWiring.when(helper, () -> stocked(helper, player, Items.BIRCH_PLANKS) && stocked(helper, player, Items.CHEST)
+        Waits.when(helper, () -> stocked(helper, player, Items.BIRCH_PLANKS) && stocked(helper, player, Items.CHEST)
                 && stocked(helper, player, Items.PAPER) && stocked(helper, player, Items.REDSTONE), 160, () -> "stations, CPU and stock should be ready", () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
             var preview = io.github.dirnei.mc.servus.storage.terminal.TerminalCraftables.preview(helper.getLevel(),
@@ -152,7 +152,7 @@ public final class PatternResultGameTests {
                     "the craft should be possible, refusal '" + preview.refusal() + "' missing " + preview.missing()
                             + " from stock " + preview.fromStock() + " to craft " + preview.toCraft());
             menu(helper, player).craft(ItemKey.of(expected), 1);
-            TerminalWiring.when(helper, () -> terminal.outputCount(ServusStorageItems.PATTERN_STORAGE.get()) >= 1, 1400,
+            Waits.when(helper, () -> terminal.outputCount(ServusStorageItems.PATTERN_STORAGE.get()) >= 1, 1400,
                     () -> "the Pattern Storage should land in the output slots, requests " + terminal.requests()
                             + " orders " + CpuOrders.cpus(helper.getLevel(), StationHandsGameTests.line(helper)).stream()
                             .map(cpu -> cpu.book().orders().stream().map(o -> o.state() + ":" + o.reason() + " missing " + o.missing()).toList())

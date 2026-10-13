@@ -140,7 +140,7 @@ public final class PipeAccessGameTests {
         duct.setMode(Line.ITEM, Direction.NORTH, SideMode.INPUT);
         helper.assertTrue(duct.hasArm(Line.ITEM, Direction.SOUTH), "the duct shows an arm toward the station");
         InboundStationBlockEntity station = helper.getBlockEntity(FEED_STATION, InboundStationBlockEntity.class);
-        TerminalWiring.when(helper, () -> station.buffer().getStackInSlot(0).getCount() == 16, 180,
+        Waits.when(helper, () -> station.buffer().getStackInSlot(0).getCount() == 16, 180,
                 () -> "the cobblestone should reach the station's buffer, has " + station.buffer().getStackInSlot(0), helper::succeed);
     }
 
@@ -168,7 +168,7 @@ public final class PipeAccessGameTests {
         ChestBlockEntity chest = helper.getBlockEntity(FEED_STATION.south(), ChestBlockEntity.class);
         chest.setItem(0, new ItemStack(Items.BREAD, 20));
         station.sideConfig().set(RelativeSide.BACK, SideMode.PULL);
-        TerminalWiring.when(helper, () -> chest.countItem(Items.BREAD) == 0 && station.buffer().getStackInSlot(0).getCount() == 20, 80,
+        Waits.when(helper, () -> chest.countItem(Items.BREAD) == 0 && station.buffer().getStackInSlot(0).getCount() == 20, 80,
                 () -> "the station should pull the bread, chest has " + chest.countItem(Items.BREAD), helper::succeed);
     }
 
@@ -187,7 +187,7 @@ public final class PipeAccessGameTests {
         OutboundStationBlockEntity station = helper.getBlockEntity(OUT_STATION, OutboundStationBlockEntity.class);
         station.buffer().setStackInSlot(0, new ItemStack(Items.IRON_INGOT, 8));
         ChestBlockEntity chest = helper.getBlockEntity(OUT_CHEST, ChestBlockEntity.class);
-        TerminalWiring.when(helper, () -> chest.countItem(Items.IRON_INGOT) == 8 && station.isEmpty(), 180,
+        Waits.when(helper, () -> chest.countItem(Items.IRON_INGOT) == 8 && station.isEmpty(), 180,
                 () -> "the ingots should go through the duct into the chest, chest has " + chest.countItem(Items.IRON_INGOT), helper::succeed);
     }
 
@@ -222,11 +222,11 @@ public final class PipeAccessGameTests {
         station.sideConfig().set(station.relativeSide(Direction.WEST), SideMode.PULL);
         helper.assertTrue(station.sideMode(Direction.EAST) == SideMode.PUSH, "sides start as Push");
         Object owner = StationJobs.sticksJob(station, 1);
-        TerminalWiring.when(helper, () -> source.countItem(Items.OAK_PLANKS) == 0 && !station.working(), station.workTicks() + 120,
+        Waits.when(helper, () -> source.countItem(Items.OAK_PLANKS) == 0 && !station.working(), station.workTicks() + 120,
                 () -> "the station should pull both planks and craft, chest has " + source.countItem(Items.OAK_PLANKS), () -> {
             helper.assertTrue(target.countItem(Items.STICK) == 0, "a held job keeps its sticks");
             station.release(owner);
-            TerminalWiring.when(helper, () -> target.countItem(Items.STICK) == 4, 60,
+            Waits.when(helper, () -> target.countItem(Items.STICK) == 4, 60,
                     () -> "the sticks should be pushed into the east chest, it has " + target.countItem(Items.STICK), helper::succeed);
         });
     }

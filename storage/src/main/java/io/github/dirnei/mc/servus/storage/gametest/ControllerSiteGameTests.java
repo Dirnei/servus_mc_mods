@@ -55,16 +55,14 @@ public final class ControllerSiteGameTests {
     }
 
     static WarehouseControllerBlockEntity controller(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, pos);
+        WarehouseFixtures.controller(helper, pos);
         return helper.getBlockEntity(pos, WarehouseControllerBlockEntity.class);
     }
 
     /** A rail on stone. */
     static void rail(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos.below(), Blocks.STONE.defaultBlockState());
-        TerminalWiring.rail(helper, pos);
+        WarehouseFixtures.rail(helper, pos);
     }
 
     /**
@@ -89,13 +87,13 @@ public final class ControllerSiteGameTests {
     public static void spanFollowsRailIntoNextChunk(GameTestHelper helper) {
         int border = border(helper);
         WarehouseControllerBlockEntity controller = acrossBorder(helper, border);
-        TerminalWiring.when(helper, () -> controller.span().size() == 2, 60,
+        Waits.when(helper, () -> controller.span().size() == 2, 60,
                 () -> "the site spans two chunks, had " + controller.span().size(), () -> {
             long far = SiteChunks.ofBlock(helper.absolutePos(new BlockPos(border, 1, ROW_Z)).getX(),
                     helper.absolutePos(new BlockPos(border, 1, ROW_Z)).getZ());
             helper.assertTrue(controller.span().equals(Set.of(controller.homeChunk(), far)), "the span is home and the next chunk");
             helper.setBlock(new BlockPos(border - 1, 1, ROW_Z), Blocks.AIR.defaultBlockState());
-            TerminalWiring.when(helper, () -> controller.span().size() == 1, 60,
+            Waits.when(helper, () -> controller.span().size() == 1, 60,
                     () -> "breaking the rail leaves one chunk, had " + controller.span().size(), helper::succeed);
         });
     }
@@ -124,7 +122,7 @@ public final class ControllerSiteGameTests {
         WarehouseControllerBlockEntity controller = acrossBorder(helper, border);
         StorageStatsManager.INSTANCE.setChunksPerUpgrade(1);
         controller.upgrades().insertItem(0, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
-        TerminalWiring.when(helper, () -> controller.span().size() == 2 && lamp(helper, at) == StorageNodeBlocks.Activity.BLOCKED, 60,
+        Waits.when(helper, () -> controller.span().size() == 2 && lamp(helper, at) == StorageNodeBlocks.Activity.BLOCKED, 60,
                 () -> "two chunks over one upgrade turn the lamp red, span " + controller.span().size() + " lamp " + lamp(helper, at), () -> {
             helper.assertTrue(controller.siteState() == SiteCapacity.State.OVER, "the site is over capacity");
             SiteStatusPayload status = WarehouseControllerMenu.status(controller);

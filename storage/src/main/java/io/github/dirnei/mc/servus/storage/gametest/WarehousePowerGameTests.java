@@ -90,17 +90,15 @@ public final class WarehousePowerGameTests {
     private static WarehouseControllerBlockEntity longLine(GameTestHelper helper, int cobble) {
         for (int x = 1; x <= 7; x++) {
             helper.setBlock(new BlockPos(x, 0, RAIL_Z), Blocks.STONE.defaultBlockState());
-            TerminalWiring.rail(helper, new BlockPos(x, 1, RAIL_Z));
+            WarehouseFixtures.rail(helper, new BlockPos(x, 1, RAIL_Z));
         }
-        helper.setBlock(L_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.SOUTH));
-        helper.setBlock(L_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, L_CONTROLLER);
-        helper.setBlock(L_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.rack(helper, L_RACK, Direction.SOUTH);
+        WarehouseFixtures.controller(helper, L_CONTROLLER);
+        WarehouseFixtures.garage(helper, L_GARAGE, Direction.NORTH, 0);
         helper.assertTrue(helper.getBlockEntity(L_GARAGE, ShuttleGarageBlockEntity.class).addShuttle(), "the garage takes a shuttle");
         TerminalWiring.place(helper, L_PACKING);
         if (cobble > 0) {
-            MiniWarehouse.stock(helper, L_RACK, new ItemStack(Items.COBBLESTONE, cobble));
+            WarehouseFixtures.stock(helper, L_RACK, new ItemStack(Items.COBBLESTONE, cobble));
         }
         return helper.getBlockEntity(L_CONTROLLER, WarehouseControllerBlockEntity.class);
     }
@@ -124,9 +122,7 @@ public final class WarehousePowerGameTests {
 
     private static WarehouseControllerBlockEntity site(GameTestHelper helper) {
         StorageStatsManager.INSTANCE.setWakeGraceTicks(GRACE);
-        helper.setBlock(SITE, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, SITE);
+        WarehouseFixtures.controller(helper, SITE);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(SITE, WarehouseControllerBlockEntity.class);
         controller.setTeam(UUID.randomUUID());
         controller.upgrades().insertItem(0, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
@@ -168,7 +164,7 @@ public final class WarehousePowerGameTests {
             StorageTerminalMenu menu = menu(helper, terminal);
             menu.request(COBBLE, 16);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request goes through, got " + menu.stock().message());
-            TerminalWiring.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 16 && out(helper, controller, L_GARAGE) == 0, 360,
+            Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 16 && out(helper, controller, L_GARAGE) == 0, 360,
                     () -> "the cobblestone should arrive and the shuttle park, output " + terminal.outputCount(Items.COBBLESTONE), () -> {
                 long paid = capacity(controller) - controller.energyStored();
                 helper.assertTrue(paid == 12 * perBlock(), "twelve blocks cost " + 12 * perBlock() + " FE, paid " + paid);
@@ -186,7 +182,7 @@ public final class WarehousePowerGameTests {
             controller.setEnergy((int) (8 * perBlock() + perBlock() / 2));
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, L_PACKING);
             menu(helper, terminal).request(COBBLE, 16);
-            TerminalWiring.when(helper, () -> controller.noPower() && MiniWarehouse.count(rack, Items.COBBLESTONE) == 0, 300,
+            Waits.when(helper, () -> controller.noPower() && WarehouseFixtures.count(rack, Items.COBBLESTONE) == 0, 300,
                     () -> "the shuttle should load and then run out of FE, stored " + controller.energyStored(), () -> {
                 helper.runAfterDelay(40, () -> {
                     helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 0, "the cobblestone has not arrived");
@@ -196,7 +192,7 @@ public final class WarehousePowerGameTests {
                     helper.assertTrue(network.shuttleViews(helper.absolutePos(L_GARAGE)).stream().anyMatch(view -> view.cargo().is(Items.COBBLESTONE)),
                             "the stopped shuttle keeps its cargo");
                     PowerFixtures.fill(controller);
-                    TerminalWiring.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 16, 200,
+                    Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 16, 200,
                             () -> "with FE back the shuttle delivers, output " + terminal.outputCount(Items.COBBLESTONE), helper::succeed);
                 });
             });
@@ -221,7 +217,7 @@ public final class WarehousePowerGameTests {
                 helper.assertTrue(out(helper, controller, warehouse.garagePos()) == 0, "no shuttle left the garage");
                 helper.assertTrue(warehouse.rackCount(Items.COBBLESTONE) == 32, "the rack still holds the stock");
                 PowerFixtures.fill(controller);
-                TerminalWiring.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 32, MiniWarehouse.TRIP_TICKS * 2,
+                Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 32, MiniWarehouse.TRIP_TICKS * 2,
                         () -> "with FE the job starts and delivers, output " + terminal.outputCount(Items.COBBLESTONE), helper::succeed);
             });
         });
@@ -249,7 +245,7 @@ public final class WarehousePowerGameTests {
     public static void craftCostsPerWorkingTick(GameTestHelper helper) {
         CraftingStationBlockEntity station = craftingLine(helper, 2, 1);
         WarehouseControllerBlockEntity controller = cpuController(helper);
-        TerminalWiring.when(helper, () -> station.outputs().getStackInSlot(0).getCount() == 4, station.workTicks() + 60,
+        Waits.when(helper, () -> station.outputs().getStackInSlot(0).getCount() == 4, station.workTicks() + 60,
                 () -> "the station crafts four sticks, progress " + station.progress() + " waits " + station.waitingForPower(), () -> {
             long paid = capacity(controller) - controller.energyStored();
             long expected = station.workTicks() * perCraftTick();
@@ -264,7 +260,7 @@ public final class WarehousePowerGameTests {
         CraftingStationBlockEntity station = craftingLine(helper, 2, 1);
         WarehouseControllerBlockEntity controller = cpuController(helper);
         int cut = station.workTicks() * 3 / 4;
-        TerminalWiring.when(helper, () -> station.progress() >= cut, station.workTicks() + 40, () -> "the craft should get going", () -> {
+        Waits.when(helper, () -> station.progress() >= cut, station.workTicks() + 40, () -> "the craft should get going", () -> {
             controller.setEnergy(0);
             int kept = station.progress();
             helper.runAfterDelay(20, () -> {
@@ -274,7 +270,7 @@ public final class WarehousePowerGameTests {
                 helper.assertTrue(!helper.getBlockState(CraftingCpuGameTests.STATION).getValue(
                         io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock.LIT), "the working face is off");
                 PowerFixtures.fill(controller);
-                TerminalWiring.when(helper, () -> station.outputs().getStackInSlot(0).getCount() == 4, station.workTicks() - kept + 10,
+                Waits.when(helper, () -> station.outputs().getStackInSlot(0).getCount() == 4, station.workTicks() - kept + 10,
                         () -> "the craft finishes the rest, progress " + station.progress(), () -> {
                     helper.assertTrue(!station.waitingForPower(), "no longer waiting");
                     helper.succeed();
@@ -300,7 +296,7 @@ public final class WarehousePowerGameTests {
     @ServusGameTest(timeoutTicks = 1200)
     public static void cpuStepWaitsForPowerAndFinishes(GameTestHelper helper) {
         CraftingCpuGameTests.setup(helper, true);
-        MiniWarehouse.stock(helper, CraftingCpuGameTests.RACK_A, new ItemStack(Items.OAK_PLANKS, 10));
+        WarehouseFixtures.stock(helper, CraftingCpuGameTests.RACK_A, new ItemStack(Items.OAK_PLANKS, 10));
         CraftingStationBlockEntity station = helper.getBlockEntity(CraftingCpuGameTests.STATION, CraftingStationBlockEntity.class);
         WarehouseControllerBlockEntity controller = cpuController(helper);
         helper.runAfterDelay(10, () -> {
@@ -309,7 +305,7 @@ public final class WarehousePowerGameTests {
             CpuBlockEntity cpu = CraftingCpuGameTests.cpu(helper, CraftingCpuGameTests.CPU_A);
             helper.assertTrue(cpu.book().orders().size() == 1, "one order, got " + cpu.book().orders());
             WorkOrder order = cpu.book().orders().get(0);
-            TerminalWiring.when(helper, () -> station.progress() >= 5, 900, () -> "the station should start the step", () -> {
+            Waits.when(helper, () -> station.progress() >= 5, 900, () -> "the station should start the step", () -> {
                 controller.setEnergy(0);
                 helper.runAfterDelay(30, () -> {
                     helper.assertTrue(station.waitingForPower(), "the station waits for power");
@@ -318,7 +314,7 @@ public final class WarehousePowerGameTests {
                     helper.assertTrue(jobs.stream().anyMatch(job -> job.status().equals("no_power")),
                             "the Production Terminal shows the step waiting for power, got " + jobs.stream().map(ProductionRows.JobRow::status).toList());
                     PowerFixtures.fill(controller);
-                    TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 4 && !order.open(), 400,
+                    Waits.when(helper, () -> terminal.outputCount(Items.STICK) == 4 && !order.open(), 400,
                             () -> "the sticks arrive after FE comes back, output " + terminal.outputCount(Items.STICK), helper::succeed);
                 });
             });
@@ -391,7 +387,7 @@ public final class WarehousePowerGameTests {
             controller.setEnergy((int) (toStart * 2));
             SiteWakes.Status held = SiteWakes.hold(helper.getLevel(), helper.absolutePos(SITE), token).orElseThrow();
             helper.assertTrue(held.awake(), "the site wakes, was " + held);
-            TerminalWiring.when(helper, () -> wake(helper).map(status -> status.state() == WakeMachine.State.WAITING).orElse(false), 200,
+            Waits.when(helper, () -> wake(helper).map(status -> status.state() == WakeMachine.State.WAITING).orElse(false), 200,
                     () -> "the wake ends once the FE is gone, was " + wake(helper) + ", stored " + controller.energyStored(), () -> {
                 SiteWakes.Status status = wake(helper).orElseThrow();
                 helper.assertTrue(status.reason() == WakeAllowance.Reason.NO_POWER, "the reason is no power, was " + status);
@@ -408,7 +404,7 @@ public final class WarehousePowerGameTests {
         WarehouseControllerBlockEntity controller = site(helper);
         helper.runAfterDelay(3, () -> {
             controller.setEnergy(4321);
-            TerminalWiring.when(helper, () -> record(helper).map(site -> site.energy() == 4321).orElse(false),
+            Waits.when(helper, () -> record(helper).map(site -> site.energy() == 4321).orElse(false),
                     StorageStatsManager.DEFAULT_SITE_SNAPSHOT_INTERVAL * 2 + 20,
                     () -> "the record keeps 4321 FE, has " + record(helper).map(SiteRecord::energy), helper::succeed);
         });

@@ -482,16 +482,14 @@ public final class ShuttleModuleGameTests {
 
     /** The warehouse above with the given stacks of cobblestone in the rack; the shuttle goes into the garage's given slot. */
     private static ShuttleGarageBlockEntity fleetSetup(GameTestHelper helper, ItemStack shuttle, int slot, int... stacks) {
-        helper.setBlock(FL_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, FL_CONTROLLER);
+        WarehouseFixtures.controller(helper, FL_CONTROLLER);
         TerminalWiring.place(helper, FL_TERMINAL);
         for (int x = 2; x <= 9; x++) {
             helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());
             helper.setBlock(new BlockPos(x, 1, 4), ServusStorageBlocks.RAIL.get().defaultBlockState());
         }
-        helper.setBlock(FL_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
-        helper.setBlock(FL_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.garage(helper, FL_GARAGE, Direction.SOUTH, 0);
+        WarehouseFixtures.rack(helper, FL_RACK, Direction.NORTH);
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(FL_GARAGE, ShuttleGarageBlockEntity.class);
         garage.shuttles().setStackInSlot(slot, shuttle);
         HeavyRackBlockEntity rack = helper.getBlockEntity(FL_RACK, HeavyRackBlockEntity.class);
@@ -521,7 +519,7 @@ public final class ShuttleModuleGameTests {
                 helper.assertTrue(network.ridingJobs() == 2 && network.queuedJobs() == 0,
                         "both jobs ride the one shuttle, riding " + network.ridingJobs() + ", queued " + network.queuedJobs());
                 StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, FL_TERMINAL);
-                TerminalWiring.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 100, 700,
+                Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 100, 700,
                         () -> "all 100 should arrive, got " + terminal.outputCount(Items.COBBLESTONE), helper::succeed);
             });
         });
@@ -555,7 +553,7 @@ public final class ShuttleModuleGameTests {
                 int riding = network.ridingJobs();
                 helper.assertTrue(doneByCheck ? riding == 0 : riding == 1,
                         (doneByCheck ? "the fast shuttle should have delivered" : "the slow shuttle should still carry the pick") + ", riding " + riding);
-                TerminalWiring.when(helper, () -> network.ridingJobs() == 0, 200, () -> "the pick should be delivered", helper::succeed);
+                Waits.when(helper, () -> network.ridingJobs() == 0, 200, () -> "the pick should be delivered", helper::succeed);
             });
         });
     }
@@ -603,17 +601,15 @@ public final class ShuttleModuleGameTests {
     /** A Mk2 shuttle loads three stacks of the station at once and puts them away on one trip. */
     @ServusGameTest(timeoutTicks = 500)
     public static void mk2PutAwayLoadsThree(GameTestHelper helper) {
-        helper.setBlock(PW_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, PW_CONTROLLER);
+        WarehouseFixtures.controller(helper, PW_CONTROLLER);
         for (int x = 2; x <= 10; x++) {
             helper.setBlock(new BlockPos(x, 0, 1), Blocks.STONE.defaultBlockState());
             helper.setBlock(new BlockPos(x, 1, 1), ServusStorageBlocks.RAIL.get().defaultBlockState());
         }
         helper.setBlock(PW_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
-        helper.setBlock(PW_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
-        helper.setBlock(PW_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
+        WarehouseFixtures.rack(helper, PW_RACK, Direction.NORTH);
+        WarehouseFixtures.garage(helper, PW_GARAGE, Direction.SOUTH, 0);
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(PW_GARAGE, ShuttleGarageBlockEntity.class);
         helper.assertTrue(garage.addShuttle(new ItemStack(ServusStorageItems.SHUTTLE_MK2.get())), "the garage takes the Mk2 shuttle");
         InboundStationBlockEntity station = helper.getBlockEntity(PW_STATION, InboundStationBlockEntity.class);
@@ -622,10 +618,10 @@ public final class ShuttleModuleGameTests {
             for (int i = 0; i < 3; i++) {
                 Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 64), false);
             }
-            TerminalWiring.when(helper, station::isEmpty, 250, () -> "the shuttle should load the station", () -> {
+            Waits.when(helper, station::isEmpty, 250, () -> "the shuttle should load the station", () -> {
                 helper.assertTrue(rack.isEmpty(), "all three stacks left on one shuttle before any reached the rack");
-                TerminalWiring.when(helper, () -> MiniWarehouse.count(rack, Items.COBBLESTONE) == 192, 200,
-                        () -> "all three stacks should reach the rack, it has " + MiniWarehouse.count(rack, Items.COBBLESTONE), helper::succeed);
+                Waits.when(helper, () -> WarehouseFixtures.count(rack, Items.COBBLESTONE) == 192, 200,
+                        () -> "all three stacks should reach the rack, it has " + WarehouseFixtures.count(rack, Items.COBBLESTONE), helper::succeed);
             });
         });
     }

@@ -126,14 +126,12 @@ public final class FieldGameTests {
         BlockPos controller = new BlockPos(2, 1, 3);
         BlockPos warehouseRail = new BlockPos(3, 1, 3);
         BlockPos rack = new BlockPos(7, 1, 3);
-        helper.setBlock(controller, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, controller);
+        WarehouseFixtures.controller(helper, controller);
         rail(helper, warehouseRail, ServusStorageBlocks.RAIL.get().defaultBlockState());
         for (int x = 4; x <= 6; x++) {
             farmRail(helper, new BlockPos(x, 1, 3));
         }
-        helper.setBlock(rack, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.WEST));
+        WarehouseFixtures.rack(helper, rack, Direction.WEST);
         helper.runAfterDelay(10, () -> {
             BlockState first = helper.getBlockState(new BlockPos(4, 1, 3));
             helper.assertTrue(first.getValue(RailBlock.WEST), "the farm rail should connect to the Warehouse Rail");
@@ -155,9 +153,7 @@ public final class FieldGameTests {
         BlockPos terminalPos = new BlockPos(1, 1, 4);
         BlockPos garagePos = new BlockPos(2, 1, 5);
         BlockPos rackPos = new BlockPos(9, 1, 5);
-        helper.setBlock(controllerPos, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, controllerPos);
+        WarehouseFixtures.controller(helper, controllerPos);
         TerminalWiring.place(helper, terminalPos);
         for (int x = 2; x <= 9; x++) {
             helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());
@@ -165,8 +161,8 @@ public final class FieldGameTests {
             helper.setBlock(new BlockPos(x, 1, 4), rail.defaultBlockState());
         }
         helper.setBlock(new BlockPos(5, 1, 3), ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        helper.setBlock(garagePos, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
-        helper.setBlock(rackPos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.garage(helper, garagePos, Direction.SOUTH, 0);
+        WarehouseFixtures.rack(helper, rackPos, Direction.NORTH);
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(garagePos, ShuttleGarageBlockEntity.class);
         garage.shuttles().setStackInSlot(0, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
         HeavyRackBlockEntity rack = helper.getBlockEntity(rackPos, HeavyRackBlockEntity.class);
@@ -178,7 +174,7 @@ public final class FieldGameTests {
             WarehouseNetwork network = helper.getBlockEntity(controllerPos, WarehouseControllerBlockEntity.class).network().orElseThrow();
             helper.runAfterDelay(8, () -> {
                 helper.assertTrue(network.garageOut(helper.absolutePos(garagePos)) == 1, "the shuttle should be out over the farm rails");
-                TerminalWiring.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 36, 500,
+                Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 36, 500,
                         () -> "the 36 cobblestone should arrive, got " + terminal.outputCount(Items.COBBLESTONE), helper::succeed);
             });
         });

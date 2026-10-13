@@ -40,12 +40,12 @@ public final class RackDockGameTests {
     }
 
     private static void rack(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.rack(helper, pos, Direction.NORTH);
     }
 
     private static void rail(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos.below(), Blocks.STONE.defaultBlockState());
-        TerminalWiring.rail(helper, pos);
+        WarehouseFixtures.rail(helper, pos);
     }
 
     /** Places a rack the way a player facing north would: it faces south and joins the bays beside it. */
@@ -76,8 +76,8 @@ public final class RackDockGameTests {
         rack(helper, RACK);
         HopperBlockEntity hopper = hopperAbove(helper, RACK, 10);
         HeavyRackBlockEntity rack = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
-        TerminalWiring.when(helper, () -> MiniWarehouse.count(rack, Items.BREAD) == 10 && hopper.isEmpty(), 80,
-                () -> "the hopper should fill the rack, it holds " + MiniWarehouse.count(rack, Items.BREAD), helper::succeed);
+        Waits.when(helper, () -> WarehouseFixtures.count(rack, Items.BREAD) == 10 && hopper.isEmpty(), 80,
+                () -> "the hopper should fill the rack, it holds " + WarehouseFixtures.count(rack, Items.BREAD), helper::succeed);
     }
 
     /** A warehouse rail laid in front closes the rack: no capability, and a hopper above stops. */
@@ -110,8 +110,8 @@ public final class RackDockGameTests {
             helper.assertTrue(hopper.getItem(0).getCount() == 6, "nothing goes in while docked");
             helper.setBlock(RACK.north(), Blocks.AIR.defaultBlockState());
             helper.assertTrue(open(helper, RACK), "without the rail the rack is open");
-            TerminalWiring.when(helper, () -> MiniWarehouse.count(rack, Items.BREAD) == 6, 60,
-                    () -> "the hopper should fill the rack again, it holds " + MiniWarehouse.count(rack, Items.BREAD), helper::succeed);
+            Waits.when(helper, () -> WarehouseFixtures.count(rack, Items.BREAD) == 6, 60,
+                    () -> "the hopper should fill the rack again, it holds " + WarehouseFixtures.count(rack, Items.BREAD), helper::succeed);
         });
     }
 
@@ -161,9 +161,9 @@ public final class RackDockGameTests {
         duct.recomputeArms();
         helper.assertTrue(duct.hasArm(Line.ITEM, Direction.WEST), "the duct shows an arm toward the open rack");
         rail(helper, RACK.north());
-        TerminalWiring.when(helper, () -> !duct.hasArm(Line.ITEM, Direction.WEST), 10, () -> "the arm should go once a rail docks", () -> {
+        Waits.when(helper, () -> !duct.hasArm(Line.ITEM, Direction.WEST), 10, () -> "the arm should go once a rail docks", () -> {
             helper.setBlock(RACK.north(), Blocks.AIR.defaultBlockState());
-            TerminalWiring.when(helper, () -> duct.hasArm(Line.ITEM, Direction.WEST), 10, () -> "the arm should come back without the rail", helper::succeed);
+            Waits.when(helper, () -> duct.hasArm(Line.ITEM, Direction.WEST), 10, () -> "the arm should come back without the rail", helper::succeed);
         });
     }
 
@@ -190,7 +190,7 @@ public final class RackDockGameTests {
         helper.assertTrue(menu.stillValid(player), "the menu opens on a docked rack");
         player.getInventory().setItem(0, new ItemStack(Items.APPLE, 12));
         menu.quickMoveStack(player, menu.rackSlots() + 27);
-        helper.assertTrue(MiniWarehouse.count(rack, Items.APPLE) == 12, "shift click moves the apples into the docked rack");
+        helper.assertTrue(WarehouseFixtures.count(rack, Items.APPLE) == 12, "shift click moves the apples into the docked rack");
         helper.succeed();
     }
 }

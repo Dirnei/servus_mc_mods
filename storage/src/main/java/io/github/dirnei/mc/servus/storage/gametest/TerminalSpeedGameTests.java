@@ -75,7 +75,7 @@ public final class TerminalSpeedGameTests {
 
     private static void setup(GameTestHelper helper) {
         MiniWarehouse.under(helper, CONTROLLER);
-        MiniWarehouse.stock(helper, RACK, new ItemStack(Items.COBBLESTONE, 16));
+        WarehouseFixtures.stock(helper, RACK, new ItemStack(Items.COBBLESTONE, 16));
         TerminalWiring.place(helper, ACCESS);
         helper.setBlock(FURNACE, Blocks.FURNACE.defaultBlockState().setValue(FurnaceBlock.FACING, Direction.SOUTH));
         helper.setBlock(ADAPTER, AdapterContent.BLOCK.get().defaultBlockState().setValue(MachineAdapterBlock.FACING, Direction.EAST));
@@ -99,7 +99,7 @@ public final class TerminalSpeedGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void counterSendsOnOpen(GameTestHelper helper) {
         setup(helper);
-        TerminalWiring.when(helper, () -> ready(helper), 120, () -> "the adapter and CPU should join the line", () -> {
+        Waits.when(helper, () -> ready(helper), 120, () -> "the adapter and CPU should join the line", () -> {
             ServerPlayer player = TestPlayers.quiet(helper);
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
@@ -118,7 +118,7 @@ public final class TerminalSpeedGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void productionSendsOnOpen(GameTestHelper helper) {
         setup(helper);
-        TerminalWiring.when(helper, () -> ready(helper), 120, () -> "the adapter and CPU should join the line", () -> {
+        Waits.when(helper, () -> ready(helper), 120, () -> "the adapter and CPU should join the line", () -> {
             ServerPlayer player = TestPlayers.quiet(helper);
             ProductionTerminalBlockEntity terminal = helper.getBlockEntity(PRODUCTION, ProductionTerminalBlockEntity.class);
             ProductionTerminalMenu menu = new ProductionTerminalMenu(1, player.getInventory(), terminal);
@@ -151,7 +151,7 @@ public final class TerminalSpeedGameTests {
         helper.setBlock(PATTERNS, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState()
                 .setValue(PatternStorageBlock.FACING, Direction.NORTH));
         BlockPos terminal = TerminalWiring.at(helper, ACCESS).getBlockPos();
-        TerminalWiring.when(helper, () -> producers(helper) == 2, 120, () -> "the adapter and station should join the line", () -> {
+        Waits.when(helper, () -> producers(helper) == 2, 120, () -> "the adapter and station should join the line", () -> {
             List<ItemStack> first = TerminalCraftables.of(helper.getLevel(), terminal, 4096);
             int builds = TerminalCraftables.builds();
             List<ItemStack> again = TerminalCraftables.of(helper.getLevel(), terminal, 4096);
@@ -162,7 +162,7 @@ public final class TerminalSpeedGameTests {
             List<ItemStack> withPattern = TerminalCraftables.of(helper.getLevel(), terminal, 4096);
             helper.assertTrue(withPattern != again && lists(withPattern, Items.STICK), "a saved pattern should rebuild the list with sticks");
             helper.setBlock(ADAPTER, Blocks.AIR.defaultBlockState());
-            TerminalWiring.when(helper, () -> producers(helper) == 1, 60, () -> "the adapter should leave the line", () -> {
+            Waits.when(helper, () -> producers(helper) == 1, 60, () -> "the adapter should leave the line", () -> {
                 List<ItemStack> without = TerminalCraftables.of(helper.getLevel(), terminal, 4096);
                 helper.assertTrue(!lists(without, Items.STONE) && lists(without, Items.STICK), "stone should be gone with the adapter");
                 helper.succeed();

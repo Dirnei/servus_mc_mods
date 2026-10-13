@@ -60,7 +60,7 @@ public final class PacketInletGameTests {
         MiniWarehouse warehouse = line(helper);
         helper.runAfterDelay(10, () -> {
             Delivery delivery = send(helper, warehouse.terminalPos(), warehouse.packingPos(), new ItemStack(Items.COBBLESTONE, 16));
-            TerminalWiring.when(helper, () -> warehouse.rackCount(Items.COBBLESTONE) == 16, 350,
+            Waits.when(helper, () -> warehouse.rackCount(Items.COBBLESTONE) == 16, 350,
                     () -> "a shuttle should put the 16 cobblestone away, rack has " + warehouse.rackCount(Items.COBBLESTONE) + ", " + delivery, () -> {
                 helper.assertTrue(helper.getBlockEntity(warehouse.packingPos(), PackingStationBlockEntity.class).isEmpty(), "the To storage buffer is empty again");
                 helper.succeed();
@@ -77,7 +77,7 @@ public final class PacketInletGameTests {
             StorageTerminalBlockEntity terminal = warehouse.terminal();
             terminal.newRequest(helper.getLevel(), ItemKey.of(new ItemStack(Items.STICK)), 4);
             send(helper, STATION, warehouse.terminalPos(), new ItemStack(Items.STICK, 4));
-            TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 4, 100,
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) == 4, 100,
                     () -> "the sticks should land in the output, it has " + terminal.outputCount(Items.STICK), helper::succeed);
         });
     }
@@ -90,7 +90,7 @@ public final class PacketInletGameTests {
         helper.runAfterDelay(10, () -> {
             StorageTerminalBlockEntity terminal = warehouse.terminal();
             send(helper, STATION, warehouse.terminalPos(), new ItemStack(Items.BREAD, 5));
-            TerminalWiring.when(helper, () -> warehouse.rackCount(Items.BREAD) == 5, 350,
+            Waits.when(helper, () -> warehouse.rackCount(Items.BREAD) == 5, 350,
                     () -> "the bread should go through the Input row into the rack, rack has " + warehouse.rackCount(Items.BREAD), () -> {
                 helper.assertTrue(terminal.outputCount(Items.BREAD) == 0, "nothing landed in the output");
                 helper.succeed();
@@ -111,7 +111,7 @@ public final class PacketInletGameTests {
         }
         helper.runAfterDelay(10, () -> {
             send(helper, warehouse.terminalPos(), STATION, new ItemStack(Items.OAK_PLANKS, 6));
-            TerminalWiring.when(helper, () -> station.inputs().getStackInSlot(0).getCount() == 6, 60,
+            Waits.when(helper, () -> station.inputs().getStackInSlot(0).getCount() == 6, 60,
                     () -> "the planks should reach the station, inputs " + station.inputs().getStackInSlot(0), helper::succeed);
         });
     }
@@ -124,7 +124,7 @@ public final class PacketInletGameTests {
         FieldHeadBlockEntity head = helper.getBlockEntity(HEAD, FieldHeadBlockEntity.class);
         helper.runAfterDelay(10, () -> {
             send(helper, warehouse.terminalPos(), HEAD, new ItemStack(Items.HONEYCOMB, 3));
-            TerminalWiring.when(helper, () -> head.antiCorrosion().getStackInSlot(0).getCount() == 3, 60,
+            Waits.when(helper, () -> head.antiCorrosion().getStackInSlot(0).getCount() == 3, 60,
                     () -> "the honeycomb should reach the slot, it holds " + head.antiCorrosion().getStackInSlot(0), helper::succeed);
         });
     }
@@ -138,7 +138,7 @@ public final class PacketInletGameTests {
         AbstractFurnaceBlockEntity furnace = helper.getBlockEntity(FURNACE, AbstractFurnaceBlockEntity.class);
         helper.runAfterDelay(10, () -> {
             send(helper, warehouse.terminalPos(), ADAPTER, new ItemStack(Items.COBBLESTONE, 4));
-            TerminalWiring.when(helper, () -> furnace.getItem(0).is(Items.COBBLESTONE) && furnace.getItem(0).getCount() == 4, 60,
+            Waits.when(helper, () -> furnace.getItem(0).is(Items.COBBLESTONE) && furnace.getItem(0).getCount() == 4, 60,
                     () -> "the cobblestone should reach the furnace, it has " + furnace.getItem(0), helper::succeed);
         });
     }
@@ -148,12 +148,12 @@ public final class PacketInletGameTests {
     public static void cpuCollectsThroughInlet(GameTestHelper helper) {
         CraftingCpuGameTests.setup(helper, true);
         CraftingCpuGameTests.stock(helper, CraftingCpuGameTests.RACK_A, Items.OAK_PLANKS, 10);
-        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), CraftingCpuGameTests.line(helper)).size() == 1, 60,
+        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), CraftingCpuGameTests.line(helper)).size() == 1, 60,
                 () -> "the CPU should be on the line", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CraftingCpuGameTests.line(helper), CraftingCpuGameTests.STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
-            TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE
+            Waits.when(helper, () -> order.state() == WorkOrder.State.DONE
                             && CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.STICK) == 8, 1100,
                     () -> "the order should finish with 8 sticks in storage, state " + order.state() + ", stock "
                             + CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.STICK), helper::succeed);

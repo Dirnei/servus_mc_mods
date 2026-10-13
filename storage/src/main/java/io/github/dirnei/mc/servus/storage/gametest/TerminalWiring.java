@@ -2,24 +2,23 @@ package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
+import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
-import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 
 /**
- * Places a Storage Terminal on the data line the way the older tests had it
- * beside the warehouse: a Packing Station takes the terminal's old spot, a data
- * duct sits on top of it and the terminal on top of the duct. Stations join
+ * Places a Storage Terminal on the data line of a warehouse: a Packing Station,
+ * a data duct on top of it and the terminal on top of the duct. Stations join
  * only through rails, so unless a rail already touches the Packing Station a rail
  * is laid under it and under every storage block beside it.
  */
@@ -54,11 +53,11 @@ public final class TerminalWiring {
             if (helper.getLevel().getBlockEntity(helper.absolutePos(beside)) instanceof StorageNodeBlockEntity node
                     && node.kind() == WarehouseConnectionRule.NodeKind.STOCK
                     && !helper.getBlockState(beside.below()).is(ServusStorageBlocks.RAIL.get())) {
-                rail(helper, beside.below());
+                WarehouseFixtures.rail(helper, beside.below());
             }
         }
         if (!helper.getBlockState(pos.below()).is(ServusStorageBlocks.RAIL.get())) {
-            rail(helper, pos.below());
+            WarehouseFixtures.rail(helper, pos.below());
         }
     }
 
@@ -67,49 +66,30 @@ public final class TerminalWiring {
         return pos.above(2);
     }
 
-    /** Where {@link #place} put the Packing Station. */
-    public static BlockPos packingStationPos(BlockPos pos) {
-        return pos;
-    }
-
-    /** A warehouse rail shaped by its neighbours. */
-    public static void rail(GameTestHelper helper, BlockPos pos) {
-        BlockState state = Block.updateFromNeighbourShapes(ServusStorageBlocks.RAIL.get().defaultBlockState(),
-                helper.getLevel(), helper.absolutePos(pos));
-        helper.setBlock(pos, state);
-    }
-
+    /** The terminal {@link #place} put above the Packing Station at {@code pos}. */
     public static StorageTerminalBlockEntity at(GameTestHelper helper, BlockPos pos) {
         return helper.getBlockEntity(terminalPos(pos), StorageTerminalBlockEntity.class);
     }
 
-    /**
-     * Polls every tick until {@code condition} holds, then runs {@code then}; fails after {@code maxTicks}.
-     * Each poll is a fresh lambda: the GameTest scheduler keys tasks by instance and would drop a re-added one.
-     */
-    public static void when(GameTestHelper helper, BooleanSupplier condition, int maxTicks, Supplier<String> failure, Runnable then) {
-        int[] left = {maxTicks};
-        Runnable[] poll = new Runnable[1];
-        poll[0] = () -> {
-            if (condition.getAsBoolean()) {
-                then.run();
-            } else if (--left[0] <= 0) {
-                helper.fail(failure.get());
-            } else {
-                helper.runAfterDelay(1, () -> poll[0].run());
+    /** A fresh menu of the terminal {@link #place} put above {@code pos}, opened by {@code player}. */
+    public static StorageTerminalMenu menu(GameTestHelper helper, Player player, BlockPos pos) {
+        return new StorageTerminalMenu(1, player.getInventory(), at(helper, pos));
+    }
+
+    /** How many of the item the menu's stock list shows. */
+    public static long stockOf(StorageTerminalMenu menu, Item item) {
+        long total = 0;
+        for (StockEntry entry : menu.stock().entries()) {
+            if (entry.stack().is(item)) {
+                total += entry.count();
             }
-        };
-        helper.runAfterDelay(1, () -> poll[0].run());
+        }
+        return total;
     }
 
     /** A Utility Duct carrying only the data line. */
     public static UtilityDuctBlockEntity dataDuct(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
-        duct.addLine(Line.DATA);
-        BlockPos absolute = helper.absolutePos(pos);
-        BlockState state = helper.getLevel().getBlockState(absolute);
-        helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
-        return duct;
+        MachineTestSupport.duct(helper, pos, Line.DATA);
+        return helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
     }
 }

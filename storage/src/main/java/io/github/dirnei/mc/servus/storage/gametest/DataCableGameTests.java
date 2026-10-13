@@ -94,9 +94,7 @@ public final class DataCableGameTests {
     }
 
     private static void controller(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, pos);
+        WarehouseFixtures.controller(helper, pos);
     }
 
     /** Three data ducts in a row form one network and show data arms toward each other. */
@@ -250,15 +248,15 @@ public final class DataCableGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void dataCableMovesNothing(GameTestHelper helper) {
         BlockPos rackPos = new BlockPos(7, 1, 3);
-        helper.setBlock(rackPos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.EAST));
-        MiniWarehouse.stock(helper, rackPos, new ItemStack(Items.OAK_PLANKS, 32));
+        WarehouseFixtures.rack(helper, rackPos, Direction.EAST);
+        WarehouseFixtures.stock(helper, rackPos, new ItemStack(Items.OAK_PLANKS, 32));
         HeavyRackBlockEntity planks = helper.getBlockEntity(rackPos, HeavyRackBlockEntity.class);
         controller(helper, EAST_END);
         CraftingStationBlockEntity station = sticksStation(helper, WEST_END);
         dataRow(helper);
         helper.runAfterDelay(100, () -> {
-            helper.assertTrue(MiniWarehouse.count(planks, Items.OAK_PLANKS) == 32, "the planks should stay in the rack, got "
-                    + MiniWarehouse.count(planks, Items.OAK_PLANKS));
+            helper.assertTrue(WarehouseFixtures.count(planks, Items.OAK_PLANKS) == 32, "the planks should stay in the rack, got "
+                    + WarehouseFixtures.count(planks, Items.OAK_PLANKS));
             for (int slot = 0; slot < station.inputs().getSlots(); slot++) {
                 helper.assertTrue(station.inputs().getStackInSlot(slot).isEmpty(), "the station inputs should stay empty");
             }

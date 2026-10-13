@@ -76,7 +76,7 @@ public final class PersistGameTests {
     @ServusGameTest(timeoutTicks = 1400)
     public static void reloadKeepsBuffer(GameTestHelper helper) {
         CpuBlockEntity cpu = CraftingCpuGameTests.bufferedSetup(helper, 6, 1);
-        TerminalWiring.when(helper, () -> CraftingCpuGameTests.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+        Waits.when(helper, () -> CraftingCpuGameTests.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
             io.github.dirnei.mc.servus.storage.order.WorkOrder order = cpu.book().create(CraftingCpuGameTests.CRAFTING_TABLE, 1, 0).order();
             int id = order.id();
             CraftingCpuGameTests.whenBuffered(helper, cpu, order, CraftingCpuGameTests.PLANKS, () -> {
@@ -86,7 +86,7 @@ public final class PersistGameTests {
                         "the buffer keeps " + held + " planks, has " + loaded.buffer());
                 io.github.dirnei.mc.servus.storage.order.WorkOrder reloaded = loaded.book().order(id);
                 helper.assertTrue(reloaded != null, "the order survives the reload");
-                TerminalWiring.when(helper, () -> reloaded.state() == io.github.dirnei.mc.servus.storage.order.WorkOrder.State.DONE
+                Waits.when(helper, () -> reloaded.state() == io.github.dirnei.mc.servus.storage.order.WorkOrder.State.DONE
                                 && CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.CRAFTING_TABLE) == 1, 1200,
                         () -> "the crafting table should be made, " + reloaded.state() + " " + reloaded.steps().stream()
                                 .map(step -> step.state() + "/" + step.reason()).toList() + " buffer " + loaded.buffer(), helper::succeed);
@@ -121,13 +121,13 @@ public final class PersistGameTests {
     @ServusGameTest(timeoutTicks = 1200)
     public static void orderFinishesAfterReload(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 8);
-        TerminalWiring.when(helper, () -> ready(helper) && planksIndexed(helper), 100,
+        Waits.when(helper, () -> ready(helper) && planksIndexed(helper), 100,
                 () -> "stations, CPU and the planks should be on the line", () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
             String refusal = TerminalRequests.craft(helper.getLevel(), terminal, STICK, 4);
             helper.assertTrue(refusal.isEmpty(), "the craft should start, refused " + refusal);
             int orderId = cpu(helper).book().orders().get(0).id();
-            TerminalWiring.when(helper, () -> station(helper, STATION_A).working() || station(helper, STATION_B).working(), 200,
+            Waits.when(helper, () -> station(helper, STATION_A).working() || station(helper, STATION_B).working(), 200,
                     () -> "a station should get the job", () -> {
                 BlockPos busy = station(helper, STATION_A).working() ? STATION_A : STATION_B;
                 int left = station(helper, busy).jobLeft();
@@ -139,7 +139,7 @@ public final class PersistGameTests {
                 helper.assertTrue(order != null && order.open(), "the order should still be open after the reload");
                 helper.assertTrue(station(helper, busy).working() && station(helper, busy).jobLeft() == left,
                         "the station should keep its job with " + left + " crafts left");
-                TerminalWiring.when(helper, () -> TerminalWiring.at(helper, ACCESS).outputCount(Items.STICK) >= 4
+                Waits.when(helper, () -> TerminalWiring.at(helper, ACCESS).outputCount(Items.STICK) >= 4
                                 && TerminalWiring.at(helper, ACCESS).requests().isEmpty(), 1000,
                         () -> "the sticks should land in the terminal and settle the request, order " + describe(helper, orderId)
                                 + ", sticks " + TerminalWiring.at(helper, ACCESS).outputCount(Items.STICK), helper::succeed);
@@ -159,7 +159,7 @@ public final class PersistGameTests {
         CraftingStationBlockEntity station = station(helper, STATION_A);
         station.assign(StationJobs.sticks(), 2, new StepRef(helper.absolutePos(CPU), 999, 0));
         helper.assertTrue(station.working(), "the station should take the job");
-        TerminalWiring.when(helper, () -> !station.working(), 250, () -> "the orphaned job should end", helper::succeed);
+        Waits.when(helper, () -> !station.working(), 250, () -> "the orphaned job should end", helper::succeed);
     }
 
     /**
@@ -169,14 +169,14 @@ public final class PersistGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void shipmentCappedAfterReload(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 0);
-        PackingStationBlockEntity point = helper.getBlockEntity(TerminalWiring.packingStationPos(ACCESS), PackingStationBlockEntity.class);
+        PackingStationBlockEntity point = helper.getBlockEntity(ACCESS, PackingStationBlockEntity.class);
         PackingStationBlockEntity.Shipment shipment = point.addShipment(helper.absolutePos(STATION_A), STICK, 16);
         point.outgoing().insertItemStacked(new ItemStack(Items.STICK, 8), false);
         long id = shipment.id();
-        PackingStationBlockEntity loaded = reload(helper, TerminalWiring.packingStationPos(ACCESS));
+        PackingStationBlockEntity loaded = reload(helper, ACCESS);
         helper.assertTrue(loaded.shipments().isEmpty() || loaded.shipments().get(0).id() == id, "no other shipment appears");
         ProductionLedger ledger = ProductionLedger.get(helper.getLevel());
-        TerminalWiring.when(helper, () -> ledger.transfer(id) != null && ledger.transfer(id).asked() == 8, 150,
+        Waits.when(helper, () -> ledger.transfer(id) != null && ledger.transfer(id).asked() == 8, 150,
                 () -> "the shipment should wait for 8, asked " + (ledger.transfer(id) == null ? "gone" : ledger.transfer(id).asked()),
                 helper::succeed);
     }

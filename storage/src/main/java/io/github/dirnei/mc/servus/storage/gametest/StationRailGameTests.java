@@ -34,9 +34,7 @@ public final class StationRailGameTests {
     }
 
     private static WarehouseControllerBlockEntity controller(GameTestHelper helper) {
-        helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, CONTROLLER);
+        WarehouseFixtures.controller(helper, CONTROLLER);
         return helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
     }
 
@@ -65,12 +63,12 @@ public final class StationRailGameTests {
             Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 64), false);
             helper.runAfterDelay(10, () -> {
                 helper.assertTrue(!station.isEmpty() && rack.isEmpty(), "the cobblestone waits in the buffer");
-                TerminalWiring.rail(helper, STATION.below());
-                TerminalWiring.when(helper, () -> MiniWarehouse.count(rack, Items.COBBLESTONE) == 64 && station.isEmpty(), MiniWarehouse.TRIP_TICKS * 2,
-                        () -> "with a rail a shuttle puts the cobblestone away, rack has " + MiniWarehouse.count(rack, Items.COBBLESTONE), () -> {
+                WarehouseFixtures.rail(helper, STATION.below());
+                Waits.when(helper, () -> WarehouseFixtures.count(rack, Items.COBBLESTONE) == 64 && station.isEmpty(), MiniWarehouse.TRIP_TICKS * 2,
+                        () -> "with a rail a shuttle puts the cobblestone away, rack has " + WarehouseFixtures.count(rack, Items.COBBLESTONE), () -> {
                     helper.assertTrue(sameWarehouse(helper, controller, STATION) && lit(helper, STATION), "the rail links the station");
                     helper.setBlock(STATION.below(), Blocks.AIR.defaultBlockState());
-                    TerminalWiring.when(helper, () -> !lit(helper, STATION), 20,
+                    Waits.when(helper, () -> !lit(helper, STATION), 20,
                             () -> "breaking the rail takes the station out", () -> {
                         helper.assertTrue(!sameWarehouse(helper, controller, STATION), "the station left the warehouse");
                         helper.succeed();
@@ -88,8 +86,8 @@ public final class StationRailGameTests {
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
         TerminalWiring.railUnder(helper, STATION);
         BlockPos beyond = STATION.east();
-        helper.setBlock(beyond, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.WEST));
-        MiniWarehouse.stock(helper, beyond, new ItemStack(Items.BREAD, 12));
+        WarehouseFixtures.rack(helper, beyond, Direction.WEST);
+        WarehouseFixtures.stock(helper, beyond, new ItemStack(Items.BREAD, 12));
         helper.runAfterDelay(10, () -> {
             helper.assertTrue(sameWarehouse(helper, controller, STATION), "the station is linked by rail");
             long count = controller.network().orElseThrow().index().count(ItemKey.of(new ItemStack(Items.BREAD)));
@@ -108,8 +106,7 @@ public final class StationRailGameTests {
         helper.setBlock(access, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         helper.setBlock(outbound, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState()
                 .setValue(OutboundStationBlock.FACING, Direction.WEST));
-        helper.setBlock(garage, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState()
-                .setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.garage(helper, garage, Direction.NORTH, 0);
         helper.runAfterDelay(10, () -> {
             for (BlockPos pos : new BlockPos[] {access, outbound, garage}) {
                 helper.assertTrue(!sameWarehouse(helper, controller, pos), "no rail, no warehouse at " + pos);

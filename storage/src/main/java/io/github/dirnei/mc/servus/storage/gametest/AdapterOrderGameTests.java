@@ -53,18 +53,16 @@ public final class AdapterOrderGameTests {
 
     /** The same line with {@code material} instead of cobblestone in the first rack. */
     private static void setup(GameTestHelper helper, ItemStack material) {
-        helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, CONTROLLER);
+        WarehouseFixtures.controller(helper, CONTROLLER);
         for (BlockPos rail : List.of(CONTROLLER.below(), ACCESS.below())) {
-            TerminalWiring.rail(helper, rail);
+            WarehouseFixtures.rail(helper, rail);
         }
         for (BlockPos pos : List.of(COBBLE_RACK, COAL_RACK)) {
-            helper.setBlock(pos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.EAST));
+            WarehouseFixtures.rack(helper, pos, Direction.EAST);
         }
-        MiniWarehouse.stock(helper, COBBLE_RACK, material);
-        MiniWarehouse.stock(helper, COAL_RACK, new ItemStack(Items.COAL, 32));
-        helper.setBlock(GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.stock(helper, COBBLE_RACK, material);
+        WarehouseFixtures.stock(helper, COAL_RACK, new ItemStack(Items.COAL, 32));
+        WarehouseFixtures.garage(helper, GARAGE, Direction.NORTH, 0);
         helper.assertTrue(helper.getBlockEntity(GARAGE, ShuttleGarageBlockEntity.class).addShuttle(), "the garage takes a shuttle");
         TerminalWiring.place(helper, ACCESS);
         helper.setBlock(FURNACE, Blocks.FURNACE.defaultBlockState().setValue(FurnaceBlock.FACING, Direction.SOUTH));
@@ -96,7 +94,7 @@ public final class AdapterOrderGameTests {
     public static void adapterUpkeepFromWarehouse(GameTestHelper helper) {
         setup(helper);
         MachineAdapterBlockEntity adapter = helper.getBlockEntity(ADAPTER, MachineAdapterBlockEntity.class);
-        TerminalWiring.when(helper, () -> furnace(helper).getItem(1).is(Items.COAL) && furnace(helper).getItem(1).getCount() == 16, 500,
+        Waits.when(helper, () -> furnace(helper).getItem(1).is(Items.COAL) && furnace(helper).getItem(1).getCount() == 16, 500,
                 () -> "the furnace should get 16 coal, has " + furnace(helper).getItem(1) + ", expected " + adapter.expected(), () -> {
             helper.assertTrue(adapter.upkeepItem().is(Items.COAL) && adapter.upkeepLevel() == 16, "coal at 16 from the profile");
             helper.succeed();
@@ -107,7 +105,7 @@ public final class AdapterOrderGameTests {
     @ServusGameTest(timeoutTicks = 2400)
     public static void adapterSmeltsAnOrder(GameTestHelper helper) {
         setup(helper);
-        TerminalWiring.when(helper, () -> ready(helper), 60, () -> "the adapter and the CPU should join the line", () -> {
+        Waits.when(helper, () -> ready(helper), 60, () -> "the adapter and the CPU should join the line", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STONE, 4, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
@@ -115,7 +113,7 @@ public final class AdapterOrderGameTests {
             helper.assertTrue(step.producer().equals(helper.absolutePos(ADAPTER)), "the step runs on the adapter, got " + step.producer());
             helper.assertTrue(step.inputs().size() == 1 && step.inputs().containsKey(ItemKey.of(new ItemStack(Items.COBBLESTONE))),
                     "the step needs cobblestone only, got " + step.inputs());
-            TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 2300,
+            Waits.when(helper, () -> order.state() == WorkOrder.State.DONE, 2300,
                     () -> "the order should finish, state " + order.state() + " " + order.reason() + ", step " + step.state()
                             + " " + step.reason() + ", fed " + step.fed(ItemKey.of(new ItemStack(Items.COBBLESTONE)))
                             + ", collected " + step.collected(STONE) + ", furnace " + furnace(helper).getItem(0) + " / "
@@ -133,14 +131,14 @@ public final class AdapterOrderGameTests {
         setup(helper);
         furnace(helper).setItem(1, new ItemStack(Items.COAL, 16));
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
-        TerminalWiring.when(helper, () -> ready(helper), 60, () -> "the adapter and the CPU should join the line", () -> {
+        Waits.when(helper, () -> ready(helper), 60, () -> "the adapter and the CPU should join the line", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STONE, 4, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
-            TerminalWiring.when(helper, () -> furnace(helper).getItem(0).is(Items.COBBLESTONE), 2000,
+            Waits.when(helper, () -> furnace(helper).getItem(0).is(Items.COBBLESTONE), 2000,
                     () -> "the cobblestone should reach the furnace, has " + furnace(helper).getItem(0), () -> {
                 controller.setEnergy(0);
                 int before = furnace(helper).getItem(2).getCount();
-                TerminalWiring.when(helper, () -> furnace(helper).getItem(2).getCount() > before
+                Waits.when(helper, () -> furnace(helper).getItem(2).getCount() > before
                                 || placed.created().order().steps().get(0).collected(STONE) > 0, 400,
                         () -> "the furnace keeps smelting without warehouse power, output " + furnace(helper).getItem(2), helper::succeed);
             });
@@ -155,7 +153,7 @@ public final class AdapterOrderGameTests {
     @ServusGameTest(timeoutTicks = 2400)
     public static void charcoalFromBirchOnly(GameTestHelper helper) {
         setup(helper, new ItemStack(Items.BIRCH_LOG, 8));
-        TerminalWiring.when(helper, () -> ready(helper) && CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 4).missing().isEmpty(),
+        Waits.when(helper, () -> ready(helper) && CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 4).missing().isEmpty(),
                 100, () -> "the line and the indexed birch logs should be ready", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), CHARCOAL, 4, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
@@ -164,7 +162,7 @@ public final class AdapterOrderGameTests {
             OrderStep step = order.steps().get(0);
             helper.assertTrue(step.inputs().keySet().equals(java.util.Set.of(ItemKey.of(new ItemStack(Items.BIRCH_LOG)))),
                     "the step should smelt birch logs, got " + step.inputs());
-            TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 2300,
+            Waits.when(helper, () -> order.state() == WorkOrder.State.DONE, 2300,
                     () -> "the order should finish, state " + order.state() + " " + order.reason() + ", step " + step.state()
                             + " " + step.reason() + ", collected " + step.collected(CHARCOAL), helper::succeed);
         });
@@ -174,10 +172,10 @@ public final class AdapterOrderGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void charcoalPreviewSplitsLogs(GameTestHelper helper) {
         setup(helper, new ItemStack(Items.OAK_LOG, 6));
-        helper.setBlock(SECOND_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.WEST));
-        MiniWarehouse.stock(helper, SECOND_RACK, new ItemStack(Items.BIRCH_LOG, 4));
-        TerminalWiring.when(helper, () -> ready(helper), 60, () -> "the adapter and the CPU should join the line", () -> {
-            TerminalWiring.when(helper, () -> CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 10).missing().isEmpty(), 100,
+        WarehouseFixtures.rack(helper, SECOND_RACK, Direction.WEST);
+        WarehouseFixtures.stock(helper, SECOND_RACK, new ItemStack(Items.BIRCH_LOG, 4));
+        Waits.when(helper, () -> ready(helper), 60, () -> "the adapter and the CPU should join the line", () -> {
+            Waits.when(helper, () -> CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 10).missing().isEmpty(), 100,
                     () -> "nothing should be missing, got " + CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 10), () -> {
                 var preview = CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 10);
                 helper.assertTrue(preview.fromStock().getOrDefault(ItemKey.of(new ItemStack(Items.OAK_LOG)), 0) == 6

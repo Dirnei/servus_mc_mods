@@ -121,7 +121,7 @@ public final class PatternGameTests {
     @ServusGameTest(timeoutTicks = 60)
     public static void patternStorageJoinsLine(GameTestHelper helper) {
         setup(helper, false, false);
-        TerminalWiring.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the Pattern Storage should join the line", () -> {
+        Waits.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the Pattern Storage should join the line", () -> {
             helper.assertTrue(line(helper).dataMembers(DataRole.LINK).stream()
                     .anyMatch(member -> member.pos().equals(helper.absolutePos(STORAGE_A))), "it should be a link member");
             PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A, PatternStorageBlockEntity.class);
@@ -183,7 +183,7 @@ public final class PatternGameTests {
     @ServusGameTest(timeoutTicks = 60)
     public static void patternCapacityOverTwoBlocks(GameTestHelper helper) {
         setup(helper, false, true);
-        TerminalWiring.when(helper, () -> storagesOnLine(helper, 2), 40, () -> "both Pattern Storages should join", () -> {
+        Waits.when(helper, () -> storagesOnLine(helper, 2), 40, () -> "both Pattern Storages should join", () -> {
             int capacity = PatternLibrary.capacity(helper.getLevel(), line(helper));
             helper.assertTrue(capacity == 2 * PatternStorageBlockEntity.slots(), "capacity of two blocks, got " + capacity);
             helper.succeed();
@@ -195,7 +195,7 @@ public final class PatternGameTests {
     public static void patternSaveWithoutItems(GameTestHelper helper) {
         setup(helper, false, true);
         Player player = player(helper);
-        TerminalWiring.when(helper, () -> storagesOnLine(helper, 2), 40, () -> "the storages should join", () -> {
+        Waits.when(helper, () -> storagesOnLine(helper, 2), 40, () -> "the storages should join", () -> {
             ProductionTerminalMenu menu = menu(helper, player);
             menu.openNew();
             sticksGrid(menu);
@@ -218,7 +218,7 @@ public final class PatternGameTests {
     public static void patternSaveRefusals(GameTestHelper helper) {
         setup(helper, false, false);
         Player player = player(helper);
-        TerminalWiring.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
+        Waits.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
             ProductionTerminalMenu menu = menu(helper, player);
             menu.openNew();
             helper.assertTrue(menu.save().equals("empty"), "an empty grid is refused");
@@ -246,9 +246,9 @@ public final class PatternGameTests {
     public static void patternSaveNoStorage(GameTestHelper helper) {
         setup(helper, false, false);
         Player player = player(helper);
-        TerminalWiring.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
+        Waits.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
             helper.setBlock(STORAGE_A, Blocks.AIR.defaultBlockState());
-            TerminalWiring.when(helper, () -> storagesOnLine(helper, 0), 20, () -> "the storage should leave", () -> {
+            Waits.when(helper, () -> storagesOnLine(helper, 0), 20, () -> "the storage should leave", () -> {
                 ProductionTerminalMenu menu = menu(helper, player);
                 menu.openNew();
                 sticksGrid(menu);
@@ -263,7 +263,7 @@ public final class PatternGameTests {
     public static void patternEditAndDelete(GameTestHelper helper) {
         setup(helper, false, false);
         Player player = player(helper);
-        TerminalWiring.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
+        Waits.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
             PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A, PatternStorageBlockEntity.class);
             storage.set(0, sticksPattern());
             ProductionTerminalMenu menu = menu(helper, player);
@@ -286,7 +286,7 @@ public final class PatternGameTests {
     @ServusGameTest(timeoutTicks = 80)
     public static void patternCpuPlansWithStation(GameTestHelper helper) {
         setup(helper, true, false);
-        TerminalWiring.when(helper, () -> storagesOnLine(helper, 1)
+        Waits.when(helper, () -> storagesOnLine(helper, 1)
                 && CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 60, () -> "storage and CPU should join", () -> {
             PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A, PatternStorageBlockEntity.class);
             storage.set(0, sticksPattern());
@@ -298,7 +298,7 @@ public final class PatternGameTests {
             CpuBlockEntity cpu = CpuBlock.master(helper.getLevel(), helper.absolutePos(CPU));
             cpu.book().cancel(placed.created().order().id());
             helper.setBlock(STATION, Blocks.STONE.defaultBlockState());
-            TerminalWiring.when(helper, () -> line(helper).dataMembers(DataRole.PRODUCER).isEmpty(), 20,
+            Waits.when(helper, () -> line(helper).dataMembers(DataRole.PRODUCER).isEmpty(), 20,
                     () -> "the station should leave the line", () -> {
                 CpuOrders.Placed none = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
                 helper.assertTrue(!none.made() && none.refusal().equals("no_producer"),
@@ -312,7 +312,7 @@ public final class PatternGameTests {
     @ServusGameTest(timeoutTicks = 60)
     public static void patternViewListsPatterns(GameTestHelper helper) {
         setup(helper, false, false);
-        TerminalWiring.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
+        Waits.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
             PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A, PatternStorageBlockEntity.class);
             storage.set(2, sticksPattern());
             ProductionPayload view = ProductionView.of(helper.getLevel(), helper.absolutePos(TERMINAL));

@@ -83,19 +83,14 @@ public final class PackingStationGameTests {
     }
 
     private static Setup setup(GameTestHelper helper, int rackPlanks, boolean far, boolean near) {
-        helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, CONTROLLER);
+        WarehouseFixtures.controller(helper, CONTROLLER);
         for (int x = 2; x <= 9; x++) {
             rail(helper, new BlockPos(x, 1, 6));
         }
-        helper.setBlock(GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(GARAGE, ShuttleGarageBlockEntity.class);
-        helper.assertTrue(garage.addShuttle(), "one shuttle fits");
-        helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
-        HeavyRackBlockEntity rack = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
+        ShuttleGarageBlockEntity garage = WarehouseFixtures.garage(helper, GARAGE, Direction.NORTH, 1);
+        HeavyRackBlockEntity rack = WarehouseFixtures.rack(helper, RACK, Direction.NORTH);
         if (rackPlanks > 0) {
-            MiniWarehouse.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, rackPlanks));
+            WarehouseFixtures.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, rackPlanks));
         }
         if (far) {
             packingStation(helper, FAR);

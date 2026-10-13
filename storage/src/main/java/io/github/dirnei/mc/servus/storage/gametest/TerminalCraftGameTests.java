@@ -60,7 +60,7 @@ public final class TerminalCraftGameTests {
     public static void craftablesListSticks(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 0);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        TerminalWiring.when(helper, () -> ready(helper), 100, () -> "stations and CPU should join the line", () -> {
+        Waits.when(helper, () -> ready(helper), 100, () -> "stations and CPU should join the line", () -> {
             List<ItemStack> craftables = menu(helper, player).stock().craftables();
             helper.assertTrue(craftables.stream().anyMatch(stack -> stack.is(Items.STICK)), "sticks should be craftable, got " + craftables);
             helper.succeed();
@@ -72,7 +72,7 @@ public final class TerminalCraftGameTests {
     public static void craftPreviewFromStock(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 16);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        TerminalWiring.when(helper, () -> stocked(helper, player), 160, () -> "stations and CPU should join the line", () -> {
+        Waits.when(helper, () -> stocked(helper, player), 160, () -> "stations and CPU should join the line", () -> {
             CraftPreviewPayload preview = menu(helper, player).preview(STICK, 8);
             helper.assertTrue(preview.refusal().isEmpty(), "no refusal, got " + preview.refusal());
             helper.assertTrue(count(preview.toCraft(), Items.STICK) == 8, "8 sticks to craft, got " + preview.toCraft());
@@ -87,7 +87,7 @@ public final class TerminalCraftGameTests {
     public static void craftPreviewMissing(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 0);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        TerminalWiring.when(helper, () -> ready(helper), 100, () -> "stations and CPU should join the line", () -> {
+        Waits.when(helper, () -> ready(helper), 100, () -> "stations and CPU should join the line", () -> {
             CraftPreviewPayload preview = menu(helper, player).preview(STICK, 8);
             helper.assertTrue(count(preview.missing(), Items.OAK_PLANKS) > 0, "planks should be missing, got " + preview.missing());
             helper.assertFalse(preview.startable(), "a preview with missing material cannot start");
@@ -103,9 +103,9 @@ public final class TerminalCraftGameTests {
     public static void craftPreviewNoCpu(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 16);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        TerminalWiring.when(helper, () -> stocked(helper, player), 160, () -> "stations and CPU should join the line", () -> {
+        Waits.when(helper, () -> stocked(helper, player), 160, () -> "stations and CPU should join the line", () -> {
             helper.setBlock(CPU, Blocks.AIR.defaultBlockState());
-            TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), helper.absolutePos(TerminalWiring.terminalPos(ACCESS))).isEmpty(),
+            Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), helper.absolutePos(TerminalWiring.terminalPos(ACCESS))).isEmpty(),
                     40, () -> "the CPU should unform", () -> {
                         CraftPreviewPayload preview = menu(helper, player).preview(STICK, 8);
                         helper.assertTrue(preview.refusal().equals("no_cpu"), "refusal no_cpu, got " + preview.refusal());
@@ -120,11 +120,11 @@ public final class TerminalCraftGameTests {
     public static void craftStartDeliversSticks(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 16);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        TerminalWiring.when(helper, () -> stocked(helper, player), 160, () -> "stations and CPU should join the line", () -> {
+        Waits.when(helper, () -> stocked(helper, player), 160, () -> "stations and CPU should join the line", () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
             menu(helper, player).craft(STICK, 8);
             helper.assertTrue(terminal.requests().size() == 1, "one request should be listed");
-            TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) >= 8, 1200,
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) >= 8, 1200,
                     () -> "8 sticks should land in the output slots, got " + terminal.outputCount(Items.STICK), helper::succeed);
         });
     }
@@ -133,7 +133,7 @@ public final class TerminalCraftGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void terminalSendsOnOpen(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 16);
-        TerminalWiring.when(helper, () -> ready(helper), 100, () -> "stations and CPU should join the line", () -> {
+        Waits.when(helper, () -> ready(helper), 100, () -> "stations and CPU should join the line", () -> {
             ServerPlayer player = TestPlayers.quiet(helper);
             StorageTerminalMenu menu = menu(helper, player);
             long now = helper.getLevel().getGameTime();
@@ -152,9 +152,9 @@ public final class TerminalCraftGameTests {
     public static void packingStationMenuStaysValid(GameTestHelper helper) {
         TerminalWiring.place(helper, ACCESS);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        BlockPos absolute = helper.absolutePos(TerminalWiring.packingStationPos(ACCESS));
+        BlockPos absolute = helper.absolutePos(ACCESS);
         player.snapTo(absolute.getX() + 0.5, absolute.getY() + 1, absolute.getZ() + 1.5);
-        PackingStationBlockEntity point = helper.getBlockEntity(TerminalWiring.packingStationPos(ACCESS), PackingStationBlockEntity.class);
+        PackingStationBlockEntity point = helper.getBlockEntity(ACCESS, PackingStationBlockEntity.class);
         io.github.dirnei.mc.servus.storage.menu.PackingStationMenu menu =
                 new io.github.dirnei.mc.servus.storage.menu.PackingStationMenu(1, player.getInventory(), point);
         helper.assertTrue(menu.stillValid(player), "the Packing Station GUI should stay open");

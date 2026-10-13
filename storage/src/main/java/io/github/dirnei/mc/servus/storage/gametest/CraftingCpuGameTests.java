@@ -106,16 +106,14 @@ public final class CraftingCpuGameTests {
 
     /** Warehouse, terminal, station and the ducts to the first CPU's spot; the CPU itself when {@code withCpu}. */
     static void setup(GameTestHelper helper, boolean withCpu) {
-        helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, CONTROLLER);
+        WarehouseFixtures.controller(helper, CONTROLLER);
         for (BlockPos rail : List.of(CONTROLLER.below(), ACCESS.below())) {
-            TerminalWiring.rail(helper, rail);
+            WarehouseFixtures.rail(helper, rail);
         }
         for (BlockPos pos : List.of(RACK_A, RACK_B)) {
-            helper.setBlock(pos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.EAST));
+            WarehouseFixtures.rack(helper, pos, Direction.EAST);
         }
-        helper.setBlock(GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.EAST));
+        WarehouseFixtures.garage(helper, GARAGE, Direction.EAST, 0);
         helper.assertTrue(helper.getBlockEntity(GARAGE, ShuttleGarageBlockEntity.class).addShuttle(), "the garage takes a shuttle");
         TerminalWiring.place(helper, ACCESS);
         sticksStation(helper);
@@ -183,7 +181,7 @@ public final class CraftingCpuGameTests {
     /** Runs {@code then} once, on the first tick the order holds the key in its CPU's buffer. */
     static void whenBuffered(GameTestHelper helper, CpuBlockEntity cpu, WorkOrder order, ItemKey key, Runnable then) {
         // Polled every tick; onEachTick cannot be added while the test ticks.
-        TerminalWiring.when(helper, () -> cpu.buffer().held(order.id(), key) > 0, 1200,
+        Waits.when(helper, () -> cpu.buffer().held(order.id(), key) > 0, 1200,
                 () -> "the order should hold " + key.stack(1).getHoverName().getString() + " in the buffer, order "
                         + order.state() + " " + order.steps().stream().map(step -> step.state() + "/" + step.reason()).toList()
                         + " buffer " + cpu.buffer(), then);
@@ -200,7 +198,7 @@ public final class CraftingCpuGameTests {
 
     static HeavyRackBlockEntity stock(GameTestHelper helper, BlockPos pos, Item item, int count) {
         if (count > 0) {
-            MiniWarehouse.stock(helper, pos, new ItemStack(item, count));
+            WarehouseFixtures.stock(helper, pos, new ItemStack(item, count));
         }
         return helper.getBlockEntity(pos, HeavyRackBlockEntity.class);
     }
@@ -252,7 +250,7 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 60)
     public static void cpuJoinsTheDataLine(GameTestHelper helper) {
         setup(helper, true);
-        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40,
+        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40,
                 () -> "the CPU should be on the line, members " + line(helper).dataMembers(DataRole.LINK), () -> {
                     helper.assertTrue(CpuOrders.cpus(helper.getLevel(), line(helper)).get(0) == cpu(helper, CPU_A), "the CPU found is the cube's master");
                     helper.succeed();
@@ -380,7 +378,7 @@ public final class CraftingCpuGameTests {
         CpuBuild.box(helper, CPU_A, 2, 2, 2, offset -> offset.equals(new BlockPos(0, 1, 1)) || offset.getY() == 1);
         helper.assertTrue(helper.getBlockState(new BlockPos(6, 2, 2)).is(ServusStorageBlocks.CPU_BUFFER.get()), "a Buffer block faces the duct");
         CpuBuild.formed(helper, CPU_A);
-        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40,
+        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40,
                 () -> "the CPU should be on the line", () -> {
                     CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
                     helper.assertTrue(placed.made() && placed.cpu().equals(helper.absolutePos(CPU_A)), "the CPU takes the order: " + placed.refusal());
@@ -419,11 +417,11 @@ public final class CraftingCpuGameTests {
             List<RequestRow> rows = menu.stock().requests();
             helper.assertTrue(rows.size() == 1 && rows.get(0).state().equals("PRODUCING"), "the request should be producing, got " + rows);
             // The sticks land straight in the terminal; the order is booked done on a following tick.
-            TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 8
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) == 8
                             && cpu.book().orders().stream().noneMatch(WorkOrder::open), 900,
                     () -> "eight sticks should reach the terminal, had " + terminal.outputCount(Items.STICK) + " orders " + cpu.book().orders()
                             + " steps " + cpu.book().orders().get(0).steps().stream().map(st -> st.state() + "/" + st.reason()).toList(), () -> {
-                        helper.assertTrue(MiniWarehouse.count(planks, Items.OAK_PLANKS) == 6, "four planks should have been used, rack has " + MiniWarehouse.count(planks, Items.OAK_PLANKS));
+                        helper.assertTrue(WarehouseFixtures.count(planks, Items.OAK_PLANKS) == 6, "four planks should have been used, rack has " + WarehouseFixtures.count(planks, Items.OAK_PLANKS));
                         helper.assertTrue(cpu.book().orders().stream().noneMatch(WorkOrder::open), "the order should be done: " + cpu.book().orders());
                         helper.succeed();
                     });
@@ -466,10 +464,10 @@ public final class CraftingCpuGameTests {
             helper.assertTrue(steps.get(0).output().is(Items.OAK_PLANKS) && steps.get(0).batches() == 1, "planks first, one batch: " + steps.get(0).output());
             helper.assertTrue(steps.get(1).output().is(Items.STICK) && steps.get(1).batches() == 2, "sticks second, two batches: " + steps.get(1).output());
             helper.assertTrue(orders.get(0).reserved().getOrDefault(ItemKey.of(new ItemStack(Items.OAK_LOG)), 0) == 1, "one log should be reserved");
-            TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 8, 1300,
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) == 8, 1300,
                     () -> "eight sticks should reach the terminal, had " + terminal.outputCount(Items.STICK) + " steps "
                             + cpu.book().orders().get(0).steps().stream().map(st -> st.state() + "/" + st.reason()).toList(), () -> {
-                        helper.assertTrue(MiniWarehouse.count(logs, Items.OAK_LOG) == 1, "one log should be left, rack has " + MiniWarehouse.count(logs, Items.OAK_LOG));
+                        helper.assertTrue(WarehouseFixtures.count(logs, Items.OAK_LOG) == 1, "one log should be left, rack has " + WarehouseFixtures.count(logs, Items.OAK_LOG));
                         helper.succeed();
                     });
         });
@@ -531,7 +529,7 @@ public final class CraftingCpuGameTests {
         TerminalWiring.dataDuct(helper, new BlockPos(5, 2, 3));
         TerminalWiring.dataDuct(helper, new BlockPos(5, 2, 4));
         TerminalWiring.dataDuct(helper, new BlockPos(5, 2, 5));
-        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 2, 40,
+        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 2, 40,
                 () -> "both CPUs should be on the line", () -> {
                     for (int i = 0; i < 4; i++) {
                         helper.assertTrue(CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0).made(), "order " + i + " should be made");
@@ -574,7 +572,7 @@ public final class CraftingCpuGameTests {
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(STICK, 8);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request for the three sticks in stock is accepted: " + menu.stock().message());
-            TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 3
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) == 3
                             && menu.stock().requests().size() == 1 && menu.stock().requests().get(0).state().equals("MISSING"), 300,
                     () -> "three sticks delivered and the rest missing, had " + terminal.outputCount(Items.STICK) + " " + menu.stock().requests(),
                     () -> {
@@ -595,13 +593,13 @@ public final class CraftingCpuGameTests {
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = warehouse(helper);
             network.setStockRule(STICK, 8, 16);
-            TerminalWiring.when(helper, () -> !cpu(helper, CPU_A).book().orders().isEmpty(), 60, () -> "the rule should order", () -> {
+            Waits.when(helper, () -> !cpu(helper, CPU_A).book().orders().isEmpty(), 60, () -> "the rule should order", () -> {
                 List<WorkOrder> orders = cpu(helper, CPU_A).book().orders();
                 helper.assertTrue(orders.size() == 1 && orders.get(0).amount() == 14 && orders.get(0).requestId() == OrderBook.RULE_ORIGIN,
                         "the rule should order 14 sticks, got " + orders);
                 RuleRow row = ruleRow(network, Items.STICK);
                 helper.assertTrue(row != null && row.state().equals("ordering"), "the rule should read ordering: " + row);
-                TerminalWiring.when(helper, () -> network.index().count(STICK) >= 16
+                Waits.when(helper, () -> network.index().count(STICK) >= 16
                                 && "ok".equals(ruleRow(network, Items.STICK).state()), 1100,
                         () -> "at least 16 sticks and ok expected, have " + network.index().count(STICK) + " " + ruleRow(network, Items.STICK),
                         helper::succeed);
@@ -653,7 +651,7 @@ public final class CraftingCpuGameTests {
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = warehouse(helper);
             network.setStockRule(STICK, 8, 16);
-            TerminalWiring.when(helper, () -> {
+            Waits.when(helper, () -> {
                 RuleRow row = ruleRow(network, Items.STICK);
                 return row != null && row.state().equals("no_cpu");
             }, 200, () -> "the rule should read no CPU: " + ruleRow(network, Items.STICK), helper::succeed);
@@ -663,9 +661,7 @@ public final class CraftingCpuGameTests {
     /** Rules survive a save and load of the controller. */
     @ServusGameTest(timeoutTicks = 100)
     public static void stockRulesPersist(GameTestHelper helper) {
-        helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, CONTROLLER);
+        WarehouseFixtures.controller(helper, CONTROLLER);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
         controller.rules().set(new StockRule(STICK, 8, 16));
         net.minecraft.nbt.CompoundTag tag = controller.saveWithoutMetadata(helper.getLevel().registryAccess());
@@ -733,10 +729,10 @@ public final class CraftingCpuGameTests {
             helper.assertTrue(!helper.getBlockState(far).getValue(CpuBlock.ACTIVE), "an idle CPU glows");
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should land: " + placed.refusal());
-            TerminalWiring.when(helper, () -> helper.getBlockState(far).getValue(CpuBlock.ACTIVE), 20,
+            Waits.when(helper, () -> helper.getBlockState(far).getValue(CpuBlock.ACTIVE), 20,
                     () -> "the lights should run with an order", () -> {
                         cpu(helper, CPU_A).book().cancelAll();
-                        TerminalWiring.when(helper, () -> !helper.getBlockState(far).getValue(CpuBlock.ACTIVE)
+                        Waits.when(helper, () -> !helper.getBlockState(far).getValue(CpuBlock.ACTIVE)
                                         && !helper.getBlockState(CPU_A).getValue(CpuBlock.ACTIVE), 20,
                                 () -> "the lights should glow again once the order is cancelled", helper::succeed);
                     });
@@ -749,7 +745,7 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 1400)
     public static void bufferedPlanksNotForOthers(GameTestHelper helper) {
         CpuBlockEntity cpu = bufferedSetup(helper, 6, 1);
-        TerminalWiring.when(helper, () -> lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+        Waits.when(helper, () -> lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
             OrderBook book = cpu.book();
             WorkOrder first = book.create(CRAFTING_TABLE, 1, 0).order();
             helper.assertTrue(first != null, "the crafting table order should be made");
@@ -763,7 +759,7 @@ public final class CraftingCpuGameTests {
                 int held = cpu.buffer().held(first.id(), PLANKS);
                 helper.assertTrue(held == 4, "the first order keeps its 4 planks, has " + held);
                 book.cancel(second.order().id());
-                TerminalWiring.when(helper, () -> first.state() == WorkOrder.State.DONE, 1200, () -> "the crafting table should be made", helper::succeed);
+                Waits.when(helper, () -> first.state() == WorkOrder.State.DONE, 1200, () -> "the crafting table should be made", helper::succeed);
             });
         });
     }
@@ -772,11 +768,11 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 1400)
     public static void cancelSendsBufferToStorage(GameTestHelper helper) {
         CpuBlockEntity cpu = bufferedSetup(helper, 6, 1);
-        TerminalWiring.when(helper, () -> lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+        Waits.when(helper, () -> lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
             WorkOrder order = cpu.book().create(CRAFTING_TABLE, 1, 0).order();
             whenBuffered(helper, cpu, order, PLANKS, () -> {
                 helper.assertTrue(cpu.book().cancel(order.id()), "the order can be cancelled");
-                TerminalWiring.when(helper, () -> warehouse(helper).available(PLANKS) == 4 && cpu.bufferUsed() == 0, 600,
+                Waits.when(helper, () -> warehouse(helper).available(PLANKS) == 4 && cpu.bufferUsed() == 0, 600,
                         () -> "the 4 planks should be put away, warehouse has " + warehouse(helper).available(PLANKS)
                                 + ", buffer " + cpu.buffer(), helper::succeed);
             });
@@ -787,7 +783,7 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 1400)
     public static void unformPutsBufferAway(GameTestHelper helper) {
         CpuBlockEntity cpu = bufferedSetup(helper, 6, 1);
-        TerminalWiring.when(helper, () -> lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+        Waits.when(helper, () -> lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
             WorkOrder order = cpu.book().create(CRAFTING_TABLE, 1, 0).order();
             whenBuffered(helper, cpu, order, PLANKS, () -> {
                 BlockPos buffer = CPU_A.offset(1, 1, 0);
@@ -795,7 +791,7 @@ public final class CraftingCpuGameTests {
                 helper.setBlock(buffer, Blocks.AIR.defaultBlockState());
                 helper.assertTrue(!helper.getBlockState(CPU_A).getValue(CpuBlock.FORMED), "the CPU unforms");
                 helper.assertTrue(order.state() == WorkOrder.State.CANCELLED, "the order is cancelled");
-                TerminalWiring.when(helper, () -> warehouse(helper).available(PLANKS) == 4, 600,
+                Waits.when(helper, () -> warehouse(helper).available(PLANKS) == 4, 600,
                         () -> "the 4 planks should be put away, warehouse has " + warehouse(helper).available(PLANKS), () -> {
                             helper.assertTrue(droppedNear(helper, CPU_A, 3, Items.OAK_PLANKS) == 0, "no planks dropped at the CPU");
                             helper.succeed();
@@ -808,7 +804,7 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 1400)
     public static void unformFullPackingStationDrops(GameTestHelper helper) {
         CpuBlockEntity cpu = bufferedSetup(helper, 6, 1);
-        TerminalWiring.when(helper, () -> lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+        Waits.when(helper, () -> lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
             WorkOrder order = cpu.book().create(CRAFTING_TABLE, 1, 0).order();
             whenBuffered(helper, cpu, order, PLANKS, () -> {
                 io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity point =
@@ -817,7 +813,7 @@ public final class CraftingCpuGameTests {
                     point.buffer().setStackInSlot(i, new ItemStack(Items.COBBLESTONE, 64));
                 }
                 helper.setBlock(CPU_A.offset(1, 1, 1), Blocks.AIR.defaultBlockState());
-                TerminalWiring.when(helper, () -> droppedNear(helper, ACCESS, 2, Items.OAK_PLANKS) == 4, 100,
+                Waits.when(helper, () -> droppedNear(helper, ACCESS, 2, Items.OAK_PLANKS) == 4, 100,
                         () -> "the 4 planks should drop beside the Packing Station, found " + droppedNear(helper, ACCESS, 2, Items.OAK_PLANKS)
                                 + " there and " + droppedNear(helper, CPU_A, 3, Items.OAK_PLANKS) + " at the CPU", helper::succeed);
             });
@@ -918,7 +914,7 @@ public final class CraftingCpuGameTests {
             WorkOrder order = cpu.book().orders().get(0);
             helper.assertTrue(helper.absolutePos(TerminalWiring.terminalPos(ACCESS)).equals(order.deliverTo()),
                     "the order should remember the terminal, got " + order.deliverTo());
-            TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 8
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) == 8
                             && cpu.book().orders().stream().noneMatch(WorkOrder::open), 900,
                     () -> "eight sticks should reach the terminal, had " + terminal.outputCount(Items.STICK), () -> {
                         helper.assertTrue(stockedSticks[0] == 0, "no stick should ever be in the warehouse, saw " + stockedSticks[0]);
@@ -940,7 +936,7 @@ public final class CraftingCpuGameTests {
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(STICK, 2);
             CpuBlockEntity cpu = cpu(helper, CPU_A);
-            TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 2 && warehouse(helper).available(STICK) == 2
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) == 2 && warehouse(helper).available(STICK) == 2
                             && cpu.book().orders().stream().noneMatch(WorkOrder::open), 900,
                     () -> "two sticks at the terminal and two in storage, had " + terminal.outputCount(Items.STICK)
                             + " and " + warehouse(helper).available(STICK), () -> {
@@ -972,7 +968,7 @@ public final class CraftingCpuGameTests {
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(STICK, 8);
             CpuBlockEntity cpu = cpu(helper, CPU_A);
-            TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 8, 1300,
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) == 8, 1300,
                     () -> "eight sticks should reach the terminal, had " + terminal.outputCount(Items.STICK), () -> {
                         helper.assertTrue(seen[0] > 0, "the planks should pass through storage");
                         helper.assertTrue(seen[1] == 0, "no stick should be in the warehouse, saw " + seen[1]);

@@ -94,9 +94,7 @@ public final class ControllerWirelessGameTests {
     }
 
     private static WarehouseControllerBlockEntity controller(GameTestHelper helper, BlockPos pos, UUID team) {
-        helper.setBlock(pos, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, pos);
+        WarehouseFixtures.controller(helper, pos);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(pos, WarehouseControllerBlockEntity.class);
         controller.setTeam(team);
         return controller;
@@ -109,10 +107,10 @@ public final class ControllerWirelessGameTests {
     /** A rack north of the controller's first rail and, unless left out, a garage with one shuttle north of the second. */
     private static HeavyRackBlockEntity rackAndGarage(GameTestHelper helper, BlockPos controller, boolean garage) {
         BlockPos rack = new BlockPos(3, controller.getY(), controller.getZ() - 1);
-        helper.setBlock(rack, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.SOUTH));
+        WarehouseFixtures.rack(helper, rack, Direction.SOUTH);
         if (garage) {
             BlockPos at = rack.east();
-            helper.setBlock(at, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+            WarehouseFixtures.garage(helper, at, Direction.NORTH, 0);
             helper.assertTrue(helper.getBlockEntity(at, ShuttleGarageBlockEntity.class).addShuttle(), "the garage takes a shuttle");
         }
         return helper.getBlockEntity(rack, HeavyRackBlockEntity.class);
@@ -123,7 +121,7 @@ public final class ControllerWirelessGameTests {
         for (int x = 3; x <= 4; x++) {
             BlockPos rail = new BlockPos(x, controller.getY(), controller.getZ());
             helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
-            TerminalWiring.rail(helper, rail);
+            WarehouseFixtures.rail(helper, rail);
         }
     }
 
@@ -142,7 +140,7 @@ public final class ControllerWirelessGameTests {
         WarehouseControllerBlockEntity b = controller(helper, B_CONTROLLER, team);
         rails(helper, B_CONTROLLER);
         HeavyRackBlockEntity rackB = rackAndGarage(helper, B_CONTROLLER, outpostGarage);
-        MiniWarehouse.put(rackB, new ItemStack(Items.IRON_INGOT, 32));
+        WarehouseFixtures.put(rackB, new ItemStack(Items.IRON_INGOT, 32));
         if (outpostPacking) {
             helper.setBlock(B_PACKING, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         }
@@ -158,7 +156,7 @@ public final class ControllerWirelessGameTests {
     }
 
     private static int count(HeavyRackBlockEntity rack, Item item) {
-        return MiniWarehouse.count(rack, item);
+        return WarehouseFixtures.count(rack, item);
     }
 
     private static String key(GameTestHelper helper, BlockPos controller) {
@@ -186,7 +184,7 @@ public final class ControllerWirelessGameTests {
     /** Waits until the outpost is indexed and listed as able to trade, then runs {@code then}. */
     private static void listed(GameTestHelper helper, Sites sites, Runnable then) {
         String outpost = key(helper, B_CONTROLLER);
-        TerminalWiring.when(helper, () -> indexed(sites) && row(helper, outpost).filter(SiteRow::trade).isPresent(), 60,
+        Waits.when(helper, () -> indexed(sites) && row(helper, outpost).filter(SiteRow::trade).isPresent(), 60,
                 () -> "the outpost is listed, had " + row(helper, outpost), then);
     }
 
@@ -225,7 +223,7 @@ public final class ControllerWirelessGameTests {
         BlockState state = helper.getLevel().getBlockState(absolute);
         helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
         helper.assertTrue(energyAt(helper, controllerPos, Direction.WEST) != null, "the controller offers an energy handler");
-        TerminalWiring.when(helper, () -> controller.energyStored() > 0, 180,
+        Waits.when(helper, () -> controller.energyStored() > 0, 180,
                 () -> "the controller's FE rises, has " + controller.energyStored(), () -> {
             helper.assertTrue(duct.hasArm(Line.ENERGY, Direction.EAST), "the duct shows a power arm toward the controller");
             helper.assertTrue(controller.energy().capacity() == StorageStatsManager.INSTANCE.controllerEnergyCapacity(),
@@ -297,13 +295,13 @@ public final class ControllerWirelessGameTests {
     @ServusGameTest(timeoutTicks = 600)
     public static void transferMovesItemsAndCostsReceiverFe(GameTestHelper helper) {
         Sites sites = sites(helper);
-        TerminalWiring.when(helper, () -> indexed(sites), 40, () -> "the outpost indexes its rack", () -> {
+        Waits.when(helper, () -> indexed(sites), 40, () -> "the outpost indexes its rack", () -> {
             WarehouseNetwork outpost = sites.b().network().orElseThrow();
             WarehouseNetwork.Shipping shipping = outpost.shipWireless(helper.absolutePos(A_PACKING), key(helper, A_CONTROLLER), iron(), 10, 0);
             helper.assertTrue(shipping.shipped(), "the outpost ships, refusal " + shipping.refusal());
             helper.assertTrue(shipping.packingStation().equals(helper.absolutePos(B_PACKING)), "it ships through the outpost's Packing Station");
             long id = shipping.shipment().orElseThrow().id();
-            TerminalWiring.when(helper, () -> count(sites.rackA(), Items.IRON_INGOT) == 10, 440,
+            Waits.when(helper, () -> count(sites.rackA(), Items.IRON_INGOT) == 10, 440,
                     () -> "10 iron arrive in the base rack, had " + count(sites.rackA(), Items.IRON_INGOT), () -> {
                 helper.assertTrue(count(sites.rackB(), Items.IRON_INGOT) == 22, "22 iron are left at the outpost");
                 helper.assertTrue(sites.a().energyStored() == 1000 - 10 * COST, "the base paid 50 FE, has " + sites.a().energyStored());
@@ -331,7 +329,7 @@ public final class ControllerWirelessGameTests {
             StockSyncPayload after = menu.stock();
             helper.assertTrue(after.message().isEmpty(), "the transfer is made, message " + after.message());
             helper.assertTrue(after.requests().size() == 1 && after.requests().get(0).requested() == 20, "the transfer is listed");
-            TerminalWiring.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 20 && terminal(helper).requests().isEmpty(), 540,
+            Waits.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 20 && terminal(helper).requests().isEmpty(), 540,
                     () -> "20 iron arrive in the output slots and the transfer leaves the list, had "
                             + terminal(helper).outputCount(Items.IRON_INGOT) + " and " + terminal(helper).requests().size() + " requests", () -> {
                 helper.assertTrue(count(sites.rackA(), Items.IRON_INGOT) == 0, "nothing is put away at the base");
@@ -345,7 +343,7 @@ public final class ControllerWirelessGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void transferWithoutShuttleRefused(GameTestHelper helper) {
         Sites sites = sites(helper, false, true);
-        TerminalWiring.when(helper, () -> indexed(sites), 40, () -> "the outpost indexes its rack", () -> {
+        Waits.when(helper, () -> indexed(sites), 40, () -> "the outpost indexes its rack", () -> {
             WarehouseNetwork.Shipping shipping = sites.b().network().orElseThrow()
                     .shipWireless(helper.absolutePos(A_PACKING), key(helper, A_CONTROLLER), iron(), 8, 0);
             helper.assertTrue(!shipping.shipped() && shipping.refusal().equals("needs_shuttle"), "refused for a shuttle, was " + shipping.refusal());
@@ -386,7 +384,7 @@ public final class ControllerWirelessGameTests {
         Sites sites = sites(helper);
         sites.b().setEnergy(0);
         String outpost = key(helper, B_CONTROLLER);
-        TerminalWiring.when(helper, () -> indexed(sites) && row(helper, outpost).filter(row -> !row.trade()).isPresent(), 60,
+        Waits.when(helper, () -> indexed(sites) && row(helper, outpost).filter(row -> !row.trade()).isPresent(), 60,
                 () -> "the outpost is listed as unable to trade, had " + row(helper, outpost), () -> {
             ServerLevel level = helper.getLevel();
             String there = RemoteTransfers.request(level, terminal(helper), outpost, iron(), 8);
@@ -434,7 +432,7 @@ public final class ControllerWirelessGameTests {
             menu.selectSite(key(helper, B_CONTROLLER));
             menu.request(iron(), 24);
             helper.assertTrue(menu.stock().message().isEmpty(), "the transfer is made, was " + menu.stock().message());
-            TerminalWiring.when(helper, () -> delivered(helper, terminal(helper)) > 0, 440, () -> "the first iron arrives", () -> {
+            Waits.when(helper, () -> delivered(helper, terminal(helper)) > 0, 440, () -> "the first iron arrives", () -> {
                 sites.a().setEnergy(0);
                 int stopped = delivered(helper, terminal(helper));
                 helper.runAfterDelay(30, () -> {
@@ -442,7 +440,7 @@ public final class ControllerWirelessGameTests {
                     List<RequestRow> rows = menu.stock().requests();
                     helper.assertTrue(rows.size() == 1 && rows.get(0).state().equals("NO_POWER"), "the transfer waits for power, was " + rows);
                     sites.a().setEnergy(10000);
-                    TerminalWiring.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 24 && terminal(helper).requests().isEmpty(), 540,
+                    Waits.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 24 && terminal(helper).requests().isEmpty(), 540,
                             () -> "with FE the rest arrives, had " + terminal(helper).outputCount(Items.IRON_INGOT), helper::succeed);
                 });
             });
@@ -460,7 +458,7 @@ public final class ControllerWirelessGameTests {
             menu.selectSite(key(helper, B_CONTROLLER));
             menu.request(iron(), 24);
             helper.assertTrue(menu.stock().message().isEmpty(), "the transfer is made, was " + menu.stock().message());
-            TerminalWiring.when(helper, () -> delivered(helper, terminal(helper)) > 0, 440, () -> "the first iron arrives", () -> {
+            Waits.when(helper, () -> delivered(helper, terminal(helper)) > 0, 440, () -> "the first iron arrives", () -> {
                 ItemStack taken = sites.b().wirelessUpgrade().extractItem(0, 1, false);
                 helper.assertTrue(!taken.isEmpty(), "the upgrade comes out");
                 int stopped = delivered(helper, terminal(helper));
@@ -469,7 +467,7 @@ public final class ControllerWirelessGameTests {
                     List<RequestRow> rows = menu.stock().requests();
                     helper.assertTrue(rows.size() == 1 && rows.get(0).state().equals("NO_POWER"), "the transfer waits, was " + rows);
                     upgrade(sites.b());
-                    TerminalWiring.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 24 && terminal(helper).requests().isEmpty(), 540,
+                    Waits.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 24 && terminal(helper).requests().isEmpty(), 540,
                             () -> "with the upgrade back the rest arrives, had " + terminal(helper).outputCount(Items.IRON_INGOT), helper::succeed);
                 });
             });
@@ -554,7 +552,7 @@ public final class ControllerWirelessGameTests {
                 1, Map.of(ItemKey.of(new ItemStack(Items.COAL)), 12L), true, true, true, 100000);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         String key = SiteRecord.key(level.dimension(), camp);
-        TerminalWiring.when(helper, () -> row(helper, key).isPresent(), 60, () -> "the camp is listed", () -> {
+        Waits.when(helper, () -> row(helper, key).isPresent(), 60, () -> "the camp is listed", () -> {
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal(helper));
             menu.selectSite(key);
             menu.request(ItemKey.of(new ItemStack(Items.COAL)), 6);
@@ -565,7 +563,7 @@ public final class ControllerWirelessGameTests {
             helper.assertTrue(SiteWakes.isAwake(level.dimension(), camp), "the camp is woken for it");
             menu.cancel(rows.get(0).id());
             helper.assertTrue(terminal(helper).requests().isEmpty(), "the transfer is cancelled");
-            TerminalWiring.when(helper, () -> SiteWakes.status(level.dimension(), camp).isEmpty(), 80,
+            Waits.when(helper, () -> SiteWakes.status(level.dimension(), camp).isEmpty(), 80,
                     () -> "the camp sleeps again after the grace, was " + SiteWakes.status(level.dimension(), camp), () -> {
                 SiteRegistry.of(level).remove(level.dimension(), camp);
                 helper.succeed();
@@ -582,7 +580,7 @@ public final class ControllerWirelessGameTests {
         // The second station reaches the terminal by data line too.
         TerminalWiring.dataDuct(helper, A_SECOND.above());
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        TerminalWiring.when(helper, () -> indexed(sites) && row(helper, key(helper, B_CONTROLLER)).filter(SiteRow::trade).isPresent()
+        Waits.when(helper, () -> indexed(sites) && row(helper, key(helper, B_CONTROLLER)).filter(SiteRow::trade).isPresent()
                 && sites.a().network().map(network -> network.packingStations().size() == 2).orElse(false), 60,
                 () -> "the outpost is listed and the base has two Packing Stations", () -> {
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal(helper));
@@ -592,7 +590,7 @@ public final class ControllerWirelessGameTests {
             PackingStationBlockEntity sender = helper.getBlockEntity(B_PACKING, PackingStationBlockEntity.class);
             List<BlockPos> targets = sender.shipments().stream().map(PackingStationBlockEntity.Shipment::target).distinct().toList();
             helper.assertTrue(sender.shipments().size() == 2 && targets.size() == 2, "each base station receives one transfer, targets " + targets);
-            TerminalWiring.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 16 && terminal(helper).requests().isEmpty(), 780,
+            Waits.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 16 && terminal(helper).requests().isEmpty(), 780,
                     () -> "16 iron arrive in the output slots, had " + terminal(helper).outputCount(Items.IRON_INGOT), () -> {
                 helper.assertTrue(count(sites.rackA(), Items.IRON_INGOT) == 0, "nothing is put away at the base");
                 helper.succeed();
@@ -616,7 +614,7 @@ public final class ControllerWirelessGameTests {
             menu.request(iron(), 16);
             helper.assertTrue(menu.stock().message().isEmpty(), "the transfer is made, was " + menu.stock().message());
             // The outpost sent everything: only the relay of the base's Packing Station is left.
-            TerminalWiring.when(helper, () -> terminal(helper).requests().size() == 1 && terminal(helper).requests().get(0).shipments.isEmpty()
+            Waits.when(helper, () -> terminal(helper).requests().size() == 1 && terminal(helper).requests().get(0).shipments.isEmpty()
                             && terminal(helper).requests().get(0).relay != null, 540,
                     () -> "the outpost sent all 16 iron to the base's Packing Station", () -> {
                 helper.runAfterDelay(20, () -> {
@@ -627,7 +625,7 @@ public final class ControllerWirelessGameTests {
                     for (int slot = 0; slot < terminal(helper).output().getSlots(); slot++) {
                         terminal(helper).output().setStackInSlot(slot, ItemStack.EMPTY);
                     }
-                    TerminalWiring.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 16 && terminal(helper).requests().isEmpty(), 300,
+                    Waits.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 16 && terminal(helper).requests().isEmpty(), 300,
                             () -> "with room the iron moves on, had " + terminal(helper).outputCount(Items.IRON_INGOT), () -> {
                         helper.assertTrue(count(sites.rackA(), Items.IRON_INGOT) == 0, "still nothing is put away at the base");
                         helper.succeed();
@@ -643,14 +641,14 @@ public final class ControllerWirelessGameTests {
         Sites sites = sites(helper);
         ServerLevel level = helper.getLevel();
         String outpost = key(helper, B_CONTROLLER);
-        TerminalWiring.when(helper, () -> SiteRegistry.of(level).site(outpost).filter(site -> site.canTrade() && site.hasPacking()).isPresent(), 40,
+        Waits.when(helper, () -> SiteRegistry.of(level).site(outpost).filter(site -> site.canTrade() && site.hasPacking()).isPresent(), 40,
                 () -> "the record says the outpost trades and has a Packing Station", () -> {
             sites.b().setEnergy(0);
-            TerminalWiring.when(helper, () -> SiteRegistry.of(level).site(outpost).filter(site -> site.hasUpgrade() && !site.powered()).isPresent(), 20,
+            Waits.when(helper, () -> SiteRegistry.of(level).site(outpost).filter(site -> site.hasUpgrade() && !site.powered()).isPresent(), 20,
                     () -> "the record learns the lost power", () -> {
                 helper.setBlock(B_PACKING, Blocks.AIR.defaultBlockState());
                 sites.b().wirelessUpgrade().extractItem(0, 1, false);
-                TerminalWiring.when(helper, () -> SiteRegistry.of(level).site(outpost)
+                Waits.when(helper, () -> SiteRegistry.of(level).site(outpost)
                                 .filter(site -> !site.hasPacking() && !site.hasUpgrade() && !site.powered()).isPresent(), 20,
                         () -> "the record learns the lost Packing Station and upgrade", () -> {
                     SiteRecord record = SiteRegistry.of(level).site(outpost).orElseThrow();

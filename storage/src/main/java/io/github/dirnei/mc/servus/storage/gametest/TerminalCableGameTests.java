@@ -39,15 +39,13 @@ public final class TerminalCableGameTests {
      * shuttle.
      */
     private static HeavyRackBlockEntity warehouse(GameTestHelper helper, BlockPos controller, Item item, int count) {
-        helper.setBlock(controller, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        PowerFixtures.fill(helper, controller);
+        WarehouseFixtures.controller(helper, controller);
         BlockPos rail = controller.below();
-        TerminalWiring.rail(helper, rail);
-        TerminalWiring.rail(helper, rail.east());
-        helper.setBlock(rail.west(), ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.EAST));
-        MiniWarehouse.stock(helper, rail.west(), new ItemStack(item, count));
-        helper.setBlock(rail.north(), ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.rail(helper, rail);
+        WarehouseFixtures.rail(helper, rail.east());
+        WarehouseFixtures.rack(helper, rail.west(), Direction.EAST);
+        WarehouseFixtures.stock(helper, rail.west(), new ItemStack(item, count));
+        WarehouseFixtures.garage(helper, rail.north(), Direction.NORTH, 0);
         helper.assertTrue(helper.getBlockEntity(rail.north(), ShuttleGarageBlockEntity.class).addShuttle(), "the garage takes a shuttle");
         return helper.getBlockEntity(rail.west(), HeavyRackBlockEntity.class);
     }
@@ -80,13 +78,13 @@ public final class TerminalCableGameTests {
         StorageTerminalBlockEntity terminal = terminal(helper, terminalPos);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
-        TerminalWiring.when(helper, () -> helper.getBlockState(terminalPos).getValue(StorageNodeBlocks.ONLINE), 60,
+        Waits.when(helper, () -> helper.getBlockState(terminalPos).getValue(StorageNodeBlocks.ONLINE), 60,
                 () -> "the terminal lamp should light once a warehouse is reachable", () -> {
             helper.assertTrue(stockOf(menu, Items.OAK_PLANKS) == 20, "the terminal lists 20 planks");
             menu.request(ItemKey.of(new ItemStack(Items.OAK_PLANKS)), 20);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request goes through, got " + menu.stock().message());
             boolean[] sawSending = {false};
-            TerminalWiring.when(helper, () -> {
+            Waits.when(helper, () -> {
                 if (!menu.stock().requests().isEmpty() && menu.stock().requests().get(0).state().equals("SENDING")) {
                     sawSending[0] = true;
                 }
@@ -132,15 +130,15 @@ public final class TerminalCableGameTests {
         StorageTerminalBlockEntity terminal = terminal(helper, new BlockPos(5, 1, 4));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
-        TerminalWiring.when(helper, () -> stockOf(menu, Items.COBBLESTONE) == 50, 60,
+        Waits.when(helper, () -> stockOf(menu, Items.COBBLESTONE) == 50, 60,
                 () -> "the terminal should list 50 cobblestone from both warehouses, had " + stockOf(menu, Items.COBBLESTONE), () -> {
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 40);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request goes through, got " + menu.stock().message());
-            TerminalWiring.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 40 && menu.stock().requests().isEmpty(), 360,
+            Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 40 && menu.stock().requests().isEmpty(), 360,
                     () -> "40 cobblestone should arrive, had " + terminal.outputCount(Items.COBBLESTONE) + ", rows " + menu.stock().requests(), () -> {
-                int left = MiniWarehouse.count(second, Items.COBBLESTONE);
+                int left = WarehouseFixtures.count(second, Items.COBBLESTONE);
                 helper.assertTrue(first.isEmpty() && left == 10,
-                        "30 come from the fuller warehouse and 10 from the other, left " + MiniWarehouse.count(first, Items.COBBLESTONE) + " and " + left);
+                        "30 come from the fuller warehouse and 10 from the other, left " + WarehouseFixtures.count(first, Items.COBBLESTONE) + " and " + left);
                 helper.succeed();
             });
         });
@@ -156,13 +154,13 @@ public final class TerminalCableGameTests {
         StorageTerminalBlockEntity terminal = terminal(helper, new BlockPos(5, 1, 3));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
-        TerminalWiring.when(helper, () -> stockOf(menu, Items.COBBLESTONE) == 64, 60, () -> "the warehouse should be reachable", () -> {
+        Waits.when(helper, () -> stockOf(menu, Items.COBBLESTONE) == 64, 60, () -> "the warehouse should be reachable", () -> {
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 64);
             int id = menu.stock().requests().get(0).id();
             menu.cancel(id);
             helper.assertTrue(menu.stock().requests().isEmpty(), "the cancelled request leaves the list");
-            TerminalWiring.when(helper, () -> MiniWarehouse.count(rack, Items.COBBLESTONE) == 64, 400,
-                    () -> "the cobblestone should end back in the rack, rack has " + MiniWarehouse.count(rack, Items.COBBLESTONE)
+            Waits.when(helper, () -> WarehouseFixtures.count(rack, Items.COBBLESTONE) == 64, 400,
+                    () -> "the cobblestone should end back in the rack, rack has " + WarehouseFixtures.count(rack, Items.COBBLESTONE)
                             + ", output " + terminal.outputCount(Items.COBBLESTONE), () -> {
                 helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 0, "nothing reached the terminal");
                 helper.succeed();
@@ -192,7 +190,7 @@ public final class TerminalCableGameTests {
         StorageTerminalBlockEntity terminal = terminal(helper, new BlockPos(4, 1, 3));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
-        TerminalWiring.when(helper, () -> stockOf(menu, Items.COBBLESTONE) == 10, 60,
+        Waits.when(helper, () -> stockOf(menu, Items.COBBLESTONE) == 10, 60,
                 () -> "the controller on the line should make the stock visible", () -> {
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 5);
             helper.assertTrue(menu.stock().message().equals("no_packing_station"), "the request is refused, got " + menu.stock().message());
