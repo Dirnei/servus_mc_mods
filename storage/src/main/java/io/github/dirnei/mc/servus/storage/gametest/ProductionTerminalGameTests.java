@@ -5,7 +5,6 @@ import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
@@ -84,10 +83,6 @@ public final class ProductionTerminalGameTests {
         return DataLines.at(helper, new BlockPos(5, 2, 2));
     }
 
-    private static CpuBlockEntity cpu(GameTestHelper helper) {
-        return CpuBlock.master(helper.getLevel(), helper.absolutePos(CPU));
-    }
-
     private static final ItemKey PLANKS = ItemKey.of(new ItemStack(Items.OAK_PLANKS));
     private static final ItemKey IRON = ItemKey.of(new ItemStack(Items.IRON_INGOT));
 
@@ -106,7 +101,7 @@ public final class ProductionTerminalGameTests {
         CpuBuild.box(helper, CPU, 3, 2, 2, offset -> !cpus.contains(offset));
         CpuBuild.formed(helper, CPU);
         Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
-            CpuBlockEntity cpu = cpu(helper);
+            CpuBlockEntity cpu = CpuBuild.cpu(helper, CPU);
             int first = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0).created().order().id();
             int second = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0).created().order().id();
             buffer(cpu, 1, first, PLANKS, 4);
@@ -131,7 +126,7 @@ public final class ProductionTerminalGameTests {
         patterns.set(1, StationJobs.planks());
         patterns.set(2, StationJobs.craftingTable());
         Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
-            CpuBlockEntity cpu = cpu(helper);
+            CpuBlockEntity cpu = CpuBuild.cpu(helper, CPU);
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), ItemKey.of(new ItemStack(Items.CRAFTING_TABLE)), 1, 0);
             helper.assertTrue(placed.made() && placed.created().order().steps().size() == 2, "a planks and a table step, refused " + placed.refusal());
             buffer(cpu, 1, placed.created().order().id(), PLANKS, 4);
@@ -224,7 +219,7 @@ public final class ProductionTerminalGameTests {
             ProductionPayload view = view(helper, TERMINAL);
             helper.assertTrue(view.online() && view.cpus().size() == 1, "one CPU row, got " + view.cpus());
             CpuRow row = view.cpus().get(0);
-            helper.assertTrue(row.cpu().equals(cpu(helper).getBlockPos()) && row.slots() == 2 && row.inUse() == 1 && row.waiting() == 0,
+            helper.assertTrue(row.cpu().equals(CpuBuild.cpu(helper, CPU).getBlockPos()) && row.slots() == 2 && row.inUse() == 1 && row.waiting() == 0,
                     "1 of 2 slots, 0 waiting, got " + row);
             helper.assertTrue(view.jobs().size() == 1, "one job, got " + view.jobs());
             JobRow job = view.jobs().get(0);
@@ -315,7 +310,7 @@ public final class ProductionTerminalGameTests {
             ProductionTerminalMenu menu = new ProductionTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.cancel(placed.cpu(), order.id()), "the cancel should go through");
             helper.assertTrue(order.state() == WorkOrder.State.CANCELLED, "the order should be cancelled, got " + order.state());
-            helper.assertTrue(cpu(helper).book().reservedTotal().isEmpty(), "reservations released, got " + cpu(helper).book().reservedTotal());
+            helper.assertTrue(CpuBuild.cpu(helper, CPU).book().reservedTotal().isEmpty(), "reservations released, got " + CpuBuild.cpu(helper, CPU).book().reservedTotal());
             helper.succeed();
         });
     }

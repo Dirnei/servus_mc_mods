@@ -120,7 +120,7 @@ public final class TerminalSpeedGameTests {
             try {
                 menu.setSynchronizer(QUIET);
             } catch (RuntimeException refused) {
-                // As above.
+                // The mock connection negotiated no Servus payloads; the send was attempted, which is what counts.
             }
             helper.assertTrue(menu.firstSyncTick() == now, "the content should go out on open, sent at " + menu.firstSyncTick() + " opened " + now);
             helper.succeed();

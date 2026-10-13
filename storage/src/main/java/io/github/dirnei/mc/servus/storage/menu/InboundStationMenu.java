@@ -6,12 +6,10 @@ import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.station.StationStatePayload;
-import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -117,17 +115,8 @@ public class InboundStationMenu extends AbstractContainerMenu {
     /** The station's state as the client should see it. */
     public StationStatePayload state() {
         String blockedReason = station.blockedReason() == null ? "" : station.blockedReason().name();
-        String offline = offlineReason(station.network());
+        String offline = station.offlineReason();
         return new StationStatePayload(offline.isEmpty(), offline, blockedReason, station.blockedStack().copy(), station.blockedZone(),
                 station.isEmpty());
-    }
-
-    /** The lang key suffix for a station without a working warehouse, empty while it is online. */
-    static String offlineReason(Optional<WarehouseNetwork> network) {
-        return network.isEmpty() ? "not_connected" : switch (network.get().status()) {
-            case NO_CONTROLLER -> "no_controller";
-            case MULTIPLE_CONTROLLERS -> "multiple_controllers";
-            case ONLINE -> "";
-        };
     }
 }

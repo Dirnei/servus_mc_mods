@@ -12,6 +12,8 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
+import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -106,6 +108,16 @@ public abstract class StationBlockEntity extends StorageNodeBlockEntity implemen
             }
         }
         return count;
+    }
+
+    /** The lang key suffix for a station without a working warehouse, empty while it is online. */
+    public String offlineReason() {
+        Optional<WarehouseNetwork> network = network();
+        return network.isEmpty() ? "not_connected" : switch (network.get().status()) {
+            case NO_CONTROLLER -> "no_controller";
+            case MULTIPLE_CONTROLLERS -> "multiple_controllers";
+            case ONLINE -> "";
+        };
     }
 
     /** Sets the activity lamp when it shows something else. Server side. */

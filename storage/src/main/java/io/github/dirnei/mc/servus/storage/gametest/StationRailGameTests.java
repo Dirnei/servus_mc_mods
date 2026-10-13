@@ -26,11 +26,6 @@ public final class StationRailGameTests {
     private StationRailGameTests() {
     }
 
-    private static WarehouseControllerBlockEntity controller(GameTestHelper helper) {
-        WarehouseFixtures.controller(helper, CONTROLLER);
-        return helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
-    }
-
     private static boolean sameWarehouse(GameTestHelper helper, WarehouseControllerBlockEntity controller, BlockPos pos) {
         StorageNodeBlockEntity node = helper.getBlockEntity(pos, StorageNodeBlockEntity.class);
         return node.network().isPresent() && node.network().equals(controller.network());
@@ -67,7 +62,7 @@ public final class StationRailGameTests {
     /** A rack touching only a rail linked station does not join through it. */
     @ServusGameTest(timeoutTicks = 100)
     public static void rackBesideStationNotLinked(GameTestHelper helper) {
-        WarehouseControllerBlockEntity controller = controller(helper);
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, CONTROLLER);
         WarehouseFixtures.inbound(helper, STATION, Direction.NORTH);
         TerminalWiring.railUnder(helper, STATION);
         BlockPos beyond = STATION.east();
@@ -84,7 +79,7 @@ public final class StationRailGameTests {
     /** Packing Station, Outbound Station and Shuttle Garage pressed against the controller stay out without a rail. */
     @ServusGameTest(timeoutTicks = 100)
     public static void shuttleBlocksNeedARail(GameTestHelper helper) {
-        WarehouseControllerBlockEntity controller = controller(helper);
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, CONTROLLER);
         BlockPos access = CONTROLLER.east();
         BlockPos outbound = CONTROLLER.west();
         BlockPos garage = CONTROLLER.south();

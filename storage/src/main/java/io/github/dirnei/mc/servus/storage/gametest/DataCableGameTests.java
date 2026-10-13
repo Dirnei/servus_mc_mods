@@ -75,10 +75,6 @@ public final class DataCableGameTests {
         return station;
     }
 
-    private static void controller(GameTestHelper helper, BlockPos pos) {
-        WarehouseFixtures.controller(helper, pos);
-    }
-
     /** Three data ducts in a row form one network and show data arms toward each other. */
     @ServusGameTest(timeoutTicks = 40)
     public static void dataCableRowIsOneNetwork(GameTestHelper helper) {
@@ -127,7 +123,7 @@ public final class DataCableGameTests {
     @ServusGameTest(timeoutTicks = 40)
     public static void dataCableFindsStationAndController(GameTestHelper helper) {
         sticksStation(helper, WEST_END);
-        controller(helper, EAST_END);
+        WarehouseFixtures.controller(helper, EAST_END);
         dataRow(helper);
         helper.runAfterDelay(2, () -> {
             DataNetwork network = requireNetwork(helper, B);
@@ -177,7 +173,7 @@ public final class DataCableGameTests {
     /** Two ducts of one network touching the same controller count it once. */
     @ServusGameTest(timeoutTicks = 40)
     public static void dataCableTouchedTwiceCountsOnce(GameTestHelper helper) {
-        controller(helper, B);
+        WarehouseFixtures.controller(helper, B);
         data(helper, A);
         data(helper, ABOVE_B);
         data(helper, A.above());
@@ -192,7 +188,7 @@ public final class DataCableGameTests {
     /** Turning a data side off drops the member there and splits the link to the next duct. */
     @ServusGameTest(timeoutTicks = 60)
     public static void dataCableSideOff(GameTestHelper helper) {
-        controller(helper, EAST_END);
+        WarehouseFixtures.controller(helper, EAST_END);
         dataRow(helper);
         helper.runAfterDelay(2, () -> {
             helper.assertTrue(requireNetwork(helper, A).dataMembers().size() == 1, "the controller starts as a member");
@@ -214,7 +210,7 @@ public final class DataCableGameTests {
     @ServusGameTest(timeoutTicks = 40)
     public static void dataCableSummaryCounts(GameTestHelper helper) {
         sticksStation(helper, WEST_END);
-        controller(helper, EAST_END);
+        WarehouseFixtures.controller(helper, EAST_END);
         dataRow(helper);
         helper.runAfterDelay(2, () -> {
             Component summary = DataSummary.of(requireNetwork(helper, B));
@@ -233,7 +229,7 @@ public final class DataCableGameTests {
         WarehouseFixtures.rack(helper, rackPos, Direction.EAST);
         WarehouseFixtures.stock(helper, rackPos, new ItemStack(Items.OAK_PLANKS, 32));
         HeavyRackBlockEntity planks = helper.getBlockEntity(rackPos, HeavyRackBlockEntity.class);
-        controller(helper, EAST_END);
+        WarehouseFixtures.controller(helper, EAST_END);
         CraftingStationBlockEntity station = sticksStation(helper, WEST_END);
         dataRow(helper);
         helper.runAfterDelay(100, () -> {
@@ -249,7 +245,7 @@ public final class DataCableGameTests {
     /** The query finds the network from a member position and nothing at a stone block. */
     @ServusGameTest(timeoutTicks = 40)
     public static void dataNetworksAtMemberAndStone(GameTestHelper helper) {
-        controller(helper, EAST_END);
+        WarehouseFixtures.controller(helper, EAST_END);
         dataRow(helper);
         helper.setBlock(ABOVE_B.above(), Blocks.STONE.defaultBlockState());
         helper.runAfterDelay(2, () -> {

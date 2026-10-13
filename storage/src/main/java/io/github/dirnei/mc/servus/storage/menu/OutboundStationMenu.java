@@ -146,7 +146,7 @@ public class OutboundStationMenu extends AbstractContainerMenu {
 
     /** The station's state as the client should see it: the shortage rides in the blocked fields. */
     public StationStatePayload state() {
-        String offline = InboundStationMenu.offlineReason(station.network());
+        String offline = station.offlineReason();
         return new StationStatePayload(offline.isEmpty(), offline, station.shortReason(), station.shortStack().copy(), "", station.isEmpty());
     }
 }

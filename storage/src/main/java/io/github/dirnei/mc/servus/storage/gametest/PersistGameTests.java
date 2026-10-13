@@ -1,7 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -53,10 +52,6 @@ public final class PersistGameTests {
         ItemKey planks = ItemKey.of(new ItemStack(Items.OAK_PLANKS));
         return TerminalWarehouses.reachable(helper.getLevel(), helper.absolutePos(TerminalWiring.terminalPos(ACCESS))).stream()
                 .anyMatch(warehouse -> warehouse.available(planks) >= 8);
-    }
-
-    private static CpuBlockEntity cpu(GameTestHelper helper) {
-        return CpuBlock.master(helper.getLevel(), helper.absolutePos(CPU));
     }
 
     private static CraftingStationBlockEntity station(GameTestHelper helper, BlockPos pos) {
@@ -117,7 +112,7 @@ public final class PersistGameTests {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
             String refusal = TerminalRequests.craft(helper.getLevel(), terminal, STICK, 4);
             helper.assertTrue(refusal.isEmpty(), "the craft should start, refused " + refusal);
-            int orderId = cpu(helper).book().orders().get(0).id();
+            int orderId = CpuBuild.cpu(helper, CPU).book().orders().get(0).id();
             Waits.when(helper, () -> station(helper, STATION_A).working() || station(helper, STATION_B).working(), 200,
                     () -> "a station should get the job", () -> {
                 BlockPos busy = station(helper, STATION_A).working() ? STATION_A : STATION_B;
@@ -126,7 +121,7 @@ public final class PersistGameTests {
                 reload(helper, CPU);
                 reload(helper, STATION_A);
                 reload(helper, STATION_B);
-                WorkOrder order = cpu(helper).book().order(orderId);
+                WorkOrder order = CpuBuild.cpu(helper, CPU).book().order(orderId);
                 helper.assertTrue(order != null && order.open(), "the order should still be open after the reload");
                 helper.assertTrue(station(helper, busy).working() && station(helper, busy).jobLeft() == left,
                         "the station should keep its job with " + left + " crafts left");
@@ -139,7 +134,7 @@ public final class PersistGameTests {
     }
 
     private static String describe(GameTestHelper helper, int orderId) {
-        WorkOrder order = cpu(helper).book().order(orderId);
+        WorkOrder order = CpuBuild.cpu(helper, CPU).book().order(orderId);
         return order == null ? "gone" : order.state() + " " + order.reason() + " " + order.steps().get(0).state();
     }
 

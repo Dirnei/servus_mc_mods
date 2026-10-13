@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
-/** The inbound dock of a warehouse. Right click opens its GUI; the carrot turns or dismantles it. */
+/** The inbound dock of a warehouse. Right click opens its GUI; the carrot cycles the clicked side or dismantles it. */
 public class InboundStationBlock extends StationBlock {
 
     public static final MapCodec<InboundStationBlock> CODEC = simpleCodec(InboundStationBlock::new);

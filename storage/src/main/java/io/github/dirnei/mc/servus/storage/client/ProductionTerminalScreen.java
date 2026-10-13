@@ -67,6 +67,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private static final int COLOUR_TEAL = 0xFF2E8B7A;
     private static final int COLOUR_AMBER = 0xFFE0A030;
     private static final int HOVER_SHADE = 0x20000000;
+    private static final int PATTERN_HOVER_SHADE = 0x30000000;
 
     /** Draws one line at its top edge. */
     private interface Painter {
@@ -584,7 +585,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
                 row.result().getHoverName(), CraftingGrid.stacks(row.inputs()));
         Painter painter = (graphics, y, hovered) -> {
             if (hovered) {
-                graphics.fill(MARGIN, y, WIDTH - MARGIN, y + PATTERN_ROW, 0x30000000);
+                graphics.fill(MARGIN, y, WIDTH - MARGIN, y + PATTERN_ROW, PATTERN_HOVER_SHADE);
             }
             graphics.item(row.result(), MARGIN + 4, y + 1);
             graphics.text(font, text, MARGIN + 24, y + 5, COLOUR_TEXT, false);

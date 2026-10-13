@@ -6,8 +6,6 @@ import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
-import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
-import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -67,10 +65,6 @@ public final class StationHandsGameTests {
 
     private static boolean ready(GameTestHelper helper) {
         return DataLines.ready(helper, new BlockPos(4, 2, 2), 2);
-    }
-
-    private static CpuBlockEntity cpu(GameTestHelper helper) {
-        return CpuBlock.master(helper.getLevel(), helper.absolutePos(CPU));
     }
 
     private static CraftingStationBlockEntity station(GameTestHelper helper, BlockPos pos) {
@@ -206,7 +200,7 @@ public final class StationHandsGameTests {
             CraftingStationBlockEntity station = station(helper, step.producer().equals(helper.absolutePos(STATION_A)) ? STATION_A : STATION_B);
             Waits.when(helper, () -> station.working() && station.inputs().getStackInSlot(0).is(Items.OAK_PLANKS), 300,
                     () -> "the station should get the job and the one plank", () -> {
-                cpu(helper).book().cancel(order.id());
+                CpuBuild.cpu(helper, CPU).book().cancel(order.id());
                 helper.assertTrue(station.job().isEmpty(), "cancel ends the job");
                 helper.assertTrue(station.inputs().getStackInSlot(0).is(Items.OAK_PLANKS), "the plank stays in the inputs");
                 helper.succeed();

@@ -527,12 +527,12 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             runningFor = shipment;
             shippingLevel = server;
             running.onEnd(delivery -> finished(shipment, delivery));
-            setActivity(true);
+            showSending(true);
             return;
         }
         returnOrphans();
         if (!sending()) {
-            setActivity(false);
+            showSending(false);
         }
     }
 
@@ -688,7 +688,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             wirelessTo = name;
             wirelessKey = shipment.key;
             sentAgo = 0;
-            setActivity(true);
+            showSending(true);
         }
         return true;
     }
@@ -814,7 +814,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     }
 
     /** Sets the lamp while the intake is empty: orange while packets or items leave, else green. */
-    protected void setActivity(boolean working) {
+    protected void showSending(boolean working) {
         if (level == null || level.isClientSide() || !isEmpty()) {
             return;
         }

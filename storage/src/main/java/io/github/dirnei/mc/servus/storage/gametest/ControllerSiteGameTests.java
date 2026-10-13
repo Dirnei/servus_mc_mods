@@ -52,17 +52,12 @@ public final class ControllerSiteGameTests {
         throw new IllegalStateException("no chunk border in the wide template");
     }
 
-    static WarehouseControllerBlockEntity controller(GameTestHelper helper, BlockPos pos) {
-        WarehouseFixtures.controller(helper, pos);
-        return helper.getBlockEntity(pos, WarehouseControllerBlockEntity.class);
-    }
-
     /**
      * Controller two blocks before the border, rails on both sides of it, a rack
      * just past it facing the last rail: the site spans the controller's chunk and the next one.
      */
     static WarehouseControllerBlockEntity acrossBorder(GameTestHelper helper, int border) {
-        WarehouseControllerBlockEntity controller = controller(helper, new BlockPos(border - 2, 1, ROW_Z));
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, new BlockPos(border - 2, 1, ROW_Z));
         WarehouseFixtures.railOnStone(helper, new BlockPos(border - 1, 1, ROW_Z));
         WarehouseFixtures.railOnStone(helper, new BlockPos(border, 1, ROW_Z));
         helper.setBlock(new BlockPos(border + 1, 1, ROW_Z), ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState()
@@ -90,7 +85,7 @@ public final class ControllerSiteGameTests {
     @ServusGameTest(template = WIDE, timeoutTicks = 200)
     public static void chestAcrossBorderCountsNothing(GameTestHelper helper) {
         int border = border(helper);
-        WarehouseControllerBlockEntity controller = controller(helper, new BlockPos(border - 1, 1, ROW_Z));
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, new BlockPos(border - 1, 1, ROW_Z));
         BlockPos chest = new BlockPos(border, 1, ROW_Z);
         helper.setBlock(chest, Blocks.CHEST.defaultBlockState());
         helper.getBlockEntity(chest, ChestBlockEntity.class).setItem(0, new ItemStack(Items.BREAD, 5));
@@ -127,7 +122,7 @@ public final class ControllerSiteGameTests {
     @ServusGameTest(template = WIDE, timeoutTicks = 40)
     public static void upgradeSlotsTakeOnlyAnchorUpgrades(GameTestHelper helper) {
         BlockPos at = new BlockPos(2, 1, ROW_Z);
-        WarehouseControllerBlockEntity controller = controller(helper, at);
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, at);
         ItemStack speed = new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get());
         helper.assertTrue(controller.upgrades().insertItem(0, speed, true).getCount() == 1, "a Speed Upgrade does not fit");
         ItemStack two = new ItemStack(MachineContent.ANCHOR_UPGRADE.get(), 2);
@@ -147,7 +142,7 @@ public final class ControllerSiteGameTests {
     public static void nameSavedAndCarriedByCarrot(GameTestHelper helper) {
         BlockPos at = new BlockPos(2, 1, ROW_Z);
         BlockPos again = new BlockPos(28, 1, ROW_Z);
-        WarehouseControllerBlockEntity controller = controller(helper, at);
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, at);
         controller.setSiteName("  North Mine ");
         controller.rules().set(new StockRule(ItemKey.of(new ItemStack(Items.STICK)), 8, 16));
         controller.upgrades().insertItem(0, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
@@ -164,7 +159,7 @@ public final class ControllerSiteGameTests {
                 .mapToInt(ItemStack::getCount).sum();
         helper.assertTrue(upgrades == 1, "the upgrade drops on its own, got " + upgrades);
 
-        WarehouseControllerBlockEntity placed = controller(helper, again);
+        WarehouseControllerBlockEntity placed = WarehouseFixtures.controller(helper, again);
         BlockItem.updateCustomBlockEntityTag(helper.getLevel(), player, helper.absolutePos(again), item);
         helper.getBlockState(again).getBlock().setPlacedBy(helper.getLevel(), helper.absolutePos(again), helper.getBlockState(again), player, item);
         helper.assertTrue(placed.siteName().equals("North Mine"), "the name travels, was '" + placed.siteName() + "'");
@@ -179,7 +174,7 @@ public final class ControllerSiteGameTests {
     @ServusGameTest(template = WIDE, timeoutTicks = 40)
     public static void menuRenamesAndCleans(GameTestHelper helper) {
         BlockPos at = new BlockPos(2, 1, ROW_Z);
-        WarehouseControllerBlockEntity controller = controller(helper, at);
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, at);
         BlockPos pos = helper.absolutePos(at);
         helper.assertTrue(controller.displayName().equals("Warehouse at " + pos.getX() + ", " + pos.getZ()), "an unnamed site shows its position");
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);

@@ -13,7 +13,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 
-/** NBT helpers for saving work orders, their steps and the CPU buffer. */
+/** NBT helpers for saving work orders, their steps, stock rules and the CPU buffer. */
 public final class Saving {
 
     private Saving() {
