@@ -56,10 +56,14 @@ final class MachineDataParts {
         provider.add("gui.servus_foundation.pump.source_missing", "Needs an infinite water source below");
         provider.add(MachineContent.ENDER_ANCHOR.get(), "Ender Anchor");
         provider.add("gui.servus_foundation.ender_anchor.no_power", "Inactive: no power");
-        provider.add("gui.servus_foundation.ender_anchor.active", "Active: chunk kept loaded");
+        provider.add("gui.servus_foundation.ender_anchor.active", "Active: area kept loaded");
         provider.add("gui.servus_foundation.ender_anchor.team_limit", "Inactive: team limit reached");
         provider.add("gui.servus_foundation.ender_anchor.ftb_chunks", "Inactive: use FTB Chunks");
         provider.add("gui.servus_foundation.ender_anchor.no_owner", "Inactive: no owner");
+        provider.add("gui.servus_foundation.ender_anchor.area", "Area: %s x %s");
+        provider.add("gui.servus_foundation.ender_anchor.team_load", "Team: %s / %s chunks");
+        provider.add("gui.servus_foundation.ender_anchor.show_range", "Show range");
+        provider.add("gui.servus_foundation.ender_anchor.show_range.tooltip", "Outline this anchor's area in the world, only for you");
         provider.add(MachineContent.ANCHOR_UPGRADE.get(), "Anchor Upgrade");
         provider.add("item.servus_foundation.anchor_upgrade.tooltip",
                 "Goes into an Ender Anchor to widen its area by a ring of chunks, or into a Warehouse Controller so the site can wake for transfers");

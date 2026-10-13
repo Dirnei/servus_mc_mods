@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.anchor.AnchorArea.Shift;
+import io.github.dirnei.mc.servus.foundation.machine.menu.EnderAnchorMenu;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -232,6 +233,23 @@ public final class AnchorGameTests {
             drops.forEach(ItemEntity::discard);
             helper.succeed();
         });
+    }
+
+    /** The menu's arrow buttons shift the area on the server, the GUI data follows and stops at the limit. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void anchorMenuButtonsShift(GameTestHelper helper) {
+        EnderAnchorBlockEntity anchor = anchor(helper, ANCHOR, UUID.randomUUID(), 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        EnderAnchorMenu menu = new EnderAnchorMenu(0, player.getInventory(), anchor);
+        helper.assertTrue(menu.clickMenuButton(player, Shift.EAST.ordinal()), "the east arrow is a button");
+        helper.assertTrue(anchor.area().offsetX() == 1, "one chunk east, was " + anchor.area());
+        menu.clickMenuButton(player, Shift.EAST.ordinal());
+        helper.assertTrue(anchor.area().offsetX() == 1, "the limit holds");
+        helper.assertTrue(menu.area().equals(anchor.area()) && !menu.area().canShift(Shift.EAST), "the GUI greys the east arrow");
+        helper.assertTrue(menu.teamCap() == ServusFoundationConfig.maxLoadedChunksPerTeam(), "the GUI shows the cap");
+        helper.assertTrue(menu.slots.get(0).mayPlace(new ItemStack(MachineContent.ANCHOR_UPGRADE.get())), "the first slot is an upgrade slot");
+        helper.assertFalse(menu.slots.get(0).mayPlace(new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get())), "no Speed Upgrade");
+        helper.succeed();
     }
 
     /** Sneaking with the carrot dismantles the anchor with its upgrades and offset on the item. */

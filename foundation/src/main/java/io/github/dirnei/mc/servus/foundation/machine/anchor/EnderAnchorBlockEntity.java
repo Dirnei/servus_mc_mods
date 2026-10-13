@@ -47,6 +47,13 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
     public static final int STATUS_FTB_CHUNKS = 3;
     public static final int STATUS_NO_OWNER = 4;
     public static final int UPGRADE_SLOTS = 2;
+    /** Menu data after the common machine entries: the area and the team's load. */
+    public static final int DATA_RADIUS = DATA_COUNT;
+    public static final int DATA_OFFSET_X = DATA_COUNT + 1;
+    public static final int DATA_OFFSET_Z = DATA_COUNT + 2;
+    public static final int DATA_TEAM_LOAD = DATA_COUNT + 3;
+    public static final int DATA_TEAM_CAP = DATA_COUNT + 4;
+    public static final int DATA_COUNT_ANCHOR = DATA_COUNT + 5;
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "ender_anchor");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
     private static final String FTB_CHUNKS = "ftbchunks";
@@ -282,11 +289,22 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
     }
 
     @Override
+    protected int dataCount() {
+        return DATA_COUNT_ANCHOR;
+    }
+
+    @Override
     protected int getData(int index) {
-        if (index == DATA_STATUS) {
-            return status;
-        }
-        return super.getData(index);
+        return switch (index) {
+            case DATA_STATUS -> status;
+            case DATA_RADIUS -> area().radius();
+            case DATA_OFFSET_X -> area().offsetX();
+            case DATA_OFFSET_Z -> area().offsetZ();
+            case DATA_TEAM_LOAD -> owner != null && level instanceof ServerLevel server
+                    ? EnderAnchorData.get(server.getServer()).load(owner) : 0;
+            case DATA_TEAM_CAP -> ServusFoundationConfig.maxLoadedChunksPerTeam();
+            default -> super.getData(index);
+        };
     }
 
     @Override
