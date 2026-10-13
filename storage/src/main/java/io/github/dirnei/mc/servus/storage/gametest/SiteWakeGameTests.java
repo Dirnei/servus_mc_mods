@@ -76,10 +76,6 @@ public final class SiteWakeGameTests {
                 EnderAnchorData.chunks(level.dimension(), java.util.List.of(net.minecraft.world.level.ChunkPos.pack(pos))));
     }
 
-    private static StorageNodeBlocks.Activity lamp(GameTestHelper helper) {
-        return helper.getBlockState(CONTROLLER).getValue(StorageNodeBlocks.ACTIVITY);
-    }
-
     /** The record names the site, keeps its chunks and the stock it reported. */
     @ServusGameTest(timeoutTicks = 200)
     public static void recordKeepsNameSpanAndStock(GameTestHelper helper) {
@@ -112,11 +108,11 @@ public final class SiteWakeGameTests {
             helper.assertTrue(woken.awake(), "the site wakes, was " + woken);
             helper.assertTrue(woken.forced() == 1, "its one chunk is forced, had " + woken.forced());
             helper.assertTrue(loaders(helper, team) == 1, "the wake counts its one chunk in the team load");
-            helper.assertTrue(lamp(helper) == StorageNodeBlocks.Activity.WORKING, "the lamp is orange while awake");
+            helper.assertTrue(WarehouseFixtures.activity(helper, CONTROLLER) == StorageNodeBlocks.Activity.WORKING, "the lamp is orange while awake");
             Waits.when(helper, () -> status(helper).isEmpty(), GRACE + 40,
                     () -> "the site sleeps after the grace time, was " + status(helper), () -> {
                 helper.assertTrue(loaders(helper, team) == 0, "the team load is free again");
-                helper.assertTrue(lamp(helper) == StorageNodeBlocks.Activity.IDLE, "the lamp is green again");
+                helper.assertTrue(WarehouseFixtures.activity(helper, CONTROLLER) == StorageNodeBlocks.Activity.IDLE, "the lamp is green again");
                 helper.succeed();
             });
         });

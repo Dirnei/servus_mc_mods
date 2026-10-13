@@ -36,8 +36,8 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 
 /**
  * Patterns, Pattern Storage and the Production Terminal's pattern editor.
- * Layout like the Production Terminal tests: warehouse at (2,1,2), Access
- * Point at (2,1,3), data ducts along y 2 to a Crafting Station at (4,1,2), the
+ * Layout like the Production Terminal tests: warehouse at (2,1,2), Packing
+ * Station at (2,1,3), data ducts along y 2 to a Crafting Station at (4,1,2), the
  * terminal at (5,3,2), the CPU cube at x 6 to 8, z 1 to 3, and Pattern
  * Storage on the ducts at (4,3,2) and (3,3,3).
  */

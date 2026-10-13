@@ -183,8 +183,7 @@ public final class ZoneGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void insertRespectsZones(GameTestHelper helper) {
         for (int x = 4; x <= 8; x++) {
-            helper.setBlock(new BlockPos(x, 0, 9), Blocks.STONE.defaultBlockState());
-            WarehouseFixtures.rail(helper, new BlockPos(x, 1, 9));
+            WarehouseFixtures.railOnStone(helper, new BlockPos(x, 1, 9));
         }
         WarehouseFixtures.controller(helper, IZ_CONTROLLER);
         for (BlockPos pos : List.of(IZ_ORES, IZ_PLAIN, IZ_SPARE, IZ_IRON)) {

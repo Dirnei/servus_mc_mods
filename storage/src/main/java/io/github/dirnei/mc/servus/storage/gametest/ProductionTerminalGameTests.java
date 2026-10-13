@@ -13,7 +13,6 @@ import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
-import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
@@ -37,7 +36,7 @@ import net.minecraft.world.level.block.FurnaceBlock;
 
 /**
  * The Production Terminal on the data line. Same layout as the CPU tests: the
- * warehouse controller at (2,1,2) with crates west, a Packing Station at (2,1,3)
+ * warehouse controller at (2,1,2) with racks west, a Packing Station at (2,1,3)
  * with a data duct and Storage Terminal above, data ducts along y 2 to a
  * Crafting Station at (4,1,2) and a 2x2x2 CPU of 2 CPU and 6 Buffer blocks at x 6 to 7, z 1 to 2. The
  * Production Terminal stands on the duct at (5,2,2).
@@ -80,10 +79,6 @@ public final class ProductionTerminalGameTests {
         helper.setBlock(pos, ServusStorageBlocks.PRODUCTION_TERMINAL.get().defaultBlockState());
     }
 
-    private static boolean lit(GameTestHelper helper, BlockPos pos) {
-        return helper.getBlockState(pos).getValue(StorageNodeBlocks.ONLINE);
-    }
-
     private static ProductionPayload view(GameTestHelper helper, BlockPos pos) {
         return ProductionView.of(helper.getLevel(), helper.absolutePos(pos));
     }
@@ -95,8 +90,6 @@ public final class ProductionTerminalGameTests {
     private static CpuBlockEntity cpu(GameTestHelper helper) {
         return CpuBlock.master(helper.getLevel(), helper.absolutePos(CPU));
     }
-
-    // CPUs tab and buffer lines
 
     private static final ItemKey PLANKS = ItemKey.of(new ItemStack(Items.OAK_PLANKS));
     private static final ItemKey IRON = ItemKey.of(new ItemStack(Items.IRON_INGOT));
@@ -186,7 +179,7 @@ public final class ProductionTerminalGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void productionTerminalJoinsLineAndLights(GameTestHelper helper) {
         setup(helper, true);
-        Waits.when(helper, () -> lit(helper, TERMINAL), 60, () -> "the lamp should light", () -> {
+        Waits.when(helper, () -> WarehouseFixtures.lit(helper, TERMINAL), 60, () -> "the lamp should light", () -> {
             helper.assertTrue(line(helper).dataMembers(DataRole.LINK).stream()
                     .anyMatch(member -> member.pos().equals(helper.absolutePos(TERMINAL))), "the terminal should be a link member");
             helper.succeed();
@@ -198,7 +191,7 @@ public final class ProductionTerminalGameTests {
     public static void productionTerminalAloneIsDark(GameTestHelper helper) {
         terminal(helper, LONE);
         helper.runAfterDelay(25, () -> {
-            helper.assertTrue(!lit(helper, LONE), "the lamp should stay dark");
+            helper.assertTrue(!WarehouseFixtures.lit(helper, LONE), "the lamp should stay dark");
             ProductionPayload view = view(helper, LONE);
             helper.assertTrue(!view.online() && view.reason().equals("nothing"), "offline with nothing on its own line, got " + view.reason());
             helper.succeed();
@@ -334,7 +327,7 @@ public final class ProductionTerminalGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void productionTerminalNoCpuRows(GameTestHelper helper) {
         setup(helper, false);
-        Waits.when(helper, () -> lit(helper, TERMINAL), 60, () -> "the warehouse should light the lamp", () -> {
+        Waits.when(helper, () -> WarehouseFixtures.lit(helper, TERMINAL), 60, () -> "the warehouse should light the lamp", () -> {
             ProductionPayload view = view(helper, TERMINAL);
             helper.assertTrue(view.online() && view.cpus().isEmpty(), "online without CPU rows, got " + view.cpus());
             helper.succeed();
@@ -345,7 +338,7 @@ public final class ProductionTerminalGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void stationAndPatternStorageLampsLight(GameTestHelper helper) {
         setup(helper, true);
-        Waits.when(helper, () -> lit(helper, STATION) && lit(helper, PATTERNS), 60,
+        Waits.when(helper, () -> WarehouseFixtures.lit(helper, STATION) && WarehouseFixtures.lit(helper, PATTERNS), 60,
                 () -> "station and pattern storage lamps should light", helper::succeed);
     }
 
@@ -357,8 +350,8 @@ public final class ProductionTerminalGameTests {
         helper.setBlock(station, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
         helper.setBlock(patterns, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
         helper.runAfterDelay(25, () -> {
-            helper.assertTrue(!lit(helper, station), "the station lamp should stay dark");
-            helper.assertTrue(!lit(helper, patterns), "the pattern storage lamp should stay dark");
+            helper.assertTrue(!WarehouseFixtures.lit(helper, station), "the station lamp should stay dark");
+            helper.assertTrue(!WarehouseFixtures.lit(helper, patterns), "the pattern storage lamp should stay dark");
             helper.succeed();
         });
     }

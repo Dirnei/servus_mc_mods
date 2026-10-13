@@ -5,7 +5,6 @@ import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
-import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
@@ -34,10 +33,6 @@ public final class StationRailGameTests {
         return helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
     }
 
-    private static boolean lit(GameTestHelper helper, BlockPos pos) {
-        return helper.getBlockState(pos).getValue(StorageNodeBlocks.ONLINE);
-    }
-
     private static boolean sameWarehouse(GameTestHelper helper, WarehouseControllerBlockEntity controller, BlockPos pos) {
         StorageNodeBlockEntity node = helper.getBlockEntity(pos, StorageNodeBlockEntity.class);
         return node.network().isPresent() && node.network().equals(controller.network());
@@ -54,16 +49,16 @@ public final class StationRailGameTests {
         InboundStationBlockEntity station = helper.getBlockEntity(STATION, InboundStationBlockEntity.class);
         helper.runAfterDelay(5, () -> {
             helper.assertTrue(!sameWarehouse(helper, controller, STATION), "touching the controller is not enough");
-            helper.assertTrue(!lit(helper, STATION), "the lamp is dark without a rail");
+            helper.assertTrue(!WarehouseFixtures.lit(helper, STATION), "the lamp is dark without a rail");
             Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 64), false);
             helper.runAfterDelay(10, () -> {
                 helper.assertTrue(!station.isEmpty() && rack.isEmpty(), "the cobblestone waits in the buffer");
                 WarehouseFixtures.rail(helper, STATION.below());
                 Waits.when(helper, () -> WarehouseFixtures.count(rack, Items.COBBLESTONE) == 64 && station.isEmpty(), MiniWarehouse.TRIP_TICKS * 2,
                         () -> "with a rail a shuttle puts the cobblestone away, rack has " + WarehouseFixtures.count(rack, Items.COBBLESTONE), () -> {
-                    helper.assertTrue(sameWarehouse(helper, controller, STATION) && lit(helper, STATION), "the rail links the station");
+                    helper.assertTrue(sameWarehouse(helper, controller, STATION) && WarehouseFixtures.lit(helper, STATION), "the rail links the station");
                     helper.setBlock(STATION.below(), Blocks.AIR.defaultBlockState());
-                    Waits.when(helper, () -> !lit(helper, STATION), 20,
+                    Waits.when(helper, () -> !WarehouseFixtures.lit(helper, STATION), 20,
                             () -> "breaking the rail takes the station out", () -> {
                         helper.assertTrue(!sameWarehouse(helper, controller, STATION), "the station left the warehouse");
                         helper.succeed();
@@ -105,7 +100,7 @@ public final class StationRailGameTests {
         helper.runAfterDelay(10, () -> {
             for (BlockPos pos : new BlockPos[] {access, outbound, garage}) {
                 helper.assertTrue(!sameWarehouse(helper, controller, pos), "no rail, no warehouse at " + pos);
-                helper.assertTrue(!lit(helper, pos), "the lamp is dark at " + pos);
+                helper.assertTrue(!WarehouseFixtures.lit(helper, pos), "the lamp is dark at " + pos);
             }
             helper.succeed();
         });

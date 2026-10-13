@@ -13,7 +13,6 @@ import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.storage.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -106,8 +105,7 @@ public final class ControllerWirelessGameTests {
         WarehouseFixtures.rack(helper, rack, Direction.SOUTH);
         if (garage) {
             BlockPos at = rack.east();
-            WarehouseFixtures.garage(helper, at, Direction.NORTH, 0);
-            helper.assertTrue(helper.getBlockEntity(at, ShuttleGarageBlockEntity.class).addShuttle(), "the garage takes a shuttle");
+            WarehouseFixtures.garage(helper, at, Direction.NORTH, 1);
         }
         return helper.getBlockEntity(rack, HeavyRackBlockEntity.class);
     }
@@ -199,8 +197,6 @@ public final class ControllerWirelessGameTests {
         return helper.getLevel().getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(pos), side);
     }
 
-    // The FE buffer and the slot
-
     /** A Coal Generator feeds a power duct; the duct shows an arm toward the controller and its FE rises. */
     @ServusGameTest(timeoutTicks = 200)
     public static void controllerTakesFeFromPowerLine(GameTestHelper helper) {
@@ -283,8 +279,6 @@ public final class ControllerWirelessGameTests {
         helper.assertTrue(!placed.hasWirelessUpgrade(), "the item carries no Wireless Upgrade");
         helper.succeed();
     }
-
-    // Transfers
 
     /** Ten iron go from the outpost's rack to the base's rack; the base pays 5 FE per item, the outpost nothing. */
     @ServusGameTest(timeoutTicks = 600)

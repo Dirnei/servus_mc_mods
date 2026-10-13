@@ -11,7 +11,6 @@ import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
@@ -125,8 +124,7 @@ public final class ChainHandoffGameTests {
         WarehouseFixtures.stock(helper, cobbleRack, new ItemStack(Items.COBBLESTONE, 16));
         WarehouseFixtures.stock(helper, coalRack, new ItemStack(Items.COAL, 32));
         BlockPos garagePos = new BlockPos(2, 0, 1);
-        WarehouseFixtures.garage(helper, garagePos, Direction.NORTH, 0);
-        helper.assertTrue(helper.getBlockEntity(garagePos, ShuttleGarageBlockEntity.class).addShuttle(), "the garage takes a shuttle");
+        WarehouseFixtures.garage(helper, garagePos, Direction.NORTH, 1);
         TerminalWiring.place(helper, access);
         helper.setBlock(new BlockPos(5, 1, 3), Blocks.FURNACE.defaultBlockState().setValue(FurnaceBlock.FACING, Direction.SOUTH));
         helper.setBlock(new BlockPos(4, 1, 3), AdapterContent.BLOCK.get().defaultBlockState().setValue(MachineAdapterBlock.FACING, Direction.EAST));
@@ -162,8 +160,6 @@ public final class ChainHandoffGameTests {
             });
         });
     }
-
-    // Buffer
 
     /**
      * Oak logs to a crafting table on one Crafting Station: the planks wait in

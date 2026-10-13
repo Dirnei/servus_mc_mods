@@ -9,7 +9,6 @@ import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
@@ -57,8 +56,7 @@ public final class AdapterOrderGameTests {
         }
         WarehouseFixtures.stock(helper, COBBLE_RACK, material);
         WarehouseFixtures.stock(helper, COAL_RACK, new ItemStack(Items.COAL, 32));
-        WarehouseFixtures.garage(helper, GARAGE, Direction.NORTH, 0);
-        helper.assertTrue(helper.getBlockEntity(GARAGE, ShuttleGarageBlockEntity.class).addShuttle(), "the garage takes a shuttle");
+        WarehouseFixtures.garage(helper, GARAGE, Direction.NORTH, 1);
         TerminalWiring.place(helper, ACCESS);
         helper.setBlock(FURNACE, Blocks.FURNACE.defaultBlockState().setValue(FurnaceBlock.FACING, Direction.SOUTH));
         helper.setBlock(ADAPTER, AdapterContent.BLOCK.get().defaultBlockState().setValue(MachineAdapterBlock.FACING, Direction.EAST));
@@ -117,7 +115,7 @@ public final class AdapterOrderGameTests {
     }
 
     /**
-     * Warehouse power: a step on a Machine Adapter runs on the furnace's own
+     * A step on a Machine Adapter runs on the furnace's own
      * fuel. Once the cobblestone is in the furnace the warehouse loses its FE,
      * and the furnace still smelts it.
      */

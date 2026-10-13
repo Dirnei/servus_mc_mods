@@ -52,8 +52,6 @@ public final class ElevatorGameTests {
     private static final BlockPos LIFT_CHEST = new BlockPos(4, 2, 4);
     private static final BlockPos LIFT_SIDE_RACK = new BlockPos(4, 1, 4);
     private static final BlockPos NC_SEGMENT = new BlockPos(6, 1, 6);
-    // Lift car: a shaft at x 4, z 3 from y 1 to 3. Ground rails x 1 to 3, garage north of x 3,
-    // controller north of x 1, terminal south of x 2.
     private static final BlockPos LC_BOTTOM = new BlockPos(4, 1, 3);
     private static final BlockPos LC_MIDDLE = new BlockPos(4, 2, 3);
     private static final BlockPos LC_TOP = new BlockPos(4, 3, 3);
@@ -147,7 +145,10 @@ public final class ElevatorGameTests {
         helper.succeed();
     }
 
-    /** Ground floor rails, garage with the given shuttles, controller, terminal and a three segment shaft. */
+    /**
+     * A shaft at x 4, z 3 from y 1 to 3, ground floor rails x 1 to 3, the garage with the given shuttles north
+     * of x 3, the controller north of x 1 and the terminal south of x 2.
+     */
     private static void liftBase(GameTestHelper helper, int shuttles) {
         for (int x = 0; x <= 6; x++) {
             for (int z = 0; z <= 5; z++) {
@@ -219,7 +220,7 @@ public final class ElevatorGameTests {
     }
 
     /**
-     * Warehouse power: a ride is paid per block of height when the car takes
+     * A ride is paid per block of height when the car takes
      * the shuttle, together with the block into the shaft. Out: one block into
      * the shaft, two up, one out to the rack; back: one in, two down, one out,
      * one on to the Packing Station; home: one. Ten blocks in all.

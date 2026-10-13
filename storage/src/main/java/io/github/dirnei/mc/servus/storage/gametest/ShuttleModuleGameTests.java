@@ -306,9 +306,6 @@ public final class ShuttleModuleGameTests {
         helper.succeed();
     }
 
-    // Fleet: controller north of x 1 at z 3, terminal at x 1 z 4, rail along z 4 from x 2 to 9,
-    // a garage behind the rail at x 2, a rack facing the rail at its far end.
-
     /** Fills the supply slots with exactly the sheet that builds the tier. */
     private static void supplyFor(ShuttleWorkshopBlockEntity workshop, int tier) {
         int slot = 0;
@@ -454,7 +451,7 @@ public final class ShuttleModuleGameTests {
         helper.succeed();
     }
 
-    /** Editing the shuttle stack in place no longer resets the step of a build. */
+    /** Editing the shuttle stack in place keeps the step of a build. */
     @ServusGameTest
     public static void installKeepsBuildStep(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -476,7 +473,11 @@ public final class ShuttleModuleGameTests {
     private static final BlockPos FL_GARAGE = new BlockPos(2, 1, 5);
     private static final BlockPos FL_RACK = new BlockPos(9, 1, 5);
 
-    /** The warehouse above with the given stacks of cobblestone in the rack; the shuttle goes into the garage's given slot. */
+    /**
+     * Controller north of x 1 at z 3, terminal at x 1 z 4, rail along z 4 from x 2 to 9, a garage behind the
+     * rail at x 2 and a rack facing the rail at its far end with the given stacks of cobblestone. The shuttle
+     * goes into the garage's given slot.
+     */
     private static ShuttleGarageBlockEntity fleetSetup(GameTestHelper helper, ItemStack shuttle, int slot, int... stacks) {
         WarehouseFixtures.controller(helper, FL_CONTROLLER);
         TerminalWiring.place(helper, FL_TERMINAL);
@@ -583,15 +584,15 @@ public final class ShuttleModuleGameTests {
         });
     }
 
-    // Put-away: controller at x 1, rail along z 1 from x 2 to 10, an inbound station and a rack
-    // beside it, the garage far away at x 10 so the station's stacks are all queued before it arrives.
-
     private static final BlockPos PW_CONTROLLER = new BlockPos(1, 1, 1);
     private static final BlockPos PW_STATION = new BlockPos(3, 1, 2);
     private static final BlockPos PW_RACK = new BlockPos(6, 1, 2);
     private static final BlockPos PW_GARAGE = new BlockPos(10, 1, 2);
 
-    /** A Mk2 shuttle loads three stacks of the station at once and puts them away on one trip. */
+    /**
+     * A Mk2 shuttle loads three stacks of the station at once and puts them away on one trip. The garage stands
+     * far away at x 10, so the station's stacks are all queued before the shuttle arrives.
+     */
     @ServusGameTest(timeoutTicks = 500)
     public static void mk2PutAwayLoadsThree(GameTestHelper helper) {
         WarehouseFixtures.controller(helper, PW_CONTROLLER);

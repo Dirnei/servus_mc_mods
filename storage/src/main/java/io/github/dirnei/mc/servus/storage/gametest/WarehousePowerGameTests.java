@@ -5,7 +5,6 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu;
@@ -42,10 +41,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.block.Blocks;
 
 /**
- * Warehouse power: every consumer pays FE from the controller's buffer
+ * Every consumer pays FE from the controller's buffer
  * (shuttles per block, Crafting Stations per working tick, wakes per chunk and
  * tick), each stops on its own refused draw and goes on by itself, and the
  * no power state shows on the lamp, the GUI and the terminal while the stock
@@ -54,9 +52,6 @@ import net.minecraft.world.level.block.Blocks;
  */
 public final class WarehousePowerGameTests {
 
-    // A long line: rails x 1 to 7 at z 3, the rack at x 1 facing them, the
-    // controller and the garage north of x 6 and 7, the Packing Station with
-    // its terminal south of x 7. A pick drives six rails out and six back.
     private static final int RAIL_Z = 3;
     private static final BlockPos L_RACK = new BlockPos(1, 1, 2);
     private static final BlockPos L_CONTROLLER = new BlockPos(6, 1, 2);
@@ -72,8 +67,6 @@ public final class WarehousePowerGameTests {
     private WarehousePowerGameTests() {
     }
 
-    // Helpers
-
     private static long perBlock() {
         return (long) Math.ceil(StorageStatsManager.INSTANCE.shuttleFePerBlock());
     }
@@ -82,15 +75,17 @@ public final class WarehousePowerGameTests {
         return (long) Math.ceil(StorageStatsManager.INSTANCE.craftingStationFePerTick());
     }
 
+    /**
+     * Rails x 1 to 7 at z 3, the rack at x 1 facing them, the controller and the garage north of x 6 and 7,
+     * the Packing Station with its terminal south of x 7. A pick drives six rails out and six back.
+     */
     private static WarehouseControllerBlockEntity longLine(GameTestHelper helper, int cobble) {
         for (int x = 1; x <= 7; x++) {
-            helper.setBlock(new BlockPos(x, 0, RAIL_Z), Blocks.STONE.defaultBlockState());
-            WarehouseFixtures.rail(helper, new BlockPos(x, 1, RAIL_Z));
+            WarehouseFixtures.railOnStone(helper, new BlockPos(x, 1, RAIL_Z));
         }
         WarehouseFixtures.rack(helper, L_RACK, Direction.SOUTH);
         WarehouseFixtures.controller(helper, L_CONTROLLER);
-        WarehouseFixtures.garage(helper, L_GARAGE, Direction.NORTH, 0);
-        helper.assertTrue(helper.getBlockEntity(L_GARAGE, ShuttleGarageBlockEntity.class).addShuttle(), "the garage takes a shuttle");
+        WarehouseFixtures.garage(helper, L_GARAGE, Direction.NORTH, 1);
         TerminalWiring.place(helper, L_PACKING);
         if (cobble > 0) {
             WarehouseFixtures.stock(helper, L_RACK, new ItemStack(Items.COBBLESTONE, cobble));
@@ -111,10 +106,6 @@ public final class WarehousePowerGameTests {
         return controller.network().map(network -> network.garageOut(helper.absolutePos(garage))).orElse(-1);
     }
 
-    private static StorageNodeBlocks.Activity lamp(GameTestHelper helper, BlockPos controller) {
-        return helper.getBlockState(controller).getValue(StorageNodeBlocks.ACTIVITY);
-    }
-
     private static WarehouseControllerBlockEntity site(GameTestHelper helper) {
         StorageStatsManager.INSTANCE.setWakeGraceTicks(GRACE);
         WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, SITE);
@@ -131,8 +122,6 @@ public final class WarehousePowerGameTests {
         return WakeCost.perTick(chunks, StorageStatsManager.INSTANCE.wakeFePerChunkPerTick());
     }
 
-    // Idle
-
     /** A warehouse with stock and a shuttle that does nothing pays nothing. */
     @ServusGameTest(timeoutTicks = 200)
     public static void idleWarehouseDrawsNothing(GameTestHelper helper) {
@@ -146,8 +135,6 @@ public final class WarehousePowerGameTests {
             helper.succeed();
         });
     }
-
-    // Shuttles
 
     /** Six rails out to the rack and six back to the Packing Station: twelve blocks paid. */
     @ServusGameTest(timeoutTicks = 400)
@@ -216,8 +203,6 @@ public final class WarehousePowerGameTests {
             });
         });
     }
-
-    // Crafting Stations
 
     /** A station on the CPU test line, with the sticks job and planks for {@code crafts} crafts. */
     private static CraftingStationBlockEntity craftingLine(GameTestHelper helper, int planks, int crafts) {
@@ -315,8 +300,6 @@ public final class WarehousePowerGameTests {
         });
     }
 
-    // Waking
-
     /** A held wake of a one chunk site pays the chunk's FE every tick. */
     @ServusGameTest(timeoutTicks = 200)
     public static void wakeCostsPerChunkPerTick(GameTestHelper helper) {
@@ -408,23 +391,21 @@ public final class WarehousePowerGameTests {
         return SiteRegistry.of(helper.getLevel()).site(helper.getLevel().dimension(), helper.absolutePos(SITE));
     }
 
-    // The no power state
-
     /** The lamp is red with an empty buffer, the GUI says no power, and both clear once FE comes. */
     @ServusGameTest(timeoutTicks = 100)
     public static void lampRedWithoutPower(GameTestHelper helper) {
         MiniWarehouse warehouse = MiniWarehouse.build(helper, ORIGIN);
         WarehouseControllerBlockEntity controller = warehouse.controller();
         helper.runAfterDelay(5, () -> {
-            helper.assertTrue(lamp(helper, warehouse.controllerPos()) == StorageNodeBlocks.Activity.IDLE, "green with FE");
+            helper.assertTrue(WarehouseFixtures.activity(helper, warehouse.controllerPos()) == StorageNodeBlocks.Activity.IDLE, "green with FE");
             controller.setEnergy(0);
             helper.runAfterDelay(2, () -> {
-                helper.assertTrue(lamp(helper, warehouse.controllerPos()) == StorageNodeBlocks.Activity.BLOCKED, "red without FE");
+                helper.assertTrue(WarehouseFixtures.activity(helper, warehouse.controllerPos()) == StorageNodeBlocks.Activity.BLOCKED, "red without FE");
                 helper.assertTrue(WarehouseControllerMenu.status(controller).noPower(), "the GUI says no power");
                 helper.assertTrue(controller.network().orElseThrow().summary().getString().contains("no power"), "the summary says no power");
                 PowerFixtures.fill(controller);
                 helper.runAfterDelay(2, () -> {
-                    helper.assertTrue(lamp(helper, warehouse.controllerPos()) == StorageNodeBlocks.Activity.IDLE, "green again");
+                    helper.assertTrue(WarehouseFixtures.activity(helper, warehouse.controllerPos()) == StorageNodeBlocks.Activity.IDLE, "green again");
                     helper.assertTrue(!WarehouseControllerMenu.status(controller).noPower(), "the GUI line is gone");
                     helper.succeed();
                 });

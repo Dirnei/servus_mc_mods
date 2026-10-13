@@ -13,7 +13,6 @@ import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
@@ -76,8 +75,6 @@ public final class CraftingCpuGameTests {
     private CraftingCpuGameTests() {
     }
 
-    // Setup
-
     private static boolean form(GameTestHelper helper, BlockPos at) {
         return CpuBuild.form(helper, at).formed();
     }
@@ -109,8 +106,7 @@ public final class CraftingCpuGameTests {
         for (BlockPos pos : List.of(RACK_A, RACK_B)) {
             WarehouseFixtures.rack(helper, pos, Direction.EAST);
         }
-        WarehouseFixtures.garage(helper, GARAGE, Direction.EAST, 0);
-        helper.assertTrue(helper.getBlockEntity(GARAGE, ShuttleGarageBlockEntity.class).addShuttle(), "the garage takes a shuttle");
+        WarehouseFixtures.garage(helper, GARAGE, Direction.EAST, 1);
         TerminalWiring.place(helper, ACCESS);
         sticksStation(helper);
         for (BlockPos pos : List.of(new BlockPos(3, 2, 3), new BlockPos(4, 2, 3), new BlockPos(4, 2, 2), new BlockPos(5, 2, 2))) {
@@ -212,8 +208,6 @@ public final class CraftingCpuGameTests {
         return CpuOrders.cpus(helper.getLevel(), line(helper)).stream().flatMap(cpu -> cpu.book().orders().stream()).toList();
     }
 
-    // Forming
-
     /** 27 blocks form a cube with the master at the lowest corner; breaking one unforms the rest. */
     @ServusGameTest(timeoutTicks = 40)
     public static void cpuFormsAndUnforms(GameTestHelper helper) {
@@ -252,8 +246,6 @@ public final class CraftingCpuGameTests {
                     helper.succeed();
                 });
     }
-
-    // Boxes
 
     /** Eight CPU blocks form the smallest CPU from any block and get eight slots. */
     @ServusGameTest(timeoutTicks = 40)
@@ -391,8 +383,6 @@ public final class CraftingCpuGameTests {
         helper.succeed();
     }
 
-    // Orders
-
     /** A request that stock cannot fill becomes an order on the CPU; the sticks are crafted over the line and reach the terminal. */
     @ServusGameTest(timeoutTicks = 1000)
     public static void cpuOrderCraftsShortfallOverTheLine(GameTestHelper helper) {
@@ -489,8 +479,6 @@ public final class CraftingCpuGameTests {
         });
     }
 
-    // Slots and choice
-
     /** One CPU with two slots: the third order waits, and the summary says so. */
     @ServusGameTest(timeoutTicks = 100)
     public static void cpuSlotsQueueThirdOrder(GameTestHelper helper) {
@@ -577,8 +565,6 @@ public final class CraftingCpuGameTests {
                     });
         });
     }
-
-    // Stock rules
 
     /** A rule below its minimum orders up to the maximum through the CPU and reads ok once the sticks are in stock. */
     @ServusGameTest(timeoutTicks = 1200)
@@ -734,8 +720,6 @@ public final class CraftingCpuGameTests {
         });
     }
 
-    // Buffer
-
     /** Planks one order holds in the buffer are not stock for a second order, which plans with the warehouse only. */
     @ServusGameTest(timeoutTicks = 1400)
     public static void bufferedPlanksNotForOthers(GameTestHelper helper) {
@@ -886,8 +870,6 @@ public final class CraftingCpuGameTests {
         }
         return count;
     }
-
-    // Direct delivery
 
     /** Sticks crafted for a request travel straight from the station to the terminal and never enter the warehouse. */
     @ServusGameTest(timeoutTicks = 1000)

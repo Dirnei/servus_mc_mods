@@ -37,7 +37,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-/** The wood from the recipe and the Pattern Storage lights (m8-block-style). */
+/** The wood from the recipe and the Pattern Storage lights. */
 public final class BlockStyleGameTests {
 
     private static final BlockPos AT = new BlockPos(5, 1, 5);

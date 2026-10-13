@@ -76,10 +76,6 @@ public final class ControllerSiteGameTests {
         return controller;
     }
 
-    private static StorageNodeBlocks.Activity lamp(GameTestHelper helper, BlockPos pos) {
-        return helper.getBlockState(pos).getValue(StorageNodeBlocks.ACTIVITY);
-    }
-
     /** A rail run carries the site into the next chunk; breaking it takes the chunk out again. */
     @ServusGameTest(template = WIDE, timeoutTicks = 200)
     public static void spanFollowsRailIntoNextChunk(GameTestHelper helper) {
@@ -120,13 +116,13 @@ public final class ControllerSiteGameTests {
         WarehouseControllerBlockEntity controller = acrossBorder(helper, border);
         StorageStatsManager.INSTANCE.setChunksPerUpgrade(1);
         controller.upgrades().insertItem(0, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
-        Waits.when(helper, () -> controller.span().size() == 2 && lamp(helper, at) == StorageNodeBlocks.Activity.BLOCKED, 60,
-                () -> "two chunks over one upgrade turn the lamp red, span " + controller.span().size() + " lamp " + lamp(helper, at), () -> {
+        Waits.when(helper, () -> controller.span().size() == 2 && WarehouseFixtures.activity(helper, at) == StorageNodeBlocks.Activity.BLOCKED, 60,
+                () -> "two chunks over one upgrade turn the lamp red, span " + controller.span().size() + " lamp " + WarehouseFixtures.activity(helper, at), () -> {
             helper.assertTrue(controller.siteState() == SiteCapacity.State.OVER, "the site is over capacity");
             SiteStatusPayload status = WarehouseControllerMenu.status(controller);
             helper.assertTrue(status.capacityState() == SiteCapacity.State.OVER && status.capacity() == 1, "the GUI says over capacity");
             controller.upgrades().insertItem(1, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
-            helper.assertTrue(lamp(helper, at) == StorageNodeBlocks.Activity.IDLE, "a second upgrade turns the lamp green");
+            helper.assertTrue(WarehouseFixtures.activity(helper, at) == StorageNodeBlocks.Activity.IDLE, "a second upgrade turns the lamp green");
             helper.assertTrue(controller.siteState() == SiteCapacity.State.COVERED && controller.capacity() == 2, "two of two chunks covered");
             StorageStatsManager.INSTANCE.setChunksPerUpgrade(StorageStatsManager.DEFAULT_CHUNKS_PER_UPGRADE);
             helper.succeed();
@@ -147,7 +143,7 @@ public final class ControllerSiteGameTests {
         controller.upgrades().extractItem(0, 1, false);
         helper.assertTrue(controller.siteState() == SiteCapacity.State.NO_UPGRADE, "without upgrades there is nothing to exceed");
         helper.runAfterDelay(2, () -> {
-            helper.assertTrue(lamp(helper, at) == StorageNodeBlocks.Activity.IDLE, "no upgrade is no error");
+            helper.assertTrue(WarehouseFixtures.activity(helper, at) == StorageNodeBlocks.Activity.IDLE, "no upgrade is no error");
             helper.succeed();
         });
     }
