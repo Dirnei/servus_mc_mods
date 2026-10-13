@@ -27,6 +27,11 @@ public abstract class PoweredMachineBlockEntity extends MachineBlockEntity {
     /** Performs one finished work cycle. Only called when {@link #canWork()} was true. */
     protected abstract void finishWork();
 
+    /** FE spent per working tick right now; machines whose cost depends on their state override. */
+    protected int energyPerTickNow() {
+        return stats().energyPerTick();
+    }
+
     public MachineEnergyStorage energyStorage() {
         return energy;
     }
@@ -44,7 +49,7 @@ public abstract class PoweredMachineBlockEntity extends MachineBlockEntity {
             }
             return false;
         }
-        if (!energy.consume(stats().energyPerTick())) {
+        if (!energy.consume(energyPerTickNow())) {
             return false;
         }
         progress++;

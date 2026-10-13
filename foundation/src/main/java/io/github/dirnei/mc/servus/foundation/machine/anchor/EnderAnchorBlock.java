@@ -7,6 +7,9 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -32,6 +35,20 @@ public class EnderAnchorBlock extends MachineBlock {
     @Override
     protected BlockEntityType<? extends MachineBlockEntity> blockEntityType() {
         return MachineContent.ENDER_ANCHOR_ENTITY.get();
+    }
+
+    /**
+     * Sneaking with the carrot dismantles the anchor with its upgrades and
+     * offset on the item; breaking it any other way drops the upgrades.
+     */
+    @Override
+    public InteractionResult onWrench(UseOnContext context, BlockState state) {
+        Player player = context.getPlayer();
+        if (!context.getLevel().isClientSide() && player != null && player.isShiftKeyDown()
+                && context.getLevel().getBlockEntity(context.getClickedPos()) instanceof EnderAnchorBlockEntity anchor) {
+            anchor.keepUpgradesOnRemove();
+        }
+        return super.onWrench(context, state);
     }
 
     /** A few faint portal particles drift around the block while it holds its chunk, like around an ender chest. */

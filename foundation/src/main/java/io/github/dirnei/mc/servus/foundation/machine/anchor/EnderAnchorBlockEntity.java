@@ -1,30 +1,43 @@
 package io.github.dirnei.mc.servus.foundation.machine.anchor;
 
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import com.mojang.serialization.Codec;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.menu.EnderAnchorMenu;
-import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.upgrade.AnchorUpgradeSlots;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.fml.ModList;
 
-/** Keeps its chunk loaded and ticking while powered, within the team cap. */
+/**
+ * Keeps a square of chunks loaded and ticking while powered, within the team
+ * cap: one chunk without upgrades, 3 by 3 with one Anchor Upgrade, 5 by 5
+ * with two, shifted by an offset that keeps its own chunk inside. Pays its
+ * {@code energy_per_tick} for every chunk of the square.
+ */
 public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements OwnedMachine {
 
     public static final int DATA_STATUS = 6;
@@ -33,13 +46,20 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
     public static final int STATUS_TEAM_LIMIT = 2;
     public static final int STATUS_FTB_CHUNKS = 3;
     public static final int STATUS_NO_OWNER = 4;
+    public static final int UPGRADE_SLOTS = 2;
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "ender_anchor");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
     private static final String FTB_CHUNKS = "ftbchunks";
 
     private UUID owner;
-    private boolean ticketHeld;
     private int status = STATUS_NO_POWER;
+    private int offsetX;
+    private int offsetZ;
+    /** The chunks this anchor holds a ticket for, packed. */
+    private final Set<Long> held = new LinkedHashSet<>();
+    /** Set while the carrot dismantles the anchor: the upgrades travel on the item instead of dropping. */
+    private boolean keepUpgrades;
+    private final AnchorUpgradeSlots upgrades = new AnchorUpgradeSlots(UPGRADE_SLOTS, this::upgradesChanged);
     private final EyeView eyeView = new EyeView();
 
     public EnderAnchorBlockEntity(BlockPos pos, BlockState state) {
@@ -66,30 +86,94 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
         return eyeView;
     }
 
-    /** Whether this loader currently holds its chunk ticket. */
+    /** Whether this anchor currently holds chunk tickets. */
     public boolean ticketHeld() {
-        return ticketHeld;
+        return !held.isEmpty();
+    }
+
+    /** The chunks this anchor holds tickets for right now, packed like {@code ChunkPos#pack}. */
+    public Set<Long> heldChunks() {
+        return Set.copyOf(held);
+    }
+
+    public AnchorUpgradeSlots upgrades() {
+        return upgrades;
+    }
+
+    /** The anchor's square: radius from the upgrades, the saved offset clamped to it. */
+    public AnchorArea area() {
+        return AnchorArea.of(upgrades.count(), offsetX, offsetZ);
+    }
+
+    /** Every chunk of the square, packed. */
+    public List<Long> areaChunks() {
+        ChunkPos own = ChunkPos.containing(worldPosition);
+        return area().chunks(own.x(), own.z());
+    }
+
+    /** Moves the square one chunk; does nothing at the limit. Server side. */
+    public boolean shift(AnchorArea.Shift shift) {
+        AnchorArea before = area();
+        AnchorArea after = before.shift(shift);
+        if (after.equals(before)) {
+            return false;
+        }
+        offsetX = after.offsetX();
+        offsetZ = after.offsetZ();
+        areaChanged();
+        return true;
+    }
+
+    /** The upgrades went in or out: the offset shrinks to fit the new radius. */
+    private void upgradesChanged() {
+        AnchorArea area = area();
+        offsetX = area.offsetX();
+        offsetZ = area.offsetZ();
+        areaChanged();
+    }
+
+    private void areaChanged() {
+        setChanged();
+        if (level != null && !level.isClientSide()) {
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
+    }
+
+    @Override
+    protected int energyPerTickNow() {
+        return stats().energyPerTick() * area().size();
     }
 
     private int allowance() {
         if (owner == null) {
             return STATUS_NO_OWNER;
         }
-        if (ServusFoundationConfig.enderAnchorRespectsFtbChunks() && ModList.get().isLoaded(FTB_CHUNKS)) {
-            return STATUS_FTB_CHUNKS;
-        }
         if (!(level instanceof ServerLevel server)) {
             return STATUS_NO_POWER;
         }
         EnderAnchorData data = EnderAnchorData.get(server.getServer());
         String key = EnderAnchorData.key(server, worldPosition);
-        if (!data.isRegistered(owner, key)) {
-            java.util.Set<String> chunks = EnderAnchorData.chunks(server.dimension(), java.util.List.of(ChunkPos.pack(worldPosition)));
-            if (!data.fits(owner, key, chunks, ServusFoundationConfig.maxLoadedChunksPerTeam())) {
-                return STATUS_TEAM_LIMIT;
-            }
-            data.register(owner, key, chunks);
+        if (ServusFoundationConfig.enderAnchorRespectsFtbChunks() && ModList.get().isLoaded(FTB_CHUNKS)) {
+            data.unregister(owner, key);
+            return STATUS_FTB_CHUNKS;
         }
+        // Only an anchor that can pay this tick counts against the cap.
+        if (energy.getEnergyStored() < energyPerTickNow()) {
+            data.unregister(owner, key);
+            return STATUS_NO_POWER;
+        }
+        Set<String> chunks = EnderAnchorData.chunks(server.dimension(), areaChunks());
+        if (data.chunksOf(owner, key).equals(chunks)) {
+            // Already counted with this area: a lowered cap does not release it.
+            return STATUS_ACTIVE;
+        }
+        // New or changed area: checked against the load without this anchor's old area.
+        if (!data.fits(owner, key, chunks, ServusFoundationConfig.maxLoadedChunksPerTeam())) {
+            data.unregister(owner, key);
+            return STATUS_TEAM_LIMIT;
+        }
+        data.register(owner, key, chunks);
         return STATUS_ACTIVE;
     }
 
@@ -115,29 +199,61 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
         } else if (status == STATUS_ACTIVE) {
             status = STATUS_NO_POWER;
         }
-        syncTicket(working);
+        syncTickets(working ? areaChunks() : List.of());
         return working;
     }
 
-    private void syncTicket(boolean wanted) {
-        if (wanted == ticketHeld || !(level instanceof ServerLevel server)) {
+    /** Forces the wanted chunks not held yet and releases held chunks no longer wanted. */
+    private void syncTickets(List<Long> wanted) {
+        if (!(level instanceof ServerLevel server) || (held.size() == wanted.size() && held.containsAll(wanted))) {
             return;
         }
-        ChunkPos chunk = ChunkPos.containing(worldPosition);
-        EnderAnchorTickets.CONTROLLER.forceChunk(server, worldPosition, chunk.x(), chunk.z(), wanted, true);
-        ticketHeld = wanted;
+        for (Long chunk : List.copyOf(held)) {
+            if (!wanted.contains(chunk)) {
+                force(server, chunk, false);
+                held.remove(chunk);
+            }
+        }
+        for (Long chunk : wanted) {
+            if (held.add(chunk)) {
+                force(server, chunk, true);
+            }
+        }
         setChanged();
+    }
+
+    private void force(ServerLevel server, long chunk, boolean add) {
+        EnderAnchorTickets.CONTROLLER.forceChunk(server, worldPosition, AnchorArea.unpackX(chunk), AnchorArea.unpackZ(chunk), add, true);
     }
 
     @Override
     public void setRemoved() {
         if (level instanceof ServerLevel server) {
-            syncTicket(false);
+            syncTickets(List.of());
             if (owner != null) {
                 EnderAnchorData.get(server.getServer()).unregister(owner, server, worldPosition);
             }
         }
         super.setRemoved();
+    }
+
+    /** The next removal is a dismantle: the upgrades stay in the block entity data saved onto the item. */
+    public void keepUpgradesOnRemove() {
+        keepUpgrades = true;
+    }
+
+    @Override
+    public void dropContents() {
+        super.dropContents();
+        if (level == null || keepUpgrades) {
+            return;
+        }
+        List<ItemStack> taken = upgrades.takeAll();
+        if (!taken.isEmpty()) {
+            NonNullList<ItemStack> stacks = NonNullList.create();
+            stacks.addAll(taken);
+            Containers.dropContents(level, worldPosition, stacks);
+        }
     }
 
     @Override
@@ -179,14 +295,28 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
         if (owner != null) {
             ValueIo.putUuid(output, "Owner", owner);
         }
-        output.putBoolean("Ticket", ticketHeld);
+        upgrades.save(output, "Upgrades");
+        output.putInt("OffsetX", offsetX);
+        output.putInt("OffsetZ", offsetZ);
+        // The tickets belong to this position; a dismantled anchor placed elsewhere holds none.
+        output.putLong("TicketsAt", worldPosition.asLong());
+        output.store("Tickets", Codec.LONG.listOf(), List.copyOf(held));
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         owner = ValueIo.getUuid(input, "Owner");
-        ticketHeld = input.getBooleanOr("Ticket", false);
+        upgrades.load(input, "Upgrades");
+        offsetX = input.getIntOr("OffsetX", 0);
+        offsetZ = input.getIntOr("OffsetZ", 0);
+        held.clear();
+        if (input.getLongOr("TicketsAt", Long.MIN_VALUE) == worldPosition.asLong()) {
+            held.addAll(input.read("Tickets", Codec.LONG.listOf()).orElse(List.of()));
+        } else if (input.getBooleanOr("Ticket", false)) {
+            // Saved before the area: the anchor held its own chunk.
+            held.add(ChunkPos.pack(worldPosition));
+        }
     }
 
     @Override
