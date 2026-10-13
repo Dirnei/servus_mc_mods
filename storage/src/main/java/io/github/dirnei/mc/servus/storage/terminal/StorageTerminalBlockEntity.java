@@ -103,11 +103,6 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             this.key = key;
             this.requested = requested;
         }
-
-        /** Whether everything that can come has come. */
-        public boolean settled() {
-            return delivered + missing >= requested;
-        }
     }
 
     /** Output slots shown in one row: at most {@link TerminalLayout.Storage#ROW_SLOTS}. */

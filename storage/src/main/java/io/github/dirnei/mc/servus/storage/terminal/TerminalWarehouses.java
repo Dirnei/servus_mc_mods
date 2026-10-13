@@ -99,12 +99,4 @@ public final class TerminalWarehouses {
         MERGED.put(key, new Merged(versions, stock));
         return stock;
     }
-
-    /** The warehouse whose controller sits at {@code controller}, if reachable. */
-    public static Optional<WarehouseNetwork> byController(List<WarehouseNetwork> warehouses, BlockPos controller) {
-        if (controller == null) {
-            return Optional.empty();
-        }
-        return warehouses.stream().filter(warehouse -> warehouse.controllerPos().filter(controller::equals).isPresent()).findFirst();
-    }
 }

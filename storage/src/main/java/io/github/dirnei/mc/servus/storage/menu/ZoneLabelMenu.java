@@ -65,10 +65,6 @@ public class ZoneLabelMenu extends AbstractContainerMenu {
         return player.getItemInHand(hand);
     }
 
-    public InteractionHand hand() {
-        return hand;
-    }
-
     /** The zone name on the label, empty when unnamed. */
     public String name() {
         ItemStack label = label();

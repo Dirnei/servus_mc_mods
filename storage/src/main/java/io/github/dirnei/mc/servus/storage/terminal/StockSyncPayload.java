@@ -37,11 +37,6 @@ public record StockSyncPayload(BlockPos terminal, boolean online, String reason,
         this(terminal, online, reason, entries, requests, message, rules, craftables, List.of(), "", -1, false);
     }
 
-    /** Whether the grid shows another site. */
-    public boolean remote() {
-        return !view.isEmpty();
-    }
-
     public static final Type<StockSyncPayload> TYPE =
             new Type<>(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "stock_sync"));
 
