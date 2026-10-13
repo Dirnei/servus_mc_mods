@@ -40,9 +40,14 @@ public final class ServusManufacturingBlocks {
     public static final DeferredBlock<CalcinerPartBlock> SULFUR_HOOD = calcinerPart("sulfur_hood", Role.HOOD, copper());
     public static final DeferredBlock<CopperDuctBlock> COPPER_DUCT = BLOCKS.registerBlock("copper_duct", CopperDuctBlock::new, () -> copper());
 
-    /** A brick of a formed Calciner; mined like Bricks and dropping them. */
-    public static final DeferredBlock<CalcinerShellBlock> CALCINER_SHELL = BLOCKS.registerBlock("calciner_shell",
-            CalcinerShellBlock::new, () -> bricks());
+    /** Stone Bricks of a formed Calciner; mined like Stone Bricks and dropping them. */
+    public static final DeferredBlock<CalcinerShellBlock> CALCINER_STONE_BRICKS = BLOCKS.registerBlock("calciner_stone_bricks",
+            CalcinerShellBlock::new, () -> BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(1.5F, 6.0F)
+                    .requiresCorrectToolForDrops().sound(SoundType.STONE).noOcclusion());
+    /** Deepslate Tiles of a formed Calciner; mined like Deepslate Tiles and dropping them. */
+    public static final DeferredBlock<CalcinerShellBlock> CALCINER_DEEPSLATE_TILES = BLOCKS.registerBlock("calciner_deepslate_tiles",
+            CalcinerShellBlock::new, () -> BlockBehaviour.Properties.of().mapColor(MapColor.DEEPSLATE).strength(3.5F, 6.0F)
+                    .requiresCorrectToolForDrops().sound(SoundType.DEEPSLATE_TILES).noOcclusion());
 
     /** The Purifier, a wooden vat that leaches Ash into liquid Salt. */
     public static final DeferredBlock<PurifierBlock> PURIFIER = BLOCKS.registerBlock("purifier", PurifierBlock::new,

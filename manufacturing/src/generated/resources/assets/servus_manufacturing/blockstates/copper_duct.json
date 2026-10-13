@@ -16,27 +16,19 @@
       "model": "servus_manufacturing:block/copper_duct",
       "y": 90
     },
-    "facing=east,formed=false,piece=4": {
-      "model": "servus_manufacturing:block/copper_duct",
-      "y": 90
-    },
     "facing=east,formed=true,piece=0": {
-      "model": "servus_manufacturing:block/copper_duct_across",
-      "y": 90
-    },
-    "facing=east,formed=true,piece=1": {
       "model": "servus_manufacturing:block/copper_duct_elbow",
       "y": 90
     },
-    "facing=east,formed=true,piece=2": {
+    "facing=east,formed=true,piece=1": {
       "model": "servus_manufacturing:block/copper_duct_down",
       "y": 90
     },
-    "facing=east,formed=true,piece=3": {
+    "facing=east,formed=true,piece=2": {
       "model": "servus_manufacturing:block/copper_duct_athanor",
       "y": 90
     },
-    "facing=east,formed=true,piece=4": {
+    "facing=east,formed=true,piece=3": {
       "model": "servus_manufacturing:block/copper_duct_athanor_over",
       "y": 90
     },
@@ -52,22 +44,16 @@
     "facing=north,formed=false,piece=3": {
       "model": "servus_manufacturing:block/copper_duct"
     },
-    "facing=north,formed=false,piece=4": {
-      "model": "servus_manufacturing:block/copper_duct"
-    },
     "facing=north,formed=true,piece=0": {
-      "model": "servus_manufacturing:block/copper_duct_across"
-    },
-    "facing=north,formed=true,piece=1": {
       "model": "servus_manufacturing:block/copper_duct_elbow"
     },
-    "facing=north,formed=true,piece=2": {
+    "facing=north,formed=true,piece=1": {
       "model": "servus_manufacturing:block/copper_duct_down"
     },
-    "facing=north,formed=true,piece=3": {
+    "facing=north,formed=true,piece=2": {
       "model": "servus_manufacturing:block/copper_duct_athanor"
     },
-    "facing=north,formed=true,piece=4": {
+    "facing=north,formed=true,piece=3": {
       "model": "servus_manufacturing:block/copper_duct_athanor_over"
     },
     "facing=south,formed=false,piece=0": {
@@ -86,27 +72,19 @@
       "model": "servus_manufacturing:block/copper_duct",
       "y": 180
     },
-    "facing=south,formed=false,piece=4": {
-      "model": "servus_manufacturing:block/copper_duct",
-      "y": 180
-    },
     "facing=south,formed=true,piece=0": {
-      "model": "servus_manufacturing:block/copper_duct_across",
-      "y": 180
-    },
-    "facing=south,formed=true,piece=1": {
       "model": "servus_manufacturing:block/copper_duct_elbow",
       "y": 180
     },
-    "facing=south,formed=true,piece=2": {
+    "facing=south,formed=true,piece=1": {
       "model": "servus_manufacturing:block/copper_duct_down",
       "y": 180
     },
-    "facing=south,formed=true,piece=3": {
+    "facing=south,formed=true,piece=2": {
       "model": "servus_manufacturing:block/copper_duct_athanor",
       "y": 180
     },
-    "facing=south,formed=true,piece=4": {
+    "facing=south,formed=true,piece=3": {
       "model": "servus_manufacturing:block/copper_duct_athanor_over",
       "y": 180
     },
@@ -126,27 +104,19 @@
       "model": "servus_manufacturing:block/copper_duct",
       "y": 270
     },
-    "facing=west,formed=false,piece=4": {
-      "model": "servus_manufacturing:block/copper_duct",
-      "y": 270
-    },
     "facing=west,formed=true,piece=0": {
-      "model": "servus_manufacturing:block/copper_duct_across",
-      "y": 270
-    },
-    "facing=west,formed=true,piece=1": {
       "model": "servus_manufacturing:block/copper_duct_elbow",
       "y": 270
     },
-    "facing=west,formed=true,piece=2": {
+    "facing=west,formed=true,piece=1": {
       "model": "servus_manufacturing:block/copper_duct_down",
       "y": 270
     },
-    "facing=west,formed=true,piece=3": {
+    "facing=west,formed=true,piece=2": {
       "model": "servus_manufacturing:block/copper_duct_athanor",
       "y": 270
     },
-    "facing=west,formed=true,piece=4": {
+    "facing=west,formed=true,piece=3": {
       "model": "servus_manufacturing:block/copper_duct_athanor_over",
       "y": 270
     }

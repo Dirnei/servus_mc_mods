@@ -28,9 +28,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The Copper Duct, a part of two builds. The Calciner takes three, from the Hood across and down
- * into the Sulfur tank; the Athanor takes two per tank, one block up, beside it and over the tank.
- * While formed, {@link #PIECE} says which piece it is: 0 to 2 for the Calciner, {@link #ATHANOR_NEAR}
+ * The Copper Duct, a part of two builds. The Calciner takes two, an elbow from the Hood and a drop
+ * into the left Stone Bricks; the Athanor takes two per tank, one block up, beside it and over the tank.
+ * While formed, {@link #PIECE} says which piece it is: 0 (elbow) and 1 (drop) for the Calciner, {@link #ATHANOR_NEAR}
  * and {@link #ATHANOR_OVER} for the Athanor. The build lies to the model's -x, so a formed duct's
  * build is {@code FACING.getCounterClockWise()} from it.
  */
@@ -39,9 +39,9 @@ public class CopperDuctBlock extends Block implements Wrenchable {
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty FORMED = CalcinerPartBlock.FORMED;
     /** The Athanor's duct right beside it. */
-    public static final int ATHANOR_NEAR = 3;
+    public static final int ATHANOR_NEAR = 2;
     /** The Athanor's duct over its tank, turning down into it. */
-    public static final int ATHANOR_OVER = 4;
+    public static final int ATHANOR_OVER = 3;
     /** The duct cell of {@link CalcinerLayout} counted from {@link CalcinerLayout#FIRST_DUCT}, or an Athanor piece. */
     public static final IntegerProperty PIECE = IntegerProperty.create("piece", 0, ATHANOR_OVER);
 

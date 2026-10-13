@@ -55,7 +55,8 @@ public final class CalcinerStructure {
     public static Block expected(Role role) {
         return switch (role) {
             case CALCINER -> ServusManufacturingBlocks.CALCINER.get();
-            case BRICK -> Blocks.BRICKS;
+            case STONE_BRICKS -> Blocks.STONE_BRICKS;
+            case DEEPSLATE_TILES -> Blocks.DEEPSLATE_TILES;
             case FIREBOX -> ServusManufacturingBlocks.FIREBOX.get();
             case ASH_PAN -> ServusManufacturingBlocks.ASH_PAN.get();
             case ALEMBIC -> ServusManufacturingBlocks.ALEMBIC.get();
@@ -63,8 +64,18 @@ public final class CalcinerStructure {
             case HOOD -> ServusManufacturingBlocks.SULFUR_HOOD.get();
             case TANK -> ServusLogisticsBlocks.FLUID_TANK.get();
             case DUCT -> ServusManufacturingBlocks.COPPER_DUCT.get();
-            case AIR -> Blocks.AIR;
         };
+    }
+
+    /** The shell block that stands in for a stone role while formed. */
+    private static Block shell(Role role) {
+        return role == Role.STONE_BRICKS
+                ? ServusManufacturingBlocks.CALCINER_STONE_BRICKS.get()
+                : ServusManufacturingBlocks.CALCINER_DEEPSLATE_TILES.get();
+    }
+
+    private static boolean stone(Role role) {
+        return role == Role.STONE_BRICKS || role == Role.DEEPSLATE_TILES;
     }
 
     /** Checks every facing, the Calciner's own first, and returns a complete one or the one that matched most. */
@@ -74,14 +85,11 @@ public final class CalcinerStructure {
     }
 
     private static boolean matches(BlockState state, Cell cell) {
-        if (cell.role() == Role.AIR) {
-            return state.isAir();
-        }
         if (!state.is(expected(cell.role()))) {
             return false;
         }
         return switch (cell.role()) {
-            case CALCINER, BRICK, TANK -> true;
+            case CALCINER, STONE_BRICKS, DEEPSLATE_TILES, TANK -> true;
             case DUCT -> !state.getValue(CopperDuctBlock.FORMED);
             default -> !state.getValue(CalcinerPartBlock.FORMED);
         };
@@ -118,20 +126,20 @@ public final class CalcinerStructure {
                 expected(placement.anchor()).getName());
     }
 
-    /** Forms the checked structure: bricks become shells, parts and the Calciner turn formed and face {@code facing}. */
+    /** Forms the checked structure: stones become shells, parts and the Calciner turn formed and face {@code facing}. */
     public static void form(Level level, BlockPos controller, Facing facing) {
         Direction direction = direction(facing);
         changing = true;
         try {
             for (Cell cell : CalcinerLayout.cells()) {
-                if (cell.role() == Role.TANK || cell.role() == Role.AIR) {
+                if (cell.role() == Role.TANK) {
                     continue;
                 }
                 BlockPos pos = pos(controller, cell, facing);
                 BlockState state = level.getBlockState(pos);
                 BlockState formed = switch (cell.role()) {
                     case CALCINER -> state.setValue(MachineBlock.FACING, direction).setValue(CalcinerBlock.FORMED, true);
-                    case BRICK -> ServusManufacturingBlocks.CALCINER_SHELL.get().defaultBlockState()
+                    case STONE_BRICKS, DEEPSLATE_TILES -> shell(cell.role()).defaultBlockState()
                             .setValue(CalcinerShellBlock.FACING, direction).setValue(CalcinerShellBlock.CELL, cell.index());
                     case DUCT -> state.setValue(CopperDuctBlock.FACING, direction).setValue(CopperDuctBlock.FORMED, true)
                             .setValue(CopperDuctBlock.PIECE, cell.index() - CalcinerLayout.FIRST_DUCT);
@@ -147,7 +155,7 @@ public final class CalcinerStructure {
     }
 
     /**
-     * Unforms the Calciner at {@code controller}: shells become Bricks, parts and the Calciner turn
+     * Unforms the Calciner at {@code controller}: shells become their vanilla stone again, parts and the Calciner turn
      * unformed. The position {@code skip} is being broken and is left alone.
      */
     public static void unform(Level level, BlockPos controller, Direction direction, BlockPos skip) {
@@ -168,11 +176,11 @@ public final class CalcinerStructure {
                     if (state.getBlock() instanceof CalcinerBlock && state.getValue(CalcinerBlock.FORMED)) {
                         unformed = state.setValue(CalcinerBlock.FORMED, false).setValue(MachineBlock.LIT, false);
                     }
-                } else if (cell.role() == Role.BRICK) {
+                } else if (stone(cell.role())) {
                     if (state.getBlock() instanceof CalcinerShellBlock) {
-                        unformed = Blocks.BRICKS.defaultBlockState();
+                        unformed = expected(cell.role()).defaultBlockState();
                     }
-                } else if (cell.role() == Role.TANK || cell.role() == Role.AIR) {
+                } else if (cell.role() == Role.TANK) {
                     continue;
                 } else if (cell.role() == Role.DUCT) {
                     if (CopperDuctBlock.calcinerPiece(state)) {
@@ -191,10 +199,10 @@ public final class CalcinerStructure {
         }
     }
 
-    /** Lights or puts out the fire in the Firebox and the smoke of the Hood of a formed Calciner. */
+    /** Lights or puts out the fire in the Firebox, the smoke of the Hood and the drip of the Receiver of a formed Calciner. */
     public static void light(Level level, BlockPos controller, Direction direction, boolean lit) {
         Facing facing = facing(direction);
-        for (Role role : new Role[] {Role.FIREBOX, Role.HOOD}) {
+        for (Role role : new Role[] {Role.FIREBOX, Role.HOOD, Role.RECEIVER}) {
             BlockPos pos = pos(controller, CalcinerLayout.part(role), facing);
             BlockState state = level.getBlockState(pos);
             if (state.getBlock() instanceof CalcinerPartBlock && state.getValue(CalcinerPartBlock.FORMED)
@@ -258,9 +266,8 @@ public final class CalcinerStructure {
     }
 
     /**
-     * A neighbour of a formed block changed. The tanks and the spout's air cell have no hook of
-     * our own, so their touching blocks check them here: a removed tank or a filled air cell
-     * unforms the structure. Only those seven known cells are read.
+     * A neighbour of a formed block changed. The tanks have no hook of our own, so their touching
+     * blocks check them here: a removed tank unforms the structure. Only the two tank cells are read.
      */
     public static void neighbourChanged(Level level, BlockState state, BlockPos pos) {
         if (changing || level.isClientSide()) {
@@ -270,7 +277,7 @@ public final class CalcinerStructure {
             Direction direction = facingOf(state);
             Facing facing = facing(direction);
             for (Cell cell : CalcinerLayout.cells()) {
-                if ((cell.role() == Role.TANK || cell.role() == Role.AIR) && !matches(level.getBlockState(pos(controller, cell, facing)), cell)) {
+                if (cell.role() == Role.TANK && !matches(level.getBlockState(pos(controller, cell, facing)), cell)) {
                     unform(level, controller, direction, null);
                     return;
                 }

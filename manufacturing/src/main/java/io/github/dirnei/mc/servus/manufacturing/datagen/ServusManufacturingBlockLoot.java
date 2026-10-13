@@ -36,11 +36,13 @@ final class ServusManufacturingBlockLoot extends BlockLootSubProvider {
     @Override
     protected void generate() {
         SELF_DROPPING.forEach(this::dropSelf);
-        dropOther(ServusManufacturingBlocks.CALCINER_SHELL.get(), Items.BRICKS);
+        dropOther(ServusManufacturingBlocks.CALCINER_STONE_BRICKS.get(), Items.STONE_BRICKS);
+        dropOther(ServusManufacturingBlocks.CALCINER_DEEPSLATE_TILES.get(), Items.DEEPSLATE_TILES);
     }
 
     @Override
     protected Iterable<Block> getKnownBlocks() {
-        return Stream.concat(SELF_DROPPING.stream(), Stream.of(ServusManufacturingBlocks.CALCINER_SHELL.get())).toList();
+        return Stream.concat(SELF_DROPPING.stream(), Stream.of(ServusManufacturingBlocks.CALCINER_STONE_BRICKS.get(),
+                ServusManufacturingBlocks.CALCINER_DEEPSLATE_TILES.get())).toList();
     }
 }

@@ -26,8 +26,6 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
@@ -104,10 +102,8 @@ public final class AlchemyGameTests {
         calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE));
         helper.succeedWhen(() -> {
             Principles held = calciner.tanks().contents();
-            // The Mercury runs on from the Receiver into the Mercury tank of the structure.
-            BlockPos mercuryTank = CalcinerStructure.pos(CalcinerGameTests.CALCINER,
-                    CalcinerLayout.cell(15),
-                    Facing.NORTH);
+            // The Calciner fills the Mercury into the Mercury tank of the structure.
+            BlockPos mercuryTank = CalcinerGameTests.mercuryTank(CalcinerGameTests.CALCINER);
             int mercury = held.mercury() + CalcinerGameTests.tankAt(helper, mercuryTank).getFluidInTank(0).getAmount();
             helper.assertTrue(held.salt() == 100 && held.sulfur() == 0 && mercury == 10,
                     "expected 100 Salt and 10 Mercury, got " + held + " and " + mercury + " Mercury in all");

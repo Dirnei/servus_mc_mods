@@ -7,15 +7,15 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * The fixed layout of the Calciner structure: a wall one block deep, 5 wide and 5 tall,
+ * The fixed layout of the Calciner structure: a wall one block deep, 3 wide and 5 tall,
  * described from its front with the Calciner (the furnace mouth) in the middle.
  *
  * <pre>
- *  D D H _ _     H Sulfur Hood, D Copper Duct
- *  D _ L   R     L Alembic, R Receiver, the gap is air for the spout
- *  T B 0 B T     0 Calciner, B Bricks, T Fluid Tank
- *  T B F B T     F Firebox
- *  T B A B T     A Ash Pan, _ any block
+ *  D H _     H Sulfur Hood, D Copper Duct, _ any block
+ *  D L R     L Alembic, R Receiver
+ *  S 0 S     0 Calciner, S Stone Bricks
+ *  T F T     F Firebox, T Fluid Tank
+ *  E A E     A Ash Pan, E Deepslate Tiles
  * </pre>
  *
  * Right is the player's right when looking at the front. Pure Java: forming, the part
@@ -25,8 +25,8 @@ public final class CalcinerLayout {
 
     /** What stands at a cell. */
     public enum Role {
-        CALCINER('0'), BRICK('B'), FIREBOX('F'), ASH_PAN('A'), ALEMBIC('L'), RECEIVER('R'), HOOD('H'),
-        TANK('T'), DUCT('D'), AIR(' ');
+        CALCINER('0'), STONE_BRICKS('S'), DEEPSLATE_TILES('E'), FIREBOX('F'), ASH_PAN('A'), ALEMBIC('L'),
+        RECEIVER('R'), HOOD('H'), TANK('T'), DUCT('D');
 
         private final char symbol;
 
@@ -49,38 +49,32 @@ public final class CalcinerLayout {
 
     private static final List<Cell> CELLS = List.of(
             new Cell(0, Role.CALCINER, 0, 0),
-            new Cell(1, Role.BRICK, -1, 0),
-            new Cell(2, Role.BRICK, 1, 0),
-            new Cell(3, Role.BRICK, -1, -1),
-            new Cell(4, Role.BRICK, 1, -1),
-            new Cell(5, Role.BRICK, -1, -2),
-            new Cell(6, Role.BRICK, 1, -2),
-            new Cell(7, Role.FIREBOX, 0, -1),
-            new Cell(8, Role.ASH_PAN, 0, -2),
-            new Cell(9, Role.ALEMBIC, 0, 1),
-            new Cell(10, Role.RECEIVER, 2, 1),
-            new Cell(11, Role.HOOD, 0, 2),
-            // The Sulfur tank on the left, the Mercury tank on the right, each three Fluid Tanks.
-            new Cell(12, Role.TANK, -2, 0),
-            new Cell(13, Role.TANK, -2, -1),
-            new Cell(14, Role.TANK, -2, -2),
-            new Cell(15, Role.TANK, 2, 0),
-            new Cell(16, Role.TANK, 2, -1),
-            new Cell(17, Role.TANK, 2, -2),
-            // The Copper Duct from the Hood across and down into the Sulfur tank.
-            new Cell(18, Role.DUCT, -1, 2),
-            new Cell(19, Role.DUCT, -2, 2),
-            new Cell(20, Role.DUCT, -2, 1),
-            // The Alembic's spout crosses this cell to the Receiver.
-            new Cell(21, Role.AIR, 1, 1));
+            new Cell(1, Role.STONE_BRICKS, -1, 0),
+            new Cell(2, Role.STONE_BRICKS, 1, 0),
+            new Cell(3, Role.DEEPSLATE_TILES, -1, -2),
+            new Cell(4, Role.DEEPSLATE_TILES, 1, -2),
+            new Cell(5, Role.FIREBOX, 0, -1),
+            new Cell(6, Role.ASH_PAN, 0, -2),
+            new Cell(7, Role.ALEMBIC, 0, 1),
+            new Cell(8, Role.RECEIVER, 1, 1),
+            new Cell(9, Role.HOOD, 0, 2),
+            new Cell(10, Role.TANK, -1, -1),
+            new Cell(11, Role.TANK, 1, -1),
+            // The Copper Duct from the Hood across and down into the left Stone Bricks.
+            new Cell(12, Role.DUCT, -1, 2),
+            new Cell(13, Role.DUCT, -1, 1));
 
     /** The first duct cell; a duct block's piece is its cell index minus this. */
-    public static final int FIRST_DUCT = 18;
-    /** The lowest duct piece, which pours the Sulfur into its tank. */
-    public static final int SULFUR_OUTLET = 20;
+    public static final int FIRST_DUCT = 12;
+    /** The lower duct piece, which leads the Sulfur down into the stone. */
+    public static final int SULFUR_OUTLET = 13;
+    /** The Fluid Tank the Calciner fills with Sulfur. */
+    public static final int SULFUR_TANK = 10;
+    /** The Fluid Tank the Calciner fills with Mercury. */
+    public static final int MERCURY_TANK = 11;
 
-    private static final int MIN_RIGHT = -2;
-    private static final int MAX_RIGHT = 2;
+    private static final int MIN_RIGHT = -1;
+    private static final int MAX_RIGHT = 1;
     private static final int MIN_UP = -2;
     private static final int MAX_UP = 2;
 
@@ -96,7 +90,7 @@ public final class CalcinerLayout {
         return CELLS.get(index);
     }
 
-    /** The one cell of a part role; bricks, tanks and ducts have several cells, use {@link #cells(Role)} for them. */
+    /** The one cell of a part role; stones, tanks and ducts have several cells, use {@link #cells(Role)} for them. */
     public static Cell part(Role role) {
         List<Cell> cells = cells(role);
         if (cells.size() != 1) {
@@ -155,12 +149,12 @@ public final class CalcinerLayout {
             return new Placement(Relation.ABOVE, Role.FIREBOX);
         }
         if (cell.right() != 0) {
-            // Toward the middle, past air and free corners, to the first part.
+            // Toward the middle, past free corners, to the first part.
             int step = cell.right() < 0 ? 1 : -1;
             for (int right = cell.right() + step; ; right += step) {
                 int at = right;
                 Optional<Cell> anchor = CELLS.stream()
-                        .filter(other -> other.right() == at && other.up() == cell.up() && other.role() != Role.AIR)
+                        .filter(other -> other.right() == at && other.up() == cell.up())
                         .findFirst();
                 if (anchor.isPresent()) {
                     return new Placement(cell.right() < 0 ? Relation.LEFT_OF : Relation.RIGHT_OF, anchor.get().role());

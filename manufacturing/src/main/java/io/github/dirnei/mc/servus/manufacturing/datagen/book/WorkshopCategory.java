@@ -79,26 +79,25 @@ final class WorkshopCategory extends CategoryProvider {
             e.multiblock("build", ServusManufacturingMultiblockProvider.CALCINER, "The Calciner",
                     "A wall one block deep with a tank on each side. Press Visualize, then click the ground where it shall stand.");
             e.text("parts", "The Parts",
-                    "The furnace is bricks around three parts stacked in the middle: the Ash Pan at the bottom, the Firebox above it "
-                            + "and the Calciner, the mouth, above that.\n\n"
-                            + "On top of the mouth sits the Alembic, the copper still, and the Sulfur Hood crowns it. Beside the furnace stand two "
-                            + "columns of three Fluid Tanks. The Receiver sits on the right column and catches what drips from the still's spout; "
-                            + "keep the gap under the spout free. The Copper Duct leads from the Hood down into the left column.");
+                    "Three parts stack in the middle: the Ash Pan at the bottom between Deepslate Tiles, the Firebox above it between "
+                            + "two Fluid Tanks, and the Calciner, the mouth, between Stone Bricks.\n\n"
+                            + "On top of the mouth sits the Alembic, the copper still, and the Sulfur Hood crowns it. The Receiver stands right "
+                            + "of the still and catches what drips from its spout. The Copper Duct leads from the Hood down into the left Stone Bricks.");
             e.crafting("recipe", mod + "calciner", mod + "calciner_firebox", "The mouth with its cauldron, and the Firebox.");
             e.crafting("recipe_pan", mod + "calciner_ash_pan", mod + "alembic", "The Ash Pan and the Alembic.");
             e.crafting("recipe_receiver", mod + "receiver", mod + "sulfur_hood", "The Receiver and the Sulfur Hood.");
             e.crafting("recipe_duct", mod + "copper_duct", "The Copper Duct, three at once.");
             e.text("waking", "Waking It",
-                    "When every block stands, use this journal on the Calciner. The bricks join and the furnace becomes one thing. "
+                    "When every block stands, use this journal on the Calciner. The stones join and the furnace becomes one thing. "
                             + "If something is missing, the journal tells you what and where.\n\n"
-                            + "Break any block and the furnace falls apart into its bricks and parts again.");
+                            + "Break any block and the furnace falls apart into its stones and parts again.");
             e.text("firing", "Firing It",
                     "Hand the matter to the mouth, or let a hopper or a pipe feed it. Coal and other fuel go into the Firebox below; "
                             + "one coal burns for several items. Sneak with an empty hand at the mouth to take the matter back.\n\n"
                             + "When a principle has no room left, the Calciner waits.");
             e.text("emptying", "Taking Them Out",
-                    "Each principle leaves where it belongs. Salt stays behind as ash in the Ash Pan. Mercury drips through the Receiver "
-                            + "into the right tank, and Sulfur rises into the Hood and runs down the duct into the left tank.\n\n"
+                    "Each principle leaves where it belongs. Salt stays behind as ash in the Ash Pan. Mercury drips from the Receiver "
+                            + "and runs down into the right tank, and Sulfur rises into the Hood and runs down the duct into the left tank.\n\n"
                             + "Take them from the tanks with a bucket, or with a pipe whose side at the tank you set to pull in with the carrot: "
                             + "a tank on a plain side only ever fills.\n\n"
                             + "The Salt stays in the Ash Pan as Ash, one Ash for every 100 Salt. Take it with an empty hand, or put a hopper "

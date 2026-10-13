@@ -5,10 +5,6 @@
       "type": "modonomicon:block",
       "block": "servus_manufacturing:calciner_ash_pan"
     },
-    "B": {
-      "type": "modonomicon:block",
-      "block": "minecraft:bricks"
-    },
     "C": {
       "type": "modonomicon:block",
       "block": "servus_manufacturing:calciner"
@@ -16,6 +12,10 @@
     "D": {
       "type": "modonomicon:block",
       "block": "servus_manufacturing:copper_duct"
+    },
+    "E": {
+      "type": "modonomicon:block",
+      "block": "minecraft:deepslate_tiles"
     },
     "F": {
       "type": "modonomicon:block",
@@ -33,6 +33,10 @@
       "type": "modonomicon:block",
       "block": "servus_manufacturing:receiver"
     },
+    "S": {
+      "type": "modonomicon:block",
+      "block": "minecraft:stone_bricks"
+    },
     "T": {
       "type": "modonomicon:block",
       "block": "servus_foundation:fluid_tank"
@@ -40,19 +44,19 @@
   },
   "pattern": [
     [
-      "DDH__"
+      "DH_"
     ],
     [
-      "D_L_R"
+      "DLR"
     ],
     [
-      "TBCBT"
+      "SCS"
     ],
     [
-      "TBFBT"
+      "TFT"
     ],
     [
-      "TB0BT"
+      "E0E"
     ]
   ]
 }

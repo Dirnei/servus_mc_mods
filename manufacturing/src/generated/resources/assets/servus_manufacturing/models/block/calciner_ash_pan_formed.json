@@ -4,27 +4,27 @@
     {
       "faces": {
         "down": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "east": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "north": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "south": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "up": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "west": {
-          "texture": "#bricks"
+          "texture": "#stone"
         }
       },
       "from": [
         0,
-        2,
+        0,
         3
       ],
       "to": [
@@ -36,27 +36,27 @@
     {
       "faces": {
         "down": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "east": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "north": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "south": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "up": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "west": {
-          "texture": "#bricks"
+          "texture": "#stone"
         }
       },
       "from": [
         0,
-        2,
+        0,
         0
       ],
       "to": [
@@ -68,27 +68,27 @@
     {
       "faces": {
         "down": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "east": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "north": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "south": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "up": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "west": {
-          "texture": "#bricks"
+          "texture": "#stone"
         }
       },
       "from": [
         13,
-        2,
+        0,
         0
       ],
       "to": [
@@ -100,22 +100,22 @@
     {
       "faces": {
         "down": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "east": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "north": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "south": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "up": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "west": {
-          "texture": "#bricks"
+          "texture": "#stone"
         }
       },
       "from": [
@@ -126,6 +126,38 @@
       "to": [
         13,
         16,
+        3
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#stone"
+        },
+        "east": {
+          "texture": "#stone"
+        },
+        "north": {
+          "texture": "#stone"
+        },
+        "south": {
+          "texture": "#stone"
+        },
+        "up": {
+          "texture": "#stone"
+        },
+        "west": {
+          "texture": "#stone"
+        }
+      },
+      "from": [
+        3,
+        0,
+        0
+      ],
+      "to": [
+        13,
+        2,
         3
       ]
     },
@@ -224,44 +256,11 @@
         5,
         3
       ]
-    },
-    {
-      "faces": {
-        "down": {
-          "texture": "#stone"
-        },
-        "east": {
-          "texture": "#stone"
-        },
-        "north": {
-          "texture": "#stone"
-        },
-        "south": {
-          "texture": "#stone"
-        },
-        "up": {
-          "texture": "#stone"
-        },
-        "west": {
-          "texture": "#stone"
-        }
-      },
-      "from": [
-        0,
-        0,
-        -1
-      ],
-      "to": [
-        16,
-        2,
-        17
-      ]
     }
   ],
   "textures": {
-    "bricks": "minecraft:block/bricks",
     "iron": "minecraft:block/iron_block",
-    "particle": "minecraft:block/bricks",
-    "stone": "minecraft:block/smooth_stone"
+    "particle": "minecraft:block/deepslate_tiles",
+    "stone": "minecraft:block/deepslate_tiles"
   }
 }

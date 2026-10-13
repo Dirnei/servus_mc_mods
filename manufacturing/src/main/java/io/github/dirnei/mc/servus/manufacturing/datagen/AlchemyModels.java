@@ -38,10 +38,10 @@ final class AlchemyModels {
     private static final String COAL = "block/coal_block";
     private static final String EMBERS = "block/magma";
     private static final String DARK_OAK = "block/dark_oak_planks";
-
-    /** Where the stone cornice starts and the stone plinth ends, in sixteenths. */
-    private static final int CORNICE = 14;
-    private static final int PLINTH = 2;
+    private static final String STONE_BRICKS = "block/stone_bricks";
+    private static final String DEEPSLATE_TILES = "block/deepslate_tiles";
+    private static final String POLISHED_DEEPSLATE = "block/polished_deepslate";
+    private static final String STEEL = "servus_foundation:block/electric_pump_steel";
 
     private final BlockStateProvider states;
 
@@ -258,8 +258,8 @@ final class AlchemyModels {
     /** The Copper Duct: a straight copper pipe while unformed, its piece of the run from Hood to tank when formed. */
     private void duct() {
         ModelFile straight = ductModel("copper_duct", -1);
-        ModelFile[] pieces = {ductModel("copper_duct_across", 0), ductModel("copper_duct_elbow", 1), ductModel("copper_duct_down", 2),
-                ductModel("copper_duct_athanor", 3), ductModel("copper_duct_athanor_over", 4)};
+        ModelFile[] pieces = {ductModel("copper_duct_elbow", 0), ductModel("copper_duct_down", 1),
+                ductModel("copper_duct_athanor", CopperDuctBlock.ATHANOR_NEAR), ductModel("copper_duct_athanor_over", CopperDuctBlock.ATHANOR_OVER)};
         Block block = ServusManufacturingBlocks.COPPER_DUCT.get();
         states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(state.getValue(CopperDuctBlock.FORMED) ? pieces[state.getValue(CopperDuctBlock.PIECE)] : straight)
@@ -269,31 +269,32 @@ final class AlchemyModels {
     }
 
     /**
-     * One piece of the duct. The Hood lies toward -x (the player's right), the Sulfur tank below
-     * the last piece. Piece 0 runs across and into the Hood's pipe, 1 turns down, 2 drops into the tank.
-     * For the Athanor (toward -x) the pipe lies at the bottom: piece 3 runs from the tower's socket and
-     * ends in a flange (the side of a stacked tank), 4 ends over the tank and goes down into its top.
+     * One piece of the duct. The Hood lies toward -x (the player's right), the Stone Bricks below
+     * the last piece. Piece 0 runs across from the Hood's pipe and turns down, 1 drops into the
+     * copper collar of the Stone Bricks. For the Athanor (toward -x) the pipe lies at the bottom:
+     * the near piece runs from the tower's socket and ends in a flange (the side of a stacked tank),
+     * the over piece ends over the tank and goes down into its top.
      */
     private ModelFile ductModel(String name, int piece) {
         BlockModelBuilder model = builder(name)
                 .texture("copper", states.mcLoc(COPPER)).texture("cut", states.mcLoc(CUT_COPPER))
                 .texture("particle", states.mcLoc(COPPER));
         switch (piece) {
-            case 0 -> box(model, -5, 6, 6, 16, 10, 10, "#copper");
-            case 1 -> {
-                box(model, 0, 6, 6, 10, 10, 10, "#copper");
+            case 0 -> {
+                box(model, -5, 6, 6, 10, 10, 10, "#copper");
                 box(model, 6, 0, 6, 10, 6, 10, "#copper");
                 box(model, 5, 5, 5, 11, 11, 11, "#cut");
             }
-            case 2 -> {
-                box(model, 6, 2, 6, 10, 16, 10, "#copper");
-                box(model, 4, 0, 4, 12, 2, 12, "#cut");
+            case 1 -> {
+                // Ambient occlusion samples the wrong neighbours below the block and darkens the pipe.
+                model.ao(false);
+                uvBox(model, 6, -3, 6, 10, 16, 10, "#copper");
             }
-            case 3 -> {
+            case CopperDuctBlock.ATHANOR_NEAR -> {
                 box(model, 0, 0, 6, 16, 4, 10, "#copper");
                 box(model, 14, 0, 5, 16, 5, 11, "#cut");
             }
-            case 4 -> {
+            case CopperDuctBlock.ATHANOR_OVER -> {
                 box(model, 0, 0, 6, 10, 4, 10, "#copper");
                 box(model, 5, 0, 5, 11, 5, 11, "#cut");
                 box(model, 4, 0, 4, 12, 1, 12, "#cut");
@@ -309,9 +310,9 @@ final class AlchemyModels {
 
     /** The mouth: a stone brick box with its front while unformed, an arch with the crucible when formed. */
     private void calciner() {
-        ModelFile unlit = states.models().orientable("calciner", states.mcLoc("block/stone_bricks"), states.modLoc("block/calciner_front"),
+        ModelFile unlit = states.models().orientable("calciner", states.mcLoc(STONE_BRICKS), states.modLoc("block/calciner_front"),
                 states.mcLoc(STONE));
-        ModelFile lit = states.models().orientable("calciner_lit", states.mcLoc("block/stone_bricks"), states.modLoc("block/calciner_front_lit"),
+        ModelFile lit = states.models().orientable("calciner_lit", states.mcLoc(STONE_BRICKS), states.modLoc("block/calciner_front_lit"),
                 states.mcLoc(STONE));
         ModelFile formed = mouth("calciner_formed", COAL);
         ModelFile formedLit = mouth("calciner_formed_lit", EMBERS);
@@ -339,67 +340,84 @@ final class AlchemyModels {
         states.simpleBlockItem(block, unlit);
     }
 
-    /** The bricks of a formed Calciner: a stone cornice on the top row, a stone plinth on the bottom row. */
+    /**
+     * The stones of a formed Calciner. The left Stone Bricks take the Copper Duct through a copper
+     * collar, the right ones hold the basin under the Receiver; the Deepslate Tiles stay plain.
+     */
     private void shell() {
-        ModelFile top = bricks("calciner_shell_top", true, false);
-        ModelFile middle = bricks("calciner_shell_middle", false, false);
-        ModelFile bottom = bricks("calciner_shell_bottom", false, true);
-        states.getVariantBuilder(ServusManufacturingBlocks.CALCINER_SHELL.get()).forAllStates(state -> {
-            int up = CalcinerLayout.cell(state.getValue(CalcinerShellBlock.CELL)).up();
-            return ConfiguredModel.builder()
-                    .modelFile(up == 0 ? top : up == -1 ? middle : bottom)
-                    .rotationY(ModelRotations.rotationY(state.getValue(CalcinerShellBlock.FACING)))
-                    .build();
-        });
+        ModelFile collar = collarStone("calciner_stone_bricks_collar");
+        ModelFile basin = basinStone("calciner_stone_bricks_basin");
+        states.getVariantBuilder(ServusManufacturingBlocks.CALCINER_STONE_BRICKS.get()).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(CalcinerLayout.cell(state.getValue(CalcinerShellBlock.CELL)).right() < 0 ? collar : basin)
+                .rotationY(ModelRotations.rotationY(state.getValue(CalcinerShellBlock.FACING)))
+                .build());
+        BlockModelBuilder tiles = builder("calciner_deepslate_tiles")
+                .texture("stone", states.mcLoc(DEEPSLATE_TILES)).texture("particle", states.mcLoc(DEEPSLATE_TILES));
+        box(tiles, 0, 0, 0, 16, 16, 16, "#stone");
+        states.getVariantBuilder(ServusManufacturingBlocks.CALCINER_DEEPSLATE_TILES.get()).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(tiles).build());
     }
 
     private BlockModelBuilder builder(String name) {
         return states.models().withExistingParent(name, states.mcLoc("block/block"));
     }
 
-    private BlockModelBuilder bricks(String name, boolean cornice, boolean plinth) {
-        BlockModelBuilder model = builder(name).texture("bricks", states.mcLoc(BRICKS)).texture("particle", states.mcLoc(BRICKS));
-        // The body stops where a stone band starts, so no two faces lie in one plane and flicker.
-        box(model, 0, plinth ? PLINTH : 0, 0, 16, cornice ? CORNICE : 16, 16, "#bricks");
-        trim(model, cornice, plinth);
+    /** Stone Bricks with a raised cut copper collar set into the top, where the duct goes in. */
+    private ModelFile collarStone(String name) {
+        BlockModelBuilder model = builder(name)
+                .texture("stone", states.mcLoc(STONE_BRICKS)).texture("cut", states.mcLoc(CUT_COPPER))
+                .texture("particle", states.mcLoc(STONE_BRICKS));
+        box(model, 0, 0, 0, 16, 15, 16, "#stone");
+        ring(model, 5, 11, 15, 16, "#stone");
+        uvBox(model, 5.05F, 14, 5.05F, 10.95F, 16.6F, 10.95F, "#cut");
         return model;
     }
 
-    /** The stone bands that run along the whole formed furnace, front and back. */
-    private void trim(BlockModelBuilder model, boolean cornice, boolean plinth) {
-        if (!cornice && !plinth) {
-            return;
+    /** Stone Bricks hollowed into a shallow basin with a steel grate over a drain in the middle. */
+    private ModelFile basinStone(String name) {
+        BlockModelBuilder model = builder(name)
+                .texture("stone", states.mcLoc(STONE_BRICKS)).texture("floor", states.mcLoc(STONE))
+                .texture("drain", states.mcLoc(POLISHED_DEEPSLATE)).texture("steel", STEEL)
+                .texture("particle", states.mcLoc(STONE_BRICKS));
+        model.element().from(0, 0, 0).to(16, 10, 16)
+                .allFaces((direction, face) -> face.texture(direction == Direction.UP ? "#drain" : "#stone")).end();
+        for (float[] part : new float[][] {{0, 0, 16, 6}, {0, 10, 16, 16}, {0, 6, 6, 10}, {10, 6, 16, 10}}) {
+            model.element().from(part[0], 10, part[1]).to(part[2], 12, part[3])
+                    .allFaces((direction, face) -> face.texture(direction == Direction.UP ? "#floor" : "#stone")).end();
         }
-        model.texture("stone", states.mcLoc(STONE));
-        if (cornice) {
-            box(model, 0, CORNICE, -1, 16, 16, 17, "#stone");
+        ring(model, 3, 13, 12, 16, "#stone");
+        // The cross bars stop just below the long bars, so no two faces share a plane.
+        for (float at : new float[] {6.5F, 8.5F}) {
+            box(model, at, 12.2F, 6, at + 1, 12.4F, 10, "#steel");
+            box(model, 6, 12, at, 10, 12.195F, at + 1, "#steel");
         }
-        if (plinth) {
-            box(model, 0, 0, -1, 16, PLINTH, 17, "#stone");
-        }
+        return model;
     }
 
-    /** A brick block with an opening in the front: frame, back wall and sides. */
-    private BlockModelBuilder brickFrame(String name, int openingBottom, int openingTop) {
-        return brickFrame(name, openingBottom, openingTop, 0, 16, 3);
+    /** Four boxes from {@code y1} to {@code y2} around a square hole from {@code a} to {@code b}. */
+    private static void ring(BlockModelBuilder model, float a, float b, float y1, float y2, String texture) {
+        box(model, 0, y1, 0, 16, y2, a, texture);
+        box(model, 0, y1, b, 16, y2, 16, texture);
+        box(model, 0, y1, a, a, y2, b, texture);
+        box(model, b, y1, a, 16, y2, b, texture);
     }
 
-    /** A brick frame between {@code bottom} and {@code top}, leaving room for a stone band above or below. */
-    private BlockModelBuilder brickFrame(String name, int openingBottom, int openingTop, int bottom, int top, int depth) {
-        BlockModelBuilder model = builder(name).texture("bricks", states.mcLoc(BRICKS)).texture("particle", states.mcLoc(BRICKS));
-        box(model, 0, bottom, depth, 16, top, 16, "#bricks");
-        box(model, 0, bottom, 0, 3, top, depth, "#bricks");
-        box(model, 13, bottom, 0, 16, top, depth, "#bricks");
-        box(model, 3, openingTop, 0, 13, top, depth, "#bricks");
-        if (openingBottom > bottom) {
-            box(model, 3, bottom, 0, 13, openingBottom, depth, "#bricks");
+    /** A stone block with an opening in the front: frame, back wall and sides. */
+    private BlockModelBuilder frame(String name, String texture, int openingBottom, int openingTop, int depth) {
+        BlockModelBuilder model = builder(name).texture("stone", states.mcLoc(texture)).texture("particle", states.mcLoc(texture));
+        box(model, 0, 0, depth, 16, 16, 16, "#stone");
+        box(model, 0, 0, 0, 3, 16, depth, "#stone");
+        box(model, 13, 0, 0, 16, 16, depth, "#stone");
+        box(model, 3, openingTop, 0, 13, 16, depth, "#stone");
+        if (openingBottom > 0) {
+            box(model, 3, 0, 0, 13, openingBottom, depth, "#stone");
         }
         return model;
     }
 
     /** Coals behind an iron grate. */
     private ModelFile firebox(String name, String coals) {
-        BlockModelBuilder model = brickFrame(name, 2, 12)
+        BlockModelBuilder model = frame(name, POLISHED_DEEPSLATE, 2, 12, 3)
                 .texture("coals", states.mcLoc(coals))
                 .texture("bars", states.mcLoc(IRON_BARS));
         // Behind the grate, never in its plane.
@@ -410,24 +428,22 @@ final class AlchemyModels {
 
     /** A low drawer with an iron tray, where the Salt gathers. */
     private ModelFile ashPan(String name, boolean formed) {
-        BlockModelBuilder model = brickFrame(name, 2, 8, formed ? PLINTH : 0, 16, 3).texture("iron", states.mcLoc(IRON));
+        BlockModelBuilder model = frame(name, DEEPSLATE_TILES, 2, 8, 3).texture("iron", states.mcLoc(IRON));
         box(model, 3, 2, 1, 13, 3, 3, "#iron");
         box(model, 3, 3, 1, 4, 5, 3, "#iron");
         box(model, 12, 3, 1, 13, 5, 3, "#iron");
-        trim(model, false, formed);
         return model;
     }
 
     /** The formed mouth: an arch over the crucible, embers below it, a copper collar up into the Alembic. */
     private ModelFile mouth(String name, String embers) {
-        BlockModelBuilder model = brickFrame(name, 2, 13, 0, CORNICE, 9)
+        BlockModelBuilder model = frame(name, STONE_BRICKS, 2, 13, 9)
                 .texture("crucible", states.mcLoc(CAULDRON))
                 .texture("embers", states.mcLoc(embers))
                 .texture("cut", states.mcLoc(CUT_COPPER));
         box(model, 3, 2, 1, 13, 3, 9, "#embers");
         box(model, 5, 3, 2, 11, 9, 8, "#crucible");
         box(model, 6, 15, 6, 10, 20, 10, "#cut");
-        trim(model, true, false);
         return model;
     }
 
@@ -440,21 +456,35 @@ final class AlchemyModels {
         box(model, 4, 3, 4, 12, 10, 12, "#copper");
         box(model, 6, 10, 6, 10, 13, 10, "#copper");
         box(model, 5, 13, 5, 11, 15, 11, "#cut");
-        box(model, formed ? -16 : 0, 8, 7, 4, 10, 9, "#cut");
+        box(model, formed ? -4 : 0, 8, 7, 4, 10, 9, "#cut");
         return model;
     }
 
-    /** A glass flask on a copper stand, where the Mercury drips in. */
+    /**
+     * A glass flask on a copper stand, where the Mercury drips in. Formed, it stands on copper legs
+     * in the basin below and drips through a tap.
+     */
     private ModelFile receiver(String name, boolean formed) {
         BlockModelBuilder model = builder(name)
                 .texture("glass", states.mcLoc(GLASS)).texture("cut", states.mcLoc(CUT_COPPER))
                 .texture("particle", states.mcLoc(GLASS));
-        box(model, 3, 0, 3, 13, 1, 13, "#cut");
-        box(model, 4, 1, 4, 12, 9, 12, "#glass");
-        box(model, 6, 9, 6, 10, 14, 10, "#glass");
-        if (formed) {
-            box(model, 10, 8, 7, 16, 10, 9, "#cut");
+        if (!formed) {
+            box(model, 3, 0, 3, 13, 1, 13, "#cut");
+            box(model, 4, 1, 4, 12, 9, 12, "#glass");
+            box(model, 6, 9, 6, 10, 14, 10, "#glass");
+            return model;
         }
+        // Ambient occlusion samples the wrong neighbours below the block and darkens the legs.
+        model.ao(false);
+        for (float x : new float[] {3.1F, 11.9F}) {
+            for (float z : new float[] {3.1F, 11.9F}) {
+                uvBox(model, x, -4, z, x + 1, 3, z + 1, "#cut");
+            }
+        }
+        box(model, 4, 3, 4, 12, 11, 12, "#glass");
+        box(model, 6, 11, 6, 10, 15, 10, "#glass");
+        box(model, 7, 1.5F, 7, 9, 3, 9, "#cut");
+        box(model, 6.5F, 1, 6.5F, 9.5F, 2, 9.5F, "#cut");
         return model;
     }
 

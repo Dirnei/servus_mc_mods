@@ -16,11 +16,11 @@ class CalcinerLayoutTest {
 
     @Test
     void cellsOfEveryRole() {
-        assertEquals(22, CalcinerLayout.cells().size());
-        assertEquals(6, CalcinerLayout.cells(Role.BRICK).size());
-        assertEquals(6, CalcinerLayout.cells(Role.TANK).size());
-        assertEquals(3, CalcinerLayout.cells(Role.DUCT).size());
-        assertEquals(1, CalcinerLayout.cells(Role.AIR).size());
+        assertEquals(14, CalcinerLayout.cells().size());
+        assertEquals(2, CalcinerLayout.cells(Role.STONE_BRICKS).size());
+        assertEquals(2, CalcinerLayout.cells(Role.DEEPSLATE_TILES).size());
+        assertEquals(2, CalcinerLayout.cells(Role.TANK).size());
+        assertEquals(2, CalcinerLayout.cells(Role.DUCT).size());
         assertEquals(CalcinerLayout.SULFUR_OUTLET, CalcinerLayout.cells(Role.DUCT).getLast().index());
         assertEquals(CalcinerLayout.FIRST_DUCT, CalcinerLayout.cells(Role.DUCT).getFirst().index());
         assertEquals(Role.CALCINER, CalcinerLayout.cell(0).role());
@@ -31,7 +31,7 @@ class CalcinerLayoutTest {
 
     @Test
     void patternIsTheFrontView() {
-        assertEquals(List.of("DDH__", "D_L R", "TB0BT", "TBFBT", "TBABT"), CalcinerLayout.patternRows());
+        assertEquals(List.of("DH_", "DLR", "S0S", "TFT", "EAE"), CalcinerLayout.patternRows());
     }
 
     @Test
@@ -51,26 +51,32 @@ class CalcinerLayoutTest {
     @Test
     void receiverIsOnThePlayersRight() {
         // Facing north the player looks south, so their right is west.
-        assertEquals(new Offset(-2, 1, 0), CalcinerLayout.worldOffset(CalcinerLayout.part(Role.RECEIVER), Facing.NORTH));
-        assertEquals(new Offset(2, 1, 0), CalcinerLayout.worldOffset(CalcinerLayout.part(Role.RECEIVER), Facing.SOUTH));
-        assertEquals(new Offset(0, 1, -2), CalcinerLayout.worldOffset(CalcinerLayout.part(Role.RECEIVER), Facing.EAST));
-        assertEquals(new Offset(0, 1, 2), CalcinerLayout.worldOffset(CalcinerLayout.part(Role.RECEIVER), Facing.WEST));
+        assertEquals(new Offset(-1, 1, 0), CalcinerLayout.worldOffset(CalcinerLayout.part(Role.RECEIVER), Facing.NORTH));
+        assertEquals(new Offset(1, 1, 0), CalcinerLayout.worldOffset(CalcinerLayout.part(Role.RECEIVER), Facing.SOUTH));
+        assertEquals(new Offset(0, 1, -1), CalcinerLayout.worldOffset(CalcinerLayout.part(Role.RECEIVER), Facing.EAST));
+        assertEquals(new Offset(0, 1, 1), CalcinerLayout.worldOffset(CalcinerLayout.part(Role.RECEIVER), Facing.WEST));
         for (Facing facing : Facing.values()) {
             Offset alembic = CalcinerLayout.worldOffset(CalcinerLayout.part(Role.ALEMBIC), facing);
-            Offset spout = new Offset(alembic.x() + facing.rightX(), alembic.y(), alembic.z() + facing.rightZ());
-            Offset receiver = new Offset(spout.x() + facing.rightX(), spout.y(), spout.z() + facing.rightZ());
-            assertEquals(Role.AIR, CalcinerLayout.cellAt(spout, facing).orElseThrow().role());
+            Offset receiver = new Offset(alembic.x() + facing.rightX(), alembic.y(), alembic.z() + facing.rightZ());
             assertEquals(Role.RECEIVER, CalcinerLayout.cellAt(receiver, facing).orElseThrow().role());
         }
     }
 
     @Test
+    void tanksAreBesideTheFirebox() {
+        Cell sulfur = CalcinerLayout.cell(CalcinerLayout.SULFUR_TANK);
+        Cell mercury = CalcinerLayout.cell(CalcinerLayout.MERCURY_TANK);
+        assertEquals(Role.TANK, sulfur.role());
+        assertEquals(Role.TANK, mercury.role());
+        assertEquals(new Placement(Relation.LEFT_OF, Role.FIREBOX), CalcinerLayout.placement(sulfur));
+        assertEquals(new Placement(Relation.RIGHT_OF, Role.FIREBOX), CalcinerLayout.placement(mercury));
+    }
+
+    @Test
     void freeCornersAreNoCells() {
         for (Facing facing : Facing.values()) {
-            for (Offset corner : List.of(new Offset(1, 2, 0), new Offset(2, 2, 0), new Offset(-1, 1, 0))) {
-                Offset rotated = new Offset(corner.x() * facing.rightX(), corner.y(), corner.x() * facing.rightZ());
-                assertTrue(CalcinerLayout.cellAt(rotated, facing).isEmpty());
-            }
+            Offset corner = new Offset(facing.rightX(), 2, facing.rightZ());
+            assertTrue(CalcinerLayout.cellAt(corner, facing).isEmpty());
         }
     }
 
@@ -81,12 +87,11 @@ class CalcinerLayoutTest {
         assertEquals(new Placement(Relation.ABOVE, Role.CALCINER), CalcinerLayout.placement(CalcinerLayout.part(Role.ALEMBIC)));
         assertEquals(new Placement(Relation.BELOW, Role.CALCINER), CalcinerLayout.placement(CalcinerLayout.part(Role.FIREBOX)));
         assertEquals(new Placement(Relation.BELOW, Role.FIREBOX), CalcinerLayout.placement(CalcinerLayout.part(Role.ASH_PAN)));
-        assertEquals(new Placement(Relation.LEFT_OF, Role.ASH_PAN), CalcinerLayout.placement(CalcinerLayout.cell(5)));
+        assertEquals(new Placement(Relation.LEFT_OF, Role.CALCINER), CalcinerLayout.placement(CalcinerLayout.cell(1)));
         assertEquals(new Placement(Relation.RIGHT_OF, Role.CALCINER), CalcinerLayout.placement(CalcinerLayout.cell(2)));
+        assertEquals(new Placement(Relation.LEFT_OF, Role.ASH_PAN), CalcinerLayout.placement(CalcinerLayout.cell(3)));
+        assertEquals(new Placement(Relation.RIGHT_OF, Role.ASH_PAN), CalcinerLayout.placement(CalcinerLayout.cell(4)));
+        assertEquals(new Placement(Relation.LEFT_OF, Role.HOOD), CalcinerLayout.placement(CalcinerLayout.cell(CalcinerLayout.FIRST_DUCT)));
         assertEquals(new Placement(Relation.LEFT_OF, Role.ALEMBIC), CalcinerLayout.placement(CalcinerLayout.cell(CalcinerLayout.SULFUR_OUTLET)));
-        assertEquals(new Placement(Relation.LEFT_OF, Role.HOOD), CalcinerLayout.placement(CalcinerLayout.cell(18)));
-        assertEquals(new Placement(Relation.LEFT_OF, Role.DUCT), CalcinerLayout.placement(CalcinerLayout.cell(19)));
-        assertEquals(new Placement(Relation.LEFT_OF, Role.BRICK), CalcinerLayout.placement(CalcinerLayout.cell(12)));
-        assertEquals(new Placement(Relation.RIGHT_OF, Role.ALEMBIC), CalcinerLayout.placement(CalcinerLayout.cells(Role.AIR).getFirst()));
     }
 }

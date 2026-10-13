@@ -4,22 +4,22 @@
     {
       "faces": {
         "down": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "east": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "north": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "south": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "up": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "west": {
-          "texture": "#bricks"
+          "texture": "#stone"
         }
       },
       "from": [
@@ -35,7 +35,7 @@
     }
   ],
   "textures": {
-    "bricks": "minecraft:block/bricks",
-    "particle": "minecraft:block/bricks"
+    "particle": "minecraft:block/deepslate_tiles",
+    "stone": "minecraft:block/deepslate_tiles"
   }
 }

@@ -4,22 +4,22 @@
     {
       "faces": {
         "down": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "east": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "north": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "south": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "up": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "west": {
-          "texture": "#bricks"
+          "texture": "#stone"
         }
       },
       "from": [
@@ -29,29 +29,29 @@
       ],
       "to": [
         16,
-        14,
+        16,
         16
       ]
     },
     {
       "faces": {
         "down": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "east": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "north": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "south": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "up": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "west": {
-          "texture": "#bricks"
+          "texture": "#stone"
         }
       },
       "from": [
@@ -61,29 +61,29 @@
       ],
       "to": [
         3,
-        14,
+        16,
         9
       ]
     },
     {
       "faces": {
         "down": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "east": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "north": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "south": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "up": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "west": {
-          "texture": "#bricks"
+          "texture": "#stone"
         }
       },
       "from": [
@@ -93,29 +93,29 @@
       ],
       "to": [
         16,
-        14,
+        16,
         9
       ]
     },
     {
       "faces": {
         "down": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "east": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "north": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "south": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "up": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "west": {
-          "texture": "#bricks"
+          "texture": "#stone"
         }
       },
       "from": [
@@ -125,29 +125,29 @@
       ],
       "to": [
         13,
-        14,
+        16,
         9
       ]
     },
     {
       "faces": {
         "down": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "east": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "north": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "south": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "up": {
-          "texture": "#bricks"
+          "texture": "#stone"
         },
         "west": {
-          "texture": "#bricks"
+          "texture": "#stone"
         }
       },
       "from": [
@@ -256,46 +256,13 @@
         20,
         10
       ]
-    },
-    {
-      "faces": {
-        "down": {
-          "texture": "#stone"
-        },
-        "east": {
-          "texture": "#stone"
-        },
-        "north": {
-          "texture": "#stone"
-        },
-        "south": {
-          "texture": "#stone"
-        },
-        "up": {
-          "texture": "#stone"
-        },
-        "west": {
-          "texture": "#stone"
-        }
-      },
-      "from": [
-        0,
-        14,
-        -1
-      ],
-      "to": [
-        16,
-        16,
-        17
-      ]
     }
   ],
   "textures": {
-    "bricks": "minecraft:block/bricks",
     "crucible": "minecraft:block/cauldron_side",
     "cut": "minecraft:block/cut_copper",
     "embers": "minecraft:block/coal_block",
-    "particle": "minecraft:block/bricks",
-    "stone": "minecraft:block/smooth_stone"
+    "particle": "minecraft:block/stone_bricks",
+    "stone": "minecraft:block/stone_bricks"
   }
 }

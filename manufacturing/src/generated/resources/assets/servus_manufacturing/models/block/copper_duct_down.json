@@ -1,68 +1,73 @@
 {
   "parent": "minecraft:block/block",
+  "ambientocclusion": false,
   "elements": [
     {
       "faces": {
         "down": {
-          "texture": "#copper"
+          "texture": "#copper",
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ]
         },
         "east": {
-          "texture": "#copper"
+          "texture": "#copper",
+          "uv": [
+            0,
+            0,
+            4,
+            16
+          ]
         },
         "north": {
-          "texture": "#copper"
+          "texture": "#copper",
+          "uv": [
+            0,
+            0,
+            4,
+            16
+          ]
         },
         "south": {
-          "texture": "#copper"
+          "texture": "#copper",
+          "uv": [
+            0,
+            0,
+            4,
+            16
+          ]
         },
         "up": {
-          "texture": "#copper"
+          "texture": "#copper",
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ]
         },
         "west": {
-          "texture": "#copper"
+          "texture": "#copper",
+          "uv": [
+            0,
+            0,
+            4,
+            16
+          ]
         }
       },
       "from": [
         6,
-        2,
+        -3,
         6
       ],
       "to": [
         10,
         16,
         10
-      ]
-    },
-    {
-      "faces": {
-        "down": {
-          "texture": "#cut"
-        },
-        "east": {
-          "texture": "#cut"
-        },
-        "north": {
-          "texture": "#cut"
-        },
-        "south": {
-          "texture": "#cut"
-        },
-        "up": {
-          "texture": "#cut"
-        },
-        "west": {
-          "texture": "#cut"
-        }
-      },
-      "from": [
-        4,
-        0,
-        4
-      ],
-      "to": [
-        12,
-        2,
-        12
       ]
     }
   ],

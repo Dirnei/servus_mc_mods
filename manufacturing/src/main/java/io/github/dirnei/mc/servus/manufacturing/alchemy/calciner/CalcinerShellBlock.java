@@ -18,21 +18,22 @@ import net.minecraft.world.level.redstone.Orientation;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A brick of a formed Calciner. Forming puts it in place of vanilla Bricks so the brick can
- * carry the facing and its cell; unforming puts the Bricks back. It has no item of its own.
+ * A stone of a formed Calciner, registered once for Stone Bricks and once for Deepslate Tiles.
+ * Forming puts it in place of the vanilla block so the stone can carry the facing and its cell;
+ * unforming puts the vanilla block back. It has no item of its own.
  */
 public class CalcinerShellBlock extends Block implements Wrenchable {
 
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
-    /** The brick cell of {@link CalcinerLayout}, 1 to 6. */
-    public static final IntegerProperty CELL = IntegerProperty.create("cell", 1, 6);
+    /** The stone cell of {@link CalcinerLayout}, 1 to 4. */
+    public static final IntegerProperty CELL = IntegerProperty.create("cell", 1, 4);
 
     public CalcinerShellBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(CELL, 1));
     }
 
-    /** The carrot never turns a brick of the Calciner. */
+    /** The carrot never turns a stone of the Calciner. */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         return InteractionResult.PASS;

@@ -7,12 +7,14 @@ import io.github.dirnei.mc.servus.foundation.client.BufferedBlockEntityRenderer;
 import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
 import io.github.dirnei.mc.servus.foundation.client.RenderSubmit;
 import io.github.dirnei.mc.servus.foundation.client.SubmitBuffers;
+import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Offset;
 import net.minecraft.client.Minecraft;
@@ -26,13 +28,16 @@ import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
  * Draws what a formed Calciner holds: the matter in the crucible, the ash heap in the Ash Pan, the Mercury in the Receiver's
- * flask, each by how full its buffer is. The Sulfur and Mercury tanks show their own level. The rest of the
- * structure is chunk baked from block models.
+ * flask, each by how full its buffer is. While the Calciner works, Mercury drips from the Receiver into the basin, and a
+ * puddle lies there while the Mercury tank holds fluid. The tanks show their own level. The rest of the structure is
+ * chunk baked from block models.
  */
 public final class CalcinerRenderer extends BufferedBlockEntityRenderer<CalcinerBlockEntity> {
 
@@ -45,8 +50,15 @@ public final class CalcinerRenderer extends BufferedBlockEntityRenderer<Calciner
 
     private static final Fill[] FILLS = {
             new Fill(Role.ASH_PAN, Principle.SALT, 4, 3, 0.5F, 12, 4, 3, ASH),
-            new Fill(Role.RECEIVER, Principle.MERCURY, 4.5F, 1.25F, 4.5F, 11.5F, 7.5F, 11.5F, null),
+            new Fill(Role.RECEIVER, Principle.MERCURY, 4.5F, 3.25F, 4.5F, 11.5F, 7.5F, 11.5F, null),
     };
+
+    /** Ticks a drop takes from the Receiver's tap into the basin. */
+    private static final int DRIP_TICKS = 16;
+    /** Where a drop starts and where the puddle lies in the basin, in sixteenths of the basin's Stone Bricks. */
+    private static final float DRIP_TOP = 16;
+    private static final float PUDDLE_BOTTOM = 12.1F;
+    private static final float PUDDLE_TOP = 12.7F;
 
     public CalcinerRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -80,7 +92,43 @@ public final class CalcinerRenderer extends BufferedBlockEntityRenderer<Calciner
             drawBox(consumer, poseStack.last(), box[0], y0, box[1], box[2], y1, box[3], sprite, color, packedLight);
             poseStack.popPose();
         }
+        renderBasin(calciner, facing, partialTick, poseStack, consumer, packedLight);
         renderInput(calciner, facing, poseStack, buffers, packedLight);
+    }
+
+    /** The falling drop while the Receiver is lit and the puddle while the Mercury tank holds fluid, in the basin's Stone Bricks. */
+    private static void renderBasin(CalcinerBlockEntity calciner, Direction facing, float partialTick, PoseStack poseStack,
+                                    VertexConsumer consumer, int light) {
+        Level level = calciner.getLevel();
+        if (level == null) {
+            return;
+        }
+        BlockPos controller = calciner.getBlockPos();
+        BlockState receiver = level.getBlockState(CalcinerStructure.pos(controller, CalcinerLayout.part(Role.RECEIVER), CalcinerStructure.facing(facing)));
+        boolean dripping = receiver.getBlock() instanceof CalcinerPartBlock && receiver.getValue(CalcinerPartBlock.LIT);
+        FluidStack puddle = level.getBlockEntity(CalcinerStructure.pos(controller, CalcinerLayout.cell(CalcinerLayout.MERCURY_TANK),
+                CalcinerStructure.facing(facing))) instanceof FluidTankBlockEntity tank ? tank.rawShare() : FluidStack.EMPTY;
+        if (!dripping && puddle.isEmpty()) {
+            return;
+        }
+        Offset basin = CalcinerLayout.worldOffset(CalcinerLayout.cells(Role.STONE_BRICKS).getLast(), CalcinerStructure.facing(facing));
+        poseStack.pushPose();
+        poseStack.translate(basin.x(), basin.y(), basin.z());
+        if (dripping) {
+            FluidStack mercury = new FluidStack(PrincipleFluids.fluid(Principle.MERCURY), 1);
+            float phase = ((level.getGameTime() % DRIP_TICKS) + partialTick) / DRIP_TICKS;
+            // Falls like a drop: slow at the tap, fast into the basin.
+            float top = DRIP_TOP - (DRIP_TOP - PUDDLE_TOP) * phase * phase;
+            float[] box = rotate(7.5F / 16, 7.5F / 16, 8.5F / 16, 8.5F / 16, facing);
+            drawBox(consumer, poseStack.last(), box[0], (top - 1) / 16, box[1], box[2], top / 16, box[3],
+                    FluidSprites.still(mercury), FluidSprites.tint(mercury), light);
+        }
+        if (!puddle.isEmpty()) {
+            float[] box = rotate(3.05F / 16, 3.05F / 16, 12.95F / 16, 12.95F / 16, facing);
+            drawBox(consumer, poseStack.last(), box[0], PUDDLE_BOTTOM / 16, box[1], box[2], PUDDLE_TOP / 16, box[3],
+                    FluidSprites.still(puddle), FluidSprites.tint(puddle), light);
+        }
+        poseStack.popPose();
     }
 
     /** The matter being calcined, standing in the crucible of the mouth. */

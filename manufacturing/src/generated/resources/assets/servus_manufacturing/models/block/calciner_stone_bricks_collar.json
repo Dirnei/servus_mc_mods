@@ -1,0 +1,238 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#stone"
+        },
+        "east": {
+          "texture": "#stone"
+        },
+        "north": {
+          "texture": "#stone"
+        },
+        "south": {
+          "texture": "#stone"
+        },
+        "up": {
+          "texture": "#stone"
+        },
+        "west": {
+          "texture": "#stone"
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        15,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#stone"
+        },
+        "east": {
+          "texture": "#stone"
+        },
+        "north": {
+          "texture": "#stone"
+        },
+        "south": {
+          "texture": "#stone"
+        },
+        "up": {
+          "texture": "#stone"
+        },
+        "west": {
+          "texture": "#stone"
+        }
+      },
+      "from": [
+        0,
+        15,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#stone"
+        },
+        "east": {
+          "texture": "#stone"
+        },
+        "north": {
+          "texture": "#stone"
+        },
+        "south": {
+          "texture": "#stone"
+        },
+        "up": {
+          "texture": "#stone"
+        },
+        "west": {
+          "texture": "#stone"
+        }
+      },
+      "from": [
+        0,
+        15,
+        11
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#stone"
+        },
+        "east": {
+          "texture": "#stone"
+        },
+        "north": {
+          "texture": "#stone"
+        },
+        "south": {
+          "texture": "#stone"
+        },
+        "up": {
+          "texture": "#stone"
+        },
+        "west": {
+          "texture": "#stone"
+        }
+      },
+      "from": [
+        0,
+        15,
+        5
+      ],
+      "to": [
+        5,
+        16,
+        11
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#stone"
+        },
+        "east": {
+          "texture": "#stone"
+        },
+        "north": {
+          "texture": "#stone"
+        },
+        "south": {
+          "texture": "#stone"
+        },
+        "up": {
+          "texture": "#stone"
+        },
+        "west": {
+          "texture": "#stone"
+        }
+      },
+      "from": [
+        11,
+        15,
+        5
+      ],
+      "to": [
+        16,
+        16,
+        11
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#cut",
+          "uv": [
+            0,
+            0,
+            5.8999996,
+            5.8999996
+          ]
+        },
+        "east": {
+          "texture": "#cut",
+          "uv": [
+            0,
+            0,
+            5.8999996,
+            2.6000004
+          ]
+        },
+        "north": {
+          "texture": "#cut",
+          "uv": [
+            0,
+            0,
+            5.8999996,
+            2.6000004
+          ]
+        },
+        "south": {
+          "texture": "#cut",
+          "uv": [
+            0,
+            0,
+            5.8999996,
+            2.6000004
+          ]
+        },
+        "up": {
+          "texture": "#cut",
+          "uv": [
+            0,
+            0,
+            5.8999996,
+            5.8999996
+          ]
+        },
+        "west": {
+          "texture": "#cut",
+          "uv": [
+            0,
+            0,
+            5.8999996,
+            2.6000004
+          ]
+        }
+      },
+      "from": [
+        5.05,
+        14,
+        5.05
+      ],
+      "to": [
+        10.95,
+        16.6,
+        10.95
+      ]
+    }
+  ],
+  "textures": {
+    "cut": "minecraft:block/cut_copper",
+    "particle": "minecraft:block/stone_bricks",
+    "stone": "minecraft:block/stone_bricks"
+  }
+}

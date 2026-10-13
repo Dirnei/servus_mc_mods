@@ -73,27 +73,27 @@ These are the new cells, as (right, up) offsets:
 ### Models (datagen, `AlchemyModels`)
 - The Ash Pan and Firebox frames take a texture parameter: `block/deepslate_tiles` for the Ash Pan and `block/polished_deepslate` for the Firebox. The mouth uses `block/stone_bricks`, and its frame runs to the full block height because the cornice is gone. `trim()` and its constants are deleted.
 - Stone shell models are chosen per cell:
-  - Left (cell 1), collar: the body ends at y 15. A stone ring around a 6 px hole from x 5 to 11 fills y 15 to 16. A cut copper ring with outer edge 5.05 to 10.95 and inner edge 6.05 to 9.95 rises from y 15 to 16.6 and meets the duct pipe (x 6 to 10), which drops into it to y 13 of the stone.
-  - Right (cell 2), basin: the body ends at y 12. A stone ring around a hole from 3 to 13 fills y 12 to 16, and the basin floor uses `block/smooth_stone`. A drain grate of 1 px iron bars sits in the middle from 6 to 10: long bars from y 12.2 to 12.4, cross bars from y 12 to 12.195. The cross bars stop 0.005 px below the long bars, so no faces meet in one plane.
+  - Left (cell 1), collar: the body ends at y 15. A stone ring around a 6 px hole from x 5 to 11 fills y 15 to 16. A cut copper collar block from 5.05 to 10.95, sunk into the body from y 14 and rising to y 16.6, takes the duct pipe (x 6 to 10), which drops through it to y 13 of the stone.
+  - Right (cell 2), basin: the body ends at y 12. A stone ring around a hole from 3 to 13 fills y 12 to 16, and the basin floor uses `block/smooth_stone`. The drain in the middle from 6 to 10 goes down to y 10 with a `block/polished_deepslate` bottom. A grate of 1 px steel bars (the family steel texture `servus_foundation:block/electric_pump_steel`) lies over it: long bars at 6.5 and 8.5 from y 12.2 to 12.4, cross bars from y 12 to 12.195. The cross bars stop 0.005 px below the long bars, so no faces meet in one plane.
 - The deepslate shell uses the vanilla `block/deepslate_tiles` cube model with the shell's facing ignored.
 - Duct pieces:
   - Elbow: the across arm runs from x -5 to 10 in model space, 5 px into the Hood's pipe as before. It has the cut copper joint at the bend.
   - Drop: copper from y -3 to 16.
 - Receiver formed:
-  - Four cut copper legs, 1 px square, at the corners of 4 to 12, from y 0 to 3.
+  - Four cut copper legs, 1 px square, just outside the flask's corners (3.1 and 11.9), standing on the basin floor (y -4) and reaching up to y 3. `ao(false)`, since they reach below the block.
   - The flask from y 3 to 11 and the neck from y 11 to 15.
-  - A 2 px cut copper tap from y 0.5 to 3 with a small lip, ending above the basin.
+  - A 2 px cut copper tap from y 1.5 to 3 with a 3 px lip from y 1 to 2, ending above the basin.
 - Alembic formed: the beak ends 4 px inside the Receiver's flask, i.e. from model x -4 to 4.
 - All coordinates are in the model space of `AlchemyModels` (front faces north, the player's right is -x). The preview used mirrored x, and tasks convert it.
 
 ### Look while working
 - `CalcinerStructure.light` also lights the Receiver. `CalcinerPartBlock` already has `LIT` and lit models per part, so the lit Receiver model is the same as unlit.
 - `CalcinerRenderer` draws the drop and the puddle:
-  - The drop is a 1 px Mercury box falling from the tap into the basin, cycling with the level's game time, while the Receiver is lit.
+  - The drop is a 1 px Mercury box falling from the basin's rim (y 16 of the Stone Bricks) into the puddle, cycling every 16 ticks with the level's game time, while the Receiver is lit.
   - The puddle is a 0.6 px Mercury slab on the basin floor while the Fluid Tank at `MERCURY_TANK` holds fluid. It is read on the client from `FluidTankBlockEntity.rawShare()`, the synced value `FluidTankRenderer` already draws from.
   - Both use `FluidSprites.still` and `FluidSprites.tint` of the Mercury fluid, like the existing flask fill.
 - The flask fill box moves up to the new flask (y 3.25 to 10.75).
-- The renderer's bounding box shrinks to 3 by 5.
+- The renderer's bounding box already spans 3 by 5 and stays.
 - Alternative considered: vanilla dripping particles. They were rejected because no vanilla drip can be tinted silver.
 
 ### Journal and PLAN

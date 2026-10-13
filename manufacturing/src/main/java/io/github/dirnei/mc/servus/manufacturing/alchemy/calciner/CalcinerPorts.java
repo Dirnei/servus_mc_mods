@@ -24,7 +24,8 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 
 /**
  * The ports of a formed Calciner, fixed by position: matter in at the mouth, fuel and upkeep at
- * the Firebox, Ash out of the Ash Pan, Mercury out of the Receiver and Sulfur out of the lowest duct.
+ * the Firebox, Ash out of the Ash Pan, Mercury out of the Receiver and Sulfur out of the lower duct.
+ * The Calciner fills its own two tanks; the fluid ports only drain what has not reached them yet.
  */
 public final class CalcinerPorts {
 
@@ -73,7 +74,7 @@ public final class CalcinerPorts {
         return calciner == null ? null : calciner.upkeep();
     }
 
-    /** The drain only tank of the port's principle on the Ash Pan, the Receiver or the lowest Copper Duct of a formed Calciner. */
+    /** The drain only tank of the port's principle on the Ash Pan, the Receiver or the lower Copper Duct of a formed Calciner. */
     public static LegacyFluidHandler fluid(Level level, BlockPos pos, BlockState state) {
         Cell cell;
         if (state.getBlock() instanceof CalcinerPartBlock part) {
@@ -91,36 +92,24 @@ public final class CalcinerPorts {
         return calciner == null ? null : calciner.tanks().view(principle);
     }
 
-    /** Pushes each principle from its port into touching fluid handlers outside the structure. */
+    /** Fills the structure's own Sulfur and Mercury tanks with what fits. */
     public static void push(Level level, BlockPos controller, Direction direction, PrincipleTanks tanks) {
         Facing facing = CalcinerStructure.facing(direction);
-        for (Cell cell : CalcinerLayout.cells()) {
-            Principle principle = principle(cell);
-            if (principle == null) {
-                continue;
-            }
-            FluidSlot tank = tanks.tank(principle);
-            if (tank.isEmpty()) {
-                continue;
-            }
-            BlockPos port = CalcinerStructure.pos(controller, cell, facing);
-            for (Direction side : Direction.values()) {
-                BlockPos target = port.relative(side);
-                if (CalcinerStructure.controllerOf(level.getBlockState(target), target).filter(controller::equals).isPresent()) {
-                    continue;
-                }
-                FluidView neighbour = FluidView.of(level.getCapability(Capabilities.Fluid.BLOCK, target, side.getOpposite()));
-                if (neighbour == null) {
-                    continue;
-                }
-                int filled = neighbour.fill(tank.getFluid().copy(), false);
-                if (filled > 0) {
-                    tank.drain(filled, false);
-                }
-                if (tank.isEmpty()) {
-                    break;
-                }
-            }
+        fill(level, CalcinerStructure.pos(controller, CalcinerLayout.cell(CalcinerLayout.SULFUR_TANK), facing), tanks.tank(Principle.SULFUR));
+        fill(level, CalcinerStructure.pos(controller, CalcinerLayout.cell(CalcinerLayout.MERCURY_TANK), facing), tanks.tank(Principle.MERCURY));
+    }
+
+    private static void fill(Level level, BlockPos target, FluidSlot tank) {
+        if (tank.isEmpty()) {
+            return;
+        }
+        FluidView view = FluidView.of(level.getCapability(Capabilities.Fluid.BLOCK, target, Direction.UP));
+        if (view == null) {
+            return;
+        }
+        int filled = view.fill(tank.getFluid().copy(), false);
+        if (filled > 0) {
+            tank.drain(filled, false);
         }
     }
 

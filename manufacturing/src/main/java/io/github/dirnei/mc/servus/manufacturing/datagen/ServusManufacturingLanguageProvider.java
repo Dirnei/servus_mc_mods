@@ -65,7 +65,8 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add("message.servus_manufacturing.coagulator.at.itself", "here");
         add("jade.servus_manufacturing.purifier.items", "Ash: %s");
         add("jade.servus_manufacturing.purifier.water", "%s / %s mB Water");
-        add(ServusManufacturingBlocks.CALCINER_SHELL.get(), "Calciner Bricks");
+        add(ServusManufacturingBlocks.CALCINER_STONE_BRICKS.get(), "Calciner Stone Bricks");
+        add(ServusManufacturingBlocks.CALCINER_DEEPSLATE_TILES.get(), "Calciner Deepslate Tiles");
         add("message.servus_manufacturing.calciner.formed", "The Calciner is ready.");
         add("jade.servus_manufacturing.calciner.input", "Matter: %s");
         add("jade.servus_manufacturing.calciner.fuel", "Fuel: %s");

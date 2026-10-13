@@ -60,10 +60,6 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
             calciner.layer(row.replace(Role.CALCINER.symbol(), CALCINER_SYMBOL).replace(Role.ASH_PAN.symbol(), '0'));
         }
         for (Role role : Role.values()) {
-            if (role == Role.AIR) {
-                // A space is air in Modonomicon's pattern already.
-                continue;
-            }
             char symbol = switch (role) {
                 case CALCINER -> CALCINER_SYMBOL;
                 case ASH_PAN -> '0';
