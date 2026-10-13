@@ -44,6 +44,19 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     protected static final int ENERGY_WIDTH = 12;
     protected static final int ENERGY_HEIGHT = 52;
 
+    /** Top edge of the energy bar; screens with their own bar override. */
+    protected int energyY() {
+        return ENERGY_Y;
+    }
+
+    protected int energyWidth() {
+        return ENERGY_WIDTH;
+    }
+
+    protected int energyHeight() {
+        return ENERGY_HEIGHT;
+    }
+
     /** Where the fluid gauge sits, over the place of an output slot. */
     protected static final int FLUID_X = 116;
     protected static final int FLUID_Y = 17;
@@ -69,7 +82,12 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     }
 
     public MachineScreen(MachineMenu menu, Inventory playerInventory, Component title, Layout layout) {
-        super(menu, playerInventory, title, 176, 166);
+        this(menu, playerInventory, title, layout, 176, 166);
+    }
+
+    /** A machine screen with its own panel size. */
+    protected MachineScreen(MachineMenu menu, Inventory playerInventory, Component title, Layout layout, int width, int height) {
+        super(menu, playerInventory, title, width, height);
         this.layout = layout;
     }
 
@@ -97,7 +115,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     @Override
     public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
-        if (layout.energy() && isHovering(energyX(), ENERGY_Y, ENERGY_WIDTH, ENERGY_HEIGHT, mouseX, mouseY)) {
+        if (layout.energy() && isHovering(energyX(), energyY(), energyWidth(), energyHeight(), mouseX, mouseY)) {
             guiGraphics.setTooltipForNextFrame(font,
                     Component.literal(menu.energyStored() + " / " + menu.energyCapacity() + " FE"), mouseX, mouseY);
         }
@@ -161,14 +179,19 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             fluidGauge.render(guiGraphics, menu.fluid(), menu.fluidCapacity());
         }
         if (layout.energy()) {
-            int x = leftPos + energyX();
-            int y = topPos + ENERGY_Y;
-            guiGraphics.fill(x - 1, y - 1, x + ENERGY_WIDTH + 1, y + ENERGY_HEIGHT + 1, 0xFF373737);
-            guiGraphics.fill(x, y, x + ENERGY_WIDTH, y + ENERGY_HEIGHT, 0xFF1E1E1E);
-            int filled = menu.energyScaled(ENERGY_HEIGHT);
-            if (filled > 0) {
-                guiGraphics.fill(x, y + ENERGY_HEIGHT - filled, x + ENERGY_WIDTH, y + ENERGY_HEIGHT, 0xFFD03030);
-            }
+            extractEnergyBar(guiGraphics);
+        }
+    }
+
+    /** The shared red energy bar; screens with their own look override. */
+    protected void extractEnergyBar(GuiGraphicsExtractor guiGraphics) {
+        int x = leftPos + energyX();
+        int y = topPos + ENERGY_Y;
+        guiGraphics.fill(x - 1, y - 1, x + ENERGY_WIDTH + 1, y + ENERGY_HEIGHT + 1, 0xFF373737);
+        guiGraphics.fill(x, y, x + ENERGY_WIDTH, y + ENERGY_HEIGHT, 0xFF1E1E1E);
+        int filled = menu.energyScaled(ENERGY_HEIGHT);
+        if (filled > 0) {
+            guiGraphics.fill(x, y + ENERGY_HEIGHT - filled, x + ENERGY_WIDTH, y + ENERGY_HEIGHT, 0xFFD03030);
         }
     }
 }

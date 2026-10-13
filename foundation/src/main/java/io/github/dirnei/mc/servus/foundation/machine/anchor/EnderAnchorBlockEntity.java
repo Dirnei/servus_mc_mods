@@ -55,7 +55,9 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
     public static final int DATA_OFFSET_Z = DATA_COUNT + 2;
     public static final int DATA_TEAM_LOAD = DATA_COUNT + 3;
     public static final int DATA_TEAM_CAP = DATA_COUNT + 4;
-    public static final int DATA_COUNT_ANCHOR = DATA_COUNT + 5;
+    /** FE per tick the current area costs: energy per chunk times the area size. */
+    public static final int DATA_UPKEEP = DATA_COUNT + 5;
+    public static final int DATA_COUNT_ANCHOR = DATA_COUNT + 6;
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "ender_anchor");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
     private static final String FTB_CHUNKS = "ftbchunks";
@@ -308,6 +310,7 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
             case DATA_TEAM_LOAD -> owner != null && level instanceof ServerLevel server
                     ? EnderAnchorData.get(server.getServer()).load(owner) : 0;
             case DATA_TEAM_CAP -> ServusFoundationConfig.maxLoadedChunksPerTeam();
+            case DATA_UPKEEP -> energyPerTickNow();
             default -> super.getData(index);
         };
     }

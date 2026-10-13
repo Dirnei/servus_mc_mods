@@ -73,15 +73,21 @@ public abstract class MachineMenu extends AbstractContainerMenu {
         return 8;
     }
 
+    /** Top edge of the player inventory; taller GUIs move it down. The hotbar sits 58 below. */
+    protected int playerInventoryY() {
+        return 84;
+    }
+
     private void addPlayerSlots(Inventory playerInventory) {
         int x = playerInventoryX();
+        int y = playerInventoryY();
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, x + column * 18, 84 + row * 18));
+                addSlot(new Slot(playerInventory, column + row * 9 + 9, x + column * 18, y + row * 18));
             }
         }
         for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(playerInventory, column, x + column * 18, 142));
+            addSlot(new Slot(playerInventory, column, x + column * 18, y + 58));
         }
     }
 
