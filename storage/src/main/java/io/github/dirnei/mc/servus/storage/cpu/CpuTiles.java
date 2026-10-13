@@ -11,7 +11,7 @@ import io.github.dirnei.mc.servus.foundation.graph.Side;
  * vanilla's default face UVs: on the north face the texture's left is east,
  * on the south face west, on the west face north, on the east face south;
  * on the up face the top is north and the left west, on the down face the
- * top is south and the left west. Pure, no Minecraft imports.
+ * top is south and the left west.
  */
 public final class CpuTiles {
 

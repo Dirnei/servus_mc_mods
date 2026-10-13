@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.cpu;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
+import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -11,8 +12,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -37,7 +38,6 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
 
 /**
  * A Crafting CPU block. CPU and Buffer blocks that fill a solid box of at
@@ -92,8 +92,6 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
         };
     }
 
-    // Layout
-
     public static boolean isFormed(BlockState state) {
         return state.getBlock() instanceof CpuBlock && state.getValue(FORMED);
     }
@@ -114,8 +112,6 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
         }
         return cpu;
     }
-
-    // Forming and unforming
 
     /** The unformed CPU and Buffer blocks joined face to face to {@code start}, at most {@code limit}. */
     static Set<BlockPos> joined(Level level, BlockPos start, int limit) {
@@ -212,8 +208,7 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
             }
             BlockState state = level.getBlockState(at);
             if (isFormed(state) && level.getBlockEntity(at) instanceof CpuBlockEntity block && corner.equals(block.masterPos())) {
-                block.leaveBox();
-                level.setBlock(at, state.getBlock().defaultBlockState(), Block.UPDATE_ALL);
+                unformBlock(level, at, state, block);
             }
         }
         for (BlockPos at : all) {
@@ -221,6 +216,11 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
                 level.invalidateCapabilities(at);
             }
         }
+    }
+
+    private static void unformBlock(Level level, BlockPos at, BlockState state, CpuBlockEntity block) {
+        block.leaveBox();
+        level.setBlock(at, state.getBlock().defaultBlockState(), Block.UPDATE_ALL);
     }
 
     /**
@@ -264,8 +264,7 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
                     || !masterPos.equals(block.masterPos())) {
                 continue;
             }
-            block.leaveBox();
-            level.setBlock(at, state.getBlock().defaultBlockState(), Block.UPDATE_ALL);
+            unformBlock(level, at, state, block);
             level.invalidateCapabilities(at);
             for (Direction direction : Direction.values()) {
                 BlockPos next = at.relative(direction);
@@ -281,13 +280,10 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
         return state.getValue(FORMED) ? PushReaction.BLOCK : null;
     }
 
-    // Interaction
-
+    /** The carrot and CPU or Buffer blocks pass on to their item; any other item shows the summary like an empty hand. */
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                               InteractionHand hand, BlockHitResult hitResult) {
-        // The carrot forms the box and a CPU or Buffer block places the next one; any other item shows
-        // the summary like a chest, sneaking uses the item.
         boolean cpuBlock = stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof CpuBlock;
         return stack.getItem() instanceof ConfigurationCarrotItem || cpuBlock ? InteractionResult.PASS
                 : InteractionResult.TRY_WITH_EMPTY_HAND;

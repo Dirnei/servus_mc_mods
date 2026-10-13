@@ -5,7 +5,7 @@ import java.util.Set;
 /**
  * Checks whether the unformed CPU and Buffer blocks joined to a clicked block
  * fill a solid box that can form a Crafting CPU, and gives every block of a
- * box its place class (see {@link CpuShape}). Pure, no Minecraft imports.
+ * box its place class (see {@link CpuShape}).
  */
 public final class CpuBox {
 

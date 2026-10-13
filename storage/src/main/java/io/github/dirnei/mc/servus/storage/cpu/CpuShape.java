@@ -5,7 +5,6 @@ package io.github.dirnei.mc.servus.storage.cpu;
  * {@code x + 3z + 9y} names its place in the box per axis: 0 low, 1 middle,
  * 2 high (a side of 2 has no middle, see {@link CpuBox#placeClass}). Part 0
  * is the lowest corner, the master; it is the only block with that class.
- * Pure, no Minecraft imports.
  */
 public final class CpuShape {
 

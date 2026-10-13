@@ -6,7 +6,7 @@ import java.util.OptionalInt;
 /**
  * Which CPU of a data line takes a new order: the first with a free slot,
  * else the one with the fewest open orders, the earliest on a tie. CPUs are
- * given in position order. Pure, no Minecraft imports.
+ * given in position order.
  */
 public final class CpuChoice {
 

@@ -11,7 +11,7 @@ import java.util.Map;
  * its max stack size; the CPU has room for a number of stacks, shared by all
  * orders first come first served. Items on their way in (an arrival, named by
  * its transfer id) hold their room until the transfer ends; they are credited
- * to their order as they land. Pure, no Minecraft imports.
+ * to their order as they land.
  *
  * @param <K> the item key
  */

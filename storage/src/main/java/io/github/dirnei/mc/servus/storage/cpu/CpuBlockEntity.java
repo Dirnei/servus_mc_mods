@@ -1,62 +1,63 @@
 package io.github.dirnei.mc.servus.storage.cpu;
 
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
+import io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
-import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.order.Handoff;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
-import io.github.dirnei.mc.servus.storage.order.StepRef;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
+import io.github.dirnei.mc.servus.storage.order.StepRef;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
-import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
-import io.github.dirnei.mc.servus.storage.terminal.TerminalRequests;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalRequests;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.world.Containers;
-import io.github.dirnei.mc.servus.storage.order.Saving;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
-import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.model.data.ModelData;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
  * One block of a Crafting CPU, a CPU block or a Buffer block. Every formed
@@ -87,7 +88,6 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     /** Items of a saved buffer that a master loading unformed drops in {@link #onLoad()}. */
     private List<ItemStack> lostBuffer = List.of();
     private final CpuInlet inlet = new CpuInlet(this);
-    /** Ticks between buffer upkeep runs, like the order book's. */
     private static final int BUFFER_INTERVAL = 20;
     private int bufferTimer;
     /** Leftover moves on their way to a Packing Station, by order and key, with their ledger ids. */
@@ -141,7 +141,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     }
 
     /** The CPU's packet inlet: only on a formed block, never an item capability. */
-    public net.neoforged.neoforge.transfer.ResourceHandler<net.neoforged.neoforge.transfer.item.ItemResource> packetInlet() {
+    public ResourceHandler<ItemResource> packetInlet() {
         return CpuBlock.isFormed(getBlockState()) && masterOffset != null ? inlet : null;
     }
 
@@ -152,8 +152,6 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     public int bufferBlocks() {
         return bufferBlocks;
     }
-
-    // Box
 
     /** The master's position while formed, else null. */
     public BlockPos masterPos() {
@@ -227,7 +225,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
      * fails at once, the stack drops at the removed block.
      */
     private void emptyBuffer(ServerLevel server, BlockPos removed) {
-        List<ItemStack> stacks = stacks(buffer.clear());
+        List<ItemStack> stacks = CpuBufferNbt.stacks(buffer.clear());
         leaving.clear();
         Optional<BlockPos> from = memberPos(removed);
         Optional<BlockPos> point = from.flatMap(member -> collectionPoint(server, member));
@@ -253,7 +251,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
             leaving.clear();
             return;
         }
-        java.util.Set<Long> open = new java.util.HashSet<>();
+        Set<Long> open = new HashSet<>();
         if (book != null) {
             for (WorkOrder order : book.orders()) {
                 if (order.open()) {
@@ -403,8 +401,6 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         }
     }
 
-    // Persistence
-
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
@@ -429,7 +425,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
             tag.put("Orders", book.save(registries));
         }
         if (buffer != null && !buffer.isEmpty()) {
-            tag.put("Buffer", saveBuffer(buffer, registries));
+            tag.put("Buffer", CpuBufferNbt.save(buffer, registries));
         }
         output.store(tag);
     }
@@ -461,11 +457,11 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         buffer = null;
         lostBuffer = List.of();
         if (tag.contains("Buffer")) {
-            CpuBuffer<ItemKey> loaded = loadBuffer(tag.getCompoundOrEmpty("Buffer"), registries);
+            CpuBuffer<ItemKey> loaded = CpuBufferNbt.load(tag.getCompoundOrEmpty("Buffer"), room(), registries);
             if (CpuBlock.isFormed(state) && isMaster()) {
                 buffer = loaded;
             } else {
-                lostBuffer = stacks(loaded.clear());
+                lostBuffer = CpuBufferNbt.stacks(loaded.clear());
             }
         }
     }
@@ -598,17 +594,12 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
                 Optional<Delivery> delivery = DataPackets.move(server, producer, target.get(), key.stack(1), toMove);
                 if (delivery.isPresent()) {
                     if (order != null) {
-                        // Outputs later steps still needed went to storage because the buffer was full.
                         order.overflowed(key, Math.min(toMove, handed.overflow()));
                     }
-                    // The ledger outlives this block entity, so a landing while the CPU is unloaded still counts.
                     ProductionLedger ledger = ProductionLedger.get(server);
                     ProductionLedger.Transfer transfer = ledger.open(toMove);
                     step.collecting(key, transfer.id(), toMove);
-                    delivery.get().onEnd(ended -> {
-                        ledger.delivered(transfer, ended.delivered());
-                        ledger.end(transfer);
-                    });
+                    ledger.track(transfer, delivery.get());
                     setChanged();
                 }
             }
@@ -636,7 +627,6 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         @Override
         public boolean busyElsewhere(BlockPos producer) {
             ServerLevel server = serverLevel();
-            // A station whose outputs wait for someone else's collection, or hold leftovers, takes no new step.
             if (server.isLoaded(producer) && server.getBlockEntity(producer) instanceof CraftingStationBlockEntity station
                     && station.hasOutputs()
                     && !(station.jobOwner() instanceof StepRef ref && ref.cpu().equals(getBlockPos()))) {
@@ -683,9 +673,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         TerminalRequests.expectDirect(terminal, order.requestId(), direct);
         BlockPos terminalPos = order.deliverTo();
         int requestId = order.requestId();
-        delivery.get().onEnd(ended -> {
-            ledger.delivered(transfer, ended.delivered());
-            ledger.end(transfer);
+        ledger.track(transfer, delivery.get(), ended -> {
             if (ended.delivered() < direct && server.getBlockEntity(terminalPos) instanceof StorageTerminalBlockEntity target) {
                 TerminalRequests.directShort(target, requestId, direct - ended.delivered());
             }
@@ -758,10 +746,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
             ProductionLedger.Transfer transfer = ledger.open(count);
             step.collecting(key, transfer.id(), count, later.producer());
             later.handedIn(key, transfer.id(), count);
-            delivery.get().onEnd(ended -> {
-                ledger.delivered(transfer, ended.delivered());
-                ledger.end(transfer);
-            });
+            ledger.track(transfer, delivery.get());
             setChanged();
         }
         int buffered = split.buffered() > 0 ? toBuffer(server, step, order, key, split.buffered()) : 0;
@@ -789,9 +774,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         ProductionLedger.Transfer transfer = ledger.open(count);
         step.collecting(key, transfer.id(), count);
         buffer().expect(transfer.id(), order.id(), key, count, key.stack(1).getMaxStackSize());
-        delivery.get().onEnd(ended -> {
-            ledger.delivered(transfer, ended.delivered());
-            ledger.end(transfer);
+        ledger.track(transfer, delivery.get(), ended -> {
             buffer().arrived(transfer.id());
             setChanged();
         });
@@ -818,10 +801,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         }
         ProductionLedger ledger = ProductionLedger.get(server);
         ProductionLedger.Transfer transfer = ledger.open(count);
-        delivery.get().onEnd(ended -> {
-            ledger.delivered(transfer, ended.delivered());
-            ledger.end(transfer);
-        });
+        ledger.track(transfer, delivery.get());
         setChanged();
         return Optional.of(transfer.id());
     }
@@ -925,69 +905,6 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         return points.stream().min(Comparator.comparingLong(BlockPos::asLong));
     }
 
-    // Buffer saving
-
-    private static CompoundTag saveBuffer(CpuBuffer<ItemKey> buffer, HolderLookup.Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        ListTag entries = new ListTag();
-        for (CpuBuffer.Entry<ItemKey> entry : buffer.entries()) {
-            CompoundTag item = new CompoundTag();
-            item.putLong("Order", entry.order());
-            item.put("Item", Saving.key(entry.key(), registries));
-            item.putInt("Count", entry.count());
-            item.putInt("MaxStack", entry.maxStack());
-            item.putBoolean("Leaving", entry.leaving());
-            entries.add(item);
-        }
-        ListTag arrivals = new ListTag();
-        for (CpuBuffer.Arrival<ItemKey> arrival : buffer.arrivals()) {
-            CompoundTag item = new CompoundTag();
-            item.putLong("Transfer", arrival.transfer());
-            item.putLong("Order", arrival.order());
-            item.put("Item", Saving.key(arrival.key(), registries));
-            item.putInt("Expected", arrival.expected());
-            item.putInt("Landed", arrival.landed());
-            item.putInt("MaxStack", arrival.maxStack());
-            arrivals.add(item);
-        }
-        tag.put("Entries", entries);
-        tag.put("Arrivals", arrivals);
-        return tag;
-    }
-
-    private CpuBuffer<ItemKey> loadBuffer(CompoundTag tag, HolderLookup.Provider registries) {
-        CpuBuffer<ItemKey> loaded = new CpuBuffer<>(room());
-        for (Tag raw : tag.getListOrEmpty("Entries")) {
-            CompoundTag item = (CompoundTag) raw;
-            Saving.key(item.getCompoundOrEmpty("Item"), registries).ifPresent(key -> loaded.restore(new CpuBuffer.Entry<>(
-                    item.getLongOr("Order", 0), key, item.getIntOr("Count", 0), item.getIntOr("MaxStack", 64),
-                    item.getBooleanOr("Leaving", false))));
-        }
-        for (Tag raw : tag.getListOrEmpty("Arrivals")) {
-            CompoundTag item = (CompoundTag) raw;
-            Saving.key(item.getCompoundOrEmpty("Item"), registries).ifPresent(key -> loaded.restore(new CpuBuffer.Arrival<>(
-                    item.getLongOr("Transfer", 0), item.getLongOr("Order", 0), key, item.getIntOr("Expected", 0),
-                    item.getIntOr("Landed", 0), item.getIntOr("MaxStack", 64))));
-        }
-        return loaded;
-    }
-
-    /** The items of buffer entries as stacks of at most their max stack size. */
-    static List<ItemStack> stacks(List<CpuBuffer.Entry<ItemKey>> entries) {
-        List<ItemStack> list = new ArrayList<>();
-        for (CpuBuffer.Entry<ItemKey> entry : entries) {
-            int left = entry.count();
-            while (left > 0) {
-                int count = Math.min(left, Math.max(1, entry.maxStack()));
-                list.add(entry.key().stack(count));
-                left -= count;
-            }
-        }
-        return list;
-    }
-
-    // Wood: the planks the block was crafted from, shown as its boards
-
     @Override
     public WoodSlot woodSlot() {
         return woodSlot;
@@ -1029,14 +946,11 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         return woodSlot.modelData();
     }
 
-    // Data carrier
-
     @Override
     public void onLoad() {
         super.onLoad();
         carrier.carry(CpuBlock.isFormed(getBlockState()));
         if (level instanceof ServerLevel server && !lostBuffer.isEmpty()) {
-            // A master that loads unformed has lost its CPU; what its buffer held lands at its position.
             for (ItemStack stack : lostBuffer) {
                 Containers.dropItemStack(server, worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5, stack);
             }

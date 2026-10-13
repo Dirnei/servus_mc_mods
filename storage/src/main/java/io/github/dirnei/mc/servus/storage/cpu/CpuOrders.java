@@ -16,6 +16,7 @@ import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.storage.pattern.PatternRunners;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -24,7 +25,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
-import java.util.Collections;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
@@ -118,16 +118,18 @@ public final class CpuOrders {
 
     /** What an order for the amount would take from stock, craft and miss, on the CPU {@link CpuChoice} would pick. */
     public static OrderBook.Preview preview(ServerLevel level, DataNetwork network, ItemKey key, int amount) {
+        return choose(level, network).map(cpu -> cpu.book().preview(key, amount)).orElseGet(() -> OrderBook.Preview.refused("no_cpu"));
+    }
+
+    /** The CPU of the line that {@link CpuChoice} picks for a new order. */
+    private static Optional<CpuBlockEntity> choose(ServerLevel level, DataNetwork network) {
         List<CpuBlockEntity> cpus = cpus(level, network);
         List<CpuChoice.Load> loads = new ArrayList<>();
         for (CpuBlockEntity cpu : cpus) {
             loads.add(new CpuChoice.Load(cpu.book().openCount(), cpu.slots()));
         }
         OptionalInt chosen = CpuChoice.choose(loads);
-        if (chosen.isEmpty()) {
-            return OrderBook.Preview.refused("no_cpu");
-        }
-        return cpus.get(chosen.getAsInt()).book().preview(key, amount);
+        return chosen.isEmpty() ? Optional.empty() : Optional.of(cpus.get(chosen.getAsInt()));
     }
 
     public static List<CpuBlockEntity> cpus(ServerLevel level, BlockPos pos) {
@@ -136,25 +138,16 @@ public final class CpuOrders {
 
     /** Makes an order on the CPU of the line that {@link CpuChoice} picks. */
     public static Placed create(ServerLevel level, DataNetwork network, ItemKey key, int amount, int requestId) {
-        List<CpuBlockEntity> cpus = cpus(level, network);
-        List<CpuChoice.Load> loads = new ArrayList<>();
-        for (CpuBlockEntity cpu : cpus) {
-            loads.add(new CpuChoice.Load(cpu.book().openCount(), cpu.slots()));
-        }
-        OptionalInt chosen = CpuChoice.choose(loads);
-        if (chosen.isEmpty()) {
-            return new Placed(new OrderBook.Created(null, "no_cpu"), null);
-        }
-        CpuBlockEntity cpu = cpus.get(chosen.getAsInt());
-        return new Placed(cpu.book().create(key, amount, requestId), cpu.getBlockPos());
+        return choose(level, network).map(cpu -> new Placed(cpu.book().create(key, amount, requestId), cpu.getBlockPos()))
+                .orElseGet(CpuOrders::noCpu);
     }
 
     public static Placed create(ServerLevel level, BlockPos pos, ItemKey key, int amount, int requestId) {
-        Optional<DataNetwork> network = network(level, pos);
-        if (network.isEmpty()) {
-            return new Placed(new OrderBook.Created(null, "no_cpu"), null);
-        }
-        return create(level, network.get(), key, amount, requestId);
+        return network(level, pos).map(network -> create(level, network, key, amount, requestId)).orElseGet(CpuOrders::noCpu);
+    }
+
+    private static Placed noCpu() {
+        return new Placed(new OrderBook.Created(null, "no_cpu"), null);
     }
 
     /** The CPU whose master sits at the position, if loaded and formed. */

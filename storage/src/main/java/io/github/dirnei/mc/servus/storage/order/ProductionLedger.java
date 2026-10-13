@@ -1,9 +1,11 @@
 package io.github.dirnei.mc.servus.storage.order;
 
+import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Consumer;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -109,6 +111,22 @@ public final class ProductionLedger extends SavedData {
             transfer.endedAt = level == null ? 0 : level.getGameTime();
             setDirty();
         }
+    }
+
+    /**
+     * Books what the move delivers on the transfer and ends it when the move
+     * ends, then runs {@code after}. A move that already ended books at once.
+     */
+    public void track(Transfer transfer, Delivery delivery, Consumer<Delivery> after) {
+        delivery.onEnd(ended -> {
+            delivered(transfer, ended.delivered());
+            end(transfer);
+            after.accept(ended);
+        });
+    }
+
+    public void track(Transfer transfer, Delivery delivery) {
+        track(transfer, delivery, ended -> { });
     }
 
     /** A request id never handed out before in this dimension. */
