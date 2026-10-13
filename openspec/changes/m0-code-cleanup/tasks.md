@@ -4,14 +4,14 @@ Module roots: `foundation/src/main/java/io/github/dirnei/mc/servus/foundation/`,
 
 ## 1. Flaky tests
 
-- [ ] 1.1 Analyse `shaftBreakDropsRiderCargo`, `FieldGameTests.openPlotsCounted`, `FieldGameTests.hydrationReachesFourBlocks` and the `*sendsonopen` tests under `runGameTestServerAll`; record cause and fix per test in design.md "Decisions made during apply". No code yet.
-- [ ] 1.2 Fix each at its cause (test or production code as the analysis says). Run the affected GameTests at least 10 times without a failure, then `gradlew :storage:runGameTestServer` and `gradlew runGameTestServerAll`.
+- [x] 1.1 Analyse `shaftBreakDropsRiderCargo`, `FieldGameTests.openPlotsCounted`, `FieldGameTests.hydrationReachesFourBlocks` and the `*sendsonopen` tests under `runGameTestServerAll`; record cause and fix per test in design.md "Decisions made during apply". No code yet.
+- [x] 1.2 Fix each at its cause (test or production code as the analysis says). Run the affected GameTests at least 10 times without a failure, then `gradlew :storage:runGameTestServer` and `gradlew runGameTestServerAll`.
 
 ## 2. Foundation
 
-- [ ] 2.1 Foundation group (a) packages (design.md D3). Run `gradlew :foundation:build :foundation:test` and the Foundation GameTests.
-- [ ] 2.2 Foundation group (b) packages (design.md D3), main and test sources. Run `gradlew :foundation:build :foundation:test` and the Foundation GameTests.
-- [ ] 2.3 Merge both onto main; `gradlew build test` and all three `runGameTestServer` tasks green (Manufacturing and Storage still compile against the cleaned Foundation).
+- [x] 2.1 Foundation group (a) packages (design.md D3). Run `gradlew :foundation:build :foundation:test` and the Foundation GameTests.
+- [x] 2.2 Foundation group (b) packages (design.md D3), main and test sources. Run `gradlew :foundation:build :foundation:test` and the Foundation GameTests.
+- [x] 2.3 Merge both onto main; `gradlew build test` and all three `runGameTestServer` tasks green (Manufacturing and Storage still compile against the cleaned Foundation).
 
 ## 3. Manufacturing and Storage
 

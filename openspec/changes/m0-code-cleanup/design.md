@@ -50,3 +50,12 @@ PLAN.md open decisions settled: none.
 - [Silent behaviour change] A refactor changes behaviour no test covers. → Small commits per package, the review pass, the user play check; any regression is reverted per commit.
 - [Merge conflicts] Parallel agents touch shared files (registries, datagen providers, `ServusStorageGameTests`). → Disjoint package sets; shared files edited only by their package's agent.
 - [Lost knowledge] A removed comment carried a real reason. → Reasons that constrain the code (an API quirk) stay as short comments by D1.
+
+## Decisions made during apply
+
+- **Flaky tests, causes and fixes (test code only).** Reproduced with the vanilla GameTest server's `--tests` and `--repeatCount` arguments (400 to 3000 runs each).
+  - `shaftBreakDropsRiderCargo`: the dropped cargo pops inside the solid garage block and is pushed out a random distance, sometimes past the test's 3 block radius by the later check. The test now looks for it 5 ticks after the break within 1.5 blocks (2000 of 2000).
+  - `FieldGameTests.openPlotsCounted` and `hydrationReachesFourBlocks`: farmland placed with moisture 0 and nothing on it can turn back to dirt on a random tick before the head scans it. The tests place it with moisture 7 (3000 of 3000 each).
+  - `terminalSendsOnOpen`, `counterSendsOnOpen`, `productionSendsOnOpen`, `breakForgetsRipe`, `workshopKeepsAndDropsContents` under `runGameTestServerAll`: not flaky but deterministic. `makeMockServerPlayerInLevel` logs the player in, and Modonomicon (then FTB Ultimine) sends payloads the fake connection never negotiated. A new `gametest/TestPlayers.quiet` builds a server player whose connection never logs in; the combined run passes 663 of 663.
+- **Foundation.** Group (b) was split further over helper agents (machine; client and wood; datagen, gametest and upgrade); all commits were rebased onto main after group (a) and verified together (build, Foundation 129, Manufacturing 205, Storage 587 GameTests). `runData` output is unchanged.
+
