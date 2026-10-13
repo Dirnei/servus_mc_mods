@@ -8,8 +8,8 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 
 /**
- * A block that adds lines to its item's tooltip. Blocks lost their tooltip
- * hook in 1.21.5; the Servus block items ask blocks implementing this instead.
+ * A block that adds lines to its item's tooltip. Blocks have no tooltip hook
+ * of their own; the Servus block items call this.
  */
 public interface TooltipBlock {
 

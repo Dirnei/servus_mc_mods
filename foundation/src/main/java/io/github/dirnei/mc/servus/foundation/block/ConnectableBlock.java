@@ -1,8 +1,5 @@
 package io.github.dirnei.mc.servus.foundation.block;
 
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.ScheduledTickAccess;
-import net.minecraft.world.level.LevelReader;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import io.github.dirnei.mc.servus.foundation.wood.Wood;
@@ -10,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -18,6 +16,8 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
@@ -141,7 +141,6 @@ public abstract class ConnectableBlock extends BaseEntityBlock implements Wrench
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         if (!level.isClientSide()) {
-            // Wood blocks (rails) keep their wood on the dismantled item.
             Block.popResource(level, pos, Wood.stamp(new ItemStack(this), level.getBlockEntity(pos)));
             level.removeBlock(pos, false);
         }

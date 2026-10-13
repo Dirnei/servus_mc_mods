@@ -6,8 +6,8 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import org.jspecify.annotations.Nullable;
 
 /**
- * View of any fluid handler (usually one read from a capability) with the
- * methods of the old fluid handler and a simulate flag. Every change opens
+ * View of any fluid handler (usually one read from a capability) with
+ * simulate flag methods. Every change opens
  * its own transaction, nested in the one open on this thread if there is one.
  *
  * @param handler the wrapped handler

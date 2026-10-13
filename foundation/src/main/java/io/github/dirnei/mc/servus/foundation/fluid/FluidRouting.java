@@ -74,6 +74,19 @@ public final class FluidRouting {
             return 0;
         }
         int[] remaining = new int[sources.size()];
+        Map<K, Supply<K>> supplies = collectSupplies(sources, remaining);
+        if (supplies.isEmpty()) {
+            return 0;
+        }
+        assignSinks(sinks, supplies);
+        int moved = 0;
+        for (Supply<K> supply : supplies.values()) {
+            moved += routeSupply(supply, sources, remaining, sinks);
+        }
+        return moved;
+    }
+
+    private static <K> Map<K, Supply<K>> collectSupplies(List<? extends Source<K>> sources, int[] remaining) {
         Map<K, Supply<K>> supplies = new LinkedHashMap<>();
         for (int i = 0; i < sources.size(); i++) {
             Offer<K> offer = sources.get(i).offer();
@@ -85,9 +98,11 @@ public final class FluidRouting {
             supply.sources.add(i);
             supply.total += offer.amount();
         }
-        if (supplies.isEmpty()) {
-            return 0;
-        }
+        return supplies;
+    }
+
+    /** Gives each sink the first supply it accepts, in supply order. */
+    private static <K> void assignSinks(List<? extends Sink<K>> sinks, Map<K, Supply<K>> supplies) {
         for (int j = 0; j < sinks.size(); j++) {
             Sink<K> sink = sinks.get(j);
             for (Supply<K> supply : supplies.values()) {
@@ -99,29 +114,31 @@ public final class FluidRouting {
                 }
             }
         }
+    }
+
+    /** Fair shares first, then whatever a sink could not take as its share, sink by sink. */
+    private static <K> int routeSupply(Supply<K> supply, List<? extends Source<K>> sources, int[] remaining,
+            List<? extends Sink<K>> sinks) {
+        if (supply.sinks.isEmpty()) {
+            return 0;
+        }
+        int[] demand = new int[supply.sinks.size()];
+        long totalDemand = 0;
+        for (int k = 0; k < demand.length; k++) {
+            demand[k] = supply.demands.get(k);
+            totalDemand += demand[k];
+        }
+        int[] allocation = WaterFilling.allocate(demand, clamp(Math.min(totalDemand, supply.total)));
+        int[] filled = new int[demand.length];
         int moved = 0;
-        for (Supply<K> supply : supplies.values()) {
-            if (supply.sinks.isEmpty()) {
-                continue;
-            }
-            int[] demand = new int[supply.sinks.size()];
-            long totalDemand = 0;
-            for (int k = 0; k < demand.length; k++) {
-                demand[k] = supply.demands.get(k);
-                totalDemand += demand[k];
-            }
-            int[] allocation = WaterFilling.allocate(demand, clamp(Math.min(totalDemand, supply.total)));
-            int[] filled = new int[demand.length];
-            for (int k = 0; k < demand.length; k++) {
-                filled[k] = deliver(supply, sources, remaining, sinks.get(supply.sinks.get(k)), allocation[k]);
-                moved += filled[k];
-            }
-            // Whatever a sink could not take as its share goes to the sinks in order.
-            for (int k = 0; k < demand.length; k++) {
-                int wanted = demand[k] - filled[k];
-                if (wanted > 0) {
-                    moved += deliver(supply, sources, remaining, sinks.get(supply.sinks.get(k)), wanted);
-                }
+        for (int k = 0; k < demand.length; k++) {
+            filled[k] = deliver(supply, sources, remaining, sinks.get(supply.sinks.get(k)), allocation[k]);
+            moved += filled[k];
+        }
+        for (int k = 0; k < demand.length; k++) {
+            int wanted = demand[k] - filled[k];
+            if (wanted > 0) {
+                moved += deliver(supply, sources, remaining, sinks.get(supply.sinks.get(k)), wanted);
             }
         }
         return moved;

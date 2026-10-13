@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.foundation.energy;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -111,12 +110,5 @@ class EnergyDistributorTest {
         assertEquals(0, EnergyDistributor.distribute(List.of(), List.of(sink), 100));
         assertEquals(0, EnergyDistributor.distribute(List.of(source), List.of(sink), 0));
         assertEquals(100, source.stored);
-    }
-
-    @Test
-    void allocationHandlesTinyBudgets() {
-        assertArrayEquals(new int[] {1, 0, 0}, EnergyDistributor.allocate(new int[] {5, 5, 5}, 1));
-        assertArrayEquals(new int[] {2, 2, 1}, EnergyDistributor.allocate(new int[] {5, 5, 5}, 5));
-        assertArrayEquals(new int[] {0, 0, 0}, EnergyDistributor.allocate(new int[] {0, 0, 0}, 5));
     }
 }

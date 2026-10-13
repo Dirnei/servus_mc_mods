@@ -51,8 +51,6 @@ public final class NetworkSet<N, E, T extends ServusNetwork<N, E>> {
         return Collections.unmodifiableCollection(networks.values());
     }
 
-    // Membership
-
     /** A node appeared. Creates, joins or merges networks accordingly. */
     public T nodeAdded(NodePos pos, N node) {
         GraphChange change = graph.addNode(pos, node);
@@ -111,10 +109,10 @@ public final class NetworkSet<N, E, T extends ServusNetwork<N, E>> {
         T survivor = change.survivor() == GraphChange.NO_COMPONENT ? null : networks.get(change.survivor());
         for (int id : change.merged()) {
             T absorbed = networks.remove(id);
-            if (absorbed != null && survivor != null) {
-                survivor.onAbsorb(absorbed);
-            }
             if (absorbed != null) {
+                if (survivor != null) {
+                    survivor.onAbsorb(absorbed);
+                }
                 absorbed.markDisposed();
             }
         }
@@ -126,8 +124,6 @@ public final class NetworkSet<N, E, T extends ServusNetwork<N, E>> {
         }
         return survivor;
     }
-
-    // Ticking
 
     /** Drains every mailbox and ticks every network, in ascending id order. */
     public void tick() {

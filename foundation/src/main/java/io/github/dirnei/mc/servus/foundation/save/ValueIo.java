@@ -2,31 +2,32 @@ package io.github.dirnei.mc.servus.foundation.save;
 
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
-import java.util.function.Supplier;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.saveddata.SavedDataType;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.util.ProblemReporter;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.storage.TagValueOutput;
-import org.slf4j.Logger;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import org.slf4j.Logger;
 
 /**
- * Small helpers for the 26.1 value input and output: the old tag methods for
- * byte arrays, UUIDs and whole compound tags have no direct counterpart.
+ * Helpers for value input and output and for code that still reads and writes
+ * compound tags: byte arrays, UUIDs, whole tags, item stacks and positions.
  */
 public final class ValueIo {
 
@@ -96,7 +97,7 @@ public final class ValueIo {
         return blockEntity.getLevel().registryAccess();
     }
 
-    /** An item stack as a tag (empty compound for an empty stack), what {@code ItemStack#save} did. */
+    /** An item stack as a tag, an empty compound for an empty stack. */
     public static CompoundTag saveStack(HolderLookup.Provider registries, ItemStack stack) {
         return (CompoundTag) ItemStack.OPTIONAL_CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), stack)
                 .getOrThrow();
@@ -108,16 +109,15 @@ public final class ValueIo {
                 .orElse(ItemStack.EMPTY);
     }
 
-    /** Saves a saved data object as a compound tag, the 1.21.1 way. */
+    /** Saves a saved data object into {@code tag} and returns it. */
     @FunctionalInterface
     public interface TagSaver<T> {
         CompoundTag save(T data, CompoundTag tag, HolderLookup.Provider registries);
     }
 
     /**
-     * A saved data type for data that still loads from and saves to a compound
-     * tag with the registries, what {@code SavedData.Factory} offered before 1.21.5.
-     * The id keeps the old file name in the minecraft namespace.
+     * A saved data type for data that loads from and saves to a compound tag
+     * with the registries. The id is {@code name} in the minecraft namespace.
      */
     public static <T extends SavedData> SavedDataType<T> tagSavedData(String name, Supplier<T> constructor,
             BiFunction<CompoundTag, HolderLookup.Provider, T> load, TagSaver<T> save) {
@@ -127,13 +127,13 @@ public final class ValueIo {
         });
     }
 
-    /** A block position as a tag, what {@code NbtUtils#writeBlockPos} did. */
+    /** A block position as a tag, read back by {@link #readPos}. */
     public static Tag posTag(BlockPos pos) {
         return BlockPos.CODEC.encodeStart(NbtOps.INSTANCE, pos).getOrThrow();
     }
 
-    /** The block position under {@code key}, what {@code NbtUtils#readBlockPos} did. */
-    public static java.util.Optional<BlockPos> readPos(CompoundTag tag, String key) {
+    /** The block position under {@code key}, written by {@link #posTag}. */
+    public static Optional<BlockPos> readPos(CompoundTag tag, String key) {
         return tag.read(key, BlockPos.CODEC);
     }
 

@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.storage.TagValueOutput;
 import org.slf4j.Logger;
 
-/** Saves a block entity onto its item, what {@code BlockEntity#saveToItem} did before 1.21.5. */
+/** Saves a block entity onto its item, replacing the removed {@code BlockEntity#saveToItem}. */
 public final class BlockEntityItems {
 
     private static final Logger LOGGER = LogUtils.getLogger();

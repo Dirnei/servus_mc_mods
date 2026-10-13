@@ -6,8 +6,7 @@ import java.util.Set;
 
 /**
  * The Fluids layer of a side configuration: per relative side Off, All, or one of the
- * block's tanks. New sides are All, which exposes every tank as before layers existed;
- * fixed sides stay Off. Values are plain ints: {@link #OFF}, {@link #ALL}, or
+ * block's tanks. New sides are All, which exposes every tank; locked sides stay Off. Values are plain ints: {@link #OFF}, {@link #ALL}, or
  * {@link #TANK_FIRST} plus the tank index.
  */
 public final class FluidSides {

@@ -5,8 +5,7 @@ import java.util.List;
 
 /**
  * Moves energy from sources to sinks under a per endpoint rate. Sinks share
- * short supply fairly (equal rounds, with leftovers from satisfied sinks going
- * to the others); sources are drained in order. Pure Java.
+ * short supply by {@link WaterFilling}; sources are drained in order. Pure Java.
  */
 public final class EnergyDistributor {
 
@@ -38,7 +37,7 @@ public final class EnergyDistributor {
             return 0;
         }
 
-        int[] allocation = allocate(demand, budget);
+        int[] allocation = WaterFilling.allocate(demand, budget);
 
         int moved = 0;
         int sourceIndex = 0;
@@ -57,10 +56,5 @@ public final class EnergyDistributor {
             }
         }
         return moved;
-    }
-
-    /** Water filling: equal shares per round, satisfied sinks drop out. */
-    static int[] allocate(int[] demand, int budget) {
-        return WaterFilling.allocate(demand, budget);
     }
 }

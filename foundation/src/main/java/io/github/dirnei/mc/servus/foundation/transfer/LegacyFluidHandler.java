@@ -7,14 +7,13 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 /**
- * Base of fluid handlers written in the style of the old NeoForge fluid
- * handler ({@code fill} and {@code drain} with a simulate flag, no tank index)
- * that are exposed through the transfer API. Inside a transaction the handler
+ * Base of fluid handlers written with {@code fill} and {@code drain}, a
+ * simulate flag and no tank index, exposed through the transfer API. Inside a transaction the handler
  * only simulates; the real fill or drain runs when the root transaction
  * commits (see {@link DeferredOps}).
  *
- * <p>Fills and drains go through tank index 0 only, because the old handler
- * picked the tank itself; the other indices only report contents.
+ * <p>Fills and drains go through tank index 0 only, since the handler picks
+ * the tank itself; the other indices only report contents.
  */
 public abstract class LegacyFluidHandler implements ResourceHandler<FluidResource> {
 
@@ -85,7 +84,7 @@ public abstract class LegacyFluidHandler implements ResourceHandler<FluidResourc
             return 0;
         }
         int pending = ops.sum(op -> op.fill() && op.resource().equals(resource), Op::amount);
-        int filled = fill(resource.toStack(DeferredOps.add(pending, amount)), true);
+        int filled = fill(resource.toStack(DeferredOps.cappedSum(pending, amount)), true);
         int accepted = Math.max(0, Math.min(amount, filled - pending));
         if (accepted > 0) {
             ops.add(new Op(true, resource, accepted), transaction);
@@ -105,7 +104,7 @@ public abstract class LegacyFluidHandler implements ResourceHandler<FluidResourc
             return 0;
         }
         int pending = ops.sum(op -> !op.fill() && op.resource().equals(resource), Op::amount);
-        FluidStack drained = drain(resource.toStack(DeferredOps.add(pending, amount)), true);
+        FluidStack drained = drain(resource.toStack(DeferredOps.cappedSum(pending, amount)), true);
         if (drained.isEmpty() || !resource.matches(drained)) {
             return 0;
         }

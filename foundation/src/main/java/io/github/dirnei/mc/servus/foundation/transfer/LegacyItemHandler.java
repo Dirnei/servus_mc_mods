@@ -7,9 +7,8 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 /**
- * Base of item handlers written in the slot style of the old NeoForge item
- * handler ({@code insertItem}, {@code extractItem} with a simulate flag) that
- * are exposed through the transfer API. Inside a transaction the handler only
+ * Base of item handlers written with slot style {@code insertItem} and
+ * {@code extractItem} and a simulate flag, exposed through the transfer API. Inside a transaction the handler only
  * simulates; the real insert or extract runs when the root transaction
  * commits (see {@link DeferredOps}). Use it for views whose effect cannot be
  * rolled back, such as filtered side views or network entry points.
@@ -76,7 +75,7 @@ public abstract class LegacyItemHandler implements ResourceHandler<ItemResource>
             return 0;
         }
         int pending = ops.sum(op -> op.insert() && op.slot() == index && op.resource().equals(resource), Op::amount);
-        int total = DeferredOps.add(pending, amount);
+        int total = DeferredOps.cappedSum(pending, amount);
         ItemStack remainder = insertItem(index, resource.toStack(total), true);
         int accepted = Math.max(0, Math.min(amount, total - remainder.getCount() - pending));
         if (accepted > 0) {
@@ -92,7 +91,7 @@ public abstract class LegacyItemHandler implements ResourceHandler<ItemResource>
             return 0;
         }
         int pending = ops.sum(op -> !op.insert() && op.slot() == index, Op::amount);
-        ItemStack available = extractItem(index, DeferredOps.add(pending, amount), true);
+        ItemStack available = extractItem(index, DeferredOps.cappedSum(pending, amount), true);
         if (!resource.matches(available)) {
             return 0;
         }

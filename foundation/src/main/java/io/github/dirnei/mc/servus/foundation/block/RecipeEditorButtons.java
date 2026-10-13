@@ -1,9 +1,8 @@
 package io.github.dirnei.mc.servus.foundation.block;
 
 /**
- * The menu button ids of the recipe editor popup, shared by every block that
- * configures recipes in it, the editor states its menus sync and the grid
- * position menus need for their pattern slots. Common code, no client classes.
+ * Menu button ids, synced editor states and ghost grid position of the recipe
+ * editor popup, shared by every block that edits recipes in it. Common code.
  */
 public final class RecipeEditorButtons {
 
@@ -13,8 +12,6 @@ public final class RecipeEditorButtons {
     public static final int CANCEL = 105;
     /** Opens the editor on recipe {@code i} with the id {@code OPEN_EDIT_FIRST + i}. */
     public static final int OPEN_EDIT_FIRST = 200;
-    /** Room for this many recipe ids after {@link #OPEN_EDIT_FIRST}. */
-    public static final int OPEN_EDIT_COUNT = 64;
 
     /** Editor state: the popup is closed. */
     public static final int EDIT_CLOSED = -1;
@@ -36,11 +33,5 @@ public final class RecipeEditorButtons {
     /** Top edge of the ghost grid of a popup at {@code popupY}. */
     public static int gridY(int popupY) {
         return popupY + GRID_OFFSET_Y;
-    }
-
-    /** The recipe index an open edit button stands for, or -1. */
-    public static int editIndexOf(int buttonId) {
-        int offset = buttonId - OPEN_EDIT_FIRST;
-        return offset >= 0 && offset < OPEN_EDIT_COUNT ? offset : -1;
     }
 }

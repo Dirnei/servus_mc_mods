@@ -1,10 +1,5 @@
 package io.github.dirnei.mc.servus.foundation.integration.jei;
 
-import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.ItemStackTemplate;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe;
@@ -22,13 +17,17 @@ import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
@@ -36,6 +35,7 @@ import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 
 /**
  * Shows Foundation's special crafting recipes in JEI as example recipes, since JEI cannot
@@ -45,6 +45,8 @@ import net.neoforged.neoforge.common.Tags;
 public final class ServusFoundationJeiPlugin implements IModPlugin {
 
     private static final Identifier UID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "jei");
+    private static final Recipe.CommonInfo INFO = new Recipe.CommonInfo(false);
+    private static final CraftingRecipe.CraftingBookInfo BOOK = new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, "");
 
     @Override
     public Identifier getPluginUid() {
@@ -66,7 +68,7 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        // Example floors; any solid full block works, which the floor slot cycles through.
+        // Any solid full block is a floor; the slot cycles through these examples.
         Ingredient floors = Ingredient.of(Items.STONE_BRICKS, Items.COBBLESTONE, Items.COPPER_BLOCK, Items.SMOOTH_STONE,
                 Items.OAK_PLANKS, Items.BRICKS, Items.DEEPSLATE_TILES, Items.POLISHED_ANDESITE);
         ShapedRecipePattern tankPattern = ShapedRecipePattern.of(Map.of(
@@ -78,7 +80,6 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
 
         List<RecipeHolder<CraftingRecipe>> recipes = new ArrayList<>();
         recipes.add(new RecipeHolder<>(id("fluid_tank_example"), tank));
-        // One recipe per example, so each facade's result matches its block.
         for (Block block : FacadeItem.EXAMPLES) {
             ShapelessRecipe facade = new ShapelessRecipe(INFO, BOOK,
                     template(FacadeItem.of(block, FacadeRecipe.RESULT_COUNT)),
@@ -94,9 +95,6 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
         facades.addAll(FacadeItem.hollowExamples());
         registration.addItemStackInfo(facades, Component.translatable("jei.servus_foundation.facade.info"));
     }
-
-    private static final Recipe.CommonInfo INFO = new Recipe.CommonInfo(false);
-    private static final CraftingRecipe.CraftingBookInfo BOOK = new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, "");
 
     private static ItemStackTemplate template(ItemStack stack) {
         return ItemStackTemplate.fromNonEmptyStack(stack);

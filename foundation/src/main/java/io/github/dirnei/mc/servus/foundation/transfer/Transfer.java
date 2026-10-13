@@ -1,11 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.transfer;
 
+import java.util.function.ToIntFunction;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.access.ItemAccess;
 import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
@@ -15,7 +16,7 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Old style one shot operations (simulate flag, stacks in and out) on any
+ * One shot operations with a simulate flag and stacks in and out on any
  * transfer API handler, for code that moves things between handlers from a
  * block entity tick or from a legacy style handler. Every call opens its own
  * transaction, nested in the one open on this thread if there is one.
@@ -44,7 +45,19 @@ public final class Transfer {
         return Transaction.open(current());
     }
 
-    // Items
+    /**
+     * Runs {@code action} in a transaction from {@link #open()} and commits it
+     * unless {@code simulate}; returns what the action returned.
+     */
+    public static int run(boolean simulate, ToIntFunction<Transaction> action) {
+        try (Transaction tx = open()) {
+            int result = action.applyAsInt(tx);
+            if (!simulate) {
+                tx.commit();
+            }
+            return result;
+        }
+    }
 
     /** A copy of the stack in a slot. */
     public static ItemStack stackInSlot(ResourceHandler<ItemResource> handler, int slot) {
@@ -53,12 +66,12 @@ public final class Transfer {
 
     /** Inserts into one slot; returns what did not fit. */
     public static ItemStack insertItem(ResourceHandler<ItemResource> handler, int slot, ItemStack stack, boolean simulate) {
-        return ItemUtil.insertItemReturnRemaining(handler, slot, stack, simulate, Transfer.current());
+        return ItemUtil.insertItemReturnRemaining(handler, slot, stack, simulate, current());
     }
 
     /** Inserts into the handler slot by slot from the first; returns what did not fit. */
     public static ItemStack insertItem(ResourceHandler<ItemResource> handler, ItemStack stack, boolean simulate) {
-        return ItemUtil.insertItemReturnRemaining(handler, stack, simulate, Transfer.current());
+        return ItemUtil.insertItemReturnRemaining(handler, stack, simulate, current());
     }
 
     /** Inserts into slots that already hold the item first, then into empty ones; returns what did not fit. */
@@ -66,14 +79,9 @@ public final class Transfer {
         if (stack.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        try (Transaction tx = Transfer.open()) {
-            int inserted = ResourceHandlerUtil.insertStacking(handler, ItemResource.of(stack), stack.getCount(), tx);
-            if (!simulate) {
-                tx.commit();
-            }
-            int left = stack.getCount() - inserted;
-            return left <= 0 ? ItemStack.EMPTY : stack.copyWithCount(left);
-        }
+        int inserted = run(simulate, tx -> ResourceHandlerUtil.insertStacking(handler, ItemResource.of(stack), stack.getCount(), tx));
+        int left = stack.getCount() - inserted;
+        return left <= 0 ? ItemStack.EMPTY : stack.copyWithCount(left);
     }
 
     /** Takes up to {@code amount} of whatever is in a slot. */
@@ -82,13 +90,8 @@ public final class Transfer {
         if (resource.isEmpty() || amount <= 0) {
             return ItemStack.EMPTY;
         }
-        try (Transaction tx = Transfer.open()) {
-            int extracted = handler.extract(slot, resource, amount, tx);
-            if (!simulate) {
-                tx.commit();
-            }
-            return extracted <= 0 ? ItemStack.EMPTY : resource.toStack(extracted);
-        }
+        int extracted = run(simulate, tx -> handler.extract(slot, resource, amount, tx));
+        return extracted <= 0 ? ItemStack.EMPTY : resource.toStack(extracted);
     }
 
     /** Takes up to {@code amount} of one item from anywhere in the handler. */
@@ -96,16 +99,8 @@ public final class Transfer {
         if (resource.isEmpty() || amount <= 0) {
             return 0;
         }
-        try (Transaction tx = Transfer.open()) {
-            int extracted = handler.extract(resource, amount, tx);
-            if (!simulate) {
-                tx.commit();
-            }
-            return extracted;
-        }
+        return run(simulate, tx -> handler.extract(resource, amount, tx));
     }
-
-    // Fluids
 
     /** A copy of the fluid in a tank. */
     public static FluidStack fluidInTank(ResourceHandler<FluidResource> handler, int tank) {
@@ -118,13 +113,7 @@ public final class Transfer {
         if (stack.isEmpty()) {
             return 0;
         }
-        try (Transaction tx = Transfer.open()) {
-            int filled = handler.insert(FluidResource.of(stack), stack.getAmount(), tx);
-            if (!simulate) {
-                tx.commit();
-            }
-            return filled;
-        }
+        return run(simulate, tx -> handler.insert(FluidResource.of(stack), stack.getAmount(), tx));
     }
 
     /** Drains the given fluid; returns what came out. */
@@ -133,13 +122,8 @@ public final class Transfer {
             return FluidStack.EMPTY;
         }
         FluidResource resource = FluidResource.of(stack);
-        try (Transaction tx = Transfer.open()) {
-            int drained = handler.extract(resource, stack.getAmount(), tx);
-            if (!simulate) {
-                tx.commit();
-            }
-            return drained <= 0 ? FluidStack.EMPTY : resource.toStack(drained);
-        }
+        int drained = run(simulate, tx -> handler.extract(resource, stack.getAmount(), tx));
+        return drained <= 0 ? FluidStack.EMPTY : resource.toStack(drained);
     }
 
     /** Drains up to {@code maxDrain} of the first fluid found in the handler. */
@@ -160,20 +144,12 @@ public final class Transfer {
         return FluidStack.EMPTY;
     }
 
-    // Energy
-
     /** Gives energy to the handler; returns the amount taken. */
     public static int receiveEnergy(EnergyHandler handler, int amount, boolean simulate) {
         if (amount <= 0) {
             return 0;
         }
-        try (Transaction tx = Transfer.open()) {
-            int inserted = handler.insert(amount, tx);
-            if (!simulate) {
-                tx.commit();
-            }
-            return inserted;
-        }
+        return run(simulate, tx -> handler.insert(amount, tx));
     }
 
     /** Takes energy out of the handler; returns the amount taken. */
@@ -181,19 +157,12 @@ public final class Transfer {
         if (amount <= 0) {
             return 0;
         }
-        try (Transaction tx = Transfer.open()) {
-            int extracted = handler.extract(amount, tx);
-            if (!simulate) {
-                tx.commit();
-            }
-            return extracted;
-        }
+        return run(simulate, tx -> handler.extract(amount, tx));
     }
 
     /**
-     * Fills a fluid container (a bucket) from a handler, what
-     * {@code FluidUtil.tryFillContainer} did: the filled container, or empty
-     * when nothing moved.
+     * Fills a fluid container (a bucket) from a handler: the filled container,
+     * or empty when nothing moved.
      */
     public static ItemStack fillContainer(ItemStack container, ResourceHandler<FluidResource> source) {
         return moveWithContainer(container, source, true);
@@ -217,10 +186,8 @@ public final class Transfer {
         return moved ? slot.getStackInSlot(0).copy() : ItemStack.EMPTY;
     }
 
-
     /** Whether a stack holds or takes fluid (a bucket, a tank item); false for an empty hand. */
     public static boolean isFluidContainer(ItemStack stack) {
         return !stack.isEmpty() && ItemAccess.forStack(stack).getCapability(Capabilities.Fluid.ITEM) != null;
     }
-
 }

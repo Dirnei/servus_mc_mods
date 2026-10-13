@@ -35,8 +35,6 @@ public final class NetworkGraph<N> {
         this.rule = rule;
     }
 
-    // Mutation
-
     /**
      * Adds a node. Creates a component, joins one, or merges several.
      *
@@ -118,7 +116,7 @@ public final class NetworkGraph<N> {
             return new GraphChange(GraphChange.NO_COMPONENT, List.of(), List.of(), List.of(id));
         }
         if (adjacent.size() <= 1) {
-            // A leaf or an isolated member left; the rest is still connected.
+            // Removing a leaf cannot split the component.
             return GraphChange.survivorOnly(id);
         }
 
@@ -162,8 +160,6 @@ public final class NetworkGraph<N> {
         return removed.andThen(added);
     }
 
-    // Queries
-
     public boolean contains(NodePos pos) {
         return nodes.containsKey(pos);
     }
@@ -196,8 +192,6 @@ public final class NetworkGraph<N> {
     public int size() {
         return nodes.size();
     }
-
-    // Internals
 
     private int largest(Set<Integer> ids) {
         int best = -1;

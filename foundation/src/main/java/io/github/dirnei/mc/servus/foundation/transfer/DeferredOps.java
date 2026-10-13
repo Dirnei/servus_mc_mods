@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
@@ -36,7 +37,7 @@ final class DeferredOps<O> extends SnapshotJournal<Integer> {
     }
 
     /** Sum of {@code amount} over the pending operations that match. */
-    int sum(Predicate<O> match, java.util.function.ToIntFunction<O> amount) {
+    int sum(Predicate<O> match, ToIntFunction<O> amount) {
         int total = 0;
         for (O op : pending) {
             if (match.test(op)) {
@@ -47,7 +48,7 @@ final class DeferredOps<O> extends SnapshotJournal<Integer> {
     }
 
     /** {@code a + b}, capped at {@code Integer.MAX_VALUE}. */
-    static int add(int a, int b) {
+    static int cappedSum(int a, int b) {
         return (int) Math.min(Integer.MAX_VALUE, (long) a + b);
     }
 

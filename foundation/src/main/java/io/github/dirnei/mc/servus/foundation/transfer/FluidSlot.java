@@ -10,11 +10,10 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 /**
- * A single fluid tank on the NeoForge transfer API with the methods the
- * Servus code used on the old fluid tank. It is a full
+ * A single fluid tank on the NeoForge transfer API with simulate flag
+ * methods. It is a full
  * {@code ResourceHandler<FluidResource>} and can be exposed as a capability.
  *
  * <p>{@code fill} and {@code drain} open their own transaction, nested in
@@ -86,13 +85,7 @@ public class FluidSlot extends FluidStacksResourceHandler {
         if (resource.isEmpty()) {
             return 0;
         }
-        try (Transaction tx = Transfer.open()) {
-            int filled = insert(0, FluidResource.of(resource), resource.getAmount(), tx);
-            if (!simulate) {
-                tx.commit();
-            }
-            return filled;
-        }
+        return Transfer.run(simulate, tx -> insert(0, FluidResource.of(resource), resource.getAmount(), tx));
     }
 
     /** Drains up to {@code maxDrain} of whatever is in the tank. */
@@ -110,13 +103,8 @@ public class FluidSlot extends FluidStacksResourceHandler {
             return FluidStack.EMPTY;
         }
         FluidResource key = FluidResource.of(resource);
-        try (Transaction tx = Transfer.open()) {
-            int drained = extract(0, key, resource.getAmount(), tx);
-            if (!simulate) {
-                tx.commit();
-            }
-            return drained <= 0 ? FluidStack.EMPTY : key.toStack(drained);
-        }
+        int drained = Transfer.run(simulate, tx -> extract(0, key, resource.getAmount(), tx));
+        return drained <= 0 ? FluidStack.EMPTY : key.toStack(drained);
     }
 
     /** Writes the contents into {@code tag}, for code that still builds compound tags. */

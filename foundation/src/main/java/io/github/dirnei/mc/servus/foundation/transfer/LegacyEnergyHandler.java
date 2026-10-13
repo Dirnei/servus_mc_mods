@@ -5,9 +5,8 @@ import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 /**
- * Base of energy handlers written in the style of the old NeoForge energy
- * storage ({@code receiveEnergy}, {@code extractEnergy} with a simulate flag)
- * that are exposed through the transfer API. Inside a transaction the handler
+ * Base of energy handlers written with {@code receiveEnergy} and
+ * {@code extractEnergy} and a simulate flag, exposed through the transfer API. Inside a transaction the handler
  * only simulates; the real transfer runs when the root transaction commits
  * (see {@link DeferredOps}).
  */
@@ -46,7 +45,7 @@ public abstract class LegacyEnergyHandler implements EnergyHandler {
     public int insert(int amount, TransactionContext transaction) {
         TransferPreconditions.checkNonNegative(amount);
         int pending = ops.sum(Op::receive, Op::amount);
-        int accepted = Math.max(0, Math.min(amount, receiveEnergy(DeferredOps.add(pending, amount), true) - pending));
+        int accepted = Math.max(0, Math.min(amount, receiveEnergy(DeferredOps.cappedSum(pending, amount), true) - pending));
         if (accepted > 0) {
             ops.add(new Op(true, accepted), transaction);
         }
@@ -57,7 +56,7 @@ public abstract class LegacyEnergyHandler implements EnergyHandler {
     public int extract(int amount, TransactionContext transaction) {
         TransferPreconditions.checkNonNegative(amount);
         int pending = ops.sum(op -> !op.receive(), Op::amount);
-        int taken = Math.max(0, Math.min(amount, extractEnergy(DeferredOps.add(pending, amount), true) - pending));
+        int taken = Math.max(0, Math.min(amount, extractEnergy(DeferredOps.cappedSum(pending, amount), true) - pending));
         if (taken > 0) {
             ops.add(new Op(false, taken), transaction);
         }

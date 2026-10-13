@@ -14,10 +14,7 @@ public final class Teams {
     private Teams() {
     }
 
-    public static TeamProvider provider() {
-        return provider;
-    }
-
+    /** Replaces the team rule; call once during startup. */
     public static void install(TeamProvider teamProvider) {
         provider = teamProvider;
     }

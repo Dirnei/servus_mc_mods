@@ -6,8 +6,8 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Slot style view of any item handler (usually one read from a capability),
- * with the methods of the old item handler. Every change opens its own
+ * Slot style view of any item handler (usually one read from a capability)
+ * with simulate flag methods. Every change opens its own
  * transaction, nested in the one open on this thread if there is one.
  *
  * @param handler the wrapped handler

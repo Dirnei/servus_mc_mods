@@ -12,12 +12,10 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
-import net.neoforged.neoforge.transfer.item.ItemUtil;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 /**
- * A fixed size item inventory on the NeoForge transfer API, with the slot
- * methods the Servus code used on the old item stack handler. It is a full
+ * A fixed size item inventory on the NeoForge transfer API with slot style
+ * simulate flag methods. It is a full
  * {@code ResourceHandler<ItemResource>}, so it can be exposed as a capability
  * and used in menus with {@code ResourceHandlerSlot}.
  *
@@ -30,7 +28,7 @@ public class ItemSlots extends ItemStacksResourceHandler {
         super(size);
     }
 
-    /** An empty inventory that takes its size from {@link #deserializeNBT}, like the old handler's default. */
+    /** An empty inventory that takes its size from {@link #deserializeNBT}. */
     public ItemSlots() {
         this(0);
     }
@@ -50,7 +48,7 @@ public class ItemSlots extends ItemStacksResourceHandler {
         }
     }
 
-    /** Called after a slot changed, like the old handler's hook. */
+    /** Called after a slot changed. */
     protected void onContentsChanged(int slot) {
     }
 
@@ -96,12 +94,12 @@ public class ItemSlots extends ItemStacksResourceHandler {
 
     /** Inserts into one slot and returns what did not fit. */
     public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-        return ItemUtil.insertItemReturnRemaining(this, slot, stack, simulate, Transfer.current());
+        return Transfer.insertItem(this, slot, stack, simulate);
     }
 
     /** Inserts slot by slot from the first; returns what did not fit. */
     public ItemStack insertItem(ItemStack stack, boolean simulate) {
-        return ItemUtil.insertItemReturnRemaining(this, stack, simulate, Transfer.current());
+        return Transfer.insertItem(this, stack, simulate);
     }
 
     /** Inserts into slots that already hold the item first, then into empty ones; returns what did not fit. */
@@ -111,18 +109,7 @@ public class ItemSlots extends ItemStacksResourceHandler {
 
     /** Takes up to {@code amount} items out of one slot. */
     public ItemStack extractItem(int slot, int amount, boolean simulate) {
-        ItemStack current = stacks.get(slot);
-        if (current.isEmpty() || amount <= 0) {
-            return ItemStack.EMPTY;
-        }
-        ItemResource resource = ItemResource.of(current);
-        try (Transaction tx = Transfer.open()) {
-            int extracted = extract(slot, resource, amount, tx);
-            if (!simulate) {
-                tx.commit();
-            }
-            return extracted <= 0 ? ItemStack.EMPTY : resource.toStack(extracted);
-        }
+        return Transfer.extractItem(this, slot, amount, simulate);
     }
 
     /** Saves the slots under {@code key}. */
@@ -140,13 +127,6 @@ public class ItemSlots extends ItemStacksResourceHandler {
         NonNullList<ItemStack> list = saved.orElse(NonNullList.create());
         for (int slot = 0; slot < size(); slot++) {
             stacks.set(slot, slot < list.size() ? list.get(slot) : ItemStack.EMPTY);
-        }
-    }
-
-    /** Empties every slot without calling the change hook. */
-    public void clearSilently() {
-        for (int slot = 0; slot < size(); slot++) {
-            stacks.set(slot, ItemStack.EMPTY);
         }
     }
 }

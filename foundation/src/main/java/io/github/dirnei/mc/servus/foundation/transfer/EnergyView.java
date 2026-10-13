@@ -4,8 +4,8 @@ import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import org.jspecify.annotations.Nullable;
 
 /**
- * View of any energy handler (usually one read from a capability) with the
- * methods of the old energy storage. Every change opens its own
+ * View of any energy handler (usually one read from a capability) with
+ * simulate flag methods. Every change opens its own
  * transaction, nested in the one open on this thread if there is one.
  *
  * @param handler the wrapped handler
@@ -26,8 +26,8 @@ public record EnergyView(EnergyHandler handler) {
     }
 
     /**
-     * Whether energy can come out right now. The transfer API has no fixed
-     * "can extract" flag, so this simulates taking one unit.
+     * Whether energy can come out right now: simulates taking one unit, as
+     * the transfer API has no fixed "can extract" flag.
      */
     public boolean canExtract() {
         return extractEnergy(1, true) > 0;

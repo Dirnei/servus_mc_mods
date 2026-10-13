@@ -4,7 +4,6 @@ import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.side.FluidSides;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
-import io.github.dirnei.mc.servus.foundation.side.SideLayer;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.side.SideTank;
 import java.util.List;
@@ -40,10 +39,6 @@ public interface SidedBlockEntity {
     /** Cycles a relative side of the Fluids layer like {@link #cycleSide}; returns the new value. */
     default int cycleFluidSide(RelativeSide side) {
         return FluidSides.ALL;
-    }
-
-    default boolean hasLayer(SideLayer layer) {
-        return layer == SideLayer.ITEMS || fluidSides() != null;
     }
 
     default RelativeSide relativeSide(Direction absolute) {

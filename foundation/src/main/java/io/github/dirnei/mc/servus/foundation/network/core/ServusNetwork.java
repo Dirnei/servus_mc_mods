@@ -62,8 +62,6 @@ public abstract class ServusNetwork<N, E> {
         onDisposed();
     }
 
-    // Hooks
-
     /** Handles one event from the mailbox. Called in posting order before {@link #onTick()}. */
     protected abstract void handle(E event);
 
