@@ -1,8 +1,5 @@
 package io.github.dirnei.mc.servus.storage.client;
 
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.storage.zone.SetLabelNamePayload;
@@ -10,9 +7,12 @@ import io.github.dirnei.mc.servus.storage.zone.SetLabelTagsPayload;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /** Name box, nine ghost filter slots, tag line, player inventory. */
@@ -37,33 +37,33 @@ public class ZoneLabelScreen extends AbstractContainerScreen<ZoneLabelMenu> {
     protected void init() {
         super.init();
         this.inventoryLabelY = ZoneLabelMenu.INVENTORY_Y - 11;
-        name = new EditBox(font, leftPos + 8, topPos + NAME_Y, 160, 12, Component.translatable("gui.servus_storage.zone_label.name"));
-        name.setMaxLength(32);
-        name.setHint(Component.translatable("gui.servus_storage.zone_label.name_hint"));
-        name.setBordered(true);
-        name.setValue(menu.name());
-        addRenderableWidget(name);
-        tags = new EditBox(font, leftPos + 8, topPos + TAGS_Y, 160, 12, Component.translatable("gui.servus_storage.zone_label.tags"));
-        tags.setMaxLength(200);
-        tags.setHint(Component.translatable("gui.servus_storage.zone_label.tags_hint"));
-        tags.setBordered(true);
-        tags.setValue(menu.zoneFilter().tagLine());
-        addRenderableWidget(tags);
+        name = textField(NAME_Y, 32, "name", menu.name());
+        tags = textField(TAGS_Y, 200, "tags", menu.zoneFilter().tagLine());
         setInitialFocus(name);
+    }
+
+    private EditBox textField(int y, int maxLength, String key, String value) {
+        EditBox box = new EditBox(font, leftPos + 8, topPos + y, 160, 12, Component.translatable("gui.servus_storage.zone_label." + key));
+        box.setMaxLength(maxLength);
+        box.setHint(Component.translatable("gui.servus_storage.zone_label." + key + "_hint"));
+        box.setBordered(true);
+        box.setValue(value);
+        return addRenderableWidget(box);
     }
 
     private void sendName() {
         if (!name.getValue().trim().equals(menu.name())) {
-            net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(new SetLabelNamePayload(name.getValue()));
+            ClientPacketDistributor.sendToServer(new SetLabelNamePayload(name.getValue()));
         }
     }
 
     private void sendTags() {
         if (!tags.getValue().equals(menu.zoneFilter().tagLine())) {
-            net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(new SetLabelTagsPayload(tags.getValue()));
+            ClientPacketDistributor.sendToServer(new SetLabelTagsPayload(tags.getValue()));
         }
     }
 
+    /** Sends a field when it loses focus, and takes the label's values back while the player is not typing. */
     @Override
     protected void containerTick() {
         super.containerTick();
@@ -77,18 +77,12 @@ public class ZoneLabelScreen extends AbstractContainerScreen<ZoneLabelMenu> {
             sendTags();
         }
         tagsWasFocused = tagsFocused;
-        // The server's answer comes back through the hand slot; pick it up when the player is not typing.
         if (!nameFocused && !name.getValue().equals(menu.name())) {
             name.setValue(menu.name());
         }
         if (!tagsFocused && !tags.getValue().equals(menu.zoneFilter().tagLine())) {
             tags.setValue(menu.zoneFilter().tagLine());
         }
-    }
-
-    @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
@@ -106,8 +100,6 @@ public class ZoneLabelScreen extends AbstractContainerScreen<ZoneLabelMenu> {
     @Override
     public boolean keyPressed(KeyEvent event) {
         int keyCode = event.key();
-        int scanCode = event.scancode();
-        int modifiers = event.modifiers();
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             sendName();
             sendTags();

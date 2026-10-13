@@ -1,12 +1,16 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
+import io.github.dirnei.mc.servus.storage.site.RemoteSite;
 import io.github.dirnei.mc.servus.storage.terminal.CraftPreviewPayload;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
+import io.github.dirnei.mc.servus.storage.terminal.SiteRow;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.StockSyncPayload;
 import java.util.List;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.world.item.ItemStack;
@@ -52,8 +56,8 @@ public final class ClientStock {
     public static void update(StockSyncPayload payload) {
         STORE.update(key(payload.terminal()), payload);
         shown = STORE.shown();
-        net.minecraft.client.player.LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null && player.containerMenu instanceof io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu menu
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player != null && player.containerMenu instanceof StorageTerminalMenu menu
                 && menu.terminal().getBlockPos().equals(payload.terminal())) {
             menu.clientView(payload.view());
         }
@@ -91,7 +95,7 @@ public final class ClientStock {
     }
 
     /** The other sites of the team the terminal can show. */
-    public static List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sites() {
+    public static List<SiteRow> sites() {
         return shown == null ? List.of() : shown.sites();
     }
 
@@ -101,18 +105,18 @@ public final class ClientStock {
     }
 
     /** The state of the site shown, null for this site. */
-    public static io.github.dirnei.mc.servus.storage.site.RemoteSite.State viewState() {
+    public static RemoteSite.State viewState() {
         if (shown == null || shown.viewState() < 0) {
             return null;
         }
-        io.github.dirnei.mc.servus.storage.site.RemoteSite.State[] states = io.github.dirnei.mc.servus.storage.site.RemoteSite.State.values();
+        RemoteSite.State[] states = RemoteSite.State.values();
         return shown.viewState() < states.length ? states[shown.viewState()] : null;
     }
 
     /** The name of the site shown, empty for this site. */
     public static String viewName() {
         String view = view();
-        return sites().stream().filter(row -> row.key().equals(view)).map(io.github.dirnei.mc.servus.storage.terminal.SiteRow::name)
+        return sites().stream().filter(row -> row.key().equals(view)).map(SiteRow::name)
                 .findFirst().orElse("");
     }
 

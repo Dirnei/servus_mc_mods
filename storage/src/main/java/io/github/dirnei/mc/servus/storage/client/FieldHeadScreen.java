@@ -1,10 +1,5 @@
 package io.github.dirnei.mc.servus.storage.client;
 
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import net.minecraft.client.input.CharacterEvent;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.field.ChooseFertilizerPayload;
 import io.github.dirnei.mc.servus.storage.field.ChooseFieldCropPayload;
@@ -15,24 +10,31 @@ import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu.Page;
+import io.github.dirnei.mc.servus.storage.picker.PickerList;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import io.github.dirnei.mc.servus.storage.picker.PickerList;
-import net.minecraft.core.registries.BuiltInRegistries;
+import java.util.function.Consumer;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.inventory.Slot;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /**
  * The Field Head GUI in four tabs on the left edge, drawn like the Utility
@@ -57,30 +59,25 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private static final int COLOUR_RIPE = 0xFFD8B33A;
     private static final int COLOUR_MARK = 0xFF202020;
     private static final int COLOUR_PROBLEM = 0xFFD02020;
-    private static final int PANEL = 0xFFC6C6C6;
-    private static final int PANEL_DARK = 0xFF373737;
-    private static final int PANEL_LIGHT = 0xFFFFFFFF;
+    private static final int COLOUR_TAB = 0xFF9A9A9A;
     private static final int TAB_WIDTH = 28;
     private static final int TAB_HEIGHT = 26;
     private static final int TAB_TOP = 10;
     private static final int TAB_STRIDE = 28;
-    // Field page
+    private static final int LABEL_HIDDEN = -10000;
     private static final int RIPE_Y = 40;
     private static final int RIPE_X = 60;
     private static final int RIPE_W = MARGIN + WIDTH - RIPE_X;
     private static final int RIPE_H = 7;
     private static final int THRESHOLD_Y = 53;
     private static final int WORK_Y = 66;
-    // Water page
     private static final int WATER_Y = 20;
     private static final int BAR_Y = 31;
     private static final int BAR_H = 8;
     private static final int HYDRATED_Y = 43;
     private static final int CORROSION_TEXT_X = 30;
-    // Upgrades page
     private static final int RADIUS_TEXT_X = 30;
     private static final int SIZE_Y = 44;
-    // Fertilizer page
     private static final int MODE_Y = 37;
     private static final int MODE_H = 13;
     private static final int[] MODE_X = {8, 34, 110};
@@ -93,39 +90,43 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private static final int FERTILIZE_Y = 65;
     private static final int FERTILIZE_STATUS_Y = 79;
 
-    private Button down;
-    private final ItemPicker picker;
+    private final ItemPicker cropPicker;
     private final ItemPicker fertilizerPicker;
-    /** The fertilizer stock map last handed to its picker. */
+    /** The stock maps last handed to the pickers, to hand them over only when the menu got new ones. */
+    private Map<Identifier, Long> cropPickerStock;
     private Map<Identifier, Long> fertilizerPickerStock;
     private final List<Button> modeButtons = new ArrayList<>();
     private final List<Button> reserveButtons = new ArrayList<>();
+    private Button harvestDown;
+    private Button harvestUp;
     private Button fertilizeDown;
     private Button fertilizeUp;
-    /** The stock map last handed to the picker, to hand it over only when the menu got a new one. */
-    private Map<Identifier, Long> pickerStock;
-    private Button up;
 
     public FieldHeadScreen(FieldHeadMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, 176, 178);
-        this.picker = new ItemPicker(Component.translatable("gui.servus_storage.field_head.crop_picker"), this::choose);
-        picker.setEntries(CropPickerEntries.build());
-        picker.setZeroHint(Component.translatable("gui.servus_storage.field_head.crop_no_stock"));
-        this.fertilizerPicker = new ItemPicker(Component.translatable("gui.servus_storage.field_head.fertilizer_picker"), this::chooseFertilizer);
-        fertilizerPicker.setEntries(FertilizerPickerEntries.build());
-        fertilizerPicker.setZeroHint(Component.translatable("gui.servus_storage.field_head.fertilizer_no_stock"));
+        this.cropPicker = picker("crop_picker", "crop_no_stock", CropPickerEntries.build(),
+                entry -> ClientPacketDistributor.sendToServer(new ChooseFieldCropPayload(idOf(entry))));
+        this.fertilizerPicker = picker("fertilizer_picker", "fertilizer_no_stock", FertilizerPickerEntries.build(),
+                entry -> ClientPacketDistributor.sendToServer(new ChooseFertilizerPayload(idOf(entry))));
     }
 
-    /** Sends the picked fertilizer, or Off for the none entry, to the server. */
-    private void chooseFertilizer(ItemPicker.Entry entry) {
-        Optional<Identifier> fertilizer = entry.isNone() ? Optional.empty() : Optional.ofNullable(Identifier.tryParse(entry.id()));
-        ClientPacketDistributor.sendToServer(new ChooseFertilizerPayload(fertilizer));
+    private static ItemPicker picker(String title, String zeroHint, List<ItemPicker.Entry> entries,
+                                     Consumer<ItemPicker.Entry> onPick) {
+        ItemPicker picker = new ItemPicker(Component.translatable("gui.servus_storage.field_head." + title), onPick);
+        picker.setEntries(entries);
+        picker.setZeroHint(Component.translatable("gui.servus_storage.field_head." + zeroHint));
+        return picker;
+    }
+
+    /** The picked item id, or empty for the none entry. */
+    private static Optional<Identifier> idOf(ItemPicker.Entry entry) {
+        return entry.isNone() ? Optional.empty() : Optional.ofNullable(Identifier.tryParse(entry.id()));
     }
 
     /** The picker of the shown page, null on pages without one. */
     private ItemPicker pagePicker() {
         return switch (menu.page()) {
-            case FIELD -> picker;
+            case FIELD -> cropPicker;
             case FERTILIZER -> fertilizerPicker;
             default -> null;
         };
@@ -133,28 +134,24 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
 
     /** The picker whose popup is open, or null. */
     private ItemPicker openPicker() {
-        if (picker.isOpen()) {
-            return picker;
+        if (cropPicker.isOpen()) {
+            return cropPicker;
         }
         return fertilizerPicker.isOpen() ? fertilizerPicker : null;
     }
 
-    /** Sends the picked crop, or harvest only for the none entry, to the server. */
-    private void choose(ItemPicker.Entry entry) {
-        Optional<Identifier> crop = entry.isNone() ? Optional.empty() : Optional.ofNullable(Identifier.tryParse(entry.id()));
-        ClientPacketDistributor.sendToServer(new ChooseFieldCropPayload(crop));
+    private static String pickerId(ItemStack stack) {
+        return stack.isEmpty() ? PickerList.NONE_ID : BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
     }
 
-    /** Hands the head's crop and the menu's stock to the picker. */
-    private void syncPicker() {
-        ItemStack crop = menu.crop();
-        picker.setSelected(menu.harvestOnly() || crop.isEmpty() ? PickerList.NONE_ID : BuiltInRegistries.ITEM.getKey(crop.getItem()).toString());
-        if (menu.stock() != pickerStock) {
-            pickerStock = menu.stock();
-            picker.setStock(CropPickerEntries.keyed(pickerStock));
+    /** Hands the head's crop and fertilizer and the menu's stock to the pickers. */
+    private void syncPickers() {
+        cropPicker.setSelected(menu.harvestOnly() ? PickerList.NONE_ID : pickerId(menu.crop()));
+        if (menu.stock() != cropPickerStock) {
+            cropPickerStock = menu.stock();
+            cropPicker.setStock(CropPickerEntries.keyed(cropPickerStock));
         }
-        ItemStack fertilizer = menu.fertilizer();
-        fertilizerPicker.setSelected(fertilizer.isEmpty() ? PickerList.NONE_ID : BuiltInRegistries.ITEM.getKey(fertilizer.getItem()).toString());
+        fertilizerPicker.setSelected(pickerId(menu.fertilizer()));
         if (menu.fertilizerStock() != fertilizerPickerStock) {
             fertilizerPickerStock = menu.fertilizerStock();
             fertilizerPicker.setStock(CropPickerEntries.keyed(fertilizerPickerStock));
@@ -165,12 +162,10 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     protected void init() {
         super.init();
         this.inventoryLabelY = FieldHeadMenu.INVENTORY_Y - 11;
-        picker.setButton(leftPos + FieldHeadMenu.PICKER_X, topPos + FieldHeadMenu.PICKER_Y, FieldHeadMenu.PICKER_WIDTH);
-        picker.setArea(leftPos, topPos, imageWidth, imageHeight);
-        down = addRenderableWidget(Button.builder(Component.literal("-"), button -> press(FieldHeadMenu.BUTTON_THRESHOLD_DOWN))
-                .bounds(leftPos + 136, topPos + THRESHOLD_Y - 2, 14, 11).build());
-        up = addRenderableWidget(Button.builder(Component.literal("+"), button -> press(FieldHeadMenu.BUTTON_THRESHOLD_UP))
-                .bounds(leftPos + 152, topPos + THRESHOLD_Y - 2, 14, 11).build());
+        cropPicker.setButton(leftPos + FieldHeadMenu.PICKER_X, topPos + FieldHeadMenu.PICKER_Y, FieldHeadMenu.PICKER_WIDTH);
+        cropPicker.setArea(leftPos, topPos, imageWidth, imageHeight);
+        harvestDown = stepButton("-", THRESHOLD_Y - 2, 136, FieldHeadMenu.BUTTON_THRESHOLD_DOWN);
+        harvestUp = stepButton("+", THRESHOLD_Y - 2, 152, FieldHeadMenu.BUTTON_THRESHOLD_UP);
         fertilizerPicker.setButton(leftPos + FieldHeadMenu.PICKER_X, topPos + FieldHeadMenu.PICKER_Y, FieldHeadMenu.PICKER_WIDTH);
         fertilizerPicker.setArea(leftPos, topPos, imageWidth, imageHeight);
         modeButtons.clear();
@@ -188,27 +183,21 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             reserveButtons.add(addRenderableWidget(Button.builder(Component.literal(step > 0 ? "+" + step : String.valueOf(step)), button -> press(id))
                     .bounds(leftPos + RESERVE_X[i], topPos + RESERVE_Y, RESERVE_W[i], 11).build()));
         }
-        fertilizeDown = addRenderableWidget(Button.builder(Component.literal("-"), button -> press(FieldHeadMenu.BUTTON_FERTILIZE_DOWN))
-                .bounds(leftPos + 136, topPos + FERTILIZE_Y, 14, 11).build());
-        fertilizeUp = addRenderableWidget(Button.builder(Component.literal("+"), button -> press(FieldHeadMenu.BUTTON_FERTILIZE_UP))
-                .bounds(leftPos + 152, topPos + FERTILIZE_Y, 14, 11).build());
+        fertilizeDown = stepButton("-", FERTILIZE_Y, 136, FieldHeadMenu.BUTTON_FERTILIZE_DOWN);
+        fertilizeUp = stepButton("+", FERTILIZE_Y, 152, FieldHeadMenu.BUTTON_FERTILIZE_UP);
+    }
+
+    private Button stepButton(String label, int y, int x, int id) {
+        return addRenderableWidget(Button.builder(Component.literal(label), button -> press(id))
+                .bounds(leftPos + x, topPos + y, 14, 11).build());
     }
 
     private void press(int id) {
-        if (minecraft != null && minecraft.gameMode != null) {
-            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
-        }
+        MenuButtons.press(minecraft, menu, id);
     }
 
     private boolean serving() {
         return menu.status() == FieldStatus.SERVING;
-    }
-
-    // Problems
-
-    /** The work status is a warning, drawn in the warning colour. */
-    private static boolean warning(FieldWork work) {
-        return work.problem();
     }
 
     /** The problem the page shows, or null when it has none. */
@@ -219,7 +208,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                     return statusLine();
                 }
                 FieldWork work = menu.work();
-                return work != null && warning(work) ? workLine(work) : null;
+                return work != null && work.problem() ? workLine(work) : null;
             }
             case WATER -> {
                 if (menu.corrosion() == FieldCorrosion.CORRODED) {
@@ -254,8 +243,6 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                 ? Component.translatable("gui.servus_storage.field_head.fertilize.working_named", spreader)
                 : Component.translatable("gui.servus_storage.field_head.fertilize." + status.name().toLowerCase(Locale.ROOT));
     }
-
-    // Tabs
 
     private int tabX() {
         return leftPos - TAB_WIDTH;
@@ -292,9 +279,9 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             int x = tabX();
             int y = tabY(page.ordinal());
             int width = selected ? TAB_WIDTH + 2 : TAB_WIDTH;
-            graphics.fill(x, y, x + width, y + TAB_HEIGHT, problem ? COLOUR_PROBLEM : PANEL_DARK);
-            graphics.fill(x + 1, y + 1, x + width, y + TAB_HEIGHT - 1, selected ? PANEL : 0xFF9A9A9A);
-            graphics.fill(x + 1, y + 1, x + width, y + 2, PANEL_LIGHT);
+            graphics.fill(x, y, x + width, y + TAB_HEIGHT, problem ? COLOUR_PROBLEM : PanelPainter.DARK);
+            graphics.fill(x + 1, y + 1, x + width, y + TAB_HEIGHT - 1, selected ? PanelPainter.FACE : COLOUR_TAB);
+            graphics.fill(x + 1, y + 1, x + width, y + 2, 0xFFFFFFFF);
             if (problem) {
                 graphics.fill(x + 1, y + 1, x + 3, y + TAB_HEIGHT - 1, COLOUR_PROBLEM);
             }
@@ -302,14 +289,12 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         }
     }
 
-    // Rendering
-
-    @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+    /** Shows the widgets of the current page; the Fertilizer page needs the inventory label's room for its status. */
+    private void updateWidgets() {
         Page page = menu.page();
         boolean serving = serving();
-        down.visible = page == Page.FIELD && serving;
-        up.visible = page == Page.FIELD && serving;
+        harvestDown.visible = page == Page.FIELD && serving;
+        harvestUp.visible = page == Page.FIELD && serving;
         boolean fertilizerPage = page == Page.FERTILIZER;
         FertilizeMode mode = menu.fertilizeMode();
         for (int i = 0; i < modeButtons.size(); i++) {
@@ -321,12 +306,16 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         }
         fertilizeDown.visible = fertilizerPage && mode == FertilizeMode.UNTIL_RIPE;
         fertilizeUp.visible = fertilizerPage && mode == FertilizeMode.UNTIL_RIPE;
-        // The Fertilizer page needs the room of the inventory label for its status.
-        this.inventoryLabelY = fertilizerPage ? -10000 : FieldHeadMenu.INVENTORY_Y - 11;
-        syncPicker();
+        this.inventoryLabelY = fertilizerPage ? LABEL_HIDDEN : FieldHeadMenu.INVENTORY_Y - 11;
+    }
+
+    /** While a picker is open nothing below it reacts to the mouse. */
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        updateWidgets();
+        syncPickers();
         ItemPicker open = openPicker();
         if (open != null) {
-            // While a picker is open nothing below it reacts to the mouse.
             super.extractRenderState(graphics, -1, -1, partialTick);
             open.renderPopup(graphics, font, mouseX, mouseY, partialTick);
             open.renderTooltip(graphics, font, mouseX, mouseY);
@@ -334,10 +323,14 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         }
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         ItemPicker shown = pagePicker();
-        if (shown != null && shown.renderTooltip(graphics, font, mouseX, mouseY)) {
-            return;
+        if (shown == null || !shown.renderTooltip(graphics, font, mouseX, mouseY)) {
+            renderPageTooltip(graphics, mouseX, mouseY);
         }
-        if (fertilizerPage && inside(mouseX, mouseY, MARGIN, RESERVE_Y, RESERVE_X[0] - MARGIN, 11)) {
+    }
+
+    private void renderPageTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        Page page = menu.page();
+        if (page == Page.FERTILIZER && inside(mouseX, mouseY, MARGIN, RESERVE_Y, RESERVE_X[0] - MARGIN, 11)) {
             graphics.setTooltipForNextFrame(font, Component.translatable("gui.servus_storage.field_head.reserve_tooltip"), mouseX, mouseY);
             return;
         }
@@ -352,7 +345,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
             return;
         }
-        if (page == Page.FIELD && serving && inside(mouseX, mouseY, RIPE_X, RIPE_Y, RIPE_W, RIPE_H)) {
+        if (page == Page.FIELD && serving() && inside(mouseX, mouseY, RIPE_X, RIPE_Y, RIPE_W, RIPE_H)) {
             graphics.setTooltipForNextFrame(font, Component.translatable("gui.servus_storage.field_head.ripe_tooltip",
                     menu.ripe(), menu.planted(), percent(menu.ripe(), menu.planted()), menu.threshold()), mouseX, mouseY);
         }
@@ -377,7 +370,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     }
 
     private boolean emptySlotHovered(int index, int mouseX, int mouseY) {
-        var slot = menu.slots.get(index);
+        Slot slot = menu.slots.get(index);
         return menu.getCarried().isEmpty() && !slot.hasItem() && inside(mouseX, mouseY, slot.x, slot.y, 16, 16);
     }
 
@@ -388,48 +381,53 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
         switch (menu.page()) {
             case FIELD -> {
-                picker.renderButton(graphics, font, mouseX, mouseY);
+                cropPicker.renderButton(graphics, font, mouseX, mouseY);
                 if (serving()) {
-                    int ripeLeft = leftPos + RIPE_X;
-                    int ripeTop = topPos + RIPE_Y;
-                    sunken(graphics, ripeLeft - 1, ripeTop - 1, RIPE_W + 2, RIPE_H + 2);
-                    int ripeFill = menu.planted() <= 0 ? 0 : RIPE_W * Math.min(menu.ripe(), menu.planted()) / menu.planted();
-                    if (ripeFill > 0) {
-                        graphics.fill(ripeLeft, ripeTop, ripeLeft + ripeFill, ripeTop + RIPE_H, menu.harvestDue() ? 0xFF000000 | COLOUR_DUE : COLOUR_RIPE);
-                    }
-                    int mark = ripeLeft + Math.min(RIPE_W - 1, RIPE_W * menu.threshold() / 100);
-                    graphics.fill(mark, ripeTop - 2, mark + 1, ripeTop + RIPE_H + 2, COLOUR_MARK);
+                    renderRipeBar(graphics);
                 }
             }
             case WATER -> {
-                int barLeft = leftPos + MARGIN;
-                int barTop = topPos + BAR_Y;
-                sunken(graphics, barLeft - 1, barTop - 1, WIDTH + 2, BAR_H + 2);
-                int capacity = Math.max(1, menu.capacity());
-                int filled = (int) ((long) WIDTH * Math.min(menu.water(), capacity) / capacity);
-                if (filled > 0) {
-                    graphics.fill(barLeft, barTop, barLeft + filled, barTop + BAR_H, menu.hydrated() ? COLOUR_WATER : COLOUR_DRY);
-                }
-                sunken(graphics, leftPos + FieldHeadMenu.ANTI_CORROSION_X - 1, topPos + FieldHeadMenu.ANTI_CORROSION_Y - 1, 18, 18);
+                renderWaterBar(graphics);
+                slotFrame(graphics, FieldHeadMenu.ANTI_CORROSION_X, FieldHeadMenu.ANTI_CORROSION_Y);
             }
             case FERTILIZER -> {
                 fertilizerPicker.renderButton(graphics, font, mouseX, mouseY);
-                sunken(graphics, leftPos + RESERVE_TEXT_X, topPos + RESERVE_Y, RESERVE_TEXT_W, 11);
+                PanelPainter.sunken(graphics, leftPos + RESERVE_TEXT_X, topPos + RESERVE_Y, RESERVE_TEXT_W, 11);
             }
-            case UPGRADES -> sunken(graphics, leftPos + FieldHeadMenu.RANGE_X - 1, topPos + FieldHeadMenu.RANGE_Y - 1, 18, 18);
+            case UPGRADES -> slotFrame(graphics, FieldHeadMenu.RANGE_X, FieldHeadMenu.RANGE_Y);
+        }
+    }
+
+    private void slotFrame(GuiGraphicsExtractor graphics, int slotX, int slotY) {
+        PanelPainter.sunken(graphics, leftPos + slotX - 1, topPos + slotY - 1, 18, 18);
+    }
+
+    /** The ripe share of the planted plots, dark green once a harvest is due, with a mark at the threshold. */
+    private void renderRipeBar(GuiGraphicsExtractor graphics) {
+        int left = leftPos + RIPE_X;
+        int top = topPos + RIPE_Y;
+        PanelPainter.sunken(graphics, left - 1, top - 1, RIPE_W + 2, RIPE_H + 2);
+        int fill = menu.planted() <= 0 ? 0 : RIPE_W * Math.min(menu.ripe(), menu.planted()) / menu.planted();
+        if (fill > 0) {
+            graphics.fill(left, top, left + fill, top + RIPE_H, menu.harvestDue() ? COLOUR_DUE : COLOUR_RIPE);
+        }
+        int mark = left + Math.min(RIPE_W - 1, RIPE_W * menu.threshold() / 100);
+        graphics.fill(mark, top - 2, mark + 1, top + RIPE_H + 2, COLOUR_MARK);
+    }
+
+    private void renderWaterBar(GuiGraphicsExtractor graphics) {
+        int left = leftPos + MARGIN;
+        int top = topPos + BAR_Y;
+        PanelPainter.sunken(graphics, left - 1, top - 1, WIDTH + 2, BAR_H + 2);
+        int capacity = Math.max(1, menu.capacity());
+        int filled = (int) ((long) WIDTH * Math.min(menu.water(), capacity) / capacity);
+        if (filled > 0) {
+            graphics.fill(left, top, left + filled, top + BAR_H, menu.hydrated() ? COLOUR_WATER : COLOUR_DRY);
         }
     }
 
     private static int percent(int ripe, int planted) {
         return planted <= 0 ? 0 : 100 * ripe / planted;
-    }
-
-    private static void sunken(GuiGraphicsExtractor graphics, int x, int y, int width, int height) {
-        graphics.fill(x, y, x + width, y + height, 0xFF8B8B8B);
-        graphics.fill(x, y, x + width, y + 1, PANEL_DARK);
-        graphics.fill(x, y, x + 1, y + height, PANEL_DARK);
-        graphics.fill(x, y + height - 1, x + width, y + height, PANEL_LIGHT);
-        graphics.fill(x + width - 1, y, x + width, y + height, PANEL_LIGHT);
     }
 
     @Override
@@ -473,7 +471,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         if (work != null) {
             int colour = switch (work) {
                 case WORKING, HARVEST_DUE, READY -> COLOUR_DUE;
-                default -> warning(work) ? COLOUR_WARN : COLOUR_TEXT;
+                default -> work.problem() ? COLOUR_WARN : COLOUR_TEXT;
             };
             wrapped(graphics, workLine(work), WORK_Y, colour);
         }
@@ -517,14 +515,11 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        double mouseX = event.x();
-        double mouseY = event.y();
-        int button = event.button();
         ItemPicker open = openPicker();
         if (open != null) {
             return open.mouseClicked(event, doubleClick);
         }
-        Page tab = tabAt(mouseX, mouseY);
+        Page tab = tabAt(event.x(), event.y());
         if (tab != null) {
             menu.setPage(tab);
             return true;
@@ -538,18 +533,12 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
-        double mouseX = event.x();
-        double mouseY = event.y();
-        int button = event.button();
         ItemPicker open = openPicker();
-        return open != null && open.mouseDragged(mouseX, mouseY) || super.mouseDragged(event, dragX, dragY);
+        return open != null && open.mouseDragged(event.x(), event.y()) || super.mouseDragged(event, dragX, dragY);
     }
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
-        double mouseX = event.x();
-        double mouseY = event.y();
-        int button = event.button();
         ItemPicker open = openPicker();
         return open != null && open.mouseReleased() || super.mouseReleased(event);
     }
@@ -562,17 +551,12 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        int keyCode = event.key();
-        int scanCode = event.scancode();
-        int modifiers = event.modifiers();
         ItemPicker open = openPicker();
         return open != null && open.keyPressed(event) || super.keyPressed(event);
     }
 
     @Override
     public boolean charTyped(CharacterEvent event) {
-        char codePoint = (char) event.codepoint();
-        int modifiers = 0;
         ItemPicker open = openPicker();
         return open != null && open.charTyped(event) || super.charTyped(event);
     }

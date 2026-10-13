@@ -1,11 +1,9 @@
 package io.github.dirnei.mc.servus.storage.client;
 
-import net.minecraft.client.renderer.RenderPipelines;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.storage.client.TerminalCells.Cell;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
+import io.github.dirnei.mc.servus.storage.site.RemoteSite;
 import io.github.dirnei.mc.servus.storage.terminal.AmountSteps;
 import io.github.dirnei.mc.servus.storage.terminal.CancelRequestPayload;
 import io.github.dirnei.mc.servus.storage.terminal.CraftPreviewPayload;
@@ -16,15 +14,14 @@ import io.github.dirnei.mc.servus.storage.terminal.PushCarriedPayload;
 import io.github.dirnei.mc.servus.storage.terminal.RequestItemPayload;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
+import io.github.dirnei.mc.servus.storage.terminal.SelectSitePayload;
 import io.github.dirnei.mc.servus.storage.terminal.SetStockRulePayload;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout;
-import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Storage;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Rect;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Storage;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalSettings;
-import io.github.dirnei.mc.servus.storage.terminal.TerminalSort;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -37,12 +34,15 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -62,25 +62,20 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     private static final int COLOUR_ALERT = 0xFFB03030;
     private static final int COLOUR_GOOD = 0xFF2E7D32;
     private static final int PREVIEW_ROWS = 3;
-    private static final float DIALOG_Z = 400;
-
-    /** One grid cell: an open request, or a stocked or craftable item. */
-    private record Cell(ItemStack stack, long count, boolean stocked, boolean craftable, RequestRow request) {
-        boolean isRequest() {
-            return request != null;
-        }
-    }
+    private static final String[] SETTING_KINDS = {"sort", "direction", "view", "search", "height"};
+    /** Step button kinds: -2 and 2 are a stack down and up, the others add themselves. */
+    private static final int[] STEP_KINDS = {-2, -10, -1, 1, 10, 2};
 
     private enum Dialog { NONE, REQUEST, RULE, CRAFT }
+
+    /** Set by the recipe viewer's transfer: open the popup on the terminal screen now or when it shows next. */
+    private static boolean popupRequested;
 
     private Storage.Layout layout = Storage.layout(Storage.BASE_ROWS);
     private EditBox search;
     private String searchText = "";
     private String lastSynced = null;
-    private final List<Cell> cells = new ArrayList<>();
-    private int cellsVersion = -1;
-    private String cellsQuery = "";
-    private TerminalSettings cellsSettings = null;
+    private final TerminalCells cells = new TerminalCells();
     private int scrollRow;
     private final List<IconButton> sideButtons = new ArrayList<>();
 
@@ -111,8 +106,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         refreshSideButtons();
     }
 
-    // Layout
-
     private Rect dialogRect() {
         return layout.dialog();
     }
@@ -136,19 +129,32 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return areas;
     }
 
+    /**
+     * Centres the panel as a whole, the base top below the extra rows, and
+     * registers the terminal on every show, also after another screen was in front.
+     */
     @Override
     protected void init() {
         layout = Storage.layout(Storage.rowsFor(settings().height(), height));
         super.init();
-        // The panel is centred as a whole; the base top sits below the extra rows.
         topPos = (height - layout.height()) / 2 - layout.top();
-        // Every show, also after another screen was in front, registers the terminal again.
         ClientStock.open(menu.terminal().getBlockPos());
         titleLabelX = layout.title().x();
         titleLabelY = layout.title().y();
         inventoryLabelX = Storage.INVENTORY_LABEL.x();
         inventoryLabelY = Storage.INVENTORY_LABEL.y();
+        initSearch();
+        initSideButtons();
+        initPopupButtons();
+        initDialog();
+        if (popupRequested) {
+            popupRequested = false;
+            popupOpen = true;
+        }
+        applyDialog();
+    }
 
+    private void initSearch() {
         Rect searchRect = layout.search();
         search = new EditBox(font, leftPos + searchRect.x(), topPos + searchRect.y(), searchRect.w(), searchRect.h(),
                 Component.translatable("gui.servus_storage.search"));
@@ -158,24 +164,29 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         search.setResponder(this::searchChanged);
         addRenderableWidget(search);
         setInitialFocus(search);
+    }
 
+    private void initSideButtons() {
         sideButtons.clear();
         List<Rect> side = layout.side();
-        sideButtons.add(sideButton(side.get(0), this::sortIcon, b -> update(settings().withSort(TerminalSettings.next(settings().sort())))));
-        sideButtons.add(sideButton(side.get(1), this::directionIcon,
+        sideButtons.add(sideButton(side.get(0), () -> icon("sort_", settings().sort()),
+                b -> update(settings().withSort(TerminalSettings.next(settings().sort())))));
+        sideButtons.add(sideButton(side.get(1), () -> icon("dir_", settings().direction()),
                 b -> update(settings().withDirection(TerminalSettings.next(settings().direction())))));
-        sideButtons.add(sideButton(side.get(2), this::viewIcon, b -> {
+        sideButtons.add(sideButton(side.get(2), () -> icon("view_", settings().view()), b -> {
             update(settings().withView(TerminalSettings.next(settings().view())));
             scrollRow = 0;
         }));
-        sideButtons.add(sideButton(side.get(3), this::searchIcon, b -> update(settings().withSearch(nextSearchMode()))));
-        sideButtons.add(sideButton(side.get(4), this::heightIcon, b -> {
+        sideButtons.add(sideButton(side.get(3), () -> icon("search_", searchMode()), b -> update(settings().withSearch(nextSearchMode()))));
+        sideButtons.add(sideButton(side.get(4), () -> icon("height_", settings().height()), b -> {
             update(settings().withHeight(TerminalSettings.next(settings().height())));
             searchText = search.getValue();
             rebuildWidgets();
         }));
         refreshSideButtons();
+    }
 
+    private void initPopupButtons() {
         Rect craftRect = layout.craft();
         craftButton = addRenderableWidget(Button.builder(Component.empty(), b -> togglePopup())
                 .bounds(leftPos + craftRect.x(), topPos + craftRect.y(), craftRect.w(), craftRect.h())
@@ -183,20 +194,15 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         clearButton = addRenderableWidget(Button.builder(Component.literal("x"), b -> ClientPacketDistributor.sendToServer(GridClearPayload.INSTANCE))
                 .bounds(leftPos + Storage.CLEAR.x(), topPos + Storage.CLEAR.y(), Storage.CLEAR.w(), Storage.CLEAR.h())
                 .tooltip(Tooltip.create(Component.translatable("gui.servus_storage.terminal.clear_grid"))).build());
+    }
 
-        amount = new EditBox(font, dx() + 40, dy() + 20, 50, 12, Component.translatable("gui.servus_storage.terminal.amount"));
-        amount.setMaxLength(5);
-        amount.setFilter(text -> text.isEmpty() || text.chars().allMatch(Character::isDigit));
+    private void initDialog() {
+        amount = numberField(40, "gui.servus_storage.terminal.amount");
         amount.setResponder(text -> askPreview());
-        addRenderableWidget(amount);
-        maximum = new EditBox(font, dx() + 120, dy() + 20, 50, 12, Component.translatable("gui.servus_storage.terminal.rule_max"));
-        maximum.setMaxLength(5);
-        maximum.setFilter(text -> text.isEmpty() || text.chars().allMatch(Character::isDigit));
-        addRenderableWidget(maximum);
+        maximum = numberField(120, "gui.servus_storage.terminal.rule_max");
         stepButtons.clear();
-        int[] kinds = {-2, -10, -1, 1, 10, 2};
-        for (int i = 0; i < kinds.length; i++) {
-            int kind = kinds[i];
+        for (int i = 0; i < STEP_KINDS.length; i++) {
+            int kind = STEP_KINDS[i];
             stepButtons.add(addRenderableWidget(Button.builder(Component.empty(), b -> step(kind))
                     .bounds(dx() + 4 + i * 28, dy() + 36, 26, 14).build()));
         }
@@ -209,17 +215,15 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                 .bounds(dx() + 92, bottom, 40, 14).build());
         cancelButton = addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.terminal.cancel"),
                 b -> closeDialog()).bounds(dx() + 134, bottom, 36, 14).build());
-        if (popupRequested) {
-            popupRequested = false;
-            popupOpen = true;
-        }
-        applyDialog();
     }
 
-    // Crafting popup
-
-    /** Set by JEI's transfer: open the popup on the terminal screen now or when it shows next. */
-    private static boolean popupRequested;
+    /** A five digit field in the dialog's amount row. */
+    private EditBox numberField(int x, String key) {
+        EditBox field = new EditBox(font, dx() + x, dy() + 20, 50, 12, Component.translatable(key));
+        field.setMaxLength(5);
+        field.setFilter(text -> text.isEmpty() || text.chars().allMatch(Character::isDigit));
+        return addRenderableWidget(field);
+    }
 
     public static void requestCraftPopup() {
         if (Minecraft.getInstance().screen instanceof StorageTerminalScreen screen) {
@@ -237,7 +241,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
     }
 
-    /** Shows the crafting popup over the grid; JEI's transfer opens it too. */
+    /** Shows the crafting popup over the grid; the recipe viewer's transfer opens it too. */
     public void openCraftPopup() {
         if (dialogOpen()) {
             closeDialog();
@@ -261,10 +265,14 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     }
 
     private IconButton sideButton(Rect rect, Supplier<String> icon, Button.OnPress press) {
-        IconButton button = new IconButton(leftPos + rect.x(), topPos + rect.y(), rect.w(), rect.h(), icon, press);
-        return addRenderableWidget(button);
+        return addRenderableWidget(new IconButton(leftPos + rect.x(), topPos + rect.y(), rect.w(), rect.h(), icon, press));
     }
 
+    private static String icon(String prefix, Enum<?> value) {
+        return prefix + value.name().toLowerCase(Locale.ROOT);
+    }
+
+    /** The search modes past Normal need JEI. */
     private TerminalSettings.SearchMode nextSearchMode() {
         if (!JeiSearchBridge.available()) {
             return TerminalSettings.SearchMode.NORMAL;
@@ -276,37 +284,14 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return JeiSearchBridge.available() ? settings().search() : TerminalSettings.SearchMode.NORMAL;
     }
 
-    private String sortIcon() {
-        return "sort_" + settings().sort().name().toLowerCase(Locale.ROOT);
-    }
-
-    private String directionIcon() {
-        return "dir_" + settings().direction().name().toLowerCase(Locale.ROOT);
-    }
-
-    private String viewIcon() {
-        return "view_" + settings().view().name().toLowerCase(Locale.ROOT);
-    }
-
-    private String searchIcon() {
-        return "search_" + searchMode().name().toLowerCase(Locale.ROOT);
-    }
-
-    private String heightIcon() {
-        return "height_" + settings().height().name().toLowerCase(Locale.ROOT);
-    }
-
     private void refreshSideButtons() {
-        String[] kinds = {"sort", "direction", "view", "search", "height"};
-        String[] values = {settings().sort().name(), settings().direction().name(), settings().view().name(),
-                searchMode().name(), settings().height().name()};
+        Enum<?>[] values = {settings().sort(), settings().direction(), settings().view(), searchMode(), settings().height()};
         for (int i = 0; i < sideButtons.size(); i++) {
-            Component value = Component.translatable("gui.servus_storage.terminal.setting." + kinds[i] + "." + values[i].toLowerCase(Locale.ROOT));
-            sideButtons.get(i).setTooltip(Tooltip.create(Component.translatable("gui.servus_storage.terminal.setting." + kinds[i], value)));
+            String key = "gui.servus_storage.terminal.setting." + SETTING_KINDS[i];
+            Component value = Component.translatable(key + "." + values[i].name().toLowerCase(Locale.ROOT));
+            sideButtons.get(i).setTooltip(Tooltip.create(Component.translatable(key, value)));
         }
     }
-
-    // Search
 
     private void searchChanged(String text) {
         scrollRow = 0;
@@ -328,8 +313,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             }
         }
     }
-
-    // Dialogs
 
     private boolean dialogOpen() {
         return dialog != Dialog.NONE;
@@ -379,6 +362,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         applyDialog();
     }
 
+    /** Shows the widgets of the open dialog, or of the grid and popup when none is open. */
     private void applyDialog() {
         boolean open = dialogOpen();
         menu.setCraftOpen(popupOpen && !open);
@@ -423,15 +407,18 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         applyDialog();
     }
 
-    private int enteredAmount() {
+    private static int parsed(EditBox field, int fallback) {
         try {
-            return Math.max(0, Integer.parseInt(amount.getValue().trim()));
+            return Integer.parseInt(field.getValue().trim());
         } catch (NumberFormatException e) {
-            return 0;
+            return fallback;
         }
     }
 
-    /** -2 and 2 are a stack down and up, other values add themselves. */
+    private int enteredAmount() {
+        return Math.max(0, parsed(amount, 0));
+    }
+
     private void step(int kind) {
         int stack = subject.getMaxStackSize();
         int now = enteredAmount();
@@ -472,15 +459,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                     ClientPacketDistributor.sendToServer(new RequestItemPayload(subject, wanted));
                 }
             }
-            case RULE -> {
-                int max;
-                try {
-                    max = Math.max(wanted, Integer.parseInt(maximum.getValue().trim()));
-                } catch (NumberFormatException e) {
-                    max = wanted;
-                }
-                ClientPacketDistributor.sendToServer(new SetStockRulePayload(subject, wanted, max));
-            }
+            case RULE -> ClientPacketDistributor.sendToServer(new SetStockRulePayload(subject, wanted, Math.max(wanted, parsed(maximum, wanted))));
             case CRAFT -> {
                 CraftPreviewPayload preview = currentPreview();
                 if (preview == null || !preview.startable()) {
@@ -501,59 +480,17 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         closeDialog();
     }
 
-    // Grid
-
-    private static boolean matches(ItemStack stack, String query) {
-        return query.isEmpty() || stack.getHoverName().getString().toLowerCase(Locale.ROOT).contains(query);
-    }
-
-    private static TerminalSort.Key key(Cell cell) {
-        Identifier id = BuiltInRegistries.ITEM.getKey(cell.stack().getItem());
-        return new TerminalSort.Key(cell.stack().getHoverName().getString(), cell.stocked() ? cell.count() : 0, id.getNamespace());
-    }
-
+    /** The grid's cells; clamps the scroll when they were rebuilt. */
     private List<Cell> cells() {
         String query = search == null ? "" : search.getValue().toLowerCase(Locale.ROOT).trim();
-        TerminalSettings current = settings();
-        if (cellsVersion != ClientStock.version() || !query.equals(cellsQuery) || !current.equals(cellsSettings)) {
-            cells.clear();
-            for (RequestRow row : ClientStock.requests()) {
-                if (matches(row.stack(), query)) {
-                    cells.add(new Cell(row.stack(), row.requested(), false, false, row));
-                }
-            }
-            List<Cell> items = new ArrayList<>();
-            for (StockEntry entry : ClientStock.entries()) {
-                items.add(new Cell(entry.stack(), entry.count(), true, ClientStock.craftable(entry.stack()), null));
-            }
-            for (ItemStack craftable : ClientStock.craftables()) {
-                boolean stocked = ClientStock.entries().stream().anyMatch(entry -> ItemStack.isSameItemSameComponents(entry.stack(), craftable));
-                if (!stocked) {
-                    items.add(new Cell(craftable, 0, false, true, null));
-                }
-            }
-            Comparator<TerminalSort.Key> order = TerminalSort.comparator(current.sort(), current.direction());
-            items.sort((a, b) -> order.compare(key(a), key(b)));
-            for (Cell cell : items) {
-                boolean shown = switch (current.view()) {
-                    case ALL -> true;
-                    case STOCK -> cell.stocked();
-                    case CRAFTABLE -> cell.craftable();
-                };
-                if (shown && matches(cell.stack(), query)) {
-                    cells.add(cell);
-                }
-            }
-            cellsVersion = ClientStock.version();
-            cellsQuery = query;
-            cellsSettings = current;
+        if (cells.refresh(query, settings())) {
             scrollRow = Math.min(scrollRow, maxScrollRow());
         }
-        return cells;
+        return cells.list();
     }
 
     private int maxScrollRow() {
-        return Math.max(0, (cells.size() + COLUMNS - 1) / COLUMNS - layout.rows());
+        return Math.max(0, (cells.list().size() + COLUMNS - 1) / COLUMNS - layout.rows());
     }
 
     private int cellAt(double mouseX, double mouseY) {
@@ -572,20 +509,16 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return index >= 0 && index < list.size() ? Optional.of(list.get(index)) : Optional.empty();
     }
 
-    // Drawing
-
     @Override
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
         PanelPainter.panel(graphics, leftPos, topPos + layout.top(), imageWidth, layout.height());
-        Rect grid = layout.grid();
-        PanelPainter.slots(graphics, leftPos, topPos, grid, COLUMNS, COLUMNS * layout.rows());
+        PanelPainter.slots(graphics, leftPos, topPos, layout.grid(), COLUMNS, COLUMNS * layout.rows());
         PanelPainter.inset(graphics, leftPos, topPos, layout.scrollbar());
         PanelPainter.slots(graphics, leftPos, topPos, Storage.INPUT, Storage.ROW_SLOTS, Storage.ROW_SLOTS);
         PanelPainter.slots(graphics, leftPos, topPos, Storage.OUTPUT, Storage.ROW_SLOTS, menu.outputSlots());
-        tag(graphics, Storage.INPUT_TAG, true, menu.inputOpen() ? 0xFF4C9A5A : 0xFF8B8B8B);
+        tag(graphics, Storage.INPUT_TAG, true, menu.inputOpen() ? 0xFF4C9A5A : PanelPainter.SLOT);
         if (!menu.inputOpen()) {
-            // Another site is shown: what is handed in would be stored here, so the Input row is locked.
             Rect in = Storage.INPUT;
             graphics.fill(leftPos + in.x(), topPos + in.y(), leftPos + in.x() + in.w(), topPos + in.y() + in.h(), 0x808B8B8B);
         }
@@ -594,14 +527,15 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         PanelPainter.slots(graphics, leftPos, topPos, Storage.HOTBAR, 9, 9);
         if (popupOpen && !dialogOpen()) {
             Rect popup = Storage.POPUP;
-            int px = leftPos + popup.x();
-            int py = topPos + popup.y();
-            graphics.fill(px - 1, py - 1, px + popup.w() + 1, py + popup.h() + 1, 0xFF373737);
-            graphics.fill(px, py, px + popup.w(), py + popup.h(), 0xFFC6C6C6);
+            PanelPainter.bordered(graphics, leftPos + popup.x(), topPos + popup.y(), popup.w(), popup.h(), PanelPainter.DARK, PanelPainter.FACE);
             PanelPainter.slots(graphics, leftPos, topPos, Storage.CRAFT_GRID, 3, 9);
             PanelPainter.slots(graphics, leftPos, topPos, Storage.CRAFT_RESULT, 1, 1);
             arrow(graphics, leftPos + Storage.CRAFT_ARROW.x(), topPos + Storage.CRAFT_ARROW.y());
         }
+        renderScrollThumb(graphics);
+    }
+
+    private void renderScrollThumb(GuiGraphicsExtractor graphics) {
         int max = maxScrollRow();
         Rect bar = layout.scrollbar();
         int track = bar.h() - 15;
@@ -621,6 +555,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
     }
 
+    /** The Input row is locked while another site is shown, since what is handed in would be stored here. */
     private Component tagTooltip(int x, int y) {
         if (!menu.inputOpen() && (Storage.INPUT_TAG.contains(x, y) || Storage.INPUT.contains(x, y) && menu.getCarried().isEmpty()
                 && (hoveredSlot == null || !hoveredSlot.hasItem()))) {
@@ -637,7 +572,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     /** A grey arrow pointing right, 16 by 10, from the grid to the result. */
     private static void arrow(GuiGraphicsExtractor graphics, int x, int y) {
-        int colour = 0xFF8B8B8B;
+        int colour = PanelPainter.SLOT;
         graphics.fill(x, y + 3, x + 10, y + 7, colour);
         for (int i = 0; i < 5; i++) {
             graphics.fill(x + 10 + i, y + i, x + 11 + i, y + 10 - i, colour);
@@ -656,12 +591,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
         renderMessage(graphics);
         if (dialogOpen()) {
-            graphics.pose().pushMatrix();
-            graphics.pose().translate(0, 0);
             renderDialog(graphics, mouseX, mouseY);
-            graphics.pose().popMatrix();
-            if (!insideDialog(mouseX, mouseY)) {
-            }
             return;
         }
         renderGrid(graphics, mouseX, mouseY);
@@ -673,7 +603,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             graphics.setTooltipForNextFrame(font, cellTooltip(hovered.get()), Optional.empty(), mouseX, mouseY);
         } else if (tag != null) {
             graphics.setTooltipForNextFrame(font, tag, mouseX, mouseY);
-        } else {
         }
     }
 
@@ -725,52 +654,51 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         Rect grid = layout.grid();
         int first = scrollRow * COLUMNS;
         int visible = COLUMNS * layout.rows();
+        boolean greyed = greyed();
         for (int i = 0; i < visible && first + i < list.size(); i++) {
-            Cell cell = list.get(first + i);
             int x = leftPos + grid.x() + (i % COLUMNS) * CELL;
             int y = topPos + grid.y() + (i / COLUMNS) * CELL;
-            if (insidePopup(x - leftPos, y - topPos)) {
-                continue;
-            }
-            if (cell.isRequest()) {
-                graphics.fill(x - 1, y - 1, x + 17, y + 17, 0xFF5868A8);
-            }
-            graphics.item(cell.stack(), x, y);
-            if (!cell.isRequest() && greyed()) {
-                // The last known stock of a sleeping site.
-                graphics.pose().pushMatrix();
-                // Above the item model, below the count drawn at 200.
-                graphics.pose().translate(0, 0);
-                graphics.fill(x, y, x + 16, y + 16, 0xA0707070);
-                graphics.pose().popMatrix();
-            }
-            if (cell.isRequest()) {
-                RequestRow row = cell.request();
-                smallText(graphics, Component.literal(row.delivered() + "/" + row.requested()), x + 16, y + 11, 0xFFFFFFFF);
-                graphics.pose().pushMatrix();
-                graphics.pose().translate(0, 0);
-                graphics.fill(x + 12, y, x + 16, y + 4, 0xFF202020);
-                graphics.fill(x + 13, y + 1, x + 15, y + 3, stateColour(row.state()));
-                graphics.pose().popMatrix();
-                continue;
-            }
-            if (cell.stocked()) {
-                graphics.itemDecorations(font, cell.stack(), x, y, abbreviate(cell.count()));
-            } else {
-                smallText(graphics, Component.translatable("gui.servus_storage.terminal.craft_cell"), x + 16, y + 11, 0xFFFFE080);
-            }
-            if (ClientStock.ruleFor(cell.stack()) != null) {
-                graphics.fill(x, y, x + 3, y + 3, 0xFF40A0FF);
-            }
-            if (cell.stocked() && cell.craftable()) {
-                graphics.fill(x, y + 13, x + 3, y + 16, 0xFFFFB040);
+            if (!insidePopup(x - leftPos, y - topPos)) {
+                renderCell(graphics, list.get(first + i), x, y, greyed);
             }
         }
-        int cell = cellAt(mouseX, mouseY);
-        if (cell >= first && cell < first + visible) {
-            int x = leftPos + grid.x() + ((cell - first) % COLUMNS) * CELL;
-            int y = topPos + grid.y() + ((cell - first) / COLUMNS) * CELL;
+        int hovered = cellAt(mouseX, mouseY);
+        if (hovered >= first && hovered < first + visible) {
+            int x = leftPos + grid.x() + ((hovered - first) % COLUMNS) * CELL;
+            int y = topPos + grid.y() + ((hovered - first) / COLUMNS) * CELL;
             graphics.fill(x, y, x + 16, y + 16, 0x80FFFFFF);
+        }
+    }
+
+    /**
+     * One cell: a request with its delivered count and state mark on a blue
+     * ground, or an item with its count or a craft label, a blue corner for a
+     * stock rule and an orange corner when a stocked item is craftable too.
+     */
+    private void renderCell(GuiGraphicsExtractor graphics, Cell cell, int x, int y, boolean greyed) {
+        if (cell.isRequest()) {
+            graphics.fill(x - 1, y - 1, x + 17, y + 17, 0xFF5868A8);
+            graphics.item(cell.stack(), x, y);
+            RequestRow row = cell.request();
+            smallText(graphics, Component.literal(row.delivered() + "/" + row.requested()), x + 16, y + 11, 0xFFFFFFFF);
+            graphics.fill(x + 12, y, x + 16, y + 4, 0xFF202020);
+            graphics.fill(x + 13, y + 1, x + 15, y + 3, stateColour(row.state()));
+            return;
+        }
+        graphics.item(cell.stack(), x, y);
+        if (greyed) {
+            graphics.fill(x, y, x + 16, y + 16, 0xA0707070);
+        }
+        if (cell.stocked()) {
+            graphics.itemDecorations(font, cell.stack(), x, y, abbreviate(cell.count()));
+        } else {
+            smallText(graphics, Component.translatable("gui.servus_storage.terminal.craft_cell"), x + 16, y + 11, 0xFFFFE080);
+        }
+        if (ClientStock.ruleFor(cell.stack()) != null) {
+            graphics.fill(x, y, x + 3, y + 3, 0xFF40A0FF);
+        }
+        if (cell.stocked() && cell.craftable()) {
+            graphics.fill(x, y + 13, x + 3, y + 16, 0xFFFFB040);
         }
     }
 
@@ -783,42 +711,44 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         graphics.pose().popMatrix();
     }
 
-    /** Whether the grid shows the last known stock of a sleeping site. */
+    /** Whether the grid shows the last known stock of a sleeping or unreachable site. */
     private static boolean greyed() {
-        io.github.dirnei.mc.servus.storage.site.RemoteSite.State state = ClientStock.viewState();
-        return state != null && state != io.github.dirnei.mc.servus.storage.site.RemoteSite.State.ONLINE;
+        RemoteSite.State state = ClientStock.viewState();
+        return state != null && state != RemoteSite.State.ONLINE;
     }
 
+    /**
+     * The message line: the shown site's state when there is no message, an
+     * unpowered site first; else the server's message, else a no power note
+     * while the stock stays shown and requests wait for FE.
+     */
     private void renderMessage(GuiGraphicsExtractor graphics) {
-        io.github.dirnei.mc.servus.storage.site.RemoteSite.State state = ClientStock.viewState();
+        RemoteSite.State state = ClientStock.viewState();
         if (ClientStock.message().isEmpty() && state != null) {
-            // A site whose controller has no power for wireless cannot send: that comes first.
             boolean unpowered = ClientStock.sites().stream().anyMatch(row -> row.key().equals(ClientStock.view()) && !row.trade());
             String line = unpowered ? "no_power" : state.name().toLowerCase(Locale.ROOT);
             Component text = Component.translatable("gui.servus_storage.terminal.view." + line, ClientStock.viewName());
-            int colour = unpowered || state == io.github.dirnei.mc.servus.storage.site.RemoteSite.State.UNREACHABLE ? COLOUR_ALERT : 0xFF404040;
-            graphics.text(font, font.plainSubstrByWidth(text.getString(), Storage.MESSAGE.w()),
-                    leftPos + Storage.MESSAGE.x(), topPos + Storage.MESSAGE.y() + 1, colour, false);
+            messageLine(graphics, text, unpowered || state == RemoteSite.State.UNREACHABLE ? COLOUR_ALERT : COLOUR_TEXT);
             return;
         }
         if (!ClientStock.message().isEmpty()) {
-            Component text = Component.translatable("gui.servus_storage.terminal.message." + ClientStock.message());
-            graphics.text(font, font.plainSubstrByWidth(text.getString(), Storage.MESSAGE.w()),
-                    leftPos + Storage.MESSAGE.x(), topPos + Storage.MESSAGE.y() + 1, COLOUR_ALERT, false);
+            messageLine(graphics, Component.translatable("gui.servus_storage.terminal.message." + ClientStock.message()), COLOUR_ALERT);
         } else if (ClientStock.noPower() && ClientStock.online()) {
-            // The stock stays shown and requests are taken; they wait until the warehouse has FE again.
-            Component text = Component.translatable("gui.servus_storage.terminal.no_power");
-            graphics.text(font, font.plainSubstrByWidth(text.getString(), Storage.MESSAGE.w()),
-                    leftPos + Storage.MESSAGE.x(), topPos + Storage.MESSAGE.y() + 1, COLOUR_ALERT, false);
+            messageLine(graphics, Component.translatable("gui.servus_storage.terminal.no_power"), COLOUR_ALERT);
         }
     }
 
+    private void messageLine(GuiGraphicsExtractor graphics, Component text, int colour) {
+        graphics.text(font, font.plainSubstrByWidth(text.getString(), Storage.MESSAGE.w()),
+                leftPos + Storage.MESSAGE.x(), topPos + Storage.MESSAGE.y() + 1, colour, false);
+    }
+
+    /** The dialog panel over the grid; its widgets were drawn below it by super and are drawn again on top. */
     private void renderDialog(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         Rect area = dialogRect();
         int x = dx();
         int y = dy();
-        graphics.fill(x - 1, y - 1, x + area.w() + 1, y + area.h() + 1, 0xFF373737);
-        graphics.fill(x, y, x + area.w(), y + area.h(), 0xFFC6C6C6);
+        PanelPainter.bordered(graphics, x, y, area.w(), area.h(), PanelPainter.DARK, PanelPainter.FACE);
         graphics.item(subject, x + 4, y + 2);
         Component head = dialog == Dialog.CRAFT
                 ? Component.translatable("gui.servus_storage.terminal.craft_title", subject.getHoverName())
@@ -829,7 +759,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         if (dialog == Dialog.RULE) {
             graphics.text(font, Component.translatable("gui.servus_storage.terminal.rule_max"), x + 96, y + 22, COLOUR_TEXT, false);
         }
-        // Widgets were drawn by super.render below the dialog; draw them again on top of it.
         for (AbstractWidget widget : dialogWidgets()) {
             if (widget.visible) {
                 widget.extractRenderState(graphics, mouseX, mouseY, 0);
@@ -840,6 +769,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
     }
 
+    /** What the craft would take from stock, craft and miss, and whether it can start; Start waits for it. */
     private void renderPreview(GuiGraphicsExtractor graphics, int x, int y) {
         CraftPreviewPayload preview = currentPreview();
         confirmButton.active = preview != null && preview.startable();
@@ -885,6 +815,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
     }
 
+    /** A count in at most four characters: 999, 1.2k, 45k, 1.5M. */
     static String abbreviate(long count) {
         if (count < 1000) {
             return Long.toString(count);
@@ -897,8 +828,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
         return String.format(Locale.ROOT, "%.1fM", count / 1000000.0);
     }
-
-    // Input
 
     /** The rows above the base top and the side column belong to the screen too. */
     @Override
@@ -940,9 +869,9 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         String name = ClientStock.view().isEmpty() ? Component.translatable("gui.servus_storage.terminal.this_site").getString()
                 : ClientStock.viewName();
         String text = font.plainSubstrByWidth("< " + name, layout.title().w() - font.width(" >")) + " >";
-        int colour = overTitle(mouseX, mouseY) ? 0xFF2050A0 : 0xFF404040;
+        int colour = overTitle(mouseX, mouseY) ? 0xFF2050A0 : COLOUR_TEXT;
         graphics.text(font, text, titleLabelX, titleLabelY, colour, false);
-        graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFF404040, false);
+        graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, COLOUR_TEXT, false);
     }
 
     @Override
@@ -952,8 +881,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         int button = event.button();
         if (!dialogOpen() && siteSelector() && overTitle(mouseX, mouseY)
                 && (button == GLFW.GLFW_MOUSE_BUTTON_LEFT || button == GLFW.GLFW_MOUSE_BUTTON_RIGHT)) {
-            ClientPacketDistributor.sendToServer(new io.github.dirnei.mc.servus.storage.terminal.SelectSitePayload(
-                    nextSite(button == GLFW.GLFW_MOUSE_BUTTON_LEFT ? 1 : -1)));
+            ClientPacketDistributor.sendToServer(new SelectSitePayload(nextSite(button == GLFW.GLFW_MOUSE_BUTTON_LEFT ? 1 : -1)));
             scrollRow = 0;
             return true;
         }
@@ -971,41 +899,43 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                     return true;
                 }
             }
-            if (insideDialog(mouseX, mouseY)) {
-                return true;
-            }
-            return super.mouseClicked(event, doubleClick);
+            return insideDialog(mouseX, mouseY) || super.mouseClicked(event, doubleClick);
         }
-        if (!ClientStock.online()) {
-            return super.mouseClicked(event, doubleClick);
-        }
-        if (cellAt(mouseX, mouseY) >= 0) {
-            Optional<Cell> cell = cellUnder(mouseX, mouseY);
-            if (cell.isPresent() && cell.get().isRequest()) {
-                // A request entry cancels on click, as the request row did.
-                ClientPacketDistributor.sendToServer(new CancelRequestPayload(cell.get().request().id()));
-                return true;
-            }
-            if (!menu.getCarried().isEmpty()) {
-                ClientPacketDistributor.sendToServer(PushCarriedPayload.INSTANCE);
-                return true;
-            }
-            if (cell.isPresent()) {
-                Cell found = cell.get();
-                boolean craftClick = button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE || Minecraft.getInstance().hasControlDown();
-                if (!found.stocked() || (found.craftable() && craftClick)) {
-                    openCraft(found.stack());
-                } else if (Minecraft.getInstance().hasShiftDown()) {
-                    // Shift click: one full stack, or all there is when the stock is smaller.
-                    int amount = (int) Math.min(found.stack().getMaxStackSize(), found.count());
-                    ClientPacketDistributor.sendToServer(new RequestItemPayload(found.stack(), amount));
-                } else {
-                    openRequest(found.stack());
-                }
-                return true;
-            }
+        if (ClientStock.online() && cellAt(mouseX, mouseY) >= 0 && clickGrid(cellUnder(mouseX, mouseY), button)) {
+            return true;
         }
         return super.mouseClicked(event, doubleClick);
+    }
+
+    /**
+     * A click on the grid: a request cancels; a carried stack is stored; an
+     * item opens the request dialog, or the craft dialog when it is not stocked
+     * or is middle or control clicked while craftable; shift requests a stack
+     * at once, or all there is when the stock is smaller.
+     */
+    private boolean clickGrid(Optional<Cell> cell, int button) {
+        if (cell.isPresent() && cell.get().isRequest()) {
+            ClientPacketDistributor.sendToServer(new CancelRequestPayload(cell.get().request().id()));
+            return true;
+        }
+        if (!menu.getCarried().isEmpty()) {
+            ClientPacketDistributor.sendToServer(PushCarriedPayload.INSTANCE);
+            return true;
+        }
+        if (cell.isEmpty()) {
+            return false;
+        }
+        Cell found = cell.get();
+        boolean craftClick = button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE || Minecraft.getInstance().hasControlDown();
+        if (!found.stocked() || (found.craftable() && craftClick)) {
+            openCraft(found.stack());
+        } else if (Minecraft.getInstance().hasShiftDown()) {
+            int count = (int) Math.min(found.stack().getMaxStackSize(), found.count());
+            ClientPacketDistributor.sendToServer(new RequestItemPayload(found.stack(), count));
+        } else {
+            openRequest(found.stack());
+        }
+        return true;
     }
 
     @Override
@@ -1020,8 +950,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     @Override
     public boolean keyPressed(KeyEvent event) {
         int keyCode = event.key();
-        int scanCode = event.scancode();
-        int modifiers = event.modifiers();
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             if (dialogOpen()) {
                 closeDialog();

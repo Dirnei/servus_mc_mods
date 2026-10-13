@@ -1,45 +1,46 @@
 package io.github.dirnei.mc.servus.storage.client;
 
-import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
-import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Production;
-import io.github.dirnei.mc.servus.storage.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.client.RecipeEditorPopup;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
+import io.github.dirnei.mc.servus.storage.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.storage.production.CancelProductionOrderPayload;
 import io.github.dirnei.mc.servus.storage.production.EditPatternPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.BufferItem;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.BufferLine;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.DuctRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.ItemCount;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.JobRow;
-import io.github.dirnei.mc.servus.storage.production.ProductionRows.DuctRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PackingRow;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternsView;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Production;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Rect;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Title, a tab row (Crafting, Patterns, Machines, CPUs) and a scrollable list below. Each tab turns the last
- * synced rows into lines; a line can draw itself, show a tooltip and react to
- * a click. More tabs are more entries in {@link #tabs}. The Patterns tab opens
- * the shared recipe editor popup over the panel, with the player inventory
- * below it while it is open.
+ * Title, a tab row (Crafting, Patterns, Machines, CPUs) and a scrollable list
+ * below. Each tab turns the last synced rows into lines; a line can draw
+ * itself, show a tooltip and react to a click. The Patterns tab opens the
+ * shared recipe editor popup over the panel, with the player inventory below
+ * it while it is open.
  */
 public class ProductionTerminalScreen extends AbstractContainerScreen<ProductionTerminalMenu> {
 
@@ -51,14 +52,20 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private static final int TAB_WIDTH = Production.TAB_WIDTH;
     private static final int LIST_Y = Production.LIST.y();
     private static final int LIST_BOTTOM = Production.LIST.bottom();
-    private static final int ORDER_ROW = 18;
+    private static final int PATTERN_ROW = 18;
     private static final int ROW = 10;
+    private static final int CAPACITY_BAR_WIDTH = 80;
+    /** Ended jobs fade out over this many ticks after they end. */
+    private static final int FADE_TICKS = 100;
     private static final int COLOUR_TEXT = 0xFF404040;
     private static final int COLOUR_DIM = 0xFF707070;
     private static final int COLOUR_ALERT = 0xFFB03030;
     private static final int COLOUR_GOOD = 0xFF2E7D32;
     private static final int COLOUR_HEAD = 0xFF1F4E5A;
     private static final int COLOUR_BUFFER = 0xFF8A5A00;
+    private static final int COLOUR_TEAL = 0xFF2E8B7A;
+    private static final int COLOUR_AMBER = 0xFFE0A030;
+    private static final int HOVER_SHADE = 0x20000000;
 
     /** Draws one line at its top edge. */
     private interface Painter {
@@ -105,36 +112,38 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         ClientProduction.close();
     }
 
+    /** Registers the terminal on every show, also after another screen was in front. */
     @Override
     protected void init() {
         super.init();
-        // Every show, also after another screen was in front, registers the terminal again.
         ClientProduction.open(menu.terminal().getBlockPos());
         this.inventoryLabelY = Integer.MIN_VALUE;
     }
-
-    // Drawing
 
     @Override
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
         PanelPainter.panel(graphics, leftPos, topPos, imageWidth, imageHeight);
-        graphics.fill(leftPos + MARGIN, topPos + LIST_Y - 2, leftPos + WIDTH - MARGIN, topPos + LIST_Y - 1, 0xFF8B8B8B);
+        graphics.fill(leftPos + MARGIN, topPos + LIST_Y - 2, leftPos + WIDTH - MARGIN, topPos + LIST_Y - 1, PanelPainter.SLOT);
         if (menu.isEditing()) {
-            boolean existing = menu.editing() == ProductionTerminalMenu.EDIT_EXISTING;
-            Component title = Component.translatable(existing ? "gui.servus_storage.production.edit_pattern"
-                    : "gui.servus_storage.production.new_pattern_title");
-            popup.render(graphics, font, leftPos, topPos, mouseX, mouseY, title, existing, preview(),
-                    Component.translatable("gui.servus_storage.crafting_station.save"),
-                    Component.translatable("gui.servus_storage.crafting_station.delete"),
-                    Component.translatable("gui.servus_storage.crafting_station.cancel"));
-            for (int row = 0; row < 4; row++) {
-                int y = topPos + (row < 3 ? ProductionTerminalMenu.INVENTORY_Y + row * 18 : ProductionTerminalMenu.HOTBAR_Y) - 1;
-                for (int column = 0; column < 9; column++) {
-                    int x = leftPos + ProductionTerminalMenu.INVENTORY_X + column * 18 - 1;
-                    graphics.fill(x, y, x + 18, y + 18, 0xFF373737);
-                    graphics.fill(x + 1, y + 1, x + 17, y + 17, 0xFF8B8B8B);
-                }
+            renderEditor(graphics, mouseX, mouseY);
+        }
+    }
+
+    /** The recipe editor popup with the player inventory's slot frames below it. */
+    private void renderEditor(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        boolean existing = menu.editing() == ProductionTerminalMenu.EDIT_EXISTING;
+        Component title = Component.translatable(existing ? "gui.servus_storage.production.edit_pattern"
+                : "gui.servus_storage.production.new_pattern_title");
+        popup.render(graphics, font, leftPos, topPos, mouseX, mouseY, title, existing, preview(),
+                Component.translatable("gui.servus_storage.crafting_station.save"),
+                Component.translatable("gui.servus_storage.crafting_station.delete"),
+                Component.translatable("gui.servus_storage.crafting_station.cancel"));
+        for (int row = 0; row < 4; row++) {
+            int y = topPos + (row < 3 ? ProductionTerminalMenu.INVENTORY_Y + row * 18 : ProductionTerminalMenu.HOTBAR_Y);
+            for (int column = 0; column < 9; column++) {
+                int x = leftPos + ProductionTerminalMenu.INVENTORY_X + column * 18;
+                PanelPainter.bordered(graphics, x, y, 16, 16, PanelPainter.DARK, PanelPainter.SLOT);
             }
         }
     }
@@ -161,7 +170,6 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
                 } else {
                     graphics.setTooltipForNextFrame(font, preview, mouseX, mouseY);
                 }
-            } else {
             }
             return;
         }
@@ -176,6 +184,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         }
     }
 
+    /** Labels draw in panel coordinates and the scissor follows the pose, so the list needs no leftPos or topPos. */
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (menu.isEditing()) {
@@ -194,7 +203,6 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         }
         rebuildLines();
         Line hovered = lineAt(mouseX, mouseY);
-        // Labels draw in window coordinates and the scissor follows the pose, so no leftPos or topPos here.
         graphics.enableScissor(MARGIN, LIST_Y, WIDTH - MARGIN, LIST_BOTTOM);
         int y = LIST_Y - scrolls[selected];
         for (Line line : lines) {
@@ -208,20 +216,16 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
 
     private void renderTabs(GuiGraphicsExtractor graphics) {
         for (int i = 0; i < tabs.size(); i++) {
-            int x = tabX(i);
+            int x = Production.tabX(i);
             boolean active = i == selected;
-            graphics.fill(x, TAB_Y, x + TAB_WIDTH, TAB_Y + TAB_HEIGHT, active ? 0xFF8B8B8B : 0xFFC6C6C6);
-            graphics.outline(x, TAB_Y, TAB_WIDTH, TAB_HEIGHT, 0xFF373737);
+            graphics.fill(x, TAB_Y, x + TAB_WIDTH, TAB_Y + TAB_HEIGHT, active ? PanelPainter.SLOT : PanelPainter.FACE);
+            graphics.outline(x, TAB_Y, TAB_WIDTH, TAB_HEIGHT, PanelPainter.DARK);
             Component label = Component.translatable("gui.servus_storage.production.tab." + tabs.get(i).key());
             graphics.text(font, label, x + (TAB_WIDTH - font.width(label)) / 2, TAB_Y + 2, active ? 0xFFFFFFFF : COLOUR_TEXT, false);
         }
     }
 
-    /** Tabs sit left aligned on their own row below the title. */
-    private int tabX(int index) {
-        return Production.tabX(index);
-    }
-
+    /** Rebuilds the lines when the data or the tab changed; the Crafting tab every frame, since its jobs fade. */
     private void rebuildLines() {
         boolean timed = tabs.get(selected).key().equals("crafting");
         if (!timed && linesVersion == ClientProduction.version() && linesTab == selected) {
@@ -242,152 +246,37 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         return Math.max(0, total - (LIST_BOTTOM - LIST_Y));
     }
 
-    // Crafting tab
 
-    /** Ended jobs fade out over this many ticks after they end. */
-    private static final int FADE_TICKS = 100;
-
-    private long clientTime() {
-        return minecraft == null || minecraft.level == null ? 0 : minecraft.level.getGameTime();
+    /** Text cut to a width, in list coordinates. */
+    private void clipped(GuiGraphicsExtractor graphics, String text, int x, int y, int width, int colour) {
+        graphics.text(font, font.plainSubstrByWidth(text, width), x, y, colour, false);
     }
 
-    /** How visible an ended job still is, 1 for open jobs, 0 once faded. */
-    private float visibility(JobRow job) {
-        if (job.open() || job.doneAt() < 0) {
-            return 1f;
-        }
-        long age = clientTime() - job.doneAt();
-        return age >= FADE_TICKS ? 0f : 1f - Math.max(0, age) / (float) FADE_TICKS;
+    /** Text cut to a part of a line, the part relative to the line's left edge on the list and its top. */
+    private void clipped(GuiGraphicsExtractor graphics, String text, Rect part, int lineY, int colour) {
+        clipped(graphics, text, MARGIN + part.x(), lineY + part.y(), part.w(), colour);
     }
 
-    private List<Line> craftingLines() {
-        List<Line> result = new ArrayList<>();
-        List<CpuRow> cpus = ClientProduction.cpus();
-        if (cpus.isEmpty()) {
-            result.add(text(Component.translatable("gui.servus_storage.production.no_cpu"), COLOUR_DIM, 0));
-            return result;
+    /** The light shade behind a hovered line. */
+    private static void shade(GuiGraphicsExtractor graphics, int y, int height, boolean hovered) {
+        if (hovered) {
+            graphics.fill(MARGIN, y, WIDTH - MARGIN, y + height, HOVER_SHADE);
         }
-        int slots = 0;
-        int inUse = 0;
-        for (CpuRow cpu : cpus) {
-            slots += cpu.slots();
-            inUse += cpu.inUse();
-        }
-        Component head = cpus.size() == 1
-                ? Component.translatable("gui.servus_storage.production.cpus_header_one", inUse, slots)
-                : Component.translatable("gui.servus_storage.production.cpus_header", cpus.size(), inUse, slots);
-        Supplier<List<Component>> headTip = () -> {
-            List<Component> list = new ArrayList<>();
-            for (CpuRow cpu : cpus) {
-                list.add(Component.translatable("gui.servus_storage.production.cpu_line", cpu.cpu().toShortString(), cpu.inUse(),
-                        cpu.slots(), cpu.waiting()));
-            }
-            return list;
-        };
-        result.add(new Line(Production.HEADER_HEIGHT,
-                (graphics, y, hovered) -> graphics.text(font, head, MARGIN, y + 2, COLOUR_HEAD, false), headTip, null));
-        int shown = 0;
-        for (JobRow job : ClientProduction.jobs()) {
-            if (visibility(job) <= 0f) {
-                continue;
-            }
-            result.add(jobLine(job));
-            if (job.open()) {
-                for (BufferLine line : job.buffer()) {
-                    result.add(bufferLine(line));
-                }
-            }
-            if (!job.overflow().isEmpty() && visibility(job) >= 0.5f) {
-                result.add(overflowLine(job.overflow()));
-            }
-            shown++;
-        }
-        if (shown == 0) {
-            result.add(text(Component.translatable("gui.servus_storage.production.no_jobs"), COLOUR_DIM, 0));
-        }
-        return result;
     }
 
-    private Component status(JobRow job) {
-        List<String> args = job.args();
-        if (job.status().equals("working") && args.size() == 4) {
-            String verbKey = "gui.servus_storage.production.verb." + args.get(1);
-            Component verb = I18n.exists(verbKey) ? Component.translatable(verbKey) : Component.literal(args.get(1));
-            return Component.translatable("gui.servus_storage.production.job.working", args.get(0), verb, args.get(2), args.get(3));
-        }
-        return Component.translatable("gui.servus_storage.production.job." + job.status(), args.toArray());
+    /** A bar with a one pixel frame in {@code background}, filled from the left by value of max. */
+    private static void bar(GuiGraphicsExtractor graphics, int x, int y, int w, int h, int value, int max, int colour, int background) {
+        graphics.fill(x, y, x + w, y + h, background);
+        int filled = max <= 0 ? 0 : Math.min(w - 2, value * (w - 2) / max);
+        graphics.fill(x + 1, y + 1, x + 1 + filled, y + h - 1, colour);
     }
 
-    private static int alpha(int rgb, float visibility) {
-        return ((int) (Math.max(0.1f, visibility) * 255) << 24) | (rgb & 0xFFFFFF);
+    private static void bar(GuiGraphicsExtractor graphics, Rect part, int lineY, int value, int max, int colour) {
+        bar(graphics, MARGIN + part.x(), lineY + part.y(), part.w(), part.h(), value, max, colour, PanelPainter.DARK);
     }
 
-    private Line jobLine(JobRow job) {
-        Painter painter = (graphics, y, hovered) -> {
-            float visible = visibility(job);
-            if (hovered && job.open()) {
-                graphics.fill(MARGIN, y, WIDTH - MARGIN, y + Production.JOB_HEIGHT, 0x20000000);
-            }
-            if (visible >= 0.5f) {
-                graphics.item(job.item(), MARGIN + Production.JOB_ICON.x(), y + Production.JOB_ICON.y());
-            }
-            String title = job.amount() + " " + job.item().getHoverName().getString();
-            graphics.text(font, font.plainSubstrByWidth(title, Production.JOB_TITLE.w()), MARGIN + Production.JOB_TITLE.x(),
-                    y + Production.JOB_TITLE.y(), alpha(COLOUR_TEXT, visible), false);
-            int barX = MARGIN + Production.JOB_BAR.x();
-            int barY = y + Production.JOB_BAR.y();
-            int barW = Production.JOB_BAR.w();
-            graphics.fill(barX, barY, barX + barW, barY + Production.JOB_BAR.h(), alpha(0x373737, visible));
-            int filled = job.amount() <= 0 ? 0 : Math.min(barW - 2, job.crafted() * (barW - 2) / job.amount());
-            int barColour = switch (job.state()) {
-                case "done" -> 0x2E7D32;
-                case "cancelled" -> 0x8B8B8B;
-                case "blocked" -> 0xB03030;
-                default -> 0x2E8B7A;
-            };
-            graphics.fill(barX + 1, barY + 1, barX + 1 + filled, barY + Production.JOB_BAR.h() - 1, alpha(barColour, visible));
-            int statusColour = switch (job.state()) {
-                case "done" -> COLOUR_GOOD;
-                case "blocked" -> COLOUR_ALERT;
-                case "cancelled", "waiting" -> COLOUR_DIM;
-                default -> job.status().equals("missing") || job.status().equals("out_of_fuel") || job.status().equals("blocked")
-                        ? COLOUR_ALERT : COLOUR_TEXT;
-            };
-            String text = status(job).getString();
-            graphics.text(font, font.plainSubstrByWidth(text, Production.JOB_STATUS.w()), MARGIN + Production.JOB_STATUS.x(),
-                    y + Production.JOB_STATUS.y(), alpha(statusColour, visible), false);
-            if (job.open()) {
-                int cx = MARGIN + Production.JOB_CANCEL.x();
-                int cy = y + Production.JOB_CANCEL.y();
-                graphics.fill(cx, cy, cx + Production.JOB_CANCEL.w(), cy + Production.JOB_CANCEL.h(), 0xFF373737);
-                graphics.fill(cx + 1, cy + 1, cx + Production.JOB_CANCEL.w() - 1, cy + Production.JOB_CANCEL.h() - 1, 0xFFB03030);
-                graphics.text(font, "x", cx + (Production.JOB_CANCEL.w() - font.width("x")) / 2, cy + 2, 0xFFFFFFFF, false);
-            }
-        };
-        Hit hit = new Hit() {
-            @Override
-            public List<Component> tooltip(int lx, int ly) {
-                if (job.open() && Production.JOB_CANCEL.contains(lx, ly)) {
-                    return List.of(Component.translatable("gui.servus_storage.production.job.cancel"));
-                }
-                List<Component> list = new ArrayList<>();
-                list.add(Component.literal(job.amount() + " ").append(job.item().getHoverName()));
-                list.add(Component.literal(job.crafted() + " / " + job.amount()));
-                list.add(status(job));
-                list.add(Component.translatable(origin(job)));
-                return list;
-            }
-
-            @Override
-            public boolean click(int lx, int ly) {
-                if (job.open() && Production.JOB_CANCEL.contains(lx, ly)) {
-                    ClientPacketDistributor.sendToServer(new CancelProductionOrderPayload(job.cpu(), job.id()));
-                    return true;
-                }
-                return false;
-            }
-        };
-        return new Line(Production.JOB_HEIGHT, painter, null, null, hit);
+    private Line text(Component text, int colour) {
+        return new Line(ROW, (graphics, y, hovered) -> graphics.text(font, text, MARGIN, y + 1, colour, false), null, null);
     }
 
     /** "4 Oak Planks, 2 Iron Ingot": items with counts in one line. */
@@ -411,23 +300,169 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         return list;
     }
 
+
+    private long clientTime() {
+        return minecraft == null || minecraft.level == null ? 0 : minecraft.level.getGameTime();
+    }
+
+    /** How visible an ended job still is, 1 for open jobs, 0 once faded. */
+    private float visibility(JobRow job) {
+        if (job.open() || job.doneAt() < 0) {
+            return 1f;
+        }
+        long age = clientTime() - job.doneAt();
+        return age >= FADE_TICKS ? 0f : 1f - Math.max(0, age) / (float) FADE_TICKS;
+    }
+
+    private List<Line> craftingLines() {
+        List<Line> result = new ArrayList<>();
+        List<CpuRow> cpus = ClientProduction.cpus();
+        if (cpus.isEmpty()) {
+            result.add(text(Component.translatable("gui.servus_storage.production.no_cpu"), COLOUR_DIM));
+            return result;
+        }
+        result.add(cpuHeaderLine(cpus));
+        int shown = 0;
+        for (JobRow job : ClientProduction.jobs()) {
+            if (visibility(job) <= 0f) {
+                continue;
+            }
+            result.add(jobLine(job));
+            if (job.open()) {
+                for (BufferLine line : job.buffer()) {
+                    result.add(bufferLine(line));
+                }
+            }
+            if (!job.overflow().isEmpty() && visibility(job) >= 0.5f) {
+                result.add(overflowLine(job.overflow()));
+            }
+            shown++;
+        }
+        if (shown == 0) {
+            result.add(text(Component.translatable("gui.servus_storage.production.no_jobs"), COLOUR_DIM));
+        }
+        return result;
+    }
+
+    /** The CPUs' slots in use of all slots, one line per CPU in the tooltip. */
+    private Line cpuHeaderLine(List<CpuRow> cpus) {
+        int slots = 0;
+        int inUse = 0;
+        for (CpuRow cpu : cpus) {
+            slots += cpu.slots();
+            inUse += cpu.inUse();
+        }
+        Component head = cpus.size() == 1
+                ? Component.translatable("gui.servus_storage.production.cpus_header_one", inUse, slots)
+                : Component.translatable("gui.servus_storage.production.cpus_header", cpus.size(), inUse, slots);
+        Supplier<List<Component>> tooltip = () -> {
+            List<Component> list = new ArrayList<>();
+            for (CpuRow cpu : cpus) {
+                list.add(cpuLineText(cpu));
+            }
+            return list;
+        };
+        return new Line(Production.HEADER_HEIGHT, (graphics, y, hovered) -> graphics.text(font, head, MARGIN, y + 2, COLOUR_HEAD, false),
+                tooltip, null);
+    }
+
+    private static Component cpuLineText(CpuRow cpu) {
+        return Component.translatable("gui.servus_storage.production.cpu_line", cpu.cpu().toShortString(), cpu.inUse(), cpu.slots(),
+                cpu.waiting());
+    }
+
+    private Component status(JobRow job) {
+        List<String> args = job.args();
+        if (job.status().equals("working") && args.size() == 4) {
+            String verbKey = "gui.servus_storage.production.verb." + args.get(1);
+            Component verb = I18n.exists(verbKey) ? Component.translatable(verbKey) : Component.literal(args.get(1));
+            return Component.translatable("gui.servus_storage.production.job.working", args.get(0), verb, args.get(2), args.get(3));
+        }
+        return Component.translatable("gui.servus_storage.production.job." + job.status(), args.toArray());
+    }
+
+    /** The colour with the alpha of how visible a fading job is, never below a tenth. */
+    private static int alpha(int rgb, float visibility) {
+        return ((int) (Math.max(0.1f, visibility) * 255) << 24) | (rgb & 0xFFFFFF);
+    }
+
+    private static int jobBarColour(JobRow job) {
+        return switch (job.state()) {
+            case "done" -> 0x2E7D32;
+            case "cancelled" -> 0x8B8B8B;
+            case "blocked" -> 0xB03030;
+            default -> 0x2E8B7A;
+        };
+    }
+
+    private static int jobStatusColour(JobRow job) {
+        return switch (job.state()) {
+            case "done" -> COLOUR_GOOD;
+            case "blocked" -> COLOUR_ALERT;
+            case "cancelled", "waiting" -> COLOUR_DIM;
+            default -> job.status().equals("missing") || job.status().equals("out_of_fuel") || job.status().equals("blocked")
+                    ? COLOUR_ALERT : COLOUR_TEXT;
+        };
+    }
+
+    /** One job: icon, amount and item, progress bar, status line and a cancel button while open; ended jobs fade out. */
+    private Line jobLine(JobRow job) {
+        Painter painter = (graphics, y, hovered) -> {
+            float visible = visibility(job);
+            shade(graphics, y, Production.JOB_HEIGHT, hovered && job.open());
+            if (visible >= 0.5f) {
+                graphics.item(job.item(), MARGIN + Production.JOB_ICON.x(), y + Production.JOB_ICON.y());
+            }
+            clipped(graphics, job.amount() + " " + job.item().getHoverName().getString(), Production.JOB_TITLE, y, alpha(COLOUR_TEXT, visible));
+            Rect barPart = Production.JOB_BAR;
+            bar(graphics, MARGIN + barPart.x(), y + barPart.y(), barPart.w(), barPart.h(), job.crafted(), job.amount(),
+                    alpha(jobBarColour(job), visible), alpha(0x373737, visible));
+            clipped(graphics, status(job).getString(), Production.JOB_STATUS, y, alpha(jobStatusColour(job), visible));
+            if (job.open()) {
+                Rect cancel = Production.JOB_CANCEL;
+                int cx = MARGIN + cancel.x();
+                int cy = y + cancel.y();
+                PanelPainter.bordered(graphics, cx + 1, cy + 1, cancel.w() - 2, cancel.h() - 2, PanelPainter.DARK, COLOUR_ALERT);
+                graphics.text(font, "x", cx + (cancel.w() - font.width("x")) / 2, cy + 2, 0xFFFFFFFF, false);
+            }
+        };
+        Hit hit = new Hit() {
+            @Override
+            public List<Component> tooltip(int lx, int ly) {
+                if (job.open() && Production.JOB_CANCEL.contains(lx, ly)) {
+                    return List.of(Component.translatable("gui.servus_storage.production.job.cancel"));
+                }
+                return List.of(Component.literal(job.amount() + " ").append(job.item().getHoverName()),
+                        Component.literal(job.crafted() + " / " + job.amount()), status(job), Component.translatable(origin(job)));
+            }
+
+            @Override
+            public boolean click(int lx, int ly) {
+                if (job.open() && Production.JOB_CANCEL.contains(lx, ly)) {
+                    ClientPacketDistributor.sendToServer(new CancelProductionOrderPayload(job.cpu(), job.id()));
+                    return true;
+                }
+                return false;
+            }
+        };
+        return new Line(Production.JOB_HEIGHT, painter, null, null, hit);
+    }
+
     /** Under a job: what waits in the CPU buffer for one later step. */
     private Line bufferLine(BufferLine line) {
         Component text = Component.translatable("gui.servus_storage.production.job.buffer", line.machine(), itemList(line.items()));
-        Painter painter = (graphics, y, hovered) -> graphics.text(font, font.plainSubstrByWidth(text.getString(), Production.BUFFER_LINE.w()),
-                MARGIN + Production.BUFFER_LINE.x(), y + Production.BUFFER_LINE.y(), COLOUR_BUFFER, false);
-        Supplier<List<Component>> tooltip = () -> itemTooltip(
-                Component.translatable("gui.servus_storage.production.job.buffer_for", line.machine()), line.items());
-        return new Line(Production.BUFFER_LINE_HEIGHT, painter, tooltip, null);
+        return subLine(text, COLOUR_BUFFER, () -> itemTooltip(
+                Component.translatable("gui.servus_storage.production.job.buffer_for", line.machine()), line.items()));
     }
 
     /** Under a job: intermediates that went to storage because the buffer was full. */
     private Line overflowLine(List<ItemCount> items) {
         Component text = Component.translatable("gui.servus_storage.production.job.overflow", itemList(items));
-        Painter painter = (graphics, y, hovered) -> graphics.text(font, font.plainSubstrByWidth(text.getString(), Production.BUFFER_LINE.w()),
-                MARGIN + Production.BUFFER_LINE.x(), y + Production.BUFFER_LINE.y(), COLOUR_ALERT, false);
-        Supplier<List<Component>> tooltip = () -> itemTooltip(
-                Component.translatable("gui.servus_storage.production.job.overflow_head"), items);
+        return subLine(text, COLOUR_ALERT, () -> itemTooltip(Component.translatable("gui.servus_storage.production.job.overflow_head"), items));
+    }
+
+    private Line subLine(Component text, int colour, Supplier<List<Component>> tooltip) {
+        Painter painter = (graphics, y, hovered) -> clipped(graphics, text.getString(), Production.BUFFER_LINE, y, colour);
         return new Line(Production.BUFFER_LINE_HEIGHT, painter, tooltip, null);
     }
 
@@ -438,13 +473,12 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         return job.requestId() < 0 ? "gui.servus_storage.production.origin.rule" : "gui.servus_storage.production.origin.manual";
     }
 
-    // CPUs tab
 
     private List<Line> cpuLines() {
         List<Line> result = new ArrayList<>();
         List<CpuRow> cpus = ClientProduction.cpus();
         if (cpus.isEmpty()) {
-            result.add(text(Component.translatable("gui.servus_storage.production.no_cpu"), COLOUR_DIM, 0));
+            result.add(text(Component.translatable("gui.servus_storage.production.no_cpu"), COLOUR_DIM));
             return result;
         }
         for (CpuRow cpu : cpus) {
@@ -453,94 +487,82 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         return result;
     }
 
-    private static void bar(GuiGraphicsExtractor graphics, int x, int y, int w, int h, int value, int max, int colour) {
-        graphics.fill(x, y, x + w, y + h, 0xFF373737);
-        int filled = max <= 0 ? 0 : Math.min(w - 2, value * (w - 2) / max);
-        graphics.fill(x + 1, y + 1, x + 1 + filled, y + h - 1, colour);
-    }
-
     /** One CPU: icon, position and size, slot and buffer bars, and the buffered items cut short with a rest count. */
     private Line cpuLine(CpuRow cpu) {
         ItemStack icon = new ItemStack(ServusStorageBlocks.CRAFTING_CPU.get());
         Component title = Component.translatable("gui.servus_storage.production.cpu.title", cpu.cpu().toShortString(),
                 cpu.sizeX(), cpu.sizeY(), cpu.sizeZ());
-        List<BufferItem> items = cpu.buffered();
         Painter painter = (graphics, y, hovered) -> {
-            if (hovered) {
-                graphics.fill(MARGIN, y, WIDTH - MARGIN, y + Production.CPU_HEIGHT, 0x20000000);
-            }
+            shade(graphics, y, Production.CPU_HEIGHT, hovered);
             graphics.item(icon, MARGIN + Production.CPU_ICON.x(), y + Production.CPU_ICON.y());
-            graphics.text(font, font.plainSubstrByWidth(title.getString(), Production.CPU_TITLE.w()),
-                    MARGIN + Production.CPU_TITLE.x(), y + Production.CPU_TITLE.y(), COLOUR_TEXT, false);
-            bar(graphics, MARGIN + Production.CPU_SLOT_BAR.x(), y + Production.CPU_SLOT_BAR.y(), Production.CPU_SLOT_BAR.w(),
-                    Production.CPU_SLOT_BAR.h(), cpu.inUse(), cpu.slots(), 0xFF2E8B7A);
+            clipped(graphics, title.getString(), Production.CPU_TITLE, y, COLOUR_TEXT);
+            bar(graphics, Production.CPU_SLOT_BAR, y, cpu.inUse(), cpu.slots(), COLOUR_TEAL);
             if (cpu.room() > 0) {
-                bar(graphics, MARGIN + Production.CPU_BUFFER_BAR.x(), y + Production.CPU_BUFFER_BAR.y(), Production.CPU_BUFFER_BAR.w(),
-                        Production.CPU_BUFFER_BAR.h(), cpu.used(), cpu.room(), cpu.used() >= cpu.room() ? 0xFFB03030 : 0xFFE0A030);
+                bar(graphics, Production.CPU_BUFFER_BAR, y, cpu.used(), cpu.room(), cpu.used() >= cpu.room() ? COLOUR_ALERT : COLOUR_AMBER);
             }
             Component state = cpu.waiting() > 0
                     ? Component.translatable("gui.servus_storage.production.cpu.waiting", cpu.waiting())
                     : Component.translatable("gui.servus_storage.production.cpu.slots", cpu.inUse(), cpu.slots());
-            graphics.text(font, font.plainSubstrByWidth(state.getString(), Production.CPU_STATE.w()),
-                    MARGIN + Production.CPU_STATE.x(), y + Production.CPU_STATE.y(), cpu.waiting() > 0 ? COLOUR_ALERT : COLOUR_DIM, false);
-            int itemsX = MARGIN + Production.CPU_ITEMS.x();
-            int itemsY = y + Production.CPU_ITEMS.y();
-            if (cpu.room() <= 0) {
-                graphics.text(font, Component.translatable("gui.servus_storage.production.cpu.no_buffer"), itemsX, itemsY + 4, COLOUR_DIM, false);
-                return;
-            }
-            int shown = Production.cpuItemsShown(items.size());
-            for (int i = 0; i < shown; i++) {
-                BufferItem item = items.get(i);
-                int x = itemsX + i * Production.CPU_ITEM_STEP;
-                graphics.item(item.item(), x, itemsY);
-                graphics.itemDecorations(font, item.item(), x, itemsY, String.valueOf(item.count()));
-                if (item.leaving()) {
-                    graphics.fill(x, itemsY + 14, x + 16, itemsY + 16, 0xFF8B8B8B);
-                }
-            }
-            if (shown < items.size()) {
-                graphics.text(font, "+" + (items.size() - shown), itemsX + shown * Production.CPU_ITEM_STEP + 2, itemsY + 4, COLOUR_DIM, false);
-            }
+            clipped(graphics, state.getString(), Production.CPU_STATE, y, cpu.waiting() > 0 ? COLOUR_ALERT : COLOUR_DIM);
+            paintBufferedItems(graphics, cpu, y);
         };
-        Supplier<List<Component>> tooltip = () -> {
-            List<Component> list = new ArrayList<>();
-            list.add(title);
-            list.add(Component.translatable("gui.servus_storage.production.cpu.blocks", cpu.cpuBlocks(), cpu.bufferBlocks()));
-            list.add(Component.translatable("gui.servus_storage.production.cpu_line", cpu.cpu().toShortString(), cpu.inUse(),
-                    cpu.slots(), cpu.waiting()));
-            if (cpu.room() <= 0) {
-                list.add(Component.translatable("gui.servus_storage.production.cpu.no_buffer"));
-                return list;
-            }
-            list.add(Component.translatable("gui.servus_storage.production.cpu.buffer", cpu.used(), cpu.room()));
-            for (BufferItem item : items) {
-                list.add(Component.translatable(item.leaving() ? "gui.servus_storage.production.cpu.item_leaving"
-                        : "gui.servus_storage.production.cpu.item", item.count(), item.item().getHoverName(), item.order()));
-            }
-            return list;
-        };
-        return new Line(Production.CPU_HEIGHT, painter, tooltip, null);
+        return new Line(Production.CPU_HEIGHT, painter, () -> cpuTooltip(cpu, title), null);
     }
 
-    // Patterns tab
+    /** The CPU's buffered items in a strip, leaving ones marked, cut short with a rest count. */
+    private void paintBufferedItems(GuiGraphicsExtractor graphics, CpuRow cpu, int y) {
+        int itemsX = MARGIN + Production.CPU_ITEMS.x();
+        int itemsY = y + Production.CPU_ITEMS.y();
+        if (cpu.room() <= 0) {
+            graphics.text(font, Component.translatable("gui.servus_storage.production.cpu.no_buffer"), itemsX, itemsY + 4, COLOUR_DIM, false);
+            return;
+        }
+        List<BufferItem> items = cpu.buffered();
+        int shown = Production.cpuItemsShown(items.size());
+        for (int i = 0; i < shown; i++) {
+            BufferItem item = items.get(i);
+            int x = itemsX + i * Production.CPU_ITEM_STEP;
+            graphics.item(item.item(), x, itemsY);
+            graphics.itemDecorations(font, item.item(), x, itemsY, String.valueOf(item.count()));
+            if (item.leaving()) {
+                graphics.fill(x, itemsY + 14, x + 16, itemsY + 16, PanelPainter.SLOT);
+            }
+        }
+        if (shown < items.size()) {
+            graphics.text(font, "+" + (items.size() - shown), itemsX + shown * Production.CPU_ITEM_STEP + 2, itemsY + 4, COLOUR_DIM, false);
+        }
+    }
+
+    private static List<Component> cpuTooltip(CpuRow cpu, Component title) {
+        List<Component> list = new ArrayList<>();
+        list.add(title);
+        list.add(Component.translatable("gui.servus_storage.production.cpu.blocks", cpu.cpuBlocks(), cpu.bufferBlocks()));
+        list.add(cpuLineText(cpu));
+        if (cpu.room() <= 0) {
+            list.add(Component.translatable("gui.servus_storage.production.cpu.no_buffer"));
+            return list;
+        }
+        list.add(Component.translatable("gui.servus_storage.production.cpu.buffer", cpu.used(), cpu.room()));
+        for (BufferItem item : cpu.buffered()) {
+            list.add(Component.translatable(item.leaving() ? "gui.servus_storage.production.cpu.item_leaving"
+                    : "gui.servus_storage.production.cpu.item", item.count(), item.item().getHoverName(), item.order()));
+        }
+        return list;
+    }
+
 
     private List<Line> patternLines() {
         List<Line> result = new ArrayList<>();
         PatternsView patterns = ClientProduction.patterns();
         if (patterns.total() == 0) {
-            result.add(text(Component.translatable("gui.servus_storage.production.no_pattern_storage"), COLOUR_DIM, 0));
+            result.add(text(Component.translatable("gui.servus_storage.production.no_pattern_storage"), COLOUR_DIM));
             return result;
         }
         Component capacity = Component.translatable("gui.servus_storage.production.patterns_capacity", patterns.used(), patterns.total());
-        int barWidth = 80;
         result.add(new Line(14, (graphics, y, hovered) -> {
             graphics.text(font, capacity, MARGIN, y + 3, COLOUR_HEAD, false);
-            int x = WIDTH - MARGIN - barWidth - 2;
-            graphics.fill(x, y + 3, x + barWidth, y + 10, 0xFF373737);
-            int filled = patterns.total() == 0 ? 0 : Math.min(barWidth - 2, patterns.used() * (barWidth - 2) / patterns.total());
-            int colour = patterns.used() >= patterns.total() ? 0xFFB03030 : 0xFF2E8B7A;
-            graphics.fill(x + 1, y + 4, x + 1 + filled, y + 9, colour);
+            bar(graphics, WIDTH - MARGIN - CAPACITY_BAR_WIDTH - 2, y + 3, CAPACITY_BAR_WIDTH, 7, patterns.used(), patterns.total(),
+                    patterns.used() >= patterns.total() ? COLOUR_ALERT : COLOUR_TEAL, PanelPainter.DARK);
         }, null, null));
         Component add = Component.translatable("gui.servus_storage.production.new_pattern");
         result.add(new Line(16, (graphics, y, hovered) -> RecipeEditorPopup.drawButton(graphics, font, MARGIN, y + 1,
@@ -548,7 +570,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
                 () -> List.of(Component.translatable("gui.servus_storage.production.new_pattern_hint")),
                 () -> press(RecipeEditorButtons.OPEN_NEW)));
         if (patterns.rows().isEmpty()) {
-            result.add(text(Component.translatable("gui.servus_storage.production.no_patterns"), COLOUR_DIM, 0));
+            result.add(text(Component.translatable("gui.servus_storage.production.no_patterns"), COLOUR_DIM));
         }
         for (PatternRow row : patterns.rows()) {
             result.add(patternLine(row));
@@ -561,7 +583,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
                 row.result().getHoverName(), CraftingGrid.stacks(row.inputs()));
         Painter painter = (graphics, y, hovered) -> {
             if (hovered) {
-                graphics.fill(MARGIN, y, WIDTH - MARGIN, y + ORDER_ROW, 0x30000000);
+                graphics.fill(MARGIN, y, WIDTH - MARGIN, y + PATTERN_ROW, 0x30000000);
             }
             graphics.item(row.result(), MARGIN + 4, y + 1);
             graphics.text(font, text, MARGIN + 24, y + 5, COLOUR_TEXT, false);
@@ -569,22 +591,19 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         Supplier<List<Component>> tooltip = () -> List.of(text,
                 Component.translatable("gui.servus_storage.production.pattern_storage_at", row.storage().toShortString(), row.slot() + 1),
                 Component.translatable("gui.servus_storage.production.pattern_edit_hint"));
-        return new Line(ORDER_ROW, painter, tooltip, () -> ClientPacketDistributor.sendToServer(new EditPatternPayload(row.storage(), row.slot())));
+        return new Line(PATTERN_ROW, painter, tooltip, () -> ClientPacketDistributor.sendToServer(new EditPatternPayload(row.storage(), row.slot())));
     }
 
     private void press(int button) {
-        if (minecraft != null && minecraft.gameMode != null) {
-            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, button);
-        }
+        MenuButtons.press(minecraft, menu, button);
     }
 
-    // Machines tab
 
     private List<Line> machineLines() {
         List<Line> result = new ArrayList<>();
         List<MachineRow> machines = ClientProduction.machines();
         if (machines.isEmpty()) {
-            result.add(text(Component.translatable("gui.servus_storage.production.no_machines"), COLOUR_DIM, 0));
+            result.add(text(Component.translatable("gui.servus_storage.production.no_machines"), COLOUR_DIM));
         }
         for (MachineRow machine : machines) {
             result.add(machineLine(machine));
@@ -594,9 +613,9 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         if (stations.isEmpty() && busiest.isEmpty()) {
             return result;
         }
-        result.add(text(Component.translatable("gui.servus_storage.production.data_line"), COLOUR_TEXT, 0));
+        result.add(text(Component.translatable("gui.servus_storage.production.data_line"), COLOUR_TEXT));
         if (busiest.isEmpty()) {
-            result.add(text(Component.translatable("gui.servus_storage.production.line_idle"), COLOUR_DIM, 0));
+            result.add(text(Component.translatable("gui.servus_storage.production.line_idle"), COLOUR_DIM));
         } else {
             result.add(ductLine(busiest.get(0)));
         }
@@ -610,8 +629,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private Line ductLine(DuctRow duct) {
         Component line = Component.translatable("gui.servus_storage.production.busiest_duct", duct.name(), duct.load(), duct.bandwidth());
         int colour = PackingRow.busy(duct.load(), duct.bandwidth()) ? COLOUR_ALERT : COLOUR_DIM;
-        Painter painter = (graphics, y, hovered) -> graphics.text(font,
-                font.plainSubstrByWidth(line.getString(), WIDTH - 2 * MARGIN), MARGIN, y + 1, colour, false);
+        Painter painter = (graphics, y, hovered) -> clipped(graphics, line.getString(), MARGIN, y + 1, WIDTH - 2 * MARGIN, colour);
         Supplier<List<Component>> tooltip = () -> List.of(line,
                 Component.translatable("gui.servus_storage.production.machine.at", duct.pos().toShortString()));
         return new Line(ROW, painter, tooltip, null);
@@ -622,6 +640,14 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         return Component.translatable(key, used, rate);
     }
 
+    /** A machine row's icon, name and coloured state line. */
+    private void paintMachineRow(GuiGraphicsExtractor graphics, int y, boolean hovered, ItemStack icon, String name, String state, int colour) {
+        shade(graphics, y, Production.MACHINE_HEIGHT, hovered);
+        graphics.item(icon, MARGIN + Production.MACHINE_ICON.x(), y + Production.MACHINE_ICON.y());
+        clipped(graphics, name, Production.MACHINE_NAME, y, COLOUR_TEXT);
+        clipped(graphics, state, Production.MACHINE_STATE, y, colour);
+    }
+
     /** A Packing Station as a machine row: its use of the rate to network and to storage, busy directions marked. */
     private Line packingLine(PackingRow station) {
         ItemStack icon = new ItemStack(ServusStorageBlocks.PACKING_STATION.get());
@@ -629,17 +655,10 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         Component toStorage = packingUse("to_storage", station.toStorage(), station.rate());
         Component state = Component.translatable("gui.servus_storage.production.packing.use", toNetwork, toStorage);
         Painter painter = (graphics, y, hovered) -> {
-            if (hovered) {
-                graphics.fill(MARGIN, y, WIDTH - MARGIN, y + Production.MACHINE_HEIGHT, 0x20000000);
-            }
-            graphics.item(icon, MARGIN + Production.MACHINE_ICON.x(), y + Production.MACHINE_ICON.y());
-            graphics.text(font, font.plainSubstrByWidth(icon.getHoverName().getString(), Production.MACHINE_NAME.w()),
-                    MARGIN + Production.MACHINE_NAME.x(), y + Production.MACHINE_NAME.y(), COLOUR_TEXT, false);
             boolean busy = station.busyToNetwork() || station.busyToStorage();
             boolean working = station.toNetwork() > 0 || station.toStorage() > 0;
             int colour = busy ? COLOUR_ALERT : working ? COLOUR_GOOD : COLOUR_DIM;
-            graphics.text(font, font.plainSubstrByWidth(state.getString(), Production.MACHINE_STATE.w()),
-                    MARGIN + Production.MACHINE_STATE.x(), y + Production.MACHINE_STATE.y(), colour, false);
+            paintMachineRow(graphics, y, hovered, icon, icon.getHoverName().getString(), state.getString(), colour);
         };
         Supplier<List<Component>> tooltip = () -> List.of(icon.getHoverName(), toNetwork, toStorage,
                 Component.translatable("gui.servus_storage.production.machine.at", station.pos().toShortString()));
@@ -656,51 +675,36 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         };
     }
 
+    /** A machine with its state and, when it has upkeep, a bar of the upkeep items it holds. */
     private Line machineLine(MachineRow machine) {
         Painter painter = (graphics, y, hovered) -> {
-            if (hovered) {
-                graphics.fill(MARGIN, y, WIDTH - MARGIN, y + Production.MACHINE_HEIGHT, 0x20000000);
-            }
-            graphics.item(machine.icon(), MARGIN + Production.MACHINE_ICON.x(), y + Production.MACHINE_ICON.y());
-            graphics.text(font, font.plainSubstrByWidth(machine.name(), Production.MACHINE_NAME.w()),
-                    MARGIN + Production.MACHINE_NAME.x(), y + Production.MACHINE_NAME.y(), COLOUR_TEXT, false);
             int colour = machine.problem() ? COLOUR_ALERT : machine.state().equals("crafting") ? COLOUR_GOOD : COLOUR_DIM;
-            graphics.text(font, font.plainSubstrByWidth(machineState(machine).getString(), Production.MACHINE_STATE.w()),
-                    MARGIN + Production.MACHINE_STATE.x(), y + Production.MACHINE_STATE.y(), colour, false);
+            paintMachineRow(graphics, y, hovered, machine.icon(), machine.name(), machineState(machine).getString(), colour);
             if (machine.upkeepLevel() > 0) {
-                int barX = MARGIN + Production.MACHINE_BAR.x();
-                int barY = y + Production.MACHINE_BAR.y();
-                int barW = Production.MACHINE_BAR.w();
-                graphics.fill(barX, barY, barX + barW, barY + Production.MACHINE_BAR.h(), 0xFF373737);
-                int filled = Math.min(barW - 2, machine.upkeepCount() * (barW - 2) / machine.upkeepLevel());
-                graphics.fill(barX + 1, barY + 1, barX + 1 + filled, barY + Production.MACHINE_BAR.h() - 1,
-                        machine.upkeepCount() > 0 ? 0xFFE0A030 : 0xFFB03030);
+                bar(graphics, Production.MACHINE_BAR, y, machine.upkeepCount(), machine.upkeepLevel(),
+                        machine.upkeepCount() > 0 ? COLOUR_AMBER : COLOUR_ALERT);
             }
         };
-        Supplier<List<Component>> tooltip = () -> {
-            List<Component> list = new ArrayList<>();
-            list.add(Component.literal(machine.name()));
-            list.add(machineState(machine));
-            if (machine.makes() < 0) {
-                list.add(Component.translatable("gui.servus_storage.production.machine.any_pattern"));
-            } else if (machine.makes() > 0) {
-                list.add(Component.translatable("gui.servus_storage.production.machine.makes", machine.makes()));
-            }
-            if (machine.upkeepLevel() > 0) {
-                list.add(Component.translatable("gui.servus_storage.production.upkeep", machine.upkeep().getHoverName(),
-                        machine.upkeepCount(), machine.upkeepLevel()));
-            }
-            list.add(Component.translatable("gui.servus_storage.production.machine.at", machine.pos().toShortString()));
-            return list;
-        };
-        return new Line(Production.MACHINE_HEIGHT, painter, tooltip, null);
+        return new Line(Production.MACHINE_HEIGHT, painter, () -> machineTooltip(machine), null);
     }
 
-    private Line text(Component text, int colour, int indent) {
-        return new Line(ROW, (graphics, y, hovered) -> graphics.text(font, text, MARGIN + indent, y + 1, colour, false), null, null);
+    private List<Component> machineTooltip(MachineRow machine) {
+        List<Component> list = new ArrayList<>();
+        list.add(Component.literal(machine.name()));
+        list.add(machineState(machine));
+        if (machine.makes() < 0) {
+            list.add(Component.translatable("gui.servus_storage.production.machine.any_pattern"));
+        } else if (machine.makes() > 0) {
+            list.add(Component.translatable("gui.servus_storage.production.machine.makes", machine.makes()));
+        }
+        if (machine.upkeepLevel() > 0) {
+            list.add(Component.translatable("gui.servus_storage.production.upkeep", machine.upkeep().getHoverName(),
+                    machine.upkeepCount(), machine.upkeepLevel()));
+        }
+        list.add(Component.translatable("gui.servus_storage.production.machine.at", machine.pos().toShortString()));
+        return list;
     }
 
-    // Input
 
     /** The top of a line on the panel, with the current scroll. */
     private int lineTop(Line target) {
@@ -719,13 +723,13 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             return null;
         }
         int x = (int) mouseX - leftPos;
-        int yy = (int) mouseY - topPos;
-        if (x < MARGIN || x >= WIDTH - MARGIN || yy < LIST_Y || yy >= LIST_BOTTOM) {
+        int mouse = (int) mouseY - topPos;
+        if (x < MARGIN || x >= WIDTH - MARGIN || mouse < LIST_Y || mouse >= LIST_BOTTOM) {
             return null;
         }
         int y = LIST_Y - scrolls[selected];
         for (Line line : lines) {
-            if (yy >= y && yy < y + line.height()) {
+            if (mouse >= y && mouse < y + line.height()) {
                 return line;
             }
             y += line.height();
@@ -737,7 +741,6 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x();
         double mouseY = event.y();
-        int button = event.button();
         if (menu.isEditing()) {
             switch (popup.buttonAt(leftPos, topPos, mouseX, mouseY, menu.editing() == ProductionTerminalMenu.EDIT_EXISTING)) {
                 case SAVE -> {
@@ -761,7 +764,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         int y = (int) mouseY - topPos;
         if (y >= TAB_Y && y < TAB_Y + TAB_HEIGHT) {
             for (int i = 0; i < tabs.size(); i++) {
-                if (x >= tabX(i) && x < tabX(i) + TAB_WIDTH) {
+                if (x >= Production.tabX(i) && x < Production.tabX(i) + TAB_WIDTH) {
                     selected = i;
                     return true;
                 }
@@ -769,7 +772,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         }
         Line line = lineAt(mouseX, mouseY);
         if (line != null && line.hit() != null) {
-            if (line.hit().click((int) mouseX - leftPos - MARGIN, (int) mouseY - topPos - lineTop(line))) {
+            if (line.hit().click(x - MARGIN, y - lineTop(line))) {
                 return true;
             }
         } else if (line != null && line.click() != null) {
@@ -790,10 +793,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        int keyCode = event.key();
-        int scanCode = event.scancode();
-        int modifiers = event.modifiers();
-        if (menu.isEditing() && keyCode == GLFW.GLFW_KEY_ESCAPE) {
+        if (menu.isEditing() && event.key() == GLFW.GLFW_KEY_ESCAPE) {
             press(RecipeEditorButtons.CANCEL);
             return true;
         }

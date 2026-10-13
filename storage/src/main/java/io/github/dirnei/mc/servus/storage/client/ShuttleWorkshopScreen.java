@@ -1,8 +1,5 @@
 package io.github.dirnei.mc.servus.storage.client;
 
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.storage.shuttle.module.EngraveShuttlePayload;
@@ -12,6 +9,7 @@ import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleModules;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleTiers;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleTiers.Kind;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleWorkshopBlockEntity;
 import io.github.dirnei.mc.servus.storage.shuttle.module.build.BoltBoard;
 import io.github.dirnei.mc.servus.storage.shuttle.module.build.BuildStep;
 import io.github.dirnei.mc.servus.storage.shuttle.module.build.HandBuild;
@@ -21,16 +19,19 @@ import io.github.dirnei.mc.servus.storage.shuttle.module.build.WeldBoard;
 import io.github.dirnei.mc.servus.storage.shuttle.module.build.WireBoard;
 import java.util.List;
 import java.util.Map;
-import net.minecraft.util.Util;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Util;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -42,7 +43,6 @@ import org.lwjgl.glfw.GLFW;
  */
 public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorkshopMenu> {
 
-    private static final int COLOUR_PANEL = 0xFFC6C6C6;
     private static final int COLOUR_TEXT = 0xFF404040;
     private static final int COLOUR_MISSING = 0xFFA02020;
     private static final int COLOUR_DONE = 0xFF207020;
@@ -59,9 +59,8 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
     private static final int REMOVE_X = 164;
     private static final int LINE = 11;
 
-    /** The work panel to the right of the old layout. */
+    /** The work panel right of the slots. */
     private static final int PANEL_X = 180;
-    private static final int PANEL_W = 136;
     /** The board over the shuttle, where the steps are played; board coordinates start at its top left. */
     private static final int BOARD_X = PANEL_X + 4;
     private static final int BOARD_Y = 18;
@@ -82,7 +81,7 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
     private Button engrave;
     private EditBox name;
 
-    /** The board of the step being played and the step it belongs to; -1 when none. */
+    /** The step whose board is shown; -1 when none. At most one board is set. */
     private int boardStep = -1;
     private BoltBoard bolts;
     private WireBoard wires;
@@ -99,15 +98,14 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         super.init();
         this.inventoryLabelY = ShuttleWorkshopMenu.INVENTORY_Y - 11;
         int infoY = topPos + ShuttleWorkshopMenu.SHUTTLE_Y + LINE - 2;
-        removeSpeed = addRenderableWidget(small(infoY, ShuttleWorkshopMenu.BUTTON_REMOVE_SPEED));
-        removeHandling = addRenderableWidget(small(infoY + LINE, ShuttleWorkshopMenu.BUTTON_REMOVE_HANDLING));
-        removeTool = addRenderableWidget(small(infoY + 2 * LINE, ShuttleWorkshopMenu.BUTTON_REMOVE_TOOL));
-        buildNow = addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.workshop.build_now"), button -> click(ShuttleWorkshopMenu.BUTTON_BUILD_NOW))
+        removeSpeed = addRenderableWidget(removeButton(infoY, ShuttleWorkshopMenu.BUTTON_REMOVE_SPEED));
+        removeHandling = addRenderableWidget(removeButton(infoY + LINE, ShuttleWorkshopMenu.BUTTON_REMOVE_HANDLING));
+        removeTool = addRenderableWidget(removeButton(infoY + 2 * LINE, ShuttleWorkshopMenu.BUTTON_REMOVE_TOOL));
+        buildNow = addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.workshop.build_now"),
+                        button -> press(ShuttleWorkshopMenu.BUTTON_BUILD_NOW))
                 .bounds(leftPos + 120, topPos + ShuttleWorkshopMenu.SUPPLY_Y - 2, 50, 20).build());
-        byHand = addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.workshop.by_hand"), button -> click(ShuttleWorkshopMenu.BUTTON_BUILD_BY_HAND))
-                .bounds(leftPos + BOARD_X, topPos + PANEL_BUTTON_Y, BOARD_W, 20).build());
-        cancel = addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.workshop.cancel"), button -> click(ShuttleWorkshopMenu.BUTTON_CANCEL))
-                .bounds(leftPos + BOARD_X, topPos + PANEL_BUTTON_Y, BOARD_W, 20).build());
+        byHand = addRenderableWidget(panelButton("gui.servus_storage.workshop.by_hand", ShuttleWorkshopMenu.BUTTON_BUILD_BY_HAND));
+        cancel = addRenderableWidget(panelButton("gui.servus_storage.workshop.cancel", ShuttleWorkshopMenu.BUTTON_CANCEL));
         name = new EditBox(font, leftPos + BOARD_X, topPos + NAME_Y, BOARD_W, 12, Component.translatable("gui.servus_storage.workshop.name"));
         name.setMaxLength(NamePlate.MAX);
         name.setHint(Component.translatable("gui.servus_storage.workshop.name_hint"));
@@ -117,14 +115,17 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         updateButtons();
     }
 
-    private Button small(int y, int id) {
-        return Button.builder(Component.literal("-"), button -> click(id)).bounds(leftPos + REMOVE_X, y, 10, 10).build();
+    private Button removeButton(int y, int id) {
+        return Button.builder(Component.literal("-"), button -> press(id)).bounds(leftPos + REMOVE_X, y, 10, 10).build();
     }
 
-    private void click(int id) {
-        if (minecraft != null && minecraft.gameMode != null) {
-            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
-        }
+    private Button panelButton(String key, int id) {
+        return Button.builder(Component.translatable(key), button -> press(id))
+                .bounds(leftPos + BOARD_X, topPos + PANEL_BUTTON_Y, BOARD_W, 20).build();
+    }
+
+    private void press(int id) {
+        MenuButtons.press(minecraft, menu, id);
     }
 
     private void sendEngrave() {
@@ -201,35 +202,28 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
-    }
-
-    @Override
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
-        graphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, COLOUR_PANEL);
-        graphics.fill(leftPos + PANEL_X - 3, topPos + 4, leftPos + PANEL_X - 2, topPos + imageHeight - 4, 0xFF8B8B8B);
-        frame(graphics, ShuttleWorkshopMenu.SHUTTLE_X, ShuttleWorkshopMenu.SHUTTLE_Y);
-        frame(graphics, ShuttleWorkshopMenu.INSTALL_X, ShuttleWorkshopMenu.INSTALL_Y);
-        for (int i = 0; i < 6; i++) {
-            frame(graphics, ShuttleWorkshopMenu.SUPPLY_X + i * 18, ShuttleWorkshopMenu.SUPPLY_Y);
+        graphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, PanelPainter.FACE);
+        graphics.fill(leftPos + PANEL_X - 3, topPos + 4, leftPos + PANEL_X - 2, topPos + imageHeight - 4, PanelPainter.SLOT);
+        slotFrame(graphics, ShuttleWorkshopMenu.SHUTTLE_X, ShuttleWorkshopMenu.SHUTTLE_Y);
+        slotFrame(graphics, ShuttleWorkshopMenu.INSTALL_X, ShuttleWorkshopMenu.INSTALL_Y);
+        for (int i = 0; i < ShuttleWorkshopBlockEntity.SUPPLY_SLOTS; i++) {
+            slotFrame(graphics, ShuttleWorkshopMenu.SUPPLY_X + i * 18, ShuttleWorkshopMenu.SUPPLY_Y);
         }
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
-                frame(graphics, 8 + column * 18, ShuttleWorkshopMenu.INVENTORY_Y + row * 18);
+                slotFrame(graphics, 8 + column * 18, ShuttleWorkshopMenu.INVENTORY_Y + row * 18);
             }
         }
         for (int column = 0; column < 9; column++) {
-            frame(graphics, 8 + column * 18, ShuttleWorkshopMenu.HOTBAR_Y);
+            slotFrame(graphics, 8 + column * 18, ShuttleWorkshopMenu.HOTBAR_Y);
         }
         int boardLeft = leftPos + BOARD_X;
         int boardTop = topPos + BOARD_Y;
-        graphics.fill(boardLeft - 1, boardTop - 1, boardLeft + BOARD_W + 1, boardTop + BOARD_H + 1, 0xFF373737);
-        graphics.fill(boardLeft, boardTop, boardLeft + BOARD_W, boardTop + BOARD_H, COLOUR_BOARD);
+        PanelPainter.bordered(graphics, boardLeft, boardTop, BOARD_W, BOARD_H, PanelPainter.DARK, COLOUR_BOARD);
         ItemStack shuttle = menu.shuttle();
         if (!shuttle.isEmpty()) {
-            // The composed item model, five times its size, so the shuttle's look shows.
             GuiLargeItemRenderState.submit(graphics, shuttle, boardLeft, boardTop, boardLeft + BOARD_W, boardTop + BOARD_H,
                     16 * MODEL_SCALE);
         }
@@ -241,45 +235,65 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         }
     }
 
+    private void slotFrame(GuiGraphicsExtractor graphics, int slotX, int slotY) {
+        PanelPainter.sunken(graphics, leftPos + slotX - 1, topPos + slotY - 1, 18, 18);
+    }
+
+    /** Draws the current step's board in board coordinates. */
     private void drawBoard(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (bolts != null) {
-            boolean bright = (Util.getMillis() / 300) % 2 == 0;
-            List<Spot> spots = bolts.spots();
-            for (int i = 0; i < spots.size(); i++) {
-                Spot spot = spots.get(i);
-                if (i < bolts.tightened()) {
-                    dot(graphics, spot, 2, COLOUR_BOLT_DONE);
-                } else if (i == bolts.tightened()) {
-                    dot(graphics, spot, 4, 0xFF000000);
-                    dot(graphics, spot, 3, bright ? 0xFFFFF060 : 0xFFE0B020);
-                } else {
-                    dot(graphics, spot, 2, COLOUR_BOLT_WAITING);
-                }
-            }
+            drawBolts(graphics);
         } else if (wires != null) {
-            List<Integer> left = wires.left();
-            List<Integer> right = wires.right();
-            for (int i = 0; i < left.size(); i++) {
-                int target = wires.wiredTo(i);
-                if (target >= 0) {
-                    line(graphics, contact(true, i, left.size()), contact(false, target, right.size()), DuctChannels.color(left.get(i)));
-                }
-            }
-            if (wires.selected() >= 0) {
-                line(graphics, contact(true, wires.selected(), left.size()), new Spot(mouseX, mouseY), DuctChannels.color(left.get(wires.selected())));
-            }
-            for (int i = 0; i < left.size(); i++) {
-                square(graphics, contact(true, i, left.size()), DuctChannels.color(left.get(i)), i == wires.selected());
-                square(graphics, contact(false, i, right.size()), DuctChannels.color(right.get(i)), false);
-            }
+            drawWires(graphics, mouseX, mouseY);
         } else if (weld != null) {
-            List<List<Spot>> seams = weld.seams();
-            for (int s = 0; s < seams.size(); s++) {
-                List<Spot> points = seams.get(s);
-                for (int p = 0; p < points.size(); p++) {
-                    int colour = weld.welded(s, p) ? COLOUR_WELDED : s == weld.current() ? COLOUR_SEAM : COLOUR_SEAM_LATER;
-                    dot(graphics, points.get(p), 1, colour);
-                }
+            drawWeld(graphics);
+        }
+    }
+
+    /** Tightened bolts grey, the next one blinking, the rest dull. */
+    private void drawBolts(GuiGraphicsExtractor graphics) {
+        boolean bright = (Util.getMillis() / 300) % 2 == 0;
+        List<Spot> spots = bolts.spots();
+        for (int i = 0; i < spots.size(); i++) {
+            Spot spot = spots.get(i);
+            if (i < bolts.tightened()) {
+                dot(graphics, spot, 2, COLOUR_BOLT_DONE);
+            } else if (i == bolts.tightened()) {
+                dot(graphics, spot, 4, 0xFF000000);
+                dot(graphics, spot, 3, bright ? 0xFFFFF060 : 0xFFE0B020);
+            } else {
+                dot(graphics, spot, 2, COLOUR_BOLT_WAITING);
+            }
+        }
+    }
+
+    /** Wires already connected, the one being dragged to the mouse, and the contacts on both edges over them. */
+    private void drawWires(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        List<Integer> left = wires.left();
+        List<Integer> right = wires.right();
+        for (int i = 0; i < left.size(); i++) {
+            int target = wires.wiredTo(i);
+            if (target >= 0) {
+                line(graphics, contact(true, i, left.size()), contact(false, target, right.size()), DuctChannels.color(left.get(i)));
+            }
+        }
+        if (wires.selected() >= 0) {
+            line(graphics, contact(true, wires.selected(), left.size()), new Spot(mouseX, mouseY), DuctChannels.color(left.get(wires.selected())));
+        }
+        for (int i = 0; i < left.size(); i++) {
+            square(graphics, contact(true, i, left.size()), DuctChannels.color(left.get(i)), i == wires.selected());
+            square(graphics, contact(false, i, right.size()), DuctChannels.color(right.get(i)), false);
+        }
+    }
+
+    /** Seam points, welded ones bright, the current seam darker, later seams faint. */
+    private void drawWeld(GuiGraphicsExtractor graphics) {
+        List<List<Spot>> seams = weld.seams();
+        for (int s = 0; s < seams.size(); s++) {
+            List<Spot> points = seams.get(s);
+            for (int p = 0; p < points.size(); p++) {
+                int colour = weld.welded(s, p) ? COLOUR_WELDED : s == weld.current() ? COLOUR_SEAM : COLOUR_SEAM_LATER;
+                dot(graphics, points.get(p), 1, colour);
             }
         }
     }
@@ -311,22 +325,9 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         }
     }
 
-    private void frame(GuiGraphicsExtractor graphics, int slotX, int slotY) {
-        int x = leftPos + slotX - 1;
-        int y = topPos + slotY - 1;
-        graphics.fill(x, y, x + 18, y + 18, 0xFF8B8B8B);
-        graphics.fill(x, y, x + 18, y + 1, 0xFF373737);
-        graphics.fill(x, y, x + 1, y + 18, 0xFF373737);
-        graphics.fill(x, y + 17, x + 18, y + 18, 0xFFFFFFFF);
-        graphics.fill(x + 17, y, x + 18, y + 18, 0xFFFFFFFF);
-    }
-
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        double mouseX = event.x();
-        double mouseY = event.y();
-        int button = event.button();
-        if (button == 0 && onBoard(mouseX, mouseY) && play((int) mouseX - leftPos - BOARD_X, (int) mouseY - topPos - BOARD_Y, true)) {
+        if (event.button() == 0 && onBoard(event.x(), event.y()) && play(boardX(event.x()), boardY(event.y()), true)) {
             return true;
         }
         return super.mouseClicked(event, doubleClick);
@@ -334,14 +335,19 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
-        double mouseX = event.x();
-        double mouseY = event.y();
-        int button = event.button();
-        if (button == 0 && weld != null && onBoard(mouseX, mouseY)) {
-            play((int) mouseX - leftPos - BOARD_X, (int) mouseY - topPos - BOARD_Y, false);
+        if (event.button() == 0 && weld != null && onBoard(event.x(), event.y())) {
+            play(boardX(event.x()), boardY(event.y()), false);
             return true;
         }
         return super.mouseDragged(event, dragX, dragY);
+    }
+
+    private int boardX(double mouseX) {
+        return (int) mouseX - leftPos - BOARD_X;
+    }
+
+    private int boardY(double mouseY) {
+        return (int) mouseY - topPos - BOARD_Y;
     }
 
     private boolean onBoard(double mouseX, double mouseY) {
@@ -360,17 +366,7 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         }
         if (wires != null) {
             if (click) {
-                int count = wires.left().size();
-                for (int i = 0; i < count; i++) {
-                    if (contact(true, i, count).near(x, y, CONTACT)) {
-                        wires.select(i);
-                        return true;
-                    }
-                    if (contact(false, i, count).near(x, y, CONTACT)) {
-                        wires.connect(i);
-                        return true;
-                    }
-                }
+                clickContact(x, y);
             }
             return true;
         }
@@ -381,11 +377,24 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         return false;
     }
 
+    /** A left contact picks up its wire, a right contact takes the wire held. */
+    private void clickContact(int x, int y) {
+        int count = wires.left().size();
+        for (int i = 0; i < count; i++) {
+            if (contact(true, i, count).near(x, y, CONTACT)) {
+                wires.select(i);
+                return;
+            }
+            if (contact(false, i, count).near(x, y, CONTACT)) {
+                wires.connect(i);
+                return;
+            }
+        }
+    }
+
     @Override
     public boolean keyPressed(KeyEvent event) {
         int keyCode = event.key();
-        int scanCode = event.scancode();
-        int modifiers = event.modifiers();
         if (keyCode != GLFW.GLFW_KEY_ESCAPE && name.visible && name.isFocused()) {
             if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
                 sendEngrave();
@@ -398,10 +407,10 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         return super.keyPressed(event);
     }
 
+    /** The install slot never holds anything; a plus marks it, greyed while there is no shuttle. */
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.extractLabels(graphics, mouseX, mouseY);
-        // The install slot never holds anything; a plus marks it.
         graphics.text(font, "+", ShuttleWorkshopMenu.INSTALL_X + 5, ShuttleWorkshopMenu.INSTALL_Y + 4, 0xFF707070, false);
         graphics.text(font, Component.translatable("gui.servus_storage.workshop.supplies"), ShuttleWorkshopMenu.SUPPLY_X,
                 ShuttleWorkshopMenu.SUPPLY_Y - 10, COLOUR_TEXT, false);
@@ -414,24 +423,27 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
                     COLOUR_TEXT, false);
             return;
         }
-        ShuttleTiers tiers = menu.tiers();
         int tier = ShuttleItem.tier(shuttle);
-        ShuttleModules modules = ShuttleModules.of(shuttle);
+        drawShuttleInfo(graphics, tier, ShuttleModules.of(shuttle));
+        drawSheet(graphics, tier);
+    }
+
+    /** The tier's stacks, the upgrade counts against their maxes, and the tool. */
+    private void drawShuttleInfo(GuiGraphicsExtractor graphics, int tier, ShuttleModules modules) {
+        ShuttleTiers.Tier stats = menu.tiers().tier(tier);
         int y = ShuttleWorkshopMenu.SHUTTLE_Y;
-        graphics.text(font, Component.translatable("gui.servus_storage.workshop.tier", tier, tiers.tier(tier).stacks()), INFO_X, y,
-                COLOUR_TEXT, false);
+        graphics.text(font, Component.translatable("gui.servus_storage.workshop.tier", tier, stats.stacks()), INFO_X, y, COLOUR_TEXT, false);
         y += LINE;
-        graphics.text(font, Component.translatable("gui.servus_storage.workshop.speed", modules.speed(), tiers.tier(tier).max(Kind.SPEED)),
+        graphics.text(font, Component.translatable("gui.servus_storage.workshop.speed", modules.speed(), stats.max(Kind.SPEED)),
                 INFO_X, y, COLOUR_TEXT, false);
         y += LINE;
-        graphics.text(font, Component.translatable("gui.servus_storage.workshop.handling", modules.handling(),
-                tiers.tier(tier).max(Kind.HANDLING)), INFO_X, y, COLOUR_TEXT, false);
+        graphics.text(font, Component.translatable("gui.servus_storage.workshop.handling", modules.handling(), stats.max(Kind.HANDLING)),
+                INFO_X, y, COLOUR_TEXT, false);
         y += LINE;
         Component tool = modules.tool().map(item -> (Component) Component.translatable(item.getDescriptionId()))
                 .orElse(Component.translatable("gui.servus_storage.workshop.no_tool"));
         graphics.text(font, font.plainSubstrByWidth(Component.translatable("gui.servus_storage.workshop.tool", tool).getString(), SHEET_X - INFO_X - 4),
                 INFO_X, y, COLOUR_TEXT, false);
-        drawSheet(graphics, tier);
     }
 
     /** The panel's header over the board and the line under it: the step and what to do, or the shuttle's plate. */

@@ -1,11 +1,11 @@
 package io.github.dirnei.mc.servus.storage.client;
 
-import net.minecraft.client.renderer.RenderPipelines;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -17,10 +17,10 @@ public class ShuttleGarageScreen extends AbstractContainerScreen<ShuttleGarageMe
             Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/shuttle_garage.png");
     private static final int STATUS_Y = 52;
     private static final int BUTTONS_Y = 64;
-
-    private Button toggle;
     private static final int COLOUR_TEXT = 0xFF404040;
     private static final int COLOUR_LOCKED = 0x80FF9A2E;
+
+    private Button toggle;
 
     public ShuttleGarageScreen(ShuttleGarageMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, 176, 178);
@@ -30,16 +30,11 @@ public class ShuttleGarageScreen extends AbstractContainerScreen<ShuttleGarageMe
     protected void init() {
         super.init();
         this.inventoryLabelY = ShuttleGarageMenu.INVENTORY_Y - 11;
-        addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.garage.recall"), button -> press(ShuttleGarageMenu.BUTTON_RECALL))
+        addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.garage.recall"),
+                        button -> MenuButtons.press(minecraft, menu, ShuttleGarageMenu.BUTTON_RECALL))
                 .bounds(leftPos + 8, topPos + BUTTONS_Y, 76, 14).build());
-        toggle = addRenderableWidget(Button.builder(Component.empty(), button -> press(ShuttleGarageMenu.BUTTON_TOGGLE))
+        toggle = addRenderableWidget(Button.builder(Component.empty(), button -> MenuButtons.press(minecraft, menu, ShuttleGarageMenu.BUTTON_TOGGLE))
                 .bounds(leftPos + 92, topPos + BUTTONS_Y, 76, 14).build());
-    }
-
-    private void press(int id) {
-        if (minecraft != null && minecraft.gameMode != null) {
-            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
-        }
     }
 
     @Override
@@ -53,13 +48,7 @@ public class ShuttleGarageScreen extends AbstractContainerScreen<ShuttleGarageMe
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
         graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
         for (int slot = 0; slot < menu.capacity(); slot++) {
-            int x = leftPos + menu.slotX(slot) - 1;
-            int y = topPos + ShuttleGarageMenu.SLOTS_Y - 1;
-            graphics.fill(x, y, x + 18, y + 18, 0xFF8B8B8B);
-            graphics.fill(x, y, x + 18, y + 1, 0xFF373737);
-            graphics.fill(x, y, x + 1, y + 18, 0xFF373737);
-            graphics.fill(x, y + 17, x + 18, y + 18, 0xFFFFFFFF);
-            graphics.fill(x + 17, y, x + 18, y + 18, 0xFFFFFFFF);
+            PanelPainter.sunken(graphics, leftPos + menu.slotX(slot) - 1, topPos + ShuttleGarageMenu.SLOTS_Y - 1, 18, 18);
         }
     }
 

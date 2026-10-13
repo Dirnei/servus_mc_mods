@@ -1,7 +1,5 @@
 package io.github.dirnei.mc.servus.storage.client;
 
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
 import io.github.dirnei.mc.servus.foundation.client.SideConfigPanel;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
@@ -9,6 +7,8 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -23,11 +23,11 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
     private static final Identifier TEXTURE =
             Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/crafting_station.png");
     private static final int CELL = 18;
-    private static final int PANEL = 0xFFC6C6C6;
     private static final int TEXT = 0xFF404040;
+    private static final int GREEN = 0xFF60C060;
 
     private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == RelativeSide.FRONT,
-            side -> press(SideConfigMenus.buttonOf(side)));
+            side -> MenuButtons.press(minecraft, menu, SideConfigMenus.buttonOf(side)));
 
     public CraftingStationScreen(CraftingStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, CraftingStationMenu.WIDTH, CraftingStationMenu.HEIGHT);
@@ -39,12 +39,6 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
         this.inventoryLabelX = CraftingStationMenu.INVENTORY_X;
         this.inventoryLabelY = CraftingStationMenu.INVENTORY_Y - 11;
         panel.placeBeside(leftPos, topPos);
-    }
-
-    private void press(int id) {
-        if (minecraft != null && minecraft.gameMode != null && minecraft.player != null) {
-            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
-        }
     }
 
     private boolean inJobCell(double mouseX, double mouseY) {
@@ -59,7 +53,8 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
         ItemStack result = menu.station().clientJobResult();
         if (!result.isEmpty() && inJobCell(mouseX, mouseY)) {
             graphics.setTooltipForNextFrame(font, result, mouseX, mouseY);
-        } else if (!panel.renderTooltip(graphics, font, mouseX, mouseY)) {
+        } else {
+            panel.renderTooltip(graphics, font, mouseX, mouseY);
         }
     }
 
@@ -74,17 +69,14 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
         graphics.fill(px, py, px + 18, py + 2, 0xFF555555);
         if (menu.workTicks() > 0 && menu.progress() > 0) {
             int filled = Math.min(18, menu.progress() * 18 / menu.workTicks());
-            graphics.fill(px, py, px + filled, py + 2, 0xFF60C060);
+            graphics.fill(px, py, px + filled, py + 2, GREEN);
         }
 
-        // The job area covers where the recipe cells used to be.
         int jx = leftPos + CraftingStationMenu.JOB_X;
         int jy = topPos + CraftingStationMenu.JOB_Y;
-        graphics.fill(jx, jy, jx + CraftingStationMenu.JOB_WIDTH - 18, jy + CraftingStationMenu.JOB_HEIGHT, PANEL);
+        graphics.fill(jx, jy, jx + CraftingStationMenu.JOB_WIDTH - 18, jy + CraftingStationMenu.JOB_HEIGHT, PanelPainter.FACE);
         ItemStack result = menu.station().clientJobResult();
-        int left = menu.station().clientJobLeft();
-        graphics.fill(jx, jy, jx + CELL, jy + CELL, 0xFF373737);
-        graphics.fill(jx + 1, jy + 1, jx + CELL - 1, jy + CELL - 1, result.isEmpty() ? 0xFF8B8B8B : 0xFF60C060);
+        PanelPainter.bordered(graphics, jx + 1, jy + 1, CELL - 2, CELL - 2, PanelPainter.DARK, result.isEmpty() ? PanelPainter.SLOT : GREEN);
         if (!result.isEmpty()) {
             graphics.item(result, jx + 1, jy + 1);
             graphics.itemDecorations(font, result, jx + 1, jy + 1);
@@ -108,12 +100,6 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        double mouseX = event.x();
-        double mouseY = event.y();
-        int button = event.button();
-        if (panel.mouseClicked(mouseX, mouseY)) {
-            return true;
-        }
-        return super.mouseClicked(event, doubleClick);
+        return panel.mouseClicked(event.x(), event.y()) || super.mouseClicked(event, doubleClick);
     }
 }

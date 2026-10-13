@@ -1,23 +1,24 @@
 package io.github.dirnei.mc.servus.storage.client;
 
-import net.minecraft.client.Minecraft;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
 import io.github.dirnei.mc.servus.foundation.client.SideConfigPanel;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.storage.outbound.KeepSlotPayload;
 import io.github.dirnei.mc.servus.storage.station.StationStatePayload;
 import java.util.List;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /** Keep row, buffer row, state line, player inventory, the shared side panel on the left. */
 public class OutboundStationScreen extends AbstractContainerScreen<OutboundStationMenu> {
@@ -27,11 +28,8 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
     private static final int COLOUR_TEXT = 0xFF404040;
     private static final int COLOUR_ALERT = 0xFFB03030;
 
-    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == io.github.dirnei.mc.servus.foundation.side.RelativeSide.FRONT, side -> {
-        if (minecraft != null && minecraft.gameMode != null) {
-            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, SideConfigMenus.buttonOf(side));
-        }
-    });
+    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == RelativeSide.FRONT,
+            side -> MenuButtons.press(minecraft, menu, SideConfigMenus.buttonOf(side)));
 
     public OutboundStationScreen(OutboundStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, 176, 166);
@@ -45,12 +43,15 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
         panel.placeBeside(leftPos, topPos);
     }
 
+    private boolean isKeepSlot(Slot slot) {
+        return slot != null && slot.index < menu.keepSlots();
+    }
+
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
-        Slot hovered = hoveredSlot;
-        if (hovered != null && hovered.index < menu.keepSlots()) {
-            ItemStack keep = hovered.getItem();
+        if (isKeepSlot(hoveredSlot)) {
+            ItemStack keep = hoveredSlot.getItem();
             List<Component> lines = keep.isEmpty()
                     ? List.of(Component.translatable("gui.servus_storage.outbound.keep_hint"))
                     : List.of(Component.translatable("gui.servus_storage.outbound.keep_line", keep.getCount(), keep.getHoverName()),
@@ -58,9 +59,7 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
             graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
             return;
         }
-        if (panel.renderTooltip(graphics, font, mouseX, mouseY)) {
-            return;
-        }
+        panel.renderTooltip(graphics, font, mouseX, mouseY);
     }
 
     @Override
@@ -88,20 +87,14 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        double mouseX = event.x();
-        double mouseY = event.y();
-        int button = event.button();
-        if (panel.mouseClicked(mouseX, mouseY)) {
-            return true;
-        }
-        return super.mouseClicked(event, doubleClick);
+        return panel.mouseClicked(event.x(), event.y()) || super.mouseClicked(event, doubleClick);
     }
 
     /** Scrolling over a keep slot adjusts its amount by one, by a stack with shift. */
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         Slot slot = hoveredSlot;
-        if (slot != null && slot.index < menu.keepSlots() && !slot.getItem().isEmpty()) {
+        if (isKeepSlot(slot) && !slot.getItem().isEmpty()) {
             ItemStack keep = slot.getItem();
             int step = Minecraft.getInstance().hasShiftDown() ? keep.getMaxStackSize() : 1;
             int amount = Math.max(1, keep.getCount() + (scrollY > 0 ? step : -step));

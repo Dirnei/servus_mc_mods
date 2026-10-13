@@ -1,15 +1,16 @@
 package io.github.dirnei.mc.servus.storage.client;
 
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
 import io.github.dirnei.mc.servus.foundation.client.SideConfigPanel;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.station.StationStatePayload;
 import java.util.Locale;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -21,11 +22,8 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
             Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/inbound_station.png");
     private static final int COLOUR_ALERT = 0xFFB03030;
 
-    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == io.github.dirnei.mc.servus.foundation.side.RelativeSide.FRONT, side -> {
-        if (minecraft != null && minecraft.gameMode != null) {
-            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, SideConfigMenus.buttonOf(side));
-        }
-    });
+    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == RelativeSide.FRONT,
+            side -> MenuButtons.press(minecraft, menu, SideConfigMenus.buttonOf(side)));
 
     public InboundStationScreen(InboundStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, 176, 140);
@@ -42,9 +40,7 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
-        if (panel.renderTooltip(graphics, font, mouseX, mouseY)) {
-            return;
-        }
+        panel.renderTooltip(graphics, font, mouseX, mouseY);
     }
 
     @Override
@@ -54,6 +50,7 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
         panel.render(graphics, font, mouseX, mouseY);
     }
 
+    /** The state line only explains a red lamp; the lamps on the block tell idle from working. */
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.extractLabels(graphics, mouseX, mouseY);
@@ -63,7 +60,6 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
             graphics.text(font, reason, 8, InboundStationMenu.STATUS_Y, COLOUR_ALERT, false);
             return;
         }
-        // The lamps on the block tell idle from working; the GUI only explains a red lamp.
         if (!state.blockedReason().isEmpty()) {
             graphics.text(font, status(state), 8, InboundStationMenu.STATUS_Y, COLOUR_ALERT, false);
         }
@@ -80,13 +76,7 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        double mouseX = event.x();
-        double mouseY = event.y();
-        int button = event.button();
-        if (panel.mouseClicked(mouseX, mouseY)) {
-            return true;
-        }
-        return super.mouseClicked(event, doubleClick);
+        return panel.mouseClicked(event.x(), event.y()) || super.mouseClicked(event, doubleClick);
     }
 
     @Override

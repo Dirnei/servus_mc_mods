@@ -53,19 +53,13 @@ public class PackingStationScreen extends AbstractContainerScreen<PackingStation
         }
         int x = mouseX - leftPos;
         int y = mouseY - topPos;
-        if (over(x, y, menu.toStorageY() - 10, toStorageRow())) {
+        if (toStorageRow().coversRow(x, y, menu.toStorageY() - 10)) {
             rowTooltip(graphics, "to_storage", mouseX, mouseY);
-        } else if (over(x, y, menu.toNetworkLabelY(), toNetworkRow())) {
+        } else if (toNetworkRow().coversRow(x, y, menu.toNetworkLabelY())) {
             rowTooltip(graphics, "to_network", mouseX, mouseY);
-        } else if (menu.upgradeSlots() > 0 && over(x, y, menu.upgradesLabelY(), upgradesRow())) {
+        } else if (menu.upgradeSlots() > 0 && upgradesRow().coversRow(x, y, menu.upgradesLabelY())) {
             rowTooltip(graphics, "upgrades", mouseX, mouseY);
-        } else {
         }
-    }
-
-    /** Whether the mouse is over a row or its label above it. */
-    private static boolean over(int x, int y, int labelY, Rect row) {
-        return x >= row.x() - 1 && x < row.x() + row.w() + 1 && y >= labelY && y < row.y() + row.h();
     }
 
     private void rowTooltip(GuiGraphicsExtractor graphics, String row, int mouseX, int mouseY) {
@@ -83,8 +77,7 @@ public class PackingStationScreen extends AbstractContainerScreen<PackingStation
         if (menu.upgradeSlots() > 0) {
             PanelPainter.slots(graphics, leftPos, topPos, upgradesRow(), menu.upgradeSlots(), menu.upgradeSlots());
         }
-        PanelPainter.slots(graphics, leftPos, topPos, new Rect(8, menu.inventoryY(), 9 * 18, 3 * 18), 9, 27);
-        PanelPainter.slots(graphics, leftPos, topPos, new Rect(8, menu.hotbarY(), 9 * 18, 18), 9, 9);
+        PanelPainter.playerInventory(graphics, leftPos, topPos, menu.inventoryY(), menu.hotbarY());
     }
 
     @Override

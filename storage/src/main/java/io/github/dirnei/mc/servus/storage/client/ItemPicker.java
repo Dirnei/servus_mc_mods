@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.client;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+import io.github.dirnei.mc.servus.foundation.client.PopupPanel;
 import io.github.dirnei.mc.servus.storage.picker.PickerList;
 import io.github.dirnei.mc.servus.storage.picker.PickerStock;
 import java.util.ArrayList;
@@ -19,20 +20,20 @@ import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * A reusable item picker for container screens: a button that shows the
- * current choice and opens a popup over the GUI with a search field and a
- * scrollable list of entries, each with its icon, name and, when stock counts
- * are set, a count. Entries with no stock stay selectable but are greyed and
- * show the zero hint. A "none" entry ({@link PickerList#NONE_ID}) always stays
- * first. Drawn with fills in the look of the recipe picker popup.
+ * An item picker for container screens: a button that shows the current
+ * choice and opens a popup over the GUI with a search field and a scrollable
+ * list of entries, each with its icon, name and, when stock counts are set, a
+ * count. Entries with no stock stay selectable but are greyed and show the
+ * zero hint. A "none" entry ({@link PickerList#NONE_ID}) always stays first.
  *
  * <p>Use: create it with a title and a pick callback, give it entries, a
  * button rectangle and the area to centre on (all absolute screen
  * coordinates, set them again in {@code init}), then call {@link #renderButton}
- * from {@code renderBg}, {@link #renderPopup} and {@link #renderTooltip} at the
- * end of {@code render}, and forward the mouse and key events first, stopping
- * when they return true. While {@link #isOpen()} the screen should pass
- * {@code -1, -1} as the mouse to {@code super.render} and skip its own tooltips.
+ * from {@code extractBackground}, {@link #renderPopup} and {@link #renderTooltip}
+ * at the end of {@code extractRenderState}, and forward the mouse and key events
+ * first, stopping when they return true. While {@link #isOpen()} the screen
+ * should pass {@code -1, -1} as the mouse to {@code super.extractRenderState}
+ * and skip its own tooltips.
  */
 public final class ItemPicker {
 
@@ -48,7 +49,6 @@ public final class ItemPicker {
     private static final int WIDTH = PAD + LIST_WIDTH + BAR_GAP + BAR_WIDTH + PAD;
     private static final int HEIGHT = TITLE_HEIGHT + PAD + SEARCH_HEIGHT + SEARCH_GAP + ROWS * ROW + PAD;
     private static final int BUTTON_HEIGHT = 18;
-    private static final int DIM = 0x90000000;
     private static final int TEXT = 0xFF202020;
     private static final int GREY = 0xFF707070;
     private static final int SELECTED = 0xFF8FC08F;
@@ -94,7 +94,6 @@ public final class ItemPicker {
         this.onPick = onPick;
     }
 
-    // Setup
 
     /** The entries to choose from, in any order; they are shown by name with the none entry first. */
     public void setEntries(List<Entry> entries) {
@@ -143,7 +142,6 @@ public final class ItemPicker {
         }
     }
 
-    // Open state
 
     public boolean isOpen() {
         return open;
@@ -189,7 +187,6 @@ public final class ItemPicker {
         return -1;
     }
 
-    // Stock
 
     /** The stock of an entry, or -1 when no count is shown for it. */
     private long count(Entry entry) {
@@ -204,15 +201,13 @@ public final class ItemPicker {
         return entry != null ? entry : byId.get(PickerList.NONE_ID);
     }
 
-    // Rendering
 
     /** The button with the current choice; call from {@code renderBg}. */
     public void renderButton(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY) {
         boolean hovered = !open && overButton(mouseX, mouseY);
         int right = buttonX + buttonWidth;
-        int bottom = buttonY + BUTTON_HEIGHT;
-        graphics.fill(buttonX, buttonY, right, bottom, 0xFF373737);
-        graphics.fill(buttonX + 1, buttonY + 1, right - 1, bottom - 1, hovered ? 0xFFDDDDDD : 0xFFA0A0A0);
+        PanelPainter.bordered(graphics, buttonX + 1, buttonY + 1, buttonWidth - 2, BUTTON_HEIGHT - 2, PanelPainter.DARK,
+                hovered ? 0xFFDDDDDD : 0xFFA0A0A0);
         graphics.fill(buttonX + 1, buttonY + 1, right - 1, buttonY + 2, 0xFFFFFFFF);
         Entry entry = current();
         int textX = buttonX + 4;
@@ -239,19 +234,12 @@ public final class ItemPicker {
         if (!open) {
             return;
         }
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(0, 0);
-        graphics.fill(areaLeft, areaTop, areaLeft + areaWidth, areaTop + areaHeight, DIM);
-        graphics.fill(x + 2, y + 2, x + WIDTH + 2, y + HEIGHT + 2, DIM);
-        graphics.fill(x, y, x + WIDTH, y + HEIGHT, 0xFF1E1E1E);
-        graphics.fill(x + 1, y + 1, x + WIDTH - 1, y + HEIGHT - 1, 0xFFFFFFFF);
-        graphics.fill(x + 2, y + 2, x + WIDTH - 2, y + HEIGHT - 2, 0xFFC6C6C6);
+        PopupPanel.draw(graphics, areaLeft, areaTop, areaWidth, areaHeight, x, y, WIDTH, HEIGHT);
         graphics.text(font, title, x + PAD, y + 5, 0xFF404040, false);
         search.extractRenderState(graphics, mouseX, mouseY, partialTick);
         int lx = listX();
         int ly = listY();
-        graphics.fill(lx - 1, ly - 1, lx + LIST_WIDTH + 1, ly + ROWS * ROW + 1, 0xFF373737);
-        graphics.fill(lx, ly, lx + LIST_WIDTH, ly + ROWS * ROW, 0xFF8B8B8B);
+        PanelPainter.bordered(graphics, lx, ly, LIST_WIDTH, ROWS * ROW, PanelPainter.DARK, PanelPainter.SLOT);
         int hovered = indexAt(mouseX, mouseY);
         for (int row = 0; row < ROWS; row++) {
             int index = scroll + row;
@@ -283,12 +271,11 @@ public final class ItemPicker {
         int max = maxScroll();
         if (max > 0) {
             int bx = barX();
-            graphics.fill(bx, ly, bx + BAR_WIDTH, ly + ROWS * ROW, 0xFF373737);
+            graphics.fill(bx, ly, bx + BAR_WIDTH, ly + ROWS * ROW, PanelPainter.DARK);
             int knob = knobHeight();
             int ky = ly + (ROWS * ROW - knob) * scroll / max;
             graphics.fill(bx + 1, ky + 1, bx + BAR_WIDTH - 1, ky + knob - 1, 0xFFDDDDDD);
         }
-        graphics.pose().popMatrix();
     }
 
     /**
@@ -312,14 +299,10 @@ public final class ItemPicker {
         if (count(entry) == 0) {
             lines.add(zeroHint.copy().withColor(0xA04000));
         }
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(0, 0);
         graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
-        graphics.pose().popMatrix();
         return true;
     }
 
-    // Input
 
     /** Opens on a button click; while open, picks, drags the bar, focuses the search or closes on a click outside. */
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
@@ -381,8 +364,6 @@ public final class ItemPicker {
     /** Escape closes the popup only; every other key goes to the search while open. */
     public boolean keyPressed(KeyEvent event) {
         int keyCode = event.key();
-        int scanCode = event.scancode();
-        int modifiers = event.modifiers();
         if (!open) {
             return false;
         }
@@ -395,8 +376,6 @@ public final class ItemPicker {
     }
 
     public boolean charTyped(CharacterEvent event) {
-        char codePoint = (char) event.codepoint();
-        int modifiers = 0;
         if (!open) {
             return false;
         }
@@ -404,7 +383,6 @@ public final class ItemPicker {
         return true;
     }
 
-    // Geometry
 
     private boolean overButton(double mouseX, double mouseY) {
         return mouseX >= buttonX && mouseX < buttonX + buttonWidth && mouseY >= buttonY && mouseY < buttonY + BUTTON_HEIGHT;
