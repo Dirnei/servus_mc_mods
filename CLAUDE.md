@@ -59,6 +59,12 @@ openspec view                      # dashboard of specs and changes
 - Block, GUI and worldgen behavior: launch the client run config and check it in game. GameTests where practical.
 - Do not report a task as done without a green build.
 
+## Code style
+- Code explains itself through names and small methods. Extract a shared helper instead of copying logic.
+- Javadoc on classes and public or protected members is welcome: short and precise, saying what it does and what a caller must know.
+- Comments inside code only explain what the code cannot say itself (a non-obvious formula, an API quirk). No reasoning, history, alternatives, or references to specs, design, tasks, PLAN.md, play checks or other changes, and nothing that repeats the code.
+- Delete dead code instead of commenting it out.
+
 ## Models and textures
 - No two faces may share a plane where they overlap, or they flicker (z-fighting). This covers datagen model elements, standalone models drawn by renderers, and parts drawn several times (rings of segments, turned copies, overlapping belt or rail pieces).
 - Before a model or renderer task is done, list for every pair of overlapping boxes whether any faces share a plane. Fix by ending a part exactly at its neighbour's edge, insetting the inner part (about 0.05 px), or giving repeated parts a tiny depth step per copy (about 0.005 px).
