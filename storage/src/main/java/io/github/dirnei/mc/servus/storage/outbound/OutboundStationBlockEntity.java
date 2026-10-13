@@ -1,59 +1,43 @@
 package io.github.dirnei.mc.servus.storage.outbound;
 
-import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.core.component.DataComponentGetter;
-import io.github.dirnei.mc.servus.foundation.block.SidedBlockEntity;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.storage.network.DeliveryTarget;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
-import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
-import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.storage.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import io.github.dirnei.mc.servus.storage.station.StationBlockEntity;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
-import net.minecraft.core.component.DataComponentMap;
-import net.neoforged.neoforge.model.data.ModelData;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
  * The outbound dock: the warehouse keeps the buffer stocked at the keep
  * amounts, Push sides hand the buffer to neighbours, Output sides let
  * neighbours take from it. The machine it serves stands behind it. Deliveries
- * for work orders land here as well.
+ * for work orders land here as well. Keep slots are configuration and never drop.
  */
-public class OutboundStationBlockEntity extends StorageNodeBlockEntity implements WoodHolder, MenuProvider, DeliveryTarget, SidedBlockEntity {
-
-    private final WoodSlot woodSlot = new WoodSlot(this);
+public class OutboundStationBlockEntity extends StationBlockEntity implements DeliveryTarget {
 
     public static final int KEEP_LIMIT = 4096;
 
@@ -111,27 +95,13 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         }
     };
 
-    private final SideConfig sides = SideConfig.outbound();
     private int pushTimer;
     private ItemStack shortStack = ItemStack.EMPTY;
     private String shortReason = "";
 
     public OutboundStationBlockEntity(BlockPos pos, BlockState state) {
-        super(ServusStorageBlockEntities.OUTBOUND_STATION.get(), pos, state);
-        // The front is where the player stands: never an item side. The machine sits behind the station.
-        sides.lock(RelativeSide.FRONT, SideMode.DISABLED);
-        sides.set(RelativeSide.BACK, SideMode.PUSH);
-    }
-
-    @Override
-    public NodeKind kind() {
-        return NodeKind.STATION;
-    }
-
-    @Override
-    public Direction facing() {
-        BlockState state = getBlockState();
-        return state.hasProperty(OutboundStationBlock.FACING) ? state.getValue(OutboundStationBlock.FACING) : Direction.NORTH;
+        super(ServusStorageBlockEntities.OUTBOUND_STATION.get(), pos, state, SideConfig.outbound());
+        sideConfig().set(RelativeSide.BACK, SideMode.PUSH);
     }
 
     /** The block behind the station, the machine it serves when it is one. */
@@ -139,6 +109,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         return worldPosition.relative(facing().getOpposite());
     }
 
+    @Override
     public ItemSlots buffer() {
         return buffer;
     }
@@ -152,40 +123,12 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         return buffer;
     }
 
-    // Sides
-
-    @Override
-    public SideConfig sideConfig() {
-        return sides;
-    }
-
     /** The item handler a neighbour on that side sees: the extract only view on every side that is not Off, so pipes connect to Push and Output sides. */
     public ResourceHandler<ItemResource> handlerFor(Direction side) {
         if (side == null || sideMode(side) != SideMode.DISABLED) {
             return extractOnly;
         }
         return null;
-    }
-
-    @Override
-    public SideMode cycleSide(RelativeSide side) {
-        SideMode mode = sides.cycle(side);
-        setChanged();
-        if (level != null && !level.isClientSide()) {
-            level.invalidateCapabilities(worldPosition);
-            BlockState state = getBlockState();
-            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
-        }
-        return mode;
-    }
-
-    public boolean isEmpty() {
-        for (int i = 0; i < buffer.getSlots(); i++) {
-            if (!buffer.getStackInSlot(i).isEmpty()) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /** How many of the key sit in the buffer. */
@@ -212,8 +155,6 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         }
     }
 
-    // Restocking state, written by the warehouse
-
     public ItemStack shortStack() {
         return shortStack;
     }
@@ -230,18 +171,6 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
                 : pending ? StorageNodeBlocks.Activity.WORKING : StorageNodeBlocks.Activity.IDLE);
     }
 
-    private void setActivity(StorageNodeBlocks.Activity activity) {
-        if (level == null || level.isClientSide()) {
-            return;
-        }
-        BlockState state = getBlockState();
-        if (state.hasProperty(StorageNodeBlocks.ACTIVITY) && state.getValue(StorageNodeBlocks.ACTIVITY) != activity) {
-            level.setBlock(worldPosition, state.setValue(StorageNodeBlocks.ACTIVITY, activity), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
-        }
-    }
-
-    // Pushing
-
     /** Pushes the buffer into every Push side's neighbour every push interval. */
     public static void serverTick(Level level, BlockPos pos, BlockState state, OutboundStationBlockEntity station) {
         if (++station.pushTimer < StorageStatsManager.INSTANCE.pushInterval()) {
@@ -256,38 +185,23 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
                 continue;
             }
             ItemView neighbour = ItemView.of(level.getCapability(Capabilities.Item.BLOCK, pos.relative(direction), direction.getOpposite()));
-            if (neighbour == null) {
-                continue;
-            }
-            for (int i = 0; i < station.buffer.getSlots(); i++) {
-                ItemStack stack = station.buffer.getStackInSlot(i);
-                if (stack.isEmpty()) {
-                    continue;
-                }
-                ItemStack left = neighbour.insertItem(stack.copy(), false);
-                if (left.getCount() != stack.getCount()) {
-                    station.buffer.setStackInSlot(i, left);
-                }
+            if (neighbour != null) {
+                station.pushInto(neighbour);
             }
         }
     }
 
-    /** Drops every stack in the buffer at the station; keep slots are configuration and stay. */
-    public void dropContents(Level level, BlockPos pos) {
+    private void pushInto(ItemView neighbour) {
         for (int i = 0; i < buffer.getSlots(); i++) {
             ItemStack stack = buffer.getStackInSlot(i);
-            if (!stack.isEmpty()) {
-                Block.popResource(level, pos, stack);
-                buffer.setStackInSlot(i, ItemStack.EMPTY);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            ItemStack left = neighbour.insertItem(stack.copy(), false);
+            if (left.getCount() != stack.getCount()) {
+                buffer.setStackInSlot(i, left);
             }
         }
-    }
-
-    // Menu
-
-    @Override
-    public Component getDisplayName() {
-        return Component.translatable(getBlockState().getBlock().getDescriptionId());
     }
 
     @Override
@@ -295,17 +209,14 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         return new OutboundStationMenu(containerId, playerInventory, this);
     }
 
-    // Persistence and sync
-
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
-        woodSlot.save(output);
+        saveStation(output, tag);
         tag.put("Items", buffer.serializeNBT(registries));
         tag.put("Keep", keep.serializeNBT(registries));
-        tag.putByteArray("Sides", sides.toBytes());
         output.store(tag);
     }
 
@@ -314,84 +225,22 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
-        woodSlot.load(input);
+        loadStation(input, tag);
         if (tag.contains("Items")) {
-            load(buffer, tag.getCompoundOrEmpty("Items"), registries);
+            loadSlots(buffer, keepSized(), tag.getCompoundOrEmpty("Items"), registries);
         }
         if (tag.contains("Keep")) {
-            load(keep, tag.getCompoundOrEmpty("Keep"), registries);
-        }
-        if (tag.contains("Sides")) {
-            sides.fromBytes(tag.getByteArray("Sides").orElse(new byte[0]));
+            loadSlots(keep, keepSized(), tag.getCompoundOrEmpty("Keep"), registries);
         }
     }
 
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = super.getUpdateTag(registries);
-        woodSlot.save(tag);
-        tag.putByteArray("Sides", sides.toBytes());
-        return tag;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
-
-    private static void load(ItemSlots into, CompoundTag tag, HolderLookup.Provider registries) {
-        ItemSlots saved = new ItemSlots() {
+    /** Slots that read back keep amounts above a stack. */
+    private static ItemSlots keepSized() {
+        return new ItemSlots() {
             @Override
             public int getSlotLimit(int slot) {
                 return KEEP_LIMIT;
             }
         };
-        saved.deserializeNBT(registries, tag);
-        for (int i = 0; i < into.getSlots(); i++) {
-            into.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
-        }
-    }
-
-    // Wood: the planks the block was crafted from, shown as its boards
-
-    @Override
-    public WoodSlot woodSlot() {
-        return woodSlot;
-    }
-
-    @Override
-    protected void applyImplicitComponents(DataComponentGetter input) {
-        super.applyImplicitComponents(input);
-        woodSlot.apply(input.get(WoodContent.WOOD.get()));
-    }
-
-    @Override
-    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
-        super.collectImplicitComponents(builder);
-        woodSlot.collect(builder);
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(ValueOutput output) {
-        super.removeComponentsFromTag(output);
-        WoodSlot.removeFromTag(output);
-    }
-
-    @Override
-    public ModelData getModelData() {
-        return woodSlot.modelData();
-    }
-
-    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
-    @Override
-    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        super.preRemoveSideEffects(pos, state);
-        Level level = this.level;
-        if (level == null) {
-            return;
-        }
-        OutboundStationBlockEntity station = this;
-        station.dropContents(level, pos);
     }
 }
