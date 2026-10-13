@@ -19,11 +19,9 @@ final class SinkHandlers {
     static final class Items extends LegacyItemHandler {
 
         private final SinkBlockEntity sink;
-        private final boolean unlimited;
 
-        Items(SinkBlockEntity sink, boolean unlimited) {
+        Items(SinkBlockEntity sink) {
             this.sink = sink;
-            this.unlimited = unlimited;
         }
 
         @Override
@@ -41,15 +39,7 @@ final class SinkHandlers {
             if (stack.isEmpty()) {
                 return stack;
             }
-            long granted;
-            if (unlimited) {
-                granted = stack.getCount();
-                if (!simulate) {
-                    sink.markVoided();
-                }
-            } else {
-                granted = sink.grantItems(stack.getCount(), simulate);
-            }
+            long granted = sink.grantItems(stack.getCount(), simulate);
             if (granted <= 0) {
                 return stack;
             }
@@ -72,7 +62,7 @@ final class SinkHandlers {
         }
     }
 
-    /** One endless empty tank that takes any fluid. */
+    /** One endless empty tank that takes any fluid; an unlimited one ignores the budget. */
     static final class Fluid extends LegacyFluidHandler {
 
         private final SinkBlockEntity sink;

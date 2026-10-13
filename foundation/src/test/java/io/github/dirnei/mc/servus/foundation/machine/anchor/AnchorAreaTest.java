@@ -62,11 +62,11 @@ class AnchorAreaTest {
 
     @Test
     void shrinkingRadiusClampsOffset() {
-        AnchorArea area = AnchorArea.of(2, 2, -2).withRadius(1);
+        AnchorArea area = AnchorArea.of(1, 2, -2);
         assertEquals(1, area.offsetX());
         assertEquals(-1, area.offsetZ());
         assertEquals(9, area.size());
-        AnchorArea gone = area.withRadius(0);
+        AnchorArea gone = AnchorArea.of(0, area.offsetX(), area.offsetZ());
         assertEquals(0, gone.offsetX());
         assertEquals(0, gone.offsetZ());
     }

@@ -2,8 +2,6 @@ package io.github.dirnei.mc.servus.foundation.machine.sink;
 
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.util.ExtraCodecs;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import io.github.dirnei.mc.servus.foundation.ServusFoundation;
@@ -22,8 +20,6 @@ public final class SinkStatsManager extends SimpleJsonResourceReloadListener<Jso
 
     public static final String DIRECTORY = "sink";
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "sink");
-
-    private static final Gson GSON = new GsonBuilder().create();
 
     public static final SinkStatsManager INSTANCE = new SinkStatsManager();
 

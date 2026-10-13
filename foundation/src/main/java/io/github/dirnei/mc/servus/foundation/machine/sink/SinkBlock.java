@@ -78,8 +78,6 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
         return new SinkBlockEntity(pos, state);
     }
 
-    // Layout
-
     public static boolean isFormed(BlockState state) {
         return state.getBlock() instanceof SinkBlock && state.getValue(FORMED);
     }
@@ -115,8 +113,6 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
         }
         return level.getBlockEntity(controllerPos) instanceof SinkBlockEntity sink ? sink : null;
     }
-
-    // Forming and unforming
 
     /**
      * Forms a Sink from the cube whose front contains {@code pos}, clicked on {@code front}.
@@ -191,8 +187,6 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
         return state.getValue(FORMED) ? PushReaction.BLOCK : null;
     }
 
-    // Active state
-
     /** Clears the active state once nothing was voided for the active time, or waits for the rest of it. */
     @Override
     protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
@@ -220,22 +214,18 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
         return super.updateShape(state, level, ticks, pos, direction, neighborPos, neighborState, random);
     }
 
-    // Interaction
-
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                               InteractionHand hand, BlockHitResult hitResult) {
         if (stack.getItem() instanceof ConfigurationCarrotItem) {
-            // The carrot item handles the click instead of opening the GUI.
             return InteractionResult.PASS;
         }
         if (!state.getValue(FORMED)) {
-            // Casings let held items do their thing, so the cube can be built by clicking on it.
-            return stack.isEmpty() ? InteractionResult.TRY_WITH_EMPTY_HAND
-                    : InteractionResult.PASS;
+            // Held items act normally on casings, so the cube can be built by clicking on it.
+            return stack.isEmpty() ? InteractionResult.TRY_WITH_EMPTY_HAND : InteractionResult.PASS;
         }
         if (stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof ChimneyBlock) {
-            // Chimney blocks go on top without sneaking.
+            // Lets Chimney blocks go on top without sneaking.
             return InteractionResult.PASS;
         }
         SinkBlockEntity sink = controller(level, pos, state);

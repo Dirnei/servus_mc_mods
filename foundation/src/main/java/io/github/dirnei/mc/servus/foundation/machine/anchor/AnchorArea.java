@@ -66,11 +66,6 @@ public record AnchorArea(int radius, int offsetX, int offsetZ) {
         return new AnchorArea(radius, offsetX + shift.dx(), offsetZ + shift.dz());
     }
 
-    /** The same offset clamped to another radius, for when upgrades go in or out. */
-    public AnchorArea withRadius(int newRadius) {
-        return new AnchorArea(newRadius, offsetX, offsetZ);
-    }
-
     /** Chunks along one side of the square. */
     public int side() {
         return 2 * radius + 1;

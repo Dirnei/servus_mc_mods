@@ -179,7 +179,7 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
         }
         Set<String> chunks = EnderAnchorData.chunks(server.dimension(), areaChunks());
         if (data.chunksOf(owner, key).equals(chunks)) {
-            // Already counted with this area: a lowered cap does not release it.
+            // Already counted with this area, so a lowered cap does not release it.
             return STATUS_ACTIVE;
         }
         // New or changed area: checked against the load without this anchor's old area.
@@ -344,7 +344,7 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
         if (input.getLongOr("TicketsAt", Long.MIN_VALUE) == worldPosition.asLong()) {
             held.addAll(input.read("Tickets", Codec.LONG.listOf()).orElse(List.of()));
         } else if (input.getBooleanOr("Ticket", false)) {
-            // Saved before the area: the anchor held its own chunk.
+            // Older saves only flag that the anchor held its own chunk.
             held.add(ChunkPos.pack(worldPosition));
         }
     }

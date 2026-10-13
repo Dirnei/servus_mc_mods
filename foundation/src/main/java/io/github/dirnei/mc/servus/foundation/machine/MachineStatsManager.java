@@ -2,8 +2,6 @@ package io.github.dirnei.mc.servus.foundation.machine;
 
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.util.ExtraCodecs;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import io.github.dirnei.mc.servus.foundation.ServusFoundation;
@@ -22,8 +20,6 @@ public final class MachineStatsManager extends SimpleJsonResourceReloadListener<
     public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath("servus_foundation", "machine_stats_manager");
 
     public static final String DIRECTORY = "machine";
-
-    private static final Gson GSON = new GsonBuilder().create();
 
     public static final MachineStatsManager INSTANCE = new MachineStatsManager();
 

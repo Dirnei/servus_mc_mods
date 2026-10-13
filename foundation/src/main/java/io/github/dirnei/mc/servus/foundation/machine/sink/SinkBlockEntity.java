@@ -46,7 +46,7 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
     private final VoidBudget itemBudget = new VoidBudget();
     private final VoidBudget fluidBudget = new VoidBudget();
     private final VoidBudget energyBudget = new VoidBudget();
-    private final SinkHandlers.Items itemHandler = new SinkHandlers.Items(this, false);
+    private final SinkHandlers.Items itemHandler = new SinkHandlers.Items(this);
     private final SinkHandlers.Fluid fluidHandler = new SinkHandlers.Fluid(this, false);
     private final SinkHandlers.Energy energyHandler = new SinkHandlers.Energy(this);
     private final SinkHandlers.Fluid manualFluidHandler = new SinkHandlers.Fluid(this, true);
@@ -84,8 +84,6 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
     public SinkBlockEntity(BlockPos pos, BlockState state) {
         super(MachineContent.SINK_ENTITY.get(), pos, state);
     }
-
-    // Rates and budgets
 
     private static SinkStats stats() {
         return SinkStatsManager.INSTANCE.stats();
@@ -151,8 +149,6 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
         return (int) Math.max(0, Math.min(left, Integer.MAX_VALUE));
     }
 
-    // Chimney
-
     /** Counts the columns on the four top parts, keeps the tallest and syncs it when it changed. */
     public void recountChimney() {
         if (level == null || level.isClientSide()) {
@@ -207,8 +203,6 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
         }
     }
 
-    // Capabilities
-
     /** The item handler automation sees on this part from {@code side}, or null on a casing or a front face. */
     public ResourceHandler<ItemResource> itemHandler(Direction side) {
         SinkBlockEntity controller = acceptingController(side);
@@ -247,8 +241,7 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
         return data;
     }
 
-    // Persistence: nothing is saved; the height is recounted on load and only the client update tag carries it.
-
+    /** Nothing is saved; the chimney is recounted on load, so only the client update tag carries it. */
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
@@ -270,8 +263,6 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
     }
-
-    // MenuProvider
 
     @Override
     public Component getDisplayName() {
