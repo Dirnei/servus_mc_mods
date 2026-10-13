@@ -8,6 +8,6 @@
     "servus_foundation:electric_pump",
     "servus_foundation:sink",
     "servus_foundation:chimney",
-    "servus_foundation:chunk_loader"
+    "servus_foundation:ender_anchor"
   ]
 }

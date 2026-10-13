@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "C": "servus_foundation:chunk_loader",
+    "C": "servus_foundation:ender_anchor",
     "E": "minecraft:ender_pearl",
     "I": "minecraft:iron_ingot",
     "R": "minecraft:redstone"

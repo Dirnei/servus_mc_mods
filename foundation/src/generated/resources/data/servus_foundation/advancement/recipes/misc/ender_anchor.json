@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "servus_foundation:chunk_loader"
+        "recipe": "servus_foundation:ender_anchor"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "servus_foundation:chunk_loader"
+      "servus_foundation:ender_anchor"
     ]
   }
 }

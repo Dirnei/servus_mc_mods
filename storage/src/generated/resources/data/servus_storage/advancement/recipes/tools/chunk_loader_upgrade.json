@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_chunk_loader": {
+    "has_ender_anchor": {
       "conditions": {
         "items": [
           {
-            "items": "servus_foundation:chunk_loader"
+            "items": "servus_foundation:ender_anchor"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_chunk_loader"
+      "has_ender_anchor"
     ]
   ],
   "rewards": {

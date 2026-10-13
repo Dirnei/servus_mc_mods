@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "servus_foundation:item/chunk_loader"
+    "model": "servus_foundation:item/ender_anchor"
   }
 }

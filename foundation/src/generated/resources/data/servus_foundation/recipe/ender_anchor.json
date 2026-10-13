@@ -5,14 +5,15 @@
     "C": "minecraft:copper_ingot",
     "E": "minecraft:ender_pearl",
     "I": "minecraft:iron_ingot",
+    "O": "minecraft:obsidian",
     "R": "minecraft:redstone"
   },
   "pattern": [
     "ICI",
     "RER",
-    "ICI"
+    "OCO"
   ],
   "result": {
-    "id": "servus_foundation:chunk_loader"
+    "id": "servus_foundation:ender_anchor"
   }
 }
