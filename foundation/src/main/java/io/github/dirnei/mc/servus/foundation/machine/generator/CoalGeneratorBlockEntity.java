@@ -20,7 +20,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -62,21 +61,6 @@ public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
     @Override
     protected int fuelSlot() {
         return SLOT_FUEL;
-    }
-
-    @Override
-    protected boolean isInputSlot(int slot) {
-        return false;
-    }
-
-    @Override
-    protected boolean isOutputSlot(int slot) {
-        return false;
-    }
-
-    @Override
-    protected boolean acceptsInput(int slot, ItemStack stack) {
-        return false;
     }
 
     @Override

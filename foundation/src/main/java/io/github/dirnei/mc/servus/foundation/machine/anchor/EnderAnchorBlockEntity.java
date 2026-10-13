@@ -281,21 +281,6 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
     }
 
     @Override
-    protected boolean isInputSlot(int slot) {
-        return false;
-    }
-
-    @Override
-    protected boolean isOutputSlot(int slot) {
-        return false;
-    }
-
-    @Override
-    protected boolean acceptsInput(int slot, ItemStack stack) {
-        return false;
-    }
-
-    @Override
     protected int dataCount() {
         return DATA_COUNT_ANCHOR;
     }

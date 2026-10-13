@@ -110,16 +110,24 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
 
     protected abstract MachineStats defaultStats();
 
-    protected abstract boolean isInputSlot(int slot);
+    /** Whether automation and the machine's menu may insert into {@code slot}; none by default. */
+    protected boolean isInputSlot(int slot) {
+        return false;
+    }
 
-    protected abstract boolean isOutputSlot(int slot);
+    /** Whether the machine pushes and automation may extract from {@code slot}; none by default. */
+    protected boolean isOutputSlot(int slot) {
+        return false;
+    }
 
     protected boolean isFuelSlot(int slot) {
         return false;
     }
 
     /** Whether the stack may go into an input slot. Fuel slots are checked separately. */
-    protected abstract boolean acceptsInput(int slot, ItemStack stack);
+    protected boolean acceptsInput(int slot, ItemStack stack) {
+        return false;
+    }
 
     /** One server tick of machine logic. Return true while the machine is working, for the lit state. */
     protected abstract boolean tick();
