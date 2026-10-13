@@ -82,8 +82,7 @@ public final class TerminalSpeedGameTests {
         }
         helper.setBlock(PRODUCTION, ServusStorageBlocks.PRODUCTION_TERMINAL.get().defaultBlockState()
                 .setValue(ProductionTerminalBlock.FACING, Direction.NORTH));
-        CpuBuild.cube(helper, CPU);
-        helper.assertTrue(CpuBuild.form(helper, CPU).formed(), "the box should form");
+        CpuBuild.formCube(helper, CPU);
     }
 
     private static boolean ready(GameTestHelper helper) {

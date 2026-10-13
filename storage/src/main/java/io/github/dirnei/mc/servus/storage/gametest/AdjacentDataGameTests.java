@@ -6,10 +6,8 @@ import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
-import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
@@ -44,7 +42,7 @@ public final class AdjacentDataGameTests {
     }
 
     private static void patterns(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
+        StationJobs.patternStorage(helper, pos);
     }
 
     private static void terminal(GameTestHelper helper, BlockPos pos) {
@@ -52,7 +50,7 @@ public final class AdjacentDataGameTests {
     }
 
     private static void station(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
+        StationJobs.craftingStation(helper, pos);
     }
 
     private static void row(GameTestHelper helper) {

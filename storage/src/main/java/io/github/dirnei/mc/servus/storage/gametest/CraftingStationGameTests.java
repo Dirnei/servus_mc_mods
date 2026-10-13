@@ -7,7 +7,6 @@ import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabili
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
@@ -59,8 +58,7 @@ public final class CraftingStationGameTests {
     }
 
     private static CraftingStationBlockEntity plainStation(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(pos, CraftingStationBlockEntity.class);
+        CraftingStationBlockEntity station = StationJobs.craftingStation(helper, pos);
         // No warehouse on the station's line pays for its work here.
         PowerFixtures.freeStation(station);
         return station;

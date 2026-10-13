@@ -8,12 +8,10 @@ import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
-import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.storage.production.ProductionPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
@@ -62,17 +60,14 @@ public final class ProductionTerminalGameTests {
     private static void setup(GameTestHelper helper, boolean withCpu) {
         MiniWarehouse.under(helper, CONTROLLER);
         TerminalWiring.place(helper, ACCESS);
-        helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(STATION, CraftingStationBlockEntity.class);
-        helper.setBlock(PATTERNS, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
-        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
+        CraftingStationBlockEntity station = StationJobs.craftingStation(helper, STATION);
+        PatternStorageBlockEntity patterns = StationJobs.patternStorage(helper, PATTERNS);
         patterns.set(0, StationJobs.sticks());
-        for (BlockPos pos : List.of(new BlockPos(3, 2, 3), new BlockPos(4, 2, 3), new BlockPos(4, 2, 2), new BlockPos(5, 2, 2))) {
+        for (BlockPos pos : CpuLine.DUCTS) {
             TerminalWiring.dataDuct(helper, pos);
         }
         if (withCpu) {
-            CpuBuild.slotted(helper, CPU);
-            helper.assertTrue(CpuBuild.form(helper, CPU).formed(), "the box should form");
+            CpuBuild.formSlotted(helper, CPU);
         }
         terminal(helper, TERMINAL);
     }
@@ -349,8 +344,8 @@ public final class ProductionTerminalGameTests {
     public static void stationAndPatternStorageAloneDark(GameTestHelper helper) {
         BlockPos station = LONE;
         BlockPos patterns = LONE.east(1).south(0).west(2);
-        helper.setBlock(station, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        helper.setBlock(patterns, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
+        StationJobs.craftingStation(helper, station);
+        StationJobs.patternStorage(helper, patterns);
         helper.runAfterDelay(25, () -> {
             helper.assertTrue(!WarehouseFixtures.lit(helper, station), "the station lamp should stay dark");
             helper.assertTrue(!WarehouseFixtures.lit(helper, patterns), "the pattern storage lamp should stay dark");

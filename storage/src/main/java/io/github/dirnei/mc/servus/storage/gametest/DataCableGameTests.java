@@ -11,10 +11,8 @@ import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsB
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -77,8 +75,7 @@ public final class DataCableGameTests {
     }
 
     private static CraftingStationBlockEntity sticksStation(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(pos, CraftingStationBlockEntity.class);
+        CraftingStationBlockEntity station = StationJobs.craftingStation(helper, pos);
         return station;
     }
 

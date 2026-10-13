@@ -6,7 +6,6 @@ import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -72,7 +71,7 @@ public final class PacketInletGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void packetsIntoTerminalOutput(GameTestHelper helper) {
         MiniWarehouse warehouse = line(helper);
-        helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
+        StationJobs.craftingStation(helper, STATION);
         helper.runAfterDelay(10, () -> {
             StorageTerminalBlockEntity terminal = warehouse.terminal();
             terminal.newRequest(helper.getLevel(), ItemKey.of(new ItemStack(Items.STICK)), 4);
@@ -86,7 +85,7 @@ public final class PacketInletGameTests {
     @ServusGameTest(timeoutTicks = 400)
     public static void packetsIntoTerminalInput(GameTestHelper helper) {
         MiniWarehouse warehouse = line(helper);
-        helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
+        StationJobs.craftingStation(helper, STATION);
         helper.runAfterDelay(10, () -> {
             StorageTerminalBlockEntity terminal = warehouse.terminal();
             send(helper, STATION, warehouse.terminalPos(), new ItemStack(Items.BREAD, 5));
@@ -102,8 +101,7 @@ public final class PacketInletGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void packetsFeedCraftingStation(GameTestHelper helper) {
         MiniWarehouse warehouse = line(helper);
-        helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(STATION, CraftingStationBlockEntity.class);
+        CraftingStationBlockEntity station = StationJobs.craftingStation(helper, STATION);
         StationJobs.sticksJob(station, 4);
         // Full outputs keep it from crafting, so the planks stay in the inputs.
         for (int slot = 0; slot < station.outputs().getSlots(); slot++) {

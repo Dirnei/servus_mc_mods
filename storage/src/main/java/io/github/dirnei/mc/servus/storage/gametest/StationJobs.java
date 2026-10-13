@@ -1,13 +1,20 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
+import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
+import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import java.util.List;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-/** Patterns and station jobs the Storage GameTests share. */
+/** Crafting Stations, Pattern Storages, patterns and station jobs the Storage GameTests share. */
 final class StationJobs {
 
     private StationJobs() {
@@ -32,6 +39,18 @@ final class StationJobs {
         ItemStack planks = new ItemStack(Items.OAK_PLANKS);
         return new EncodedPattern(Identifier.withDefaultNamespace("crafting_table"),
                 List.of(planks, planks, ItemStack.EMPTY, planks, planks), new ItemStack(Items.CRAFTING_TABLE));
+    }
+
+    /** A Crafting Station facing north. */
+    static CraftingStationBlockEntity craftingStation(GameTestHelper helper, BlockPos pos) {
+        helper.setBlock(pos, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
+        return helper.getBlockEntity(pos, CraftingStationBlockEntity.class);
+    }
+
+    /** A Pattern Storage facing north. */
+    static PatternStorageBlockEntity patternStorage(GameTestHelper helper, BlockPos pos) {
+        helper.setBlock(pos, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
+        return helper.getBlockEntity(pos, PatternStorageBlockEntity.class);
     }
 
     /** Hands the station a sticks job owned by a fresh test object, so it takes planks. */

@@ -58,7 +58,7 @@ public final class PipeAccessGameTests {
         helper.setBlock(PACKING, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         helper.setBlock(TERMINAL, ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState().setValue(StorageTerminalBlock.FACING, Direction.NORTH));
         helper.setBlock(HEAD, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
+        StationJobs.craftingStation(helper, STATION);
     }
 
     /** No face of the Packing Station, terminal, Field Head or Crafting Station offers items. */
@@ -204,8 +204,7 @@ public final class PipeAccessGameTests {
     /** A Crafting Station pulls planks from a chest on a Pull side and pushes its sticks into a chest once the job ends. */
     @ServusGameTest(timeoutTicks = 300)
     public static void craftingStationPullsAndPushes(GameTestHelper helper) {
-        helper.setBlock(CRAFT, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(CRAFT, CraftingStationBlockEntity.class);
+        CraftingStationBlockEntity station = StationJobs.craftingStation(helper, CRAFT);
         // No warehouse on the station's line pays for its work here.
         PowerFixtures.freeStation(station);
         helper.setBlock(CRAFT.west(), Blocks.CHEST.defaultBlockState());

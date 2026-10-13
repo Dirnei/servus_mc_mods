@@ -139,8 +139,7 @@ public final class ChainHandoffGameTests {
         patterns.set(0, new EncodedPattern(Identifier.withDefaultNamespace("stone_bricks"),
                 List.of(stone, stone, ItemStack.EMPTY, stone, stone), new ItemStack(Items.STONE_BRICKS, 4)));
         BlockPos cpuPos = new BlockPos(6, 1, 1);
-        CpuBuild.cube(helper, cpuPos);
-        helper.assertTrue(CpuBuild.form(helper, cpuPos).formed(), "the box should form");
+        CpuBuild.formCube(helper, cpuPos);
         int[] seen = watch(helper, controller, STONE);
         Waits.when(helper, () -> DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(line))
                 .map(network -> network.dataMembers(DataRole.PRODUCER).size() == 2

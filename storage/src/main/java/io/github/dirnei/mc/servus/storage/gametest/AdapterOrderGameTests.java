@@ -62,8 +62,7 @@ public final class AdapterOrderGameTests {
         for (BlockPos pos : List.of(new BlockPos(3, 2, 3), LINE, new BlockPos(5, 2, 3))) {
             TerminalWiring.dataDuct(helper, pos);
         }
-        CpuBuild.cube(helper, CPU);
-        helper.assertTrue(CpuBuild.form(helper, CPU).formed(), "the box should form");
+        CpuBuild.formCube(helper, CPU);
     }
 
     private static boolean ready(GameTestHelper helper) {

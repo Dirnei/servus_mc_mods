@@ -9,17 +9,14 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
-import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.storage.production.ProductionView;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -53,16 +50,14 @@ public final class StationHandsGameTests {
         HeavyRackBlockEntity rack = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
         TerminalWiring.place(helper, ACCESS);
         for (BlockPos station : List.of(STATION_A, STATION_B)) {
-            helper.setBlock(station, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
+            StationJobs.craftingStation(helper, station);
         }
-        for (BlockPos pos : List.of(new BlockPos(3, 2, 3), new BlockPos(4, 2, 3), new BlockPos(4, 2, 2), new BlockPos(5, 2, 2))) {
+        for (BlockPos pos : CpuLine.DUCTS) {
             TerminalWiring.dataDuct(helper, pos);
         }
-        helper.setBlock(PATTERNS, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
-        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
+        PatternStorageBlockEntity patterns = StationJobs.patternStorage(helper, PATTERNS);
         patterns.set(0, StationJobs.sticks());
-        CpuBuild.cube(helper, CPU);
-        helper.assertTrue(CpuBuild.form(helper, CPU).formed(), "the box should form");
+        CpuBuild.formCube(helper, CPU);
         return rack;
     }
 
@@ -142,7 +137,7 @@ public final class StationHandsGameTests {
         BlockPos beside = new BlockPos(3, 1, 3);
         helper.setBlock(STATION_A, Blocks.AIR.defaultBlockState());
         helper.setBlock(STATION_B, Blocks.AIR.defaultBlockState());
-        helper.setBlock(beside, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
+        StationJobs.craftingStation(helper, beside);
         Waits.when(helper, () -> DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(4, 2, 2)))
                 .map(network -> network.dataMembers(DataRole.PRODUCER).size() == 1
                         && CpuOrders.cpus(helper.getLevel(), network).size() == 1)
@@ -188,8 +183,7 @@ public final class StationHandsGameTests {
     /** A station without a job refuses packets of planks through its inlet; with a job it takes them. */
     @ServusGameTest(timeoutTicks = 40)
     public static void stationWithoutJobRefusesPackets(GameTestHelper helper) {
-        helper.setBlock(LONE, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(LONE, CraftingStationBlockEntity.class);
+        CraftingStationBlockEntity station = StationJobs.craftingStation(helper, LONE);
         ItemView inlet = PacketInlets
                 .handler(helper.getLevel(), helper.absolutePos(LONE), Direction.UP);
         helper.assertTrue(inlet != null, "the station has a packet inlet");
@@ -223,8 +217,7 @@ public final class StationHandsGameTests {
     /** A station with crafts left refuses another owner's job; the same owner may hand it again. */
     @ServusGameTest(timeoutTicks = 20)
     public static void secondJobIsRefused(GameTestHelper helper) {
-        helper.setBlock(LONE, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(LONE, CraftingStationBlockEntity.class);
+        CraftingStationBlockEntity station = StationJobs.craftingStation(helper, LONE);
         Object owner = StationJobs.sticksJob(station, 2);
         EncodedPattern torch = new EncodedPattern(Identifier.withDefaultNamespace("torch"),
                 List.of(ItemStack.EMPTY, new ItemStack(Items.COAL), ItemStack.EMPTY, ItemStack.EMPTY, new ItemStack(Items.STICK)),

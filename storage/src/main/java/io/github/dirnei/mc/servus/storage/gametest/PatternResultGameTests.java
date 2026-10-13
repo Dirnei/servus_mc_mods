@@ -7,17 +7,14 @@ import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
-import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.storage.pattern.StoredPatterns;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalCraftables;
 import java.util.List;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -62,7 +59,7 @@ public final class PatternResultGameTests {
     }
 
     private static PatternStorageBlockEntity lone(GameTestHelper helper) {
-        helper.setBlock(LONE, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
+        StationJobs.patternStorage(helper, LONE);
         return helper.getBlockEntity(LONE, PatternStorageBlockEntity.class);
     }
 

@@ -6,16 +6,13 @@ import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -51,6 +48,8 @@ final class CpuLine {
     static final BlockPos PATTERNS = new BlockPos(4, 3, 2);
 
     static final BlockPos CPU_A = new BlockPos(6, 1, 1);
+    /** The data ducts from the Packing Station to the Crafting Station and on toward the CPU. */
+    static final List<BlockPos> DUCTS = List.of(new BlockPos(3, 2, 3), new BlockPos(4, 2, 3), new BlockPos(4, 2, 2), new BlockPos(5, 2, 2));
 
     static final ItemKey STICK = ItemKey.of(new ItemStack(Items.STICK));
 
@@ -67,9 +66,8 @@ final class CpuLine {
 
     /** A plain station and a Pattern Storage with the sticks pattern on the line. */
     static CraftingStationBlockEntity sticksStation(GameTestHelper helper) {
-        helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        helper.setBlock(PATTERNS, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
-        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
+        StationJobs.craftingStation(helper, STATION);
+        PatternStorageBlockEntity patterns = StationJobs.patternStorage(helper, PATTERNS);
         patterns.set(0, StationJobs.sticks());
         return helper.getBlockEntity(STATION, CraftingStationBlockEntity.class);
     }
@@ -86,7 +84,7 @@ final class CpuLine {
         WarehouseFixtures.garage(helper, GARAGE, Direction.EAST, 1);
         TerminalWiring.place(helper, ACCESS);
         sticksStation(helper);
-        for (BlockPos pos : List.of(new BlockPos(3, 2, 3), new BlockPos(4, 2, 3), new BlockPos(4, 2, 2), new BlockPos(5, 2, 2))) {
+        for (BlockPos pos : DUCTS) {
             TerminalWiring.dataDuct(helper, pos);
         }
         if (withCpu) {

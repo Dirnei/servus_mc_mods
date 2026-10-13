@@ -8,13 +8,11 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
-import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.storage.production.ProductionPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionTerminalBlockEntity;
@@ -59,13 +57,12 @@ public final class PatternGameTests {
     private static void setup(GameTestHelper helper, boolean withCpu, boolean twoStorages) {
         MiniWarehouse.under(helper, CONTROLLER);
         TerminalWiring.place(helper, ACCESS);
-        helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        for (BlockPos pos : List.of(new BlockPos(3, 2, 3), new BlockPos(4, 2, 3), new BlockPos(4, 2, 2), DUCT)) {
+        StationJobs.craftingStation(helper, STATION);
+        for (BlockPos pos : CpuLine.DUCTS) {
             TerminalWiring.dataDuct(helper, pos);
         }
         if (withCpu) {
-            CpuBuild.cube(helper, CPU);
-            helper.assertTrue(CpuBuild.form(helper, CPU).formed(), "the box should form");
+            CpuBuild.formCube(helper, CPU);
         }
         helper.setBlock(TERMINAL, ServusStorageBlocks.PRODUCTION_TERMINAL.get().defaultBlockState());
         storage(helper, STORAGE_A);
@@ -75,7 +72,7 @@ public final class PatternGameTests {
     }
 
     private static void storage(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
+        StationJobs.patternStorage(helper, pos);
     }
 
     private static DataNetwork line(GameTestHelper helper) {

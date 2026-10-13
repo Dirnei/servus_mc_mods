@@ -163,8 +163,7 @@ public final class BlockStyleGameTests {
     /** The Pattern Storage lights follow saved and deleted patterns. */
     @ServusGameTest(timeoutTicks = 20)
     public static void patternLightsFollowPatterns(GameTestHelper helper) {
-        helper.setBlock(AT, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
-        PatternStorageBlockEntity storage = helper.getBlockEntity(AT, PatternStorageBlockEntity.class);
+        PatternStorageBlockEntity storage = StationJobs.patternStorage(helper, AT);
         helper.assertTrue(lights(helper) == 0, "an empty storage is dark");
         storage.set(0, StationJobs.sticks());
         storage.set(1, StationJobs.sticks());
