@@ -96,11 +96,6 @@ public class InboundStationBlockEntity extends StationBlockEntity {
         super(type, pos, state, SideConfig.inbound());
     }
 
-    /** Re-evaluates which rails link to this node, for when its facing changed. */
-    public void refreshRails() {
-        refreshNetworkConnections();
-    }
-
     @Override
     public ItemSlots buffer() {
         return buffer;

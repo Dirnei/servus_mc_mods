@@ -644,11 +644,6 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         return crop.getStackInSlot(0).copy();
     }
 
-    /** The one slot handler that stores the crop item. */
-    public ItemSlots cropHandler() {
-        return crop;
-    }
-
     /** Sets the crop of the field (empty clears it); a crop turns harvest only off. Items that plant no age crop are ignored. */
     public void setCrop(ItemStack stack) {
         if (stack.isEmpty()) {

@@ -163,10 +163,6 @@ public final class ShuttleFleet {
     }
 
 
-    public int garageCount() {
-        return garages.size();
-    }
-
     public int size() {
         return shuttles().size();
     }
@@ -391,22 +387,8 @@ public final class ShuttleFleet {
         return sum;
     }
 
-    private static int ofRequest(ShuttleJob job, int requestId) {
-        return job instanceof PickJob pick && pick.requestId() == requestId ? 1 : 0;
-    }
-
     private static int amountFor(ShuttleJob job, BlockPos destination, ItemKey key) {
         return job instanceof PickJob pick && pick.terminal().equals(destination) && pick.key().equals(key) ? pick.amount() : 0;
-    }
-
-    /** Queued picks of a request. */
-    public int queuedFor(int requestId) {
-        return sumQueued(job -> ofRequest(job, requestId));
-    }
-
-    /** Picks of a request a shuttle is working on. */
-    public int ridingFor(int requestId) {
-        return sumRiding(job -> ofRequest(job, requestId));
     }
 
     /** Items of the key on queued picks bound for a destination. */
