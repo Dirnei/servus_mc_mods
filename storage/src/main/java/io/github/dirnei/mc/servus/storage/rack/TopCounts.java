@@ -6,7 +6,7 @@ import java.util.Map;
 
 /**
  * Picks the keys with the highest counts. Ties keep the map's iteration
- * order, so callers pass a map in slot order. Pure, no Minecraft imports.
+ * order, so callers pass a map in slot order. Pure Java.
  */
 public final class TopCounts {
 

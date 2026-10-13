@@ -6,8 +6,7 @@ import java.util.Map;
 
 /**
  * Picks the wood a rack remembers from the planks in its recipe grid. The
- * id that appears most often wins; on a tie the middle entry decides. Pure,
- * no Minecraft imports.
+ * id that appears most often wins; on a tie the middle entry decides. Pure Java.
  */
 public final class RackWood {
 

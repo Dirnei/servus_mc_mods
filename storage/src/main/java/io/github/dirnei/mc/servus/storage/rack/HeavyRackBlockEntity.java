@@ -70,6 +70,8 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
     /** The planks block the rack was crafted from, or null for oak. */
     private Identifier wood;
     private int syncTimer;
+    /** Whether a rail stood in front of this bay at the last look; not saved, set on load. */
+    private boolean frontRail;
 
     public HeavyRackBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.HEAVY_RACK.get(), pos, state);
@@ -85,11 +87,6 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
     public ItemView stock() {
         return new ItemView(items);
     }
-
-    // Pipe access
-
-    /** Whether a rail stood in front of this bay at the last look; not saved, set on load. */
-    private boolean frontRail;
 
     @Override
     public void onLoad() {
@@ -232,8 +229,6 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
         return List.copyOf(result);
     }
 
-    // Menu
-
     @Override
     public Component getDisplayName() {
         Component name = Component.translatable(getBlockState().getBlock().getDescriptionId());
@@ -244,8 +239,6 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return HeavyRackMenu.forSection(containerId, playerInventory, this);
     }
-
-    // Ticking: throttle client syncs
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, HeavyRackBlockEntity rack) {
         if (!rack.syncPending) {
@@ -258,8 +251,6 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
         rack.syncPending = false;
         level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
     }
-
-    // Item components: the wood travels with the item
 
     @Override
     protected void applyImplicitComponents(DataComponentGetter input) {
@@ -281,8 +272,6 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
         super.removeComponentsFromTag(output);
         output.discard("Wood");
     }
-
-    // Persistence and sync
 
     private void writeWood(CompoundTag tag) {
         if (wood != null) {
@@ -350,16 +339,13 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
+    /** Drops the bay's items on the server when the block is removed. */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
-        Level level = this.level;
         if (level == null) {
             return;
         }
-        HeavyRackBlockEntity rack = this;
-        ItemSlots items = rack.items();
         for (int i = 0; i < items.getSlots(); i++) {
             ItemStack stack = items.getStackInSlot(i);
             if (!stack.isEmpty()) {

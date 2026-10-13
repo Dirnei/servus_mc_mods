@@ -6,7 +6,7 @@ import java.util.function.IntPredicate;
  * Walks the bays of one rack section along a row. Offsets count bays to the
  * right of the start bay (negative to the left). Two neighbouring bays belong
  * to the same section only when both say so: the right one joins left and the
- * left one joins right. Pure, no Minecraft imports.
+ * left one joins right. Pure Java.
  */
 public final class RackSection {
 

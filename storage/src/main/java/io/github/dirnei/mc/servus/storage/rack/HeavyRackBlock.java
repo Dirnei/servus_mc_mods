@@ -308,6 +308,7 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
         }
     }
 
+    /** Sneaking dismantles the bay into an item that keeps its stock; the carrot never turns a rack. */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         Level level = context.getLevel();
@@ -325,7 +326,6 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
                 level.removeBlock(pos, false);
             }
         }
-        // The carrot never turns a rack: its facing is a layout decision made at placement.
         return dismantle ? InteractionResult.SUCCESS : InteractionResult.PASS;
     }
 }

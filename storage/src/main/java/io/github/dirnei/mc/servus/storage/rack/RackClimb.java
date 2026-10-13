@@ -6,8 +6,7 @@ import java.util.List;
 /**
  * Rules for climbing the side posts of a rack like a ladder. Finds the
  * cells a player's box is pressed against, tells side faces from the front
- * and the back, and mirrors the vanilla ladder motion. Pure, no Minecraft
- * imports.
+ * and the back, and mirrors the vanilla ladder motion. Pure Java.
  */
 public final class RackClimb {
 

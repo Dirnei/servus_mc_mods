@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage.rack;
 
 /**
  * Whether a newly placed bay joins the section beside it. Sections hold at
- * most {@code max} bays and never change once built. Pure, no Minecraft imports.
+ * most {@code max} bays and never change once built. Pure Java.
  */
 public final class RackRow {
 

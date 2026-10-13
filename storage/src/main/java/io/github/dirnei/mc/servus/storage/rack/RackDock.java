@@ -5,7 +5,7 @@ import java.util.function.IntPredicate;
 /**
  * Whether a rack section is docked: a section is closed to pipes and hoppers
  * as soon as a warehouse rail stands in front of any of its bays, because
- * from then on only shuttles serve it. Pure, no Minecraft imports.
+ * from then on only shuttles serve it. Pure Java.
  */
 public final class RackDock {
 
