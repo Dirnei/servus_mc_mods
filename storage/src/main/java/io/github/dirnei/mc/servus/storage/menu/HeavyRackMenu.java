@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
+import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
@@ -51,15 +52,7 @@ public class HeavyRackMenu extends AbstractContainerMenu {
             }
         }
         this.rackSlots = index;
-        int inventoryY = 18 + rows() * 18 + 14;
-        for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < COLUMNS; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, inventoryY + row * 18));
-            }
-        }
-        for (int column = 0; column < COLUMNS; column++) {
-            addSlot(new Slot(playerInventory, column, 8 + column * 18, inventoryY + 58));
-        }
+        PlayerInventorySlots.add(this::addSlot, playerInventory, 8, 18 + rows() * 18 + 14);
     }
 
     /** Server side: the menu of the section the clicked bay belongs to. */
@@ -169,11 +162,7 @@ public class HeavyRackMenu extends AbstractContainerMenu {
         if (!moved) {
             return ItemStack.EMPTY;
         }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
+        QuickMoves.settle(slot, stack);
         return original;
     }
 

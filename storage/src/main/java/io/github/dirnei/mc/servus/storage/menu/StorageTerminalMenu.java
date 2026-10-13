@@ -3,14 +3,18 @@ package io.github.dirnei.mc.servus.storage.menu;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
-import io.github.dirnei.mc.servus.storage.order.OrderBook;
-import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.site.SiteRegistry;
 import io.github.dirnei.mc.servus.storage.terminal.CraftPreviewPayload;
+import io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
+import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
+import io.github.dirnei.mc.servus.storage.terminal.SiteRow;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.StockSyncPayload;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalCraftables;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Storage;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalRequests;
@@ -20,27 +24,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.ResultSlot;
-import net.minecraft.world.inventory.TransientCraftingContainer;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The terminal's output and input slots, the player inventory, a 3x3
@@ -51,7 +54,6 @@ import net.neoforged.neoforge.network.PacketDistributor;
  */
 public class StorageTerminalMenu extends AbstractContainerMenu {
 
-    private static final int SYNC_INTERVAL = 10;
     private static final int MAX_ENTRIES = 4096;
 
     private final StorageTerminalBlockEntity terminal;
@@ -64,11 +66,10 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     private final int resultIndex;
     private final CraftingContainer craftSlots = new TransientCraftingContainer(this, 3, 3);
     private final ResultContainer resultSlots = new ResultContainer();
+    private final PayloadSync<StockSyncPayload> sync = new PayloadSync<>(10, false, this::stock, StorageTerminalMenu::signature);
     private String message = "";
     /** The key of the other site the grid shows, empty for this site. */
     private String view = "";
-    private int syncTimer;
-    private long lastSignature = Long.MIN_VALUE;
     private long firstSyncTick = -1;
     /** Whether the crafting popup shows; only the client screen changes it. */
     private boolean craftOpen = true;
@@ -90,7 +91,6 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         inputStart = slots.size();
         for (int slot = 0; slot < terminal.input().getSlots(); slot++) {
             addSlot(new ResourceHandlerSlot(terminal.input(), terminal.input()::set, slot, Storage.inputX(slot), Storage.inputY(slot)) {
-                /** Items handed in are stored at this site: no input while another site is shown. */
                 @Override
                 public boolean mayPlace(ItemStack stack) {
                     return inputOpen() && super.mayPlace(stack);
@@ -147,10 +147,6 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         craftOpen = open;
     }
 
-    public boolean craftOpen() {
-        return craftOpen;
-    }
-
     /** Index of the first player inventory slot. */
     public int inventoryStart() {
         return inventoryStart;
@@ -169,8 +165,6 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     public CraftingContainer craftSlots() {
         return craftSlots;
     }
-
-    // Crafting grid (server side)
 
     /** The grid changed: work out the result like a crafting table does. */
     @Override
@@ -202,13 +196,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         }
     }
 
-    /** The warehouses the terminal reaches now, empty on the client. */
-    private List<WarehouseNetwork> warehouses() {
-        return terminal.getLevel() instanceof ServerLevel server
-                ? TerminalWarehouses.reachable(server, terminal.getBlockPos()) : List.of();
-    }
-
-    /** Hands a stack to the input row, which stores it through a Packing Station; returns what did not fit. Nothing while another site is shown. */
+    /** Hands a stack to the input row, which stores it through a Packing Station; returns what did not fit. */
     private ItemStack store(ItemStack stack) {
         return inputOpen() ? terminal.queueInput(stack) : stack;
     }
@@ -241,14 +229,13 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             }
         }
         slotsChanged(craftSlots);
-        forceSync();
+        sync.force();
     }
 
     /**
-     * JEI transfer: clears the grid, then fills each slot with the first
-     * acceptable stack found in the player inventory. The warehouse fills
-     * nothing, since its racks are served only by shuttles. With max, a slot
-     * takes up to a stack instead of one item.
+     * Recipe viewer transfer: clears the grid, then fills each slot with the
+     * first acceptable stack found in the player inventory, never from the
+     * warehouse. With max, a slot takes up to a stack instead of one item.
      */
     public void fillGrid(List<List<ItemStack>> options, boolean max) {
         if (player.level().isClientSide()) {
@@ -269,7 +256,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             }
         }
         slotsChanged(craftSlots);
-        forceSync();
+        sync.force();
     }
 
     private ItemStack takeFromInventory(ItemStack like, int count) {
@@ -308,15 +295,12 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         public boolean isActive() {
             return craftOpen;
         }
-
     }
 
     /** The first reachable warehouse, for rules and pushes. */
     private Optional<WarehouseNetwork> online() {
         return terminal.getLevel() instanceof ServerLevel server ? TerminalRequests.first(server, terminal.getBlockPos()) : Optional.empty();
     }
-
-    // Operations (server side)
 
     /**
      * Requests this many of the key; deliveries land in the output slots. While
@@ -326,27 +310,21 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         if (!(terminal.getLevel() instanceof ServerLevel server)) {
             message = "offline";
         } else if (!view.isEmpty()) {
-            message = io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.request(server, terminal, view, key, Math.max(1, amount));
+            message = RemoteTransfers.request(server, terminal, view, key, Math.max(1, amount));
         } else {
             message = TerminalRequests.request(server, terminal, key, Math.max(1, amount));
         }
-        forceSync();
-    }
-
-    /** The key of the site the grid shows, empty for this site. */
-    public String view() {
-        return view;
+        sync.force();
     }
 
     /** Shows another site of the team, or this site with an empty key; an unknown key shows this site. */
     public void selectSite(String site) {
         String asked = site == null ? "" : site;
         boolean known = asked.isEmpty() || terminal.getLevel() instanceof ServerLevel server
-                && io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.sites(server, terminal.getBlockPos()).stream()
-                .anyMatch(row -> row.key().equals(asked));
+                && RemoteTransfers.sites(server, terminal.getBlockPos()).stream().anyMatch(row -> row.key().equals(asked));
         view = known ? asked : "";
         message = "";
-        forceSync();
+        sync.force();
     }
 
     /** What crafting this many of the key would take, craft and miss, as the craft dialog shows it. */
@@ -370,7 +348,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     public void craft(ItemKey key, int amount) {
         message = terminal.getLevel() instanceof ServerLevel server
                 ? TerminalRequests.craft(server, terminal, key, Math.max(1, amount)) : "offline";
-        forceSync();
+        sync.force();
     }
 
     /** Sets the stock rule of an item; a negative minimum removes it. */
@@ -382,14 +360,14 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
                 network.setStockRule(key, min, max);
             }
         });
-        forceSync();
+        sync.force();
     }
 
     public void cancel(int requestId) {
         if (terminal.getLevel() instanceof ServerLevel server) {
             TerminalRequests.cancel(server, terminal, requestId);
         }
-        forceSync();
+        sync.force();
     }
 
     /** Stores the carried stack through the input row. */
@@ -398,12 +376,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             return;
         }
         setCarried(terminal.queueInput(getCarried()));
-        forceSync();
-    }
-
-    private void forceSync() {
-        lastSignature = Long.MIN_VALUE;
-        syncTimer = SYNC_INTERVAL;
+        sync.force();
     }
 
     /** Shift click: output and input slots go to the inventory, an inventory slot into the input row, which stores it. */
@@ -417,18 +390,14 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         if (stack.isEmpty()) {
             return ItemStack.EMPTY;
         }
+        ItemStack original = stack.copy();
         if (index == resultIndex) {
-            ItemStack original = stack.copy();
             access.execute((level, pos) -> stack.getItem().onCraftedBy(stack, player));
             if (!moveItemStackTo(stack, inventoryStart, gridStart, true)) {
                 return ItemStack.EMPTY;
             }
             slot.onQuickCraft(stack, original);
-            if (stack.isEmpty()) {
-                slot.setByPlayer(ItemStack.EMPTY);
-            } else {
-                slot.setChanged();
-            }
+            QuickMoves.settle(slot, stack);
             if (stack.getCount() == original.getCount()) {
                 return ItemStack.EMPTY;
             }
@@ -436,43 +405,18 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             player.drop(stack, false);
             return original;
         }
-        if (index >= gridStart) {
-            ItemStack original = stack.copy();
-            if (!moveItemStackTo(stack, inventoryStart, gridStart, false)) {
+        if (index >= gridStart || index < inventoryStart) {
+            if (!moveItemStackTo(stack, inventoryStart, gridStart, index < inventoryStart)) {
                 return ItemStack.EMPTY;
             }
-            if (stack.isEmpty()) {
-                slot.setByPlayer(ItemStack.EMPTY);
-            } else {
-                slot.setChanged();
-            }
+            QuickMoves.settle(slot, stack);
             return original;
         }
-        if (index < inventoryStart) {
-            ItemStack original = stack.copy();
-            if (!moveItemStackTo(stack, inventoryStart, gridStart, true)) {
-                return ItemStack.EMPTY;
-            }
-            if (stack.isEmpty()) {
-                slot.setByPlayer(ItemStack.EMPTY);
-            } else {
-                slot.setChanged();
-            }
-            return original;
-        }
-        if (!inputOpen()) {
+        if (!inputOpen() || !moveItemStackTo(stack, inputStart, inventoryStart, false)) {
             return ItemStack.EMPTY;
         }
-        ItemStack original = stack.copy();
-        if (!moveItemStackTo(stack, inputStart, inventoryStart, false)) {
-            return ItemStack.EMPTY;
-        }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
-        forceSync();
+        QuickMoves.settle(slot, stack);
+        sync.force();
         return original;
     }
 
@@ -481,19 +425,13 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         return stillValid(access, player, ServusStorageBlocks.STORAGE_TERMINAL.get());
     }
 
-    // Stock sync
-
-    /**
-     * Called by {@code setSynchronizer} when the game opens the screen: the
-     * content goes out at once instead of with the next periodic check.
-     */
+    /** Sends the content at once when the screen opens instead of with the next periodic check. */
     @Override
     public void sendAllDataToRemote() {
         super.sendAllDataToRemote();
         sendNow();
     }
 
-    /** A resync sends the full content too. */
     @Override
     public void broadcastFullState() {
         super.broadcastFullState();
@@ -502,13 +440,10 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
 
     private void sendNow() {
         if (player instanceof ServerPlayer serverPlayer) {
-            StockSyncPayload payload = stock();
-            lastSignature = signature(payload);
-            syncTimer = 0;
             if (firstSyncTick < 0) {
                 firstSyncTick = serverPlayer.level().getGameTime();
             }
-            PacketDistributor.sendToPlayer(serverPlayer, payload);
+            sync.sendNow(serverPlayer);
         }
     }
 
@@ -520,19 +455,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     @Override
     public void broadcastChanges() {
         super.broadcastChanges();
-        if (!(player instanceof ServerPlayer serverPlayer)) {
-            return;
-        }
-        if (++syncTimer < SYNC_INTERVAL) {
-            return;
-        }
-        syncTimer = 0;
-        StockSyncPayload payload = stock();
-        long signature = signature(payload);
-        if (signature != lastSignature) {
-            lastSignature = signature;
-            PacketDistributor.sendToPlayer(serverPlayer, payload);
-        }
+        sync.tick(player);
     }
 
     /** The current stock, requests and message as the client should see them. */
@@ -547,16 +470,14 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             view = "";
             return new StockSyncPayload(terminal.getBlockPos(), false, "no_warehouse", List.of(), requests, shown, List.of(), List.of());
         }
-        List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sites =
-                io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.sites(server, terminal.getBlockPos());
+        List<SiteRow> sites = RemoteTransfers.sites(server, terminal.getBlockPos());
         boolean noPower = warehouses.stream().anyMatch(WarehouseNetwork::noPower);
         if (!view.isEmpty()) {
-            var site = io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(server).site(view);
+            var site = SiteRegistry.of(server).site(view);
             if (site.isPresent() && sites.stream().anyMatch(row -> row.key().equals(view))) {
-                int state = io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.state(server, site.get()).ordinal();
-                return new StockSyncPayload(terminal.getBlockPos(), true, "",
-                        entries(io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.stock(server, site.get())), requests, shown,
-                        List.of(), List.of(), sites, view, state, noPower);
+                int state = RemoteTransfers.state(server, site.get()).ordinal();
+                return new StockSyncPayload(terminal.getBlockPos(), true, "", entries(RemoteTransfers.stock(server, site.get())), requests,
+                        shown, List.of(), List.of(), sites, view, state, noPower);
             }
             view = "";
         }
@@ -587,7 +508,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             hash = hash * 31 + entry.stack().getItem().hashCode();
             hash = hash * 31 + entry.count();
         }
-        for (io.github.dirnei.mc.servus.storage.terminal.RuleRow rule : payload.rules()) {
+        for (RuleRow rule : payload.rules()) {
             hash = hash * 31 + rule.stack().getItem().hashCode();
             hash = hash * 31 + rule.min();
             hash = hash * 31 + rule.max();

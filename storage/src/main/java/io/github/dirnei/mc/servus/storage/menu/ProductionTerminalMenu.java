@@ -1,9 +1,10 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
-import io.github.dirnei.mc.servus.storage.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import io.github.dirnei.mc.servus.storage.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
@@ -39,8 +40,6 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * Syncs the CPUs, orders, producers and patterns of the terminal's line to the
@@ -56,7 +55,6 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
     public static final int HOTBAR_Y = TerminalLayout.Production.HOTBAR.y();
     /** Editor state for an existing pattern; the server keeps which one. */
     public static final int EDIT_EXISTING = 0;
-    private static final int SYNC_INTERVAL = 10;
 
     private final ProductionTerminalBlockEntity terminal;
     private final ContainerLevelAccess access;
@@ -64,9 +62,8 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
     private final ItemSlots grid = new ItemSlots(EncodedPattern.GRID);
     private final DataSlot editing = DataSlot.standalone();
     private final int gridStart;
+    private final PayloadSync<ProductionPayload> sync = new PayloadSync<>(10, false, this::view, ProductionTerminalMenu::signature);
     private PatternLibrary.Free editingSlot;
-    private int syncTimer;
-    private long lastSignature = Long.MIN_VALUE;
     private long firstSyncTick = -1;
 
     public ProductionTerminalMenu(int containerId, Inventory playerInventory, ProductionTerminalBlockEntity terminal) {
@@ -87,23 +84,23 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         }
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, INVENTORY_X + column * 18, INVENTORY_Y + row * 18) {
-                    @Override
-                    public boolean isActive() {
-                        return isEditing();
-                    }
-                });
+                addSlot(editorSlot(playerInventory, column + row * 9 + 9, INVENTORY_X + column * 18, INVENTORY_Y + row * 18));
             }
         }
         for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(playerInventory, column, INVENTORY_X + column * 18, HOTBAR_Y) {
-                @Override
-                public boolean isActive() {
-                    return isEditing();
-                }
-            });
+            addSlot(editorSlot(playerInventory, column, INVENTORY_X + column * 18, HOTBAR_Y));
         }
         addDataSlot(editing);
+    }
+
+    /** A player inventory slot that is there only while the editor is open. */
+    private Slot editorSlot(Inventory playerInventory, int index, int x, int y) {
+        return new Slot(playerInventory, index, x, y) {
+            @Override
+            public boolean isActive() {
+                return isEditing();
+            }
+        };
     }
 
     public static ProductionTerminalMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -132,7 +129,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
                 }
             }
         }
-        resync();
+        sync.force();
         return cancelled;
     }
 
@@ -143,13 +140,6 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         }
         return new ProductionPayload(terminal.getBlockPos(), false, "no_line", List.of(), List.of(), List.of(), PatternsView.EMPTY);
     }
-
-    private void resync() {
-        lastSignature = Long.MIN_VALUE;
-        syncTimer = SYNC_INTERVAL;
-    }
-
-    // Pattern editor
 
     /** {@link RecipeEditorButtons#EDIT_CLOSED}, {@link RecipeEditorButtons#EDIT_NEW} or {@link #EDIT_EXISTING}. */
     public int editing() {
@@ -247,19 +237,19 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         String result = PatternEditing.save(level, line.get(), player, gridCells(), editing() == EDIT_EXISTING ? editingSlot : null);
         if (result.isEmpty()) {
             closeEditor();
-            resync();
+            sync.force();
         }
         return result;
     }
 
-    /** Deletes the pattern being edited and gives the player a Blank Pattern. */
+    /** Deletes the pattern being edited and closes the editor. */
     public boolean delete() {
         if (!(terminal.getLevel() instanceof ServerLevel level) || editing() != EDIT_EXISTING || editingSlot == null) {
             return false;
         }
         boolean deleted = line().map(network -> PatternEditing.delete(level, network, player, editingSlot)).orElse(false);
         closeEditor();
-        resync();
+        sync.force();
         return deleted;
     }
 
@@ -321,17 +311,13 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         return stillValid(access, player, ServusStorageBlocks.PRODUCTION_TERMINAL.get());
     }
 
-    /**
-     * Called by {@code setSynchronizer} when the game opens the screen: the
-     * content goes out at once instead of with the next periodic check.
-     */
+    /** Sends the content at once when the screen opens instead of with the next periodic check. */
     @Override
     public void sendAllDataToRemote() {
         super.sendAllDataToRemote();
         sendNow();
     }
 
-    /** A resync sends the full content too. */
     @Override
     public void broadcastFullState() {
         super.broadcastFullState();
@@ -340,13 +326,10 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
 
     private void sendNow() {
         if (player instanceof ServerPlayer serverPlayer) {
-            ProductionPayload payload = view();
-            lastSignature = signature(payload);
-            syncTimer = 0;
             if (firstSyncTick < 0) {
                 firstSyncTick = serverPlayer.level().getGameTime();
             }
-            PacketDistributor.sendToPlayer(serverPlayer, payload);
+            sync.sendNow(serverPlayer);
         }
     }
 
@@ -358,19 +341,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
     @Override
     public void broadcastChanges() {
         super.broadcastChanges();
-        if (!(player instanceof ServerPlayer serverPlayer)) {
-            return;
-        }
-        if (++syncTimer < SYNC_INTERVAL) {
-            return;
-        }
-        syncTimer = 0;
-        ProductionPayload payload = view();
-        long signature = signature(payload);
-        if (signature != lastSignature) {
-            lastSignature = signature;
-            PacketDistributor.sendToPlayer(serverPlayer, payload);
-        }
+        sync.tick(player);
     }
 
     private static long signature(ProductionPayload payload) {

@@ -1,10 +1,11 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
+import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleFleet;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,7 +25,8 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
 
     public static final int SLOTS_Y = 30;
     public static final int INVENTORY_Y = 96;
-    public static final int HOTBAR_Y = 154;
+    public static final int BUTTON_RECALL = 1;
+    public static final int BUTTON_TOGGLE = 2;
     private static final int COLUMNS = 9;
 
     private final ShuttleGarageBlockEntity garage;
@@ -35,8 +37,6 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
     private final DataSlot out = DataSlot.standalone();
     private final DataSlot active = DataSlot.standalone();
     private final DataSlot outSlots = DataSlot.standalone();
-    public static final int BUTTON_RECALL = 1;
-    public static final int BUTTON_TOGGLE = 2;
 
     public ShuttleGarageMenu(int containerId, Inventory playerInventory, ShuttleGarageBlockEntity garage) {
         super(ServusStorageMenus.SHUTTLE_GARAGE.get(), containerId);
@@ -54,14 +54,7 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
             });
         }
         inventoryStart = slots.size();
-        for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < COLUMNS; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
-            }
-        }
-        for (int column = 0; column < COLUMNS; column++) {
-            addSlot(new Slot(playerInventory, column, 8 + column * 18, HOTBAR_Y));
-        }
+        PlayerInventorySlots.add(this::addSlot, playerInventory, 8, INVENTORY_Y);
         addDataSlot(out);
         addDataSlot(active);
         addDataSlot(outSlots);
@@ -114,11 +107,15 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
             } else {
                 garage.setActive(!garage.isActive());
             }
-            out.set(garage.outCount());
-            outSlots.set(garage.outSlots());
-            active.set(garage.isActive() ? 1 : 0);
+            update();
         }
         return true;
+    }
+
+    private void update() {
+        out.set(garage.outCount());
+        outSlots.set(garage.outSlots());
+        active.set(garage.isActive() ? 1 : 0);
     }
 
     /** Whether the slot's shuttle is away, as last synced. */
@@ -129,9 +126,7 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
     @Override
     public void broadcastChanges() {
         if (!player.level().isClientSide()) {
-            out.set(garage.outCount());
-            outSlots.set(garage.outSlots());
-            active.set(garage.isActive() ? 1 : 0);
+            update();
         }
         super.broadcastChanges();
     }
@@ -163,11 +158,7 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
         if (!moved) {
             return ItemStack.EMPTY;
         }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
+        QuickMoves.settle(slot, stack);
         return original;
     }
 

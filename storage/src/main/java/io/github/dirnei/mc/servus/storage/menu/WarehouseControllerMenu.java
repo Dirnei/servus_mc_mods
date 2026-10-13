@@ -1,21 +1,30 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
-import io.github.dirnei.mc.servus.foundation.upgrade.AnchorUpgradeSlots;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import io.github.dirnei.mc.servus.foundation.upgrade.AnchorUpgradeSlots;
 import io.github.dirnei.mc.servus.storage.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.storage.controller.WirelessUpgradeSlots;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
+import io.github.dirnei.mc.servus.storage.site.SiteRecord;
+import io.github.dirnei.mc.servus.storage.site.SiteRegistry;
+import io.github.dirnei.mc.servus.storage.site.WirelessReach;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers;
+import io.github.dirnei.mc.servus.storage.terminal.SiteRow;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -23,7 +32,6 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The controller GUI: the site's name, status, FE and chunk map come as a
@@ -33,7 +41,6 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public class WarehouseControllerMenu extends AbstractContainerMenu {
 
     public static final int WIDTH = 176;
-    public static final int NAME_Y = 18;
     public static final int MAP_X = 8;
     public static final int MAP_Y = 36;
     public static final int MAP_SIZE = 60;
@@ -43,16 +50,14 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
     public static final int WIRELESS_X = 152;
     public static final int INVENTORY_Y = 144;
     public static final int IMAGE_HEIGHT = INVENTORY_Y + 3 * 18 + 4 + 18 + 6;
-    private static final int SYNC_INTERVAL = 10;
 
     private final WarehouseControllerBlockEntity controller;
     private final ContainerLevelAccess access;
     private final Player player;
     private final BlockPos pos;
     private final int upgradeSlots;
+    private final PayloadSync<SiteStatusPayload> sync = new PayloadSync<>(10, true, this::status);
     private String name;
-    private int syncTimer = SYNC_INTERVAL;
-    private int lastSignature = Integer.MIN_VALUE;
 
     /** Server side: the controller's own slots. */
     public WarehouseControllerMenu(int containerId, Inventory playerInventory, WarehouseControllerBlockEntity controller) {
@@ -73,14 +78,7 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
             addSlot(new ResourceHandlerSlot(upgrades, upgrades::set, slot, upgradeX(slot), UPGRADES_Y));
         }
         addSlot(new ResourceHandlerSlot(wireless, wireless::set, 0, WIRELESS_X, UPGRADES_Y));
-        for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
-            }
-        }
-        for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(playerInventory, column, 8 + column * 18, hotbarY()));
-        }
+        PlayerInventorySlots.add(this::addSlot, playerInventory, 8, INVENTORY_Y);
     }
 
     /** Client side: the server writes the position, the slot count and the name. */
@@ -89,7 +87,7 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
         int slots = buf.readVarInt();
         String name = buf.readUtf(64);
         return new WarehouseControllerMenu(containerId, playerInventory, null, pos, new AnchorUpgradeSlots(slots, null),
-                new io.github.dirnei.mc.servus.storage.controller.WirelessUpgradeSlots(null), name);
+                new WirelessUpgradeSlots(null), name);
     }
 
     /** What the server writes for {@link #fromNetwork}. */
@@ -118,14 +116,14 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
     }
 
     public int hotbarY() {
-        return INVENTORY_Y + 3 * 18 + 4;
+        return INVENTORY_Y + PlayerInventorySlots.HOTBAR_OFFSET;
     }
 
     /** Server side: the name typed in the GUI, cleaned by the controller. */
     public void rename(String typed) {
         if (controller != null && stillValid(player)) {
             name = controller.setSiteName(typed);
-            syncTimer = SYNC_INTERVAL;
+            sync.soon();
         }
     }
 
@@ -153,11 +151,7 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
         } else if (!stack.is(ServusStorageItems.WIRELESS_UPGRADE.get()) || !moveItemStackTo(stack, upgradeSlots, own, false)) {
             return ItemStack.EMPTY;
         }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
+        QuickMoves.settle(slot, stack);
         return copy;
     }
 
@@ -165,8 +159,6 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
     public boolean stillValid(Player player) {
         return stillValid(access, player, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get());
     }
-
-    // Sync
 
     /** What the GUI shows about the controller's site right now. */
     public static SiteStatusPayload status(WarehouseControllerBlockEntity controller) {
@@ -180,8 +172,7 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
         boolean capable = controller.capable();
         int hint = capable ? SiteStatusPayload.HINT_NONE
                 : controller.hasWirelessUpgrade() ? SiteStatusPayload.HINT_NO_POWER : SiteStatusPayload.HINT_NO_UPGRADE;
-        long needs = io.github.dirnei.mc.servus.storage.site.WirelessReach.needs(
-                io.github.dirnei.mc.servus.storage.stats.StorageStatsManager.INSTANCE.wirelessFePerItem());
+        long needs = WirelessReach.needs(StorageStatsManager.INSTANCE.wirelessFePerItem());
         return new SiteStatusPayload(controller.siteName(), controller.displayName(), online, summary,
                 new ArrayList<>(controller.span()), controller.homeChunk(), controller.upgrades().count(), controller.capacity(),
                 controller.siteState().ordinal(), controller.wakeLine(), controller.wakeAlert(), controller.energyStored(),
@@ -190,18 +181,17 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
     }
 
     /** The other sites of the controller's owner in its dimension, by name. */
-    private static List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sites(WarehouseControllerBlockEntity controller) {
-        if (!(controller.getLevel() instanceof net.minecraft.server.level.ServerLevel level) || controller.team().isEmpty()) {
+    private static List<SiteRow> sites(WarehouseControllerBlockEntity controller) {
+        if (!(controller.getLevel() instanceof ServerLevel level) || controller.team().isEmpty()) {
             return List.of();
         }
-        java.util.UUID team = controller.team().get();
-        String self = io.github.dirnei.mc.servus.storage.site.SiteRecord.key(level.dimension(), controller.getBlockPos());
-        List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> rows = new ArrayList<>();
-        for (var site : io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(level).ofTeam(team, level.dimension())) {
+        UUID team = controller.team().get();
+        String self = SiteRecord.key(level.dimension(), controller.getBlockPos());
+        List<SiteRow> rows = new ArrayList<>();
+        for (var site : SiteRegistry.of(level).ofTeam(team, level.dimension())) {
             if (!site.key().equals(self)) {
-                rows.add(new io.github.dirnei.mc.servus.storage.terminal.SiteRow(site.key(), site.name(),
-                        io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.state(level, site).ordinal(),
-                        io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.canTrade(level, site)));
+                rows.add(new SiteRow(site.key(), site.name(), RemoteTransfers.state(level, site).ordinal(),
+                        RemoteTransfers.canTrade(level, site)));
             }
         }
         return rows;
@@ -210,18 +200,12 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
     @Override
     public void broadcastChanges() {
         super.broadcastChanges();
-        if (!(player instanceof ServerPlayer serverPlayer) || controller == null) {
-            return;
+        if (controller != null) {
+            sync.tick(player);
         }
-        if (++syncTimer < SYNC_INTERVAL) {
-            return;
-        }
-        syncTimer = 0;
-        SiteStatusPayload payload = status(controller);
-        int signature = payload.hashCode();
-        if (signature != lastSignature) {
-            lastSignature = signature;
-            PacketDistributor.sendToPlayer(serverPlayer, payload);
-        }
+    }
+
+    private SiteStatusPayload status() {
+        return status(controller);
     }
 }

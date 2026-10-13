@@ -1,7 +1,8 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.LiftUpgradeSlots;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
@@ -42,14 +43,7 @@ public class ElevatorMenu extends AbstractContainerMenu {
         for (int slot = 0; slot < upgradeSlots; slot++) {
             addSlot(new ResourceHandlerSlot(upgrades, upgrades::set, slot, upgradeX(slot), UPGRADES_Y));
         }
-        for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
-            }
-        }
-        for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(playerInventory, column, 8 + column * 18, hotbarY()));
-        }
+        PlayerInventorySlots.add(this::addSlot, playerInventory, 8, INVENTORY_Y);
     }
 
     /** Client side: the server writes the lowest segment's position and the slot count. */
@@ -98,11 +92,7 @@ public class ElevatorMenu extends AbstractContainerMenu {
         } else if (!stack.is(ServusFoundationItems.SPEED_UPGRADE.get()) || !moveItemStackTo(stack, 0, upgradeSlots, false)) {
             return ItemStack.EMPTY;
         }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
+        QuickMoves.settle(slot, stack);
         return copy;
     }
 

@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
+import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleBuild;
@@ -14,6 +16,7 @@ import io.github.dirnei.mc.servus.storage.shuttle.module.build.StepKind;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.IntSupplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -27,7 +30,6 @@ import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /**
@@ -120,24 +122,17 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
                 }
             });
         }
-        for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
-            }
-        }
-        for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(playerInventory, column, 8 + column * 18, HOTBAR_Y));
-        }
+        PlayerInventorySlots.add(this::addSlot, playerInventory, 8, INVENTORY_Y);
         addDataSlot(building);
         addDataSlot(step);
     }
 
-    /** A data slot that reads its value from the workshop on the server. */
+    /** A server side data slot that reads its value from the workshop and ignores writes. */
     private static final class WorkshopSlot extends DataSlot {
 
-        private final java.util.function.IntSupplier source;
+        private final IntSupplier source;
 
-        WorkshopSlot(java.util.function.IntSupplier source) {
+        WorkshopSlot(IntSupplier source) {
             this.source = source;
         }
 
@@ -148,7 +143,6 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
 
         @Override
         public void set(int value) {
-            // The server reads the workshop; nothing to store.
         }
     }
 
@@ -393,11 +387,7 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
         } else if (install(stack) == 0 && !moveItemStackTo(stack, SUPPLY_START, INVENTORY_START, false)) {
             return ItemStack.EMPTY;
         }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
+        QuickMoves.settle(slot, stack);
         if (stack.getCount() == original.getCount()) {
             return ItemStack.EMPTY;
         }

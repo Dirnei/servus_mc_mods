@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
+import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.storage.zone.ZoneFilter;
@@ -15,7 +16,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerInput;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
@@ -27,8 +27,6 @@ public class ZoneLabelMenu extends AbstractContainerMenu {
 
     public static final int GHOST_Y = 40;
     public static final int INVENTORY_Y = 84;
-    public static final int HOTBAR_Y = 142;
-    private static final int COLUMNS = 9;
 
     private final InteractionHand hand;
     private final Player player;
@@ -55,14 +53,7 @@ public class ZoneLabelMenu extends AbstractContainerMenu {
             addSlot(new GhostSlot(() -> filter, i, 8 + i * 18, GHOST_Y));
         }
         inventoryStart = slots.size();
-        for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < COLUMNS; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
-            }
-        }
-        for (int column = 0; column < COLUMNS; column++) {
-            addSlot(new Slot(playerInventory, column, 8 + column * 18, HOTBAR_Y));
-        }
+        PlayerInventorySlots.add(this::addSlot, playerInventory, 8, INVENTORY_Y);
     }
 
     public static ZoneLabelMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -112,21 +103,22 @@ public class ZoneLabelMenu extends AbstractContainerMenu {
             ItemStack stack = filter.getStackInSlot(i);
             items.add(stack.isEmpty() ? ItemStack.EMPTY : stack.copyWithCount(1));
         }
-        // Trailing empties are dropped so the component stays short; positions before them are kept.
         int last = items.size();
         while (last > 0 && items.get(last - 1).isEmpty()) {
             last--;
         }
-        ZoneFilter updated = new ZoneFilter(items.subList(0, last), zoneFilter().tags());
-        if (updated.isEmpty()) {
+        store(label, new ZoneFilter(items.subList(0, last), zoneFilter().tags()));
+    }
+
+    private static void store(ItemStack label, ZoneFilter filter) {
+        if (filter.isEmpty()) {
             label.remove(ServusStorageComponents.ZONE_FILTER.get());
         } else {
-            label.set(ServusStorageComponents.ZONE_FILTER.get(), updated);
+            label.set(ServusStorageComponents.ZONE_FILTER.get(), filter);
         }
     }
 
-    // Server side edits
-
+    /** Names the label; a blank name removes it. Server side. */
     public void setName(String name) {
         ItemStack label = label();
         if (!(label.getItem() instanceof ZoneLabelItem)) {
@@ -140,20 +132,13 @@ public class ZoneLabelMenu extends AbstractContainerMenu {
         }
     }
 
+    /** Sets the label's tags from a typed line. Server side. */
     public void setTags(String line) {
         ItemStack label = label();
-        if (!(label.getItem() instanceof ZoneLabelItem)) {
-            return;
-        }
-        ZoneFilter updated = new ZoneFilter(zoneFilter().items(), ZoneFilter.parseTags(line));
-        if (updated.isEmpty()) {
-            label.remove(ServusStorageComponents.ZONE_FILTER.get());
-        } else {
-            label.set(ServusStorageComponents.ZONE_FILTER.get(), updated);
+        if (label.getItem() instanceof ZoneLabelItem) {
+            store(label, new ZoneFilter(zoneFilter().items(), ZoneFilter.parseTags(line)));
         }
     }
-
-    // Clicks
 
     /** Ghost slots take a copy of the cursor and never hand anything out. */
     @Override

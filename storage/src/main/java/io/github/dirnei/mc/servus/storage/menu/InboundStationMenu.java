@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage.menu;
 
 import io.github.dirnei.mc.servus.foundation.block.SideConfigData;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
+import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
@@ -12,7 +13,6 @@ import io.github.dirnei.mc.servus.storage.station.StationStatePayload;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -20,7 +20,6 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 /** The station's buffer and the player inventory; the state line comes along as a payload. */
 public class InboundStationMenu extends AbstractContainerMenu {
@@ -28,17 +27,14 @@ public class InboundStationMenu extends AbstractContainerMenu {
     public static final int BUFFER_Y = 18;
     public static final int STATUS_Y = 40;
     public static final int INVENTORY_Y = 58;
-    public static final int HOTBAR_Y = 116;
     private static final int COLUMNS = 9;
-    private static final int SYNC_INTERVAL = 5;
 
     private final InboundStationBlockEntity station;
     private final ContainerLevelAccess access;
     private final Player player;
     private final int bufferSlots;
     private final int inventoryStart;
-    private int syncTimer;
-    private int lastSignature = Integer.MIN_VALUE;
+    private final PayloadSync<StationStatePayload> sync = new PayloadSync<>(5, false, this::state);
 
     public InboundStationMenu(int containerId, Inventory playerInventory, InboundStationBlockEntity station) {
         super(ServusStorageMenus.INBOUND_STATION.get(), containerId);
@@ -50,14 +46,7 @@ public class InboundStationMenu extends AbstractContainerMenu {
             addSlot(new ResourceHandlerSlot(station.buffer(), station.buffer()::set, slot, 8 + (slot % COLUMNS) * 18, BUFFER_Y + (slot / COLUMNS) * 18));
         }
         inventoryStart = slots.size();
-        for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < COLUMNS; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
-            }
-        }
-        for (int column = 0; column < COLUMNS; column++) {
-            addSlot(new Slot(playerInventory, column, 8 + column * 18, HOTBAR_Y));
-        }
+        PlayerInventorySlots.add(this::addSlot, playerInventory, 8, INVENTORY_Y);
         addDataSlots(new SideConfigData(station.sideConfig()));
     }
 
@@ -109,11 +98,7 @@ public class InboundStationMenu extends AbstractContainerMenu {
         if (!moved) {
             return ItemStack.EMPTY;
         }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
+        QuickMoves.settle(slot, stack);
         return original;
     }
 
@@ -122,41 +107,26 @@ public class InboundStationMenu extends AbstractContainerMenu {
         return stillValid(access, player, ServusStorageBlocks.INBOUND_STATION.get());
     }
 
-    // Sync
-
     @Override
     public void broadcastChanges() {
         super.broadcastChanges();
-        if (!(player instanceof ServerPlayer serverPlayer)) {
-            return;
-        }
-        if (++syncTimer < SYNC_INTERVAL) {
-            return;
-        }
-        syncTimer = 0;
-        StationStatePayload payload = state();
-        int signature = payload.hashCode();
-        if (signature != lastSignature) {
-            lastSignature = signature;
-            PacketDistributor.sendToPlayer(serverPlayer, payload);
-        }
+        sync.tick(player);
     }
 
     /** The station's state as the client should see it. */
     public StationStatePayload state() {
-        return stateOf(station);
+        String blockedReason = station.blockedReason() == null ? "" : station.blockedReason().name();
+        String offline = offlineReason(station.network());
+        return new StationStatePayload(offline.isEmpty(), offline, blockedReason, station.blockedStack().copy(), station.blockedZone(),
+                station.isEmpty());
     }
 
-    /** The state line of any station like block entity, docks included. */
-    public static StationStatePayload stateOf(InboundStationBlockEntity station) {
-        Optional<WarehouseNetwork> network = station.network();
-        String blockedReason = station.blockedReason() == null ? "" : station.blockedReason().name();
-        ItemStack blockedStack = station.blockedStack().copy();
-        String offline = network.isEmpty() ? "not_connected" : switch (network.get().status()) {
+    /** The lang key suffix for a station without a working warehouse, empty while it is online. */
+    static String offlineReason(Optional<WarehouseNetwork> network) {
+        return network.isEmpty() ? "not_connected" : switch (network.get().status()) {
             case NO_CONTROLLER -> "no_controller";
             case MULTIPLE_CONTROLLERS -> "multiple_controllers";
             case ONLINE -> "";
         };
-        return new StationStatePayload(offline.isEmpty(), offline, blockedReason, blockedStack, station.blockedZone(), station.isEmpty());
     }
 }

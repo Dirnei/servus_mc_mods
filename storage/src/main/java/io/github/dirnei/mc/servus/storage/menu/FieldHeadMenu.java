@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
+import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.storage.field.FertilizeMode;
 import io.github.dirnei.mc.servus.storage.field.FertilizeStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
@@ -25,8 +26,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -34,12 +35,11 @@ import net.neoforged.neoforge.network.PacketDistributor;
 /**
  * The Field Head GUI in four tabs: Field (crop picker), Water (anti-corrosion
  * slot), Fertilizer (fertilizer picker, mode, threshold, reserve) and Upgrades
- * (Range Upgrade slot); the field's numbers as container data, the warehouse
- * stock of the crop and fertilizer items as payloads, the player inventory
- * always below. The tab is client view state; head slots off the shown tab
- * are inactive. The crop and the fertilizer are chosen by id through
- * {@link #choose(Player, Optional)} and {@link #chooseFertilizer(Player, Optional)},
- * no item needed; the rest through menu buttons.
+ * (Range Upgrade slot). The field's numbers travel as container data, the
+ * warehouse stock of crop and fertilizer items as payloads. The tab is client
+ * view state; head slots off the shown tab are inactive. Crop and fertilizer
+ * are chosen by id through {@link #choose(Player, Optional)} and
+ * {@link #chooseFertilizer(Player, Optional)}, the rest through menu buttons.
  */
 public class FieldHeadMenu extends AbstractContainerMenu {
 
@@ -53,7 +53,6 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     public static final int ANTI_CORROSION_X = 8;
     public static final int ANTI_CORROSION_Y = 58;
     public static final int INVENTORY_Y = 96;
-    public static final int HOTBAR_Y = 154;
     public static final int INVENTORY_START = 2;
     public static final int BUTTON_THRESHOLD_DOWN = 1;
     public static final int BUTTON_THRESHOLD_UP = 2;
@@ -64,11 +63,10 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     /** Reserve buttons: -10, -1, +1, +10 from this id on. */
     public static final int BUTTON_RESERVE = 8;
     public static final int[] RESERVE_STEPS = {-10, -1, 1, 10};
-    private static final int COLUMNS = 9;
     private static final int FLAG_HYDRATED = 1;
     private static final int FLAG_HARVEST_ONLY = 2;
     private static final int FLAG_DUE = 4;
-    /** Ticks between two looks at the warehouse stock of the crop items. */
+    /** Ticks between two looks at the warehouse stock. */
     private static final int STOCK_INTERVAL = 20;
 
     private final FieldHeadBlockEntity head;
@@ -96,19 +94,17 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     private final DataSlot reserve = DataSlot.standalone();
     /** The fertilize status plus one; zero while the head serves no field. */
     private final DataSlot fertilizeStatus = DataSlot.standalone();
-    /** Signature of the fertilizer stock last sent, on the crop stock timer; null before the first send. */
+    /** Signatures of the crop and fertilizer stock last sent; null before the first send. */
+    private Long sentStock;
     private Long sentFertilizerStock;
-    /** Client side: the fertilizer stock by item id, null while there is no warehouse or before the first. */
+    /** Client side: the stock by item id as last received, null while there is no warehouse. */
+    private Map<Identifier, Long> stock;
     private Map<Identifier, Long> fertilizerStock;
-    /** The worker name last sent to the player; null before the first send. */
+    /** The worker names last sent to the player; null before the first send. */
     private String sentWorker;
     /** Ticks until the next stock look; zero sends on the first broadcast. */
     private int stockTimer;
-    /** Signature of the stock last sent; null before the first send. */
-    private Long sentStock;
-    /** Client side: the stock counts by item id as last received, null while there is no warehouse or before the first. */
-    private Map<Identifier, Long> stock;
-    /** The tab the screen shows; client side view state, the server never learns it. */
+    /** The tab the screen shows; the server never learns it. */
     private Page page = Page.FIELD;
 
     /** The tabs of the GUI, in order. */
@@ -135,16 +131,9 @@ public class FieldHeadMenu extends AbstractContainerMenu {
                 return shows(ANTI_CORROSION_SLOT);
             }
         });
-        for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < COLUMNS; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
-            }
-        }
-        for (int column = 0; column < COLUMNS; column++) {
-            addSlot(new Slot(playerInventory, column, 8 + column * 18, HOTBAR_Y));
-        }
-        for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags, work, threshold, radius, corrosion, corrosionProgress,
-                fertilizeMode, fertilizePercent, reserve, fertilizeStatus}) {
+        PlayerInventorySlots.add(this::addSlot, playerInventory, 8, INVENTORY_Y);
+        for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags,
+                work, threshold, radius, corrosion, corrosionProgress, fertilizeMode, fertilizePercent, reserve, fertilizeStatus}) {
             addDataSlot(slot);
         }
         update();
@@ -209,20 +198,22 @@ public class FieldHeadMenu extends AbstractContainerMenu {
             }
             if (--stockTimer <= 0) {
                 stockTimer = STOCK_INTERVAL;
-                FieldCropStockPayload payload = stockPayload();
-                long signature = PickerStock.signature(payload.networked(), stringKeys(payload.counts()));
-                if (sentStock == null || sentStock != signature) {
-                    sentStock = signature;
-                    PacketDistributor.sendToPlayer(server, payload);
-                }
+                FieldCropStockPayload crops = stockPayload();
+                sentStock = sendIfChanged(server, crops, crops.networked(), crops.counts(), sentStock);
                 FieldFertilizerStockPayload fertilizers = fertilizerStockPayload();
-                long fertilizerSignature = PickerStock.signature(fertilizers.networked(), stringKeys(fertilizers.counts()));
-                if (sentFertilizerStock == null || sentFertilizerStock != fertilizerSignature) {
-                    sentFertilizerStock = fertilizerSignature;
-                    PacketDistributor.sendToPlayer(server, fertilizers);
-                }
+                sentFertilizerStock = sendIfChanged(server, fertilizers, fertilizers.networked(), fertilizers.counts(), sentFertilizerStock);
             }
         }
+    }
+
+    /** Sends a stock payload unless its signature equals the one sent last; returns its signature. */
+    private static long sendIfChanged(ServerPlayer player, CustomPacketPayload payload, boolean networked, Map<Identifier, Long> counts,
+                                      Long sent) {
+        long signature = PickerStock.signature(networked, stringKeys(counts));
+        if (sent == null || sent != signature) {
+            PacketDistributor.sendToPlayer(player, payload);
+        }
+        return signature;
     }
 
     /** The warehouse stock of the crop items as it travels to the client. Server side. */
@@ -255,7 +246,8 @@ public class FieldHeadMenu extends AbstractContainerMenu {
      * menu they can still use. Returns whether the choice was taken. Server side.
      */
     public static boolean chooseFertilizer(Player player, Optional<Identifier> fertilizer) {
-        if (!(player.containerMenu instanceof FieldHeadMenu menu) || !menu.stillValid(player)) {
+        FieldHeadMenu menu = usableMenu(player);
+        if (menu == null) {
             return false;
         }
         if (fertilizer.isEmpty()) {
@@ -263,17 +255,22 @@ public class FieldHeadMenu extends AbstractContainerMenu {
             menu.update();
             return true;
         }
-        Optional<Item> item = BuiltInRegistries.ITEM.getOptional(fertilizer.get());
-        if (item.isEmpty()) {
+        Optional<ItemStack> stack = stackOf(fertilizer.get()).filter(FieldHeadBlockEntity::isFertilizer);
+        if (stack.isEmpty()) {
             return false;
         }
-        ItemStack stack = new ItemStack(item.get());
-        if (!FieldHeadBlockEntity.isFertilizer(stack)) {
-            return false;
-        }
-        menu.head.setFertilizer(stack);
+        menu.head.setFertilizer(stack.get());
         menu.update();
         return true;
+    }
+
+    /** The player's open Field Head menu while they can still use it, else null. */
+    private static FieldHeadMenu usableMenu(Player player) {
+        return player.containerMenu instanceof FieldHeadMenu menu && menu.stillValid(player) ? menu : null;
+    }
+
+    private static Optional<ItemStack> stackOf(Identifier id) {
+        return BuiltInRegistries.ITEM.getOptional(id).map(item -> new ItemStack(item));
     }
 
     private static Map<String, Long> stringKeys(Map<Identifier, Long> counts) {
@@ -297,11 +294,12 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     /**
      * Sets the crop the player chose in the picker: an item id that plants an
      * age crop, or empty for harvest only. Acts only while the player's open
-     * menu is a Field Head menu they can still use; anything else is refused.
-     * Returns whether the choice was taken. Server side.
+     * menu is a Field Head menu they can still use. Returns whether the choice
+     * was taken. Server side.
      */
     public static boolean choose(Player player, Optional<Identifier> crop) {
-        if (!(player.containerMenu instanceof FieldHeadMenu menu) || !menu.stillValid(player)) {
+        FieldHeadMenu menu = usableMenu(player);
+        if (menu == null) {
             return false;
         }
         if (crop.isEmpty()) {
@@ -309,15 +307,11 @@ public class FieldHeadMenu extends AbstractContainerMenu {
             menu.update();
             return true;
         }
-        Optional<Item> item = BuiltInRegistries.ITEM.getOptional(crop.get());
-        if (item.isEmpty()) {
+        Optional<ItemStack> stack = stackOf(crop.get()).filter(FieldHeadBlockEntity::isCropItem);
+        if (stack.isEmpty()) {
             return false;
         }
-        ItemStack stack = new ItemStack(item.get());
-        if (!FieldHeadBlockEntity.isCropItem(stack)) {
-            return false;
-        }
-        menu.head.setCrop(stack);
+        menu.head.setCrop(stack.get());
         menu.update();
         return true;
     }
@@ -343,10 +337,6 @@ public class FieldHeadMenu extends AbstractContainerMenu {
 
     public void setPage(Page page) {
         this.page = page;
-    }
-
-    public FieldHeadBlockEntity head() {
-        return head;
     }
 
     public int water() {
@@ -482,11 +472,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
             return ItemStack.EMPTY;
         }
         ItemStack before = stack.copy();
-        if (index == RANGE_SLOT) {
-            if (!moveItemStackTo(stack, INVENTORY_START, slots.size(), true)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (index == ANTI_CORROSION_SLOT) {
+        if (index < INVENTORY_START) {
             if (!moveItemStackTo(stack, INVENTORY_START, slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
@@ -501,11 +487,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         } else {
             return ItemStack.EMPTY;
         }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
+        QuickMoves.settle(slot, stack);
         return stack.getCount() == before.getCount() ? ItemStack.EMPTY : before;
     }
 

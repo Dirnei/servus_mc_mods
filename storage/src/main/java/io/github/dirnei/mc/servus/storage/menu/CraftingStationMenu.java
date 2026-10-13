@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage.menu;
 
 import io.github.dirnei.mc.servus.foundation.block.SideConfigData;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
+import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
@@ -38,7 +39,6 @@ public class CraftingStationMenu extends AbstractContainerMenu {
     public static final int OUTPUTS_Y = 26;
     public static final int INVENTORY_X = 20;
     public static final int INVENTORY_Y = 84;
-    public static final int HOTBAR_Y = 142;
 
     private final CraftingStationBlockEntity station;
     private final ContainerLevelAccess access;
@@ -69,14 +69,7 @@ public class CraftingStationMenu extends AbstractContainerMenu {
             });
         }
         inventoryStart = slots.size();
-        for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, INVENTORY_X + column * 18, INVENTORY_Y + row * 18));
-            }
-        }
-        for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(playerInventory, column, INVENTORY_X + column * 18, HOTBAR_Y));
-        }
+        PlayerInventorySlots.add(this::addSlot, playerInventory, INVENTORY_X, INVENTORY_Y);
         addDataSlot(progress);
         addDataSlots(new SideConfigData(station.sideConfig()));
         addDataSlot(workTicks);
@@ -163,11 +156,7 @@ public class CraftingStationMenu extends AbstractContainerMenu {
         if (!moved) {
             return ItemStack.EMPTY;
         }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
+        QuickMoves.settle(slot, stack);
         return original;
     }
 

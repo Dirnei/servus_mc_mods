@@ -2,17 +2,15 @@ package io.github.dirnei.mc.servus.storage.menu;
 
 import io.github.dirnei.mc.servus.foundation.block.SideConfigData;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
+import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.storage.station.StationStatePayload;
-import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -21,7 +19,6 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 /** Keep row (ghost slots with amounts), buffer row and the player inventory; the state line comes along as a payload. */
 public class OutboundStationMenu extends AbstractContainerMenu {
@@ -30,9 +27,7 @@ public class OutboundStationMenu extends AbstractContainerMenu {
     public static final int BUFFER_Y = 44;
     public static final int STATUS_Y = 66;
     public static final int INVENTORY_Y = 84;
-    public static final int HOTBAR_Y = 142;
     private static final int COLUMNS = 9;
-    private static final int SYNC_INTERVAL = 5;
 
     private final OutboundStationBlockEntity station;
     private final ContainerLevelAccess access;
@@ -40,8 +35,7 @@ public class OutboundStationMenu extends AbstractContainerMenu {
     private final int keepSlots;
     private final int bufferStart;
     private final int inventoryStart;
-    private int syncTimer;
-    private int lastSignature = Integer.MIN_VALUE;
+    private final PayloadSync<StationStatePayload> sync = new PayloadSync<>(5, false, this::state);
 
     public OutboundStationMenu(int containerId, Inventory playerInventory, OutboundStationBlockEntity station) {
         super(ServusStorageMenus.OUTBOUND_STATION.get(), containerId);
@@ -57,14 +51,7 @@ public class OutboundStationMenu extends AbstractContainerMenu {
             addSlot(new ResourceHandlerSlot(station.buffer(), station.buffer()::set, slot, 8 + (slot % COLUMNS) * 18, BUFFER_Y + (slot / COLUMNS) * 18));
         }
         inventoryStart = slots.size();
-        for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < COLUMNS; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
-            }
-        }
-        for (int column = 0; column < COLUMNS; column++) {
-            addSlot(new Slot(playerInventory, column, 8 + column * 18, HOTBAR_Y));
-        }
+        PlayerInventorySlots.add(this::addSlot, playerInventory, 8, INVENTORY_Y);
         addDataSlots(new SideConfigData(station.sideConfig()));
     }
 
@@ -88,11 +75,10 @@ public class OutboundStationMenu extends AbstractContainerMenu {
         return inventoryStart;
     }
 
-    // Operations (server side)
-
+    /** Sets a keep slot and sends the state on the next tick. Server side. */
     public void setKeep(int slot, ItemStack item, int amount) {
         station.setKeep(slot, item, amount);
-        forceSync();
+        sync.force();
     }
 
     public SideMode sideMode(RelativeSide side) {
@@ -109,11 +95,6 @@ public class OutboundStationMenu extends AbstractContainerMenu {
             return true;
         }
         return false;
-    }
-
-    private void forceSync() {
-        lastSignature = Integer.MIN_VALUE;
-        syncTimer = SYNC_INTERVAL;
     }
 
     /** Keep slots take the carried item with its count on a left click and clear on a right click. */
@@ -147,11 +128,7 @@ public class OutboundStationMenu extends AbstractContainerMenu {
         if (!moved) {
             return ItemStack.EMPTY;
         }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
+        QuickMoves.settle(slot, stack);
         return original;
     }
 
@@ -160,34 +137,15 @@ public class OutboundStationMenu extends AbstractContainerMenu {
         return stillValid(access, player, ServusStorageBlocks.OUTBOUND_STATION.get());
     }
 
-    // Sync
-
     @Override
     public void broadcastChanges() {
         super.broadcastChanges();
-        if (!(player instanceof ServerPlayer serverPlayer)) {
-            return;
-        }
-        if (++syncTimer < SYNC_INTERVAL) {
-            return;
-        }
-        syncTimer = 0;
-        StationStatePayload payload = state();
-        int signature = payload.hashCode();
-        if (signature != lastSignature) {
-            lastSignature = signature;
-            PacketDistributor.sendToPlayer(serverPlayer, payload);
-        }
+        sync.tick(player);
     }
 
     /** The station's state as the client should see it: the shortage rides in the blocked fields. */
     public StationStatePayload state() {
-        Optional<WarehouseNetwork> network = station.network();
-        String offline = network.isEmpty() ? "not_connected" : switch (network.get().status()) {
-            case NO_CONTROLLER -> "no_controller";
-            case MULTIPLE_CONTROLLERS -> "multiple_controllers";
-            case ONLINE -> "";
-        };
+        String offline = InboundStationMenu.offlineReason(station.network());
         return new StationStatePayload(offline.isEmpty(), offline, station.shortReason(), station.shortStack().copy(), "", station.isEmpty());
     }
 }
