@@ -12,6 +12,9 @@ import net.neoforged.neoforge.common.crafting.SizedIngredient;
 /** A recipe only the alchemy machines run: never in the recipe book; machines and JEI read its own fields. */
 public interface AlchemyRecipe extends Recipe<SingleRecipeInput> {
 
+    /** Ticks one cycle of the recipe takes. */
+    int time();
+
     @Override
     default boolean showNotification() {
         return false;

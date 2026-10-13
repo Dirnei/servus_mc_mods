@@ -94,7 +94,6 @@ public final class ItemPicker {
         this.onPick = onPick;
     }
 
-
     /** The entries to choose from, in any order; they are shown by name with the none entry first. */
     public void setEntries(List<Entry> entries) {
         byId.clear();
@@ -142,7 +141,6 @@ public final class ItemPicker {
         }
     }
 
-
     public boolean isOpen() {
         return open;
     }
@@ -187,7 +185,6 @@ public final class ItemPicker {
         return -1;
     }
 
-
     /** The stock of an entry, or -1 when no count is shown for it. */
     private long count(Entry entry) {
         if (stock == null || entry.isNone()) {
@@ -200,7 +197,6 @@ public final class ItemPicker {
         Entry entry = byId.get(selected);
         return entry != null ? entry : byId.get(PickerList.NONE_ID);
     }
-
 
     /** The button with the current choice; call from {@code renderBg}. */
     public void renderButton(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY) {
@@ -303,7 +299,6 @@ public final class ItemPicker {
         return true;
     }
 
-
     /** Opens on a button click; while open, picks, drags the bar, focuses the search or closes on a click outside. */
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x();
@@ -382,7 +377,6 @@ public final class ItemPicker {
         search.charTyped(event);
         return true;
     }
-
 
     private boolean overButton(double mouseX, double mouseY) {
         return mouseX >= buttonX && mouseX < buttonX + buttonWidth && mouseY >= buttonY && mouseY < buttonY + BUTTON_HEIGHT;

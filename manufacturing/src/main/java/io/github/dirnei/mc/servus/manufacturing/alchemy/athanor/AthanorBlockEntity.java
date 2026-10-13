@@ -84,7 +84,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         return AthanorTiers.nameOf(AthanorTierData.INSTANCE.tiers(), tier);
     }
 
-
     /** Where the tank on {@code tank}'s side stands, by the Athanor's front. */
     public BlockPos tankPos(Tank tank) {
         return worldPosition.offset(tank.dx(), 0, tank.dz());
@@ -197,7 +196,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         return ownership;
     }
 
-
     /** Reads the structure around the Athanor and stores the tier in the block state. A handful of block reads. */
     public void checkTier() {
         if (level == null || level.isClientSide()) {
@@ -218,7 +216,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
             level.setBlock(worldPosition, state.setValue(AthanorBlock.TIER, Math.min(found, 3)), Block.UPDATE_CLIENTS);
         }
     }
-
 
     /** Whether the Athanor stands formed on its hearth with its tanks. */
     public boolean formed() {
@@ -309,7 +306,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         }
     }
 
-
     private Optional<RecipeHolder<AthanorRecipe>> currentHolder() {
         ItemStack stack = inventory.getStackInSlot(SLOT_INPUT);
         if (level == null || stack.isEmpty()) {
@@ -375,7 +371,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         return currentRecipe().map(recipe -> Math.max(1, recipe.time())).orElse(0);
     }
 
-
     @Override
     protected Identifier machineId() {
         return ID;
@@ -439,7 +434,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
             }
         };
     }
-
 
     @Override
     protected void saveAdditional(ValueOutput output) {

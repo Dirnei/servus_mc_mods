@@ -194,7 +194,6 @@ final class FieldRuns {
         }
     }
 
-
     void startRun(Shuttle shuttle, FieldJob job) {
         shuttle.run = new HarvestRun(job.head(), shuttle.profile.stacks());
         turn(shuttle);
@@ -506,7 +505,6 @@ final class FieldRuns {
         stow(run, source, crop, taken, taken.getMaxStackSize());
     }
 
-
     /** Puts the stacks on their way into storage one target after another, then decides again. */
     private void continueStore(Shuttle shuttle) {
         FieldRun run = shuttle.fieldRun();
@@ -606,7 +604,6 @@ final class FieldRuns {
         shuttle.motion = new ShuttleMotion(path);
         fleet.markSync();
     }
-
 
     /** Starts a Spreader on a fertilize run with the head's fertilizer; a head without one ends the run at once. */
     void startSpread(Shuttle shuttle, FertilizeJob job) {

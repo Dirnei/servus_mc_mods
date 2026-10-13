@@ -162,7 +162,6 @@ public final class ShuttleFleet {
         return Collections.newSetFromMap(new IdentityHashMap<>());
     }
 
-
     public int size() {
         return shuttles().size();
     }
@@ -317,7 +316,6 @@ public final class ShuttleFleet {
         syncPending = true;
     }
 
-
     /** Whether some garage with a rail and a shuttle for warehouse jobs can drive to a dock rail of the position. */
     public boolean canReach(BlockPos pos) {
         Set<NodePos> rails = host.dockRails(Conversions.toNodePos(pos));
@@ -348,7 +346,6 @@ public final class ShuttleFleet {
         }
         return host::travelNeighbours;
     }
-
 
     public void requestPick(PickJob job) {
         jobs.add(job);
@@ -419,7 +416,6 @@ public final class ShuttleFleet {
     public int riding() {
         return sumRiding(job -> 1);
     }
-
 
     /** Queues a field run for the field of that head. */
     public void requestField(FieldJob job) {
@@ -501,7 +497,6 @@ public final class ShuttleFleet {
     private Shuttle spreading(BlockPos head) {
         return findShuttle(shuttle -> shuttle.spread != null && shuttle.spread.head.equals(head));
     }
-
 
     public void tick() {
         if (!host.noPower()) {
@@ -720,7 +715,6 @@ public final class ShuttleFleet {
         }
     }
 
-
     private void arrive(Shuttle shuttle) {
         if (!shuttle.busy()) {
             park(shuttle);
@@ -928,7 +922,6 @@ public final class ShuttleFleet {
         shuttle.loads.clear();
     }
 
-
     /** The network's shafts changed: keep, resize, drop and create cars to match. */
     public void refreshShafts(List<Shaft> shafts) {
         lifts.refresh(shafts);
@@ -1027,7 +1020,6 @@ public final class ShuttleFleet {
         NodePos b = path.get(i + 1);
         return a.x() == b.x() && a.z() == b.z() && a.y() != b.y();
     }
-
 
     private void send() {
         for (Garage garage : garages.values()) {

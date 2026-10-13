@@ -248,7 +248,6 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         return Math.max(0, total - (LIST_BOTTOM - LIST_Y));
     }
 
-
     /** Text cut to a width, in list coordinates. */
     private void clipped(GuiGraphicsExtractor graphics, String text, int x, int y, int width, int colour) {
         graphics.text(font, font.plainSubstrByWidth(text, width), x, y, colour, false);
@@ -301,7 +300,6 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         }
         return list;
     }
-
 
     private long clientTime() {
         return minecraft == null || minecraft.level == null ? 0 : minecraft.level.getGameTime();
@@ -475,7 +473,6 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         return job.requestId() < 0 ? "gui.servus_storage.production.origin.rule" : "gui.servus_storage.production.origin.manual";
     }
 
-
     private List<Line> cpuLines() {
         List<Line> result = new ArrayList<>();
         List<CpuRow> cpus = ClientProduction.cpus();
@@ -552,7 +549,6 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         return list;
     }
 
-
     private List<Line> patternLines() {
         List<Line> result = new ArrayList<>();
         PatternsView patterns = ClientProduction.patterns();
@@ -599,7 +595,6 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private void press(int button) {
         MenuButtons.press(minecraft, menu, button);
     }
-
 
     private List<Line> machineLines() {
         List<Line> result = new ArrayList<>();
@@ -706,7 +701,6 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         list.add(Component.translatable("gui.servus_storage.production.machine.at", machine.pos().toShortString()));
         return list;
     }
-
 
     /** The top of a line on the panel, with the current scroll. */
     private int lineTop(Line target) {

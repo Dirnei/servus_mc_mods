@@ -68,26 +68,18 @@ public final class PurifierStructure {
         if (level.getBlockState(vat).getValue(PurifierBlock.FORMED)) {
             return true;
         }
-        Optional<Cell> best = Optional.empty();
-        long bestMatches = -1;
-        for (Facing facing : PurifierLayout.FACINGS) {
-            Optional<Cell> wrong = firstWrong(level, vat, facing, false);
-            if (wrong.isEmpty()) {
-                form(level, vat, facing);
-                FormingEffect.play(level, vat, cells(vat, facing));
-                if (level.getBlockEntity(vat) instanceof PurifierBlockEntity purifier) {
-                    purifier.setOwner(player.getUUID());
-                }
-                player.sendOverlayMessage(Component.translatable("message.servus_manufacturing.purifier.formed"));
-                return true;
+        Structures.Check<Cell> check = Structures.check(PurifierLayout.FACINGS, PurifierLayout.cells(),
+                (facing, cell) -> matches(level.getBlockState(pos(vat, cell, facing)), cell, false));
+        if (check.complete()) {
+            form(level, vat, check.facing());
+            FormingEffect.play(level, vat, cells(vat, check.facing()));
+            if (level.getBlockEntity(vat) instanceof PurifierBlockEntity purifier) {
+                purifier.setOwner(player.getUUID());
             }
-            long matches = PurifierLayout.cells().stream().filter(cell -> matches(level.getBlockState(pos(vat, cell, facing)), cell, false)).count();
-            if (matches > bestMatches) {
-                bestMatches = matches;
-                best = wrong;
-            }
+            player.sendOverlayMessage(Component.translatable("message.servus_manufacturing.purifier.formed"));
+            return true;
         }
-        Cell wrong = best.orElseThrow();
+        Cell wrong = check.firstWrong().orElseThrow();
         player.sendSystemMessage(Component.translatable("message.servus_manufacturing.purifier.missing", shown(wrong.role()).getName(),
                 Component.translatable("message.servus_manufacturing.purifier.at." + PurifierLayout.placement(wrong).replace(' ', '_'))));
         return false;

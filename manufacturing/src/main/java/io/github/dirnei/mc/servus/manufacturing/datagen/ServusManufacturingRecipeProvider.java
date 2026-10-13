@@ -137,7 +137,6 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_brick", has(Items.BRICK))
                 .save(output);
 
-
         ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusManufacturingItems.FIREBOX.get())
                 .pattern("BIB")
                 .pattern("BFB")

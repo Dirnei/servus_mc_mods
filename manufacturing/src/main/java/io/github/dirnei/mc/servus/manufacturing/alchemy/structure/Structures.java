@@ -57,6 +57,14 @@ public final class Structures {
         Facing ownFacing = facing(own);
         order.remove(ownFacing);
         order.addFirst(ownFacing);
+        return check(order, cells, matches);
+    }
+
+    /**
+     * Checks {@code cells} in the facings of {@code order} and returns the first complete facing,
+     * else the first one where most cells match.
+     */
+    public static <C> Check<C> check(List<Facing> order, List<C> cells, BiPredicate<Facing, C> matches) {
         Check<C> best = null;
         int bestMatches = -1;
         for (Facing facing : order) {

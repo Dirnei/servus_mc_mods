@@ -20,11 +20,6 @@ public final class PurificationRecipeCategory extends AlchemyRecipeCategory<Puri
     }
 
     @Override
-    int time(PurificationRecipe recipe) {
-        return recipe.time();
-    }
-
-    @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<PurificationRecipe> holder, IFocusGroup focuses) {
         PurificationRecipe recipe = holder.value();
         builder.addInputSlot(1, SLOT_Y)

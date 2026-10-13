@@ -94,7 +94,6 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOw
         return ownership;
     }
 
-
     /** Whether the owner's team may grow this vein: its chapter must be finished. */
     public boolean mayGrow(VeinDef def) {
         if (def.chapter().isEmpty()) {
@@ -126,7 +125,6 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOw
         });
     }
 
-
     /** A Salt Crystal offered by a player: binds a gnome to a ripe vein if the player sees it. */
     public Binding bind(Player player) {
         Optional<VeinDef> def = veinDef();
@@ -150,7 +148,6 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOw
         }
         return Binding.BOUND;
     }
-
 
     @Override
     protected boolean tick() {
@@ -182,7 +179,6 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOw
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
-
 
     @Override
     protected Identifier machineId() {
@@ -256,7 +252,6 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOw
         };
     }
 
-
     /** The vein's yield as the client knows it, empty without a vein. */
     public ItemStack shownYield() {
         return shownYield;
@@ -290,7 +285,6 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOw
         super.onChunkUnloaded();
         HollowTracker.remove(this);
     }
-
 
     @Override
     protected void saveAdditional(ValueOutput output) {

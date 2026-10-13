@@ -101,7 +101,7 @@ public final class GameDataExportProvider implements DataProvider {
                 servusRecipes(namespace.getFileName().toString(), namespace.resolve("recipe"), recipes, crafting);
             }
         }
-        // Deposits and techs are gone from the game; their sections stay empty for the docs schema.
+        // Deposits and techs stay empty for the docs schema.
         List<Deposit> deposits = List.of();
         List<Tech> techs = List.of();
 
@@ -123,7 +123,6 @@ public final class GameDataExportProvider implements DataProvider {
         return new GameData(modVersion(), machines, recipes, crafting, deposits, techs, fuels,
                 names(referenced, generatedRoots));
     }
-
 
     /** Each machine's stats file sits at {@code data/<namespace>/machine/<path>.json} in its own mod's resources. */
     private static List<Machine> machines(List<Path> resourceRoots) throws IOException {
@@ -153,7 +152,6 @@ public final class GameDataExportProvider implements DataProvider {
         }
         return machines;
     }
-
 
     /** The {@code servus_*} namespace folders under a generated {@code data} or {@code assets} folder, sorted. */
     private static List<Path> servusNamespaces(Path dir) throws IOException {
@@ -241,7 +239,6 @@ public final class GameDataExportProvider implements DataProvider {
         return Stack.item(object.get("id").getAsString(), intOr(object, "count", 1));
     }
 
-
     /** Burn times from NeoForge's furnace fuel data map, for referenced items and coal and charcoal. */
     private static Map<String, Integer> fuels(Set<String> referenced) throws IOException {
         Map<String, Integer> fuels = new TreeMap<>();
@@ -305,7 +302,6 @@ public final class GameDataExportProvider implements DataProvider {
         }
         return name.toString();
     }
-
 
     private static void referenceAll(Set<String> referenced, Recipe recipe) {
         recipe.inputs().forEach(stack -> reference(referenced, stack));

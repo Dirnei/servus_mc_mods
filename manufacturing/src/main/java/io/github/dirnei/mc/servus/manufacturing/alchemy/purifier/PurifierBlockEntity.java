@@ -117,7 +117,6 @@ public class PurifierBlockEntity extends BlockEntity implements TeamOwned {
         return ownership;
     }
 
-
     public ItemSlots inventory() {
         return inventory;
     }
@@ -197,7 +196,6 @@ public class PurifierBlockEntity extends BlockEntity implements TeamOwned {
     public int progressPercent() {
         return currentRecipe().map(recipe -> Math.min(100, progress * 100 / Math.max(1, recipe.time()))).orElse(0);
     }
-
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, PurifierBlockEntity purifier) {
         purifier.tick();
@@ -310,7 +308,6 @@ public class PurifierBlockEntity extends BlockEntity implements TeamOwned {
             Containers.dropContents(level, worldPosition, NonNullList.of(ItemStack.EMPTY, takeItems(), takeResidue()));
         }
     }
-
 
     @Override
     protected void saveAdditional(ValueOutput output) {

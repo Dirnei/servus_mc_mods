@@ -17,11 +17,6 @@ public final class CalcinationRecipeCategory extends AlchemyRecipeCategory<Calci
     }
 
     @Override
-    int time(CalcinationRecipe recipe) {
-        return recipe.time();
-    }
-
-    @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<CalcinationRecipe> holder, IFocusGroup focuses) {
         CalcinationRecipe recipe = holder.value();
         builder.addInputSlot(1, SLOT_Y)

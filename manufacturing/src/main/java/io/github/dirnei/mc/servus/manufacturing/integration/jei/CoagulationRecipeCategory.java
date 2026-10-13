@@ -17,11 +17,6 @@ public final class CoagulationRecipeCategory extends AlchemyRecipeCategory<Coagu
     }
 
     @Override
-    int time(CoagulationRecipe recipe) {
-        return recipe.time();
-    }
-
-    @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<CoagulationRecipe> holder, IFocusGroup focuses) {
         CoagulationRecipe recipe = holder.value();
         int itemX = principleSlots(builder, false, recipe.input(), 1, 18);

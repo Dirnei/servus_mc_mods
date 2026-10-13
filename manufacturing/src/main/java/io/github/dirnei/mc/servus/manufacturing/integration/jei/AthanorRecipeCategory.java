@@ -22,11 +22,6 @@ public final class AthanorRecipeCategory extends AlchemyRecipeCategory<AthanorRe
     }
 
     @Override
-    int time(AthanorRecipe recipe) {
-        return recipe.time();
-    }
-
-    @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<AthanorRecipe> holder, IFocusGroup focuses) {
         AthanorRecipe recipe = holder.value();
         builder.addInputSlot(1, SLOT_Y)
