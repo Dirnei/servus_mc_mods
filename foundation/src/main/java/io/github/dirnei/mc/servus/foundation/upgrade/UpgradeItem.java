@@ -1,11 +1,11 @@
 package io.github.dirnei.mc.servus.foundation.upgrade;
 
-import net.minecraft.world.item.component.TooltipDisplay;
 import java.util.function.Consumer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 
 /**
  * An item that makes a Servus block faster in its upgrade slots. The speed

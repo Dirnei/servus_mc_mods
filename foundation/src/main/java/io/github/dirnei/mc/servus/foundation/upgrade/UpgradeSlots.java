@@ -1,9 +1,9 @@
 package io.github.dirnei.mc.servus.foundation.upgrade;
 
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.world.item.ItemStack;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
  * Upgrade slots of a block: only upgrades go in, one per slot. The block
@@ -52,8 +52,9 @@ public class UpgradeSlots extends ItemSlots {
     public List<ItemStack> takeAll() {
         List<ItemStack> result = new ArrayList<>();
         for (int slot = 0; slot < getSlots(); slot++) {
-            if (!getStackInSlot(slot).isEmpty()) {
-                result.add(getStackInSlot(slot).copy());
+            ItemStack stack = getStackInSlot(slot);
+            if (!stack.isEmpty()) {
+                result.add(stack.copy());
                 setStackInSlot(slot, ItemStack.EMPTY);
             }
         }

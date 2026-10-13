@@ -1,18 +1,19 @@
 package io.github.dirnei.mc.servus.foundation.upgrade;
 
-import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.util.ExtraCodecs;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.dirnei.mc.servus.foundation.ServusFoundation;
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Loads upgrade multipliers from {@code data/<ns>/data/upgrades.json}: an
@@ -22,12 +23,11 @@ import net.minecraft.util.profiling.ProfilerFiller;
 public final class UpgradesManager extends SimpleJsonResourceReloadListener<JsonElement> {
 
     /** Key of this listener in the reload event. */
-    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath("servus_foundation", "upgrades_manager");
-
-    private static final Gson GSON = new GsonBuilder().create();
-    private static final String FILE = "upgrades";
+    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "upgrades_manager");
 
     public static final UpgradesManager INSTANCE = new UpgradesManager();
+
+    private static final String FILE = "upgrades";
 
     private volatile Map<Identifier, Double> multipliers = Map.of();
 
@@ -56,21 +56,23 @@ public final class UpgradesManager extends SimpleJsonResourceReloadListener<Json
     }
 
     /** The multiplier a datapack gives the item, null when none does. */
-    public Double multiplier(Identifier id) {
+    public @Nullable Double multiplier(Identifier id) {
         return multipliers.get(id);
     }
 
     /** For tests: sets a multiplier as if a datapack had been loaded. */
     public void set(Identifier id, double multiplier) {
-        Map<Identifier, Double> copy = new HashMap<>(multipliers);
-        copy.put(id, multiplier);
-        multipliers = Map.copyOf(copy);
+        edit(copy -> copy.put(id, multiplier));
     }
 
     /** For tests: removes a multiplier set with {@link #set}. */
     public void remove(Identifier id) {
+        edit(copy -> copy.remove(id));
+    }
+
+    private void edit(Consumer<Map<Identifier, Double>> change) {
         Map<Identifier, Double> copy = new HashMap<>(multipliers);
-        copy.remove(id);
+        change.accept(copy);
         multipliers = Map.copyOf(copy);
     }
 }

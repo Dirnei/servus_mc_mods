@@ -12,10 +12,6 @@ public class AnchorUpgradeSlots extends UpgradeSlots {
 
     @Override
     public boolean isItemValid(int slot, ItemStack stack) {
-        return isAnchorUpgrade(stack);
-    }
-
-    public static boolean isAnchorUpgrade(ItemStack stack) {
         return stack.is(MachineContent.ANCHOR_UPGRADE.get());
     }
 
