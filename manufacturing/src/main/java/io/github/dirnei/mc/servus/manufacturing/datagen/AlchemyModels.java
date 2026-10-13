@@ -1,22 +1,22 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
-import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.VatBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerShellBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierSideBlock;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.Block;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerShellBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.VatBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierSideBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.Block;
 
 /**
  * Models of the Calciner, the Purifier and the Coagulator builds, made of boxes with vanilla textures.

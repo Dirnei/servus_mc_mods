@@ -1,23 +1,25 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import com.klikli_dev.modonomicon.api.ModonomiconAPI;
+import com.klikli_dev.modonomicon.api.multiblock.Multiblock;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorLayout.Cell;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorLayout.Role;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorStructure;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.VatBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
-import com.klikli_dev.modonomicon.api.ModonomiconAPI;
-import com.klikli_dev.modonomicon.api.multiblock.Multiblock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -32,8 +34,6 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /** The Coagulator as a build: forming, unforming, the Vats and the casting table's items. */
 public final class CoagulatorGameTests {

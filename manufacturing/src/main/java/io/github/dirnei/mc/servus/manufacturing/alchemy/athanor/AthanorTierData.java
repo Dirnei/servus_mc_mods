@@ -1,7 +1,5 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.athanor;
 
-import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.util.ExtraCodecs;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
@@ -10,15 +8,17 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturing;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers.BlockAt;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers.TierDef;
-import java.util.Comparator;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 /** Loads the Athanor tiers from {@code data/<namespace>/servus_manufacturing/athanor_tier/<name>.json}. */

@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen.book;
 
-import net.minecraft.world.level.block.Block;
 import com.klikli_dev.modonomicon.api.datagen.CategoryProvider;
 import com.klikli_dev.modonomicon.api.datagen.ModonomiconProviderBase;
 import com.klikli_dev.modonomicon.api.datagen.book.BookEntryModel;
@@ -15,6 +14,7 @@ import io.github.dirnei.mc.servus.manufacturing.datagen.AlchemyRecipeTable;
 import io.github.dirnei.mc.servus.manufacturing.datagen.ServusManufacturingMultiblockProvider;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
 
 /**
  * The Workshop: how to build and use each alchemy machine, with its crafting recipe and the list

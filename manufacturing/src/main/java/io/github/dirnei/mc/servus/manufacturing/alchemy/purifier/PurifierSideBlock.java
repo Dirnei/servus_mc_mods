@@ -1,10 +1,8 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.purifier;
 
-import net.minecraft.server.level.ServerLevel;
-import org.jspecify.annotations.Nullable;
-import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -13,6 +11,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.redstone.Orientation;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A block beside the Purifier's log: the Catch Basin or the Residue Crock. While formed it

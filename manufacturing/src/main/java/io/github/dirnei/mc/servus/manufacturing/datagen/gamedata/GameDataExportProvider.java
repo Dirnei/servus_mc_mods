@@ -6,6 +6,8 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
+import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
+import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturing;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Crafting;
@@ -15,8 +17,6 @@ import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Ma
 import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Recipe;
 import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Stack;
 import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Tech;
-import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
-import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

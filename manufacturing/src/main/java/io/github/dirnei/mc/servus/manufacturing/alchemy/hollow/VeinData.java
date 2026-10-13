@@ -1,8 +1,5 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.hollow;
 
-import net.minecraft.world.item.ItemStackTemplate;
-import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.util.ExtraCodecs;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
@@ -17,13 +14,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 
 /** Loads the veins a Gnome Hollow can grow from {@code data/<namespace>/servus_manufacturing/vein/<name>.json}. */
 public final class VeinData extends SimpleJsonResourceReloadListener<JsonElement> {

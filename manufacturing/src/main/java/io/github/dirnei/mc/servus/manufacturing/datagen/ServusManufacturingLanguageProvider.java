@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
-import net.minecraft.world.level.block.Block;
+import com.klikli_dev.modonomicon.api.datagen.LanguageProviderCache;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
@@ -8,8 +8,8 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleText;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
-import com.klikli_dev.modonomicon.api.datagen.LanguageProviderCache;
 import net.minecraft.data.PackOutput;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
 final class ServusManufacturingLanguageProvider extends LanguageProvider {

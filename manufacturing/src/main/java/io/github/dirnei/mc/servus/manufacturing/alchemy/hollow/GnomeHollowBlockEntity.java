@@ -1,19 +1,17 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.hollow;
 
-import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.TeamOwned;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.TeamOwnership;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.AlchemyMachines;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleTanks;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.TeamOwned;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.TeamOwnership;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.hollow.VeinData.VeinDef;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.hollow.VeinGrowth.Outcome;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.hollow.VeinGrowth.State;
@@ -35,6 +33,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * A Gnome Hollow: seeded with a sample of ore, ripened with principles, and once a gnome is bound

@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
@@ -9,11 +13,6 @@ import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBloc
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.level.block.Block;
-import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
-import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
-import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
-import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 
 final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
 

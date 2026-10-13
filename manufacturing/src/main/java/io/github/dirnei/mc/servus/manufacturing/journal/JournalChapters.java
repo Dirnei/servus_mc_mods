@@ -1,7 +1,5 @@
 package io.github.dirnei.mc.servus.manufacturing.journal;
 
-import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.util.ExtraCodecs;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
@@ -13,9 +11,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 /** Loads the journal chapters from {@code data/<namespace>/servus_manufacturing/journal/<chapter>.json}. */

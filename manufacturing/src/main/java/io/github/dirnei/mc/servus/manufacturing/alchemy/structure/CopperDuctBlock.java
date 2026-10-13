@@ -1,8 +1,5 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.structure;
 
-import net.minecraft.server.level.ServerLevel;
-import org.jspecify.annotations.Nullable;
-import net.minecraft.world.level.redstone.Orientation;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
@@ -10,6 +7,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlo
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
@@ -23,9 +21,11 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The Copper Duct, a part of two builds. The Calciner takes three, from the Hood across and down

@@ -1,11 +1,11 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
+import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 
 /**
  * One tank per principle, each holding only its own fluid. In give mode the handler only drains

@@ -1,13 +1,11 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator;
 
-import net.minecraft.server.level.ServerLevel;
-import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
-import org.jspecify.annotations.Nullable;
-import net.minecraft.world.level.redstone.Orientation;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleBuckets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -23,8 +21,10 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A Principle Vat of the Coagulator, placed three times above it. While formed, {@link #PIECE}

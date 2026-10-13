@@ -3,16 +3,11 @@ package io.github.dirnei.mc.servus.manufacturing.datagen;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinationRecipe;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurificationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
-import java.util.Optional;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurificationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.tags.ItemTags;
-import net.neoforged.neoforge.common.crafting.SizedIngredient;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
@@ -21,7 +16,12 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Recipe;
+import net.neoforged.neoforge.common.crafting.SizedIngredient;
 
 final class ServusManufacturingRecipeProvider extends RecipeProvider {
 

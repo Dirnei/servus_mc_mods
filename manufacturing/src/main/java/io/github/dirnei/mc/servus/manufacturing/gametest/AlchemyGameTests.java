@@ -1,62 +1,70 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
-import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.util.ProblemReporter;
-import net.minecraft.world.level.storage.TagValueInput;
-import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
-import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
-import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import com.klikli_dev.modonomicon.api.ModonomiconAPI;
+import com.klikli_dev.modonomicon.api.multiblock.Multiblock;
+import com.klikli_dev.modonomicon.book.Book;
+import com.klikli_dev.modonomicon.data.BookDataManager;
+import com.klikli_dev.modonomicon.research.ResearchServices;
 import io.github.dirnei.mc.servus.foundation.gametest.PlayerClicks;
-import net.minecraft.world.level.block.state.BlockState;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorLayout;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
-import net.minecraft.core.registries.BuiltInRegistries;
-import io.github.dirnei.mc.servus.manufacturing.journal.ParacelsusJournalItem;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
+import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
+import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
+import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorLayout;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.GameType;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import io.github.dirnei.mc.servus.manufacturing.journal.JournalBookItem;
 import io.github.dirnei.mc.servus.manufacturing.journal.JournalLedger;
+import io.github.dirnei.mc.servus.manufacturing.journal.ParacelsusJournalItem;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.advancements.AdvancementHolder;
-import net.minecraft.server.level.ServerLevel;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
-import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
-import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.material.Fluids;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
-import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 
 /** The principles as fluids. */
 public final class AlchemyGameTests {
@@ -238,7 +246,7 @@ public final class AlchemyGameTests {
         UUID team = UUID.randomUUID();
         CoagulatorBlockEntity coagulator = coagulator(helper, null);
         coagulator.setTeam(team);
-        CoagulationRecipe locked = new CoagulationRecipe(new Principles(10, 0, 0), Optional.empty(), new net.minecraft.world.item.ItemStackTemplate(Items.FLINT),
+        CoagulationRecipe locked = new CoagulationRecipe(new Principles(10, 0, 0), Optional.empty(), new ItemStackTemplate(Items.FLINT),
                 40, Optional.of(Identifier.parse(VILLACH)));
         helper.assertTrue(!coagulator.unlocked(locked), "a recipe of an unfinished chapter is locked");
         ServerLevel level = helper.getLevel();
@@ -345,9 +353,9 @@ public final class AlchemyGameTests {
     /** The journal's Athanor schematics accept the hearth and the Albedo ring, anchored on the hearth centre. */
     @ServusGameTest(timeoutTicks = 20)
     public static void athanorSchematicsMatchTheBuilds(GameTestHelper helper) {
-        com.klikli_dev.modonomicon.api.multiblock.Multiblock nigredo = com.klikli_dev.modonomicon.api.ModonomiconAPI.get()
+        Multiblock nigredo = ModonomiconAPI.get()
                 .getMultiblock(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor_nigredo"));
-        com.klikli_dev.modonomicon.api.multiblock.Multiblock albedo = com.klikli_dev.modonomicon.api.ModonomiconAPI.get()
+        Multiblock albedo = ModonomiconAPI.get()
                 .getMultiblock(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor_albedo"));
         helper.assertTrue(nigredo != null && albedo != null, "both Athanor schematics should be loaded");
         unformedAthanor(helper);
@@ -547,10 +555,10 @@ public final class AlchemyGameTests {
     @ServusGameTest(timeoutTicks = 20)
     public static void athanorCanBeStoodOn(GameTestHelper helper) {
         athanor(helper);
-        double top = helper.getBlockState(MACHINE).getCollisionShape(helper.getLevel(), helper.absolutePos(MACHINE)).max(net.minecraft.core.Direction.Axis.Y);
+        double top = helper.getBlockState(MACHINE).getCollisionShape(helper.getLevel(), helper.absolutePos(MACHINE)).max(Direction.Axis.Y);
         helper.assertTrue(Math.abs(top - 23 / 16.0) < 1e-6, "the plate is the top of the tower, not " + top);
         BlockPos duct = athanorDuct(AthanorLayout.TankSide.LEFT, false);
-        double pipe = helper.getBlockState(duct).getCollisionShape(helper.getLevel(), helper.absolutePos(duct)).max(net.minecraft.core.Direction.Axis.Y);
+        double pipe = helper.getBlockState(duct).getCollisionShape(helper.getLevel(), helper.absolutePos(duct)).max(Direction.Axis.Y);
         helper.assertTrue(1 + pipe <= 1.25, "the pipe can be jumped onto, its top is " + (1 + pipe));
         helper.succeed();
     }
@@ -574,7 +582,7 @@ public final class AlchemyGameTests {
     @ServusGameTest(timeoutTicks = 20)
     public static void athanorCrownByPlayerClick(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
-        net.minecraft.server.level.ServerPlayer player = PlayerClicks.player(helper, MACHINE, new ItemStack(Items.GUNPOWDER, 2));
+        ServerPlayer player = PlayerClicks.player(helper, MACHINE, new ItemStack(Items.GUNPOWDER, 2));
         PlayerClicks.use(helper, player, MACHINE.above());
         helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT).getCount() == 2,
                 "a click on the crown lays the item on the Athanor");
@@ -593,7 +601,7 @@ public final class AlchemyGameTests {
         BlockPos crown = helper.absolutePos(MACHINE.above());
         for (GameType gameType : new GameType[] {GameType.SURVIVAL, GameType.CREATIVE}) {
             athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, ItemStack.EMPTY);
-            net.minecraft.server.level.ServerPlayer player = PlayerClicks.player(helper, MACHINE, new ItemStack(Items.GUNPOWDER, 2), gameType);
+            ServerPlayer player = PlayerClicks.player(helper, MACHINE, new ItemStack(Items.GUNPOWDER, 2), gameType);
             BlockHitResult hit = PlayerClicks.lookAndUse(helper, player, Vec3.atCenterOf(crown));
             helper.assertTrue(hit.getBlockPos().equals(crown), gameType + ": the look picks the crown, not " + hit.getBlockPos() + " " + hit.getType());
             helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT).is(Items.GUNPOWDER),
@@ -609,9 +617,9 @@ public final class AlchemyGameTests {
     /** The Villach chapter advancement unlocks the journal's Villach research node, which opens Schwaz and the Albedo entries. */
     @ServusGameTest(timeoutTicks = 20)
     public static void villachAdvancementUnlocksTheResearchNode(GameTestHelper helper) {
-        net.minecraft.server.level.ServerPlayer player = PlayerClicks.player(helper, MACHINE, ItemStack.EMPTY);
+        ServerPlayer player = PlayerClicks.player(helper, MACHINE, ItemStack.EMPTY);
         Identifier node = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "journal/villach");
-        var research = com.klikli_dev.modonomicon.research.ResearchServices.state();
+        var research = ResearchServices.state();
         helper.assertFalse(research.isNodeUnlocked(player, node), "the Villach node starts locked");
         AdvancementHolder villach = helper.getLevel().getServer().getAdvancements().get(Journal.advancementId(ServusManufacturingIds.MOD_ID + ":villach"));
         helper.assertTrue(villach != null, "the Villach chapter advancement exists");
@@ -699,25 +707,25 @@ public final class AlchemyGameTests {
         CoagulatorBlockEntity coagulator = coagulator(helper, null);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack bucket = new ItemStack(PrincipleFluids.entry(Principle.SALT).bucket().get());
-        player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, bucket);
+        player.setItemInHand(InteractionHand.MAIN_HAND, bucket);
         BlockPos absolute = helper.absolutePos(CoagulatorGameTests.vat(MACHINE, 1));
-        net.minecraft.world.phys.BlockHitResult hit = new net.minecraft.world.phys.BlockHitResult(
-                net.minecraft.world.phys.Vec3.atCenterOf(absolute), Direction.UP, absolute, false);
-        helper.getLevel().getBlockState(absolute).useItemOn(bucket, helper.getLevel(), player, net.minecraft.world.InteractionHand.MAIN_HAND, hit);
+        BlockHitResult hit = new BlockHitResult(
+                Vec3.atCenterOf(absolute), Direction.UP, absolute, false);
+        helper.getLevel().getBlockState(absolute).useItemOn(bucket, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
         helper.assertTrue(coagulator.tanks().contents().equals(new Principles(1000, 0, 0)), "the Salt tank should hold 1,000 mB, got "
                 + coagulator.tanks().contents());
-        helper.assertTrue(player.getItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND).is(Items.BUCKET), "an empty bucket should be left");
+        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.BUCKET), "an empty bucket should be left");
         helper.succeed();
     }
 
     /** The loaded journal has the Workshop category and an entry per machine and topic. */
     @ServusGameTest(timeoutTicks = 20)
     public static void journalHasTheWorkshop(GameTestHelper helper) {
-        com.klikli_dev.modonomicon.book.Book book = com.klikli_dev.modonomicon.data.BookDataManager.get().getBook(JournalBookItem.BOOK);
+        Book book = BookDataManager.get().getBook(JournalBookItem.BOOK);
         helper.assertTrue(book != null, "the journal book should be loaded");
         helper.assertTrue(book.getCategory(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "workshop")) != null,
                 "the Workshop category should exist");
-        for (String entry : java.util.List.of("principles", "calciner", "purifier", "coagulator", "athanor", "pipes", "salt_crystal_block",
+        for (String entry : List.of("principles", "calciner", "purifier", "coagulator", "athanor", "pipes", "salt_crystal_block",
                 "elixir_of_sight", "gnome_hollow")) {
             // The server keeps only categories until the book is built for clients, so look at the data files.
             Identifier file = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID,

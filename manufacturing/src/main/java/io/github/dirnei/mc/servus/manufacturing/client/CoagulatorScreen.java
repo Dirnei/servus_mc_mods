@@ -1,20 +1,20 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
-import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import io.github.dirnei.mc.servus.foundation.client.MachineScreen;
 import io.github.dirnei.mc.servus.foundation.client.RecipePickerPopup;
 import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorMenu;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleMenu;
 import java.util.ArrayList;
-import net.minecraft.ChatFormatting;
 import java.util.List;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;

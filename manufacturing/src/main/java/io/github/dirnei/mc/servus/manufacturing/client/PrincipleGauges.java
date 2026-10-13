@@ -2,13 +2,13 @@ package io.github.dirnei.mc.servus.manufacturing.client;
 
 import io.github.dirnei.mc.servus.foundation.client.FluidGauge;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleBuckets;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleMenu;
 import java.util.function.IntPredicate;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /** Three slim gauges for Salt, Sulfur and Mercury on the left of an alchemy machine's GUI. */

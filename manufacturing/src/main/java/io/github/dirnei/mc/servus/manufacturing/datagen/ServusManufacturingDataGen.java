@@ -1,9 +1,12 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
-import io.github.dirnei.mc.servus.manufacturing.datagen.book.JournalResearch;
-import com.klikli_dev.modonomicon.api.datagen.research.ResearchCache;
+import com.klikli_dev.modonomicon.api.datagen.LanguageProviderCache;
+import com.klikli_dev.modonomicon.api.datagen.NeoBookProvider;
 import com.klikli_dev.modonomicon.api.datagen.NeoResearchProvider;
+import com.klikli_dev.modonomicon.api.datagen.research.ResearchCache;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.datagen.book.JournalBook;
+import io.github.dirnei.mc.servus.manufacturing.datagen.book.JournalResearch;
 import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataExportProvider;
 import java.util.List;
 import java.util.Set;
@@ -11,14 +14,11 @@ import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
+import net.minecraft.data.advancements.AdvancementProvider;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import com.klikli_dev.modonomicon.api.datagen.LanguageProviderCache;
-import com.klikli_dev.modonomicon.api.datagen.NeoBookProvider;
-import io.github.dirnei.mc.servus.manufacturing.datagen.book.JournalBook;
-import net.minecraft.data.advancements.AdvancementProvider;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 @EventBusSubscriber(modid = ServusManufacturingIds.MOD_ID)

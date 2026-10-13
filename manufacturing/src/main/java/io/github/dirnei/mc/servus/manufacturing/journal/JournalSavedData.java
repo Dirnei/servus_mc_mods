@@ -1,19 +1,19 @@
 package io.github.dirnei.mc.servus.manufacturing.journal;
 
-import net.minecraft.world.level.saveddata.SavedDataType;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import net.minecraft.core.UUIDUtil;
 import io.github.dirnei.mc.servus.manufacturing.journal.JournalLedger.TeamJournal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 
 /** Every team's journal: task counts and finished chapters. */
 public final class JournalSavedData extends SavedData {

@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
-import io.github.dirnei.mc.servus.foundation.client.MachineScreen;
 import io.github.dirnei.mc.servus.foundation.client.MachineScreen.Layout;
+import io.github.dirnei.mc.servus.foundation.client.MachineScreen;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import net.minecraft.resources.Identifier;
 

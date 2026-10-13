@@ -1,14 +1,13 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
 import com.google.gson.JsonObject;
-
+import io.github.dirnei.mc.servus.foundation.datagen.model.ItemModelProvider;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.data.PackOutput;
-import io.github.dirnei.mc.servus.foundation.datagen.model.ItemModelProvider;
 
 final class ServusManufacturingItemModelProvider extends ItemModelProvider {
 

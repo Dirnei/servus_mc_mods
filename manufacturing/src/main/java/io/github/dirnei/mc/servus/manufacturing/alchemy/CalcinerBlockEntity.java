@@ -1,32 +1,30 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
-import java.util.List;
-import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
-import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.machine.BurnerMachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
-import io.github.dirnei.mc.servus.foundation.machine.BurnerMachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
-import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
-import net.minecraft.server.level.ServerLevel;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPorts;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurificationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.SlotPort;
-import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
+import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
+import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurificationRecipe;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -34,6 +32,8 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * The controller of the Calciner structure: burns its input into Salt, Sulfur and Mercury over the

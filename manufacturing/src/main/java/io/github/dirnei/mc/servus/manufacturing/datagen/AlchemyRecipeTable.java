@@ -1,23 +1,23 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
-import net.minecraft.world.item.ItemStackTemplate;
-import org.jspecify.annotations.Nullable;
-import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.item.Item;
-import net.minecraft.tags.TagKey;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.HolderGetter;
-import net.minecraft.world.level.block.Block;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
-import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataExportProvider;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
+import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataExportProvider;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import java.util.List;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.Tags;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The calcination, purification, coagulation and Athanor recipes Manufacturing ships, in one table that both

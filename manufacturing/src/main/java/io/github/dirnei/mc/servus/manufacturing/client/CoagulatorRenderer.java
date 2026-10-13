@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
-import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
-import io.github.dirnei.mc.servus.foundation.client.SubmitBuffers;
-import io.github.dirnei.mc.servus.foundation.client.BufferedBlockEntityRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import io.github.dirnei.mc.servus.foundation.client.BufferedBlockEntityRenderer;
+import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
+import io.github.dirnei.mc.servus.foundation.client.SubmitBuffers;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;

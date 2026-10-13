@@ -1,29 +1,28 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Offset;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.FormingEffect;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures.Check;
+import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Cell;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Placement;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.FormingEffect;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Offset;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures.Check;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
-import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Placement;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**

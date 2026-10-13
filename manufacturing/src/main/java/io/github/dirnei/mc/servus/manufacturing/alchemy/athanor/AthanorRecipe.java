@@ -1,17 +1,17 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.athanor;
 
-import net.minecraft.world.item.ItemStackTemplate;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.AlchemyRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleCodecs;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.AlchemyRecipe;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;

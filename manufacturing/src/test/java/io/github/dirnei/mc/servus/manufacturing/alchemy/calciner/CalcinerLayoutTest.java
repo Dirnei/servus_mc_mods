@@ -1,7 +1,5 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Offset;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -9,6 +7,8 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Placement;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Relation;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Offset;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 

@@ -1,16 +1,19 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
+import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
-import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleTanks;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Cell;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -18,9 +21,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 
 /**
  * The ports of a formed Calciner, fixed by position: matter in at the mouth, fuel and upkeep at

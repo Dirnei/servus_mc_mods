@@ -1,17 +1,16 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator;
 
-import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorLayout.Cell;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorLayout.Role;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.FormingEffect;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures.Check;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
-import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

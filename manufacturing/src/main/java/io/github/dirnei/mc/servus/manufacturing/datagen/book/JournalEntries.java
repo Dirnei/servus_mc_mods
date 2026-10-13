@@ -1,17 +1,17 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen.book;
 
-import com.klikli_dev.modonomicon.client.gui.book.theme.GuiSprite;
 import com.klikli_dev.modonomicon.api.datagen.CategoryProviderBase;
 import com.klikli_dev.modonomicon.api.datagen.EntryBackground;
 import com.klikli_dev.modonomicon.api.datagen.EntryProvider;
 import com.klikli_dev.modonomicon.api.datagen.book.BookIconModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookCraftingRecipePageModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookMultiblockPageModel;
-import net.minecraft.resources.Identifier;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookSpotlightPageModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookTextPageModel;
-import java.util.List;
+import com.klikli_dev.modonomicon.client.gui.book.theme.GuiSprite;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
+import java.util.List;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 

@@ -1,22 +1,22 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
-import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
-import net.minecraft.data.AtlasIds;
-import io.github.dirnei.mc.servus.foundation.client.SubmitBuffers;
-import io.github.dirnei.mc.servus.foundation.client.BufferedBlockEntityRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
+import io.github.dirnei.mc.servus.foundation.client.BufferedBlockEntityRenderer;
+import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
+import io.github.dirnei.mc.servus.foundation.client.SubmitBuffers;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierStructure;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.BlockPos;
+import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 
 /** Draws the Purifier: the Ash still to wash on the Vat's floor with the water over it, the Salt in the Catch Basin and the Caput Mortuum in the Residue Crock. */
 public final class PurifierRenderer extends BufferedBlockEntityRenderer<PurifierBlockEntity> {
