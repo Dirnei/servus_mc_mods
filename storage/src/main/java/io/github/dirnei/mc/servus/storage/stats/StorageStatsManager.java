@@ -1,18 +1,16 @@
 package io.github.dirnei.mc.servus.storage.stats;
 
-import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.util.ExtraCodecs;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.dirnei.mc.servus.storage.ServusStorage;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleTiers;
 import java.util.Map;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 /** Loads storage block stats from {@code data/<ns>/storage/<name>.json}. */
@@ -74,7 +72,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     public static final int DEFAULT_FERTILIZER_RESERVE = 64;
     public static final double DEFAULT_FERTILIZE_SHARE = 0.5;
 
-    private static final Gson GSON = new GsonBuilder().create();
     private static final Identifier WAREHOUSE = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "warehouse");
     private static final Identifier RACK = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "rack");
     private static final Identifier CRAFTING_STATION = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crafting_station");
@@ -299,11 +296,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         return packingUpgradeSlots;
     }
 
-    /** For tests: sets the Packing Station rate as if a datapack had been loaded. */
-    public void setPackingItemsPerSecond(double itemsPerSecond) {
-        packingItemsPerSecond = itemsPerSecond;
-    }
-
     /** Blocks per tick the lift car of an elevator shaft moves. */
     public double liftSpeed() {
         return liftSpeed;
@@ -380,13 +372,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         return craftingStationFePerTick;
     }
 
-    /** For GameTests: the warehouse power costs of shuttles, wakes and Crafting Stations. */
-    public void setWarehousePowerCost(double shuttlePerBlock, double wakePerChunkPerTick, double craftingPerTick) {
-        shuttleFePerBlock = Math.max(0, shuttlePerBlock);
-        wakeFePerChunkPerTick = Math.max(0, wakePerChunkPerTick);
-        craftingStationFePerTick = Math.max(0, craftingPerTick);
-    }
-
     /** Ticks a woken site stays loaded after its work is done. */
     public int wakeGraceTicks() {
         return wakeGraceTicks;
@@ -455,11 +440,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     /** Ripe share of the planted plots at which a field signals harvest due. */
     public double fieldHarvestShare() {
         return fieldHarvestShare;
-    }
-
-    /** For tests: sets the water interval as if a datapack had been loaded. */
-    public void setFieldWaterInterval(int ticks) {
-        fieldWaterInterval = ticks;
     }
 
     /** Ticks a harvester spends on one plot it works. */
@@ -537,8 +517,4 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         return shuttleTiers;
     }
 
-    /** For tests: sets the shuttle stats as if a datapack had been loaded. */
-    public void setShuttleTiers(ShuttleTiers tiers) {
-        shuttleTiers = tiers;
-    }
 }
