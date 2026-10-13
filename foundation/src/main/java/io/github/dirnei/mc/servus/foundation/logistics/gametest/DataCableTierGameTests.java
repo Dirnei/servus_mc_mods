@@ -18,8 +18,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -34,22 +32,11 @@ public final class DataCableTierGameTests {
 
     /** A duct carrying the data line in the tier of {@code cable}, with its connection flags refreshed. */
     private static UtilityDuctBlockEntity dataDuct(GameTestHelper helper, BlockPos pos, DataCableItem cable) {
-        helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
-        duct.addDataLine(cable.tierId());
-        BlockPos absolute = helper.absolutePos(pos);
-        BlockState state = helper.getLevel().getBlockState(absolute);
-        helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
-        return duct;
+        return LogisticsTestSupport.duct(helper, pos, duct -> duct.addDataLine(cable.tierId()));
     }
 
     private static void use(GameTestHelper helper, Player player, Item item, BlockPos pos, Direction face) {
-        BlockPos absolute = helper.absolutePos(pos);
-        Vec3 point = Vec3.atCenterOf(absolute).relative(face, 0.5);
-        ItemStack stack = new ItemStack(item);
-        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack,
-                new BlockHitResult(point, face, absolute, false)));
+        LogisticsTestSupport.useOn(helper, player, new ItemStack(item), pos, face);
     }
 
     private static int dropped(GameTestHelper helper, Item item) {

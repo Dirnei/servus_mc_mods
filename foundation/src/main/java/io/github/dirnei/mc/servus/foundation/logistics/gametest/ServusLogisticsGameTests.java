@@ -63,21 +63,13 @@ public final class ServusLogisticsGameTests {
     private ServusLogisticsGameTests() {
     }
 
-    /**
-     * Places a Utility Duct carrying the given lines with default modes and
-     * channel 1. {@code setBlock} skips placement logic, so the connection
-     * flags are refreshed from the neighbours afterwards.
-     */
+    /** Places a Utility Duct carrying the given lines with default modes and channel 1. */
     private static UtilityDuctBlockEntity duct(GameTestHelper helper, BlockPos pos, Line... lines) {
-        helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
-        for (Line line : lines) {
-            duct.addLine(line);
-        }
-        BlockPos absolute = helper.absolutePos(pos);
-        BlockState state = helper.getLevel().getBlockState(absolute);
-        helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
-        return duct;
+        return LogisticsTestSupport.duct(helper, pos, duct -> {
+            for (Line line : lines) {
+                duct.addLine(line);
+            }
+        });
     }
 
     private static ChestBlockEntity chest(GameTestHelper helper, BlockPos pos) {
@@ -235,12 +227,7 @@ public final class ServusLogisticsGameTests {
 
     /** Uses a facade stack on a face of the duct at {@code pos} as a survival player; returns what is left. */
     private static ItemStack usePanel(GameTestHelper helper, BlockPos pos, Direction face, ItemStack stack) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        BlockPos absolute = helper.absolutePos(pos);
-        Vec3 point = Vec3.atCenterOf(absolute).relative(face, 0.5);
-        stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack,
-                new BlockHitResult(point, face, absolute, false)));
+        LogisticsTestSupport.useOn(helper, helper.makeMockPlayer(GameType.SURVIVAL), stack, pos, face);
         return stack;
     }
 
@@ -552,12 +539,7 @@ public final class ServusLogisticsGameTests {
 
     /** Uses a line item on a face of the block at {@code pos}, like a player's right click. */
     private static void useLine(GameTestHelper helper, Player player, Item item, BlockPos pos, Direction face) {
-        BlockPos absolute = helper.absolutePos(pos);
-        Vec3 point = Vec3.atCenterOf(absolute).relative(face, 0.5);
-        ItemStack stack = new ItemStack(item);
-        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack,
-                new BlockHitResult(point, face, absolute, false)));
+        LogisticsTestSupport.useOn(helper, player, new ItemStack(item), pos, face);
     }
 
     /**

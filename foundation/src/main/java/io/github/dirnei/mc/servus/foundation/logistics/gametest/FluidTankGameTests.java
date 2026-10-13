@@ -17,6 +17,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -101,9 +102,12 @@ public final class FluidTankGameTests {
     }
 
     private static InteractionResult placeItem(GameTestHelper helper, Player player, BlockPos pos, ItemStack stack) {
-        BlockPos absolute = helper.absolutePos(pos);
+        return place(helper, player, pos, stack, Vec3.atCenterOf(helper.absolutePos(pos)));
+    }
+
+    private static InteractionResult place(GameTestHelper helper, Player player, BlockPos pos, ItemStack stack, Vec3 location) {
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false);
+        BlockHitResult hit = new BlockHitResult(location, Direction.UP, helper.absolutePos(pos), false);
         BlockPlaceContext context = new BlockPlaceContext(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack, hit));
         return ((FluidTankItem) stack.getItem()).place(context);
     }
@@ -135,11 +139,7 @@ public final class FluidTankGameTests {
 
     /** Clicks the top face of the block at {@code pos} with a tank item, like a player's right click. */
     private static InteractionResult placeOnTop(GameTestHelper helper, Player player, BlockPos pos, ItemStack stack) {
-        BlockPos absolute = helper.absolutePos(pos);
-        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute).relative(Direction.UP, 0.5), Direction.UP, absolute, false);
-        BlockPlaceContext context = new BlockPlaceContext(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack, hit));
-        return ((FluidTankItem) stack.getItem()).place(context);
+        return place(helper, player, pos, stack, Vec3.atCenterOf(helper.absolutePos(pos)).relative(Direction.UP, 0.5));
     }
 
     /** An L of three blocks is a pair and a single; the fourth block forms one 2 by 2 tank holding all their fluid. */
@@ -447,7 +447,7 @@ public final class FluidTankGameTests {
                 .thenSucceed();
     }
 
-    private static CraftingInput tankGrid(net.minecraft.world.item.Item floor) {
+    private static CraftingInput tankGrid(Item floor) {
         ItemStack c = new ItemStack(Items.COPPER_INGOT);
         ItemStack g = new ItemStack(Items.GLASS);
         return CraftingInput.of(3, 3, List.of(c.copy(), g.copy(), c.copy(), g.copy(), ItemStack.EMPTY, g.copy(),
