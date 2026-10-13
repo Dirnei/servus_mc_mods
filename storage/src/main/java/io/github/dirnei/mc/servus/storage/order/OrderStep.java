@@ -1,8 +1,6 @@
 package io.github.dirnei.mc.servus.storage.order;
 
-import net.minecraft.world.item.crafting.Recipe;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import java.util.ArrayList;
@@ -57,9 +55,7 @@ public final class OrderStep {
         this.producer = producer;
         this.recipe = recipe;
         this.batches = batches;
-        for (ItemStack input : recipe.inputs()) {
-            inputs.merge(ItemKey.of(input), input.getCount(), Integer::sum);
-        }
+        inputs.putAll(ItemKey.counts(recipe.inputs()));
     }
 
     /** Which CPU, order and place this step is, for the producer's job. */
@@ -265,8 +261,6 @@ public final class OrderStep {
     public ItemStack output() {
         return recipe.outputs().isEmpty() ? ItemStack.EMPTY : recipe.outputs().get(0);
     }
-
-    // Persistence
 
     CompoundTag save(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();

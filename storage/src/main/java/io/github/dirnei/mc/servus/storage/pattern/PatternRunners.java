@@ -4,12 +4,10 @@ import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.ItemStack;
 
 /**
  * Which producers can execute a pattern, and the recipes patterns add to a
@@ -60,11 +58,7 @@ public final class PatternRunners {
             if (!recipe.id().equals(pattern.recipe())) {
                 continue;
             }
-            Map<ItemKey, Integer> inputs = new HashMap<>();
-            for (ItemStack input : recipe.inputs()) {
-                inputs.merge(ItemKey.of(input), input.getCount(), Integer::sum);
-            }
-            if (inputs.equals(wanted)) {
+            if (ItemKey.counts(recipe.inputs()).equals(wanted)) {
                 return true;
             }
         }

@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.network;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -9,6 +12,15 @@ public record ItemKey(Item item, DataComponentPatch components) {
 
     public static ItemKey of(ItemStack stack) {
         return new ItemKey(stack.getItem(), stack.getComponentsPatch());
+    }
+
+    /** The counts of the stacks merged by key, in first seen order. */
+    public static Map<ItemKey, Integer> counts(List<ItemStack> stacks) {
+        Map<ItemKey, Integer> counts = new LinkedHashMap<>();
+        for (ItemStack stack : stacks) {
+            counts.merge(of(stack), stack.getCount(), Integer::sum);
+        }
+        return counts;
     }
 
     public boolean matches(ItemStack stack) {

@@ -1,13 +1,13 @@
 package io.github.dirnei.mc.servus.storage.order;
 
-import net.minecraft.core.BlockPos;
-
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -33,7 +33,7 @@ public final class WorkOrder {
     /** How many of the order's item were sent straight to {@link #deliverTo}. */
     private int directSent;
     /** Intermediates later steps still needed that went to storage because the CPU's buffer was full, per key. */
-    private final Map<ItemKey, Integer> overflowed = new java.util.LinkedHashMap<>();
+    private final Map<ItemKey, Integer> overflowed = new LinkedHashMap<>();
 
     public WorkOrder(int id, ItemKey key, int amount, int requestId, List<OrderStep> steps,
                      Map<ItemKey, Integer> reserved, Map<ItemKey, Integer> missing) {
@@ -143,20 +143,17 @@ public final class WorkOrder {
     }
 
     /** Whether a step of this order is feeding or producing on the producer. */
-    public boolean occupies(net.minecraft.core.BlockPos producer, OrderStep except) {
+    public boolean occupies(BlockPos producer, OrderStep except) {
         if (!open()) {
             return false;
         }
         for (OrderStep step : steps) {
-            if (step != except && step.producer().equals(producer)
-                    && (step.state() == OrderStep.State.DELIVERING || step.state() == OrderStep.State.PRODUCING)) {
+            if (step != except && step.producer().equals(producer) && step.active()) {
                 return true;
             }
         }
         return false;
     }
-
-    // Persistence
 
     CompoundTag save(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();

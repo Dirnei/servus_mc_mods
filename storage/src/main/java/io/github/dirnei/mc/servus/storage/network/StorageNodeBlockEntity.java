@@ -80,10 +80,6 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         }
     }
 
-    public void clearZone() {
-        setZone(null);
-    }
-
     /** Writes the zone into a tag; shared by save and update tags. */
     protected void writeZone(CompoundTag tag, HolderLookup.Provider registries) {
         if (zone != null) {

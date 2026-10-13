@@ -139,8 +139,6 @@ public final class ProductionLedger extends SavedData {
         }
     }
 
-    // Persistence
-
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putLong("NextTransfer", nextTransfer);
         tag.putInt("NextRequest", nextRequest);

@@ -19,7 +19,6 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.ItemStack;
 
 /**
  * The work orders of one Crafting CPU: plans them with the Foundation planner
@@ -210,8 +209,6 @@ public final class OrderBook {
         return false;
     }
 
-    // Creation
-
     /**
      * Plans and creates an order.
      *
@@ -265,7 +262,6 @@ public final class OrderBook {
         Map<ItemKey, Long> available = new HashMap<>(host.stock());
         reservedTotal().forEach((k, reserved) -> available.merge(k, (long) -reserved, Long::sum));
         host.reservedElsewhere().forEach((k, reserved) -> available.merge(k, (long) -reserved, Long::sum));
-        // The amount is what to produce; stock of the item itself is already accounted for by the caller.
         available.remove(key);
         return OrderPlanner.plan(key, amount, available, recipes, MAX_DEPTH);
     }
@@ -283,15 +279,7 @@ public final class OrderBook {
                 }
                 StepKey stepKey = new StepKey(producer.pos(), recipe.id());
                 byKey.put(stepKey, recipe);
-                Map<ItemKey, Integer> inputs = new LinkedHashMap<>();
-                for (ItemStack input : recipe.inputs()) {
-                    inputs.merge(ItemKey.of(input), input.getCount(), Integer::sum);
-                }
-                Map<ItemKey, Integer> outputs = new LinkedHashMap<>();
-                for (ItemStack output : recipe.outputs()) {
-                    outputs.merge(ItemKey.of(output), output.getCount(), Integer::sum);
-                }
-                list.add(new OrderPlanner.Recipe<>(stepKey, inputs, outputs, recipe.ticks()));
+                list.add(new OrderPlanner.Recipe<>(stepKey, ItemKey.counts(recipe.inputs()), ItemKey.counts(recipe.outputs()), recipe.ticks()));
             }
         }
         // Stable sort keeps idle producers first among equal times.
@@ -319,8 +307,6 @@ public final class OrderBook {
         return "missing " + first.stack(1).getHoverName().getString();
     }
 
-    // Cancellation
-
     public boolean cancel(int orderId) {
         WorkOrder order = order(orderId);
         if (order == null || !order.open()) {
@@ -338,7 +324,7 @@ public final class OrderBook {
 
     public void cancelForRequest(int requestId) {
         for (WorkOrder order : orders) {
-            if (order.requestId() == requestId && order.open()) {
+            if (order.requestId() == requestId) {
                 cancel(order.id());
             }
         }
@@ -347,13 +333,9 @@ public final class OrderBook {
     /** Cancels every open order, when the CPU goes away. */
     public void cancelAll() {
         for (WorkOrder order : orders) {
-            if (order.open()) {
-                cancel(order.id());
-            }
+            cancel(order.id());
         }
     }
-
-    // Execution
 
     public void tick() {
         if (++timer < TICK_INTERVAL) {
@@ -402,18 +384,7 @@ public final class OrderBook {
             }
             switch (step.state()) {
                 case WAITING_STATION -> {
-                    if (producerBusy(step.producer(), step)) {
-                        relocate(step);
-                    }
-                    if (producerBusy(step.producer(), step)) {
-                        step.setReason("producer busy");
-                    } else if (!host.start(step)) {
-                        step.setReason("station busy");
-                    } else {
-                        step.setState(OrderStep.State.DELIVERING);
-                        step.setReason("");
-                        blocked = feed(order, step, blocked);
-                    }
+                    blocked = start(order, step, blocked);
                     allDone = false;
                 }
                 case DELIVERING -> {
@@ -443,6 +414,24 @@ public final class OrderBook {
         }
     }
 
+    /** Moves the step to a free producer when needed and starts feeding it once its producer takes the job. */
+    private String start(WorkOrder order, OrderStep step, String blocked) {
+        if (producerBusy(step.producer(), step)) {
+            relocate(step);
+        }
+        if (producerBusy(step.producer(), step)) {
+            step.setReason("producer busy");
+            return blocked;
+        }
+        if (!host.start(step)) {
+            step.setReason("station busy");
+            return blocked;
+        }
+        step.setState(OrderStep.State.DELIVERING);
+        step.setReason("");
+        return feed(order, step, blocked);
+    }
+
     /** Ships every input still owed, from the CPU's buffer first; returns the blocked reason to report, if any. */
     private String feed(WorkOrder order, OrderStep step, String blocked) {
         String reason = null;
@@ -452,7 +441,6 @@ public final class OrderBook {
             if (owed <= 0) {
                 continue;
             }
-            // Intermediates of the order waiting in the CPU's buffer go first; storage ships only the rest.
             Feed buffered = host.feedFromBuffer(order, step.producer(), key, owed);
             if (buffered.planned() > 0) {
                 step.addFed(key, buffered.planned(), buffered.shipped());
@@ -503,21 +491,13 @@ public final class OrderBook {
                 continue;
             }
             for (ProductionRecipe recipe : producer.recipes()) {
-                if (recipe.id().equals(step.recipe().id()) && sameInputs(recipe, step)) {
+                if (recipe.id().equals(step.recipe().id()) && ItemKey.counts(recipe.inputs()).equals(step.inputs())) {
                     step.setProducer(producer.pos());
                     host.changed();
                     return;
                 }
             }
         }
-    }
-
-    private static boolean sameInputs(ProductionRecipe recipe, OrderStep step) {
-        Map<ItemKey, Integer> inputs = new LinkedHashMap<>();
-        for (ItemStack input : recipe.inputs()) {
-            inputs.merge(ItemKey.of(input), input.getCount(), Integer::sum);
-        }
-        return inputs.equals(step.inputs());
     }
 
     private boolean producerBusy(BlockPos producer, OrderStep except) {
@@ -535,8 +515,6 @@ public final class OrderBook {
             steps.get(i).setRef(new StepRef(host.self(), order.id(), i));
         }
     }
-
-    // Persistence
 
     public CompoundTag save(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();

@@ -10,7 +10,6 @@ import java.util.List;
  * into the CPU's buffer for later steps that are not delivering yet (same
  * producer or busy producer) as far as it has room, held for a while for a
  * busy producer when the buffer could not take them, the rest to storage.
- * Pure, no Minecraft imports.
  */
 public final class Handoff {
 
