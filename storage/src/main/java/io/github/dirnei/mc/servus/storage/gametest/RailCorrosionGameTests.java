@@ -3,7 +3,6 @@ package io.github.dirnei.mc.servus.storage.gametest;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlock;
@@ -21,19 +20,15 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.common.FarmlandWaterManager;
 import net.neoforged.neoforge.fluids.FluidStack;
 
-/** Copper corrosion of farm rail fields: aging, upkeep, the corroded field, axe scraping and joins (m10-rail-corrosion). */
+/** Copper corrosion of farm rail fields: aging, upkeep, the corroded field, axe scraping and joins. */
 public final class RailCorrosionGameTests {
 
     private static final int RAIL_Z = 5;
@@ -45,13 +40,8 @@ public final class RailCorrosionGameTests {
     private RailCorrosionGameTests() {
     }
 
-    // Helpers
-
     private static void rail(GameTestHelper helper, int x) {
-        BlockPos rail = new BlockPos(x, 1, RAIL_Z);
-        helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
-        helper.setBlock(rail, Block.updateFromNeighbourShapes(ServusStorageBlocks.FARM_RAIL.get().defaultBlockState(),
-                helper.getLevel(), helper.absolutePos(rail)));
+        FieldFixtures.farmRail(helper, new BlockPos(x, 1, RAIL_Z));
     }
 
     /** Farm rails from x 3 to 7, farmland north of them one below, the head west of the rails. */
@@ -60,8 +50,7 @@ public final class RailCorrosionGameTests {
             helper.setBlock(new BlockPos(x, 0, RAIL_Z + 1), Blocks.FARMLAND.defaultBlockState());
             rail(helper, x);
         }
-        helper.setBlock(HEAD, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        return helper.getBlockEntity(HEAD, FieldHeadBlockEntity.class);
+        return FieldFixtures.head(helper, HEAD);
     }
 
     private static int stage(GameTestHelper helper, int x) {
@@ -79,18 +68,8 @@ public final class RailCorrosionGameTests {
         return StorageStatsManager.INSTANCE.fieldCorrosionWater();
     }
 
-    private static FluidView fluid(GameTestHelper helper) {
-        return FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(HEAD), null));
-    }
-
     private static boolean wet(GameTestHelper helper, int x) {
-        return FarmlandWaterManager.hasBlockWaterTicket(helper.getLevel(), helper.absolutePos(new BlockPos(x, 0, RAIL_Z + 1)));
-    }
-
-    private static Player playerHolding(GameTestHelper helper, ItemStack stack) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        return player;
+        return FieldFixtures.wet(helper, new BlockPos(x, 0, RAIL_Z + 1));
     }
 
     /** Uses the player's main hand item on the top of the rail at that x, as a right click does. */
@@ -99,8 +78,6 @@ public final class RailCorrosionGameTests {
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
         helper.getLevel().getBlockState(pos).useItemOn(player.getMainHandItem(), helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
     }
-
-    // Aging
 
     /** A served field starts at copper on every rail and goes to exposed after one step of water without upkeep. */
     @ServusGameTest(timeoutTicks = 40)
@@ -139,7 +116,7 @@ public final class RailCorrosionGameTests {
     public static void waterUseCountsForAging(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
-            fluid(helper).fill(new FluidStack(Fluids.WATER, 1000), false);
+            FieldFixtures.fluid(helper, HEAD).fill(new FluidStack(Fluids.WATER, 1000), false);
             helper.succeedWhen(() -> {
                 helper.assertTrue(head.hydrated(), "the head should hydrate");
                 long need = FieldWater.use(RAILS, StorageStatsManager.INSTANCE.fieldWaterPerRail());
@@ -148,14 +125,12 @@ public final class RailCorrosionGameTests {
         });
     }
 
-    // Corroded
-
     /** A corroded field is no longer watered, uses no water and shows the rust rim. */
     @ServusGameTest(timeoutTicks = 80)
     public static void corrodedStopsHydration(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
-            fluid(helper).fill(new FluidStack(Fluids.WATER, 1000), false);
+            FieldFixtures.fluid(helper, HEAD).fill(new FluidStack(Fluids.WATER, 1000), false);
             helper.runAfterDelay(3, () -> {
                 helper.assertTrue(head.hydrated() && wet(helper, 4), "the field should be watered first");
                 head.setStage(FieldCorrosion.OXIDIZED);
@@ -174,17 +149,15 @@ public final class RailCorrosionGameTests {
         });
     }
 
-    // Axe
-
     /** An axe scrapes every rail back one stage and loses one durability per rail; the field is watered again. */
     @ServusGameTest(timeoutTicks = 60)
     public static void axeScrapesField(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
             head.setStage(FieldCorrosion.CORRODED);
-            fluid(helper).fill(new FluidStack(Fluids.WATER, 1000), false);
+            FieldFixtures.fluid(helper, HEAD).fill(new FluidStack(Fluids.WATER, 1000), false);
             ItemStack axe = new ItemStack(Items.IRON_AXE);
-            Player player = playerHolding(helper, axe);
+            Player player = TestPlayers.holding(helper, axe);
             useOnRail(helper, player, 5);
             helper.assertTrue(head.corrosion() == FieldCorrosion.OXIDIZED, "scraped to oxidized, got " + head.corrosion());
             assertRails(helper, FIRST, LAST, FieldCorrosion.OXIDIZED, "every rail is scraped");
@@ -206,7 +179,7 @@ public final class RailCorrosionGameTests {
             ItemStack axe = new ItemStack(Items.IRON_AXE);
             axe.setDamageValue(axe.getMaxDamage() - (RAILS - 2));
             int damage = axe.getDamageValue();
-            Player player = playerHolding(helper, axe);
+            Player player = TestPlayers.holding(helper, axe);
             useOnRail(helper, player, 4);
             helper.assertTrue(head.corrosion() == FieldCorrosion.WEATHERED, "a worn axe changes nothing");
             assertRails(helper, FIRST, LAST, FieldCorrosion.WEATHERED, "rails stay weathered");
@@ -220,15 +193,13 @@ public final class RailCorrosionGameTests {
     public static void freshCopperNotScraped(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
-            Player player = playerHolding(helper, new ItemStack(Items.IRON_AXE));
+            Player player = TestPlayers.holding(helper, new ItemStack(Items.IRON_AXE));
             useOnRail(helper, player, 4);
             helper.assertTrue(head.corrosion() == FieldCorrosion.COPPER, "copper stays copper");
             helper.assertTrue(player.getMainHandItem().getDamageValue() == 0, "the axe keeps its durability");
             helper.succeed();
         });
     }
-
-    // Joins
 
     /** A rail placed at the end of a headed field takes the field's stage. */
     @ServusGameTest(timeoutTicks = 40)
@@ -254,11 +225,8 @@ public final class RailCorrosionGameTests {
             helper.assertTrue(drops.size() == 1 && drops.get(0).is(ServusStorageItems.FARM_RAIL.get()), "one farm rail drops, got " + drops);
             ItemStack stack = drops.get(0);
             BlockPos at = new BlockPos(5, 1, 10);
-            helper.setBlock(at.below(), Blocks.STONE.defaultBlockState());
-            Player player = playerHolding(helper, stack);
-            BlockPos floor = helper.absolutePos(at.below());
-            stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack,
-                    new BlockHitResult(Vec3.atCenterOf(floor).add(0, 0.5, 0), Direction.UP, floor, false)));
+            WarehouseFixtures.stone(helper, at.below());
+            TestPlayers.useOnTop(helper, TestPlayers.holding(helper, stack), stack, at.below());
             helper.assertBlockPresent(ServusStorageBlocks.FARM_RAIL.get(), at);
             helper.runAfterDelay(2, () -> {
                 int placed = helper.getBlockEntity(at, RailBlockEntity.class).corrosion();
@@ -285,8 +253,6 @@ public final class RailCorrosionGameTests {
             helper.succeedWhen(() -> assertRails(helper, 3, 7, FieldCorrosion.EXPOSED, "the joined field takes the younger stage"));
         });
     }
-
-    // Upkeep
 
     /** A hopper above the head keeps its honeycomb: the anti-corrosion slot is filled by hand or upkeep packets. */
     @ServusGameTest(timeoutTicks = 100)

@@ -42,7 +42,6 @@ import net.minecraft.world.phys.AABB;
  */
 public final class PackingStationGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(1, 1, 6);
     private static final BlockPos GARAGE = new BlockPos(2, 1, 5);
     private static final BlockPos FAR = new BlockPos(3, 1, 7);

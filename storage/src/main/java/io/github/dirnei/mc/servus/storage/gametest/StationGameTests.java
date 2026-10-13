@@ -26,7 +26,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
@@ -235,10 +234,7 @@ public final class StationGameTests {
     @ServusGameTest(timeoutTicks = 400)
     public static void feedOutboundByShuttle(GameTestHelper helper) {
         WarehouseFixtures.controller(helper, FD_CONTROLLER);
-        for (int x = 2; x <= 7; x++) {
-            helper.setBlock(new BlockPos(x, 0, 7), Blocks.STONE.defaultBlockState());
-            helper.setBlock(new BlockPos(x, 1, 7), ServusStorageBlocks.RAIL.get().defaultBlockState());
-        }
+        WarehouseFixtures.railRow(helper, 2, 7, 7);
         WarehouseFixtures.rack(helper, FD_RACK, Direction.NORTH);
         WarehouseFixtures.garage(helper, FD_GARAGE, Direction.SOUTH, 0);
         helper.setBlock(FD_STATION, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.SOUTH));

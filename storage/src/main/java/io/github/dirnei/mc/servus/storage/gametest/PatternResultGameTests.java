@@ -33,7 +33,6 @@ import net.minecraft.world.level.storage.TagValueInput;
 /** Pattern results as the recipe really crafts them: wood from the planks, old patterns refreshed, orders that arrive. */
 public final class PatternResultGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     /** Where {@link StationHandsGameTests#setup} puts the Packing Station and the Pattern Storage. */
     private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
     private static final BlockPos PATTERNS = new BlockPos(4, 3, 2);
@@ -74,7 +73,7 @@ public final class PatternResultGameTests {
     }
 
     private static StorageTerminalMenu menu(GameTestHelper helper, Player player) {
-        return new StorageTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, ACCESS));
+        return TerminalWiring.menu(helper, player, ACCESS);
     }
 
     private static boolean stocked(GameTestHelper helper, Player player, net.minecraft.world.item.Item item) {

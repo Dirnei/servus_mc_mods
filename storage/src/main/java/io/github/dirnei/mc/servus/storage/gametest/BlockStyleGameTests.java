@@ -40,7 +40,6 @@ import net.minecraft.world.phys.Vec3;
 /** The wood from the recipe and the Pattern Storage lights (m8-block-style). */
 public final class BlockStyleGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos AT = new BlockPos(5, 1, 5);
     private static final Identifier BIRCH = BuiltInRegistries.BLOCK.getKey(Blocks.BIRCH_PLANKS);
     private static final Identifier SPRUCE = BuiltInRegistries.BLOCK.getKey(Blocks.SPRUCE_PLANKS);

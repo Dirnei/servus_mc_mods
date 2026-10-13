@@ -135,8 +135,7 @@ public final class CraftingStationGameTests {
         MiniWarehouse warehouse = MiniWarehouse.build(helper, DS_ORIGIN);
         // Rails beside both stations: one south of the first rail, a run down the east side.
         for (BlockPos rail : List.of(new BlockPos(2, 1, 5), new BlockPos(4, 1, 5), new BlockPos(4, 1, 6), new BlockPos(4, 1, 7))) {
-            helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
-            WarehouseFixtures.rail(helper, rail);
+            WarehouseFixtures.railOnStone(helper, rail);
         }
         helper.setBlock(DS_OUTBOUND, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.WEST));
         helper.setBlock(DS_INBOUND, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.SOUTH));

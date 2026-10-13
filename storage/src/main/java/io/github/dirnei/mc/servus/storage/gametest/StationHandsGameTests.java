@@ -29,7 +29,6 @@ import net.minecraft.world.level.block.Blocks;
 /** Crafting Stations as the CPU's hands: pattern jobs, parallel stations, refusals and cancel. */
 public final class StationHandsGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
     private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
     /** The rack west of the rail under the controller. */

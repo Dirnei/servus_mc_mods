@@ -480,10 +480,7 @@ public final class ShuttleModuleGameTests {
     private static ShuttleGarageBlockEntity fleetSetup(GameTestHelper helper, ItemStack shuttle, int slot, int... stacks) {
         WarehouseFixtures.controller(helper, FL_CONTROLLER);
         TerminalWiring.place(helper, FL_TERMINAL);
-        for (int x = 2; x <= 9; x++) {
-            helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());
-            helper.setBlock(new BlockPos(x, 1, 4), ServusStorageBlocks.RAIL.get().defaultBlockState());
-        }
+        WarehouseFixtures.railRow(helper, 2, 9, 4);
         WarehouseFixtures.garage(helper, FL_GARAGE, Direction.SOUTH, 0);
         WarehouseFixtures.rack(helper, FL_RACK, Direction.NORTH);
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(FL_GARAGE, ShuttleGarageBlockEntity.class);
@@ -598,15 +595,11 @@ public final class ShuttleModuleGameTests {
     @ServusGameTest(timeoutTicks = 500)
     public static void mk2PutAwayLoadsThree(GameTestHelper helper) {
         WarehouseFixtures.controller(helper, PW_CONTROLLER);
-        for (int x = 2; x <= 10; x++) {
-            helper.setBlock(new BlockPos(x, 0, 1), Blocks.STONE.defaultBlockState());
-            helper.setBlock(new BlockPos(x, 1, 1), ServusStorageBlocks.RAIL.get().defaultBlockState());
-        }
+        WarehouseFixtures.railRow(helper, 2, 10, 1);
         helper.setBlock(PW_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
         WarehouseFixtures.rack(helper, PW_RACK, Direction.NORTH);
-        WarehouseFixtures.garage(helper, PW_GARAGE, Direction.SOUTH, 0);
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(PW_GARAGE, ShuttleGarageBlockEntity.class);
+        ShuttleGarageBlockEntity garage = WarehouseFixtures.garage(helper, PW_GARAGE, Direction.SOUTH, 0);
         helper.assertTrue(garage.addShuttle(new ItemStack(ServusStorageItems.SHUTTLE_MK2.get())), "the garage takes the Mk2 shuttle");
         InboundStationBlockEntity station = helper.getBlockEntity(PW_STATION, InboundStationBlockEntity.class);
         HeavyRackBlockEntity rack = helper.getBlockEntity(PW_RACK, HeavyRackBlockEntity.class);

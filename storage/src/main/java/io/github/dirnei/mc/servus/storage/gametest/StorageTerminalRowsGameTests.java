@@ -22,7 +22,6 @@ import net.minecraft.world.level.GameType;
 /** The Storage Terminal's Input and Output rows, automation inserts, the crafting popup and its id. */
 public final class StorageTerminalRowsGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     /** The mini warehouse's rails start here, so its Packing Station stands at {@link #TERMINAL}. */
     private static final BlockPos ORIGIN = new BlockPos(4, 1, 2);
     private static final BlockPos TERMINAL = new BlockPos(5, 1, 3);

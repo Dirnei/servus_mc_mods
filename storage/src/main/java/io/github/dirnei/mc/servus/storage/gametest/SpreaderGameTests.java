@@ -1,16 +1,19 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import static io.github.dirnei.mc.servus.storage.gametest.FarmFixtures.HEAD;
+import static io.github.dirnei.mc.servus.storage.gametest.FarmFixtures.RACK;
+import static io.github.dirnei.mc.servus.storage.gametest.FarmFixtures.RAIL_Z;
+import static io.github.dirnei.mc.servus.storage.gametest.FarmFixtures.farm;
+import static io.github.dirnei.mc.servus.storage.gametest.FarmFixtures.network;
+import static io.github.dirnei.mc.servus.storage.gametest.FarmFixtures.noItemsLying;
+import static io.github.dirnei.mc.servus.storage.gametest.FarmFixtures.out;
+
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
-import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FertilizeMode;
 import io.github.dirnei.mc.servus.storage.field.FertilizeStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
-import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
-import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
-import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.shuttle.module.JobNeeds;
@@ -19,100 +22,58 @@ import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleProfile;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ProblemReporter;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.fluids.FluidStack;
 
-/**
- * Spreader shuttles on the small farm of the harvester tests: a controller,
- * Warehouse Rails x 1 to 3 and farm rails x 4 to 7 along z 6, a garage and a
- * Heavy Duty Rack on the Warehouse Rails and the Field Head east of the farm rails.
- */
+/** Spreader shuttles on the farm of {@link FarmFixtures}. */
 public final class SpreaderGameTests {
-
-    private static final String EMPTY = "empty_12x6x12";
-    private static final int RAIL_Z = 6;
-    private static final BlockPos CONTROLLER = new BlockPos(0, 1, RAIL_Z);
-    private static final BlockPos GARAGE = new BlockPos(1, 1, RAIL_Z + 1);
-    private static final BlockPos RACK = new BlockPos(2, 1, RAIL_Z - 1);
-    private static final BlockPos HEAD = new BlockPos(8, 1, RAIL_Z);
 
     private SpreaderGameTests() {
     }
 
-    // Helpers
-
-    private record Farm(FieldHeadBlockEntity head, HeavyRackBlockEntity rack) {
-    }
-
-    /** A Mk1 shuttle with a Spreader in its tool slot. */
     private static ItemStack spreader() {
-        ItemStack shuttle = new ItemStack(ServusStorageItems.SHUTTLE_MK1.get());
-        ShuttleModules.set(shuttle, ShuttleModules.EMPTY.withTool(Optional.of(ServusStorageItems.SPREADER.get())));
-        return shuttle;
-    }
-
-    private static void rail(GameTestHelper helper, BlockPos pos, Block rail) {
-        helper.setBlock(pos.below(), Blocks.STONE.defaultBlockState());
-        helper.setBlock(pos, Block.updateFromNeighbourShapes(rail.defaultBlockState(), helper.getLevel(), helper.absolutePos(pos)));
+        return FarmFixtures.shuttleWith(ServusStorageItems.SPREADER.get());
     }
 
     /**
-     * Builds the farm with that shuttle in the garage, quick work and checks,
-     * two doses per plot and a short call interval. GameTests of a batch run
-     * at once and share these numbers, so every Spreader test uses the same.
+     * The farm with quick fertilize calls and two doses per plot. GameTests of a
+     * batch run at once and share these numbers, so every Spreader test sets the same.
      */
-    private static Farm farm(GameTestHelper helper, ItemStack shuttle) {
-        StorageStatsManager.INSTANCE.setFieldWorkTicks(2);
-        StorageStatsManager.INSTANCE.setFieldCheckInterval(5);
+    private static FarmFixtures.Farm spreaderFarm(GameTestHelper helper, ItemStack shuttle) {
         StorageStatsManager.INSTANCE.setFertilizeInterval(20);
         StorageStatsManager.INSTANCE.setDosesPerPlot(2);
-        WarehouseFixtures.controller(helper, CONTROLLER);
-        for (int x = 1; x <= 7; x++) {
-            rail(helper, new BlockPos(x, 1, RAIL_Z), x <= 3 ? ServusStorageBlocks.RAIL.get() : ServusStorageBlocks.FARM_RAIL.get());
-        }
-        WarehouseFixtures.garage(helper, GARAGE, Direction.SOUTH, 0);
-        WarehouseFixtures.rack(helper, RACK, Direction.SOUTH);
-        helper.setBlock(HEAD, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(GARAGE, ShuttleGarageBlockEntity.class);
-        garage.shuttles().setStackInSlot(0, shuttle);
-        return new Farm(helper.getBlockEntity(HEAD, FieldHeadBlockEntity.class), helper.getBlockEntity(RACK, HeavyRackBlockEntity.class));
+        return farm(helper, shuttle);
     }
 
     /** Water, bone meal as the fertilizer, that mode and that reserve. */
-    private static void fertilize(Farm farm, FertilizeMode mode, int reserve) {
-        Transfer.fill(farm.head().fluidHandler(), new FluidStack(Fluids.WATER, 4000), false);
+    private static void fertilize(FarmFixtures.Farm farm, FertilizeMode mode, int reserve) {
+        FieldFixtures.water(farm.head());
         farm.head().setFertilizer(new ItemStack(Items.BONE_MEAL));
         farm.head().setFertilizeMode(mode);
         farm.head().stepReserve(reserve - farm.head().reserve());
     }
 
-    /** A crop of that age on farmland. */
-    private static void crop(GameTestHelper helper, BlockPos pos, int age) {
-        helper.setBlock(pos.below(), Blocks.FARMLAND.defaultBlockState());
-        helper.setBlock(pos, ((CropBlock) Blocks.WHEAT).getStateForAge(age));
+    /** A wheat crop of that age on farmland. */
+    private static void wheat(GameTestHelper helper, BlockPos pos, int age) {
+        FieldFixtures.crop(helper, pos, Blocks.WHEAT, age);
     }
 
     /** A crop a player just planted: placed, and the head hears of it like from the place event. */
-    private static void planted(GameTestHelper helper, Farm farm, BlockPos pos) {
-        crop(helper, pos, 0);
+    private static void planted(GameTestHelper helper, FarmFixtures.Farm farm, BlockPos pos) {
+        wheat(helper, pos, 0);
         farm.head().recheck(helper.absolutePos(pos));
     }
 
@@ -120,24 +81,6 @@ public final class SpreaderGameTests {
         BlockState state = helper.getBlockState(pos);
         return state.getBlock() instanceof CropBlock crop ? crop.getAge(state) : -1;
     }
-
-    private static int held(HeavyRackBlockEntity rack, Item item) {
-        return WarehouseFixtures.count(rack, item);
-    }
-
-    private static WarehouseNetwork network(GameTestHelper helper) {
-        return helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class).network().orElseThrow();
-    }
-
-    private static int out(GameTestHelper helper) {
-        return network(helper).garageOut(helper.absolutePos(GARAGE));
-    }
-
-    private static boolean noItemsLying(GameTestHelper helper) {
-        return helper.getEntities(EntityType.ITEM).isEmpty();
-    }
-
-    // Module
 
     /** The Spreader goes in as the shuttle's tool; it makes the shuttle field only and fits only fertilize runs. */
     @ServusGameTest
@@ -164,11 +107,11 @@ public final class SpreaderGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void spreaderTakesNoWarehouseOrHarvestJob(GameTestHelper helper) {
         BlockPos plot = new BlockPos(5, 1, RAIL_Z - 1);
-        crop(helper, plot, 7);
-        Farm farm = farm(helper, spreader());
+        wheat(helper, plot, 7);
+        FarmFixtures.Farm farm = spreaderFarm(helper, spreader());
         WarehouseFixtures.put(farm.rack(), new ItemStack(Items.COBBLESTONE, 10));
         helper.runAfterDelay(2, () -> {
-            Transfer.fill(farm.head().fluidHandler(), new FluidStack(Fluids.WATER, 4000), false);
+            FieldFixtures.water(farm.head());
             farm.head().setCrop(new ItemStack(Items.WHEAT_SEEDS));
             helper.runAfterDelay(120, () -> {
                 helper.assertTrue(farm.head().harvestDue(), "the harvest should be due");
@@ -180,8 +123,6 @@ public final class SpreaderGameTests {
         });
     }
 
-    // Runs
-
     /**
      * After planting: two wheat planted after the head was set get two doses
      * each from the rack; an older growing wheat gets none, so the rack
@@ -191,17 +132,17 @@ public final class SpreaderGameTests {
     public static void afterPlantingDosesFreshPlots(GameTestHelper helper) {
         BlockPos old = new BlockPos(5, 1, RAIL_Z - 1);
         BlockPos[] fresh = {new BlockPos(6, 1, RAIL_Z + 1), new BlockPos(4, 1, RAIL_Z + 1)};
-        crop(helper, old, 1);
-        Farm farm = farm(helper, spreader());
+        wheat(helper, old, 1);
+        FarmFixtures.Farm farm = spreaderFarm(helper, spreader());
         WarehouseFixtures.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 20));
         helper.runAfterDelay(3, () -> {
             fertilize(farm, FertilizeMode.AFTER_PLANTING, 0);
             for (BlockPos plot : fresh) {
                 planted(helper, farm, plot);
             }
-            Waits.when(helper, () -> held(farm.rack(), Items.BONE_MEAL) == 16 && out(helper) == 0
+            Waits.when(helper, () -> WarehouseFixtures.count(farm.rack(), Items.BONE_MEAL) == 16 && out(helper) == 0
                     && age(helper, fresh[0]) >= 4 && age(helper, fresh[1]) >= 4, 550,
-                    () -> "the fresh wheat should have two doses each, rack holds " + held(farm.rack(), Items.BONE_MEAL)
+                    () -> "the fresh wheat should have two doses each, rack holds " + WarehouseFixtures.count(farm.rack(), Items.BONE_MEAL)
                             + " bone meal, ages " + age(helper, fresh[0]) + " and " + age(helper, fresh[1]) + ", out " + out(helper), () -> {
                 helper.assertTrue(farm.head().unfedCount() == 0, "no plot should still be owed a dose");
                 helper.assertTrue(farm.head().fertilizeTargetCount() == 0, "no plot needs a dose");
@@ -215,7 +156,7 @@ public final class SpreaderGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void reserveRespected(GameTestHelper helper) {
         BlockPos plot = new BlockPos(5, 1, RAIL_Z - 1);
-        Farm farm = farm(helper, spreader());
+        FarmFixtures.Farm farm = spreaderFarm(helper, spreader());
         WarehouseFixtures.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 10));
         helper.runAfterDelay(3, () -> {
             fertilize(farm, FertilizeMode.AFTER_PLANTING, 10);
@@ -223,7 +164,7 @@ public final class SpreaderGameTests {
             helper.runAfterDelay(100, () -> {
                 helper.assertTrue(farm.head().fertilizeTargetCount() == 1, "the new wheat needs a dose");
                 helper.assertTrue(out(helper) == 0 && network(helper).queuedJobs() == 0, "no Spreader should drive out");
-                helper.assertTrue(held(farm.rack(), Items.BONE_MEAL) == 10, "the rack keeps its 10 bone meal");
+                helper.assertTrue(WarehouseFixtures.count(farm.rack(), Items.BONE_MEAL) == 10, "the rack keeps its 10 bone meal");
                 helper.assertTrue(farm.head().fertilizeStatus() == FertilizeStatus.BELOW_RESERVE,
                         "the status should say below reserve, got " + farm.head().fertilizeStatus());
                 helper.succeed();
@@ -235,21 +176,21 @@ public final class SpreaderGameTests {
     @ServusGameTest(timeoutTicks = 900)
     public static void untilRipeShareStopsAtThreshold(GameTestHelper helper) {
         BlockPos[] plots = {new BlockPos(5, 1, RAIL_Z - 1), new BlockPos(6, 1, RAIL_Z + 1), new BlockPos(4, 1, RAIL_Z + 1), new BlockPos(7, 1, RAIL_Z - 1)};
-        crop(helper, plots[0], 7);
+        wheat(helper, plots[0], 7);
         for (int i = 1; i < plots.length; i++) {
-            crop(helper, plots[i], 0);
+            wheat(helper, plots[i], 0);
         }
-        Farm farm = farm(helper, spreader());
+        FarmFixtures.Farm farm = spreaderFarm(helper, spreader());
         WarehouseFixtures.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 64));
         helper.runAfterDelay(3, () -> {
             fertilize(farm, FertilizeMode.UNTIL_RIPE, 0);
             farm.head().stepFertilizePercent((50 - farm.head().fertilizePercent()) / 10);
             Waits.when(helper, () -> farm.head().ripeCount() >= 2 && out(helper) == 0 && network(helper).queuedJobs() == 0, 850,
                     () -> "two of four should be ripe and the Spreader home, ripe " + farm.head().ripeCount() + ", out " + out(helper), () -> {
-                int stock = held(farm.rack(), Items.BONE_MEAL);
+                int stock = WarehouseFixtures.count(farm.rack(), Items.BONE_MEAL);
                 helper.runAfterDelay(60, () -> {
                     helper.assertTrue(farm.head().ripeCount() < 4, "the doses should stop at the threshold, not ripen everything");
-                    helper.assertTrue(held(farm.rack(), Items.BONE_MEAL) == stock, "no more bone meal should be taken once the share is reached");
+                    helper.assertTrue(WarehouseFixtures.count(farm.rack(), Items.BONE_MEAL) == stock, "no more bone meal should be taken once the share is reached");
                     helper.assertTrue(out(helper) == 0, "the Spreader should stay home");
                     helper.assertTrue(farm.head().fertilizeTargetCount() == 0, "no plot needs a dose at the threshold");
                     helper.succeed();
@@ -267,16 +208,16 @@ public final class SpreaderGameTests {
     public static void ripePlotsUntouchedAndLeftoverPutAway(GameTestHelper helper) {
         BlockPos ripe = new BlockPos(5, 1, RAIL_Z - 1);
         BlockPos almost = new BlockPos(6, 1, RAIL_Z + 1);
-        crop(helper, ripe, 7);
-        crop(helper, almost, 5);
-        Farm farm = farm(helper, spreader());
+        wheat(helper, ripe, 7);
+        wheat(helper, almost, 5);
+        FarmFixtures.Farm farm = spreaderFarm(helper, spreader());
         WarehouseFixtures.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 20));
         helper.runAfterDelay(3, () -> {
             fertilize(farm, FertilizeMode.UNTIL_RIPE, 0);
             farm.head().stepFertilizePercent(10);
             helper.assertTrue(farm.head().fertilizePercent() == 100, "the threshold should be 100 percent");
-            Waits.when(helper, () -> held(farm.rack(), Items.BONE_MEAL) == 19 && out(helper) == 0 && age(helper, almost) == 7, 550,
-                    () -> "one dose should be used and one put back, rack holds " + held(farm.rack(), Items.BONE_MEAL)
+            Waits.when(helper, () -> WarehouseFixtures.count(farm.rack(), Items.BONE_MEAL) == 19 && out(helper) == 0 && age(helper, almost) == 7, 550,
+                    () -> "one dose should be used and one put back, rack holds " + WarehouseFixtures.count(farm.rack(), Items.BONE_MEAL)
                             + ", out " + out(helper) + ", age " + age(helper, almost), () -> {
                 helper.assertTrue(age(helper, ripe) == 7, "the ripe wheat stays ripe");
                 helper.assertTrue(noItemsLying(helper), "nothing should drop on the ground");
@@ -286,12 +227,10 @@ public final class SpreaderGameTests {
         });
     }
 
-    // Menu
-
     /** The fertilizer is chosen by id from the tag only; mode, threshold and reserve buttons work and the settings are saved. */
     @ServusGameTest(timeoutTicks = 100)
     public static void menuChoosesFertilizerAndSettings(GameTestHelper helper) {
-        Farm farm = farm(helper, spreader());
+        FarmFixtures.Farm farm = spreaderFarm(helper, spreader());
         FieldHeadBlockEntity head = farm.head();
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.snapTo(Vec3.atBottomCenterOf(helper.absolutePos(HEAD).east()));

@@ -61,6 +61,17 @@ public final class WarehouseFixtures {
         rail(helper, pos);
     }
 
+    /**
+     * Stone at y 0 and a rail at y 1 for every x from {@code fromX} to {@code toX} along {@code z}, placed
+     * west to east without shaping; each rail is shaped by the next one placed beside it.
+     */
+    public static void railRow(GameTestHelper helper, int fromX, int toX, int z) {
+        for (int x = fromX; x <= toX; x++) {
+            stone(helper, new BlockPos(x, 0, z));
+            helper.setBlock(new BlockPos(x, 1, z), ServusStorageBlocks.RAIL.get().defaultBlockState());
+        }
+    }
+
     public static void stone(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, Blocks.STONE.defaultBlockState());
     }

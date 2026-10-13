@@ -30,7 +30,7 @@ public final class CraftingGridGameTests {
         HeavyRackBlockEntity rack = warehouse.rack();
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
-            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, TERMINAL));
+            StorageTerminalMenu menu = TerminalWiring.menu(helper, player, TERMINAL);
             helper.assertTrue(menu.stock().online(), "warehouse should be online");
             test.accept(new Fixture(menu, rack, player));
         });

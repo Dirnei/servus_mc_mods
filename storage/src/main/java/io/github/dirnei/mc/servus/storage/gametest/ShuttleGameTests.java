@@ -78,10 +78,7 @@ public final class ShuttleGameTests {
     public static void shuttlePicksFromRail(GameTestHelper helper) {
         WarehouseFixtures.controller(helper, SH_CONTROLLER);
         TerminalWiring.place(helper, SH_TERMINAL);
-        for (int x = 3; x <= 7; x++) {
-            helper.setBlock(new BlockPos(x, 0, 6), Blocks.STONE.defaultBlockState());
-            helper.setBlock(new BlockPos(x, 1, 6), ServusStorageBlocks.RAIL.get().defaultBlockState());
-        }
+        WarehouseFixtures.railRow(helper, 3, 7, 6);
         HeavyRackBlockEntity far = WarehouseFixtures.rack(helper, SH_FAR_RACK, Direction.NORTH);
         WarehouseFixtures.stock(helper, SH_FAR_RACK, new ItemStack(Items.COBBLESTONE, 40));
         ShuttleGarageBlockEntity garage = WarehouseFixtures.garage(helper, SH_GARAGE, Direction.NORTH, 1);
@@ -111,10 +108,7 @@ public final class ShuttleGameTests {
     @ServusGameTest(timeoutTicks = 400)
     public static void shuttleCarriesPutAway(GameTestHelper helper) {
         WarehouseFixtures.controller(helper, PA_CONTROLLER);
-        for (int x = 3; x <= 8; x++) {
-            helper.setBlock(new BlockPos(x, 0, 1), Blocks.STONE.defaultBlockState());
-            helper.setBlock(new BlockPos(x, 1, 1), ServusStorageBlocks.RAIL.get().defaultBlockState());
-        }
+        WarehouseFixtures.railRow(helper, 3, 8, 1);
         helper.setBlock(PA_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
         WarehouseFixtures.rack(helper, PA_RACK, Direction.NORTH);
@@ -146,10 +140,7 @@ public final class ShuttleGameTests {
     @ServusGameTest(timeoutTicks = 400)
     public static void shuttlePutAwayOnStationRail(GameTestHelper helper) {
         WarehouseFixtures.controller(helper, PA_CONTROLLER);
-        for (int x = 3; x <= 8; x++) {
-            helper.setBlock(new BlockPos(x, 0, 1), Blocks.STONE.defaultBlockState());
-            helper.setBlock(new BlockPos(x, 1, 1), ServusStorageBlocks.RAIL.get().defaultBlockState());
-        }
+        WarehouseFixtures.railRow(helper, 3, 8, 1);
         BlockPos rackBeside = new BlockPos(4, 1, 0);
         helper.setBlock(PA_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
@@ -174,8 +165,7 @@ public final class ShuttleGameTests {
     /** A garage takes shuttle items up to its capacity, refuses to be dismantled while it holds them, and breaks when empty. */
     @ServusGameTest(timeoutTicks = 100)
     public static void garageHoldsShuttles(GameTestHelper helper) {
-        WarehouseFixtures.garage(helper, GA_GARAGE, Direction.SOUTH, 0);
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(GA_GARAGE, ShuttleGarageBlockEntity.class);
+        ShuttleGarageBlockEntity garage = WarehouseFixtures.garage(helper, GA_GARAGE, Direction.SOUTH, 0);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         int capacity = garage.capacity();
         io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu menu = new io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu(1, player.getInventory(), garage);
@@ -230,10 +220,7 @@ public final class ShuttleGameTests {
     public static void shuttlesParkAtTheirGarage(GameTestHelper helper) {
         WarehouseFixtures.controller(helper, TG_CONTROLLER);
         TerminalWiring.place(helper, TG_TERMINAL);
-        for (int x = 2; x <= 10; x++) {
-            helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());
-            helper.setBlock(new BlockPos(x, 1, 4), ServusStorageBlocks.RAIL.get().defaultBlockState());
-        }
+        WarehouseFixtures.railRow(helper, 2, 10, 4);
         WarehouseFixtures.garage(helper, TG_GARAGE_A, Direction.SOUTH, 0);
         WarehouseFixtures.garage(helper, TG_GARAGE_B, Direction.SOUTH, 0);
         WarehouseFixtures.rack(helper, TG_RACK, Direction.NORTH);
@@ -273,8 +260,7 @@ public final class ShuttleGameTests {
         WarehouseFixtures.rack(helper, RS_RACK, Direction.NORTH);
         // A rail from the rack's front round to the controller joins the rack; there is no garage.
         for (BlockPos rail : List.of(RS_RACK.north(), RS_RACK.north().east(), RS_RACK.east(), RS_CONTROLLER.east())) {
-            helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
-            WarehouseFixtures.rail(helper, rail);
+            WarehouseFixtures.railOnStone(helper, rail);
         }
         HeavyRackBlockEntity rack = helper.getBlockEntity(RS_RACK, HeavyRackBlockEntity.class);
         rack.items().insertItem(0, new ItemStack(Items.BREAD, 40), false);
@@ -334,10 +320,7 @@ public final class ShuttleGameTests {
     @ServusGameTest(timeoutTicks = 400)
     public static void rackPickByShuttle(GameTestHelper helper) {
         WarehouseFixtures.controller(helper, RP_CONTROLLER);
-        for (int x = 3; x <= 8; x++) {
-            helper.setBlock(new BlockPos(x, 0, 11), Blocks.STONE.defaultBlockState());
-            helper.setBlock(new BlockPos(x, 1, 11), ServusStorageBlocks.RAIL.get().defaultBlockState());
-        }
+        WarehouseFixtures.railRow(helper, 3, 8, 11);
         TerminalWiring.place(helper, RP_TERMINAL);
         HeavyRackBlockEntity rack = WarehouseFixtures.rack(helper, RP_RACK, Direction.SOUTH);
         rack.items().insertItem(0, new ItemStack(Items.BREAD, 30), false);
@@ -403,10 +386,7 @@ public final class ShuttleGameTests {
     private static WarehouseControllerBlockEntity recallSetup(GameTestHelper helper) {
         WarehouseFixtures.controller(helper, RC_CONTROLLER);
         TerminalWiring.place(helper, RC_TERMINAL);
-        for (int x = 2; x <= 9; x++) {
-            helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());
-            helper.setBlock(new BlockPos(x, 1, 4), ServusStorageBlocks.RAIL.get().defaultBlockState());
-        }
+        WarehouseFixtures.railRow(helper, 2, 9, 4);
         WarehouseFixtures.garage(helper, RC_GARAGE, Direction.SOUTH, 0);
         WarehouseFixtures.rack(helper, RC_RACK, Direction.NORTH);
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(RC_GARAGE, ShuttleGarageBlockEntity.class);

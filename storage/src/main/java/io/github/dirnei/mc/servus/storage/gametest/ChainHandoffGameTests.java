@@ -34,7 +34,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 /** Intermediates of a chain go straight from one producer to the next, or wait in the CPU buffer, instead of going through storage. */
 public final class ChainHandoffGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     /** A second station beside the first, under the duct at (5, 2, 2). */
     private static final BlockPos STATION_B = new BlockPos(5, 1, 2);
     private static final ItemKey STONE = ItemKey.of(new ItemStack(Items.STONE));

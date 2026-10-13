@@ -657,8 +657,7 @@ public final class CraftingCpuGameTests {
     /** Rules survive a save and load of the controller. */
     @ServusGameTest(timeoutTicks = 100)
     public static void stockRulesPersist(GameTestHelper helper) {
-        WarehouseFixtures.controller(helper, CONTROLLER);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, CONTROLLER);
         controller.rules().set(new StockRule(STICK, 8, 16));
         net.minecraft.nbt.CompoundTag tag = controller.saveWithoutMetadata(helper.getLevel().registryAccess());
         WarehouseControllerBlockEntity copy = new WarehouseControllerBlockEntity(helper.absolutePos(CONTROLLER), controller.getBlockState());

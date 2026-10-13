@@ -81,8 +81,7 @@ public final class ElevatorGameTests {
         WarehouseFixtures.controller(helper, LIFT_CONTROLLER);
         // The Packing Station joins only through a rail: two rails south of the controller and the Packing Station.
         for (BlockPos rail : List.of(LIFT_CONTROLLER.south(), LIFT_TERMINAL.south())) {
-            helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
-            WarehouseFixtures.rail(helper, rail);
+            WarehouseFixtures.railOnStone(helper, rail);
         }
         TerminalWiring.place(helper, LIFT_TERMINAL);
         helper.setBlock(LIFT_CHEST, Blocks.CHEST.defaultBlockState());
@@ -163,8 +162,7 @@ public final class ElevatorGameTests {
         helper.setBlock(LC_TOP, ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
         WarehouseFixtures.controller(helper, LC_CONTROLLER);
         TerminalWiring.place(helper, LC_TERMINAL);
-        WarehouseFixtures.garage(helper, LC_GARAGE, Direction.NORTH, 0);
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(LC_GARAGE, ShuttleGarageBlockEntity.class);
+        ShuttleGarageBlockEntity garage = WarehouseFixtures.garage(helper, LC_GARAGE, Direction.NORTH, 0);
         for (int i = 0; i < shuttles; i++) {
             helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
         }
@@ -422,7 +420,7 @@ public final class ElevatorGameTests {
         // One top level tick hook: scheduling from inside a scheduled task is not safe.
         helper.onEachTick(() -> {
             if (helper.getTick() == 10) {
-                menu[0] = new StorageTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, LC_TERMINAL));
+                menu[0] = TerminalWiring.menu(helper, player, LC_TERMINAL);
                 menu[0].request(ItemKey.of(new ItemStack(Items.BREAD)), 20);
             }
             if (menu[0] == null) {

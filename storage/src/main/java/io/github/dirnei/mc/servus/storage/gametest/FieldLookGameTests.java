@@ -21,30 +21,24 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.fluids.FluidStack;
 
-/** The Field Head look: wood, facing, ripe bar state and what clients learn (m10-field-head-look). */
+/** The Field Head look: wood, facing, ripe bar state and what clients learn. */
 public final class FieldLookGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     private static final int RAIL_Z = 5;
     private static final BlockPos HEAD = new BlockPos(2, 1, RAIL_Z);
     private static final BlockPos AT = new BlockPos(5, 1, 5);
@@ -53,23 +47,15 @@ public final class FieldLookGameTests {
     private FieldLookGameTests() {
     }
 
-    // Helpers
-
-    /** Farm rails from x 3 to 5 at the rail row, the head west of them, four wheat plots north of the rails. */
+    /** Farm rails from x 3 to 5 at the rail row, the head west of them, four young wheat plots north of the rails. */
     private static FieldHeadBlockEntity wheatField(GameTestHelper helper) {
         for (int x = 3; x <= 6; x++) {
-            BlockPos plot = new BlockPos(x, 1, RAIL_Z + 1);
-            helper.setBlock(plot.below(), Blocks.FARMLAND.defaultBlockState());
-            helper.setBlock(plot, ((CropBlock) Blocks.WHEAT).getStateForAge(2));
+            FieldFixtures.crop(helper, new BlockPos(x, 1, RAIL_Z + 1), Blocks.WHEAT, 2);
         }
         for (int x = 3; x <= 5; x++) {
-            BlockPos rail = new BlockPos(x, 1, RAIL_Z);
-            helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
-            helper.setBlock(rail, Block.updateFromNeighbourShapes(ServusStorageBlocks.FARM_RAIL.get().defaultBlockState(),
-                    helper.getLevel(), helper.absolutePos(rail)));
+            FieldFixtures.farmRail(helper, new BlockPos(x, 1, RAIL_Z));
         }
-        helper.setBlock(HEAD, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        return helper.getBlockEntity(HEAD, FieldHeadBlockEntity.class);
+        return FieldFixtures.head(helper, HEAD);
     }
 
     /** Grows the wheat at that x of the plot row to its last stage, the way random ticks do. */
@@ -89,28 +75,14 @@ public final class FieldLookGameTests {
         head.stepHarvestPercent((percent - head.harvestPercent()) / 10);
     }
 
-    private static Player playerHolding(GameTestHelper helper, ItemStack stack) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        return player;
-    }
-
-    private static void placeOnFloor(GameTestHelper helper, Player player, ItemStack stack) {
-        BlockPos floor = helper.absolutePos(AT.below());
-        stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack,
-                new BlockHitResult(Vec3.atCenterOf(floor).add(0, 0.5, 0), Direction.UP, floor, false)));
-    }
-
-    // Wood and facing
-
     /** A player looking north places a head whose front faces south, toward the player. */
     @ServusGameTest(timeoutTicks = 20)
     public static void placementFacesPlayer(GameTestHelper helper) {
         helper.setBlock(AT.below(), Blocks.STONE.defaultBlockState());
         ItemStack stack = new ItemStack(ServusStorageItems.FIELD_HEAD.get());
-        Player player = playerHolding(helper, stack);
+        Player player = TestPlayers.holding(helper, stack);
         player.setYRot(180.0F);
-        placeOnFloor(helper, player, stack);
+        TestPlayers.useOnTop(helper, player, stack, AT.below());
         helper.assertBlockPresent(ServusStorageBlocks.FIELD_HEAD.get(), AT);
         Direction facing = helper.getBlockState(AT).getValue(FieldHeadBlock.FACING);
         helper.assertTrue(facing == Direction.SOUTH, "the front should face the player in the south, got " + facing);
@@ -123,7 +95,7 @@ public final class FieldLookGameTests {
         helper.setBlock(AT.below(), Blocks.STONE.defaultBlockState());
         ItemStack stack = new ItemStack(ServusStorageItems.FIELD_HEAD.get());
         stack.set(WoodContent.WOOD.get(), BIRCH);
-        placeOnFloor(helper, playerHolding(helper, stack), stack);
+        TestPlayers.useOnTop(helper, TestPlayers.holding(helper, stack), stack, AT.below());
         helper.assertBlockPresent(ServusStorageBlocks.FIELD_HEAD.get(), AT);
         BlockPos pos = helper.absolutePos(AT);
         WoodHolder placed = (WoodHolder) helper.getLevel().getBlockEntity(pos);
@@ -156,8 +128,6 @@ public final class FieldLookGameTests {
                 "a birch Field Head, got " + result + " " + result.get(WoodContent.WOOD.get()));
         helper.succeed();
     }
-
-    // Ripe bar
 
     /** The bar starts empty, turns gold part way with one of four ripe at 50 percent, and green at two of four. */
     @ServusGameTest(timeoutTicks = 100)
@@ -230,13 +200,10 @@ public final class FieldLookGameTests {
         });
     }
 
-    // Client sync
-
     /** The update tag carries the water level in steps, the crop and the mode. */
     @ServusGameTest(timeoutTicks = 20)
     public static void updateTagCarriesWaterAndCrop(GameTestHelper helper) {
-        helper.setBlock(AT, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        FieldHeadBlockEntity head = helper.getBlockEntity(AT, FieldHeadBlockEntity.class);
+        FieldHeadBlockEntity head = FieldFixtures.head(helper, AT);
         CompoundTag empty = head.getUpdateTag(helper.getLevel().registryAccess());
         helper.assertTrue(empty.getByteOr("WaterLevel", (byte) 0) == 0, "an empty head sends level 0");
         int half = head.capacity() / 2;

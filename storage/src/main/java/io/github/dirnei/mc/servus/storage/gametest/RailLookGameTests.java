@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
@@ -34,7 +34,6 @@ import net.minecraft.world.phys.Vec3;
 /** The track rails as wood blocks: the wood from the recipe stays on the placed rail, its drops and sneak placed runs. */
 public final class RailLookGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos AT = new BlockPos(5, 2, 5);
     private static final Identifier SPRUCE = BuiltInRegistries.BLOCK.getKey(Blocks.SPRUCE_PLANKS);
     private static final Identifier BIRCH = BuiltInRegistries.BLOCK.getKey(Blocks.BIRCH_PLANKS);
@@ -42,23 +41,10 @@ public final class RailLookGameTests {
     private RailLookGameTests() {
     }
 
-    private static Player playerHolding(GameTestHelper helper, ItemStack stack) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        return player;
-    }
-
     private static ItemStack woodRail(Item item, Identifier wood) {
         ItemStack stack = new ItemStack(item, 8);
         stack.set(WoodContent.WOOD.get(), wood);
         return stack;
-    }
-
-    /** Places the stack on top of the stone under AT. */
-    private static void placeOnFloor(GameTestHelper helper, Player player, ItemStack stack) {
-        BlockPos floor = helper.absolutePos(AT.below());
-        stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack,
-                new BlockHitResult(Vec3.atCenterOf(floor).add(0, 0.5, 0), Direction.UP, floor, false)));
     }
 
     private static Identifier woodAt(GameTestHelper helper, BlockPos pos) {
@@ -86,7 +72,7 @@ public final class RailLookGameTests {
             helper.setBlock(AT.below(), Blocks.STONE.defaultBlockState());
             helper.setBlock(AT, Blocks.AIR.defaultBlockState());
             ItemStack stack = woodRail(item, SPRUCE);
-            placeOnFloor(helper, playerHolding(helper, stack), stack);
+            TestPlayers.useOnTop(helper, TestPlayers.holding(helper, stack), stack, AT.below());
             BlockPos pos = helper.absolutePos(AT);
             helper.assertTrue(helper.getBlockState(AT).getBlock().asItem() == item, "the rail should be placed, got " + helper.getBlockState(AT));
             helper.assertTrue(SPRUCE.equals(woodAt(helper, AT)), "the placed rail is spruce, got " + woodAt(helper, AT));
@@ -103,15 +89,12 @@ public final class RailLookGameTests {
     public static void dismantleKeepsWood(GameTestHelper helper) {
         helper.setBlock(AT.below(), Blocks.STONE.defaultBlockState());
         ItemStack stack = woodRail(ServusStorageItems.RAIL.get(), BIRCH);
-        placeOnFloor(helper, playerHolding(helper, stack), stack);
+        TestPlayers.useOnTop(helper, TestPlayers.holding(helper, stack), stack, AT.below());
         helper.assertBlockPresent(ServusStorageBlocks.RAIL.get(), AT);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
-        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
         player.setShiftKeyDown(true);
+        MachineTestSupport.useCarrot(helper, player, AT, Direction.UP);
         BlockPos absolute = helper.absolutePos(AT);
-        carrot.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
-                new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false)));
         helper.runAfterDelay(2, () -> {
             helper.assertBlockPresent(Blocks.AIR, AT);
             List<ItemEntity> items = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(absolute).inflate(2));
@@ -164,9 +147,7 @@ public final class RailLookGameTests {
             helper.setBlock(new BlockPos(x, 1, 3), Blocks.STONE.defaultBlockState());
         }
         for (int x = 1; x <= 2; x++) {
-            BlockPos rail = new BlockPos(x, 2, 3);
-            helper.setBlock(rail, Block.updateFromNeighbourShapes(ServusStorageBlocks.RAIL.get().defaultBlockState(),
-                    helper.getLevel(), helper.absolutePos(rail)));
+            WarehouseFixtures.rail(helper, new BlockPos(x, 2, 3));
         }
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos clicked = helper.absolutePos(new BlockPos(1, 2, 3));

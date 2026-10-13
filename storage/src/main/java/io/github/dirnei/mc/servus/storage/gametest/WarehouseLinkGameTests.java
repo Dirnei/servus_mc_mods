@@ -99,8 +99,7 @@ public final class WarehouseLinkGameTests {
         WarehouseFixtures.controller(helper, RACK_CONTROLLER);
         // The rack joins only through the rail in front of it, which runs on to the controller.
         for (BlockPos rail : List.of(RACK.north(), RACK_CONTROLLER.north())) {
-            helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
-            WarehouseFixtures.rail(helper, rail);
+            WarehouseFixtures.railOnStone(helper, rail);
         }
         TerminalWiring.place(helper, RACK_TERMINAL);
         HeavyRackBlockEntity rack = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
@@ -135,8 +134,7 @@ public final class WarehouseLinkGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void rackLinksRailOnlyFromFront(GameTestHelper helper) {
         WarehouseFixtures.rack(helper, FR_RACK, Direction.NORTH);
-        helper.setBlock(FR_SIDE_RAIL.below(), Blocks.STONE.defaultBlockState());
-        WarehouseFixtures.rail(helper, FR_SIDE_RAIL);
+        WarehouseFixtures.railOnStone(helper, FR_SIDE_RAIL);
         WarehouseFixtures.controller(helper, FR_SIDE_CONTROLLER);
         TerminalWiring.place(helper, FR_SIDE_TERMINAL);
         HeavyRackBlockEntity rack = helper.getBlockEntity(FR_RACK, HeavyRackBlockEntity.class);
@@ -150,8 +148,7 @@ public final class WarehouseLinkGameTests {
             helper.assertTrue(TerminalWiring.stockOf(sideMenu, Items.SAND) == 0, "a rail at the rack's side must not link it");
             helper.assertTrue(!helper.getBlockState(FR_SIDE_RAIL).getValue(RailBlock.DOCK_WEST), "no dock onto the rack's side");
 
-            helper.setBlock(FR_FRONT_RAIL.below(), Blocks.STONE.defaultBlockState());
-            WarehouseFixtures.rail(helper, FR_FRONT_RAIL);
+            WarehouseFixtures.railOnStone(helper, FR_FRONT_RAIL);
             WarehouseFixtures.controller(helper, FR_FRONT_CONTROLLER);
             TerminalWiring.place(helper, FR_FRONT_TERMINAL);
             helper.runAfterDelay(10, () -> {
@@ -298,7 +295,7 @@ public final class WarehouseLinkGameTests {
         rack.items().insertItem(0, new ItemStack(Items.BREAD, 9), false);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
-            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, RACK_TERMINAL));
+            StorageTerminalMenu menu = TerminalWiring.menu(helper, player, RACK_TERMINAL);
             helper.assertTrue(menu.stock().online(), "online");
             helper.assertTrue(TerminalWiring.stockOf(menu, Items.BREAD) == 0, "a rack without a front rail is not listed");
             helper.succeed();
@@ -313,7 +310,7 @@ public final class WarehouseLinkGameTests {
         helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
         helper.getBlockEntity(chestPos, ChestBlockEntity.class).setItem(0, new ItemStack(Items.APPLE, 7));
         helper.runAfterDelay(10, () -> {
-            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, SR_TERMINAL));
+            StorageTerminalMenu menu = TerminalWiring.menu(helper, player, SR_TERMINAL);
             helper.assertTrue(TerminalWiring.stockOf(menu, Items.APPLE) == 0, "the chest behind the rack is not listed");
             helper.succeed();
         });
@@ -322,10 +319,7 @@ public final class WarehouseLinkGameTests {
     /** A rack touching the controller with a member rail only along its side is not part of the warehouse. */
     @ServusGameTest(timeoutTicks = 100)
     public static void rackSideRailDoesNotReach(GameTestHelper helper) {
-        for (int x = 2; x <= 8; x++) {
-            helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());
-            helper.setBlock(new BlockPos(x, 1, 4), ServusStorageBlocks.RAIL.get().defaultBlockState());
-        }
+        WarehouseFixtures.railRow(helper, 2, 8, 4);
         WarehouseFixtures.controller(helper, SS_CONTROLLER);
         TerminalWiring.place(helper, SS_TERMINAL);
         ShuttleGarageBlockEntity garage = WarehouseFixtures.garage(helper, SS_GARAGE, Direction.NORTH, 1);

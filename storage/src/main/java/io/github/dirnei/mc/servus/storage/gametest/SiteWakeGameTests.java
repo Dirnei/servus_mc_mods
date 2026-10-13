@@ -11,7 +11,6 @@ import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.site.SiteChunks;
 import io.github.dirnei.mc.servus.storage.site.SiteRecord;
 import io.github.dirnei.mc.servus.storage.site.SiteRegistry;
@@ -48,8 +47,7 @@ public final class SiteWakeGameTests {
 
     private static WarehouseControllerBlockEntity site(GameTestHelper helper, UUID team, int upgrades) {
         StorageStatsManager.INSTANCE.setWakeGraceTicks(GRACE);
-        WarehouseFixtures.controller(helper, CONTROLLER);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, CONTROLLER);
         if (team != null) {
             controller.setTeam(team);
         }
@@ -87,8 +85,7 @@ public final class SiteWakeGameTests {
     public static void recordKeepsNameSpanAndStock(GameTestHelper helper) {
         StorageStatsManager.INSTANCE.setSiteSnapshotInterval(5);
         WarehouseControllerBlockEntity controller = site(helper, UUID.randomUUID(), 0);
-        helper.setBlock(RAIL.below(), Blocks.STONE.defaultBlockState());
-        WarehouseFixtures.rail(helper, RAIL);
+        WarehouseFixtures.railOnStone(helper, RAIL);
         WarehouseFixtures.rack(helper, RACK, Direction.WEST);
         WarehouseFixtures.stock(helper, RACK, new ItemStack(Items.IRON_INGOT, 40));
         controller.setSiteName("Iron Outpost");
@@ -237,15 +234,11 @@ public final class SiteWakeGameTests {
     public static void shuttleJobKeepsSiteAwake(GameTestHelper helper) {
         StorageStatsManager.INSTANCE.setWakeGraceTicks(GRACE);
         UUID team = UUID.randomUUID();
-        WarehouseFixtures.controller(helper, SH_CONTROLLER);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(SH_CONTROLLER, WarehouseControllerBlockEntity.class);
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, SH_CONTROLLER);
         controller.setTeam(team);
         controller.upgrades().insertItem(0, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
         TerminalWiring.place(helper, SH_TERMINAL);
-        for (int x = 3; x <= 9; x++) {
-            helper.setBlock(new BlockPos(x, 0, 6), Blocks.STONE.defaultBlockState());
-            helper.setBlock(new BlockPos(x, 1, 6), ServusStorageBlocks.RAIL.get().defaultBlockState());
-        }
+        WarehouseFixtures.railRow(helper, 3, 9, 6);
         WarehouseFixtures.rack(helper, SH_FAR_RACK, Direction.NORTH);
         WarehouseFixtures.stock(helper, SH_FAR_RACK, new ItemStack(Items.COBBLESTONE, 40));
         ShuttleGarageBlockEntity garage = WarehouseFixtures.garage(helper, SH_GARAGE, Direction.NORTH, 1);

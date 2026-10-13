@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.gametest;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
+import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
@@ -48,15 +48,12 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.CommonHooks;
-import net.neoforged.neoforge.common.FarmlandWaterManager;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /** Farm rails, fields and the Field Head: water, hydration and ripeness. */
 public final class FieldGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     /** The usual field: three farm rails along x at z 5, the head west of them. */
     private static final int RAIL_Z = 5;
     private static final BlockPos HEAD = new BlockPos(2, 1, RAIL_Z);
@@ -64,29 +61,12 @@ public final class FieldGameTests {
     private FieldGameTests() {
     }
 
-    // Helpers
-
-    /** Places a farm rail on stone the way a player would. */
-    private static void farmRail(GameTestHelper helper, BlockPos pos) {
-        rail(helper, pos, ServusStorageBlocks.FARM_RAIL.get().defaultBlockState());
-    }
-
-    private static void rail(GameTestHelper helper, BlockPos pos, BlockState rail) {
-        helper.setBlock(pos.below(), Blocks.STONE.defaultBlockState());
-        helper.setBlock(pos, Block.updateFromNeighbourShapes(rail, helper.getLevel(), helper.absolutePos(pos)));
-    }
-
     /** Farm rails from x {@code from} to {@code to} at the rail row and the head west of them. */
     private static FieldHeadBlockEntity field(GameTestHelper helper, int from, int to) {
         for (int x = from; x <= to; x++) {
-            farmRail(helper, new BlockPos(x, 1, RAIL_Z));
+            FieldFixtures.farmRail(helper, new BlockPos(x, 1, RAIL_Z));
         }
-        helper.setBlock(HEAD, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        return helper.getBlockEntity(HEAD, FieldHeadBlockEntity.class);
-    }
-
-    private static FluidView fluid(GameTestHelper helper, BlockPos pos) {
-        return FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), Direction.UP));
+        return FieldFixtures.head(helper, HEAD);
     }
 
     /** Puts that many Range Upgrades into the head. */
@@ -102,20 +82,12 @@ public final class FieldGameTests {
     }
 
     private static boolean wet(GameTestHelper helper, int x, int y, int z) {
-        return FarmlandWaterManager.hasBlockWaterTicket(helper.getLevel(), helper.absolutePos(new BlockPos(x, y, z)));
-    }
-
-    /** A crop of that age on farmland. */
-    private static void crop(GameTestHelper helper, BlockPos pos, Block block, int age) {
-        helper.setBlock(pos.below(), Blocks.FARMLAND.defaultBlockState());
-        helper.setBlock(pos, ((CropBlock) block).getStateForAge(age));
+        return FieldFixtures.wet(helper, new BlockPos(x, y, z));
     }
 
     private static Optional<WarehouseNetwork> network(GameTestHelper helper, BlockPos pos) {
         return helper.getBlockEntity(pos, StorageNodeBlockEntity.class).network();
     }
-
-    // Farm Rail
 
     /** Controller, a Warehouse Rail, farm rails and a rack: one network, the two rail kinds link, no water inside. */
     @ServusGameTest(timeoutTicks = 100)
@@ -124,9 +96,9 @@ public final class FieldGameTests {
         BlockPos warehouseRail = new BlockPos(3, 1, 3);
         BlockPos rack = new BlockPos(7, 1, 3);
         WarehouseFixtures.controller(helper, controller);
-        rail(helper, warehouseRail, ServusStorageBlocks.RAIL.get().defaultBlockState());
+        WarehouseFixtures.railOnStone(helper, warehouseRail);
         for (int x = 4; x <= 6; x++) {
-            farmRail(helper, new BlockPos(x, 1, 3));
+            FieldFixtures.farmRail(helper, new BlockPos(x, 1, 3));
         }
         WarehouseFixtures.rack(helper, rack, Direction.WEST);
         helper.runAfterDelay(10, () -> {
@@ -187,11 +159,11 @@ public final class FieldGameTests {
             helper.setBlock(middle, Blocks.AIR.defaultBlockState());
             helper.runAfterDelay(3, () -> {
                 helper.assertTrue(head.rails().size() == 2, "the head's field should be the two rails on its side, got " + head.rails().size());
-                rail(helper, middle, ServusStorageBlocks.RAIL.get().defaultBlockState());
+                WarehouseFixtures.railOnStone(helper, middle);
                 helper.runAfterDelay(3, () -> {
                     helper.assertTrue(head.rails().size() == 2, "a Warehouse Rail must not join the field, got " + head.rails().size());
                     helper.setBlock(middle, Blocks.AIR.defaultBlockState());
-                    farmRail(helper, middle);
+                    FieldFixtures.farmRail(helper, middle);
                     helper.runAfterDelay(3, () -> {
                         helper.assertTrue(head.rails().size() == 5, "the farm rail should join the runs again, got " + head.rails().size());
                         helper.succeed();
@@ -201,8 +173,6 @@ public final class FieldGameTests {
         });
     }
 
-    // Field Head
-
     /** A head with no farm rail has no field; a second head on the same field stands aside until the first is broken. */
     @ServusGameTest(timeoutTicks = 100)
     public static void oneHeadPerField(GameTestHelper helper) {
@@ -210,8 +180,7 @@ public final class FieldGameTests {
         helper.setBlock(lonely, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
         FieldHeadBlockEntity first = field(helper, 3, 5);
         BlockPos secondPos = new BlockPos(4, 1, RAIL_Z - 1);
-        helper.setBlock(secondPos, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        FieldHeadBlockEntity second = helper.getBlockEntity(secondPos, FieldHeadBlockEntity.class);
+        FieldHeadBlockEntity second = FieldFixtures.head(helper, secondPos);
         helper.runAfterDelay(4, () -> {
             FieldHeadBlockEntity alone = helper.getBlockEntity(lonely, FieldHeadBlockEntity.class);
             helper.assertTrue(alone.status() == FieldStatus.NO_FIELD, "a head without a farm rail has no field");
@@ -233,8 +202,8 @@ public final class FieldGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void headTakesWaterOnly(GameTestHelper helper) {
         BlockPos pos = new BlockPos(5, 1, 5);
-        helper.setBlock(pos, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        FluidView handler = fluid(helper, pos);
+        FieldFixtures.head(helper, pos);
+        FluidView handler = FieldFixtures.fluid(helper, pos);
         helper.assertTrue(handler != null, "the head should expose a fluid handler");
         helper.assertTrue(handler.fill(new FluidStack(Fluids.WATER, 1000), false) == 1000, "the head should take 1000 mB of water");
         helper.assertTrue(handler.fill(new FluidStack(Fluids.LAVA, 1000), false) == 0, "the head must refuse lava");
@@ -252,25 +221,14 @@ public final class FieldGameTests {
         BlockPos ductC = new BlockPos(4, 1, 6);
         helper.setBlock(ductA.north(), Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3));
         helper.setBlock(ductC.north(), ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        UtilityDuctBlockEntity a = duct(helper, ductA);
-        duct(helper, ductB);
-        duct(helper, ductC);
+        MachineTestSupport.duct(helper, ductA, Line.FLUID);
+        MachineTestSupport.duct(helper, ductB, Line.FLUID);
+        MachineTestSupport.duct(helper, ductC, Line.FLUID);
+        UtilityDuctBlockEntity a = helper.getBlockEntity(ductA, UtilityDuctBlockEntity.class);
         a.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
         FieldHeadBlockEntity head = helper.getBlockEntity(ductC.north(), FieldHeadBlockEntity.class);
         helper.succeedWhen(() -> helper.assertTrue(head.water() == 1000, "the head should hold the cauldron's water, got " + head.water()));
     }
-
-    private static UtilityDuctBlockEntity duct(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
-        duct.addLine(Line.FLUID);
-        BlockPos absolute = helper.absolutePos(pos);
-        BlockState state = helper.getLevel().getBlockState(absolute);
-        helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
-        return duct;
-    }
-
-    // Hydration
 
     /** With water, farmland one below the rails is wet four blocks out and not five. */
     @ServusGameTest(timeoutTicks = 100)
@@ -280,7 +238,7 @@ public final class FieldGameTests {
         helper.setBlock(new BlockPos(4, 0, RAIL_Z + 4), Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, 7));
         helper.runAfterDelay(3, () -> {
             helper.assertTrue(!head.hydrated() && !wet(helper, 4, 0, RAIL_Z + 4), "no water, no hydration");
-            fluid(helper, HEAD).fill(new FluidStack(Fluids.WATER, 1000), false);
+            FieldFixtures.fluid(helper, HEAD).fill(new FluidStack(Fluids.WATER, 1000), false);
             helper.runAfterDelay(2, () -> {
                 helper.assertTrue(head.hydrated(), "the head should hydrate with water in the buffer");
                 helper.assertTrue(wet(helper, 4, 0, RAIL_Z + 4), "farmland four blocks beside a rail should be wet");
@@ -304,7 +262,7 @@ public final class FieldGameTests {
         int need = FieldWater.use(3, StorageStatsManager.INSTANCE.fieldWaterPerRail());
         int interval = StorageStatsManager.INSTANCE.fieldWaterInterval();
         helper.runAfterDelay(2, () -> {
-            fluid(helper, HEAD).fill(new FluidStack(Fluids.WATER, need), false);
+            FieldFixtures.fluid(helper, HEAD).fill(new FluidStack(Fluids.WATER, need), false);
             helper.runAfterDelay(2, () -> {
                 helper.assertTrue(head.hydrated() && wet(helper, 4, 0, RAIL_Z + 2), "the field should be hydrated");
                 helper.assertTrue(head.water() == 0, "the head should have used its water");
@@ -322,7 +280,7 @@ public final class FieldGameTests {
     public static void hydrationEndsWithRail(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper, 3, 5);
         helper.runAfterDelay(2, () -> {
-            fluid(helper, HEAD).fill(new FluidStack(Fluids.WATER, 1000), false);
+            FieldFixtures.fluid(helper, HEAD).fill(new FluidStack(Fluids.WATER, 1000), false);
             helper.runAfterDelay(2, () -> {
                 helper.assertTrue(wet(helper, 7, 0, RAIL_Z), "past the end rail should be wet");
                 helper.setBlock(new BlockPos(5, 1, RAIL_Z), Blocks.AIR.defaultBlockState());
@@ -340,13 +298,11 @@ public final class FieldGameTests {
         });
     }
 
-    // Ripeness
-
     /** A crop growing to its last stage counts as ripe at once. */
     @ServusGameTest(timeoutTicks = 100)
     public static void ripeAfterGrowth(GameTestHelper helper) {
         BlockPos plot = new BlockPos(4, 1, RAIL_Z + 1);
-        crop(helper, plot, Blocks.WHEAT, 3);
+        FieldFixtures.crop(helper, plot, Blocks.WHEAT, 3);
         FieldHeadBlockEntity head = field(helper, 3, 5);
         helper.runAfterDelay(3, () -> {
             helper.assertTrue(head.plantedCount() == 1 && head.ripeCount() == 0, "one planted, none ripe after the load pass");
@@ -364,7 +320,7 @@ public final class FieldGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void ripeAfterBonemeal(GameTestHelper helper) {
         BlockPos plot = new BlockPos(4, 1, RAIL_Z - 1);
-        crop(helper, plot, Blocks.CARROTS, 0);
+        FieldFixtures.crop(helper, plot, Blocks.CARROTS, 0);
         FieldHeadBlockEntity head = field(helper, 3, 5);
         helper.runAfterDelay(3, () -> {
             helper.assertTrue(head.plantedCount() == 1 && head.ripeCount() == 0, "one young carrot");
@@ -384,11 +340,10 @@ public final class FieldGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void breakForgetsRipe(GameTestHelper helper) {
         BlockPos plot = new BlockPos(5, 1, RAIL_Z + 1);
-        crop(helper, plot, Blocks.WHEAT, 7);
+        FieldFixtures.crop(helper, plot, Blocks.WHEAT, 7);
         FieldHeadBlockEntity head = field(helper, 3, 5);
         helper.runAfterDelay(3, () -> {
             helper.assertTrue(head.ripeCount() == 1, "the ripe wheat should be counted");
-            @SuppressWarnings("removal")
             ServerPlayer player = TestPlayers.quiet(helper);
             player.setGameMode(GameType.SURVIVAL);
             player.gameMode.destroyBlock(helper.absolutePos(plot));
@@ -404,9 +359,9 @@ public final class FieldGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void harvestThresholdPerHead(GameTestHelper helper) {
         BlockPos[] plots = {new BlockPos(3, 1, RAIL_Z + 1), new BlockPos(4, 1, RAIL_Z + 1), new BlockPos(5, 1, RAIL_Z + 1), new BlockPos(6, 1, RAIL_Z + 1)};
-        crop(helper, plots[0], Blocks.WHEAT, 7);
+        FieldFixtures.crop(helper, plots[0], Blocks.WHEAT, 7);
         for (int i = 1; i < plots.length; i++) {
-            crop(helper, plots[i], Blocks.WHEAT, 2);
+            FieldFixtures.crop(helper, plots[i], Blocks.WHEAT, 2);
         }
         FieldHeadBlockEntity head = field(helper, 3, 5);
         helper.runAfterDelay(3, () -> {
@@ -427,9 +382,9 @@ public final class FieldGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void harvestDueNeedsCropAndShare(GameTestHelper helper) {
         BlockPos[] plots = {new BlockPos(3, 1, RAIL_Z + 1), new BlockPos(4, 1, RAIL_Z + 1), new BlockPos(5, 1, RAIL_Z + 1), new BlockPos(6, 1, RAIL_Z + 1)};
-        crop(helper, plots[0], Blocks.WHEAT, 7);
+        FieldFixtures.crop(helper, plots[0], Blocks.WHEAT, 7);
         for (int i = 1; i < plots.length; i++) {
-            crop(helper, plots[i], Blocks.WHEAT, 2);
+            FieldFixtures.crop(helper, plots[i], Blocks.WHEAT, 2);
         }
         FieldHeadBlockEntity head = field(helper, 3, 5);
         helper.runAfterDelay(3, () -> {
@@ -535,8 +490,6 @@ public final class FieldGameTests {
         helper.succeed();
     }
 
-    // Open plots
-
     /** Dirt under an empty plot is to till, farmland to plant; hoeing and planting by hand move the plots along. */
     @ServusGameTest(timeoutTicks = 100)
     public static void openPlotsCounted(GameTestHelper helper) {
@@ -604,8 +557,6 @@ public final class FieldGameTests {
         });
     }
 
-    // Field radius
-
     /** A head without upgrades reaches {@code radius} blocks: dirt two out is a plot, three out is not. */
     @ServusGameTest(timeoutTicks = 100)
     public static void radiusTwoByDefault(GameTestHelper helper) {
@@ -626,7 +577,7 @@ public final class FieldGameTests {
         helper.setBlock(new BlockPos(5, 0, RAIL_Z - 4), Blocks.FARMLAND.defaultBlockState());
         FieldHeadBlockEntity head = field(helper, 3, 5);
         helper.runAfterDelay(2, () -> {
-            fluid(helper, HEAD).fill(new FluidStack(Fluids.WATER, 1000), false);
+            FieldFixtures.fluid(helper, HEAD).fill(new FluidStack(Fluids.WATER, 1000), false);
             helper.runAfterDelay(2, () -> {
                 helper.assertTrue(head.hydrated() && !wet(helper, 5, 0, RAIL_Z - 4), "four out stays dry at radius two");
                 widen(head, 2);

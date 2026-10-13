@@ -4,7 +4,6 @@ import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import java.util.List;
@@ -15,7 +14,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.block.Blocks;
 
 /** Storage Terminal requests and pushes delivered by shuttle. */
 public final class TerminalRequestGameTests {
@@ -75,10 +73,7 @@ public final class TerminalRequestGameTests {
 
     private static StorageTerminalMenu requestSetup(GameTestHelper helper, Player player, int cobblestone) {
         WarehouseFixtures.controller(helper, RQ_CONTROLLER);
-        for (int x = 2; x <= 6; x++) {
-            helper.setBlock(new BlockPos(x, 0, 1), Blocks.STONE.defaultBlockState());
-            helper.setBlock(new BlockPos(x, 1, 1), ServusStorageBlocks.RAIL.get().defaultBlockState());
-        }
+        WarehouseFixtures.railRow(helper, 2, 6, 1);
         TerminalWiring.place(helper, RQ_TERMINAL);
         WarehouseFixtures.garage(helper, RQ_GARAGE, Direction.SOUTH, 0);
         WarehouseFixtures.rack(helper, RQ_RACK, Direction.NORTH);

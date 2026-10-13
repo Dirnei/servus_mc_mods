@@ -117,8 +117,7 @@ public final class WarehousePowerGameTests {
 
     private static WarehouseControllerBlockEntity site(GameTestHelper helper) {
         StorageStatsManager.INSTANCE.setWakeGraceTicks(GRACE);
-        WarehouseFixtures.controller(helper, SITE);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(SITE, WarehouseControllerBlockEntity.class);
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, SITE);
         controller.setTeam(UUID.randomUUID());
         controller.upgrades().insertItem(0, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
         return controller;

@@ -44,8 +44,7 @@ public final class RackDockGameTests {
     }
 
     private static void rail(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos.below(), Blocks.STONE.defaultBlockState());
-        WarehouseFixtures.rail(helper, pos);
+        WarehouseFixtures.railOnStone(helper, pos);
     }
 
     /** Places a rack the way a player facing north would: it faces south and joins the bays beside it. */

@@ -91,8 +91,7 @@ public final class ControllerWirelessGameTests {
     }
 
     private static WarehouseControllerBlockEntity controller(GameTestHelper helper, BlockPos pos, UUID team) {
-        WarehouseFixtures.controller(helper, pos);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(pos, WarehouseControllerBlockEntity.class);
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, pos);
         controller.setTeam(team);
         return controller;
     }
@@ -117,8 +116,7 @@ public final class ControllerWirelessGameTests {
     private static void rails(GameTestHelper helper, BlockPos controller) {
         for (int x = 3; x <= 4; x++) {
             BlockPos rail = new BlockPos(x, controller.getY(), controller.getZ());
-            helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
-            WarehouseFixtures.rail(helper, rail);
+            WarehouseFixtures.railOnStone(helper, rail);
         }
     }
 

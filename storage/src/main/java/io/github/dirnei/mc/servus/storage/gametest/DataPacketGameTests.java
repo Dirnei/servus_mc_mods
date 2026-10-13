@@ -36,7 +36,6 @@ import net.minecraft.world.phys.AABB;
  */
 public final class DataPacketGameTests {
 
-    private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos SOURCE = new BlockPos(2, 1, 3);
     private static final BlockPos STATION = new BlockPos(9, 1, 3);
     private static final int FIRST_DUCT = 3;

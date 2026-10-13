@@ -60,8 +60,7 @@ public final class ControllerSiteGameTests {
 
     /** A rail on stone. */
     static void rail(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos.below(), Blocks.STONE.defaultBlockState());
-        WarehouseFixtures.rail(helper, pos);
+        WarehouseFixtures.railOnStone(helper, pos);
     }
 
     /**
