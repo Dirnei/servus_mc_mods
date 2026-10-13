@@ -142,7 +142,7 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
         }
     }
 
-    /** Upgrades go to the heir segment of the shaft, or drop (moved from the block's removal hook in 26.1). */
+    /** When the block is removed, its upgrades go to the heir segment of the shaft, or drop. */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
@@ -151,7 +151,7 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
             return;
         }
         List<ItemStack> items = upgrades().takeAll();
-        OptionalInt heir = LiftUpgrades.heirOnRemove(pos.getY(), y -> level.getBlockState(pos.atY(y)).getBlock() instanceof ElevatorBlock);
+        OptionalInt heir = LiftUpgrades.heirOnRemove(pos.getY(), ElevatorBlock.isSegment(level, pos));
         BlockPos heirPos = heir.isPresent() ? pos.atY(heir.getAsInt()) : null;
         if (heirPos != null && level.getBlockState(heirPos).canSurvive(level, heirPos)
                 && level.getBlockEntity(heirPos) instanceof ElevatorBlockEntity next) {

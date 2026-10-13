@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.rail;
 
+import java.util.function.IntPredicate;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.redstone.Orientation;
 import io.github.dirnei.mc.servus.storage.menu.ElevatorMenu;
@@ -77,8 +78,13 @@ public class ElevatorBlock extends ConnectableBlock {
 
     /** The lowest segment of the shaft the segment at pos belongs to, which keeps the upgrades; null when there is none. */
     public static ElevatorBlockEntity bottomOf(Level level, BlockPos pos) {
-        int bottomY = LiftUpgrades.bottom(pos.getY(), y -> level.getBlockState(pos.atY(y)).getBlock() instanceof ElevatorBlock);
+        int bottomY = LiftUpgrades.bottom(pos.getY(), isSegment(level, pos));
         return level.getBlockEntity(pos.atY(bottomY)) instanceof ElevatorBlockEntity bottom ? bottom : null;
+    }
+
+    /** Whether the block at a height of the column of pos is an elevator segment. */
+    static IntPredicate isSegment(BlockGetter level, BlockPos pos) {
+        return y -> level.getBlockState(pos.atY(y)).getBlock() instanceof ElevatorBlock;
     }
 
     /** The whole block is the outline, so a segment is easy to target, like scaffolding. */
@@ -135,19 +141,13 @@ public class ElevatorBlock extends ConnectableBlock {
         if (!(level.getBlockEntity(above) instanceof ElevatorBlockEntity upper) || upper.upgradeCount() == 0) {
             return;
         }
-        int bottomY = LiftUpgrades.bottom(pos.getY(), y -> level.getBlockState(pos.atY(y)).getBlock() instanceof ElevatorBlock);
         // The new segment's block entity is not made yet; asking the level for it makes it now.
-        if (level.getBlockEntity(pos.atY(bottomY)) instanceof ElevatorBlockEntity bottom) {
+        ElevatorBlockEntity bottom = bottomOf(level, pos);
+        if (bottom != null) {
             bottom.upgrades().insertAll(upper.upgrades().takeAll()).forEach(stack -> Block.popResource(level, pos, stack));
         }
     }
 
-    /**
-     * A removed lowest segment hands its upgrades to the segment above when
-     * that one still stands (the new block holds it up) and so becomes the new
-     * lowest. Otherwise the shaft above breaks like scaffolding and the
-     * upgrades drop where the lowest segment was.
-     */
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new ElevatorBlockEntity(pos, state);

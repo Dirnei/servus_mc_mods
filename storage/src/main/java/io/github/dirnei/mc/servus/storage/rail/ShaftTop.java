@@ -6,7 +6,7 @@ import java.util.function.IntPredicate;
 /**
  * Finds the spot above a shaft where a click with an elevator places the next
  * segment, like scaffolding: walk up through the segments of the column to the
- * first height that is not a segment. Pure, no Minecraft types.
+ * first height that is not a segment. Pure Java.
  */
 public final class ShaftTop {
 

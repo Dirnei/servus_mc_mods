@@ -71,8 +71,6 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements WoodHolde
         }
     }
 
-    // Corrosion
-
     /** The corrosion stage, {@link FieldCorrosion#LOOSE} for a rail in no field yet. */
     public int corrosion() {
         return corrosion;
@@ -89,8 +87,6 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements WoodHolde
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
-
-    // Wood: the planks the rail was crafted from, shown as its sleepers
 
     @Override
     public WoodSlot woodSlot() {

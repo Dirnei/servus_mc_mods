@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage.rail;
 
 /**
  * Whether an entity stands on an elevator segment, like on scaffolding: only
- * from above and only while it is not descending. Pure, no Minecraft types.
+ * from above and only while it is not descending. Pure Java.
  */
 public final class ShaftFooting {
 

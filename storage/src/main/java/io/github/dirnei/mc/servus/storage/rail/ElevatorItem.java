@@ -37,10 +37,10 @@ public class ElevatorItem extends AssistedBlockItem {
             return context;
         }
         OptionalInt top = ShaftTop.firstFree(clicked.getY(), level.getMaxY() + 1,
-                y -> level.getBlockState(clicked.atY(y)).getBlock() instanceof ElevatorBlock);
+                ElevatorBlock.isSegment(level, clicked));
         if (top.isEmpty()) {
             if (context.getPlayer() instanceof ServerPlayer player) {
-                player.sendSystemMessage(Component.translatable("build.tooHigh", level.getMaxY() + 1 - 1)
+                player.sendSystemMessage(Component.translatable("build.tooHigh", level.getMaxY())
                         .withStyle(ChatFormatting.RED), true);
             }
             return null;
