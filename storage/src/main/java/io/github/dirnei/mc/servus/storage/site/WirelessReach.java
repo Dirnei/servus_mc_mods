@@ -2,8 +2,7 @@ package io.github.dirnei.mc.servus.storage.site;
 
 /**
  * Whether a Warehouse Controller is the site's antenna: it holds a Wireless
- * Upgrade and enough FE for one item at the smallest cost. Pure, no Minecraft
- * imports.
+ * Upgrade and enough FE for one item at the smallest cost.
  */
 public final class WirelessReach {
 

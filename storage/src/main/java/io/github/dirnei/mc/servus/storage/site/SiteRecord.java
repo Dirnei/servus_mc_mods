@@ -16,7 +16,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
@@ -40,6 +39,7 @@ public final class SiteRecord {
     boolean packing;
     /** FE the site's controller held when its chunk last unloaded or at the last snapshot while online. */
     int energy;
+    /** Game time of the last stock report. */
     long lastSeen;
 
     public SiteRecord(ResourceKey<Level> dimension, BlockPos pos) {
@@ -121,11 +121,6 @@ public final class SiteRecord {
         return energy;
     }
 
-    /** Game time of the last stock report. */
-    public long lastSeen() {
-        return lastSeen;
-    }
-
     CompoundTag save(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
         tag.putString("Dim", dimension.identifier().toString());
@@ -159,7 +154,7 @@ public final class SiteRecord {
         }
         SiteRecord record = new SiteRecord(ResourceKey.create(Registries.DIMENSION, dim), BlockPos.of(tag.getLongOr("Pos", 0L)));
         record.name = tag.getStringOr("Name", "");
-        record.team = tag.read("Team", UUIDUtil.CODEC).isPresent() ? tag.read("Team", UUIDUtil.CODEC).orElseThrow() : null;
+        record.team = tag.read("Team", UUIDUtil.CODEC).orElse(null);
         for (long key : tag.getLongArray("Span").orElse(new long[0])) {
             record.span.add(key);
         }

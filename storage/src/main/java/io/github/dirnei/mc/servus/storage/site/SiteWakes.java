@@ -3,13 +3,14 @@ package io.github.dirnei.mc.servus.storage.site;
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorData;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.power.WakeCost;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -125,7 +126,7 @@ public final class SiteWakes {
 
     /** The words for a reason a site does not wake. */
     public static Component reason(WakeAllowance.Reason reason) {
-        return Component.translatable("gui.servus_storage.wake.reason." + reason.name().toLowerCase(java.util.Locale.ROOT));
+        return Component.translatable("gui.servus_storage.wake.reason." + reason.name().toLowerCase(Locale.ROOT));
     }
 
     /** A controller that left the world takes its wake along. */
@@ -216,7 +217,7 @@ public final class SiteWakes {
         EnderAnchorData data = EnderAnchorData.get(server);
         UUID team = site.team().orElse(null);
         boolean registered = team != null && data.isRegistered(team, level, wake.pos);
-        // The union is only worked out while the site waits: an awake site already counts.
+        // An awake site already counts in the team load.
         boolean fits = team != null && !registered && data.fits(team, EnderAnchorData.key(level, wake.pos),
                 EnderAnchorData.chunks(level.dimension(), site.span()), ServusFoundationConfig.maxLoadedChunksPerTeam());
         // A loaded controller tells its FE; a sleeping one is known by its record.
@@ -255,10 +256,8 @@ public final class SiteWakes {
 
     /** Whether the woken site's own work still runs; a controller that is not loaded yet has none. */
     private static boolean busy(ServerLevel level, BlockPos pos) {
-        if (!level.isLoaded(pos) || !(level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller)) {
-            return false;
-        }
-        return controller.network().filter(network -> network.status() == WarehouseNetwork.Status.ONLINE)
+        return controller(level, pos).flatMap(WarehouseControllerBlockEntity::network)
+                .filter(network -> network.status() == WarehouseNetwork.Status.ONLINE)
                 .map(WarehouseNetwork::siteBusy).orElse(false);
     }
 
@@ -266,14 +265,18 @@ public final class SiteWakes {
     private static void follow(ServerLevel level, Wake wake, Set<Long> span) {
         for (long key : span) {
             if (wake.forced.add(key)) {
-                SiteTickets.CONTROLLER.forceChunk(level, wake.pos, SiteChunks.x(key), SiteChunks.z(key), true, true);
+                force(level, wake, key, true);
             }
         }
         List<Long> left = wake.forced.stream().filter(key -> !span.contains(key)).toList();
         for (long key : left) {
-            SiteTickets.CONTROLLER.forceChunk(level, wake.pos, SiteChunks.x(key), SiteChunks.z(key), false, true);
+            force(level, wake, key, false);
             wake.forced.remove(key);
         }
+    }
+
+    private static void force(ServerLevel level, Wake wake, long chunk, boolean add) {
+        SiteTickets.CONTROLLER.forceChunk(level, wake.pos, SiteChunks.x(chunk), SiteChunks.z(chunk), add, true);
     }
 
     /** Keeps the team load holding exactly the chunks of the span while the site is awake. */
@@ -288,7 +291,7 @@ public final class SiteWakes {
 
     private static void unload(ServerLevel level, Wake wake) {
         for (long key : wake.forced) {
-            SiteTickets.CONTROLLER.forceChunk(level, wake.pos, SiteChunks.x(key), SiteChunks.z(key), false, true);
+            force(level, wake, key, false);
         }
         wake.forced.clear();
         if (wake.registered != null) {

@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.site;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.storage.packing.WirelessIncoming;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
@@ -22,7 +23,7 @@ public final class SiteEvents {
     @SubscribeEvent
     public static void onServerStopping(ServerStoppingEvent event) {
         SiteWakes.releaseAll(event.getServer());
-        io.github.dirnei.mc.servus.storage.packing.WirelessIncoming.clear();
+        WirelessIncoming.clear();
     }
 
     @SubscribeEvent
