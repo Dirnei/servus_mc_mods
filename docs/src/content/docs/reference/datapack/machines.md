@@ -64,7 +64,7 @@ These are the defaults built into the code, used for any field a file leaves out
 | `athanor` | crafter | `servus_manufacturing:athanor` | 1 | 0 | 0 | 1 | 4000 |
 | `gnome_hollow` | crafter | vein yield | 1 | 0 | 0 | 1 | 4000 |
 | `servus_foundation:coal_generator` | generator | burns fuel | 1 | 40 | 16000 | 4 | 0 |
-| `servus_foundation:ender_anchor` | powered | nothing, upkeep only | 1 | 10 | 4000 | 1 | 0 |
+| `servus_foundation:ender_anchor` | powered | nothing, upkeep only | 1 | 10 per chunk | 20000 | 1 | 0 |
 | `servus_foundation:burner_pump` | burner | water | 20 | 0 | 0 | 1 | 4000 |
 | `servus_foundation:electric_pump` | powered | water | 20 | 20 | 8000 | 1 | 4000 |
 
@@ -89,7 +89,7 @@ Fuel and energy:
 - **Burner machines** burn fuel only while they have work. One fuel item lasts its furnace burn time divided by `fuel_divisor`. Coal burns 1600 ticks, so with the default divisor of 1 one coal runs a burner machine for 1600 ticks, 20 cycles at 80 ticks.
 - **Generators** use the same rule: with `fuel_divisor` 4, one coal burns 400 ticks (20 seconds) at 40 FE per tick, 16000 FE in total.
 - **Powered machines** draw `energy_per_tick` only on ticks they work. With less than that in the buffer, progress pauses and is kept. A cycle costs `energy_per_tick` times the cycle time, for example 20 FE x 80 ticks = 1600 FE to calcine one cobblestone.
-- **Ender Anchor** spends `energy_per_tick` every tick while it is active and releases its chunk when the buffer runs dry.
+- **Ender Anchor** spends `energy_per_tick` for every chunk of its square every tick while it is active (1, 9 or 25 chunks with 0, 1 or 2 Anchor Upgrades) and releases its whole square when the buffer runs dry.
 
 ## Notes
 

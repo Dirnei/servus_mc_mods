@@ -31,7 +31,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 
 ## 7. Docs and plan
 
-- [ ] 7.1 `PLAN.md` (section 2.1 Ender Anchor: area, offset, chunk cap, Anchor Upgrade; the M11 site text: Anchor Upgrade), `README.md` (config key), `docs/src/content/docs/mods/foundation.md`, `storage.md`, `reference/datapack/machines.md` (`energy_per_tick` per chunk, new capacity); regenerate `docs/src/data/gamedata.json` with `gradlew :manufacturing:runData`. Run `cd docs && npm test`.
+- [x] 7.1 `PLAN.md` (section 2.1 Ender Anchor: area, offset, chunk cap, Anchor Upgrade; the M11 site text: Anchor Upgrade), `README.md` (config key), `docs/src/content/docs/mods/foundation.md`, `storage.md`, `reference/datapack/machines.md` (`energy_per_tick` per chunk, new capacity); regenerate `docs/src/data/gamedata.json` with `gradlew :manufacturing:runData`. Run `cd docs && npm test`.
 
 ## 8. Verification
 

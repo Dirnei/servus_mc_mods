@@ -52,7 +52,7 @@
       "recipe_types": [],
       "work_ticks": 1,
       "energy_per_tick": 10,
-      "energy_capacity": 4000,
+      "energy_capacity": 20000,
       "fuel_divisor": 1,
       "items_per_tick": 0,
       "recipe_slots": 1,
@@ -140,6 +140,25 @@
   },
   "recipes": {},
   "crafting": {
+    "servus_foundation:anchor_upgrade": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": [" E ", "IAI", " R "],
+      "key": {
+        "A": {"item": "servus_foundation:ender_anchor"},
+        "E": {"item": "minecraft:ender_pearl"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:ender_pearl", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 2},
+        {"item": "minecraft:redstone", "count": 1},
+        {"item": "servus_foundation:ender_anchor", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_foundation:anchor_upgrade", "count": 1}
+      ]
+    },
     "servus_foundation:burner_pump": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["IBI", "IFI", "CCC"],
@@ -685,25 +704,6 @@
       ],
       "outputs": [
         {"item": "servus_manufacturing:sulfur_hood", "count": 1}
-      ]
-    },
-    "servus_storage:chunk_loader_upgrade": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": [" E ", "ICI", " R "],
-      "key": {
-        "C": {"item": "servus_foundation:ender_anchor"},
-        "E": {"item": "minecraft:ender_pearl"},
-        "I": {"item": "minecraft:iron_ingot"},
-        "R": {"item": "minecraft:redstone"}
-      },
-      "inputs": [
-        {"item": "minecraft:ender_pearl", "count": 1},
-        {"item": "minecraft:iron_ingot", "count": 2},
-        {"item": "minecraft:redstone", "count": 1},
-        {"item": "servus_foundation:ender_anchor", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_storage:chunk_loader_upgrade", "count": 1}
       ]
     },
     "servus_storage:crafting_cpu": {
@@ -1264,6 +1264,9 @@
     "minecraft:wheat_seeds": {
       "name": "Wheat Seeds"
     },
+    "servus_foundation:anchor_upgrade": {
+      "name": "Anchor Upgrade"
+    },
     "servus_foundation:burner_pump": {
       "name": "Burner Pump"
     },
@@ -1359,9 +1362,6 @@
     },
     "servus_manufacturing:sulfur_hood": {
       "name": "Sulfur Hood"
-    },
-    "servus_storage:chunk_loader_upgrade": {
-      "name": "Chunk Loader Upgrade"
     },
     "servus_storage:crafting_cpu": {
       "name": "Crafting CPU"
