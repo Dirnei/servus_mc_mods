@@ -8,7 +8,7 @@ import java.util.function.ToLongFunction;
 /**
  * Picks the Packing Station of a site that receives a wireless transfer: the
  * one with the fewest open incoming transfers, the lowest position on a tie.
- * Pure, no Minecraft imports.
+ * Pure Java.
  */
 public final class ReceiverChoice {
 

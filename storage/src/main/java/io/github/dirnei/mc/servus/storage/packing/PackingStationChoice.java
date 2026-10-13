@@ -7,7 +7,7 @@ import java.util.function.ToIntFunction;
 /**
  * Picks the Packing Station a shipment leaves through: the one with the shortest
  * shuttle trip, the first on a tie. A trip of {@link #UNREACHABLE} only wins
- * when no candidate has a trip. Pure, no Minecraft imports.
+ * when no candidate has a trip. Pure Java.
  */
 public final class PackingStationChoice {
 

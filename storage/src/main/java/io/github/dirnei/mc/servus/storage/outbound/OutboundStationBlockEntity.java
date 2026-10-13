@@ -133,14 +133,7 @@ public class OutboundStationBlockEntity extends StationBlockEntity implements De
 
     /** How many of the key sit in the buffer. */
     public int bufferCount(ItemKey key) {
-        int count = 0;
-        for (int i = 0; i < buffer.getSlots(); i++) {
-            ItemStack stack = buffer.getStackInSlot(i);
-            if (!stack.isEmpty() && ItemKey.of(stack).equals(key)) {
-                count += stack.getCount();
-            }
-        }
-        return count;
+        return countOf(buffer, key);
     }
 
     /** Sets a keep slot; an empty item or an amount below one clears it. */

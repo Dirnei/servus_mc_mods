@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * After a Packing Station loads, its shipments may only wait for what its
  * outgoing buffer holds: picks that were on their way may never come. Shares
- * the buffer among the shipments of one item, oldest first. Pure.
+ * the buffer among the shipments of one item, oldest first. Pure Java.
  */
 public final class ShipmentCap {
 

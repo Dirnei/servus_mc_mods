@@ -1,9 +1,6 @@
 package io.github.dirnei.mc.servus.storage.packing;
 
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
@@ -12,7 +9,6 @@ import io.github.dirnei.mc.servus.foundation.data.packet.RateBudget;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.foundation.production.TransferGate;
 import io.github.dirnei.mc.servus.foundation.upgrade.UpgradeSlots;
-import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.DeliveryTarget;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -30,14 +26,15 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.storage.site.SiteRecord;
 import io.github.dirnei.mc.servus.storage.site.SiteRegistry;
 import io.github.dirnei.mc.servus.storage.site.WirelessCost;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -148,61 +145,6 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     private record SavedShipment(long id, BlockPos target, ItemKey key, boolean wireless, String site, BlockPos terminal, long feed) {
     }
 
-    /** Ticks after the last wireless item moved during which the station counts as sending. */
-    private static final int SENDING_TICKS = 20;
-
-    private final ItemSlots outgoing = new ItemSlots(StorageStatsManager.INSTANCE.inboundBufferSlots()) {
-        @Override
-        protected void onContentsChanged(int slot) {
-            setChanged();
-            network().ifPresent(network -> network.post(new WarehouseEvent.OutputChanged(worldPosition)));
-        }
-    };
-
-    private final List<Shipment> shipments = new ArrayList<>();
-    private final List<SavedShipment> unresolved = new ArrayList<>();
-    private Delivery running;
-    private ServerLevel shippingLevel;
-    private Shipment runningFor;
-    private int sendTimer;
-    private final RateBudget toStorage = new RateBudget(StorageStatsManager.INSTANCE.packingItemsPerSecond());
-    private final RateBudget toNetwork = new RateBudget(StorageStatsManager.INSTANCE.packingItemsPerSecond());
-    private final UpgradeSlots upgrades = new UpgradeSlots(StorageStatsManager.INSTANCE.packingUpgradeSlots(), this::setChanged);
-    // The wireless transfer moving now, for the status line and the request rows.
-    private long wirelessId = -1;
-    private Component wirelessTo;
-    private ItemKey wirelessKey;
-    private int sentAgo = SENDING_TICKS + 1;
-    /** Why the oldest waiting wireless transfer does not move, null while nothing waits. */
-    private Component wirelessWaiting;
-    private boolean wirelessWaitingAlert;
-
-    public PackingStationBlockEntity(BlockPos pos, BlockState state) {
-        super(ServusStorageBlockEntities.PACKING_STATION.get(), pos, state);
-    }
-
-    @Override
-    public ItemSlots deliveries() {
-        return outgoing;
-    }
-
-    public ItemSlots outgoing() {
-        return outgoing;
-    }
-
-    // Transfer gate
-
-    @Override
-    public int allowance(Flow flow) {
-        return budget(flow).allowance();
-    }
-
-    @Override
-    public void consume(Flow flow, int items) {
-        budget(flow).consume(items);
-        (flow == Flow.IN ? usedIn : usedOut).add(items);
-    }
-
     /** Items per tick over the last second, for the Production Terminal. */
     private static final class Window {
         private final int[] ticks = new int[RateBudget.TICKS_PER_SECOND];
@@ -226,8 +168,61 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         }
     }
 
+    /** Ticks after the last wireless item moved during which the station counts as sending. */
+    private static final int SENDING_TICKS = 20;
+    private static final String STATUS = "gui.servus_storage.packing_station.status.";
+
+    private final ItemSlots outgoing = new ItemSlots(StorageStatsManager.INSTANCE.inboundBufferSlots()) {
+        @Override
+        protected void onContentsChanged(int slot) {
+            setChanged();
+            network().ifPresent(network -> network.post(new WarehouseEvent.OutputChanged(worldPosition)));
+        }
+    };
+
+    private final List<Shipment> shipments = new ArrayList<>();
+    private final List<SavedShipment> unresolved = new ArrayList<>();
+    private Delivery running;
+    private ServerLevel shippingLevel;
+    private Shipment runningFor;
+    private int sendTimer;
+    private final RateBudget toStorage = new RateBudget(StorageStatsManager.INSTANCE.packingItemsPerSecond());
+    private final RateBudget toNetwork = new RateBudget(StorageStatsManager.INSTANCE.packingItemsPerSecond());
     private final Window usedIn = new Window();
     private final Window usedOut = new Window();
+    private final UpgradeSlots upgrades = new UpgradeSlots(StorageStatsManager.INSTANCE.packingUpgradeSlots(), this::setChanged);
+    /** The ledger id of the wireless transfer moving now, for the status line and the request rows. */
+    private long wirelessId = -1;
+    private Component wirelessTo;
+    private ItemKey wirelessKey;
+    private int sentAgo = SENDING_TICKS + 1;
+    /** Why the oldest waiting wireless transfer does not move, null while nothing waits. */
+    private Component wirelessWaiting;
+    private boolean wirelessWaitingAlert;
+
+    public PackingStationBlockEntity(BlockPos pos, BlockState state) {
+        super(ServusStorageBlockEntities.PACKING_STATION.get(), pos, state);
+    }
+
+    @Override
+    public ItemSlots deliveries() {
+        return outgoing;
+    }
+
+    public ItemSlots outgoing() {
+        return outgoing;
+    }
+
+    @Override
+    public int allowance(Flow flow) {
+        return budget(flow).allowance();
+    }
+
+    @Override
+    public void consume(Flow flow, int items) {
+        budget(flow).consume(items);
+        (flow == Flow.IN ? usedIn : usedOut).add(items);
+    }
 
     private RateBudget budget(Flow flow) {
         return flow == Flow.IN ? toStorage : toNetwork;
@@ -261,8 +256,6 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         toNetwork.tick();
     }
 
-    // Menu
-
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new PackingStationMenu(containerId, playerInventory, this);
@@ -274,10 +267,9 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
      * waiting for a shuttle). Server side.
      */
     public PackingStatusPayload status() {
-        String prefix = "gui.servus_storage.packing_station.status.";
         Optional<WarehouseNetwork> network = network();
         if (network.isEmpty()) {
-            return status(Component.translatable(prefix + "no_rail"), true);
+            return status(Component.translatable(STATUS + "no_rail"), true);
         }
         switch (network.get().status()) {
             case NO_CONTROLLER -> {
@@ -290,23 +282,23 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             }
         }
         if (!(level instanceof ServerLevel server)) {
-            return status(Component.translatable(prefix + "no_data_line"), true);
+            return status(Component.translatable(STATUS + "no_data_line"), true);
         }
         boolean dataLine = DataNetworks.networkAt(server, worldPosition).isPresent();
         boolean capable = network.get().controller().map(WarehouseControllerBlockEntity::capable).orElse(false);
         if (!dataLine && !capable && wirelessWaiting == null && !wirelessSending()) {
-            return status(Component.translatable(prefix + "no_data_line"), true);
+            return status(Component.translatable(STATUS + "no_data_line"), true);
         }
         if (wirelessSending() && wirelessKey != null) {
-            return status(Component.translatable(prefix + "sending", wirelessKey.stack(1).getHoverName(), wirelessTo), false);
+            return status(Component.translatable(STATUS + "sending", wirelessKey.stack(1).getHoverName(), wirelessTo), false);
         }
         if (dataSending() && runningFor != null) {
-            return status(Component.translatable(prefix + "sending",
+            return status(Component.translatable(STATUS + "sending",
                     runningFor.key.stack(1).getHoverName(), targetName(server, runningFor.target)), false);
         }
         if (blockedReason() != null) {
             String item = blockedStack().getHoverName().getString();
-            String reason = blockedReason().name().toLowerCase(java.util.Locale.ROOT);
+            String reason = blockedReason().name().toLowerCase(Locale.ROOT);
             String key = reason.equals("no_room") && blockedZone().isEmpty() ? "no_room_general" : reason;
             return status(Component.translatable("gui.servus_storage.station.blocked." + key, item, blockedZone()), true);
         }
@@ -314,15 +306,15 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             return status(wirelessWaiting, wirelessWaitingAlert);
         }
         if (toStorageFull()) {
-            return status(Component.translatable(prefix + "to_storage_full"), true);
+            return status(Component.translatable(STATUS + "to_storage_full"), true);
         }
         for (Shipment shipment : shipments) {
             if (!shipment.ended() && !shipment.relay() && shipment.missing() > outgoingCount(shipment.key)) {
-                return status(Component.translatable(prefix + "waiting_shuttle",
+                return status(Component.translatable(STATUS + "waiting_shuttle",
                         shipment.key.stack(1).getHoverName()), false);
             }
         }
-        return status(Component.translatable(prefix + (dataLine ? "idle" : "wireless_only")), false);
+        return status(Component.translatable(STATUS + (dataLine ? "idle" : "wireless_only")), false);
     }
 
     private PackingStatusPayload status(Component line, boolean alert) {
@@ -567,8 +559,6 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         }
     }
 
-    // Wireless
-
     /** The controller of this station's warehouse while it is online. */
     private Optional<WarehouseControllerBlockEntity> controller() {
         return network().filter(network -> network.status() == WarehouseNetwork.Status.ONLINE).flatMap(WarehouseNetwork::controller);
@@ -576,7 +566,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
 
     /** The name of a site by its registry key, or the key. */
     private static Component siteName(ServerLevel level, String site) {
-        return Component.literal(SiteRegistry.of(level).site(site).map(io.github.dirnei.mc.servus.storage.site.SiteRecord::name).orElse(site));
+        return Component.literal(SiteRegistry.of(level).site(site).map(SiteRecord::name).orElse(site));
     }
 
     /** How many of up to {@code max} items like the key the To storage buffer takes now. */
@@ -621,79 +611,86 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         if (!waiting) {
             return;
         }
-        String prefix = "gui.servus_storage.packing_station.status.";
         Optional<WarehouseControllerBlockEntity> here = controller();
         if (here.isEmpty() || !here.get().capable()) {
-            // Open transfers stop and go on once the controller is capable again; the warehouse side keeps working.
+            // Transfers wait until this controller is capable again; the warehouse side keeps working.
             boolean upgrade = here.map(WarehouseControllerBlockEntity::hasWirelessUpgrade).orElse(false);
-            waitWireless(Component.translatable(prefix + (upgrade ? "no_power_here" : "no_wireless_here")), true);
+            waitWireless(Component.translatable(STATUS + (upgrade ? "no_power_here" : "no_wireless_here")), true);
             return;
         }
         for (Shipment shipment : new ArrayList<>(shipments)) {
-            if (!shipment.wireless || shipment.ended()) {
-                continue;
-            }
-            int ready = Math.min(shipment.missing(), outgoingCount(shipment.key));
-            if (ready <= 0) {
-                continue;
-            }
-            Component name = siteName(server, shipment.site);
-            if (!server.isLoaded(shipment.target)) {
-                waitWireless(Component.translatable(prefix + "receiver_asleep", name), false);
-                continue;
-            }
-            if (!(server.getBlockEntity(shipment.target) instanceof PackingStationBlockEntity to) || to == this) {
-                endShipment(shipment);
-                continue;
-            }
-            Optional<WarehouseControllerBlockEntity> there = to.controller();
-            if (there.isEmpty()) {
-                waitWireless(Component.translatable(prefix + "receiver_asleep", name), false);
-                continue;
-            }
-            if (here.get().team().isEmpty() || !here.get().team().equals(there.get().team())) {
-                endShipment(shipment);
-                continue;
-            }
-            if (!there.get().capable()) {
-                waitWireless(Component.translatable(prefix + (there.get().hasWirelessUpgrade() ? "no_power_there" : "no_wireless_there"), name), true);
-                continue;
-            }
-            double perItem = WirelessCost.perItem(Math.sqrt(here.get().getBlockPos().distSqr(there.get().getBlockPos())),
-                    StorageStatsManager.INSTANCE.wirelessFePerItem(), StorageStatsManager.INSTANCE.wirelessFePerItemPerBlock());
-            // A transfer for a terminal goes on from the receiver's To network buffer, unless its relay there ended.
-            boolean relayed = shipment.terminal != null && to.relays(shipment.id());
-            int room = relayed ? to.outgoingRoom(shipment.key, ready) : to.intakeRoom(shipment.key, ready);
-            int paid = WirelessCost.affordable(there.get().energyStored(), perItem, ready);
-            int moved = WirelessCost.movable(ready, shipment.missing(), allowance(Flow.OUT), to.allowance(Flow.IN), room, paid);
-            if (moved <= 0) {
-                if (paid <= 0) {
-                    there.get().refuseEnergy();
-                    waitWireless(Component.translatable(prefix + "no_power_there", name), true);
-                } else if (room <= 0) {
-                    waitWireless(Component.translatable(prefix + "receiver_full", name), true);
-                }
+            if (shipment.wireless && !shipment.ended() && shipWireless(server, shipment, here.get())) {
                 return;
             }
-            ItemStack taken = takeOutgoing(shipment.key, moved);
-            ItemStack left = relayed ? to.outgoing.insertItemStacked(taken, false) : Transfer.insertItemStacked(to.intake(), taken, false);
-            int arrived = taken.getCount() - left.getCount();
-            if (!left.isEmpty()) {
-                outgoing.insertItemStacked(left, false);
-            }
-            if (arrived > 0) {
-                there.get().spendEnergy(WirelessCost.cost(arrived, perItem));
-                consume(Flow.OUT, arrived);
-                to.consume(Flow.IN, arrived);
-                credit(shipment, arrived);
-                wirelessId = shipment.id();
-                wirelessTo = name;
-                wirelessKey = shipment.key;
-                sentAgo = 0;
-                setActivity(true);
-            }
-            return;
         }
+    }
+
+    /**
+     * Moves what is ready of one wireless shipment to its receiver; true when
+     * this tick's wireless move is used up, false to try the next shipment.
+     */
+    private boolean shipWireless(ServerLevel server, Shipment shipment, WarehouseControllerBlockEntity here) {
+        int ready = Math.min(shipment.missing(), outgoingCount(shipment.key));
+        if (ready <= 0) {
+            return false;
+        }
+        Component name = siteName(server, shipment.site);
+        if (!server.isLoaded(shipment.target)) {
+            waitWireless(Component.translatable(STATUS + "receiver_asleep", name), false);
+            return false;
+        }
+        if (!(server.getBlockEntity(shipment.target) instanceof PackingStationBlockEntity to) || to == this) {
+            endShipment(shipment);
+            return false;
+        }
+        Optional<WarehouseControllerBlockEntity> receiver = to.controller();
+        if (receiver.isEmpty()) {
+            waitWireless(Component.translatable(STATUS + "receiver_asleep", name), false);
+            return false;
+        }
+        WarehouseControllerBlockEntity there = receiver.get();
+        if (here.team().isEmpty() || !here.team().equals(there.team())) {
+            endShipment(shipment);
+            return false;
+        }
+        if (!there.capable()) {
+            waitWireless(Component.translatable(STATUS + (there.hasWirelessUpgrade() ? "no_power_there" : "no_wireless_there"), name), true);
+            return false;
+        }
+        double perItem = WirelessCost.perItem(Math.sqrt(here.getBlockPos().distSqr(there.getBlockPos())),
+                StorageStatsManager.INSTANCE.wirelessFePerItem(), StorageStatsManager.INSTANCE.wirelessFePerItemPerBlock());
+        // A transfer for a terminal goes on from the receiver's To network buffer, unless its relay there ended.
+        boolean relayed = shipment.terminal != null && to.relays(shipment.id());
+        int room = relayed ? to.outgoingRoom(shipment.key, ready) : to.intakeRoom(shipment.key, ready);
+        int paid = WirelessCost.affordable(there.energyStored(), perItem, ready);
+        int moved = WirelessCost.movable(ready, shipment.missing(), allowance(Flow.OUT), to.allowance(Flow.IN), room, paid);
+        if (moved <= 0) {
+            if (paid <= 0) {
+                there.refuseEnergy();
+                waitWireless(Component.translatable(STATUS + "no_power_there", name), true);
+            } else if (room <= 0) {
+                waitWireless(Component.translatable(STATUS + "receiver_full", name), true);
+            }
+            return true;
+        }
+        ItemStack taken = takeOutgoing(shipment.key, moved);
+        ItemStack left = relayed ? to.outgoing.insertItemStacked(taken, false) : Transfer.insertItemStacked(to.intake(), taken, false);
+        int arrived = taken.getCount() - left.getCount();
+        if (!left.isEmpty()) {
+            outgoing.insertItemStacked(left, false);
+        }
+        if (arrived > 0) {
+            there.spendEnergy(WirelessCost.cost(arrived, perItem));
+            consume(Flow.OUT, arrived);
+            to.consume(Flow.IN, arrived);
+            credit(shipment, arrived);
+            wirelessId = shipment.id();
+            wirelessTo = name;
+            wirelessKey = shipment.key;
+            sentAgo = 0;
+            setActivity(true);
+        }
+        return true;
     }
 
     private ItemStack takeOutgoing(ItemKey key, int count) {
@@ -813,50 +810,28 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     }
 
     protected int outgoingCount(ItemKey key) {
-        int count = 0;
-        for (int slot = 0; slot < outgoing.getSlots(); slot++) {
-            ItemStack stack = outgoing.getStackInSlot(slot);
-            if (!stack.isEmpty() && ItemKey.of(stack).equals(key)) {
-                count += stack.getCount();
-            }
-        }
-        return count;
+        return countOf(outgoing, key);
     }
 
+    /** Sets the lamp while the intake is empty: orange while packets or items leave, else green. */
     protected void setActivity(boolean working) {
         if (level == null || level.isClientSide() || !isEmpty()) {
             return;
         }
         if (working) {
-            clearBlockedWorking();
+            setActivity(StorageNodeBlocks.Activity.WORKING);
         } else {
             clearBlocked();
         }
     }
 
-    /** The orange lamp while packets leave, even when the intake is empty. */
-    private void clearBlockedWorking() {
-        BlockState state = getBlockState();
-        if (state.hasProperty(StorageNodeBlocks.ACTIVITY)) {
-            level.setBlock(worldPosition, state.setValue(StorageNodeBlocks.ACTIVITY,
-                    StorageNodeBlocks.Activity.WORKING), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
-        }
-    }
-
+    /** Drops the To storage buffer, the upgrades and the To network buffer. */
     @Override
     public void dropContents(Level level, BlockPos pos) {
         super.dropContents(level, pos);
         upgrades.takeAll().forEach(stack -> Block.popResource(level, pos, stack));
-        for (int i = 0; i < outgoing.getSlots(); i++) {
-            ItemStack stack = outgoing.getStackInSlot(i);
-            if (!stack.isEmpty()) {
-                Block.popResource(level, pos, stack);
-                outgoing.setStackInSlot(i, ItemStack.EMPTY);
-            }
-        }
+        dropSlots(outgoing, level, pos);
     }
-
-    // Persistence
 
     @Override
     protected void saveAdditional(ValueOutput output) {
@@ -885,18 +860,10 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
         if (tag.contains("Outgoing")) {
-            ItemSlots saved = new ItemSlots();
-            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("Outgoing"));
-            for (int i = 0; i < outgoing.getSlots(); i++) {
-                outgoing.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
-            }
+            loadSlots(outgoing, new ItemSlots(), tag.getCompoundOrEmpty("Outgoing"), registries);
         }
         if (tag.contains("Upgrades")) {
-            ItemSlots saved = new ItemSlots();
-            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("Upgrades"));
-            for (int i = 0; i < upgrades.getSlots(); i++) {
-                upgrades.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
-            }
+            loadSlots(upgrades, new ItemSlots(), tag.getCompoundOrEmpty("Upgrades"), registries);
         }
         shipments.clear();
         unresolved.clear();

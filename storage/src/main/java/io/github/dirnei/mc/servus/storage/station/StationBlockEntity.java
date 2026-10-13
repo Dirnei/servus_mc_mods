@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
 import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
@@ -92,14 +93,30 @@ public abstract class StationBlockEntity extends StorageNodeBlockEntity implemen
 
     /** Drops every stack in the buffer at the station. */
     public void dropContents(Level level, BlockPos pos) {
-        ItemSlots buffer = buffer();
-        for (int i = 0; i < buffer.getSlots(); i++) {
-            ItemStack stack = buffer.getStackInSlot(i);
+        dropSlots(buffer(), level, pos);
+    }
+
+    /** Pops every stack of the slots at the position and empties them. */
+    protected static void dropSlots(ItemSlots slots, Level level, BlockPos pos) {
+        for (int i = 0; i < slots.getSlots(); i++) {
+            ItemStack stack = slots.getStackInSlot(i);
             if (!stack.isEmpty()) {
                 Block.popResource(level, pos, stack);
-                buffer.setStackInSlot(i, ItemStack.EMPTY);
+                slots.setStackInSlot(i, ItemStack.EMPTY);
             }
         }
+    }
+
+    /** How many of the key the slots hold. */
+    protected static int countOf(ItemSlots slots, ItemKey key) {
+        int count = 0;
+        for (int i = 0; i < slots.getSlots(); i++) {
+            ItemStack stack = slots.getStackInSlot(i);
+            if (!stack.isEmpty() && ItemKey.of(stack).equals(key)) {
+                count += stack.getCount();
+            }
+        }
+        return count;
     }
 
     /** Sets the activity lamp when it shows something else. Server side. */
