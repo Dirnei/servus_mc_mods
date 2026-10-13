@@ -49,10 +49,10 @@ public final class MachineGameTests {
             helper.assertTrue(loader.status() == EnderAnchorBlockEntity.STATUS_ACTIVE, "the loader should be active, status " + loader.status());
             helper.assertTrue(loader.ticketHeld(), "the loader should hold its chunk ticket");
             EnderAnchorData data = EnderAnchorData.get(helper.getLevel().getServer());
-            helper.assertTrue(data.countFor(team) == 1, "the team should have one loader");
+            helper.assertTrue(data.load(team) == 1, "the team should have one loader");
             helper.setBlock(MACHINE, Blocks.AIR.defaultBlockState());
             helper.assertTrue(!loader.ticketHeld(), "breaking the loader should release the ticket");
-            helper.assertTrue(data.countFor(team) == 0, "breaking the loader should free the team slot");
+            helper.assertTrue(data.load(team) == 0, "breaking the loader should free the team slot");
             helper.succeed();
         });
     }
@@ -63,7 +63,7 @@ public final class MachineGameTests {
      */
     @ServusGameTest(timeoutTicks = 60)
     public static void enderAnchorLitFollowsActive(GameTestHelper helper) {
-        int cap = ServusFoundationConfig.maxEnderAnchorsPerTeam();
+        int cap = ServusFoundationConfig.maxLoadedChunksPerTeam();
         helper.assertTrue(cap >= 1 && cap <= 8, "the test fits a team cap of 1 to 8, got " + cap);
         UUID team = UUID.randomUUID();
         for (int i = 0; i <= cap; i++) {

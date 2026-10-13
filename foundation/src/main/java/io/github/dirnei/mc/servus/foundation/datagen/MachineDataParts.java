@@ -61,7 +61,7 @@ final class MachineDataParts {
         provider.add("gui.servus_foundation.ender_anchor.ftb_chunks", "Inactive: use FTB Chunks");
         provider.add("gui.servus_foundation.ender_anchor.no_owner", "Inactive: no owner");
         provider.add("servus_foundation.configuration.enderAnchor", "Ender Anchor");
-        provider.add("servus_foundation.configuration.maxEnderAnchorsPerTeam", "Max Ender Anchors per team");
+        provider.add("servus_foundation.configuration.maxLoadedChunksPerTeam", "Max loaded chunks per team");
         provider.add("servus_foundation.configuration.enderAnchorRespectsFtbChunks", "Ender Anchor respects FTB Chunks");
         provider.add(MachineContent.SINK.get(), "Sink");
         provider.add(MachineContent.CHIMNEY.get(), "Chimney");

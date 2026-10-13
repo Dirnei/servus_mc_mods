@@ -74,7 +74,14 @@ public final class SiteWakeGameTests {
     }
 
     private static int loaders(GameTestHelper helper, UUID team) {
-        return EnderAnchorData.get(helper.getLevel().getServer()).countFor(team);
+        return EnderAnchorData.get(helper.getLevel().getServer()).load(team);
+    }
+
+    /** Registers a stand-in loader holding the one far chunk number {@code i} east of {@code base}. */
+    private static void farChunk(EnderAnchorData data, ServerLevel level, UUID team, BlockPos base, int i) {
+        BlockPos pos = base.offset(i * 16, 0, 0);
+        data.register(team, EnderAnchorData.key(level, pos),
+                EnderAnchorData.chunks(level.dimension(), java.util.List.of(net.minecraft.world.level.ChunkPos.pack(pos))));
     }
 
     private static StorageNodeBlocks.Activity lamp(GameTestHelper helper) {
@@ -162,10 +169,10 @@ public final class SiteWakeGameTests {
         site(helper, team, 1);
         ServerLevel level = helper.getLevel();
         EnderAnchorData data = EnderAnchorData.get(level.getServer());
-        int cap = ServusFoundationConfig.maxEnderAnchorsPerTeam();
+        int cap = ServusFoundationConfig.maxLoadedChunksPerTeam();
         BlockPos base = helper.absolutePos(CONTROLLER).offset(5000, 0, 0);
         for (int i = 0; i < cap; i++) {
-            data.register(team, level, base.offset(i, 0, 0));
+            farChunk(data, level, team, base, i);
         }
         Object token = new Object();
         helper.runAfterDelay(3, () -> {
@@ -175,12 +182,16 @@ public final class SiteWakeGameTests {
             helper.assertTrue(controller.wakeAlert() && controller.wakeLine().getString().contains("team limit"),
                     "the GUI says why, was " + controller.wakeLine().getString());
             data.unregister(team, level, base);
+            int span = record(helper).orElseThrow().span().size();
+            for (int i = 1; i < span; i++) {
+                data.unregister(team, level, base.offset(i * 16, 0, 0));
+            }
             TerminalWiring.when(helper, () -> status(helper).map(SiteWakes.Status::awake).orElse(false), 20,
                     () -> "a free slot lets the held wake through, was " + status(helper), () -> {
-                helper.assertTrue(loaders(helper, team) == cap, "the site took the free slot");
+                helper.assertTrue(loaders(helper, team) == cap, "the site took the free chunks, load " + loaders(helper, team));
                 SiteWakes.release(token);
-                for (int i = 1; i < cap; i++) {
-                    data.unregister(team, level, base.offset(i, 0, 0));
+                for (int i = span; i < cap; i++) {
+                    data.unregister(team, level, base.offset(i * 16, 0, 0));
                 }
                 TerminalWiring.when(helper, () -> status(helper).isEmpty(), GRACE + 40,
                         () -> "released after the grace time, was " + status(helper), () -> {

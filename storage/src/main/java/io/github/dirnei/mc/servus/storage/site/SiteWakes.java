@@ -189,7 +189,8 @@ public final class SiteWakes {
         WakeMachine.Action action = wake.machine.tick(wanted, busy(level, wake.pos), allowance, StorageStatsManager.INSTANCE.wakeGraceTicks());
         if (action == WakeMachine.Action.LOAD) {
             UUID team = site.team().orElseThrow();
-            EnderAnchorData.get(server).register(team, level, wake.pos);
+            EnderAnchorData.get(server).register(team, EnderAnchorData.key(level, wake.pos),
+                    EnderAnchorData.chunks(level.dimension(), site.span()));
             wake.registered = team;
         } else if (action == WakeMachine.Action.RELEASE) {
             unload(level, wake);
@@ -213,12 +214,12 @@ public final class SiteWakes {
         EnderAnchorData data = EnderAnchorData.get(server);
         UUID team = site.team().orElse(null);
         boolean registered = team != null && data.isRegistered(team, level, wake.pos);
-        int active = team == null ? 0 : data.countFor(team);
+        boolean fits = team != null && data.fits(team, EnderAnchorData.key(level, wake.pos),
+                EnderAnchorData.chunks(level.dimension(), site.span()), ServusFoundationConfig.maxLoadedChunksPerTeam());
         // A loaded controller tells its FE; a sleeping one is known by its record.
         long stored = controller(level, wake.pos).map(controller -> (long) controller.energyStored()).orElse((long) site.energy());
         long toStart = WakeCost.toStart(site.span().size(), StorageStatsManager.INSTANCE.wakeFePerChunkPerTick());
-        return WakeAllowance.check(team != null, ftbBlocks(), site.capacityState(), registered, active,
-                ServusFoundationConfig.maxEnderAnchorsPerTeam(), stored, toStart);
+        return WakeAllowance.check(team != null, ftbBlocks(), site.capacityState(), registered, fits ? 0 : 1, 1, stored, toStart);
     }
 
     /**

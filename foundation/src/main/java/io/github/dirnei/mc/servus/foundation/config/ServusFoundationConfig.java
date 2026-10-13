@@ -21,11 +21,12 @@ public final class ServusFoundationConfig {
             .push("placement")
             .defineInRange("placementAssistReach", 16, 1, 64);
 
-    private static final ModConfigSpec.IntValue MAX_ENDER_ANCHORS_PER_TEAM = BUILDER
+    private static final ModConfigSpec.IntValue MAX_LOADED_CHUNKS_PER_TEAM = BUILDER
             .pop()
-            .comment("How many Ender Anchors one team may keep active at the same time.")
+            .comment("How many chunks one team may keep loaded at the same time with Ender Anchors and woken warehouse sites.",
+                    "A chunk held by several of them counts once.")
             .push("enderAnchor")
-            .defineInRange("maxEnderAnchorsPerTeam", 4, 1, 64);
+            .defineInRange("maxLoadedChunksPerTeam", 49, 1, 1024);
 
     private static final ModConfigSpec.BooleanValue ENDER_ANCHOR_RESPECTS_FTB_CHUNKS = BUILDER
             .comment("When FTB Chunks is installed, Servus Ender Anchors stay inactive and point players to FTB Chunks.")
@@ -49,8 +50,8 @@ public final class ServusFoundationConfig {
         return PLACEMENT_ASSIST_REACH.get();
     }
 
-    public static int maxEnderAnchorsPerTeam() {
-        return MAX_ENDER_ANCHORS_PER_TEAM.get();
+    public static int maxLoadedChunksPerTeam() {
+        return MAX_LOADED_CHUNKS_PER_TEAM.get();
     }
 
     public static boolean enderAnchorRespectsFtbChunks() {

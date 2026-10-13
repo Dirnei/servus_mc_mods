@@ -9,7 +9,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 
 ## 2. Team load and config
 
-- [ ] 2.1 `machine/anchor/EnderAnchorData.java`: entries with chunk sets, `load`, `fits`, `register(team, key, chunks)`, `unregister`, codec (design.md D2); `config/ServusFoundationConfig.java`: `maxLoadedChunksPerTeam` (default 49) replaces `maxEnderAnchorsPerTeam`, lang via datagen. Run `gradlew build`.
+- [x] 2.1 `machine/anchor/EnderAnchorData.java`: entries with chunk sets, `load`, `fits`, `register(team, key, chunks)`, `unregister`, codec (design.md D2); `config/ServusFoundationConfig.java`: `maxLoadedChunksPerTeam` (default 49) replaces `maxEnderAnchorsPerTeam`, lang via datagen. Run `gradlew build`.
 
 ## 3. Anchor Upgrade in Foundation
 

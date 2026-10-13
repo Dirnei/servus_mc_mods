@@ -82,11 +82,13 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
             return STATUS_NO_POWER;
         }
         EnderAnchorData data = EnderAnchorData.get(server.getServer());
-        if (!data.isRegistered(owner, server, worldPosition)) {
-            if (data.countFor(owner) >= ServusFoundationConfig.maxEnderAnchorsPerTeam()) {
+        String key = EnderAnchorData.key(server, worldPosition);
+        if (!data.isRegistered(owner, key)) {
+            java.util.Set<String> chunks = EnderAnchorData.chunks(server.dimension(), java.util.List.of(ChunkPos.pack(worldPosition)));
+            if (!data.fits(owner, key, chunks, ServusFoundationConfig.maxLoadedChunksPerTeam())) {
                 return STATUS_TEAM_LIMIT;
             }
-            data.register(owner, server, worldPosition);
+            data.register(owner, key, chunks);
         }
         return STATUS_ACTIVE;
     }
