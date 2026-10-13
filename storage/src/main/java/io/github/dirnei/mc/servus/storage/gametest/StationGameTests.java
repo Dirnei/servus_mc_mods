@@ -11,13 +11,10 @@ import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
-import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
-import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
@@ -56,8 +53,7 @@ public final class StationGameTests {
 
     private static InboundStationBlockEntity stationSetup(GameTestHelper helper) {
         WarehouseFixtures.controller(helper, ST_CONTROLLER);
-        helper.setBlock(ST_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
-                .setValue(InboundStationBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.inbound(helper, ST_STATION, Direction.NORTH);
         TerminalWiring.railUnder(helper, ST_STATION);
         return helper.getBlockEntity(ST_STATION, InboundStationBlockEntity.class);
     }
@@ -89,8 +85,7 @@ public final class StationGameTests {
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             helper.setBlock(DK_STATION.relative(direction).below(), Blocks.STONE.defaultBlockState());
         }
-        helper.setBlock(DK_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
-                .setValue(InboundStationBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.inbound(helper, DK_STATION, Direction.NORTH);
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             WarehouseFixtures.rail(helper, DK_STATION.relative(direction));
         }
@@ -140,8 +135,7 @@ public final class StationGameTests {
     /** A mini warehouse with an Outbound Station south of its middle rail, facing west: its back, and so its machine, is east of it. */
     private static OutboundStationBlockEntity outboundSetup(GameTestHelper helper) {
         MiniWarehouse.build(helper, OS_ORIGIN);
-        helper.setBlock(OS_STATION, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(OS_STATION, OutboundStationBlockEntity.class);
+        return WarehouseFixtures.outbound(helper, OS_STATION, Direction.WEST);
     }
 
     private static HeavyRackBlockEntity outboundRack(GameTestHelper helper) {
@@ -229,7 +223,7 @@ public final class StationGameTests {
         WarehouseFixtures.railRow(helper, 2, 7, 7);
         WarehouseFixtures.rack(helper, FD_RACK, Direction.NORTH);
         WarehouseFixtures.garage(helper, FD_GARAGE, Direction.SOUTH, 0);
-        helper.setBlock(FD_STATION, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.SOUTH));
+        WarehouseFixtures.outbound(helper, FD_STATION, Direction.SOUTH);
         HeavyRackBlockEntity rack = helper.getBlockEntity(FD_RACK, HeavyRackBlockEntity.class);
         rack.items().insertItem(0, new ItemStack(Items.IRON_INGOT, 10), false);
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(FD_GARAGE, ShuttleGarageBlockEntity.class);
@@ -251,8 +245,7 @@ public final class StationGameTests {
     /** An inbound side switched off takes nothing until it is switched on again. */
     @ServusGameTest(timeoutTicks = 200)
     public static void inboundSideOff(GameTestHelper helper) {
-        helper.setBlock(IS_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.NORTH));
-        InboundStationBlockEntity station = helper.getBlockEntity(IS_STATION, InboundStationBlockEntity.class);
+        InboundStationBlockEntity station = WarehouseFixtures.inbound(helper, IS_STATION, Direction.NORTH);
         helper.assertTrue(station.sideMode(Direction.NORTH) == SideMode.DISABLED && station.cycleFace(Direction.NORTH) == SideMode.DISABLED, "the front is fixed off");
         helper.assertTrue(station.cycleFace(Direction.UP) == SideMode.PULL, "input cycles to pull");
         helper.assertTrue(station.cycleFace(Direction.UP) == SideMode.DISABLED, "pull cycles to off");
@@ -272,8 +265,7 @@ public final class StationGameTests {
     /** A Pull side empties a chest into the buffer without a hopper. */
     @ServusGameTest(timeoutTicks = 200)
     public static void inboundPullsFromChest(GameTestHelper helper) {
-        helper.setBlock(IP_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.NORTH));
-        InboundStationBlockEntity station = helper.getBlockEntity(IP_STATION, InboundStationBlockEntity.class);
+        InboundStationBlockEntity station = WarehouseFixtures.inbound(helper, IP_STATION, Direction.NORTH);
         helper.setBlock(IP_STATION.south(), Blocks.CHEST.defaultBlockState());
         ChestBlockEntity chest = helper.getBlockEntity(IP_STATION.south(), ChestBlockEntity.class);
         chest.setItem(0, new ItemStack(Items.BREAD, 30));

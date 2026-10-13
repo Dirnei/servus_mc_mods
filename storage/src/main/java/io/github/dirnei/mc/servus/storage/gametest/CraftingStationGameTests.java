@@ -8,10 +8,7 @@ import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -136,8 +133,8 @@ public final class CraftingStationGameTests {
         for (BlockPos rail : List.of(new BlockPos(2, 1, 5), new BlockPos(4, 1, 5), new BlockPos(4, 1, 6), new BlockPos(4, 1, 7))) {
             WarehouseFixtures.railOnStone(helper, rail);
         }
-        helper.setBlock(DS_OUTBOUND, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.WEST));
-        helper.setBlock(DS_INBOUND, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.SOUTH));
+        WarehouseFixtures.outbound(helper, DS_OUTBOUND, Direction.WEST);
+        WarehouseFixtures.inbound(helper, DS_INBOUND, Direction.SOUTH);
         CraftingStationBlockEntity station = plainStation(helper, DS_STATION);
         // The station has no item capability: it pulls the planks from the Outbound Station itself.
         station.sideConfig().set(station.relativeSide(Direction.WEST), SideMode.PULL);

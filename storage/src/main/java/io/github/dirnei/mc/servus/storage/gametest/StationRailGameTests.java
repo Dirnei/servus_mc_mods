@@ -5,10 +5,8 @@ import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
-import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -44,9 +42,7 @@ public final class StationRailGameTests {
         MiniWarehouse.under(helper, CONTROLLER);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
         HeavyRackBlockEntity rack = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
-        helper.setBlock(STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
-                .setValue(InboundStationBlock.FACING, Direction.NORTH));
-        InboundStationBlockEntity station = helper.getBlockEntity(STATION, InboundStationBlockEntity.class);
+        InboundStationBlockEntity station = WarehouseFixtures.inbound(helper, STATION, Direction.NORTH);
         helper.runAfterDelay(5, () -> {
             helper.assertTrue(!sameWarehouse(helper, controller, STATION), "touching the controller is not enough");
             helper.assertTrue(!WarehouseFixtures.lit(helper, STATION), "the lamp is dark without a rail");
@@ -72,8 +68,7 @@ public final class StationRailGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void rackBesideStationNotLinked(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = controller(helper);
-        helper.setBlock(STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
-                .setValue(InboundStationBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.inbound(helper, STATION, Direction.NORTH);
         TerminalWiring.railUnder(helper, STATION);
         BlockPos beyond = STATION.east();
         WarehouseFixtures.rack(helper, beyond, Direction.WEST);
@@ -94,8 +89,7 @@ public final class StationRailGameTests {
         BlockPos outbound = CONTROLLER.west();
         BlockPos garage = CONTROLLER.south();
         helper.setBlock(access, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
-        helper.setBlock(outbound, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState()
-                .setValue(OutboundStationBlock.FACING, Direction.WEST));
+        WarehouseFixtures.outbound(helper, outbound, Direction.WEST);
         WarehouseFixtures.garage(helper, garage, Direction.NORTH, 0);
         helper.runAfterDelay(10, () -> {
             for (BlockPos pos : new BlockPos[] {access, outbound, garage}) {

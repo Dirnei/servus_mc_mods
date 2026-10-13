@@ -16,7 +16,6 @@ import io.github.dirnei.mc.servus.storage.rail.RailBlock;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleView;
-import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
@@ -106,8 +105,7 @@ public final class ShuttleGameTests {
     public static void shuttleCarriesPutAway(GameTestHelper helper) {
         WarehouseFixtures.controller(helper, PA_CONTROLLER);
         WarehouseFixtures.railRow(helper, 3, 8, 1);
-        helper.setBlock(PA_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
-                .setValue(InboundStationBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.inbound(helper, PA_STATION, Direction.NORTH);
         WarehouseFixtures.rack(helper, PA_RACK, Direction.NORTH);
         InboundStationBlockEntity station = helper.getBlockEntity(PA_STATION, InboundStationBlockEntity.class);
         HeavyRackBlockEntity crate = helper.getBlockEntity(PA_RACK, HeavyRackBlockEntity.class);
@@ -139,8 +137,7 @@ public final class ShuttleGameTests {
         WarehouseFixtures.controller(helper, PA_CONTROLLER);
         WarehouseFixtures.railRow(helper, 3, 8, 1);
         BlockPos rackBeside = new BlockPos(4, 1, 0);
-        helper.setBlock(PA_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
-                .setValue(InboundStationBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.inbound(helper, PA_STATION, Direction.NORTH);
         WarehouseFixtures.rack(helper, rackBeside, Direction.SOUTH);
         InboundStationBlockEntity station = helper.getBlockEntity(PA_STATION, InboundStationBlockEntity.class);
         HeavyRackBlockEntity crate = helper.getBlockEntity(rackBeside, HeavyRackBlockEntity.class);
@@ -284,7 +281,7 @@ public final class ShuttleGameTests {
         for (int x = 2; x <= 6; x++) {
             helper.setBlock(new BlockPos(x, 1, 11), ServusStorageBlocks.RAIL.get().defaultBlockState());
         }
-        helper.setBlock(SW_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.inbound(helper, SW_STATION, Direction.NORTH);
         // The rack faces south, towards the rail behind it at z 11.
         WarehouseFixtures.rack(helper, SW_RACK, Direction.SOUTH);
         InboundStationBlockEntity station = helper.getBlockEntity(SW_STATION, InboundStationBlockEntity.class);

@@ -8,11 +8,9 @@ import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
@@ -129,7 +127,7 @@ public final class PipeAccessGameTests {
         helper.setBlock(FEED_CHEST, Blocks.CHEST.defaultBlockState());
         helper.getBlockEntity(FEED_CHEST, ChestBlockEntity.class).setItem(0, new ItemStack(Items.COBBLESTONE, 16));
         // Facing south: the duct touches the station's back, an Input side.
-        helper.setBlock(FEED_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.SOUTH));
+        WarehouseFixtures.inbound(helper, FEED_STATION, Direction.SOUTH);
         UtilityDuctBlockEntity duct = itemDuct(helper, FEED_DUCT);
         duct.setMode(Line.ITEM, Direction.NORTH, SideMode.INPUT);
         helper.assertTrue(duct.hasArm(Line.ITEM, Direction.SOUTH), "the duct shows an arm toward the station");
@@ -141,8 +139,7 @@ public final class PipeAccessGameTests {
     /** An Inbound Station side set to Off offers nothing; Input and Pull sides offer the intake; the front is always off. */
     @ServusGameTest(timeoutTicks = 20)
     public static void inboundOffSideHasNoCapability(GameTestHelper helper) {
-        helper.setBlock(FEED_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.NORTH));
-        InboundStationBlockEntity station = helper.getBlockEntity(FEED_STATION, InboundStationBlockEntity.class);
+        InboundStationBlockEntity station = WarehouseFixtures.inbound(helper, FEED_STATION, Direction.NORTH);
         station.sideConfig().set(RelativeSide.TOP, SideMode.DISABLED);
         station.sideConfig().set(station.relativeSide(Direction.SOUTH), SideMode.PULL);
         helper.getLevel().invalidateCapabilities(helper.absolutePos(FEED_STATION));
@@ -156,8 +153,7 @@ public final class PipeAccessGameTests {
     /** A Pull side on the back empties the chest behind the station. */
     @ServusGameTest(timeoutTicks = 100)
     public static void inboundPullsFromChestOnBack(GameTestHelper helper) {
-        helper.setBlock(FEED_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.NORTH));
-        InboundStationBlockEntity station = helper.getBlockEntity(FEED_STATION, InboundStationBlockEntity.class);
+        InboundStationBlockEntity station = WarehouseFixtures.inbound(helper, FEED_STATION, Direction.NORTH);
         helper.setBlock(FEED_STATION.south(), Blocks.CHEST.defaultBlockState());
         ChestBlockEntity chest = helper.getBlockEntity(FEED_STATION.south(), ChestBlockEntity.class);
         chest.setItem(0, new ItemStack(Items.BREAD, 20));
@@ -174,7 +170,7 @@ public final class PipeAccessGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void outboundPushesIntoDuct(GameTestHelper helper) {
         // Facing north: the back, a Push side, touches the duct.
-        helper.setBlock(OUT_STATION, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.outbound(helper, OUT_STATION, Direction.NORTH);
         helper.setBlock(OUT_CHEST, Blocks.CHEST.defaultBlockState());
         UtilityDuctBlockEntity duct = itemDuct(helper, OUT_DUCT);
         helper.assertTrue(duct.hasArm(Line.ITEM, Direction.NORTH), "the duct shows an arm toward the station's Push side");
@@ -188,8 +184,7 @@ public final class PipeAccessGameTests {
     /** An Outbound Station's Off sides offer nothing; Push and Output sides offer the buffer. */
     @ServusGameTest(timeoutTicks = 20)
     public static void outboundOffSideHasNoCapability(GameTestHelper helper) {
-        helper.setBlock(OUT_STATION, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.WEST));
-        OutboundStationBlockEntity station = helper.getBlockEntity(OUT_STATION, OutboundStationBlockEntity.class);
+        OutboundStationBlockEntity station = WarehouseFixtures.outbound(helper, OUT_STATION, Direction.WEST);
         helper.assertTrue(!itemCapability(helper, OUT_STATION, Direction.UP), "the top starts off and offers nothing");
         helper.assertTrue(!itemCapability(helper, OUT_STATION, Direction.WEST), "the front offers nothing");
         helper.assertTrue(itemCapability(helper, OUT_STATION, Direction.EAST), "the back, a Push side, offers the buffer");

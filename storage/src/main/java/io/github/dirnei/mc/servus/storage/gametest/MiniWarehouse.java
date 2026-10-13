@@ -5,7 +5,6 @@ import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import java.util.List;
@@ -82,9 +81,7 @@ public final class MiniWarehouse {
 
     /** An Inbound Station south of the third rail, front to the south. */
     public InboundStationBlockEntity withInbound() {
-        helper.setBlock(inboundPos(), ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
-                .setValue(InboundStationBlock.FACING, Direction.SOUTH));
-        return helper.getBlockEntity(inboundPos(), InboundStationBlockEntity.class);
+        return WarehouseFixtures.inbound(helper, inboundPos(), Direction.SOUTH);
     }
 
     /**

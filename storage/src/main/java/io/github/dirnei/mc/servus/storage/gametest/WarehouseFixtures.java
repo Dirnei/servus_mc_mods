@@ -6,9 +6,13 @@ import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEnt
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
+import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
+import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
+import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -47,6 +51,18 @@ public final class WarehouseFixtures {
             helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
         }
         return garage;
+    }
+
+    /** An Inbound Station with its front to {@code facing}. */
+    public static InboundStationBlockEntity inbound(GameTestHelper helper, BlockPos pos, Direction facing) {
+        helper.setBlock(pos, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, facing));
+        return helper.getBlockEntity(pos, InboundStationBlockEntity.class);
+    }
+
+    /** An Outbound Station with its front to {@code facing}. */
+    public static OutboundStationBlockEntity outbound(GameTestHelper helper, BlockPos pos, Direction facing) {
+        helper.setBlock(pos, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, facing));
+        return helper.getBlockEntity(pos, OutboundStationBlockEntity.class);
     }
 
     /** A warehouse rail shaped by its neighbours, the way a player places it. */

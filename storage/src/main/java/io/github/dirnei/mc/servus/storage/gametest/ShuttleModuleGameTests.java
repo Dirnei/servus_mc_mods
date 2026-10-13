@@ -20,7 +20,6 @@ import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleModules;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleTiers;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleWorkshopBlockEntity;
-import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
@@ -593,8 +592,7 @@ public final class ShuttleModuleGameTests {
     public static void mk2PutAwayLoadsThree(GameTestHelper helper) {
         WarehouseFixtures.controller(helper, PW_CONTROLLER);
         WarehouseFixtures.railRow(helper, 2, 10, 1);
-        helper.setBlock(PW_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
-                .setValue(InboundStationBlock.FACING, Direction.NORTH));
+        WarehouseFixtures.inbound(helper, PW_STATION, Direction.NORTH);
         WarehouseFixtures.rack(helper, PW_RACK, Direction.NORTH);
         ShuttleGarageBlockEntity garage = WarehouseFixtures.garage(helper, PW_GARAGE, Direction.SOUTH, 0);
         helper.assertTrue(garage.addShuttle(new ItemStack(ServusStorageItems.SHUTTLE_MK2.get())), "the garage takes the Mk2 shuttle");
