@@ -68,7 +68,7 @@ public final class JobStatus {
             return new Status("missing", List.of(Integer.toString(missingCount), missingName));
         }
         if (current == null) {
-            return orderReason.isEmpty() ? new Status("running", List.of()) : new Status("blocked", List.of(orderReason));
+            return running(orderReason);
         }
         if (current.outOfFuel()) {
             return new Status("out_of_fuel", List.of(current.machine()));
@@ -87,8 +87,12 @@ public final class JobStatus {
             case "delivering" -> new Status("delivering", List.of(current.machine()));
             case "producing" -> new Status("working", List.of(current.machine(), current.verb(),
                     Integer.toString(current.done()), Integer.toString(current.total())));
-            default -> orderReason.isEmpty() ? new Status("running", List.of()) : new Status("blocked", List.of(orderReason));
+            default -> running(orderReason);
         };
+    }
+
+    private static Status running(String orderReason) {
+        return orderReason.isEmpty() ? new Status("running", List.of()) : new Status("blocked", List.of(orderReason));
     }
 
     /** Crafts finished from the collected output, capped at the crafts of the step. */
