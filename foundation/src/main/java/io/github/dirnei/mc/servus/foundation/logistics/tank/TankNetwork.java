@@ -8,7 +8,6 @@ import io.github.dirnei.mc.servus.foundation.network.NetworkType;
 import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
 import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -64,8 +63,6 @@ public final class TankNetwork extends ServusNetwork<FluidTankBlockEntity, Void>
     @Override
     protected void handle(Void event) {
     }
-
-    // Membership
 
     @Override
     protected void onNodeAdded(NodePos pos, FluidTankBlockEntity tank) {
@@ -153,8 +150,6 @@ public final class TankNetwork extends ServusNetwork<FluidTankBlockEntity, Void>
         return FluidStack.EMPTY;
     }
 
-    // Boxes and content
-
     /** Sums the shares of every box after a membership change. */
     private void ensureTotals() {
         if (!totalsDirty) {
@@ -193,11 +188,6 @@ public final class TankNetwork extends ServusNetwork<FluidTankBlockEntity, Void>
     /** True when the block is part of a tank of more than one block. */
     public boolean isFormed(NodePos pos) {
         return boxAt(pos).volume() > 1;
-    }
-
-    /** Blocks in the connected group. */
-    public int blockCount() {
-        return nodes.size();
     }
 
     /** Writes every changed box content into its blocks' shares. */
@@ -309,13 +299,6 @@ public final class TankNetwork extends ServusNetwork<FluidTankBlockEntity, Void>
         waitingSync.add(tank);
     }
 
-    /** Queues a throttled client update of one block. */
-    void requestSync(FluidTankBlockEntity tank) {
-        waitingSync.add(tank);
-    }
-
-    // Tick
-
     @Override
     protected void onTick() {
         if (level == null) {
@@ -335,15 +318,7 @@ public final class TankNetwork extends ServusNetwork<FluidTankBlockEntity, Void>
         }
         if (!waitingSync.isEmpty()) {
             long now = level.getGameTime();
-            Iterator<FluidTankBlockEntity> it = waitingSync.iterator();
-            while (it.hasNext()) {
-                FluidTankBlockEntity tank = it.next();
-                if (tank.isRemoved()) {
-                    it.remove();
-                } else if (tank.trySync(now, SYNC_INTERVAL)) {
-                    it.remove();
-                }
-            }
+            waitingSync.removeIf(tank -> tank.isRemoved() || tank.trySync(now, SYNC_INTERVAL));
         }
     }
 

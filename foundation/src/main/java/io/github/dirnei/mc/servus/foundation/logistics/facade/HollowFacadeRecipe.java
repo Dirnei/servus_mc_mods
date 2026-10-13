@@ -55,7 +55,6 @@ public class HollowFacadeRecipe extends CustomRecipe {
         return block == null ? ItemStack.EMPTY : FacadeItem.of(block, RESULT_COUNT, true);
     }
 
-
     @Override
     public RecipeSerializer<HollowFacadeRecipe> getSerializer() {
         return ServusLogisticsRecipes.HOLLOW_FACADE.get();

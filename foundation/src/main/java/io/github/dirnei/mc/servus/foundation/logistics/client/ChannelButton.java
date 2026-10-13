@@ -1,12 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.logistics.client;
 
-import net.minecraft.client.input.InputWithModifiers;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import java.util.function.BooleanSupplier;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
 
 /** A small square filled with a channel's color; the current channel gets a white frame. */

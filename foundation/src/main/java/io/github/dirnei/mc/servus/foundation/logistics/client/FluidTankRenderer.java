@@ -73,13 +73,17 @@ public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlo
         if (!(tankState.getBlock() instanceof FluidTankBlock)) {
             return;
         }
+        // Inset on sides that are not joined, so the floor and fluid edges stay off the glass and frame planes.
+        float x0 = joined(tankState, Direction.WEST) ? 0 : INSET;
+        float x1 = joined(tankState, Direction.EAST) ? 1 : 1 - INSET;
+        float z0 = joined(tankState, Direction.NORTH) ? 0 : INSET;
+        float z1 = joined(tankState, Direction.SOUTH) ? 1 : 1 - INSET;
         if (!joined(tankState, Direction.DOWN)) {
             state.floor = tank.floor().defaultBlockState();
-            // Inset on sides that are not joined, so the floor's edges stay off the glass and frame planes.
-            state.fx0 = joined(tankState, Direction.WEST) ? 0 : INSET;
-            state.fx1 = joined(tankState, Direction.EAST) ? 1 : 1 - INSET;
-            state.fz0 = joined(tankState, Direction.NORTH) ? 0 : INSET;
-            state.fz1 = joined(tankState, Direction.SOUTH) ? 1 : 1 - INSET;
+            state.fx0 = x0;
+            state.fx1 = x1;
+            state.fz0 = z0;
+            state.fz1 = z1;
         }
         FluidStack fluid = tank.rawShare();
         int capacity = tank.capacityPerBlock();
@@ -98,10 +102,6 @@ public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlo
 
         boolean down = joined(tankState, Direction.DOWN);
         boolean up = joined(tankState, Direction.UP);
-        float x0 = joined(tankState, Direction.WEST) ? 0 : INSET;
-        float x1 = joined(tankState, Direction.EAST) ? 1 : 1 - INSET;
-        float z0 = joined(tankState, Direction.NORTH) ? 0 : INSET;
-        float z1 = joined(tankState, Direction.SOUTH) ? 1 : 1 - INSET;
         float y0 = down ? 0 : FLOOR + FLOOR_LIFT + FLUID_GAP;
         float yMax = up ? 1 : 1 - INSET;
         float y1 = y0 + (yMax - y0) * fill;

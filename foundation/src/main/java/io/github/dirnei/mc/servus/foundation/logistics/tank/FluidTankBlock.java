@@ -1,8 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.tank;
 
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.transfer.access.ItemAccess;
 import com.mojang.serialization.MapCodec;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -23,6 +22,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /**
@@ -93,11 +93,11 @@ public class FluidTankBlock extends BaseEntityBlock {
         if (stack.isEmpty()) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
-        if (ItemAccess.forStack(stack).getCapability(Capabilities.Fluid.ITEM) == null) {
+        if (!Transfer.isFluidContainer(stack)) {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide()) {
-            // Creative players keep their container, like with a vanilla bucket (ItemAccess handles it).
+            // ItemAccess keeps the container of a creative player, like a vanilla bucket.
             FluidUtil.interactWithFluidHandler(player, hand, level, pos, hitResult.getDirection(), null);
         }
         return InteractionResult.SUCCESS;

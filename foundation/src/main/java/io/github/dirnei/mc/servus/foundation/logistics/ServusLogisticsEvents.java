@@ -1,12 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.logistics;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctStatsManager;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlockEntities;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.TankStatsManager;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -14,7 +14,7 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
-/** Event hooks of Servus: Logistics. */
+/** Event hooks of the duct, tank and facade content. */
 @EventBusSubscriber(modid = ServusFoundationIds.MOD_ID)
 public final class ServusLogisticsEvents {
 

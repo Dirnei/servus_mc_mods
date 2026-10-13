@@ -1,26 +1,26 @@
 package io.github.dirnei.mc.servus.foundation.logistics.datagen;
 
-import net.minecraft.world.item.Item;
-import net.minecraft.core.HolderGetter;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ItemModelProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.HollowFacadeRecipe;
-import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
+import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankRecipe;
 import java.util.List;
 import java.util.function.Function;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.criterion.InventoryChangeTrigger;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
-import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
-import io.github.dirnei.mc.servus.foundation.datagen.model.ItemModelProvider;
-import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
 /**
@@ -78,7 +78,6 @@ public final class LogisticsDataParts {
                 .define('G', Items.GLASS)
                 .unlockedBy("has_copper", has.apply(Items.COPPER_INGOT))
                 .save(output);
-
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.REDSTONE, ServusLogisticsItems.FLUID_PIPE.get(), 8)
                 .pattern("III")

@@ -4,7 +4,6 @@ import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsR
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.Tags;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -12,6 +11,7 @@ import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.common.Tags;
 
 /** One full block plus one nugget (any item in {@code c:nuggets}) gives six facades of that block. */
 public class FacadeRecipe extends CustomRecipe {
@@ -61,7 +61,6 @@ public class FacadeRecipe extends CustomRecipe {
         Block block = facadeBlock(input);
         return block == null ? ItemStack.EMPTY : FacadeItem.of(block, RESULT_COUNT);
     }
-
 
     @Override
     public RecipeSerializer<FacadeRecipe> getSerializer() {

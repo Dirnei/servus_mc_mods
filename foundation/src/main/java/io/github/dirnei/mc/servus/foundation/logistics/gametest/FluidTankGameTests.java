@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlockEntity
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankItem;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.TankStatsManager;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
@@ -19,11 +20,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -33,7 +34,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 
 /** GameTests of the Fluid Tank: forming, splitting, one fluid rule, buckets and drops. */
 public final class FluidTankGameTests {

@@ -68,7 +68,6 @@ public class FluidTankRecipe extends CustomRecipe {
         return floor == null ? ItemStack.EMPTY : FluidTankItem.withFloor(floor);
     }
 
-
     @Override
     public RecipeSerializer<FluidTankRecipe> getSerializer() {
         return ServusLogisticsRecipes.FLUID_TANK.get();

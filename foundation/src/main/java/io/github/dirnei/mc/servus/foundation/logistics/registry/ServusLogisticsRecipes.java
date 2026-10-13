@@ -1,13 +1,13 @@
 package io.github.dirnei.mc.servus.foundation.logistics.registry;
 
+import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.HollowFacadeRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankRecipe;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 

@@ -1,12 +1,10 @@
 package io.github.dirnei.mc.servus.foundation.logistics.client;
 
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.UtilityDuctMenu;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -14,6 +12,8 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -117,9 +117,7 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         }
     }
 
-    // Tabs
-
-    private int tabX(int index) {
+    private int tabX() {
         return leftPos - TAB_WIDTH;
     }
 
@@ -130,7 +128,7 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
     private Line tabAt(double mouseX, double mouseY) {
         List<Line> tabs = tabs();
         for (int i = 0; i < tabs.size(); i++) {
-            int x = tabX(i);
+            int x = tabX();
             int y = tabY(i);
             if (mouseX >= x && mouseX < x + TAB_WIDTH && mouseY >= y && mouseY < y + TAB_HEIGHT) {
                 return tabs.get(i);
@@ -144,7 +142,7 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         for (int i = 0; i < tabs.size(); i++) {
             Line line = tabs.get(i);
             boolean selected = line == shownPage;
-            int x = tabX(i);
+            int x = tabX();
             int y = tabY(i);
             int width = selected ? TAB_WIDTH + 2 : TAB_WIDTH;
             graphics.fill(x, y, x + width, y + TAB_HEIGHT, PANEL_DARK);
@@ -170,7 +168,6 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         Line hovered = tabAt(mouseX, mouseY);
         if (hovered != null) {
             guiGraphics.setTooltipForNextFrame(font, Component.translatable("gui.servus_foundation.line." + hovered.id()), mouseX, mouseY);
-            return;
         }
     }
 
@@ -206,10 +203,7 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        double mouseX = event.x();
-        double mouseY = event.y();
-        int button = event.button();
-        Line tab = tabAt(mouseX, mouseY);
+        Line tab = tabAt(event.x(), event.y());
         if (tab != null) {
             menu.setPage(tab);
             rebuildButtons();

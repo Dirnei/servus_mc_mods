@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.foundation.logistics.client;
 
-import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.github.dirnei.mc.servus.foundation.item.GogglesItem;
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.data.ClientDuctLoads;
+import io.github.dirnei.mc.servus.foundation.item.GogglesItem;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctTracker;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;

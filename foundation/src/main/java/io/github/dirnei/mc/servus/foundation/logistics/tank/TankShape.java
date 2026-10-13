@@ -72,8 +72,6 @@ public record TankShape(int count, int minX, int minY, int minZ, int maxX, int m
         return (pos.x() - minX) + (pos.z() - minZ) * width();
     }
 
-    // Full boxes
-
     /** A completely filled box with the given corners, inclusive. */
     public static TankShape box(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         long volume = (long) (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);

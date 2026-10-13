@@ -1,18 +1,18 @@
 package io.github.dirnei.mc.servus.foundation.logistics.datagen;
 
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctParts;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctShapes;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import java.util.List;
 import net.minecraft.core.Direction;
-import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
-import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
-import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 
 /**
  * Writes the duct part models: a centre cube per line set and, per direction,
- * an arm per line set, for all seven sets of the three lines. Parts with one
- * line use radius 2, two lines radius 3, three lines radius 4. A part with
+ * an arm per line set, for every non empty set of lines. Parts with one
+ * line use radius 2, two lines radius 3, three or more lines radius 4. A part with
  * several lines shows their colours as equal bands running along it, in line
  * order from the negative side of the across axis. Every arm ends in a ring
  * frame whose faces carry the tint index of that line and side, split between

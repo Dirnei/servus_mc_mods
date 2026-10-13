@@ -38,8 +38,7 @@ public final class PanelReveal {
             return;
         }
         revealing = now;
-        // Without a world (leaving it, or before it is set up) the renderer has no sections to mark;
-        // the next world builds its chunks with the current state anyway.
+        // Without a world there are no sections to mark; the next world builds with the current state.
         if (minecraft.level == null || minecraft.player == null) {
             return;
         }

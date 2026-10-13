@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.foundation.logistics;
 
-import io.github.dirnei.mc.servus.foundation.network.NetworkTypes;
 import io.github.dirnei.mc.servus.foundation.logistics.network.EnergyChannelNetwork;
 import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork;
 import io.github.dirnei.mc.servus.foundation.logistics.network.ItemChannelNetwork;
@@ -11,13 +10,14 @@ import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsI
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsMenus;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsRecipes;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.TankNetwork;
+import io.github.dirnei.mc.servus.foundation.network.NetworkTypes;
 import net.neoforged.bus.api.IEventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The duct, tank and facade content of Servus: Foundation, formerly Servus: Logistics.
- * Registered from the Foundation entrypoint.
+ * The duct, tank and facade content of Servus: Foundation. Registered from
+ * the Foundation entrypoint.
  */
 public final class ServusLogisticsContent {
 

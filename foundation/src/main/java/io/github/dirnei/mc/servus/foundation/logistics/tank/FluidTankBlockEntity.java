@@ -1,33 +1,34 @@
 package io.github.dirnei.mc.servus.foundation.logistics.tank;
 
-import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import io.github.dirnei.mc.servus.foundation.graph.NodePos;
-import io.github.dirnei.mc.servus.foundation.network.Conversions;
-import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
-import io.github.dirnei.mc.servus.foundation.network.NetworkType;
-import io.github.dirnei.mc.servus.foundation.network.NetworkBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlockEntities;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsComponents;
+import io.github.dirnei.mc.servus.foundation.network.Conversions;
+import io.github.dirnei.mc.servus.foundation.network.NetworkBlockEntity;
+import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
+import io.github.dirnei.mc.servus.foundation.network.NetworkType;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
+import java.util.Objects;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import net.minecraft.core.component.DataComponentGetter;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
@@ -78,11 +79,6 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
         return Conversions.toNodePos(worldPosition);
     }
 
-    /** The network when this block is part of a tank of more than one block, else empty. */
-    public Optional<TankNetwork> formedTank() {
-        return network().filter(network -> network.isFormed(nodePos()));
-    }
-
     /** The box saved with this block, or null. */
     public TankShape savedBox() {
         return savedBox;
@@ -90,13 +86,11 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
 
     /** Set by the network whenever the block's box changes. */
     void setSavedBox(TankShape box) {
-        if (!java.util.Objects.equals(box, savedBox)) {
+        if (!Objects.equals(box, savedBox)) {
             savedBox = box;
             setChanged();
         }
     }
-
-    // Share
 
     /** This block's fluid, current with any pending change of its tank. */
     public FluidStack share() {
@@ -150,8 +144,6 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
         return handler;
     }
 
-    // Client sync
-
     /** Sends the share to clients unless the last update is less than {@code interval} ticks old. */
     boolean trySync(long now, int interval) {
         if (now - lastSync < interval) {
@@ -168,16 +160,10 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
         }
     }
 
-    // Save and sync
-
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        FluidStack current = share();
-        if (!current.isEmpty()) {
-            output.store(TAG_FLUID, FluidStack.CODEC, current);
-        }
-        output.putString(TAG_FLOOR, BuiltInRegistries.BLOCK.getKey(floor).toString());
+        writeFluidAndFloor(output);
         if (savedBox != null) {
             output.putIntArray(TAG_BOX, new int[] {savedBox.minX(), savedBox.minY(), savedBox.minZ(),
                     savedBox.maxX(), savedBox.maxY(), savedBox.maxZ()});
@@ -203,13 +189,6 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
     public Block floor() {
         return floor;
     }
-
-    public void setFloor(Block floor) {
-        this.floor = floor;
-        setChanged();
-    }
-
-    // Item components: the broken block's share travels in its item
 
     @Override
     protected void applyImplicitComponents(DataComponentGetter input) {
@@ -246,13 +225,17 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         return ValueIo.write(this, registries, output -> {
-            FluidStack current = share();
-            if (!current.isEmpty()) {
-                output.store(TAG_FLUID, FluidStack.CODEC, current);
-            }
+            writeFluidAndFloor(output);
             output.putInt(TAG_CAPACITY, capacityPerBlock());
-            output.putString(TAG_FLOOR, BuiltInRegistries.BLOCK.getKey(floor).toString());
         });
+    }
+
+    private void writeFluidAndFloor(ValueOutput output) {
+        FluidStack current = share();
+        if (!current.isEmpty()) {
+            output.store(TAG_FLUID, FluidStack.CODEC, current);
+        }
+        output.putString(TAG_FLOOR, BuiltInRegistries.BLOCK.getKey(floor).toString());
     }
 
     @Override
@@ -280,11 +263,6 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
         @Override
         public int getTankCapacity(int tank) {
             return tankCapacity();
-        }
-
-        @Override
-        public boolean isFluidValid(int tank, FluidStack stack) {
-            return true;
         }
 
         @Override

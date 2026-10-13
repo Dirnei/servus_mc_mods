@@ -17,9 +17,9 @@ import net.minecraft.world.level.block.state.BlockState;
 /**
  * Colors the ring faces of a duct arm in the channel color of that line and
  * side. Tint indices from {@link PanelQuads#PANEL_TINT_BASE} belong to a
- * panel's own model and are handed to the panel block's tint source. Since
- * 26.1 a block registers one tint source per tint index, so {@link #sources()}
- * lists one source for every index the duct uses.
+ * panel's own model and are handed to the panel block's tint source. A block
+ * registers one tint source per tint index, so {@link #sources()} lists one
+ * source for every index the duct uses.
  */
 public final class DuctBlockColor implements BlockTintSource {
 

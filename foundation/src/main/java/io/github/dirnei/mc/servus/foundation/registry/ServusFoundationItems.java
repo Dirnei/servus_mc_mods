@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.foundation.registry;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
-import io.github.dirnei.mc.servus.foundation.item.GogglesItem;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.foundation.item.GogglesItem;
 import io.github.dirnei.mc.servus.foundation.upgrade.UpgradeItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;

@@ -1,7 +1,5 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
@@ -22,7 +20,6 @@ public final class DuctStatsManager extends SimpleJsonResourceReloadListener<Jso
 
     public static final String DIRECTORY = "duct";
 
-    private static final Gson GSON = new GsonBuilder().create();
     private static final Identifier UTILITY_DUCT = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "utility_duct");
 
     public static final DuctStatsManager INSTANCE = new DuctStatsManager();

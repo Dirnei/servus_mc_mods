@@ -40,13 +40,9 @@ public final class TankBoxes {
     private final Map<NodePos, TankShape> boxOf = new LinkedHashMap<>();
     /** Blocks waiting for their saved box, with that box. */
     private final Map<NodePos, TankShape> waiting = new HashMap<>();
-    private Rules rules;
+    private final Rules rules;
 
     public TankBoxes(Rules rules) {
-        this.rules = rules;
-    }
-
-    public void setRules(Rules rules) {
         this.rules = rules;
     }
 

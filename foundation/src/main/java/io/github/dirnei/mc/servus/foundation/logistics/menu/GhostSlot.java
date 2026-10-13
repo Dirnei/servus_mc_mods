@@ -1,12 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.logistics.menu;
 
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import java.util.function.Supplier;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
  * A ghost slot that reads and writes through whichever handler the supplier
