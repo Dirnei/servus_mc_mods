@@ -39,19 +39,19 @@ A site SHALL NOT wake without a Chunk Loader Upgrade or while its span exceeds t
 - **THEN** no chunk is loaded and the reason is no Chunk Loader Upgrade
 
 ### Requirement: Team cap and FTB Chunks
-A wake SHALL need the site's team. While awake, a site SHALL count as one active chunk loader of its team against `maxChunkLoadersPerTeam` of the Foundation Chunk Loader, and SHALL be released from that count when it goes back to sleep. A wake that would exceed the cap, a site without a team, and every wake while FTB Chunks is installed and `chunkLoaderRespectsFtbChunks` is on SHALL wait with the reason (team limit reached, no owner, use FTB Chunks) and SHALL be retried while it is wanted.
+A wake SHALL need the site's team. While awake, a site SHALL count as one active Ender Anchor of its team against `maxEnderAnchorsPerTeam` of the Foundation Ender Anchor, and SHALL be released from that count when it goes back to sleep. A wake that would exceed the cap, a site without a team, and every wake while FTB Chunks is installed and `enderAnchorRespectsFtbChunks` is on SHALL wait with the reason (team limit reached, no owner, use FTB Chunks) and SHALL be retried while it is wanted.
 
 #### Scenario: Team cap
-- **WHEN** a team already has 4 active Chunk Loaders with a cap of 4 and one of its sites is to be woken
+- **WHEN** a team already has 4 active Ender Anchors with a cap of 4 and one of its sites is to be woken
 - **THEN** the site does not wake and the reason is team limit reached
 
 #### Scenario: Cap frees up
-- **WHEN** one of those Chunk Loaders is broken while the wake is still wanted
+- **WHEN** one of those Ender Anchors is broken while the wake is still wanted
 - **THEN** the site wakes
 
 #### Scenario: Counted while awake
-- **WHEN** a team with no Chunk Loaders has one awake site
-- **THEN** the team counts one active loader, and none after the site released its chunks
+- **WHEN** a team with no Ender Anchors has one awake site
+- **THEN** the team counts one active anchor, and none after the site released its chunks
 
 ### Requirement: Wakes do not survive a restart
 Wake tickets SHALL be dropped when a world loads, and team registrations made by wakes SHALL be cleared when the server stops and when it starts, so a restart never leaves a site loaded or a team slot taken.

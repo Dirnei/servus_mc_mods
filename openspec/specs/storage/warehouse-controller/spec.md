@@ -192,10 +192,10 @@ Right clicking a controller with an empty hand SHALL open its GUI with the site 
 - **THEN** the GUI shows 12,000 of 100,000 FE and the value follows while FE arrives
 
 ### Requirement: Chunk Loader Upgrade is obtainable
-The Chunk Loader Upgrade SHALL be a Storage item crafted at a crafting table from a Foundation Chunk Loader, ender pearls, iron ingots and redstone (example), with a tooltip saying it lets a warehouse site wake for transfers. It SHALL NOT be a Foundation multiplier upgrade.
+The Chunk Loader Upgrade SHALL be a Storage item crafted at a crafting table from a Foundation Ender Anchor, ender pearls, iron ingots and redstone (example), with a tooltip saying it lets a warehouse site wake for transfers. It SHALL NOT be a Foundation multiplier upgrade.
 
 #### Scenario: Recipe
-- **WHEN** the player crafts the pattern with a Chunk Loader in the middle
+- **WHEN** the player crafts the pattern with an Ender Anchor in the middle
 - **THEN** one Chunk Loader Upgrade is produced
 
 ### Requirement: Controller shows the wake
