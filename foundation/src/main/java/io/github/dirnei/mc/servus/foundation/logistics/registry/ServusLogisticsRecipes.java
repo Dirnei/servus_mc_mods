@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.facade.HollowFacadeRecipe
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankRecipe;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -28,7 +29,7 @@ public final class ServusLogisticsRecipes {
     }
 
     /** Serializer of a recipe without settings: every recipe file decodes to the one instance. */
-    private static <T extends net.minecraft.world.item.crafting.Recipe<?>> RecipeSerializer<T> unit(T instance) {
+    private static <T extends Recipe<?>> RecipeSerializer<T> unit(T instance) {
         return new RecipeSerializer<>(MapCodec.unit(instance), StreamCodec.unit(instance));
     }
 }
