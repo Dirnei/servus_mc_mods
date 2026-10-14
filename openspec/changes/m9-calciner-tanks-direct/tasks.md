@@ -2,8 +2,8 @@
 
 ## 1. Ash room
 
-- [x] 1.1 Add the optional `item_capacity` field to `foundation/.../machine/MachineStats.java` (record, `Partial` codec, `over`, factories pass 0) and extend `MachineDefaultsTest` with a case that reads it and one where it is missing (0). Verify: `gradlew :foundation:test` green.
-- [ ] 1.2 Add pure `AshCount.fits(salt, extra, ashRoom, saltPerAsh)` and `AshCount.room(ashRoom, saltPerAsh)` (a room below 1 counts as 64) in `manufacturing/.../alchemy/AshCount.java`, with JUnit cases in `AshCountTest`: fits up to exactly 64 Ash, 1 mB over does not fit, a zero room counts as 64, uneven Salt per Ash. Verify: `gradlew :manufacturing:test` green.
+- [x] 1.1 Add the optional `item_capacity` field to `foundation/.../machine/MachineStats.java` (record, `Partial` codec, `over`, factories pass 0) and extend `MachineDefaultsTest` with factories without a buffer and a registered capacity (unit tests have no serialization library, so reading `item_capacity` from JSON is covered by `ashPanHoldsAStack` in 2.3). Verify: `gradlew :foundation:test` green.
+- [x] 1.2 Add pure `AshCount.fits(salt, extra, ashRoom, saltPerAsh)` and `AshCount.room(ashRoom, saltPerAsh)` (a room below 1 counts as 64) in `manufacturing/.../alchemy/AshCount.java`, with JUnit cases in `AshCountTest`: fits up to exactly 64 Ash, 1 mB over does not fit, a zero room counts as 64, uneven Salt per Ash. Verify: `gradlew :manufacturing:test` green.
 
 ## 2. Calciner uses its tanks
 

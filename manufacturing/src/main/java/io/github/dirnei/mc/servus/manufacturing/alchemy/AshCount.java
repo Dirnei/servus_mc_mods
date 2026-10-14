@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
 /**
- * Salt that leaves the Calciner as Ash: whole Ash from mB, and the mB that Ash takes away.
- * A remainder smaller than one Ash stays behind. Pure Java.
+ * Salt that leaves the Calciner as Ash: whole Ash from mB, the mB that Ash takes away, and the
+ * Ash Pan's room. A remainder smaller than one Ash stays behind. Pure Java.
  */
 public final class AshCount {
 
@@ -20,5 +20,18 @@ public final class AshCount {
     /** The mB taking {@code ash} Ash removes, never more than whole Ash in {@code salt}. */
     public static int saltFor(int ash, int salt, int saltPerAsh) {
         return Math.max(0, Math.min(ash, ash(salt, saltPerAsh))) * Math.max(0, saltPerAsh);
+    }
+
+    /** One stack: the room of an Ash Pan whose data names none. */
+    public static final int DEFAULT_ROOM = 64;
+
+    /** The Ash Pan's room in mB for {@code ashRoom} Ash; a room below 1 counts as {@link #DEFAULT_ROOM}. */
+    public static int room(int ashRoom, int saltPerAsh) {
+        return (ashRoom < 1 ? DEFAULT_ROOM : ashRoom) * Math.max(0, saltPerAsh);
+    }
+
+    /** Whether {@code extra} mB more Salt fit beside {@code salt} mB in an Ash Pan of {@code ashRoom} Ash. */
+    public static boolean fits(int salt, int extra, int ashRoom, int saltPerAsh) {
+        return Math.max(0, salt) + Math.max(0, extra) <= room(ashRoom, saltPerAsh);
     }
 }
