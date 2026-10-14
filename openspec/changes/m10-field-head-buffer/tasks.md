@@ -17,7 +17,7 @@
 
 ## 4. GameTests and docs
 
-- [ ] 4.1 GameTests in `storage/.../gametest/`:
+- [x] 4.1 GameTests in `storage/.../gametest/`:
   - `supplyRunFillsTheBuffer` (seeds, bone meal, honeycomb)
   - `supplyRidesTheLift` (stock behind a shaft, then the Spreader doses)
   - `supplyKeepsTheReserve`

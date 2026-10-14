@@ -12,6 +12,7 @@ import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.field.FertilizeMode;
 import io.github.dirnei.mc.servus.storage.field.FertilizeStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
+import io.github.dirnei.mc.servus.storage.field.SupplyBuffer;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
@@ -77,6 +78,14 @@ public final class SpreaderGameTests {
         farm.head().recheck(helper.absolutePos(pos));
     }
 
+    private static int buffered(FarmFixtures.Farm farm) {
+        return farm.head().supplyCount(SupplyBuffer.Part.FERTILIZER);
+    }
+
+    private static int rackMeal(FarmFixtures.Farm farm) {
+        return WarehouseFixtures.count(farm.rack(), Items.BONE_MEAL);
+    }
+
     private static int age(GameTestHelper helper, BlockPos pos) {
         BlockState state = helper.getBlockState(pos);
         return state.getBlock() instanceof CropBlock crop ? crop.getAge(state) : -1;
@@ -124,8 +133,9 @@ public final class SpreaderGameTests {
     }
 
     /**
-     * After planting: two wheat planted after the head was set get two doses
-     * each from the rack; an older growing wheat gets none, so the rack
+     * After planting: a supply run brings the rack's 20 bone meal into the
+     * head's buffer, and two wheat planted after the head was set get two
+     * doses each from it; an older growing wheat gets none, so the buffer
      * holds exactly four bone meal less.
      */
     @ServusGameTest(timeoutTicks = 600)
@@ -134,16 +144,17 @@ public final class SpreaderGameTests {
         BlockPos[] fresh = {new BlockPos(6, 1, RAIL_Z + 1), new BlockPos(4, 1, RAIL_Z + 1)};
         wheat(helper, old, 1);
         FarmFixtures.Farm farm = spreaderFarm(helper, spreader());
+        FarmFixtures.carrier(farm);
         WarehouseFixtures.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 20));
         helper.runAfterDelay(3, () -> {
             fertilize(farm, FertilizeMode.AFTER_PLANTING, 0);
             for (BlockPos plot : fresh) {
                 planted(helper, farm, plot);
             }
-            Waits.when(helper, () -> WarehouseFixtures.count(farm.rack(), Items.BONE_MEAL) == 16 && out(helper) == 0
+            Waits.when(helper, () -> rackMeal(farm) == 0 && buffered(farm) == 16 && out(helper) == 0
                     && age(helper, fresh[0]) >= 4 && age(helper, fresh[1]) >= 4, 550,
-                    () -> "the fresh wheat should have two doses each, rack holds " + WarehouseFixtures.count(farm.rack(), Items.BONE_MEAL)
-                            + " bone meal, ages " + age(helper, fresh[0]) + " and " + age(helper, fresh[1]) + ", out " + out(helper), () -> {
+                    () -> "the fresh wheat should have two doses each, rack holds " + rackMeal(farm) + " bone meal, buffer " + buffered(farm)
+                            + ", ages " + age(helper, fresh[0]) + " and " + age(helper, fresh[1]) + ", out " + out(helper), () -> {
                 helper.assertTrue(farm.head().unfedCount() == 0, "no plot should still be owed a dose");
                 helper.assertTrue(farm.head().fertilizeTargetCount() == 0, "no plot needs a dose");
                 helper.assertTrue(noItemsLying(helper), "nothing should drop on the ground");
@@ -152,18 +163,20 @@ public final class SpreaderGameTests {
         });
     }
 
-    /** Stock equal to the reserve: no run, the rack keeps its bone meal and the status says below reserve. */
+    /** Stock equal to the reserve: no supply run and no Spreader, the rack keeps its bone meal and the status says below reserve. */
     @ServusGameTest(timeoutTicks = 200)
     public static void reserveRespected(GameTestHelper helper) {
         BlockPos plot = new BlockPos(5, 1, RAIL_Z - 1);
         FarmFixtures.Farm farm = spreaderFarm(helper, spreader());
+        FarmFixtures.carrier(farm);
         WarehouseFixtures.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 10));
         helper.runAfterDelay(3, () -> {
             fertilize(farm, FertilizeMode.AFTER_PLANTING, 10);
             planted(helper, farm, plot);
             helper.runAfterDelay(100, () -> {
                 helper.assertTrue(farm.head().fertilizeTargetCount() == 1, "the new wheat needs a dose");
-                helper.assertTrue(out(helper) == 0 && network(helper).queuedJobs() == 0, "no Spreader should drive out");
+                helper.assertTrue(out(helper) == 0 && network(helper).queuedJobs() == 0, "no Spreader and no supply run should drive out");
+                helper.assertTrue(buffered(farm) == 0, "the buffer stays empty");
                 helper.assertTrue(WarehouseFixtures.count(farm.rack(), Items.BONE_MEAL) == 10, "the rack keeps its 10 bone meal");
                 helper.assertTrue(farm.head().fertilizeStatus() == FertilizeStatus.BELOW_RESERVE,
                         "the status should say below reserve, got " + farm.head().fertilizeStatus());
@@ -181,16 +194,17 @@ public final class SpreaderGameTests {
             wheat(helper, plots[i], 0);
         }
         FarmFixtures.Farm farm = spreaderFarm(helper, spreader());
+        FarmFixtures.carrier(farm);
         WarehouseFixtures.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 64));
         helper.runAfterDelay(3, () -> {
             fertilize(farm, FertilizeMode.UNTIL_RIPE, 0);
             farm.head().stepFertilizePercent((50 - farm.head().fertilizePercent()) / 10);
             Waits.when(helper, () -> farm.head().ripeCount() >= 2 && out(helper) == 0 && network(helper).queuedJobs() == 0, 850,
                     () -> "two of four should be ripe and the Spreader home, ripe " + farm.head().ripeCount() + ", out " + out(helper), () -> {
-                int stock = WarehouseFixtures.count(farm.rack(), Items.BONE_MEAL);
+                int stock = rackMeal(farm) + buffered(farm);
                 helper.runAfterDelay(60, () -> {
                     helper.assertTrue(farm.head().ripeCount() < 4, "the doses should stop at the threshold, not ripen everything");
-                    helper.assertTrue(WarehouseFixtures.count(farm.rack(), Items.BONE_MEAL) == stock, "no more bone meal should be taken once the share is reached");
+                    helper.assertTrue(rackMeal(farm) + buffered(farm) == stock, "no more bone meal should be used once the share is reached");
                     helper.assertTrue(out(helper) == 0, "the Spreader should stay home");
                     helper.assertTrue(farm.head().fertilizeTargetCount() == 0, "no plot needs a dose at the threshold");
                     helper.succeed();
@@ -202,23 +216,24 @@ public final class SpreaderGameTests {
     /**
      * Until ripe share at 100 percent with a ripe plot and a plot one dose
      * from ripe, two doses per plot: the ripe plot gets nothing, the other
-     * takes one dose and the bone meal left goes back into the rack.
+     * takes one dose and the bone meal left goes back into the head's buffer.
      */
     @ServusGameTest(timeoutTicks = 600)
-    public static void ripePlotsUntouchedAndLeftoverPutAway(GameTestHelper helper) {
+    public static void ripePlotsUntouchedAndLeftoverBackInBuffer(GameTestHelper helper) {
         BlockPos ripe = new BlockPos(5, 1, RAIL_Z - 1);
         BlockPos almost = new BlockPos(6, 1, RAIL_Z + 1);
         wheat(helper, ripe, 7);
         wheat(helper, almost, 5);
         FarmFixtures.Farm farm = spreaderFarm(helper, spreader());
+        FarmFixtures.carrier(farm);
         WarehouseFixtures.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 20));
         helper.runAfterDelay(3, () -> {
             fertilize(farm, FertilizeMode.UNTIL_RIPE, 0);
             farm.head().stepFertilizePercent(10);
             helper.assertTrue(farm.head().fertilizePercent() == 100, "the threshold should be 100 percent");
-            Waits.when(helper, () -> WarehouseFixtures.count(farm.rack(), Items.BONE_MEAL) == 19 && out(helper) == 0 && age(helper, almost) == 7, 550,
-                    () -> "one dose should be used and one put back, rack holds " + WarehouseFixtures.count(farm.rack(), Items.BONE_MEAL)
-                            + ", out " + out(helper) + ", age " + age(helper, almost), () -> {
+            Waits.when(helper, () -> rackMeal(farm) == 0 && buffered(farm) == 19 && out(helper) == 0 && age(helper, almost) == 7, 550,
+                    () -> "one dose should be used and one put back into the buffer, buffer holds " + buffered(farm) + ", rack "
+                            + rackMeal(farm) + ", out " + out(helper) + ", age " + age(helper, almost), () -> {
                 helper.assertTrue(age(helper, ripe) == 7, "the ripe wheat stays ripe");
                 helper.assertTrue(noItemsLying(helper), "nothing should drop on the ground");
                 helper.assertTrue(network(helper).queuedJobs() == 0, "at 100 percent ripe no new run is queued");

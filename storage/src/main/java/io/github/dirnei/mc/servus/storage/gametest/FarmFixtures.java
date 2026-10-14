@@ -60,6 +60,11 @@ final class FarmFixtures {
         return new Farm(head, garage, rack);
     }
 
+    /** Puts a shuttle without a tool into the farm garage's second slot, for supply runs. */
+    static void carrier(Farm farm) {
+        farm.garage().shuttles().setStackInSlot(1, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
+    }
+
     static WarehouseNetwork network(GameTestHelper helper) {
         return helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class).network().orElseThrow();
     }

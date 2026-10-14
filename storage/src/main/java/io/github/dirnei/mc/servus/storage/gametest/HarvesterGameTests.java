@@ -16,6 +16,7 @@ import io.github.dirnei.mc.servus.storage.field.FieldCropStockPayload;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlock;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
+import io.github.dirnei.mc.servus.storage.field.SupplyBuffer;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
@@ -44,6 +45,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -88,7 +90,10 @@ public final class HarvesterGameTests {
         helper.succeed();
     }
 
-    /** Ripe wheat is harvested into the rack and every plot is planted again with seeds from the harvest. */
+    /**
+     * Ripe wheat is harvested into the rack and every plot is planted again
+     * with seeds from the harvest; the spare seeds fill the head's buffer.
+     */
     @ServusGameTest(timeoutTicks = 600)
     public static void harvesterHarvestsIntoStorage(GameTestHelper helper) {
         BlockPos[] plots = {new BlockPos(5, 1, RAIL_Z - 1), new BlockPos(6, 1, RAIL_Z + 1), new BlockPos(4, 1, RAIL_Z + 1), new BlockPos(7, 1, RAIL_Z - 1)};
@@ -111,6 +116,8 @@ public final class HarvesterGameTests {
                 helper.assertTrue(noItemsLying(helper), "nothing should drop on the ground");
                 helper.assertTrue(farm.head().ripeCount() == 0 && farm.head().plantedCount() == plots.length,
                         "the head should see four young crops, got " + farm.head().plantedCount() + " planted " + farm.head().ripeCount() + " ripe");
+                helper.assertTrue(farm.head().supplyCount(SupplyBuffer.Part.SEEDS) > 0 && WarehouseFixtures.count(farm.rack(), Items.WHEAT_SEEDS) == 0,
+                        "spare seeds should fill the buffer, not the rack, buffer " + farm.head().supplyCount(SupplyBuffer.Part.SEEDS));
                 helper.succeed();
             });
         });
@@ -184,6 +191,7 @@ public final class HarvesterGameTests {
         helper.setBlock(stone.below(), Blocks.STONE.defaultBlockState());
         helper.setBlock(outside.below(), Blocks.DIRT.defaultBlockState());
         FarmFixtures.Farm farm = farm(helper, harvester());
+        FarmFixtures.carrier(farm);
         WarehouseFixtures.put(farm.rack(), new ItemStack(Items.WHEAT_SEEDS, 16));
         helper.runAfterDelay(2, () -> {
             FieldFixtures.water(farm.head());
@@ -195,8 +203,9 @@ public final class HarvesterGameTests {
                 helper.assertBlockPresent(Blocks.STONE, stone.below());
                 helper.assertBlockPresent(Blocks.DIRT, outside.below());
                 helper.assertTrue(helper.getBlockState(outside).isAir(), "nothing is planted five blocks out");
-                helper.assertTrue(WarehouseFixtures.count(farm.rack(), Items.WHEAT_SEEDS) == 14, "two seeds should have come from the rack, it holds "
-                        + WarehouseFixtures.count(farm.rack(), Items.WHEAT_SEEDS));
+                helper.assertTrue(WarehouseFixtures.count(farm.rack(), Items.WHEAT_SEEDS) == 0
+                        && farm.head().supplyCount(SupplyBuffer.Part.SEEDS) == 14, "a supply run brought the 16 seeds and two were planted, buffer holds "
+                        + farm.head().supplyCount(SupplyBuffer.Part.SEEDS));
                 helper.succeed();
             });
         });
@@ -297,14 +306,15 @@ public final class HarvesterGameTests {
         });
     }
 
-    /** Nothing ripe and empty farmland: the harvester picks seeds from the rack and plants. */
+    /** Nothing ripe and empty farmland: a supply run brings the rack's seeds into the buffer, and the harvester takes them from there and plants. */
     @ServusGameTest(timeoutTicks = 900)
-    public static void seedsFromStorage(GameTestHelper helper) {
+    public static void seedsFromTheBuffer(GameTestHelper helper) {
         BlockPos[] plots = {new BlockPos(5, 1, RAIL_Z - 1), new BlockPos(6, 1, RAIL_Z + 1), new BlockPos(7, 1, RAIL_Z + 1)};
         for (BlockPos plot : plots) {
-            helper.setBlock(plot.below(), Blocks.FARMLAND.defaultBlockState());
+            helper.setBlock(plot.below(), Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, 7));
         }
         FarmFixtures.Farm farm = farm(helper, harvester());
+        FarmFixtures.carrier(farm);
         WarehouseFixtures.put(farm.rack(), new ItemStack(Items.WHEAT_SEEDS, 10));
         helper.runAfterDelay(2, () -> {
             FieldFixtures.water(farm.head());
@@ -317,8 +327,9 @@ public final class HarvesterGameTests {
                 }
                 return out(helper) == 0;
             }, 850, () -> "the three plots should be planted", () -> {
-                helper.assertTrue(WarehouseFixtures.count(farm.rack(), Items.WHEAT_SEEDS) == 7, "three seeds should have left the rack, it holds "
-                        + WarehouseFixtures.count(farm.rack(), Items.WHEAT_SEEDS));
+                helper.assertTrue(WarehouseFixtures.count(farm.rack(), Items.WHEAT_SEEDS) == 0
+                        && farm.head().supplyCount(SupplyBuffer.Part.SEEDS) == 7, "three seeds should have left the buffer, it holds "
+                        + farm.head().supplyCount(SupplyBuffer.Part.SEEDS));
                 helper.succeed();
             });
         });
@@ -473,17 +484,21 @@ public final class HarvesterGameTests {
         });
     }
 
-    private static final BlockPos SHAFT_BOTTOM = new BlockPos(4, 1, 3);
-    private static final BlockPos SHAFT_CONTROLLER = new BlockPos(1, 1, 2);
-    private static final BlockPos SHAFT_GARAGE = new BlockPos(3, 1, 2);
-    private static final BlockPos SHAFT_RACK = new BlockPos(2, 1, 4);
+    static final BlockPos SHAFT_BOTTOM = new BlockPos(4, 1, 3);
+    static final BlockPos SHAFT_CONTROLLER = new BlockPos(1, 1, 2);
+    static final BlockPos SHAFT_GARAGE = new BlockPos(3, 1, 2);
+    static final BlockPos SHAFT_RACK = new BlockPos(2, 1, 4);
+
+    private static void shaftBase(GameTestHelper helper) {
+        shaftBase(helper, harvester());
+    }
 
     /**
      * The ground floor: a shaft at x 4, z 3 from y 1 to 3, rails x 1 to 3 with the controller north of x 1,
-     * the garage with a Harvester north of x 3 and a rack south of x 2. The field east of the shaft is built
-     * by the test.
+     * the garage with those shuttles north of x 3 and a rack south of x 2. The field east of the shaft is
+     * built by the test.
      */
-    private static void shaftBase(GameTestHelper helper) {
+    static void shaftBase(GameTestHelper helper, ItemStack... shuttles) {
         StorageStatsManager.INSTANCE.setFieldWorkTicks(2);
         StorageStatsManager.INSTANCE.setFieldCheckInterval(5);
         for (int x = 0; x <= 10; x++) {
@@ -500,7 +515,9 @@ public final class HarvesterGameTests {
         WarehouseFixtures.controller(helper, SHAFT_CONTROLLER);
         WarehouseFixtures.rack(helper, SHAFT_RACK, Direction.NORTH);
         ShuttleGarageBlockEntity garage = WarehouseFixtures.garage(helper, SHAFT_GARAGE, Direction.NORTH, 0);
-        garage.shuttles().setStackInSlot(0, harvester());
+        for (int slot = 0; slot < shuttles.length; slot++) {
+            garage.shuttles().setStackInSlot(slot, shuttles[slot]);
+        }
     }
 
     /** A rail east of the shaft at that height, farm rails x 6 to 8 and the head at x 9, ripe wheat south of x 7. */
@@ -517,7 +534,7 @@ public final class HarvesterGameTests {
         return head;
     }
 
-    private static WarehouseNetwork shaftNetwork(GameTestHelper helper) {
+    static WarehouseNetwork shaftNetwork(GameTestHelper helper) {
         return helper.getBlockEntity(SHAFT_CONTROLLER, WarehouseControllerBlockEntity.class).network().orElseThrow();
     }
 

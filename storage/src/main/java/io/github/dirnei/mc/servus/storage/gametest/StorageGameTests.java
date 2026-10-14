@@ -40,6 +40,7 @@ public final class StorageGameTests {
             ShuttleModuleGameTests.class,
             SiteWakeGameTests.class,
             SpreaderGameTests.class,
+            FieldSupplyGameTests.class,
             StationGameTests.class,
             StationHandsGameTests.class,
             StationRailGameTests.class,
