@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctPose.Height;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctPose.Rank;
@@ -15,8 +17,8 @@ class DuctPoseTest {
     private static final int WEST = 1 << DuctShapes.WEST;
     private static final int EAST = 1 << DuctShapes.EAST;
 
-    private static final int FLOOR = DuctPose.base(WEST | EAST, true, false);
-    private static final int PANELLED = DuctPose.base(WEST | EAST, false, true);
+    private static final int FLOOR = DuctPose.base(WEST | EAST, 0, true, false);
+    private static final int PANELLED = DuctPose.base(WEST | EAST, 0, false, true);
 
     private static void assertPose(int pose, Height height, Rank rank) {
         assertEquals(height, DuctPose.height(pose), "height");
@@ -30,37 +32,68 @@ class DuctPoseTest {
 
     @Test
     void noFloorStaysMiddle() {
-        assertEquals(DuctPose.CENTRED, DuctPose.base(WEST | EAST, false, false));
+        assertEquals(DuctPose.CENTRED, DuctPose.base(WEST | EAST, 0, false, false));
     }
 
     @Test
     void armIntoBelowIsNotFloor() {
-        assertEquals(DuctPose.CENTRED, DuctPose.base(DOWN | EAST, true, false));
+        assertEquals(DuctPose.CENTRED, DuctPose.base(DOWN | EAST, 0, true, false));
     }
 
+    /** A floor run going east turns up: the bend lies low with the run, so the run has no step before it. */
     @Test
-    void footOfClimbStaysCentred() {
-        int foot = DuctPose.base(WEST | UP, true, false);
-        assertEquals(DuctPose.CENTRED, foot);
-        assertEquals(Height.LOW, face(foot, FLOOR, DuctShapes.WEST), "the floor run steps up into the foot");
+    void floorRunTurningUpLiesLow() {
+        int bend = DuctPose.base(WEST | UP, 0, true, false);
+        assertPose(bend, Height.LOW, Rank.ANCHORED);
+        assertEquals(Height.LOW, face(bend, FLOOR, DuctShapes.WEST), "the bend meets the floor run low");
+        assertEquals(Height.LOW, face(FLOOR, bend, DuctShapes.EAST), "the floor run meets the bend low");
+        int above = drape(DuctPose.base(UP | DOWN, 0, false, false), UP | DOWN, neighbours(DuctShapes.DOWN, bend));
+        assertEquals(DuctPose.CENTRED, above, "the climb above the bend stays centred");
     }
 
     /** A duct on the floor feeds a machine to its east and runs straight up: it does not lie down. */
     @Test
     void machineOnFloorPipeGoesStraightUp() {
-        int base = DuctPose.base(EAST | UP, true, false);
+        int base = DuctPose.base(EAST | UP, EAST, true, false);
         assertEquals(DuctPose.CENTRED, base);
         assertEquals(DuctPose.CENTRED, DuctPose.resting(base, EAST | UP, UP, new int[6]));
     }
 
+    /** A floor run going east ends in a machine and turns up in the same duct: that duct stays centred. */
     @Test
-    void armUpDoesNotDrape() {
-        assertEquals(DuctPose.CENTRED, DuctPose.resting(DuctPose.CENTRED, WEST | UP, WEST | UP, neighbours(DuctShapes.WEST, FLOOR)));
+    void machineArmAndArmUpStaysMiddle() {
+        int base = DuctPose.base(WEST | EAST | UP, EAST, true, false);
+        assertEquals(DuctPose.CENTRED, base);
+        assertEquals(DuctPose.CENTRED, DuctPose.resting(base, WEST | EAST | UP, WEST | UP, neighbours(DuctShapes.WEST, FLOOR)));
+        assertEquals(Height.LOW, face(base, FLOOR, DuctShapes.WEST), "the floor run steps up into it");
+    }
+
+    @Test
+    void machineArmAndArmUpDoesNotDrape() {
+        int pose = DuctPose.resting(DuctPose.CENTRED, WEST | EAST | UP, WEST | UP, neighbours(DuctShapes.WEST, FLOOR));
+        assertEquals(DuctPose.CENTRED, pose);
+    }
+
+    @Test
+    void armUpDrapes() {
+        assertPose(drape(DuctPose.CENTRED, WEST | UP, neighbours(DuctShapes.WEST, FLOOR)), Height.LOW, Rank.DRAPED);
+    }
+
+    @Test
+    void armUpAloneOnFloorLiesLow() {
+        assertPose(DuctPose.base(UP, 0, true, false), Height.LOW, Rank.ANCHORED);
+    }
+
+    @Test
+    void verticalEndpointDoesNotKeepMiddle() {
+        assertFalse(DuctPose.risesFromEndpoint(UP | WEST, UP), "an endpoint above is no machine beside the duct");
+        assertTrue(DuctPose.risesFromEndpoint(UP | NORTH, NORTH));
+        assertFalse(DuctPose.risesFromEndpoint(DOWN | NORTH, NORTH), "without an arm up the duct may lie down");
     }
 
     @Test
     void armDownOnlyStillLiesLow() {
-        assertPose(DuctPose.base(DOWN | EAST, false, false), Height.MID, Rank.FREE);
+        assertPose(DuctPose.base(DOWN | EAST, 0, false, false), Height.MID, Rank.FREE);
         assertPose(drape(DuctPose.CENTRED, DOWN | EAST, neighbours(DuctShapes.EAST, FLOOR)), Height.LOW, Rank.DRAPED);
     }
 
@@ -71,7 +104,7 @@ class DuctPoseTest {
 
     @Test
     void panelForcesMiddle() {
-        assertPose(DuctPose.base(UP | DOWN, true, true), Height.MID, Rank.ANCHORED);
+        assertPose(DuctPose.base(UP | DOWN, 0, true, true), Height.MID, Rank.ANCHORED);
         assertPose(PANELLED, Height.MID, Rank.ANCHORED);
     }
 
@@ -91,8 +124,9 @@ class DuctPoseTest {
      */
     @Test
     void stepEdgeDrapesHeight() {
-        int foot = DuctPose.base(WEST | UP, true, false);
-        int topBase = DuctPose.base(DOWN | EAST, false, false);
+        int foot = DuctPose.base(WEST | UP, 0, true, false);
+        assertPose(foot, Height.LOW, Rank.ANCHORED);
+        int topBase = DuctPose.base(DOWN | EAST, 0, false, false);
         assertEquals(DuctPose.CENTRED, topBase);
         int top = drape(topBase, DOWN | EAST, neighbours(DuctShapes.DOWN, foot, DuctShapes.EAST, FLOOR));
         assertPose(top, Height.LOW, Rank.DRAPED);
@@ -123,7 +157,7 @@ class DuctPoseTest {
     /** A run over a three block gap: both ends drape to the floor height, the middle one stays centred. */
     @Test
     void longSpanMiddleStaysCentred() {
-        int gap = DuctPose.base(WEST | EAST, false, false);
+        int gap = DuctPose.base(WEST | EAST, 0, false, false);
         int first = drape(gap, WEST | EAST, neighbours(DuctShapes.WEST, FLOOR, DuctShapes.EAST, gap));
         int middle = drape(gap, WEST | EAST, neighbours(DuctShapes.WEST, gap, DuctShapes.EAST, gap));
         int last = drape(gap, WEST | EAST, neighbours(DuctShapes.WEST, gap, DuctShapes.EAST, FLOOR));

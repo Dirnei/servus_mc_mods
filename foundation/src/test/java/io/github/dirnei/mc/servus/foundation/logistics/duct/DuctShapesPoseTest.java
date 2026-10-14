@@ -69,6 +69,25 @@ class DuctShapesPoseTest {
         assertEquals(List.of(new Box(6, 0, 6, 10, LIFT, 10)), DuctShapes.arm(DuctShapes.DOWN, 2, 2, draped, 63));
     }
 
+    /** The low bend's arm up and the centred duct's arm down above it read as one straight vertical arm. */
+    @Test
+    void lowBendArmUpJoinsCentredArmAbove() {
+        for (int centre = 2; centre <= 5; centre++) {
+            for (int armRadius = 2; armRadius <= Math.min(4, centre); armRadius++) {
+                Box up = DuctShapes.armBoxes(DuctShapes.UP, armRadius, centre, FLOOR, facesLike(FLOOR)).segment();
+                Box down = DuctShapes.armBoxes(DuctShapes.DOWN, armRadius, armRadius, DuctPose.CENTRED, 0).segment();
+                String radii = "radii " + centre + "/" + armRadius;
+                assertEquals(LIFT + 2 * centre, up.y0(), 1e-4, radii + ": the arm up starts on the low centre's top");
+                assertEquals(16, up.y1(), radii + ": the arm up reaches the top face");
+                assertEquals(0, down.y0(), radii + ": the arm down above starts on the shared face");
+                for (int axis = DuctPose.X; axis <= DuctPose.Z; axis += 2) {
+                    assertEquals(min(up, axis), min(down, axis), radii + ": no offset across on axis " + axis);
+                    assertEquals(max(up, axis), max(down, axis), radii + ": no offset across on axis " + axis);
+                }
+            }
+        }
+    }
+
     @Test
     void thickCentreArmStepFitsRoom() {
         DuctShapes.ArmBoxes arm = DuctShapes.armBoxes(DuctShapes.EAST, 2, 4, DuctPose.CENTRED, EAST);

@@ -375,7 +375,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         if (!(level instanceof ServerLevel) || isRemoved() || !neighboursLoaded()) {
             return false;
         }
-        int base = DuctPose.base(connections(), sturdyBelow(), hasPanels());
+        int base = DuctPose.base(connections(), endpoints, sturdyBelow(), hasPanels());
         boolean baseChanged = base != basePose;
         basePose = base;
         if (baseChanged) {
@@ -386,7 +386,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
     /** Recomputes the resting pose and the faces and tells the neighbours; see {@link #refreshPose()}. */
     private boolean updateResting(boolean baseChanged) {
-        int resting = DuctPose.resting(basePose, connections(), ductArms(),neighbourPoses(PoseStage.BASE));
+        int resting = DuctPose.resting(basePose, connections(), ductArms(), neighbourPoses(PoseStage.BASE));
         boolean restingChanged = resting != pose;
         pose = resting;
         boolean changed = updateFaces() || restingChanged;

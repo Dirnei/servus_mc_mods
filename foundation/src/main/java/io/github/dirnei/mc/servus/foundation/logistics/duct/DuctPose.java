@@ -33,6 +33,8 @@ public final class DuctPose {
     /** The middle of the block, free. */
     public static final int CENTRED = 0;
 
+    private static final int HORIZONTAL = 1 << DuctShapes.NORTH | 1 << DuctShapes.SOUTH
+            | 1 << DuctShapes.WEST | 1 << DuctShapes.EAST;
     private static final int RANK_SHIFT = 2;
     private static final Height[] HEIGHTS = Height.values();
     private static final Rank[] RANKS = Rank.values();
@@ -77,20 +79,33 @@ public final class DuctPose {
     }
 
     /**
+     * Whether the duct has an arm up and a horizontal arm into an inventory
+     * or machine. Such a duct stays in the middle, so the run goes straight
+     * up from the connection instead of lying down first.
+     *
+     * @param arms      six bit mask of the sides with an arm of any line
+     * @param endpoints six bit mask of the arms that end at an inventory or machine
+     */
+    public static boolean risesFromEndpoint(int arms, int endpoints) {
+        return has(arms, DuctShapes.UP) && (endpoints & HORIZONTAL) != 0;
+    }
+
+    /**
      * The pose a duct takes from its own block and the block below. Any panel
      * keeps it in the middle; otherwise a sturdy block below that the duct
-     * has no arm into is a floor it lies on, unless the duct has an arm up,
-     * which keeps it in the middle so the run goes straight up.
+     * has no arm into is a floor it lies on, unless the duct
+     * {@linkplain #risesFromEndpoint rises from an endpoint}.
      *
      * @param arms        six bit mask of the sides with an arm of any line
+     * @param endpoints   six bit mask of the arms that end at an inventory or machine
      * @param sturdyBelow whether the block below shows a full sturdy face toward the duct; ducts never count
      * @param panels      whether the duct carries any panel
      */
-    public static int base(int arms, boolean sturdyBelow, boolean panels) {
+    public static int base(int arms, int endpoints, boolean sturdyBelow, boolean panels) {
         if (panels) {
             return of(Height.MID, Rank.ANCHORED);
         }
-        if (sturdyBelow && !has(arms, DuctShapes.DOWN) && !has(arms, DuctShapes.UP)) {
+        if (sturdyBelow && !has(arms, DuctShapes.DOWN) && !risesFromEndpoint(arms, endpoints)) {
             return of(Height.LOW, Rank.ANCHORED);
         }
         return CENTRED;
@@ -98,16 +113,17 @@ public final class DuctPose {
 
     /**
      * The pose a duct shows: its base pose, or when that is free and the duct
-     * has no arm up, the height its anchored neighbour ducts beside it ask
-     * for, as long as they agree. Ducts above or below do not ask.
+     * does not {@linkplain #risesFromEndpoint rise from an endpoint}, the
+     * height its anchored neighbour ducts beside it ask for, as long as they
+     * agree. Ducts above or below do not ask.
      *
      * @param base          the duct's own base pose
      * @param arms          six bit mask of the sides with an arm of any line
-     * @param ductArms      six bit mask of the sides whose arm leads to another duct
+     * @param ductArms      six bit mask of the sides whose arm leads to another duct; the other arms are endpoints
      * @param neighbourBase base pose of the duct across each side, read only where {@code ductArms} has the side
      */
     public static int resting(int base, int arms, int ductArms, int[] neighbourBase) {
-        if (rank(base) != Rank.FREE || has(arms, DuctShapes.UP)) {
+        if (rank(base) != Rank.FREE || risesFromEndpoint(arms, arms & ~ductArms)) {
             return base;
         }
         Height request = null;
