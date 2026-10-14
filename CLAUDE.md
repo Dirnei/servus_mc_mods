@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Project: Servus mod family for Minecraft 26.1.2 on NeoForge (target pack ATM11). The vision, architecture and milestones are in `PLAN.md`. Read it before starting work.
+Project: Servus mod family for Minecraft 26.1.2 on NeoForge (target pack ATM11). The vision, architecture and open points are in `PLAN.md`. Read it before starting work.
 
 ## Stack
 - Java 25, Minecraft 26.1.2, NeoForge 26.1.2.x, ModDevGradle, Mojang's official names (26.1 is unobfuscated, no Parchment)
@@ -22,19 +22,19 @@ Project: Servus mod family for Minecraft 26.1.2 on NeoForge (target pack ATM11).
 This project uses OpenSpec (`openspec/`, schema `spec-driven`). All feature work goes through an OpenSpec change. No production code is written outside an active change.
 
 Sources of truth:
-- `PLAN.md` is the roadmap: vision, architecture principles, milestones, open decisions. It says what we want to build and in which order.
+- `PLAN.md` is mainly the list of open points: what we still want to build, plus the vision, architecture principles and open decisions. It does not describe what is built; that lives in `openspec/specs/`.
 - `openspec/specs/` holds the main specs: what the system does today. Empty at the start, grows with every archived change.
 - `openspec/changes/<name>/` holds one change in flight: `proposal.md`, `specs/` (delta), `design.md`, `tasks.md`.
 
 Lifecycle of a change:
-1. **Explore** (`/opsx:explore`) when a milestone item or an open decision from `PLAN.md` section 5 is not clear enough to propose. Thinking only, no files in the change directory.
+1. **Explore** (`/opsx:explore`) when a milestone item or an open point or open decision from `PLAN.md` is not clear enough to propose. Thinking only, no files in the change directory.
 2. **Propose** (`/opsx:propose`) to create the change and generate proposal, delta specs, design and tasks. Stop after the artifacts and wait for review. Never start implementing in the same response.
 3. **Apply** (`/opsx:apply`) to work through `tasks.md`. Check off tasks as they are done. After each task: build, run the unit tests, and launch the game when block or GUI behavior changed.
-4. **Archive** (`/opsx:archive`) once every task is checked and the build is green. Archiving merges the delta specs into `openspec/specs/`. Use `/opsx:sync` only when main specs need to be updated before the change is complete.
+4. **Archive** (`/opsx:archive`) once every task is checked and the build is green. Archiving merges the delta specs into `openspec/specs/`. Use `/opsx:sync` only when main specs need to be updated before the change is complete. Then groom `PLAN.md` in the same commit: remove what the change built (open points, "later" notes, history), keep only what is still open, and add any new open point the change decided.
 5. **Update** (`/opsx:update`) when a decision made during apply changes the plan. Keep proposal, specs, design and tasks consistent with each other.
 
 Scoping changes:
-- One change per milestone item from `PLAN.md`, not one change per milestone. A change should be implementable in one or two sessions.
+- One change per open point from `PLAN.md`, not one change per milestone. A change should be implementable in one or two sessions.
 - Change names are kebab-case with the milestone prefix: `m0-gradle-multi-project`, `m1-network-graph`, `m2-burner-extractor`.
 - Capability paths under `specs/` are `<mod>/<capability>`: `foundation/network-graph`, `foundation/utility-duct`, `manufacturing/burner-extractor`, `storage/crates`. Cross mod integration specs go under `foundation/`.
 - Milestones are a rough order, not a gate. Do not propose a change that modifies the same specs or the same code as an unarchived change, unless the user says so.
