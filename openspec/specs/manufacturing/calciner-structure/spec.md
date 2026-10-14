@@ -31,11 +31,11 @@ When the structure does not match in any facing, forming SHALL fail and SHALL te
 - **THEN** nothing forms and the player is told that the Receiver is missing right of the Alembic
 
 ### Requirement: Formed Calciner looks like one machine
-A formed Calciner SHALL be drawn as one model covering the whole structure instead of its single blocks: a furnace of Stone Bricks over Polished Deepslate and Deepslate Tiles with the still on top. The Alembic's spout SHALL reach the Receiver. The Copper Duct SHALL end in a raised copper collar sunk into the left Stone Bricks. The Receiver SHALL stand on legs over a shallow stone basin with a grated drain in the right Stone Bricks. The blocks SHALL keep their collision and SHALL be mined with a pickaxe.
+A formed Calciner SHALL be drawn as one model covering the whole structure instead of its single blocks: a furnace of Stone Bricks over Polished Deepslate and Deepslate Tiles with the still on top. The Alembic's spout SHALL reach into the side of the Receiver, a copper condenser drum with a tap underneath. The Copper Duct SHALL end in a raised copper collar sunk into the left Stone Bricks. The Receiver SHALL stand on copper legs in a shallow stone basin with a grated drain in the right Stone Bricks. The blocks SHALL keep their collision and SHALL be mined with a pickaxe.
 
 #### Scenario: Burning
 - **WHEN** a formed Calciner burns fuel and calcines
-- **THEN** the fire glows, the Firebox lights its surroundings, smoke rises from the Hood and Mercury drips from the Receiver into the basin
+- **THEN** the fire glows, the Firebox lights its surroundings, smoke rises from the Hood and Mercury drips from the Receiver's tap into the basin
 
 #### Scenario: Idle
 - **WHEN** a formed Calciner has no fuel or nothing to calcine
@@ -54,8 +54,12 @@ A formed Calciner SHALL be drawn as one model covering the whole structure inste
 - **THEN** a Mercury puddle lies in the basin under the Receiver, and it is gone when the tank is empty
 
 #### Scenario: Mercury in the flask
-- **WHEN** the Calciner holds Mercury that has not reached its tank yet
-- **THEN** the Receiver's flask shows it by fill
+- **WHEN** a formed Calciner makes Mercury
+- **THEN** the Mercury goes straight into the Mercury tank, and the Receiver shows no flask and no fill
+
+#### Scenario: Spout meets the condenser
+- **WHEN** a player looks at a formed Calciner from the front or the side
+- **THEN** the Alembic's spout ends in the side of the Receiver's copper drum and no part of the Receiver floats or is see-through
 
 ### Requirement: Breaking unforms
 Breaking any block of a formed Calciner SHALL unform the structure. The broken block SHALL drop as its item: a Stone Bricks position drops Stone Bricks and a Deepslate Tiles position drops Deepslate Tiles. Every other block SHALL return to its unformed block in place. Removing a Fluid Tank of the structure SHALL unform it as well, and the tanks keep their fluid. A Calciner that stays in place SHALL keep its buffers, input and fuel while unformed and SHALL NOT work until formed again. A broken Calciner block SHALL drop its input and fuel.
@@ -103,30 +107,34 @@ A formed Calciner SHALL accept calcinable items through the item capability on e
 - **THEN** the hopper receives 3 Ash (one Ash for each 100 mB the Purifier makes from one Ash)
 
 ### Requirement: Principle ports
-A formed Calciner SHALL fill its own Sulfur tank with Sulfur and its own Mercury tank with Mercury as long as they have room. A principle that does not fit SHALL wait in the Calciner. The Receiver SHALL offer only Mercury and the Copper Duct above the Stone Bricks only Sulfur through the fluid capability, drain only. The Calciner SHALL never accept fluid, and no other block of its own SHALL expose a fluid capability. The Salt stays in the Ash Pan as Ash.
+A formed Calciner SHALL put the Sulfur of each finished cycle into its own Sulfur tank and the Mercury into its own Mercury tank; no Sulfur or Mercury SHALL stay in the Calciner. The Salt SHALL stay in the Ash Pan as Ash, up to a room counted in Ash (a stack of 64 in the example data), independent of the tanks. The Calciner and every other block of its structure SHALL expose no fluid capability.
 
 #### Scenario: Tanks fill
-- **WHEN** a formed Calciner holds 400 mB Sulfur and 300 mB Mercury and both tanks are empty
-- **THEN** the Sulfur tank receives the 400 mB Sulfur and the Mercury tank the 300 mB Mercury
+- **WHEN** a formed Calciner finishes a cycle that gives 100 mB Salt, 40 mB Sulfur and 10 mB Mercury and both tanks have room
+- **THEN** the Sulfur tank gains 40 mB Sulfur, the Mercury tank 10 mB Mercury, and the Ash Pan 100 mB of Salt
 
 #### Scenario: Tank full
-- **WHEN** the Mercury tank of a formed Calciner is full and the Calciner makes Mercury
-- **THEN** the Mercury stays in the Calciner and shows in the Receiver's flask until the tank has room
+- **WHEN** the Mercury tank of a formed Calciner is full and the next cycle would make Mercury
+- **THEN** the Calciner does not finish the cycle, and no Mercury waits in the Calciner
+
+#### Scenario: A stack of Ash
+- **WHEN** a formed Calciner calcines cobblestone until it waits on a full Ash Pan, and the tanks have room
+- **THEN** the Ash Pan holds 64 Ash
 
 #### Scenario: Pipe at the Ash Pan
 - **WHEN** a Fluid Pipe touches the Ash Pan of a working Calciner
 - **THEN** the pipe finds no fluid handler there
 
 #### Scenario: Pipe at the Receiver
-- **WHEN** a Fluid Pipe touches the Receiver of a formed Calciner holding Mercury that has not reached its tank
-- **THEN** the pipe can drain Mercury there and cannot fill anything into it
+- **WHEN** a Fluid Pipe touches the Receiver of a formed Calciner
+- **THEN** the pipe finds no fluid handler there
 
 ### Requirement: Buckets at the ports
-Using an empty bucket or another empty fluid container on the Receiver of a formed Calciner SHALL fill it with Mercury when the Calciner holds enough. Using a filled container SHALL do nothing. Using an empty hand on the Ash Pan SHALL give the player all the Ash it holds. Mercury and Sulfur are usually bucketed from their tanks.
+Using an empty hand on the Ash Pan SHALL give the player all the Ash it holds. Using a bucket or another fluid container on the Receiver or any other block of the structure SHALL do nothing; Mercury and Sulfur are bucketed from their tanks.
 
 #### Scenario: Mercury bucket
-- **WHEN** a player uses an empty bucket on the Receiver and the Mercury buffer holds 1,200 mB
-- **THEN** the player holds a Mercury bucket and 200 mB Mercury remain
+- **WHEN** a player uses an empty bucket on the Receiver of a working Calciner
+- **THEN** the bucket stays empty and the Calciner is unchanged
 
 #### Scenario: Ash by hand
 - **WHEN** a player uses the Ash Pan with an empty hand and it holds 500 mB of Salt
@@ -140,11 +148,11 @@ A formed Calciner SHALL report its fuel as upkeep on the Firebox, so a data line
 - **THEN** the coal lands in the fuel slot
 
 ### Requirement: Calciner in Jade
-With Jade installed, looking at any block of a formed Calciner SHALL show the input, the fuel, the progress and the three principle amounts with capacity.
+With Jade installed, looking at any block of a formed Calciner SHALL show the input, the fuel, the progress and the Ash in the Ash Pan out of its room. The Fluid Tanks show their own fluid.
 
 #### Scenario: Look at the Receiver
-- **WHEN** a player with Jade looks at the Receiver of a Calciner holding 300 mB Mercury
-- **THEN** the tooltip shows 300 / 4000 mB Mercury among the Calciner's state
+- **WHEN** a player with Jade looks at the Receiver of a Calciner whose Ash Pan holds 1,200 mB of Salt
+- **THEN** the tooltip shows 12 / 64 Ash among the Calciner's state
 
 ### Requirement: Calciner layout is pure logic
 The layout SHALL be described as positions relative to the Calciner per facing, with the part at each position and the Calciner position from any part position. This mapping SHALL be pure Java covered by JUnit, and the Journal's multiblock schematic SHALL be generated from it.

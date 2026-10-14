@@ -30,7 +30,7 @@
 ## 5. Integration
 
 - [x] 5.1 Full `gradlew build`, unit tests and the manufacturing GameTests green. The game launches with all three mods.
-- [ ] 5.2 Play check in game by the user from main:
+- [x] 5.2 Play check in game by the user from main:
   - The Receiver is a copper drum on legs in the basin, the beak enters its side, and the tap drips while working.
   - Nothing flickers, floats or is see-through.
   - The tanks fill directly.

@@ -17,7 +17,7 @@ A calcination recipe SHALL be a datapack recipe of type `servus_manufacturing:ca
 - **THEN** the Calciner takes nothing
 
 ### Requirement: Calciner burns fuel
-The Calciner SHALL be a burner machine following the shared machine rules: one input slot and one fuel slot that takes any furnace fuel, burning one item when the previous burn has ended and work is available, with no FE buffer and no energy capability. It SHALL work only while its structure is formed. It SHALL start a cycle only when each of its three principle tanks has room for the whole output of the recipe. It SHALL report its fuel as upkeep, like the other burner machines, so a data line keeps it fuelled.
+The Calciner SHALL be a burner machine following the shared machine rules: one input slot and one fuel slot that takes any furnace fuel, burning one item when the previous burn has ended and work is available, with no FE buffer and no energy capability. It SHALL work only while its structure is formed. It SHALL start and finish a cycle only when its Sulfur tank and its Mercury tank have room for the recipe's Sulfur and Mercury and its Ash Pan has room for the recipe's Salt. It SHALL report its fuel as upkeep, like the other burner machines, so a data line keeps it fuelled.
 
 #### Scenario: Coal
 - **WHEN** a formed Calciner holds cobblestone and one coal
@@ -28,8 +28,12 @@ The Calciner SHALL be a burner machine following the shared machine rules: one i
 - **THEN** progress stops and resumes when fuel is added
 
 #### Scenario: Tanks full
-- **WHEN** the Salt tank of a Calciner cannot take the 100 mB the next cobblestone would give
-- **THEN** the Calciner waits without burning new fuel until the Salt is drained
+- **WHEN** the Mercury tank of a formed Calciner cannot take the Mercury the next cobblestone would give
+- **THEN** the Calciner waits without burning new fuel until the tank has room
+
+#### Scenario: Ash Pan full
+- **WHEN** the Ash Pan of a Calciner cannot take the 100 mB of Salt the next cobblestone would give
+- **THEN** the Calciner waits without burning new fuel until Ash is taken out
 
 #### Scenario: No power needed
 - **WHEN** a Power Cable touches any block of a Calciner
