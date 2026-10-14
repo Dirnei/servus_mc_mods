@@ -66,6 +66,12 @@ public final class HarvesterGameTests {
         return state.getBlock() instanceof CropBlock crop && crop.isMaxAge(state);
     }
 
+    /** A crop of that block that is not ripe; random ticks may already have grown it a little. */
+    private static boolean planted(GameTestHelper helper, BlockPos pos, Block block) {
+        BlockState state = helper.getBlockState(pos);
+        return state.is(block) && !((CropBlock) block).isMaxAge(state);
+    }
+
     private static boolean young(GameTestHelper helper, BlockPos pos, Block block) {
         BlockState state = helper.getBlockState(pos);
         return state.is(block) && ((CropBlock) block).getAge(state) == 0;
@@ -321,7 +327,7 @@ public final class HarvesterGameTests {
             farm.head().setCrop(new ItemStack(Items.WHEAT_SEEDS));
             Waits.when(helper, () -> {
                 for (BlockPos plot : plots) {
-                    if (!young(helper, plot, Blocks.WHEAT)) {
+                    if (!planted(helper, plot, Blocks.WHEAT)) {
                         return false;
                     }
                 }
