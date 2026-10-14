@@ -90,15 +90,15 @@ A harvester on a field run SHALL carry up to the stacks of its tier (example 2 f
 - **THEN** it carries up to four stacks before it drives to storage
 
 ### Requirement: Seeds
-To plant, the harvester SHALL take the field's crop item from its cargo, which holds the harvest. When it puts the harvest away while plots remain to plant, it SHALL keep up to one stack of the crop item, no more than those plots need; when the kept seeds leave no room for the next harvest, the next put-away SHALL keep none. Only when the field has no ripe plot left to harvest and the harvester carries fewer crop items than there are plots to plant SHALL it pick the shortfall, up to one stack and as far as its cargo has room, from the warehouse before it drives to the field. When the warehouse holds none, the harvester SHALL plant only what the harvest provides and leave the rest of the farmland empty.
+To plant, the harvester SHALL take the field's crop item from its cargo, which holds the harvest. When it puts the harvest away while plots remain to plant, it SHALL keep up to one stack of the crop item, no more than those plots need; when the kept seeds leave no room for the next harvest, the next put-away SHALL keep none. Spare crop items SHALL first fill the head's seed buffer up to its level, at the farm rail beside the head, before the rest is put away. Only when the field has no ripe plot left to harvest and the harvester carries fewer crop items than there are plots to plant SHALL it take the shortfall, up to one stack and as far as its cargo has room, from the head's seed buffer, never from racks. When the buffer holds none, the harvester SHALL plant only what the harvest provides and leave the rest of the farmland empty.
 
 #### Scenario: Replant from the harvest
 - **WHEN** a field with wheat set has only ripe wheat and the warehouse holds no wheat seeds
-- **THEN** every harvested plot is planted again with seeds from the harvest and the spare seeds are put away
+- **THEN** every harvested plot is planted again with seeds from the harvest, the spare seeds fill the head's seed buffer and the rest is put away
 
 #### Scenario: Seeds from storage
-- **WHEN** a hydrated field with wheat set has only empty farmland and a rack on the harvester's floor holds wheat seeds
-- **THEN** the harvester picks seeds from the rack, plants the farmland and the rack holds fewer seeds
+- **WHEN** a hydrated field with wheat set has only empty farmland and the head's seed buffer holds wheat seeds
+- **THEN** the harvester takes seeds from the buffer, plants the farmland and the buffer holds fewer seeds
 
 ### Requirement: Harvest put-away
 The harvest SHALL go into warehouse storage by the put-away routing of inbound stations: zoned racks listing the item first, then zoned racks matching by tag, then general storage. The harvester SHALL drive to the front rail of each rack it can reach and insert there. A rack whose rails the harvester reaches only by lift SHALL be skipped. When no rack it may use has room for some of the cargo, the harvester SHALL wait on the rail of its garage with that cargo and try again about once a second; it SHALL NOT go back to work meanwhile.
