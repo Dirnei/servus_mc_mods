@@ -48,10 +48,10 @@ class StockLevelsTest {
     }
 
     @Test
-    void stepsAreClamped() {
-        assertEquals(0, StockLevels.step(10, -64));
-        assertEquals(StockLevels.MAX, StockLevels.step(StockLevels.MAX - 1, 640));
-        assertEquals(640, StockLevels.step(0, 640));
+    void valuesAreClamped() {
+        assertEquals(0, StockLevels.clamp(-54));
+        assertEquals(StockLevels.MAX, StockLevels.clamp(StockLevels.MAX + 639L));
+        assertEquals(640, StockLevels.clamp(640));
     }
 
     @Test

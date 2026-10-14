@@ -10,15 +10,9 @@ public final class StockLevels {
     /** The largest value a level takes. */
     public static final int MAX = 99_999;
 
-    /** Which of the two levels a player moves. */
+    /** Which of the two levels a player sets. */
     public enum Level {
-        HARVEST, FERTILIZE;
-
-        private static final Level[] VALUES = values();
-
-        public static Level byId(int id) {
-            return id >= 0 && id < VALUES.length ? VALUES[id] : HARVEST;
-        }
+        HARVEST, FERTILIZE
     }
 
     /** A harvest limit and a fertilize level, each 0 for none. */
@@ -45,11 +39,7 @@ public final class StockLevels {
         return (level <= 0 || stock < level) && !harvestPaused(true, stock, limit);
     }
 
-    /** The value moved by delta, kept between 0 and {@link #MAX}. */
-    public static int step(int value, int delta) {
-        return clamp((long) value + delta);
-    }
-
+    /** The value kept between 0 and {@link #MAX}. */
     public static int clamp(long value) {
         return (int) Math.max(0, Math.min(MAX, value));
     }

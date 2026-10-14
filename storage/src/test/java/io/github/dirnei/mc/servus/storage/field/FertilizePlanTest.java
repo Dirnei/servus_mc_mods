@@ -62,9 +62,9 @@ class FertilizePlanTest {
     }
 
     @Test
-    void reserveSteps() {
-        assertEquals(0, FertilizePlan.stepReserve(5, -10));
-        assertEquals(74, FertilizePlan.stepReserve(64, 10));
-        assertEquals(FertilizePlan.MAX_RESERVE, FertilizePlan.stepReserve(FertilizePlan.MAX_RESERVE, 1));
+    void reserveClamped() {
+        assertEquals(0, FertilizePlan.clampReserve(-5));
+        assertEquals(74, FertilizePlan.clampReserve(74));
+        assertEquals(FertilizePlan.MAX_RESERVE, FertilizePlan.clampReserve(FertilizePlan.MAX_RESERVE + 1L));
     }
 }

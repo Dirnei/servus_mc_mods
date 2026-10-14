@@ -61,11 +61,7 @@ public final class FertilizePlan {
         return targets > 0 && stock > Math.max(0, reserve) && intervalPassed(now, lastCall, interval);
     }
 
-    /** The reserve moved by delta, kept between 0 and {@link #MAX_RESERVE}. */
-    public static int stepReserve(int reserve, int delta) {
-        return clampReserve((long) reserve + delta);
-    }
-
+    /** The reserve kept between 0 and {@link #MAX_RESERVE}. */
     public static int clampReserve(long reserve) {
         return (int) Math.max(0, Math.min(MAX_RESERVE, reserve));
     }
