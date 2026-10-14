@@ -51,8 +51,13 @@ final class PanelPainter {
 
     /** The 27 inventory and 9 hotbar slot frames, nine wide from x 8, relative to {@code left}, {@code top}. */
     static void playerInventory(GuiGraphicsExtractor graphics, int left, int top, int inventoryY, int hotbarY) {
-        slots(graphics, left, top, new Rect(8, inventoryY, 9 * 18, 3 * 18), 9, 27);
-        slots(graphics, left, top, new Rect(8, hotbarY, 9 * 18, 18), 9, 9);
+        playerInventory(graphics, left, top, 8, inventoryY, hotbarY);
+    }
+
+    /** The 27 inventory and 9 hotbar slot frames, nine wide from {@code inventoryX}, relative to {@code left}, {@code top}. */
+    static void playerInventory(GuiGraphicsExtractor graphics, int left, int top, int inventoryX, int inventoryY, int hotbarY) {
+        slots(graphics, left, top, new Rect(inventoryX, inventoryY, 9 * 18, 3 * 18), 9, 27);
+        slots(graphics, left, top, new Rect(inventoryX, hotbarY, 9 * 18, 18), 9, 9);
     }
 
     /** A sunken frame with one pixel edges, dark at the top and left, light at the bottom and right; absolute. */
