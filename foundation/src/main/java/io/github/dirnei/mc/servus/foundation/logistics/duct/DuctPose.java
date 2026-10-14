@@ -155,6 +155,60 @@ public final class DuctPose {
         return request;
     }
 
+    /**
+     * Where each arm meets its face, per arm side and per axis across the arm,
+     * packed two bits each (see {@link #faceSide}). Between two ducts the
+     * higher rank wins and a tie goes to the duct on the negative side of the
+     * arm axis, so both ducts compute the same face. An arm into an inventory
+     * or machine ends in the middle.
+     *
+     * @param resting          the duct's own resting pose
+     * @param arms             six bit mask of the sides with an arm of any line
+     * @param endpoints        six bit mask of the arms that end at an inventory or machine
+     * @param neighbourResting resting pose of the duct across each side, read only for arms to ducts
+     */
+    public static int faces(int resting, int arms, int endpoints, int[] neighbourResting) {
+        int faces = 0;
+        for (int side = 0; side < 6; side++) {
+            if (!has(arms, side) || has(endpoints, side)) {
+                continue;
+            }
+            for (int slot = 0; slot < 2; slot++) {
+                int axis = acrossAxis(side, slot);
+                Side met = meet(resting, neighbourResting[side], side, axis);
+                faces |= met.ordinal() << faceShift(side, slot);
+            }
+        }
+        return faces;
+    }
+
+    /** Where the arm on {@code side} meets its face on {@code axis}, one of the two axes across the arm. */
+    public static Side faceSide(int faces, int side, int axis) {
+        int slot = acrossAxis(side, 0) == axis ? 0 : 1;
+        return SIDES[(faces >> faceShift(side, slot)) & 3];
+    }
+
+    /** The two axes across the arm on a side, lower axis first. */
+    public static int acrossAxis(int side, int slot) {
+        int along = axisOf(side);
+        int first = along == X ? Y : X;
+        int second = along == Z ? Y : Z;
+        return slot == 0 ? first : second;
+    }
+
+    private static int faceShift(int side, int slot) {
+        return side * 4 + slot * 2;
+    }
+
+    private static Side meet(int own, int other, int side, int axis) {
+        Rank ownRank = rank(own, axis);
+        Rank otherRank = rank(other, axis);
+        if (ownRank != otherRank) {
+            return side(ownRank.compareTo(otherRank) > 0 ? own : other, axis);
+        }
+        return side(isPositive(side) ? own : other, axis);
+    }
+
     private static int wall(int pose, int axis, int support) {
         int negative = negativeSide(axis);
         boolean low = has(support, negative);

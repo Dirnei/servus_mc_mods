@@ -152,6 +152,63 @@ class DuctPoseTest {
         assertAxis(last, Y, Side.NEG, Rank.DRAPED);
     }
 
+    private static Side face(int own, int other, int side, int axis) {
+        int faces = DuctPose.faces(own, 1 << side, 0, neighbours(side, other));
+        return DuctPose.faceSide(faces, side, axis);
+    }
+
+    @Test
+    void anchoredBeatsFree() {
+        int floor = DuctPose.base(EAST, DOWN, false);
+        assertEquals(Side.NEG, face(floor, DuctPose.CENTRED, DuctShapes.EAST, Y));
+        assertEquals(Side.NEG, face(DuctPose.CENTRED, floor, DuctShapes.WEST, Y));
+        assertEquals(Side.MID, face(floor, DuctPose.CENTRED, DuctShapes.EAST, Z));
+    }
+
+    @Test
+    void drapedBeatsFree() {
+        int draped = DuctPose.with(DuctPose.CENTRED, Z, Side.POS, Rank.DRAPED);
+        assertEquals(Side.POS, face(DuctPose.CENTRED, draped, DuctShapes.UP, Z));
+        assertEquals(Side.POS, face(draped, DuctPose.CENTRED, DuctShapes.DOWN, Z));
+    }
+
+    @Test
+    void tieGoesToNegativeSide() {
+        int low = DuctPose.with(DuctPose.CENTRED, X, Side.NEG, Rank.DRAPED);
+        int high = DuctPose.with(DuctPose.CENTRED, X, Side.POS, Rank.DRAPED);
+        assertEquals(Side.NEG, face(low, high, DuctShapes.SOUTH, X), "the own duct lies north, on the negative side");
+        assertEquals(Side.POS, face(low, high, DuctShapes.NORTH, X), "the other duct lies north");
+    }
+
+    @Test
+    void bothSidesAgreeOnFace() {
+        int[] poses = {
+                DuctPose.CENTRED,
+                DuctPose.base(EAST | WEST, DOWN, false),
+                DuctPose.with(DuctPose.CENTRED, Y, Side.POS, Rank.DRAPED),
+                DuctPose.with(DuctPose.CENTRED, Y, Side.NEG, Rank.DRAPED),
+                DuctPose.base(EAST, 0, true)};
+        for (int a : poses) {
+            for (int b : poses) {
+                for (int side = 0; side < 6; side++) {
+                    for (int slot = 0; slot < 2; slot++) {
+                        int axis = DuctPose.acrossAxis(side, slot);
+                        assertEquals(face(a, b, side, axis), face(b, a, side ^ 1, axis),
+                                "poses " + a + " and " + b + " across side " + side + " on axis " + axis);
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    void endpointFaceIsMiddle() {
+        int floor = DuctPose.base(EAST, DOWN, false);
+        int faces = DuctPose.faces(floor, EAST, EAST, new int[6]);
+        assertEquals(Side.MID, DuctPose.faceSide(faces, DuctShapes.EAST, Y));
+        assertEquals(Side.MID, DuctPose.faceSide(faces, DuctShapes.EAST, Z));
+    }
+
     @Test
     void packRoundTrip() {
         int pose = DuctPose.CENTRED;

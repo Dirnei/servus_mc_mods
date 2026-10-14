@@ -19,7 +19,7 @@
   JUnit in `DuctPoseTest`: `stepEdgeDrapesBothAxes` (the step scenario from the spec), `disagreeingNeighboursStayMiddle`, `drapedNeighbourDoesNotRequest`, `anchoredAxisIsNotDraped`, `longSpanMiddleStaysCentred`.
 
   Verify: `gradlew :foundation:test` green.
-- [ ] 1.3 Add the face position stage to `DuctPose`:
+- [x] 1.3 Add the face position stage to `DuctPose`:
   - per arm side and per perpendicular axis, the higher rank wins
   - on a tie, the duct on the negative side wins
   - endpoint arms always `MID`
