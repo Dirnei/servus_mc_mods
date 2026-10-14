@@ -66,6 +66,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     public static final int DEFAULT_FIELD_RADIUS = 2;
     public static final int DEFAULT_FIELD_MAX_RADIUS = 4;
     public static final int DEFAULT_FIELD_CORROSION_WATER = 64000;
+    public static final int DEFAULT_AXE_DAMAGE_PER_RAIL = 2;
     public static final int DEFAULT_FIELD_ANTI_CORROSION_LEVEL = 8;
     public static final int DEFAULT_FERTILIZE_INTERVAL = 600;
     public static final int DEFAULT_DOSES_PER_PLOT = 2;
@@ -136,6 +137,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     private volatile int fieldRadius = DEFAULT_FIELD_RADIUS;
     private volatile int fieldMaxRadius = DEFAULT_FIELD_MAX_RADIUS;
     private volatile int fieldCorrosionWater = DEFAULT_FIELD_CORROSION_WATER;
+    private volatile int axeDamagePerRail = DEFAULT_AXE_DAMAGE_PER_RAIL;
     private volatile int fieldAntiCorrosionLevel = DEFAULT_FIELD_ANTI_CORROSION_LEVEL;
     private volatile int fertilizeInterval = DEFAULT_FERTILIZE_INTERVAL;
     private volatile int dosesPerPlot = DEFAULT_DOSES_PER_PLOT;
@@ -199,6 +201,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         fieldRadius = intField(files.get(FIELD), "radius", DEFAULT_FIELD_RADIUS);
         fieldMaxRadius = intField(files.get(FIELD), "max_radius", DEFAULT_FIELD_MAX_RADIUS);
         fieldCorrosionWater = intField(files.get(FIELD), "corrosion_water", DEFAULT_FIELD_CORROSION_WATER);
+        axeDamagePerRail = countField(files.get(FIELD), "axe_damage_per_rail", DEFAULT_AXE_DAMAGE_PER_RAIL);
         fieldAntiCorrosionLevel = intField(files.get(FIELD), "anti_corrosion_level", DEFAULT_FIELD_ANTI_CORROSION_LEVEL);
         fertilizeInterval = intField(files.get(FIELD), "fertilize_interval", DEFAULT_FERTILIZE_INTERVAL);
         dosesPerPlot = intField(files.get(FIELD), "doses_per_plot", DEFAULT_DOSES_PER_PLOT);
@@ -490,6 +493,11 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     /** mB of hydration water per aging step of a field's copper rails. */
     public int fieldCorrosionWater() {
         return fieldCorrosionWater;
+    }
+
+    /** Axe durability that scraping a field costs per farm rail. */
+    public int axeDamagePerRail() {
+        return axeDamagePerRail;
     }
 
     /** How many anti-corrosion items supply runs keep in a Field Head's buffer. */

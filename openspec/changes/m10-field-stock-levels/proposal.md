@@ -22,6 +22,7 @@ None.
 
 ### Modified Capabilities
 - `storage/field-head`: new requirements for the produce, the levels, how they stop harvesting and fertilizing, and their GUI. Modifies "Field Head GUI" (as `m10-field-head-buffer` leaves it) for the Stock tab and the larger panel, and "Fertilize settings per head" because the reserve is typed instead of stepped. A new requirement for the anti-corrosion item and reserve; the Water tab gets the anti-corrosion picker.
+- `storage/rail-corrosion`: "Scraping with an axe" costs `axe_damage_per_rail` (2) durability per rail, a play test wish.
 - `storage/field-supply` (from `m10-field-head-buffer`, archived first): "Supply run" brings the chosen anti-corrosion item above its reserve.
 
 ## Impact

@@ -21,4 +21,12 @@ class FieldThresholdTest {
         assertEquals(100, FieldThreshold.step(100, 1));
         assertEquals(10, FieldThreshold.step(10, -1));
     }
+
+    @Test
+    void sliderFractionRoundsToStep() {
+        assertEquals(10, FieldThreshold.fromFraction(0.0));
+        assertEquals(50, FieldThreshold.fromFraction(0.47));
+        assertEquals(60, FieldThreshold.fromFraction(0.55));
+        assertEquals(100, FieldThreshold.fromFraction(1.2));
+    }
 }

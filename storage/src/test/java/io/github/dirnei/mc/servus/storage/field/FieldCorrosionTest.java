@@ -85,4 +85,11 @@ class FieldCorrosionTest {
         assertFalse(FieldCorrosion.axeCanScrape(true, 3, 5));
         assertTrue(FieldCorrosion.axeCanScrape(false, 0, 128));
     }
+
+    @Test
+    void axeDamagePerRail() {
+        assertEquals(10, FieldCorrosion.axeDamage(5, 2));
+        assertEquals(0, FieldCorrosion.axeDamage(5, 0));
+        assertEquals(Integer.MAX_VALUE, FieldCorrosion.axeDamage(Integer.MAX_VALUE, 2));
+    }
 }

@@ -23,6 +23,11 @@ public final class FieldThreshold {
         return clamp(percent + steps * STEP);
     }
 
+    /** The percent at that fraction of a slider (0 left, 1 right), rounded to a step and kept in range. */
+    public static int fromFraction(double fraction) {
+        return clamp((int) Math.round(fraction * 100 / STEP) * STEP);
+    }
+
     public static int clamp(int percent) {
         return Math.max(MIN, Math.min(MAX, percent));
     }

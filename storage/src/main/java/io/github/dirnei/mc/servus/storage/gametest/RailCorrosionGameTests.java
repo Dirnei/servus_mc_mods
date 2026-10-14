@@ -148,6 +148,25 @@ public final class RailCorrosionGameTests {
         });
     }
 
+    /** The head reports its water use per minute and the watering time to the next aging step. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void waterRateAndAgingEstimate(GameTestHelper helper) {
+        FieldHeadBlockEntity head = field(helper);
+        helper.runAfterDelay(3, () -> {
+            int perRail = StorageStatsManager.INSTANCE.fieldWaterPerRail();
+            int interval = StorageStatsManager.INSTANCE.fieldWaterInterval();
+            helper.assertTrue(head.waterPerMinute() == FieldWater.perMinute(RAILS, perRail, interval),
+                    "water use per minute, got " + head.waterPerMinute());
+            long full = FieldWater.ticksToUse(perStep(), RAILS, perRail, interval) / 20;
+            helper.assertTrue(head.secondsToAging() == full, "a fresh field ages after " + full + " s, got " + head.secondsToAging());
+            head.age(perStep() / 2);
+            helper.assertTrue(head.secondsToAging() < full, "half the water used brings the step closer");
+            head.setStage(FieldCorrosion.CORRODED);
+            helper.assertTrue(head.waterPerMinute() == 0 && head.secondsToAging() == -1, "corroded rails use no water and age no further");
+            helper.succeed();
+        });
+    }
+
     /** Hydration water counts toward aging. */
     @ServusGameTest(timeoutTicks = 60)
     public static void waterUseCountsForAging(GameTestHelper helper) {
@@ -198,8 +217,9 @@ public final class RailCorrosionGameTests {
             useOnRail(helper, player, 5);
             helper.assertTrue(head.corrosion() == FieldCorrosion.OXIDIZED, "scraped to oxidized, got " + head.corrosion());
             assertRails(helper, FIRST, LAST, FieldCorrosion.OXIDIZED, "every rail is scraped");
-            helper.assertTrue(player.getMainHandItem().getDamageValue() == RAILS,
-                    "one durability per rail, got " + player.getMainHandItem().getDamageValue());
+            int perRail = StorageStatsManager.INSTANCE.axeDamagePerRail();
+            helper.assertTrue(player.getMainHandItem().getDamageValue() == RAILS * perRail,
+                    perRail + " durability per rail, got " + player.getMainHandItem().getDamageValue());
             helper.succeedWhen(() -> {
                 helper.assertTrue(head.hydrated(), "the scraped field is watered again");
                 helper.assertTrue(!helper.getBlockState(HEAD).getValue(FieldHeadBlock.CORRODED), "the rust rim is gone");
@@ -214,7 +234,7 @@ public final class RailCorrosionGameTests {
         helper.runAfterDelay(3, () -> {
             head.setStage(FieldCorrosion.WEATHERED);
             ItemStack axe = new ItemStack(Items.IRON_AXE);
-            axe.setDamageValue(axe.getMaxDamage() - (RAILS - 2));
+            axe.setDamageValue(axe.getMaxDamage() - (RAILS * StorageStatsManager.INSTANCE.axeDamagePerRail() - 1));
             int damage = axe.getDamageValue();
             Player player = TestPlayers.holding(helper, axe);
             useOnRail(helper, player, 4);

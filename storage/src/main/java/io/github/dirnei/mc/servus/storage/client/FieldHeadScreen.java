@@ -9,8 +9,10 @@ import io.github.dirnei.mc.servus.storage.field.FertilizeMode;
 import io.github.dirnei.mc.servus.storage.field.FertilizeStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldAmount;
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
+import io.github.dirnei.mc.servus.storage.field.FieldDuration;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
+import io.github.dirnei.mc.servus.storage.field.FieldThreshold;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
 import io.github.dirnei.mc.servus.storage.field.SetFieldAmountPayload;
 import io.github.dirnei.mc.servus.storage.field.SupplyBuffer;
@@ -84,8 +86,11 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private static final int WATER_Y = 44;
     private static final int BAR_Y = 56;
     private static final int BAR_H = 8;
-    private static final int HYDRATED_Y = 70;
+    private static final int WATER_RATE_Y = 70;
     private static final int CORROSION_Y = 84;
+    private static final int AGING_Y = 96;
+    /** Rows above and below the ripe bar that still take a slider click. */
+    private static final int SLIDER_GRACE = 3;
     private static final int RADIUS_TEXT_X = 30;
     private static final int SIZE_Y = 44;
     private static final int MODE_Y = 44;
@@ -123,6 +128,8 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private Button harvestUp;
     private Button fertilizeDown;
     private Button fertilizeUp;
+    /** The harvest percent the ripe bar slider shows while it is dragged; 0 while it is not. */
+    private int sliderPercent;
 
     public FieldHeadScreen(FieldHeadMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, FieldHeadMenu.IMAGE_WIDTH, FieldHeadMenu.IMAGE_HEIGHT);
@@ -503,13 +510,15 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             return;
         }
         List<Component> lines = switch (menu.page()) {
-            case FIELD -> serving() && inside(mouseX, mouseY, RIPE_X, RIPE_Y, RIPE_W, RIPE_H)
+            case FIELD -> serving() && onRipeBar(mouseX, mouseY)
                     ? List.of(Component.translatable("gui.servus_storage.field_head.ripe_tooltip",
-                            menu.ripe(), menu.planted(), percent(menu.ripe(), menu.planted()), menu.threshold()))
+                            menu.ripe(), menu.planted(), percent(menu.ripe(), menu.planted()), shownThreshold()),
+                            Component.translatable("gui.servus_storage.field_head.ripe_slider"))
                     : List.of();
             case WATER -> inside(mouseX, mouseY, MARGIN, BAR_Y, WIDTH, BAR_H)
                     ? List.of(Component.translatable("gui.servus_storage.field_head.water", menu.water(), menu.capacity()),
-                            Component.translatable(menu.hydrated() ? "gui.servus_storage.field_head.hydrated" : "gui.servus_storage.field_head.dry"))
+                            menu.hydrated() ? Component.translatable("gui.servus_storage.field_head.water_rate", menu.waterPerMinute())
+                                    : Component.translatable("gui.servus_storage.field_head.dry"))
                     : List.of();
             case STOCK -> stockTooltip(mouseX, mouseY);
             case UPGRADES -> emptySlotHovered(FieldHeadMenu.RANGE_SLOT, mouseX, mouseY)
@@ -697,7 +706,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         if (fill > 0) {
             graphics.fill(left, top, left + fill, top + RIPE_H, menu.harvestDue() ? COLOUR_DUE : COLOUR_RIPE);
         }
-        int mark = left + Math.min(RIPE_W - 1, RIPE_W * menu.threshold() / 100);
+        int mark = left + Math.min(RIPE_W - 1, RIPE_W * shownThreshold() / 100);
         graphics.fill(mark, top - 2, mark + 1, top + RIPE_H + 2, COLOUR_MARK);
     }
 
@@ -710,6 +719,24 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         if (filled > 0) {
             graphics.fill(left, top, left + filled, top + BAR_H, menu.hydrated() ? COLOUR_WATER : COLOUR_DRY);
         }
+    }
+
+    /** The harvest threshold the Field tab shows: the dragged slider's while it moves, else the head's. */
+    private int shownThreshold() {
+        return sliderPercent > 0 ? sliderPercent : menu.threshold();
+    }
+
+    private boolean onRipeBar(double mouseX, double mouseY) {
+        return inside((int) mouseX, (int) mouseY, RIPE_X, RIPE_Y - SLIDER_GRACE, RIPE_W, RIPE_H + 2 * SLIDER_GRACE);
+    }
+
+    /** Moves the slider to the mouse and sends the percent when it changed. */
+    private void slideTo(double mouseX) {
+        int percent = FieldThreshold.fromFraction((mouseX - leftPos - RIPE_X) / RIPE_W);
+        if (percent != shownThreshold()) {
+            press(FieldHeadMenu.BUTTON_HARVEST_PERCENT + percent / FieldThreshold.STEP);
+        }
+        sliderPercent = percent;
     }
 
     private static int percent(int ripe, int planted) {
@@ -750,7 +777,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             return;
         }
         graphics.text(font, Component.translatable("gui.servus_storage.field_head.ripe", menu.ripe(), menu.planted()), MARGIN, RIPE_Y, COLOUR_TEXT, false);
-        graphics.text(font, Component.translatable("gui.servus_storage.field_head.harvest_at", menu.threshold()), MARGIN, THRESHOLD_Y, COLOUR_TEXT, false);
+        graphics.text(font, Component.translatable("gui.servus_storage.field_head.harvest_at", shownThreshold()), MARGIN, THRESHOLD_Y, COLOUR_TEXT, false);
         FieldWork work = menu.work();
         if (work != null) {
             int colour = switch (work) {
@@ -792,9 +819,10 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private void renderWaterLabels(GuiGraphicsExtractor graphics) {
         graphics.text(font, Component.translatable("gui.servus_storage.field_head.water", menu.water(), menu.capacity()), MARGIN, WATER_Y, COLOUR_TEXT, false);
         if (serving()) {
-            boolean hydrated = menu.hydrated();
-            graphics.text(font, Component.translatable(hydrated ? "gui.servus_storage.field_head.hydrated" : "gui.servus_storage.field_head.dry"),
-                    MARGIN, HYDRATED_Y, hydrated ? COLOUR_DUE : COLOUR_WARN, false);
+            Component water = menu.hydrated() || menu.waterPerMinute() <= 0
+                    ? Component.translatable("gui.servus_storage.field_head.water_rate", menu.waterPerMinute())
+                    : Component.translatable("gui.servus_storage.field_head.dry");
+            graphics.text(font, water, MARGIN, WATER_RATE_Y, menu.hydrated() ? COLOUR_TEXT : COLOUR_WARN, false);
         }
         int stage = menu.corrosion();
         if (stage >= FieldCorrosion.COPPER) {
@@ -804,7 +832,23 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                             Component.translatable("gui.servus_storage.field_head.stage." + FieldCorrosion.name(stage)), menu.corrosionProgress());
             graphics.text(font, corrosion, MARGIN, CORROSION_Y,
                     stage == FieldCorrosion.CORRODED ? COLOUR_WARN : COLOUR_TEXT, false);
+            Component aging = agingLine(stage);
+            if (aging != null) {
+                clipped(graphics, aging, MARGIN, AGING_Y, WIDTH, COLOUR_HINT);
+            }
         }
+    }
+
+    /** When the next aging step is due while the field is watered, and whether an anti-corrosion item will hold it; null when unknown. */
+    private Component agingLine(int stage) {
+        long seconds = menu.secondsToAging();
+        if (stage == FieldCorrosion.CORRODED || seconds < 0) {
+            return null;
+        }
+        String in = FieldDuration.of(seconds);
+        return menu.supplyCount(SupplyBuffer.Part.ANTI_CORROSION) > 0
+                ? Component.translatable("gui.servus_storage.field_head.aging_held", in, menu.antiCorrosion().getHoverName())
+                : Component.translatable("gui.servus_storage.field_head.aging_in", in);
     }
 
     private void renderUpgradeLabels(GuiGraphicsExtractor graphics) {
@@ -853,17 +897,26 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         if (shown != null && shown.mouseClicked(event, doubleClick)) {
             return true;
         }
+        if (menu.page() == Page.FIELD && serving() && event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT && onRipeBar(event.x(), event.y())) {
+            slideTo(event.x());
+            return true;
+        }
         return super.mouseClicked(event, doubleClick);
     }
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
         ItemPicker open = openPicker();
+        if (open == null && sliderPercent > 0) {
+            slideTo(event.x());
+            return true;
+        }
         return open != null && open.mouseDragged(event.x(), event.y()) || super.mouseDragged(event, dragX, dragY);
     }
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
+        sliderPercent = 0;
         ItemPicker open = openPicker();
         return open != null && open.mouseReleased() || super.mouseReleased(event);
     }

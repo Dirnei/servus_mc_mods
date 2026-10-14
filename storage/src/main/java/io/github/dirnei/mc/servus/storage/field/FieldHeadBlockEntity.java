@@ -496,6 +496,28 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         return agedWater;
     }
 
+    /** The mB per minute the served field uses while watered; 0 while it serves none or its rails are corroded. */
+    public int waterPerMinute() {
+        if (status != FieldStatus.SERVING || stage == FieldCorrosion.CORRODED) {
+            return 0;
+        }
+        return FieldWater.perMinute(rails.size(), StorageStatsManager.INSTANCE.fieldWaterPerRail(),
+                StorageStatsManager.INSTANCE.fieldWaterInterval());
+    }
+
+    /**
+     * Seconds of watering until the next aging step is due, -1 while the head
+     * uses no water. Server side.
+     */
+    public long secondsToAging() {
+        if (waterPerMinute() <= 0) {
+            return -1;
+        }
+        long ticks = FieldWater.ticksToUse(StorageStatsManager.INSTANCE.fieldCorrosionWater() - agedWater, rails.size(),
+                StorageStatsManager.INSTANCE.fieldWaterPerRail(), StorageStatsManager.INSTANCE.fieldWaterInterval());
+        return ticks < 0 ? -1 : ticks / 20;
+    }
+
     /** Percent of the way to the next aging step. */
     public int corrosionProgress() {
         return FieldCorrosion.progress(agedWater, StorageStatsManager.INSTANCE.fieldCorrosionWater());
@@ -805,6 +827,13 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     /** The ripe percent of the planted plots that calls a harvest. */
     public int harvestPercent() {
         return harvestPercent > 0 ? harvestPercent : FieldThreshold.fromShare(StorageStatsManager.INSTANCE.fieldHarvestShare());
+    }
+
+    /** Sets the harvest threshold, kept in range. */
+    public void setHarvestPercent(int percent) {
+        harvestPercent = FieldThreshold.clamp(percent);
+        lookDirty = true;
+        setChanged();
     }
 
     /** Moves the harvest threshold by whole steps of {@link FieldThreshold#STEP} percent. */

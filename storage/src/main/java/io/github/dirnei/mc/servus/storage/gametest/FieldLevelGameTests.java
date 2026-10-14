@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.storage.field.FertilizeStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldAmount;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlock;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
+import io.github.dirnei.mc.servus.storage.field.FieldThreshold;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
 import io.github.dirnei.mc.servus.storage.field.StockLevels;
 import io.github.dirnei.mc.servus.storage.field.SupplyBuffer;
@@ -216,6 +217,18 @@ public final class FieldLevelGameTests {
         player.snapTo(Vec3.atBottomCenterOf(helper.absolutePos(HEAD).east()));
         player.containerMenu = new FieldHeadMenu(1, player.getInventory(), head);
         return player;
+    }
+
+    /** The ripe bar slider sets the harvest threshold to the step it was let go at. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void ripeSliderSetsThreshold(GameTestHelper helper) {
+        FieldHeadBlockEntity head = farm(helper, harvester()).head();
+        Player player = playerAtTheHead(helper, head);
+        player.containerMenu.clickMenuButton(player, FieldHeadMenu.BUTTON_HARVEST_PERCENT + 7);
+        helper.assertTrue(head.harvestPercent() == 70, "the slider sets 70 percent, got " + head.harvestPercent());
+        player.containerMenu.clickMenuButton(player, FieldHeadMenu.BUTTON_HARVEST_PERCENT);
+        helper.assertTrue(head.harvestPercent() == FieldThreshold.MIN, "the slider stops at the minimum, got " + head.harvestPercent());
+        helper.succeed();
     }
 
     /** Typed levels are set as sent, and the fertilize level never stays above the limit. */

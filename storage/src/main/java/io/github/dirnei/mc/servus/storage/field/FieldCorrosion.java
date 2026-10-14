@@ -100,8 +100,13 @@ public final class FieldCorrosion {
         return (int) Math.min(99, counted * 100 / perStep);
     }
 
-    /** Whether an axe with that much durability left may scrape a field of that many rails; one durability per rail. */
-    public static boolean axeCanScrape(boolean damageable, int remaining, int rails) {
-        return !damageable || remaining >= rails;
+    /** The axe durability scraping a field of that many rails costs, never more than an int holds. */
+    public static int axeDamage(int rails, int perRail) {
+        return (int) Math.min(Integer.MAX_VALUE, (long) Math.max(0, rails) * Math.max(0, perRail));
+    }
+
+    /** Whether an axe with that much durability left may take that much damage from a scrape. */
+    public static boolean axeCanScrape(boolean damageable, int remaining, int damage) {
+        return !damageable || remaining >= damage;
     }
 }

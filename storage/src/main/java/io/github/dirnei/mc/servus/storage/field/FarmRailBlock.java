@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.field;
 
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import net.minecraft.world.InteractionResult;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
@@ -50,7 +51,7 @@ public class FarmRailBlock extends RailBlock {
     }
 
     /**
-     * An axe scrapes the whole field back one stage, one durability per rail;
+     * An axe scrapes the whole field back one stage, {@code axe_damage_per_rail} durability per rail;
      * an axe with too little durability left does nothing and says what the
      * field needs. Fresh copper passes the click on.
      */
@@ -86,8 +87,9 @@ public class FarmRailBlock extends RailBlock {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         int count = rails.size();
-        if (!FieldCorrosion.axeCanScrape(stack.isDamageableItem(), stack.getMaxDamage() - stack.getDamageValue(), count)) {
-            player.sendOverlayMessage(Component.translatable("message.servus_storage.farm_rail.axe_worn", count, count));
+        int damage = FieldCorrosion.axeDamage(count, StorageStatsManager.INSTANCE.axeDamagePerRail());
+        if (!FieldCorrosion.axeCanScrape(stack.isDamageableItem(), stack.getMaxDamage() - stack.getDamageValue(), damage)) {
+            player.sendOverlayMessage(Component.translatable("message.servus_storage.farm_rail.axe_worn", count, damage));
             return InteractionResult.CONSUME;
         }
         int younger = FieldCorrosion.previous(stage);
@@ -104,7 +106,7 @@ public class FarmRailBlock extends RailBlock {
         for (BlockPos rail : rails) {
             level.levelEvent(null, LevelEvent.PARTICLES_SCRAPE, rail, 0);
         }
-        stack.hurtAndBreak(count, player, hand.asEquipmentSlot());
+        stack.hurtAndBreak(damage, player, hand.asEquipmentSlot());
         return InteractionResult.SUCCESS;
     }
 

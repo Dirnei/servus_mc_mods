@@ -239,7 +239,10 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.field_head.ripe", "Ripe %s/%s");
         add("gui.servus_storage.field_head.ripe_tooltip", "%s of %s planted ripe (%s%%), harvest at %s%%");
         add("gui.servus_storage.field_head.harvest_at", "Harvest at %s%%");
-        add("gui.servus_storage.field_head.hydrated", "Hydrated");
+        add("gui.servus_storage.field_head.water_rate", "Uses %s mB per minute");
+        add("gui.servus_storage.field_head.aging_in", "Next stage in %s of watering");
+        add("gui.servus_storage.field_head.aging_held", "Next step in %s, held by %s");
+        add("gui.servus_storage.field_head.ripe_slider", "Click or drag the bar to set the harvest threshold");
         add("gui.servus_storage.field_head.buffer.off", "off");
         add("gui.servus_storage.field_head.buffer.seeds", "Seeds: %s / %s");
         add("gui.servus_storage.field_head.buffer.fertilizer", "Fertilizer: %s / %s");

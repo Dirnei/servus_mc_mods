@@ -109,9 +109,9 @@ The **Field** tab SHALL have a crop picker across the width of the page: a butto
 
 Each crop entry SHALL show how many of that item the warehouse of the served field holds. The counts SHALL reach the player when the GUI opens and again whenever they change while it is open. An entry with no stock SHALL stay selectable but be drawn greyed, with a hint that the first planting needs seeds in the warehouse. A head whose field is not on a warehouse SHALL show no counts.
 
-The Field tab SHALL show the planted and ripe plot counts with the ripe share bar, the harvest threshold with its buttons, whether a harvest is due through the work status line (naming the harvester working the field), or why the head serves no field.
+The Field tab SHALL show the planted and ripe plot counts with the ripe share bar, the harvest threshold with its buttons, and the ripe share bar SHALL also be a slider: clicking or dragging on it SHALL set the harvest threshold to the step under the mouse, its mark following while dragged. It SHALL show whether a harvest is due through the work status line (naming the harvester working the field), or why the head serves no field.
 
-The **Water** tab SHALL have an anti-corrosion picker like the fertilizer picker, across the width of the page: "Off" first, then every item of the anti-corrosion tag, each with its warehouse stock, greyed without stock; choosing an entry sets the head's anti-corrosion item. Below it the tab SHALL show the water level and capacity and whether the field is hydrated or dry. It SHALL show the corrosion stage of the served field with the progress toward the next aging step, or, for a corroded field, that the rails are corroded and the field is not watered.
+The **Water** tab SHALL have an anti-corrosion picker like the fertilizer picker, across the width of the page: "Off" first, then every item of the anti-corrosion tag, each with its warehouse stock, greyed without stock; choosing an entry sets the head's anti-corrosion item. Below it the tab SHALL show the water level and capacity and the water the served field uses per minute while watered, or that it is dry. It SHALL show the corrosion stage of the served field with the progress toward the next aging step and roughly how much watering time is left until that step, and whether an anti-corrosion item in the buffer will hold the stage then, or, for a corroded field, that the rails are corroded and the field is not watered.
 
 The **Fertilizer** tab SHALL have a fertilizer picker like the crop picker, across the width of the page: "Off" first, then every item of the fertilizer tag, each with its warehouse stock, greyed without stock; choosing an entry sets the head's fertilizer, "Off" clears it. It SHALL have mode buttons Off, After planting and Until ripe share, the fertilize threshold with - and + buttons, and a status line: fertilizing off, Spreader at work (naming the Spreader when it has a name plate), waiting, no Spreader shuttle, no Spreader that reaches the field without a lift, no shuttle that can bring supplies, no fertilizer in stock, stock at or below the reserve, or the buffer empty while a supply run is on its way. The server SHALL refuse an item outside the tag and a player who can no longer use the head.
 
@@ -174,6 +174,14 @@ A tab SHALL carry a red marker while its page holds a problem, so it is seen fro
 #### Scenario: Radius shown
 - **WHEN** a player opens the Upgrades tab of a head holding one Range Upgrade with `radius` 2
 - **THEN** the tab shows radius 3
+
+#### Scenario: Ripe bar as slider
+- **WHEN** a player clicks the ripe share bar of a head at 70 percent of its width
+- **THEN** the harvest threshold is 70 percent and the bar's mark moves there
+
+#### Scenario: Water use and aging estimate
+- **WHEN** a player opens the Water tab of a watered field of five rails with `water_per_rail` 1, `water_interval` 100 and `corrosion_water` 64000, half way to its next aging step
+- **THEN** the tab says the field uses 60 mB per minute and the next stage comes in about 8h 53m of watering
 
 #### Scenario: Corroded field shown
 - **WHEN** a player opens the GUI of a head whose field is corroded

@@ -25,4 +25,18 @@ class FieldWaterTest {
     void noOverflow() {
         assertEquals(Integer.MAX_VALUE, FieldWater.use(Integer.MAX_VALUE, 4));
     }
+
+    @Test
+    void perMinuteOfFiveRails() {
+        assertEquals(60, FieldWater.perMinute(5, 1, 100));
+        assertEquals(0, FieldWater.perMinute(0, 1, 100));
+    }
+
+    @Test
+    void ticksToUseWholeIntervals() {
+        assertEquals(100, FieldWater.ticksToUse(5, 5, 1, 100));
+        assertEquals(200, FieldWater.ticksToUse(6, 5, 1, 100));
+        assertEquals(64000 / 5 * 100, FieldWater.ticksToUse(64000, 5, 1, 100));
+        assertEquals(-1, FieldWater.ticksToUse(10, 0, 1, 100));
+    }
 }

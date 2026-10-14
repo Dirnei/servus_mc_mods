@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.storage.field.FertilizeStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.storage.field.FieldCropStockPayload;
 import io.github.dirnei.mc.servus.storage.field.FieldSupplyStockPayload;
+import io.github.dirnei.mc.servus.storage.field.FieldThreshold;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
@@ -68,6 +69,8 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     public static final int BUTTON_FERTILIZE_MODE = 3;
     public static final int BUTTON_FERTILIZE_DOWN = 6;
     public static final int BUTTON_FERTILIZE_UP = 7;
+    /** The ripe bar as a slider: this id plus the harvest percent divided by {@link FieldThreshold#STEP}. */
+    public static final int BUTTON_HARVEST_PERCENT = 8;
     private static final int FLAG_HYDRATED = 1;
     private static final int FLAG_HARVEST_ONLY = 2;
     private static final int FLAG_DUE = 4;
@@ -95,6 +98,11 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     /** The served field's corrosion stage plus one; zero while the head serves no field. */
     private final DataSlot corrosion = DataSlot.standalone();
     private final DataSlot corrosionProgress = DataSlot.standalone();
+    private final DataSlot waterRateLow = DataSlot.standalone();
+    private final DataSlot waterRateHigh = DataSlot.standalone();
+    /** Seconds until the next aging step plus one; zero while unknown. */
+    private final DataSlot agingLow = DataSlot.standalone();
+    private final DataSlot agingHigh = DataSlot.standalone();
     private final DataSlot fertilizeMode = DataSlot.standalone();
     private final DataSlot fertilizePercent = DataSlot.standalone();
     private final DataSlot reserve = DataSlot.standalone();
@@ -143,7 +151,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         });
         PlayerInventorySlots.add(this::addSlot, playerInventory, INVENTORY_X, INVENTORY_Y);
         for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags,
-                work, threshold, radius, corrosion, corrosionProgress, fertilizeMode, fertilizePercent, reserve, antiCorrosionReserve, fertilizeStatus,
+                work, threshold, radius, corrosion, corrosionProgress, waterRateLow, waterRateHigh, agingLow, agingHigh, fertilizeMode, fertilizePercent, reserve, antiCorrosionReserve, fertilizeStatus,
                 harvestLimitLow, harvestLimitHigh, fertilizeBelowLow, fertilizeBelowHigh, produceStockLow, produceStockHigh}) {
             addDataSlot(slot);
         }
@@ -188,6 +196,8 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         radius.set(head.radius());
         corrosion.set(head.corrosion() + 1);
         corrosionProgress.set(head.corrosionProgress());
+        split(head.waterPerMinute(), waterRateLow, waterRateHigh);
+        split((int) Math.min(Integer.MAX_VALUE, head.secondsToAging() + 1), agingLow, agingHigh);
         fertilizeMode.set(head.fertilizeMode().ordinal());
         fertilizePercent.set(head.fertilizePercent());
         reserve.set(head.reserve());
@@ -469,6 +479,16 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         return corrosionProgress.get();
     }
 
+    /** The mB per minute the field uses while watered. */
+    public int waterPerMinute() {
+        return join(waterRateLow, waterRateHigh);
+    }
+
+    /** Seconds of watering until the next aging step, -1 while unknown. */
+    public long secondsToAging() {
+        return (join(agingLow, agingHigh) & 0xFFFFFFFFL) - 1;
+    }
+
     public boolean hydrated() {
         return (flags.get() & FLAG_HYDRATED) != 0;
     }
@@ -556,17 +576,19 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         return fertilizeStatus.get() == 0 ? null : FertilizeStatus.byId(fertilizeStatus.get() - 1);
     }
 
-    /** The arrows move the harvest and fertilize thresholds; the mode buttons set the mode. */
+    /** The arrows move the harvest and fertilize thresholds, the ripe bar sets the harvest threshold, the mode buttons set the mode. */
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        boolean known = id >= BUTTON_THRESHOLD_DOWN && id <= BUTTON_FERTILIZE_UP;
+        boolean known = id >= BUTTON_THRESHOLD_DOWN && id <= BUTTON_HARVEST_PERCENT + FieldThreshold.MAX / FieldThreshold.STEP;
         if (!known) {
             return false;
         }
         if (player.level().isClientSide()) {
             return true;
         }
-        if (id == BUTTON_THRESHOLD_DOWN || id == BUTTON_THRESHOLD_UP) {
+        if (id >= BUTTON_HARVEST_PERCENT) {
+            head.setHarvestPercent((id - BUTTON_HARVEST_PERCENT) * FieldThreshold.STEP);
+        } else if (id == BUTTON_THRESHOLD_DOWN || id == BUTTON_THRESHOLD_UP) {
             head.stepHarvestPercent(id == BUTTON_THRESHOLD_DOWN ? -1 : 1);
         } else if (id < BUTTON_FERTILIZE_DOWN) {
             head.setFertilizeMode(FertilizeMode.byId(id - BUTTON_FERTILIZE_MODE));
