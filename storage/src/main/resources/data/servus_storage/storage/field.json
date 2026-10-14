@@ -8,7 +8,7 @@
   "field_check_interval": 40,
   "radius": 2,
   "max_radius": 4,
-  "corrosion_water": 64000,
+  "corrosion_water": 6000,
   "axe_damage_per_rail": 2,
   "anti_corrosion_level": 8,
   "fertilize_interval": 600,

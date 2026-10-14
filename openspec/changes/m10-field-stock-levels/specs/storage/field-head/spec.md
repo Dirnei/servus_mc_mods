@@ -180,8 +180,8 @@ A tab SHALL carry a red marker while its page holds a problem, so it is seen fro
 - **THEN** the harvest threshold is 70 percent and the bar's mark moves there
 
 #### Scenario: Water use and aging estimate
-- **WHEN** a player opens the Water tab of a watered field of five rails with `water_per_rail` 1, `water_interval` 100 and `corrosion_water` 64000, half way to its next aging step
-- **THEN** the tab says the field uses 60 mB per minute and the next stage comes in about 8h 53m of watering
+- **WHEN** a player opens the Water tab of a watered field of five rails with `water_per_rail` 1, `water_interval` 100 and `corrosion_water` 6000, half way to its next aging step
+- **THEN** the tab says the field uses 60 mB per minute and the next stage comes in about 50m of watering
 
 #### Scenario: Corroded field shown
 - **WHEN** a player opens the GUI of a head whose field is corroded
