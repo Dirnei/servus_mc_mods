@@ -42,7 +42,7 @@
 
 ## 3. Block entity, block and sync
 
-- [ ] 3.1 In `UtilityDuctBlockEntity`:
+- [x] 3.1 In `UtilityDuctBlockEntity`:
   - keep the base pose, the final pose and the faces
   - recompute the base pose with `isFaceSturdy` on the six neighbours whenever arms or panels change and in `neighbourChanged()`
   - add `neighbourPoseChanged(stage)` and call it on the connected neighbour ducts when the base or final pose changed, stopping when nothing changed

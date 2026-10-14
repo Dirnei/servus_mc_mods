@@ -25,6 +25,12 @@ public final class DuctModelData {
     /** Channel per line and side, index {@code line.ordinal() * 6 + side.ordinal()}. */
     public static final ModelProperty<int[]> CHANNELS = new ModelProperty<>();
 
+    /** The duct's resting pose, see {@link DuctPose}. */
+    public static final ModelProperty<Integer> POSE = new ModelProperty<>();
+
+    /** Where each arm meets its face, see {@link DuctPose#faces}. */
+    public static final ModelProperty<Integer> FACES = new ModelProperty<>();
+
     /**
      * The data line's tier skin: the suffix of the tier's body textures (see
      * {@link DataCableItem#skin()}), absent for the base tier.

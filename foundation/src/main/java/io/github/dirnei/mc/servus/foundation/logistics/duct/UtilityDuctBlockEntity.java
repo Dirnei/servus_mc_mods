@@ -68,8 +68,10 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
  * present line joins its own network type, so items, energy and fluids form separate
  * graphs through the same blocks. The duct also keeps which sides carry an
  * arm per line and which arms end at an inventory or machine, synced to the
- * client for the model. The data line has no channels; its sides are only on
- * (both) or off (disabled), and it joins the data network as a {@link DataNode}.
+ * client for the model, and its resting pose (see {@link DuctPose}), worked out
+ * from the blocks and ducts around it whenever they change. The data line has
+ * no channels; its sides are only on (both) or off (disabled), and it joins the
+ * data network as a {@link DataNode}.
  */
 public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
@@ -97,6 +99,12 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     private int hollowPanels;
     /** The data line's tier: the id of the data cable item that placed it. */
     private Identifier dataTier = CableTiersManager.BASE_TIER;
+    /** The pose from this duct and the blocks around it, see {@link DuctPose#base}. */
+    private int basePose = DuctPose.CENTRED;
+    /** The pose the duct is drawn at, see {@link DuctPose#resting}. */
+    private int pose = DuctPose.CENTRED;
+    /** Where each arm meets its face, see {@link DuctPose#faces}. */
+    private int poseFaces;
 
     public UtilityDuctBlockEntity(BlockPos pos, BlockState state) {
         super(ServusLogisticsBlockEntities.UTILITY_DUCT.get(), pos, state);
@@ -325,13 +333,148 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         if (level == null || level.isClientSide() || isRemoved()) {
             return;
         }
-        if (recomputeArms()) {
+        boolean armsChanged = recomputeArms();
+        if (armsChanged) {
             setChanged();
             if (getBlockState().getBlock() instanceof UtilityDuctBlock duct) {
                 duct.refreshConnections(level, worldPosition);
             }
+        }
+        if (refreshPose() || armsChanged) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
+    }
+
+    /** Which part of a neighbour duct's pose changed, see {@link #neighbourPoseChanged}. */
+    public enum PoseStage {
+        /** The base pose, which this duct may drape from. */
+        BASE,
+        /** The resting pose, which decides where shared arms meet their face. */
+        RESTING
+    }
+
+    /** The pose the duct is drawn at, see {@link DuctPose}. */
+    public int pose() {
+        return pose;
+    }
+
+    /** Where each arm meets its face, see {@link DuctPose#faces}. */
+    public int poseFaces() {
+        return poseFaces;
+    }
+
+    /**
+     * Works the base pose out from the blocks around the duct, then the
+     * resting pose and the faces, and tells the connected neighbour ducts
+     * what changed. Keeps the old pose while a neighbour block is not loaded.
+     * Server only.
+     *
+     * @return true when the resting pose or the faces changed, so the client needs them
+     */
+    private boolean refreshPose() {
+        if (!(level instanceof ServerLevel) || isRemoved() || !neighboursLoaded()) {
+            return false;
+        }
+        int base = DuctPose.base(connections(), sturdyMask(), hasPanels());
+        boolean baseChanged = base != basePose;
+        basePose = base;
+        if (baseChanged) {
+            setChanged();
+        }
+        return updateResting(baseChanged);
+    }
+
+    /** Recomputes the resting pose and the faces and tells the neighbours; see {@link #refreshPose()}. */
+    private boolean updateResting(boolean baseChanged) {
+        int resting = DuctPose.resting(basePose, ductArms(), neighbourPoses(PoseStage.BASE));
+        boolean restingChanged = resting != pose;
+        pose = resting;
+        boolean changed = updateFaces() || restingChanged;
+        if (changed) {
+            setChanged();
+        }
+        if (baseChanged) {
+            tellNeighbours(PoseStage.BASE);
+        } else if (restingChanged) {
+            tellNeighbours(PoseStage.RESTING);
+        }
+        return changed;
+    }
+
+    private boolean updateFaces() {
+        int faces = DuctPose.faces(pose, connections(), endpoints, neighbourPoses(PoseStage.RESTING));
+        boolean changed = faces != poseFaces;
+        poseFaces = faces;
+        return changed;
+    }
+
+    /** A connected neighbour duct's pose changed: recompute what depends on it and tell the client. Server only. */
+    public void neighbourPoseChanged(PoseStage stage) {
+        if (!(level instanceof ServerLevel) || isRemoved()) {
+            return;
+        }
+        boolean changed;
+        if (stage == PoseStage.BASE) {
+            changed = updateResting(false);
+        } else {
+            changed = updateFaces();
+            if (changed) {
+                setChanged();
+            }
+        }
+        if (changed) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    private void tellNeighbours(PoseStage stage) {
+        int ductArms = ductArms();
+        for (Direction side : DIRECTIONS) {
+            if ((ductArms & DuctModelData.bit(side)) != 0
+                    && level.getBlockEntity(worldPosition.relative(side)) instanceof UtilityDuctBlockEntity neighbour) {
+                neighbour.neighbourPoseChanged(stage);
+            }
+        }
+    }
+
+    /** Six bit mask of the arms that lead to another duct. */
+    private int ductArms() {
+        return connections() & ~endpoints;
+    }
+
+    /** The base or resting pose of the duct across each arm to a duct; centred on the other sides. */
+    private int[] neighbourPoses(PoseStage stage) {
+        int[] poses = new int[SIDES];
+        int ductArms = ductArms();
+        for (Direction side : DIRECTIONS) {
+            if ((ductArms & DuctModelData.bit(side)) != 0
+                    && level.getBlockEntity(worldPosition.relative(side)) instanceof UtilityDuctBlockEntity neighbour) {
+                poses[side.ordinal()] = stage == PoseStage.BASE ? neighbour.basePose : neighbour.pose;
+            }
+        }
+        return poses;
+    }
+
+    /** Six bit mask of the sides whose neighbour shows a full sturdy face toward the duct; ducts never count. */
+    private int sturdyMask() {
+        int mask = 0;
+        for (Direction side : DIRECTIONS) {
+            BlockPos neighbourPos = worldPosition.relative(side);
+            BlockState neighbour = level.getBlockState(neighbourPos);
+            if (!(neighbour.getBlock() instanceof UtilityDuctBlock) && neighbour.isFaceSturdy(level, neighbourPos, side.getOpposite())) {
+                mask |= DuctModelData.bit(side);
+            }
+        }
+        return mask;
+    }
+
+    private boolean neighboursLoaded() {
+        for (Direction side : DIRECTIONS) {
+            if (!level.isLoaded(worldPosition.relative(side))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** The panel block on a side, or null. */
@@ -451,7 +594,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
                 .with(DuctModelData.LINES, linesMask())
                 .with(DuctModelData.ARMS, arms.clone())
                 .with(DuctModelData.ENDPOINTS, endpoints)
-                .with(DuctModelData.CHANNELS, channelData);
+                .with(DuctModelData.CHANNELS, channelData)
+                .with(DuctModelData.POSE, pose)
+                .with(DuctModelData.FACES, poseFaces);
         if (hasPanels()) {
             builder.with(DuctModelData.PANELS, new PanelSet(panels, hollowPanels));
         }
@@ -534,6 +679,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         if (level != null && !level.isClientSide()) {
             level.invalidateCapabilities(worldPosition);
             recomputeArms();
+            refreshPose();
             if (getBlockState().getBlock() instanceof UtilityDuctBlock duct) {
                 duct.refreshConnections(level, worldPosition);
             }
@@ -630,6 +776,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
         for (Line line : lines) {
             join(line);
+        }
+        if (refreshPose()) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
 
@@ -733,6 +882,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         saveFiltersAndPriorities(output);
         output.putIntArray("Arms", arms.clone());
         output.putInt("Endpoints", endpoints);
+        output.putInt("PoseBase", basePose);
+        output.putInt("Pose", pose);
+        output.putInt("PoseFaces", poseFaces);
         if (hasPanels()) {
             savePanels(output);
         }
@@ -823,6 +975,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         Arrays.fill(arms, 0);
         System.arraycopy(savedArms, 0, arms, 0, Math.min(arms.length, savedArms.length));
         endpoints = input.getIntOr("Endpoints", 0);
+        basePose = input.getIntOr("PoseBase", DuctPose.CENTRED);
+        pose = input.getIntOr("Pose", DuctPose.CENTRED);
+        poseFaces = input.getIntOr("PoseFaces", 0);
         loadPanels(input);
         Identifier savedTier = input.getString("DataTier").map(Identifier::tryParse).orElse(null);
         dataTier = savedTier == null ? CableTiersManager.BASE_TIER : savedTier;
