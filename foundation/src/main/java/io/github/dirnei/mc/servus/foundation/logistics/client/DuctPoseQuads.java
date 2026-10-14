@@ -123,14 +123,11 @@ final class DuctPoseQuads {
         return quad;
     }
 
-    /** Side faces sample their texture along the run; end faces keep their UVs. */
+    /** Side faces sample their texture along the run, end faces their cross-section. */
     private static void sideUvs(MutableQuad quad, int runAxis, float[] middle) {
         int normal = quad.direction().getAxis().ordinal();
         for (int vertex = 0; vertex < 4; vertex++) {
             DuctUv.Uv uv = DuctUv.side(pixels(quad, vertex), normal, runAxis, middle);
-            if (uv == null) {
-                return;
-            }
             quad.setUvFromSprite(vertex, uv.u() / 16F, uv.v() / 16F);
         }
     }

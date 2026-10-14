@@ -24,7 +24,7 @@ A pure function `DuctUv` (in `logistics/duct`, no Minecraft imports) gives the t
 - `v` = 8 plus the point's offset from the part's **own middle** on the face's other axis, in pixels. So a face of thickness n always shows the rows `8 - n/2` to `8 + n/2`, wherever the pose put the part.
 - The offset is taken in world direction, never per face, so the pattern is the same on all four sides and band order follows the world across axis (first line on the negative side) on the top, the bottom and both band faces.
 
-`DuctPoseQuads` applies it to every body quad of a centre or arm part after fitting the quad onto its box (`MutableQuad.setUvFromSprite(vertex, u / 16, v / 16)`), replacing today's "plain faces only" rule. Ring quads keep their UVs. Ends of a part (faces normal to the run axis) are hidden by the neighbouring part or the ring and keep their datagen UVs.
+`DuctPoseQuads` applies it to every body quad of a centre or arm part after fitting the quad onto its box (`MutableQuad.setUvFromSprite(vertex, u / 16, v / 16)`), replacing today's "plain faces only" rule. Ring quads keep their UVs. End faces (normal to the run axis) show where a run stops: they map the part's cross-section, v along the across axis the bands lie on (as on the faces that show every band) and u along the remaining axis, so the bands stand side by side there too. The play test found two line ends with their bands lying on top of each other while they kept their datagen UVs.
 
 Alternatives: UVs in datagen only. Rejected: the runtime stretches and moves the quads anyway, and datagen UVs cannot know the pose. `bakeUvsFromPosition`: rejected, its orientation depends on the face and mirrors north and east.
 

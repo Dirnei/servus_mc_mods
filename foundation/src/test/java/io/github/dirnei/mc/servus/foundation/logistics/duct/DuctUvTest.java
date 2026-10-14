@@ -1,7 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctUv.Uv;
 import org.junit.jupiter.api.Test;
@@ -73,9 +72,16 @@ class DuctUvTest {
         assertEquals(3, vertical.u(), "and runs along Y");
     }
 
+    /** The end face of a run along Z shows its bands side by side across X, in the same order as the top face. */
     @Test
-    void endFacesUntouched() {
-        assertNull(side(16, 8, 8, X, X, MIDDLE));
+    void endFaceShowsBandsSideBySide() {
+        Uv end = side(5, 7, 16, Z, Z, MIDDLE);
+        Uv top = side(5, 11, 3, Y, Z, MIDDLE);
+        assertEquals(5, end.v(), "the first band lies on the negative X side");
+        assertEquals(top.v(), end.v(), "the same band row as on top");
+        assertEquals(7, end.u());
+        Uv endOfX = side(16, 7, 4, X, X, MIDDLE);
+        assertEquals(4, endOfX.v(), "a run along X has its bands across Z");
     }
 
     /** A grown fitting face 4 px wide and 10 px tall covers the whole square of radius 2. */

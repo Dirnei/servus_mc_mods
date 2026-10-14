@@ -6,7 +6,7 @@
 
 ## 2. UVs along the run
 
-- [x] 2.1 Add pure `DuctUv` in `foundation/.../logistics/duct/` (design D1): u from the run axis coordinate, v from the offset to the part's own middle in world direction. JUnit `DuctUvTest`: `uContinuesAcrossBlockBorder`, `uContinuesAtArmToCentreJoint`, `sameOnAllFourSides`, `stripRowsByThickness` (4, 6, 8 px at the middle and low poses), `bandOrderFollowsWorldAcross` (top and bottom), `endFacesUntouched`. Verify: `gradlew :foundation:test` green.
+- [x] 2.1 Add pure `DuctUv` in `foundation/.../logistics/duct/` (design D1): u from the run axis coordinate, v from the offset to the part's own middle in world direction. JUnit `DuctUvTest`: `uContinuesAcrossBlockBorder`, `uContinuesAtArmToCentreJoint`, `sameOnAllFourSides`, `stripRowsByThickness` (4, 6, 8 px at the middle and low poses), `bandOrderFollowsWorldAcross` (top and bottom), `endFacesUntouched` (replaced in 6.2). Verify: `gradlew :foundation:test` green.
 - [x] 2.2 `foundation/.../logistics/client/DuctPoseQuads.java`: apply `DuctUv` to every body quad of centres and arms after fitting (also for a centre at the middle pose, which today returns the raw part quads), with `MutableQuad.setUvFromSprite`; rings keep their UVs. Verify: `gradlew build` green.
 
 ## 3. Parts and fittings
@@ -33,3 +33,4 @@
 ## 6. Play test rework
 
 - [x] 6.1 Lower the contrast of the line strips in `tools/duct-textures/gen.py` (the light and dark steps of the ribs, corrugation, spiral and braids one ramp step closer, less noise; the edge shading stays) and regenerate the textures. Verify: a second run changes no file, `gradlew build` green.
+- [x] 6.2 The end face of a two line duct showed its bands lying on top of each other. `DuctUv.side` maps end faces as a cross-section with the bands side by side on the across axis; `DuctPoseQuads` applies it to every face. JUnit `DuctUvTest.endFaceShowsBandsSideBySide` replaces `endFacesUntouched`. Verify: `gradlew build test` green, bands upright on duct ends in game.
