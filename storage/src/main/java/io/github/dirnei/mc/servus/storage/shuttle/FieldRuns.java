@@ -33,10 +33,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LevelEvent;
 
 /**
- * The legs of field runs: a harvester harvests, tills, plants and fetches
- * seeds, a Spreader fetches fertilizer and doses plots, a supply run fills a
- * Field Head's buffer, and all put their cargo away. Called by the fleet when
- * a field run starts or its shuttle arrives.
+ * The legs of field runs: a harvester harvests, tills, plants and takes seeds
+ * from the Field Head's buffer, a Spreader takes fertilizer from the buffer
+ * and doses plots, a supply run fills the buffer from storage, and all put
+ * their cargo away, Harvesters and Spreaders filling the buffer first. Called
+ * by the fleet when a field run starts or its shuttle arrives.
  */
 final class FieldRuns {
 
@@ -284,7 +285,7 @@ final class FieldRuns {
             int max = crop.stack(1).getMaxStackSize();
             int cargoRoom = run.cargo.room(crop, max);
             wanted = SeedPlan.toFetch(head.ripeCount(), head.plantableCount() + head.tillableCount(), run.cargo.count(crop),
-                    host.available(crop), Integer.MAX_VALUE, max);
+                    head.supplyCount(SupplyBuffer.Part.SEEDS), Integer.MAX_VALUE, max);
             room = cargoRoom > 0;
             run.seedAmount = Math.min(wanted, cargoRoom);
             if (!room && run.cargo.count(crop) == run.cargoCount()) {
@@ -293,7 +294,7 @@ final class FieldRuns {
             }
         }
         switch (HarvestStep.next(head != null, run.cargoFull, wanted, room, workLeft, !run.cargo.isEmpty())) {
-            case FETCH_SEEDS -> fetchSeeds(shuttle, crop);
+            case FETCH_SEEDS -> fetchSeeds(shuttle, head);
             case WORK -> {
                 run.worked = false;
                 run.fetchTried = false;
@@ -314,7 +315,8 @@ final class FieldRuns {
 
     /**
      * Puts the cargo away; while plots remain to plant, up to a stack of seeds
-     * stays aboard, no more than those plots need.
+     * stays aboard, no more than those plots need. Spare seeds fill the head's
+     * buffer first.
      */
     private void putAwayHarvest(Shuttle shuttle, FieldHeadBlockEntity head, ItemKey crop, boolean plotsLeft) {
         HarvestRun run = shuttle.run;
@@ -323,6 +325,46 @@ final class FieldRuns {
         unloadToStore(run, keepMax > 0 ? crop : null, keepMax);
         run.cargoFull = false;
         run.keepNothing = false;
+        if (head != null && fillBufferFirst(shuttle, head, SupplyBuffer.Part.SEEDS)) {
+            return;
+        }
+        continueStore(shuttle);
+    }
+
+    /**
+     * Before a put-away: when the stacks to put away hold the part's item and
+     * the part has room, they go into the head's buffer first. True while the
+     * shuttle drives to the head's rail for that; at the rail it fills the
+     * buffer at once.
+     */
+    private boolean fillBufferFirst(Shuttle shuttle, FieldHeadBlockEntity head, SupplyBuffer.Part part) {
+        FieldRun run = shuttle.fieldRun();
+        Item item = head.supplyItem(part);
+        if (item == null || head.supplyRoom(part) <= 0 || run.store.stream().noneMatch(stack -> stack.is(item))) {
+            return false;
+        }
+        if (atHead(shuttle, head)) {
+            storeIntoBuffer(run, head, part);
+            return false;
+        }
+        return goToHead(shuttle, head);
+    }
+
+    /** Moves the stacks to put away that hold the part's item into the head's buffer as far as it takes them. */
+    private static void storeIntoBuffer(FieldRun run, FieldHeadBlockEntity head, SupplyBuffer.Part part) {
+        for (ItemStack stack : run.store) {
+            if (!stack.isEmpty() && stack.getComponentsPatch().isEmpty()) {
+                stack.shrink(head.fillSupply(part, stack.getItem(), stack.getCount()));
+            }
+        }
+        run.store.removeIf(ItemStack::isEmpty);
+    }
+
+    /** At the head's rail on the way to a put-away: fill the buffer, then put the rest away. */
+    private void arriveToFillBuffer(Shuttle shuttle, FieldHeadBlockEntity head, SupplyBuffer.Part part) {
+        if (head != null) {
+            storeIntoBuffer(shuttle.fieldRun(), head, part);
+        }
         continueStore(shuttle);
     }
 
@@ -339,9 +381,14 @@ final class FieldRuns {
         switch (shuttle.leg) {
             case TO_FIELD -> beginStop(shuttle);
             case WORKING -> work(shuttle);
-            case TO_SEEDS -> {
-                if (run.seedSource != null) {
-                    loadSeeds(run, run.seedSource);
+            case TO_HEAD -> {
+                FieldHeadBlockEntity head = servingHead(run.head);
+                if (!run.store.isEmpty()) {
+                    arriveToFillBuffer(shuttle, head, SupplyBuffer.Part.SEEDS);
+                    return;
+                }
+                if (head != null) {
+                    loadSeeds(run, head);
                 }
                 turn(shuttle);
             }
@@ -505,39 +552,28 @@ final class FieldRuns {
         return false;
     }
 
-    /** Drives to a source of the crop item; a source no rail reaches gives its seeds at once. */
-    private void fetchSeeds(Shuttle shuttle, ItemKey crop) {
+    /** Drives to the farm rail beside the head for seeds from its buffer; standing there it takes them at once. */
+    private void fetchSeeds(Shuttle shuttle, FieldHeadBlockEntity head) {
         HarvestRun run = shuttle.run;
         run.fetchTried = true;
-        for (BlockPos source : host.sourcesHolding(crop)) {
-            Set<NodePos> dock = host.dockRails(Conversions.toNodePos(source));
-            List<NodePos> path = pathTo(shuttle, dock);
-            if (!path.isEmpty()) {
-                run.seedSource = source;
-                shuttle.leg = Leg.TO_SEEDS;
-                shuttle.motion = new ShuttleMotion(path);
-                return;
-            }
-            if (handsOverAtOnce(shuttle, source, dock)) {
-                loadSeeds(run, source);
-                if (run.seedAmount <= 0) {
-                    break;
-                }
-            }
+        if (atHead(shuttle, head)) {
+            loadSeeds(run, head);
+        } else if (goToHead(shuttle, head)) {
+            return;
         }
-        run.seedSource = null;
         turn(shuttle);
     }
 
-    private void loadSeeds(HarvestRun run, BlockPos source) {
-        FieldHeadBlockEntity head = servingHead(run.head);
-        ItemKey crop = head == null ? null : cropKey(head);
+    /** Takes the seeds the run wants out of the head's buffer, as far as the cargo has room. */
+    private static void loadSeeds(HarvestRun run, FieldHeadBlockEntity head) {
+        ItemKey crop = cropKey(head);
         if (crop == null || run.seedAmount <= 0) {
             return;
         }
-        ItemStack taken = host.extractFrom(source, crop, run.seedAmount);
-        run.seedAmount -= taken.getCount();
-        stow(run, source, crop, taken, taken.getMaxStackSize());
+        int max = crop.stack(1).getMaxStackSize();
+        int taken = head.takeSupply(SupplyBuffer.Part.SEEDS, Math.min(run.seedAmount, run.cargo.room(crop, max)));
+        run.seedAmount = 0;
+        run.cargo.add(List.of(new FieldCargo.Entry<>(crop, taken, max)));
     }
 
     /** Puts the stacks on their way into storage one target after another, then decides again. */
@@ -664,9 +700,10 @@ final class FieldRuns {
     }
 
     /**
-     * Decides what a Spreader does next: pick fertilizer above the reserve
-     * while the fetch is not over, dose the next rail with plots that need a
-     * dose while it carries fertilizer, else put what it carries away and go home.
+     * Decides what a Spreader does next: take fertilizer from the head's
+     * buffer while the fetch is not over, dose the next rail with plots that
+     * need a dose while it carries fertilizer, else put what it carries back
+     * into the buffer, the rest away, and go home.
      */
     private void spreadTurn(Shuttle shuttle) {
         SpreadRun run = shuttle.spread;
@@ -679,11 +716,15 @@ final class FieldRuns {
         if (head != null && !run.fetched) {
             if (run.toFetch < 0) {
                 int max = run.fertilizer.stack(1).getMaxStackSize();
-                run.toFetch = FertilizePlan.toFetch(head.fertilizeTargetCount(), run.doses, host.available(run.fertilizer),
-                        head.reserve(), run.cargo.room(run.fertilizer, max));
+                run.toFetch = FertilizePlan.toFetch(head.fertilizeTargetCount(), run.doses, head.supplyCount(SupplyBuffer.Part.FERTILIZER),
+                        0, run.cargo.room(run.fertilizer, max));
             }
-            if (run.toFetch > 0 && fetchFertilizer(shuttle, head)) {
-                return;
+            if (run.toFetch > 0) {
+                if (atHead(shuttle, head)) {
+                    loadFertilizer(run, head);
+                } else if (goToHead(shuttle, head)) {
+                    return;
+                }
             }
             run.fetched = true;
         }
@@ -692,6 +733,9 @@ final class FieldRuns {
         }
         if (!run.cargo.isEmpty()) {
             unloadToStore(run, null, 0);
+            if (head != null && fillBufferFirst(shuttle, head, SupplyBuffer.Part.FERTILIZER)) {
+                return;
+            }
             continueStore(shuttle);
             return;
         }
@@ -700,53 +744,27 @@ final class FieldRuns {
         fleet.goHome(shuttle);
     }
 
-    /** Drives to the next storage block holding the fertilizer; blocks no rail reaches give their part at once. False when none is left. */
-    private boolean fetchFertilizer(Shuttle shuttle, FieldHeadBlockEntity head) {
-        SpreadRun run = shuttle.spread;
-        for (BlockPos source : host.sourcesHolding(run.fertilizer)) {
-            if (!run.sourcesTried.add(source)) {
-                continue;
-            }
-            Set<NodePos> dock = host.dockRails(Conversions.toNodePos(source));
-            List<NodePos> path = pathTo(shuttle, dock);
-            if (!path.isEmpty()) {
-                run.source = source;
-                shuttle.leg = Leg.TO_SUPPLY;
-                shuttle.motion = new ShuttleMotion(path);
-                return true;
-            }
-            if (handsOverAtOnce(shuttle, source, dock)) {
-                loadFertilizer(run, head, source);
-                if (run.toFetch <= 0) {
-                    return false;
-                }
-            }
-        }
-        return false;
-    }
-
-    /** Takes the fertilizer still to fetch from the source, never the stock at or below the reserve. */
-    private void loadFertilizer(SpreadRun run, FieldHeadBlockEntity head, BlockPos source) {
+    /** Takes the fertilizer still to fetch out of the head's buffer, as far as the cargo has room. */
+    private static void loadFertilizer(SpreadRun run, FieldHeadBlockEntity head) {
         int max = run.fertilizer.stack(1).getMaxStackSize();
-        int amount = FertilizePlan.toFetch(1, run.toFetch, host.available(run.fertilizer), head.reserve(), run.cargo.room(run.fertilizer, max));
-        if (amount <= 0) {
-            run.toFetch = 0;
-            return;
-        }
-        ItemStack taken = host.extractFrom(source, run.fertilizer, amount);
-        run.toFetch -= taken.getCount();
-        stow(run, source, run.fertilizer, taken, max);
+        int taken = head.takeSupply(SupplyBuffer.Part.FERTILIZER, Math.min(run.toFetch, run.cargo.room(run.fertilizer, max)));
+        run.toFetch = 0;
+        run.cargo.add(List.of(new FieldCargo.Entry<>(run.fertilizer, taken, max)));
     }
 
     private void arriveSpread(Shuttle shuttle) {
         SpreadRun run = shuttle.spread;
         switch (shuttle.leg) {
-            case TO_SUPPLY -> {
+            case TO_HEAD -> {
                 FieldHeadBlockEntity head = spreadHead(run);
-                if (run.source != null && head != null) {
-                    loadFertilizer(run, head, run.source);
+                if (!run.store.isEmpty()) {
+                    arriveToFillBuffer(shuttle, head, SupplyBuffer.Part.FERTILIZER);
+                    return;
                 }
-                run.source = null;
+                if (head != null && !run.fetched) {
+                    loadFertilizer(run, head);
+                    run.fetched = true;
+                }
                 spreadTurn(shuttle);
             }
             case TO_FIELD -> beginDose(shuttle);

@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.storage.field;
 
 /**
- * When a field needs a Spreader and how much fertilizer it picks from the
- * warehouse. Pure Java.
+ * When a field needs a Spreader and how much fertilizer it takes from the
+ * Field Head's buffer, and the reserve supply runs keep in storage. Pure Java.
  */
 public final class FertilizePlan {
 
@@ -13,14 +13,14 @@ public final class FertilizePlan {
     }
 
     /**
-     * How many fertilizer items a Spreader picks before it drives out: what
+     * How many fertilizer items a Spreader takes before it drives out: what
      * the plots need, but never the stock at or below the reserve and never
      * more than the cargo has room for.
      *
      * @param plots   plots that need a dose
      * @param doses   doses per plot in one round
-     * @param stock   fertilizer items the warehouse holds
-     * @param reserve items the field keeps in stock
+     * @param stock   fertilizer items it may take from
+     * @param reserve items it must leave
      * @param room    items the cargo can still take
      */
     public static int toFetch(int plots, int doses, long stock, int reserve, int room) {

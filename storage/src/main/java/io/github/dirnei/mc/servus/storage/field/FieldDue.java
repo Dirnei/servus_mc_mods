@@ -12,9 +12,9 @@ public final class FieldDue {
      * @param hydrated         the field has water
      * @param tillable         empty plots on dirt or grass
      * @param plantable        empty plots on farmland
-     * @param seedsInWarehouse the warehouse holds the crop item
+     * @param seedsInBuffer    the head's buffer holds the crop item
      */
-    public static boolean due(boolean harvestDue, boolean plantMode, boolean hydrated, int tillable, int plantable, boolean seedsInWarehouse) {
-        return harvestDue || plantMode && hydrated && (tillable > 0 || plantable > 0 && seedsInWarehouse);
+    public static boolean due(boolean harvestDue, boolean plantMode, boolean hydrated, int tillable, int plantable, boolean seedsInBuffer) {
+        return harvestDue || plantMode && hydrated && (tillable > 0 || plantable > 0 && seedsInBuffer);
     }
 }

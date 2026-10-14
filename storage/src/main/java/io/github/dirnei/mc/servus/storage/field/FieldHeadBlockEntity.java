@@ -552,6 +552,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         return item != null && buffer.item(part) == item ? buffer.count(part) : 0;
     }
 
+    /** How many more of the part's item the part takes; none while it holds a stale item. */
+    public int supplyRoom(SupplyBuffer.Part part) {
+        Item item = supplyItem(part);
+        return item != null && buffer.accepts(part, item) ? Math.max(0, supplyLevel(part) - buffer.count(part)) : 0;
+    }
+
     /** Puts up to count of the item into the part, up to its level and only the part's item; returns how many went in. */
     public int fillSupply(SupplyBuffer.Part part, Item item, int count) {
         if (item == null || item != supplyItem(part)) {
@@ -897,10 +903,11 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         return unfed.size();
     }
 
-    /** Whether the field calls a Spreader now, the warehouse holding that much of the fertilizer. */
-    public boolean fertilizeDue(long now, long stock) {
+    /** Whether the field calls a Spreader now: plots need a dose, the buffer holds the fertilizer and the interval passed. */
+    public boolean fertilizeDue(long now) {
         return status == FieldStatus.SERVING && fertilizing()
-                && FertilizePlan.due(fertilizeTargetCount(), stock, reserve(), now, lastFertilizeCall, StorageStatsManager.INSTANCE.fertilizeInterval());
+                && FertilizePlan.due(fertilizeTargetCount(), supplyCount(SupplyBuffer.Part.FERTILIZER), 0, now, lastFertilizeCall,
+                        StorageStatsManager.INSTANCE.fertilizeInterval());
     }
 
     /**

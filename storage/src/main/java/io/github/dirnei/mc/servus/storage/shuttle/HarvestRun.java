@@ -5,8 +5,8 @@ import net.minecraft.core.BlockPos;
 /**
  * The state of one harvester's field run beyond what every field run has:
  * whether it plants at the rail it works, a full cargo, kept seeds and the
- * seeds it fetches. The decisions are pure ({@code HarvestStep},
- * {@code PlotWork}, {@code SeedPlan}).
+ * seeds it takes from the Field Head's buffer. The decisions are pure
+ * ({@code HarvestStep}, {@code PlotWork}, {@code SeedPlan}).
  */
 final class HarvestRun extends FieldRun {
 
@@ -20,10 +20,9 @@ final class HarvestRun extends FieldRun {
     boolean worked;
     /** A work segment did nothing: the run has no more work it can do. */
     boolean idle;
-    /** Seeds were tried from the warehouse since the last work segment. */
+    /** Seeds were tried from the head's buffer since the last work segment. */
     boolean fetchTried;
-    /** The source and amount of the seeds the harvester drives to. */
-    BlockPos seedSource;
+    /** The seeds the harvester takes from the head's buffer. */
     int seedAmount;
 
     HarvestRun(BlockPos head, int slots) {
