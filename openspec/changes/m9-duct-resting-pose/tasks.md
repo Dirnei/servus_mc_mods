@@ -57,7 +57,7 @@
   - pass pose and faces into `hitArm`
 
   Verify: `gradlew build` and `gradlew :foundation:test` green.
-- [ ] 3.3 Add GameTests to `foundation/.../logistics/gametest/ServusLogisticsGameTests.java`:
+- [x] 3.3 Add GameTests to `foundation/.../logistics/gametest/ServusLogisticsGameTests.java`:
   - `ductOnStoneLiesLow`
   - `ductAboveSlabStaysMiddle`
   - `climbHugsWall`
