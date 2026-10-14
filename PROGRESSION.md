@@ -1,120 +1,259 @@
-# Progression of the Great Work
+# The Great Work: Story and Progression of Servus: Alchemy
 
-A working list of how Servus: Alchemy grows from the first fire to the Stone, stage by stage. It builds on PLAN.md section 2.1 and on what is built today. Everything below the "built" lines is a proposal to add your ideas to. Each stage has an empty "Your ideas" list at the end.
+This is a working paper for talking about where Servus: Alchemy goes, from the first fire to the Philosopher's Stone. You don't need to know any Minecraft or any code to read it. Each part has questions at the end, meant to be argued about over a glass of wine.
 
-Conventions, as in PLAN.md:
-- A stage is a colour of the Athanor's flame, set by the structure around it. There is no stage item and no stored stage progress.
-- A journal chapter is a part of Paracelsus' life. Its tasks are "do N times" or "make for the first time". Finishing it unlocks the next chapter and its recipes.
-- Machines are builds formed with the Journal, with fixed ports and a schematic page.
-- Numbers are examples. The real ones live in datapack JSON.
-- Historical claims are checked again before they go into the journal text.
-
----
-
-## Nigredo (black): Villach
-
-**Story.** His father Wilhelm, a physician in Villach among mines and smelters. The first fire: matter burned into its three principles.
-
-**Built today**
-- Calciner build: brick furnace, Firebox, Ash Pan (Ash), Alembic with spout to the Receiver over the Mercury tank, Sulfur Hood and duct into the Sulfur tank.
-- Purifier build: a Leaching Vat on a log, a Catch Basin and a Residue Crock beside the log. Ash and water into liquid Salt in the Basin, Caput Mortuum in the Crock.
-- Coagulator build: three Principle Vats over the casting table. It makes Salt Crystal, Sulfur, Quicksilver, gunpowder and other first goods.
-- Athanor on its brick hearth. Nigredo crafts such as Blaze Powder from gunpowder and Sulfur.
-- Journal tasks: calcine 100 things, gather 1,000 mB Salt, purify once, coagulate the first Salt Crystal.
-
-**Open questions for this stage**
-- Recipe choice at the Coagulator without its GUI: a mold item, or cycling with an empty hand?
-- Does the Athanor get a formed look (a chimney, a door, a brick mantle) and lose its GUI?
-- Should the Purifier become a small build too (a vat on a stand with a catch basin)?
-- Fuel: is furnace fuel enough for Nigredo, or should charcoal made in the lab matter?
-
-**Your ideas**
--
+How to read it:
+- **Built** means it is already in the game and playable.
+- **Idea** means a proposal. Change it, swap it, throw it away.
+- Numbers are only examples. The real numbers are tuned later.
+- Historical facts marked *(to check)* are checked before they go into the game's text.
 
 ---
 
-## Albedo (white): Schwaz
+## 1. The big idea in one paragraph
 
-**Story.** The silver and copper mines of Schwaz: the miners' sickness, and the spirits of the earth the miners believed in.
+Paracelsus believed that everything in the world is made of three principles: **Salt** (the body, what stays), **Sulfur** (the soul, what burns) and **Mercury** (the spirit, what rises as vapour). Each thing is just a different mix of the three. The mod turns that belief into the game. In the beginning the player learns to **break anything down** into the three principles. At the end the player can **build anything back up** from them. Between the two lies the alchemists' Great Work in four colours, and the life of Paracelsus, told through his journal.
 
-**Built today**
-- Athanor tier 1: the white ring of eight Salt Crystal Blocks around the Athanor, with its own schematic page.
-- Elixir of Sight (Athanor, Albedo) and Elemental Sight.
-- Gnome Hollow: seeded with an ore sample by tag, ripened with principles, worked forever by a bound gnome. The vein is only visible under Elemental Sight.
-- Journal tasks: drink the Elixir, bind a gnome, Albedo crafts.
+```
+   NIGREDO            ALBEDO             CITRINITAS          RUBEDO
+   (black)            (white)            (yellow)            (red)
 
-**Proposals**
-- Seeds of this stage: iron, copper, tin and lead (by tag, so other mods' ores grow too).
-- A **Distillery** build (the white stage is purification): Mercury distilled into Quicksilver of a higher grade, or principles cleaned of surplus, which gives a use for the extra principle that now goes to the Sink.
-- The **miners' sickness** as a mechanic: working a gnome vein without a remedy slowly poisons, and an Albedo remedy from the Athanor protects (Paracelsus wrote about the miners' disease).
-- Gnome upkeep: a bound gnome asks for Salt now and then, or its rate slows.
-- Logistics tie-in: the Gnome Hollow already reports production, so the Crafting CPU can order ingots from grown veins.
+   break down  --->   grow        --->   refine       --->   make anything
+   the fire           the earth          fire and dose       the Stone
 
-**Your ideas**
--
+   "I can turn        "The earth         "I can make it      "I can make
+    anything into      works for me."     pure and exact."    everything."
+    its principles."
+```
+
+The player's goal at the end: **"I can produce everything."** Metals come up from gnome veins on their own, worthless residue is pressed into diamonds, and the Stone lets the lab make whatever the player has learned to understand.
 
 ---
 
-## Citrinitas (yellow): the wandering years
+## 2. Who was Paracelsus?
 
-**Story.** Years on the road as a physician and army surgeon across Europe. The Tria Prima as a medical idea, "the dose makes the poison", and the metal he called zinc.
+His real name was Theophrastus Bombastus von Hohenheim. He was a Swiss-German physician, alchemist and troublemaker, and one of the most colourful people of the 16th century. He wrote in German instead of Latin, insulted the famous doctors of his time, learned from miners, barbers and old women rather than from books, and was thrown out of almost every city he lived in. Today he is called a father of modern pharmacology.
 
-**Planned in PLAN.md**
-- Athanor tier 2: Sulfur pillars (example: four pillars of Sulfur blocks on the corners above the white ring).
-- The Salamanders, the fire spirits: the first elemental after the gnomes.
+| Year | Where | What happened |
+|---|---|---|
+| 1493 | Einsiedeln, Switzerland | Born, son of the physician Wilhelm von Hohenheim |
+| about 1502 | Villach, Carinthia | Moves with his father after his mother's death *(to check)*. Grows up among mines, smelters and his father's medicine |
+| about 1516 | Ferrara? | Says he earned a doctorate in medicine; no record of it survives *(to check)* |
+| about 1516 to 1517 | Schwaz, Tyrol | Works at the silver mines. Studies the miners' sickness; his book on it is one of the first on an illness caused by work |
+| 1517 to 1524 | all over Europe | Wandering years: army surgeon in wars, travels far and wide (how far is part legend) |
+| 1527 | Basel | Becomes city physician and professor. Lectures in German. Burns a classic medical textbook in the St. John's Eve fire (Avicenna's Canon, *to check*) |
+| 1528 | Basel | Flees the city after a quarrel with a powerful canon and the town council |
+| 1529 onwards | wandering again | Calls himself "Paracelsus". Writes his great works, among them a book on surgery that is printed and sells well |
+| 1538 | Carinthia | Writes the sentence he is famous for: **"All things are poison, and nothing is without poison; only the dose makes a thing not a poison."** |
+| 1541 | Salzburg | Dies at the White Horse inn, 47 years old *(to check)*. Most of his writings are printed only after his death |
 
-**Proposals**
-- **Salamanders** bring heat and power. A bound Salamander keeps a Firebox burning without fuel for a while, or turns heat into FE. This is where the FE upgrades of the Calciner and the other machines arrive.
-- **Dosing** as the core mechanic of this chapter: medicines and tinctures where the exact ratio matters. Too much of one principle makes poison, the right dose makes a cure. It fits the planners and the fixed ratios.
-- A **Tincture Press** or **Dosing Table** build: small, exact amounts of principles into potions with stronger or longer effects than vanilla.
-- Seeds of this stage: gold, zinc (by tag), redstone, lapis.
-- Converters between principles at a loss (Sulfur into Mercury and so on), so surplus has a sink with value.
-- A travel element for the wandering years: tasks in other biomes or dimensions, such as calcining Nether or End matter.
-
-**Your ideas**
--
-
----
-
-## Rubedo (red): Basel and Salzburg
-
-**Story.** City physician and professor in Basel, where he burned a classic medical textbook in public (to check: Avicenna's Canon at the St. John's fire, 1527). His last years and his death in Salzburg in 1541.
-
-**Planned in PLAN.md**
-- Athanor tier 3: Mercury basins and the Stone.
-- Late seeds and the endless works.
-
-**Proposals**
-- **The Philosopher's Stone** as the stage's centrepiece: a long Athanor craft at Rubedo needing all three principles in large, exact amounts. It is the key to the endless works, not an item that does everything.
-- **Undines and Sylphs**, the water and air spirits. Undines: fluids without pumps, infinite principle springs at a slow rate, or a fluid network without pipes. Sylphs: item movement through the air, or speed for builds.
-- Seeds of this stage: diamond, emerald, ancient debris (by tag) and modded late ores.
-- **Transmutation** at the Athanor with the Stone: base metals into noble ones at a fixed, planned ratio.
-- **Caput Mortuum to diamond.** The Purifier's residue, collected since Nigredo, finally has its use: burned at the Athanor into carbon, and carbon pressed into a diamond at the red stage. Nothing in the Great Work is worthless forever.
-- **Homunculus** (Paracelsus wrote of it) as a late worker or a capstone curiosity, if it fits the tone.
-
-**Your ideas**
--
+What makes him a good hero for a story:
+- **An outsider who was right.** Mocked in his lifetime, honoured after it.
+- **He learned by doing,** from miners and craftspeople. That fits a game where you learn by doing.
+- **He wrote a whole book about elemental spirits:** gnomes, undines, sylphs and salamanders (see section 4).
+- **He named things we still use:** zinc ("zincum"), laudanum, and the gnome itself. The word "gnome" comes from him *(to check)*.
+- **Legends:** his sword Azoth with something secret in its pommel (the Stone? a medicine?), the recipe for a homunculus, a little artificial human.
 
 ---
 
-## After Rubedo: the endless works
+## 3. Who is the player?
 
-**Proposals**
-- Repeatable works with growing cost, for planners: each one asks for more and gives a lasting bonus to the lab (all gnome rates +5 %, and so on).
-- Team goals on servers: a shared Great Work that needs every member's lab.
-- Ties to Storage: the Crafting CPU orders principles and grown ores like any other product, and the warehouse holds the lab's stock.
+The journal is the game's book and its tech tree. It says who is speaking, so this is the first thing to decide together.
 
-**Your ideas**
--
+| Option | The player is... | What it gives us |
+|---|---|---|
+| **A. The finder** (proposal) | someone who finds his journal after his death in 1541 | Paracelsus never finished the Great Work. The player does. Pages can be torn, there can be notes in the margins, warnings, a second handwriting. The last chapter belongs to the player, not to him. |
+| B. The student | his apprentice, travelling with him | A living teacher who can speak to the player, but the player stays in his shadow |
+| C. Paracelsus himself | him | Closest to history, but the ending is his death |
+
+The preface written today starts with "These are the notes...", so it works with A and B.
+
+**A story thread to go with A:** the **Caput Mortuum**. Latin for "dead head", it is the alchemists' word for the worthless residue left over after the work. In the game it is made from the very first stage on and is good for nothing... until the red stage, where it is pressed into **diamonds**. It mirrors Paracelsus: what his world threw away turned out to be the most valuable thing. *Nothing in the Great Work is worthless forever.*
 
 ---
 
-## Across all stages
+## 4. The four elementals
 
-- **Builds per stage.** Every stage adds one new build or a new part for an existing one (a ring for the Athanor, a vat, a still), each with a journal schematic.
-- **Elementals as the workforce.** Gnomes (Albedo), Salamanders (Citrinitas), Undines and Sylphs (Rubedo). Each needs Elemental Sight to bind and is shown only under it.
-- **Surplus principles.** Every stage should give the surplus of the one before it a use, so the Sink stays a choice, not the default.
-- **Two audiences.** A casual player finishes each chapter with buckets and a handful of builds. A planner pipes, balances and lets the Crafting CPU order. No task asks for sustained throughput.
+In his "Book on Nymphs, Sylphs, Pygmies and Salamanders" (printed 1566, after his death) Paracelsus describes four kinds of spirits. They are like humans, eat, sleep and have children, but each lives in its own element the way we live in air. They have no soul. An undine who marries a human gains one *(this is where the fairy tale "Undine" comes from)*.
 
-**Your ideas**
--
+| Elemental | Element | Paracelsus says | In the game (idea) | Stage |
+|---|---|---|---|---|
+| **Gnomes** | earth | small, live in the mountains, guard treasures, pass through stone like we pass through air | grow and mine ore veins, forever | Albedo (**built**) |
+| **Salamanders** | fire | live in flames, rarely seen | keep fires burning without fuel, turn heat into power | Citrinitas |
+| **Undines** | water | look most like humans, long for a soul | springs of principles, fluids without pipes | Rubedo |
+| **Sylphs** | air | tall, light, fast | carry items through the air, speed up works | Rubedo |
+
+---
+
+## 5. The four stages
+
+Each stage is one chapter of Paracelsus' life, one colour of the alchemists' Great Work, and one colour of the flame in the **Athanor**, the alchemist's eternal furnace at the centre of the lab. The player builds a new ring or part around the Athanor to reach the next stage.
+
+### Nigredo, the black stage: Villach
+
+*In alchemy: the blackening, decay. Everything is broken down before something new can grow.*
+
+**Story.** The boy Theophrastus in Villach, with his father Wilhelm, a physician, among mines and smelters. He learns the metals, the fire and the first art of the alchemist: burning things to see what they are made of.
+
+**What the player learns:** to break anything into Salt, Sulfur and Mercury, and to make the first useful things from them.
+
+**Built**
+- **Calciner:** a brick furnace with a firebox. Anything thrown in burns down to ash and gives off Sulfur and Mercury, caught in two tanks.
+- **Purifier:** a leaching vat. Ash and water become liquid Salt, and the dark residue left over is the **Caput Mortuum**.
+- **Coagulator:** three vats over a casting table. It mixes the principles back into things: Salt Crystal, gunpowder, Quicksilver and more.
+- **Athanor:** the eternal furnace on its brick hearth. First crafts such as Blaze Powder.
+- Journal tasks: burn 100 things, gather Salt, purify for the first time, make the first Salt Crystal.
+
+**Ideas**
+- **Learning by burning:** every new thing the player burns shows its mix of principles and writes it into the journal. A collection to complete, and the key to the red stage.
+- The father as a voice: notes from Wilhelm in the margins of the first pages.
+
+**Items of this stage:** Salt, Sulfur, Mercury, Ash, Salt Crystal, gunpowder, Blaze Powder, Caput Mortuum (piling up, no use yet).
+
+### Albedo, the white stage: Schwaz
+
+*In alchemy: the whitening, washing, purification. What was dark becomes clear.*
+
+**Story.** The young physician in the silver and copper mines of Schwaz. The miners fall sick from the dust and the vapours, and he is one of the first to study an illness caused by work. The miners tell him about the little people in the mountain who lead them to the veins, or lead them astray.
+
+**What the player learns:** to see the hidden spirits and to let the earth grow metal.
+
+**Built**
+- **Athanor, first ring:** eight white Salt Crystal Blocks around the Athanor.
+- **Elixir of Sight:** drunk, it opens the eyes to the elementals.
+- **Gnome Hollow:** seeded with a piece of ore, fed with the principles, it ripens a vein. A gnome bound to it mines it **forever, all on its own**, and the metal flows into the pipes.
+- Seeds: iron and copper.
+- Journal tasks: the first ring, drink the Elixir, bind a gnome.
+
+**Ideas**
+- More seeds: tin, lead, and the same metals from other mods.
+- **The miners' sickness:** working near veins without protection slowly makes you sick. An Albedo remedy protects. Paracelsus' own discovery becomes a mechanic.
+- **Distillery:** the white stage is about cleaning. It turns surplus principles into purer ones, so nothing has to be thrown away.
+- What a gnome wants in return for its work.
+
+**Items of this stage:** Elixir of Sight, Salt Crystal Blocks, raw iron and copper without end, maybe a remedy and purified principles.
+
+### Citrinitas, the yellow stage: the wandering years
+
+*In alchemy: the yellowing, dawn. The light of understanding rises.*
+
+**Story.** Years on the road across Europe: army surgeon in wars, physician to rich and poor, always moving on. He forms his great ideas: the three principles as the key to medicine, and **"the dose makes the poison"**. He names a strange new metal: zinc.
+
+**What the player learns:** fire as a servant, and exactness: the right amount makes a cure, the wrong one a poison.
+
+**Ideas**
+- **Athanor, second ring:** four Sulfur pillars, the flame turns yellow.
+- **Salamanders** wake up. A bound salamander keeps a fire burning without fuel and turns heat into power. The machines can now run on power instead of coal (FE upgrades).
+- **Salamander Forge:** a new build where salamanders refine the gnomes' raw ores into pure metal, with more output than a furnace.
+- **Dosing:** medicines and tinctures where the exact mix decides: the right dose gives a strong effect, too much gives poison. A **Dosing Table** build for exact small amounts.
+- More seeds: gold, zinc, redstone, lapis, and other mods' middle ores.
+- **Travel:** the wandering years ask the player to go far, e.g. to burn things from the Nether and the End and learn their principles.
+
+**Items of this stage:** pure metals, zinc, gold from veins, tinctures and medicines, power from fire.
+
+### Rubedo, the red stage: Basel and Salzburg
+
+*In alchemy: the reddening, completion. The Stone is made, the work is done.*
+
+**Story.** Fame and fall in Basel: city physician, professor, the book burning, the flight. The restless last years, his great books, his death in Salzburg in 1541 with the Great Work unfinished. And then: the player, who holds his journal, finishes it.
+
+**What the player learns:** to make everything.
+
+**Ideas**
+- **Athanor, third ring:** Mercury basins, the flame turns red. The **Philosopher's Stone** is made in a long, great craft that needs all three principles in large, exact amounts.
+- **Caput Mortuum Press:** the residue collected since the very first stage is burned to carbon in the Athanor and pressed into **diamonds**. The thread of the "dead head" ends here.
+- **The Stone makes anything:** with the Stone, the Coagulator can make every item whose mix the player has learned by burning it (see Nigredo), at a high price in principles. A short list of things that can never be made keeps it fair.
+- **Transmutation:** base metals into noble ones, at a fixed rate.
+- **Undines and Sylphs** wake up. Undines give springs of principles, Sylphs carry things through the air.
+- Last seeds: diamond, emerald, ancient debris, and other mods' rare ores.
+- **The homunculus** as a final curiosity, if it fits the tone (maybe too dark?).
+- **The sword Azoth:** the reward at the end of the journal, with the Stone in its pommel?
+
+**Items of this stage:** the Philosopher's Stone, diamonds from Caput Mortuum, noble metals by transmutation, anything learned.
+
+### After the Stone: the endless works
+
+**Ideas**
+- Repeatable works that cost more each time and give the lab a lasting bonus (all gnomes 5 % faster, and so on).
+- On a server: a shared Great Work that needs every member's lab.
+- The warehouse mod orders principles and grown metals like any other product.
+
+---
+
+## 6. Threads that run through every stage
+
+```
+  STAGE        NEW BUILD                 NEW SPIRIT    METALS FROM VEINS
+  ----------   -----------------------   -----------   ---------------------------
+  Nigredo      Calciner, Purifier,       none          none, the pickaxe only
+               Coagulator, Athanor
+  Albedo       Gnome Hollow, Distillery  Gnomes        iron, copper, tin, lead
+  Citrinitas   Salamander Forge,         Salamanders   gold, zinc, redstone, lapis
+               Dosing Table
+  Rubedo       Caput Mortuum Press,      Undines,      diamond, emerald,
+               the Stone                 Sylphs        ancient debris
+
+  Caput Mortuum:  made from Nigredo on  ---------------------->  diamonds in Rubedo
+  Learned mixes:  every burned item     ---------------------->  made by the Stone
+```
+
+- **One new build per stage,** each with a building plan in the journal.
+- **Metals come by themselves.** Once a vein is grown and a gnome bound, the metal never runs out. The player's work moves from mining to planning.
+- **Nothing is wasted for long.** What is surplus in one stage gets a use in a later one.
+- **Two kinds of players, one path.** A casual player finishes every chapter with buckets and a few builds. A planner connects everything with pipes and lets the factory run. No task asks for a factory.
+
+---
+
+## 7. Questions to decide together
+
+Story:
+1. Who is the player: the finder, the student, or Paracelsus himself? (section 3)
+  - Der Spieler hat das TAgebuch gefunden und entdeckt jetzt die sachen die darin stehen
+2. How does the journal sound: a learned diary, a letter to whoever finds it, a mix of his voice and notes in the margins?
+  - Sein Tagebuch, Wirre Notizen, Der Typ war Drogen/Elixir, Irrer Typ, Chrashouts
+3. How dark may it get? Miners' sickness, poison, the homunculus, death in 1541.
+  - You shout get a random chance to get poisoned when drinking the exlir. the homunulus shoudl be used as slave to automate gnome hollow. it gets fed the exlir the whole time so it can extract the items and put it in a nearby inventory. paracelsus never mentions the slave he only tells good stuff about it. you only find out the slavery when drinking elixir, but at this stage you should not need to drink it anymore.
+4. Where is the line between history and legend? Proposal: true where it is told as fact, legend where it is told as legend.
+5. How does it end? The Stone, the sword Azoth, a meeting with his ghost, the elementals thanking the player?
+
+Elementals:
+6. What do the gnomes look like, and are they characters with names and moods?
+7. Do the elementals want something in return for their work?
+
+Play:
+8. Should "make everything" mean everything the player has learned, or a fixed list of special things?
+9. Should the miners' sickness really hurt the player, or only be told in the story?
+
+---
+
+## 8. Notes for the developer
+
+Rules that hold for every idea above (from PLAN.md):
+- A stage is the colour of the Athanor's flame, set by the structure around it. There is no stage item and no stored stage.
+- A journal chapter is a part of Paracelsus' life. Its tasks are "do N times" or "make for the first time", never a sustained rate, and progress counts per team.
+- Machines are builds formed with the journal, with fixed ports and a schematic page.
+- Ratios, recipes, vein seeds, journal tasks and Athanor rings live in datapack JSON.
+
+Open technical questions:
+- Recipe choice at the Coagulator without a GUI: a mold item, or cycling with an empty hand?
+- Does the Athanor get a formed look (chimney, door, brick mantle) and lose its GUI?
+- Fuel in Nigredo: is furnace fuel enough, or should charcoal made in the lab matter?
+- "Make anything" in an ATM pack: a deny tag, and a principle cost that grows with an item's worth.
+
+-----
+
+
+Nigredo (Zerlegen) (Clay, Bonemeal) Saltcrystal Block (Used as Athanor Upgrade Material)
+
+Albedo (Growing) (Iron, Copper) Gnome Hollow, Potion of Sight, Gnomes, Amethist Shard (Used as Athanor Upgrade Material)
+
+Citrinitas (Schmelzen) (Gold, Redstone, Diamond) Salamander (Optional) 
+  => Infinite Furnace, Nether Quartz um Salamander zu beschwören auf Verzauberten Magma Cube
+
+Rubedo (Purification) (Netherite) 
+  => Prelum (The Press) that turns Caputt Mortuum (Needs Dragon Breath).
+
+
+3 End Goal
+ - Netherite through machine that presses Caputt Mortuum. Machine is gated by item before
+
