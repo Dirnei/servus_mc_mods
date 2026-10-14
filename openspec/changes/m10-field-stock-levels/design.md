@@ -19,7 +19,7 @@
 **Levels.** The head saves `harvestLimit` and `fertilizeBelow` (ints, -1 = follow `field.json`), with getters that fall back to `harvest_limit` and `fertilize_below` (example 0). Pure `StockLevels` holds the rules (JUnit):
 - `harvestPaused(produceKnown, stock, limit)`: a limit above 0 and stock at or above it
 - `fertilizeAllowed(produceKnown, stock, level, limit)`: no level, or stock below the level, and harvesting not paused
-- `step(value, delta)` clamped to 0..99,999
+- `clamp(value)` to 0..99,999
 - `keepOrder(limit, level, moved)`: moving one past the other moves the other along
 
 **Stopping harvests.** In `tickFields` the harvest check passes `harvestDue && !paused` to `FieldDue.due`, so a capped field still gets runs for tilling and planting. `HarvestRun` carries a `harvest` flag, set from the head when the run starts and refreshed at each rail, and `PlotWork.plan` gets it as a parameter: with harvesting paused, ripe plots get no action.
@@ -28,17 +28,20 @@
 
 **Stock read.** The head reads the produce stock from its warehouse at each field check (no per tick scan) and keeps it for the GUI and the statuses.
 
-**GUI.**
-- **Field tab:** a row "Stop harvesting at" with the produce icon (or "learned at the first harvest"), the value or "no limit", and -64, -1, +1, +64 buttons, where shift moves ten times as far.
-- **Fertilizer tab:** the same row for "Fertilize below".
-- One payload `SetFieldLevelPayload(pos, which, delta, shift)`, checked on the server like the reserve buttons.
-- Layout: the Field and Fertilizer tabs had no room left after the buffer change, so the GUI grows by 36 px (inventory at y 132, panel painted with `PanelPainter` like the controller and elevator GUIs instead of the garage texture). A level row is a short label ("Stop at", "Below"), the produce icon, then -64, -1, the value frame, +1, +64; the full name, what the level does, the produce stock and the shift hint are in the row's tooltip. The Field tab shows the produce under its row ("Wheat in stock: 1,024", or "Produce learned at the first harvest"), then the work status; the Fertilizer tab puts its row under the Until ripe threshold row and the status below it. The buttons keep their -64 / +64 labels while shift is held; 18 px buttons cannot show "-640".
-- The crop and fertilizer pickers narrow from 112 to 100 px so the buffer count "128/128" fits beside the icon; a count that still does not fit shows only the items held (the tooltip keeps count and level).
-- The work status line shows "Harvest paused: 1,024 / 1,000 Wheat", the Fertilizer status "Not needed: 640 Wheat in stock (below 500)". Neither is a problem: no red marker, no red bar.
+**GUI (after the play test).** The first version put a level row with -64, -1, +1, +64 buttons on the Field and Fertilizer tabs, grew the GUI by 36 px and narrowed the pickers to fit a buffer count beside them. The user's play test found it far too crowded and asked for typed amounts with room of their own. So:
+- **Panel:** 264 x 236 px (was 176 x 214), painted with `PanelPainter`; the player inventory is centred (x 51, y 154). At GUI scale 3 a 1280 x 720 window is 426 x 240 GUI px, so panel and tabs (28 px left of it) fit with 2 px to spare in height. `init` clamps `leftPos` to at least the tab width and `topPos` to at least 0, so a smaller window cuts the bottom rather than the tabs.
+- **Tabs:** Field, Water, Fertilizer, Stock, Upgrades. The Stock tab (icon: a chest) never carries a red marker.
+- **Field tab:** the crop picker full width (240 px), the ripe counts and the ripe share bar, the harvest threshold with - and +, the work status (two rows, 240 px wide) including "Harvest paused: 1,024 / 1,000 Wheat". No level row, no buffer count.
+- **Water tab:** water, bar, hydration and corrosion. The anti-corrosion count moved to the Stock tab.
+- **Fertilizer tab:** the fertilizer picker full width, wider mode buttons, the Until ripe threshold, the status line including "Not needed: 640 Wheat in stock (below 500)". No level row, no reserve, no buffer count.
+- **Stock tab:** the produce icon, name and stock ("Wheat in stock: 1,024") or "Produce learned at the first harvest"; three rows "Stop harvesting at", "Fertilize below", "Keep fertilizer in stock", each a label, a vanilla `EditBox` (46 x 14) and a grey hint ("0 = no limit", "0 = always"); under a "Supplies in the head" heading the seeds, fertilizer and anti-corrosion icons side by side with "held/level", each with the buffer tooltip (what it is, filled by supply runs). The label tooltips keep what a level does and the produce stock.
+- **Typed entry:** an `EditBox` takes digits only (`setFilter`) and at most 5 characters. A small client helper `AmountField` commits on Enter or when the box loses focus (checked each client tick, as the controller's name field does), and when the screen closes: an empty box counts as 0, the value is clamped on the client too and sent only when it differs from the head's. While a box is focused it is never overwritten; unfocused it shows the head's value from the container data, except for a short grace (20 ticks) after a commit until the server's answer arrives. A click anywhere else in the GUI and a tab change clear the focus. While a box is focused, keys go to it, so E does not close the GUI.
+- **Payload:** `SetFieldAmountPayload(pos, which, value)` replaces `SetFieldLevelPayload` and the four reserve menu buttons; `which` is a `FieldAmount` (`HARVEST_LIMIT`, `FERTILIZE_BELOW`, `RESERVE`). `FieldHeadMenu.setAmount` acts only while the player's open menu is that head's menu and still valid (distance check), clamps (levels 0..99,999, reserve 0..`FertilizePlan.MAX_RESERVE`) and, for the levels, keeps the order with `StockLevels.keepOrder`. Registered in `ServusStoragePayloads`.
+- **Pure logic:** `FieldAmount.parse(text)` (empty is 0, digits only, saturating) and `FieldAmount.clamp(value)` per kind, with JUnit. `StockLevels.step` and `FertilizePlan.stepReserve` go, nothing steps any more.
 
 **Data.** `harvest_limit` and `fertilize_below` in `storage/field.json`, read by `StorageStatsManager`.
 
-**NeoForge APIs.** Only the existing payload registration (`RegisterPayloadHandlersEvent` in `ServusStoragePayloads`); nothing new.
+**NeoForge APIs.** Only the existing payload registration (`RegisterPayloadHandlersEvent` in `ServusStoragePayloads`) and vanilla `EditBox` (`setFilter`, `setMaxLength`, `canConsumeInput`), as the controller and terminal screens use them; nothing new.
 
 **PLAN.md.** Settles no open decision.
 
@@ -50,3 +53,4 @@
 - [Two wheat fields count the same stock] → Each stops at its own limit; acceptable, a shared limit is a non-goal.
 - [The produce is unknown until the first harvest, so levels do nothing at first] → The GUI says "learned at the first harvest".
 - [A rare drop wins one harvest] → Counts are per run; the item that dominates a run is picked, and the next run corrects it.
+- [A typed value the server clamps or reorders looks like it was ignored] → The box shows the head's value once the answer arrives, so the player sees 99999 or the moved level.

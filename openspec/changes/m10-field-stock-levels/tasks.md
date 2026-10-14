@@ -36,6 +36,17 @@ Apply after `m10-field-head-buffer` is archived.
   - A wheat field learns wheat at its first harvest.
   - With a limit below the stock it stops harvesting, and resumes when wheat is taken out.
   - With a fertilize level below the stock no Spreader comes.
-  - The rows and statuses read well.
+  - The Stock tab reads well: typed levels and reserve stick, Enter and clicking away both commit, the buffer counts show; the Field and Fertilizer tabs are no longer crowded and long item names fit.
+  - The statuses read well.
 
   Verify: the user confirms in game.
+
+## 6. Play test rework: Stock tab
+
+The user's play test found the Field Head GUI too crowded and asked for typed amounts on a page of their own.
+
+- [ ] 6.1 Pure `FieldAmount` (`HARVEST_LIMIT`, `FERTILIZE_BELOW`, `RESERVE`) with `parse(text)` and `clamp(value)` in `storage/.../field/`; drop `StockLevels.step` and `FertilizePlan.stepReserve`. JUnit `FieldAmountTest`: empty is 0, digits, overflow saturates, clamping per kind; adjust `StockLevelsTest` and `FertilizePlanTest`. Verify: `gradlew :storage:test` green.
+- [ ] 6.2 `SetFieldAmountPayload` replaces `SetFieldLevelPayload` (registered in `ServusStoragePayloads`); `FieldHeadMenu.setAmount` (usable menu of that head, clamp, keep order) replaces `stepLevel` and the reserve menu buttons; `FieldHeadBlockEntity.setLevel` and `setReserve` replace `stepLevel` and `stepReserve`. Adjust the GameTests that stepped (`FieldLevelGameTests`, `SpreaderGameTests`, `FieldSupplyGameTests`). Verify: `gradlew build` green.
+- [ ] 6.3 `FieldHeadMenu`, `FieldHeadScreen`, `PanelPainter`, new client `AmountField`: the 264 x 236 panel with the centred inventory and the size check at `init`, the Stock tab with produce, three typed fields and the buffer, the Field, Water and Fertilizer tabs without level rows, reserve and buffer counts, full width pickers. Lang keys in `ServusStorageLanguageProvider`. Verify: `gradlew :storage:runData` and `gradlew build` green.
+- [ ] 6.4 GameTests in `FieldLevelGameTests`: `typedLevelsClamped` (levels to 99,999, reserve to `MAX_RESERVE`, negative to 0), `typedLevelsStayInOrder`, `typedAmountRefusedFarAway` (a player out of reach changes nothing). Verify: `gradlew runGameTestServerAll` green.
+- [ ] 6.5 Describe the Stock tab and typed amounts in `docs/src/content/docs/mods/storage.md`. Verify: docs tests green, `openspec validate m10-field-stock-levels --strict` passes.
