@@ -10,10 +10,10 @@ This is a look follow up to M9, listed under "Open: Foundation" in PLAN.md. It t
 
 - Each duct gets a **resting pose**: an offset of its centre from the block centre, worked out from the blocks around it when it is placed or a neighbour changes, never per tick.
   - The pose only ever moves a duct down. Across the block (X and Z) every duct stays in the middle, so vertical runs are dead centre.
-  - **Floor**: a duct above a block with a sturdy top face lies on it, unless it has an arm up: then it stays centred so the run goes straight up, also where it feeds a machine on the floor.
+  - **Floor**: a duct above a block with a sturdy top face lies on it. A floor run turning up bends cleanly: the bend lies low and its arm up rises from there. A duct that feeds a machine beside it and has an arm up stays centred instead, so the run goes straight up from the connection.
   - **Drape**: a duct with nothing under it takes the height its connected neighbour ducts beside it ask for, as long as they agree. A run over the edge of a step or a short gap stays level.
   - Everything else stays centred: ducts in open air, under a ceiling, on top of another duct, above a bottom slab, and every duct with a facade panel.
-  - The play test dropped an earlier wall stage (climbing ducts hugging a wall or a corner): it looked wrong wherever the run met a machine or another connection.
+  - The play test dropped an earlier wall stage (climbing ducts hugging a wall or a corner): it looked wrong wherever the run met a machine or another connection. A second play test dropped keeping every duct with an arm up centred: a floor run turning up stepped up before the bend.
 - **Arms meet cleanly**: where two connected ducts still sit at different heights, the horizontal arm makes a small step up or down (step, then straight) so the run stays joined. An arm into an inventory or machine always ends centred on that face with its channel ring, stepping there from the resting duct.
 - The **outline, collision and carrot hits** follow the drawn duct, and the goggles data load overlay is drawn where the duct actually is.
 

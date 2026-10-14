@@ -35,7 +35,10 @@ The first build also had a wall stage: a duct with an arm up or down moved again
 
 - The wall stage is gone. No duct ever moves on X or Z; vertical runs are dead centre.
 - The floor stage and draping only set the height (Y).
-- A duct with an arm up never lies on the floor and never drapes. The user saw a duct on the floor feeding a machine and rising straight up lie down first; it should go straight up. The rule covers every arm up, so the foot of a climb stays centred too and the floor run steps up into it with the normal arm step. A duct with only an arm down (the top of a climb turning onto a floor or step) still lies low or drapes.
+- A duct with an arm up and a horizontal arm into an endpoint (an inventory or machine, not a duct) never lies on the floor and never drapes. The user saw a duct on the floor feeding a machine and rising straight up lie down first; it should go straight up.
+- Every other duct with an arm up follows the normal floor and drape rules. A first cut kept every duct with an arm up centred, and the second play test showed what that does to a plain bend: the floor run stepped up into the centred bend, so the run went up, straight, then up again. Now the bend lies low with the run, and its arm up rises from the low centre: a clean 90 degree bend.
+- The duct above the bend has arms up and down and no floor (a duct below is never floor, and an arm down rules a floor out anyway). It has no horizontal duct neighbour to drape from, so it stays centred. The vertical arm between the two needs no step: the bend's arm up runs from its low centre's top to the block's top edge, the arm down above runs from the block's bottom edge to the centred centre, both centred on X and Z and as thick as the lines on that side, so they meet on the shared face as one straight arm with no gap and no offset.
+- A duct with only an arm down (the top of a climb turning onto a floor or step) still lies low or drapes.
 - Everything else stays as built: centred cases, steps, centred endpoints, pose updates, outline, collision, carrot hits and goggles.
 
 With only one axis able to move, the model below drops what existed for X and Z: the pose is one height instead of a side per axis, a face holds one bit per side, only horizontal arms can step and only up or down, the step inset per arm axis is gone, and the shape cache key fits a `long` again.
@@ -56,12 +59,12 @@ The height also carries a **rank**: `ANCHORED` (from floor or panel), `DRAPED` (
 
 Pure logic in `foundation/.../logistics/duct/DuctPose.java`, no Minecraft imports.
 
-1. **Base pose**, from the duct, its arms and the block below (`base(arms, sturdyBelow, panels)`).
+1. **Base pose**, from the duct, its arms, its endpoint arms and the block below (`base(arms, endpoints, sturdyBelow, panels)`).
    - Panel: any panel makes it `MID`, `ANCHORED`.
-   - Floor: below is sturdy, is not an arm side, and the duct has no arm up. Then it is `LOW`, `ANCHORED`.
+   - Floor: below is sturdy, is not an arm side, and the duct does not rise from an endpoint (an arm up plus a horizontal arm into an endpoint, `risesFromEndpoint`). Then it is `LOW`, `ANCHORED`.
    - Otherwise it is `MID`, `FREE`.
 2. **Resting pose**, from the base pose, the duct's arms and the base poses of the ducts across its horizontal duct arms.
-   - A duct with an arm up keeps its base pose.
+   - A duct that rises from an endpoint keeps its base pose. Its endpoint arms are its arms that lead to no duct.
    - Otherwise, when `FREE`, collect the heights of horizontal neighbours that are `ANCHORED`. Ducts above or below do not ask, because their height says nothing about where a horizontal run lies.
    - If all requests agree, the duct takes that height as `DRAPED`. If they disagree, it stays `MID`, `FREE`.
 3. **Faces**, per horizontal arm side, from the duct's own resting pose and the resting pose of the duct across that face.
@@ -98,6 +101,8 @@ Z-fighting check:
 - The step ends at least the ring depth before the block edge, so it never reaches the ring's outer face. The ring keeps its 0.5 px lip around the segment, exactly like on a straight arm.
 - Steps on two horizontal arms of one duct never cross: a step lies outside the centre on its own axis and within the centre's width on the other, so two steps touch at most along an edge.
 - A vertical arm lies within the centre's width on X and Z, outside the steps. Where a step's face toward the centre lies in the plane of a vertical arm's side, the two faces point opposite ways.
+- A low bend with an arm up: the arm up starts on the low centre's top face, its bottom face opposite facing to that top. Its sides lie within the centre's sides, in the same planes only when arm and centre are equally thick, and then they touch only along an edge. The horizontal arm of the bend lies outside the centre on its own axis and the arm up lies above the centre, so the two touch at most along an edge where an equally thick arm meets the centre's top corner. A bend lying low next to a low floor run has no step, so no step box meets the arm up.
+- Two vertical arms of stacked ducts meet on the shared block face, opposite facing, with equal X and Z spans, so they read as one arm.
 - The floor contact is kept off the plane by `LIFT`.
 
 JUnit `segmentsTouchButDoNotOverlap` checks every pose, face mask and radius pair for same facing faces in one plane.

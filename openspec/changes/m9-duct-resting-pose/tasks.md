@@ -106,7 +106,8 @@
 - [ ] 6.2 Play check in game by the user from main:
   - A floor run lies flat and straight, in the middle across the run, also beside a wall.
   - A climb stays dead centre, beside a wall and in a corner.
-  - A floor, climb, step top run: the foot and the climb are centred and the floor run steps up into the foot, the duct at the top lies as low as the run on the step, and the run on the step has no step in it.
+  - A floor run turning up makes a clean 90 degree bend: the bend lies on the floor with the run, no step before it, and its arm up rises straight from the low centre into the centred duct above, with no gap, offset or flicker where they meet.
+  - A floor, climb, step top run: the foot lies low with the floor run, the climb is centred, the duct at the top lies as low as the run on the step, and the run on the step has no step in it.
   - A duct on the floor feeding a machine beside it and rising straight up stays centred and goes straight up.
   - A run off a ledge steps once, up or down only.
   - A duct into a furnace from the floor steps up and its ring is centred.
@@ -138,3 +139,15 @@ The user's play test rejected the wall stage, and asked that a duct rising strai
   Verify: `gradlew build`, `gradlew test` and `gradlew :foundation:runGameTestServer` green.
 - [x] 7.3 Texts: `docs/src/content/docs/mods/foundation.md` (no walls, drape on height only, climbs and ducts with an arm up centred), `PLAN.md` "Open: Foundation" bullet. Verify: docs tests green.
 - [x] 7.4 Full `gradlew build test runGameTestServerAll` green.
+
+## 8. Bend rework
+
+The second play test showed a floor run turning up stepping up before the bend, because every duct with an arm up stayed centred (design.md D0). Only a duct with an arm up and a horizontal arm into an endpoint stays centred now; every other duct with an arm up follows the floor and drape rules.
+
+- [x] 8.1 Artifacts: `specs/foundation/duct-appearance/spec.md` (floor and drape requirements, scenarios "Floor run turning up", "Climb above a bend", "Machine and floor run on one duct turning up", "Up beside a machine in the air", step scenario), `design.md` (D0, D2, D3 face check), `proposal.md`, this section and the look list in 6.2, `docs/src/content/docs/mods/foundation.md`. Verify: `openspec validate m9-duct-resting-pose --strict` valid, docs tests green.
+- [ ] 8.2 `DuctPose.java`: `base(arms, endpoints, sturdyBelow, panels)` and `resting` keep a duct centred only when it rises from an endpoint (`risesFromEndpoint`). `UtilityDuctBlockEntity` passes its endpoints. JUnit in `DuctPoseTest`: `footOfClimbStaysCentred` becomes `floorRunTurningUpLiesLow` (and its face to the run is low), `machineOnFloorPipeGoesStraightUp` passes the endpoint, `armUpDoesNotDrape` becomes `armUpDrapes`, new `machineArmAndArmUpStaysMiddle` and `machineArmAndArmUpDoesNotDrape`. `DuctShapesPoseTest`: new `lowBendArmUpJoinsCentredArmAbove` (the low bend's arm up and the centred arm down above meet on the block face with the same X and Z span); `segmentsTouchButDoNotOverlap` already checks every arm, the arm up included, at the low poses. GameTests in `ServusLogisticsGameTests.java`: new `floorRunTurningUpHasNoStep`, `stepEdgeDrapes` expects a low foot, `machineOnFloorPipeGoesStraightUp` unchanged.
+
+  Face check, low bend with an arm up: arm up and centre touch on the centre's top face, opposite facing, equal side planes only along an edge; arm up and horizontal arm touch at most along an edge; no step at the bend next to a low run; arm up and the arm down of the duct above meet on the block face, opposite facing.
+
+  Verify: `gradlew build`, `gradlew test` and `gradlew :foundation:runGameTestServer` green.
+- [ ] 8.3 Full `gradlew build test runGameTestServerAll` green.
