@@ -46,8 +46,9 @@ import org.lwjgl.glfw.GLFW;
  * The Field Head GUI in five tabs on the left edge, drawn like the Utility
  * Duct tabs: Field (crop picker, ripe share, threshold, work status), Water
  * (water bar, hydration, corrosion stage), Fertilizer (fertilizer picker,
- * mode, threshold, Spreader status), Stock (produce, typed harvest limit,
- * fertilize level and reserve, the head's buffer) and Upgrades (Range Upgrade
+ * mode, threshold, Spreader status), Stock (a table of the produce, seeds,
+ * fertilizer and anti-corrosion item: warehouse stock, the head's buffer and
+ * the typed reserves and levels) and Upgrades (Range Upgrade
  * slot, radius, field size). The player inventory is always below. A tab whose
  * page holds a problem gets a red marker.
  */
@@ -93,18 +94,20 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private static final int[] MODE_W = {50, 100, RIGHT - 162};
     private static final int FERTILIZE_Y = 64;
     private static final int FERTILIZE_STATUS_Y = 82;
-    /** The Stock tab: the produce row, one row per typed amount, then the buffer. */
-    private static final int PRODUCE_Y = 18;
-    private static final int AMOUNT_Y = 40;
-    private static final int AMOUNT_STRIDE = 17;
-    private static final int AMOUNT_BOX_X = 158;
-    private static final int AMOUNT_BOX_W = 40;
+    /** The Stock tab: a table with one column per {@link StockColumn} right of the row labels. */
+    private static final int TABLE_X = 84;
+    private static final int COLUMN_W = (RIGHT - TABLE_X) / 4;
+    private static final int HEADER_Y = 18;
+    private static final int WAREHOUSE_Y = 40;
+    private static final int HEAD_Y = 54;
+    private static final int RULE_Y = 67;
+    private static final int KEEP_Y = 72;
+    private static final int HARVEST_LIMIT_Y = 89;
+    private static final int FERTILIZE_BELOW_Y = 106;
+    private static final int AMOUNT_BOX_W = 38;
     private static final int AMOUNT_BOX_H = 14;
-    private static final int AMOUNT_HINT_X = AMOUNT_BOX_X + AMOUNT_BOX_W + 4;
-    private static final int BUFFER_TITLE_Y = 109;
-    private static final int BUFFER_Y = 119;
-    private static final int BUFFER_STRIDE = 84;
-    private static final int ICON_TEXT_GAP = 20;
+    private static final int ROW_H = 12;
+    private static final int COLOUR_RULE = 0xFF8B8B8B;
     private static final int ROWS = 3;
 
     private final ItemPicker cropPicker;
@@ -215,7 +218,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         fertilizeUp = stepButton("+", FERTILIZE_Y - 2, STEP_UP_X, FieldHeadMenu.BUTTON_FERTILIZE_UP);
         amountFields.clear();
         for (FieldAmount amount : FieldAmount.values()) {
-            AmountField field = new AmountField(font, leftPos + AMOUNT_BOX_X, topPos + amountY(amount), AMOUNT_BOX_W, AMOUNT_BOX_H, amount,
+            AmountField field = new AmountField(font, leftPos + amountX(amount), topPos + amountY(amount), AMOUNT_BOX_W, AMOUNT_BOX_H, amount,
                     Component.translatable(amountKey(amount)), () -> headAmount(amount),
                     value -> ClientPacketDistributor.sendToServer(new SetFieldAmountPayload(menu.headPos(), amount.ordinal(), value)));
             amountFields.add(field);
@@ -223,8 +226,61 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         }
     }
 
+    /** The columns of the Stock tab's table. */
+    private enum StockColumn {
+        PRODUCE(null), SEEDS(SupplyBuffer.Part.SEEDS), FERTILIZER(SupplyBuffer.Part.FERTILIZER),
+        ANTI_CORROSION(SupplyBuffer.Part.ANTI_CORROSION);
+
+        /** The buffer part of the column, null for the produce. */
+        private final SupplyBuffer.Part part;
+
+        StockColumn(SupplyBuffer.Part part) {
+            this.part = part;
+        }
+
+        private String key() {
+            return "gui.servus_storage.field_head.stock.column." + name().toLowerCase(Locale.ROOT);
+        }
+    }
+
+    /** The rows of the Stock tab's table with a label on the left, top to bottom. */
+    private enum StockRow {
+        WAREHOUSE(WAREHOUSE_Y), HEAD(HEAD_Y), KEEP(KEEP_Y + 3), HARVEST_LIMIT(HARVEST_LIMIT_Y + 3), FERTILIZE_BELOW(FERTILIZE_BELOW_Y + 3);
+
+        /** Where the row's label text sits. */
+        private final int textY;
+
+        StockRow(int textY) {
+            this.textY = textY;
+        }
+
+        private String key() {
+            return "gui.servus_storage.field_head.stock.row." + name().toLowerCase(Locale.ROOT);
+        }
+    }
+
+    private static int columnX(StockColumn column) {
+        return TABLE_X + column.ordinal() * COLUMN_W;
+    }
+
+    private static StockColumn amountColumn(FieldAmount amount) {
+        return switch (amount) {
+            case HARVEST_LIMIT, FERTILIZE_BELOW -> StockColumn.PRODUCE;
+            case RESERVE -> StockColumn.FERTILIZER;
+            case ANTI_CORROSION_RESERVE -> StockColumn.ANTI_CORROSION;
+        };
+    }
+
+    private static int amountX(FieldAmount amount) {
+        return columnX(amountColumn(amount)) + (COLUMN_W - AMOUNT_BOX_W) / 2;
+    }
+
     private static int amountY(FieldAmount amount) {
-        return AMOUNT_Y + amount.ordinal() * AMOUNT_STRIDE;
+        return switch (amount) {
+            case HARVEST_LIMIT -> HARVEST_LIMIT_Y;
+            case FERTILIZE_BELOW -> FERTILIZE_BELOW_Y;
+            case RESERVE, ANTI_CORROSION_RESERVE -> KEEP_Y;
+        };
     }
 
     private static String amountKey(FieldAmount amount) {
@@ -466,19 +522,85 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         }
     }
 
-    /** What an amount's label or a buffer part under the mouse means; empty elsewhere. */
+    /** What the cell, typed field or row label of the Stock tab under the mouse means; empty elsewhere. */
     private List<Component> stockTooltip(int mouseX, int mouseY) {
         for (FieldAmount amount : FieldAmount.values()) {
-            if (inside(mouseX, mouseY, MARGIN, amountY(amount), AMOUNT_BOX_X - MARGIN, AMOUNT_BOX_H)) {
+            if (inside(mouseX, mouseY, amountX(amount), amountY(amount), AMOUNT_BOX_W, AMOUNT_BOX_H)) {
                 return amountTooltip(amount);
             }
         }
-        for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {
-            if (inside(mouseX, mouseY, bufferX(part), BUFFER_Y, BUFFER_STRIDE - 4, 16)) {
-                return bufferTooltip(part);
+        for (StockColumn column : StockColumn.values()) {
+            int x = columnX(column);
+            if (inside(mouseX, mouseY, x, HEADER_Y, COLUMN_W, 16)) {
+                return columnTooltip(column);
+            }
+            if (inside(mouseX, mouseY, x, WAREHOUSE_Y - 2, COLUMN_W, ROW_H)) {
+                return List.of(warehouseTooltip(column));
+            }
+            if (column.part != null && inside(mouseX, mouseY, x, HEAD_Y - 2, COLUMN_W, ROW_H)) {
+                return bufferTooltip(column.part);
+            }
+        }
+        for (StockRow row : StockRow.values()) {
+            if (inside(mouseX, mouseY, MARGIN, row.textY - 2, TABLE_X - MARGIN, ROW_H)) {
+                return rowTooltip(row);
             }
         }
         return List.of();
+    }
+
+    /** The column's role and its item, or why it has none. */
+    private List<Component> columnTooltip(StockColumn column) {
+        ItemStack item = columnItem(column);
+        Component role = Component.translatable(column.key());
+        if (!item.isEmpty()) {
+            return List.of(item.getHoverName(), role);
+        }
+        return List.of(role, Component.translatable(column == StockColumn.PRODUCE
+                ? "gui.servus_storage.field_head.produce_unknown" : column.key() + ".none"));
+    }
+
+    /** How many of the column's item the warehouse holds, or why there is no count. */
+    private Component warehouseTooltip(StockColumn column) {
+        ItemStack item = columnItem(column);
+        if (item.isEmpty()) {
+            return Component.translatable(column == StockColumn.PRODUCE
+                    ? "gui.servus_storage.field_head.produce_unknown" : column.key() + ".none");
+        }
+        Long count = warehouseCount(column);
+        return count == null ? Component.translatable("gui.servus_storage.field_head.stock.no_warehouse")
+                : Component.translatable("gui.servus_storage.field_head.stock.in_warehouse", item.getHoverName(), grouped(count));
+    }
+
+    private List<Component> rowTooltip(StockRow row) {
+        return switch (row) {
+            case HARVEST_LIMIT -> amountTooltip(FieldAmount.HARVEST_LIMIT);
+            case FERTILIZE_BELOW -> amountTooltip(FieldAmount.FERTILIZE_BELOW);
+            default -> List.of(Component.translatable(row.key()), Component.translatable(row.key() + ".tooltip"));
+        };
+    }
+
+    /** The item a column counts: the produce, the crop, the fertilizer or the anti-corrosion item; empty for none. */
+    private ItemStack columnItem(StockColumn column) {
+        return switch (column) {
+            case PRODUCE -> menu.produce();
+            case SEEDS -> menu.crop();
+            case FERTILIZER -> menu.fertilizer();
+            case ANTI_CORROSION -> menu.antiCorrosion();
+        };
+    }
+
+    /** The warehouse stock of the column's item; null while there is no item or no warehouse count. */
+    private Long warehouseCount(StockColumn column) {
+        ItemStack item = columnItem(column);
+        if (item.isEmpty()) {
+            return null;
+        }
+        if (column == StockColumn.PRODUCE) {
+            return (long) menu.produceStock();
+        }
+        Map<Identifier, Long> stock = column == StockColumn.SEEDS ? menu.stock() : menu.supplyStock();
+        return stock == null ? null : stock.getOrDefault(BuiltInRegistries.ITEM.getKey(item.getItem()), 0L);
     }
 
     /** What the amount does, the produce a level counts, and how to type it. */
@@ -486,6 +608,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         List<Component> lines = new ArrayList<>();
         lines.add(Component.translatable(amountKey(amount)));
         lines.add(Component.translatable(amountKey(amount) + ".tooltip"));
+        lines.add(Component.translatable(amountKey(amount) + ".hint"));
         if (amount.level() != null) {
             ItemStack produce = menu.produce();
             lines.add(produce.isEmpty() ? Component.translatable("gui.servus_storage.field_head.produce_unknown")
@@ -514,26 +637,6 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         return antiCorrosion.isEmpty() ? Component.translatable("tag.item.servus_storage.anti_corrosion") : antiCorrosion.getHoverName();
     }
 
-    private static int bufferX(SupplyBuffer.Part part) {
-        return MARGIN + part.ordinal() * BUFFER_STRIDE;
-    }
-
-    /** The item of the buffer part the screen draws: the head's crop or fertilizer, else a typical one. */
-    private ItemStack supplyIcon(SupplyBuffer.Part part) {
-        ItemStack stack = switch (part) {
-            case SEEDS -> menu.crop();
-            case FERTILIZER -> menu.fertilizer();
-            case ANTI_CORROSION -> menu.antiCorrosion();
-        };
-        if (!stack.isEmpty()) {
-            return stack;
-        }
-        return new ItemStack(switch (part) {
-            case SEEDS -> Items.WHEAT_SEEDS;
-            case FERTILIZER -> Items.BONE_MEAL;
-            case ANTI_CORROSION -> Items.HONEYCOMB;
-        });
-    }
 
     private boolean inside(int mouseX, int mouseY, int x, int y, int width, int height) {
         int left = leftPos + x;
@@ -570,15 +673,15 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         }
     }
 
-    /** The produce icon and one icon per buffer part. */
+    /** The item of each column above the table, and the rule between the counts and the settings. */
     private void renderStockIcons(GuiGraphicsExtractor graphics) {
-        ItemStack produce = menu.produce();
-        if (!produce.isEmpty()) {
-            graphics.fakeItem(produce, leftPos + MARGIN, topPos + PRODUCE_Y);
+        for (StockColumn column : StockColumn.values()) {
+            ItemStack item = columnItem(column);
+            if (!item.isEmpty()) {
+                graphics.fakeItem(item, leftPos + columnX(column) + (COLUMN_W - 16) / 2, topPos + HEADER_Y);
+            }
         }
-        for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {
-            graphics.fakeItem(supplyIcon(part), leftPos + bufferX(part), topPos + BUFFER_Y);
-        }
+        graphics.fill(leftPos + MARGIN, topPos + RULE_Y, leftPos + RIGHT, topPos + RULE_Y + 1, COLOUR_RULE);
     }
 
     private void slotFrame(GuiGraphicsExtractor graphics, int slotX, int slotY) {
@@ -658,43 +761,32 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         }
     }
 
-    /** The produce and its stock, the label and hint of each typed amount, and the buffer counts. */
+    /** The row labels, a "?" or "off" for a column without an item, the warehouse counts and the buffer counts. */
     private void renderStockLabels(GuiGraphicsExtractor graphics) {
-        ItemStack produce = menu.produce();
-        Component produceLine = produce.isEmpty() ? Component.translatable("gui.servus_storage.field_head.produce_unknown")
-                : Component.translatable("gui.servus_storage.field_head.produce_stock", produce.getHoverName(), grouped(menu.produceStock()));
-        int produceX = produce.isEmpty() ? MARGIN : MARGIN + ICON_TEXT_GAP;
-        clipped(graphics, produceLine, produceX, PRODUCE_Y + 4, RIGHT - produceX, COLOUR_TEXT);
-        for (FieldAmount amount : FieldAmount.values()) {
-            int y = amountY(amount) + 3;
-            clipped(graphics, Component.translatable(amountKey(amount)), MARGIN, y, AMOUNT_BOX_X - MARGIN - 4, COLOUR_TEXT);
-            Component hint = amountHint(amount);
-            if (hint != null) {
-                clipped(graphics, hint, AMOUNT_HINT_X, y, RIGHT - AMOUNT_HINT_X, COLOUR_HINT);
-            }
+        for (StockRow row : StockRow.values()) {
+            clipped(graphics, Component.translatable(row.key()), MARGIN, row.textY, TABLE_X - MARGIN - 2, COLOUR_TEXT);
         }
-        graphics.text(font, Component.translatable("gui.servus_storage.field_head.buffer.title"), MARGIN, BUFFER_TITLE_Y, COLOUR_TEXT, false);
-        for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {
-            int level = menu.supplyLevel(part);
-            int count = menu.supplyCount(part);
-            String text = level > 0 ? count + " / " + level
-                    : Component.translatable("gui.servus_storage.field_head.buffer.off").getString();
-            int colour = level <= 0 ? COLOUR_HINT : count > 0 ? COLOUR_TEXT : COLOUR_WARN;
-            graphics.text(font, text, bufferX(part) + ICON_TEXT_GAP, BUFFER_Y + 4, colour, false);
+        for (StockColumn column : StockColumn.values()) {
+            if (columnItem(column).isEmpty()) {
+                cell(graphics, column == StockColumn.PRODUCE ? "?"
+                        : Component.translatable("gui.servus_storage.field_head.buffer.off").getString(), column, HEADER_Y + 4, COLOUR_HINT);
+            }
+            Long count = warehouseCount(column);
+            cell(graphics, count == null ? "-" : CompactCount.of(count), column, WAREHOUSE_Y, count == null ? COLOUR_HINT : COLOUR_TEXT);
+            if (column.part == null) {
+                cell(graphics, "-", column, HEAD_Y, COLOUR_HINT);
+                continue;
+            }
+            int level = menu.supplyLevel(column.part);
+            int held = menu.supplyCount(column.part);
+            cell(graphics, level > 0 ? held + "/" + level : "-", column, HEAD_Y,
+                    level <= 0 ? COLOUR_HINT : held > 0 ? COLOUR_TEXT : COLOUR_WARN);
         }
     }
 
-    /** The grey words right of an amount's field: what 0 means for a level, the item a reserve keeps. */
-    private Component amountHint(FieldAmount amount) {
-        ItemStack kept = switch (amount) {
-            case RESERVE -> menu.fertilizer();
-            case ANTI_CORROSION_RESERVE -> menu.antiCorrosion();
-            default -> null;
-        };
-        if (kept == null) {
-            return Component.translatable(amountKey(amount) + ".hint");
-        }
-        return kept.isEmpty() ? null : kept.getHoverName();
+    /** Text centred in a column of the Stock tab's table. */
+    private void cell(GuiGraphicsExtractor graphics, String text, StockColumn column, int y, int colour) {
+        graphics.text(font, text, columnX(column) + (COLUMN_W - font.width(text)) / 2, y, colour, false);
     }
 
     private void renderWaterLabels(GuiGraphicsExtractor graphics) {
