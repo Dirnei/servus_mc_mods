@@ -27,7 +27,7 @@
   - `headIsNotOnTheDataLine`
 
   Adjust the Spreader, Harvester and corrosion tests that filled racks or the anti-corrosion slot. Verify: `gradlew :storage:runGameTestServer` green.
-- [ ] 4.2 Describe the buffer and supply runs in `docs/src/content/docs/mods/storage.md` (Field Head, Spreader, Harvester, anti-corrosion). Verify: docs tests green.
+- [x] 4.2 Describe the buffer and supply runs in `docs/src/content/docs/mods/storage.md` (Field Head, Spreader, Harvester, anti-corrosion). Verify: docs tests green.
 
 ## 5. Integration
 
