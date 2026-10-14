@@ -29,3 +29,7 @@
   - Nothing flickers, from several angles.
 
   Verify: the user confirms in game.
+
+## 6. Play test rework
+
+- [x] 6.1 Lower the contrast of the line strips in `tools/duct-textures/gen.py` (the light and dark steps of the ribs, corrugation, spiral and braids one ramp step closer, less noise; the edge shading stays) and regenerate the textures. Verify: a second run changes no file, `gradlew build` green.

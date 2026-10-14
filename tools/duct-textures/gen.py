@@ -101,19 +101,19 @@ def strip(look):
             sleeve = BRASS if look == 'fluid' else STEEL
             return ramp(sleeve, (5 if u == 0 else 3) + e)
         if look == 'item':
-            return ramp(ORANGE, (4 if u % 2 == 0 else 2) + e)
+            return ramp(ORANGE, (4 if u % 2 == 0 else 3) + e)
         if look == 'energy':
-            return ramp(RED, (2 if u % 4 == 0 else 4 if u % 4 == 1 else 3) + e + jitter(u, y, 5, .1, .1))
+            return ramp(RED, (3 if u % 4 == 0 else 4 if u % 4 == 1 else 3) + e + jitter(u, y, 5, .05, .05))
         if look == 'fluid':
-            return ramp(BLUE, 3 + e + (2 if (u + k) % 5 == 0 else 0) + jitter(u, y, 6, .1, .1))
+            return ramp(BLUE, 3 + e + (1 if (u + k) % 5 == 0 else 0) + jitter(u, y, 6, .05, .05))
         light = ((u + k) % 4 < 2) if (u // 4) % 2 == 0 else ((u - k) % 4 < 2)
         if look == 'data':
-            return ramp(WHITE, (4 if light else 2) + e)
+            return ramp(WHITE, (4 if light else 3) + e)
         if look == 'duplex':
-            return ramp(WHITE if light else GRAY, (3 if light else 2) + e)
+            return ramp(WHITE if light else GRAY, (2 if light else 4) + e)
         if (u + k) % 7 == 0:
-            return ramp(CYAN, 3 + e)
-        return ramp(BLACK, (4 if light else 2) + e)
+            return ramp(CYAN, 2 + e)
+        return ramp(BLACK, (4 if light else 3) + e)
     return fn
 
 
