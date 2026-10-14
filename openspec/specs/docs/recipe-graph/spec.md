@@ -6,21 +6,6 @@ The Recipe graph page of the Balance lab shows how all Servus recipes connect, f
 
 ## Requirements
 
-### Requirement: Graph shows only Servus recipes
-The Recipe graph SHALL draw every production and crafting recipe from the game data whose id is in a `servus_*` namespace, whatever it outputs. Recipes in any other namespace SHALL NOT appear. Items and tags SHALL appear only as inputs or outputs of the drawn recipes.
-
-#### Scenario: Grit smelting is shown
-- **WHEN** the game data has the Manufacturing recipe smelting copper grit into a copper ingot
-- **THEN** the graph shows that recipe with copper ingot as its output
-
-#### Scenario: Vanilla recipe is hidden
-- **WHEN** the game data has the vanilla recipe smelting raw iron into an iron ingot
-- **THEN** that recipe is not in the graph
-
-#### Scenario: Redstone is a leaf
-- **WHEN** no Servus recipe outputs redstone and the power cable recipe uses it
-- **THEN** redstone appears as a node with no incoming recipe
-
 ### Requirement: Layered layout from raw materials to products
 The graph SHALL lay out item and recipe nodes in layers from left to right, with each recipe between its inputs and its outputs, so items nothing produces sit on the left and items nothing consumes sit on the right. Each edge SHALL show its count when it is more than one. The page SHALL stay usable at phone width by panning inside the graph box rather than scrolling the page.
 
@@ -36,10 +21,10 @@ Each recipe node SHALL show what makes it: Crafting, Assembler, Crusher, Smeltin
 - **THEN** the graph shows a facade recipe node labelled special with no edges
 
 ### Requirement: Mod colours and filter
-Nodes SHALL be coloured by the mod of their id: one colour each for Lib, Logistics, Manufacturing and Storage, and a neutral colour for vanilla items and tags. The user SHALL be able to show or hide each mod's recipes; an item node SHALL stay visible while any visible recipe uses or produces it.
+Nodes SHALL be coloured by the mod of their id: one colour each for Foundation, Alchemy and Storage, and a neutral colour for vanilla items and tags. The user SHALL be able to show or hide each mod's recipes; an item node SHALL stay visible while any visible recipe uses or produces it.
 
 #### Scenario: Only Storage
-- **WHEN** the user hides Lib, Logistics and Manufacturing
+- **WHEN** the user hides Foundation and Alchemy
 - **THEN** only Storage recipes and their inputs and outputs remain, and copper wire is gone
 
 ### Requirement: Ancestor highlight
@@ -95,3 +80,18 @@ An item with an exported icon SHALL show that icon next to its name on its node,
 #### Scenario: Vanilla icon missing
 - **WHEN** the site is built without the local vanilla icons
 - **THEN** the redstone node shows "Redstone Dust" without an icon and nothing fails to load
+
+### Requirement: Graph draws Servus recipes only
+The Recipe graph SHALL draw every production and crafting recipe from the game data whose id is in a `servus_*` namespace, whatever it outputs. Recipes in any other namespace SHALL NOT appear. Items and tags SHALL appear only as inputs or outputs of the drawn recipes.
+
+#### Scenario: Servus recipe is shown
+- **WHEN** the game data has the Foundation power cable recipe
+- **THEN** the graph shows that recipe with power cable as its output
+
+#### Scenario: Vanilla recipe is hidden
+- **WHEN** the game data has the vanilla recipe smelting raw iron into an iron ingot
+- **THEN** that recipe is not in the graph
+
+#### Scenario: Redstone is a leaf
+- **WHEN** no Servus recipe outputs redstone and the power cable recipe uses it
+- **THEN** redstone appears as a node with no incoming recipe

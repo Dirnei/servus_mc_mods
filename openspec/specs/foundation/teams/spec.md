@@ -18,4 +18,4 @@ A mod SHALL be able to install a team provider once at startup, and all Servus m
 
 #### Scenario: Custom provider
 - **WHEN** a mod installs a provider that maps two players to the same id
-- **THEN** both players share research progress in Manufacturing
+- **THEN** both players share journal progress in Alchemy

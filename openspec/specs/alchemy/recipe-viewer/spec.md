@@ -7,7 +7,7 @@ Recipe viewers show how Alchemy items are made so players never have to guess at
 ## Requirements
 
 ### Requirement: Works without JEI
-Servus Manufacturing SHALL load and work with JEI absent.
+Servus Alchemy SHALL load and work with JEI absent.
 
 #### Scenario: No JEI
 - **WHEN** the game runs without JEI

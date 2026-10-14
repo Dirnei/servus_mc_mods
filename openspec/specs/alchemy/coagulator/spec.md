@@ -6,7 +6,7 @@ The Coagulator joins the three principles again: from a fixed ratio of Salt, Sul
 ## Requirements
 
 ### Requirement: Coagulation recipes are data
-A coagulation recipe SHALL be a datapack recipe of type `servus_manufacturing:coagulation` with the mB of Salt, Sulfur and Mercury it needs (each may be 0), at most one item ingredient with a count, one result item with a count and a time in ticks.
+A coagulation recipe SHALL be a datapack recipe of type `servus_alchemy:coagulation` with the mB of Salt, Sulfur and Mercury it needs (each may be 0), at most one item ingredient with a count, one result item with a count and a time in ticks.
 
 #### Scenario: Salt Crystal
 - **WHEN** the shipped data holds a recipe of 250 mB Salt for one Salt Crystal in 40 ticks
@@ -61,7 +61,7 @@ The Coagulator SHALL be crafted at a crafting table from vanilla materials witho
 - **THEN** one Coagulator is produced
 
 ### Requirement: First alchemical materials
-Manufacturing SHALL add the items Salt Crystal, Sulfur and Quicksilver, made only in the Coagulator, as the first materials later alchemy builds on.
+Alchemy SHALL add the items Salt Crystal, Sulfur and Quicksilver, made only in the Coagulator, as the first materials later alchemy builds on.
 
 #### Scenario: Sulfur
 - **WHEN** a Coagulator runs the shipped Sulfur recipe

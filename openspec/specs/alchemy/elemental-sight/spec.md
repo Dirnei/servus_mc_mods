@@ -6,7 +6,7 @@ Elemental Sight lets a player see what Paracelsus' elementals do inside their el
 ## Requirements
 
 ### Requirement: Elemental Sight effect
-Manufacturing SHALL register the beneficial effect Elemental Sight (`servus_manufacturing:elemental_sight`). It SHALL change nothing in the world by itself; it only allows the client to draw what reveal renderers show.
+Alchemy SHALL register the beneficial effect Elemental Sight (`servus_alchemy:elemental_sight`). It SHALL change nothing in the world by itself; it only allows the client to draw what reveal renderers show.
 
 #### Scenario: Effect listed
 - **WHEN** a player has Elemental Sight

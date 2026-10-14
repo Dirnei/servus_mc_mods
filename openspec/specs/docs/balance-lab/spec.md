@@ -18,7 +18,7 @@ The site SHALL be built from `docs/` and deployed to GitHub Pages on every push 
 - **THEN** the workflow stops and the published site stays unchanged
 
 ### Requirement: Public documentation skeleton
-The site SHALL have a landing page, a getting started page, an overview page per mod (Foundation, Manufacturing, Storage) and a datapack reference describing the JSON formats of machine stats, deposits, techs and Servus recipes. Public pages SHALL work without JavaScript.
+The site SHALL have a landing page, a getting started page, an overview page per mod (Foundation, Alchemy, Storage) and a datapack reference describing the JSON formats of machine stats, deposits, techs and Servus recipes. Public pages SHALL work without JavaScript.
 
 #### Scenario: Datapack reference
 - **WHEN** a modpack author opens the machine stats reference
@@ -26,7 +26,7 @@ The site SHALL have a landing page, a getting started page, an overview page per
 
 #### Scenario: Mod pages
 - **WHEN** a reader opens the mods section
-- **THEN** it lists Servus: Foundation, Servus: Manufacturing and Servus: Storage, and the Foundation page covers the Utility Duct, the Fluid Tank, facades, goggles and the Configuration Carrot
+- **THEN** it lists Servus: Foundation, Servus: Alchemy and Servus: Storage, and the Foundation page covers the Utility Duct, the Fluid Tank, facades, goggles and the Configuration Carrot
 
 ### Requirement: Lab shows which data it uses
 Every Balance lab page SHALL show the game data schema version, the mod version and the commit the site was built from.

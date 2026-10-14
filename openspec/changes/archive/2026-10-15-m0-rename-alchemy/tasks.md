@@ -2,7 +2,7 @@
 
 ## 1. Cleanup
 
-- [ ] 1.1 Delete the untracked leftover directories `lib/` and `logistics/` in the repository root after checking `git ls-files lib logistics` lists nothing and no tracked file references them. Verify: both directories are gone and `git status` is unchanged.
+- [x] 1.1 Delete the untracked leftover directories `lib/` and `logistics/` in the repository root after checking `git ls-files lib logistics` lists nothing and no tracked file references them. Verify: both directories are gone and `git status` is unchanged.
 
 ## 2. Project and code
 
@@ -27,4 +27,4 @@
 
 ## 6. Integration
 
-- [ ] 6.1 Grep the repo (excluding `openspec/changes/archive`, `.git`, build output, `runs`, `node_modules`, `docs/dist` and this change's own directory) for `manufactur` in any case: no hits apart from the requirements in `openspec/specs/` that this change's deltas replace at archive. Full `gradlew build` and `gradlew test` green, the three GameTest runs green, and `runClientAll` reaches the title screen with "Servus: Foundation", "Servus: Alchemy" and "Servus: Storage" in the mod list. Tell the user that dev worlds lost the old namespace blocks and items. Then the user play checks from main: the journal opens with its chapters, JEI shows the alchemy categories, Jade shows a Calciner's tanks, `/servus_alchemy journal` answers.
+- [x] 6.1 Grep the repo (excluding `openspec/changes/archive`, `.git`, build output, `runs`, `node_modules`, `docs/dist` and this change's own directory) for `manufactur` in any case: no hits apart from the requirements in `openspec/specs/` that this change's deltas replace at archive. Full `gradlew build` and `gradlew test` green, the three GameTest runs green, and `runClientAll` reaches the title screen with "Servus: Foundation", "Servus: Alchemy" and "Servus: Storage" in the mod list. Tell the user that dev worlds lost the old namespace blocks and items. Then the user play checks from main: the journal opens with its chapters, JEI shows the alchemy categories, Jade shows a Calciner's tanks, `/servus_alchemy journal` answers.

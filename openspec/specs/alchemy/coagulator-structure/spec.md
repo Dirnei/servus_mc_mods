@@ -13,7 +13,7 @@ The Coagulator structure SHALL be one block deep, 3 wide and 2 tall, seen from i
 - **THEN** they see, top to bottom: `V V V`, `S C S` (V Principle Vat, S Stone Bricks, C Coagulator)
 
 ### Requirement: Principle Vat
-Manufacturing SHALL add the Principle Vat, crafted at a crafting table from vanilla materials without research.
+Alchemy SHALL add the Principle Vat, crafted at a crafting table from vanilla materials without research.
 
 #### Scenario: Vat recipe
 - **WHEN** the player crafts the Vat pattern of copper ingots and a bucket

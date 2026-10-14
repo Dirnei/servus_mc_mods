@@ -21,19 +21,8 @@ Each mod SHALL carry its mod id, display name, version, MIT license and the NeoF
 - **THEN** the game reaches the title screen or the server reaches the "Done" state
 - **AND** the mod list contains `servus_foundation` with the display name "Servus: Foundation"
 
-### Requirement: Each content mod loads with Foundation alone
-Each content mod (`servus_manufacturing`, `servus_storage`) SHALL load when only it and `servus_foundation` are installed.
-
-#### Scenario: Manufacturing with Foundation
-- **WHEN** a game starts with `servus_foundation` and `servus_manufacturing` and no other Servus mod
-- **THEN** both mods load and the game reaches the title screen or the server reaches the "Done" state
-
-#### Scenario: Storage with Foundation
-- **WHEN** a game starts with `servus_foundation` and `servus_storage` and no other Servus mod
-- **THEN** both mods load and the game reaches the title screen or the server reaches the "Done" state
-
 ### Requirement: All three mods load together
-`servus_foundation`, `servus_manufacturing` and `servus_storage` SHALL load together in one game instance without conflicts.
+`servus_foundation`, `servus_alchemy` and `servus_storage` SHALL load together in one game instance without conflicts.
 
 #### Scenario: Full family installed
 - **WHEN** a game starts with all three Servus mods
@@ -45,17 +34,6 @@ Each content mod SHALL declare `servus_foundation` as a required dependency with
 #### Scenario: Content mod without Foundation
 - **WHEN** a game starts with a content mod but without `servus_foundation`
 - **THEN** NeoForge refuses to start and reports the missing dependency `servus_foundation` for that mod
-
-### Requirement: Manufacturing and Storage are independent
-Manufacturing and Storage SHALL NOT declare a dependency, required or optional, on each other and SHALL NOT reference each other's classes. Both MAY reference any Foundation class, including the Utility Duct.
-
-#### Scenario: Storage without Manufacturing
-- **WHEN** a game starts with `servus_foundation` and `servus_storage` only
-- **THEN** the game loads without any dependency error
-
-#### Scenario: Manufacturing without Storage
-- **WHEN** a game starts with `servus_foundation` and `servus_manufacturing` only
-- **THEN** the game loads without any dependency error
 
 ### Requirement: Standard transfer capabilities
 Every Foundation block that holds items, fluids or energy for other blocks (duct endpoints, tanks, pumps, machines, the Sink, the Machine Adapter) SHALL expose them through the NeoForge transfer capabilities of NeoForge 26.1 (item, fluid and energy block capabilities), so pipes and machines of other mods move items, fluids and energy in and out exactly as Servus blocks do. A side that is set to Off for a resource SHALL expose no handler for it.
@@ -71,3 +49,25 @@ Every Foundation block that holds items, fluids or energy for other blocks (duct
 #### Scenario: Closed side
 - **WHEN** another mod queries the fluid block capability of a machine side whose Fluids layer is set to Off
 - **THEN** it receives no handler
+
+### Requirement: Alchemy and Storage each load with Foundation
+Each content mod (`servus_alchemy`, `servus_storage`) SHALL load when only it and `servus_foundation` are installed.
+
+#### Scenario: Alchemy with Foundation
+- **WHEN** a game starts with `servus_foundation` and `servus_alchemy` and no other Servus mod
+- **THEN** both mods load and the game reaches the title screen or the server reaches the "Done" state
+
+#### Scenario: Storage with Foundation
+- **WHEN** a game starts with `servus_foundation` and `servus_storage` and no other Servus mod
+- **THEN** both mods load and the game reaches the title screen or the server reaches the "Done" state
+
+### Requirement: Alchemy and Storage are independent
+Alchemy and Storage SHALL NOT declare a dependency, required or optional, on each other and SHALL NOT reference each other's classes. Both MAY reference any Foundation class, including the Utility Duct.
+
+#### Scenario: Storage without Alchemy
+- **WHEN** a game starts with `servus_foundation` and `servus_storage` only
+- **THEN** the game loads without any dependency error
+
+#### Scenario: Alchemy without Storage
+- **WHEN** a game starts with `servus_foundation` and `servus_alchemy` only
+- **THEN** the game loads without any dependency error

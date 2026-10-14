@@ -6,7 +6,7 @@ The three principles of Paracelsus' Tria Prima, Salt, Sulfur and Mercury, are th
 ## Requirements
 
 ### Requirement: Three principle fluids
-Manufacturing SHALL register three fluids, Salt, Sulfur and Mercury (`servus_manufacturing:salt`, `servus_manufacturing:sulfur`, `servus_manufacturing:mercury`), each with its own fluid type, a source and a flowing form and a distinct colour.
+Alchemy SHALL register three fluids, Salt, Sulfur and Mercury (`servus_alchemy:salt`, `servus_alchemy:sulfur`, `servus_alchemy:mercury`), each with its own fluid type, a source and a flowing form and a distinct colour.
 
 #### Scenario: Shown in a tank
 - **WHEN** a Fluid Tank holds 1,000 mB of Sulfur
