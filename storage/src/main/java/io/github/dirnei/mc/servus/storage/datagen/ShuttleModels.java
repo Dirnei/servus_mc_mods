@@ -11,8 +11,8 @@ import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
  * hold per tier, a drive per Speed look step, a Handling part per step and a
  * model per tool. The item models of the three tiers are children of their
  * body; the client composes the rest per stack. Model +z is the front. The
- * body spans 2 to 14, the drive 0.5 to 15.5; only a tool reaches further. The
- * left side of the hold (x = 2, y 5 to 8, z 5 to 11) stays free for the name
+ * body spans 2 to 14, the drive 0 to 16; only a tool reaches further. The last
+ * drive step carries a rear spoiler that hangs past the back to z -1.5. The left side of the hold (x = 2, y 5 to 8, z 5 to 11) stays free for the name
  * plate. Textures are vanilla placeholders.
  */
 final class ShuttleModels {
@@ -20,7 +20,8 @@ final class ShuttleModels {
     private static final String CHASSIS = "minecraft:block/smooth_stone";
     private static final String WHEEL = "minecraft:block/coal_block";
     private static final String TRACK = "minecraft:block/blackstone";
-    private static final String COPPER = "minecraft:block/copper_block";
+    private static final String STEEL = "servus_foundation:block/electric_pump_steel";
+    private static final String DARK_IRON = "servus_storage:block/heavy_rack_iron";
     private static final String ARM = "minecraft:block/yellow_terracotta";
     private static final String IRON = "minecraft:block/iron_block";
 
@@ -80,9 +81,33 @@ final class ShuttleModels {
 
         BlockModelBuilder racing = model(provider, "drive_3", TRACK);
         tracks(racing);
-        // Two exhaust stacks at the back corners, beside the hold.
-        box(racing, 1, 3, 2, 2, 13, 3, COPPER);
-        box(racing, 14, 3, 2, 15, 13, 3, COPPER);
+        spoiler(racing);
+    }
+
+    /**
+     * A steel wing over the back of the hold, above the Handling mast and
+     * crane (they end at y 13), with dark iron end plates on its tips. Two
+     * struts beside the crane beam (x 7..9) lean back from the top of the Mk1
+     * crate wall (y 9, z 3) into the wing's middle (y 14.4, z 0.75); on closed
+     * holds their feet sink into the hold.
+     */
+    private static void spoiler(BlockModelBuilder model) {
+        box(model, 0.5F, 14, -1, 15.5F, 15, 2.5F, STEEL);
+        box(model, 0, 12.5F, -1.5F, 0.5F, 15.5F, 3, DARK_IRON);
+        box(model, 15.5F, 12.5F, -1.5F, 16, 15.5F, 3, DARK_IRON);
+        for (float x : new float[] {5.5F, 9.5F}) {
+            strut(model, x, 9, 3, 14.4F, 0.75F);
+        }
+    }
+
+    /** A 1 by 1 steel strut from bottom centre (y0, z0) to top centre (y1, z1), built upright and turned about X. */
+    private static void strut(BlockModelBuilder model, float x, float y0, float z0, float y1, float z1) {
+        float length = (float) Math.hypot(y1 - y0, z1 - z0);
+        // A positive angle about X turns +y toward +z.
+        float angle = (float) Math.toDegrees(Math.atan2(z1 - z0, y1 - y0));
+        element(model, x, y0, z0 - 0.5F, x + 1, y0 + length, z0 + 0.5F, STEEL)
+                .rotation().origin(x + 0.5F, y0, z0).axis(Direction.Axis.X).angle(angle).end()
+                .end();
     }
 
     /**
@@ -189,12 +214,17 @@ final class ShuttleModels {
      * reach past the block never sample the atlas beside the sprite.
      */
     private static void box(BlockModelBuilder model, float x1, float y1, float z1, float x2, float y2, float z2, String texture) {
+        element(model, x1, y1, z1, x2, y2, z2, texture).end();
+    }
+
+    private static BlockModelBuilder.ElementBuilder element(BlockModelBuilder model, float x1, float y1, float z1,
+            float x2, float y2, float z2, String texture) {
         String key = texture.substring(texture.lastIndexOf('/') + 1);
         model.texture(key, texture);
         float dx = Math.min(16, x2 - x1);
         float dy = Math.min(16, y2 - y1);
         float dz = Math.min(16, z2 - z1);
-        model.element().from(x1, y1, z1).to(x2, y2, z2).allFaces((direction, face) -> {
+        return model.element().from(x1, y1, z1).to(x2, y2, z2).allFaces((direction, face) -> {
             float u;
             float v;
             if (direction.getAxis() == Direction.Axis.Y) {
@@ -208,6 +238,6 @@ final class ShuttleModels {
                 v = dy;
             }
             face.texture("#" + key).uvs(0, 0, u, v);
-        }).end();
+        });
     }
 }

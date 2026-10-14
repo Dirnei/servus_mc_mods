@@ -2,7 +2,7 @@
 
 ## 1. Spoiler model
 
-- [ ] 1.1 In `storage/src/main/java/io/github/dirnei/mc/servus/storage/datagen/ShuttleModels.java`, replace the copper stacks of `drive_3` with the spoiler from design.md: steel wing and end plates in `heavy_rack_iron`, and two steel struts turned about X around their bottom centre by a box variant with a rotation (UV sizing stays in `box`). Update the class Javadoc and drop the unused `COPPER` constant. List every overlapping box pair (wing and plates, struts and wing, struts and hold, lid and gold corners, wing and Handling mast and crane) with whether faces share a plane. Verify: `gradlew :storage:runData` writes `models/shuttle/drive_3.json` with two rotated elements, and `gradlew build` is green.
+- [x] 1.1 In `storage/src/main/java/io/github/dirnei/mc/servus/storage/datagen/ShuttleModels.java`, replace the copper stacks of `drive_3` with the spoiler from design.md: steel wing and end plates in `heavy_rack_iron`, and two steel struts turned about X around their bottom centre by a box variant with a rotation (UV sizing stays in `box`). Update the class Javadoc and drop the unused `COPPER` constant. List every overlapping box pair (wing and plates, struts and wing, struts and hold, lid and gold corners, wing and Handling mast and crane) with whether faces share a plane. Verify: `gradlew :storage:runData` writes `models/shuttle/drive_3.json` with two rotated elements, and `gradlew build` is green.
 
 ## 2. Docs and plan
 
