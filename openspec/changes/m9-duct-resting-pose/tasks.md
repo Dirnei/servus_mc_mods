@@ -38,7 +38,7 @@
   JUnit in `DuctShapesPoseTest`: `middlePoseMatchesOldBoxes`, `floorCentreSitsOnLift`, `armStretchesToMovedCentre`, `endpointArmStepsToMiddle`, `stepBoxSpansBothCrossSections`, `twoAxisStepIsOneBox`, `segmentsTouchButDoNotOverlap` (no two boxes share a face plane with overlap), `thickCentreArmStepFitsRoom`.
 
   Verify: `gradlew :foundation:test` green.
-- [ ] 2.2 In `foundation/.../logistics/duct/ArmHit.java`, test the pose aware arm box lists, then the pose aware centre. Update `ArmHitTest` and add `hitOnStepCountsAsArm`, `hitOnLowSegmentCountsAsArm`, `hitAtMovedCentreIsCentre`. Verify: `gradlew :foundation:test` green.
+- [x] 2.2 In `foundation/.../logistics/duct/ArmHit.java`, test the pose aware arm box lists, then the pose aware centre. Update `ArmHitTest` and add `hitOnStepCountsAsArm`, `hitOnLowSegmentCountsAsArm`, `hitAtMovedCentreIsCentre`. Verify: `gradlew :foundation:test` green.
 
 ## 3. Block entity, block and sync
 

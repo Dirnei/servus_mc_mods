@@ -245,7 +245,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
         }
         int centerRadius = DuctShapes.radius(duct.lines().size());
         int side = ArmHit.hit((location.x - pos.getX()) * 16, (location.y - pos.getY()) * 16, (location.z - pos.getZ()) * 16,
-                centerRadius, armRadius);
+                centerRadius, armRadius, DuctPose.CENTRED, 0);
         return side >= 0 ? Direction.values()[side] : null;
     }
 
