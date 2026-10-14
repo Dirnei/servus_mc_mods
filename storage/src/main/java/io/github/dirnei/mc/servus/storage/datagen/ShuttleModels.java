@@ -172,9 +172,9 @@ final class ShuttleModels {
     private static void harvester(BlockStateProvider provider) {
         String reel = "minecraft:block/hay_block_side";
         BlockModelBuilder model = model(provider, "tool_harvester", reel);
-        // Arms from the body to the reel axle.
-        box(model, 2, 3, 13, 3, 6, 17, IRON);
-        box(model, 13, 3, 13, 14, 6, 17, IRON);
+        // Arms from the body to the reel axle, 0.05 inside the body sides and the reel faces.
+        box(model, 2.05F, 3.05F, 13.05F, 3, 5.95F, 16.95F, IRON);
+        box(model, 13, 3.05F, 13.05F, 13.95F, 5.95F, 16.95F, IRON);
         // The reel across the front, wider than the body.
         box(model, -2, 4, 15, 18, 6, 17, reel);
         box(model, -2, 6, 15.5F, 18, 7, 16.5F, reel);
@@ -183,23 +183,27 @@ final class ShuttleModels {
         box(model, -2, 0.5F, 15, 18, 1.5F, 18, "minecraft:block/iron_bars");
     }
 
-    /** A hopper box on two arms at the front, a funnel under it and a spreader bar across the front, wider than the body. */
+    /**
+     * A hopper box on two arms at the back, behind the Handling mast (z 1..2) and below the spoiler's
+     * end plates (y 12.5), a funnel under it and a spreader bar across the back, wider than the body.
+     */
     private static void spreader(BlockStateProvider provider) {
         String hopper = "minecraft:block/hopper_outside";
         String bone = "minecraft:block/bone_block_side";
         BlockModelBuilder model = model(provider, "tool_spreader", hopper);
-        box(model, 2, 3, 13, 3, 6, 15, IRON);
-        box(model, 13, 3, 13, 14, 6, 15, IRON);
+        // Arms from inside the chassis, 0.05 inside its sides.
+        box(model, 2.05F, 3, -1, 3, 6, 2.5F, IRON);
+        box(model, 13, 3, -1, 13.95F, 6, 2.5F, IRON);
         // The hopper box with its rim.
-        box(model, 3, 6, 14, 13, 11, 19, hopper);
-        box(model, 2.5F, 11, 13.5F, 13.5F, 12, 19.5F, IRON);
+        box(model, 3, 6, -4, 13, 11, 0, hopper);
+        box(model, 2.5F, 11, -4.5F, 13.5F, 12, 0, IRON);
         // The funnel down to the spinner.
-        box(model, 5, 3, 15, 11, 6, 18, hopper);
-        box(model, 7, 1.5F, 16, 9, 3, 17, IRON);
-        // The spreader bar across the front.
-        box(model, -2, 0.5F, 15.5F, 18, 1.5F, 17.5F, bone);
-        box(model, -2, 1.5F, 16, -1, 3, 17, IRON);
-        box(model, 17, 1.5F, 16, 18, 3, 17, IRON);
+        box(model, 5, 3, -3, 11, 6, -1, hopper);
+        box(model, 7, 1.5F, -2.5F, 9, 3, -1.5F, IRON);
+        // The spreader bar across the back.
+        box(model, -2, 0.5F, -3.5F, 18, 1.5F, -1.5F, bone);
+        box(model, -2, 1.5F, -3, -1, 3, -2, IRON);
+        box(model, 17, 1.5F, -3, 18, 3, -2, IRON);
     }
 
     private static Identifier part(BlockStateProvider provider, String name) {
