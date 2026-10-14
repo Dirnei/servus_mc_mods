@@ -51,7 +51,7 @@
   - add `POSE` and `FACES` to `DuctModelData` and to `getModelData()`
 
   Verify: `gradlew build` green.
-- [ ] 3.2 In `UtilityDuctBlock`:
+- [x] 3.2 In `UtilityDuctBlock`:
   - key the shape cache by a record including pose and faces
   - build the shape from the pose aware boxes, panels unchanged
   - pass pose and faces into `hitArm`

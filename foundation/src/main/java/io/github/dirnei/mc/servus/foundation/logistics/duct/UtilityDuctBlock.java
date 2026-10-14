@@ -40,7 +40,11 @@ public class UtilityDuctBlock extends ConnectableBlock {
 
     public static final MapCodec<UtilityDuctBlock> CODEC = simpleCodec(UtilityDuctBlock::new);
 
-    private static final Map<Long, VoxelShape> SHAPES = new ConcurrentHashMap<>();
+    /** Cached shapes by lines, per line arms and panels packed into a long, plus the pose's sides and the faces. */
+    private record ShapeKey(long linesArmsPanels, int poseSides, int faces) {
+    }
+
+    private static final Map<ShapeKey, VoxelShape> SHAPES = new ConcurrentHashMap<>();
 
     public UtilityDuctBlock(Properties properties) {
         super(properties, 4);
@@ -108,20 +112,24 @@ public class UtilityDuctBlock extends ConnectableBlock {
     }
 
     /**
-     * The shape follows the lines: a centre as thick as the line count and,
-     * per side, an arm as thick as the lines connected there, plus a slab or a
-     * frame per panel. Without a block entity the state flags decide.
+     * The shape follows the lines and the resting pose: a centre as thick as
+     * the line count and, per side, an arm as thick as the lines connected
+     * there with its step, plus a slab or a frame per panel. Without a block
+     * entity the state flags decide.
      */
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if (level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
-            return shape(duct.linesMask(), duct.armMasks(), duct.solidPanelMask(), duct.hollowPanelMask());
+            return shape(duct.linesMask(), duct.armMasks(), duct.solidPanelMask(), duct.hollowPanelMask(), duct.pose(), duct.poseFaces());
         }
         return super.getShape(state, level, pos, context);
     }
 
-    /** The shape for a line set, the per line arm masks and the six bit solid and hollow panel masks, cached. */
-    public static VoxelShape shape(int linesMask, int[] arms, int solidPanels, int hollowPanels) {
+    /**
+     * The shape for a line set, the per line arm masks, the six bit solid and
+     * hollow panel masks, the resting pose and the faces (see {@link DuctPose}), cached.
+     */
+    public static VoxelShape shape(int linesMask, int[] arms, int solidPanels, int hollowPanels, int pose, int faces) {
         long key = linesMask & DuctParts.ALL;
         int all = 0;
         int shift = Line.VALUES.length;
@@ -132,13 +140,15 @@ public class UtilityDuctBlock extends ConnectableBlock {
         shift += 6 * Line.VALUES.length;
         key |= (long) (solidPanels & 63) << shift;
         key |= (long) (hollowPanels & 63) << (shift + 6);
-        int armsUnion = all;
-        return SHAPES.computeIfAbsent(key, k -> {
-            VoxelShape shape = box(DuctShapes.center(DuctShapes.centerRadius(Integer.bitCount(linesMask & DuctParts.ALL), armsUnion)));
+        int centerRadius = DuctShapes.centerRadius(Integer.bitCount(linesMask & DuctParts.ALL), all);
+        return SHAPES.computeIfAbsent(new ShapeKey(key, DuctPose.sides(pose), faces), k -> {
+            VoxelShape shape = box(DuctShapes.center(centerRadius, pose));
             for (Direction direction : Direction.values()) {
                 int armLines = armLines(arms, direction);
                 if (armLines > 0) {
-                    shape = Shapes.or(shape, box(DuctShapes.arm(direction.ordinal(), DuctShapes.radius(armLines))));
+                    for (DuctShapes.Box arm : DuctShapes.arm(direction.ordinal(), DuctShapes.radius(armLines), centerRadius, pose, faces)) {
+                        shape = Shapes.or(shape, box(arm));
+                    }
                 }
                 int bit = DuctModelData.bit(direction);
                 if (((solidPanels | hollowPanels) & bit) != 0) {
@@ -243,9 +253,9 @@ public class UtilityDuctBlock extends ConnectableBlock {
             int lines = armLines(duct.armMasks(), direction);
             armRadius[direction.ordinal()] = lines == 0 ? 0 : DuctShapes.radius(lines);
         }
-        int centerRadius = DuctShapes.radius(duct.lines().size());
+        int centerRadius = DuctShapes.centerRadius(duct.lines().size(), duct.connections());
         int side = ArmHit.hit((location.x - pos.getX()) * 16, (location.y - pos.getY()) * 16, (location.z - pos.getZ()) * 16,
-                centerRadius, armRadius, DuctPose.CENTRED, 0);
+                centerRadius, armRadius, duct.pose(), duct.poseFaces());
         return side >= 0 ? Direction.values()[side] : null;
     }
 
