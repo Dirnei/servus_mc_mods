@@ -108,7 +108,7 @@
   - A climb stays dead centre, beside a wall and in a corner.
   - A floor run turning up makes a clean 90 degree bend: the bend lies on the floor with the run, no step before it, and its arm up rises straight from the low centre into the centred duct above, with no gap, offset or flicker where they meet.
   - A floor, climb, step top run: the foot lies low with the floor run, the climb is centred, the duct at the top lies as low as the run on the step, and the run on the step has no step in it.
-  - A duct on the floor feeding a machine beside it and rising straight up stays centred and goes straight up.
+  - A duct on the floor feeding a machine beside it and rising straight up stays centred and goes straight up; a floor run joining it steps up in its own block, the junction's arms stay straight.
   - A run off a ledge steps once, up or down only.
   - A duct into a furnace from the floor steps up and its ring is centred.
   - Breaking the floor recentres it.
@@ -161,3 +161,7 @@ The second play test showed a floor run turning up stepping up before the bend, 
 ## 10. Climb end follows a draped run
 
 - [x] 10.1 Play test: a floor run climbing one block, one duct through the air and then onto a block made a hump and a thick blob at the top of the climb, because only the duct in the air draped. `DuctPose`: rank `FOLLOWED`; `resting(base, arms, ductArms, neighbourBase, neighbourResting)` lets a free duct with a vertical duct arm follow agreeing draped neighbours beside it. `UtilityDuctBlockEntity`: passes the neighbours' resting poses and makes neighbours recompute their resting pose on any pose change. Spec scenario "Climb, one duct in the air, then onto a block", design D2, docs. JUnit in `DuctPoseTest`: `climbTopFollowsDrapedRun`, `climbBottomFollowsDrapedRun`, `runWithoutClimbDoesNotFollow`, `followedIsNotFollowed`, `anchoredNeighbourBeatsDrapedOne`, `disagreeingDrapedNeighboursStayMiddle`, `machineClimbDoesNotFollow`, `bothSidesAgreeOnFace` with a followed pose. GameTest `climbThroughAirOntoBlockLiesLow`. Face check: no new boxes; the followed climb end is a low duct with an arm down or up, already checked in 8.2. Verify: `gradlew build test runGameTestServerAll` green, `openspec validate m9-duct-resting-pose --strict` valid, docs tests green.
+
+## 11. Junction at a machine keeps straight arms
+
+- [x] 11.1 Play test: the step from a floor run up into a centred junction (arm up and arm into a machine) sat inside the junction and looked cramped. `DuctPose`: rank `HELD` for a duct that rises from an endpoint, beating every other rank at a face, so the junction's arms stay straight and the neighbour steps in its own block; the rank takes 3 bits. Spec ("Arms step between positions", scenario "Machine and floor run on one duct turning up"), design D2. JUnit in `DuctPoseTest`: `machineOnFloorPipeGoesStraightUp` and `machineArmAndArmUpStaysMiddle` expect `HELD` and straight arms, new `heldBeatsEveryOtherRank`, `heldNeighbourDoesNotRequest`, `bothSidesAgreeOnFace` with a held pose. GameTests `machineOnFloorPipeGoesStraightUp`, `floorRunIntoMachineTurningUpStaysMiddle`. Face check: no new boxes; the neighbour's step is the step of a low duct meeting a middle face, as checked in 7.2. Verify: `gradlew build test runGameTestServerAll` green, `openspec validate m9-duct-resting-pose --strict` valid.

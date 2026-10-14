@@ -55,18 +55,39 @@ class DuctPoseTest {
     @Test
     void machineOnFloorPipeGoesStraightUp() {
         int base = DuctPose.base(EAST | UP, EAST, true, false);
-        assertEquals(DuctPose.CENTRED, base);
-        assertEquals(DuctPose.CENTRED, DuctPose.resting(base, EAST | UP, UP, new int[6], new int[6]));
+        assertPose(base, Height.MID, Rank.HELD);
+        assertEquals(base, DuctPose.resting(base, EAST | UP, UP, new int[6], new int[6]));
     }
 
-    /** A floor run going east ends in a machine and turns up in the same duct: that duct stays centred. */
+    /**
+     * A floor run going east ends in a machine and turns up in the same duct:
+     * that duct stays centred with straight arms, and the floor run steps up
+     * in its own block.
+     */
     @Test
     void machineArmAndArmUpStaysMiddle() {
         int base = DuctPose.base(WEST | EAST | UP, EAST, true, false);
-        assertEquals(DuctPose.CENTRED, base);
-        assertEquals(DuctPose.CENTRED, DuctPose.resting(base, WEST | EAST | UP, WEST | UP, neighbours(DuctShapes.WEST, FLOOR),
+        assertPose(base, Height.MID, Rank.HELD);
+        assertEquals(base, DuctPose.resting(base, WEST | EAST | UP, WEST | UP, neighbours(DuctShapes.WEST, FLOOR),
                 neighbours(DuctShapes.WEST, FLOOR)));
-        assertEquals(Height.LOW, face(base, FLOOR, DuctShapes.WEST), "the floor run steps up into it");
+        assertEquals(Height.MID, face(base, FLOOR, DuctShapes.WEST), "the junction's arm to the run stays straight");
+        assertEquals(Height.MID, face(FLOOR, base, DuctShapes.EAST), "the floor run steps up in its own block");
+    }
+
+    @Test
+    void heldBeatsEveryOtherRank() {
+        int held = DuctPose.of(Height.MID, Rank.HELD);
+        int[] others = {DuctPose.CENTRED, FLOOR, DRAPED_LOW, DuctPose.of(Height.LOW, Rank.FOLLOWED), PANELLED};
+        for (int other : others) {
+            assertEquals(Height.MID, face(held, other, DuctShapes.WEST), "against " + other);
+            assertEquals(Height.MID, face(held, other, DuctShapes.EAST), "against " + other);
+        }
+    }
+
+    @Test
+    void heldNeighbourDoesNotRequest() {
+        int held = DuctPose.of(Height.MID, Rank.HELD);
+        assertEquals(DuctPose.CENTRED, drape(DuctPose.CENTRED, WEST, neighbours(DuctShapes.WEST, held)));
     }
 
     @Test
@@ -253,7 +274,7 @@ class DuctPoseTest {
     @Test
     void bothSidesAgreeOnFace() {
         int[] poses = {DuctPose.CENTRED, FLOOR, DuctPose.of(Height.LOW, Rank.DRAPED), DuctPose.of(Height.MID, Rank.DRAPED), PANELLED,
-                DuctPose.of(Height.LOW, Rank.FOLLOWED)};
+                DuctPose.of(Height.LOW, Rank.FOLLOWED), DuctPose.of(Height.MID, Rank.HELD)};
         for (int a : poses) {
             for (int b : poses) {
                 for (int side = DuctShapes.NORTH; side <= DuctShapes.EAST; side++) {

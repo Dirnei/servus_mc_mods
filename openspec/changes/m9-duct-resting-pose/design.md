@@ -53,7 +53,7 @@ A duct is `MID` or `LOW` in its block: centred, or flush with the floor. On X an
 
 Alternative considered: a pixel offset of the centre. It breaks down with mixed arm thicknesses and needs a per radius table at every face.
 
-The height also carries a **rank**: `ANCHORED` (from floor or panel), `DRAPED` (copied from neighbours), `FOLLOWED` (a climb end copied from a draped neighbour) or `FREE`. The pose packs into 2 bits for the height plus 2 bits for the rank.
+The height also carries a **rank**: `HELD` (rises from an endpoint), `ANCHORED` (from floor or panel), `DRAPED` (copied from neighbours), `FOLLOWED` (a climb end copied from a draped neighbour) or `FREE`. The pose packs into 1 bit for the height and 3 bits for the rank.
 
 ### D2: Three stages, each depending only on direct neighbours
 
@@ -69,7 +69,7 @@ Pure logic in `foundation/.../logistics/duct/DuctPose.java`, no Minecraft import
    - If all requests agree, the duct takes that height as `DRAPED`. If they disagree, it stays `MID`, `FREE`.
    - Without an anchored request, a duct with a vertical arm to a duct (the top or bottom of a climb) collects the heights of the horizontal neighbours whose **resting** pose is `DRAPED`, and takes an agreed height as `FOLLOWED`. The third play test showed why: a climb, one duct in the air, then a duct on a block. The duct in the air draped low from the one on the block, but the top of the climb stayed in the middle, so its arm went over and then down inside its own block: a hump and a thick blob. Following one more hop only at a climb end keeps a long span in the air centred. No duct reads a `FOLLOWED` pose, so no two ducts can hold each other low. Because the resting pose now depends on neighbours' resting poses, any change of a base or resting pose makes the neighbours recompute their resting pose and faces; it stops where nothing changes.
 3. **Faces**, per horizontal arm side, from the duct's own resting pose and the resting pose of the duct across that face.
-   - The higher rank wins (`ANCHORED` > `DRAPED` > `FOLLOWED` > `FREE`).
+   - The higher rank wins (`HELD` > `ANCHORED` > `DRAPED` > `FOLLOWED` > `FREE`). `HELD` is the base of a duct that rises from an endpoint: the fourth play test found the step inside such a junction too cramped, so its arms stay straight and the neighbours beside it step in their own blocks. No duct drapes from a `HELD` one.
    - On a tie with different heights, the duct on the negative side of the arm axis wins (north, west). Both ducts compute the same answer.
    - Endpoint arms always meet their face `MID`.
    - Vertical arms have no face height: across them a duct is always centred.

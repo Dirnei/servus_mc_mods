@@ -25,7 +25,12 @@ public final class DuctPose {
         /** Copied from the neighbour ducts that rest on something. */
         DRAPED,
         /** Rests on a floor, or a panel keeps it in the middle. */
-        ANCHORED
+        ANCHORED,
+        /**
+         * Rises from an inventory or machine beside it, so it stays in the
+         * middle; its arms stay straight and the ducts beside it step instead.
+         */
+        HELD
     }
 
     public static final int X = 0;
@@ -52,7 +57,7 @@ public final class DuctPose {
     }
 
     public static Rank rank(int pose) {
-        return RANKS[(pose >> RANK_SHIFT) & 3];
+        return RANKS[(pose >> RANK_SHIFT) & 7];
     }
 
     public static int of(Height height, Rank rank) {
@@ -96,10 +101,10 @@ public final class DuctPose {
     }
 
     /**
-     * The pose a duct takes from its own block and the block below. Any panel
-     * keeps it in the middle; otherwise a sturdy block below that the duct
-     * has no arm into is a floor it lies on, unless the duct
-     * {@linkplain #risesFromEndpoint rises from an endpoint}.
+     * The pose a duct takes from its own block and the block below. A duct
+     * that {@linkplain #risesFromEndpoint rises from an endpoint} is held in
+     * the middle, and any panel keeps it there; otherwise a sturdy block below
+     * that the duct has no arm into is a floor it lies on.
      *
      * @param arms        six bit mask of the sides with an arm of any line
      * @param endpoints   six bit mask of the arms that end at an inventory or machine
@@ -107,10 +112,13 @@ public final class DuctPose {
      * @param panels      whether the duct carries any panel
      */
     public static int base(int arms, int endpoints, boolean sturdyBelow, boolean panels) {
+        if (risesFromEndpoint(arms, endpoints)) {
+            return of(Height.MID, Rank.HELD);
+        }
         if (panels) {
             return of(Height.MID, Rank.ANCHORED);
         }
-        if (sturdyBelow && !has(arms, DuctShapes.DOWN) && !risesFromEndpoint(arms, endpoints)) {
+        if (sturdyBelow && !has(arms, DuctShapes.DOWN)) {
             return of(Height.LOW, Rank.ANCHORED);
         }
         return CENTRED;

@@ -72,7 +72,7 @@ A duct whose block below has a full sturdy top face SHALL lie on it: its centre 
 
 #### Scenario: Machine and floor run on one duct turning up
 - **WHEN** a duct above a stone floor has an arm west along the floor, an arm east into a furnace and an arm up
-- **THEN** it stays in the middle of its block and the floor run steps up into it
+- **THEN** it stays in the middle of its block with straight arms, and the duct of the floor run beside it steps up in its own block to meet it in the middle
 
 #### Scenario: Machine on the floor, pipe straight up
 - **WHEN** a duct above a stone floor has an arm east into a furnace standing on the floor and an arm up
@@ -125,7 +125,7 @@ A duct SHALL stay in the middle of its block on both horizontal axes, whatever b
 - **THEN** that duct moves to the middle of its block and its arms through hollow panels pass through the holes
 
 ### Requirement: Arms step between positions
-Two connected ducts SHALL draw their shared arm at one position where they meet at the shared face. When a duct sits elsewhere than that position, its arm SHALL make a short step up or down from the duct to the face, so the run stays joined. The position at the face SHALL be the one of the duct that rests on a floor or is held in the middle by a panel, else the one of a draped duct.
+Two connected ducts SHALL draw their shared arm at one position where they meet at the shared face. When a duct sits elsewhere than that position, its arm SHALL make a short step up or down from the duct to the face, so the run stays joined. The position at the face SHALL be the one of a duct that stays in the middle because it has an arm up and an arm into an inventory or machine, so that such a junction keeps straight arms and its neighbours step; else the one of the duct that rests on a floor or is held in the middle by a panel, else the one of a draped duct.
 
 #### Scenario: Off the edge of a floor
 - **WHEN** a run on a floor continues into open air past the edge of the floor and the next duct stays in the middle
