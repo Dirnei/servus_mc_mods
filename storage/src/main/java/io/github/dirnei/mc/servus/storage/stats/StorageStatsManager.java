@@ -73,6 +73,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     public static final double DEFAULT_FERTILIZE_SHARE = 0.5;
     public static final int DEFAULT_SEED_BUFFER = 64;
     public static final int DEFAULT_FERTILIZER_BUFFER = 64;
+    public static final int DEFAULT_HARVEST_LIMIT = 0;
+    public static final int DEFAULT_FERTILIZE_BELOW = 0;
 
     private static final Identifier WAREHOUSE = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "warehouse");
     private static final Identifier RACK = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "rack");
@@ -140,6 +142,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     private volatile double fertilizeShare = DEFAULT_FERTILIZE_SHARE;
     private volatile int seedBuffer = DEFAULT_SEED_BUFFER;
     private volatile int fertilizerBuffer = DEFAULT_FERTILIZER_BUFFER;
+    private volatile int harvestLimit = DEFAULT_HARVEST_LIMIT;
+    private volatile int fertilizeBelow = DEFAULT_FERTILIZE_BELOW;
 
     private StorageStatsManager() {
         super(ExtraCodecs.JSON, FileToIdConverter.json(DIRECTORY));
@@ -200,6 +204,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         fertilizeShare = Math.min(1.0, doubleField(files.get(FIELD), "fertilize_share", DEFAULT_FERTILIZE_SHARE));
         seedBuffer = countField(files.get(FIELD), "seed_buffer", DEFAULT_SEED_BUFFER);
         fertilizerBuffer = countField(files.get(FIELD), "fertilizer_buffer", DEFAULT_FERTILIZER_BUFFER);
+        harvestLimit = countField(files.get(FIELD), "harvest_limit", DEFAULT_HARVEST_LIMIT);
+        fertilizeBelow = countField(files.get(FIELD), "fertilize_below", DEFAULT_FERTILIZE_BELOW);
         shuttleTiers = ShuttleStatsReader.read(files.get(SHUTTLE));
         ServusStorage.LOGGER.info("Warehouse polls {} sources per tick", sourcesPerTick);
     }
@@ -536,6 +542,16 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     /** For tests: sets the fertilizer buffer level as if a datapack had been loaded. */
     public void setFertilizerBuffer(int level) {
         fertilizerBuffer = level;
+    }
+
+    /** The harvest limit of a Field Head that was never set, in items of its produce; 0 for none. */
+    public int harvestLimit() {
+        return harvestLimit;
+    }
+
+    /** The fertilize level of a Field Head that was never set, in items of its produce; 0 for none. */
+    public int fertilizeBelow() {
+        return fertilizeBelow;
     }
 
     /** Shuttle speed, stop times and tiers from {@code shuttle.json}. */

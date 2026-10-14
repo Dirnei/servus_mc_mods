@@ -4,7 +4,7 @@ Apply after `m10-field-head-buffer` is archived.
 
 ## 1. Pure logic and data
 
-- [ ] 1.1 Add pure `Produce.pick(tally, crop)` and `StockLevels` (`harvestPaused`, `fertilizeAllowed`, `step`, `keepOrder`) in `storage/.../field/`. JUnit `ProduceTest`: wheat with more seeds than wheat, carrots only, ties by id, harvest only. JUnit `StockLevelsTest`: 0 means off, at and below the limit, the fertilize level with a paused harvest, an unknown produce, clamping, keeping the order. Add `harvest_limit` and `fertilize_below` to `storage/field.json` and `StorageStatsManager`. Verify: `gradlew :storage:test` green.
+- [x] 1.1 Add pure `Produce.pick(tally, crop)` and `StockLevels` (`harvestPaused`, `fertilizeAllowed`, `step`, `keepOrder`) in `storage/.../field/`. JUnit `ProduceTest`: wheat with more seeds than wheat, carrots only, ties by id, harvest only. JUnit `StockLevelsTest`: 0 means off, at and below the limit, the fertilize level with a paused harvest, an unknown produce, clamping, keeping the order. Add `harvest_limit` and `fertilize_below` to `storage/field.json` and `StorageStatsManager`. Verify: `gradlew :storage:test` green.
 
 ## 2. Head and runs
 
