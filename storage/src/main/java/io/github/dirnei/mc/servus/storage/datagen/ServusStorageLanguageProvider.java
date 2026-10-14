@@ -199,6 +199,19 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.field_head.fertilize.no_supply_shuttle", "No shuttle without a tool can bring supplies");
         add("gui.servus_storage.field_head.fertilize.supply_coming", "Buffer empty, a supply run is on its way");
         add("gui.servus_storage.field_head.fertilize.waiting", "Waiting for plots to fertilize");
+        add("gui.servus_storage.field_head.fertilize.not_needed", "Not needed: %s %s in stock, fertilizes below %s");
+        add("gui.servus_storage.field_head.fertilize.not_needed_paused", "Not needed while harvesting is paused");
+        add("gui.servus_storage.field_head.level.limit", "Stop at");
+        add("gui.servus_storage.field_head.level.limit.off", "no limit");
+        add("gui.servus_storage.field_head.level.limit.title", "Stop harvesting at");
+        add("gui.servus_storage.field_head.level.limit.tooltip", "Ripe crops wait on the field while the warehouse holds this many of the produce");
+        add("gui.servus_storage.field_head.level.below", "Below");
+        add("gui.servus_storage.field_head.level.below.off", "always");
+        add("gui.servus_storage.field_head.level.below.title", "Fertilize below");
+        add("gui.servus_storage.field_head.level.below.tooltip", "Spreaders come only while the warehouse holds fewer of the produce");
+        add("gui.servus_storage.field_head.level.shift", "Shift click moves ten times as far");
+        add("gui.servus_storage.field_head.produce_stock", "%s in stock: %s");
+        add("gui.servus_storage.field_head.produce_unknown", "Produce learned at the first harvest");
         add("gui.servus_storage.field_head.range_slot", "Radius %s: Range Upgrades widen the field");
         add("gui.servus_storage.field_head.ripe", "Ripe %s/%s");
         add("gui.servus_storage.field_head.ripe_tooltip", "%s of %s planted ripe (%s%%), harvest at %s%%");
@@ -238,6 +251,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.field_head.work.no_supply_shuttle", "No shuttle without a tool can bring seeds");
         add("gui.servus_storage.field_head.work.growing", "Growing");
         add("gui.servus_storage.field_head.work.no_plots", "No plot to till or plant");
+        add("gui.servus_storage.field_head.work.harvest_paused", "Harvest paused: %s / %s %s");
         add("gui.servus_storage.field_head.status.no_field", "No farm rail beside the head");
         add("gui.servus_storage.field_head.status.too_large", "The field is too large");
         add("gui.servus_storage.field_head.status.other_head", "This field has another head");

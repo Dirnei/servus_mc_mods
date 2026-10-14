@@ -13,7 +13,7 @@ Apply after `m10-field-head-buffer` is archived.
 
 ## 3. GUI and statuses
 
-- [ ] 3.1 `FieldHeadMenu`, `FieldHeadScreen`, `SetFieldLevelPayload` (registered in `ServusStoragePayloads`): the rows on the Field and Fertilizer tabs, the work status "Harvest paused", and `FertilizeStatus.NOT_NEEDED`, with no red markers. Lang keys; the field command prints the produce and both levels. Verify: `gradlew :storage:runData` and `gradlew build` green, every payload type registered.
+- [x] 3.1 `FieldHeadMenu`, `FieldHeadScreen`, `SetFieldLevelPayload` (registered in `ServusStoragePayloads`): the rows on the Field and Fertilizer tabs, the work status "Harvest paused", and `FertilizeStatus.NOT_NEEDED`, with no red markers. Lang keys; the field command prints the produce and both levels. Verify: `gradlew :storage:runData` and `gradlew build` green, every payload type registered.
 
 ## 4. GameTests and docs
 

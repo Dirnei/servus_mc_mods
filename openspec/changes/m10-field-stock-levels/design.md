@@ -32,6 +32,8 @@
 - **Field tab:** a row "Stop harvesting at" with the produce icon (or "learned at the first harvest"), the value or "no limit", and -64, -1, +1, +64 buttons, where shift moves ten times as far.
 - **Fertilizer tab:** the same row for "Fertilize below".
 - One payload `SetFieldLevelPayload(pos, which, delta, shift)`, checked on the server like the reserve buttons.
+- Layout: the Field and Fertilizer tabs had no room left after the buffer change, so the GUI grows by 36 px (inventory at y 132, panel painted with `PanelPainter` like the controller and elevator GUIs instead of the garage texture). A level row is a short label ("Stop at", "Below"), the produce icon, then -64, -1, the value frame, +1, +64; the full name, what the level does, the produce stock and the shift hint are in the row's tooltip. The Field tab shows the produce under its row ("Wheat in stock: 1,024", or "Produce learned at the first harvest"), then the work status; the Fertilizer tab puts its row under the Until ripe threshold row and the status below it. The buttons keep their -64 / +64 labels while shift is held; 18 px buttons cannot show "-640".
+- The crop and fertilizer pickers narrow from 112 to 100 px so the buffer count "128/128" fits beside the icon; a count that still does not fit shows only the items held (the tooltip keeps count and level).
 - The work status line shows "Harvest paused: 1,024 / 1,000 Wheat", the Fertilizer status "Not needed: 640 Wheat in stock (below 500)". Neither is a problem: no red marker, no red bar.
 
 **Data.** `harvest_limit` and `fertilize_below` in `storage/field.json`, read by `StorageStatsManager`.

@@ -159,6 +159,11 @@ public final class ServusStorageCommands {
         return String.join(", ", parts);
     }
 
+    /** A stock level, "off" for 0. */
+    private static String level(int value) {
+        return value > 0 ? String.valueOf(value) : "off";
+    }
+
     /** "2 Oak Planks, 1 Coal" for stacks with counts. */
     private static String counted(List<ItemStack> stacks) {
         List<String> parts = new ArrayList<>();
@@ -194,6 +199,9 @@ public final class ServusStorageCommands {
                         + ", " + head.fertilizeTargetCount() + " plots need a dose, keep " + head.reserve() + ", status "
                         + (head.fertilizeStatus() == null ? "none" : lower(head.fertilizeStatus())),
                 "Buffer: " + bufferLine(head),
+                "Produce: " + (head.produce().isEmpty() ? "unknown" : name(head.produce()) + ", " + head.produceStock() + " in stock")
+                        + ", stop harvesting at " + level(head.harvestLimit()) + ", fertilize below " + level(head.fertilizeBelow())
+                        + (head.harvestPaused() ? ", harvest paused" : "") + (head.fertilizeAllowed() ? "" : ", fertilizing not needed"),
                 "Corrosion: " + (head.corrosion() == FieldCorrosion.LOOSE ? "none" : FieldCorrosion.name(head.corrosion())
                         + ", " + head.agedWater() + " / " + StorageStatsManager.INSTANCE.fieldCorrosionWater() + " mB to the next step, "
                         + head.supplyCount(SupplyBuffer.Part.ANTI_CORROSION) + " anti-corrosion"));

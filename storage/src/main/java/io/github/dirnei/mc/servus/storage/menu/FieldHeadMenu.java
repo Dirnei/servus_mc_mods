@@ -11,10 +11,12 @@ import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
 import io.github.dirnei.mc.servus.storage.field.FieldWorkerPayload;
+import io.github.dirnei.mc.servus.storage.field.StockLevels;
 import io.github.dirnei.mc.servus.storage.field.SupplyBuffer;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.storage.picker.PickerStock;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -35,25 +37,28 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * The Field Head GUI in four tabs: Field (crop picker, seeds in the buffer),
- * Water (anti-corrosion items in the buffer), Fertilizer (fertilizer picker,
- * mode, threshold, reserve, fertilizer in the buffer) and Upgrades (Range
- * Upgrade slot). The buffer takes nothing from the player and gives nothing
+ * The Field Head GUI in four tabs: Field (crop picker, seeds in the buffer,
+ * harvest limit), Water (anti-corrosion items in the buffer), Fertilizer
+ * (fertilizer picker, mode, threshold, reserve, fertilizer in the buffer,
+ * fertilize level) and Upgrades (Range Upgrade slot). The buffer takes nothing from the player and gives nothing
  * back, so it has no slots. The field's numbers travel as container data, the
  * warehouse stock of crop and fertilizer items as payloads. The tab is client
  * view state; head slots off the shown tab are inactive. Crop and fertilizer
  * are chosen by id through {@link #choose(Player, Optional)} and
- * {@link #chooseFertilizer(Player, Optional)}, the rest through menu buttons.
+ * {@link #chooseFertilizer(Player, Optional)}, the stock levels through
+ * {@link #stepLevel(Player, BlockPos, StockLevels.Level, int, boolean)}, the
+ * rest through menu buttons.
  */
 public class FieldHeadMenu extends AbstractContainerMenu {
 
     public static final int PICKER_X = 8;
     public static final int PICKER_Y = 17;
-    public static final int PICKER_WIDTH = 112;
+    public static final int PICKER_WIDTH = 100;
     public static final int RANGE_X = 8;
     public static final int RANGE_Y = 18;
     public static final int RANGE_SLOT = 0;
-    public static final int INVENTORY_Y = 96;
+    public static final int INVENTORY_Y = 132;
+    public static final int IMAGE_HEIGHT = INVENTORY_Y + PlayerInventorySlots.HOTBAR_OFFSET + 18 + 6;
     public static final int INVENTORY_START = 1;
     public static final int BUTTON_THRESHOLD_DOWN = 1;
     public static final int BUTTON_THRESHOLD_UP = 2;
@@ -64,9 +69,13 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     /** Reserve buttons: -10, -1, +1, +10 from this id on. */
     public static final int BUTTON_RESERVE = 8;
     public static final int[] RESERVE_STEPS = {-10, -1, 1, 10};
+    /** The step buttons of a stock level; shift moves {@link #SHIFT_FACTOR} times as far. */
+    public static final int[] LEVEL_STEPS = {-64, -1, 1, 64};
+    public static final int SHIFT_FACTOR = 10;
     private static final int FLAG_HYDRATED = 1;
     private static final int FLAG_HARVEST_ONLY = 2;
     private static final int FLAG_DUE = 4;
+    private static final int FLAG_PAUSED = 8;
     /** Ticks between two looks at the warehouse stock. */
     private static final int STOCK_INTERVAL = 20;
 
@@ -98,6 +107,12 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     /** Count and level of each buffer part, in {@link SupplyBuffer.Part} order. */
     private final DataSlot[] supplyCounts = standalone(SupplyBuffer.Part.VALUES.length);
     private final DataSlot[] supplyLevels = standalone(SupplyBuffer.Part.VALUES.length);
+    private final DataSlot harvestLimitLow = DataSlot.standalone();
+    private final DataSlot harvestLimitHigh = DataSlot.standalone();
+    private final DataSlot fertilizeBelowLow = DataSlot.standalone();
+    private final DataSlot fertilizeBelowHigh = DataSlot.standalone();
+    private final DataSlot produceStockLow = DataSlot.standalone();
+    private final DataSlot produceStockHigh = DataSlot.standalone();
     /** Signatures of the crop and fertilizer stock last sent; null before the first send. */
     private Long sentStock;
     private Long sentFertilizerStock;
@@ -131,7 +146,8 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         });
         PlayerInventorySlots.add(this::addSlot, playerInventory, 8, INVENTORY_Y);
         for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags,
-                work, threshold, radius, corrosion, corrosionProgress, fertilizeMode, fertilizePercent, reserve, fertilizeStatus}) {
+                work, threshold, radius, corrosion, corrosionProgress, fertilizeMode, fertilizePercent, reserve, fertilizeStatus,
+                harvestLimitLow, harvestLimitHigh, fertilizeBelowLow, fertilizeBelowHigh, produceStockLow, produceStockHigh}) {
             addDataSlot(slot);
         }
         for (int i = 0; i < SupplyBuffer.Part.VALUES.length; i++) {
@@ -162,10 +178,8 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         if (player.level().isClientSide()) {
             return;
         }
-        waterLow.set(head.water() & 0xFFFF);
-        waterHigh.set(head.water() >>> 16);
-        capacityLow.set(head.capacity() & 0xFFFF);
-        capacityHigh.set(head.capacity() >>> 16);
+        split(head.water(), waterLow, waterHigh);
+        split(head.capacity(), capacityLow, capacityHigh);
         rails.set(clamp(head.rails().size()));
         plots.set(clamp(head.plots().size()));
         planted.set(clamp(head.plantedCount()));
@@ -186,7 +200,16 @@ public class FieldHeadMenu extends AbstractContainerMenu {
             supplyCounts[part.ordinal()].set(clamp(head.supplyCount(part)));
             supplyLevels[part.ordinal()].set(clamp(head.supplyLevel(part)));
         }
-        flags.set((head.hydrated() ? FLAG_HYDRATED : 0) | (head.harvestOnly() ? FLAG_HARVEST_ONLY : 0) | (head.harvestDue() ? FLAG_DUE : 0));
+        split(head.harvestLimit(), harvestLimitLow, harvestLimitHigh);
+        split(head.fertilizeBelow(), fertilizeBelowLow, fertilizeBelowHigh);
+        split((int) Math.min(Integer.MAX_VALUE, head.produceStock()), produceStockLow, produceStockHigh);
+        flags.set((head.hydrated() ? FLAG_HYDRATED : 0) | (head.harvestOnly() ? FLAG_HARVEST_ONLY : 0) | (head.harvestCalled() ? FLAG_DUE : 0)
+                | (head.harvestPaused() ? FLAG_PAUSED : 0));
+    }
+
+    private static void split(int value, DataSlot low, DataSlot high) {
+        low.set(value & 0xFFFF);
+        high.set(value >>> 16);
     }
 
     /** Container data travels as a short. */
@@ -330,6 +353,27 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         return true;
     }
 
+    /**
+     * Moves a stock level of the head at that position by one of the
+     * {@link #LEVEL_STEPS}, ten times as far with shift. Acts only while the
+     * player's open menu is that head's menu and they can still use it.
+     * Returns whether the step was taken. Server side.
+     */
+    public static boolean stepLevel(Player player, BlockPos pos, StockLevels.Level which, int delta, boolean shift) {
+        FieldHeadMenu menu = usableMenu(player);
+        if (menu == null || !menu.head.getBlockPos().equals(pos) || Arrays.stream(LEVEL_STEPS).noneMatch(step -> step == delta)) {
+            return false;
+        }
+        menu.head.stepLevel(which, shift ? delta * SHIFT_FACTOR : delta);
+        menu.update();
+        return true;
+    }
+
+    /** The position of the head this menu shows. */
+    public BlockPos headPos() {
+        return head.getBlockPos();
+    }
+
     /** The page a head slot belongs to, null for the player inventory. */
     public static Page pageOf(int slot) {
         return slot == RANGE_SLOT ? Page.UPGRADES : null;
@@ -410,8 +454,34 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         return (flags.get() & FLAG_HARVEST_ONLY) != 0;
     }
 
+    /** Whether a harvest is due and not paused at the harvest limit. */
     public boolean harvestDue() {
         return (flags.get() & FLAG_DUE) != 0;
+    }
+
+    /** Whether the warehouse holds the harvest limit of the produce, so the field harvests nothing. */
+    public boolean harvestPaused() {
+        return (flags.get() & FLAG_PAUSED) != 0;
+    }
+
+    /** The harvest limit in items of the produce; 0 for none. */
+    public int harvestLimit() {
+        return join(harvestLimitLow, harvestLimitHigh);
+    }
+
+    /** The fertilize level in items of the produce; 0 for none. */
+    public int fertilizeBelow() {
+        return join(fertilizeBelowLow, fertilizeBelowHigh);
+    }
+
+    /** The warehouse stock of the produce as the head last read it. */
+    public int produceStock() {
+        return join(produceStockLow, produceStockHigh);
+    }
+
+    /** The field's produce as the head last synced it; empty until the first harvest. */
+    public ItemStack produce() {
+        return head.produce();
     }
 
     /** The crop of the field as the head last synced it; empty for none. */

@@ -41,4 +41,15 @@ class FertilizeStatusTest {
         assertFalse(FertilizeStatus.WAITING.problem());
         assertFalse(FertilizeStatus.NOT_LINKED.problem());
     }
+
+    @Test
+    void notNeededReplacesWaitingButNotProblems() {
+        assertEquals(FertilizeStatus.NOT_NEEDED, FertilizeStatus.WAITING.whileNeeded(false));
+        assertEquals(FertilizeStatus.NOT_NEEDED, FertilizeStatus.SUPPLY_COMING.whileNeeded(false));
+        assertEquals(FertilizeStatus.WAITING, FertilizeStatus.WAITING.whileNeeded(true));
+        assertEquals(FertilizeStatus.NO_SPREADER, FertilizeStatus.NO_SPREADER.whileNeeded(false));
+        assertEquals(FertilizeStatus.WORKING, FertilizeStatus.WORKING.whileNeeded(false));
+        assertEquals(FertilizeStatus.OFF, FertilizeStatus.OFF.whileNeeded(false));
+        assertFalse(FertilizeStatus.NOT_NEEDED.problem());
+    }
 }

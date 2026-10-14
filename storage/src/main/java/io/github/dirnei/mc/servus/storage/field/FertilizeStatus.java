@@ -23,6 +23,8 @@ public enum FertilizeStatus {
     NO_SUPPLY_SHUTTLE,
     /** The buffer is empty and a supply run brings fertilizer. */
     SUPPLY_COMING,
+    /** The stock of the produce is at the fertilize level, or harvesting is paused at the limit. */
+    NOT_NEEDED,
     /** Nothing to dose right now, or the call interval has not passed. */
     WAITING;
 
@@ -38,6 +40,14 @@ public enum FertilizeStatus {
      */
     public boolean problem() {
         return this == NO_SPREADER || this == NO_WAY || this == NO_SUPPLY_SHUTTLE;
+    }
+
+    /**
+     * The status while the stock levels may make fertilizing unneeded: every
+     * status that is not off, a problem or a run at work says so instead.
+     */
+    public FertilizeStatus whileNeeded(boolean needed) {
+        return needed || this == OFF || this == NOT_LINKED || this == WORKING || problem() ? this : NOT_NEEDED;
     }
 
     /**

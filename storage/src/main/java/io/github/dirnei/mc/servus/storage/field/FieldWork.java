@@ -34,7 +34,9 @@ public enum FieldWork {
     /** Everything is planted and growing. */
     GROWING,
     /** No plot beside the rails can be tilled or planted. */
-    NO_PLOTS;
+    NO_PLOTS,
+    /** The warehouse holds the head's harvest limit of the produce: ripe crops wait on the field. */
+    HARVEST_PAUSED;
 
     private static final FieldWork[] VALUES = values();
 
@@ -68,9 +70,18 @@ public enum FieldWork {
     /** Whether this status is a problem: drawn in the warning colour, a red tab marker and a red bar on the head. */
     public boolean problem() {
         return switch (this) {
-            case WORKING, HARVEST_DUE, READY, GROWING, WAITING_RIPE, SEEDS_COMING -> false;
+            case WORKING, HARVEST_DUE, READY, GROWING, WAITING_RIPE, SEEDS_COMING, HARVEST_PAUSED -> false;
             default -> true;
         };
+    }
+
+    /**
+     * The status while the harvest limit may be reached: a field that only
+     * waits for crops to grow or ripen says its harvest is paused instead.
+     * Call with the status picked for a harvest that is not due.
+     */
+    public FieldWork whilePaused(boolean paused) {
+        return paused && (this == WAITING_RIPE || this == GROWING) ? HARVEST_PAUSED : this;
     }
 
     public static FieldWork byId(int id) {

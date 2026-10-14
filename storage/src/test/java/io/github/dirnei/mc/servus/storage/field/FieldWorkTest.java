@@ -84,4 +84,14 @@ class FieldWorkTest {
         assertEquals(FieldWork.NO_WAY, FieldWork.of(true, true, true, true, false, true, true, true, true, 5, 0, 0, FieldWork.Seeds.BUFFERED));
         assertEquals(FieldWork.NO_HARVESTER, FieldWork.of(true, true, true, false, false, false, true, true, true, 5, 0, 0, FieldWork.Seeds.BUFFERED));
     }
+
+    @Test
+    void pausedHarvestShowsInsteadOfWaiting() {
+        assertEquals(FieldWork.HARVEST_PAUSED, FieldWork.GROWING.whilePaused(true));
+        assertEquals(FieldWork.HARVEST_PAUSED, FieldWork.WAITING_RIPE.whilePaused(true));
+        assertEquals(FieldWork.GROWING, FieldWork.GROWING.whilePaused(false));
+        assertEquals(FieldWork.READY, FieldWork.READY.whilePaused(true));
+        assertEquals(FieldWork.DRY, FieldWork.DRY.whilePaused(true));
+        assertFalse(FieldWork.HARVEST_PAUSED.problem());
+    }
 }

@@ -948,7 +948,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         int buffered = supplyCount(SupplyBuffer.Part.FERTILIZER);
         boolean supplier = buffered == 0 && stock > reserve()
                 && network.map(warehouse -> warehouse.supplyReachable(worldPosition)).orElse(false);
-        return FertilizeStatus.of(true, network.isPresent(), spreader, reachable, working, buffered, stock, reserve(), supplier);
+        return FertilizeStatus.of(true, network.isPresent(), spreader, reachable, working, buffered, stock, reserve(), supplier)
+                .whileNeeded(fertilizeAllowed());
     }
 
     /**
@@ -1014,7 +1015,11 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
 
     /** Reads the produce stock from the warehouse; called at each field check. Server side. */
     public void readProduceStock(WarehouseNetwork warehouse) {
+        boolean paused = harvestPaused();
         produceStock = produce == null ? 0 : warehouse.available(ItemKey.of(new ItemStack(produce)));
+        if (harvestPaused() != paused) {
+            lookDirty = true;
+        }
     }
 
     /** The harvest limit in items of the produce; 0 for none. */
@@ -1131,6 +1136,11 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
                 && ripeness.due(harvestPercent() / 100.0);
     }
 
+    /** Whether a harvest is due and not paused at the harvest limit, so a harvester gets called. */
+    public boolean harvestCalled() {
+        return harvestDue() && !harvestPaused();
+    }
+
     /**
      * What the field is doing, or the first thing that keeps a harvester away,
      * read from the warehouse its rails belong to. Server side; null when the
@@ -1149,8 +1159,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         boolean inStock = !buffered && plantMode() && network.map(warehouse -> warehouse.available(ItemKey.of(crop())) > 0).orElse(false);
         boolean supplier = inStock && network.map(warehouse -> warehouse.supplyReachable(worldPosition)).orElse(false);
         FieldWork.Seeds seeds = FieldWork.Seeds.of(buffered, inStock, supplier);
-        return FieldWork.of(network.isPresent(), online, harvestOnly || plantMode(), harvester, reachable, working, harvestDue(),
-                plantMode(), hydrated, tillableCount(), plantableCount(), plantedCount(), seeds);
+        return FieldWork.of(network.isPresent(), online, harvestOnly || plantMode(), harvester, reachable, working, harvestCalled(),
+                plantMode(), hydrated, tillableCount(), plantableCount(), plantedCount(), seeds).whilePaused(harvestPaused());
     }
 
     /** The warehouse the field's rails belong to; call only while the head serves a field. */
@@ -1194,7 +1204,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             return;
         }
         int step = status == FieldStatus.SERVING
-                ? FieldHeadLook.ripeStep(plantedCount(), ripeCount(), harvestPercent(), harvestDue())
+                ? FieldHeadLook.ripeStep(plantedCount(), ripeCount(), harvestPercent(), harvestCalled())
                 : FieldHeadLook.EMPTY;
         show(getBlockState(), FieldHeadBlock.RIPE, step);
         applyCorrodedLook();

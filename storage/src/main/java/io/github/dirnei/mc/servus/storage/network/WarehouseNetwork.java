@@ -1095,7 +1095,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
             if (harvesters && !fleet.hasFieldJob(pos) && fleet.fieldReachable(pos, JobNeeds.HARVESTER)) {
                 boolean seeds = head.supplyCount(SupplyBuffer.Part.SEEDS) > 0;
-                if (FieldDue.due(head.harvestDue() && !head.harvestPaused(), head.plantMode(), head.hydrated(), head.tillableCount(), head.plantableCount(), seeds)) {
+                if (FieldDue.due(head.harvestCalled(), head.plantMode(), head.hydrated(), head.tillableCount(), head.plantableCount(), seeds)) {
                     fleet.requestField(new FieldJob(pos));
                 }
             }
