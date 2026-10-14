@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "servus_alchemy:block/calciner_front_lit",
+    "side": "minecraft:block/stone_bricks",
+    "top": "minecraft:block/smooth_stone"
+  }
+}

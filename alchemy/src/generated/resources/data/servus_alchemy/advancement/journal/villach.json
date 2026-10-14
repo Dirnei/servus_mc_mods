@@ -1,0 +1,26 @@
+{
+  "parent": "servus_alchemy:journal/root",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "journal.servus_alchemy.villach.finished"
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "servus_alchemy:calciner"
+    },
+    "title": {
+      "translate": "journal.servus_alchemy.villach"
+    }
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

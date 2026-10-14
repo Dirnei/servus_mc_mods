@@ -1,0 +1,13 @@
+{
+  "type": "servus_alchemy:purification",
+  "input": {
+    "count": 4,
+    "ingredient": "servus_alchemy:ash"
+  },
+  "residue": {
+    "id": "servus_alchemy:caput_mortuum"
+  },
+  "salt": 400,
+  "time": 160,
+  "water": 400
+}

@@ -1,0 +1,10 @@
+{
+  "type": "modonomicon:crafting_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "recipe",
+  "recipe_id_1": "servus_alchemy:athanor",
+  "sort_number": 2,
+  "text": "book.servus_alchemy.journal.workshop.athanor.recipe.text"
+}

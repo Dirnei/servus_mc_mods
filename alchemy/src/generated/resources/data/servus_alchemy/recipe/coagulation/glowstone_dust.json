@@ -1,0 +1,10 @@
+{
+  "type": "servus_alchemy:coagulation",
+  "input": {
+    "mercury": 100,
+    "sulfur": 100
+  },
+  "result": {
+    "id": "minecraft:glowstone_dust"
+  }
+}

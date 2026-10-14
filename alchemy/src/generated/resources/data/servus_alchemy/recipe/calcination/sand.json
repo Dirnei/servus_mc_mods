@@ -1,0 +1,11 @@
+{
+  "type": "servus_alchemy:calcination",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:sands"
+  },
+  "output": {
+    "mercury": 10,
+    "salt": 80
+  }
+}

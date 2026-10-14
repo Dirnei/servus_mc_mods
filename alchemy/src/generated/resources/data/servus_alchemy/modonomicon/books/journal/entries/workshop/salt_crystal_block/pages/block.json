@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "block",
+  "item": {
+    "id": "servus_alchemy:salt_crystal_block"
+  },
+  "sort_number": 0,
+  "text": "book.servus_alchemy.journal.workshop.salt_crystal_block.block.text",
+  "title": "book.servus_alchemy.journal.workshop.salt_crystal_block.block.title"
+}

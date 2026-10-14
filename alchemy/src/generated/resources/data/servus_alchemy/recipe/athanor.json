@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "minecraft:bricks",
+    "C": "minecraft:cauldron",
+    "F": "minecraft:blast_furnace"
+  },
+  "pattern": [
+    "BCB",
+    "BFB",
+    "BBB"
+  ],
+  "result": {
+    "id": "servus_alchemy:athanor"
+  }
+}

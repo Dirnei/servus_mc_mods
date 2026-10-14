@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "fire_2",
+  "show_title_separator": true,
+  "sort_number": 9,
+  "text": "book.servus_alchemy.journal.workshop.athanor.fire_2.text",
+  "title": ""
+}

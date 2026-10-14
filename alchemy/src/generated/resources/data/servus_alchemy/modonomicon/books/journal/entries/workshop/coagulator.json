@@ -1,0 +1,29 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_alchemy:workshop",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "description": "book.servus_alchemy.journal.workshop.coagulator.description",
+  "icon": {
+    "id": "servus_alchemy:coagulator"
+  },
+  "id": "servus_alchemy:workshop/coagulator",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.servus_alchemy.journal.workshop.coagulator.name",
+  "parents": [
+    {
+      "entry": "servus_alchemy:workshop/purifier"
+    }
+  ],
+  "sort_number": 3,
+  "x": 5,
+  "y": -2
+}

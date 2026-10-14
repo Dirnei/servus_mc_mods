@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "minecraft:bricks",
+    "C": "minecraft:cauldron",
+    "I": "minecraft:iron_bars"
+  },
+  "pattern": [
+    "BIB",
+    "BCB"
+  ],
+  "result": {
+    "id": "servus_alchemy:calciner"
+  }
+}

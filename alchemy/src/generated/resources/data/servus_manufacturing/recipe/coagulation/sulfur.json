@@ -1,9 +1,0 @@
-{
-  "type": "servus_manufacturing:coagulation",
-  "input": {
-    "sulfur": 250
-  },
-  "result": {
-    "id": "servus_manufacturing:sulfur"
-  }
-}

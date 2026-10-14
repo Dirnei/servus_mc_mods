@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "hollow",
+  "item": {
+    "id": "servus_alchemy:gnome_hollow"
+  },
+  "sort_number": 0,
+  "text": "book.servus_alchemy.journal.workshop.gnome_hollow.hollow.text",
+  "title": "book.servus_alchemy.journal.workshop.gnome_hollow.hollow.title"
+}

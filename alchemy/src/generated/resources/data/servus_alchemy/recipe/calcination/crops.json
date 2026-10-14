@@ -1,0 +1,12 @@
+{
+  "type": "servus_alchemy:calcination",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:crops"
+  },
+  "output": {
+    "mercury": 30,
+    "salt": 10,
+    "sulfur": 30
+  }
+}

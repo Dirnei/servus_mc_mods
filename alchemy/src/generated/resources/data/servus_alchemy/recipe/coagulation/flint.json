@@ -1,0 +1,9 @@
+{
+  "type": "servus_alchemy:coagulation",
+  "input": {
+    "salt": 150
+  },
+  "result": {
+    "id": "minecraft:flint"
+  }
+}

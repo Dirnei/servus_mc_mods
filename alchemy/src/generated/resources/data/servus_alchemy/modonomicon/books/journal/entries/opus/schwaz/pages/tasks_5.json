@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "tasks_5",
+  "show_title_separator": true,
+  "sort_number": 6,
+  "text": "book.servus_alchemy.journal.opus.schwaz.tasks_5.text",
+  "title": ""
+}

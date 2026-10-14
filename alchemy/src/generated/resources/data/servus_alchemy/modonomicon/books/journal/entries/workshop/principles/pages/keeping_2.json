@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "keeping_2",
+  "show_title_separator": true,
+  "sort_number": 3,
+  "text": "book.servus_alchemy.journal.workshop.principles.keeping_2.text",
+  "title": ""
+}

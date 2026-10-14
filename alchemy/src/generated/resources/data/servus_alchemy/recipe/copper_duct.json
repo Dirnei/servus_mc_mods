@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:copper_ingot"
+  },
+  "pattern": [
+    "CCC"
+  ],
+  "result": {
+    "count": 3,
+    "id": "servus_alchemy:copper_duct"
+  }
+}

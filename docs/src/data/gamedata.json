@@ -2,6 +2,86 @@
   "schema": 2,
   "mod_version": "0.1.0",
   "machines": {
+    "servus_alchemy:athanor": {
+      "kind": "crafter",
+      "recipe_types": ["servus_alchemy:athanor"],
+      "work_ticks": 1,
+      "energy_per_tick": 0,
+      "energy_capacity": 0,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1,
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 4000,
+      "min_source_neighbours": 0,
+      "item_capacity": 0,
+      "upkeep_level": 0
+    },
+    "servus_alchemy:calciner": {
+      "kind": "burner",
+      "recipe_types": ["servus_alchemy:calcination"],
+      "work_ticks": 1,
+      "energy_per_tick": 0,
+      "energy_capacity": 0,
+      "fuel_divisor": 2,
+      "items_per_tick": 0,
+      "recipe_slots": 1,
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 0,
+      "min_source_neighbours": 0,
+      "item_capacity": 64,
+      "upkeep_level": 16
+    },
+    "servus_alchemy:coagulator": {
+      "kind": "crafter",
+      "recipe_types": ["servus_alchemy:coagulation"],
+      "work_ticks": 1,
+      "energy_per_tick": 0,
+      "energy_capacity": 0,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1,
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 4000,
+      "min_source_neighbours": 0,
+      "item_capacity": 0,
+      "upkeep_level": 0
+    },
+    "servus_alchemy:gnome_hollow": {
+      "kind": "crafter",
+      "recipe_types": [],
+      "work_ticks": 1,
+      "energy_per_tick": 0,
+      "energy_capacity": 0,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1,
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 4000,
+      "min_source_neighbours": 0,
+      "item_capacity": 0,
+      "upkeep_level": 0
+    },
+    "servus_alchemy:purifier": {
+      "kind": "crafter",
+      "recipe_types": ["servus_alchemy:purification"],
+      "work_ticks": 1,
+      "energy_per_tick": 0,
+      "energy_capacity": 0,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1,
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 4000,
+      "min_source_neighbours": 0,
+      "item_capacity": 0,
+      "upkeep_level": 0
+    },
     "servus_foundation:burner_pump": {
       "kind": "burner",
       "recipe_types": [],
@@ -65,90 +145,265 @@
       "min_source_neighbours": 0,
       "item_capacity": 0,
       "upkeep_level": 0
-    },
-    "servus_manufacturing:athanor": {
-      "kind": "crafter",
-      "recipe_types": ["servus_manufacturing:athanor"],
-      "work_ticks": 1,
-      "energy_per_tick": 0,
-      "energy_capacity": 0,
-      "fuel_divisor": 1,
-      "items_per_tick": 0,
-      "recipe_slots": 1,
-      "fuel_reserve": 0,
-      "fluid_per_cycle": 0,
-      "fluid_capacity": 4000,
-      "min_source_neighbours": 0,
-      "item_capacity": 0,
-      "upkeep_level": 0
-    },
-    "servus_manufacturing:calciner": {
-      "kind": "burner",
-      "recipe_types": ["servus_manufacturing:calcination"],
-      "work_ticks": 1,
-      "energy_per_tick": 0,
-      "energy_capacity": 0,
-      "fuel_divisor": 2,
-      "items_per_tick": 0,
-      "recipe_slots": 1,
-      "fuel_reserve": 0,
-      "fluid_per_cycle": 0,
-      "fluid_capacity": 0,
-      "min_source_neighbours": 0,
-      "item_capacity": 64,
-      "upkeep_level": 16
-    },
-    "servus_manufacturing:coagulator": {
-      "kind": "crafter",
-      "recipe_types": ["servus_manufacturing:coagulation"],
-      "work_ticks": 1,
-      "energy_per_tick": 0,
-      "energy_capacity": 0,
-      "fuel_divisor": 1,
-      "items_per_tick": 0,
-      "recipe_slots": 1,
-      "fuel_reserve": 0,
-      "fluid_per_cycle": 0,
-      "fluid_capacity": 4000,
-      "min_source_neighbours": 0,
-      "item_capacity": 0,
-      "upkeep_level": 0
-    },
-    "servus_manufacturing:gnome_hollow": {
-      "kind": "crafter",
-      "recipe_types": [],
-      "work_ticks": 1,
-      "energy_per_tick": 0,
-      "energy_capacity": 0,
-      "fuel_divisor": 1,
-      "items_per_tick": 0,
-      "recipe_slots": 1,
-      "fuel_reserve": 0,
-      "fluid_per_cycle": 0,
-      "fluid_capacity": 4000,
-      "min_source_neighbours": 0,
-      "item_capacity": 0,
-      "upkeep_level": 0
-    },
-    "servus_manufacturing:purifier": {
-      "kind": "crafter",
-      "recipe_types": ["servus_manufacturing:purification"],
-      "work_ticks": 1,
-      "energy_per_tick": 0,
-      "energy_capacity": 0,
-      "fuel_divisor": 1,
-      "items_per_tick": 0,
-      "recipe_slots": 1,
-      "fuel_reserve": 0,
-      "fluid_per_cycle": 0,
-      "fluid_capacity": 4000,
-      "min_source_neighbours": 0,
-      "item_capacity": 0,
-      "upkeep_level": 0
     }
   },
   "recipes": {},
   "crafting": {
+    "servus_alchemy:alembic": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": [" C ", "CGC", "C C"],
+      "key": {
+        "C": {"item": "minecraft:copper_ingot"},
+        "G": {"item": "minecraft:glass"}
+      },
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 5},
+        {"item": "minecraft:glass", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:alembic", "count": 1}
+      ]
+    },
+    "servus_alchemy:athanor": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["BCB", "BFB", "BBB"],
+      "key": {
+        "B": {"item": "minecraft:bricks"},
+        "C": {"item": "minecraft:cauldron"},
+        "F": {"item": "minecraft:blast_furnace"}
+      },
+      "inputs": [
+        {"item": "minecraft:blast_furnace", "count": 1},
+        {"item": "minecraft:bricks", "count": 7},
+        {"item": "minecraft:cauldron", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:athanor", "count": 1}
+      ]
+    },
+    "servus_alchemy:athanor/blaze_powder": {
+      "type": "servus_alchemy:athanor",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:athanor/elixir_of_sight": {
+      "type": "servus_alchemy:athanor",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:athanor/experience_bottle": {
+      "type": "servus_alchemy:athanor",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:athanor/gnome_hollow": {
+      "type": "servus_alchemy:athanor",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:athanor/salt_crystal_block": {
+      "type": "servus_alchemy:athanor",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:calciner": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["BIB", "BCB"],
+      "key": {
+        "B": {"item": "minecraft:bricks"},
+        "C": {"item": "minecraft:cauldron"},
+        "I": {"item": "minecraft:iron_bars"}
+      },
+      "inputs": [
+        {"item": "minecraft:bricks", "count": 4},
+        {"item": "minecraft:cauldron", "count": 1},
+        {"item": "minecraft:iron_bars", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:calciner", "count": 1}
+      ]
+    },
+    "servus_alchemy:calciner_ash_pan": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["B B", "BIB"],
+      "key": {
+        "B": {"item": "minecraft:bricks"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:bricks", "count": 4},
+        {"item": "minecraft:iron_ingot", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:calciner_ash_pan", "count": 1}
+      ]
+    },
+    "servus_alchemy:calciner_firebox": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["BIB", "BFB"],
+      "key": {
+        "B": {"item": "minecraft:bricks"},
+        "F": {"item": "minecraft:furnace"},
+        "I": {"item": "minecraft:iron_bars"}
+      },
+      "inputs": [
+        {"item": "minecraft:bricks", "count": 4},
+        {"item": "minecraft:furnace", "count": 1},
+        {"item": "minecraft:iron_bars", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:calciner_firebox", "count": 1}
+      ]
+    },
+    "servus_alchemy:catch_basin": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["P P", "PIP"],
+      "key": {
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 4},
+        {"item": "minecraft:iron_ingot", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:catch_basin", "count": 1}
+      ]
+    },
+    "servus_alchemy:coagulator": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IGI", "GCG", "IRI"],
+      "key": {
+        "C": {"item": "minecraft:cauldron"},
+        "G": {"item": "minecraft:glass"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:cauldron", "count": 1},
+        {"item": "minecraft:glass", "count": 3},
+        {"item": "minecraft:iron_ingot", "count": 4},
+        {"item": "minecraft:redstone", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:coagulator", "count": 1}
+      ]
+    },
+    "servus_alchemy:copper_duct": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["CCC"],
+      "key": {
+        "C": {"item": "minecraft:copper_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 3}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:copper_duct", "count": 3}
+      ]
+    },
+    "servus_alchemy:journal": {
+      "type": "minecraft:crafting_shapeless",
+      "inputs": [
+        {"tag": "minecraft:coals", "count": 1},
+        {"item": "minecraft:book", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:paracelsus_journal", "count": 1}
+      ]
+    },
+    "servus_alchemy:principle_vat": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["C C", "CBC"],
+      "key": {
+        "B": {"item": "minecraft:bucket"},
+        "C": {"item": "minecraft:copper_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:bucket", "count": 1},
+        {"item": "minecraft:copper_ingot", "count": 4}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:principle_vat", "count": 1}
+      ]
+    },
+    "servus_alchemy:purification/ash": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purifier": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["P P", "PCP", "PHP"],
+      "key": {
+        "C": {"item": "minecraft:cauldron"},
+        "H": {"item": "minecraft:hopper"},
+        "P": {"tag": "minecraft:planks"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 6},
+        {"item": "minecraft:cauldron", "count": 1},
+        {"item": "minecraft:hopper", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:purifier", "count": 1}
+      ]
+    },
+    "servus_alchemy:receiver": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": [" P ", "GBG", " C "],
+      "key": {
+        "B": {"item": "minecraft:glass_bottle"},
+        "C": {"item": "minecraft:copper_ingot"},
+        "G": {"item": "minecraft:glass"},
+        "P": {"item": "minecraft:glass_pane"}
+      },
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 1},
+        {"item": "minecraft:glass", "count": 2},
+        {"item": "minecraft:glass_bottle", "count": 1},
+        {"item": "minecraft:glass_pane", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:receiver", "count": 1}
+      ]
+    },
+    "servus_alchemy:residue_crock": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["B B", "BXB", "BBB"],
+      "key": {
+        "B": {"item": "minecraft:brick"},
+        "X": {"item": "minecraft:barrel"}
+      },
+      "inputs": [
+        {"item": "minecraft:barrel", "count": 1},
+        {"item": "minecraft:brick", "count": 7}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:residue_crock", "count": 1}
+      ]
+    },
+    "servus_alchemy:sulfur_hood": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": [" C ", "CBC"],
+      "key": {
+        "B": {"item": "minecraft:bricks"},
+        "C": {"item": "minecraft:copper_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:bricks", "count": 1},
+        {"item": "minecraft:copper_ingot", "count": 3}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:sulfur_hood", "count": 1}
+      ]
+    },
     "servus_foundation:anchor_upgrade": {
       "type": "minecraft:crafting_shaped",
       "pattern": [" E ", "IAI", " R "],
@@ -458,261 +713,6 @@
       ],
       "outputs": [
         {"item": "servus_foundation:speed_upgrade", "count": 1}
-      ]
-    },
-    "servus_manufacturing:alembic": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": [" C ", "CGC", "C C"],
-      "key": {
-        "C": {"item": "minecraft:copper_ingot"},
-        "G": {"item": "minecraft:glass"}
-      },
-      "inputs": [
-        {"item": "minecraft:copper_ingot", "count": 5},
-        {"item": "minecraft:glass", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:alembic", "count": 1}
-      ]
-    },
-    "servus_manufacturing:athanor": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["BCB", "BFB", "BBB"],
-      "key": {
-        "B": {"item": "minecraft:bricks"},
-        "C": {"item": "minecraft:cauldron"},
-        "F": {"item": "minecraft:blast_furnace"}
-      },
-      "inputs": [
-        {"item": "minecraft:blast_furnace", "count": 1},
-        {"item": "minecraft:bricks", "count": 7},
-        {"item": "minecraft:cauldron", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:athanor", "count": 1}
-      ]
-    },
-    "servus_manufacturing:athanor/blaze_powder": {
-      "type": "servus_manufacturing:athanor",
-      "special": true,
-      "inputs": [],
-      "outputs": []
-    },
-    "servus_manufacturing:athanor/elixir_of_sight": {
-      "type": "servus_manufacturing:athanor",
-      "special": true,
-      "inputs": [],
-      "outputs": []
-    },
-    "servus_manufacturing:athanor/experience_bottle": {
-      "type": "servus_manufacturing:athanor",
-      "special": true,
-      "inputs": [],
-      "outputs": []
-    },
-    "servus_manufacturing:athanor/gnome_hollow": {
-      "type": "servus_manufacturing:athanor",
-      "special": true,
-      "inputs": [],
-      "outputs": []
-    },
-    "servus_manufacturing:athanor/salt_crystal_block": {
-      "type": "servus_manufacturing:athanor",
-      "special": true,
-      "inputs": [],
-      "outputs": []
-    },
-    "servus_manufacturing:calciner": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["BIB", "BCB"],
-      "key": {
-        "B": {"item": "minecraft:bricks"},
-        "C": {"item": "minecraft:cauldron"},
-        "I": {"item": "minecraft:iron_bars"}
-      },
-      "inputs": [
-        {"item": "minecraft:bricks", "count": 4},
-        {"item": "minecraft:cauldron", "count": 1},
-        {"item": "minecraft:iron_bars", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:calciner", "count": 1}
-      ]
-    },
-    "servus_manufacturing:calciner_ash_pan": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["B B", "BIB"],
-      "key": {
-        "B": {"item": "minecraft:bricks"},
-        "I": {"item": "minecraft:iron_ingot"}
-      },
-      "inputs": [
-        {"item": "minecraft:bricks", "count": 4},
-        {"item": "minecraft:iron_ingot", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:calciner_ash_pan", "count": 1}
-      ]
-    },
-    "servus_manufacturing:calciner_firebox": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["BIB", "BFB"],
-      "key": {
-        "B": {"item": "minecraft:bricks"},
-        "F": {"item": "minecraft:furnace"},
-        "I": {"item": "minecraft:iron_bars"}
-      },
-      "inputs": [
-        {"item": "minecraft:bricks", "count": 4},
-        {"item": "minecraft:furnace", "count": 1},
-        {"item": "minecraft:iron_bars", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:calciner_firebox", "count": 1}
-      ]
-    },
-    "servus_manufacturing:catch_basin": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["P P", "PIP"],
-      "key": {
-        "I": {"item": "minecraft:iron_ingot"},
-        "P": {"tag": "minecraft:planks"}
-      },
-      "inputs": [
-        {"tag": "minecraft:planks", "count": 4},
-        {"item": "minecraft:iron_ingot", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:catch_basin", "count": 1}
-      ]
-    },
-    "servus_manufacturing:coagulator": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["IGI", "GCG", "IRI"],
-      "key": {
-        "C": {"item": "minecraft:cauldron"},
-        "G": {"item": "minecraft:glass"},
-        "I": {"item": "minecraft:iron_ingot"},
-        "R": {"item": "minecraft:redstone"}
-      },
-      "inputs": [
-        {"item": "minecraft:cauldron", "count": 1},
-        {"item": "minecraft:glass", "count": 3},
-        {"item": "minecraft:iron_ingot", "count": 4},
-        {"item": "minecraft:redstone", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:coagulator", "count": 1}
-      ]
-    },
-    "servus_manufacturing:copper_duct": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["CCC"],
-      "key": {
-        "C": {"item": "minecraft:copper_ingot"}
-      },
-      "inputs": [
-        {"item": "minecraft:copper_ingot", "count": 3}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:copper_duct", "count": 3}
-      ]
-    },
-    "servus_manufacturing:journal": {
-      "type": "minecraft:crafting_shapeless",
-      "inputs": [
-        {"tag": "minecraft:coals", "count": 1},
-        {"item": "minecraft:book", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:paracelsus_journal", "count": 1}
-      ]
-    },
-    "servus_manufacturing:principle_vat": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["C C", "CBC"],
-      "key": {
-        "B": {"item": "minecraft:bucket"},
-        "C": {"item": "minecraft:copper_ingot"}
-      },
-      "inputs": [
-        {"item": "minecraft:bucket", "count": 1},
-        {"item": "minecraft:copper_ingot", "count": 4}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:principle_vat", "count": 1}
-      ]
-    },
-    "servus_manufacturing:purification/ash": {
-      "type": "servus_manufacturing:purification",
-      "special": true,
-      "inputs": [],
-      "outputs": []
-    },
-    "servus_manufacturing:purifier": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["P P", "PCP", "PHP"],
-      "key": {
-        "C": {"item": "minecraft:cauldron"},
-        "H": {"item": "minecraft:hopper"},
-        "P": {"tag": "minecraft:planks"}
-      },
-      "inputs": [
-        {"tag": "minecraft:planks", "count": 6},
-        {"item": "minecraft:cauldron", "count": 1},
-        {"item": "minecraft:hopper", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:purifier", "count": 1}
-      ]
-    },
-    "servus_manufacturing:receiver": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": [" P ", "GBG", " C "],
-      "key": {
-        "B": {"item": "minecraft:glass_bottle"},
-        "C": {"item": "minecraft:copper_ingot"},
-        "G": {"item": "minecraft:glass"},
-        "P": {"item": "minecraft:glass_pane"}
-      },
-      "inputs": [
-        {"item": "minecraft:copper_ingot", "count": 1},
-        {"item": "minecraft:glass", "count": 2},
-        {"item": "minecraft:glass_bottle", "count": 1},
-        {"item": "minecraft:glass_pane", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:receiver", "count": 1}
-      ]
-    },
-    "servus_manufacturing:residue_crock": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["B B", "BXB", "BBB"],
-      "key": {
-        "B": {"item": "minecraft:brick"},
-        "X": {"item": "minecraft:barrel"}
-      },
-      "inputs": [
-        {"item": "minecraft:barrel", "count": 1},
-        {"item": "minecraft:brick", "count": 7}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:residue_crock", "count": 1}
-      ]
-    },
-    "servus_manufacturing:sulfur_hood": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": [" C ", "CBC"],
-      "key": {
-        "B": {"item": "minecraft:bricks"},
-        "C": {"item": "minecraft:copper_ingot"}
-      },
-      "inputs": [
-        {"item": "minecraft:bricks", "count": 1},
-        {"item": "minecraft:copper_ingot", "count": 3}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:sulfur_hood", "count": 1}
       ]
     },
     "servus_storage:crafting_cpu": {
@@ -1273,6 +1273,51 @@
     "minecraft:wheat_seeds": {
       "name": "Wheat Seeds"
     },
+    "servus_alchemy:alembic": {
+      "name": "Alembic"
+    },
+    "servus_alchemy:athanor": {
+      "name": "Athanor"
+    },
+    "servus_alchemy:calciner": {
+      "name": "Calciner"
+    },
+    "servus_alchemy:calciner_ash_pan": {
+      "name": "Ash Pan"
+    },
+    "servus_alchemy:calciner_firebox": {
+      "name": "Firebox"
+    },
+    "servus_alchemy:catch_basin": {
+      "name": "Catch Basin"
+    },
+    "servus_alchemy:coagulator": {
+      "name": "Coagulator"
+    },
+    "servus_alchemy:copper_duct": {
+      "name": "Copper Duct"
+    },
+    "servus_alchemy:gnome_hollow": {
+      "name": "Gnome Hollow"
+    },
+    "servus_alchemy:paracelsus_journal": {
+      "name": "Paracelsus' Journal"
+    },
+    "servus_alchemy:principle_vat": {
+      "name": "Principle Vat"
+    },
+    "servus_alchemy:purifier": {
+      "name": "Purifier"
+    },
+    "servus_alchemy:receiver": {
+      "name": "Receiver"
+    },
+    "servus_alchemy:residue_crock": {
+      "name": "Residue Crock"
+    },
+    "servus_alchemy:sulfur_hood": {
+      "name": "Sulfur Hood"
+    },
     "servus_foundation:anchor_upgrade": {
       "name": "Anchor Upgrade"
     },
@@ -1326,51 +1371,6 @@
     },
     "servus_foundation:speed_upgrade": {
       "name": "Speed Upgrade"
-    },
-    "servus_manufacturing:alembic": {
-      "name": "Alembic"
-    },
-    "servus_manufacturing:athanor": {
-      "name": "Athanor"
-    },
-    "servus_manufacturing:calciner": {
-      "name": "Calciner"
-    },
-    "servus_manufacturing:calciner_ash_pan": {
-      "name": "Ash Pan"
-    },
-    "servus_manufacturing:calciner_firebox": {
-      "name": "Firebox"
-    },
-    "servus_manufacturing:catch_basin": {
-      "name": "Catch Basin"
-    },
-    "servus_manufacturing:coagulator": {
-      "name": "Coagulator"
-    },
-    "servus_manufacturing:copper_duct": {
-      "name": "Copper Duct"
-    },
-    "servus_manufacturing:gnome_hollow": {
-      "name": "Gnome Hollow"
-    },
-    "servus_manufacturing:paracelsus_journal": {
-      "name": "Paracelsus' Journal"
-    },
-    "servus_manufacturing:principle_vat": {
-      "name": "Principle Vat"
-    },
-    "servus_manufacturing:purifier": {
-      "name": "Purifier"
-    },
-    "servus_manufacturing:receiver": {
-      "name": "Receiver"
-    },
-    "servus_manufacturing:residue_crock": {
-      "name": "Residue Crock"
-    },
-    "servus_manufacturing:sulfur_hood": {
-      "name": "Sulfur Hood"
     },
     "servus_storage:crafting_cpu": {
       "name": "Crafting CPU"

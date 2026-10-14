@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "machine",
+  "item": {
+    "id": "servus_alchemy:purifier"
+  },
+  "sort_number": 0,
+  "text": "book.servus_alchemy.journal.workshop.purifier.machine.text",
+  "title": "book.servus_alchemy.journal.workshop.purifier.machine.title"
+}

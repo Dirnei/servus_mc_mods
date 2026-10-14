@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/orientable",
-  "textures": {
-    "front": "servus_manufacturing:block/coagulator_front_lit",
-    "side": "minecraft:block/cobblestone",
-    "top": "minecraft:block/smooth_stone"
-  }
-}

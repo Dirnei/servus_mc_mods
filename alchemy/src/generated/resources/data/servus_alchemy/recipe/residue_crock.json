@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "minecraft:brick",
+    "X": "minecraft:barrel"
+  },
+  "pattern": [
+    "B B",
+    "BXB",
+    "BBB"
+  ],
+  "result": {
+    "id": "servus_alchemy:residue_crock"
+  }
+}

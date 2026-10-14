@@ -1,0 +1,30 @@
+{
+  "type": "modonomicon:dense",
+  "mapping": {
+    "0": {
+      "type": "modonomicon:tag",
+      "display": "minecraft:oak_log",
+      "tag": "#minecraft:logs"
+    },
+    "B": {
+      "type": "modonomicon:block",
+      "block": "servus_alchemy:catch_basin"
+    },
+    "R": {
+      "type": "modonomicon:block",
+      "block": "servus_alchemy:residue_crock"
+    },
+    "V": {
+      "type": "modonomicon:block",
+      "block": "servus_alchemy:purifier"
+    }
+  },
+  "pattern": [
+    [
+      "_V_"
+    ],
+    [
+      "B0R"
+    ]
+  ]
+}

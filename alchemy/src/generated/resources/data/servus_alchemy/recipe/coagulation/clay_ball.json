@@ -1,0 +1,10 @@
+{
+  "type": "servus_alchemy:coagulation",
+  "input": {
+    "mercury": 50,
+    "salt": 100
+  },
+  "result": {
+    "id": "minecraft:clay_ball"
+  }
+}

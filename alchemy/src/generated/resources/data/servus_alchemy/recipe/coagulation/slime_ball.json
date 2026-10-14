@@ -1,0 +1,10 @@
+{
+  "type": "servus_alchemy:coagulation",
+  "input": {
+    "mercury": 150,
+    "sulfur": 50
+  },
+  "result": {
+    "id": "minecraft:slime_ball"
+  }
+}

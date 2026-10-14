@@ -1,0 +1,30 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_alchemy:workshop",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "servus_alchemy:journal/villach"
+  },
+  "description": "book.servus_alchemy.journal.workshop.elixir_of_sight.description",
+  "icon": {
+    "id": "servus_alchemy:elixir_of_sight"
+  },
+  "id": "servus_alchemy:workshop/elixir_of_sight",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.servus_alchemy.journal.workshop.elixir_of_sight.name",
+  "parents": [
+    {
+      "entry": "servus_alchemy:workshop/salt_crystal_block"
+    }
+  ],
+  "sort_number": 7,
+  "x": 9,
+  "y": 1
+}

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "servus_alchemy:block/salt"
+    }
+  }
+}

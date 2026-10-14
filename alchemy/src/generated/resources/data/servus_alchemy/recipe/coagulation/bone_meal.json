@@ -1,0 +1,10 @@
+{
+  "type": "servus_alchemy:coagulation",
+  "input": {
+    "salt": 60,
+    "sulfur": 20
+  },
+  "result": {
+    "id": "minecraft:bone_meal"
+  }
+}

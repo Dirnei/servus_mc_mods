@@ -1,0 +1,24 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_alchemy:opus",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "description": "book.servus_alchemy.journal.opus.preface.description",
+  "icon": {
+    "id": "minecraft:writable_book"
+  },
+  "id": "servus_alchemy:opus/preface",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.servus_alchemy.journal.opus.preface.name",
+  "sort_number": 0,
+  "x": -5,
+  "y": 0
+}

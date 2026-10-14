@@ -1,0 +1,11 @@
+{
+  "type": "servus_alchemy:calcination",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:raw_materials"
+  },
+  "output": {
+    "mercury": 50,
+    "salt": 150
+  }
+}

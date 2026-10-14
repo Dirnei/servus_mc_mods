@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "tasks",
+  "show_title_separator": true,
+  "sort_number": 2,
+  "text": "book.servus_alchemy.journal.opus.villach.tasks.text",
+  "title": "book.servus_alchemy.journal.opus.villach.tasks.title"
+}

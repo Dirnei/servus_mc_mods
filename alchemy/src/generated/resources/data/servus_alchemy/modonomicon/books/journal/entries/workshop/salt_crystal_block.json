@@ -1,0 +1,30 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_alchemy:workshop",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "servus_alchemy:journal/villach"
+  },
+  "description": "book.servus_alchemy.journal.workshop.salt_crystal_block.description",
+  "icon": {
+    "id": "servus_alchemy:salt_crystal_block"
+  },
+  "id": "servus_alchemy:workshop/salt_crystal_block",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.servus_alchemy.journal.workshop.salt_crystal_block.name",
+  "parents": [
+    {
+      "entry": "servus_alchemy:workshop/athanor"
+    }
+  ],
+  "sort_number": 6,
+  "x": 9,
+  "y": 0
+}

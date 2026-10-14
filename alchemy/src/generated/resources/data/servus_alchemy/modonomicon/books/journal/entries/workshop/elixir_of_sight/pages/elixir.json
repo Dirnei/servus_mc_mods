@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "elixir",
+  "item": {
+    "id": "servus_alchemy:elixir_of_sight"
+  },
+  "sort_number": 0,
+  "text": "book.servus_alchemy.journal.workshop.elixir_of_sight.elixir.text",
+  "title": "book.servus_alchemy.journal.workshop.elixir_of_sight.elixir.title"
+}

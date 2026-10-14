@@ -1,0 +1,9 @@
+{
+  "type": "servus_alchemy:coagulation",
+  "input": {
+    "salt": 250
+  },
+  "result": {
+    "id": "servus_alchemy:salt_crystal"
+  }
+}

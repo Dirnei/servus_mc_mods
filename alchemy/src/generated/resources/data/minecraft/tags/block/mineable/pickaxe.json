@@ -1,19 +1,19 @@
 {
   "values": [
-    "servus_manufacturing:residue_crock",
-    "servus_manufacturing:calciner",
-    "servus_manufacturing:calciner_firebox",
-    "servus_manufacturing:calciner_ash_pan",
-    "servus_manufacturing:alembic",
-    "servus_manufacturing:receiver",
-    "servus_manufacturing:sulfur_hood",
-    "servus_manufacturing:copper_duct",
-    "servus_manufacturing:principle_vat",
-    "servus_manufacturing:calciner_stone_bricks",
-    "servus_manufacturing:calciner_deepslate_tiles",
-    "servus_manufacturing:coagulator",
-    "servus_manufacturing:salt_crystal_block",
-    "servus_manufacturing:athanor",
-    "servus_manufacturing:gnome_hollow"
+    "servus_alchemy:residue_crock",
+    "servus_alchemy:calciner",
+    "servus_alchemy:calciner_firebox",
+    "servus_alchemy:calciner_ash_pan",
+    "servus_alchemy:alembic",
+    "servus_alchemy:receiver",
+    "servus_alchemy:sulfur_hood",
+    "servus_alchemy:copper_duct",
+    "servus_alchemy:principle_vat",
+    "servus_alchemy:calciner_stone_bricks",
+    "servus_alchemy:calciner_deepslate_tiles",
+    "servus_alchemy:coagulator",
+    "servus_alchemy:salt_crystal_block",
+    "servus_alchemy:athanor",
+    "servus_alchemy:gnome_hollow"
   ]
 }

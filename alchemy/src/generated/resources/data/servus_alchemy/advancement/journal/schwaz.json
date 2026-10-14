@@ -1,0 +1,26 @@
+{
+  "parent": "servus_alchemy:journal/villach",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "journal.servus_alchemy.schwaz.finished"
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "minecraft:iron_pickaxe"
+    },
+    "title": {
+      "translate": "journal.servus_alchemy.schwaz"
+    }
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

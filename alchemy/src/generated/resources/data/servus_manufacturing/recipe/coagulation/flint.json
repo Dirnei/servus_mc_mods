@@ -1,9 +1,0 @@
-{
-  "type": "servus_manufacturing:coagulation",
-  "input": {
-    "salt": 150
-  },
-  "result": {
-    "id": "minecraft:flint"
-  }
-}

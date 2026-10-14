@@ -1,0 +1,15 @@
+{
+  "type": "servus_alchemy:athanor",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:glass_bottle"
+  },
+  "principles": {
+    "mercury": 100,
+    "salt": 50
+  },
+  "result": {
+    "id": "minecraft:experience_bottle"
+  },
+  "tier": 1
+}

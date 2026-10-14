@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:cauldron",
+    "H": "minecraft:hopper",
+    "P": "#minecraft:planks"
+  },
+  "pattern": [
+    "P P",
+    "PCP",
+    "PHP"
+  ],
+  "result": {
+    "id": "servus_alchemy:purifier"
+  }
+}

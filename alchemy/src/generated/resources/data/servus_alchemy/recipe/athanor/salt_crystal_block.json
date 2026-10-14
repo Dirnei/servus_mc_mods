@@ -1,0 +1,13 @@
+{
+  "type": "servus_alchemy:athanor",
+  "input": {
+    "count": 1,
+    "ingredient": "servus_alchemy:salt_crystal"
+  },
+  "principles": {
+    "salt": 1000
+  },
+  "result": {
+    "id": "servus_alchemy:salt_crystal_block"
+  }
+}

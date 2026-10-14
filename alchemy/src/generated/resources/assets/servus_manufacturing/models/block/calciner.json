@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/orientable",
-  "textures": {
-    "front": "servus_manufacturing:block/calciner_front",
-    "side": "minecraft:block/stone_bricks",
-    "top": "minecraft:block/smooth_stone"
-  }
-}

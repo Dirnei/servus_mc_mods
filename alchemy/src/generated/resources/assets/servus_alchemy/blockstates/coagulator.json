@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "facing=east,formed=false,lit=false": {
+      "model": "servus_alchemy:block/coagulator",
+      "y": 90
+    },
+    "facing=east,formed=false,lit=true": {
+      "model": "servus_alchemy:block/coagulator_lit",
+      "y": 90
+    },
+    "facing=east,formed=true,lit=false": {
+      "model": "servus_alchemy:block/coagulator_formed",
+      "y": 90
+    },
+    "facing=east,formed=true,lit=true": {
+      "model": "servus_alchemy:block/coagulator_formed",
+      "y": 90
+    },
+    "facing=north,formed=false,lit=false": {
+      "model": "servus_alchemy:block/coagulator"
+    },
+    "facing=north,formed=false,lit=true": {
+      "model": "servus_alchemy:block/coagulator_lit"
+    },
+    "facing=north,formed=true,lit=false": {
+      "model": "servus_alchemy:block/coagulator_formed"
+    },
+    "facing=north,formed=true,lit=true": {
+      "model": "servus_alchemy:block/coagulator_formed"
+    },
+    "facing=south,formed=false,lit=false": {
+      "model": "servus_alchemy:block/coagulator",
+      "y": 180
+    },
+    "facing=south,formed=false,lit=true": {
+      "model": "servus_alchemy:block/coagulator_lit",
+      "y": 180
+    },
+    "facing=south,formed=true,lit=false": {
+      "model": "servus_alchemy:block/coagulator_formed",
+      "y": 180
+    },
+    "facing=south,formed=true,lit=true": {
+      "model": "servus_alchemy:block/coagulator_formed",
+      "y": 180
+    },
+    "facing=west,formed=false,lit=false": {
+      "model": "servus_alchemy:block/coagulator",
+      "y": 270
+    },
+    "facing=west,formed=false,lit=true": {
+      "model": "servus_alchemy:block/coagulator_lit",
+      "y": 270
+    },
+    "facing=west,formed=true,lit=false": {
+      "model": "servus_alchemy:block/coagulator_formed",
+      "y": 270
+    },
+    "facing=west,formed=true,lit=true": {
+      "model": "servus_alchemy:block/coagulator_formed",
+      "y": 270
+    }
+  }
+}

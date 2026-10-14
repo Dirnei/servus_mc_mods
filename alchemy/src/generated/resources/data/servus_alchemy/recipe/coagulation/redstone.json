@@ -1,0 +1,10 @@
+{
+  "type": "servus_alchemy:coagulation",
+  "input": {
+    "mercury": 150,
+    "salt": 50
+  },
+  "result": {
+    "id": "minecraft:redstone"
+  }
+}

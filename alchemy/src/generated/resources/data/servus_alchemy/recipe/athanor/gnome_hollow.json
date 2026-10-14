@@ -1,0 +1,16 @@
+{
+  "type": "servus_alchemy:athanor",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:cracked_stone_bricks"
+  },
+  "principles": {
+    "mercury": 250,
+    "salt": 500
+  },
+  "result": {
+    "id": "servus_alchemy:gnome_hollow"
+  },
+  "tier": 1,
+  "time": 200
+}

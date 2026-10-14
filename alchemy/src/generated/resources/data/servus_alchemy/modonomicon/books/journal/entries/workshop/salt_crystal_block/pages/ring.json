@@ -1,0 +1,12 @@
+{
+  "type": "modonomicon:multiblock",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "ring",
+  "multiblock_id": "servus_alchemy:athanor_albedo",
+  "multiblock_name": "book.servus_alchemy.journal.workshop.salt_crystal_block.ring.title",
+  "show_visualize_button": true,
+  "sort_number": 2,
+  "text": "book.servus_alchemy.journal.workshop.salt_crystal_block.ring.text"
+}

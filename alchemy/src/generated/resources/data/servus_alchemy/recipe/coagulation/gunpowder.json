@@ -1,0 +1,10 @@
+{
+  "type": "servus_alchemy:coagulation",
+  "input": {
+    "salt": 50,
+    "sulfur": 150
+  },
+  "result": {
+    "id": "minecraft:gunpowder"
+  }
+}

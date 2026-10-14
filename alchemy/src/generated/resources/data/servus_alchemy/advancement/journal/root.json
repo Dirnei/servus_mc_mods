@@ -1,0 +1,27 @@
+{
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "background": "minecraft:textures/gui/advancements/backgrounds/stone.png",
+    "description": {
+      "translate": "advancement.servus_alchemy.journal.root.description"
+    },
+    "icon": {
+      "id": "minecraft:writable_book"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancement.servus_alchemy.journal.root"
+    }
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

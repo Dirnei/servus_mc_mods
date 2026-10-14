@@ -1,0 +1,12 @@
+{
+  "type": "modonomicon:multiblock",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "build",
+  "multiblock_id": "servus_alchemy:purifier",
+  "multiblock_name": "book.servus_alchemy.journal.workshop.purifier.build.title",
+  "show_visualize_button": true,
+  "sort_number": 1,
+  "text": "book.servus_alchemy.journal.workshop.purifier.build.text"
+}

@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "emptying_2",
+  "show_title_separator": true,
+  "sort_number": 14,
+  "text": "book.servus_alchemy.journal.workshop.calciner.emptying_2.text",
+  "title": ""
+}

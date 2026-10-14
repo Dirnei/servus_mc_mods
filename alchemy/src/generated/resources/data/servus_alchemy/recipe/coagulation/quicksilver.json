@@ -1,0 +1,9 @@
+{
+  "type": "servus_alchemy:coagulation",
+  "input": {
+    "mercury": 250
+  },
+  "result": {
+    "id": "servus_alchemy:quicksilver"
+  }
+}

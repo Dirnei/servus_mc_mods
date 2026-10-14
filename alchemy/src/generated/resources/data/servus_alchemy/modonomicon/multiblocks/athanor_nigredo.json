@@ -1,0 +1,48 @@
+{
+  "type": "modonomicon:dense",
+  "mapping": {
+    "0": {
+      "type": "modonomicon:block",
+      "block": "minecraft:bricks"
+    },
+    "A": {
+      "type": "modonomicon:block",
+      "block": "servus_alchemy:athanor"
+    },
+    "B": {
+      "type": "modonomicon:block",
+      "block": "minecraft:bricks"
+    },
+    "D": {
+      "type": "modonomicon:block",
+      "block": "servus_alchemy:copper_duct"
+    },
+    "T": {
+      "type": "modonomicon:block",
+      "block": "servus_foundation:fluid_tank"
+    }
+  },
+  "pattern": [
+    [
+      "_____",
+      "_____",
+      "DD_DD",
+      "__D__",
+      "__D__"
+    ],
+    [
+      "_____",
+      "_____",
+      "T_A_T",
+      "_____",
+      "__T__"
+    ],
+    [
+      "__B__",
+      "_BBB_",
+      "BB0BB",
+      "_BBB_",
+      "__B__"
+    ]
+  ]
+}

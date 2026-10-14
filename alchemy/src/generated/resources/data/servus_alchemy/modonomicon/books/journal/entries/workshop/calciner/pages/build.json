@@ -1,0 +1,12 @@
+{
+  "type": "modonomicon:multiblock",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "build",
+  "multiblock_id": "servus_alchemy:calciner",
+  "multiblock_name": "book.servus_alchemy.journal.workshop.calciner.build.title",
+  "show_visualize_button": true,
+  "sort_number": 1,
+  "text": "book.servus_alchemy.journal.workshop.calciner.build.text"
+}

@@ -1,0 +1,12 @@
+{
+  "type": "servus_alchemy:calcination",
+  "input": {
+    "count": 1,
+    "ingredient": "#minecraft:logs"
+  },
+  "output": {
+    "mercury": 10,
+    "salt": 20,
+    "sulfur": 100
+  }
+}

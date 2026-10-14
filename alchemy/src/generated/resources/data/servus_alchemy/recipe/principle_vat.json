@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "minecraft:bucket",
+    "C": "minecraft:copper_ingot"
+  },
+  "pattern": [
+    "C C",
+    "CBC"
+  ],
+  "result": {
+    "id": "servus_alchemy:principle_vat"
+  }
+}

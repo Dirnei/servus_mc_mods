@@ -1,0 +1,30 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_alchemy:opus",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "servus_alchemy:journal/villach"
+  },
+  "description": "book.servus_alchemy.journal.opus.schwaz.description",
+  "icon": {
+    "id": "minecraft:iron_pickaxe"
+  },
+  "id": "servus_alchemy:opus/schwaz",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.servus_alchemy.journal.opus.schwaz.name",
+  "parents": [
+    {
+      "entry": "servus_alchemy:opus/villach"
+    }
+  ],
+  "sort_number": 2,
+  "x": 3,
+  "y": 0
+}

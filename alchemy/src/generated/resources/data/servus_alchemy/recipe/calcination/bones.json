@@ -1,0 +1,10 @@
+{
+  "type": "servus_alchemy:calcination",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:bones"
+  },
+  "output": {
+    "salt": 100
+  }
+}

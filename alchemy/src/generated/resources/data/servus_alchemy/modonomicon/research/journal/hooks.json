@@ -1,0 +1,8 @@
+[
+  {
+    "fact_id": "servus_alchemy:journal/villach_finished",
+    "id": "servus_alchemy:journal/villach_finished_hook",
+    "trigger_target": "servus_alchemy:journal/villach",
+    "trigger_type": "modonomicon:advancement"
+  }
+]

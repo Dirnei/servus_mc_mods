@@ -1,0 +1,17 @@
+{
+  "allow_open_book_with_invalid_links": false,
+  "creative_tab": "servus_foundation:servus",
+  "custom_book_item": "servus_alchemy:paracelsus_journal",
+  "default_allow_page_split": false,
+  "default_auto_scale": true,
+  "description": "",
+  "display_mode": "node",
+  "font": "modonomicon:default",
+  "generate_book_item": false,
+  "model": "modonomicon:modonomicon_red",
+  "name": "book.servus_alchemy.journal.name",
+  "page_display_mode": "double_page",
+  "show_recently_unlocked": true,
+  "tooltip": "book.servus_alchemy.journal.tooltip",
+  "turn_page_sound": "modonomicon:turn_page"
+}

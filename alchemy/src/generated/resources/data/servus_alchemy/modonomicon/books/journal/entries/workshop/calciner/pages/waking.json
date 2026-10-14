@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "waking",
+  "show_title_separator": true,
+  "sort_number": 9,
+  "text": "book.servus_alchemy.journal.workshop.calciner.waking.text",
+  "title": "book.servus_alchemy.journal.workshop.calciner.waking.title"
+}

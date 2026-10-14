@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "minecraft:bricks",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "B B",
+    "BIB"
+  ],
+  "result": {
+    "id": "servus_alchemy:calciner_ash_pan"
+  }
+}

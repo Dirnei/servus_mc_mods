@@ -1,8 +1,0 @@
-[
-  {
-    "fact_id": "servus_manufacturing:journal/villach_finished",
-    "id": "servus_manufacturing:journal/villach_finished_hook",
-    "trigger_target": "servus_manufacturing:journal/villach",
-    "trigger_type": "modonomicon:advancement"
-  }
-]

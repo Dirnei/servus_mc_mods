@@ -1,0 +1,8 @@
+[
+  {
+    "id": "servus_alchemy:journal/villach",
+    "required_facts": [
+      "servus_alchemy:journal/villach_finished"
+    ]
+  }
+]

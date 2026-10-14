@@ -1,0 +1,9 @@
+{
+  "type": "servus_alchemy:coagulation",
+  "input": {
+    "sulfur": 250
+  },
+  "result": {
+    "id": "servus_alchemy:sulfur"
+  }
+}

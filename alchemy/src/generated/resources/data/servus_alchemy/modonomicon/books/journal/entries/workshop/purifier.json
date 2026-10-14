@@ -1,0 +1,29 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_alchemy:workshop",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "description": "book.servus_alchemy.journal.workshop.purifier.description",
+  "icon": {
+    "id": "servus_alchemy:purifier"
+  },
+  "id": "servus_alchemy:workshop/purifier",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.servus_alchemy.journal.workshop.purifier.name",
+  "parents": [
+    {
+      "entry": "servus_alchemy:workshop/calciner"
+    }
+  ],
+  "sort_number": 2,
+  "x": 1,
+  "y": -2
+}
