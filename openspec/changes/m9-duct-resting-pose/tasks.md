@@ -137,4 +137,4 @@ The user's play test rejected the wall stage, and asked that a duct rising strai
 
   Verify: `gradlew build`, `gradlew test` and `gradlew :foundation:runGameTestServer` green.
 - [x] 7.3 Texts: `docs/src/content/docs/mods/foundation.md` (no walls, drape on height only, climbs and ducts with an arm up centred), `PLAN.md` "Open: Foundation" bullet. Verify: docs tests green.
-- [ ] 7.4 Full `gradlew build test runGameTestServerAll` green.
+- [x] 7.4 Full `gradlew build test runGameTestServerAll` green.
