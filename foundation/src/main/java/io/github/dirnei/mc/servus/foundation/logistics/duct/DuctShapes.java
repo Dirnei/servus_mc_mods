@@ -5,7 +5,8 @@ import java.util.List;
 /**
  * The boxes a duct is made of, in pixels of a 16 pixel block: a centre cube
  * whose radius grows with the number of lines, and one arm per side as thick
- * as the lines that connect there. Sides are numbered like
+ * as the lines that connect there, all placed by the duct's resting pose
+ * (see {@link DuctPose}). Sides are numbered like
  * {@code Direction.ordinal()}: down, up, north, south, west, east. Pure Java.
  */
 public final class DuctShapes {
@@ -41,6 +42,18 @@ public final class DuctShapes {
 
     /** How much a junction cube of two or more lines grows beyond the run centre, so it reads as a fitting. */
     public static final int JUNCTION_EXTRA = 1;
+
+    /** Gap in pixels between a resting duct and its floor or wall, so their faces never share a plane. */
+    public static final float LIFT = 0.05F;
+    /** Depth in pixels of the channel ring at the face end of an endpoint arm. */
+    public static final float RING_DEPTH = 1;
+
+    /**
+     * How far the step and the segment of a stepping arm are drawn in from
+     * their cross section, times one plus the arm axis, so stepping arms on
+     * different axes never share a face plane where they cross.
+     */
+    public static final float STEP_INSET = 0.005F;
 
     /** Panel thickness in pixels. */
     public static final int PANEL_THICKNESS = 1;
@@ -79,23 +92,129 @@ public final class DuctShapes {
         return lineCount >= 2 && isJunction(armsMask) ? r + JUNCTION_EXTRA : r;
     }
 
+    /** The centre cube in the middle of the block. */
     public static Box center(int radius) {
-        return new Box(8 - radius, 8 - radius, 8 - radius, 8 + radius, 8 + radius, 8 + radius);
+        return center(radius, DuctPose.CENTRED);
     }
 
-    /** The arm on a side, from the block edge to the centre of the block. */
+    /** The arm on a side of a centred duct, as thick as its centre, from the centre's face to the block edge. */
     public static Box arm(int side, int radius) {
-        int lo = 8 - radius;
-        int hi = 8 + radius;
+        return arm(side, radius, radius, DuctPose.CENTRED, 0).get(0);
+    }
+
+    /** The low end on one axis of a part of the given radius that sits at {@code side} of the block. */
+    public static float low(int radius, DuctPose.Side side) {
         return switch (side) {
-            case DOWN -> new Box(lo, 0, lo, hi, lo, hi);
-            case UP -> new Box(lo, hi, lo, hi, 16, hi);
-            case NORTH -> new Box(lo, lo, 0, hi, hi, lo);
-            case SOUTH -> new Box(lo, lo, hi, hi, hi, 16);
-            case WEST -> new Box(0, lo, lo, lo, hi, hi);
-            case EAST -> new Box(hi, lo, lo, 16, hi, hi);
-            default -> throw new IllegalArgumentException("side " + side);
+            case NEG -> LIFT;
+            case MID -> 8 - radius;
+            case POS -> 16 - LIFT - 2 * radius;
         };
+    }
+
+    /** The centre cube of a duct at its resting pose. */
+    public static Box center(int radius, int pose) {
+        float[] min = new float[3];
+        float[] max = new float[3];
+        for (int axis = DuctPose.X; axis <= DuctPose.Z; axis++) {
+            min[axis] = low(radius, DuctPose.side(pose, axis));
+            max[axis] = min[axis] + 2 * radius;
+        }
+        return box(min, max);
+    }
+
+    /**
+     * The boxes of an arm: where the duct and the arm's face position line
+     * up, one straight segment from the centre's face to the block edge;
+     * otherwise a step against the centre that spans both cross sections and
+     * a segment at the face position from the step to the block edge, both
+     * drawn in by {@link #STEP_INSET}.
+     */
+    public record ArmBoxes(Box step, Box segment) {
+
+        /** The step and the segment that are present, step first. */
+        public List<Box> all() {
+            if (step == null) {
+                return List.of(segment);
+            }
+            return segment == null ? List.of(step) : List.of(step, segment);
+        }
+    }
+
+    /**
+     * The boxes of the arm on a side for a duct at {@code pose}.
+     *
+     * @param armRadius    radius of the lines connected on that side
+     * @param centreRadius radius of the duct's centre cube
+     * @param pose         the duct's resting pose, see {@link DuctPose}
+     * @param faces        where the arms meet their faces, see {@link DuctPose#faces}
+     */
+    public static ArmBoxes armBoxes(int side, int armRadius, int centreRadius, int pose, int faces) {
+        int along = DuctPose.axisOf(side);
+        boolean positive = DuctPose.isPositive(side);
+        float centreLow = low(centreRadius, DuctPose.side(pose, along));
+        float inner = positive ? centreLow + 2 * centreRadius : centreLow;
+        float edge = positive ? 16 : 0;
+        float[] own = new float[3];
+        float[] face = new float[3];
+        boolean steps = false;
+        for (int slot = 0; slot < 2; slot++) {
+            int axis = DuctPose.acrossAxis(side, slot);
+            own[axis] = low(armRadius, DuctPose.side(pose, axis));
+            face[axis] = low(armRadius, DuctPose.faceSide(faces, side, axis));
+            steps |= own[axis] != face[axis];
+        }
+        if (!steps) {
+            return new ArmBoxes(null, armBox(along, inner, edge, face, armRadius, 0));
+        }
+        float room = Math.abs(edge - inner);
+        float length = stepLength(armRadius, room);
+        float stepEnd = positive ? inner + length : inner - length;
+        float inset = STEP_INSET * (along + 1);
+        float[] min = new float[3];
+        float[] max = new float[3];
+        for (int slot = 0; slot < 2; slot++) {
+            int axis = DuctPose.acrossAxis(side, slot);
+            min[axis] = Math.min(own[axis], face[axis]) + inset;
+            max[axis] = Math.max(own[axis], face[axis]) + 2 * armRadius - inset;
+        }
+        min[along] = Math.min(inner, stepEnd);
+        max[along] = Math.max(inner, stepEnd);
+        Box segment = length < room ? armBox(along, stepEnd, edge, face, armRadius, inset) : null;
+        return new ArmBoxes(box(min, max), segment);
+    }
+
+    /** {@link #armBoxes} as a list, step first. */
+    public static List<Box> arm(int side, int armRadius, int centreRadius, int pose, int faces) {
+        return armBoxes(side, armRadius, centreRadius, pose, faces).all();
+    }
+
+    /**
+     * A step is as long as the arm is thick, but leaves the ring depth free at
+     * the block edge so the step never shares the ring's outer face; with no
+     * room for that it fills what is left.
+     */
+    private static float stepLength(int armRadius, float room) {
+        return room <= RING_DEPTH ? room : Math.min(2 * armRadius, room - RING_DEPTH);
+    }
+
+    /**
+     * A box between {@code a0} and {@code a1} on the arm axis, {@code radius}
+     * wide from {@code low} on the other axes and drawn in there by {@code inset}.
+     */
+    private static Box armBox(int along, float a0, float a1, float[] low, int radius, float inset) {
+        float[] min = new float[3];
+        float[] max = new float[3];
+        for (int axis = DuctPose.X; axis <= DuctPose.Z; axis++) {
+            min[axis] = low[axis] + inset;
+            max[axis] = low[axis] + 2 * radius - inset;
+        }
+        min[along] = Math.min(a0, a1);
+        max[along] = Math.max(a0, a1);
+        return box(min, max);
+    }
+
+    private static Box box(float[] min, float[] max) {
+        return new Box(min[0], min[1], min[2], max[0], max[1], max[2]);
     }
 
     /**

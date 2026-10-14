@@ -21,7 +21,6 @@ import net.minecraft.core.Direction;
  */
 final class DuctPartModels {
 
-    private static final float RING_DEPTH = 1.0F;
     private static final float RING_LIP = 0.5F;
 
     private DuctPartModels() {
@@ -174,8 +173,8 @@ final class DuctPartModels {
         Direction.Axis across = across(along);
         Direction.Axis third = third(along, across);
         boolean positive = direction.getAxisDirection() == Direction.AxisDirection.POSITIVE;
-        float a0 = positive ? 16 - RING_DEPTH : 0;
-        float a1 = positive ? 16 : RING_DEPTH;
+        float a0 = positive ? 16 - DuctShapes.RING_DEPTH : 0;
+        float a1 = positive ? 16 : DuctShapes.RING_DEPTH;
         float in0 = 8 - r;
         float in1 = 8 + r;
         float out0 = in0 - RING_LIP;

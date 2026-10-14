@@ -30,7 +30,7 @@
 
 ## 2. Pose aware boxes and hits (pure Java)
 
-- [ ] 2.1 In `foundation/.../logistics/duct/DuctShapes.java`:
+- [x] 2.1 In `foundation/.../logistics/duct/DuctShapes.java`:
   - add `LIFT` (0.05 px) and `center(radius, pose)`
   - add `arm(side, armRadius, centreRadius, pose, faces)` returning the straight segment, or step box plus segment B, per design.md D3
   - keep the old centred functions as the `MID` case
