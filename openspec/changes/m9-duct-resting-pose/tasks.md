@@ -72,7 +72,7 @@
 
 ## 4. Rendering
 
-- [ ] 4.1 In `foundation/.../logistics/client/UtilityDuctModel.java`, per design.md D4:
+- [x] 4.1 In `foundation/.../logistics/client/UtilityDuctModel.java`, per design.md D4:
   - translate centre and junction quads by the pose
   - remap arm body quads: stretch on the arm axis, move on the perpendicular axes, rebake UVs from position on plain faces
   - translate ring quads by the face position only

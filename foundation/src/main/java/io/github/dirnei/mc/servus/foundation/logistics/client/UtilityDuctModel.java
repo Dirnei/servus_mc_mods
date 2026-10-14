@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.foundation.logistics.client;
 
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctModelData;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctParts;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctShapes;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.PanelSet;
 import java.util.ArrayList;
@@ -34,7 +35,8 @@ import net.neoforged.neoforge.model.data.ModelData;
  * arms the block entity reports, plus one panel per covered face (see
  * {@link PanelQuads}). The centre part follows the line set, each arm the
  * lines connected on that side, and an arm's ring faces (the tinted ones) only
- * show when the side is an endpoint. A data line tier other than the base one
+ * show when the side is an endpoint. Every part is moved to the duct's
+ * resting pose (see {@link DuctPoseQuads}). A data line tier other than the base one
  * swaps every data containing texture ({@code duct_data}, {@code duct_*_data},
  * {@code duct_*_data_v}) for the tier's variant ({@code <name>_<skin>}),
  * remapping the UVs onto the variant's sprite.
@@ -48,6 +50,7 @@ public final class UtilityDuctModel implements DynamicBlockStateModel {
     /** Reskinned quads by skin, keyed by the original quad (identity). */
     private final Map<String, Map<BakedQuad, BakedQuad>> skinned = new ConcurrentHashMap<>();
     private final PanelQuads panelQuads = new PanelQuads();
+    private final DuctPoseQuads poseQuads = new DuctPoseQuads(this::partQuads);
 
     /**
      * @param parts part models by {@link DuctParts} name; a missing name falls back to the base model
@@ -96,12 +99,15 @@ public final class UtilityDuctModel implements DynamicBlockStateModel {
         output.add(new SimpleModelWrapper(builder.build(), true, particleMaterial(level, pos, state)));
     }
 
-    /** The centre and arm parts for the lines and arms in the model data, reskinned for the data tier. */
+    /** The centre and arm parts for the lines, arms and pose in the model data, reskinned for the data tier. */
     private List<BakedQuad> ductQuads(ModelData data, int lines) {
         int[] arms = data.get(DuctModelData.ARMS);
         Integer endpoints = data.get(DuctModelData.ENDPOINTS);
+        int pose = valueOrZero(data.get(DuctModelData.POSE));
+        int faces = valueOrZero(data.get(DuctModelData.FACES));
         int linesMask = DuctParts.normalize(lines);
-        List<BakedQuad> quads = new ArrayList<>(partQuads(DuctParts.centerName(linesMask, runAxis(arms))));
+        int centerRadius = DuctShapes.centerRadius(Integer.bitCount(linesMask), union(arms));
+        List<BakedQuad> quads = new ArrayList<>(poseQuads.center(DuctParts.centerName(linesMask, runAxis(arms)), centerRadius, pose));
         for (Direction direction : Direction.values()) {
             int armLines = 0;
             for (Line line : Line.VALUES) {
@@ -113,10 +119,11 @@ public final class UtilityDuctModel implements DynamicBlockStateModel {
                 continue;
             }
             boolean endpoint = endpoints != null && (endpoints & DuctModelData.bit(direction)) != 0;
-            for (BakedQuad quad : partQuads(DuctParts.armName(direction, armLines))) {
-                if (endpoint || quad.materialInfo().tintIndex() < 0) {
-                    quads.add(quad);
-                }
+            int armRadius = DuctShapes.radius(Integer.bitCount(armLines));
+            DuctPoseQuads.ArmQuads arm = poseQuads.arm(DuctParts.armName(direction, armLines), direction, armRadius, centerRadius, pose, faces);
+            quads.addAll(arm.body());
+            if (endpoint) {
+                quads.addAll(arm.ring());
             }
         }
         String skin = data.get(DuctModelData.DATA_SKIN);
@@ -148,14 +155,24 @@ public final class UtilityDuctModel implements DynamicBlockStateModel {
                 .toBakedQuad();
     }
 
-    /** The axis the centre's bands run along: the one axis every arm lies on, Z without arms, null for a junction. */
-    private static Direction.Axis runAxis(int[] arms) {
+    private static int valueOrZero(Integer value) {
+        return value == null ? 0 : value;
+    }
+
+    /** The six bit mask of sides with an arm of any line. */
+    private static int union(int[] arms) {
         int all = 0;
         if (arms != null) {
             for (int mask : arms) {
                 all |= mask;
             }
         }
+        return all;
+    }
+
+    /** The axis the centre's bands run along: the one axis every arm lies on, Z without arms, null for a junction. */
+    private static Direction.Axis runAxis(int[] arms) {
+        int all = union(arms);
         Direction.Axis found = null;
         for (Direction direction : Direction.values()) {
             if ((all & DuctModelData.bit(direction)) == 0) {
