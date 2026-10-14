@@ -21,7 +21,7 @@ At every field check (`field_check_interval`) a warehouse SHALL queue a supply r
 - **THEN** no supply run goes out and the head's GUI says no shuttle can bring supplies
 
 ### Requirement: Supply run
-A supply run SHALL pick, for each part of the head's buffer, what it is short of up to its level: seeds of the crop, the fertilizer only above the head's reserve, and anti-corrosion items of the item in the slot or the first item of the tag while the slot is empty, as far as its cargo has room. It SHALL drive to the racks holding them, riding the lift where needed, then to the farm rail beside the head, and unload into the buffer. Items in the buffer that are no longer the field's crop or fertilizer SHALL be taken along and put away. Then it SHALL go home.
+A supply run SHALL pick, for each part of the head's buffer, what it is short of up to its level: seeds of the crop, the fertilizer only above the head's reserve, and the head's anti-corrosion item only above its anti-corrosion reserve, as far as its cargo has room. It SHALL drive to the racks holding them, riding the lift where needed, then to the farm rail beside the head, and unload into the buffer. Items in the buffer that are no longer the field's crop, fertilizer or anti-corrosion item SHALL be taken along and put away. Then it SHALL go home.
 
 #### Scenario: Stock behind a lift
 - **WHEN** the only bone meal lies in a rack on another floor reached only by an elevator shaft, and a field with bone meal fertilizing has an empty buffer
