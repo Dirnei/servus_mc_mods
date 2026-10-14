@@ -151,3 +151,7 @@ The second play test showed a floor run turning up stepping up before the bend, 
 
   Verify: `gradlew build`, `gradlew test` and `gradlew :foundation:runGameTestServer` green.
 - [x] 8.3 Full `gradlew build test runGameTestServerAll` green.
+
+## 9. Placement flash
+
+- [x] 9.1 Play test: a freshly placed Fluid Pipe showed an orange Item Pipe cube for a frame, because `UtilityDuctModel` drew its base model until the block entity's lines reached the client. Draw nothing while the lines are unknown (`foundation/.../logistics/client/UtilityDuctModel.java`). Verify: `gradlew build test runGameTestServerAll` green.
