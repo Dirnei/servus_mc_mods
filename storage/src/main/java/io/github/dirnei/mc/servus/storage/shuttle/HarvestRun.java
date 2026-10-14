@@ -1,6 +1,9 @@
 package io.github.dirnei.mc.servus.storage.shuttle;
 
+import java.util.HashMap;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 
 /**
  * The state of one harvester's field run beyond what every field run has:
@@ -24,6 +27,10 @@ final class HarvestRun extends FieldRun {
     boolean fetchTried;
     /** The seeds the harvester takes from the head's buffer. */
     int seedAmount;
+    /** Whether the field harvests; false while the head's harvest limit is reached. Read from the head at the start and at each rail. */
+    boolean harvest = true;
+    /** Everything harvested in this run by item id, for the head to learn its produce from at the end. */
+    final Map<Identifier, Long> tally = new HashMap<>();
 
     HarvestRun(BlockPos head, int slots) {
         super(head, slots);

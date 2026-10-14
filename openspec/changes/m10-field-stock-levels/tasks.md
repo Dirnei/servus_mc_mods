@@ -9,7 +9,7 @@ Apply after `m10-field-head-buffer` is archived.
 ## 2. Head and runs
 
 - [x] 2.1 `FieldHeadBlockEntity`: produce, `harvestLimit`, `fertilizeBelow`, the produce stock read at field checks, save and load, clearing the produce on a crop change. `fertilizeDue` and `fertilizeTargets` respect `StockLevels`. Verify: `gradlew build` green.
-- [ ] 2.2 `FieldRuns`, `HarvestRun`, `PlotWork`: a tally of harvested drops handed to the head at the end of a run, and a `harvest` flag that leaves ripe plots while paused. `WarehouseNetwork.tickFields` passes the paused harvest to `FieldDue`. Verify: `gradlew build` green.
+- [x] 2.2 `FieldRuns`, `HarvestRun`, `PlotWork`: a tally of harvested drops handed to the head at the end of a run, and a `harvest` flag that leaves ripe plots while paused. `WarehouseNetwork.tickFields` passes the paused harvest to `FieldDue`. Verify: `gradlew build` green.
 
 ## 3. GUI and statuses
 

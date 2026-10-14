@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.BoneMealItem;
 import net.minecraft.world.item.Item;
@@ -242,7 +243,7 @@ final class FieldRuns {
             return false;
         }
         for (BlockPos plot : plots) {
-            if (PlotWork.plan(head.plotState(plot), plants, haveSeed).any()) {
+            if (PlotWork.plan(head.plotState(plot), plants, haveSeed, run.harvest).any()) {
                 return true;
             }
         }
@@ -277,6 +278,9 @@ final class FieldRuns {
             return;
         }
         FieldHeadBlockEntity head = servingHead(run.head);
+        if (head != null) {
+            run.harvest = !head.harvestPaused();
+        }
         boolean workLeft = head != null && workLeft(run, head);
         int wanted = 0;
         boolean room = false;
@@ -284,7 +288,7 @@ final class FieldRuns {
         if (crop != null && plants(head) && !run.fetchTried && !run.idle) {
             int max = crop.stack(1).getMaxStackSize();
             int cargoRoom = run.cargo.room(crop, max);
-            wanted = SeedPlan.toFetch(head.ripeCount(), head.plantableCount() + head.tillableCount(), run.cargo.count(crop),
+            wanted = SeedPlan.toFetch(run.harvest ? head.ripeCount() : 0, head.plantableCount() + head.tillableCount(), run.cargo.count(crop),
                     head.supplyCount(SupplyBuffer.Part.SEEDS), Integer.MAX_VALUE, max);
             room = cargoRoom > 0;
             run.seedAmount = Math.min(wanted, cargoRoom);
@@ -306,6 +310,9 @@ final class FieldRuns {
             }
             case PUT_AWAY -> putAwayHarvest(shuttle, head, crop, workLeft || wanted > 0);
             case HOME -> {
+                if (head != null && !run.tally.isEmpty()) {
+                    head.learnProduce(run.tally);
+                }
                 shuttle.loads.clear();
                 shuttle.run = null;
                 fleet.goHome(shuttle);
@@ -408,6 +415,7 @@ final class FieldRuns {
         run.queue.clear();
         run.queue.addAll(run.reach(head.rails(), head.plots(), head.radius()).getOrDefault(rail, List.of()));
         run.stopPlants = plants(head);
+        run.harvest = !head.harvestPaused();
         run.countdown = workTicks(shuttle);
         shuttle.leg = Leg.WORKING;
         fleet.markSync();
@@ -472,7 +480,7 @@ final class FieldRuns {
             BlockPos plot = run.queue.peek();
             if (level.isLoaded(plot)) {
                 PlotState state = HarvesterWork.classify(level, plot);
-                if (PlotWork.plan(state, run.stopPlants, haveSeed).any()) {
+                if (PlotWork.plan(state, run.stopPlants, haveSeed, run.harvest).any()) {
                     return plot;
                 }
                 if (head.plotState(plot) != state) {
@@ -491,7 +499,7 @@ final class FieldRuns {
         boolean plants = run.stopPlants;
         ItemKey crop = plants ? cropKey(head) : null;
         PlotState state = HarvesterWork.classify(level, plot);
-        PlotWork.Action action = PlotWork.plan(state, plants, carriesSeed(run, crop));
+        PlotWork.Action action = PlotWork.plan(state, plants, carriesSeed(run, crop), run.harvest);
         boolean seedInHand = false;
         boolean changed = false;
         if (action.harvest()) {
@@ -509,6 +517,7 @@ final class FieldRuns {
             }
             HarvesterWork.breakCrop(level, plot);
             changed = true;
+            tally(run, drops, seedInHand ? crop : null);
             addOrDrop(run, drops, plot);
         }
         if (action.till()) {
@@ -527,6 +536,16 @@ final class FieldRuns {
             }
         }
         return changed ? PlotResult.CHANGED : PlotResult.NOTHING;
+    }
+
+    /** Counts a harvested plot's drops, the seed kept for replanting included, toward the run's produce. */
+    private static void tally(HarvestRun run, List<FieldCargo.Entry<ItemKey>> drops, ItemKey replanted) {
+        for (FieldCargo.Entry<ItemKey> drop : drops) {
+            run.tally.merge(BuiltInRegistries.ITEM.getKey(drop.key().item()), (long) drop.count(), Long::sum);
+        }
+        if (replanted != null) {
+            run.tally.merge(BuiltInRegistries.ITEM.getKey(replanted.item()), 1L, Long::sum);
+        }
     }
 
     /** Adds the entries to the cargo and pops what does not fit at the plot. */
