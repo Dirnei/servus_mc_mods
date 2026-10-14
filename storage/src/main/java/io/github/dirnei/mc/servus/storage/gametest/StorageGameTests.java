@@ -41,6 +41,7 @@ public final class StorageGameTests {
             SiteWakeGameTests.class,
             SpreaderGameTests.class,
             FieldSupplyGameTests.class,
+            FieldLevelGameTests.class,
             StationGameTests.class,
             StationHandsGameTests.class,
             StationRailGameTests.class,

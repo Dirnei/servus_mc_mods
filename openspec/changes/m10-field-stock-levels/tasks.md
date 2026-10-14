@@ -17,7 +17,7 @@ Apply after `m10-field-head-buffer` is archived.
 
 ## 4. GameTests and docs
 
-- [ ] 4.1 GameTests in `storage/.../gametest/`:
+- [x] 4.1 GameTests in `storage/.../gametest/`:
   - `produceIsLearned` (wheat field harvest gives wheat)
   - `harvestStopsAtTheLimit` (ripe field, stock above the limit, no run)
   - `harvestResumesBelowTheLimit`
