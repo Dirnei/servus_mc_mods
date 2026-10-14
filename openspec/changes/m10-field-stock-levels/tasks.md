@@ -27,7 +27,7 @@ Apply after `m10-field-head-buffer` is archived.
   - `levelsSaved`
 
   Verify: `gradlew :storage:runGameTestServer` green.
-- [ ] 4.2 Describe the produce and the two levels in `docs/src/content/docs/mods/storage.md`. Verify: docs tests green.
+- [x] 4.2 Describe the produce and the two levels in `docs/src/content/docs/mods/storage.md`. Verify: docs tests green.
 
 ## 5. Integration
 
