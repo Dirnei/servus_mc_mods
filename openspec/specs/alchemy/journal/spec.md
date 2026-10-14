@@ -1,7 +1,7 @@
-# manufacturing/journal Specification
+# alchemy/journal Specification
 
 ## Purpose
-Paracelsus' journal is Manufacturing's tech tree: chapters of his life, each with tasks a team completes by doing alchemy, unlock the next chapter, its story and its recipes. There is no research lab and no pack.
+Paracelsus' journal is Alchemy's tech tree: chapters of his life, each with tasks a team completes by doing alchemy, unlock the next chapter, its story and its recipes. There is no research lab and no pack.
 
 ## Requirements
 

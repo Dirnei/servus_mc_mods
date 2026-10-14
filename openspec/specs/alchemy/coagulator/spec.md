@@ -1,4 +1,4 @@
-# manufacturing/coagulator Specification
+# alchemy/coagulator Specification
 
 ## Purpose
 The Coagulator joins the three principles again: from a fixed ratio of Salt, Sulfur and Mercury, sometimes with an item, it makes the materials of alchemy and everyday goods.

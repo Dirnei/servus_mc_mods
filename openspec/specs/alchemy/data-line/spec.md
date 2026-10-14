@@ -1,7 +1,7 @@
-# manufacturing/data-line Specification
+# alchemy/data-line Specification
 
 ## Purpose
-Manufacturing machines take part in on-demand production over the data line: burner machines get their fuel kept stocked as upkeep, and the Burner Smelter and Crusher run order steps for the Crafting CPU like the Assembler.
+Alchemy machines take part in on-demand production over the data line: burner machines get their fuel kept stocked as upkeep, and the Burner Smelter and Crusher run order steps for the Crafting CPU like the Assembler.
 
 ## Requirements
 

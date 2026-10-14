@@ -1,4 +1,4 @@
-# manufacturing/calciner Specification
+# alchemy/calciner Specification
 
 ## Purpose
 The Calciner is the first alchemical machine: it burns ordinary matter into its Salt, Sulfur and Mercury, the principles every later product is made from.

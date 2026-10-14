@@ -1,4 +1,4 @@
-# manufacturing/coagulator-structure Specification
+# alchemy/coagulator-structure Specification
 
 ## Purpose
 The Coagulator is built in the world as a casting table under three vats of Salt, Sulfur and Mercury, formed with Paracelsus' Journal and fed through its vats instead of configured sides.

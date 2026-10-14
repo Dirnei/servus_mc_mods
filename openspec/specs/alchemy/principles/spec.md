@@ -1,7 +1,7 @@
-# manufacturing/principles Specification
+# alchemy/principles Specification
 
 ## Purpose
-The three principles of Paracelsus' Tria Prima, Salt, Sulfur and Mercury, are the fluids every alchemical machine of Manufacturing works with: the Calciner makes them, the Coagulator and later blocks consume them.
+The three principles of Paracelsus' Tria Prima, Salt, Sulfur and Mercury, are the fluids every alchemical machine of Alchemy works with: the Calciner makes them, the Coagulator and later blocks consume them.
 
 ## Requirements
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The Crafting Station is Storage's own producer: a powerless block that crafts the vanilla recipes a player configured, so a warehouse without Manufacturing can still autocraft.
+The Crafting Station is Storage's own producer: a powerless block that crafts the vanilla recipes a player configured, so a warehouse without Alchemy can still autocraft.
 
 ## Requirements
 

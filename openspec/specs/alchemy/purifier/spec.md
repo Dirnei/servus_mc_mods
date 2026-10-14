@@ -1,4 +1,4 @@
-# manufacturing/purifier Specification
+# alchemy/purifier Specification
 
 ## Purpose
 Salt leaves the Calciner as Ash, the way alchemists found it in the fire, and the Purifier, a small build of a leaching vat over a catch basin and a residue crock, washes the Ash with water into the liquid Salt that the Coagulator and the Athanor use, leaving Caput Mortuum behind.

@@ -1,8 +1,8 @@
-# manufacturing/recipe-viewer Specification
+# alchemy/recipe-viewer Specification
 
 ## Purpose
 
-Recipe viewers show how Manufacturing items are made so players never have to guess at assembler inputs, times or machine recipes.
+Recipe viewers show how Alchemy items are made so players never have to guess at assembler inputs, times or machine recipes.
 
 ## Requirements
 

@@ -1,4 +1,4 @@
-# manufacturing/calciner-structure Specification
+# alchemy/calciner-structure Specification
 
 ## Purpose
 The Calciner is built in the world as a calcining furnace with an alembic: vanilla stone and custom parts in a fixed layout, formed with Paracelsus' Journal, drawn as one model and worked through its parts instead of a GUI.

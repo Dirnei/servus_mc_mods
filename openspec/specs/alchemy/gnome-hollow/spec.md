@@ -1,4 +1,4 @@
-# manufacturing/gnome-hollow Specification
+# alchemy/gnome-hollow Specification
 
 ## Purpose
 The Gnome Hollow grows ore without world generation: seeded with a sample, ripened with principles and worked by a bound gnome, it yields its ore forever. Its vein and gnome are seen only under Elemental Sight.

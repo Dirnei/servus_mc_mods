@@ -1,7 +1,7 @@
-# manufacturing/athanor Specification
+# alchemy/athanor Specification
 
 ## Purpose
-The Athanor is the alchemist's furnace and the heart of the lab: the important crafts of Manufacturing happen on it, fed with principles, and the structure built around it marks how far a team is in the Great Work.
+The Athanor is the alchemist's furnace and the heart of the lab: the important crafts of Alchemy happen on it, fed with principles, and the structure built around it marks how far a team is in the Great Work.
 
 ## Requirements
 

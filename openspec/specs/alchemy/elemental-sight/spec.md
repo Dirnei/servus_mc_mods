@@ -1,4 +1,4 @@
-# manufacturing/elemental-sight Specification
+# alchemy/elemental-sight Specification
 
 ## Purpose
 Elemental Sight lets a player see what Paracelsus' elementals do inside their element: hidden things that only the sight reveals. The Elixir of Sight grants it.
