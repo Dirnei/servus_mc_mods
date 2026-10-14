@@ -6,7 +6,7 @@
 
 ## 2. Docs and plan
 
-- [ ] 2.1 In `docs/src/content/docs/mods/storage.md`, change the shuttle looks line from "tracks with exhaust stacks from 6" to the spoiler (steel wing, dark iron end plates, leaning struts). In `PLAN.md` M10, add `m10-shuttle-spoiler` as a follow up of item 2. Verify: docs tests green.
+- [x] 2.1 In `docs/src/content/docs/mods/storage.md`, change the shuttle looks line from "tracks with exhaust stacks from 6" to the spoiler (steel wing, dark iron end plates, leaning struts). In `PLAN.md` M10, add `m10-shuttle-spoiler` as a follow up of item 2. Verify: docs tests green.
 
 ## 3. Integration
 
