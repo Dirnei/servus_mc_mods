@@ -19,7 +19,9 @@ import net.neoforged.neoforge.client.model.quad.MutableQuad;
  * Moves the centred duct part quads to a duct's resting pose (see
  * {@link DuctPose}): the centre is shifted by the pose, an arm's body is
  * stretched and shifted onto the segment {@link DuctShapes#armBoxes} gives,
- * and its ring is shifted to where the arm meets the face. Results are cached
+ * and its ring is shifted to where the arm meets the face. A stepping arm
+ * gets its step box built here, with the line's texture for one line and the
+ * junction texture for several. Results are cached
  * per part, pose and face; the cache lives as long as the duct model, which is
  * rebuilt on every resource reload.
  */
@@ -32,7 +34,7 @@ final class DuctPoseQuads {
     private record CenterKey(String part, int radius, int poseSides) {
     }
 
-    private record ArmKey(String part, int side, int armRadius, int centerRadius, int poseSides, int sideFaces) {
+    private record ArmKey(String part, String stepPart, int side, int armRadius, int centerRadius, int poseSides, int sideFaces) {
     }
 
     /** Sprite names of the single line textures, whose UVs follow the position. */
@@ -74,12 +76,13 @@ final class DuctPoseQuads {
     /**
      * The quads of an arm part on {@code side} at the pose and faces.
      *
+     * @param stepPart     the part whose first quad lends its sprite to the step box
      * @param armRadius    radius of the lines in the arm part
      * @param centerRadius radius of the duct's centre
      */
-    ArmQuads arm(String part, Direction side, int armRadius, int centerRadius, int pose, int faces) {
+    ArmQuads arm(String part, String stepPart, Direction side, int armRadius, int centerRadius, int pose, int faces) {
         int sideFaces = faces >> side.ordinal() * 4 & 15;
-        ArmKey key = new ArmKey(part, side.ordinal(), armRadius, centerRadius, DuctPose.sides(pose), sideFaces);
+        ArmKey key = new ArmKey(part, stepPart, side.ordinal(), armRadius, centerRadius, DuctPose.sides(pose), sideFaces);
         return arms.computeIfAbsent(key, DuctPoseQuads.this::bakeArm);
     }
 
@@ -104,7 +107,51 @@ final class DuctPoseQuads {
                 body.add(fit(source, baked, boxes.segment(), DuctPose.axisOf(key.side())));
             }
         }
+        if (boxes.step() != null) {
+            body.addAll(step(key, boxes));
+        }
         return new ArmQuads(List.copyOf(body), List.copyOf(ring));
+    }
+
+    /**
+     * The faces of the step box. The face toward the centre is left out when
+     * the centre covers it, and the face toward the block edge when no
+     * segment follows, because the ring then lies in that plane.
+     */
+    private List<BakedQuad> step(ArmKey key, DuctShapes.ArmBoxes boxes) {
+        List<BakedQuad> sources = partQuads.apply(key.stepPart());
+        if (sources.isEmpty()) {
+            return List.of();
+        }
+        BakedQuad.MaterialInfo info = sources.get(0).materialInfo();
+        DuctShapes.Box step = boxes.step();
+        Direction outward = Direction.values()[key.side()];
+        boolean innerHidden = covers(DuctShapes.center(key.centerRadius(), key.poseSides()), step, key.side());
+        List<BakedQuad> quads = new ArrayList<>(6);
+        for (Direction face : Direction.values()) {
+            if (face == outward.getOpposite() && innerHidden || face == outward && boxes.segment() == null) {
+                continue;
+            }
+            quads.add(new MutableQuad()
+                    .setCubeFace(face, step.x0() / 16F, step.y0() / 16F, step.z0() / 16F, step.x1() / 16F, step.y1() / 16F, step.z1() / 16F)
+                    .setSprite(info.sprite(), info.layer(), info.itemRenderType())
+                    .bakeUvsFromPosition()
+                    .setTintIndex(-1)
+                    .setShade(true)
+                    .toBakedQuad());
+        }
+        return quads;
+    }
+
+    /** Whether {@code outer} spans {@code inner} on both axes across the arm on {@code side}. */
+    private static boolean covers(DuctShapes.Box outer, DuctShapes.Box inner, int side) {
+        for (int slot = 0; slot < 2; slot++) {
+            int axis = DuctPose.acrossAxis(side, slot);
+            if (min(inner, axis) < min(outer, axis) || max(inner, axis) > max(outer, axis)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

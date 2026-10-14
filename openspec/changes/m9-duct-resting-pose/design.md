@@ -74,7 +74,8 @@ Alternative considered: computing the pose on the client from the `BlockAndTintG
 An arm runs from the centre's edge on its axis (which moves with the centre) to the block edge. On its perpendicular axes it sits at the own pose near the centre and at the face position at the face.
 
 - When those differ, the arm becomes segment A, a step box, then segment B.
-- The step box sits against the centre, its length along the arm is the arm diameter clamped to the room left, and it spans the union of both cross sections.
+- The step box sits against the centre, its length along the arm is the arm diameter clamped to the room left minus the ring depth (1 px), and it spans the union of both cross sections. Keeping the ring depth free means the step never reaches the block edge where an endpoint ring lies. When the room left is no more than the ring depth (a centre flush with that face), the step fills it and no segment B follows.
+- The step box and segment B of a stepping arm are drawn in on their cross axes by `STEP_INSET` (0.005 px) times one plus the arm axis. Two stepping arms on different axes can cross (for example a floor duct in a corner with endpoints to the west and above), and the different insets keep their faces off each other's planes. Straight arms are not inset.
 - When both perpendicular axes differ, one step box covers both (an elbow fitting look), not two steps.
 - Segment A has length zero in that layout, so in practice an arm is step plus B, or one straight segment.
 
@@ -83,11 +84,13 @@ An arm runs from the centre's edge on its axis (which moves with the centre) to 
 Z-fighting check:
 
 - Segment B ends exactly at the step box's face.
-- The step box ends exactly at the centre's face.
+- The step box ends exactly at the centre's face. Its face toward the centre is left out when the centre covers it; otherwise it stays, opposite facing to the centre's face.
+- The step box's face toward the block edge stays (part of it shows beside segment B, opposite facing to B's end face). It is left out only when no segment B follows, because the ring's outer face lies in that plane then.
 - Side faces on an axis that does not step are coplanar but only touch along an edge, they do not overlap.
 - This is the same contact the arms make with the centre today.
 - The floor and wall contact is kept off the plane by `LIFT`.
-- Rings keep their 0.5 px lip and only move with the face position.
+- Rings keep their 0.5 px lip and only move with the face position. Against an inset segment B a hairline gap of at most 0.015 px stays between ring and segment, no shared plane.
+- Stepping arms on different axes use different insets, so they never share a plane where they cross.
 
 ### D4: Rendering transforms baked quads
 

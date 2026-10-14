@@ -120,7 +120,9 @@ public final class UtilityDuctModel implements DynamicBlockStateModel {
             }
             boolean endpoint = endpoints != null && (endpoints & DuctModelData.bit(direction)) != 0;
             int armRadius = DuctShapes.radius(Integer.bitCount(armLines));
-            DuctPoseQuads.ArmQuads arm = poseQuads.arm(DuctParts.armName(direction, armLines), direction, armRadius, centerRadius, pose, faces);
+            String armPart = DuctParts.armName(direction, armLines);
+            String stepPart = Integer.bitCount(armLines) >= 2 ? DuctParts.centerName(armLines, null) : armPart;
+            DuctPoseQuads.ArmQuads arm = poseQuads.arm(armPart, stepPart, direction, armRadius, centerRadius, pose, faces);
             quads.addAll(arm.body());
             if (endpoint) {
                 quads.addAll(arm.ring());

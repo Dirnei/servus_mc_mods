@@ -80,7 +80,16 @@
   - keep the data tier reskin after the transform
 
   Verify: `gradlew build` green.
-- [ ] 4.2 Build the step box quads in `UtilityDuctModel` (or a new `StepQuads` beside `PanelQuads`) with `MutableQuad.setCubeFace` and `bakeUvsFromPosition`: the line sprite for one line, `duct_junction` for several. Leave out the faces hidden against the centre and segment B. List the face check from design.md D3 for every box pair in the commit's task note. Verify: `gradlew build` green.
+- [x] 4.2 Build the step box quads in `UtilityDuctModel` (or a new `StepQuads` beside `PanelQuads`) with `MutableQuad.setCubeFace` and `bakeUvsFromPosition`: the line sprite for one line, `duct_junction` for several. Leave out the faces hidden against the centre and segment B. List the face check from design.md D3 for every box pair in the commit's task note. Verify: `gradlew build` green.
+
+  Face check, every pair of overlapping or touching boxes:
+  - centre and straight arm: the arm starts on the centre's face plane, end faces opposite facing; equal side planes only touch along an edge.
+  - centre and step: the step's inner face lies on the centre's face plane, opposite facing, and is left out where the centre covers it; side faces are drawn in by the step inset.
+  - step and segment B: B starts on the step's outer face, opposite facing; both carry the same inset, so equal side planes only touch along an edge.
+  - step and ring: the step ends at least the ring depth before the block edge, so it never shares the ring's outer plane; only a step that fills a gap of at most the ring depth reaches the edge, and it leaves out its outer face.
+  - segment B and ring: the ring lip stays on the face span, B is inset by at most 0.015 px: a hairline gap, no shared plane.
+  - stepping arms on different axes: insets differ per arm axis, no shared plane where they cross (JUnit `segmentsTouchButDoNotOverlap`).
+  - duct and floor or wall: every part keeps `LIFT` (0.05 px) off the block face.
 - [ ] 4.3 In `foundation/.../logistics/client/DuctOverlayRenderer.java`, draw the load box around `DuctShapes.center(radius, pose)` grown by 0.5 px. Verify: `gradlew build` green.
 
 ## 5. Texts
