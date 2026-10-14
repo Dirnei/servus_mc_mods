@@ -78,8 +78,8 @@ public final class UtilityDuctModel implements DynamicBlockStateModel {
                              List<BlockStateModelPart> output) {
         ModelData data = level.getModelData(pos);
         Integer lines = data.get(DuctModelData.LINES);
-        // Until the block entity's lines reach the client, any base model would show the wrong line.
-        if (lines == null) {
+        // Until the block entity's lines reach the client its set is empty, and any base model would show the wrong line.
+        if (lines == null || (lines & DuctParts.ALL) == 0) {
             return;
         }
         List<BakedQuad> quads = ductQuads(data, lines);

@@ -155,3 +155,4 @@ The second play test showed a floor run turning up stepping up before the bend, 
 ## 9. Placement flash
 
 - [x] 9.1 Play test: a freshly placed Fluid Pipe showed an orange Item Pipe cube for a frame, because `UtilityDuctModel` drew its base model until the block entity's lines reached the client. Draw nothing while the lines are unknown (`foundation/.../logistics/client/UtilityDuctModel.java`). Verify: `gradlew build test runGameTestServerAll` green.
+- [x] 9.2 Play test again: the flash stayed, because the client's new block entity has an empty line set, not an unknown one, and `DuctParts.normalize` turns an empty set into the Item Pipe. Draw nothing while the set is unknown or empty (`UtilityDuctModel`). Verify: `gradlew build test runGameTestServerAll` green.
