@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.storage.field.FertilizeStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
+import io.github.dirnei.mc.servus.storage.field.SupplyBuffer;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu.Page;
 import io.github.dirnei.mc.servus.storage.picker.PickerList;
@@ -40,7 +41,7 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 /**
  * The Field Head GUI in four tabs on the left edge, drawn like the Utility
  * Duct tabs: Field (crop picker, ripe share, threshold, work status),
- * Water (water bar, anti-corrosion slot, corrosion stage), Fertilizer
+ * Water (water bar, anti-corrosion items in the buffer, corrosion stage), Fertilizer
  * (fertilizer picker, mode, reserve, threshold, Spreader status) and Upgrades
  * (Range Upgrade slot, radius, field size). The player inventory is always
  * below. A tab whose page holds a problem gets a red marker.
@@ -76,7 +77,14 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private static final int BAR_Y = 31;
     private static final int BAR_H = 8;
     private static final int HYDRATED_Y = 43;
-    private static final int CORROSION_TEXT_X = 30;
+    /** The anti-corrosion icon on the Water tab; its count stands right of it. */
+    private static final int ANTI_CORROSION_Y = 54;
+    private static final int ANTI_CORROSION_TEXT_X = MARGIN + 20;
+    private static final int CORROSION_Y = 74;
+    /** The buffer icon right of the crop and fertilizer pickers; its count stands right of it. */
+    private static final int BUFFER_X = FieldHeadMenu.PICKER_X + FieldHeadMenu.PICKER_WIDTH + 3;
+    private static final int BUFFER_Y = FieldHeadMenu.PICKER_Y + 1;
+    private static final int BUFFER_TEXT_X = BUFFER_X + 18;
     private static final int RADIUS_TEXT_X = 30;
     private static final int SIZE_Y = 44;
     private static final int MODE_Y = 37;
@@ -359,9 +367,40 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         if (page == Page.UPGRADES && emptySlotHovered(FieldHeadMenu.RANGE_SLOT, mouseX, mouseY)) {
             graphics.setTooltipForNextFrame(font, Component.translatable("gui.servus_storage.field_head.range_slot", menu.radius()), mouseX, mouseY);
         }
-        if (page == Page.WATER && emptySlotHovered(FieldHeadMenu.ANTI_CORROSION_SLOT, mouseX, mouseY)) {
-            graphics.setTooltipForNextFrame(font, Component.translatable("gui.servus_storage.field_head.anti_corrosion_slot"), mouseX, mouseY);
+        if (page == Page.WATER && inside(mouseX, mouseY, MARGIN, ANTI_CORROSION_Y, WIDTH, 16)) {
+            graphics.setComponentTooltipForNextFrame(font, List.of(
+                    Component.translatable("gui.servus_storage.field_head.buffer.anti_corrosion_tooltip"),
+                    Component.translatable("gui.servus_storage.field_head.buffer.filled_by")), mouseX, mouseY);
         }
+        SupplyBuffer.Part part = pickerPart(page);
+        if (part != null && menu.supplyLevel(part) > 0 && inside(mouseX, mouseY, BUFFER_X, BUFFER_Y, MARGIN + WIDTH - BUFFER_X, 16)) {
+            graphics.setComponentTooltipForNextFrame(font, List.of(
+                    Component.translatable("gui.servus_storage.field_head.buffer." + part.name().toLowerCase(Locale.ROOT),
+                            menu.supplyCount(part), menu.supplyLevel(part)),
+                    Component.translatable("gui.servus_storage.field_head.buffer.filled_by")), mouseX, mouseY);
+        }
+    }
+
+    /** The buffer part shown beside the picker of the page, or null on pages without one. */
+    private static SupplyBuffer.Part pickerPart(Page page) {
+        return switch (page) {
+            case FIELD -> SupplyBuffer.Part.SEEDS;
+            case FERTILIZER -> SupplyBuffer.Part.FERTILIZER;
+            default -> null;
+        };
+    }
+
+    /** The item of the buffer part the screen draws. */
+    private ItemStack supplyIcon(SupplyBuffer.Part part) {
+        return switch (part) {
+            case SEEDS -> menu.crop();
+            case FERTILIZER -> menu.fertilizer();
+            case ANTI_CORROSION -> menu.antiCorrosionShown();
+        };
+    }
+
+    private String supplyText(SupplyBuffer.Part part) {
+        return menu.supplyCount(part) + "/" + menu.supplyLevel(part);
     }
 
     private boolean inside(int mouseX, int mouseY, int x, int y, int width, int height) {
@@ -389,13 +428,17 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             }
             case WATER -> {
                 renderWaterBar(graphics);
-                slotFrame(graphics, FieldHeadMenu.ANTI_CORROSION_X, FieldHeadMenu.ANTI_CORROSION_Y);
+                graphics.fakeItem(supplyIcon(SupplyBuffer.Part.ANTI_CORROSION), leftPos + MARGIN, topPos + ANTI_CORROSION_Y);
             }
             case FERTILIZER -> {
                 fertilizerPicker.renderButton(graphics, font, mouseX, mouseY);
                 PanelPainter.sunken(graphics, leftPos + RESERVE_TEXT_X, topPos + RESERVE_Y, RESERVE_TEXT_W, 11);
             }
             case UPGRADES -> slotFrame(graphics, FieldHeadMenu.RANGE_X, FieldHeadMenu.RANGE_Y);
+        }
+        SupplyBuffer.Part part = pickerPart(menu.page());
+        if (part != null && menu.supplyLevel(part) > 0) {
+            graphics.fakeItem(supplyIcon(part), leftPos + BUFFER_X, topPos + BUFFER_Y);
         }
     }
 
@@ -434,6 +477,10 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.extractLabels(graphics, mouseX, mouseY);
+        SupplyBuffer.Part part = pickerPart(menu.page());
+        if (part != null && menu.supplyLevel(part) > 0) {
+            graphics.text(font, supplyText(part), BUFFER_TEXT_X, BUFFER_Y + 4, menu.supplyCount(part) > 0 ? COLOUR_TEXT : COLOUR_WARN, false);
+        }
         switch (menu.page()) {
             case FIELD -> renderFieldLabels(graphics);
             case WATER -> renderWaterLabels(graphics);
@@ -485,13 +532,20 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             graphics.text(font, Component.translatable(hydrated ? "gui.servus_storage.field_head.hydrated" : "gui.servus_storage.field_head.dry"),
                     MARGIN, HYDRATED_Y, hydrated ? COLOUR_DUE : COLOUR_WARN, false);
         }
+        ItemStack antiCorrosion = supplyIcon(SupplyBuffer.Part.ANTI_CORROSION);
+        Component antiCorrosionName = antiCorrosion.isEmpty()
+                ? Component.translatable("tag.item.servus_storage.anti_corrosion") : antiCorrosion.getHoverName();
+        SupplyBuffer.Part antiCorrosionPart = SupplyBuffer.Part.ANTI_CORROSION;
+        graphics.text(font, Component.translatable("gui.servus_storage.field_head.buffer.anti_corrosion", antiCorrosionName,
+                        menu.supplyCount(antiCorrosionPart), menu.supplyLevel(antiCorrosionPart)),
+                ANTI_CORROSION_TEXT_X, ANTI_CORROSION_Y + 4, menu.supplyCount(antiCorrosionPart) > 0 ? COLOUR_TEXT : COLOUR_WARN, false);
         int stage = menu.corrosion();
         if (stage >= FieldCorrosion.COPPER) {
             Component corrosion = stage == FieldCorrosion.CORRODED
                     ? Component.translatable("gui.servus_storage.field_head.corroded")
                     : Component.translatable("gui.servus_storage.field_head.corrosion",
                             Component.translatable("gui.servus_storage.field_head.stage." + FieldCorrosion.name(stage)), menu.corrosionProgress());
-            graphics.text(font, corrosion, CORROSION_TEXT_X, FieldHeadMenu.ANTI_CORROSION_Y + 4,
+            graphics.text(font, corrosion, MARGIN, CORROSION_Y,
                     stage == FieldCorrosion.CORRODED ? COLOUR_WARN : COLOUR_TEXT, false);
         }
     }

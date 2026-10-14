@@ -178,7 +178,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.field_head.tab.fertilizer", "Fertilizer");
         add("gui.servus_storage.field_head.fertilizer_picker", "Fertilizer");
         add("gui.servus_storage.field_head.fertilizer_none", "Off");
-        add("gui.servus_storage.field_head.fertilizer_no_stock", "None in the warehouse: the Spreader picks it from there");
+        add("gui.servus_storage.field_head.fertilizer_no_stock", "None in the warehouse: supply runs bring it from there");
         add("gui.servus_storage.field_head.fertilize_mode.off", "Off");
         add("gui.servus_storage.field_head.fertilize_mode.off.tooltip", "No fertilizing");
         add("gui.servus_storage.field_head.fertilize_mode.after_planting", "After planting");
@@ -186,7 +186,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.field_head.fertilize_mode.until_ripe", "Until ripe");
         add("gui.servus_storage.field_head.fertilize_mode.until_ripe.tooltip", "Unripe crops get doses while the ripe share is below the threshold");
         add("gui.servus_storage.field_head.reserve", "Keep in stock");
-        add("gui.servus_storage.field_head.reserve_tooltip", "The Spreader never takes the warehouse stock at or below this");
+        add("gui.servus_storage.field_head.reserve_tooltip", "Supply runs never take the warehouse stock at or below this");
         add("gui.servus_storage.field_head.fertilize_at", "Fertilize below %s%%");
         add("gui.servus_storage.field_head.fertilize.off", "Fertilizing is off");
         add("gui.servus_storage.field_head.fertilize.not_linked", "Rails not linked to a warehouse with a controller");
@@ -202,7 +202,11 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.field_head.ripe_tooltip", "%s of %s planted ripe (%s%%), harvest at %s%%");
         add("gui.servus_storage.field_head.harvest_at", "Harvest at %s%%");
         add("gui.servus_storage.field_head.hydrated", "Hydrated");
-        add("gui.servus_storage.field_head.anti_corrosion_slot", "Honeycomb here holds the copper stage, one per aging step");
+        add("gui.servus_storage.field_head.buffer.seeds", "Seeds in the buffer: %s / %s");
+        add("gui.servus_storage.field_head.buffer.fertilizer", "In buffer %s / %s");
+        add("gui.servus_storage.field_head.buffer.anti_corrosion", "%s %s / %s");
+        add("gui.servus_storage.field_head.buffer.anti_corrosion_tooltip", "One holds the copper stage for one aging step");
+        add("gui.servus_storage.field_head.buffer.filled_by", "Brought by shuttles without a tool; no hand filling");
         add("gui.servus_storage.field_head.corrosion", "%s, next stage %s%%");
         add("gui.servus_storage.field_head.corroded", "Rails corroded, no watering");
         add("gui.servus_storage.field_head.stage.copper", "Copper");

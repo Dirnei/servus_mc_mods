@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
 import io.github.dirnei.mc.servus.storage.field.FieldWorkerPayload;
+import io.github.dirnei.mc.servus.storage.field.SupplyBuffer;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.storage.picker.PickerStock;
@@ -34,9 +35,11 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * The Field Head GUI in four tabs: Field (crop picker), Water (anti-corrosion
- * slot), Fertilizer (fertilizer picker, mode, threshold, reserve) and Upgrades
- * (Range Upgrade slot). The field's numbers travel as container data, the
+ * The Field Head GUI in four tabs: Field (crop picker, seeds in the buffer),
+ * Water (anti-corrosion items in the buffer), Fertilizer (fertilizer picker,
+ * mode, threshold, reserve, fertilizer in the buffer) and Upgrades (Range
+ * Upgrade slot). The buffer takes nothing from the player and gives nothing
+ * back, so it has no slots. The field's numbers travel as container data, the
  * warehouse stock of crop and fertilizer items as payloads. The tab is client
  * view state; head slots off the shown tab are inactive. Crop and fertilizer
  * are chosen by id through {@link #choose(Player, Optional)} and
@@ -46,15 +49,12 @@ public class FieldHeadMenu extends AbstractContainerMenu {
 
     public static final int PICKER_X = 8;
     public static final int PICKER_Y = 17;
-    public static final int PICKER_WIDTH = 160;
+    public static final int PICKER_WIDTH = 112;
     public static final int RANGE_X = 8;
     public static final int RANGE_Y = 18;
     public static final int RANGE_SLOT = 0;
-    public static final int ANTI_CORROSION_SLOT = 1;
-    public static final int ANTI_CORROSION_X = 8;
-    public static final int ANTI_CORROSION_Y = 58;
     public static final int INVENTORY_Y = 96;
-    public static final int INVENTORY_START = 2;
+    public static final int INVENTORY_START = 1;
     public static final int BUTTON_THRESHOLD_DOWN = 1;
     public static final int BUTTON_THRESHOLD_UP = 2;
     /** Mode buttons: this id plus the {@link FertilizeMode} ordinal. */
@@ -95,6 +95,9 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     private final DataSlot reserve = DataSlot.standalone();
     /** The fertilize status plus one; zero while the head serves no field. */
     private final DataSlot fertilizeStatus = DataSlot.standalone();
+    /** Count and level of each buffer part, in {@link SupplyBuffer.Part} order. */
+    private final DataSlot[] supplyCounts = standalone(SupplyBuffer.Part.VALUES.length);
+    private final DataSlot[] supplyLevels = standalone(SupplyBuffer.Part.VALUES.length);
     /** Signatures of the crop and fertilizer stock last sent; null before the first send. */
     private Long sentStock;
     private Long sentFertilizerStock;
@@ -126,18 +129,24 @@ public class FieldHeadMenu extends AbstractContainerMenu {
                 return shows(RANGE_SLOT);
             }
         });
-        addSlot(new ResourceHandlerSlot(head.antiCorrosion(), head.antiCorrosion()::set, 0, ANTI_CORROSION_X, ANTI_CORROSION_Y) {
-            @Override
-            public boolean isActive() {
-                return shows(ANTI_CORROSION_SLOT);
-            }
-        });
         PlayerInventorySlots.add(this::addSlot, playerInventory, 8, INVENTORY_Y);
         for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags,
                 work, threshold, radius, corrosion, corrosionProgress, fertilizeMode, fertilizePercent, reserve, fertilizeStatus}) {
             addDataSlot(slot);
         }
+        for (int i = 0; i < SupplyBuffer.Part.VALUES.length; i++) {
+            addDataSlot(supplyCounts[i]);
+            addDataSlot(supplyLevels[i]);
+        }
         update();
+    }
+
+    private static DataSlot[] standalone(int count) {
+        DataSlot[] slots = new DataSlot[count];
+        for (int i = 0; i < count; i++) {
+            slots[i] = DataSlot.standalone();
+        }
+        return slots;
     }
 
     public static FieldHeadMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -173,6 +182,10 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         reserve.set(head.reserve());
         FertilizeStatus fertilize = head.fertilizeStatus();
         fertilizeStatus.set(fertilize == null ? 0 : fertilize.ordinal() + 1);
+        for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {
+            supplyCounts[part.ordinal()].set(clamp(head.supplyCount(part)));
+            supplyLevels[part.ordinal()].set(clamp(head.supplyLevel(part)));
+        }
         flags.set((head.hydrated() ? FLAG_HYDRATED : 0) | (head.harvestOnly() ? FLAG_HARVEST_ONLY : 0) | (head.harvestDue() ? FLAG_DUE : 0));
     }
 
@@ -319,11 +332,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
 
     /** The page a head slot belongs to, null for the player inventory. */
     public static Page pageOf(int slot) {
-        return switch (slot) {
-            case RANGE_SLOT -> Page.UPGRADES;
-            case ANTI_CORROSION_SLOT -> Page.WATER;
-            default -> null;
-        };
+        return slot == RANGE_SLOT ? Page.UPGRADES : null;
     }
 
     /** Head slots are active on the server, and on the client only on their page. */
@@ -429,6 +438,21 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         return reserve.get();
     }
 
+    /** How many of the part's item the head's buffer holds. */
+    public int supplyCount(SupplyBuffer.Part part) {
+        return supplyCounts[part.ordinal()].get();
+    }
+
+    /** The level supply runs fill the part to; 0 while the part is off. */
+    public int supplyLevel(SupplyBuffer.Part part) {
+        return supplyLevels[part.ordinal()].get();
+    }
+
+    /** The anti-corrosion item the buffer holds as the head last synced it, else the first of the tag. */
+    public ItemStack antiCorrosionShown() {
+        return head.antiCorrosionShown();
+    }
+
     /** What the fertilizing is doing; null while the head serves no field. */
     public FertilizeStatus fertilizeStatus() {
         return fertilizeStatus.get() == 0 ? null : FertilizeStatus.byId(fertilizeStatus.get() - 1);
@@ -459,8 +483,8 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     }
 
     /**
-     * Shift clicking a Range Upgrade or an anti-corrosion item moves it into
-     * its slot and back; other items stay where they are.
+     * Shift clicking a Range Upgrade moves it into its slot and back; other
+     * items stay where they are.
      */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
@@ -479,10 +503,6 @@ public class FieldHeadMenu extends AbstractContainerMenu {
             }
         } else if (slots.get(RANGE_SLOT).mayPlace(stack)) {
             if (!moveItemStackTo(stack, RANGE_SLOT, RANGE_SLOT + 1, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (slots.get(ANTI_CORROSION_SLOT).mayPlace(stack)) {
-            if (!moveItemStackTo(stack, ANTI_CORROSION_SLOT, ANTI_CORROSION_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
         } else {

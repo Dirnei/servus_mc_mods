@@ -17,6 +17,7 @@ import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
+import io.github.dirnei.mc.servus.storage.field.SupplyBuffer;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
@@ -181,7 +182,7 @@ public final class ServusStorageCommands {
                         + (head.fertilizeStatus() == null ? "none" : lower(head.fertilizeStatus())),
                 "Corrosion: " + (head.corrosion() == FieldCorrosion.LOOSE ? "none" : FieldCorrosion.name(head.corrosion())
                         + ", " + head.agedWater() + " / " + StorageStatsManager.INSTANCE.fieldCorrosionWater() + " mB to the next step, "
-                        + head.antiCorrosion().getStackInSlot(0).getCount() + " anti-corrosion"));
+                        + head.supplyCount(SupplyBuffer.Part.ANTI_CORROSION) + " anti-corrosion"));
         for (String line : lines) {
             say(source, line);
         }

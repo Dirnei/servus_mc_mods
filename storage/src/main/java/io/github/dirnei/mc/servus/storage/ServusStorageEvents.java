@@ -57,11 +57,6 @@ public final class ServusStorageEvents {
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusStorageBlockEntities.FIELD_HEAD.get(),
                     (head, side) -> head.fluidHandler());
-            // Packets bring the anti-corrosion upkeep; pipes and hoppers see no item capability.
-            event.registerBlockEntity(ServusFoundationCapabilities.PACKET_INLET, ServusStorageBlockEntities.FIELD_HEAD.get(),
-                    (head, side) -> head.packetInlet());
-            event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusStorageBlockEntities.FIELD_HEAD.get(),
-                    (head, side) -> head.upkeep());
             // A rack is a chest for hoppers and pipes only while no rail docks to its section.
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.HEAVY_RACK.get(),
                     (rack, side) -> rack.standalone() ? rack.items() : null);

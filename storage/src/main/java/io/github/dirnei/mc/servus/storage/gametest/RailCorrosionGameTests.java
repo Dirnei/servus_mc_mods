@@ -1,15 +1,11 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
-import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
-import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlock;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldWater;
+import io.github.dirnei.mc.servus.storage.field.SupplyBuffer;
 import io.github.dirnei.mc.servus.storage.rail.RailBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
@@ -97,17 +93,16 @@ public final class RailCorrosionGameTests {
         });
     }
 
-    /** Honeycomb in the slot holds the stage for one step each. */
+    /** Honeycomb in the buffer holds the stage for one step each. */
     @ServusGameTest(timeoutTicks = 40)
     public static void honeycombHoldsStage(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
             head.setStage(FieldCorrosion.WEATHERED);
-            ItemStack rest = Transfer.insertItem(head.packetInlet(), 0, new ItemStack(Items.HONEYCOMB, 3), false);
-            helper.assertTrue(rest.isEmpty(), "the head takes honeycomb through its item handler");
+            helper.assertTrue(head.fillSupply(SupplyBuffer.Part.ANTI_CORROSION, Items.HONEYCOMB, 3) == 3, "the buffer takes three honeycomb");
             head.age(perStep());
             helper.assertTrue(head.corrosion() == FieldCorrosion.WEATHERED, "honeycomb holds weathered, got " + head.corrosion());
-            helper.assertTrue(head.antiCorrosion().getStackInSlot(0).getCount() == 2, "one honeycomb used");
+            helper.assertTrue(head.supplyCount(SupplyBuffer.Part.ANTI_CORROSION) == 2, "one honeycomb used");
             assertRails(helper, FIRST, LAST, FieldCorrosion.WEATHERED, "rails stay weathered");
             helper.succeed();
         });
@@ -256,9 +251,9 @@ public final class RailCorrosionGameTests {
         });
     }
 
-    /** A hopper above the head keeps its honeycomb: the anti-corrosion slot is filled by hand or upkeep packets. */
+    /** A hopper above the head keeps its honeycomb: only supply runs fill the buffer. */
     @ServusGameTest(timeoutTicks = 100)
-    public static void hopperCannotFillUpkeep(GameTestHelper helper) {
+    public static void hopperCannotFillBuffer(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         BlockPos hopperPos = HEAD.above();
         helper.setBlock(hopperPos, Blocks.HOPPER.defaultBlockState());
@@ -266,28 +261,20 @@ public final class RailCorrosionGameTests {
         hopper.setItem(0, new ItemStack(Items.HONEYCOMB, 2));
         helper.runAfterDelay(40, () -> {
             helper.assertTrue(hopper.getItem(0).getCount() == 2, "the hopper keeps its honeycomb");
-            helper.assertTrue(head.antiCorrosion().getStackInSlot(0).isEmpty(), "the anti-corrosion slot stays empty");
+            helper.assertTrue(head.buffer().count(SupplyBuffer.Part.ANTI_CORROSION) == 0, "the anti-corrosion part stays empty");
             helper.succeed();
         });
     }
 
-    /** Upkeep packets fill the anti-corrosion slot through the inlet, other items are refused; the head is an upkeep holder. */
+    /** The anti-corrosion part takes anti-corrosion items up to its level and nothing else. */
     @ServusGameTest(timeoutTicks = 20)
-    public static void upkeepPacketsFillSlot(GameTestHelper helper) {
+    public static void antiCorrosionPartTakesOnlyItsItem(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
-        UpkeepHolder upkeep = helper.getLevel().getCapability(ServusFoundationCapabilities.UPKEEP, helper.absolutePos(HEAD), Direction.UP);
-        helper.assertTrue(upkeep != null && upkeep.upkeepItem().is(Items.HONEYCOMB)
-                        && upkeep.upkeepLevel() == StorageStatsManager.INSTANCE.fieldAntiCorrosionLevel(),
-                "the head keeps honeycomb as upkeep");
-        ItemView inlet = PacketInlets
-                .handler(helper.getLevel(), helper.absolutePos(HEAD), Direction.UP);
-        helper.assertTrue(inlet != null, "the head has a packet inlet");
-        helper.assertTrue(inlet.insertItemStacked(new ItemStack(Items.HONEYCOMB, 2), false).isEmpty(), "both honeycomb go in");
-        helper.assertTrue(inlet.insertItemStacked(new ItemStack(Items.WHEAT_SEEDS, 1), false).getCount() == 1, "seeds are refused");
-        helper.assertTrue(head.antiCorrosion().getStackInSlot(0).is(Items.HONEYCOMB) && head.antiCorrosion().getStackInSlot(0).getCount() == 2,
-                "both honeycomb are in the slot");
-        helper.assertTrue(upkeep.upkeepCount() == 2, "the upkeep count follows the slot");
-        helper.assertTrue(Transfer.extractItem(head.packetInlet(), 0, 1, true).isEmpty(), "packets take nothing out");
+        int level = StorageStatsManager.INSTANCE.fieldAntiCorrosionLevel();
+        helper.assertTrue(head.fillSupply(SupplyBuffer.Part.ANTI_CORROSION, Items.WHEAT_SEEDS, 2) == 0, "seeds are refused");
+        helper.assertTrue(head.fillSupply(SupplyBuffer.Part.ANTI_CORROSION, Items.HONEYCOMB, level + 5) == level,
+                "honeycomb goes in up to the level");
+        helper.assertTrue(head.supplyCount(SupplyBuffer.Part.ANTI_CORROSION) == level, "the part holds its level");
         helper.succeed();
     }
 }

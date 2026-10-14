@@ -7,7 +7,8 @@ import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
+import io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets;
+import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
@@ -26,7 +27,8 @@ import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
  * Data line packets reach Servus blocks through their packet inlet and
  * foreign machines through their item capability. A mini warehouse with its
  * terminal sends; data ducts run east of the terminal's duct at y 2 over a
- * Crafting Station, a Field Head and a Machine Adapter on a furnace.
+ * Crafting Station, a Field Head (which takes no packets) and a Machine
+ * Adapter on a furnace.
  */
 public final class PacketInletGameTests {
 
@@ -114,16 +116,19 @@ public final class PacketInletGameTests {
         });
     }
 
-    /** Honeycomb sent over the line lands in the Field Head's anti-corrosion slot through its inlet. */
-    @ServusGameTest(timeoutTicks = 100)
-    public static void upkeepThroughInlet(GameTestHelper helper) {
-        MiniWarehouse warehouse = line(helper);
+    /** A Field Head under a data duct is not on the data line: it has no packet inlet and no upkeep. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void headIsNotOnTheDataLine(GameTestHelper helper) {
+        line(helper);
         helper.setBlock(HEAD, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        FieldHeadBlockEntity head = helper.getBlockEntity(HEAD, FieldHeadBlockEntity.class);
-        helper.runAfterDelay(10, () -> {
-            send(helper, warehouse.terminalPos(), HEAD, new ItemStack(Items.HONEYCOMB, 3));
-            Waits.when(helper, () -> head.antiCorrosion().getStackInSlot(0).getCount() == 3, 60,
-                    () -> "the honeycomb should reach the slot, it holds " + head.antiCorrosion().getStackInSlot(0), helper::succeed);
+        helper.runAfterDelay(5, () -> {
+            BlockPos head = helper.absolutePos(HEAD);
+            for (Direction side : Direction.values()) {
+                helper.assertTrue(PacketInlets.handler(helper.getLevel(), head, side) == null, "the head has no packet inlet on " + side);
+                helper.assertTrue(helper.getLevel().getCapability(ServusFoundationCapabilities.UPKEEP, head, side) == null,
+                        "the head has no upkeep on " + side);
+            }
+            helper.succeed();
         });
     }
 

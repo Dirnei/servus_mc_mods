@@ -23,7 +23,7 @@
 
 ## Decisions
 
-**Buffer model.** A small `SupplyBuffer` in the head holds three parts, each an item and a count up to its level, stored as item id plus int (not vanilla slots), so a level above 64 from data works. It is saved with the head and drops as stacks when broken. The existing anti-corrosion `ItemSlots` becomes the third part; aging takes from it as before. Alternative: three vanilla slots. Rejected because levels are data and could exceed a stack.
+**Buffer model.** A small `SupplyBuffer` in the head holds three parts, each an item and a count up to its level, stored as item id plus int (not vanilla slots), so a level above 64 from data works. It is saved with the head and drops as stacks when broken. The anti-corrosion `ItemSlots` is replaced by the third part; aging takes from it as before. The head offers the parts through `supplyItem`, `supplyLevel`, `supplyCount`, `fillSupply`, `takeSupply` and `takeStale`, so only the part's current item goes in or counts. Alternative: three vanilla slots. Rejected because levels are data and could exceed a stack.
 
 **Pure logic.** `SupplyPlan` (no Minecraft types, JUnit):
 - `low(held, level)`: below half the level.
@@ -55,7 +55,7 @@ One supply run per head at a time, tracked like fertilize jobs (`hasSupplyJob`).
 
 **Data.** `seed_buffer` (64) and `fertilizer_buffer` (64) join `storage/field.json` and `StorageStatsManager`; `anti_corrosion_level` stays.
 
-**GUI.** Counts travel in the menu's container data: the Field tab shows "Seeds 40 / 64", the Fertilizer tab "In buffer 12 / 64", and the Water tab "Honeycomb 5 / 8", each with its item icon, drawn, not as slots.
+**GUI.** Counts and levels travel in the menu's container data: the Field and Fertilizer tabs show the item icon and "40/64" right of the narrowed picker (the tooltip says "Seeds in the buffer: 40 / 64" or "In buffer 12 / 64"), and the Water tab "Honeycomb 5 / 8" with its icon, drawn, not as slots. The anti-corrosion item reaches the client in the head's update tag for the icon.
 
 **NeoForge APIs.** Only `RegisterCapabilitiesEvent` registrations are removed; nothing new.
 
@@ -66,4 +66,4 @@ One supply run per head at a time, tracked like fertilize jobs (`hasSupplyJob`).
 - [More shuttle traffic: supply runs on top of field runs] → A part refills only below half its level, and fills to the level in one trip.
 - [Two shuttles at the head rail at once (supply and Spreader)] → Runs already share rails; a stop at the head is a normal stop.
 - [Players lose hand filling of anti-corrosion] → Wanted: one way in. A warehouse with stock and a shuttle without a tool keeps it filled.
-- [Worlds with honeycomb in the old slot] → The slot's items become the anti-corrosion part, so nothing is lost.
+- [Worlds with honeycomb in the old slot] → Unreleased, no migration: the old slot is not read, and the next supply run fills the part.

@@ -6,8 +6,8 @@
 
 ## 2. The head's buffer
 
-- [ ] 2.1 Add `SupplyBuffer` to `FieldHeadBlockEntity` (seeds, fertilizer, anti-corrosion parts; save, load, drop when broken), move aging onto its anti-corrosion part, and remove `packetInlet()`, `upkeep()`, `AntiCorrosionUpkeep` and the head's `PACKET_INLET` and `UPKEEP` registrations in `ServusStorageEvents`. Verify: `gradlew build` green.
-- [ ] 2.2 `FieldHeadMenu` and `FieldHeadScreen`: drop the anti-corrosion slot and its shift click, sync the three counts, and draw them on the Field, Fertilizer and Water tabs; lang keys in `ServusStorageLanguageProvider`. Verify: `gradlew :storage:runData` and `gradlew build` green.
+- [x] 2.1 Add `SupplyBuffer` to `FieldHeadBlockEntity` (seeds, fertilizer, anti-corrosion parts; save, load, drop when broken), move aging onto its anti-corrosion part, and remove `packetInlet()`, `upkeep()`, `AntiCorrosionUpkeep` and the head's `PACKET_INLET` and `UPKEEP` registrations in `ServusStorageEvents`. Verify: `gradlew build` green.
+- [x] 2.2 `FieldHeadMenu` and `FieldHeadScreen`: drop the anti-corrosion slot and its shift click, sync the three counts, and draw them on the Field, Fertilizer and Water tabs; lang keys in `ServusStorageLanguageProvider`. Verify: `gradlew :storage:runData` and `gradlew build` green.
 
 ## 3. Supply runs
 

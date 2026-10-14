@@ -2,10 +2,8 @@ package io.github.dirnei.mc.servus.storage.field;
 
 import net.minecraft.world.Containers;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -13,7 +11,6 @@ import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
 import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
-import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.rail.RailBlockEntity;
@@ -127,20 +124,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             return Math.max(1, FieldRadius.maxUpgrades(StorageStatsManager.INSTANCE.fieldRadius(), StorageStatsManager.INSTANCE.fieldMaxRadius()));
         }
     };
-    /** Anti-corrosion upkeep: one item holds the stage for one aging step. */
-    private final ItemSlots antiCorrosion = new ItemSlots(1) {
-        @Override
-        protected void onContentsChanged(int slot) {
-            setChanged();
-        }
-
-        @Override
-        public boolean isItemValid(int slot, ItemStack stack) {
-            return isAntiCorrosion(stack);
-        }
-    };
-    private final LegacyItemHandler insertOnly = new InsertOnly();
-    private final UpkeepHolder upkeep = new AntiCorrosionUpkeep();
+    /** Seeds, fertilizer and anti-corrosion items, filled by supply runs and taken by field shuttles only. */
+    private final SupplyBuffer buffer = new SupplyBuffer(this::bufferChanged);
+    /** The anti-corrosion item last sent to clients, for the Water tab's icon. */
+    private Item sentAntiCorrosionItem;
+    /** Client side: the anti-corrosion item the buffer holds, null for none. */
+    private Item clientAntiCorrosionItem;
     /** The corrosion stage of the served field; meaningful while {@link #stageKnown}. */
     private int stage = FieldCorrosion.COPPER;
     /** Whether the head decides its field's stage: it served the field before this refresh. */
@@ -461,12 +450,11 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         if (status != FieldStatus.SERVING || water <= 0) {
             return;
         }
-        ItemStack held = antiCorrosion.getStackInSlot(0);
         FieldCorrosion.Aged aged = FieldCorrosion.age(stage, agedWater, water, StorageStatsManager.INSTANCE.fieldCorrosionWater(),
-                held.getCount());
+                supplyCount(SupplyBuffer.Part.ANTI_CORROSION));
         agedWater = aged.counted();
         if (aged.itemsUsed() > 0) {
-            antiCorrosion.extractItem(0, aged.itemsUsed(), false);
+            buffer.take(SupplyBuffer.Part.ANTI_CORROSION, aged.itemsUsed());
         }
         if (aged.stage() != stage) {
             setStage(aged.stage());
@@ -503,29 +491,114 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         return FieldCorrosion.progress(agedWater, StorageStatsManager.INSTANCE.fieldCorrosionWater());
     }
 
-    /** Whether the item may go into the anti-corrosion slot. */
+    /** Whether the item is an anti-corrosion item. */
     public static boolean isAntiCorrosion(ItemStack stack) {
         return stack.is(ANTI_CORROSION);
     }
 
-    /** The anti-corrosion slot. */
-    public ItemSlots antiCorrosion() {
-        return antiCorrosion;
+    /** The supply buffer as it is, stale items included; change it through the head. */
+    public SupplyBuffer buffer() {
+        return buffer;
     }
 
-    /** What data line packets see: anti-corrosion items go in, nothing comes out. Pipes and hoppers see nothing. */
-    public ResourceHandler<ItemResource> packetInlet() {
-        return insertOnly;
+    private void bufferChanged() {
+        setChanged();
+        Item antiCorrosionItem = buffer.item(SupplyBuffer.Part.ANTI_CORROSION);
+        if (antiCorrosionItem != sentAntiCorrosionItem) {
+            sentAntiCorrosionItem = antiCorrosionItem;
+            syncClients();
+        }
     }
 
-    /** The anti-corrosion slot as upkeep of the data line. */
-    public UpkeepHolder upkeep() {
-        return upkeep;
+    /**
+     * The level supply runs fill the part to: seeds while the field plants a
+     * crop, fertilizer while fertilizing is on, anti-corrosion items always.
+     * 0 while the part is off.
+     */
+    public int supplyLevel(SupplyBuffer.Part part) {
+        return switch (part) {
+            case SEEDS -> plantMode() ? StorageStatsManager.INSTANCE.seedBuffer() : 0;
+            case FERTILIZER -> fertilizing() ? StorageStatsManager.INSTANCE.fertilizerBuffer() : 0;
+            case ANTI_CORROSION -> StorageStatsManager.INSTANCE.fieldAntiCorrosionLevel();
+        };
     }
 
-    /** Takes the anti-corrosion items out, for dropping when the head breaks. */
-    public ItemStack takeAntiCorrosion() {
-        return takeAll(antiCorrosion);
+    /**
+     * The item the part is filled with: the crop, the fertilizer, or the
+     * anti-corrosion item it holds, else the first of the tag. Null while the
+     * part is off or the tag is empty.
+     */
+    public Item supplyItem(SupplyBuffer.Part part) {
+        return switch (part) {
+            case SEEDS -> plantMode() ? crop.getStackInSlot(0).getItem() : null;
+            case FERTILIZER -> fertilizing() ? fertilizer : null;
+            case ANTI_CORROSION -> {
+                Item held = buffer.item(part);
+                yield held != null && isAntiCorrosion(new ItemStack(held)) ? held : firstAntiCorrosion();
+            }
+        };
+    }
+
+    private static Item firstAntiCorrosion() {
+        return BuiltInRegistries.ITEM.get(ANTI_CORROSION)
+                .flatMap(set -> set.stream().findFirst())
+                .map(holder -> holder.value())
+                .orElse(null);
+    }
+
+    /** How many of the part's item the buffer holds; stale items count as none. */
+    public int supplyCount(SupplyBuffer.Part part) {
+        Item item = supplyItem(part);
+        return item != null && buffer.item(part) == item ? buffer.count(part) : 0;
+    }
+
+    /** Puts up to count of the item into the part, up to its level and only the part's item; returns how many went in. */
+    public int fillSupply(SupplyBuffer.Part part, Item item, int count) {
+        if (item == null || item != supplyItem(part)) {
+            return 0;
+        }
+        return buffer.insert(part, item, count, supplyLevel(part));
+    }
+
+    /** Takes up to amount of the part's item out of the buffer, for a field shuttle; returns how many came out. */
+    public int takeSupply(SupplyBuffer.Part part, int amount) {
+        return supplyCount(part) > 0 ? buffer.take(part, amount) : 0;
+    }
+
+    /** Whether a part holds an item that is no longer the part's item. */
+    public boolean holdsStale() {
+        for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {
+            if (stale(part)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean stale(SupplyBuffer.Part part) {
+        return buffer.item(part) != null && buffer.item(part) != supplyItem(part);
+    }
+
+    /** Takes out every item that is no longer its part's item, for a supply run to put away. */
+    public List<ItemStack> takeStale() {
+        List<ItemStack> stale = new ArrayList<>();
+        for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {
+            if (stale(part)) {
+                stale.addAll(buffer.takeAll(part));
+            }
+        }
+        return stale;
+    }
+
+    /** Client side: the anti-corrosion item the buffer holds, else the first of the tag; empty for none. */
+    public ItemStack antiCorrosionShown() {
+        Item item = clientAntiCorrosionItem != null ? clientAntiCorrosionItem : firstAntiCorrosion();
+        return item == null ? ItemStack.EMPTY : new ItemStack(item);
+    }
+
+    /** The first farm rail beside the head, where supply runs unload and field shuttles take from the buffer; null for none. */
+    public BlockPos headRail() {
+        return startRail();
     }
 
     private static ItemStack takeAll(ItemSlots slot) {
@@ -1087,7 +1160,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         if (harvestPercent > 0) {
             output.putInt("HarvestPercent", harvestPercent);
         }
-        tag.put("AntiCorrosion", antiCorrosion.serializeNBT(registries));
+        tag.put("Buffer", buffer.save());
         if (stageKnown) {
             output.putInt("Corrosion", stage);
         }
@@ -1132,8 +1205,13 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             rangeUpgrades.deserializeNBT(registries, tag.getCompoundOrEmpty("RangeUpgrades"));
         }
         harvestPercent = tag.contains("HarvestPercent") ? FieldThreshold.clamp(input.getIntOr("HarvestPercent", 0)) : 0;
-        if (tag.contains("AntiCorrosion")) {
-            antiCorrosion.deserializeNBT(registries, tag.getCompoundOrEmpty("AntiCorrosion"));
+        if (tag.contains("Buffer")) {
+            buffer.load(tag.getCompoundOrEmpty("Buffer"));
+            sentAntiCorrosionItem = buffer.item(SupplyBuffer.Part.ANTI_CORROSION);
+        }
+        if (tag.contains("AntiCorrosionItem")) {
+            Identifier id = Identifier.tryParse(tag.getStringOr("AntiCorrosionItem", ""));
+            clientAntiCorrosionItem = id == null ? null : BuiltInRegistries.ITEM.getOptional(id).orElse(null);
         }
         stageKnown = tag.contains("Corrosion");
         stage = stageKnown ? FieldCorrosion.clamp(input.getIntOr("Corrosion", 0)) : FieldCorrosion.COPPER;
@@ -1167,6 +1245,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             tag.putString("Fertilizer", BuiltInRegistries.ITEM.getKey(fertilizer).toString());
         }
         tag.putByte("WaterLevel", (byte) FieldHeadLook.waterLevel(tank.getFluidAmount(), tank.getCapacity()));
+        Item antiCorrosionItem = buffer.item(SupplyBuffer.Part.ANTI_CORROSION);
+        tag.putString("AntiCorrosionItem", antiCorrosionItem == null ? "" : BuiltInRegistries.ITEM.getKey(antiCorrosionItem).toString());
         return tag;
     }
 
@@ -1197,66 +1277,6 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     @Override
     public ModelData getModelData() {
         return woodSlot.modelData();
-    }
-
-    /** Takes anti-corrosion items into the upkeep slot; gives nothing out. */
-    private final class InsertOnly extends LegacyItemHandler {
-
-        @Override
-        public int getSlots() {
-            return 1;
-        }
-
-        @Override
-        public ItemStack getStackInSlot(int slot) {
-            return antiCorrosion.getStackInSlot(slot);
-        }
-
-        @Override
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            return antiCorrosion.insertItem(slot, stack, simulate);
-        }
-
-        @Override
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return ItemStack.EMPTY;
-        }
-
-        @Override
-        public int getSlotLimit(int slot) {
-            return antiCorrosion.getSlotLimit(slot);
-        }
-
-        @Override
-        public boolean isItemValid(int slot, ItemStack stack) {
-            return antiCorrosion.isItemValid(slot, stack);
-        }
-    }
-
-    /** The anti-corrosion slot kept at {@code anti_corrosion_level} by the data line. */
-    private final class AntiCorrosionUpkeep implements UpkeepHolder {
-
-        @Override
-        public ItemStack upkeepItem() {
-            ItemStack held = antiCorrosion.getStackInSlot(0);
-            if (!held.isEmpty()) {
-                return held.copyWithCount(1);
-            }
-            return BuiltInRegistries.ITEM.get(ANTI_CORROSION)
-                    .flatMap(set -> set.stream().findFirst())
-                    .map(holder -> new ItemStack(holder.value()))
-                    .orElse(ItemStack.EMPTY);
-        }
-
-        @Override
-        public int upkeepLevel() {
-            return StorageStatsManager.INSTANCE.fieldAntiCorrosionLevel();
-        }
-
-        @Override
-        public int upkeepCount() {
-            return antiCorrosion.getStackInSlot(0).getCount();
-        }
     }
 
     /** Fills the tank with water; never drains. */
@@ -1298,7 +1318,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         }
     }
 
-    /** Tells the field it lost its head and drops the upgrade and upkeep slots when the block is removed. */
+    /** Tells the field it lost its head and drops the Range Upgrades and the supply buffer when the block is removed. */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
@@ -1307,6 +1327,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         }
         FieldHeads.headRemoved(level, this);
         Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), takeRangeUpgrades());
-        Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), takeAntiCorrosion());
+        for (ItemStack stack : buffer.takeEverything()) {
+            Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), stack);
+        }
     }
 }
