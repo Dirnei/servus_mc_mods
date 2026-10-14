@@ -2,7 +2,7 @@
 
 ## 1. Pose solver (pure Java)
 
-- [ ] 1.1 Add `foundation/.../logistics/duct/DuctPose.java` with sides `NEG`/`MID`/`POS` and ranks `ANCHORED`/`DRAPED`/`FREE` per axis, packing into an int, and the base pose stage from design.md D2:
+- [x] 1.1 Add `foundation/.../logistics/duct/DuctPose.java` with sides `NEG`/`MID`/`POS` and ranks `ANCHORED`/`DRAPED`/`FREE` per axis, packing into an int, and the base pose stage from design.md D2:
   - floor from a sturdy below that is not an arm side
   - walls only with an up or down arm, ignoring arm sides
   - opposite walls give `MID`
