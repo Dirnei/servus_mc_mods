@@ -136,5 +136,5 @@ The user's play test rejected the wall stage, and asked that a duct rising strai
   Face check, design.md D3, every pair of overlapping or touching boxes: centre and straight arm touch on the centre's face, opposite facing; centre and step: the step's inner face is opposite facing or left out where the centre covers it, the floor or top planes only touch along an edge; step and segment: the segment starts on the step's outer face, opposite facing, equal side planes only touch along an edge; step and ring: the step ends at least the ring depth before the edge; segment and ring: the 0.5 px lip as on a straight arm; steps on two horizontal arms touch at most along an edge; vertical arm and step: opposite facing where they share a plane; duct and floor: `LIFT`.
 
   Verify: `gradlew build`, `gradlew test` and `gradlew :foundation:runGameTestServer` green.
-- [ ] 7.3 Texts: `docs/src/content/docs/mods/foundation.md` (no walls, drape on height only, climbs and ducts with an arm up centred), `PLAN.md` "Open: Foundation" bullet. Verify: docs tests green.
+- [x] 7.3 Texts: `docs/src/content/docs/mods/foundation.md` (no walls, drape on height only, climbs and ducts with an arm up centred), `PLAN.md` "Open: Foundation" bullet. Verify: docs tests green.
 - [ ] 7.4 Full `gradlew build test runGameTestServerAll` green.

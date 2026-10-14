@@ -144,7 +144,7 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 
 ### Open: Foundation
 
-- `m9-duct-resting-pose` (in flight): Utility Ducts lie on floors, hug walls where they climb and drape over edges, with stepped arms between positions and centred endpoints.
+- `m9-duct-resting-pose` (in flight): Utility Ducts lie on floors and drape level over edges, with stepped arms between heights, centred climbs and centred endpoints.
 - Power Cable with a tiered transfer rate.
 - Hand made patterns for Machine Adapters, if the play tests ask for them.
 
