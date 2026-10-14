@@ -31,7 +31,7 @@
 
 ## 5. Integration
 
-- [ ] 5.1 Full `gradlew build`, unit tests and storage GameTests green. The game launches with all three mods.
+- [x] 5.1 Full `gradlew build`, unit tests and storage GameTests green. The game launches with all three mods.
 - [ ] 5.2 Play check in game by the user from main:
   - The bone meal behind the elevator reaches the buffer on a supply run, and the field gets fertilized.
   - The buffer counts show on the three tabs, and honeycomb can no longer be put in by hand.
