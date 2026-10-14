@@ -1,6 +1,6 @@
 # Progression of the Great Work
 
-A working list of how Servus: Manufacturing grows from the first fire to the Stone, stage by stage. It builds on PLAN.md section 2.1 and on what is built today. Everything below the "built" lines is a proposal to add your ideas to. Each stage has an empty "Your ideas" list at the end.
+A working list of how Servus: Alchemy grows from the first fire to the Stone, stage by stage. It builds on PLAN.md section 2.1 and on what is built today. Everything below the "built" lines is a proposal to add your ideas to. Each stage has an empty "Your ideas" list at the end.
 
 Conventions, as in PLAN.md:
 - A stage is a colour of the Athanor's flame, set by the structure around it. There is no stage item and no stored stage progress.

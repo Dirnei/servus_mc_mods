@@ -3,13 +3,13 @@ schema: spec-driven
 # Project context shown to the AI when creating artifacts.
 context: |
   Servus mod family for Minecraft 26.1.2 on NeoForge 26.1.2.x, Java 25, ModDevGradle, Mojang's official names.
-  Multi project Gradle repo: foundation (servus_foundation), manufacturing (servus_manufacturing),
+  Multi project Gradle repo: foundation (servus_foundation), alchemy (servus_alchemy),
   storage (servus_storage).
   Roadmap, architecture principles and milestones live in PLAN.md at the repo root. Read it first.
   Project rules live in CLAUDE.md at the repo root.
 
   Hard constraints:
-  - Manufacturing and Storage depend only on servus_foundation (API plus the Utility Duct, Fluid
+  - Alchemy and Storage depend only on servus_foundation (API plus the Utility Duct, Fluid
     Tank and tools). They never depend on each other.
   - World, block entity and capability access only on the server thread.
   - Networks use the mailbox pattern: events queued, drained once per server tick. No Akka, no Pekko.

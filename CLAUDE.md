@@ -4,11 +4,11 @@ Project: Servus mod family for Minecraft 26.1.2 on NeoForge (target pack ATM11).
 
 ## Stack
 - Java 25, Minecraft 26.1.2, NeoForge 26.1.2.x, ModDevGradle, Mojang's official names (26.1 is unobfuscated, no Parchment)
-- Multi project Gradle repo: `foundation`, `manufacturing`, `storage`
-- Mod IDs: `servus_foundation`, `servus_manufacturing`, `servus_storage`
+- Multi project Gradle repo: `foundation`, `alchemy`, `storage`
+- Mod IDs: `servus_foundation`, `servus_alchemy`, `servus_storage`
 
 ## Rules
-- Manufacturing and Storage depend only on `servus_foundation` (API plus the Utility Duct, Fluid Tank and tools). They never depend on each other.
+- Alchemy and Storage depend only on `servus_foundation` (API plus the Utility Duct, Fluid Tank and tools). They never depend on each other.
 - World, block entity and capability access only on the server thread.
 - Networks use the mailbox pattern: events queued, drained once per server tick. No Akka, no Pekko.
 - Never scan blocks every tick. React to placement and removal events.
@@ -36,7 +36,7 @@ Lifecycle of a change:
 Scoping changes:
 - One change per open point from `PLAN.md`, not one change per milestone. A change should be implementable in one or two sessions.
 - Change names are kebab-case with the milestone prefix: `m0-gradle-multi-project`, `m1-network-graph`, `m2-burner-extractor`.
-- Capability paths under `specs/` are `<mod>/<capability>`: `foundation/network-graph`, `foundation/utility-duct`, `manufacturing/burner-extractor`, `storage/crates`. Cross mod integration specs go under `foundation/`.
+- Capability paths under `specs/` are `<mod>/<capability>`: `foundation/network-graph`, `foundation/utility-duct`, `alchemy/calciner`, `storage/crates`. Cross mod integration specs go under `foundation/`.
 - Milestones are a rough order, not a gate. Do not propose a change that modifies the same specs or the same code as an unarchived change, unless the user says so.
 - When a change discovers that `PLAN.md` is wrong or incomplete, say so and update `PLAN.md` in the same change.
 

@@ -18,7 +18,7 @@
 ## 4. Specs and planning
 
 - [x] 4.1 `git mv openspec/specs/manufacturing openspec/specs/alchemy`. Edit each moved spec's title line to `# alchemy/<cap> Specification` and the Purpose texts naming Manufacturing (`athanor`, `data-line`, `journal`, `principles`, `recipe-viewer`), and the Purpose of `storage/crafting-station`. Verify: `openspec validate m0-rename-alchemy --strict` is valid with no "target spec does not exist" notices, and `openspec validate --specs` is green.
-- [ ] 4.2 Update PLAN.md (mod table, dependency text, repository layout and package list, 2.1 "Servus: Alchemy", 2.2, 2.4 "Integration: Storage + Alchemy", "Open: Alchemy", upgrade items line, the Done row reworded to "Factorio style factory"), CLAUDE.md (stack, projects, mod ids, dependency rule), `openspec/config.yaml` context, README (table, run commands, data run, data paths) and PROGRESSION.md. No line says the old name is kept for later. No em dashes. Verify: a grep for `manufactur` (any case) in these files finds nothing and `openspec validate --all` is green.
+- [x] 4.2 Update PLAN.md (mod table, dependency text, repository layout and package list, 2.1 "Servus: Alchemy", 2.2, 2.4 "Integration: Storage + Alchemy", "Open: Alchemy", upgrade items line, the Done row reworded to "Factorio style factory"), CLAUDE.md (stack, projects, mod ids, dependency rule), `openspec/config.yaml` context, README (table, run commands, data run, data paths) and PROGRESSION.md. No line says the old name is kept for later. No em dashes. Verify: a grep for `manufactur` (any case) in these files finds nothing and `openspec validate --all` is green.
 
 ## 5. Docs and CI
 

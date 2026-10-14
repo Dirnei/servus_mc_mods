@@ -5,10 +5,10 @@ A family of NeoForge mods for Minecraft 1.21.1. See `PLAN.md` for the design and
 | Mod | Mod ID | Folder |
 |---|---|---|
 | Servus: Foundation | `servus_foundation` | `foundation/` |
-| Servus: Manufacturing | `servus_manufacturing` | `manufacturing/` |
+| Servus: Alchemy | `servus_alchemy` | `alchemy/` |
 | Servus: Storage | `servus_storage` | `storage/` |
 
-Manufacturing and Storage depend only on Servus: Foundation, the base mod with the shared API, the Utility Duct, the Fluid Tank and the tools.
+Alchemy and Storage depend only on Servus: Foundation, the base mod with the shared API, the Utility Duct, the Fluid Tank and the tools.
 
 ## Prerequisites
 
@@ -29,7 +29,7 @@ Each mod project has its own run configurations. Content mod runs always load Se
 
 ```
 gradlew :foundation:runClient        # Foundation alone
-gradlew :manufacturing:runClient     # Manufacturing plus Foundation
+gradlew :alchemy:runClient           # Alchemy plus Foundation
 gradlew :foundation:runServer        # Foundation alone, dedicated server
 gradlew :storage:runData             # data generation for Storage
 gradlew :storage:runGameTestServer   # game tests for Storage (exits with an error until tests exist)
@@ -56,7 +56,7 @@ npm run dev      # local site at http://localhost:4321/servus_mc_mods/
 npm test         # ratio math and proposal tests
 ```
 
-The lab reads `docs/src/data/gamedata.json`. It is written by `gradlew :manufacturing:runData` and committed; the Build workflow fails when it is out of date, so run the data run after changing machine, deposit, tech or recipe data.
+The lab reads `docs/src/data/gamedata.json`. It is written by `gradlew :alchemy:runData` and committed; the Build workflow fails when it is out of date, so run the data run after changing machine, deposit, tech or recipe data.
 
 ## Playtest (Tier 1)
 
@@ -86,7 +86,7 @@ Launch with `gradlew runClientAll`, create a new world, and take the Servus crea
 3. Facades: craft any full block with an iron ingot for six facades, use one on a duct and it looks like that block. Sneak wrench takes the facade off first, a second sneak wrench removes the duct and drops its channels.
 4. Engineer Goggles (leather, iron, glass) go on your head. While wearing them, or holding the wrench, hidden ducts show through walls as an orange overlay.
 
-The wrench rotates machines and sneak wrench dismantles them. Balance numbers live in `manufacturing/src/main/resources/data/servus_manufacturing/machine/` and the deposit, recipe and tech JSON files next to them.
+The wrench rotates machines and sneak wrench dismantles them. Balance numbers live in `alchemy/src/main/resources/data/servus_alchemy/machine/` and the deposit, recipe and tech JSON files next to them.
 
 ## Development workflow
 

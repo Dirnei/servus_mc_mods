@@ -5,10 +5,10 @@ A family of NeoForge mods for Minecraft 26.1.2, built to fit packs like ATM11 bu
 | Mod | Mod ID | Purpose |
 |---|---|---|
 | Servus: Foundation | `servus_foundation` | Base of the family: shared APIs, network graph, tick mailbox, the Utility Duct (item, energy, fluid and data lines) with facades, the Fluid Tank, pumps, the Sink, the Ender Anchor, the Coal Generator, Configuration Carrot (the wrench role), goggles, config helpers |
-| Servus: Manufacturing | `servus_manufacturing` | Alchemy after Paracelsus: the three principles, gnome grown ore veins, the Athanor and his journal as the tech tree |
+| Servus: Alchemy | `servus_alchemy` | Alchemy after Paracelsus: the three principles, gnome grown ore veins, the Athanor and his journal as the tech tree |
 | Servus: Storage | `servus_storage` | In-world warehouse storage that scales to shuttles, autocrafting and wireless access |
 
-Manufacturing and Storage depend only on Servus: Foundation and never on each other. When both are installed, extra features light up through the Foundation API.
+Alchemy and Storage depend only on Servus: Foundation and never on each other. When both are installed, extra features light up through the Foundation API.
 
 ---
 
@@ -19,7 +19,7 @@ Manufacturing and Storage depend only on Servus: Foundation and never on each ot
 - Mappings: none needed; 26.1 ships unobfuscated with Mojang's own names and parameter names
 - Data generation for blockstates, models, loot tables, recipes, tags, lang
 - NeoForge transfer API: energy `EnergyHandler` (FE), items `ResourceHandler<ItemResource>`, fluids `ResourceHandler<FluidResource>` in mB, all transactional
-- Optional integrations (soft dependencies only): JEI and/or EMI, FTB Teams, FTB Chunks; Modonomicon is a hard dependency of Manufacturing
+- Optional integrations (soft dependencies only): JEI and/or EMI, FTB Teams, FTB Chunks; Modonomicon is a hard dependency of Alchemy
 - No Akka or Pekko. We use the actor pattern without the library (see section 3)
 
 ### Repository layout
@@ -34,7 +34,7 @@ servus_mc_mods/
   openspec/                 specs and changes (OpenSpec)
   docs/                     documentation site and Balance lab (Astro, Starlight), deployed to GitHub Pages
   foundation/               servus_foundation
-  manufacturing/            servus_manufacturing
+  alchemy/                  servus_alchemy
   storage/                  servus_storage
     gradle.properties       mod id and name
     build.gradle            dependencies and loaded mods
@@ -45,13 +45,13 @@ servus_mc_mods/
     runs/                   game directories per run config, gitignored
 ```
 
-Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.servus`. Base package `io.github.dirnei.mc.servus`, with one subpackage per mod: `foundation`, `manufacturing`, `storage`. Inside Foundation the API packages sit directly under `foundation` and the duct, tank and facade content under `foundation.logistics`. License: MIT.
+Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.servus`. Base package `io.github.dirnei.mc.servus`, with one subpackage per mod: `foundation`, `alchemy`, `storage`. Inside Foundation the API packages sit directly under `foundation` and the duct, tank and facade content under `foundation.logistics`. License: MIT.
 
 ---
 
 ## 2. Vision per mod
 
-### 2.1 Servus: Manufacturing
+### 2.1 Servus: Alchemy
 
 **Core idea:** alchemy after Paracelsus. Matter is split into the three principles, Salt, Sulfur and Mercury, and products are made again from them. Paracelsus' elemental spirits do the work, and gnomes grow ore veins instead of the world generating them. The story is Paracelsus' own life, told by his journal, which is also the tech tree.
 
@@ -79,7 +79,7 @@ Prior art to stay apart from: Theurgy also works with Sulfur, Salt and Mercury, 
 
 ### 2.2 Servus: Foundation
 
-The base mod every Servus mod builds on: the shared API, the Configuration Carrot, the goggles, the Utility Duct with its lines and the general utilities (Fluid Tank, pumps, Sink, Ender Anchor, Coal Generator). They live here because Storage needs them as much as Manufacturing. Everything in Foundation uses plain crafting recipes.
+The base mod every Servus mod builds on: the shared API, the Configuration Carrot, the goggles, the Utility Duct with its lines and the general utilities (Fluid Tank, pumps, Sink, Ender Anchor, Coal Generator). They live here because Storage needs them as much as Alchemy. Everything in Foundation uses plain crafting recipes.
 
 ### 2.3 Servus: Storage
 
@@ -91,7 +91,7 @@ The base mod every Servus mod builds on: the shared API, the Configuration Carro
 - **Power:** the warehouse runs on FE through its controller, one power connection per site; nothing costs FE while idle.
 - **Field work** stays in Storage: shuttles with tool modules leave the warehouse on Farm Rails and tend fields; one tool per shuttle.
 
-### 2.4 Integration: Storage + Manufacturing (autocrafting)
+### 2.4 Integration: Storage + Alchemy (autocrafting)
 
 - **Production on demand** is the USP. Nothing runs without an order: a machine on the data cable produces exactly what was ordered and then waits, while stations and pipes cover what runs all the time.
 - **One route for orders:** everything on demand runs over the data cable. The Crafting CPU owns work orders.
@@ -123,7 +123,7 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 |---|---|
 | M0 Repository and build | multi project Gradle with ModDevGradle, run configs, CI, the port to 26.1.2 |
 | M1 Foundations | network graph with split and merge, mailbox tick, `NetworkManager`, Configuration Carrot, config |
-| M2, M3 Factorio style Manufacturing | superseded by M9; what lived on: pumps, Sink, Ender Anchor, side config, JEI, the docs site and Balance lab |
+| M2, M3 Factorio style factory | superseded by M9; what lived on: pumps, Sink, Ender Anchor, side config, JEI, the docs site and Balance lab |
 | M4 Storage first slice | Heavy Duty Rack with sections, Warehouse Controller, terminal |
 | M5 Logistics | Utility Duct with item, power and fluid lines, modes, channels, filters, priorities, facades, goggles, Fluid Tank |
 | M6 Storage automation | rails, elevators with lift cars, simulated shuttles, garages, Inbound Station, Zone Labels, placement assist |
@@ -133,14 +133,14 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 | M10 Field work | Shuttle Workshop, Mk1 to Mk3 shuttles with Speed and Handling, shuttle looks, hand build minigame, Farm Rail and Field Head with range, corrosion and tabs, Harvester and Spreader, lift upgrades |
 | M11 Wireless and scale | controllers as sites, Anchor Upgrade wakes, wireless between controllers, warehouse power, pipe access rules |
 
-### Open: Manufacturing
+### Open: Alchemy
 
 - **Balance pass** and the docs Balance lab on the new data, including CPU slots, buffer room and recipes.
 - **Checkpoint: play it.** Is Nigredo to Albedo fun for a casual player and for a planner? Adjust before Citrinitas.
 - **Journal guidance:** new journal events `build` (a machine formed or placed) and `make` (a first item made), maybe `find`, so chapters react to what the player builds; progress per team, unlocked for every member (decided 2026-10-12).
 - **Citrinitas and Rubedo:** the Wandering years and Basel and Salzburg chapters, the Athanor's next tiers (example: Sulfur pillars, Mercury basins and the Stone), late seeds (gold, diamond), a use for the Caput Mortuum (a later diamond), endless works at the end. Historical claims in the journal text are checked when it is written.
 - **Salamanders, Undines and Sylphs**, and the FE versions of the alchemy machines as upgrades with the Salamanders.
-- Better upgrade items from Manufacturing through the Foundation upgrade API.
+- Better upgrade items from Alchemy through the Foundation upgrade API.
 
 ### Open: Foundation
 
