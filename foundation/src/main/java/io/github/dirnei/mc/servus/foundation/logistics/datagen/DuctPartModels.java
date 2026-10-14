@@ -10,11 +10,15 @@ import java.util.List;
 import net.minecraft.core.Direction;
 
 /**
- * Writes the duct part models: a centre cube per line set and, per direction,
- * an arm per line set, for every non empty set of lines. Parts with one
- * line use radius 2, two lines radius 3, three or more lines radius 4. A part with
- * several lines shows their colours as equal bands running along it, in line
- * order from the negative side of the across axis. Every arm ends in a ring
+ * Writes the duct part models: a centre cube per line set and run axis, a
+ * fitting per line set and, per direction, an arm per line set, for every
+ * non empty set of lines. Parts with one line use radius 2, two lines radius
+ * 3, three or more lines radius 4; a fitting of several lines is one pixel
+ * larger. A part with several lines shows its lines as bands running along
+ * it, in line order from the negative side of the across axis, and the outer
+ * line's strip on the two faces across the bands. The dynamic model sets the
+ * UVs of the side faces (see {@code DuctUv}), so the UVs written here only
+ * matter for the end faces. Every arm ends in a ring
  * frame whose faces carry the tint index of that line and side, split between
  * the lines like the bands; the dynamic model drops those faces when the side
  * is not an endpoint.
@@ -34,11 +38,10 @@ final class DuctPartModels {
             if (lines == DuctParts.ITEM) {
                 base = center;
             }
+            junction(provider, lines);
             if (Integer.bitCount(lines) >= 2) {
-                // Bands per run axis, and a plain cube where arms meet from several axes.
                 center(provider, lines, Direction.Axis.X);
                 center(provider, lines, Direction.Axis.Y);
-                junction(provider, lines);
             }
             for (Direction direction : Direction.values()) {
                 arm(provider, direction, lines);
@@ -55,23 +58,23 @@ final class DuctPartModels {
         List<Line> present = DuctParts.lines(lines);
         BlockModelBuilder model = provider.models().getBuilder("block/duct/" + name)
                 .texture("particle", provider.modLoc("block/duct_" + present.get(0).id()));
+        int thickness = 2 * radius(lines);
         for (Line line : Line.VALUES) {
-            model.texture(line.id(), provider.modLoc("block/duct_" + line.id()));
+            model.texture(line.id(), provider.modLoc("block/duct_" + line.id() + (present.size() >= 2 ? "_" + thickness : "")));
         }
         if (present.size() >= 2) {
-            model.texture("bands", provider.modLoc("block/duct_" + DuctParts.suffix(lines)))
-                    .texture("bands_v", provider.modLoc("block/duct_" + DuctParts.suffix(lines) + "_v"));
+            model.texture("bands", provider.modLoc("block/duct_" + DuctParts.suffix(lines)));
         }
         return model.texture("ring", provider.modLoc("block/duct_ring"))
-                .texture("junction", provider.modLoc("block/duct_junction"));
+                .texture("fitting", provider.modLoc("block/duct_fitting_" + DuctShapes.fittingRadius(present.size())));
     }
 
     private static void junction(BlockStateProvider provider, int lines) {
         BlockModelBuilder model = builder(provider, DuctParts.centerName(lines, null), lines);
-        int r = radius(lines) + DuctShapes.JUNCTION_EXTRA;
+        int r = DuctShapes.fittingRadius(Integer.bitCount(lines));
         float lo = 8 - r;
         float hi = 8 + r;
-        model.element().from(lo, lo, lo).to(hi, hi, hi).allFaces((direction, face) -> face.texture("#junction")).end();
+        model.element().from(lo, lo, lo).to(hi, hi, hi).allFaces((direction, face) -> face.texture("#fitting")).end();
     }
 
     private static ModelFile center(BlockStateProvider provider, int lines, Direction.Axis along) {
@@ -122,42 +125,12 @@ final class DuctPartModels {
                 Line outer = face.getAxisDirection() == Direction.AxisDirection.NEGATIVE
                         ? present.get(0) : present.get(present.size() - 1);
                 builder.texture("#" + outer.id());
-            } else if (uAxis(face) == across) {
-                builder.texture("#bands");
-                if (uIncreases(face)) {
-                    builder.uvs(0, 0, 16, 16);
-                } else {
-                    builder.uvs(16, 0, 0, 16);
-                }
             } else {
-                builder.texture("#bands_v");
-                if (vIncreases(face)) {
-                    builder.uvs(0, 0, 16, 16);
-                } else {
-                    builder.uvs(0, 16, 16, 0);
-                }
+                builder.texture("#bands");
             }
             builder.end();
         }
         element.end();
-    }
-
-    /** The world axis a face's texture u runs along (vanilla default UV mapping). */
-    private static Direction.Axis uAxis(Direction face) {
-        return face.getAxis() == Direction.Axis.X ? Direction.Axis.Z : Direction.Axis.X;
-    }
-
-    /** Whether texture u grows with the world coordinate of {@link #uAxis}. */
-    private static boolean uIncreases(Direction face) {
-        return switch (face) {
-            case DOWN, UP, SOUTH, WEST -> true;
-            case NORTH, EAST -> false;
-        };
-    }
-
-    /** Whether texture v grows with the world coordinate of the face's v axis (y, or z for up and down). */
-    private static boolean vIncreases(Direction face) {
-        return face == Direction.UP;
     }
 
     /**

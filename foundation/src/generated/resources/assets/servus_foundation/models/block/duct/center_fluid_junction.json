@@ -1,0 +1,45 @@
+{
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#fitting"
+        },
+        "east": {
+          "texture": "#fitting"
+        },
+        "north": {
+          "texture": "#fitting"
+        },
+        "south": {
+          "texture": "#fitting"
+        },
+        "up": {
+          "texture": "#fitting"
+        },
+        "west": {
+          "texture": "#fitting"
+        }
+      },
+      "from": [
+        6,
+        6,
+        6
+      ],
+      "to": [
+        10,
+        10,
+        10
+      ]
+    }
+  ],
+  "textures": {
+    "data": "servus_foundation:block/duct_data",
+    "energy": "servus_foundation:block/duct_energy",
+    "fitting": "servus_foundation:block/duct_fitting_2",
+    "fluid": "servus_foundation:block/duct_fluid",
+    "item": "servus_foundation:block/duct_item",
+    "particle": "servus_foundation:block/duct_fluid",
+    "ring": "servus_foundation:block/duct_ring"
+  }
+}

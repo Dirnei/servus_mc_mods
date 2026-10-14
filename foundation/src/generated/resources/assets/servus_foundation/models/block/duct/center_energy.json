@@ -36,9 +36,9 @@
   "textures": {
     "data": "servus_foundation:block/duct_data",
     "energy": "servus_foundation:block/duct_energy",
+    "fitting": "servus_foundation:block/duct_fitting_2",
     "fluid": "servus_foundation:block/duct_fluid",
     "item": "servus_foundation:block/duct_item",
-    "junction": "servus_foundation:block/duct_junction",
     "particle": "servus_foundation:block/duct_energy",
     "ring": "servus_foundation:block/duct_ring"
   }

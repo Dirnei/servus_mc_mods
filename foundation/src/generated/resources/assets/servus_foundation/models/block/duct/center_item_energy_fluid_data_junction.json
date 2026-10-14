@@ -3,22 +3,22 @@
     {
       "faces": {
         "down": {
-          "texture": "#junction"
+          "texture": "#fitting"
         },
         "east": {
-          "texture": "#junction"
+          "texture": "#fitting"
         },
         "north": {
-          "texture": "#junction"
+          "texture": "#fitting"
         },
         "south": {
-          "texture": "#junction"
+          "texture": "#fitting"
         },
         "up": {
-          "texture": "#junction"
+          "texture": "#fitting"
         },
         "west": {
-          "texture": "#junction"
+          "texture": "#fitting"
         }
       },
       "from": [
@@ -35,12 +35,11 @@
   ],
   "textures": {
     "bands": "servus_foundation:block/duct_item_energy_fluid_data",
-    "bands_v": "servus_foundation:block/duct_item_energy_fluid_data_v",
-    "data": "servus_foundation:block/duct_data",
-    "energy": "servus_foundation:block/duct_energy",
-    "fluid": "servus_foundation:block/duct_fluid",
-    "item": "servus_foundation:block/duct_item",
-    "junction": "servus_foundation:block/duct_junction",
+    "data": "servus_foundation:block/duct_data_8",
+    "energy": "servus_foundation:block/duct_energy_8",
+    "fitting": "servus_foundation:block/duct_fitting_5",
+    "fluid": "servus_foundation:block/duct_fluid_8",
+    "item": "servus_foundation:block/duct_item_8",
     "particle": "servus_foundation:block/duct_item",
     "ring": "servus_foundation:block/duct_ring"
   }

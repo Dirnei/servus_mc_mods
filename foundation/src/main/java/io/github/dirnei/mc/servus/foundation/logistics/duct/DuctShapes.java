@@ -88,6 +88,11 @@ public final class DuctShapes {
         return lineCount >= 2 && isJunction(armsMask) ? r + JUNCTION_EXTRA : r;
     }
 
+    /** The radius of the fitting a centre of that many lines becomes where it bends or branches. */
+    public static int fittingRadius(int lineCount) {
+        return lineCount >= 2 ? radius(lineCount) + JUNCTION_EXTRA : radius(lineCount);
+    }
+
     /** The centre cube in the middle of the block. */
     public static Box center(int radius) {
         return center(radius, DuctPose.CENTRED);

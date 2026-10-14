@@ -76,14 +76,14 @@ public final class DuctParts {
 
     /**
      * The centre for a run along the axis; every set of two or more lines has
-     * one per axis and, for {@code along == null}, a uniform junction cube.
+     * one per axis, and every set, for {@code along == null}, a fitting.
      */
     public static String centerName(int linesMask, Direction.Axis along) {
-        if (Integer.bitCount(normalize(linesMask)) < 2) {
-            return centerName(linesMask);
-        }
         if (along == null) {
             return centerName(linesMask) + "_junction";
+        }
+        if (Integer.bitCount(normalize(linesMask)) < 2) {
+            return centerName(linesMask);
         }
         return switch (along) {
             case X -> centerName(linesMask) + "_x";
@@ -101,10 +101,10 @@ public final class DuctParts {
         List<String> names = new ArrayList<>();
         for (int lines : lineSets()) {
             names.add(centerName(lines));
+            names.add(centerName(lines, null));
             if (Integer.bitCount(lines) >= 2) {
                 names.add(centerName(lines, Direction.Axis.X));
                 names.add(centerName(lines, Direction.Axis.Y));
-                names.add(centerName(lines, null));
             }
             for (Direction direction : Direction.values()) {
                 names.add(armName(direction, lines));

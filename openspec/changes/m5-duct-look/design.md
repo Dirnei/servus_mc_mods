@@ -32,19 +32,19 @@ The run axis of an arm is its side's axis; of a straight centre the axis of its 
 
 ### D2: Fittings for every multi axis and bending centre
 
-`UtilityDuctModel` uses the fitting part when the centre's arms lie on more than one axis or the centre grew (its box is taller than the baked centre), for any line count. A fitting has the same size as today's centre: the line radius, plus `JUNCTION_EXTRA` for two or more lines. Its faces use a fitting texture per size (`duct_fitting_2`, `_4`, `_5` for radius 2, 4 and 5) with UVs from the position, which is fine for a texture that is symmetric on both axes (black rubber, darker rim, steel cap in the middle of the larger sizes). `DuctPartModels` writes the fitting part for every line set, also single lines; `DuctParts.centerName(lines, null)` names it for every line set.
+`UtilityDuctModel` uses the fitting part when the centre's arms lie on more than one axis or the centre grew (its box is taller than the baked centre), for any line count. A fitting has the same size as today's centre: the line radius, plus `JUNCTION_EXTRA` for two or more lines. Its faces use a fitting texture per size (`duct_fitting_2`, `_4`, `_5` for radius 2, 4 and 5). Each face is mapped onto the square of that radius on its texture (`DuctUv.fitting`), not from the block position: a fitting can sit low or grow tall, and from the position it would show the wrong rows. A grown fitting's tall faces stretch the square on Y; the texture is black rubber with a darker rim and, on the larger sizes, a steel cap, which stretches without looking wrong. `DuctPartModels` writes the fitting part for every line set, also single lines; `DuctParts.centerName(lines, null)` names it for every line set.
 
 Alternative: keep bands on a grown centre and stretch them. Rejected: the stretched bands look wrong and a bend reads naturally as a moulded fitting.
 
 ### D3: One band texture per line set, built from the line strips
 
-The `_v` textures go: D1 orients every face, so `duct_<lines>.png` serves every run axis. A band texture stacks the line strips across: for n lines on a part of thickness t, line i fills rows `8 - t/2 + i*t/n` to `8 - t/2 + (i+1)*t/n` with that line's strip pattern at band width t/n (2 lines on 6 px: 3 px each; 3 lines on 8 px: 3, 2 and 3 px, rounding to whole pixels so the middle band is never empty; 4 lines on 8 px: 2 px each). Data line textures keep their `_duplex` and `_fast` copies, so the tier reskin works by name as today. The reskin pattern in `UtilityDuctModel` drops the `_v` alternative.
+The `_v` textures go: D1 orients every face, so `duct_<lines>.png` serves every run axis. The two faces across the bands of a several line part are 6 or 8 px wide, so each line strip also comes cut for those widths (`duct_<line>_6`, `duct_<line>_8`), with the edge shading at the face edges; a one line part uses `duct_<line>` (4 px). A band texture stacks the line strips across: for n lines on a part of thickness t, line i fills rows `8 - t/2 + i*t/n` to `8 - t/2 + (i+1)*t/n` with that line's strip pattern at band width t/n (2 lines on 6 px: 3 px each; 3 lines on 8 px: 3, 2 and 3 px, rounding to whole pixels so the middle band is never empty; 4 lines on 8 px: 2 px each). Data line textures keep their `_duplex` and `_fast` copies, so the tier reskin works by name as today. The reskin pattern in `UtilityDuctModel` drops the `_v` alternative.
 
 ### D4: A committed generator
 
 `tools/duct-textures/gen.py` (Python 3, standard library only, PNG writer included) holds the palettes and patterns from the preview's option B strips and option C icons and writes:
 
-- block: one line strips (`duct_item`, `duct_energy`, `duct_fluid`, `duct_data`, `duct_data_duplex`, `duct_data_fast`), every band set with its tier copies, `duct_fitting_2/4/5`, `duct_ring`;
+- block: one line strips in 4, 6 and 8 px cuts (`duct_item`, `duct_item_6`, `duct_item_8` and so on, the data ones also as `_duplex` and `_fast`), every band set with its tier copies, `duct_fitting_2/4/5`, `duct_ring`;
 - item: the six line icons.
 
 It writes into `foundation/src/main/resources/assets/servus_foundation/textures/` and deletes nothing itself; the task removes the `_v` files and `duct_junction.png` by hand once. Running it twice gives the same bytes. The docs icons come from the existing `gradlew iconExport` task.

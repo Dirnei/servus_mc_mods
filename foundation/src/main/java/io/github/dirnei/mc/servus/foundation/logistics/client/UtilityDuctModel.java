@@ -36,14 +36,16 @@ import net.neoforged.neoforge.model.data.ModelData;
  * {@link PanelQuads}). The centre part follows the line set, each arm the
  * lines connected on that side, and an arm's ring faces (the tinted ones) only
  * show when the side is an endpoint. Every part is moved to the duct's
- * resting pose (see {@link DuctPoseQuads}). A data line tier other than the base one
- * swaps every data containing texture ({@code duct_data}, {@code duct_*_data},
- * {@code duct_*_data_v}) for the tier's variant ({@code <name>_<skin>}),
+ * resting pose (see {@link DuctPoseQuads}); a centre whose arms lie on more
+ * than one axis or that bends between two heights is a fitting. A data line
+ * tier other than the base one swaps every data containing texture
+ * ({@code duct_data}, {@code duct_data_6}, {@code duct_data_8},
+ * {@code duct_*_data}) for the tier's variant ({@code <name>_<skin>}),
  * remapping the UVs onto the variant's sprite.
  */
 public final class UtilityDuctModel implements DynamicBlockStateModel {
 
-    private static final Pattern DATA_TEXTURE = Pattern.compile("block/duct_(?:[a-z]+_)*data(?:_v)?");
+    private static final Pattern DATA_TEXTURE = Pattern.compile("block/duct_(?:[a-z]+_)*data(?:_[68])?");
 
     private final BlockStateModel base;
     private final Map<String, BlockStateModelPart> parts;
@@ -106,9 +108,14 @@ public final class UtilityDuctModel implements DynamicBlockStateModel {
         int pose = valueOrZero(data.get(DuctModelData.POSE));
         int faces = valueOrZero(data.get(DuctModelData.FACES));
         int linesMask = DuctParts.normalize(lines);
-        int centerRadius = DuctShapes.centerRadius(Integer.bitCount(linesMask), union(arms));
+        int lineCount = Integer.bitCount(linesMask);
+        int centerRadius = DuctShapes.centerRadius(lineCount, union(arms));
         DuctShapes.Box centre = DuctShapes.center(centerRadius, pose, faces, DuctShapes.armRadii(arms));
-        List<BakedQuad> quads = new ArrayList<>(poseQuads.center(DuctParts.centerName(linesMask, runAxis(arms)), centerRadius, centre));
+        Direction.Axis run = runAxis(arms);
+        boolean bends = centre.y1() - centre.y0() > 2 * centerRadius;
+        List<BakedQuad> quads = new ArrayList<>(run == null || bends
+                ? poseQuads.fitting(DuctParts.centerName(linesMask, null), DuctShapes.fittingRadius(lineCount), centre)
+                : poseQuads.center(DuctParts.centerName(linesMask, run), centerRadius, centre, run));
         for (Direction direction : Direction.values()) {
             int armLines = 0;
             for (Line line : Line.VALUES) {
