@@ -102,7 +102,7 @@
 
 ## 6. Integration
 
-- [ ] 6.1 Full `gradlew build`, unit tests and the foundation GameTests green. The game launches with all three mods.
+- [x] 6.1 Full `gradlew build`, unit tests and the foundation GameTests green. The game launches with all three mods.
 - [ ] 6.2 Play check in game by the user from main:
   - A floor run lies flat and straight.
   - A climb hugs the wall and sits in a corner when there are two walls.
