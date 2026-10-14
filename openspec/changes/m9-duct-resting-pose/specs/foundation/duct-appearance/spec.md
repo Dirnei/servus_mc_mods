@@ -36,7 +36,7 @@ A duct SHALL render and collide as a centre cube plus arms whose thickness grows
 ## ADDED Requirements
 
 ### Requirement: Ducts lie on the floor
-A duct whose block below has a full sturdy top face SHALL lie on it: its centre and its horizontal arms SHALL sit as low in the block as their thickness allows, a hair above the floor so no faces share a plane. Ducts SHALL NOT count as floor, and partial blocks such as bottom slabs SHALL NOT count either. A block the duct has an arm into SHALL NOT count as floor.
+A duct whose block below has a full sturdy top face SHALL lie on it: its centre and its horizontal arms SHALL sit as low in the block as their thickness allows, a hair above the floor so no faces share a plane. A duct on the floor SHALL stay in the middle of its block across both horizontal axes. Ducts SHALL NOT count as floor, and partial blocks such as bottom slabs SHALL NOT count either. A block the duct has an arm into SHALL NOT count as floor.
 
 #### Scenario: Run across a stone floor
 - **WHEN** a player lays a straight run of Item Pipe ducts on a stone floor
@@ -58,46 +58,43 @@ A duct whose block below has a full sturdy top face SHALL lie on it: its centre 
 - **WHEN** a duct stands on a furnace and has an arm down into it
 - **THEN** it stays in the middle of its block and the arm reaches the middle of the furnace top
 
-### Requirement: Climbing ducts hug the wall
-A duct with an arm up or down SHALL move against a neighbour block beside it whose face toward the duct is full and sturdy and that the duct has no arm into. With such walls on two horizontal axes it SHALL sit in the corner. With walls on both opposite sides of one axis it SHALL stay in the middle on that axis. A duct with only horizontal arms SHALL NOT move toward a wall.
-
-#### Scenario: Pipe up a wall
-- **WHEN** a player places a vertical run of ducts against the east side of a stone wall
-- **THEN** every duct of the run touches the wall and the run is straight
-
-#### Scenario: Climb in a corner
-- **WHEN** a vertical run stands in a corner with stone to the north and to the west
-- **THEN** the run sits in the corner
-
 #### Scenario: Horizontal run beside a wall
 - **WHEN** a horizontal run on a floor passes along a wall
 - **THEN** it lies on the floor in the middle of the block across the run, not against the wall
 
 #### Scenario: Foot of a climb
-- **WHEN** a duct on the floor has an arm west along the floor and an arm up along a wall to the east
-- **THEN** it lies on the floor against the wall, and both runs join it without a step
+- **WHEN** a duct on the floor has an arm west along the floor and an arm up beside a wall to the east
+- **THEN** it lies on the floor in the middle of the block across both axes, and the vertical run above it stays in the middle of its blocks
 
 ### Requirement: Unsupported ducts drape over edges
-A duct with nothing to rest on along an axis SHALL take, on that axis, the position that its connected neighbour ducts ask for, when they rest on something along that axis themselves and agree. Neighbours that disagree SHALL leave it in the middle on that axis. Only neighbours one block away SHALL count.
+A duct with nothing under it SHALL take the height that its connected neighbour ducts beside it ask for, when they rest on a floor or are held in the middle themselves and agree, so a run over the edge of a step or a short gap stays level. Neighbours above or below it SHALL NOT ask. Neighbours that disagree SHALL leave it in the middle. Only neighbours one block away SHALL count. Draping SHALL NOT move a duct sideways.
 
 #### Scenario: Over the edge of a step
-- **WHEN** a run lies on a floor, climbs one block up the east wall of a step, and continues east on top of the step
-- **THEN** the duct at the top of the climb sits against the wall and as low as the top of the step, and the whole run has no step in it
+- **WHEN** a run lies on a floor, climbs one block up beside the east wall of a step, and continues east on top of the step
+- **THEN** the climb stays in the middle of its blocks, and the duct at the top of the climb lies as low as the run on top of the step, so the run on the step has no step in it
 
 #### Scenario: Neighbours disagree
-- **WHEN** a duct in open air connects to a duct against a wall to its east on one side and to a duct against a wall to its west on the other side, both asking on the same axis
-- **THEN** it stays in the middle on that axis
+- **WHEN** a duct in open air connects to a duct lying on a floor on one side and to a duct with a facade panel on the other side
+- **THEN** it stays in the middle of its block
 
 #### Scenario: Long span
 - **WHEN** a run crosses a three block gap of open air between two floors
 - **THEN** the first and last duct over the gap take the floor height and the middle duct stays in the middle of its block
 
 ### Requirement: Centred ducts
-A duct SHALL stay in the middle of its block on every axis where no floor, wall or draping moves it. A duct with any facade panel SHALL stay in the middle on every axis. A duct SHALL NOT move up toward a ceiling.
+A duct SHALL stay in the middle of its block on both horizontal axes, whatever blocks stand beside it, so a vertical run is always in the middle of its blocks across the run. Up and down, a duct SHALL stay in the middle where no floor or draping moves it. A duct with any facade panel SHALL stay in the middle on every axis. A duct SHALL NOT move up toward a ceiling.
 
 #### Scenario: In open air
 - **WHEN** a run hangs in open air with no blocks around
 - **THEN** it sits in the middle of its blocks as before
+
+#### Scenario: Pipe up a wall
+- **WHEN** a player places a vertical run of ducts against the east side of a stone wall
+- **THEN** every duct of the run stays in the middle of its block and the run is straight
+
+#### Scenario: Climb in a corner
+- **WHEN** a vertical run stands in a corner with stone to the north and to the west
+- **THEN** the run stays in the middle of its blocks
 
 #### Scenario: Under a ceiling
 - **WHEN** a duct has stone above it and air below
@@ -108,7 +105,7 @@ A duct SHALL stay in the middle of its block on every axis where no floor, wall 
 - **THEN** that duct moves to the middle of its block and its arms through hollow panels pass through the holes
 
 ### Requirement: Arms step between positions
-Two connected ducts SHALL draw their shared arm at one position where they meet at the shared face. When a duct sits elsewhere than that position, its arm SHALL make a short step from the duct to the face, so the run stays joined. The position at the face SHALL be the one of the duct that rests on something along that axis.
+Two connected ducts SHALL draw their shared arm at one position where they meet at the shared face. When a duct sits elsewhere than that position, its arm SHALL make a short step up or down from the duct to the face, so the run stays joined. The position at the face SHALL be the one of the duct that rests on a floor or is held in the middle by a panel, else the one of a draped duct.
 
 #### Scenario: Off the edge of a floor
 - **WHEN** a run on a floor continues into open air past the edge of the floor and the next duct stays in the middle
@@ -132,9 +129,9 @@ An arm that touches an inventory or machine SHALL end in the middle of that face
 ### Requirement: Pose follows the world
 The resting pose SHALL be worked out when a duct is placed, when it gains or loses an arm or a panel, and when a block next to it or next to a connected neighbour duct changes, never by checking blocks every tick. Every player SHALL see the same pose, including after the chunk reloads.
 
-#### Scenario: Wall placed later
-- **WHEN** a player places a stone block beside a free standing vertical run
-- **THEN** the ducts beside it move against the new wall without being replaced
+#### Scenario: Floor placed later
+- **WHEN** a player places a stone block under a duct hanging in open air
+- **THEN** the duct moves down onto the new floor without being replaced
 
 #### Scenario: Neighbour of a draped duct changes
 - **WHEN** the floor under the duct that a draped duct takes its height from is broken
@@ -155,6 +152,6 @@ A duct's outline, collision and the parts the Configuration Carrot can click SHA
 - **WHEN** a player walks across a thin duct lying on the floor
 - **THEN** the player collides with the duct where it is drawn, low on the floor
 
-#### Scenario: Goggles on a wall duct
-- **WHEN** a player with goggles looks at a data duct climbing a wall
-- **THEN** the load colour box surrounds the duct against the wall
+#### Scenario: Goggles on a floor duct
+- **WHEN** a player with goggles looks at a data duct lying on the floor
+- **THEN** the load colour box surrounds the duct low on the floor
