@@ -18,28 +18,28 @@ class AlchemyMachineDefaultsTest {
 
     @Test
     void alchemyMachinesAreRegistered() {
-        MachineDefaults.MachineInfo info = MachineDefaults.info("servus_manufacturing:calciner");
+        MachineDefaults.MachineInfo info = MachineDefaults.info("servus_alchemy:calciner");
         assertEquals("burner", info.kind());
         assertEquals(0, info.stats().energyPerTick());
         assertEquals(2, info.stats().fuelDivisor());
-        assertEquals(0, MachineDefaults.stats("servus_manufacturing:coagulator").energyPerTick());
-        assertEquals(4000, MachineDefaults.stats("servus_manufacturing:coagulator").fluidCapacity());
+        assertEquals(0, MachineDefaults.stats("servus_alchemy:coagulator").energyPerTick());
+        assertEquals(4000, MachineDefaults.stats("servus_alchemy:coagulator").fluidCapacity());
     }
 
     @Test
     void unknownMachineFails() {
-        assertThrows(NoSuchElementException.class, () -> MachineDefaults.info("servus_manufacturing:nope"));
+        assertThrows(NoSuchElementException.class, () -> MachineDefaults.info("servus_alchemy:nope"));
     }
 
     @Test
     void onlyTheCalcinerKeepsUpkeep() {
         for (MachineDefaults.MachineInfo info : MachineDefaults.all().values()) {
-            if (info.id().startsWith("servus_manufacturing:")) {
+            if (info.id().startsWith("servus_alchemy:")) {
                 MachineStats stats = info.stats();
-                boolean calciner = info.id().equals("servus_manufacturing:calciner");
+                boolean calciner = info.id().equals("servus_alchemy:calciner");
                 assertEquals(calciner, stats.hasUpkeep(), info.id() + " upkeep");
             }
         }
-        assertEquals("minecraft:coal", MachineDefaults.stats("servus_manufacturing:calciner").upkeepItem());
+        assertEquals("minecraft:coal", MachineDefaults.stats("servus_alchemy:calciner").upkeepItem());
     }
 }

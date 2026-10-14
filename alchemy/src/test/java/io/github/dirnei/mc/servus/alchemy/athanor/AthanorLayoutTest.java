@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 class AthanorLayoutTest {
 
-    private static final String SALT = "servus_manufacturing:salt_crystal_block";
+    private static final String SALT = "servus_alchemy:salt_crystal_block";
 
     @Test
     void hearthIsADiamondOfThirteenBricksBelow() {

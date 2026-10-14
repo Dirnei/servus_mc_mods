@@ -15,7 +15,7 @@ import net.minecraft.world.level.material.Fluids;
 public final class PurificationRecipeCategory extends AlchemyRecipeCategory<PurificationRecipe> {
 
     public PurificationRecipeCategory(IGuiHelper guiHelper) {
-        super(guiHelper, ServusAlchemyJeiPlugin.PURIFICATION, "gui.servus_manufacturing.jei.purification",
+        super(guiHelper, ServusAlchemyJeiPlugin.PURIFICATION, "gui.servus_alchemy.jei.purification",
                 ServusAlchemyItems.PURIFIER.get(), 80, 46, 120, 36);
     }
 

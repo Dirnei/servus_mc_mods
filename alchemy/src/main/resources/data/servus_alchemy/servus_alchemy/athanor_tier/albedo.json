@@ -8,7 +8,7 @@
         -1,
         -2
       ],
-      "block": "servus_manufacturing:salt_crystal_block"
+      "block": "servus_alchemy:salt_crystal_block"
     },
     {
       "offset": [
@@ -16,7 +16,7 @@
         -1,
         -1
       ],
-      "block": "servus_manufacturing:salt_crystal_block"
+      "block": "servus_alchemy:salt_crystal_block"
     },
     {
       "offset": [
@@ -24,7 +24,7 @@
         -1,
         1
       ],
-      "block": "servus_manufacturing:salt_crystal_block"
+      "block": "servus_alchemy:salt_crystal_block"
     },
     {
       "offset": [
@@ -32,7 +32,7 @@
         -1,
         2
       ],
-      "block": "servus_manufacturing:salt_crystal_block"
+      "block": "servus_alchemy:salt_crystal_block"
     },
     {
       "offset": [
@@ -40,7 +40,7 @@
         -1,
         -2
       ],
-      "block": "servus_manufacturing:salt_crystal_block"
+      "block": "servus_alchemy:salt_crystal_block"
     },
     {
       "offset": [
@@ -48,7 +48,7 @@
         -1,
         2
       ],
-      "block": "servus_manufacturing:salt_crystal_block"
+      "block": "servus_alchemy:salt_crystal_block"
     },
     {
       "offset": [
@@ -56,7 +56,7 @@
         -1,
         -2
       ],
-      "block": "servus_manufacturing:salt_crystal_block"
+      "block": "servus_alchemy:salt_crystal_block"
     },
     {
       "offset": [
@@ -64,7 +64,7 @@
         -1,
         2
       ],
-      "block": "servus_manufacturing:salt_crystal_block"
+      "block": "servus_alchemy:salt_crystal_block"
     },
     {
       "offset": [
@@ -72,7 +72,7 @@
         -1,
         -2
       ],
-      "block": "servus_manufacturing:salt_crystal_block"
+      "block": "servus_alchemy:salt_crystal_block"
     },
     {
       "offset": [
@@ -80,7 +80,7 @@
         -1,
         -1
       ],
-      "block": "servus_manufacturing:salt_crystal_block"
+      "block": "servus_alchemy:salt_crystal_block"
     },
     {
       "offset": [
@@ -88,7 +88,7 @@
         -1,
         1
       ],
-      "block": "servus_manufacturing:salt_crystal_block"
+      "block": "servus_alchemy:salt_crystal_block"
     },
     {
       "offset": [
@@ -96,7 +96,7 @@
         -1,
         2
       ],
-      "block": "servus_manufacturing:salt_crystal_block"
+      "block": "servus_alchemy:salt_crystal_block"
     }
   ]
 }

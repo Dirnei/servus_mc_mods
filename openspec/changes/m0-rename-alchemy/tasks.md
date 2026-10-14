@@ -11,7 +11,7 @@
 
 ## 3. Resources and datagen
 
-- [ ] 3.1 Move `alchemy/src/main/resources/assets/servus_manufacturing` and `data/servus_manufacturing` (including the nested `servus_manufacturing/{journal,vein,athanor_tier}` folder) to `servus_alchemy`. Replace every `servus_manufacturing` string in hand written JSON, Java (lang keys, texture and model paths, book and research ids) and the mod metadata template, and "Manufacturing" in English lang text and book content. Verify: `gradlew build`, and a grep for `manufactur` (any case) under `alchemy/src/main` and `alchemy/src/test` finds nothing.
+- [x] 3.1 Move `alchemy/src/main/resources/assets/servus_manufacturing` and `data/servus_manufacturing` (including the nested `servus_manufacturing/{journal,vein,athanor_tier}` folder) to `servus_alchemy`. Replace every `servus_manufacturing` string in hand written JSON, Java (lang keys, texture and model paths, book and research ids) and the mod metadata template, and "Manufacturing" in English lang text and book content. Verify: `gradlew build`, and a grep for `manufactur` (any case) under `alchemy/src/main` and `alchemy/src/test` finds nothing.
 - [ ] 3.2 Delete `alchemy/src/generated/resources`, run `:foundation:runData`, `:storage:runData` and `:alchemy:runData`. Verify: the generated assets, recipes, loot tables, tags, Modonomicon book and multiblocks exist under `servus_alchemy` only, `docs/src/data/gamedata.json` has no `servus_manufacturing`, and `gradlew build` is green.
 - [ ] 3.3 Run `:alchemy:runGameTestServer`, `:foundation:runGameTestServer` and `:storage:runGameTestServer`. Verify: all three green (the Athanor tier, vein and journal tests load the shipped data from the new folders).
 

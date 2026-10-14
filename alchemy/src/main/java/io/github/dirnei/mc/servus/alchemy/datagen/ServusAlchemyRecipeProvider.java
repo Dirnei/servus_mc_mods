@@ -43,7 +43,7 @@ final class ServusAlchemyRecipeProvider extends RecipeProvider {
 
         @Override
         public String getName() {
-            return "Servus Manufacturing recipes";
+            return "Servus Alchemy recipes";
         }
     }
 

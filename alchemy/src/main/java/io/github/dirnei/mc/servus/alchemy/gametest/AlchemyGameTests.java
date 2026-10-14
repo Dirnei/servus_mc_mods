@@ -234,7 +234,7 @@ public final class AlchemyGameTests {
         });
     }
 
-    static final String VILLACH = "servus_manufacturing:villach";
+    static final String VILLACH = "servus_alchemy:villach";
 
     /** Finishing Villach through team events opens chapter locked recipes; its advancement exists for the book. */
     @ServusGameTest(timeoutTicks = 20)
@@ -258,7 +258,7 @@ public final class AlchemyGameTests {
         helper.succeed();
     }
 
-    /** The journal recipe makes Manufacturing's own journal item, which opens Paracelsus' Journal. */
+    /** The journal recipe makes Alchemy's own journal item, which opens Paracelsus' Journal. */
     @ServusGameTest(timeoutTicks = 20)
     public static void journalRecipeMakesTheJournal(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
@@ -269,7 +269,7 @@ public final class AlchemyGameTests {
         helper.assertTrue(ItemStack.isSameItemSameComponents(result, JournalBookItem.create()), "the result should be the journal, got " + result);
         helper.assertTrue(result.is(ServusAlchemyItems.PARACELSUS_JOURNAL.get()), "the result should be the Servus journal item, got " + result);
         helper.assertTrue(BuiltInRegistries.ITEM.getKey(result.getItem()).getNamespace().equals(ServusAlchemyIds.MOD_ID),
-                "the journal should belong to Servus: Manufacturing");
+                "the journal should belong to Servus: Alchemy");
         helper.assertTrue(((ParacelsusJournalItem) result.getItem()).bookId.equals(JournalBookItem.BOOK), "the item should open the journal book");
         helper.succeed();
     }
@@ -652,9 +652,9 @@ public final class AlchemyGameTests {
         athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GLASS_BOTTLE));
         helper.succeedWhen(() -> {
             JournalLedger.TeamJournal journal = Journal.journalOf(level.getServer(), team);
-            helper.assertTrue(journal.count("servus_manufacturing:schwaz", "albedo_craft") == 1, "the Albedo craft should count");
+            helper.assertTrue(journal.count("servus_alchemy:schwaz", "albedo_craft") == 1, "the Albedo craft should count");
             Journal.recordEvent(level, team, "sight", 1);
-            helper.assertTrue(Journal.journalOf(level.getServer(), team).count("servus_manufacturing:schwaz", "sight") == 1,
+            helper.assertTrue(Journal.journalOf(level.getServer(), team).count("servus_alchemy:schwaz", "sight") == 1,
                     "the sight should count for Schwaz");
         });
     }

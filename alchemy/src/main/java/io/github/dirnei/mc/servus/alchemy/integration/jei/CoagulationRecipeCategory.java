@@ -12,7 +12,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 public final class CoagulationRecipeCategory extends AlchemyRecipeCategory<CoagulationRecipe> {
 
     public CoagulationRecipeCategory(IGuiHelper guiHelper) {
-        super(guiHelper, ServusAlchemyJeiPlugin.COAGULATION, "gui.servus_manufacturing.jei.coagulation",
+        super(guiHelper, ServusAlchemyJeiPlugin.COAGULATION, "gui.servus_alchemy.jei.coagulation",
                 ServusAlchemyItems.COAGULATOR.get(), 40, 80, 130, 36);
     }
 

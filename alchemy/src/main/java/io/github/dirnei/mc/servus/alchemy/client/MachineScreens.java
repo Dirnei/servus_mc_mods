@@ -5,7 +5,7 @@ import io.github.dirnei.mc.servus.foundation.client.MachineScreen;
 import io.github.dirnei.mc.servus.foundation.client.MachineScreen.Layout;
 import net.minecraft.resources.Identifier;
 
-/** Screen layouts of Manufacturing's machines on the shared {@link MachineScreen}. */
+/** Screen layouts of Alchemy's machines on the shared {@link MachineScreen}. */
 public final class MachineScreens {
 
     private MachineScreens() {

@@ -17,7 +17,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
-/** Event hooks of Servus: Manufacturing. */
+/** Event hooks of Servus: Alchemy. */
 public final class ServusAlchemyEvents {
 
     private ServusAlchemyEvents() {

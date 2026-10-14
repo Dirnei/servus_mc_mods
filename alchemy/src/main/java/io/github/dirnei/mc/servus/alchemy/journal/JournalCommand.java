@@ -13,7 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
-/** {@code /servus_manufacturing journal}: the team's open and finished chapters with task progress. */
+/** {@code /servus_alchemy journal}: the team's open and finished chapters with task progress. */
 public final class JournalCommand {
 
     private JournalCommand() {
@@ -28,7 +28,7 @@ public final class JournalCommand {
     private static int show(CommandSourceStack source) throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
         TeamJournal journal = Journal.journalOf(player.level().getServer(), Teams.teamOf(player));
-        source.sendSuccess(() -> Component.translatable("commands.servus_manufacturing.journal.header"), false);
+        source.sendSuccess(() -> Component.translatable("commands.servus_alchemy.journal.header"), false);
         int shown = 0;
         for (ChapterDef chapter : JournalChapters.INSTANCE.chapters()) {
             boolean finished = journal.isFinished(chapter.id());
@@ -43,11 +43,11 @@ public final class JournalCommand {
     private static void showChapter(CommandSourceStack source, TeamJournal journal, ChapterDef chapter, boolean finished) {
         Identifier id = Identifier.parse(chapter.id());
         Component name = Component.translatable("journal." + id.getNamespace() + "." + id.getPath());
-        Component state = Component.translatable("commands.servus_manufacturing.journal." + (finished ? "finished" : "open"));
-        source.sendSuccess(() -> Component.translatable("commands.servus_manufacturing.journal.chapter", name, state), false);
+        Component state = Component.translatable("commands.servus_alchemy.journal." + (finished ? "finished" : "open"));
+        source.sendSuccess(() -> Component.translatable("commands.servus_alchemy.journal.chapter", name, state), false);
         for (TaskDef task : chapter.tasks()) {
             int count = journal.count(chapter.id(), task.id());
-            source.sendSuccess(() -> Component.translatable("commands.servus_manufacturing.journal.task",
+            source.sendSuccess(() -> Component.translatable("commands.servus_alchemy.journal.task",
                     task.id(), count, task.count()), false);
         }
     }

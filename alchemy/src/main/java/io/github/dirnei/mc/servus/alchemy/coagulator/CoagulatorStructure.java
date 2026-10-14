@@ -65,8 +65,8 @@ public final class CoagulatorStructure {
         Check<Cell> check = check(level, controller);
         if (!check.complete()) {
             Cell wrong = check.firstWrong().orElseThrow();
-            player.sendSystemMessage(Component.translatable("message.servus_manufacturing.coagulator.missing",
-                    expected(wrong.role()).getName(), Component.translatable("message.servus_manufacturing.coagulator.at."
+            player.sendSystemMessage(Component.translatable("message.servus_alchemy.coagulator.missing",
+                    expected(wrong.role()).getName(), Component.translatable("message.servus_alchemy.coagulator.at."
                             + CoagulatorLayout.placement(wrong).replace(' ', '_'))));
             return false;
         }
@@ -75,7 +75,7 @@ public final class CoagulatorStructure {
         if (level.getBlockEntity(controller) instanceof CoagulatorBlockEntity coagulator) {
             coagulator.setOwner(player.getUUID());
         }
-        player.sendOverlayMessage(Component.translatable("message.servus_manufacturing.coagulator.formed"));
+        player.sendOverlayMessage(Component.translatable("message.servus_alchemy.coagulator.formed"));
         return true;
     }
 

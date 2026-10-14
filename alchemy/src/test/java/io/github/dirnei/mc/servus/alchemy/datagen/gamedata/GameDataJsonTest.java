@@ -23,15 +23,15 @@ class GameDataJsonTest {
         stats.put("work_ticks", 80);
         stats.put("energy_per_tick", 0);
         List<Machine> machines = List.of(
-                new Machine("servus_manufacturing:burner_smelter", "burner", List.of("minecraft:smelting"), stats),
-                new Machine("servus_manufacturing:burner_extractor", "burner", List.of("servus:extraction"), stats));
+                new Machine("servus_alchemy:burner_smelter", "burner", List.of("minecraft:smelting"), stats),
+                new Machine("servus_alchemy:burner_extractor", "burner", List.of("servus:extraction"), stats));
         List<Recipe> recipes = List.of(
-                new Recipe("servus_manufacturing:assembling/red_pack", "servus_manufacturing:assembling",
-                        List.of(Stack.item("servus_manufacturing:iron_gear", 1), Stack.tag("c:wires", 2)),
-                        List.of(Stack.item("servus_manufacturing:red_pack", 1)), 100),
-                new Recipe("servus_manufacturing:assembling/iron_gear", "servus_manufacturing:assembling",
+                new Recipe("servus_alchemy:assembling/red_pack", "servus_alchemy:assembling",
+                        List.of(Stack.item("servus_alchemy:iron_gear", 1), Stack.tag("c:wires", 2)),
+                        List.of(Stack.item("servus_alchemy:red_pack", 1)), 100),
+                new Recipe("servus_alchemy:assembling/iron_gear", "servus_alchemy:assembling",
                         List.of(Stack.item("minecraft:iron_ingot", 2)),
-                        List.of(Stack.item("servus_manufacturing:iron_gear", 1)), 20));
+                        List.of(Stack.item("servus_alchemy:iron_gear", 1)), 20));
         List<Crafting> crafting = List.of(
                 new Crafting("servus_storage:zone_label", "minecraft:crafting_shapeless", false, null, null,
                         List.of(Stack.tag("c:dyes", 1), Stack.item("minecraft:paper", 1)),
@@ -49,10 +49,10 @@ class GameDataJsonTest {
                 reversed ? machines.reversed() : machines,
                 reversed ? recipes.reversed() : recipes,
                 reversed ? crafting.reversed() : crafting,
-                List.of(new Deposit("servus_manufacturing:iron", "servus_manufacturing:iron_deposit",
+                List.of(new Deposit("servus_alchemy:iron", "servus_alchemy:iron_deposit",
                         Stack.item("minecraft:raw_iron", 1))),
-                List.of(new Tech("servus_manufacturing:crusher", List.of("servus_manufacturing:electric_extractor"),
-                        List.of(Stack.item("servus_manufacturing:red_pack", 15)), 100, List.of())),
+                List.of(new Tech("servus_alchemy:crusher", List.of("servus_alchemy:electric_extractor"),
+                        List.of(Stack.item("servus_alchemy:red_pack", 15)), 100, List.of())),
                 Map.of("minecraft:coal", 1600),
                 names);
     }

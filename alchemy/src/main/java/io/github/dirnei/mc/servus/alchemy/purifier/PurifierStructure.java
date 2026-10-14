@@ -76,12 +76,12 @@ public final class PurifierStructure {
             if (level.getBlockEntity(vat) instanceof PurifierBlockEntity purifier) {
                 purifier.setOwner(player.getUUID());
             }
-            player.sendOverlayMessage(Component.translatable("message.servus_manufacturing.purifier.formed"));
+            player.sendOverlayMessage(Component.translatable("message.servus_alchemy.purifier.formed"));
             return true;
         }
         Cell wrong = check.firstWrong().orElseThrow();
-        player.sendSystemMessage(Component.translatable("message.servus_manufacturing.purifier.missing", shown(wrong.role()).getName(),
-                Component.translatable("message.servus_manufacturing.purifier.at." + PurifierLayout.placement(wrong).replace(' ', '_'))));
+        player.sendSystemMessage(Component.translatable("message.servus_alchemy.purifier.missing", shown(wrong.role()).getName(),
+                Component.translatable("message.servus_alchemy.purifier.at." + PurifierLayout.placement(wrong).replace(' ', '_'))));
         return false;
     }
 

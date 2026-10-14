@@ -85,7 +85,7 @@ public class CoagulatorScreen extends MachineScreen {
             label = result.getHoverName();
             textX = bx + 17;
         } else {
-            label = Component.translatable("gui.servus_manufacturing.coagulator.select");
+            label = Component.translatable("gui.servus_alchemy.coagulator.select");
         }
         String text = font.plainSubstrByWidth(label.getString(), bx + BUTTON_W - 10 - textX);
         guiGraphics.text(font, text, textX, by + 4, 0xFF202020, false);
@@ -107,7 +107,7 @@ public class CoagulatorScreen extends MachineScreen {
         }
         List<ItemStack> results = recipes.stream().map(holder -> holder.value().result()).toList();
         popup.render(guiGraphics, font, leftPos, topPos, imageWidth, imageHeight,
-                Component.translatable("gui.servus_manufacturing.coagulator.pick"), results, selected(), mouseX, mouseY);
+                Component.translatable("gui.servus_alchemy.coagulator.pick"), results, selected(), mouseX, mouseY);
         int index = popup.indexAt(mouseX, mouseY, results.size());
         if (index >= 0) {
             guiGraphics.setComponentTooltipForNextFrame(font, tooltip(recipes.get(index).value()), mouseX, mouseY);
@@ -120,8 +120,8 @@ public class CoagulatorScreen extends MachineScreen {
         for (Principle principle : Principle.values()) {
             int amount = recipe.input().get(principle);
             if (amount > 0) {
-                lines.add(Component.translatable("gui.servus_manufacturing.coagulator.needs", amount,
-                        Component.translatable("fluid_type.servus_manufacturing." + principle.id())));
+                lines.add(Component.translatable("gui.servus_alchemy.coagulator.needs", amount,
+                        Component.translatable("fluid_type.servus_alchemy." + principle.id())));
             }
         }
         recipe.ingredient().ifPresent(sized -> {
@@ -130,7 +130,7 @@ public class CoagulatorScreen extends MachineScreen {
                 lines.add(Component.literal(sized.count() + " x ").append(first.getHoverName()));
             }
         });
-        recipe.chapter().ifPresent(chapter -> lines.add(Component.translatable("gui.servus_manufacturing.coagulator.chapter",
+        recipe.chapter().ifPresent(chapter -> lines.add(Component.translatable("gui.servus_alchemy.coagulator.chapter",
                 Component.translatable("journal." + chapter.getNamespace() + "." + chapter.getPath())).withStyle(ChatFormatting.GRAY)));
         return lines;
     }

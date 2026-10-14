@@ -240,21 +240,21 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
             return;
         }
         if (formed()) {
-            player.sendOverlayMessage(Component.translatable("message.servus_manufacturing.athanor.formed"));
+            player.sendOverlayMessage(Component.translatable("message.servus_alchemy.athanor.formed"));
             return;
         }
         if (missingHearthBrick() != null) {
-            player.sendSystemMessage(Component.translatable("message.servus_manufacturing.athanor.missing"));
+            player.sendSystemMessage(Component.translatable("message.servus_alchemy.athanor.missing"));
             return;
         }
         Tank tank = missingTank();
         if (tank != null) {
-            player.sendSystemMessage(Component.translatable("message.servus_manufacturing.athanor.missing_tank", sideName(tank.side())));
+            player.sendSystemMessage(Component.translatable("message.servus_alchemy.athanor.missing_tank", sideName(tank.side())));
             return;
         }
         Duct duct = missingDuct();
         if (duct != null) {
-            player.sendSystemMessage(Component.translatable("message.servus_manufacturing.athanor.missing_duct", sideName(duct.side())));
+            player.sendSystemMessage(Component.translatable("message.servus_alchemy.athanor.missing_duct", sideName(duct.side())));
             return;
         }
         setFormed(true);
@@ -265,11 +265,11 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         FormingEffect.play(level, worldPosition, cells);
         setOwner(player.getUUID());
         checkTier();
-        player.sendOverlayMessage(Component.translatable("message.servus_manufacturing.athanor.formed"));
+        player.sendOverlayMessage(Component.translatable("message.servus_alchemy.athanor.formed"));
     }
 
     private static Component sideName(Enum<?> side) {
-        return Component.translatable("message.servus_manufacturing.athanor.tank." + side.name().toLowerCase(Locale.ROOT));
+        return Component.translatable("message.servus_alchemy.athanor.tank." + side.name().toLowerCase(Locale.ROOT));
     }
 
     /** Unforms a formed Athanor whose hearth lost a brick or that lost a tank or a duct. */

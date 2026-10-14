@@ -26,13 +26,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 
-/** Loads the veins a Gnome Hollow can grow from {@code data/<namespace>/servus_manufacturing/vein/<name>.json}. */
+/** Loads the veins a Gnome Hollow can grow from {@code data/<namespace>/servus_alchemy/vein/<name>.json}. */
 public final class VeinData extends SimpleJsonResourceReloadListener<JsonElement> {
 
     /** Key of this listener in the reload event. */
     public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "vein_data");
 
-    public static final String DIRECTORY = "servus_manufacturing/vein";
+    public static final String DIRECTORY = "servus_alchemy/vein";
 
     /**
      * A vein as data.

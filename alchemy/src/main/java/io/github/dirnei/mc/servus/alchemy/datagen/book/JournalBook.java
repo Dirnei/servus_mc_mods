@@ -5,7 +5,7 @@ import com.klikli_dev.modonomicon.api.datagen.book.BookModel;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import net.minecraft.resources.Identifier;
 
-/** Paracelsus' Journal: the Modonomicon book that is Manufacturing's tech tree. */
+/** Paracelsus' Journal: the Modonomicon book that is Alchemy's tech tree. */
 public final class JournalBook extends SingleBookSubProvider {
 
     public static final String ID = "journal";

@@ -10,7 +10,7 @@ import net.minecraft.world.item.ItemStack;
 public final class JournalBookItem {
 
     public static final Identifier BOOK = Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "journal");
-    private static final String GIVEN = "servus_manufacturing.journal_given";
+    private static final String GIVEN = "servus_alchemy.journal_given";
 
     private JournalBookItem() {
     }

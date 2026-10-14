@@ -12,7 +12,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 public final class CalcinationRecipeCategory extends AlchemyRecipeCategory<CalcinationRecipe> {
 
     public CalcinationRecipeCategory(IGuiHelper guiHelper) {
-        super(guiHelper, ServusAlchemyJeiPlugin.CALCINATION, "gui.servus_manufacturing.jei.calcination",
+        super(guiHelper, ServusAlchemyJeiPlugin.CALCINATION, "gui.servus_alchemy.jei.calcination",
                 ServusAlchemyItems.CALCINER.get(), 80, 26, 120, 36);
     }
 

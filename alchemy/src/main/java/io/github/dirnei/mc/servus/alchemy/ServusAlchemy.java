@@ -22,7 +22,7 @@ import net.neoforged.fml.common.Mod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Mod entrypoint for Servus: Manufacturing. */
+/** Mod entrypoint for Servus: Alchemy. */
 @Mod(ServusAlchemyIds.MOD_ID)
 public final class ServusAlchemy {
 
@@ -44,6 +44,6 @@ public final class ServusAlchemy {
         ServusRecipes.syncToClients(ServusAlchemyRecipes.COAGULATION);
         ServusRecipes.syncToClients(ServusAlchemyRecipes.ATHANOR);
         ServusRecipes.syncToClients(ServusAlchemyRecipes.PURIFICATION);
-        LOGGER.info("Servus: Manufacturing loaded");
+        LOGGER.info("Servus: Alchemy loaded");
     }
 }

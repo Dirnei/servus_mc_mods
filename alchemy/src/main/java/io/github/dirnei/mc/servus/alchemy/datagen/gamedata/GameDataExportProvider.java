@@ -49,7 +49,7 @@ import net.neoforged.fml.ModList;
  * Exports the effective game data (machine stats merged with code defaults, recipes, deposits, techs, fuels and
  * item names) to the documentation site. Runs last in the data run, so this run's recipes and lang file exist.
  *
- * <p>Paths come from system properties set by the Manufacturing data run: {@code servus.gamedata.output} (the
+ * <p>Paths come from system properties set by the Alchemy data run: {@code servus.gamedata.output} (the
  * JSON file), {@code servus.gamedata.resources} (the hand written {@code src/main/resources} of every mod) and
  * {@code servus.gamedata.generated} (the generated resource folders of all Servus mods, joined with the path
  * separator). Recipes and language files of the other mods are read from those folders as plain files, so mods

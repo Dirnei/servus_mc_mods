@@ -61,7 +61,7 @@ public class GnomeHollowBlock extends MachineBlock {
                     stack.shrink(1);
                 }
                 player.sendOverlayMessage(Component.translatable(
-                        "message.servus_manufacturing.gnome_hollow." + binding.name().toLowerCase(Locale.ROOT)));
+                        "message.servus_alchemy.gnome_hollow." + binding.name().toLowerCase(Locale.ROOT)));
             }
             return InteractionResult.SUCCESS;
         }

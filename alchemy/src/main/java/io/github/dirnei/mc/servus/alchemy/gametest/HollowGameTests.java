@@ -139,7 +139,7 @@ public final class HollowGameTests {
         GnomeHollowBlockEntity[] holder = new GnomeHollowBlockEntity[1];
         holder[0] = ironHollow(helper, true, () -> {
             holder[0].bind(player);
-            int count = Journal.journalOf(helper.getLevel().getServer(), holder[0].team()).count("servus_manufacturing:schwaz", "gnome");
+            int count = Journal.journalOf(helper.getLevel().getServer(), holder[0].team()).count("servus_alchemy:schwaz", "gnome");
             helper.assertTrue(count == 1, "the bound gnome should count for Schwaz, got " + count);
             helper.succeed();
         });

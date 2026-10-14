@@ -13,7 +13,7 @@ public final class AthanorTiers {
     /**
      * A block a tier needs, relative to the Athanor.
      *
-     * @param block block id, such as {@code servus_manufacturing:salt_crystal_block}
+     * @param block block id, such as {@code servus_alchemy:salt_crystal_block}
      */
     public record BlockAt(int dx, int dy, int dz, String block) {
     }

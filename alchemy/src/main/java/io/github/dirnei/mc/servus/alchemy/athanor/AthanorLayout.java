@@ -16,9 +16,9 @@ import java.util.Map;
 public final class AthanorLayout {
 
     public static final String BRICKS = "minecraft:bricks";
-    public static final String ATHANOR = "servus_manufacturing:athanor";
+    public static final String ATHANOR = "servus_alchemy:athanor";
     public static final String FLUID_TANK = "servus_foundation:fluid_tank";
-    public static final String COPPER_DUCT = "servus_manufacturing:copper_duct";
+    public static final String COPPER_DUCT = "servus_alchemy:copper_duct";
 
     /** Where a tank stands, seen from the Athanor's front. */
     public enum TankSide {

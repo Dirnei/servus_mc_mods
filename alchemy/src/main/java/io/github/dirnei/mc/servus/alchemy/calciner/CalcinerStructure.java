@@ -106,7 +106,7 @@ public final class CalcinerStructure {
         Check<Cell> check = check(level, controller);
         if (!check.complete()) {
             Cell wrong = check.firstWrong().orElseThrow();
-            player.sendSystemMessage(Component.translatable("message.servus_manufacturing.calciner.missing",
+            player.sendSystemMessage(Component.translatable("message.servus_alchemy.calciner.missing",
                     expected(wrong.role()).getName(), where(wrong)));
             return false;
         }
@@ -115,14 +115,14 @@ public final class CalcinerStructure {
         if (level.getBlockEntity(controller) instanceof CalcinerBlockEntity calciner) {
             calciner.setOwner(player.getUUID());
         }
-        player.sendOverlayMessage(Component.translatable("message.servus_manufacturing.calciner.formed"));
+        player.sendOverlayMessage(Component.translatable("message.servus_alchemy.calciner.formed"));
         return true;
     }
 
     /** "right of the Alembic", for the message when forming fails. */
     private static Component where(Cell cell) {
         Placement placement = CalcinerLayout.placement(cell);
-        return Component.translatable("message.servus_manufacturing.calciner." + placement.relation().name().toLowerCase(Locale.ROOT),
+        return Component.translatable("message.servus_alchemy.calciner." + placement.relation().name().toLowerCase(Locale.ROOT),
                 expected(placement.anchor()).getName());
     }
 

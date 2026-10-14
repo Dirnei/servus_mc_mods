@@ -22,13 +22,13 @@ import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
 
-/** Loads the Athanor tiers from {@code data/<namespace>/servus_manufacturing/athanor_tier/<name>.json}. */
+/** Loads the Athanor tiers from {@code data/<namespace>/servus_alchemy/athanor_tier/<name>.json}. */
 public final class AthanorTierData extends SimpleJsonResourceReloadListener<JsonElement> {
 
     /** Key of this listener in the reload event. */
     public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "athanor_tier_data");
 
-    public static final String DIRECTORY = "servus_manufacturing/athanor_tier";
+    public static final String DIRECTORY = "servus_alchemy/athanor_tier";
 
     private static final Codec<BlockAt> BLOCK_CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.INT.listOf(3, 3).fieldOf("offset").forGetter(block -> List.of(block.dx(), block.dy(), block.dz())),
@@ -47,12 +47,12 @@ public final class AthanorTierData extends SimpleJsonResourceReloadListener<Json
 
     public static final AthanorTierData INSTANCE = new AthanorTierData();
 
-    /** The tiers Manufacturing ships, by file name; the journal draws a schematic for each. */
+    /** The tiers Alchemy ships, by file name; the journal draws a schematic for each. */
     public static final List<String> SHIPPED = List.of("albedo");
 
     /** Reads a shipped tier straight from the mod's own resources, for the data generator. */
     public static TierDef readShipped(String name) {
-        String path = "/data/servus_manufacturing/" + DIRECTORY + "/" + name + ".json";
+        String path = "/data/servus_alchemy/" + DIRECTORY + "/" + name + ".json";
         try (var stream = AthanorTierData.class.getResourceAsStream(path)) {
             if (stream == null) {
                 throw new IllegalStateException("Missing shipped Athanor tier " + path);

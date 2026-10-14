@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.alchemy;
 
 /**
- * Identifiers for Servus: Manufacturing. Plain Java, no Minecraft imports, so it can be used from unit tests.
+ * Identifiers for Servus: Alchemy. Plain Java, no Minecraft imports, so it can be used from unit tests.
  */
 public final class ServusAlchemyIds {
 

@@ -17,7 +17,7 @@ public final class AthanorRecipeCategory extends AlchemyRecipeCategory<AthanorRe
     private static final String[] STAGES = {"nigredo", "albedo", "citrinitas", "rubedo"};
 
     public AthanorRecipeCategory(IGuiHelper guiHelper) {
-        super(guiHelper, ServusAlchemyJeiPlugin.ATHANOR, "gui.servus_manufacturing.jei.athanor",
+        super(guiHelper, ServusAlchemyJeiPlugin.ATHANOR, "gui.servus_alchemy.jei.athanor",
                 ServusAlchemyItems.ATHANOR.get(), 100, 90, 140, 46);
     }
 
@@ -38,8 +38,8 @@ public final class AthanorRecipeCategory extends AlchemyRecipeCategory<AthanorRe
                      double mouseX, double mouseY) {
         super.draw(holder, recipeSlotsView, guiGraphics, mouseX, mouseY);
         int tier = Math.max(0, Math.min(STAGES.length - 1, holder.value().tier()));
-        Component stage = Component.translatable("gui.servus_manufacturing.jei.athanor.tier",
-                Component.translatable("gui.servus_manufacturing.athanor.stage." + STAGES[tier]));
+        Component stage = Component.translatable("gui.servus_alchemy.jei.athanor.tier",
+                Component.translatable("gui.servus_alchemy.athanor.stage." + STAGES[tier]));
         text(guiGraphics, stage, 1, 35);
     }
 }

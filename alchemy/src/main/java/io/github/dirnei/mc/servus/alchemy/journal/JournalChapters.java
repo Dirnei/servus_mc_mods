@@ -19,13 +19,13 @@ import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
 
-/** Loads the journal chapters from {@code data/<namespace>/servus_manufacturing/journal/<chapter>.json}. */
+/** Loads the journal chapters from {@code data/<namespace>/servus_alchemy/journal/<chapter>.json}. */
 public final class JournalChapters extends SimpleJsonResourceReloadListener<JsonElement> {
 
     /** Key of this listener in the reload event. */
     public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "journal_chapters");
 
-    public static final String DIRECTORY = "servus_manufacturing/journal";
+    public static final String DIRECTORY = "servus_alchemy/journal";
 
     private static final Codec<TaskDef> TASK_CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("id").forGetter(TaskDef::id),

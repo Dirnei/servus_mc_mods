@@ -20,7 +20,7 @@ import net.neoforged.neoforge.common.Tags;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The calcination, purification, coagulation and Athanor recipes Manufacturing ships, in one table that both
+ * The calcination, purification, coagulation and Athanor recipes Alchemy ships, in one table that both
  * the recipe provider and the journal's Workshop read, so the book always lists the shipped
  * recipes. Every row carries an English label for the book. The numbers are datapack examples.
  */

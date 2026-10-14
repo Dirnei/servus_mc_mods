@@ -4,7 +4,7 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import java.util.List;
 
-/** Manufacturing's machines in the shared {@link MachineDefaults} table. */
+/** Alchemy's machines in the shared {@link MachineDefaults} table. */
 public final class AlchemyMachineDefaults {
 
     private static boolean registered;
@@ -18,10 +18,10 @@ public final class AlchemyMachineDefaults {
             return;
         }
         registered = true;
-        add("calciner", "burner", List.of("servus_manufacturing:calcination"), calciner(2, 64));
-        add("coagulator", "crafter", List.of("servus_manufacturing:coagulation"), alchemy(4000));
-        add("athanor", "crafter", List.of("servus_manufacturing:athanor"), alchemy(4000));
-        add("purifier", "crafter", List.of("servus_manufacturing:purification"), alchemy(4000));
+        add("calciner", "burner", List.of("servus_alchemy:calcination"), calciner(2, 64));
+        add("coagulator", "crafter", List.of("servus_alchemy:coagulation"), alchemy(4000));
+        add("athanor", "crafter", List.of("servus_alchemy:athanor"), alchemy(4000));
+        add("purifier", "crafter", List.of("servus_alchemy:purification"), alchemy(4000));
         add("gnome_hollow", "crafter", List.of(), alchemy(4000));
     }
 
@@ -39,6 +39,6 @@ public final class AlchemyMachineDefaults {
     }
 
     private static void add(String path, String kind, List<String> recipeTypes, MachineStats stats) {
-        MachineDefaults.register("servus_manufacturing:" + path, kind, recipeTypes, stats);
+        MachineDefaults.register("servus_alchemy:" + path, kind, recipeTypes, stats);
     }
 }

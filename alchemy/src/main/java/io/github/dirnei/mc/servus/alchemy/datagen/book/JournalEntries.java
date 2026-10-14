@@ -176,7 +176,7 @@ final class JournalEntries {
                             + "- Gather 1,000 mB of Salt\n"
                             + "- Wash Ash into Salt in the Purifier\n"
                             + "- Coagulate your first Salt Crystal\n\n"
-                            + "Your team shares this work. See your progress with /servus_manufacturing journal.");
+                            + "Your team shares this work. See your progress with /servus_alchemy journal.");
             text("athanor", "The Athanor",
                     "Every alchemist needs a furnace that never goes out. Build an Athanor of bricks, a blast furnace and a cauldron. "
                             + "Lay an item on it and feed it principles by bucket or pipe; it burns them into something new.\n\n"

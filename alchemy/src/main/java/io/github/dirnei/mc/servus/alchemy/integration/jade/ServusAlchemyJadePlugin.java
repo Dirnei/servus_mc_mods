@@ -83,8 +83,8 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
     }
 
     private static Component stackText(ItemStack stack) {
-        return stack.isEmpty() ? Component.translatable("jade.servus_manufacturing.calciner.empty")
-                : Component.translatable("jade.servus_manufacturing.calciner.stack", stack.getCount(), stack.getHoverName());
+        return stack.isEmpty() ? Component.translatable("jade.servus_alchemy.calciner.empty")
+                : Component.translatable("jade.servus_alchemy.calciner.stack", stack.getCount(), stack.getHoverName());
     }
 
     private static Component principleName(Principle principle) {
@@ -140,15 +140,15 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
                 return;
             }
             CompoundTag tag = data.getCompoundOrEmpty("Athanor");
-            tooltip.add(Component.translatable(tag.getBooleanOr("Formed", false) ? "jade.servus_manufacturing.athanor.stage"
-                    : "jade.servus_manufacturing.athanor.unformed", tag.getStringOr("Tier", "")));
+            tooltip.add(Component.translatable(tag.getBooleanOr("Formed", false) ? "jade.servus_alchemy.athanor.stage"
+                    : "jade.servus_alchemy.athanor.unformed", tag.getStringOr("Tier", "")));
             ItemStack input = parseStack(accessor, tag.getCompoundOrEmpty("Input"));
             ItemStack output = parseStack(accessor, tag.getCompoundOrEmpty("Output"));
-            tooltip.add(Component.translatable("jade.servus_manufacturing.athanor.input", stackText(input)));
-            tooltip.add(Component.translatable("jade.servus_manufacturing.athanor.output", stackText(output)));
-            tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.progress", tag.getIntOr("Progress", 0)));
+            tooltip.add(Component.translatable("jade.servus_alchemy.athanor.input", stackText(input)));
+            tooltip.add(Component.translatable("jade.servus_alchemy.athanor.output", stackText(output)));
+            tooltip.add(Component.translatable("jade.servus_alchemy.calciner.progress", tag.getIntOr("Progress", 0)));
             for (Principle principle : Principle.values()) {
-                tooltip.add(Component.translatable("jade.servus_manufacturing.athanor.principle", tag.getIntOr(principle.id(), 0),
+                tooltip.add(Component.translatable("jade.servus_alchemy.athanor.principle", tag.getIntOr(principle.id(), 0),
                         principleName(principle)));
             }
         }
@@ -187,12 +187,12 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
             }
             CompoundTag tag = data.getCompoundOrEmpty("Purifier");
             int capacity = tag.getIntOr("Capacity", 0);
-            tooltip.add(Component.translatable("jade.servus_manufacturing.purifier.items", tag.getIntOr("Items", 0)));
-            tooltip.add(Component.translatable("jade.servus_manufacturing.purifier.water", tag.getIntOr("Water", 0), capacity));
-            tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.principle", tag.getIntOr("Salt", 0), capacity,
+            tooltip.add(Component.translatable("jade.servus_alchemy.purifier.items", tag.getIntOr("Items", 0)));
+            tooltip.add(Component.translatable("jade.servus_alchemy.purifier.water", tag.getIntOr("Water", 0), capacity));
+            tooltip.add(Component.translatable("jade.servus_alchemy.calciner.principle", tag.getIntOr("Salt", 0), capacity,
                     principleName(Principle.SALT)));
-            tooltip.add(Component.translatable("jade.servus_manufacturing.purifier.residue", tag.getIntOr("Residue", 0)));
-            tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.progress", tag.getIntOr("Progress", 0)));
+            tooltip.add(Component.translatable("jade.servus_alchemy.purifier.residue", tag.getIntOr("Residue", 0)));
+            tooltip.add(Component.translatable("jade.servus_alchemy.calciner.progress", tag.getIntOr("Progress", 0)));
         }
 
         @Override
@@ -229,10 +229,10 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
             CompoundTag tag = data.getCompoundOrEmpty("Calciner");
             ItemStack input = parseStack(accessor, tag.getCompoundOrEmpty("Input"));
             ItemStack fuel = parseStack(accessor, tag.getCompoundOrEmpty("Fuel"));
-            tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.input", stackText(input)));
-            tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.fuel", stackText(fuel)));
-            tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.progress", tag.getIntOr("Progress", 0)));
-            tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.ash", tag.getIntOr("Ash", 0),
+            tooltip.add(Component.translatable("jade.servus_alchemy.calciner.input", stackText(input)));
+            tooltip.add(Component.translatable("jade.servus_alchemy.calciner.fuel", stackText(fuel)));
+            tooltip.add(Component.translatable("jade.servus_alchemy.calciner.progress", tag.getIntOr("Progress", 0)));
+            tooltip.add(Component.translatable("jade.servus_alchemy.calciner.ash", tag.getIntOr("Ash", 0),
                     tag.getIntOr("AshRoom", 0)));
         }
 

@@ -38,11 +38,11 @@ public class GnomeHollowScreen extends MachineScreen {
         GnomeHollowMenu hollow = (GnomeHollowMenu) menu;
         Component status;
         if (hollow.steps() == 0) {
-            status = Component.translatable("gui.servus_manufacturing.gnome_hollow.empty");
+            status = Component.translatable("gui.servus_alchemy.gnome_hollow.empty");
         } else if (hollow.bound()) {
-            status = Component.translatable("gui.servus_manufacturing.gnome_hollow.gnome");
+            status = Component.translatable("gui.servus_alchemy.gnome_hollow.gnome");
         } else {
-            status = Component.translatable("gui.servus_manufacturing.gnome_hollow.ripeness", hollow.ripeness(), hollow.steps());
+            status = Component.translatable("gui.servus_alchemy.gnome_hollow.ripeness", hollow.ripeness(), hollow.steps());
         }
         guiGraphics.text(font, status, imageWidth - 8 - font.width(status), titleLabelY, 0xFF404040, false);
     }

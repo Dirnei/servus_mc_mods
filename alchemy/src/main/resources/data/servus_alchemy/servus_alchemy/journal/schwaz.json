@@ -1,5 +1,5 @@
 {
-  "parent": "servus_manufacturing:villach",
+  "parent": "servus_alchemy:villach",
   "order": 1,
   "tasks": [
     {"id": "albedo_craft", "event": "athanor", "filter": "tier:albedo", "count": 1},

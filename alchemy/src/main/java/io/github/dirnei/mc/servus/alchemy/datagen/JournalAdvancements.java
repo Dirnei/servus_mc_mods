@@ -35,8 +35,8 @@ final class JournalAdvancements implements AdvancementSubProvider {
     public void generate(HolderLookup.Provider registries, Consumer<AdvancementHolder> saver) {
         AdvancementHolder parent = Advancement.Builder.advancement()
                 .display(Items.WRITABLE_BOOK,
-                        Component.translatable("advancement.servus_manufacturing.journal.root"),
-                        Component.translatable("advancement.servus_manufacturing.journal.root.description"),
+                        Component.translatable("advancement.servus_alchemy.journal.root"),
+                        Component.translatable("advancement.servus_alchemy.journal.root.description"),
                         Identifier.withDefaultNamespace("textures/gui/advancements/backgrounds/stone.png"),
                         AdvancementType.TASK, false, false, false)
                 .addCriterion(Journal.CRITERION, CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
