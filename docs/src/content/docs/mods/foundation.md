@@ -47,6 +47,17 @@ Use the Configuration Carrot on an arm that touches an inventory or machine. The
 
 A duct grows thicker with its lines, and each line has its own color, so you can tell from a distance what a duct carries. An arm that ends at an inventory or machine carries a ring in its channel color. A duct with a facade renders as the facade block. While you wear Engineer Goggles or hold the carrot, facaded ducts within 32 blocks show as a translucent overlay. Sneak with the carrot to take the facade off.
 
+Ducts rest on what holds them up instead of floating in the middle of the block:
+
+- **Floor**: a duct above a full block lies on it. Ducts, bottom slabs and other partial blocks are no floor, and neither is a block the duct has an arm into.
+- **Walls**: a duct that climbs (an arm up or down) moves against a full block beside it, and into the corner when there are two. Between two walls it stays in the middle. A run along a floor never moves toward a wall beside it.
+- **Draping**: a duct with nothing under or beside it takes the height and wall side of the neighbour ducts it connects to, as long as they agree, so a run over the edge of a step sits right at the edge. Only direct neighbours count: a long span stays in the middle between its two ends.
+- **Steps**: where two connected ducts still sit at different heights or sides, the arm between them makes a short step so the run stays joined.
+- **Endpoints**: an arm into an inventory or machine always ends in the middle of that face with its ring, stepping there from a resting duct.
+- **Facades**: a duct with any facade stays in the middle of its block, so its arms pass the holes of hollow facades.
+
+The outline, collision and the carrot follow the duct where it is drawn, including its steps.
+
 ### Data line
 
 The data line is the wiring for on-demand autocrafting. It never moves anything on its own; it only links blocks that make or hold items, so later Servus blocks can find them without any setup.
@@ -73,7 +84,7 @@ Each tier of the data line lets a number of items per second through every duct,
 - Deliveries that cross the same duct share its bandwidth; the older delivery goes first. A delivery takes the shortest path, and among equally short paths the one with the most bandwidth. There is no detour for bandwidth.
 - Upgrade a duct in place: use a higher tier cable on it (no sneaking). The duct keeps its sides and connections, takes one cable from your hand and drops the old one. A lower or equal tier never replaces a duct; it places a new duct against the clicked face like any line item. Sneaking keeps the placement assist.
 - A broken duct drops the cable of its tier.
-- While you wear Engineer Goggles or hold the carrot, every data duct within 32 blocks shows its load over the last second through walls: green idle, then yellow, orange and red at its full bandwidth.
+- While you wear Engineer Goggles or hold the carrot, every data duct within 32 blocks shows its load over the last second through walls, as a box around the duct's center where it rests: green idle, then yellow, orange and red at its full bandwidth.
 
 ### Upgrades
 

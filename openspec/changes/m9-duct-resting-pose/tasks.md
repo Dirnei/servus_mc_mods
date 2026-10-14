@@ -94,9 +94,9 @@
 
 ## 5. Texts
 
-- [ ] 5.1 Docs and plan:
+- [x] 5.1 Docs and plan:
   - In `docs/src/content/docs/mods/foundation.md`, describe the resting pose: floor, climbing walls, draping, steps, centred endpoints, centred panelled ducts.
-  - In `PLAN.md`, add the resting pose to the Foundation rendering bullet (2.2) and `m9-duct-resting-pose` to the M9 "what is left" list.
+  - In `PLAN.md`, add `m9-duct-resting-pose` to the "Open: Foundation" list. (PLAN.md was groomed into a list of open points after this change was proposed; it has no rendering bullet in 2.2 and no M9 "what is left" list any more.)
 
   Verify: docs tests green.
 

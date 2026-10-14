@@ -4,7 +4,7 @@
 
 Every Utility Duct floats in the middle of its block, so a run of pipes and cables across a floor or up a wall looks weightless. A few local rules make ducts rest on what holds them up: on the floor, against the wall of a climb, draped over the edge of a step. Connections into machines stay centred like a plug in a socket. All four lines live in the one duct block, so this one change covers every cable of the mod family.
 
-This is a look follow up in PLAN.md M9 ("what is left"), next to `m9-calciner-tanks-direct`. It touches the Foundation Utility Duct only.
+This is a look follow up to M9, listed under "Open: Foundation" in PLAN.md. It touches the Foundation Utility Duct only.
 
 ## What Changes
 
@@ -33,7 +33,7 @@ None.
 - `UtilityDuctBlock`: shape cache keyed by pose and arm offsets, carrot arm hit with the pose.
 - Client: `UtilityDuctModel` moves the cached part quads by the pose, keeps ring quads at the face, and builds step pieces in code; `DuctOverlayRenderer` draws the load box at the pose.
 - No datapack, recipe or network behaviour change. No save migration (nothing is released).
-- PLAN.md: the Foundation rendering bullet and the M9 follow up list mention the resting pose.
+- PLAN.md: the "Open: Foundation" list names the change while it is in flight.
 
 ## Non-goals
 
