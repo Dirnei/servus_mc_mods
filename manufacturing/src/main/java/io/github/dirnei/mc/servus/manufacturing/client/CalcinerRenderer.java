@@ -34,24 +34,21 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
- * Draws what a formed Calciner holds: the matter in the crucible, the ash heap in the Ash Pan, the Mercury in the Receiver's
- * flask, each by how full its buffer is. While the Calciner works, Mercury drips from the Receiver into the basin, and a
- * puddle lies there while the Mercury tank holds fluid. The tanks show their own level. The rest of the structure is
+ * Draws what a formed Calciner holds: the matter in the crucible and the ash heap in the Ash Pan by how full it is. While
+ * the Calciner works, Mercury drips from the Receiver's tap into the basin, and a puddle lies there while the Mercury tank
+ * holds fluid. The tanks show their own level. The rest of the structure is
  * chunk baked from block models.
  */
 public final class CalcinerRenderer extends BufferedBlockEntityRenderer<CalcinerBlockEntity> {
 
     /** A box in a cell's model space (sixteenths, front facing north) and the height its fill rises by. */
-    private record Fill(Role role, Principle principle, float x0, float y0, float z0, float x1, float rise, float z1, Identifier sprite) {
+    private record Fill(Role role, float x0, float y0, float z0, float x1, float rise, float z1) {
     }
 
     /** The Salt lies in the Ash Pan as ash: light grey powder, tiled like a block. */
     private static final Identifier ASH = Identifier.withDefaultNamespace("block/light_gray_concrete_powder");
 
-    private static final Fill[] FILLS = {
-            new Fill(Role.ASH_PAN, Principle.SALT, 4, 3, 0.5F, 12, 4, 3, ASH),
-            new Fill(Role.RECEIVER, Principle.MERCURY, 4.5F, 3.25F, 4.5F, 11.5F, 7.5F, 11.5F, null),
-    };
+    private static final Fill ASH_HEAP = new Fill(Role.ASH_PAN, 4, 3, 0.5F, 12, 4, 3);
 
     /** Ticks a drop takes from the Receiver's tap into the basin. */
     private static final int DRIP_TICKS = 16;
@@ -70,30 +67,29 @@ public final class CalcinerRenderer extends BufferedBlockEntityRenderer<Calciner
             return;
         }
         Direction facing = calciner.getBlockState().getValue(MachineBlock.FACING);
-        int capacity = Math.max(1, calciner.tanks().capacity());
         VertexConsumer consumer = buffers.getBuffer(Sheets.translucentBlockSheet());
-        for (Fill fill : FILLS) {
-            int amount = calciner.tanks().amount(fill.principle());
-            if (amount <= 0) {
-                continue;
-            }
-            float share = Math.min(1.0F, amount / (float) capacity);
-            FluidStack fluid = new FluidStack(PrincipleFluids.fluid(fill.principle()), amount);
-            TextureAtlasSprite sprite = fill.sprite() != null
-                    ? Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(fill.sprite())
-                    : FluidSprites.still(fluid);
-            int color = fill.sprite() != null ? 0xFFFFFFFF : FluidSprites.tint(fluid);
-            Offset offset = CalcinerLayout.worldOffset(CalcinerLayout.part(fill.role()), CalcinerStructure.facing(facing));
-            float[] box = rotate(fill.x0() / 16, fill.z0() / 16, fill.x1() / 16, fill.z1() / 16, facing);
-            float y0 = fill.y0() / 16;
-            float y1 = y0 + fill.rise() / 16 * share;
-            poseStack.pushPose();
-            poseStack.translate(offset.x(), offset.y(), offset.z());
-            drawBox(consumer, poseStack.last(), box[0], y0, box[1], box[2], y1, box[3], sprite, color, packedLight);
-            poseStack.popPose();
-        }
+        renderAsh(calciner, facing, poseStack, consumer, packedLight);
         renderBasin(calciner, facing, partialTick, poseStack, consumer, packedLight);
         renderInput(calciner, facing, poseStack, buffers, packedLight);
+    }
+
+    /** The ash heap in the Ash Pan, rising with the Salt it holds out of its room. */
+    private static void renderAsh(CalcinerBlockEntity calciner, Direction facing, PoseStack poseStack, VertexConsumer consumer,
+                                  int light) {
+        if (calciner.salt() <= 0) {
+            return;
+        }
+        float share = Math.min(1.0F, calciner.salt() / (float) Math.max(1, calciner.saltRoom()));
+        TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(ASH);
+        Fill fill = ASH_HEAP;
+        Offset offset = CalcinerLayout.worldOffset(CalcinerLayout.part(fill.role()), CalcinerStructure.facing(facing));
+        float[] box = rotate(fill.x0() / 16, fill.z0() / 16, fill.x1() / 16, fill.z1() / 16, facing);
+        float y0 = fill.y0() / 16;
+        float y1 = y0 + fill.rise() / 16 * share;
+        poseStack.pushPose();
+        poseStack.translate(offset.x(), offset.y(), offset.z());
+        drawBox(consumer, poseStack.last(), box[0], y0, box[1], box[2], y1, box[3], sprite, 0xFFFFFFFF, light);
+        poseStack.popPose();
     }
 
     /** The falling drop while the Receiver is lit and the puddle while the Mercury tank holds fluid, in the basin's Stone Bricks. */

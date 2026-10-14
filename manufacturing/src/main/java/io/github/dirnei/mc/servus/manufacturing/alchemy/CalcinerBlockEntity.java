@@ -37,7 +37,9 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * The controller of the Calciner structure: burns its input into Salt, Sulfur and Mercury over the
- * Firebox's fire while formed, and pushes each principle out of its own port. It has no GUI.
+ * Firebox's fire while formed. Sulfur and Mercury go straight into the structure's own tanks; the
+ * Salt stays in the Ash Pan as Ash. A cycle runs only while both tanks and the Ash Pan have room
+ * for its output. It has no GUI.
  */
 public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements TeamOwned {
 
@@ -45,11 +47,10 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
     public static final int SLOT_FUEL = 1;
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
-    private static final int PUSH_INTERVAL = 10;
+    private static final int SYNC_INTERVAL = 10;
     /** Salt per Ash when no purification recipe takes Ash. */
     private static final int FALLBACK_SALT_PER_ASH = 100;
 
-    private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), true, this::setChanged);
     private final TeamOwnership ownership = new TeamOwnership(this);
     private final LegacyItemHandler inputPort = SlotPort.insertOnly(inventory, SLOT_INPUT, this::calcinable);
     private final LegacyItemHandler fuelPort = SlotPort.insertOnly(inventory, SLOT_FUEL, this::burns);
@@ -57,7 +58,11 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
     private int saltPerAsh = FALLBACK_SALT_PER_ASH;
     /** The recipe list {@link #saltPerAsh} was read from. */
     private List<RecipeHolder<PurificationRecipe>> saltPerAshFrom;
-    private int pushCooldown;
+    /** Salt in the Ash Pan in mB. */
+    private int salt;
+    /** On the client: the Ash Pan's room in mB as last synced. */
+    private int shownSaltRoom;
+    private int syncCooldown;
     /** The lit state last given to the Firebox and the Hood. */
     private boolean partsLit;
     private final DrawnFill drawnFill = new DrawnFill();
@@ -92,8 +97,9 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
         return ownership;
     }
 
-    public PrincipleTanks tanks() {
-        return tanks;
+    /** Salt in the Ash Pan in mB. */
+    public int salt() {
+        return salt;
     }
 
     private Optional<CalcinationRecipe> currentRecipe() {
@@ -175,17 +181,39 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
 
     /** Whole Ash in the Ash Pan. */
     public int ashCount() {
-        return AshCount.ash(tanks.amount(Principle.SALT), saltPerAsh());
+        return AshCount.ash(salt, saltPerAsh());
+    }
+
+    /** Puts Salt into the Ash Pan up to its room and returns the mB that fit. */
+    public int putSalt(int amount) {
+        int added = Math.max(0, Math.min(amount, saltRoom() - salt));
+        salt += added;
+        setChanged();
+        return added;
+    }
+
+    /** How many Ash the Ash Pan holds at most. */
+    public int ashRoom() {
+        return AshCount.ashRoom(stats().itemCapacity());
+    }
+
+    /** The Ash Pan's room in mB; on the client the room as last synced. */
+    public int saltRoom() {
+        if (level != null && level.isClientSide()) {
+            return shownSaltRoom;
+        }
+        return AshCount.room(stats().itemCapacity(), saltPerAsh());
     }
 
     /** Takes up to {@code count} Ash out of the Ash Pan and returns how many were taken. */
     public int takeAsh(int count, boolean simulate) {
         int per = saltPerAsh();
-        int salt = AshCount.saltFor(count, tanks.amount(Principle.SALT), per);
-        if (!simulate && salt > 0) {
-            tanks.tank(Principle.SALT).drain(salt, false);
+        int taken = AshCount.saltFor(count, salt, per);
+        if (!simulate && taken > 0) {
+            salt -= taken;
+            setChanged();
         }
-        return salt / Math.max(1, per);
+        return taken / Math.max(1, per);
     }
 
     /** How far the current cycle is, 0 to 100. */
@@ -203,15 +231,21 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
 
     @Override
     protected boolean canWork() {
-        tanks.setCapacity(stats().fluidCapacity());
-        return formed() && currentRecipe().map(recipe -> tanks.contents().fits(recipe.output(), tanks.capacity())).orElse(false);
+        return formed() && level != null && currentRecipe().map(recipe -> fits(recipe.output())).orElse(false);
+    }
+
+    private boolean fits(Principles output) {
+        return AshCount.fits(salt, output.salt(), stats().itemCapacity(), saltPerAsh())
+                && CalcinerPorts.tanksTake(level, worldPosition, getBlockState().getValue(MachineBlock.FACING), output);
     }
 
     @Override
     protected void finishWork() {
         currentRecipe().ifPresent(recipe -> {
             ItemStack used = inventory.extractItem(SLOT_INPUT, recipe.input().count(), false);
-            tanks.insert(recipe.output());
+            salt += recipe.output().salt();
+            CalcinerPorts.fillTanks(level, worldPosition, getBlockState().getValue(MachineBlock.FACING), recipe.output());
+            setChanged();
             if (level instanceof ServerLevel server) {
                 Journal.recordItem(server, team(), "calcine", used, used.getCount());
                 for (Principle principle : Principle.values()) {
@@ -228,10 +262,9 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
             partsLit = working;
             CalcinerStructure.light(level, worldPosition, getBlockState().getValue(MachineBlock.FACING), working);
         }
-        if (level != null && ++pushCooldown >= PUSH_INTERVAL) {
-            pushCooldown = 0;
+        if (level != null && ++syncCooldown >= SYNC_INTERVAL) {
+            syncCooldown = 0;
             if (formed()) {
-                CalcinerPorts.push(level, worldPosition, getBlockState().getValue(MachineBlock.FACING), tanks);
                 syncFill();
             }
         }
@@ -248,22 +281,23 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
         return shownInput;
     }
 
-    /** Sends the tanks and the matter to the clients when a drawn fill level changed by a sixteenth or the matter changed. */
+    /** Sends the Ash and the matter to the clients when the drawn ash heap changed by a sixteenth or the matter changed. */
     private void syncFill() {
         Item input = inventory.getStackInSlot(SLOT_INPUT).getItem();
         boolean changed = input != sentInput;
         sentInput = input;
-        changed |= drawnFill.update(tanks);
+        changed |= drawnFill.update(salt, saltRoom());
         if (changed && level != null) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
 
-    /** The clients draw the principles in the formed model. */
+    /** The clients draw the ash heap and the matter in the formed model. */
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        tag.put("Principles", tanks.save(registries));
+        tag.putInt("Salt", salt);
+        tag.putInt("SaltRoom", saltRoom());
         ItemStack shown = inventory.getStackInSlot(SLOT_INPUT).copyWithCount(1);
         tag.put("ShownInput", shown.isEmpty() ? new CompoundTag() : ValueIo.saveStack(registries, shown));
         return tag;
@@ -273,8 +307,7 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         CompoundTag tag = new CompoundTag();
-        HolderLookup.Provider registries = ValueIo.registries(this);
-        tag.put("Principles", tanks.save(registries));
+        tag.putInt("Salt", salt);
         ownership.save(tag);
         output.store(tag);
     }
@@ -284,7 +317,8 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
-        tanks.load(tag.getCompoundOrEmpty("Principles"));
+        salt = Math.max(0, tag.getIntOr("Salt", 0));
+        shownSaltRoom = tag.getIntOr("SaltRoom", shownSaltRoom);
         ownership.load(tag);
         if (tag.contains("ShownInput")) {
             shownInput = ValueIo.parseStack(registries, tag.getCompoundOrEmpty("ShownInput"));

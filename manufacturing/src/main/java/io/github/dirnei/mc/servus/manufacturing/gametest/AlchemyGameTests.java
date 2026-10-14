@@ -95,33 +95,33 @@ public final class AlchemyGameTests {
         return calciner;
     }
 
-    /** One cobblestone becomes 100 mB Salt and 10 mB Mercury in the Calciner's tanks. */
+    /** One cobblestone becomes 100 mB Salt in the Ash Pan and 10 mB Mercury in the Mercury tank. */
     @ServusGameTest(timeoutTicks = 200)
     public static void calcinerBurnsCobblestoneIntoPrinciples(GameTestHelper helper) {
         CalcinerBlockEntity calciner = calciner(helper);
         calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE));
         helper.succeedWhen(() -> {
-            Principles held = calciner.tanks().contents();
-            // The Calciner fills the Mercury into the Mercury tank of the structure.
             BlockPos mercuryTank = CalcinerGameTests.mercuryTank(CalcinerGameTests.CALCINER);
-            int mercury = held.mercury() + CalcinerGameTests.tankAt(helper, mercuryTank).getFluidInTank(0).getAmount();
-            helper.assertTrue(held.salt() == 100 && held.sulfur() == 0 && mercury == 10,
-                    "expected 100 Salt and 10 Mercury, got " + held + " and " + mercury + " Mercury in all");
+            BlockPos sulfurTank = CalcinerGameTests.sulfurTank(CalcinerGameTests.CALCINER);
+            int mercury = CalcinerGameTests.tankAt(helper, mercuryTank).getFluidInTank(0).getAmount();
+            int sulfur = CalcinerGameTests.tankAt(helper, sulfurTank).getFluidInTank(0).getAmount();
+            helper.assertTrue(calciner.salt() == 100 && sulfur == 0 && mercury == 10,
+                    "expected 100 Salt and 10 Mercury, got " + calciner.salt() + " Salt, " + sulfur + " Sulfur and " + mercury + " Mercury");
             helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_INPUT).isEmpty(), "the cobblestone is used up");
         });
     }
 
-    /** With no room for the Salt the Calciner waits and lights no fuel. */
+    /** With no room in the Ash Pan the Calciner waits and lights no fuel. */
     @ServusGameTest(timeoutTicks = 200)
     public static void calcinerWaitsWhenATankIsFull(GameTestHelper helper) {
         CalcinerBlockEntity calciner = calciner(helper);
-        calciner.tanks().insert(new Principles(3950, 0, 0));
+        calciner.putSalt(6350);
         calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE));
         helper.runAfterDelay(120, () -> {
             helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_FUEL).getCount() == 4, "a blocked Calciner burns no fuel");
             helper.assertTrue(!calciner.isBurning(), "a blocked Calciner is not lit");
             helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_INPUT).is(Items.COBBLESTONE), "the cobblestone stays");
-            helper.assertTrue(calciner.tanks().amount(Principle.SALT) == 3950, "no Salt was added");
+            helper.assertTrue(calciner.salt() == 6350, "no Salt was added");
             helper.succeed();
         });
     }
@@ -133,7 +133,7 @@ public final class AlchemyGameTests {
         calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_FUEL, ItemStack.EMPTY);
         calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE));
         helper.runAfterDelay(100, () -> {
-            helper.assertTrue(calciner.tanks().contents().equals(new Principles(0, 0, 0)), "nothing is calcined without fuel");
+            helper.assertTrue(calciner.salt() == 0, "nothing is calcined without fuel");
             helper.succeed();
         });
     }

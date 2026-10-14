@@ -68,8 +68,6 @@ public final class ServusManufacturingEvents {
                     ServusManufacturingBlocks.CALCINER.get(), ServusManufacturingBlocks.FIREBOX.get(), ServusManufacturingBlocks.ASH_PAN.get());
             event.registerBlock(ServusFoundationCapabilities.UPKEEP, (level, pos, state, entity, side) -> CalcinerPorts.upkeep(level, pos, state),
                     ServusManufacturingBlocks.FIREBOX.get());
-            event.registerBlock(Capabilities.Fluid.BLOCK, (level, pos, state, entity, side) -> CalcinerPorts.fluid(level, pos, state),
-                    ServusManufacturingBlocks.RECEIVER.get(), ServusManufacturingBlocks.COPPER_DUCT.get());
         }
 
         /** Items at the casting table while formed, each principle into its Vat. */

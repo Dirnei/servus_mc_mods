@@ -216,11 +216,8 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
             tag.put("Input", saveStack(accessor, calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_INPUT)));
             tag.put("Fuel", saveStack(accessor, calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_FUEL)));
             tag.putInt("Progress", calciner.progressPercent());
-            tag.putInt("Capacity", calciner.tanks().capacity());
-            for (Principle principle : Principle.values()) {
-                tag.putInt(principle.id(), calciner.tanks().amount(principle));
-            }
             tag.putInt("Ash", calciner.ashCount());
+            tag.putInt("AshRoom", calciner.ashRoom());
             data.put("Calciner", tag);
         }
 
@@ -235,15 +232,8 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
             tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.input", stackText(input)));
             tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.fuel", stackText(fuel)));
             tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.progress", tag.getIntOr("Progress", 0)));
-            int capacity = tag.getIntOr("Capacity", 0);
-            tooltip.add(Component.translatable("jade.servus_manufacturing.purifier.items", tag.getIntOr("Ash", 0)));
-            for (Principle principle : Principle.values()) {
-                if (principle == Principle.SALT) {
-                    continue;
-                }
-                tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.principle",
-                        tag.getIntOr(principle.id(), 0), capacity, principleName(principle)));
-            }
+            tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.ash", tag.getIntOr("Ash", 0),
+                    tag.getIntOr("AshRoom", 0)));
         }
 
         @Override

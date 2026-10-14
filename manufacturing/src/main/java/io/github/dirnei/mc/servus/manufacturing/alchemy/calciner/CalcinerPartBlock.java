@@ -1,8 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
-import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
-import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PlayerItems;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
@@ -31,7 +29,6 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import org.jspecify.annotations.Nullable;
 
 /** One custom part of the Calciner structure: the Firebox, Ash Pan, Alembic, Receiver or Sulfur Hood. */
@@ -70,14 +67,6 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
                 }
                 return InteractionResult.SUCCESS;
             }
-        }
-        if (CalcinerPorts.principle(CalcinerLayout.part(role)) != null && state.getValue(FORMED)
-                && Transfer.isFluidContainer(stack)) {
-            LegacyFluidHandler port = CalcinerPorts.fluid(level, pos, state);
-            if (port != null && !level.isClientSide()) {
-                FluidUtil.interactWithFluidHandler(player, hand, pos, port, null);
-            }
-            return InteractionResult.SUCCESS;
         }
         if (role == Role.ASH_PAN && state.getValue(FORMED) && !stack.isEmpty()) {
             return InteractionResult.PASS;

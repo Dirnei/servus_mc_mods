@@ -147,6 +147,7 @@ public final class GameDataExportProvider implements DataProvider {
             values.put("fluid_per_cycle", stats.fluidPerCycle());
             values.put("fluid_capacity", stats.fluidCapacity());
             values.put("min_source_neighbours", stats.minSourceNeighbours());
+            values.put("item_capacity", stats.itemCapacity());
             values.put("upkeep_level", stats.hasUpkeep() ? stats.upkeepLevel() : 0);
             machines.add(new Machine(info.id(), info.kind(), info.recipeTypes(), values));
         }

@@ -25,9 +25,14 @@ public final class AshCount {
     /** One stack: the room of an Ash Pan whose data names none. */
     public static final int DEFAULT_ROOM = 64;
 
-    /** The Ash Pan's room in mB for {@code ashRoom} Ash; a room below 1 counts as {@link #DEFAULT_ROOM}. */
+    /** The Ash Pan's room in Ash: {@code configured}, or {@link #DEFAULT_ROOM} when that is below 1. */
+    public static int ashRoom(int configured) {
+        return configured < 1 ? DEFAULT_ROOM : configured;
+    }
+
+    /** The Ash Pan's room in mB for {@code ashRoom} Ash, counted like {@link #ashRoom}. */
     public static int room(int ashRoom, int saltPerAsh) {
-        return (ashRoom < 1 ? DEFAULT_ROOM : ashRoom) * Math.max(0, saltPerAsh);
+        return ashRoom(ashRoom) * Math.max(0, saltPerAsh);
     }
 
     /** Whether {@code extra} mB more Salt fit beside {@code salt} mB in an Ash Pan of {@code ashRoom} Ash. */

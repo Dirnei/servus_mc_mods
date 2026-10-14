@@ -16,7 +16,6 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Cell;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
@@ -293,8 +292,8 @@ public final class CalcinerGameTests {
         helper.setBlock(hopper, Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.SOUTH));
         HopperBlockEntity hopperEntity = helper.getBlockEntity(hopper, HopperBlockEntity.class);
         hopperEntity.setItem(0, new ItemStack(Items.COBBLESTONE, 2));
-        helper.succeedWhen(() -> helper.assertTrue(calciner.tanks().amount(Principle.SALT) >= 200,
-                "two cobblestone should give 200 Salt, got " + calciner.tanks().amount(Principle.SALT)));
+        helper.succeedWhen(() -> helper.assertTrue(calciner.salt() >= 200,
+                "two cobblestone should give 200 Salt, got " + calciner.salt()));
     }
 
     /** An unformed Calciner holding matter and fuel makes nothing. */
@@ -305,7 +304,7 @@ public final class CalcinerGameTests {
         calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 2));
         calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE));
         helper.runAfterDelay(100, () -> {
-            helper.assertTrue(calciner.tanks().contents().equals(new Principles(0, 0, 0)), "nothing is calcined while unformed");
+            helper.assertTrue(calciner.salt() == 0, "nothing is calcined while unformed");
             helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_FUEL).getCount() == 2, "no fuel is burnt");
             helper.succeed();
         });
@@ -319,65 +318,81 @@ public final class CalcinerGameTests {
         return CalcinerStructure.pos(controller, CalcinerLayout.cell(CalcinerLayout.MERCURY_TANK), Facing.NORTH);
     }
 
-    /** The Calciner fills Sulfur and Mercury into its own tanks; each port offers only its own principle and the Salt stays as Ash. */
-    @ServusGameTest(timeoutTicks = 100)
+    /** A finished cycle puts the Mercury straight into the Mercury tank and the Salt into the Ash Pan. */
+    @ServusGameTest(timeoutTicks = 200)
     public static void tanksFillFromTheCalciner(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
-        BlockPos sulfurTank = sulfurTank(CALCINER);
-        BlockPos mercuryTank = mercuryTank(CALCINER);
-        calciner.tanks().insert(new Principles(500, 400, 300));
-        FluidView receiver = FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK,
-                helper.absolutePos(cellPos(CALCINER, Role.RECEIVER, Direction.NORTH)), Direction.NORTH));
-        helper.assertTrue(receiver != null && receiver.getTanks() == 1
-                && receiver.getFluidInTank(0).getFluid().isSame(PrincipleFluids.fluid(Principle.MERCURY)), "the Receiver offers Mercury only");
-        helper.assertTrue(receiver.fill(new FluidStack(PrincipleFluids.fluid(Principle.MERCURY), 100), false) == 0,
-                "a port never takes fluid");
-        helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(CALCINER), Direction.NORTH)) == null,
-                "the mouth has no fluid port");
-        helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK,
-                helper.absolutePos(cellPos(CALCINER, Role.ASH_PAN, Direction.NORTH)), Direction.NORTH)) == null, "the Ash Pan has no fluid port");
-        helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK,
-                helper.absolutePos(cellPos(CALCINER, Role.HOOD, Direction.NORTH)), Direction.UP)) == null, "the Hood has no fluid port");
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL));
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE));
         helper.succeedWhen(() -> {
-            FluidStack sulfur = tankAt(helper, sulfurTank).getFluidInTank(0);
-            FluidStack mercury = tankAt(helper, mercuryTank).getFluidInTank(0);
-            helper.assertTrue(calciner.tanks().amount(Principle.SALT) == 500, "the Salt stays in the Ash Pan as Ash");
-            helper.assertTrue(sulfur.getFluid().isSame(PrincipleFluids.fluid(Principle.SULFUR)) && sulfur.getAmount() == 400,
-                    "400 Sulfur in the Sulfur tank, got " + sulfur);
-            helper.assertTrue(mercury.getFluid().isSame(PrincipleFluids.fluid(Principle.MERCURY)) && mercury.getAmount() == 300,
-                    "300 Mercury in the Mercury tank, got " + mercury);
+            FluidStack mercury = tankAt(helper, mercuryTank(CALCINER)).getFluidInTank(0);
+            helper.assertTrue(mercury.getFluid().isSame(PrincipleFluids.fluid(Principle.MERCURY)) && mercury.getAmount() == 10,
+                    "10 Mercury in the Mercury tank, got " + mercury);
+            helper.assertTrue(tankAt(helper, sulfurTank(CALCINER)).getFluidInTank(0).isEmpty(), "cobblestone gives no Sulfur");
+            helper.assertTrue(calciner.salt() == 100, "the Salt stays in the Ash Pan, got " + calciner.salt());
         });
     }
 
-    /** With its Mercury tank full the Calciner keeps the Mercury, and the Receiver still offers it. */
-    @ServusGameTest(timeoutTicks = 100)
-    public static void fullTankKeepsMercuryInTheCalciner(GameTestHelper helper) {
+    /** No block of the structure has a fluid port; the tanks are the only place for Sulfur and Mercury. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void noFluidPortOnTheReceiverOrDuct(GameTestHelper helper) {
+        formed(helper, CALCINER, Direction.NORTH);
+        BlockPos duct = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(CalcinerLayout.SULFUR_OUTLET), Facing.NORTH);
+        for (BlockPos pos : new BlockPos[] {cellPos(CALCINER, Role.RECEIVER, Direction.NORTH), duct, CALCINER,
+                cellPos(CALCINER, Role.ASH_PAN, Direction.NORTH), cellPos(CALCINER, Role.HOOD, Direction.NORTH)}) {
+            for (Direction side : Direction.values()) {
+                helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), side)) == null,
+                        "no fluid port at " + pos + " " + side);
+            }
+        }
+        helper.succeed();
+    }
+
+    /** With its Mercury tank full the Calciner keeps its input and fuel and makes nothing. */
+    @ServusGameTest(timeoutTicks = 160)
+    public static void fullMercuryTankStopsTheCalciner(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
         FluidView tank = tankAt(helper, mercuryTank(CALCINER));
         int capacity = tank.getTankCapacity(0);
         helper.assertTrue(tank.fill(new FluidStack(PrincipleFluids.fluid(Principle.MERCURY), capacity), false) == capacity, "the tank fills up");
-        calciner.tanks().insert(new Principles(0, 0, 300));
-        helper.runAfterDelay(60, () -> {
-            helper.assertTrue(calciner.tanks().amount(Principle.MERCURY) == 300, "300 Mercury stay in the Calciner, got "
-                    + calciner.tanks().amount(Principle.MERCURY));
-            FluidView receiver = FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK,
-                    helper.absolutePos(cellPos(CALCINER, Role.RECEIVER, Direction.NORTH)), Direction.NORTH));
-            helper.assertTrue(receiver.getFluidInTank(0).getAmount() == 300, "the Receiver offers the waiting Mercury");
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 2));
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE));
+        helper.runAfterDelay(120, () -> {
+            helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_INPUT).is(Items.COBBLESTONE), "the cobblestone stays");
+            helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_FUEL).getCount() == 2, "no fuel is burnt");
+            helper.assertTrue(calciner.salt() == 0, "no Salt is made");
             helper.succeed();
         });
     }
 
-    /** An empty bucket on the Receiver fills with Mercury. */
+    /** A bucket on the Receiver stays empty; Mercury is bucketed from its tank. */
     @ServusGameTest(timeoutTicks = 20)
-    public static void bucketFillsAtTheReceiver(GameTestHelper helper) {
-        CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
-        calciner.tanks().insert(new Principles(0, 0, 1200));
+    public static void bucketDoesNothingAtTheReceiver(GameTestHelper helper) {
+        formed(helper, CALCINER, Direction.NORTH);
+        FluidView tank = tankAt(helper, mercuryTank(CALCINER));
+        tank.fill(new FluidStack(PrincipleFluids.fluid(Principle.MERCURY), 1200), false);
         Player player = player(helper, new ItemStack(Items.BUCKET));
         use(helper, player, cellPos(CALCINER, Role.RECEIVER, Direction.NORTH));
-        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(PrincipleFluids.entry(Principle.MERCURY).bucket().get()),
-                "the player should hold a Mercury bucket, holds " + player.getItemInHand(InteractionHand.MAIN_HAND));
-        helper.assertTrue(calciner.tanks().amount(Principle.MERCURY) == 200, "200 mB Mercury remain");
+        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.BUCKET),
+                "the bucket stays empty, holds " + player.getItemInHand(InteractionHand.MAIN_HAND));
+        helper.assertTrue(tank.getFluidInTank(0).getAmount() == 1200, "the tank keeps its Mercury");
         helper.succeed();
+    }
+
+    /** The Ash Pan fills up to a stack of Ash, then the Calciner waits. */
+    @ServusGameTest(timeoutTicks = 300)
+    public static void ashPanHoldsAStack(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
+        calciner.putSalt(6300);
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 2));
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE, 3));
+        helper.runAfterDelay(260, () -> {
+            helper.assertTrue(calciner.ashCount() == 64 && calciner.ashRoom() == 64, "the Ash Pan holds 64 Ash, got "
+                    + calciner.ashCount() + " of " + calciner.ashRoom());
+            helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_INPUT).getCount() == 2,
+                    "only one cobblestone fits, the rest waits");
+            helper.succeed();
+        });
     }
 
     /** No block of the Calciner offers energy; the Firebox reports the fuel as upkeep and takes coal, the mouth takes only matter. */
@@ -448,14 +463,14 @@ public final class CalcinerGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void hopperTakesAshFromTheAshPan(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
-        calciner.tanks().insert(new Principles(350, 0, 0));
+        calciner.putSalt(350);
         BlockPos hopper = cellPos(CALCINER, Role.ASH_PAN, Direction.NORTH).below();
         helper.setBlock(hopper, Blocks.HOPPER.defaultBlockState());
         HopperBlockEntity hopperEntity = helper.getBlockEntity(hopper, HopperBlockEntity.class);
         helper.succeedWhen(() -> {
             helper.assertTrue(hopperEntity.countItem(ServusManufacturingItems.ASH.get()) == 3, "the hopper should hold 3 Ash, holds "
                     + hopperEntity.countItem(ServusManufacturingItems.ASH.get()));
-            helper.assertTrue(calciner.tanks().amount(Principle.SALT) == 50, "50 mB Salt stay behind");
+            helper.assertTrue(calciner.salt() == 50, "50 mB Salt stay behind");
         });
     }
 
@@ -463,16 +478,16 @@ public final class CalcinerGameTests {
     @ServusGameTest(timeoutTicks = 20)
     public static void handTakesAshFromTheAshPan(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
-        calciner.tanks().insert(new Principles(500, 0, 0));
+        calciner.putSalt(500);
         BlockPos ashPan = cellPos(CALCINER, Role.ASH_PAN, Direction.NORTH);
         Player player = player(helper, new ItemStack(Items.BUCKET));
         use(helper, player, ashPan);
         helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.BUCKET), "the bucket stays empty");
-        helper.assertTrue(calciner.tanks().amount(Principle.SALT) == 500, "a bucket takes no Salt");
+        helper.assertTrue(calciner.salt() == 500, "a bucket takes no Salt");
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         use(helper, player, ashPan);
         helper.assertTrue(player.getInventory().countItem(ServusManufacturingItems.ASH.get()) == 5, "the player gets 5 Ash");
-        helper.assertTrue(calciner.tanks().amount(Principle.SALT) == 0, "the Ash Pan is empty");
+        helper.assertTrue(calciner.salt() == 0, "the Ash Pan is empty");
         helper.succeed();
     }
 }

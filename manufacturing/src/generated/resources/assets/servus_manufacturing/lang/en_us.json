@@ -216,6 +216,7 @@
   "jade.servus_manufacturing.athanor.principle": "%s mB %s in the tanks",
   "jade.servus_manufacturing.athanor.stage": "Stage: %s",
   "jade.servus_manufacturing.athanor.unformed": "Not formed (stage %s)",
+  "jade.servus_manufacturing.calciner.ash": "Ash: %s / %s",
   "jade.servus_manufacturing.calciner.empty": "none",
   "jade.servus_manufacturing.calciner.fuel": "Fuel: %s",
   "jade.servus_manufacturing.calciner.input": "Matter: %s",

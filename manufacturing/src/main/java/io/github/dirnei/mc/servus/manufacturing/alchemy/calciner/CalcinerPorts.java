@@ -1,17 +1,14 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
-import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleTanks;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Cell;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import java.util.Optional;
@@ -21,24 +18,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
  * The ports of a formed Calciner, fixed by position: matter in at the mouth, fuel and upkeep at
- * the Firebox, Ash out of the Ash Pan, Mercury out of the Receiver and Sulfur out of the lower duct.
- * The Calciner fills its own two tanks; the fluid ports only drain what has not reached them yet.
+ * the Firebox and Ash out of the Ash Pan. Sulfur and Mercury go straight into the structure's own
+ * two tanks; no block of the structure has a fluid port.
  */
 public final class CalcinerPorts {
 
     private CalcinerPorts() {
-    }
-
-    /** The principle a cell gives out, or null for cells without a fluid port. */
-    public static Principle principle(Cell cell) {
-        return switch (cell.role()) {
-            case RECEIVER -> Principle.MERCURY;
-            case DUCT -> cell.index() == CalcinerLayout.SULFUR_OUTLET ? Principle.SULFUR : null;
-            default -> null;
-        };
     }
 
     /** The Calciner of the formed structure the block at {@code pos} belongs to, or null. */
@@ -74,43 +63,30 @@ public final class CalcinerPorts {
         return calciner == null ? null : calciner.upkeep();
     }
 
-    /** The drain only tank of the port's principle on the Ash Pan, the Receiver or the lower Copper Duct of a formed Calciner. */
-    public static LegacyFluidHandler fluid(Level level, BlockPos pos, BlockState state) {
-        Cell cell;
-        if (state.getBlock() instanceof CalcinerPartBlock part) {
-            cell = CalcinerLayout.part(part.role());
-        } else if (CopperDuctBlock.calcinerPiece(state)) {
-            cell = CopperDuctBlock.cell(state);
-        } else {
-            return null;
-        }
-        Principle principle = principle(cell);
-        if (principle == null) {
-            return null;
-        }
-        CalcinerBlockEntity calciner = calciner(level, pos, state);
-        return calciner == null ? null : calciner.tanks().view(principle);
+    /** Whether the structure's own tanks take all of {@code output}'s Sulfur and Mercury. */
+    public static boolean tanksTake(Level level, BlockPos controller, Direction direction, Principles output) {
+        return fillTanks(level, controller, direction, output, true);
     }
 
-    /** Fills the structure's own Sulfur and Mercury tanks with what fits. */
-    public static void push(Level level, BlockPos controller, Direction direction, PrincipleTanks tanks) {
+    /** Puts {@code output}'s Sulfur and Mercury into the structure's own tanks; ask {@link #tanksTake} first. */
+    public static void fillTanks(Level level, BlockPos controller, Direction direction, Principles output) {
+        fillTanks(level, controller, direction, output, false);
+    }
+
+    private static boolean fillTanks(Level level, BlockPos controller, Direction direction, Principles output, boolean simulate) {
         Facing facing = CalcinerStructure.facing(direction);
-        fill(level, CalcinerStructure.pos(controller, CalcinerLayout.cell(CalcinerLayout.SULFUR_TANK), facing), tanks.tank(Principle.SULFUR));
-        fill(level, CalcinerStructure.pos(controller, CalcinerLayout.cell(CalcinerLayout.MERCURY_TANK), facing), tanks.tank(Principle.MERCURY));
+        BlockPos sulfur = CalcinerStructure.pos(controller, CalcinerLayout.cell(CalcinerLayout.SULFUR_TANK), facing);
+        BlockPos mercury = CalcinerStructure.pos(controller, CalcinerLayout.cell(CalcinerLayout.MERCURY_TANK), facing);
+        return fill(level, sulfur, Principle.SULFUR, output.sulfur(), simulate)
+                & fill(level, mercury, Principle.MERCURY, output.mercury(), simulate);
     }
 
-    private static void fill(Level level, BlockPos target, FluidSlot tank) {
-        if (tank.isEmpty()) {
-            return;
+    private static boolean fill(Level level, BlockPos tank, Principle principle, int amount, boolean simulate) {
+        if (amount <= 0) {
+            return true;
         }
-        FluidView view = FluidView.of(level.getCapability(Capabilities.Fluid.BLOCK, target, Direction.UP));
-        if (view == null) {
-            return;
-        }
-        int filled = view.fill(tank.getFluid().copy(), false);
-        if (filled > 0) {
-            tank.drain(filled, false);
-        }
+        FluidView view = FluidView.of(level.getCapability(Capabilities.Fluid.BLOCK, tank, Direction.UP));
+        return view != null && view.fill(new FluidStack(PrincipleFluids.fluid(principle), amount), simulate) == amount;
     }
 
     /** The Ash Pan: the Calciner's Salt as whole Ash, at most a stack at a time, taken out only. */

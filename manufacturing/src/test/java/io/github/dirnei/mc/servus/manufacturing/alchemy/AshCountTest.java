@@ -44,6 +44,8 @@ class AshCountTest {
 
     @Test
     void zeroRoomCountsAsAStack() {
+        assertEquals(64, AshCount.ashRoom(0));
+        assertEquals(32, AshCount.ashRoom(32));
         assertEquals(6400, AshCount.room(0, 100));
         assertEquals(6400, AshCount.room(-3, 100));
         assertTrue(AshCount.fits(6000, 400, 0, 100));

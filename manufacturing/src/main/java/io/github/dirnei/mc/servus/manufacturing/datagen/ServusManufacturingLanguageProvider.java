@@ -72,6 +72,7 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add("jade.servus_manufacturing.calciner.fuel", "Fuel: %s");
         add("jade.servus_manufacturing.calciner.progress", "Progress: %s%%");
         add("jade.servus_manufacturing.calciner.principle", "%s / %s mB %s");
+        add("jade.servus_manufacturing.calciner.ash", "Ash: %s / %s");
         add("jade.servus_manufacturing.calciner.stack", "%s %s");
         add("jade.servus_manufacturing.calciner.empty", "none");
         add("config.jade.plugin_servus_manufacturing.calciner", "Calciner");
