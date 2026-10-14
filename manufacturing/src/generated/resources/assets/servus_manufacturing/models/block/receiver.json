@@ -23,84 +23,116 @@
         }
       },
       "from": [
-        3,
-        0,
-        3
-      ],
-      "to": [
-        13,
-        1,
-        13
-      ]
-    },
-    {
-      "faces": {
-        "down": {
-          "texture": "#glass"
-        },
-        "east": {
-          "texture": "#glass"
-        },
-        "north": {
-          "texture": "#glass"
-        },
-        "south": {
-          "texture": "#glass"
-        },
-        "up": {
-          "texture": "#glass"
-        },
-        "west": {
-          "texture": "#glass"
-        }
-      },
-      "from": [
         4,
-        1,
+        0,
         4
       ],
       "to": [
         12,
-        9,
+        1,
         12
       ]
     },
     {
       "faces": {
         "down": {
-          "texture": "#glass"
+          "texture": "#copper"
         },
         "east": {
-          "texture": "#glass"
+          "texture": "#copper"
         },
         "north": {
-          "texture": "#glass"
+          "texture": "#copper"
         },
         "south": {
-          "texture": "#glass"
+          "texture": "#copper"
         },
         "up": {
-          "texture": "#glass"
+          "texture": "#copper"
         },
         "west": {
-          "texture": "#glass"
+          "texture": "#copper"
         }
       },
       "from": [
-        6,
-        9,
-        6
+        5,
+        1,
+        5
       ],
       "to": [
-        10,
-        14,
-        10
+        11,
+        7,
+        11
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#cut"
+        },
+        "east": {
+          "texture": "#cut"
+        },
+        "north": {
+          "texture": "#cut"
+        },
+        "south": {
+          "texture": "#cut"
+        },
+        "up": {
+          "texture": "#cut"
+        },
+        "west": {
+          "texture": "#cut"
+        }
+      },
+      "from": [
+        4.5,
+        7,
+        4.5
+      ],
+      "to": [
+        11.5,
+        8,
+        11.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#cut"
+        },
+        "east": {
+          "texture": "#cut"
+        },
+        "north": {
+          "texture": "#cut"
+        },
+        "south": {
+          "texture": "#cut"
+        },
+        "up": {
+          "texture": "#cut"
+        },
+        "west": {
+          "texture": "#cut"
+        }
+      },
+      "from": [
+        7,
+        8,
+        7
+      ],
+      "to": [
+        9,
+        9,
+        9
       ]
     }
   ],
   "textures": {
+    "copper": "minecraft:block/copper_block",
     "cut": "minecraft:block/cut_copper",
-    "glass": "minecraft:block/glass",
-    "particle": "minecraft:block/glass"
+    "particle": "minecraft:block/copper_block"
   }
 }

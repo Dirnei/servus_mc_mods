@@ -39,7 +39,7 @@ The Receiver's flask (`AlchemyModels.receiver`) uses `minecraft:block/glass` wit
   - a cut copper lid 4.5..11.5 by 10..11 and a neck 7..9 by 11..12
   - four cut copper legs 1 by 1 at x and z 4.6 and 10.4, from y -4 up into the drum to y 4.5, with explicit UVs like today
   - a cut copper cone 6.5..9.5 by 3..4, the tap 7..9 by 1.5..3 and its collar 6.5..9.5 by 1..2
-- The formed Alembic's beak shortens from x -4 to x -5, so it ends 1 px inside the drum side at receiver x 11 (into the drum, not on its face).
+- The formed Alembic's beak grows from x -4 to x -6, so it ends 1 px inside the drum, whose side is at receiver x 11 (into the drum, not on its face).
 - The drum uses `minecraft:block/copper_block`, the rest `cut_copper`; the glass texture key goes.
 
 **Face check.** Two pairs share a plane:
@@ -50,7 +50,7 @@ Everything else is clear:
 - The legs pass into the drum with side faces at 4.6..5.6 and 10.4..11.4, never on the drum faces 5 and 11.
 - The neck sits on the lid at y 11: edge contact.
 - The tap top at y 3 meets the cone bottom at y 3 with opposite faces.
-- The beak ends inside the drum.
+- The beak runs at y 7.5 to 9.5 (half a pixel lower than before) and ends inside the drum, so its top never lies in the drum top's plane at y 10.
 
 **Texts.** The Journal entry (`WorkshopCategory`) says the Receiver is a copper condenser whose tap drips Mercury into the basin and the right tank, that the Ash Pan holds a stack of Ash, and that the Calciner waits when the Ash Pan or a tank is full. `docs/.../manufacturing.md` replaces the stale Calciner line (side panel, 4,000 mB) with the structure, the tanks and the 64 Ash. `GameDataExportProvider` exports `item_capacity` when it is set.
 

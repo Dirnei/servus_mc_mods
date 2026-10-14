@@ -30,7 +30,6 @@ final class AlchemyModels {
     private static final String BRICKS = "block/bricks";
     private static final String COPPER = "block/copper_block";
     private static final String CUT_COPPER = "block/cut_copper";
-    private static final String GLASS = "block/glass";
     private static final String IRON = "block/iron_block";
     private static final String IRON_BARS = "block/iron_bars";
     private static final String STONE = "block/smooth_stone";
@@ -447,7 +446,7 @@ final class AlchemyModels {
         return model;
     }
 
-    /** The copper still head that catches the vapour; formed, its beak reaches the Receiver on the player's right. */
+    /** The copper still head that catches the vapour; formed, its beak ends inside the Receiver's drum on the player's right. */
     private ModelFile alembic(String name, boolean formed) {
         BlockModelBuilder model = builder(name)
                 .texture("copper", states.mcLoc(COPPER)).texture("cut", states.mcLoc(CUT_COPPER))
@@ -456,36 +455,43 @@ final class AlchemyModels {
         box(model, 4, 3, 4, 12, 10, 12, "#copper");
         box(model, 6, 10, 6, 10, 13, 10, "#copper");
         box(model, 5, 13, 5, 11, 15, 11, "#cut");
-        box(model, formed ? -4 : 0, 8, 7, 4, 10, 9, "#cut");
+        box(model, formed ? -6 : 0, 7.5F, 7, 4, 9.5F, 9, "#cut");
         return model;
     }
 
     /**
-     * A glass flask on a copper stand, where the Mercury drips in. Formed, it stands on copper legs
-     * in the basin below and drips through a tap.
+     * A copper condenser: a drum with a lid and a neck, where the vapour cools into Mercury. Unformed, it
+     * stands on a copper base; formed, it stands on four copper legs in the basin below, the Alembic's
+     * beak enters its side and a tap under it drips into the basin.
      */
     private ModelFile receiver(String name, boolean formed) {
         BlockModelBuilder model = builder(name)
-                .texture("glass", states.mcLoc(GLASS)).texture("cut", states.mcLoc(CUT_COPPER))
-                .texture("particle", states.mcLoc(GLASS));
+                .texture("copper", states.mcLoc(COPPER)).texture("cut", states.mcLoc(CUT_COPPER))
+                .texture("particle", states.mcLoc(COPPER));
         if (!formed) {
-            box(model, 3, 0, 3, 13, 1, 13, "#cut");
-            box(model, 4, 1, 4, 12, 9, 12, "#glass");
-            box(model, 6, 9, 6, 10, 14, 10, "#glass");
+            box(model, 4, 0, 4, 12, 1, 12, "#cut");
+            drum(model, 1);
             return model;
         }
         // Ambient occlusion samples the wrong neighbours below the block and darkens the legs.
         model.ao(false);
-        for (float x : new float[] {3.1F, 11.9F}) {
-            for (float z : new float[] {3.1F, 11.9F}) {
-                uvBox(model, x, -4, z, x + 1, 3, z + 1, "#cut");
+        for (float x : new float[] {4.6F, 10.4F}) {
+            for (float z : new float[] {4.6F, 10.4F}) {
+                uvBox(model, x, -4, z, x + 1, 4.5F, z + 1, "#cut");
             }
         }
-        box(model, 4, 3, 4, 12, 11, 12, "#glass");
-        box(model, 6, 11, 6, 10, 15, 10, "#glass");
+        drum(model, 4);
+        box(model, 6.5F, 3, 6.5F, 9.5F, 4, 9.5F, "#cut");
         box(model, 7, 1.5F, 7, 9, 3, 9, "#cut");
         box(model, 6.5F, 1, 6.5F, 9.5F, 2, 9.5F, "#cut");
         return model;
+    }
+
+    /** The condenser's drum from {@code bottom} up, with its lid and neck. */
+    private static void drum(BlockModelBuilder model, float bottom) {
+        box(model, 5, bottom, 5, 11, bottom + 6, 11, "#copper");
+        box(model, 4.5F, bottom + 6, 4.5F, 11.5F, bottom + 7, 11.5F, "#cut");
+        box(model, 7, bottom + 7, 7, 9, bottom + 8, 9, "#cut");
     }
 
     /** The copper hood where the Sulfur rises and settles. */

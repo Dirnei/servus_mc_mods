@@ -21,7 +21,7 @@
 
 ## 3. Copper condenser
 
-- [ ] 3.1 In `manufacturing/.../datagen/AlchemyModels.java`, replace the flask of `receiver` (formed and unformed) with the copper condenser from design.md, shorten the formed Alembic beak to x -5, and update both Javadocs. List the face check from design.md against the generated JSON. Verify: `gradlew :manufacturing:runData` writes `receiver.json`, `receiver_formed.json` and `alembic_formed.json` without a glass texture, and `gradlew build` is green.
+- [x] 3.1 In `manufacturing/.../datagen/AlchemyModels.java`, replace the flask of `receiver` (formed and unformed) with the copper condenser from design.md, lengthen the formed Alembic beak to x -6, and update both Javadocs. List the face check from design.md against the generated JSON. Verify: `gradlew :manufacturing:runData` writes `receiver.json`, `receiver_formed.json` and `alembic_formed.json` without a glass texture, and `gradlew build` is green.
 
 ## 4. Texts
 
