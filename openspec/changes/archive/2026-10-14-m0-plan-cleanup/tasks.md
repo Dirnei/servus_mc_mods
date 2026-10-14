@@ -11,4 +11,4 @@
 ## 3. Integration
 
 - [x] 3.1 `openspec validate m0-plan-cleanup --strict` green; docs tests green (nothing reads PLAN.md, checked once).
-- [ ] 3.2 The user reads the new PLAN.md and confirms.
+- [x] 3.2 The user reads the new PLAN.md and confirms.
