@@ -25,9 +25,9 @@ jobs:
 
       - name: Check the docs game data export is current
         run: |
-          ./gradlew :manufacturing:runData --no-daemon
+          ./gradlew :alchemy:runData --no-daemon
           if ! git diff --exit-code -- docs/src/data/gamedata.json; then
-            echo "::error file=docs/src/data/gamedata.json::docs/src/data/gamedata.json is out of date. Run ./gradlew :manufacturing:runData and commit the file."
+            echo "::error file=docs/src/data/gamedata.json::docs/src/data/gamedata.json is out of date. Run ./gradlew :alchemy:runData and commit the file."
             exit 1
           fi
 
@@ -37,6 +37,6 @@ jobs:
           name: servus-mods
           path: |
             foundation/build/libs/*.jar
-            manufacturing/build/libs/*.jar
+            alchemy/build/libs/*.jar
             storage/build/libs/*.jar
           if-no-files-found: error

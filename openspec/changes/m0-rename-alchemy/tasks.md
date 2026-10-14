@@ -23,7 +23,7 @@
 ## 5. Docs and CI
 
 - [x] 5.1 Rename `docs/src/content/docs/mods/manufacturing.md` to `mods/alchemy.md` (title "Servus: Alchemy"), update the sidebar slug in `docs/astro.config.mjs`, the links in `index.mdx`, `foundation.md` and `storage.md`, `getting-started.md`, the lab pages and the datapack reference pages (`athanor`, `journal`, `machines`, `recipes`, `veins`). In code, `MODS` in `docs/src/lib/recipegraph.ts` and the recipe type labels, `MOD_NAMES` in `RecipeGraph.tsx`, the default target in `ChainView.tsx`, and the ids in the docs tests (`draft`, `gamedata`, `proposal`, `ratios`, `recipegraph`, `research`). Verify: `npm test` and `npm run build` in `docs/` green.
-- [ ] 5.2 Point `.github/workflows/build.yml` at `:alchemy:runData` (step and error message) and `alchemy/build/libs/*.jar`. Verify: read the workflow and check `alchemy/build/libs` holds the jar after `gradlew build`.
+- [x] 5.2 Point `.github/workflows/build.yml` at `:alchemy:runData` (step and error message) and `alchemy/build/libs/*.jar`. Verify: read the workflow and check `alchemy/build/libs` holds the jar after `gradlew build`.
 
 ## 6. Integration
 
