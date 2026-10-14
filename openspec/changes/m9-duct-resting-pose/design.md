@@ -110,7 +110,7 @@ JUnit `segmentsTouchButDoNotOverlap` checks every pose, face mask and radius pai
 
 `UtilityDuctModel` keeps the datagen parts and changes how it uses them:
 
-- **Centre and junction quads** are fitted onto the centre box like an arm onto its box. A centre that only moved keeps its UVs; a centre that grew takes its UVs from the position, so its texture is not stretched.
+- **Centre and junction quads** are fitted onto the centre box like an arm onto its box. As on an arm, plain line faces take their UVs from the position and band faces keep theirs, stretched with the box: taking a band face's UVs from the position mirrors them on the north and east faces, which swapped red and white there (sixth play test).
 - **Arm body quads** (tint index < 0) are remapped vertex by vertex onto the segment box from D3:
   - On the arm axis, coordinates at the baked inner end move to the new inner end (the centre's face).
   - On Y, a horizontal arm's coordinates move to the face height.

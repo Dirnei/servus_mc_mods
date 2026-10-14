@@ -52,8 +52,8 @@ final class DuctPoseQuads {
 
     /**
      * The quads of a centre part of the given radius fitted onto the centre
-     * box; a centre that grew takes its UVs from the position, so its texture
-     * is not stretched.
+     * box. Like an arm, only a plain line face takes its UVs from the
+     * position; band faces keep theirs, so the bands stay in order.
      */
     List<BakedQuad> center(String part, int radius, DuctShapes.Box centre) {
         DuctShapes.Box baked = DuctShapes.center(radius);
@@ -61,10 +61,9 @@ final class DuctPoseQuads {
             return partQuads.apply(part);
         }
         return centers.computeIfAbsent(new CenterKey(part, radius, centre.y0(), centre.y1()), key -> {
-            boolean grown = centre.y1() - centre.y0() > baked.y1() - baked.y0();
             List<BakedQuad> quads = new ArrayList<>();
             for (BakedQuad source : partQuads.apply(part)) {
-                quads.add(fit(source, baked, centre, DuctPose.Y, grown));
+                quads.add(fit(source, baked, centre, DuctPose.Y));
             }
             return List.copyOf(quads);
         });
@@ -96,7 +95,7 @@ final class DuctPoseQuads {
                 shiftY(quad, ringShift);
                 ring.add(quad.toBakedQuad());
             } else {
-                body.add(fit(source, baked, segment, DuctPose.axisOf(key.side()), false));
+                body.add(fit(source, baked, segment, DuctPose.axisOf(key.side())));
             }
         }
         return new ArmQuads(List.copyOf(body), List.copyOf(ring));
@@ -104,16 +103,16 @@ final class DuctPoseQuads {
 
     /**
      * The quad moved from the box {@code from} onto the box {@code to}. A
-     * plain line face, or any face when {@code rebake} is set, takes its UVs
-     * from the position stretched along {@code along} but not yet shifted
-     * across it, so its texture lines up with the parts beside it.
+     * plain line face takes its UVs from the position stretched along
+     * {@code along} but not yet shifted across it, so its texture lines up
+     * with the parts beside it; other faces keep their UVs.
      */
-    private static BakedQuad fit(BakedQuad source, DuctShapes.Box from, DuctShapes.Box to, int along, boolean rebake) {
+    private static BakedQuad fit(BakedQuad source, DuctShapes.Box from, DuctShapes.Box to, int along) {
         MutableQuad quad = new MutableQuad().setFrom(source);
         for (int vertex = 0; vertex < 4; vertex++) {
             quad.setPositionComponent(vertex, along, remap(quad.positionComponent(vertex, along), from, to, along));
         }
-        if (rebake || PLAIN_TEXTURES.contains(source.materialInfo().sprite().contents().name().getPath())) {
+        if (PLAIN_TEXTURES.contains(source.materialInfo().sprite().contents().name().getPath())) {
             quad.bakeUvsFromPosition();
         }
         for (int vertex = 0; vertex < 4; vertex++) {
