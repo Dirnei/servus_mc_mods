@@ -1,0 +1,139 @@
+package io.github.dirnei.mc.servus.alchemy.datagen;
+
+import io.github.dirnei.mc.servus.alchemy.Principles;
+import io.github.dirnei.mc.servus.alchemy.athanor.AthanorRecipe;
+import io.github.dirnei.mc.servus.alchemy.datagen.gamedata.GameDataExportProvider;
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
+import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
+import java.util.List;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.common.Tags;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * The calcination, purification, coagulation and Athanor recipes Manufacturing ships, in one table that both
+ * the recipe provider and the journal's Workshop read, so the book always lists the shipped
+ * recipes. Every row carries an English label for the book. The numbers are datapack examples.
+ */
+public final class AlchemyRecipeTable {
+
+    /** A recipe input as datagen knows it: one item or an item tag, made into an ingredient with the registries of the run. */
+    public record Input(@Nullable Item item, @Nullable TagKey<Item> tag) {
+
+        public static Input of(ItemLike item) {
+            return new Input(item.asItem(), null);
+        }
+
+        public static Input of(TagKey<Item> tag) {
+            return new Input(null, tag);
+        }
+
+        public Ingredient ingredient(HolderGetter<Item> items) {
+            return tag != null ? Ingredient.of(items.getOrThrow(tag)) : Ingredient.of(item);
+        }
+
+        /** The item or {@code #tag} id, for the book's tables. */
+        public String id() {
+            return tag != null ? "#" + tag.location() : BuiltInRegistries.ITEM.getKey(item).toString();
+        }
+    }
+
+    /** One calcination: what goes in, and the principles it gives. */
+    public record Calcine(String name, String label, Input input, Principles output) {
+    }
+
+    /** One coagulation: the principles it takes and what it makes. */
+    public record Coagulate(String name, String label, Principles input, ItemStackTemplate result) {
+    }
+
+    /** One Athanor craft: the item laid on it, the principles it burns, the stage it needs and the result. */
+    public record AthanorCraft(String name, String inputLabel, String resultLabel, Input input, Principles principles,
+                               int tier, ItemStackTemplate result, int time) {
+    }
+
+    /** One purification: an item leached with water into Salt. */
+    public record Purify(String name, String label, Input input, int count, int water, int salt, ItemStackTemplate residue, int time) {
+    }
+
+    private AlchemyRecipeTable() {
+    }
+
+    public static List<Calcine> calcination() {
+        return List.of(
+                new Calcine("cobblestone", "Cobblestone", Input.of(Tags.Items.COBBLESTONES), new Principles(100, 0, 10)),
+                new Calcine("stone", "Stone", Input.of(Tags.Items.STONES), new Principles(100, 0, 10)),
+                new Calcine("dirt", "Dirt", Input.of(ItemTags.DIRT), new Principles(50, 20, 20)),
+                new Calcine("sand", "Sand", Input.of(Tags.Items.SANDS), new Principles(80, 0, 10)),
+                new Calcine("gravel", "Gravel", Input.of(Tags.Items.GRAVELS), new Principles(80, 0, 10)),
+                new Calcine("logs", "Logs", Input.of(ItemTags.LOGS), new Principles(20, 100, 10)),
+                new Calcine("planks", "Planks", Input.of(ItemTags.PLANKS), new Principles(5, 25, 0)),
+                new Calcine("leaves", "Leaves", Input.of(ItemTags.LEAVES), new Principles(0, 40, 20)),
+                new Calcine("saplings", "Saplings", Input.of(ItemTags.SAPLINGS), new Principles(0, 40, 20)),
+                new Calcine("crops", "Crops", Input.of(Tags.Items.CROPS), new Principles(10, 30, 30)),
+                new Calcine("seeds", "Seeds", Input.of(Tags.Items.SEEDS), new Principles(10, 30, 30)),
+                new Calcine("coal", "Coal", Input.of(ItemTags.COALS), new Principles(0, 200, 0)),
+                new Calcine("raw_materials", "Raw ore", Input.of(Tags.Items.RAW_MATERIALS), new Principles(150, 0, 50)),
+                new Calcine("redstone", "Redstone", Input.of(Tags.Items.DUSTS_REDSTONE), new Principles(0, 0, 100)),
+                new Calcine("bones", "Bones", Input.of(Tags.Items.BONES), new Principles(100, 0, 0)));
+    }
+
+    /** What the Purifier leaches into Salt: the Ash of the Calciner. */
+    public static List<Purify> purification() {
+        return List.of(new Purify("ash", "Ash", Input.of(ServusAlchemyItems.ASH.get()), 4, 400, 400,
+                new ItemStackTemplate(ServusAlchemyItems.CAPUT_MORTUUM.get()), 160));
+    }
+
+    /** What the Coagulator makes from the principles; no metal in Nigredo. */
+    public static List<Coagulate> coagulation() {
+        return List.of(
+                new Coagulate("salt_crystal", "Salt Crystal", new Principles(250, 0, 0), new ItemStackTemplate(ServusAlchemyItems.SALT_CRYSTAL.get())),
+                new Coagulate("sulfur", "Sulfur", new Principles(0, 250, 0), new ItemStackTemplate(ServusAlchemyItems.SULFUR.get())),
+                new Coagulate("quicksilver", "Quicksilver", new Principles(0, 0, 250), new ItemStackTemplate(ServusAlchemyItems.QUICKSILVER.get())),
+                new Coagulate("clay_ball", "Clay Ball", new Principles(100, 0, 50), new ItemStackTemplate(Items.CLAY_BALL)),
+                new Coagulate("flint", "Flint", new Principles(150, 0, 0), new ItemStackTemplate(Items.FLINT)),
+                new Coagulate("gunpowder", "Gunpowder", new Principles(50, 150, 0), new ItemStackTemplate(Items.GUNPOWDER)),
+                new Coagulate("redstone", "Redstone", new Principles(50, 0, 150), new ItemStackTemplate(Items.REDSTONE)),
+                new Coagulate("glowstone_dust", "Glowstone Dust", new Principles(0, 100, 100), new ItemStackTemplate(Items.GLOWSTONE_DUST)),
+                new Coagulate("bone_meal", "Bone Meal", new Principles(60, 20, 0), new ItemStackTemplate(Items.BONE_MEAL)),
+                new Coagulate("slime_ball", "Slimeball", new Principles(0, 50, 150), new ItemStackTemplate(Items.SLIME_BALL)));
+    }
+
+    /** Crafts on the Athanor. */
+    public static List<AthanorCraft> athanor() {
+        return List.of(
+                new AthanorCraft("salt_crystal_block", "Salt Crystal", "Salt Crystal Block", Input.of(ServusAlchemyItems.SALT_CRYSTAL.get()),
+                        new Principles(1000, 0, 0), 0, new ItemStackTemplate(ServusAlchemyItems.SALT_CRYSTAL_BLOCK.get()), AthanorRecipe.DEFAULT_TIME),
+                new AthanorCraft("blaze_powder", "Gunpowder", "Blaze Powder", Input.of(Items.GUNPOWDER),
+                        new Principles(0, 200, 0), 0, new ItemStackTemplate(Items.BLAZE_POWDER), AthanorRecipe.DEFAULT_TIME),
+                new AthanorCraft("experience_bottle", "Glass Bottle", "Bottle o' Enchanting", Input.of(Items.GLASS_BOTTLE),
+                        new Principles(50, 0, 100), 1, new ItemStackTemplate(Items.EXPERIENCE_BOTTLE), AthanorRecipe.DEFAULT_TIME),
+                new AthanorCraft("elixir_of_sight", "Quicksilver", "Elixir of Sight", Input.of(ServusAlchemyItems.QUICKSILVER.get()),
+                        new Principles(100, 100, 250), 1, new ItemStackTemplate(ElementalSight.ELIXIR.get()), 200),
+                new AthanorCraft("gnome_hollow", "Cracked Stone Bricks", "Gnome Hollow", Input.of(Items.CRACKED_STONE_BRICKS),
+                        new Principles(500, 0, 250), 1, new ItemStackTemplate(ServusAlchemyItems.GNOME_HOLLOW.get()), 200));
+    }
+
+    /** The English name of an Athanor stage. */
+    public static String stageName(int tier) {
+        return switch (tier) {
+            case 0 -> "Nigredo";
+            case 1 -> "Albedo";
+            case 2 -> "Citrinitas";
+            default -> "Rubedo";
+        };
+    }
+
+    /** An item's English name from its id path, for the journal's tables: caput_mortuum gives Caput Mortuum. */
+    public static String label(ItemStackTemplate stack) {
+        return GameDataExportProvider.titleCase(stack.item().unwrapKey().orElseThrow().identifier().getPath());
+    }
+}

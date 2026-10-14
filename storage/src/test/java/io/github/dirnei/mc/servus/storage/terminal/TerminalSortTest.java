@@ -14,7 +14,7 @@ class TerminalSortTest {
     private static final Key COBBLE = new Key("Cobblestone", 50, "minecraft");
     private static final Key APPLE = new Key("Apple", 10, "minecraft");
     private static final Key BREAD = new Key("Bread", 20, "minecraft");
-    private static final Key GEAR = new Key("Iron Gear", 20, "servus_manufacturing");
+    private static final Key GEAR = new Key("Iron Gear", 20, "servus_alchemy");
 
     private static List<String> sorted(Sort sort, Direction direction, Key... keys) {
         List<Key> list = new ArrayList<>(List.of(keys));

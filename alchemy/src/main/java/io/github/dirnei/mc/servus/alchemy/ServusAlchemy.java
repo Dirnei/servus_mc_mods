@@ -1,0 +1,49 @@
+package io.github.dirnei.mc.servus.alchemy;
+
+import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
+import io.github.dirnei.mc.servus.alchemy.gametest.AlchemyGameTests;
+import io.github.dirnei.mc.servus.alchemy.gametest.CalcinerGameTests;
+import io.github.dirnei.mc.servus.alchemy.gametest.CoagulatorGameTests;
+import io.github.dirnei.mc.servus.alchemy.gametest.HollowGameTests;
+import io.github.dirnei.mc.servus.alchemy.gametest.PurifierGameTests;
+import io.github.dirnei.mc.servus.alchemy.machine.AlchemyMachineDefaults;
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyMenus;
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyRecipes;
+import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTests;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
+import java.util.List;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/** Mod entrypoint for Servus: Manufacturing. */
+@Mod(ServusAlchemyIds.MOD_ID)
+public final class ServusAlchemy {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(ServusAlchemy.class);
+
+    public ServusAlchemy(IEventBus modEventBus, ModContainer container) {
+        AlchemyMachineDefaults.registerDefaults();
+        ServusAlchemyBlocks.BLOCKS.register(modEventBus);
+        PrincipleFluids.register(modEventBus);
+        ElementalSight.register(modEventBus);
+        ServusAlchemyItems.ITEMS.register(modEventBus);
+        ServusAlchemyBlockEntities.BLOCK_ENTITIES.register(modEventBus);
+        ServusAlchemyMenus.MENUS.register(modEventBus);
+        ServusAlchemyRecipes.RECIPE_TYPES.register(modEventBus);
+        ServusAlchemyRecipes.RECIPE_SERIALIZERS.register(modEventBus);
+        ServusGameTests.register(modEventBus, ServusAlchemyIds.MOD_ID, List.of(
+                AlchemyGameTests.class, CalcinerGameTests.class, PurifierGameTests.class, CoagulatorGameTests.class, HollowGameTests.class));
+        ServusRecipes.syncToClients(ServusAlchemyRecipes.CALCINATION);
+        ServusRecipes.syncToClients(ServusAlchemyRecipes.COAGULATION);
+        ServusRecipes.syncToClients(ServusAlchemyRecipes.ATHANOR);
+        ServusRecipes.syncToClients(ServusAlchemyRecipes.PURIFICATION);
+        LOGGER.info("Servus: Manufacturing loaded");
+    }
+}

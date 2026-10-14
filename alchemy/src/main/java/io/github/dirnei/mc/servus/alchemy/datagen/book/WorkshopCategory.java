@@ -1,0 +1,265 @@
+package io.github.dirnei.mc.servus.alchemy.datagen.book;
+
+import com.klikli_dev.modonomicon.api.datagen.CategoryProvider;
+import com.klikli_dev.modonomicon.api.datagen.ModonomiconProviderBase;
+import com.klikli_dev.modonomicon.api.datagen.book.BookEntryModel;
+import com.klikli_dev.modonomicon.api.datagen.book.BookIconModel;
+import io.github.dirnei.mc.servus.alchemy.Principle;
+import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
+import io.github.dirnei.mc.servus.alchemy.PrincipleText;
+import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.datagen.AlchemyRecipeTable;
+import io.github.dirnei.mc.servus.alchemy.datagen.ServusAlchemyMultiblockProvider;
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
+import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
+import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
+
+/**
+ * The Workshop: how to build and use each alchemy machine, with its crafting recipe and the list
+ * of what it works, read from the same table that writes the recipes. Nigredo entries are open
+ * from the start; Albedo entries open with the Schwaz chapter, once Villach is finished.
+ */
+final class WorkshopCategory extends CategoryProvider {
+
+    WorkshopCategory(ModonomiconProviderBase parent) {
+        super(parent);
+    }
+
+    @Override
+    protected String[] generateEntryMap() {
+        return new String[] {
+                "_____________________",
+                "___p___c___u___o___a_",
+                "_______f_____________",
+                "___________________s_",
+                "___________________e_",
+                "___________________h_",
+        };
+    }
+
+    @Override
+    protected void generateEntries() {
+        BookEntryModel principles = add(principles().generate('p'));
+        BookEntryModel calciner = add(calciner().generate('c').withParent(principles));
+        BookEntryModel purifier = add(purifier().generate('u').withParent(calciner));
+        BookEntryModel coagulator = add(coagulator().generate('o').withParent(purifier));
+        BookEntryModel athanor = add(athanor().generate('a').withParent(coagulator));
+        add(pipes().generate('f').withParent(calciner));
+        BookEntryModel block = add(albedo(saltCrystalBlock().generate('s').withParent(athanor)));
+        BookEntryModel elixir = add(albedo(elixir().generate('e').withParent(block)));
+        add(albedo(hollow().generate('h').withParent(elixir)));
+    }
+
+    /** Locks an Albedo entry until the Villach chapter is finished. */
+    private BookEntryModel albedo(BookEntryModel entry) {
+        return entry.withCondition(condition().researchNodeUnlocked(JournalResearch.VILLACH));
+    }
+
+    private WorkshopEntry principles() {
+        return new WorkshopEntry(this, "principles", "The Three Principles", "Salt, Sulfur and Mercury",
+                PrincipleFluids.entry(Principle.SALT).bucket().get(), e -> {
+            e.text("three", "The Three",
+                    "Every body is made of three. Salt gives it form, Sulfur makes it burn, and Mercury is the spirit that flies off. "
+                            + "In the fire the Salt stays behind as Ash; the Purifier washes it into liquid Salt.\n\n"
+                            + "In this work they are liquids. They flow through Fluid Pipes, rest in Fluid Tanks and fill buckets.");
+            e.text("keeping", "Keeping Them",
+                    "A Fluid Tank holds one principle at a time, so give each principle its own tank.\n\n"
+                            + "Poured on the ground they spread like water but never make a new source. What you do not need, pour into a Sink.");
+        });
+    }
+
+    private WorkshopEntry calciner() {
+        String mod = ServusAlchemyIds.MOD_ID + ":";
+        return new WorkshopEntry(this, "calciner", "The Calciner", "Burn matter into its principles",
+                ServusAlchemyItems.CALCINER.get(), e -> {
+            e.spotlight("machine", ServusAlchemyItems.CALCINER.get(), "The Calciner",
+                    "My furnace for the first work. It burns a thing until only its three principles are left.");
+            e.multiblock("build", ServusAlchemyMultiblockProvider.CALCINER, "The Calciner",
+                    "A wall one block deep with a tank on each side. Press Visualize, then click the ground where it shall stand.");
+            e.text("parts", "The Parts",
+                    "Three parts stack in the middle: the Ash Pan at the bottom between Deepslate Tiles, the Firebox above it between "
+                            + "two Fluid Tanks, and the Calciner, the mouth, between Stone Bricks.\n\n"
+                            + "On top of the mouth sits the Alembic, the copper still, and the Sulfur Hood crowns it. The Receiver, a copper "
+                            + "condenser, stands right of the still over a stone basin, and the still's beak leads into it. The Copper Duct leads from the Hood down into the left Stone Bricks.");
+            e.crafting("recipe", mod + "calciner", mod + "calciner_firebox", "The mouth with its cauldron, and the Firebox.");
+            e.crafting("recipe_pan", mod + "calciner_ash_pan", mod + "alembic", "The Ash Pan and the Alembic.");
+            e.crafting("recipe_receiver", mod + "receiver", mod + "sulfur_hood", "The Receiver and the Sulfur Hood.");
+            e.crafting("recipe_duct", mod + "copper_duct", "The Copper Duct, three at once.");
+            e.text("waking", "Waking It",
+                    "When every block stands, use this journal on the Calciner. The stones join and the furnace becomes one thing. "
+                            + "If something is missing, the journal tells you what and where.\n\n"
+                            + "Break any block and the furnace falls apart into its stones and parts again.");
+            e.text("firing", "Firing It",
+                    "Hand the matter to the mouth, or let a hopper or a pipe feed it. Coal and other fuel go into the Firebox below; "
+                            + "one coal burns for several items. Sneak with an empty hand at the mouth to take the matter back.\n\n"
+                            + "When a tank or the Ash Pan is full, the Calciner waits.");
+            e.text("emptying", "Taking Them Out",
+                    "Each principle leaves where it belongs. Salt stays behind as ash in the Ash Pan. Mercury cools in the Receiver, "
+                            + "drips from its tap into the basin and runs down into the right tank, and Sulfur rises into the Hood and runs down the duct into the left tank.\n\n"
+                            + "Take them from the tanks with a bucket, or with a pipe whose side at the tank you set to pull in with the carrot: "
+                            + "a tank on a plain side only ever fills.\n\n"
+                            + "The Salt stays in the Ash Pan as Ash, one Ash for every 100 Salt. Take it with an empty hand, or put a hopper "
+                            + "under the Ash Pan, and wash it in the Purifier. The Ash Pan holds a stack of 64 Ash; when it is full, the Calciner waits.");
+            e.list("burns", "What Burns", AlchemyRecipeTable.calcination().stream()
+                    .map(row -> PrincipleText.line(row.label(), row.output())).toList());
+        });
+    }
+
+    private WorkshopEntry purifier() {
+        return new WorkshopEntry(this, "purifier", "The Purifier", "Wash the Salt out of the Ash",
+                ServusAlchemyItems.PURIFIER.get(), e -> {
+            e.spotlight("machine", ServusAlchemyItems.PURIFIER.get(), "The Purifier",
+                    "A leaching vat on a log. Water washes the Salt out of the Ash and runs down into the catch basin as "
+                            + "the Salt the Coagulator needs; what stays behind is Caput Mortuum, the dead head, and it falls into the residue crock.");
+            e.multiblock("build", ServusAlchemyMultiblockProvider.PURIFIER, "The Purifier",
+                    "The Vat on a log of any wood, the Basin on one side of the log and the Crock on the other, either way round. "
+                            + "Press Visualize, then click the ground.");
+            e.crafting("recipe", ServusAlchemyIds.MOD_ID + ":purifier", ServusAlchemyIds.MOD_ID + ":catch_basin",
+                    "The Leaching Vat and the Catch Basin.");
+            e.crafting("crock", ServusAlchemyIds.MOD_ID + ":residue_crock", "The Residue Crock.");
+            e.text("leaching", "Leaching",
+                    "Use this journal on the Vat to bring the build together. Give the Vat Ash by hand, by hopper or by pipe, and water by "
+                            + "bucket or by pipe from a pump. Four Ash at a time give up their Salt, and it runs into the Basin.\n\n"
+                            + "Take the Salt from the Basin with an empty bucket, or pipe it away. Take the Caput Mortuum from the Crock "
+                            + "with an empty hand, or set a hopper under it. Sneak with an empty hand on the Vat to take the Ash back. Keep the Caput Mortuum: nothing in the "
+                            + "Great Work is worthless forever.");
+            e.list("washes", "What It Washes", AlchemyRecipeTable.purification().stream()
+                    .map(row -> row.count() + " " + row.label() + " and " + row.water() + " mB water: " + row.salt() + " Salt"
+                            + " and " + row.residue().count() + " " + AlchemyRecipeTable.label(row.residue()))
+                    .toList());
+        });
+    }
+
+    private WorkshopEntry coagulator() {
+        return new WorkshopEntry(this, "coagulator", "The Coagulator", "Join the principles into a body",
+                ServusAlchemyItems.COAGULATOR.get(), e -> {
+            e.spotlight("machine", ServusAlchemyItems.COAGULATOR.get(), "The Coagulator",
+                    "It joins the principles again into a body. It needs no fire, only time to cool.");
+            e.multiblock("build", ServusAlchemyMultiblockProvider.COAGULATOR, "The Coagulator",
+                    "Three Principle Vats over a casting table between Stone Bricks. Press Visualize, then click the ground.");
+            e.crafting("recipe", ServusAlchemyIds.MOD_ID + ":coagulator", ServusAlchemyIds.MOD_ID + ":principle_vat",
+                    "The casting table, and a Principle Vat; you need three.");
+            e.text("building", "Building It",
+                    "Set the Coagulator between two Stone Bricks and put a Principle Vat on each of the three. "
+                            + "The left Vat takes Sulfur, the middle one Salt and the right one Mercury, the same sides as at the Calciner. "
+                            + "Use this journal on the Coagulator to bring the build together; break any block and it falls apart.");
+            e.text("joining", "Joining",
+                    "Open the Coagulator with an empty hand, press the select button and choose what to make. Then bring the principles: "
+                            + "by pipe or bucket into their Vats, or on a gauge in the GUI.\n\n"
+                            + "A hopper or pipe feeds the ingredient into the table and takes the products from it.");
+            e.list("makes", "What It Makes", AlchemyRecipeTable.coagulation().stream()
+                    .map(row -> PrincipleText.line(row.label(), row.input())).toList());
+        });
+    }
+
+    private WorkshopEntry athanor() {
+        return new WorkshopEntry(this, "athanor", "The Athanor", "The furnace that never goes out",
+                ServusAlchemyItems.ATHANOR.get(), e -> {
+            e.spotlight("machine", ServusAlchemyItems.ATHANOR.get(), "The Athanor",
+                    "Lay an item on it, feed it principles, and it burns them into something new.");
+            e.multiblock("build", ServusAlchemyMultiblockProvider.athanor("nigredo"), "The Athanor on its Hearth",
+                    "Set it on a diamond of 13 Bricks, stand three Fluid Tanks on its tips to its left, behind it and to its right, "
+                            + "lay two Copper Ducts one block up from the Athanor to each tank, and use this journal on it. "
+                            + "Press Visualize, then click the ground.");
+            e.crafting("recipe", ServusAlchemyIds.MOD_ID + ":athanor", "Bricks, a cauldron and a blast furnace.");
+            e.text("hearth", "Its Hearth",
+                    "The Athanor burns only on a hearth: 13 Bricks in a diamond right below it, reaching two blocks out, with its three tanks on the tips. "
+                            + "Two Copper Ducts lead to each tank, one block up: one beside the Athanor, one over the tank. "
+                            + "When all is laid, use this journal on the Athanor: it rises into a stone brick tower and the ducts become pipes into its tanks. "
+                            + "Take a brick, a tank or a duct away and its fire goes out.");
+            e.text("tanks", "Its Tanks",
+                    "The Athanor keeps no principles of its own. It drinks them from its three Fluid Tanks, two blocks out to its left, "
+                            + "behind it and to its right, so they never touch and never run together.\n\n"
+                            + "Any tank may hold any principle. Lead pipes to them or pour buckets in. To make one bigger, stack tanks on it "
+                            + "where the duct over it lay; the other duct then runs into the tank's side.");
+            e.text("fire", "Its Fire",
+                    "Use an item on it to lay it on top. It burns what its tanks hold, and the work lies on top when it is done: "
+                            + "take it with an empty hand, or sneak to take the item back. Hoppers and pipes may do both.\n\n"
+                            + "Alone its flame is black: Nigredo. Twelve Salt Crystal Blocks around its hearth, filling it out to a square, "
+                            + "turn the flame white: Albedo. Some works need the white fire.");
+            e.list("works", "Its Works", AlchemyRecipeTable.athanor().stream()
+                    .map(craft -> PrincipleText.line(craft.resultLabel() + " from " + craft.inputLabel(), craft.principles())
+                            + (craft.tier() > 0 ? " (" + AlchemyRecipeTable.stageName(craft.tier()) + ")" : ""))
+                    .toList(), 3, 4);
+        });
+    }
+
+    private WorkshopEntry pipes() {
+        return new WorkshopEntry(this, "pipes", "Pipes and Sides", "Where each principle goes",
+                ServusLogisticsItems.FLUID_PIPE.get(), e -> {
+            e.text("channels", "Pipes and Channels",
+                    "A Fluid Pipe moves principles between blocks. Every pipe arm that touches a block has a channel colour, "
+                            + "and only arms of the same channel trade.\n\n"
+                            + "Set the channel with the carrot on the arm that touches the block.");
+            e.text("sides", "Sides",
+                    "A machine side has two settings. The Items tab says what items do there. The Fluids tab says which principle "
+                            + "goes in or out: Off, All, or one principle.\n\n"
+                            + "The carrot works on one of them; use it on the air to switch between Items and Fluids.\n\n"
+                            + "The Calciner has no sides to set: each principle leaves through its own part.");
+        });
+    }
+
+    private WorkshopEntry saltCrystalBlock() {
+        return new WorkshopEntry(this, "salt_crystal_block", "Salt Crystal Block", "Albedo: the white ring",
+                ServusAlchemyItems.SALT_CRYSTAL_BLOCK.get(), e -> {
+            e.spotlight("block", ServusAlchemyItems.SALT_CRYSTAL_BLOCK.get(), "Salt Crystal Block",
+                    "A Salt Crystal grown whole on the Athanor. Twelve of them around its hearth make its flame white.");
+            e.text("grow", "Growing It",
+                    "No hand can press Salt into a block. Lay a Salt Crystal from the Coagulator on the Athanor and give its tanks "
+                            + PrincipleText.amounts(AlchemyRecipeTable.athanor().getFirst().principles())
+                            + ": the fire grows the crystal into a block.");
+            e.multiblock("ring", ServusAlchemyMultiblockProvider.athanor("albedo"), "The White Ring",
+                    "Twelve Salt Crystal Blocks in the hearth layer, filling the diamond out to a 5 by 5 square. Press Visualize, then click the ground.");
+        });
+    }
+
+    private WorkshopEntry elixir() {
+        AlchemyRecipeTable.AthanorCraft craft = athanorCraft("elixir_of_sight");
+        return new WorkshopEntry(this, "elixir_of_sight", "Elixir of Sight", "Albedo: see what lives in the rock",
+                ElementalSight.ELIXIR.get(), e -> {
+            e.spotlight("elixir", ElementalSight.ELIXIR.get(), "Elixir of Sight",
+                    "Drink it and for a few minutes you see the spirits of the earth and what they tend.");
+            e.text("brewing", "Brewing It", albedoCraftText(craft));
+        });
+    }
+
+    private WorkshopEntry hollow() {
+        AlchemyRecipeTable.AthanorCraft craft = athanorCraft("gnome_hollow");
+        return new WorkshopEntry(this, "gnome_hollow", "Gnome Hollow", "Albedo: a vein that grows",
+                ServusAlchemyItems.GNOME_HOLLOW.get(), e -> {
+            e.spotlight("hollow", ServusAlchemyItems.GNOME_HOLLOW.get(), "Gnome Hollow",
+                    "A home for a gnome. To common eyes it is only stone.");
+            e.text("making", "Making It", albedoCraftText(craft));
+            e.text("growing", "Growing a Vein",
+                    "Put a raw ore or an ore block into its sample slot. Feed it Salt and Mercury by pipe or bucket, "
+                            + "and step by step the vein ripens.\n\n"
+                            + "When it is ripe, drink the Elixir of Sight and use a Salt Crystal on the Hollow. A gnome takes it "
+                            + "and digs that ore for you, as long as the Hollow stands.");
+        });
+    }
+
+    private static String albedoCraftText(AlchemyRecipeTable.AthanorCraft craft) {
+        return "Lay " + craft.inputLabel() + " on a white Athanor and feed it " + PrincipleText.amounts(craft.principles()) + ".";
+    }
+
+    private static AlchemyRecipeTable.AthanorCraft athanorCraft(String name) {
+        return AlchemyRecipeTable.athanor().stream().filter(craft -> craft.name().equals(name)).findFirst().orElseThrow();
+    }
+
+    @Override
+    protected String categoryName() {
+        return "Workshop";
+    }
+
+    @Override
+    protected BookIconModel categoryIcon() {
+        return BookIconModel.create(Items.CRAFTING_TABLE);
+    }
+
+    @Override
+    public String categoryId() {
+        return "workshop";
+    }
+}
