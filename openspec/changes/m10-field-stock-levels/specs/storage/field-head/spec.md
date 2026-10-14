@@ -51,7 +51,7 @@ While a head has a produce and a fertilize level, the field SHALL call no Spread
 - **THEN** the field calls a Spreader at the next field check
 
 ### Requirement: Stock levels in the GUI
-The Stock tab SHALL show the harvest limit as "Stop harvesting at" (0 for no limit), the fertilize level as "Fertilize below" (0 for always) and the Keep in stock reserve as "Keep fertilizer in stock", each as a number field the player types into. A field SHALL take digits only, and SHALL send its number to the server when the player presses Enter or the field loses focus; an empty field counts as 0. The server SHALL clamp a level to 0 to 99,999 and the reserve to 0 to 9,999, SHALL keep the two levels in order as for the stock levels, and SHALL refuse a player who can no longer use the head. Each field SHALL then show the value the head keeps, but SHALL NOT be overwritten while the player types in it.
+The Stock tab SHALL show the harvest limit as "Stop harvesting at" (0 for no limit), the fertilize level as "Fertilize below" (0 for always), the fertilizer reserve as "Keep fertilizer in stock" and the anti-corrosion reserve as "Keep wax in stock" (with the name of the anti-corrosion item beside it), each as a number field the player types into. A field SHALL take digits only, and SHALL send its number to the server when the player presses Enter or the field loses focus; an empty field counts as 0. The server SHALL clamp a level to 0 to 99,999 and a reserve to 0 to 9,999, SHALL keep the two levels in order as for the stock levels, and SHALL refuse a player who can no longer use the head. Each field SHALL then show the value the head keeps, but SHALL NOT be overwritten while the player types in it.
 
 While harvesting is stopped at the limit, the Field tab's work status SHALL say so with the stock and the limit; while fertilizing waits on the level, the Fertilizer tab's status SHALL say so. Neither SHALL be a problem: no red marker and no red ripe share bar. The field command SHALL print the produce and both levels.
 
@@ -74,6 +74,21 @@ While harvesting is stopped at the limit, the Field tab's work status SHALL say 
 #### Scenario: Far player refused
 - **WHEN** a client sends a harvest limit of 500 for a head its player can no longer use
 - **THEN** the head's harvest limit does not change
+
+### Requirement: Anti-corrosion reserve
+Each Field Head SHALL keep an anti-corrosion Keep in stock reserve (default from `anti_corrosion_reserve` in `field.json`, example 0, never below 0), kept when the world is saved. Supply runs SHALL never take the warehouse stock of the anti-corrosion item at or below it, and a low anti-corrosion part SHALL call a supply run only while the warehouse holds more than the reserve.
+
+#### Scenario: Honeycomb kept
+- **WHEN** a head's anti-corrosion reserve is 5, its anti-corrosion part is empty, `anti_corrosion_level` is 8 and the warehouse holds 10 honeycomb
+- **THEN** a supply run brings 5 honeycomb, 5 stay in the warehouse, and no further supply run comes for honeycomb
+
+#### Scenario: Default keeps nothing
+- **WHEN** a head's anti-corrosion reserve was never set and `anti_corrosion_reserve` is 0
+- **THEN** supply runs may take the last honeycomb of the warehouse
+
+#### Scenario: Wax reserve saved
+- **WHEN** a head with an anti-corrosion reserve of 6 is saved and loaded
+- **THEN** its anti-corrosion reserve is 6
 
 ## MODIFIED Requirements
 
@@ -168,7 +183,7 @@ A tab SHALL carry a red marker while its page holds a problem, so it is seen fro
 
 #### Scenario: Stock tab
 - **WHEN** a player opens the Stock tab of a wheat field's head with 1,024 wheat in the warehouse and 40 wheat seeds, 12 bone meal and 5 honeycomb in its buffer, at levels 64, 64 and 8
-- **THEN** the tab shows Wheat with 1,024 in stock, the fields Stop harvesting at, Fertilize below and Keep fertilizer in stock, and 40 / 64, 12 / 64 and 5 / 8 beside the seed, bone meal and honeycomb icons
+- **THEN** the tab shows Wheat with 1,024 in stock, the fields Stop harvesting at, Fertilize below, Keep fertilizer in stock and Keep wax in stock, and 40 / 64, 12 / 64 and 5 / 8 beside the seed, bone meal and honeycomb icons
 
 #### Scenario: Produce not learned yet
 - **WHEN** a player opens the Stock tab of a head that has not harvested yet

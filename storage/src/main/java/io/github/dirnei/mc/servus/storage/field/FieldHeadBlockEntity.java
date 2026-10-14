@@ -148,6 +148,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     private int fertilizePercent;
     /** The Keep in stock reserve; -1 follows {@code fertilizer_reserve}. */
     private int reserve = -1;
+    /** The anti-corrosion Keep in stock reserve; -1 follows {@code anti_corrosion_reserve}. */
+    private int antiCorrosionReserve = -1;
     /** Plots planted since their last dose, learned from events; saved. */
     private final Set<BlockPos> unfed = new HashSet<>();
     /** Game time of the last call for a Spreader, -1 for none. */
@@ -877,6 +879,27 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         setChanged();
     }
 
+    /** The anti-corrosion items this field keeps in stock: a supply run never takes them. */
+    public int antiCorrosionReserve() {
+        return antiCorrosionReserve >= 0 ? antiCorrosionReserve
+                : FertilizePlan.clampReserve(StorageStatsManager.INSTANCE.antiCorrosionReserve());
+    }
+
+    /** Sets the anti-corrosion reserve, kept between 0 and {@link FertilizePlan#MAX_RESERVE}. */
+    public void setAntiCorrosionReserve(long value) {
+        antiCorrosionReserve = FertilizePlan.clampReserve(value);
+        setChanged();
+    }
+
+    /** The items of the part's item the warehouse keeps; supply runs never take them. */
+    public int supplyReserve(SupplyBuffer.Part part) {
+        return switch (part) {
+            case SEEDS -> 0;
+            case FERTILIZER -> reserve();
+            case ANTI_CORROSION -> antiCorrosionReserve();
+        };
+    }
+
     /** Planted plots that are not ripe and were planted since their last dose. */
     private Set<BlockPos> unfedGrowing() {
         Set<BlockPos> growing = ripeness.growing();
@@ -1300,6 +1323,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         if (reserve >= 0) {
             output.putInt("Reserve", reserve);
         }
+        if (antiCorrosionReserve >= 0) {
+            output.putInt("AntiCorrosionReserve", antiCorrosionReserve);
+        }
         tag.putLongArray("Unfed", unfed.stream().mapToLong(BlockPos::asLong).toArray());
         output.putLong("FertilizeCalled", lastFertilizeCall);
         if (produce != null) {
@@ -1354,6 +1380,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         fertilizeMode = FertilizeMode.byId(input.getIntOr("FertilizeMode", 0));
         fertilizePercent = tag.contains("FertilizePercent") ? FieldThreshold.clamp(input.getIntOr("FertilizePercent", 0)) : 0;
         reserve = tag.contains("Reserve") ? FertilizePlan.clampReserve(input.getIntOr("Reserve", 0)) : -1;
+        antiCorrosionReserve = tag.contains("AntiCorrosionReserve")
+                ? FertilizePlan.clampReserve(input.getIntOr("AntiCorrosionReserve", 0)) : -1;
         unfed.clear();
         for (long packed : tag.getLongArray("Unfed").orElse(new long[0])) {
             unfed.add(BlockPos.of(packed));

@@ -98,6 +98,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     private final DataSlot fertilizeMode = DataSlot.standalone();
     private final DataSlot fertilizePercent = DataSlot.standalone();
     private final DataSlot reserve = DataSlot.standalone();
+    private final DataSlot antiCorrosionReserve = DataSlot.standalone();
     /** The fertilize status plus one; zero while the head serves no field. */
     private final DataSlot fertilizeStatus = DataSlot.standalone();
     /** Count and level of each buffer part, in {@link SupplyBuffer.Part} order. */
@@ -142,7 +143,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         });
         PlayerInventorySlots.add(this::addSlot, playerInventory, INVENTORY_X, INVENTORY_Y);
         for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags,
-                work, threshold, radius, corrosion, corrosionProgress, fertilizeMode, fertilizePercent, reserve, fertilizeStatus,
+                work, threshold, radius, corrosion, corrosionProgress, fertilizeMode, fertilizePercent, reserve, antiCorrosionReserve, fertilizeStatus,
                 harvestLimitLow, harvestLimitHigh, fertilizeBelowLow, fertilizeBelowHigh, produceStockLow, produceStockHigh}) {
             addDataSlot(slot);
         }
@@ -190,6 +191,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         fertilizeMode.set(head.fertilizeMode().ordinal());
         fertilizePercent.set(head.fertilizePercent());
         reserve.set(head.reserve());
+        antiCorrosionReserve.set(head.antiCorrosionReserve());
         FertilizeStatus fertilize = head.fertilizeStatus();
         fertilizeStatus.set(fertilize == null ? 0 : fertilize.ordinal() + 1);
         for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {
@@ -351,7 +353,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
 
     /**
      * Sets a typed amount of the head at that position: a stock level, kept
-     * in range and in order with the other, or the reserve, kept in range.
+     * in range and in order with the other, or a reserve, kept in range.
      * Acts only while the player's open menu is that head's menu and they can
      * still use it. Returns whether the amount was taken. Server side.
      */
@@ -360,10 +362,10 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         if (menu == null || which == null || !menu.head.getBlockPos().equals(pos)) {
             return false;
         }
-        if (which == FieldAmount.RESERVE) {
-            menu.head.setReserve(value);
-        } else {
-            menu.head.setLevel(which.level(), value);
+        switch (which) {
+            case RESERVE -> menu.head.setReserve(value);
+            case ANTI_CORROSION_RESERVE -> menu.head.setAntiCorrosionReserve(value);
+            default -> menu.head.setLevel(which.level(), value);
         }
         menu.update();
         return true;
@@ -506,6 +508,11 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     /** The Keep in stock reserve. */
     public int reserve() {
         return reserve.get();
+    }
+
+    /** The anti-corrosion Keep in stock reserve. */
+    public int antiCorrosionReserve() {
+        return antiCorrosionReserve.get();
     }
 
     /** How many of the part's item the head's buffer holds. */

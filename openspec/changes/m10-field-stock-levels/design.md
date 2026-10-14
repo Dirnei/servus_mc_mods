@@ -39,7 +39,9 @@
 - **Payload:** `SetFieldAmountPayload(pos, which, value)` replaces `SetFieldLevelPayload` and the four reserve menu buttons; `which` is a `FieldAmount` (`HARVEST_LIMIT`, `FERTILIZE_BELOW`, `RESERVE`). `FieldHeadMenu.setAmount` acts only while the player's open menu is that head's menu and still valid (distance check), clamps (levels 0..99,999, reserve 0..`FertilizePlan.MAX_RESERVE`) and, for the levels, keeps the order with `StockLevels.keepOrder`. Registered in `ServusStoragePayloads`.
 - **Pure logic:** `FieldAmount.parse(text)` (empty is 0, digits only, saturating) and `FieldAmount.clamp(value)` per kind, with JUnit. `StockLevels.step` and `FertilizePlan.stepReserve` go, nothing steps any more.
 
-**Data.** `harvest_limit` and `fertilize_below` in `storage/field.json`, read by `StorageStatsManager`.
+**Wax reserve (play test).** The user asked for a minimum stock of honeycomb too. The head keeps `antiCorrosionReserve` (-1 follows `anti_corrosion_reserve`, example 0, saved as `AntiCorrosionReserve`), clamped like the fertilizer reserve. `FieldHeadBlockEntity.supplyReserve(part)` gives the reserve of each buffer part (seeds 0); `WarehouseNetwork.supplyDue` and the supply run (`SupplyRun.reserves`, fixed when it plans) use it for every part, so `SupplyPlan` keeps its shape. `FieldAmount.ANTI_CORROSION_RESERVE` is a fourth typed row on the Stock tab, labelled "Keep wax in stock" with the anti-corrosion item's name as its hint ("Keep anti-corrosion in stock" does not fit the 126 px label column). The rows move to a 17 px stride from y 40 and the buffer to y 119, so the buffer row ends above the inventory label at y 143. The field command prints the wax reserve on the corrosion line.
+
+**Data.** `harvest_limit`, `fertilize_below` and `anti_corrosion_reserve` in `storage/field.json`, read by `StorageStatsManager`.
 
 **NeoForge APIs.** Only the existing payload registration (`RegisterPayloadHandlersEvent` in `ServusStoragePayloads`) and vanilla `EditBox` (`setFilter`, `setMaxLength`, `canConsumeInput`), as the controller and terminal screens use them; nothing new.
 

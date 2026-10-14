@@ -1116,9 +1116,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (item == null) {
                 continue;
             }
-            int reserve = part == SupplyBuffer.Part.FERTILIZER ? head.reserve() : 0;
             if (SupplyPlan.due(new SupplyPlan.Part(head.supplyCount(part), head.supplyLevel(part),
-                    available(ItemKey.of(new ItemStack(item))), reserve))) {
+                    available(ItemKey.of(new ItemStack(item))), head.supplyReserve(part)))) {
                 return true;
             }
         }

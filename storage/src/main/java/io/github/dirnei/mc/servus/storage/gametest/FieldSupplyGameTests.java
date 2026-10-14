@@ -114,6 +114,24 @@ public final class FieldSupplyGameTests {
         });
     }
 
+    /** The wax reserve stays in the rack: 10 honeycomb and a reserve of 5 bring 5 into the buffer. */
+    @ServusGameTest(timeoutTicks = 400)
+    public static void supplyKeepsTheAntiCorrosionReserve(GameTestHelper helper) {
+        FarmFixtures.Farm farm = farm(helper, plainShuttle());
+        WarehouseFixtures.put(farm.rack(), new ItemStack(Items.HONEYCOMB, 10));
+        FieldHeadBlockEntity head = farm.head();
+        helper.runAfterDelay(3, () -> {
+            head.setAntiCorrosionReserve(5);
+            Waits.when(helper, () -> buffered(head, SupplyBuffer.Part.ANTI_CORROSION) == 5 && out(helper) == 0, 300,
+                    () -> "5 honeycomb should reach the buffer, it holds " + buffer(head), () -> helper.runAfterDelay(40, () -> {
+                helper.assertTrue(WarehouseFixtures.count(farm.rack(), Items.HONEYCOMB) == 5, "the reserve of 5 stays in the rack");
+                helper.assertTrue(buffered(head, SupplyBuffer.Part.ANTI_CORROSION) == 5 && network(helper).queuedJobs() == 0,
+                        "no further supply run takes the reserve");
+                helper.succeed();
+            }));
+        });
+    }
+
     /**
      * Only a Spreader and a Harvester in the garage: no supply run, and the
      * head says no shuttle can bring seeds or fertilizer, with a red bar.

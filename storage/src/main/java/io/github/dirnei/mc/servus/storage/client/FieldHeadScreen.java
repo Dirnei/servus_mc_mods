@@ -93,14 +93,14 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private static final int FERTILIZE_STATUS_Y = 82;
     /** The Stock tab: the produce row, one row per typed amount, then the buffer. */
     private static final int PRODUCE_Y = 18;
-    private static final int AMOUNT_Y = 42;
-    private static final int AMOUNT_STRIDE = 18;
+    private static final int AMOUNT_Y = 40;
+    private static final int AMOUNT_STRIDE = 17;
     private static final int AMOUNT_BOX_X = 140;
     private static final int AMOUNT_BOX_W = 50;
     private static final int AMOUNT_BOX_H = 14;
     private static final int AMOUNT_HINT_X = AMOUNT_BOX_X + AMOUNT_BOX_W + 6;
-    private static final int BUFFER_TITLE_Y = 100;
-    private static final int BUFFER_Y = 111;
+    private static final int BUFFER_TITLE_Y = 109;
+    private static final int BUFFER_Y = 119;
     private static final int BUFFER_STRIDE = 84;
     private static final int ICON_TEXT_GAP = 20;
     private static final int ROWS = 3;
@@ -222,6 +222,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             case HARVEST_LIMIT -> menu.harvestLimit();
             case FERTILIZE_BELOW -> menu.fertilizeBelow();
             case RESERVE -> menu.reserve();
+            case ANTI_CORROSION_RESERVE -> menu.antiCorrosionReserve();
         };
     }
 
@@ -665,13 +666,17 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         }
     }
 
-    /** The grey words right of an amount's field: what 0 means for a level, the fertilizer for the reserve. */
+    /** The grey words right of an amount's field: what 0 means for a level, the item a reserve keeps. */
     private Component amountHint(FieldAmount amount) {
-        if (amount == FieldAmount.RESERVE) {
-            ItemStack fertilizer = menu.fertilizer();
-            return fertilizer.isEmpty() ? null : fertilizer.getHoverName();
+        ItemStack kept = switch (amount) {
+            case RESERVE -> menu.fertilizer();
+            case ANTI_CORROSION_RESERVE -> menu.antiCorrosionShown();
+            default -> null;
+        };
+        if (kept == null) {
+            return Component.translatable(amountKey(amount) + ".hint");
         }
-        return Component.translatable(amountKey(amount) + ".hint");
+        return kept.isEmpty() ? null : kept.getHoverName();
     }
 
     private void renderWaterLabels(GuiGraphicsExtractor graphics) {

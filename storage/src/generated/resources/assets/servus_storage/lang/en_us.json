@@ -50,6 +50,8 @@
   "gui.servus_storage.crafting_station.save": "Save",
   "gui.servus_storage.elevator.upgrades": "Speed Upgrades",
   "gui.servus_storage.elevator.upgrades.tooltip": "Each Speed Upgrade makes the lift car of this shaft faster and quicker off the mark. The lowest segment keeps them.",
+  "gui.servus_storage.field_head.amount.anti_corrosion_reserve": "Keep wax in stock",
+  "gui.servus_storage.field_head.amount.anti_corrosion_reserve.tooltip": "Supply runs never take the warehouse stock of the anti-corrosion item at or below this",
   "gui.servus_storage.field_head.amount.fertilize_below": "Fertilize below",
   "gui.servus_storage.field_head.amount.fertilize_below.hint": "0 = always",
   "gui.servus_storage.field_head.amount.fertilize_below.tooltip": "Spreaders come only while the warehouse holds fewer of the produce",

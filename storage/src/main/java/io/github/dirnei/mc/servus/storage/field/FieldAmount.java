@@ -2,12 +2,14 @@ package io.github.dirnei.mc.servus.storage.field;
 
 /**
  * A number of a Field Head the player types on the Stock tab: the harvest
- * limit, the fertilize level or the Keep in stock reserve. Pure Java.
+ * limit, the fertilize level or a Keep in stock reserve (fertilizer or
+ * anti-corrosion items). Pure Java.
  */
 public enum FieldAmount {
     HARVEST_LIMIT(StockLevels.MAX),
     FERTILIZE_BELOW(StockLevels.MAX),
-    RESERVE(FertilizePlan.MAX_RESERVE);
+    RESERVE(FertilizePlan.MAX_RESERVE),
+    ANTI_CORROSION_RESERVE(FertilizePlan.MAX_RESERVE);
 
     private static final FieldAmount[] VALUES = values();
 
@@ -32,12 +34,12 @@ public enum FieldAmount {
         return (int) Math.max(0, Math.min(max, value));
     }
 
-    /** The stock level this amount sets, or null for the reserve. */
+    /** The stock level this amount sets, or null for a reserve. */
     public StockLevels.Level level() {
         return switch (this) {
             case HARVEST_LIMIT -> StockLevels.Level.HARVEST;
             case FERTILIZE_BELOW -> StockLevels.Level.FERTILIZE;
-            case RESERVE -> null;
+            case RESERVE, ANTI_CORROSION_RESERVE -> null;
         };
     }
 

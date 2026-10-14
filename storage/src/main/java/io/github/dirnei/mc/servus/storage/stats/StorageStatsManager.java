@@ -70,6 +70,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     public static final int DEFAULT_FERTILIZE_INTERVAL = 600;
     public static final int DEFAULT_DOSES_PER_PLOT = 2;
     public static final int DEFAULT_FERTILIZER_RESERVE = 64;
+    public static final int DEFAULT_ANTI_CORROSION_RESERVE = 0;
     public static final double DEFAULT_FERTILIZE_SHARE = 0.5;
     public static final int DEFAULT_SEED_BUFFER = 64;
     public static final int DEFAULT_FERTILIZER_BUFFER = 64;
@@ -139,6 +140,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     private volatile int fertilizeInterval = DEFAULT_FERTILIZE_INTERVAL;
     private volatile int dosesPerPlot = DEFAULT_DOSES_PER_PLOT;
     private volatile int fertilizerReserve = DEFAULT_FERTILIZER_RESERVE;
+    private volatile int antiCorrosionReserve = DEFAULT_ANTI_CORROSION_RESERVE;
     private volatile double fertilizeShare = DEFAULT_FERTILIZE_SHARE;
     private volatile int seedBuffer = DEFAULT_SEED_BUFFER;
     private volatile int fertilizerBuffer = DEFAULT_FERTILIZER_BUFFER;
@@ -201,6 +203,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         fertilizeInterval = intField(files.get(FIELD), "fertilize_interval", DEFAULT_FERTILIZE_INTERVAL);
         dosesPerPlot = intField(files.get(FIELD), "doses_per_plot", DEFAULT_DOSES_PER_PLOT);
         fertilizerReserve = countField(files.get(FIELD), "fertilizer_reserve", DEFAULT_FERTILIZER_RESERVE);
+        antiCorrosionReserve = countField(files.get(FIELD), "anti_corrosion_reserve", DEFAULT_ANTI_CORROSION_RESERVE);
         fertilizeShare = Math.min(1.0, doubleField(files.get(FIELD), "fertilize_share", DEFAULT_FERTILIZE_SHARE));
         seedBuffer = countField(files.get(FIELD), "seed_buffer", DEFAULT_SEED_BUFFER);
         fertilizerBuffer = countField(files.get(FIELD), "fertilizer_buffer", DEFAULT_FERTILIZER_BUFFER);
@@ -517,6 +520,11 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     /** The Keep in stock reserve of a Field Head that was never set. */
     public int fertilizerReserve() {
         return fertilizerReserve;
+    }
+
+    /** The anti-corrosion Keep in stock reserve of a Field Head that was never set. */
+    public int antiCorrosionReserve() {
+        return antiCorrosionReserve;
     }
 
     /** The ripe share below which a head in Until ripe share mode calls a Spreader, until set per head. */

@@ -917,7 +917,9 @@ final class FieldRuns {
      * of its level, low parts first, as far as the cargo has room.
      */
     private void planSupply(SupplyRun run, FieldHeadBlockEntity head) {
-        run.reserve = head.reserve();
+        for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {
+            run.reserves.put(part, head.supplyReserve(part));
+        }
         FieldCargo<ItemKey> planned = new FieldCargo<>(run.cargo.slots());
         for (boolean lowPass : new boolean[] {true, false}) {
             for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {

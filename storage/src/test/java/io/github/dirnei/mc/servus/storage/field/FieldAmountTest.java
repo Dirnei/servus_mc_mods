@@ -43,6 +43,8 @@ class FieldAmountTest {
     void reserveClampsToTheReserveMaximum() {
         assertEquals(FertilizePlan.MAX_RESERVE, FieldAmount.RESERVE.clamp(99_999));
         assertEquals(0, FieldAmount.RESERVE.clamp(-10));
+        assertEquals(FertilizePlan.MAX_RESERVE, FieldAmount.ANTI_CORROSION_RESERVE.clamp(99_999));
+        assertEquals(0, FieldAmount.ANTI_CORROSION_RESERVE.clamp(-10));
     }
 
     @Test
@@ -50,12 +52,14 @@ class FieldAmountTest {
         assertEquals(StockLevels.Level.HARVEST, FieldAmount.HARVEST_LIMIT.level());
         assertEquals(StockLevels.Level.FERTILIZE, FieldAmount.FERTILIZE_BELOW.level());
         assertNull(FieldAmount.RESERVE.level());
+        assertNull(FieldAmount.ANTI_CORROSION_RESERVE.level());
     }
 
     @Test
     void unknownIdIsNull() {
-        assertNull(FieldAmount.byId(3));
+        assertNull(FieldAmount.byId(4));
         assertNull(FieldAmount.byId(-1));
         assertEquals(FieldAmount.RESERVE, FieldAmount.byId(2));
+        assertEquals(FieldAmount.ANTI_CORROSION_RESERVE, FieldAmount.byId(3));
     }
 }

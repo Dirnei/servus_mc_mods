@@ -204,7 +204,8 @@ public final class ServusStorageCommands {
                         + (head.harvestPaused() ? ", harvest paused" : "") + (head.fertilizeAllowed() ? "" : ", fertilizing not needed"),
                 "Corrosion: " + (head.corrosion() == FieldCorrosion.LOOSE ? "none" : FieldCorrosion.name(head.corrosion())
                         + ", " + head.agedWater() + " / " + StorageStatsManager.INSTANCE.fieldCorrosionWater() + " mB to the next step, "
-                        + head.supplyCount(SupplyBuffer.Part.ANTI_CORROSION) + " anti-corrosion"));
+                        + head.supplyCount(SupplyBuffer.Part.ANTI_CORROSION) + " anti-corrosion")
+                        + ", keep " + head.antiCorrosionReserve());
         for (String line : lines) {
             say(source, line);
         }

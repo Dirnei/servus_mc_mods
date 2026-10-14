@@ -258,6 +258,11 @@ public final class FieldLevelGameTests {
         helper.assertTrue(head.reserve() == FertilizePlan.MAX_RESERVE, "the reserve stops at its maximum, got " + head.reserve());
         FieldHeadMenu.setAmount(player, pos, FieldAmount.RESERVE, -10);
         helper.assertTrue(head.reserve() == 0, "a negative reserve is 0, got " + head.reserve());
+        FieldHeadMenu.setAmount(player, pos, FieldAmount.ANTI_CORROSION_RESERVE, 99_999);
+        helper.assertTrue(head.antiCorrosionReserve() == FertilizePlan.MAX_RESERVE,
+                "the wax reserve stops at its maximum, got " + head.antiCorrosionReserve());
+        FieldHeadMenu.setAmount(player, pos, FieldAmount.ANTI_CORROSION_RESERVE, -10);
+        helper.assertTrue(head.antiCorrosionReserve() == 0, "a negative wax reserve is 0, got " + head.antiCorrosionReserve());
         helper.succeed();
     }
 
@@ -276,7 +281,7 @@ public final class FieldLevelGameTests {
         helper.succeed();
     }
 
-    /** Produce and levels survive saving; a new crop forgets the produce. */
+    /** Produce, levels and the wax reserve survive saving; a new crop forgets the produce. */
     @ServusGameTest(timeoutTicks = 60)
     public static void levelsSaved(GameTestHelper helper) {
         FarmFixtures.Farm farm = farm(helper, harvester());
@@ -285,11 +290,14 @@ public final class FieldLevelGameTests {
             wheatField(head);
             setLevel(head, StockLevels.Level.HARVEST, 1000);
             setLevel(head, StockLevels.Level.FERTILIZE, 500);
+            head.setAntiCorrosionReserve(6);
             CompoundTag tag = head.saveWithFullMetadata(helper.getLevel().registryAccess());
             FieldHeadBlockEntity copy = new FieldHeadBlockEntity(head.getBlockPos(), head.getBlockState());
             copy.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), tag));
-            helper.assertTrue(copy.produce().is(Items.WHEAT) && copy.harvestLimit() == 1000 && copy.fertilizeBelow() == 500,
-                    "produce and levels should survive saving, got " + copy.produce() + ", " + copy.harvestLimit() + " / " + copy.fertilizeBelow());
+            helper.assertTrue(copy.produce().is(Items.WHEAT) && copy.harvestLimit() == 1000 && copy.fertilizeBelow() == 500
+                            && copy.antiCorrosionReserve() == 6,
+                    "produce, levels and wax reserve should survive saving, got " + copy.produce() + ", " + copy.harvestLimit()
+                            + " / " + copy.fertilizeBelow() + ", " + copy.antiCorrosionReserve());
             head.setCrop(new ItemStack(Items.BEETROOT_SEEDS));
             helper.assertTrue(!head.produceKnown() && head.harvestLimit() == 1000, "a new crop forgets the produce but keeps the levels");
             helper.succeed();

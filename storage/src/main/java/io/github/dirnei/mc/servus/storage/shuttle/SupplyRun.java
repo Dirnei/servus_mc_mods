@@ -19,8 +19,8 @@ final class SupplyRun extends FieldRun {
     final Map<SupplyBuffer.Part, ItemKey> keys = new EnumMap<>(SupplyBuffer.Part.class);
     /** Items still to pick for each planned part. */
     final Map<SupplyBuffer.Part, Integer> remaining = new EnumMap<>(SupplyBuffer.Part.class);
-    /** The fertilizer reserve the run keeps in storage, fixed when it planned. */
-    int reserve;
+    /** The reserve of each part's item the run keeps in storage, fixed when it planned. */
+    final Map<SupplyBuffer.Part, Integer> reserves = new EnumMap<>(SupplyBuffer.Part.class);
     /** The picking is over, whatever it brought. */
     boolean fetched;
     /** The stop at the head is over. */
@@ -36,6 +36,6 @@ final class SupplyRun extends FieldRun {
 
     /** The reserve storage keeps of the part's item. */
     int reserveOf(SupplyBuffer.Part part) {
-        return part == SupplyBuffer.Part.FERTILIZER ? reserve : 0;
+        return reserves.getOrDefault(part, 0);
     }
 }
