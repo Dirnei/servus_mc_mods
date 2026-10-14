@@ -31,7 +31,7 @@ Apply after `m10-field-head-buffer` is archived.
 
 ## 5. Integration
 
-- [ ] 5.1 Full `gradlew build`, unit tests and storage GameTests green. The game launches with all three mods.
+- [x] 5.1 Full `gradlew build`, unit tests and storage GameTests green. The game launches with all three mods.
 - [ ] 5.2 Play check in game by the user from main:
   - A wheat field learns wheat at its first harvest.
   - With a limit below the stock it stops harvesting, and resumes when wheat is taken out.

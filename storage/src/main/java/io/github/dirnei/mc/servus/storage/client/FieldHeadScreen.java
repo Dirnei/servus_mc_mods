@@ -225,7 +225,6 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         return step > 0 ? "+" + step : String.valueOf(step);
     }
 
-
     private Button stepButton(String label, int y, int x, int id) {
         return addRenderableWidget(Button.builder(Component.literal(label), button -> press(id))
                 .bounds(leftPos + x, topPos + y, 14, 11).build());
