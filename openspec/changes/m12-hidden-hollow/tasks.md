@@ -2,7 +2,7 @@
 
 ## 1. Plan
 
-- [ ] 1.1 `PLAN.md`: add milestone M12 (Alchemy, Citrinitas and Rubedo) under "Open: Alchemy" pointing to `alchemy_plan.md` and listing its ten changes; remove Undines, Sylphs and the outdated Citrinitas and Rubedo notes in 2.1, the open points and the open decisions that `alchemy_plan.md` now settles. Verify: `openspec validate m12-hidden-hollow` passes, no em dash in the diff.
+- [x] 1.1 `PLAN.md`: add milestone M12 (Alchemy, Citrinitas and Rubedo) under "Open: Alchemy" pointing to `alchemy_plan.md` and listing its ten changes; remove Undines, Sylphs and the outdated Citrinitas and Rubedo notes in 2.1, the open points and the open decisions that `alchemy_plan.md` now settles. Verify: `openspec validate m12-hidden-hollow` passes, no em dash in the diff.
 
 ## 2. The hidden Hollow
 

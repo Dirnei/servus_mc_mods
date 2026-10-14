@@ -59,10 +59,10 @@ Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.se
 - **Tria Prima.** Every input and every product has its own ratio, so surplus of one principle is normal and goes to the Sink or to a later converter. In Nigredo the Calciner takes almost anything, so the early game needs no ore source but the pickaxe.
 - **Machines are built, not placed.** Alchemy machines are multiblocks of vanilla blocks and custom parts with fixed ports by position, formed with Paracelsus' Journal, drawn as one model, with no side configuration and no GUI.
 - **No world generation.** Gnomes grow the veins: a Gnome Hollow seeded with an ore by tag ripens while it is fed principles, and a bound gnome works it forever. Seeds are gated by stage.
-- **The four elementals** are the workforce: Gnomes (earth: veins), Salamanders (fire), Undines (water), Sylphs (air). They live unseen in their element and show only under Elemental Sight.
+- **The elementals** are the workforce: Gnomes (earth: veins) and Salamanders (fire), with the homunculus as the late servant. They live unseen in their element and show only under Elemental Sight.
 - **Stages of the Great Work** replace pack tiers: Nigredo, Albedo, Citrinitas, Rubedo. The Athanor's structure is the stage gate, one ring or part per stage, and its flame takes the stage's colour.
 - **The journal is the tech tree:** one chapter per part of Paracelsus' life, tasks of two kinds only (do something N times, make something for the first time), progress per team.
-- **FE** stays the energy standard. Nigredo runs on fire and time; FE versions of the alchemy machines arrive later as upgrades, together with the Salamanders.
+- **FE** stays the energy standard. Alchemy runs on fire and time.
 - Machines have **fixed speeds and clean ratios** so players can plan builds, and they join the data cable so the Crafting CPU orders "64 iron ingots" without caring that it is alchemy.
 - Principle ratios, recipes, vein seeds, ripening, journal tasks and Athanor structures are **datapack driven**.
 
@@ -74,8 +74,10 @@ Prior art to stay apart from: Theurgy also works with Sulfur, Salt and Mercury, 
 |---|---|---|---|
 | Nigredo | Villach | his father, metals and the first fire | Calciner, Coagulator, Athanor |
 | Albedo | Schwaz | the silver mines, the miners' sickness, the gnomes | Elixir of Sight, Gnome Hollow, iron and copper seeds |
-| Citrinitas | Wandering years | the Tria Prima, "the dose makes the poison", zinc | Salamanders, more seeds |
-| Rubedo | Basel and Salzburg | the burned textbook, his death in 1541 | the Stone, late seeds, endless works |
+| Citrinitas | Wandering years | the Tria Prima, "the dose makes the poison", zinc | gold, redstone and diamond seeds, Principle Dropper, Salamander, Receptaculum |
+| Rubedo | Basel and Salzburg | the burned textbook, his death in 1541 | the Prelum: Netherite from Caput Mortuum |
+
+The stage plan for Citrinitas and Rubedo, the hidden Gnome Hollow, the homunculus and the hints for hidden things are in `alchemy_plan.md`.
 
 ### 2.2 Servus: Foundation
 
@@ -138,8 +140,7 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 - **Balance pass** and the docs Balance lab on the new data, including CPU slots, buffer room and recipes.
 - **Checkpoint: play it.** Is Nigredo to Albedo fun for a casual player and for a planner? Adjust before Citrinitas.
 - **Journal guidance:** new journal events `build` (a machine formed or placed) and `make` (a first item made), maybe `find`, so chapters react to what the player builds; progress per team, unlocked for every member (decided 2026-10-12).
-- **Citrinitas and Rubedo:** the Wandering years and Basel and Salzburg chapters, the Athanor's next tiers (example: Sulfur pillars, Mercury basins and the Stone), late seeds (gold, diamond), a use for the Caput Mortuum (a later diamond), endless works at the end. Historical claims in the journal text are checked when it is written.
-- **Salamanders, Undines and Sylphs**, and the FE versions of the alchemy machines as upgrades with the Salamanders.
+- **M12 Alchemy, Citrinitas and Rubedo**, as planned in `alchemy_plan.md` (decided 2026-10-15), one change each in this order: `m12-hidden-hollow` (the Gnome Hollow as disguised stone, handled by hand under Elemental Sight), `m12-gnome-gifts`, `m12-athanor-citrinitas-rubedo` (Amethyst and Crying Obsidian rings, gold, redstone and diamond seeds, the Wandering years and Basel and Salzburg chapters), `m12-principle-dropper`, `m12-elixir-dose`, `m12-salamander` (pet, Sal Ammoniac, Ignis Perpetuus), `m12-salamander-forge`, `m12-receptaculum` (Vas Hermeticum and homunculus), `m12-prelum` (Caput Mortuum to Netherite), `m12-hidden-hints` (knocking, dust, traces, the old gnome). Historical claims in the journal text are checked when it is written. The open story and play questions are listed in `alchemy_plan.md`, "Open".
 - Better upgrade items from Alchemy through the Foundation upgrade API.
 
 ### Open: Foundation
@@ -159,10 +160,7 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 
 ## 5. Open decisions
 
-- Citrinitas and Rubedo content, and what Salamanders, Undines and Sylphs do
-- Gnome upkeep: offerings or none, and of what
 - A converter between principles (surplus Sulfur to Salt and so on), or only the Sink
-- Whether too much Elixir of Sight hurts ("the dose makes the poison")
 - Alchemist's Spectacles as a permanent Elemental Sight in a later stage
 - Field kinds beyond crops (trees first, then others) and which modules they need
 - Art style and texture direction (shared look across the family)
