@@ -135,10 +135,14 @@ final class ShuttleModels {
         }
     }
 
-    /** Tracks at 1.75..4.25 and 11.75..14.25, exactly over the heads 3..5 and 11..13 at 0.8 scale, with iron road wheel hubs. */
+    /**
+     * Tracks at 1.75..4.25 and 11.75..14.25, exactly over the heads 3..5 and
+     * 11..13 at 0.8 scale, with iron road wheel hubs. Their ends sit 0.05
+     * inside the chassis ends so the faces do not share a plane.
+     */
     private static void tracks(BlockModelBuilder model) {
-        box(model, 1.75F, 0, 2, 4.25F, 3, 14, TRACK);
-        box(model, 11.75F, 0, 2, 14.25F, 3, 14, TRACK);
+        box(model, 1.75F, 0, 2.05F, 4.25F, 3, 13.95F, TRACK);
+        box(model, 11.75F, 0, 2.05F, 14.25F, 3, 13.95F, TRACK);
         for (float z : new float[] {3.5F, 7.5F, 11.5F}) {
             box(model, 1.25F, 1, z, 1.75F, 2, z + 1, IRON);
             box(model, 14.25F, 1, z, 14.75F, 2, z + 1, IRON);
