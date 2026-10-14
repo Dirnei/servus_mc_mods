@@ -11,4 +11,4 @@
 ## 3. Integration
 
 - [x] 3.1 Full `gradlew build`, unit tests and storage GameTests green. The game launches with all three mods.
-- [ ] 3.2 Play check in game by the user from main. Check a Mk3 with 6 or more Speed on the rails and as an item in the inventory, garage and workshop: the struts lean back into the wing, the wing clears the Handling mast and crane, and no copper stacks remain. Check that it passes a rack without clipping, rides the lift car, and shows no flicker on the wing, plates and struts from several angles while driving. Verify: the user confirms in game.
+- [x] 3.2 Play check in game by the user from main. Check a Mk3 with 6 or more Speed on the rails and as an item in the inventory, garage and workshop: the struts lean back into the wing, the wing clears the Handling mast and crane, and no copper stacks remain. Check that it passes a rack without clipping, rides the lift car, and shows no flicker on the wing, plates and struts from several angles while driving. Verify: the user confirms in game.
