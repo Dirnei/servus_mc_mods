@@ -375,7 +375,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         if (!(level instanceof ServerLevel) || isRemoved() || !neighboursLoaded()) {
             return false;
         }
-        int base = DuctPose.base(connections(), sturdyMask(), hasPanels());
+        int base = DuctPose.base(connections(), sturdyBelow(), hasPanels());
         boolean baseChanged = base != basePose;
         basePose = base;
         if (baseChanged) {
@@ -386,7 +386,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
     /** Recomputes the resting pose and the faces and tells the neighbours; see {@link #refreshPose()}. */
     private boolean updateResting(boolean baseChanged) {
-        int resting = DuctPose.resting(basePose, ductArms(), neighbourPoses(PoseStage.BASE));
+        int resting = DuctPose.resting(basePose, connections(), ductArms(),neighbourPoses(PoseStage.BASE));
         boolean restingChanged = resting != pose;
         pose = resting;
         boolean changed = updateFaces() || restingChanged;
@@ -455,17 +455,11 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         return poses;
     }
 
-    /** Six bit mask of the sides whose neighbour shows a full sturdy face toward the duct; ducts never count. */
-    private int sturdyMask() {
-        int mask = 0;
-        for (Direction side : DIRECTIONS) {
-            BlockPos neighbourPos = worldPosition.relative(side);
-            BlockState neighbour = level.getBlockState(neighbourPos);
-            if (!(neighbour.getBlock() instanceof UtilityDuctBlock) && neighbour.isFaceSturdy(level, neighbourPos, side.getOpposite())) {
-                mask |= DuctModelData.bit(side);
-            }
-        }
-        return mask;
+    /** Whether the block below shows a full sturdy top face; ducts never count. */
+    private boolean sturdyBelow() {
+        BlockPos belowPos = worldPosition.below();
+        BlockState below = level.getBlockState(belowPos);
+        return !(below.getBlock() instanceof UtilityDuctBlock) && below.isFaceSturdy(level, belowPos, Direction.UP);
     }
 
     private boolean neighboursLoaded() {
@@ -882,9 +876,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         saveFiltersAndPriorities(output);
         output.putIntArray("Arms", arms.clone());
         output.putInt("Endpoints", endpoints);
-        output.putInt("PoseBase", basePose);
-        output.putInt("Pose", pose);
-        output.putInt("PoseFaces", poseFaces);
+        output.putInt("RestBase", basePose);
+        output.putInt("Rest", pose);
+        output.putInt("RestFaces", poseFaces);
         if (hasPanels()) {
             savePanels(output);
         }
@@ -975,9 +969,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         Arrays.fill(arms, 0);
         System.arraycopy(savedArms, 0, arms, 0, Math.min(arms.length, savedArms.length));
         endpoints = input.getIntOr("Endpoints", 0);
-        basePose = input.getIntOr("PoseBase", DuctPose.CENTRED);
-        pose = input.getIntOr("Pose", DuctPose.CENTRED);
-        poseFaces = input.getIntOr("PoseFaces", 0);
+        basePose = input.getIntOr("RestBase", DuctPose.CENTRED);
+        pose = input.getIntOr("Rest", DuctPose.CENTRED);
+        poseFaces = input.getIntOr("RestFaces", 0);
         loadPanels(input);
         Identifier savedTier = input.getString("DataTier").map(Identifier::tryParse).orElse(null);
         dataTier = savedTier == null ? CableTiersManager.BASE_TIER : savedTier;

@@ -35,6 +35,7 @@ The first build also had a wall stage: a duct with an arm up or down moved again
 
 - The wall stage is gone. No duct ever moves on X or Z; vertical runs are dead centre.
 - The floor stage and draping only set the height (Y).
+- A duct with an arm up never lies on the floor and never drapes. The user saw a duct on the floor feeding a machine and rising straight up lie down first; it should go straight up. The rule covers every arm up, so the foot of a climb stays centred too and the floor run steps up into it with the normal arm step. A duct with only an arm down (the top of a climb turning onto a floor or step) still lies low or drapes.
 - Everything else stays as built: centred cases, steps, centred endpoints, pose updates, outline, collision, carrot hits and goggles.
 
 With only one axis able to move, the model below drops what existed for X and Z: the pose is one height instead of a side per axis, a face holds one bit per side, only horizontal arms can step and only up or down, the step inset per arm axis is gone, and the shape cache key fits a `long` again.
@@ -55,12 +56,13 @@ The height also carries a **rank**: `ANCHORED` (from floor or panel), `DRAPED` (
 
 Pure logic in `foundation/.../logistics/duct/DuctPose.java`, no Minecraft imports.
 
-1. **Base pose**, from the duct, its arms and the block below.
+1. **Base pose**, from the duct, its arms and the block below (`base(arms, sturdyBelow, panels)`).
    - Panel: any panel makes it `MID`, `ANCHORED`.
-   - Floor: below is sturdy and is not an arm side. Then it is `LOW`, `ANCHORED`.
+   - Floor: below is sturdy, is not an arm side, and the duct has no arm up. Then it is `LOW`, `ANCHORED`.
    - Otherwise it is `MID`, `FREE`.
-2. **Resting pose**, from the base pose and the base poses of the ducts across its horizontal duct arms.
-   - When `FREE`, collect the heights of horizontal neighbours that are `ANCHORED`. Ducts above or below do not ask, because their height says nothing about where a horizontal run lies.
+2. **Resting pose**, from the base pose, the duct's arms and the base poses of the ducts across its horizontal duct arms.
+   - A duct with an arm up keeps its base pose.
+   - Otherwise, when `FREE`, collect the heights of horizontal neighbours that are `ANCHORED`. Ducts above or below do not ask, because their height says nothing about where a horizontal run lies.
    - If all requests agree, the duct takes that height as `DRAPED`. If they disagree, it stays `MID`, `FREE`.
 3. **Faces**, per horizontal arm side, from the duct's own resting pose and the resting pose of the duct across that face.
    - The higher rank wins (`ANCHORED` > `DRAPED` > `FREE`).

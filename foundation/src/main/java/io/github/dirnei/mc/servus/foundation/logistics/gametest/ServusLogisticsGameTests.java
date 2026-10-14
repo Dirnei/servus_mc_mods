@@ -611,12 +611,12 @@ public final class ServusLogisticsGameTests {
         helper.succeed();
     }
 
-    /** Asserts the resting pose of the duct on one axis. */
-    private static void assertPose(GameTestHelper helper, UtilityDuctBlockEntity duct, int axis, DuctPose.Side side, DuctPose.Rank rank) {
+    /** Asserts the height and rank of the duct's resting pose. */
+    private static void assertPose(GameTestHelper helper, UtilityDuctBlockEntity duct, DuctPose.Height height, DuctPose.Rank rank) {
         int pose = duct.pose();
-        helper.assertTrue(DuctPose.side(pose, axis) == side && DuctPose.rank(pose, axis) == rank,
-                "duct at " + duct.getBlockPos() + " should be " + side + " " + rank + " on axis " + axis
-                        + ", got " + DuctPose.side(pose, axis) + " " + DuctPose.rank(pose, axis));
+        helper.assertTrue(DuctPose.height(pose) == height && DuctPose.rank(pose) == rank,
+                "duct at " + duct.getBlockPos() + " should be " + height + " " + rank
+                        + ", got " + DuctPose.height(pose) + " " + DuctPose.rank(pose));
     }
 
     private static void stone(GameTestHelper helper, BlockPos... positions) {
@@ -625,7 +625,7 @@ public final class ServusLogisticsGameTests {
         }
     }
 
-    /** A run of two Item Pipe ducts on stone lies on the floor and stays in the middle across the run. */
+    /** A run of two Item Pipe ducts on stone lies on the floor, and the arm between them meets its face low. */
     @ServusGameTest(timeoutTicks = 20)
     public static void ductOnStoneLiesLow(GameTestHelper helper) {
         BlockPos west = new BlockPos(3, 2, 3);
@@ -633,11 +633,9 @@ public final class ServusLogisticsGameTests {
         UtilityDuctBlockEntity a = duct(helper, west, Line.ITEM);
         UtilityDuctBlockEntity b = duct(helper, west.east(), Line.ITEM);
         for (UtilityDuctBlockEntity duct : List.of(a, b)) {
-            assertPose(helper, duct, DuctPose.Y, DuctPose.Side.NEG, DuctPose.Rank.ANCHORED);
-            assertPose(helper, duct, DuctPose.X, DuctPose.Side.MID, DuctPose.Rank.FREE);
-            assertPose(helper, duct, DuctPose.Z, DuctPose.Side.MID, DuctPose.Rank.FREE);
+            assertPose(helper, duct, DuctPose.Height.LOW, DuctPose.Rank.ANCHORED);
         }
-        helper.assertTrue(DuctPose.faceSide(a.poseFaces(), DuctShapes.EAST, DuctPose.Y) == DuctPose.Side.NEG,
+        helper.assertTrue(DuctPose.faceHeight(a.poseFaces(), DuctShapes.EAST) == DuctPose.Height.LOW,
                 "the shared arm meets its face on the floor");
         helper.succeed();
     }
@@ -652,26 +650,27 @@ public final class ServusLogisticsGameTests {
         helper.succeed();
     }
 
-    /** A vertical run beside a stone wall to its west moves against the wall. */
+    /** A vertical run in a corner of stone walls, with air below, stays in the middle of its blocks. */
     @ServusGameTest(timeoutTicks = 20)
-    public static void climbHugsWall(GameTestHelper helper) {
-        BlockPos bottom = new BlockPos(5, 2, 5);
+    public static void climbInCornerStaysCentred(GameTestHelper helper) {
+        BlockPos bottom = new BlockPos(5, 3, 5);
+        helper.setBlock(bottom.below(), Blocks.AIR.defaultBlockState());
         List<UtilityDuctBlockEntity> run = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
-            stone(helper, bottom.above(i).west());
+            stone(helper, bottom.above(i).west(), bottom.above(i).north());
             run.add(duct(helper, bottom.above(i), Line.ITEM));
         }
         for (UtilityDuctBlockEntity duct : run) {
-            assertPose(helper, duct, DuctPose.X, DuctPose.Side.NEG, DuctPose.Rank.ANCHORED);
-            assertPose(helper, duct, DuctPose.Z, DuctPose.Side.MID, DuctPose.Rank.FREE);
+            helper.assertTrue(duct.pose() == DuctPose.CENTRED && duct.poseFaces() == 0,
+                    "duct at " + duct.getBlockPos() + " stays centred, got " + duct.pose() + " faces " + duct.poseFaces());
         }
         helper.succeed();
     }
 
     /**
-     * A run on a floor climbs the west wall of a one block step and continues
-     * east on top of it: the duct at the top of the climb sits against the
-     * wall and as low as the top of the step.
+     * A run on a floor climbs beside the west wall of a one block step and
+     * continues east on top of it: the climb stays centred, and the duct at
+     * the top of the climb lies as low as the run on the step.
      */
     @ServusGameTest(timeoutTicks = 20)
     public static void stepEdgeDrapes(GameTestHelper helper) {
@@ -683,14 +682,29 @@ public final class ServusLogisticsGameTests {
         UtilityDuctBlockEntity top = duct(helper, foot.above(), Line.ITEM);
         UtilityDuctBlockEntity onStep = duct(helper, step.above(), Line.ITEM);
 
-        assertPose(helper, footDuct, DuctPose.X, DuctPose.Side.POS, DuctPose.Rank.ANCHORED);
-        assertPose(helper, footDuct, DuctPose.Y, DuctPose.Side.NEG, DuctPose.Rank.ANCHORED);
-        assertPose(helper, onStep, DuctPose.Y, DuctPose.Side.NEG, DuctPose.Rank.ANCHORED);
-        assertPose(helper, top, DuctPose.X, DuctPose.Side.POS, DuctPose.Rank.DRAPED);
-        assertPose(helper, top, DuctPose.Y, DuctPose.Side.NEG, DuctPose.Rank.DRAPED);
-        helper.assertTrue(DuctPose.faceSide(top.poseFaces(), DuctShapes.EAST, DuctPose.Y) == DuctPose.Side.NEG
-                        && DuctPose.faceSide(top.poseFaces(), DuctShapes.DOWN, DuctPose.X) == DuctPose.Side.POS,
-                "the run has no step at the top of the climb");
+        helper.assertTrue(footDuct.pose() == DuctPose.CENTRED, "the foot of the climb stays centred, got " + footDuct.pose());
+        helper.assertTrue(DuctPose.faceHeight(footDuct.poseFaces(), DuctShapes.WEST) == DuctPose.Height.LOW,
+                "the floor run steps up into the foot of the climb");
+        assertPose(helper, onStep, DuctPose.Height.LOW, DuctPose.Rank.ANCHORED);
+        assertPose(helper, top, DuctPose.Height.LOW, DuctPose.Rank.DRAPED);
+        helper.assertTrue(DuctPose.faceHeight(top.poseFaces(), DuctShapes.EAST) == DuctPose.Height.LOW
+                        && DuctPose.faceHeight(onStep.poseFaces(), DuctShapes.WEST) == DuctPose.Height.LOW,
+                "the run on the step has no step at the top of the climb");
+        helper.succeed();
+    }
+
+    /** A duct on stone that feeds a furnace beside it and runs straight up stays centred, with a straight arm into the furnace. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void machineOnFloorPipeGoesStraightUp(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(3, 2, 3);
+        stone(helper, pos.below(), pos.east().below());
+        helper.setBlock(pos.east(), Blocks.FURNACE.defaultBlockState());
+        UtilityDuctBlockEntity duct = duct(helper, pos, Line.ITEM);
+        UtilityDuctBlockEntity above = duct(helper, pos.above(), Line.ITEM);
+        helper.assertTrue(duct.isEndpoint(Direction.EAST), "the furnace is an endpoint");
+        helper.assertTrue(above.pose() == DuctPose.CENTRED, "the duct above is centred, got " + above.pose());
+        helper.assertTrue(duct.pose() == DuctPose.CENTRED, "the duct with an arm up stays centred, got " + duct.pose());
+        helper.assertTrue(duct.poseFaces() == 0, "the arm into the furnace runs straight");
         helper.succeed();
     }
 
@@ -701,7 +715,7 @@ public final class ServusLogisticsGameTests {
         stone(helper, floored.below());
         UtilityDuctBlockEntity lying = duct(helper, floored, Line.ITEM);
         UtilityDuctBlockEntity draped = duct(helper, floored.east(), Line.ITEM);
-        assertPose(helper, draped, DuctPose.Y, DuctPose.Side.NEG, DuctPose.Rank.DRAPED);
+        assertPose(helper, draped, DuctPose.Height.LOW, DuctPose.Rank.DRAPED);
 
         helper.setBlock(floored.below(), Blocks.AIR.defaultBlockState());
         helper.assertTrue(lying.pose() == DuctPose.CENTRED, "the duct without floor is centred, got " + lying.pose());
@@ -710,19 +724,17 @@ public final class ServusLogisticsGameTests {
         helper.succeed();
     }
 
-    /** A facade panel moves a floor duct to the middle on every axis. */
+    /** A facade panel moves a floor duct to the middle. */
     @ServusGameTest(timeoutTicks = 20)
     public static void panelRecentresDuct(GameTestHelper helper) {
         BlockPos pos = new BlockPos(3, 2, 3);
         stone(helper, pos.below());
         UtilityDuctBlockEntity duct = duct(helper, pos, Line.ITEM);
-        assertPose(helper, duct, DuctPose.Y, DuctPose.Side.NEG, DuctPose.Rank.ANCHORED);
+        assertPose(helper, duct, DuctPose.Height.LOW, DuctPose.Rank.ANCHORED);
         duct.setPanel(Direction.NORTH, Blocks.STONE.defaultBlockState(), false);
-        for (int axis = DuctPose.X; axis <= DuctPose.Z; axis++) {
-            assertPose(helper, duct, axis, DuctPose.Side.MID, DuctPose.Rank.ANCHORED);
-        }
+        assertPose(helper, duct, DuctPose.Height.MID, DuctPose.Rank.ANCHORED);
         duct.removePanel(Direction.NORTH);
-        assertPose(helper, duct, DuctPose.Y, DuctPose.Side.NEG, DuctPose.Rank.ANCHORED);
+        assertPose(helper, duct, DuctPose.Height.LOW, DuctPose.Rank.ANCHORED);
         helper.succeed();
     }
 

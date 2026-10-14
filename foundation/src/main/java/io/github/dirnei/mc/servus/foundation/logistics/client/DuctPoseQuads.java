@@ -17,12 +17,12 @@ import net.neoforged.neoforge.client.model.quad.MutableQuad;
 
 /**
  * Moves the centred duct part quads to a duct's resting pose (see
- * {@link DuctPose}): the centre is shifted by the pose, an arm's body is
- * stretched and shifted onto the segment {@link DuctShapes#armBoxes} gives,
- * and its ring is shifted to where the arm meets the face. A stepping arm
- * gets its step box built here, with the line's texture for one line and the
- * junction texture for several. Results are cached
- * per part, pose and face; the cache lives as long as the duct model, which is
+ * {@link DuctPose}): the centre is shifted to the pose's height, an arm's body
+ * is stretched and shifted onto the segment {@link DuctShapes#armBoxes} gives,
+ * and its ring is shifted to the height where the arm meets the face. A
+ * stepping arm gets its step box built here, with the line's texture for one
+ * line and the junction texture for several. Results are cached per part,
+ * height and face height; the cache lives as long as the duct model, which is
  * rebuilt on every resource reload.
  */
 final class DuctPoseQuads {
@@ -31,10 +31,11 @@ final class DuctPoseQuads {
     record ArmQuads(List<BakedQuad> body, List<BakedQuad> ring) {
     }
 
-    private record CenterKey(String part, int radius, int poseSides) {
+    private record CenterKey(String part, int radius, DuctPose.Height height) {
     }
 
-    private record ArmKey(String part, String stepPart, int side, int armRadius, int centerRadius, int poseSides, int sideFaces) {
+    private record ArmKey(String part, String stepPart, int side, int armRadius, int centerRadius, DuctPose.Height height,
+                          DuctPose.Height face) {
     }
 
     /** Sprite names of the single line textures, whose UVs follow the position. */
@@ -51,22 +52,19 @@ final class DuctPoseQuads {
         this.partQuads = partQuads;
     }
 
-    /** The quads of a centre part of the given radius, shifted to the pose. */
+    /** The quads of a centre part of the given radius, shifted to the pose's height. */
     List<BakedQuad> center(String part, int radius, int pose) {
-        int sides = DuctPose.sides(pose);
-        if (sides == DuctPose.CENTRED) {
+        DuctPose.Height height = DuctPose.height(pose);
+        if (height == DuctPose.Height.MID) {
             return partQuads.apply(part);
         }
-        return centers.computeIfAbsent(new CenterKey(part, radius, sides), key -> {
-            float[] shift = new float[3];
-            for (int axis = DuctPose.X; axis <= DuctPose.Z; axis++) {
-                shift[axis] = offset(radius, DuctPose.side(sides, axis));
-            }
+        return centers.computeIfAbsent(new CenterKey(part, radius, height), key -> {
+            float shift = offset(radius, height);
             List<BakedQuad> quads = new ArrayList<>();
             MutableQuad quad = new MutableQuad();
             for (BakedQuad source : partQuads.apply(part)) {
                 quad.setFrom(source);
-                translate(quad, shift);
+                shiftY(quad, shift);
                 quads.add(quad.toBakedQuad());
             }
             return List.copyOf(quads);
@@ -81,55 +79,47 @@ final class DuctPoseQuads {
      * @param centerRadius radius of the duct's centre
      */
     ArmQuads arm(String part, String stepPart, Direction side, int armRadius, int centerRadius, int pose, int faces) {
-        int sideFaces = faces >> side.ordinal() * 4 & 15;
-        ArmKey key = new ArmKey(part, stepPart, side.ordinal(), armRadius, centerRadius, DuctPose.sides(pose), sideFaces);
+        ArmKey key = new ArmKey(part, stepPart, side.ordinal(), armRadius, centerRadius, DuctPose.height(pose),
+                DuctPose.faceHeight(faces, side.ordinal()));
         return arms.computeIfAbsent(key, DuctPoseQuads.this::bakeArm);
     }
 
     private ArmQuads bakeArm(ArmKey key) {
-        int faces = key.sideFaces() << key.side() * 4;
-        DuctShapes.ArmBoxes boxes = DuctShapes.armBoxes(key.side(), key.armRadius(), key.centerRadius(), key.poseSides(), faces);
+        int pose = DuctPose.of(key.height(), DuctPose.Rank.FREE);
+        int faces = key.face() == DuctPose.Height.LOW ? 1 << key.side() : 0;
+        DuctShapes.ArmBoxes boxes = DuctShapes.armBoxes(key.side(), key.armRadius(), key.centerRadius(), pose, faces);
         DuctShapes.Box baked = DuctShapes.arm(key.side(), key.armRadius());
-        float[] ringShift = new float[3];
-        for (int slot = 0; slot < 2; slot++) {
-            int axis = DuctPose.acrossAxis(key.side(), slot);
-            ringShift[axis] = offset(key.armRadius(), DuctPose.faceSide(faces, key.side(), axis));
-        }
+        float ringShift = offset(key.armRadius(), key.face());
         List<BakedQuad> body = new ArrayList<>();
         List<BakedQuad> ring = new ArrayList<>();
         MutableQuad quad = new MutableQuad();
         for (BakedQuad source : partQuads.apply(key.part())) {
             if (source.materialInfo().tintIndex() >= 0) {
                 quad.setFrom(source);
-                translate(quad, ringShift);
+                shiftY(quad, ringShift);
                 ring.add(quad.toBakedQuad());
-            } else if (boxes.segment() != null) {
+            } else {
                 body.add(fit(source, baked, boxes.segment(), DuctPose.axisOf(key.side())));
             }
         }
         if (boxes.step() != null) {
-            body.addAll(step(key, boxes));
+            body.addAll(step(key, pose, boxes.step()));
         }
         return new ArmQuads(List.copyOf(body), List.copyOf(ring));
     }
 
-    /**
-     * The faces of the step box. The face toward the centre is left out when
-     * the centre covers it, and the face toward the block edge when no
-     * segment follows, because the ring then lies in that plane.
-     */
-    private List<BakedQuad> step(ArmKey key, DuctShapes.ArmBoxes boxes) {
+    /** The faces of the step box, without the face toward the centre where the centre covers it. */
+    private List<BakedQuad> step(ArmKey key, int pose, DuctShapes.Box step) {
         List<BakedQuad> sources = partQuads.apply(key.stepPart());
         if (sources.isEmpty()) {
             return List.of();
         }
         BakedQuad.MaterialInfo info = sources.get(0).materialInfo();
-        DuctShapes.Box step = boxes.step();
-        Direction outward = Direction.values()[key.side()];
-        boolean innerHidden = covers(DuctShapes.center(key.centerRadius(), key.poseSides()), step, key.side());
+        Direction inward = Direction.values()[key.side()].getOpposite();
+        boolean innerHidden = covers(DuctShapes.center(key.centerRadius(), pose), step, DuctPose.axisOf(key.side()));
         List<BakedQuad> quads = new ArrayList<>(6);
         for (Direction face : Direction.values()) {
-            if (face == outward.getOpposite() && innerHidden || face == outward && boxes.segment() == null) {
+            if (face == inward && innerHidden) {
                 continue;
             }
             quads.add(new MutableQuad()
@@ -143,11 +133,10 @@ final class DuctPoseQuads {
         return quads;
     }
 
-    /** Whether {@code outer} spans {@code inner} on both axes across the arm on {@code side}. */
-    private static boolean covers(DuctShapes.Box outer, DuctShapes.Box inner, int side) {
-        for (int slot = 0; slot < 2; slot++) {
-            int axis = DuctPose.acrossAxis(side, slot);
-            if (min(inner, axis) < min(outer, axis) || max(inner, axis) > max(outer, axis)) {
+    /** Whether {@code outer} spans {@code inner} on both axes other than {@code along}. */
+    private static boolean covers(DuctShapes.Box outer, DuctShapes.Box inner, int along) {
+        for (int axis = DuctPose.X; axis <= DuctPose.Z; axis++) {
+            if (axis != along && (min(inner, axis) < min(outer, axis) || max(inner, axis) > max(outer, axis))) {
                 return false;
             }
         }
@@ -186,16 +175,14 @@ final class DuctPoseQuads {
         return to0 + (value - from0) * (to1 - to0) / (from1 - from0);
     }
 
-    /** How far, in blocks, a part of the radius moves from the middle to {@code side}. */
-    private static float offset(int radius, DuctPose.Side side) {
-        return (DuctShapes.low(radius, side) - (8 - radius)) / 16F;
+    /** How far up, in blocks, a part of the radius moves from the middle to {@code height}. */
+    private static float offset(int radius, DuctPose.Height height) {
+        return (DuctShapes.low(radius, height) - (8 - radius)) / 16F;
     }
 
-    private static void translate(MutableQuad quad, float[] shift) {
+    private static void shiftY(MutableQuad quad, float shift) {
         for (int vertex = 0; vertex < 4; vertex++) {
-            for (int axis = DuctPose.X; axis <= DuctPose.Z; axis++) {
-                quad.setPositionComponent(vertex, axis, quad.positionComponent(vertex, axis) + shift[axis]);
-            }
+            quad.setPositionComponent(vertex, DuctPose.Y, quad.positionComponent(vertex, DuctPose.Y) + shift);
         }
     }
 

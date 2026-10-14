@@ -106,7 +106,8 @@
 - [ ] 6.2 Play check in game by the user from main:
   - A floor run lies flat and straight, in the middle across the run, also beside a wall.
   - A climb stays dead centre, beside a wall and in a corner.
-  - A floor, climb, step top run: the climb is centred, the duct at the top lies as low as the run on the step, and the run on the step has no step in it.
+  - A floor, climb, step top run: the foot and the climb are centred and the floor run steps up into the foot, the duct at the top lies as low as the run on the step, and the run on the step has no step in it.
+  - A duct on the floor feeding a machine beside it and rising straight up stays centred and goes straight up.
   - A run off a ledge steps once, up or down only.
   - A duct into a furnace from the floor steps up and its ring is centred.
   - Breaking the floor recentres it.
@@ -120,20 +121,20 @@
 
 ## 7. Play test rework: height only
 
-The user's play test rejected the wall stage (design.md D0). Ducts move only down, never on X or Z.
+The user's play test rejected the wall stage, and asked that a duct rising straight up never lies down first (design.md D0). Ducts move only down, never on X or Z, and a duct with an arm up stays centred.
 
-- [x] 7.1 Artifacts: `proposal.md`, `specs/foundation/duct-appearance/spec.md` (wall requirement removed, floor, drape, centred and step wording on height only), `design.md` (D0, D1 to D3 on height only, D4 to D6 and risks), this section and the play check list in 6.2. Verify: `openspec validate m9-duct-resting-pose --strict` valid.
-- [ ] 7.2 Pose solver and boxes on height only, pure Java:
-  - `DuctPose.java`: the pose is a height (`MID`, `LOW`) and a rank; `base(arms, sturdyBelow, panels)` without the wall stage; draping only from horizontal neighbours; faces one bit per horizontal side.
-  - `DuctShapes.java`: only horizontal arms step, and only on Y; the segment always follows the step; `STEP_INSET` goes.
-  - `ArmHit.java` keeps its signature.
-  - Callers in `UtilityDuctBlockEntity`, `UtilityDuctBlock`, `DuctPoseQuads` and `ServusLogisticsGameTests` adapted to the new API so the build stays green.
+- [x] 7.1 Artifacts: `proposal.md`, `specs/foundation/duct-appearance/spec.md` (wall requirement removed, floor, drape, centred and step wording on height only, arm up stays centred), `design.md` (D0, D1 to D3 on height only, D4 to D6 and risks), this section and the play check list in 6.2. Verify: `openspec validate m9-duct-resting-pose --strict` valid.
+- [x] 7.2 Height only pose across the code. The pose API changes, so every caller moves in this one task:
+  - `DuctPose.java`: the pose is a height (`MID`, `LOW`) and a rank; `base(arms, sturdyBelow, panels)` without the wall stage, no floor with an arm up; `resting(base, arms, ductArms, neighbourBase)` drapes only from horizontal neighbours and never with an arm up; faces one bit per horizontal side.
+  - `DuctShapes.java`: only horizontal arms step, and only on Y; the segment always follows the step; `STEP_INSET` goes. `ArmHit.java` keeps its signature.
+  - `UtilityDuctBlockEntity`: `sturdyBelow()` replaces the six side sturdy mask; save keys `RestBase`, `Rest`, `RestFaces`. `UtilityDuctBlock`: the shape cache key is a `long` again.
+  - `foundation/.../logistics/client/DuctPoseQuads.java`: centre and ring shifted on Y only, cache keyed by height and face height, the step's outer face always drawn.
+  - GameTests in `ServusLogisticsGameTests.java`: `climbHugsWall` becomes `climbInCornerStaysCentred`; `stepEdgeDrapes` checks the centred foot and climb and the draped height at the top; new `machineOnFloorPipeGoesStraightUp`; the others assert height and rank.
 
-  JUnit: `DuctPoseTest` drops `climbHugsWall`, `climbInCornerHugsBoth`, `oppositeWallsStayMiddle`, `horizontalRunIgnoresWall`, `armIntoWallIsNotWall` and adds `footOfClimbLiesLow`, `stepEdgeDrapesHeight`, `verticalNeighbourDoesNotRequest`, `verticalArmsHaveNoFace`; `DuctShapesPoseTest` drops `twoAxisStepIsOneBox`, `flushCentreStepFillsTheGap` and adds `verticalArmNeverSteps`, `segmentAlwaysFollowsStep`; `segmentsTouchButDoNotOverlap` runs every face mask; `ArmHitTest` on the new API.
+  JUnit: `DuctPoseTest` drops `climbHugsWall`, `climbInCornerHugsBoth`, `oppositeWallsStayMiddle`, `horizontalRunIgnoresWall`, `armIntoWallIsNotWall` and adds `footOfClimbStaysCentred`, `machineOnFloorPipeGoesStraightUp`, `armUpDoesNotDrape`, `armDownOnlyStillLiesLow`, `stepEdgeDrapesHeight`, `verticalNeighbourDoesNotRequest`, `verticalArmsHaveNoFace`; `DuctShapesPoseTest` drops `twoAxisStepIsOneBox`, `flushCentreStepFillsTheGap` and adds `verticalArmNeverSteps`, `segmentAlwaysFollowsStep`; `segmentsTouchButDoNotOverlap` runs every face mask; `ArmHitTest` on the new API.
 
-  Verify: `gradlew build` and `gradlew :foundation:test` green.
-- [ ] 7.3 `UtilityDuctBlockEntity`: `sturdyBelow()` replaces the six side sturdy mask; save keys `RestBase`, `Rest`, `RestFaces`. `UtilityDuctBlock`: the shape cache key is a `long` again. Verify: `gradlew build` green.
-- [ ] 7.4 `foundation/.../logistics/client/DuctPoseQuads.java`: centre and ring shifted on Y only, cache keyed by height and face height, the step's outer face always drawn. Face check from design.md D3 for every box pair. Verify: `gradlew build` green.
-- [ ] 7.5 GameTests in `ServusLogisticsGameTests.java`: `climbHugsWall` becomes `climbInCornerStaysCentred`; `stepEdgeDrapes` checks the centred climb and the draped height at the top; the others assert height and rank. Verify: `gradlew :foundation:runGameTestServer` green.
-- [ ] 7.6 Texts: `docs/src/content/docs/mods/foundation.md` (no walls, drape on height only, climbs centred), `PLAN.md` "Open: Foundation" bullet. Verify: docs tests green.
-- [ ] 7.7 Full `gradlew build test runGameTestServerAll` green.
+  Face check, design.md D3, every pair of overlapping or touching boxes: centre and straight arm touch on the centre's face, opposite facing; centre and step: the step's inner face is opposite facing or left out where the centre covers it, the floor or top planes only touch along an edge; step and segment: the segment starts on the step's outer face, opposite facing, equal side planes only touch along an edge; step and ring: the step ends at least the ring depth before the edge; segment and ring: the 0.5 px lip as on a straight arm; steps on two horizontal arms touch at most along an edge; vertical arm and step: opposite facing where they share a plane; duct and floor: `LIFT`.
+
+  Verify: `gradlew build`, `gradlew test` and `gradlew :foundation:runGameTestServer` green.
+- [ ] 7.3 Texts: `docs/src/content/docs/mods/foundation.md` (no walls, drape on height only, climbs and ducts with an arm up centred), `PLAN.md` "Open: Foundation" bullet. Verify: docs tests green.
+- [ ] 7.4 Full `gradlew build test runGameTestServerAll` green.

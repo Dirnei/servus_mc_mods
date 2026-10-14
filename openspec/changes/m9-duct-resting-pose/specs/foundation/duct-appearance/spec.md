@@ -36,7 +36,7 @@ A duct SHALL render and collide as a centre cube plus arms whose thickness grows
 ## ADDED Requirements
 
 ### Requirement: Ducts lie on the floor
-A duct whose block below has a full sturdy top face SHALL lie on it: its centre and its horizontal arms SHALL sit as low in the block as their thickness allows, a hair above the floor so no faces share a plane. A duct on the floor SHALL stay in the middle of its block across both horizontal axes. Ducts SHALL NOT count as floor, and partial blocks such as bottom slabs SHALL NOT count either. A block the duct has an arm into SHALL NOT count as floor.
+A duct whose block below has a full sturdy top face SHALL lie on it: its centre and its horizontal arms SHALL sit as low in the block as their thickness allows, a hair above the floor so no faces share a plane. A duct on the floor SHALL stay in the middle of its block across both horizontal axes. Ducts SHALL NOT count as floor, and partial blocks such as bottom slabs SHALL NOT count either. A block the duct has an arm into SHALL NOT count as floor. A duct with an arm up SHALL NOT lie on the floor, so the run goes straight up from it; a duct with only an arm down may still lie on the floor.
 
 #### Scenario: Run across a stone floor
 - **WHEN** a player lays a straight run of Item Pipe ducts on a stone floor
@@ -63,15 +63,19 @@ A duct whose block below has a full sturdy top face SHALL lie on it: its centre 
 - **THEN** it lies on the floor in the middle of the block across the run, not against the wall
 
 #### Scenario: Foot of a climb
-- **WHEN** a duct on the floor has an arm west along the floor and an arm up beside a wall to the east
-- **THEN** it lies on the floor in the middle of the block across both axes, and the vertical run above it stays in the middle of its blocks
+- **WHEN** a duct above a stone floor has an arm west along the floor and an arm up beside a wall to the east
+- **THEN** it stays in the middle of its block, the vertical run above it stays in the middle of its blocks, and the floor run steps up into it
+
+#### Scenario: Machine on the floor, pipe straight up
+- **WHEN** a duct above a stone floor has an arm east into a furnace standing on the floor and an arm up
+- **THEN** it stays in the middle of its block, its arm runs straight into the middle of the furnace face, and the run goes straight up
 
 ### Requirement: Unsupported ducts drape over edges
-A duct with nothing under it SHALL take the height that its connected neighbour ducts beside it ask for, when they rest on a floor or are held in the middle themselves and agree, so a run over the edge of a step or a short gap stays level. Neighbours above or below it SHALL NOT ask. Neighbours that disagree SHALL leave it in the middle. Only neighbours one block away SHALL count. Draping SHALL NOT move a duct sideways.
+A duct with nothing under it SHALL take the height that its connected neighbour ducts beside it ask for, when they rest on a floor or are held in the middle themselves and agree, so a run over the edge of a step or a short gap stays level. Neighbours above or below it SHALL NOT ask. A duct with an arm up SHALL NOT drape. Neighbours that disagree SHALL leave it in the middle. Only neighbours one block away SHALL count. Draping SHALL NOT move a duct sideways.
 
 #### Scenario: Over the edge of a step
 - **WHEN** a run lies on a floor, climbs one block up beside the east wall of a step, and continues east on top of the step
-- **THEN** the climb stays in the middle of its blocks, and the duct at the top of the climb lies as low as the run on top of the step, so the run on the step has no step in it
+- **THEN** the climb stays in the middle of its blocks and the floor run steps up into it, and the duct at the top of the climb (with only an arm down) lies as low as the run on top of the step, so the run on the step has no step in it
 
 #### Scenario: Neighbours disagree
 - **WHEN** a duct in open air connects to a duct lying on a floor on one side and to a duct with a facade panel on the other side

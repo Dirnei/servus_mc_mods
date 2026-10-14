@@ -40,11 +40,8 @@ public class UtilityDuctBlock extends ConnectableBlock {
 
     public static final MapCodec<UtilityDuctBlock> CODEC = simpleCodec(UtilityDuctBlock::new);
 
-    /** Cached shapes by lines, per line arms and panels packed into a long, plus the pose's sides and the faces. */
-    private record ShapeKey(long linesArmsPanels, int poseSides, int faces) {
-    }
-
-    private static final Map<ShapeKey, VoxelShape> SHAPES = new ConcurrentHashMap<>();
+    /** Cached shapes by lines, per line arms, panels, height and faces packed into a long. */
+    private static final Map<Long, VoxelShape> SHAPES = new ConcurrentHashMap<>();
 
     public UtilityDuctBlock(Properties properties) {
         super(properties, 4);
@@ -140,8 +137,10 @@ public class UtilityDuctBlock extends ConnectableBlock {
         shift += 6 * Line.VALUES.length;
         key |= (long) (solidPanels & 63) << shift;
         key |= (long) (hollowPanels & 63) << (shift + 6);
+        key |= (long) DuctPose.height(pose).ordinal() << (shift + 12);
+        key |= (long) (faces & 63) << (shift + 13);
         int centerRadius = DuctShapes.centerRadius(Integer.bitCount(linesMask & DuctParts.ALL), all);
-        return SHAPES.computeIfAbsent(new ShapeKey(key, DuctPose.sides(pose), faces), k -> {
+        return SHAPES.computeIfAbsent(key, k -> {
             VoxelShape shape = box(DuctShapes.center(centerRadius, pose));
             for (Direction direction : Direction.values()) {
                 int armLines = armLines(arms, direction);

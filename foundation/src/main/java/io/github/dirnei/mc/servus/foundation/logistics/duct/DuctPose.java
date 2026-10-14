@@ -1,26 +1,28 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
 /**
- * The resting pose of a duct: per axis, whether it sits flush with the low
- * side, in the middle or flush with the high side of its block, and how firmly
- * it holds that position. A pose packs into an int, {@link #CENTRED} being the
- * middle on every axis with nothing holding it. Axes are {@link #X},
- * {@link #Y}, {@link #Z}; sides are numbered like {@link DuctShapes}. Pure Java.
+ * The resting pose of a duct: how high it sits in its block, and how firmly it
+ * holds that height. Across the block (X and Z) a duct always stays in the
+ * middle. A pose packs into an int, {@link #CENTRED} being the middle with
+ * nothing holding it. Sides are numbered like {@link DuctShapes}. Pure Java.
  */
 public final class DuctPose {
 
-    /** Where a duct sits on one axis. */
-    public enum Side {
-        MID, NEG, POS
+    /** How high a duct sits in its block. */
+    public enum Height {
+        /** In the middle of the block. */
+        MID,
+        /** On the floor of the block. */
+        LOW
     }
 
-    /** How firmly a duct holds its side on one axis; a later constant beats an earlier one. */
+    /** How firmly a duct holds its height; a later constant beats an earlier one. */
     public enum Rank {
         /** Nothing holds it, so it sits in the middle. */
         FREE,
         /** Copied from the neighbour ducts that rest on something. */
         DRAPED,
-        /** Rests on a floor or wall, or a panel keeps it in the middle. */
+        /** Rests on a floor, or a panel keeps it in the middle. */
         ANCHORED
     }
 
@@ -28,36 +30,29 @@ public final class DuctPose {
     public static final int Y = 1;
     public static final int Z = 2;
 
-    /** The middle of the block on every axis, free. */
+    /** The middle of the block, free. */
     public static final int CENTRED = 0;
 
-    private static final int RANK_SHIFT = 6;
-    private static final Side[] SIDES = Side.values();
+    private static final int RANK_SHIFT = 2;
+    private static final Height[] HEIGHTS = Height.values();
     private static final Rank[] RANKS = Rank.values();
 
     private DuctPose() {
     }
 
-    public static Side side(int pose, int axis) {
-        return SIDES[(pose >> 2 * axis) & 3];
+    public static Height height(int pose) {
+        return HEIGHTS[pose & 1];
     }
 
-    public static Rank rank(int pose, int axis) {
-        return RANKS[(pose >> RANK_SHIFT + 2 * axis) & 3];
+    public static Rank rank(int pose) {
+        return RANKS[(pose >> RANK_SHIFT) & 3];
     }
 
-    /** The pose with one axis replaced. */
-    public static int with(int pose, int axis, Side side, Rank rank) {
-        int cleared = pose & ~(3 << 2 * axis) & ~(3 << RANK_SHIFT + 2 * axis);
-        return cleared | side.ordinal() << 2 * axis | rank.ordinal() << RANK_SHIFT + 2 * axis;
+    public static int of(Height height, Rank rank) {
+        return height.ordinal() | rank.ordinal() << RANK_SHIFT;
     }
 
-    /** The pose without its ranks: only what decides where the parts are. */
-    public static int sides(int pose) {
-        return pose & (1 << RANK_SHIFT) - 1;
-    }
-
-    /** The axis a side lies on. */
+    /** The axis a side lies on: {@link #X}, {@link #Y} or {@link #Z}. */
     public static int axisOf(int side) {
         return switch (side) {
             case DuctShapes.DOWN, DuctShapes.UP -> Y;
@@ -72,13 +67,9 @@ public final class DuctPose {
         return (side & 1) == 1;
     }
 
-    private static int negativeSide(int axis) {
-        return switch (axis) {
-            case X -> DuctShapes.WEST;
-            case Y -> DuctShapes.DOWN;
-            case Z -> DuctShapes.NORTH;
-            default -> throw new IllegalArgumentException("axis " + axis);
-        };
+    /** Whether a side is up or down. */
+    public static boolean isVertical(int side) {
+        return side == DuctShapes.DOWN || side == DuctShapes.UP;
     }
 
     private static boolean has(int mask, int side) {
@@ -86,81 +77,59 @@ public final class DuctPose {
     }
 
     /**
-     * The pose a duct takes from its own block and the six blocks around it.
-     * A sturdy block below lies under it as floor. With an arm up or down, a
-     * sturdy block beside it is a wall it moves against; walls on both sides
-     * of an axis keep it in the middle. A side the duct has an arm into is
-     * neither floor nor wall. Any panel keeps it in the middle on every axis.
+     * The pose a duct takes from its own block and the block below. Any panel
+     * keeps it in the middle; otherwise a sturdy block below that the duct
+     * has no arm into is a floor it lies on, unless the duct has an arm up,
+     * which keeps it in the middle so the run goes straight up.
      *
-     * @param arms   six bit mask of the sides with an arm of any line
-     * @param sturdy six bit mask of the sides whose neighbour shows a full sturdy face toward the duct; ducts never count
-     * @param panels whether the duct carries any panel
+     * @param arms        six bit mask of the sides with an arm of any line
+     * @param sturdyBelow whether the block below shows a full sturdy face toward the duct; ducts never count
+     * @param panels      whether the duct carries any panel
      */
-    public static int base(int arms, int sturdy, boolean panels) {
+    public static int base(int arms, boolean sturdyBelow, boolean panels) {
         if (panels) {
-            int pose = CENTRED;
-            for (int axis = X; axis <= Z; axis++) {
-                pose = with(pose, axis, Side.MID, Rank.ANCHORED);
-            }
-            return pose;
+            return of(Height.MID, Rank.ANCHORED);
         }
-        int support = sturdy & ~arms;
-        int pose = CENTRED;
-        if (has(support, DuctShapes.DOWN)) {
-            pose = with(pose, Y, Side.NEG, Rank.ANCHORED);
+        if (sturdyBelow && !has(arms, DuctShapes.DOWN) && !has(arms, DuctShapes.UP)) {
+            return of(Height.LOW, Rank.ANCHORED);
         }
-        if (has(arms, DuctShapes.DOWN) || has(arms, DuctShapes.UP)) {
-            pose = wall(pose, X, support);
-            pose = wall(pose, Z, support);
-        }
-        return pose;
+        return CENTRED;
     }
 
     /**
-     * The pose a duct shows: its base pose, where each free axis takes the
-     * side that its neighbour ducts anchored on that axis ask for, as long as
-     * they agree. A neighbour across a face on that axis does not ask.
+     * The pose a duct shows: its base pose, or when that is free and the duct
+     * has no arm up, the height its anchored neighbour ducts beside it ask
+     * for, as long as they agree. Ducts above or below do not ask.
      *
      * @param base          the duct's own base pose
+     * @param arms          six bit mask of the sides with an arm of any line
      * @param ductArms      six bit mask of the sides whose arm leads to another duct
      * @param neighbourBase base pose of the duct across each side, read only where {@code ductArms} has the side
      */
-    public static int resting(int base, int ductArms, int[] neighbourBase) {
-        int pose = base;
-        for (int axis = X; axis <= Z; axis++) {
-            if (rank(base, axis) != Rank.FREE) {
-                continue;
-            }
-            Side request = agreedRequest(axis, ductArms, neighbourBase);
-            if (request != null) {
-                pose = with(pose, axis, request, Rank.DRAPED);
-            }
+    public static int resting(int base, int arms, int ductArms, int[] neighbourBase) {
+        if (rank(base) != Rank.FREE || has(arms, DuctShapes.UP)) {
+            return base;
         }
-        return pose;
-    }
-
-    /** The side every anchored neighbour asks for on the axis, null without requests or when they disagree. */
-    private static Side agreedRequest(int axis, int ductArms, int[] neighbourBase) {
-        Side request = null;
+        Height request = null;
         for (int side = 0; side < 6; side++) {
-            if (!has(ductArms, side) || axisOf(side) == axis || rank(neighbourBase[side], axis) != Rank.ANCHORED) {
+            if (!has(ductArms, side) || isVertical(side) || rank(neighbourBase[side]) != Rank.ANCHORED) {
                 continue;
             }
-            Side asked = side(neighbourBase[side], axis);
+            Height asked = height(neighbourBase[side]);
             if (request != null && request != asked) {
-                return null;
+                return base;
             }
             request = asked;
         }
-        return request;
+        return request == null ? base : of(request, Rank.DRAPED);
     }
 
     /**
-     * Where each arm meets its face, per arm side and per axis across the arm,
-     * packed two bits each (see {@link #faceSide}). Between two ducts the
-     * higher rank wins and a tie goes to the duct on the negative side of the
-     * arm axis, so both ducts compute the same face. An arm into an inventory
-     * or machine ends in the middle.
+     * The sides whose horizontal arm meets its face low, as a six bit mask.
+     * Between two ducts the higher rank wins and a tie goes to the duct on the
+     * negative side of the arm axis, so both ducts compute the same face. An
+     * arm into an inventory or machine and a vertical arm meet their face in
+     * the middle.
      *
      * @param resting          the duct's own resting pose
      * @param arms             six bit mask of the sides with an arm of any line
@@ -170,55 +139,25 @@ public final class DuctPose {
     public static int faces(int resting, int arms, int endpoints, int[] neighbourResting) {
         int faces = 0;
         for (int side = 0; side < 6; side++) {
-            if (!has(arms, side) || has(endpoints, side)) {
-                continue;
-            }
-            for (int slot = 0; slot < 2; slot++) {
-                int axis = acrossAxis(side, slot);
-                Side met = meet(resting, neighbourResting[side], side, axis);
-                faces |= met.ordinal() << faceShift(side, slot);
+            if (has(arms, side) && !has(endpoints, side) && !isVertical(side)
+                    && meet(resting, neighbourResting[side], side) == Height.LOW) {
+                faces |= 1 << side;
             }
         }
         return faces;
     }
 
-    /** Where the arm on {@code side} meets its face on {@code axis}, one of the two axes across the arm. */
-    public static Side faceSide(int faces, int side, int axis) {
-        int slot = acrossAxis(side, 0) == axis ? 0 : 1;
-        return SIDES[(faces >> faceShift(side, slot)) & 3];
+    /** The height at which the arm on {@code side} meets its face. */
+    public static Height faceHeight(int faces, int side) {
+        return has(faces, side) ? Height.LOW : Height.MID;
     }
 
-    /** The two axes across the arm on a side, lower axis first. */
-    public static int acrossAxis(int side, int slot) {
-        int along = axisOf(side);
-        int first = along == X ? Y : X;
-        int second = along == Z ? Y : Z;
-        return slot == 0 ? first : second;
-    }
-
-    private static int faceShift(int side, int slot) {
-        return side * 4 + slot * 2;
-    }
-
-    private static Side meet(int own, int other, int side, int axis) {
-        Rank ownRank = rank(own, axis);
-        Rank otherRank = rank(other, axis);
+    private static Height meet(int own, int other, int side) {
+        Rank ownRank = rank(own);
+        Rank otherRank = rank(other);
         if (ownRank != otherRank) {
-            return side(ownRank.compareTo(otherRank) > 0 ? own : other, axis);
+            return height(ownRank.compareTo(otherRank) > 0 ? own : other);
         }
-        return side(isPositive(side) ? own : other, axis);
-    }
-
-    private static int wall(int pose, int axis, int support) {
-        int negative = negativeSide(axis);
-        boolean low = has(support, negative);
-        boolean high = has(support, negative + 1);
-        if (low && high) {
-            return with(pose, axis, Side.MID, Rank.ANCHORED);
-        }
-        if (low) {
-            return with(pose, axis, Side.NEG, Rank.ANCHORED);
-        }
-        return high ? with(pose, axis, Side.POS, Rank.ANCHORED) : pose;
+        return height(isPositive(side) ? own : other);
     }
 }

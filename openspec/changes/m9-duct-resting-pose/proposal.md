@@ -10,7 +10,7 @@ This is a look follow up to M9, listed under "Open: Foundation" in PLAN.md. It t
 
 - Each duct gets a **resting pose**: an offset of its centre from the block centre, worked out from the blocks around it when it is placed or a neighbour changes, never per tick.
   - The pose only ever moves a duct down. Across the block (X and Z) every duct stays in the middle, so vertical runs are dead centre.
-  - **Floor**: a duct above a block with a sturdy top face lies on it.
+  - **Floor**: a duct above a block with a sturdy top face lies on it, unless it has an arm up: then it stays centred so the run goes straight up, also where it feeds a machine on the floor.
   - **Drape**: a duct with nothing under it takes the height its connected neighbour ducts beside it ask for, as long as they agree. A run over the edge of a step or a short gap stays level.
   - Everything else stays centred: ducts in open air, under a ceiling, on top of another duct, above a bottom slab, and every duct with a facade panel.
   - The play test dropped an earlier wall stage (climbing ducts hugging a wall or a corner): it looked wrong wherever the run met a machine or another connection.

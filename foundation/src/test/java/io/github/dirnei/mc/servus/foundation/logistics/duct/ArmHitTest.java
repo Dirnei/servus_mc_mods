@@ -42,7 +42,7 @@ class ArmHitTest {
     }
 
     /** A thin floor duct with an arm east into a chest: the arm steps up to the middle of the face. */
-    private static final int FLOOR = DuctPose.with(DuctPose.CENTRED, DuctPose.Y, DuctPose.Side.NEG, DuctPose.Rank.ANCHORED);
+    private static final int FLOOR = DuctPose.of(DuctPose.Height.LOW, DuctPose.Rank.ANCHORED);
     private static final int EAST_ENDPOINT = DuctPose.faces(FLOOR, 1 << DuctShapes.EAST, 1 << DuctShapes.EAST, new int[6]);
     private static final int[] EAST_ARM = {0, 0, 0, 0, 0, 2};
 
