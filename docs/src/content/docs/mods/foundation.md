@@ -45,7 +45,7 @@ Use the Configuration Carrot on an arm that touches an inventory or machine. The
 
 ### Appearance
 
-A duct grows thicker with its lines, and each line has its own color, so you can tell from a distance what a duct carries. An arm that ends at an inventory or machine carries a ring in its channel color. A duct with a facade renders as the facade block. While you wear Engineer Goggles or hold the carrot, facaded ducts within 32 blocks show as a translucent overlay. Sneak with the carrot to take the facade off.
+A duct grows thicker with its lines, and each line has its own look, so you can tell from a distance what a duct carries: the Item Pipe is a corrugated orange hose, the Fluid Pipe a blue hose with a spiral wrap and a brass sleeve, the Power Cable ribbed red rubber, and the data line a braid in its tier's colours (white, white and gray, or black with a cyan tracer). Several lines run side by side as bands. The pattern runs along the duct block by block on every side. Where a duct bends, branches or crosses, its centre is a black rubber fitting. The line items show a short stub of their line from the end, with the line's colour at the rim and what it carries in the core. An arm that ends at an inventory or machine carries a ring in its channel color. A duct with a facade renders as the facade block. While you wear Engineer Goggles or hold the carrot, facaded ducts within 32 blocks show as a translucent overlay. Sneak with the carrot to take the facade off.
 
 Ducts rest on what holds them up instead of floating in the middle of the block:
 

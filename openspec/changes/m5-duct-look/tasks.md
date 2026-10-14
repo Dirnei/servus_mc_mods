@@ -15,7 +15,7 @@
 
 ## 4. Texts and docs
 
-- [ ] 4.1 `docs/src/content/docs/mods/foundation.md`: the new duct look (hoses and cables per line, data braids by tier, fittings at bends and branches, textures along the run, icons). Run `gradlew iconExport` for `docs/src/icons/servus_foundation/`. Verify: docs tests green, the six line icons in `docs/src/icons/servus_foundation/` are the new ones.
+- [x] 4.1 `docs/src/content/docs/mods/foundation.md`: the new duct look (hoses and cables per line, data braids by tier, fittings at bends and branches, textures along the run, icons). Run `gradlew iconExport` for `docs/src/icons/servus_foundation/`. Verify: docs tests green, the six line icons in `docs/src/icons/servus_foundation/` are the new ones.
 
 ## 5. Integration
 
