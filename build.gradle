@@ -177,8 +177,8 @@ apply plugin: 'net.neoforged.moddev'
 evaluationDependsOnChildren()
 
 // Only the mod projects included in settings.gradle take part (the 26.1.2 port builds
-// Foundation alone until Manufacturing and Storage are ported).
-def allServusMods = ['foundation', 'manufacturing', 'storage'].findAll { findProject(":${it}") != null }.collect { name ->
+// Foundation alone until Alchemy and Storage are ported).
+def allServusMods = ['foundation', 'alchemy', 'storage'].findAll { findProject(":${it}") != null }.collect { name ->
     def sub = project(":${name}")
     sub.neoForge.mods.getByName(sub.mod_id)
 }
@@ -224,9 +224,9 @@ tasks.register('iconExport') {
     dependsOn 'runIconExport'
 }
 
-// The combined runs carry the same dev only mods as the Manufacturing runs (only when Manufacturing is in the build).
-if (findProject(':manufacturing') != null) dependencies {
-    // Manufacturing's journal is a Modonomicon book; the combined runs need the mod.
+// The combined runs carry the same dev only mods as the Alchemy runs (only when Alchemy is in the build).
+if (findProject(':alchemy') != null) dependencies {
+    // Alchemy's journal is a Modonomicon book; the combined runs need the mod.
     runtimeOnly "com.klikli_dev:modonomicon-${minecraft_version}-neoforge:${modonomicon_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
     runtimeOnly "maven.modrinth:jade:${jade_version}"

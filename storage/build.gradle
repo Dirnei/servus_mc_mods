@@ -8,7 +8,7 @@ dependencies {
     compileOnly project(':foundation')
     testImplementation project(':foundation')
 
-    // JEI: API at compile time only (soft dependency); dev client runs get JEI from Manufacturing.
+    // JEI: API at compile time only (soft dependency); dev client runs get JEI from Alchemy.
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
 }

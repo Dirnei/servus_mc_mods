@@ -1,4 +1,4 @@
-// Servus: Manufacturing. Shared configuration lives in the root build.gradle.
+// Servus: Alchemy. Shared configuration lives in the root build.gradle.
 evaluationDependsOn(':foundation')
 
 dependencies {
@@ -39,18 +39,18 @@ def ownMod = neoForge.mods.getByName(project.mod_id)
 neoForge {
     runs {
         configureEach {
-            // Manufacturing is always launched together with Servus: Foundation.
+            // Alchemy is always launched together with Servus: Foundation.
             loadedMods = [ownMod, foundationMod]
         }
         data {
             // Game data export for the documentation site (docs/).
             systemProperty 'servus.gamedata.output', rootProject.file('docs/src/data/gamedata.json').absolutePath
-            // Hand written resources, Manufacturing's first: machine stats live in the mod that owns the machine.
-            systemProperty 'servus.gamedata.resources', ['manufacturing', 'foundation', 'storage']
+            // Hand written resources, Alchemy's first: machine stats live in the mod that owns the machine.
+            systemProperty 'servus.gamedata.resources', ['alchemy', 'foundation', 'storage']
                     .collect { rootProject.file("${it}/src/main/resources").absolutePath }
                     .join(File.pathSeparator)
             // Recipes and lang of every Servus mod, read as files so mods not loaded here still take part.
-            systemProperty 'servus.gamedata.generated', ['foundation', 'manufacturing', 'storage']
+            systemProperty 'servus.gamedata.generated', ['foundation', 'alchemy', 'storage']
                     .collect { rootProject.file("${it}/src/generated/resources").absolutePath }
                     .join(File.pathSeparator)
             // Machine models use the shared machine textures that Foundation ships.

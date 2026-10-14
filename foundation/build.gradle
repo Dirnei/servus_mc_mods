@@ -4,7 +4,7 @@ dependencies {
     // Machine profiles are parsed from plain Gson; Minecraft 26.1.2 ships this version.
     testImplementation 'com.google.code.gson:gson:2.13.2'
 
-    // JEI: API at compile time only (soft dependency); the dev runs get JEI from Manufacturing.
+    // JEI: API at compile time only (soft dependency); the dev runs get JEI from Alchemy.
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
 }

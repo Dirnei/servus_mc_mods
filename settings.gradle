@@ -12,5 +12,5 @@ plugins {
 rootProject.name = 'servus_mc_mods'
 
 include 'foundation'
-include 'manufacturing'
+include 'alchemy'
 include 'storage'
