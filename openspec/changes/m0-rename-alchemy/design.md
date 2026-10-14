@@ -54,7 +54,7 @@ The mod id appears as `ServusManufacturingIds.MOD_ID` and also as the literal `"
 - No new logic, so no new JUnit tests. The existing JUnit tests (all projects, including `ServusAlchemyIdsTest`, `AlchemyMachineDefaultsTest`, `TerminalSortTest` with its fixture namespace changed) and the docs tests cover the pure parts.
 - GameTests: `:alchemy:runGameTestServer`, `:foundation:runGameTestServer`, `:storage:runGameTestServer` green.
 - Manual: `runClientAll` reaches the title screen with "Servus: Alchemy" in the mod list; in a new world the journal opens with its chapters, JEI shows the calcination and coagulation categories, Jade shows a Calciner's tanks, `/servus_alchemy journal` answers. These cover the ids that only fail at runtime.
-- A grep over the repo (excluding `openspec/changes/archive`, `.git`, build output, `node_modules`, `docs/dist`) for `manufactur` (any case) finds nothing.
+- A grep over the repo (excluding `openspec/changes/archive`, this change's own directory, `.git`, build output, `node_modules`, `docs/dist`) for `manufactur` (any case) finds nothing apart from the requirements in `openspec/specs/` that this change's deltas replace; those go at archive.
 
 ### PLAN.md open decisions
 None settled. This is a rename only.
