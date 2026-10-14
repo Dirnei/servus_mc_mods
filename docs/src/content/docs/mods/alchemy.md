@@ -1,9 +1,9 @@
 ---
-title: "Servus: Manufacturing"
+title: "Servus: Alchemy"
 description: Alchemy after Paracelsus. Matter is split into Salt, Sulfur and Mercury and made again from them.
 ---
 
-Servus: Manufacturing (`servus_manufacturing`) is alchemy after Paracelsus. Every material is made of three principles, Salt, Sulfur and Mercury. The Calciner splits matter into them and the Coagulator joins them again into new things. Nothing forces you to build a factory: a few blocks and buckets get you going, and pipes and ratios reward the planner.
+Servus: Alchemy (`servus_alchemy`) is alchemy after Paracelsus. Every material is made of three principles, Salt, Sulfur and Mercury. The Calciner splits matter into them and the Coagulator joins them again into new things. Nothing forces you to build a factory: a few blocks and buckets get you going, and pipes and ratios reward the planner.
 
 It requires Servus: Foundation, whose Utility Duct is its pipe and cable. JEI is optional.
 
@@ -13,7 +13,7 @@ Numbers below are the current defaults. Machine stats and recipes live in datapa
 
 The journal is the tech tree. Every player gets it at their first login, and it can be crafted from a book and a piece of coal. The book runs on Modonomicon, so Modonomicon is required, but the journal itself is a Servus item. Besides the story, its Workshop tab shows how to build and use every machine, with the crafting recipes and a list of every calcination, coagulation and Athanor recipe.
 
-Each chapter of the journal tells part of Paracelsus' life and lists tasks: do something a number of times, or make something for the first time. Your team shares the tasks. When all tasks of a chapter are done, the chapter is finished for the whole team, each member gets its advancement, and the next chapter opens in the book. `/servus_manufacturing journal` shows the progress.
+Each chapter of the journal tells part of Paracelsus' life and lists tasks: do something a number of times, or make something for the first time. Your team shares the tasks. When all tasks of a chapter are done, the chapter is finished for the whole team, each member gets its advancement, and the next chapter opens in the book. `/servus_alchemy journal` shows the progress.
 
 - **Villach** (Nigredo): calcine 100 things, gather 1,000 mB of Salt, coagulate your first Salt Crystal.
 - **Schwaz** (Albedo): opens after Villach; finish one craft on an Albedo Athanor, drink the Elixir of Sight and bind a gnome.

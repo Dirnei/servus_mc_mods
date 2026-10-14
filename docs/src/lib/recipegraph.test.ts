@@ -29,7 +29,7 @@ describe('recipe graph', () => {
 	});
 
 	test('recipe kinds', () => {
-		expect(recipeKind('servus_manufacturing:assembling', false)).toBe('Assembler');
+		expect(recipeKind('servus_alchemy:assembling', false)).toBe('Assembler');
 		expect(recipeKind('minecraft:smelting', false)).toBe('Smelting');
 		expect(recipeKind('servus_storage:heavy_rack', true)).toBe('Crafting');
 		expect(recipeKind('servus_foo:bar', false)).toBe('servus_foo:bar');
@@ -38,8 +38,8 @@ describe('recipe graph', () => {
 	test('only Servus recipes are drawn, whatever they make', () => {
 		const graph = buildRecipeGraph(data);
 		expect(graph.recipes.has('minecraft:iron_ingot_from_smelting_raw_iron')).toBe(false);
-		expect(graph.recipes.has('servus_manufacturing:copper_ingot_from_grit_smelting')).toBe(true);
-		expect(graph.producers.get('minecraft:copper_ingot')).toContain('servus_manufacturing:copper_ingot_from_grit_smelting');
+		expect(graph.recipes.has('servus_alchemy:copper_ingot_from_grit_smelting')).toBe(true);
+		expect(graph.producers.get('minecraft:copper_ingot')).toContain('servus_alchemy:copper_ingot_from_grit_smelting');
 	});
 
 	test('redstone is a leaf', () => {
@@ -59,7 +59,7 @@ describe('recipe graph', () => {
 		const graph = buildRecipeGraph(data, ['storage']);
 		expect([...graph.recipes.values()].every((recipe) => recipe.mod === 'storage')).toBe(true);
 		expect(graph.recipes.has('servus_storage:shuttle')).toBe(true);
-		expect(graph.items).not.toContain('servus_manufacturing:copper_wire');
+		expect(graph.items).not.toContain('servus_alchemy:copper_wire');
 	});
 
 	test('ancestors of the shuttle reach the leaves and skip unrelated recipes', () => {
@@ -99,7 +99,7 @@ describe('raw cost', () => {
 	});
 
 	test('vanilla items are not expanded', () => {
-		const cost = rawCost(buildRecipeGraph(data), 'servus_manufacturing:copper_wire');
+		const cost = rawCost(buildRecipeGraph(data), 'servus_alchemy:copper_wire');
 		expect([...cost.amounts]).toEqual([['minecraft:copper_ingot', 0.5]]);
 	});
 

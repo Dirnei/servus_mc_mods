@@ -6,7 +6,7 @@ import { computeChain } from './ratios';
 import { researchTime, techOrder } from './research';
 
 const data = parseGameData(raw);
-const RED_PACK = 'servus_manufacturing:red_pack';
+const RED_PACK = 'servus_alchemy:red_pack';
 
 describe('research time', () => {
 	test('10 Red Packs at 100 ticks with 1 lab and one pack per 5 s take 50 s', () => {
@@ -47,7 +47,7 @@ describe('research time', () => {
 
 describe('graph edge cases', () => {
 	const recipe = (input: string, output: string) => ({
-		type: 'servus_manufacturing:assembling',
+		type: 'servus_alchemy:assembling',
 		inputs: [{ item: input, count: 1 }],
 		outputs: [{ item: output, count: 1 }],
 		time: 20,
@@ -71,7 +71,7 @@ describe('graph edge cases', () => {
 		const leaf = chain.nodes.find((n) => n.item === 'test:nothing');
 		expect(leaf?.noSource).toBe(true);
 		expect(leaf?.count).toBe(0);
-		expect(chain.totals.machines['servus_manufacturing:assembler']).toBe(1);
+		expect(chain.totals.machines['servus_alchemy:assembler']).toBe(1);
 		expect(chain.totals.fePerTick).toBeGreaterThan(0);
 	});
 });

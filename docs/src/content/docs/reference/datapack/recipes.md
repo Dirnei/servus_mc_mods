@@ -1,11 +1,11 @@
 ---
 title: Recipes
-description: The calcination and coagulation recipe formats of Servus Manufacturing.
+description: The calcination and coagulation recipe formats of Servus Alchemy.
 sidebar:
   order: 4
 ---
 
-Servus Manufacturing adds two recipe types: `servus_manufacturing:calcination` for the Calciner and `servus_manufacturing:coagulation` for the Coagulator. Times and amounts on this page are current values; they live in datapack JSON and modpacks can change them.
+Servus Alchemy adds two recipe types: `servus_alchemy:calcination` for the Calciner and `servus_alchemy:coagulation` for the Coagulator. Times and amounts on this page are current values; they live in datapack JSON and modpacks can change them.
 
 ## File location
 
@@ -13,7 +13,7 @@ Servus Manufacturing adds two recipe types: `servus_manufacturing:calcination` f
 data/<namespace>/recipe/<path>.json
 ```
 
-These are ordinary Minecraft recipes, so they live in the normal `recipe` folder and are reloaded with `/reload`. The built in ones use the subfolders `calcination/` and `coagulation/`, which gives ids like `servus_manufacturing:coagulation/salt_crystal`. Overriding a built in recipe works by using the same path.
+These are ordinary Minecraft recipes, so they live in the normal `recipe` folder and are reloaded with `/reload`. The built in ones use the subfolders `calcination/` and `coagulation/`, which gives ids like `servus_alchemy:coagulation/salt_crystal`. Overriding a built in recipe works by using the same path.
 
 ## Principles
 
@@ -27,7 +27,7 @@ Both recipe types write principle amounts the same way: an object with `salt`, `
 
 | Field | Type | Default | Meaning |
 |---|---|---|---|
-| `type` | string | required | `servus_manufacturing:calcination` |
+| `type` | string | required | `servus_alchemy:calcination` |
 | `input` | sized ingredient | required | One `item` or `tag` with a `count` (default 1). |
 | `output` | principles | required | What one cycle puts into the Calciner's tanks. |
 | `time` | int | 80 | Ticks per cycle. |
@@ -58,7 +58,7 @@ Built in calcination recipes (80 ticks each):
 
 | Field | Type | Default | Meaning |
 |---|---|---|---|
-| `type` | string | required | `servus_manufacturing:coagulation` |
+| `type` | string | required | `servus_alchemy:coagulation` |
 | `input` | principles | required | What one cycle takes from the Coagulator's tanks. |
 | `ingredient` | sized ingredient | none | An item the cycle takes as well. |
 | `result` | item stack | required | `id` and `count` (default 1). |

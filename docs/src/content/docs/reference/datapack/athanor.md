@@ -1,6 +1,6 @@
 ---
 title: Athanor
-description: The Athanor craft and tier formats of Servus Manufacturing.
+description: The Athanor craft and tier formats of Servus Alchemy.
 sidebar:
   order: 5
 ---
@@ -9,7 +9,7 @@ The Athanor crafts with the item lying on it and the principles in its tanks, as
 
 ## Crafts
 
-Ordinary recipes in `data/<namespace>/recipe/`, type `servus_manufacturing:athanor`. The item on the Athanor picks the craft.
+Ordinary recipes in `data/<namespace>/recipe/`, type `servus_alchemy:athanor`. The item on the Athanor picks the craft.
 
 | Field | Type | Default | Meaning |
 |---|---|---|---|
@@ -31,7 +31,7 @@ Built in crafts (100 ticks each):
 ## Tiers
 
 ```
-data/<namespace>/servus_manufacturing/athanor_tier/<name>.json
+data/<namespace>/servus_alchemy/athanor_tier/<name>.json
 ```
 
 | Field | Type | Default | Meaning |
@@ -40,4 +40,4 @@ data/<namespace>/servus_manufacturing/athanor_tier/<name>.json
 | `color` | string | `#FFFFFF` | The flame colour of the stage. |
 | `blocks` | list | required | Each entry has an `offset` `[x, y, z]` from the Athanor and a `block` id. |
 
-Tier 0, Nigredo, is the Athanor alone. The shipped `albedo.json` is tier 1: eight `servus_manufacturing:salt_crystal_block` around the Athanor on its own level. The Athanor checks its tier when it is placed or used, when a craft starts and every 5 seconds.
+Tier 0, Nigredo, is the Athanor alone. The shipped `albedo.json` is tier 1: eight `servus_alchemy:salt_crystal_block` around the Athanor on its own level. The Athanor checks its tier when it is placed or used, when a craft starts and every 5 seconds.

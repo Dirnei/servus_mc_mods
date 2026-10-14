@@ -11,7 +11,7 @@ import { type GameData, type MachineData, type RecipeData, type Stack, stackKey 
 
 export const EXTRACTION = 'servus:extraction';
 export const RESEARCH = 'servus:research';
-export const RECIPE_TIMED_TYPES = new Set(['servus_manufacturing:assembling', 'servus_manufacturing:crushing']);
+export const RECIPE_TIMED_TYPES = new Set(['servus_alchemy:assembling', 'servus_alchemy:crushing']);
 export const DEFAULT_FUEL = 'minecraft:coal';
 const TICKS_PER_SECOND = 20;
 const EPSILON = 1e-9;

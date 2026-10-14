@@ -62,9 +62,9 @@
       "min_source_neighbours": 2,
       "upkeep_level": 0
     },
-    "servus_manufacturing:assembler": {
+    "servus_alchemy:assembler": {
       "kind": "crafter",
-      "recipe_types": ["servus_manufacturing:assembling", "minecraft:crafting"],
+      "recipe_types": ["servus_alchemy:assembling", "minecraft:crafting"],
       "work_ticks": 1,
       "energy_per_tick": 20,
       "energy_capacity": 8000,
@@ -77,7 +77,7 @@
       "min_source_neighbours": 0,
       "upkeep_level": 0
     },
-    "servus_manufacturing:burner_extractor": {
+    "servus_alchemy:burner_extractor": {
       "kind": "burner",
       "recipe_types": ["servus:extraction"],
       "work_ticks": 80,
@@ -92,7 +92,7 @@
       "min_source_neighbours": 0,
       "upkeep_level": 16
     },
-    "servus_manufacturing:burner_smelter": {
+    "servus_alchemy:burner_smelter": {
       "kind": "burner",
       "recipe_types": ["minecraft:smelting"],
       "work_ticks": 80,
@@ -107,9 +107,9 @@
       "min_source_neighbours": 0,
       "upkeep_level": 16
     },
-    "servus_manufacturing:crusher": {
+    "servus_alchemy:crusher": {
       "kind": "powered",
-      "recipe_types": ["servus_manufacturing:crushing"],
+      "recipe_types": ["servus_alchemy:crushing"],
       "work_ticks": 60,
       "energy_per_tick": 20,
       "energy_capacity": 8000,
@@ -122,7 +122,7 @@
       "min_source_neighbours": 0,
       "upkeep_level": 0
     },
-    "servus_manufacturing:electric_extractor": {
+    "servus_alchemy:electric_extractor": {
       "kind": "powered",
       "recipe_types": ["servus:extraction"],
       "work_ticks": 40,
@@ -137,7 +137,7 @@
       "min_source_neighbours": 0,
       "upkeep_level": 0
     },
-    "servus_manufacturing:research_lab": {
+    "servus_alchemy:research_lab": {
       "kind": "powered",
       "recipe_types": ["servus:research"],
       "work_ticks": 1,
@@ -224,42 +224,42 @@
       ],
       "time": 200
     },
-    "servus_manufacturing:assembling/copper_wire": {
-      "type": "servus_manufacturing:assembling",
+    "servus_alchemy:assembling/copper_wire": {
+      "type": "servus_alchemy:assembling",
       "inputs": [
         {"item": "minecraft:copper_ingot", "count": 1}
       ],
       "outputs": [
-        {"item": "servus_manufacturing:copper_wire", "count": 2}
+        {"item": "servus_alchemy:copper_wire", "count": 2}
       ],
       "time": 10
     },
-    "servus_manufacturing:assembling/crusher": {
-      "type": "servus_manufacturing:assembling",
+    "servus_alchemy:assembling/crusher": {
+      "type": "servus_alchemy:assembling",
       "inputs": [
-        {"item": "servus_manufacturing:electric_extractor", "count": 1},
-        {"item": "servus_manufacturing:iron_gear", "count": 4},
-        {"item": "servus_manufacturing:copper_wire", "count": 6}
+        {"item": "servus_alchemy:electric_extractor", "count": 1},
+        {"item": "servus_alchemy:iron_gear", "count": 4},
+        {"item": "servus_alchemy:copper_wire", "count": 6}
       ],
       "outputs": [
-        {"item": "servus_manufacturing:crusher", "count": 1}
+        {"item": "servus_alchemy:crusher", "count": 1}
       ],
       "time": 200
     },
-    "servus_manufacturing:assembling/electric_extractor": {
-      "type": "servus_manufacturing:assembling",
+    "servus_alchemy:assembling/electric_extractor": {
+      "type": "servus_alchemy:assembling",
       "inputs": [
-        {"item": "servus_manufacturing:burner_extractor", "count": 1},
-        {"item": "servus_manufacturing:iron_gear", "count": 4},
-        {"item": "servus_manufacturing:copper_wire", "count": 6}
+        {"item": "servus_alchemy:burner_extractor", "count": 1},
+        {"item": "servus_alchemy:iron_gear", "count": 4},
+        {"item": "servus_alchemy:copper_wire", "count": 6}
       ],
       "outputs": [
-        {"item": "servus_manufacturing:electric_extractor", "count": 1}
+        {"item": "servus_alchemy:electric_extractor", "count": 1}
       ],
       "time": 200
     },
-    "servus_manufacturing:assembling/glass": {
-      "type": "servus_manufacturing:assembling",
+    "servus_alchemy:assembling/glass": {
+      "type": "servus_alchemy:assembling",
       "inputs": [
         {"item": "minecraft:sand", "count": 1}
       ],
@@ -268,29 +268,29 @@
       ],
       "time": 40
     },
-    "servus_manufacturing:assembling/iron_gear": {
-      "type": "servus_manufacturing:assembling",
+    "servus_alchemy:assembling/iron_gear": {
+      "type": "servus_alchemy:assembling",
       "inputs": [
         {"item": "minecraft:iron_ingot", "count": 2}
       ],
       "outputs": [
-        {"item": "servus_manufacturing:iron_gear", "count": 1}
+        {"item": "servus_alchemy:iron_gear", "count": 1}
       ],
       "time": 20
     },
-    "servus_manufacturing:assembling/red_pack": {
-      "type": "servus_manufacturing:assembling",
+    "servus_alchemy:assembling/red_pack": {
+      "type": "servus_alchemy:assembling",
       "inputs": [
-        {"item": "servus_manufacturing:iron_gear", "count": 1},
-        {"item": "servus_manufacturing:copper_wire", "count": 2}
+        {"item": "servus_alchemy:iron_gear", "count": 1},
+        {"item": "servus_alchemy:copper_wire", "count": 2}
       ],
       "outputs": [
-        {"item": "servus_manufacturing:red_pack", "count": 1}
+        {"item": "servus_alchemy:red_pack", "count": 1}
       ],
       "time": 100
     },
-    "servus_manufacturing:assembling/stone": {
-      "type": "servus_manufacturing:assembling",
+    "servus_alchemy:assembling/stone": {
+      "type": "servus_alchemy:assembling",
       "inputs": [
         {"item": "minecraft:cobblestone", "count": 2}
       ],
@@ -299,8 +299,8 @@
       ],
       "time": 20
     },
-    "servus_manufacturing:assembling/stone_bricks": {
-      "type": "servus_manufacturing:assembling",
+    "servus_alchemy:assembling/stone_bricks": {
+      "type": "servus_alchemy:assembling",
       "inputs": [
         {"item": "minecraft:stone", "count": 2}
       ],
@@ -309,28 +309,28 @@
       ],
       "time": 20
     },
-    "servus_manufacturing:copper_ingot_from_grit_blasting": {
+    "servus_alchemy:copper_ingot_from_grit_blasting": {
       "type": "minecraft:blasting",
       "inputs": [
-        {"item": "servus_manufacturing:copper_grit", "count": 1}
+        {"item": "servus_alchemy:copper_grit", "count": 1}
       ],
       "outputs": [
         {"item": "minecraft:copper_ingot", "count": 1}
       ],
       "time": 100
     },
-    "servus_manufacturing:copper_ingot_from_grit_smelting": {
+    "servus_alchemy:copper_ingot_from_grit_smelting": {
       "type": "minecraft:smelting",
       "inputs": [
-        {"item": "servus_manufacturing:copper_grit", "count": 1}
+        {"item": "servus_alchemy:copper_grit", "count": 1}
       ],
       "outputs": [
         {"item": "minecraft:copper_ingot", "count": 1}
       ],
       "time": 200
     },
-    "servus_manufacturing:crushing/cobblestone": {
-      "type": "servus_manufacturing:crushing",
+    "servus_alchemy:crushing/cobblestone": {
+      "type": "servus_alchemy:crushing",
       "inputs": [
         {"item": "minecraft:cobblestone", "count": 1}
       ],
@@ -339,8 +339,8 @@
       ],
       "time": 40
     },
-    "servus_manufacturing:crushing/gravel": {
-      "type": "servus_manufacturing:crushing",
+    "servus_alchemy:crushing/gravel": {
+      "type": "servus_alchemy:crushing",
       "inputs": [
         {"item": "minecraft:gravel", "count": 1}
       ],
@@ -349,40 +349,40 @@
       ],
       "time": 40
     },
-    "servus_manufacturing:crushing/raw_copper": {
-      "type": "servus_manufacturing:crushing",
+    "servus_alchemy:crushing/raw_copper": {
+      "type": "servus_alchemy:crushing",
       "inputs": [
         {"item": "minecraft:raw_copper", "count": 1}
       ],
       "outputs": [
-        {"item": "servus_manufacturing:copper_grit", "count": 2}
+        {"item": "servus_alchemy:copper_grit", "count": 2}
       ],
       "time": 60
     },
-    "servus_manufacturing:crushing/raw_iron": {
-      "type": "servus_manufacturing:crushing",
+    "servus_alchemy:crushing/raw_iron": {
+      "type": "servus_alchemy:crushing",
       "inputs": [
         {"item": "minecraft:raw_iron", "count": 1}
       ],
       "outputs": [
-        {"item": "servus_manufacturing:iron_grit", "count": 2}
+        {"item": "servus_alchemy:iron_grit", "count": 2}
       ],
       "time": 60
     },
-    "servus_manufacturing:iron_ingot_from_grit_blasting": {
+    "servus_alchemy:iron_ingot_from_grit_blasting": {
       "type": "minecraft:blasting",
       "inputs": [
-        {"item": "servus_manufacturing:iron_grit", "count": 1}
+        {"item": "servus_alchemy:iron_grit", "count": 1}
       ],
       "outputs": [
         {"item": "minecraft:iron_ingot", "count": 1}
       ],
       "time": 100
     },
-    "servus_manufacturing:iron_ingot_from_grit_smelting": {
+    "servus_alchemy:iron_ingot_from_grit_smelting": {
       "type": "minecraft:smelting",
       "inputs": [
-        {"item": "servus_manufacturing:iron_grit", "count": 1}
+        {"item": "servus_alchemy:iron_grit", "count": 1}
       ],
       "outputs": [
         {"item": "minecraft:iron_ingot", "count": 1}
@@ -635,7 +635,7 @@
         {"item": "servus_foundation:sink", "count": 8}
       ]
     },
-    "servus_manufacturing:assembler": {
+    "servus_alchemy:assembler": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["ICI", "RTR", "III"],
       "key": {
@@ -651,10 +651,10 @@
         {"item": "minecraft:redstone", "count": 2}
       ],
       "outputs": [
-        {"item": "servus_manufacturing:assembler", "count": 1}
+        {"item": "servus_alchemy:assembler", "count": 1}
       ]
     },
-    "servus_manufacturing:burner_extractor": {
+    "servus_alchemy:burner_extractor": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["III", "IFI", "CCC"],
       "key": {
@@ -668,10 +668,10 @@
         {"item": "minecraft:iron_ingot", "count": 5}
       ],
       "outputs": [
-        {"item": "servus_manufacturing:burner_extractor", "count": 1}
+        {"item": "servus_alchemy:burner_extractor", "count": 1}
       ]
     },
-    "servus_manufacturing:burner_smelter": {
+    "servus_alchemy:burner_smelter": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["III", "BFB", "BBB"],
       "key": {
@@ -685,10 +685,10 @@
         {"item": "minecraft:iron_ingot", "count": 3}
       ],
       "outputs": [
-        {"item": "servus_manufacturing:burner_smelter", "count": 1}
+        {"item": "servus_alchemy:burner_smelter", "count": 1}
       ]
     },
-    "servus_manufacturing:research_lab": {
+    "servus_alchemy:research_lab": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["IGI", "RBR", "III"],
       "key": {
@@ -704,7 +704,7 @@
         {"item": "minecraft:redstone", "count": 2}
       ],
       "outputs": [
-        {"item": "servus_manufacturing:research_lab", "count": 1}
+        {"item": "servus_alchemy:research_lab", "count": 1}
       ]
     },
     "servus_storage:access_point": {
@@ -977,55 +977,55 @@
     }
   },
   "deposits": {
-    "servus_manufacturing:coal": {
-      "block": "servus_manufacturing:coal_deposit",
+    "servus_alchemy:coal": {
+      "block": "servus_alchemy:coal_deposit",
       "yield": {"item": "minecraft:coal", "count": 1}
     },
-    "servus_manufacturing:copper": {
-      "block": "servus_manufacturing:copper_deposit",
+    "servus_alchemy:copper": {
+      "block": "servus_alchemy:copper_deposit",
       "yield": {"item": "minecraft:raw_copper", "count": 1}
     },
-    "servus_manufacturing:iron": {
-      "block": "servus_manufacturing:iron_deposit",
+    "servus_alchemy:iron": {
+      "block": "servus_alchemy:iron_deposit",
       "yield": {"item": "minecraft:raw_iron", "count": 1}
     },
-    "servus_manufacturing:stone": {
-      "block": "servus_manufacturing:stone_deposit",
+    "servus_alchemy:stone": {
+      "block": "servus_alchemy:stone_deposit",
       "yield": {"item": "minecraft:cobblestone", "count": 1}
     }
   },
   "techs": {
-    "servus_manufacturing:crusher": {
-      "parents": ["servus_manufacturing:electric_extractor"],
+    "servus_alchemy:crusher": {
+      "parents": ["servus_alchemy:electric_extractor"],
       "cost": [
-        {"item": "servus_manufacturing:red_pack", "count": 15}
+        {"item": "servus_alchemy:red_pack", "count": 15}
       ],
       "ticks_per_pack": 100,
-      "unlocks": ["servus_manufacturing:assembling/crusher"]
+      "unlocks": ["servus_alchemy:assembling/crusher"]
     },
-    "servus_manufacturing:electric_extractor": {
+    "servus_alchemy:electric_extractor": {
       "parents": [],
       "cost": [
-        {"item": "servus_manufacturing:red_pack", "count": 10}
+        {"item": "servus_alchemy:red_pack", "count": 10}
       ],
       "ticks_per_pack": 100,
-      "unlocks": ["servus_manufacturing:assembling/electric_extractor"]
+      "unlocks": ["servus_alchemy:assembling/electric_extractor"]
     },
-    "servus_manufacturing:logistics": {
-      "parents": ["servus_manufacturing:crusher"],
+    "servus_alchemy:logistics": {
+      "parents": ["servus_alchemy:crusher"],
       "cost": [
-        {"item": "servus_manufacturing:red_pack", "count": 25}
+        {"item": "servus_alchemy:red_pack", "count": 25}
       ],
       "ticks_per_pack": 100,
-      "unlocks": ["servus_manufacturing:assembling/green_pack"]
+      "unlocks": ["servus_alchemy:assembling/green_pack"]
     },
-    "servus_manufacturing:stone_processing": {
+    "servus_alchemy:stone_processing": {
       "parents": [],
       "cost": [
-        {"item": "servus_manufacturing:red_pack", "count": 10}
+        {"item": "servus_alchemy:red_pack", "count": 10}
       ],
       "ticks_per_pack": 100,
-      "unlocks": ["servus_manufacturing:assembling/stone", "servus_manufacturing:assembling/stone_bricks", "servus_manufacturing:assembling/glass"]
+      "unlocks": ["servus_alchemy:assembling/stone", "servus_alchemy:assembling/stone_bricks", "servus_alchemy:assembling/glass"]
     }
   },
   "fuels": {
@@ -1171,37 +1171,37 @@
     "servus_foundation:sink": {
       "name": "Sink"
     },
-    "servus_manufacturing:assembler": {
+    "servus_alchemy:assembler": {
       "name": "Assembler Mk1"
     },
-    "servus_manufacturing:burner_extractor": {
+    "servus_alchemy:burner_extractor": {
       "name": "Burner Extractor"
     },
-    "servus_manufacturing:burner_smelter": {
+    "servus_alchemy:burner_smelter": {
       "name": "Burner Smelter"
     },
-    "servus_manufacturing:copper_grit": {
+    "servus_alchemy:copper_grit": {
       "name": "Copper Grit"
     },
-    "servus_manufacturing:copper_wire": {
+    "servus_alchemy:copper_wire": {
       "name": "Copper Wire"
     },
-    "servus_manufacturing:crusher": {
+    "servus_alchemy:crusher": {
       "name": "Crusher"
     },
-    "servus_manufacturing:electric_extractor": {
+    "servus_alchemy:electric_extractor": {
       "name": "Electric Extractor"
     },
-    "servus_manufacturing:iron_gear": {
+    "servus_alchemy:iron_gear": {
       "name": "Iron Gear"
     },
-    "servus_manufacturing:iron_grit": {
+    "servus_alchemy:iron_grit": {
       "name": "Iron Grit"
     },
-    "servus_manufacturing:red_pack": {
+    "servus_alchemy:red_pack": {
       "name": "Red Pack"
     },
-    "servus_manufacturing:research_lab": {
+    "servus_alchemy:research_lab": {
       "name": "Research Lab"
     },
     "servus_storage:access_point": {

@@ -1,6 +1,6 @@
 ---
 title: Veins
-description: The ore vein format of the Servus Manufacturing Gnome Hollow.
+description: The ore vein format of the Servus Alchemy Gnome Hollow.
 sidebar:
   order: 6
 ---
@@ -8,7 +8,7 @@ sidebar:
 A vein is what a Gnome Hollow grows. Numbers on this page are current values; they live in datapack JSON and modpacks can change them.
 
 ```
-data/<namespace>/servus_manufacturing/vein/<name>.json
+data/<namespace>/servus_alchemy/vein/<name>.json
 ```
 
 | Field | Type | Default | Meaning |

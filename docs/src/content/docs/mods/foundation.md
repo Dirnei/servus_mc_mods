@@ -3,7 +3,7 @@ title: "Servus: Foundation"
 description: The base every Servus mod requires. The Utility Duct, the Fluid Tank, facades, the Configuration Carrot, Engineer Goggles, side configuration and the production API.
 ---
 
-Servus: Foundation (`servus_foundation`) is the base of the mod family. Manufacturing and Storage both require it and never depend on each other. It has two halves: shared code that makes the family look and behave the same, and the transport blocks every base needs.
+Servus: Foundation (`servus_foundation`) is the base of the mod family. Alchemy and Storage both require it and never depend on each other. It has two halves: shared code that makes the family look and behave the same, and the transport blocks every base needs.
 
 Foundation loads on its own, and each content mod loads with only Foundation installed.
 
@@ -125,7 +125,7 @@ Sides are relative to the machine's facing; sides left out are off. A profile on
 
 ## Upkeep
 
-Upkeep is a consumable a machine keeps stocked, such as its fuel. A block names its upkeep item, the level to keep and how many it holds through the `servus_foundation:upkeep` capability, and becomes an upkeep member of the data line, so the duct shows a data arm toward it. Every 40 ticks the data line looks at its upkeep members: when one holds less than its level and has no request on its way, the line asks a supplier on it (a Warehouse Controller or Packing Station, lowest position first) for the difference. What the member gains counts against the request; a request that is not complete after 1200 ticks is given up and asked again. Upkeep is never part of an order. The Machine Adapter, the Burner Pump, the Coal Generator and the Manufacturing burner machines use it.
+Upkeep is a consumable a machine keeps stocked, such as its fuel. A block names its upkeep item, the level to keep and how many it holds through the `servus_foundation:upkeep` capability, and becomes an upkeep member of the data line, so the duct shows a data arm toward it. Every 40 ticks the data line looks at its upkeep members: when one holds less than its level and has no request on its way, the line asks a supplier on it (a Warehouse Controller or Packing Station, lowest position first) for the difference. What the member gains counts against the request; a request that is not complete after 1200 ticks is given up and asked again. Upkeep is never part of an order. The Machine Adapter, the Burner Pump, the Coal Generator and the Alchemy burner machines use it.
 
 ## Fluid Tank
 
@@ -167,7 +167,7 @@ The Configuration Carrot carries a layer, Items by default. Right click the air 
 - **Tick mailbox**: network events are queued and handled once per server tick, in order.
 - **Energy distribution**: fair sharing of FE between sources and sinks, used by the Power Cable.
 - **Teams**: every player has a team id. Without a team mod it is the player's own id. Research and Ender Anchor limits are per team.
-- **Production and stock API**: the capabilities `servus_foundation:production`, `servus_foundation:stock_provider` and `servus_foundation:stock_sink`, plus a pure order planner, and `servus_foundation:supplier` and `servus_foundation:upkeep` for keeping machines stocked. This is how a Storage warehouse learns what a Manufacturing machine can make without the two mods knowing each other.
+- **Production and stock API**: the capabilities `servus_foundation:production`, `servus_foundation:stock_provider` and `servus_foundation:stock_sink`, plus a pure order planner, and `servus_foundation:supplier` and `servus_foundation:upkeep` for keeping machines stocked. This is how a Storage warehouse learns what a Alchemy machine can make without the two mods knowing each other.
 
 ## Datapack values
 
@@ -214,5 +214,5 @@ The common config `config/servus_foundation-common.toml` has `wrenchRotatesBlock
 
 ## How it connects
 
-- [Manufacturing](/servus_mc_mods/mods/manufacturing/) machines use the side panel and the carrot, report their recipes through the production capability, and use ducts as their pipes and cables.
+- [Alchemy](/servus_mc_mods/mods/alchemy/) machines use the side panel and the carrot, report their recipes through the production capability, and use ducts as their pipes and cables.
 - [Storage](/servus_mc_mods/mods/storage/) warehouses use the network graph, the stock capabilities and the order planner. Ducts can move items in and out of any storage block that exposes an item handler.

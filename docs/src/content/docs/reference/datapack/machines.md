@@ -13,7 +13,7 @@ Every Servus machine reads its balance numbers from a machine stats file. All nu
 data/<namespace>/machine/<machine>.json
 ```
 
-The file name is the machine id and the namespace is the mod that owns the machine: the Coal Generator, the pumps and the Ender Anchor are `servus_foundation`, the other machines `servus_manufacturing`. To retune the Calciner a datapack provides `data/servus_manufacturing/machine/calciner.json`. Files are reloaded with `/reload`.
+The file name is the machine id and the namespace is the mod that owns the machine: the Coal Generator, the pumps and the Ender Anchor are `servus_foundation`, the other machines `servus_alchemy`. To retune the Calciner a datapack provides `data/servus_alchemy/machine/calciner.json`. Files are reloaded with `/reload`.
 
 ## Fields
 
@@ -25,7 +25,7 @@ Every field is optional. A field the file leaves out, or a missing file, falls b
 | `energy_per_tick` | int | per machine | FE a powered machine consumes per working tick, or FE a generator produces per burning tick. |
 | `energy_capacity` | int | per machine | Size of the FE buffer. 0 for burner machines. |
 | `fuel_divisor` | int | 1 | Furnace burn time of a fuel item is divided by this. Values below 1 count as 1. |
-| `items_per_tick` | int | 0 | Reserved for item throughput. No Manufacturing machine uses it yet. |
+| `items_per_tick` | int | 0 | Reserved for item throughput. No Alchemy machine uses it yet. |
 | `fluid_per_cycle` | int | 0 | mB of water a pump adds to its buffer per work cycle. |
 | `fluid_capacity` | int | 0 | Size of a pump's water buffer, or of each principle tank of the Calciner and Coagulator, in mB. |
 | `min_source_neighbours` | int | 0 | How many of the four horizontal neighbours of the water source below a pump must be water sources too. |
@@ -59,9 +59,9 @@ These are the defaults built into the code, used for any field a file leaves out
 
 | Machine | Kind | Runs | `work_ticks` | `energy_per_tick` | `energy_capacity` | `fuel_divisor` | `fluid_capacity` |
 |---|---|---|---|---|---|---|---|
-| `calciner` | burner | `servus_manufacturing:calcination` | 1 | 0 | 0 | 2 | 4000 |
-| `coagulator` | crafter | `servus_manufacturing:coagulation` | 1 | 0 | 0 | 1 | 4000 |
-| `athanor` | crafter | `servus_manufacturing:athanor` | 1 | 0 | 0 | 1 | 4000 |
+| `calciner` | burner | `servus_alchemy:calcination` | 1 | 0 | 0 | 2 | 4000 |
+| `coagulator` | crafter | `servus_alchemy:coagulation` | 1 | 0 | 0 | 1 | 4000 |
+| `athanor` | crafter | `servus_alchemy:athanor` | 1 | 0 | 0 | 1 | 4000 |
 | `gnome_hollow` | crafter | vein yield | 1 | 0 | 0 | 1 | 4000 |
 | `servus_foundation:coal_generator` | generator | burns fuel | 1 | 40 | 16000 | 4 | 0 |
 | `servus_foundation:ender_anchor` | powered | nothing, upkeep only | 1 | 10 per chunk | 20000 | 1 | 0 |

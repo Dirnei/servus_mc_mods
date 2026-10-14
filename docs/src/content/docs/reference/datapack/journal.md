@@ -1,19 +1,19 @@
 ---
 title: Journal chapters
-description: The chapter JSON of Paracelsus' Journal, the tech tree of Servus Manufacturing.
+description: The chapter JSON of Paracelsus' Journal, the tech tree of Servus Alchemy.
 sidebar:
   order: 3
 ---
 
-Paracelsus' Journal is Manufacturing's tech tree. A chapter lists tasks; when a team has done all of them, the chapter is finished for the team, every member gets the chapter's advancement and the next chapter opens. Counts on this page are current values; they live in datapack JSON and modpacks can change them.
+Paracelsus' Journal is Alchemy's tech tree. A chapter lists tasks; when a team has done all of them, the chapter is finished for the team, every member gets the chapter's advancement and the next chapter opens. Counts on this page are current values; they live in datapack JSON and modpacks can change them.
 
 ## File location
 
 ```
-data/<namespace>/servus_manufacturing/journal/<chapter>.json
+data/<namespace>/servus_alchemy/journal/<chapter>.json
 ```
 
-Note the extra `servus_manufacturing` folder. The chapter id is `<namespace>:<chapter>`. Chapters reload with `/reload`.
+Note the extra `servus_alchemy` folder. The chapter id is `<namespace>:<chapter>`. Chapters reload with `/reload`.
 
 ## Fields
 
@@ -27,7 +27,7 @@ Each task:
 
 | Field | Type | Default | Meaning |
 |---|---|---|---|
-| `id` | string | required | Unique within the chapter, shown in `/servus_manufacturing journal`. |
+| `id` | string | required | Unique within the chapter, shown in `/servus_alchemy journal`. |
 | `event` | string | required | `calcine` (items calcined), `principle` (mB of a principle made), `coagulate` (items coagulated), `athanor` (Athanor crafts), `sight` (Elixirs of Sight drunk) or `bind` (gnomes bound, by yield item). |
 | `filter` | string | any | An item id or `#tag` for item events, a principle (`salt`, `sulfur`, `mercury`) for `principle`, or `tier:<name>` for `athanor`. |
 | `count` | int | 1 | How much the task needs. 1 makes it a first time task. |
@@ -42,7 +42,7 @@ A finished chapter grants the advancement `<namespace>:journal/<chapter>`. The j
 
 | Chapter | Parent | Tasks |
 |---|---|---|
-| `villach` | none | `calcine` 100, `principle` salt 1,000, `coagulate` `servus_manufacturing:salt_crystal` 1 |
+| `villach` | none | `calcine` 100, `principle` salt 1,000, `coagulate` `servus_alchemy:salt_crystal` 1 |
 | `schwaz` | `villach` | `athanor` `tier:albedo` 1, `sight` 1, `bind` 1 |
 
 ## Locked recipes

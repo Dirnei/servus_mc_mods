@@ -393,7 +393,7 @@
 :root {
 	--lab-mod-lib: #a78bfa;
 	--lab-mod-logistics: #38bdf8;
-	--lab-mod-manufacturing: #fbbf24;
+	--lab-mod-alchemy: #fbbf24;
 	--lab-mod-storage: #34d399;
 	--lab-mod-vanilla: var(--sl-color-gray-4);
 }
@@ -401,19 +401,19 @@
 :root[data-theme='light'] {
 	--lab-mod-lib: #7c3aed;
 	--lab-mod-logistics: #0284c7;
-	--lab-mod-manufacturing: #b45309;
+	--lab-mod-alchemy: #b45309;
 	--lab-mod-storage: #047857;
 }
 
 .lab-mod-lib { --lab-mod: var(--lab-mod-lib); }
 .lab-mod-logistics { --lab-mod: var(--lab-mod-logistics); }
-.lab-mod-manufacturing { --lab-mod: var(--lab-mod-manufacturing); }
+.lab-mod-alchemy { --lab-mod: var(--lab-mod-alchemy); }
 .lab-mod-storage { --lab-mod: var(--lab-mod-storage); }
 .lab-mod-vanilla { --lab-mod: var(--lab-mod-vanilla); }
 
 .lab-node.lab-mod-lib,
 .lab-node.lab-mod-logistics,
-.lab-node.lab-mod-manufacturing,
+.lab-node.lab-mod-alchemy,
 .lab-node.lab-mod-storage,
 .lab-node.lab-mod-vanilla {
 	border-color: var(--lab-mod) !important;

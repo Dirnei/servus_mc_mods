@@ -6,8 +6,8 @@ import { parseGameData } from './gamedata';
 import { type Chain, computeChain, routesFor } from './ratios';
 
 const data = parseGameData(raw);
-const RED_PACK = 'servus_manufacturing:red_pack';
-const PACK_RECIPE = 'servus_manufacturing:assembling/red_pack';
+const RED_PACK = 'servus_alchemy:red_pack';
+const PACK_RECIPE = 'servus_alchemy:assembling/red_pack';
 const node = (chain: Chain, item: string) => chain.nodes.find((n) => n.item === item);
 
 describe('drafts', () => {
@@ -39,16 +39,16 @@ describe('drafts', () => {
 			recipes: [
 				{
 					id: 'draft:assembling/copper_coil',
-					type: 'servus_manufacturing:assembling',
-					inputs: [{ item: 'servus_manufacturing:copper_wire', count: 4 }],
+					type: 'servus_alchemy:assembling',
+					inputs: [{ item: 'servus_alchemy:copper_wire', count: 4 }],
 					outputs: [{ item: coil, count: 1 }],
 					time: 40,
 				},
 				{
 					id: PACK_RECIPE,
-					type: 'servus_manufacturing:assembling',
+					type: 'servus_alchemy:assembling',
 					inputs: [
-						{ item: 'servus_manufacturing:iron_gear', count: 1 },
+						{ item: 'servus_alchemy:iron_gear', count: 1 },
 						{ item: coil, count: 1 },
 					],
 					outputs: [{ item: RED_PACK, count: 1 }],
@@ -61,7 +61,7 @@ describe('drafts', () => {
 		const coilNode = node(chain, coil);
 		expect(coilNode?.draft).toBe(true);
 		expect(coilNode?.rate).toBeCloseTo(0.2, 9);
-		expect(node(chain, 'servus_manufacturing:copper_wire')?.rate).toBeCloseTo(0.8, 9);
+		expect(node(chain, 'servus_alchemy:copper_wire')?.rate).toBeCloseTo(0.8, 9);
 		expect(node(chain, RED_PACK)?.draft).toBe(true);
 		expect(effective.items[coil].name).toBe('Copper Coil');
 	});
@@ -84,22 +84,22 @@ describe('drafts', () => {
 					id: 'draft:wire_drawing/copper_wire',
 					type: 'draft:wire_drawing',
 					inputs: [{ item: 'minecraft:copper_ingot', count: 1 }],
-					outputs: [{ item: 'servus_manufacturing:copper_wire', count: 4 }],
+					outputs: [{ item: 'servus_alchemy:copper_wire', count: 4 }],
 					time: 10,
 				},
 			],
 		});
 		const { data: effective, flags } = applyDraft(data, draft);
-		const routes = routesFor(effective, 'servus_manufacturing:copper_wire', flags);
+		const routes = routesFor(effective, 'servus_alchemy:copper_wire', flags);
 		const drawerRoute = routes.find((r) => r.machine === drawer);
 		expect(drawerRoute?.needsCode).toBe(true);
-		expect(routes[0].machine).toBe('servus_manufacturing:assembler');
+		expect(routes[0].machine).toBe('servus_alchemy:assembler');
 
-		const chain = computeChain(effective, { item: 'servus_manufacturing:copper_wire', perSecond: 8 }, {
+		const chain = computeChain(effective, { item: 'servus_alchemy:copper_wire', perSecond: 8 }, {
 			flags,
-			routes: { 'servus_manufacturing:copper_wire': drawerRoute!.key },
+			routes: { 'servus_alchemy:copper_wire': drawerRoute!.key },
 		});
-		const wire = node(chain, 'servus_manufacturing:copper_wire');
+		const wire = node(chain, 'servus_alchemy:copper_wire');
 		expect(wire?.route?.needsCode).toBe(true);
 		expect(wire?.perMachine).toBeCloseTo(8, 9);
 		expect(wire?.fePerTick).toBeCloseTo(30, 9);
@@ -107,8 +107,8 @@ describe('drafts', () => {
 	});
 
 	test('getNumber reads nested numbers only', () => {
-		expect(getNumber(data, ['machines', 'servus_manufacturing:burner_extractor', 'work_ticks'])).toBe(80);
-		expect(getNumber(data, ['machines', 'servus_manufacturing:burner_extractor', 'kind'])).toBeUndefined();
+		expect(getNumber(data, ['machines', 'servus_alchemy:burner_extractor', 'work_ticks'])).toBe(80);
+		expect(getNumber(data, ['machines', 'servus_alchemy:burner_extractor', 'kind'])).toBeUndefined();
 		expect(getNumber(data, ['recipes', PACK_RECIPE, 'inputs', 1, 'count'])).toBe(2);
 	});
 });

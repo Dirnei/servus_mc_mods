@@ -16,8 +16,8 @@ import {
 
 const data = parseGameData(raw);
 const BUILD = { schema: 2, mod_version: '0.1.0', commit: 'abc1234' };
-const RED_PACK = 'servus_manufacturing:red_pack';
-const PACK_TIME = ['recipes', 'servus_manufacturing:assembling/red_pack', 'time'];
+const RED_PACK = 'servus_alchemy:red_pack';
+const PACK_TIME = ['recipes', 'servus_alchemy:assembling/red_pack', 'time'];
 const TARGET = { item: RED_PACK, perSecond: 0.4 };
 
 const sampleDraft = () =>
@@ -36,7 +36,7 @@ const sampleDraft = () =>
 				energy_per_tick: 30,
 			},
 		],
-		routes: { 'servus_manufacturing:copper_wire': 'recipe:x@y' },
+		routes: { 'servus_alchemy:copper_wire': 'recipe:x@y' },
 	});
 
 describe('proposal export', () => {
@@ -47,17 +47,17 @@ describe('proposal export', () => {
 		expect(proposal.new.machines[0].needs_code).toBe(true);
 		expect(proposal.notes).toBe('Red Packs feel slow.');
 		expect(proposal.data.commit).toBe('abc1234');
-		expect(proposal.impact?.before.machines['servus_manufacturing:assembler']).toBeGreaterThan(
-			proposal.impact!.after.machines['servus_manufacturing:assembler'],
+		expect(proposal.impact?.before.machines['servus_alchemy:assembler']).toBeGreaterThan(
+			proposal.impact!.after.machines['servus_alchemy:assembler'],
 		);
 		expect(proposalFileName(proposal)).toBe('servus-proposal-faster-packs.json');
 	});
 
 	test('a replaced recipe is exported with its baseline', () => {
 		const recipe = {
-			id: 'servus_manufacturing:assembling/red_pack',
-			type: 'servus_manufacturing:assembling',
-			inputs: [{ item: 'servus_manufacturing:iron_gear', count: 2 }],
+			id: 'servus_alchemy:assembling/red_pack',
+			type: 'servus_alchemy:assembling',
+			inputs: [{ item: 'servus_alchemy:iron_gear', count: 2 }],
 			outputs: [{ item: RED_PACK, count: 1 }],
 			time: 100,
 		};
@@ -81,7 +81,7 @@ describe('proposal import', () => {
 		const proposal = exportProposal(data, withEdit(emptyDraft(), data, PACK_TIME, 40), BUILD, null);
 		proposal.edits[0].baseline = 80;
 		const current = structuredClone(data);
-		current.recipes['servus_manufacturing:assembling/red_pack'].time = 60;
+		current.recipes['servus_alchemy:assembling/red_pack'].time = 60;
 
 		const { draft, conflicts } = importProposal(current, proposal);
 		expect(draft.edits).toEqual([]);
@@ -91,9 +91,9 @@ describe('proposal import', () => {
 
 	test('a changed recipe whose baseline moved is a conflict', () => {
 		const recipe = {
-			id: 'servus_manufacturing:assembling/red_pack',
-			type: 'servus_manufacturing:assembling',
-			inputs: [{ item: 'servus_manufacturing:iron_gear', count: 2 }],
+			id: 'servus_alchemy:assembling/red_pack',
+			type: 'servus_alchemy:assembling',
+			inputs: [{ item: 'servus_alchemy:iron_gear', count: 2 }],
 			outputs: [{ item: RED_PACK, count: 1 }],
 			time: 100,
 		};

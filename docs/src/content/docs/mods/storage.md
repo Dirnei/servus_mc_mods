@@ -54,7 +54,7 @@ The Storage Terminal, the Production Terminal, the Crafting Station, the Pattern
 The warehouse runs on FE through its controller, one power connection per site. Nothing costs FE while idle: storing items, racks, rails, garages, stations, terminals and a CPU without running steps draw nothing. What does cost FE, paid from the controller's buffer (numbers in `storage/power.json`):
 
 - **Shuttles**: 20 FE for every block of rail or farm rail a shuttle starts to drive (`shuttle_fe_per_block`), whatever the job, the way home included. A lift ride costs the same per block of height, paid in full when the car takes the shuttle. Standing, loading, unloading and field work at a plot are free.
-- **Crafting Stations**: 5 FE for every tick a station works on a craft (`crafting_station_fe_per_tick`), paid by the controller of the first warehouse its data line reaches. Waiting for inputs or for room is free. Steps on Machine Adapters and Manufacturing machines run on their own fuel and power and draw nothing from the controller; the CPU itself draws nothing.
+- **Crafting Stations**: 5 FE for every tick a station works on a craft (`crafting_station_fe_per_tick`), paid by the controller of the first warehouse its data line reaches. Waiting for inputs or for room is free. Steps on Machine Adapters and Alchemy machines run on their own fuel and power and draw nothing from the controller; the CPU itself draws nothing.
 - **Waking**: 2 FE per chunk of the site for every tick a wake holds it loaded (`wake_fe_per_chunk_per_tick`), awake or in its grace time. A site loaded by players, Ender Anchors or anything else that loads chunks pays nothing for being loaded.
 - **Wireless**: per item and distance, paid by the receiving controller (see above).
 
@@ -80,4 +80,4 @@ Everything resumes by itself once FE comes back. The stock stays visible in the 
 ## How it connects
 
 - [Servus: Foundation](/servus_mc_mods/mods/foundation/): network graph, side configuration, the Configuration Carrot, the production and stock capabilities, and ducts that move items in and out of any storage block that exposes an item handler.
-- [Manufacturing](/servus_mc_mods/mods/manufacturing/): not required. When installed, an Assembler on the data line is a producer, so Crafting CPUs plan work orders with its recipes, through the Foundation production capability.
+- [Alchemy](/servus_mc_mods/mods/alchemy/): not required. When installed, an Assembler on the data line is a producer, so Crafting CPUs plan work orders with its recipes, through the Foundation production capability.

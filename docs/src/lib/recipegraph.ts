@@ -1,7 +1,7 @@
 import { type GameData, type Stack, stackKey } from './gamedata';
 
 /** The Servus mods in display order. Everything else, tags included, counts as vanilla. */
-export const MODS = ['foundation', 'manufacturing', 'storage'] as const;
+export const MODS = ['foundation', 'alchemy', 'storage'] as const;
 export type ServusMod = (typeof MODS)[number];
 export type Mod = ServusMod | 'vanilla';
 
@@ -48,8 +48,8 @@ export function modOf(key: string): Mod {
 }
 
 const KINDS: Record<string, string> = {
-	'servus_manufacturing:assembling': 'Assembler',
-	'servus_manufacturing:crushing': 'Crusher',
+	'servus_alchemy:assembling': 'Assembler',
+	'servus_alchemy:crushing': 'Crusher',
 	'minecraft:smelting': 'Smelting',
 	'minecraft:blasting': 'Blasting',
 };

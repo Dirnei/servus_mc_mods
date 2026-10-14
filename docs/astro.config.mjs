@@ -18,7 +18,7 @@ export default defineConfig({
 					label: 'Mods',
 					items: [
 						{ slug: 'mods/foundation' },
-						{ slug: 'mods/manufacturing' },
+						{ slug: 'mods/alchemy' },
 						{ slug: 'mods/storage' },
 					],
 				},

@@ -6,7 +6,7 @@ import { name, num, percent, rate } from './format';
 import { Graph, type GraphEdge, type GraphNode } from './Graph';
 import type { LabState } from './store';
 
-const DEFAULT_TARGET = 'servus_manufacturing:red_pack';
+const DEFAULT_TARGET = 'servus_alchemy:red_pack';
 const CONSUMER_ID = '__consumer__';
 
 /** Items with at least one way to make them, products first. */
