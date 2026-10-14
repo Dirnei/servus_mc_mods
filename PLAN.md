@@ -144,7 +144,6 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 
 ### Open: Foundation
 
-- `m5-duct-look`: new Utility Duct textures (corrugated and spiral wrapped hoses, ribbed rubber, braided data cables, moulded rubber fittings) and cross-section line icons that show the cable colour at the end; textures tile along the arm (decided 2026-10-14).
 - Power Cable with a tiered transfer rate.
 - Hand made patterns for Machine Adapters, if the play tests ask for them.
 
