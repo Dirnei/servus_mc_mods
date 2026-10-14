@@ -116,6 +116,45 @@ public final class DuctPose {
         return pose;
     }
 
+    /**
+     * The pose a duct shows: its base pose, where each free axis takes the
+     * side that its neighbour ducts anchored on that axis ask for, as long as
+     * they agree. A neighbour across a face on that axis does not ask.
+     *
+     * @param base          the duct's own base pose
+     * @param ductArms      six bit mask of the sides whose arm leads to another duct
+     * @param neighbourBase base pose of the duct across each side, read only where {@code ductArms} has the side
+     */
+    public static int resting(int base, int ductArms, int[] neighbourBase) {
+        int pose = base;
+        for (int axis = X; axis <= Z; axis++) {
+            if (rank(base, axis) != Rank.FREE) {
+                continue;
+            }
+            Side request = agreedRequest(axis, ductArms, neighbourBase);
+            if (request != null) {
+                pose = with(pose, axis, request, Rank.DRAPED);
+            }
+        }
+        return pose;
+    }
+
+    /** The side every anchored neighbour asks for on the axis, null without requests or when they disagree. */
+    private static Side agreedRequest(int axis, int ductArms, int[] neighbourBase) {
+        Side request = null;
+        for (int side = 0; side < 6; side++) {
+            if (!has(ductArms, side) || axisOf(side) == axis || rank(neighbourBase[side], axis) != Rank.ANCHORED) {
+                continue;
+            }
+            Side asked = side(neighbourBase[side], axis);
+            if (request != null && request != asked) {
+                return null;
+            }
+            request = asked;
+        }
+        return request;
+    }
+
     private static int wall(int pose, int axis, int support) {
         int negative = negativeSide(axis);
         boolean low = has(support, negative);

@@ -11,7 +11,7 @@
   JUnit in `foundation/src/test/.../logistics/duct/DuctPoseTest.java`: `floorLiesLow`, `noFloorStaysMiddle`, `armIntoBelowIsNotFloor`, `climbHugsWall`, `climbInCornerHugsBoth`, `oppositeWallsStayMiddle`, `horizontalRunIgnoresWall`, `armIntoWallIsNotWall`, `panelForcesMiddle`, `packRoundTrip`.
 
   Verify: `gradlew :foundation:test` green.
-- [ ] 1.2 Add the final pose (drape) stage to `DuctPose`:
+- [x] 1.2 Add the final pose (drape) stage to `DuctPose`:
   - copy the agreeing `ANCHORED` requests of the connected neighbour ducts on each `FREE` axis
   - ignore neighbours across a face on that axis
   - stay `MID` on disagreement
