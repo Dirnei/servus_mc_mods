@@ -115,6 +115,7 @@
   - Facade ducts stay centred.
   - Carrot clicks work on the low part and on the step.
   - The goggles overlay sits on the duct.
+  - A floor run that climbs one block, goes one duct through the air and then onto a block meets the run low, with no hump or blob at the top of the climb.
   - Thin and four line ducts both look right.
   - Nothing flickers on the floor, at steps or at rings, from several angles.
 
@@ -156,3 +157,7 @@ The second play test showed a floor run turning up stepping up before the bend, 
 
 - [x] 9.1 Play test: a freshly placed Fluid Pipe showed an orange Item Pipe cube for a frame, because `UtilityDuctModel` drew its base model until the block entity's lines reached the client. Draw nothing while the lines are unknown (`foundation/.../logistics/client/UtilityDuctModel.java`). Verify: `gradlew build test runGameTestServerAll` green.
 - [x] 9.2 Play test again: the flash stayed, because the client's new block entity has an empty line set, not an unknown one, and `DuctParts.normalize` turns an empty set into the Item Pipe. Draw nothing while the set is unknown or empty (`UtilityDuctModel`). Verify: `gradlew build test runGameTestServerAll` green.
+
+## 10. Climb end follows a draped run
+
+- [x] 10.1 Play test: a floor run climbing one block, one duct through the air and then onto a block made a hump and a thick blob at the top of the climb, because only the duct in the air draped. `DuctPose`: rank `FOLLOWED`; `resting(base, arms, ductArms, neighbourBase, neighbourResting)` lets a free duct with a vertical duct arm follow agreeing draped neighbours beside it. `UtilityDuctBlockEntity`: passes the neighbours' resting poses and makes neighbours recompute their resting pose on any pose change. Spec scenario "Climb, one duct in the air, then onto a block", design D2, docs. JUnit in `DuctPoseTest`: `climbTopFollowsDrapedRun`, `climbBottomFollowsDrapedRun`, `runWithoutClimbDoesNotFollow`, `followedIsNotFollowed`, `anchoredNeighbourBeatsDrapedOne`, `disagreeingDrapedNeighboursStayMiddle`, `machineClimbDoesNotFollow`, `bothSidesAgreeOnFace` with a followed pose. GameTest `climbThroughAirOntoBlockLiesLow`. Face check: no new boxes; the followed climb end is a low duct with an arm down or up, already checked in 8.2. Verify: `gradlew build test runGameTestServerAll` green, `openspec validate m9-duct-resting-pose --strict` valid, docs tests green.

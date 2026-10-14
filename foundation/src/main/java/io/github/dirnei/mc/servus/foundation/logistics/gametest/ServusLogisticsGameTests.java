@@ -719,6 +719,35 @@ public final class ServusLogisticsGameTests {
         helper.succeed();
     }
 
+    /**
+     * A floor run climbs one block, goes east one duct in the air and then
+     * onto a block: the top of the climb lies as low as the run, so the climb
+     * meets it without a hump. Breaking the block recentres all of them.
+     */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void climbThroughAirOntoBlockLiesLow(GameTestHelper helper) {
+        BlockPos foot = new BlockPos(3, 2, 5);
+        BlockPos block = foot.east(2);
+        stone(helper, foot.west().below(), foot.below(), block);
+        duct(helper, foot.west(), Line.ITEM);
+        duct(helper, foot, Line.ITEM);
+        UtilityDuctBlockEntity top = duct(helper, foot.above(), Line.ITEM);
+        UtilityDuctBlockEntity air = duct(helper, foot.above().east(), Line.ITEM);
+        UtilityDuctBlockEntity onBlock = duct(helper, block.above(), Line.ITEM);
+
+        assertPose(helper, onBlock, DuctPose.Height.LOW, DuctPose.Rank.ANCHORED);
+        assertPose(helper, air, DuctPose.Height.LOW, DuctPose.Rank.DRAPED);
+        assertPose(helper, top, DuctPose.Height.LOW, DuctPose.Rank.FOLLOWED);
+        helper.assertTrue(DuctPose.faceHeight(top.poseFaces(), DuctShapes.EAST) == DuctPose.Height.LOW
+                        && DuctPose.faceHeight(air.poseFaces(), DuctShapes.WEST) == DuctPose.Height.LOW,
+                "the climb meets the run in the air low");
+
+        helper.setBlock(block, Blocks.AIR.defaultBlockState());
+        helper.assertTrue(onBlock.pose() == DuctPose.CENTRED && air.pose() == DuctPose.CENTRED && top.pose() == DuctPose.CENTRED,
+                "without the block the run recentres, got " + onBlock.pose() + ", " + air.pose() + ", " + top.pose());
+        helper.succeed();
+    }
+
     /** A duct on stone that feeds a furnace beside it and runs straight up stays centred, with a straight arm into the furnace. */
     @ServusGameTest(timeoutTicks = 20)
     public static void machineOnFloorPipeGoesStraightUp(GameTestHelper helper) {

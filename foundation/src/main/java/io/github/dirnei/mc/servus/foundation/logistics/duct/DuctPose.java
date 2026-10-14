@@ -20,6 +20,8 @@ public final class DuctPose {
     public enum Rank {
         /** Nothing holds it, so it sits in the middle. */
         FREE,
+        /** The end of a climb, copied from a draped neighbour duct beside it; no duct copies this. */
+        FOLLOWED,
         /** Copied from the neighbour ducts that rest on something. */
         DRAPED,
         /** Rests on a floor, or a panel keeps it in the middle. */
@@ -35,6 +37,9 @@ public final class DuctPose {
 
     private static final int HORIZONTAL = 1 << DuctShapes.NORTH | 1 << DuctShapes.SOUTH
             | 1 << DuctShapes.WEST | 1 << DuctShapes.EAST;
+    private static final int VERTICAL = 1 << DuctShapes.DOWN | 1 << DuctShapes.UP;
+    private static final int NO_REQUEST = -1;
+    private static final int DISAGREE = -2;
     private static final int RANK_SHIFT = 2;
     private static final Height[] HEIGHTS = Height.values();
     private static final Rank[] RANKS = Rank.values();
@@ -115,29 +120,49 @@ public final class DuctPose {
      * The pose a duct shows: its base pose, or when that is free and the duct
      * does not {@linkplain #risesFromEndpoint rise from an endpoint}, the
      * height its anchored neighbour ducts beside it ask for, as long as they
-     * agree. Ducts above or below do not ask.
+     * agree. Without such a neighbour, a duct at the end of a climb (an arm up
+     * or down to a duct) follows its draped neighbours beside it the same way,
+     * so the climb meets the run at the run's height. Ducts above or below do
+     * not ask.
      *
-     * @param base          the duct's own base pose
-     * @param arms          six bit mask of the sides with an arm of any line
-     * @param ductArms      six bit mask of the sides whose arm leads to another duct; the other arms are endpoints
-     * @param neighbourBase base pose of the duct across each side, read only where {@code ductArms} has the side
+     * @param base             the duct's own base pose
+     * @param arms             six bit mask of the sides with an arm of any line
+     * @param ductArms         six bit mask of the sides whose arm leads to another duct; the other arms are endpoints
+     * @param neighbourBase    base pose of the duct across each side, read only where {@code ductArms} has the side
+     * @param neighbourResting resting pose of the duct across each side, read only where {@code ductArms} has the side
      */
-    public static int resting(int base, int arms, int ductArms, int[] neighbourBase) {
+    public static int resting(int base, int arms, int ductArms, int[] neighbourBase, int[] neighbourResting) {
         if (rank(base) != Rank.FREE || risesFromEndpoint(arms, arms & ~ductArms)) {
             return base;
         }
-        Height request = null;
+        int anchored = request(ductArms, neighbourBase, Rank.ANCHORED);
+        if (anchored != NO_REQUEST) {
+            return anchored == DISAGREE ? base : of(HEIGHTS[anchored], Rank.DRAPED);
+        }
+        if ((ductArms & VERTICAL) == 0) {
+            return base;
+        }
+        int draped = request(ductArms, neighbourResting, Rank.DRAPED);
+        return draped >= 0 ? of(HEIGHTS[draped], Rank.FOLLOWED) : base;
+    }
+
+    /**
+     * The height the horizontal neighbour ducts of that rank ask for, as a
+     * {@link Height} ordinal, or {@link #NO_REQUEST} or {@link #DISAGREE}.
+     */
+    private static int request(int ductArms, int[] neighbourPoses, Rank rank) {
+        int request = NO_REQUEST;
         for (int side = 0; side < 6; side++) {
-            if (!has(ductArms, side) || isVertical(side) || rank(neighbourBase[side]) != Rank.ANCHORED) {
+            if (!has(ductArms, side) || isVertical(side) || rank(neighbourPoses[side]) != rank) {
                 continue;
             }
-            Height asked = height(neighbourBase[side]);
-            if (request != null && request != asked) {
-                return base;
+            int asked = height(neighbourPoses[side]).ordinal();
+            if (request != NO_REQUEST && request != asked) {
+                return DISAGREE;
             }
             request = asked;
         }
-        return request == null ? base : of(request, Rank.DRAPED);
+        return request;
     }
 
     /**

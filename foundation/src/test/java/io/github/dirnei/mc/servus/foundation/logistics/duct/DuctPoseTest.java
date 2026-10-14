@@ -56,7 +56,7 @@ class DuctPoseTest {
     void machineOnFloorPipeGoesStraightUp() {
         int base = DuctPose.base(EAST | UP, EAST, true, false);
         assertEquals(DuctPose.CENTRED, base);
-        assertEquals(DuctPose.CENTRED, DuctPose.resting(base, EAST | UP, UP, new int[6]));
+        assertEquals(DuctPose.CENTRED, DuctPose.resting(base, EAST | UP, UP, new int[6], new int[6]));
     }
 
     /** A floor run going east ends in a machine and turns up in the same duct: that duct stays centred. */
@@ -64,13 +64,15 @@ class DuctPoseTest {
     void machineArmAndArmUpStaysMiddle() {
         int base = DuctPose.base(WEST | EAST | UP, EAST, true, false);
         assertEquals(DuctPose.CENTRED, base);
-        assertEquals(DuctPose.CENTRED, DuctPose.resting(base, WEST | EAST | UP, WEST | UP, neighbours(DuctShapes.WEST, FLOOR)));
+        assertEquals(DuctPose.CENTRED, DuctPose.resting(base, WEST | EAST | UP, WEST | UP, neighbours(DuctShapes.WEST, FLOOR),
+                neighbours(DuctShapes.WEST, FLOOR)));
         assertEquals(Height.LOW, face(base, FLOOR, DuctShapes.WEST), "the floor run steps up into it");
     }
 
     @Test
     void machineArmAndArmUpDoesNotDrape() {
-        int pose = DuctPose.resting(DuctPose.CENTRED, WEST | EAST | UP, WEST | UP, neighbours(DuctShapes.WEST, FLOOR));
+        int pose = DuctPose.resting(DuctPose.CENTRED, WEST | EAST | UP, WEST | UP, neighbours(DuctShapes.WEST, FLOOR),
+                neighbours(DuctShapes.WEST, FLOOR));
         assertEquals(DuctPose.CENTRED, pose);
     }
 
@@ -97,9 +99,67 @@ class DuctPoseTest {
         assertPose(drape(DuctPose.CENTRED, DOWN | EAST, neighbours(DuctShapes.EAST, FLOOR)), Height.LOW, Rank.DRAPED);
     }
 
-    /** {@link DuctPose#resting} for a duct whose every arm leads to another duct. */
+    /** {@link DuctPose#resting} for a duct whose every arm leads to another duct, each neighbour resting at its base. */
     private static int drape(int base, int ductArms, int[] neighbourBase) {
-        return DuctPose.resting(base, ductArms, ductArms, neighbourBase);
+        return DuctPose.resting(base, ductArms, ductArms, neighbourBase, neighbourBase);
+    }
+
+    /** {@link DuctPose#resting} for a free duct whose every arm leads to another duct. */
+    private static int follow(int ductArms, int[] neighbourBase, int[] neighbourResting) {
+        return DuctPose.resting(DuctPose.CENTRED, ductArms, ductArms, neighbourBase, neighbourResting);
+    }
+
+    private static final int DRAPED_LOW = DuctPose.of(Height.LOW, Rank.DRAPED);
+
+    /**
+     * Floor run, a climb up, one duct east in the air, then a duct on a block:
+     * the top of the climb follows the draped duct in the air, so the run
+     * above has no step and the climb meets it low.
+     */
+    @Test
+    void climbTopFollowsDrapedRun() {
+        int top = follow(DOWN | EAST, neighbours(DuctShapes.DOWN, FLOOR, DuctShapes.EAST, DuctPose.CENTRED),
+                neighbours(DuctShapes.DOWN, FLOOR, DuctShapes.EAST, DRAPED_LOW));
+        assertPose(top, Height.LOW, Rank.FOLLOWED);
+        assertEquals(Height.LOW, face(top, DRAPED_LOW, DuctShapes.EAST), "the climb top meets the draped duct low");
+        assertEquals(Height.LOW, face(DRAPED_LOW, top, DuctShapes.WEST));
+    }
+
+    @Test
+    void climbBottomFollowsDrapedRun() {
+        int bottom = follow(UP | WEST, neighbours(DuctShapes.WEST, DuctPose.CENTRED), neighbours(DuctShapes.WEST, DRAPED_LOW));
+        assertPose(bottom, Height.LOW, Rank.FOLLOWED);
+    }
+
+    @Test
+    void runWithoutClimbDoesNotFollow() {
+        assertEquals(DuctPose.CENTRED, follow(WEST | EAST, new int[6], neighbours(DuctShapes.WEST, DRAPED_LOW)));
+    }
+
+    @Test
+    void followedIsNotFollowed() {
+        int followed = DuctPose.of(Height.LOW, Rank.FOLLOWED);
+        assertEquals(DuctPose.CENTRED, follow(UP | WEST, new int[6], neighbours(DuctShapes.WEST, followed)));
+    }
+
+    @Test
+    void anchoredNeighbourBeatsDrapedOne() {
+        int panelled = follow(UP | WEST | EAST, neighbours(DuctShapes.WEST, PANELLED),
+                neighbours(DuctShapes.WEST, PANELLED, DuctShapes.EAST, DRAPED_LOW));
+        assertPose(panelled, Height.MID, Rank.DRAPED);
+    }
+
+    @Test
+    void disagreeingDrapedNeighboursStayMiddle() {
+        int pose = follow(UP | WEST | EAST, new int[6],
+                neighbours(DuctShapes.WEST, DRAPED_LOW, DuctShapes.EAST, DuctPose.of(Height.MID, Rank.DRAPED)));
+        assertEquals(DuctPose.CENTRED, pose);
+    }
+
+    @Test
+    void machineClimbDoesNotFollow() {
+        int pose = DuctPose.resting(DuctPose.CENTRED, UP | WEST | EAST, UP | WEST, new int[6], neighbours(DuctShapes.WEST, DRAPED_LOW));
+        assertEquals(DuctPose.CENTRED, pose);
     }
 
     @Test
@@ -192,7 +252,8 @@ class DuctPoseTest {
 
     @Test
     void bothSidesAgreeOnFace() {
-        int[] poses = {DuctPose.CENTRED, FLOOR, DuctPose.of(Height.LOW, Rank.DRAPED), DuctPose.of(Height.MID, Rank.DRAPED), PANELLED};
+        int[] poses = {DuctPose.CENTRED, FLOOR, DuctPose.of(Height.LOW, Rank.DRAPED), DuctPose.of(Height.MID, Rank.DRAPED), PANELLED,
+                DuctPose.of(Height.LOW, Rank.FOLLOWED)};
         for (int a : poses) {
             for (int b : poses) {
                 for (int side = DuctShapes.NORTH; side <= DuctShapes.EAST; side++) {

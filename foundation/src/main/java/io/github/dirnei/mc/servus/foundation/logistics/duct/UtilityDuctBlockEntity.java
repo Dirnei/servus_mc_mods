@@ -345,11 +345,11 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
     }
 
-    /** Which part of a neighbour duct's pose changed, see {@link #neighbourPoseChanged}. */
-    public enum PoseStage {
-        /** The base pose, which this duct may drape from. */
+    /** Which pose of the neighbour ducts to read, see {@link #neighbourPoses}. */
+    private enum PoseStage {
+        /** The base pose, which a duct may drape from. */
         BASE,
-        /** The resting pose, which decides where shared arms meet their face. */
+        /** The resting pose, which the end of a climb may follow and which decides where shared arms meet their face. */
         RESTING
     }
 
@@ -386,17 +386,16 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
     /** Recomputes the resting pose and the faces and tells the neighbours; see {@link #refreshPose()}. */
     private boolean updateResting(boolean baseChanged) {
-        int resting = DuctPose.resting(basePose, connections(), ductArms(), neighbourPoses(PoseStage.BASE));
+        int resting = DuctPose.resting(basePose, connections(), ductArms(), neighbourPoses(PoseStage.BASE),
+                neighbourPoses(PoseStage.RESTING));
         boolean restingChanged = resting != pose;
         pose = resting;
         boolean changed = updateFaces() || restingChanged;
         if (changed) {
             setChanged();
         }
-        if (baseChanged) {
-            tellNeighbours(PoseStage.BASE);
-        } else if (restingChanged) {
-            tellNeighbours(PoseStage.RESTING);
+        if (baseChanged || restingChanged) {
+            tellNeighbours();
         }
         return changed;
     }
@@ -409,30 +408,21 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     }
 
     /** A connected neighbour duct's pose changed: recompute what depends on it and tell the client. Server only. */
-    public void neighbourPoseChanged(PoseStage stage) {
+    public void neighbourPoseChanged() {
         if (!(level instanceof ServerLevel) || isRemoved()) {
             return;
         }
-        boolean changed;
-        if (stage == PoseStage.BASE) {
-            changed = updateResting(false);
-        } else {
-            changed = updateFaces();
-            if (changed) {
-                setChanged();
-            }
-        }
-        if (changed) {
+        if (updateResting(false)) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
 
-    private void tellNeighbours(PoseStage stage) {
+    private void tellNeighbours() {
         int ductArms = ductArms();
         for (Direction side : DIRECTIONS) {
             if ((ductArms & DuctModelData.bit(side)) != 0
                     && level.getBlockEntity(worldPosition.relative(side)) instanceof UtilityDuctBlockEntity neighbour) {
-                neighbour.neighbourPoseChanged(stage);
+                neighbour.neighbourPoseChanged();
             }
         }
     }

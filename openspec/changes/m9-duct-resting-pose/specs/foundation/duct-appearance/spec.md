@@ -79,11 +79,15 @@ A duct whose block below has a full sturdy top face SHALL lie on it: its centre 
 - **THEN** it stays in the middle of its block, its arm runs straight into the middle of the furnace face, and the run goes straight up
 
 ### Requirement: Unsupported ducts drape over edges
-A duct with nothing under it SHALL take the height that its connected neighbour ducts beside it ask for, when they rest on a floor or are held in the middle themselves and agree, so a run over the edge of a step or a short gap stays level. Neighbours above or below it SHALL NOT ask. A duct with an arm up and a horizontal arm into an inventory or machine SHALL NOT drape. Neighbours that disagree SHALL leave it in the middle. Only neighbours one block away SHALL count. Draping SHALL NOT move a duct sideways.
+A duct with nothing under it SHALL take the height that its connected neighbour ducts beside it ask for, when they rest on a floor or are held in the middle themselves and agree, so a run over the edge of a step or a short gap stays level. Neighbours above or below it SHALL NOT ask. A duct with an arm up and a horizontal arm into an inventory or machine SHALL NOT drape. Neighbours that disagree SHALL leave it in the middle. Only neighbours one block away SHALL count, with one exception: a duct at the top or bottom of a climb (an arm up or down to a duct) with no such neighbour SHALL take the height of the draped neighbour ducts beside it, as long as they agree, so the climb meets a draped run at the run's height. No duct SHALL take its height from such a climb end. Draping SHALL NOT move a duct sideways.
 
 #### Scenario: Over the edge of a step
 - **WHEN** a run lies on a floor, climbs one block up beside the east wall of a step, and continues east on top of the step
 - **THEN** the duct at the foot of the climb lies on the floor, so the floor run has no step in it, its arm up rises straight from the low duct, and the duct at the top of the climb (with only an arm down) lies as low as the run on top of the step, so the run on the step has no step in it
+
+#### Scenario: Climb, one duct in the air, then onto a block
+- **WHEN** a floor run climbs one block, continues east with one duct in open air, and then onto a block, where the next duct lies on the block
+- **THEN** the duct in the air drapes to the height of the duct on the block, the duct at the top of the climb takes that height too, and the climb meets the run low with no hump and no step
 
 #### Scenario: Up beside a machine in the air
 - **WHEN** a duct in open air has an arm east into a furnace, an arm up, and an arm west to a duct lying on a floor
