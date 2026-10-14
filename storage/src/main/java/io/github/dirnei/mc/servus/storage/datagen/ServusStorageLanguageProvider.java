@@ -196,6 +196,8 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.field_head.fertilize.working_named", "%s is spreading fertilizer");
         add("gui.servus_storage.field_head.fertilize.no_stock", "No fertilizer in stock");
         add("gui.servus_storage.field_head.fertilize.below_reserve", "Stock at or below the reserve");
+        add("gui.servus_storage.field_head.fertilize.no_supply_shuttle", "No shuttle without a tool can bring supplies");
+        add("gui.servus_storage.field_head.fertilize.supply_coming", "Buffer empty, a supply run is on its way");
         add("gui.servus_storage.field_head.fertilize.waiting", "Waiting for plots to fertilize");
         add("gui.servus_storage.field_head.range_slot", "Radius %s: Range Upgrades widen the field");
         add("gui.servus_storage.field_head.ripe", "Ripe %s/%s");
@@ -231,7 +233,9 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.field_head.work.waiting_ripe", "Waiting for ripe crops");
         add("gui.servus_storage.field_head.work.dry", "Dry: no planting without water");
         add("gui.servus_storage.field_head.work.ready", "Work ready, harvester coming");
-        add("gui.servus_storage.field_head.work.no_seeds", "No seeds in the warehouse");
+        add("gui.servus_storage.field_head.work.no_seeds", "No seeds in the buffer or the warehouse");
+        add("gui.servus_storage.field_head.work.seeds_coming", "Waiting for a supply run with seeds");
+        add("gui.servus_storage.field_head.work.no_supply_shuttle", "No shuttle without a tool can bring seeds");
         add("gui.servus_storage.field_head.work.growing", "Growing");
         add("gui.servus_storage.field_head.work.no_plots", "No plot to till or plant");
         add("gui.servus_storage.field_head.status.no_field", "No farm rail beside the head");

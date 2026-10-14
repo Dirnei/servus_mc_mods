@@ -926,7 +926,10 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         boolean reachable = network.map(warehouse -> warehouse.fieldReachable(worldPosition, JobNeeds.SPREADER)).orElse(false);
         boolean working = network.map(warehouse -> warehouse.hasFertilizeJob(worldPosition)).orElse(false);
         long stock = network.map(warehouse -> warehouse.available(ItemKey.of(fertilizer()))).orElse(0L);
-        return FertilizeStatus.of(true, network.isPresent(), spreader, reachable, working, stock, reserve());
+        int buffered = supplyCount(SupplyBuffer.Part.FERTILIZER);
+        boolean supplier = buffered == 0 && stock > reserve()
+                && network.map(warehouse -> warehouse.supplyReachable(worldPosition)).orElse(false);
+        return FertilizeStatus.of(true, network.isPresent(), spreader, reachable, working, buffered, stock, reserve(), supplier);
     }
 
     /**
@@ -1040,7 +1043,10 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         boolean harvester = network.map(WarehouseNetwork::hasFieldShuttles).orElse(false);
         boolean reachable = network.map(warehouse -> warehouse.fieldReachable(worldPosition)).orElse(false);
         boolean working = network.map(warehouse -> warehouse.hasFieldJob(worldPosition)).orElse(false);
-        boolean seeds = plantMode() && network.map(warehouse -> warehouse.available(ItemKey.of(crop())) > 0).orElse(false);
+        boolean buffered = supplyCount(SupplyBuffer.Part.SEEDS) > 0;
+        boolean inStock = !buffered && plantMode() && network.map(warehouse -> warehouse.available(ItemKey.of(crop())) > 0).orElse(false);
+        boolean supplier = inStock && network.map(warehouse -> warehouse.supplyReachable(worldPosition)).orElse(false);
+        FieldWork.Seeds seeds = FieldWork.Seeds.of(buffered, inStock, supplier);
         return FieldWork.of(network.isPresent(), online, harvestOnly || plantMode(), harvester, reachable, working, harvestDue(),
                 plantMode(), hydrated, tillableCount(), plantableCount(), plantedCount(), seeds);
     }

@@ -15,10 +15,14 @@ public enum FertilizeStatus {
     NO_WAY,
     /** A fertilize run is queued or under way. */
     WORKING,
-    /** The warehouse holds none of the fertilizer. */
+    /** The buffer is empty and the warehouse holds none of the fertilizer. */
     NO_STOCK,
-    /** The warehouse holds the fertilizer only at or below the reserve. */
+    /** The buffer is empty and the warehouse holds the fertilizer only at or below the reserve. */
     BELOW_RESERVE,
+    /** The buffer is empty, stock is there, but no shuttle without a tool can bring it. */
+    NO_SUPPLY_SHUTTLE,
+    /** The buffer is empty and a supply run brings fertilizer. */
+    SUPPLY_COMING,
     /** Nothing to dose right now, or the call interval has not passed. */
     WAITING;
 
@@ -33,7 +37,7 @@ public enum FertilizeStatus {
      * a problem: the head simply waits until there is fertilizer to spare.
      */
     public boolean problem() {
-        return this == NO_SPREADER || this == NO_WAY;
+        return this == NO_SPREADER || this == NO_WAY || this == NO_SUPPLY_SHUTTLE;
     }
 
     /**
@@ -44,10 +48,13 @@ public enum FertilizeStatus {
      * @param spreader  a garage of the warehouse holds a Spreader shuttle
      * @param reachable some Spreader shuttle reaches the field without a lift
      * @param working   a fertilize run for this field is queued or under way
+     * @param buffered  fertilizer items the head's buffer holds
      * @param stock     fertilizer items the warehouse holds
      * @param reserve   items the field keeps in stock
+     * @param supplier  a shuttle without a tool can drive to the head's rail
      */
-    public static FertilizeStatus of(boolean on, boolean linked, boolean spreader, boolean reachable, boolean working, long stock, int reserve) {
+    public static FertilizeStatus of(boolean on, boolean linked, boolean spreader, boolean reachable, boolean working, int buffered,
+                                     long stock, int reserve, boolean supplier) {
         if (!on) {
             return OFF;
         }
@@ -63,12 +70,15 @@ public enum FertilizeStatus {
         if (working) {
             return WORKING;
         }
+        if (buffered > 0) {
+            return WAITING;
+        }
         if (stock <= 0) {
             return NO_STOCK;
         }
         if (stock <= reserve) {
             return BELOW_RESERVE;
         }
-        return WAITING;
+        return supplier ? SUPPLY_COMING : NO_SUPPLY_SHUTTLE;
     }
 }

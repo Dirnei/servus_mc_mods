@@ -61,7 +61,7 @@ class FieldHeadLookTest {
     void workProblemsMatchTheGui() {
         for (FieldWork work : FieldWork.values()) {
             boolean fine = work == FieldWork.WORKING || work == FieldWork.HARVEST_DUE || work == FieldWork.READY
-                    || work == FieldWork.GROWING || work == FieldWork.WAITING_RIPE;
+                    || work == FieldWork.GROWING || work == FieldWork.WAITING_RIPE || work == FieldWork.SEEDS_COMING;
             assertEquals(!fine, work.problem(), work.name());
         }
     }

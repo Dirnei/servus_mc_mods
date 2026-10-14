@@ -41,6 +41,7 @@ import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -146,6 +147,18 @@ public final class ServusStorageCommands {
         return stack.getHoverName().getString();
     }
 
+    /** Each part of the head's buffer as it holds it: item, count and level; stale items marked. */
+    private static String bufferLine(FieldHeadBlockEntity head) {
+        List<String> parts = new ArrayList<>();
+        for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {
+            Item held = head.buffer().item(part);
+            String item = held == null ? "empty" : name(new ItemStack(held));
+            String stale = held != null && held != head.supplyItem(part) ? " (stale)" : "";
+            parts.add(lower(part) + " " + item + " " + head.buffer().count(part) + " / " + head.supplyLevel(part) + stale);
+        }
+        return String.join(", ", parts);
+    }
+
     /** "2 Oak Planks, 1 Coal" for stacks with counts. */
     private static String counted(List<ItemStack> stacks) {
         List<String> parts = new ArrayList<>();
@@ -180,6 +193,7 @@ public final class ServusStorageCommands {
                         + (head.fertilizer().isEmpty() ? ", no fertilizer" : " with " + name(head.fertilizer()))
                         + ", " + head.fertilizeTargetCount() + " plots need a dose, keep " + head.reserve() + ", status "
                         + (head.fertilizeStatus() == null ? "none" : lower(head.fertilizeStatus())),
+                "Buffer: " + bufferLine(head),
                 "Corrosion: " + (head.corrosion() == FieldCorrosion.LOOSE ? "none" : FieldCorrosion.name(head.corrosion())
                         + ", " + head.agedWater() + " / " + StorageStatsManager.INSTANCE.fieldCorrosionWater() + " mB to the next step, "
                         + head.supplyCount(SupplyBuffer.Part.ANTI_CORROSION) + " anti-corrosion"));
