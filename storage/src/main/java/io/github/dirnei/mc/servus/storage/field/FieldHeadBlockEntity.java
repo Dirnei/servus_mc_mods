@@ -126,10 +126,10 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     };
     /** Seeds, fertilizer and anti-corrosion items, filled by supply runs and taken by field shuttles only. */
     private final SupplyBuffer buffer = new SupplyBuffer(this::bufferChanged);
-    /** The anti-corrosion item last sent to clients, for the Water tab's icon. */
-    private Item sentAntiCorrosionItem;
-    /** Client side: the anti-corrosion item the buffer holds, null for none. */
-    private Item clientAntiCorrosionItem;
+    /** Whether the player chose the anti-corrosion item; until then it is the first item of the tag. */
+    private boolean antiCorrosionChosen;
+    /** The chosen anti-corrosion item, null for Off; meaningful while {@link #antiCorrosionChosen}. */
+    private Item antiCorrosion;
     /** The corrosion stage of the served field; meaningful while {@link #stageKnown}. */
     private int stage = FieldCorrosion.COPPER;
     /** Whether the head decides its field's stage: it served the field before this refresh. */
@@ -513,39 +513,51 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
 
     private void bufferChanged() {
         setChanged();
-        Item antiCorrosionItem = buffer.item(SupplyBuffer.Part.ANTI_CORROSION);
-        if (antiCorrosionItem != sentAntiCorrosionItem) {
-            sentAntiCorrosionItem = antiCorrosionItem;
-            syncClients();
+    }
+
+    /** The anti-corrosion item of the field: the chosen one, else the first of the tag; empty for Off. */
+    public ItemStack antiCorrosion() {
+        Item item = antiCorrosionItem();
+        return item == null ? ItemStack.EMPTY : new ItemStack(item);
+    }
+
+    private Item antiCorrosionItem() {
+        return antiCorrosionChosen ? antiCorrosion : firstAntiCorrosion();
+    }
+
+    /** Chooses the anti-corrosion item (empty for Off); items outside the tag are ignored. */
+    public void setAntiCorrosion(ItemStack stack) {
+        if (!stack.isEmpty() && !isAntiCorrosion(stack)) {
+            return;
         }
+        antiCorrosionChosen = true;
+        antiCorrosion = stack.isEmpty() ? null : stack.getItem();
+        setChanged();
+        syncClients();
     }
 
     /**
      * The level supply runs fill the part to: seeds while the field plants a
-     * crop, fertilizer while fertilizing is on, anti-corrosion items always.
-     * 0 while the part is off.
+     * crop, fertilizer while fertilizing is on, anti-corrosion items unless
+     * they are Off. 0 while the part is off.
      */
     public int supplyLevel(SupplyBuffer.Part part) {
         return switch (part) {
             case SEEDS -> plantMode() ? StorageStatsManager.INSTANCE.seedBuffer() : 0;
             case FERTILIZER -> fertilizing() ? StorageStatsManager.INSTANCE.fertilizerBuffer() : 0;
-            case ANTI_CORROSION -> StorageStatsManager.INSTANCE.fieldAntiCorrosionLevel();
+            case ANTI_CORROSION -> antiCorrosionItem() != null ? StorageStatsManager.INSTANCE.fieldAntiCorrosionLevel() : 0;
         };
     }
 
     /**
-     * The item the part is filled with: the crop, the fertilizer, or the
-     * anti-corrosion item it holds, else the first of the tag. Null while the
-     * part is off or the tag is empty.
+     * The item the part is filled with: the crop, the fertilizer or the
+     * anti-corrosion item. Null while the part is off or the tag is empty.
      */
     public Item supplyItem(SupplyBuffer.Part part) {
         return switch (part) {
             case SEEDS -> plantMode() ? crop.getStackInSlot(0).getItem() : null;
             case FERTILIZER -> fertilizing() ? fertilizer : null;
-            case ANTI_CORROSION -> {
-                Item held = buffer.item(part);
-                yield held != null && isAntiCorrosion(new ItemStack(held)) ? held : firstAntiCorrosion();
-            }
+            case ANTI_CORROSION -> antiCorrosionItem();
         };
     }
 
@@ -604,12 +616,6 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             }
         }
         return stale;
-    }
-
-    /** Client side: the anti-corrosion item the buffer holds, else the first of the tag; empty for none. */
-    public ItemStack antiCorrosionShown() {
-        Item item = clientAntiCorrosionItem != null ? clientAntiCorrosionItem : firstAntiCorrosion();
-        return item == null ? ItemStack.EMPTY : new ItemStack(item);
     }
 
     /** The first farm rail beside the head, where supply runs unload and field shuttles take from the buffer; null for none. */
@@ -976,13 +982,14 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     }
 
     /**
-     * The warehouse stock of every fertilizer item with a non zero count,
+     * The warehouse stock of every fertilizer and anti-corrosion item with a non zero count,
      * keyed by item id; empty while the head serves no field on a warehouse
      * with its one controller. Server side.
      */
-    public Optional<Map<Identifier, Long>> fertilizerStock() {
+    public Optional<Map<Identifier, Long>> supplyStock() {
         List<Item> items = new ArrayList<>();
         BuiltInRegistries.ITEM.getTagOrEmpty(FERTILIZER).forEach(holder -> items.add(holder.value()));
+        BuiltInRegistries.ITEM.getTagOrEmpty(ANTI_CORROSION).forEach(holder -> items.add(holder.value()));
         return stockOf(items);
     }
 
@@ -1317,6 +1324,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             output.putString("Fertilizer", BuiltInRegistries.ITEM.getKey(fertilizer).toString());
         }
         output.putInt("FertilizeMode", fertilizeMode.ordinal());
+        putAntiCorrosion(tag);
         if (fertilizePercent > 0) {
             output.putInt("FertilizePercent", fertilizePercent);
         }
@@ -1367,12 +1375,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         harvestPercent = tag.contains("HarvestPercent") ? FieldThreshold.clamp(input.getIntOr("HarvestPercent", 0)) : 0;
         if (tag.contains("Buffer")) {
             buffer.load(tag.getCompoundOrEmpty("Buffer"));
-            sentAntiCorrosionItem = buffer.item(SupplyBuffer.Part.ANTI_CORROSION);
         }
-        if (tag.contains("AntiCorrosionItem")) {
-            Identifier id = Identifier.tryParse(tag.getStringOr("AntiCorrosionItem", ""));
-            clientAntiCorrosionItem = id == null ? null : BuiltInRegistries.ITEM.getOptional(id).orElse(null);
-        }
+        antiCorrosion = readItem(tag, "AntiCorrosion");
+        antiCorrosionChosen = tag.contains("AntiCorrosion") && (antiCorrosion == null || isAntiCorrosion(new ItemStack(antiCorrosion)));
         stageKnown = tag.contains("Corrosion");
         stage = stageKnown ? FieldCorrosion.clamp(input.getIntOr("Corrosion", 0)) : FieldCorrosion.COPPER;
         agedWater = Math.max(0, input.getLongOr("CorrosionWater", 0L));
@@ -1392,6 +1397,13 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         fertilizeBelow = tag.contains("FertilizeBelow") ? StockLevels.clamp(input.getIntOr("FertilizeBelow", 0)) : -1;
         if (tag.contains("WaterLevel")) {
             clientWaterLevel = input.getByteOr("WaterLevel", (byte) 0);
+        }
+    }
+
+    /** Saves the chosen anti-corrosion item, an empty id for Off; nothing while it was never chosen. */
+    private void putAntiCorrosion(CompoundTag tag) {
+        if (antiCorrosionChosen) {
+            tag.putString("AntiCorrosion", antiCorrosion == null ? "" : BuiltInRegistries.ITEM.getKey(antiCorrosion).toString());
         }
     }
 
@@ -1416,8 +1428,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             tag.putString("Fertilizer", BuiltInRegistries.ITEM.getKey(fertilizer).toString());
         }
         tag.putByte("WaterLevel", (byte) FieldHeadLook.waterLevel(tank.getFluidAmount(), tank.getCapacity()));
-        Item antiCorrosionItem = buffer.item(SupplyBuffer.Part.ANTI_CORROSION);
-        tag.putString("AntiCorrosionItem", antiCorrosionItem == null ? "" : BuiltInRegistries.ITEM.getKey(antiCorrosionItem).toString());
+        putAntiCorrosion(tag);
         tag.putString("Produce", produce == null ? "" : BuiltInRegistries.ITEM.getKey(produce).toString());
         return tag;
     }

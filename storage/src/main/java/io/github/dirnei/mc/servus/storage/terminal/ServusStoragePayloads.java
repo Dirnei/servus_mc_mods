@@ -11,11 +11,12 @@ import io.github.dirnei.mc.servus.storage.client.ClientStationState;
 import io.github.dirnei.mc.servus.storage.client.ClientStock;
 import io.github.dirnei.mc.servus.storage.controller.RenameSitePayload;
 import io.github.dirnei.mc.servus.storage.controller.SiteStatusPayload;
+import io.github.dirnei.mc.servus.storage.field.ChooseAntiCorrosionPayload;
 import io.github.dirnei.mc.servus.storage.field.ChooseFertilizerPayload;
 import io.github.dirnei.mc.servus.storage.field.ChooseFieldCropPayload;
 import io.github.dirnei.mc.servus.storage.field.FieldAmount;
 import io.github.dirnei.mc.servus.storage.field.FieldCropStockPayload;
-import io.github.dirnei.mc.servus.storage.field.FieldFertilizerStockPayload;
+import io.github.dirnei.mc.servus.storage.field.FieldSupplyStockPayload;
 import io.github.dirnei.mc.servus.storage.field.SetFieldAmountPayload;
 import io.github.dirnei.mc.servus.storage.field.FieldWorkerPayload;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
@@ -88,6 +89,8 @@ public final class ServusStoragePayloads {
                 (payload, context) -> FieldHeadMenu.choose(context.player(), payload.crop()));
         registrar.playToServer(ChooseFertilizerPayload.TYPE, ChooseFertilizerPayload.STREAM_CODEC,
                 (payload, context) -> FieldHeadMenu.chooseFertilizer(context.player(), payload.fertilizer()));
+        registrar.playToServer(ChooseAntiCorrosionPayload.TYPE, ChooseAntiCorrosionPayload.STREAM_CODEC,
+                (payload, context) -> FieldHeadMenu.chooseAntiCorrosion(context.player(), payload.item()));
         registrar.playToServer(SetFieldAmountPayload.TYPE, SetFieldAmountPayload.STREAM_CODEC,
                 (payload, context) -> FieldHeadMenu.setAmount(context.player(), payload.pos(), FieldAmount.byId(payload.which()), payload.value()));
         toMenu(registrar, ShuttleBuildStepPayload.TYPE, ShuttleBuildStepPayload.STREAM_CODEC, ShuttleWorkshopMenu.class,
@@ -120,9 +123,9 @@ public final class ServusStoragePayloads {
                 menu.acceptStock(payload);
             }
         });
-        registrar.playToClient(FieldFertilizerStockPayload.TYPE, FieldFertilizerStockPayload.STREAM_CODEC, (payload, context) -> {
+        registrar.playToClient(FieldSupplyStockPayload.TYPE, FieldSupplyStockPayload.STREAM_CODEC, (payload, context) -> {
             if (context.player().containerMenu instanceof FieldHeadMenu menu) {
-                menu.acceptFertilizerStock(payload);
+                menu.acceptSupplyStock(payload);
             }
         });
         registrar.playToClient(SiteStatusPayload.TYPE, SiteStatusPayload.STREAM_CODEC, (payload, context) -> ClientSiteStatus.update(payload));

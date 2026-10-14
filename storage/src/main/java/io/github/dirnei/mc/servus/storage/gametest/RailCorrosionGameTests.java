@@ -14,6 +14,8 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -22,6 +24,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -104,6 +107,43 @@ public final class RailCorrosionGameTests {
             helper.assertTrue(head.corrosion() == FieldCorrosion.WEATHERED, "honeycomb holds weathered, got " + head.corrosion());
             helper.assertTrue(head.supplyCount(SupplyBuffer.Part.ANTI_CORROSION) == 2, "one honeycomb used");
             assertRails(helper, FIRST, LAST, FieldCorrosion.WEATHERED, "rails stay weathered");
+            helper.succeed();
+        });
+    }
+
+    /**
+     * Anti-corrosion Off: the part asks for nothing, honeycomb already in the
+     * buffer is stale and holds no stage, and the field ages.
+     */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void antiCorrosionOffAges(GameTestHelper helper) {
+        FieldHeadBlockEntity head = field(helper);
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(head.antiCorrosion().is(Items.HONEYCOMB), "a new head uses the first item of the tag");
+            head.fillSupply(SupplyBuffer.Part.ANTI_CORROSION, Items.HONEYCOMB, 3);
+            head.setAntiCorrosion(ItemStack.EMPTY);
+            helper.assertTrue(head.supplyLevel(SupplyBuffer.Part.ANTI_CORROSION) == 0 && head.holdsStale(),
+                    "Off asks for no honeycomb and the held ones go back");
+            head.age(perStep());
+            helper.assertTrue(head.corrosion() == FieldCorrosion.EXPOSED, "the field ages with Off, got " + head.corrosion());
+            helper.succeed();
+        });
+    }
+
+    /** Only items of the anti-corrosion tag can be chosen, and the choice survives saving. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void antiCorrosionChoiceSaved(GameTestHelper helper) {
+        FieldHeadBlockEntity head = field(helper);
+        helper.runAfterDelay(3, () -> {
+            head.setAntiCorrosion(ItemStack.EMPTY);
+            head.setAntiCorrosion(new ItemStack(Items.DIRT));
+            helper.assertTrue(head.antiCorrosion().isEmpty(), "dirt is refused, Off stays");
+            CompoundTag tag = head.saveWithFullMetadata(helper.getLevel().registryAccess());
+            FieldHeadBlockEntity copy = new FieldHeadBlockEntity(head.getBlockPos(), head.getBlockState());
+            copy.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), tag));
+            helper.assertTrue(copy.antiCorrosion().isEmpty(), "Off survives saving");
+            head.setAntiCorrosion(new ItemStack(Items.HONEYCOMB));
+            helper.assertTrue(head.antiCorrosion().is(Items.HONEYCOMB), "honeycomb can be chosen");
             helper.succeed();
         });
     }

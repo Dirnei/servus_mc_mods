@@ -2,12 +2,14 @@ package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
+import io.github.dirnei.mc.servus.storage.field.ChooseAntiCorrosionPayload;
 import io.github.dirnei.mc.servus.storage.field.ChooseFertilizerPayload;
 import io.github.dirnei.mc.servus.storage.field.ChooseFieldCropPayload;
 import io.github.dirnei.mc.servus.storage.field.FertilizeMode;
 import io.github.dirnei.mc.servus.storage.field.FertilizeStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldAmount;
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
+import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
 import io.github.dirnei.mc.servus.storage.field.SetFieldAmountPayload;
@@ -78,11 +80,11 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private static final int RIPE_H = 7;
     private static final int THRESHOLD_Y = 60;
     private static final int WORK_Y = 80;
-    private static final int WATER_Y = 22;
-    private static final int BAR_Y = 34;
+    private static final int WATER_Y = 44;
+    private static final int BAR_Y = 56;
     private static final int BAR_H = 8;
-    private static final int HYDRATED_Y = 48;
-    private static final int CORROSION_Y = 62;
+    private static final int HYDRATED_Y = 70;
+    private static final int CORROSION_Y = 84;
     private static final int RADIUS_TEXT_X = 30;
     private static final int SIZE_Y = 44;
     private static final int MODE_Y = 44;
@@ -95,10 +97,10 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private static final int PRODUCE_Y = 18;
     private static final int AMOUNT_Y = 40;
     private static final int AMOUNT_STRIDE = 17;
-    private static final int AMOUNT_BOX_X = 140;
-    private static final int AMOUNT_BOX_W = 50;
+    private static final int AMOUNT_BOX_X = 158;
+    private static final int AMOUNT_BOX_W = 40;
     private static final int AMOUNT_BOX_H = 14;
-    private static final int AMOUNT_HINT_X = AMOUNT_BOX_X + AMOUNT_BOX_W + 6;
+    private static final int AMOUNT_HINT_X = AMOUNT_BOX_X + AMOUNT_BOX_W + 4;
     private static final int BUFFER_TITLE_Y = 109;
     private static final int BUFFER_Y = 119;
     private static final int BUFFER_STRIDE = 84;
@@ -107,9 +109,10 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
 
     private final ItemPicker cropPicker;
     private final ItemPicker fertilizerPicker;
+    private final ItemPicker antiCorrosionPicker;
     /** The stock maps last handed to the pickers, to hand them over only when the menu got new ones. */
     private Map<Identifier, Long> cropPickerStock;
-    private Map<Identifier, Long> fertilizerPickerStock;
+    private Map<Identifier, Long> supplyPickerStock;
     private final List<Button> modeButtons = new ArrayList<>();
     /** The typed amounts of the Stock tab, in {@link FieldAmount} order. */
     private final List<AmountField> amountFields = new ArrayList<>();
@@ -122,8 +125,12 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         super(menu, playerInventory, title, FieldHeadMenu.IMAGE_WIDTH, FieldHeadMenu.IMAGE_HEIGHT);
         this.cropPicker = picker("crop_picker", "crop_no_stock", CropPickerEntries.build(),
                 entry -> ClientPacketDistributor.sendToServer(new ChooseFieldCropPayload(idOf(entry))));
-        this.fertilizerPicker = picker("fertilizer_picker", "fertilizer_no_stock", FertilizerPickerEntries.build(),
+        this.fertilizerPicker = picker("fertilizer_picker", "fertilizer_no_stock",
+                TagPickerEntries.build(FieldHeadBlockEntity.FERTILIZER, Component.translatable("gui.servus_storage.field_head.fertilizer_none")),
                 entry -> ClientPacketDistributor.sendToServer(new ChooseFertilizerPayload(idOf(entry))));
+        this.antiCorrosionPicker = picker("anti_corrosion_picker", "anti_corrosion_no_stock",
+                TagPickerEntries.build(FieldHeadBlockEntity.ANTI_CORROSION, Component.translatable("gui.servus_storage.field_head.anti_corrosion_none")),
+                entry -> ClientPacketDistributor.sendToServer(new ChooseAntiCorrosionPayload(idOf(entry))));
     }
 
     private static ItemPicker picker(String title, String zeroHint, List<ItemPicker.Entry> entries,
@@ -143,6 +150,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private ItemPicker pagePicker() {
         return switch (menu.page()) {
             case FIELD -> cropPicker;
+            case WATER -> antiCorrosionPicker;
             case FERTILIZER -> fertilizerPicker;
             default -> null;
         };
@@ -153,7 +161,10 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         if (cropPicker.isOpen()) {
             return cropPicker;
         }
-        return fertilizerPicker.isOpen() ? fertilizerPicker : null;
+        if (fertilizerPicker.isOpen()) {
+            return fertilizerPicker;
+        }
+        return antiCorrosionPicker.isOpen() ? antiCorrosionPicker : null;
     }
 
     private static String pickerId(ItemStack stack) {
@@ -168,9 +179,11 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             cropPicker.setStock(CropPickerEntries.keyed(cropPickerStock));
         }
         fertilizerPicker.setSelected(pickerId(menu.fertilizer()));
-        if (menu.fertilizerStock() != fertilizerPickerStock) {
-            fertilizerPickerStock = menu.fertilizerStock();
-            fertilizerPicker.setStock(CropPickerEntries.keyed(fertilizerPickerStock));
+        antiCorrosionPicker.setSelected(pickerId(menu.antiCorrosion()));
+        if (menu.supplyStock() != supplyPickerStock) {
+            supplyPickerStock = menu.supplyStock();
+            fertilizerPicker.setStock(CropPickerEntries.keyed(supplyPickerStock));
+            antiCorrosionPicker.setStock(CropPickerEntries.keyed(supplyPickerStock));
         }
     }
 
@@ -188,6 +201,8 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         harvestUp = stepButton("+", THRESHOLD_Y - 2, STEP_UP_X, FieldHeadMenu.BUTTON_THRESHOLD_UP);
         fertilizerPicker.setButton(leftPos + FieldHeadMenu.PICKER_X, topPos + FieldHeadMenu.PICKER_Y, FieldHeadMenu.PICKER_WIDTH);
         fertilizerPicker.setArea(leftPos, topPos, imageWidth, imageHeight);
+        antiCorrosionPicker.setButton(leftPos + FieldHeadMenu.PICKER_X, topPos + FieldHeadMenu.PICKER_Y, FieldHeadMenu.PICKER_WIDTH);
+        antiCorrosionPicker.setArea(leftPos, topPos, imageWidth, imageHeight);
         modeButtons.clear();
         for (FertilizeMode mode : FertilizeMode.values()) {
             String key = "gui.servus_storage.field_head.fertilize_mode." + mode.name().toLowerCase(Locale.ROOT);
@@ -495,7 +510,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     }
 
     private Component antiCorrosionName() {
-        ItemStack antiCorrosion = menu.antiCorrosionShown();
+        ItemStack antiCorrosion = menu.antiCorrosion();
         return antiCorrosion.isEmpty() ? Component.translatable("tag.item.servus_storage.anti_corrosion") : antiCorrosion.getHoverName();
     }
 
@@ -508,7 +523,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         ItemStack stack = switch (part) {
             case SEEDS -> menu.crop();
             case FERTILIZER -> menu.fertilizer();
-            case ANTI_CORROSION -> menu.antiCorrosionShown();
+            case ANTI_CORROSION -> menu.antiCorrosion();
         };
         if (!stack.isEmpty()) {
             return stack;
@@ -545,7 +560,10 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                     renderRipeBar(graphics);
                 }
             }
-            case WATER -> renderWaterBar(graphics);
+            case WATER -> {
+                antiCorrosionPicker.renderButton(graphics, font, mouseX, mouseY);
+                renderWaterBar(graphics);
+            }
             case FERTILIZER -> fertilizerPicker.renderButton(graphics, font, mouseX, mouseY);
             case STOCK -> renderStockIcons(graphics);
             case UPGRADES -> slotFrame(graphics, FieldHeadMenu.RANGE_X, FieldHeadMenu.RANGE_Y);
@@ -670,7 +688,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private Component amountHint(FieldAmount amount) {
         ItemStack kept = switch (amount) {
             case RESERVE -> menu.fertilizer();
-            case ANTI_CORROSION_RESERVE -> menu.antiCorrosionShown();
+            case ANTI_CORROSION_RESERVE -> menu.antiCorrosion();
             default -> null;
         };
         if (kept == null) {

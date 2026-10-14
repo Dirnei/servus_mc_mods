@@ -185,10 +185,13 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.field_head.amount.fertilize_below.tooltip", "Spreaders come only while the warehouse holds fewer of the produce");
         add("gui.servus_storage.field_head.amount.reserve", "Keep fertilizer in stock");
         add("gui.servus_storage.field_head.amount.reserve.tooltip", "Supply runs never take the warehouse stock at or below this");
-        add("gui.servus_storage.field_head.amount.anti_corrosion_reserve", "Keep wax in stock");
+        add("gui.servus_storage.field_head.amount.anti_corrosion_reserve", "Keep anti-corrosion in stock");
         add("gui.servus_storage.field_head.amount.anti_corrosion_reserve.tooltip", "Supply runs never take the warehouse stock of the anti-corrosion item at or below this");
         add("gui.servus_storage.field_head.amount.typing", "Type a number, then press Enter or click elsewhere");
         add("gui.servus_storage.field_head.fertilizer_picker", "Fertilizer");
+        add("gui.servus_storage.field_head.anti_corrosion_picker", "Anti-corrosion");
+        add("gui.servus_storage.field_head.anti_corrosion_none", "Off: the copper ages");
+        add("gui.servus_storage.field_head.anti_corrosion_no_stock", "None in the warehouse: supply runs bring it from there");
         add("gui.servus_storage.field_head.fertilizer_none", "Off");
         add("gui.servus_storage.field_head.fertilizer_no_stock", "None in the warehouse: supply runs bring it from there");
         add("gui.servus_storage.field_head.fertilize_mode.off", "Off");

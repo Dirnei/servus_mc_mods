@@ -36,7 +36,7 @@ Apply after `m10-field-head-buffer` is archived.
   - A wheat field learns wheat at its first harvest.
   - With a limit below the stock it stops harvesting, and resumes when wheat is taken out.
   - With a fertilize level below the stock no Spreader comes.
-  - The Stock tab reads well: typed levels and both reserves stick, Keep wax in stock keeps honeycomb in the warehouse, Enter and clicking away both commit, the buffer counts show; the Field and Fertilizer tabs are no longer crowded and long item names fit.
+  - The Stock tab reads well: typed levels and both reserves stick, Keep anti-corrosion in stock keeps honeycomb in the warehouse, the Water tab picks the anti-corrosion item and Off lets the copper age, Enter and clicking away both commit, the buffer counts show; the Field and Fertilizer tabs are no longer crowded and long item names fit.
   - The statuses read well.
 
   Verify: the user confirms in game.
@@ -51,8 +51,9 @@ The user's play test found the Field Head GUI too crowded and asked for typed am
 - [x] 6.4 GameTests in `FieldLevelGameTests`: `typedAmountsClamped` (levels to 99,999, reserve to `MAX_RESERVE`, negative to 0), `levelsStayInOrder` rewritten for typed levels, `typedAmountRefusedFarAway` (a player out of reach changes nothing); `SpreaderGameTests.menuChoosesFertilizerAndSettings` types the reserve. Verify: `gradlew runGameTestServerAll` green.
 - [x] 6.5 Describe the Stock tab and typed amounts in `docs/src/content/docs/mods/storage.md`. Verify: docs tests green, `openspec validate m10-field-stock-levels --strict` passes.
 
-## 7. Play test rework: wax reserve
+## 7. Play test rework: anti-corrosion item and reserve
 
 The user asked for a minimum stock level for honeycomb too.
 
 - [x] 7.1 `anti_corrosion_reserve` in `storage/field.json` and `StorageStatsManager`; `FieldHeadBlockEntity.antiCorrosionReserve`, `setAntiCorrosionReserve`, `supplyReserve(part)`, save and load; `WarehouseNetwork.supplyDue` and `FieldRuns.planSupply` with `SupplyRun.reserves` use it. `FieldAmount.ANTI_CORROSION_RESERVE`, `FieldHeadMenu` (data slot, `setAmount`), `FieldHeadScreen` (fourth row, item name hint, rows and buffer moved up), lang, the field command. JUnit `FieldAmountTest` for the new kind. GameTests `FieldSupplyGameTests.supplyKeepsTheAntiCorrosionReserve`, `FieldLevelGameTests.typedAmountsClamped` and `levelsSaved` cover it. Docs in `storage.md`. Verify: `gradlew :storage:runData`, `gradlew build test runGameTestServerAll` green, `openspec validate m10-field-stock-levels --strict` passes.
+- [x] 7.2 The anti-corrosion item per head: `FieldHeadBlockEntity` (`antiCorrosion`, `setAntiCorrosion`, save, load and sync, `supplyItem` and `supplyLevel`, `supplyStock`), `ChooseAntiCorrosionPayload` (registered in `ServusStoragePayloads`), `FieldHeadMenu.chooseAntiCorrosion`, `FieldSupplyStockPayload` replacing `FieldFertilizerStockPayload`, client `TagPickerEntries` replacing `FertilizerPickerEntries`, the Water tab picker in `FieldHeadScreen`, lang keys; "Keep anti-corrosion in stock", never "wax", with the box at x 158. GameTests `RailCorrosionGameTests.antiCorrosionOffAges` and `antiCorrosionChoiceSaved`. Docs in `storage.md`. Verify: `gradlew :storage:runData`, `gradlew build test runGameTestServerAll` green, `openspec validate m10-field-stock-levels --strict` passes.

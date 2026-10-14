@@ -12,8 +12,8 @@ A play check follow up to M10 field work, not an item in PLAN.md. Fields harvest
   - a **fertilize level** below which the field fertilizes at all
 
   Both are 0 (off) by default, so existing fields keep working as before.
-- A **wax reserve**: like the fertilizer reserve, the anti-corrosion items (honeycomb) at or below it stay in the warehouse; supply runs never take them. 0 by default (`anti_corrosion_reserve`).
-- A new **Stock** tab in a larger Field Head GUI (play test: the tabs were too crowded) holds the produce with its stock, the two levels and the two Keep in stock reserves (fertilizer and wax) as typed number fields, and the head's buffer (seeds, fertilizer, anti-corrosion). The Field and Fertilizer pickers span the page again; the Field, Water and Fertilizer tabs lose the level rows, the reserve and the buffer counts. The statuses say "paused" or "not needed" without a red marker. The field command prints the produce and both levels.
+- An **anti-corrosion item** chosen on the Water tab with a picker like the fertilizer picker (honeycomb until chosen, or Off to let the copper age), and an **anti-corrosion reserve**: like the fertilizer reserve, the items at or below it stay in the warehouse. 0 by default (`anti_corrosion_reserve`).
+- A new **Stock** tab in a larger Field Head GUI (play test: the tabs were too crowded) holds the produce with its stock, the two levels and the two Keep in stock reserves (fertilizer and anti-corrosion) as typed number fields, and the head's buffer (seeds, fertilizer, anti-corrosion). The Field and Fertilizer pickers span the page again; the Field, Water and Fertilizer tabs lose the level rows, the reserve and the buffer counts. The statuses say "paused" or "not needed" without a red marker. The field command prints the produce and both levels.
 
 ## Capabilities
 
@@ -21,7 +21,8 @@ A play check follow up to M10 field work, not an item in PLAN.md. Fields harvest
 None.
 
 ### Modified Capabilities
-- `storage/field-head`: new requirements for the produce, the levels, how they stop harvesting and fertilizing, and their GUI. Modifies "Field Head GUI" (as `m10-field-head-buffer` leaves it) for the Stock tab and the larger panel, and "Fertilize settings per head" because the reserve is typed instead of stepped. A new requirement for the anti-corrosion reserve, which supply runs (`storage/field-supply`, from `m10-field-head-buffer`) respect.
+- `storage/field-head`: new requirements for the produce, the levels, how they stop harvesting and fertilizing, and their GUI. Modifies "Field Head GUI" (as `m10-field-head-buffer` leaves it) for the Stock tab and the larger panel, and "Fertilize settings per head" because the reserve is typed instead of stepped. A new requirement for the anti-corrosion item and reserve; the Water tab gets the anti-corrosion picker.
+- `storage/field-supply` (from `m10-field-head-buffer`, archived first): "Supply run" brings the chosen anti-corrosion item above its reserve.
 
 ## Impact
 

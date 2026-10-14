@@ -7,7 +7,7 @@ import io.github.dirnei.mc.servus.storage.field.FieldAmount;
 import io.github.dirnei.mc.servus.storage.field.FertilizeStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.storage.field.FieldCropStockPayload;
-import io.github.dirnei.mc.servus.storage.field.FieldFertilizerStockPayload;
+import io.github.dirnei.mc.servus.storage.field.FieldSupplyStockPayload;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
@@ -112,10 +112,10 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     private final DataSlot produceStockHigh = DataSlot.standalone();
     /** Signatures of the crop and fertilizer stock last sent; null before the first send. */
     private Long sentStock;
-    private Long sentFertilizerStock;
+    private Long sentSupplyStock;
     /** Client side: the stock by item id as last received, null while there is no warehouse. */
     private Map<Identifier, Long> stock;
-    private Map<Identifier, Long> fertilizerStock;
+    private Map<Identifier, Long> supplyStock;
     /** The worker names last sent to the player; null before the first send. */
     private String sentWorker;
     /** Ticks until the next stock look; zero sends on the first broadcast. */
@@ -235,8 +235,8 @@ public class FieldHeadMenu extends AbstractContainerMenu {
                 stockTimer = STOCK_INTERVAL;
                 FieldCropStockPayload crops = stockPayload();
                 sentStock = sendIfChanged(server, crops, crops.networked(), crops.counts(), sentStock);
-                FieldFertilizerStockPayload fertilizers = fertilizerStockPayload();
-                sentFertilizerStock = sendIfChanged(server, fertilizers, fertilizers.networked(), fertilizers.counts(), sentFertilizerStock);
+                FieldSupplyStockPayload supplies = supplyStockPayload();
+                sentSupplyStock = sendIfChanged(server, supplies, supplies.networked(), supplies.counts(), sentSupplyStock);
             }
         }
     }
@@ -257,22 +257,22 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         return new FieldCropStockPayload(containerId, counts.isPresent(), counts.orElse(Map.of()));
     }
 
-    /** The warehouse stock of the fertilizer items as it travels to the client. Server side. */
-    public FieldFertilizerStockPayload fertilizerStockPayload() {
-        Optional<Map<Identifier, Long>> counts = head.fertilizerStock();
-        return new FieldFertilizerStockPayload(containerId, counts.isPresent(), counts.orElse(Map.of()));
+    /** The warehouse stock of the fertilizer and anti-corrosion items as it travels to the client. Server side. */
+    public FieldSupplyStockPayload supplyStockPayload() {
+        Optional<Map<Identifier, Long>> counts = head.supplyStock();
+        return new FieldSupplyStockPayload(containerId, counts.isPresent(), counts.orElse(Map.of()));
     }
 
-    /** Client side: keeps the fertilizer stock the server sent for this menu. */
-    public void acceptFertilizerStock(FieldFertilizerStockPayload payload) {
+    /** Client side: keeps the fertilizer and anti-corrosion stock the server sent for this menu. */
+    public void acceptSupplyStock(FieldSupplyStockPayload payload) {
         if (payload.containerId() == containerId) {
-            fertilizerStock = payload.networked() ? Map.copyOf(payload.counts()) : null;
+            supplyStock = payload.networked() ? Map.copyOf(payload.counts()) : null;
         }
     }
 
-    /** Client side: the fertilizer stock by item id; null while there are no counts to show. */
-    public Map<Identifier, Long> fertilizerStock() {
-        return fertilizerStock;
+    /** Client side: the fertilizer and anti-corrosion stock by item id; null while there are no counts to show. */
+    public Map<Identifier, Long> supplyStock() {
+        return supplyStock;
     }
 
     /**
@@ -295,6 +295,27 @@ public class FieldHeadMenu extends AbstractContainerMenu {
             return false;
         }
         menu.head.setFertilizer(stack.get());
+        menu.update();
+        return true;
+    }
+
+    /**
+     * Sets the anti-corrosion item the player chose: an item id of the
+     * anti-corrosion tag, or empty for Off. Acts only while the player's open
+     * menu is a Field Head menu they can still use. Returns whether the choice
+     * was taken. Server side.
+     */
+    public static boolean chooseAntiCorrosion(Player player, Optional<Identifier> item) {
+        FieldHeadMenu menu = usableMenu(player);
+        if (menu == null) {
+            return false;
+        }
+        Optional<ItemStack> stack = item.isEmpty() ? Optional.of(ItemStack.EMPTY)
+                : stackOf(item.get()).filter(FieldHeadBlockEntity::isAntiCorrosion);
+        if (stack.isEmpty()) {
+            return false;
+        }
+        menu.head.setAntiCorrosion(stack.get());
         menu.update();
         return true;
     }
@@ -525,9 +546,9 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         return supplyLevels[part.ordinal()].get();
     }
 
-    /** The anti-corrosion item the buffer holds as the head last synced it, else the first of the tag. */
-    public ItemStack antiCorrosionShown() {
-        return head.antiCorrosionShown();
+    /** The field's anti-corrosion item as the head last synced it; empty for Off. */
+    public ItemStack antiCorrosion() {
+        return head.antiCorrosion();
     }
 
     /** What the fertilizing is doing; null while the head serves no field. */
