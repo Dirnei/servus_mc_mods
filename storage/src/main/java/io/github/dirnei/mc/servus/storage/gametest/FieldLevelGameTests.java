@@ -8,7 +8,9 @@ import static io.github.dirnei.mc.servus.storage.gametest.FarmFixtures.out;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.field.FertilizeMode;
+import io.github.dirnei.mc.servus.storage.field.FertilizePlan;
 import io.github.dirnei.mc.servus.storage.field.FertilizeStatus;
+import io.github.dirnei.mc.servus.storage.field.FieldAmount;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlock;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
@@ -76,8 +78,7 @@ public final class FieldLevelGameTests {
     }
 
     private static void setLevel(FieldHeadBlockEntity head, StockLevels.Level which, int value) {
-        int now = which == StockLevels.Level.HARVEST ? head.harvestLimit() : head.fertilizeBelow();
-        head.stepLevel(which, value - now);
+        head.setLevel(which, value);
     }
 
     /** Takes up to count of the item out of the rack, as an order would. */
@@ -209,31 +210,69 @@ public final class FieldLevelGameTests {
         });
     }
 
-    /** The menu steps the levels, shift ten times as far, and the fertilize level never stays above the limit. */
-    @ServusGameTest(timeoutTicks = 60)
-    public static void levelsStayInOrder(GameTestHelper helper) {
-        FarmFixtures.Farm farm = farm(helper, harvester());
-        FieldHeadBlockEntity head = farm.head();
+    /** A mock player standing next to the head with its menu open. */
+    private static Player playerAtTheHead(GameTestHelper helper, FieldHeadBlockEntity head) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.snapTo(Vec3.atBottomCenterOf(helper.absolutePos(HEAD).east()));
-        FieldHeadMenu menu = new FieldHeadMenu(1, player.getInventory(), head);
-        player.containerMenu = menu;
+        player.containerMenu = new FieldHeadMenu(1, player.getInventory(), head);
+        return player;
+    }
+
+    /** Typed levels are set as sent, and the fertilize level never stays above the limit. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void levelsStayInOrder(GameTestHelper helper) {
+        FieldHeadBlockEntity head = farm(helper, harvester()).head();
+        Player player = playerAtTheHead(helper, head);
         BlockPos pos = helper.absolutePos(HEAD);
         helper.assertTrue(head.harvestLimit() == 0 && head.fertilizeBelow() == 0, "a new head has no levels");
-        helper.assertTrue(FieldHeadMenu.stepLevel(player, pos, StockLevels.Level.HARVEST, 64, true) && head.harvestLimit() == 640,
-                "shift +64 from 0 makes 640, got " + head.harvestLimit());
-        setLevel(head, StockLevels.Level.HARVEST, 512);
-        helper.assertTrue(FieldHeadMenu.stepLevel(player, pos, StockLevels.Level.FERTILIZE, 64, true),
-                "the fertilize level takes shift +64");
+        helper.assertTrue(FieldHeadMenu.setAmount(player, pos, FieldAmount.HARVEST_LIMIT, 512) && head.harvestLimit() == 512,
+                "512 typed makes 512, got " + head.harvestLimit());
+        helper.assertTrue(FieldHeadMenu.setAmount(player, pos, FieldAmount.FERTILIZE_BELOW, 640), "the fertilize level takes 640");
         helper.assertTrue(head.fertilizeBelow() == 640 && head.harvestLimit() == 640,
                 "raising the fertilize level to 640 raises the limit along, got " + head.harvestLimit() + " / " + head.fertilizeBelow());
-        FieldHeadMenu.stepLevel(player, pos, StockLevels.Level.HARVEST, -1, false);
-        helper.assertTrue(head.harvestLimit() == 639 && head.fertilizeBelow() == 639, "lowering the limit lowers the level along");
-        helper.assertTrue(!FieldHeadMenu.stepLevel(player, pos, StockLevels.Level.HARVEST, 5, false), "a step that is no button is refused");
-        helper.assertTrue(!FieldHeadMenu.stepLevel(player, pos.north(), StockLevels.Level.HARVEST, 1, false), "another head's position is refused");
+        FieldHeadMenu.setAmount(player, pos, FieldAmount.HARVEST_LIMIT, 300);
+        helper.assertTrue(head.harvestLimit() == 300 && head.fertilizeBelow() == 300, "lowering the limit lowers the level along");
+        FieldHeadMenu.setAmount(player, pos, FieldAmount.HARVEST_LIMIT, 0);
+        helper.assertTrue(head.harvestLimit() == 0 && head.fertilizeBelow() == 300, "no limit leaves the level alone");
+        helper.assertTrue(!FieldHeadMenu.setAmount(player, pos, null, 5), "an unknown amount is refused");
+        helper.assertTrue(!FieldHeadMenu.setAmount(player, pos.north(), FieldAmount.HARVEST_LIMIT, 1), "another head's position is refused");
         player.containerMenu = player.inventoryMenu;
-        helper.assertTrue(!FieldHeadMenu.stepLevel(player, pos, StockLevels.Level.HARVEST, 1, false) && head.harvestLimit() == 639,
+        helper.assertTrue(!FieldHeadMenu.setAmount(player, pos, FieldAmount.HARVEST_LIMIT, 1) && head.harvestLimit() == 0,
                 "without the head's menu open nothing changes");
+        helper.succeed();
+    }
+
+    /** The server clamps typed amounts: levels to 0..99,999, the reserve to 0..MAX_RESERVE. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void typedAmountsClamped(GameTestHelper helper) {
+        FieldHeadBlockEntity head = farm(helper, harvester()).head();
+        Player player = playerAtTheHead(helper, head);
+        BlockPos pos = helper.absolutePos(HEAD);
+        FieldHeadMenu.setAmount(player, pos, FieldAmount.FERTILIZE_BELOW, 250_000);
+        helper.assertTrue(head.fertilizeBelow() == StockLevels.MAX, "250,000 stops at 99,999, got " + head.fertilizeBelow());
+        FieldHeadMenu.setAmount(player, pos, FieldAmount.HARVEST_LIMIT, Long.MAX_VALUE);
+        helper.assertTrue(head.harvestLimit() == StockLevels.MAX, "the limit stops at 99,999, got " + head.harvestLimit());
+        FieldHeadMenu.setAmount(player, pos, FieldAmount.HARVEST_LIMIT, -5);
+        helper.assertTrue(head.harvestLimit() == 0, "a negative limit is 0, got " + head.harvestLimit());
+        FieldHeadMenu.setAmount(player, pos, FieldAmount.RESERVE, 99_999);
+        helper.assertTrue(head.reserve() == FertilizePlan.MAX_RESERVE, "the reserve stops at its maximum, got " + head.reserve());
+        FieldHeadMenu.setAmount(player, pos, FieldAmount.RESERVE, -10);
+        helper.assertTrue(head.reserve() == 0, "a negative reserve is 0, got " + head.reserve());
+        helper.succeed();
+    }
+
+    /** A player who walked out of reach of the head changes nothing, even with its menu still open. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void typedAmountRefusedFarAway(GameTestHelper helper) {
+        FieldHeadBlockEntity head = farm(helper, harvester()).head();
+        Player player = playerAtTheHead(helper, head);
+        BlockPos pos = helper.absolutePos(HEAD);
+        player.snapTo(Vec3.atBottomCenterOf(pos.east(64)));
+        helper.assertTrue(!FieldHeadMenu.setAmount(player, pos, FieldAmount.HARVEST_LIMIT, 500) && head.harvestLimit() == 0,
+                "a far player cannot set the limit, got " + head.harvestLimit());
+        int reserve = head.reserve();
+        helper.assertTrue(!FieldHeadMenu.setAmount(player, pos, FieldAmount.RESERVE, 3) && head.reserve() == reserve,
+                "a far player cannot set the reserve");
         helper.succeed();
     }
 
