@@ -103,7 +103,7 @@
 ## 6. Integration
 
 - [x] 6.1 Full `gradlew build`, unit tests and the foundation GameTests green. The game launches with all three mods.
-- [ ] 6.2 Play check in game by the user from main:
+- [x] 6.2 Play check in game by the user from main:
   - A floor run lies flat and straight, in the middle across the run, also beside a wall.
   - A climb stays dead centre, beside a wall and in a corner.
   - A floor run turning up makes a clean 90 degree bend: the bend lies on the floor with the run, no step before it, and its arm up rises straight from the low centre into the centred duct above, with no gap, offset or flicker where they meet.
