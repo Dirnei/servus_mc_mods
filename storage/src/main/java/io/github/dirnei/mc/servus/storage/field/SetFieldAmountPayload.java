@@ -9,21 +9,20 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
 /**
- * Client to server: a step button of a stock level in the open Field Head GUI.
- * {@code which} is a {@link StockLevels.Level} ordinal, {@code delta} one of the
- * menu's level steps, and {@code shift} moves ten times as far.
+ * Client to server: a number typed on the Stock tab of the open Field Head
+ * GUI. {@code which} is a {@link FieldAmount} ordinal; the server clamps
+ * {@code value}.
  */
-public record SetFieldLevelPayload(BlockPos pos, int which, int delta, boolean shift) implements CustomPacketPayload {
+public record SetFieldAmountPayload(BlockPos pos, int which, long value) implements CustomPacketPayload {
 
-    public static final Type<SetFieldLevelPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "set_field_level"));
+    public static final Type<SetFieldAmountPayload> TYPE =
+            new Type<>(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "set_field_amount"));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, SetFieldLevelPayload> STREAM_CODEC = StreamCodec.composite(
-            BlockPos.STREAM_CODEC, SetFieldLevelPayload::pos,
-            ByteBufCodecs.VAR_INT, SetFieldLevelPayload::which,
-            ByteBufCodecs.VAR_INT, SetFieldLevelPayload::delta,
-            ByteBufCodecs.BOOL, SetFieldLevelPayload::shift,
-            SetFieldLevelPayload::new);
+    public static final StreamCodec<RegistryFriendlyByteBuf, SetFieldAmountPayload> STREAM_CODEC = StreamCodec.composite(
+            BlockPos.STREAM_CODEC, SetFieldAmountPayload::pos,
+            ByteBufCodecs.VAR_INT, SetFieldAmountPayload::which,
+            ByteBufCodecs.VAR_LONG, SetFieldAmountPayload::value,
+            SetFieldAmountPayload::new);
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

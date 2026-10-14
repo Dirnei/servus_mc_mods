@@ -871,9 +871,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         return reserve >= 0 ? reserve : FertilizePlan.clampReserve(StorageStatsManager.INSTANCE.fertilizerReserve());
     }
 
-    /** Moves the reserve, kept between 0 and {@link FertilizePlan#MAX_RESERVE}. */
-    public void stepReserve(int delta) {
-        reserve = FertilizePlan.stepReserve(reserve(), delta);
+    /** Sets the reserve, kept between 0 and {@link FertilizePlan#MAX_RESERVE}. */
+    public void setReserve(long value) {
+        reserve = FertilizePlan.clampReserve(value);
         setChanged();
     }
 
@@ -1032,14 +1032,14 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         return fertilizeBelow >= 0 ? fertilizeBelow : StockLevels.clamp(StorageStatsManager.INSTANCE.fertilizeBelow());
     }
 
-    /** Moves one level by delta, kept in range, and moves the other along so the fertilize level stays at or below the limit. */
-    public void stepLevel(StockLevels.Level which, int delta) {
+    /** Sets one level, kept in range, and moves the other along so the fertilize level stays at or below the limit. */
+    public void setLevel(StockLevels.Level which, long value) {
         int limit = harvestLimit();
         int below = fertilizeBelow();
         if (which == StockLevels.Level.HARVEST) {
-            limit = StockLevels.step(limit, delta);
+            limit = StockLevels.clamp(value);
         } else {
-            below = StockLevels.step(below, delta);
+            below = StockLevels.clamp(value);
         }
         StockLevels.Levels ordered = StockLevels.keepOrder(limit, below, which);
         harvestLimit = ordered.harvestLimit();

@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.menu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
 import io.github.dirnei.mc.servus.storage.field.FertilizeMode;
+import io.github.dirnei.mc.servus.storage.field.FieldAmount;
 import io.github.dirnei.mc.servus.storage.field.FertilizeStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.storage.field.FieldCropStockPayload;
@@ -11,12 +12,10 @@ import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
 import io.github.dirnei.mc.servus.storage.field.FieldWorkerPayload;
-import io.github.dirnei.mc.servus.storage.field.StockLevels;
 import io.github.dirnei.mc.servus.storage.field.SupplyBuffer;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.storage.picker.PickerStock;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -37,27 +36,30 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * The Field Head GUI in four tabs: Field (crop picker, seeds in the buffer,
- * harvest limit), Water (anti-corrosion items in the buffer), Fertilizer
- * (fertilizer picker, mode, threshold, reserve, fertilizer in the buffer,
- * fertilize level) and Upgrades (Range Upgrade slot). The buffer takes nothing from the player and gives nothing
- * back, so it has no slots. The field's numbers travel as container data, the
+ * The Field Head GUI in five tabs: Field (crop picker, ripe share, harvest
+ * threshold), Water, Fertilizer (fertilizer picker, mode, threshold), Stock
+ * (produce, typed levels and reserve, the buffer) and Upgrades (Range Upgrade
+ * slot). The buffer takes nothing from the player and gives nothing back, so
+ * it has no slots. The field's numbers travel as container data, the
  * warehouse stock of crop and fertilizer items as payloads. The tab is client
  * view state; head slots off the shown tab are inactive. Crop and fertilizer
  * are chosen by id through {@link #choose(Player, Optional)} and
  * {@link #chooseFertilizer(Player, Optional)}, the stock levels through
- * {@link #stepLevel(Player, BlockPos, StockLevels.Level, int, boolean)}, the
+ * {@link #setAmount(Player, BlockPos, FieldAmount, long)}, the
  * rest through menu buttons.
  */
 public class FieldHeadMenu extends AbstractContainerMenu {
 
     public static final int PICKER_X = 8;
     public static final int PICKER_Y = 17;
-    public static final int PICKER_WIDTH = 100;
+    public static final int IMAGE_WIDTH = 264;
+    /** The width of a page's content, from {@link #PICKER_X} to the panel's shaded rim. */
+    public static final int PICKER_WIDTH = IMAGE_WIDTH - 2 * PICKER_X;
     public static final int RANGE_X = 8;
     public static final int RANGE_Y = 18;
     public static final int RANGE_SLOT = 0;
-    public static final int INVENTORY_Y = 132;
+    public static final int INVENTORY_X = (IMAGE_WIDTH - 9 * 18) / 2;
+    public static final int INVENTORY_Y = 154;
     public static final int IMAGE_HEIGHT = INVENTORY_Y + PlayerInventorySlots.HOTBAR_OFFSET + 18 + 6;
     public static final int INVENTORY_START = 1;
     public static final int BUTTON_THRESHOLD_DOWN = 1;
@@ -66,12 +68,6 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     public static final int BUTTON_FERTILIZE_MODE = 3;
     public static final int BUTTON_FERTILIZE_DOWN = 6;
     public static final int BUTTON_FERTILIZE_UP = 7;
-    /** Reserve buttons: -10, -1, +1, +10 from this id on. */
-    public static final int BUTTON_RESERVE = 8;
-    public static final int[] RESERVE_STEPS = {-10, -1, 1, 10};
-    /** The step buttons of a stock level; shift moves {@link #SHIFT_FACTOR} times as far. */
-    public static final int[] LEVEL_STEPS = {-64, -1, 1, 64};
-    public static final int SHIFT_FACTOR = 10;
     private static final int FLAG_HYDRATED = 1;
     private static final int FLAG_HARVEST_ONLY = 2;
     private static final int FLAG_DUE = 4;
@@ -128,7 +124,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
 
     /** The tabs of the GUI, in order. */
     public enum Page {
-        FIELD, WATER, FERTILIZER, UPGRADES;
+        FIELD, WATER, FERTILIZER, STOCK, UPGRADES;
 
         public static final Page[] VALUES = values();
     }
@@ -144,7 +140,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
                 return shows(RANGE_SLOT);
             }
         });
-        PlayerInventorySlots.add(this::addSlot, playerInventory, 8, INVENTORY_Y);
+        PlayerInventorySlots.add(this::addSlot, playerInventory, INVENTORY_X, INVENTORY_Y);
         for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags,
                 work, threshold, radius, corrosion, corrosionProgress, fertilizeMode, fertilizePercent, reserve, fertilizeStatus,
                 harvestLimitLow, harvestLimitHigh, fertilizeBelowLow, fertilizeBelowHigh, produceStockLow, produceStockHigh}) {
@@ -354,17 +350,21 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     }
 
     /**
-     * Moves a stock level of the head at that position by one of the
-     * {@link #LEVEL_STEPS}, ten times as far with shift. Acts only while the
-     * player's open menu is that head's menu and they can still use it.
-     * Returns whether the step was taken. Server side.
+     * Sets a typed amount of the head at that position: a stock level, kept
+     * in range and in order with the other, or the reserve, kept in range.
+     * Acts only while the player's open menu is that head's menu and they can
+     * still use it. Returns whether the amount was taken. Server side.
      */
-    public static boolean stepLevel(Player player, BlockPos pos, StockLevels.Level which, int delta, boolean shift) {
+    public static boolean setAmount(Player player, BlockPos pos, FieldAmount which, long value) {
         FieldHeadMenu menu = usableMenu(player);
-        if (menu == null || !menu.head.getBlockPos().equals(pos) || Arrays.stream(LEVEL_STEPS).noneMatch(step -> step == delta)) {
+        if (menu == null || which == null || !menu.head.getBlockPos().equals(pos)) {
             return false;
         }
-        menu.head.stepLevel(which, shift ? delta * SHIFT_FACTOR : delta);
+        if (which == FieldAmount.RESERVE) {
+            menu.head.setReserve(value);
+        } else {
+            menu.head.setLevel(which.level(), value);
+        }
         menu.update();
         return true;
     }
@@ -528,11 +528,10 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         return fertilizeStatus.get() == 0 ? null : FertilizeStatus.byId(fertilizeStatus.get() - 1);
     }
 
-    /** The arrows move the harvest and fertilize thresholds and the reserve; the mode buttons set the mode. */
+    /** The arrows move the harvest and fertilize thresholds; the mode buttons set the mode. */
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        boolean known = id == BUTTON_THRESHOLD_DOWN || id == BUTTON_THRESHOLD_UP
-                || id >= BUTTON_FERTILIZE_MODE && id < BUTTON_RESERVE + RESERVE_STEPS.length;
+        boolean known = id >= BUTTON_THRESHOLD_DOWN && id <= BUTTON_FERTILIZE_UP;
         if (!known) {
             return false;
         }
@@ -543,10 +542,8 @@ public class FieldHeadMenu extends AbstractContainerMenu {
             head.stepHarvestPercent(id == BUTTON_THRESHOLD_DOWN ? -1 : 1);
         } else if (id < BUTTON_FERTILIZE_DOWN) {
             head.setFertilizeMode(FertilizeMode.byId(id - BUTTON_FERTILIZE_MODE));
-        } else if (id == BUTTON_FERTILIZE_DOWN || id == BUTTON_FERTILIZE_UP) {
-            head.stepFertilizePercent(id == BUTTON_FERTILIZE_DOWN ? -1 : 1);
         } else {
-            head.stepReserve(RESERVE_STEPS[id - BUTTON_RESERVE]);
+            head.stepFertilizePercent(id == BUTTON_FERTILIZE_DOWN ? -1 : 1);
         }
         update();
         return true;

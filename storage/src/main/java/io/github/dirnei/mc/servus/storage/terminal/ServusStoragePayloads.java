@@ -13,10 +13,10 @@ import io.github.dirnei.mc.servus.storage.controller.RenameSitePayload;
 import io.github.dirnei.mc.servus.storage.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.storage.field.ChooseFertilizerPayload;
 import io.github.dirnei.mc.servus.storage.field.ChooseFieldCropPayload;
+import io.github.dirnei.mc.servus.storage.field.FieldAmount;
 import io.github.dirnei.mc.servus.storage.field.FieldCropStockPayload;
 import io.github.dirnei.mc.servus.storage.field.FieldFertilizerStockPayload;
-import io.github.dirnei.mc.servus.storage.field.SetFieldLevelPayload;
-import io.github.dirnei.mc.servus.storage.field.StockLevels;
+import io.github.dirnei.mc.servus.storage.field.SetFieldAmountPayload;
 import io.github.dirnei.mc.servus.storage.field.FieldWorkerPayload;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
 import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
@@ -88,9 +88,8 @@ public final class ServusStoragePayloads {
                 (payload, context) -> FieldHeadMenu.choose(context.player(), payload.crop()));
         registrar.playToServer(ChooseFertilizerPayload.TYPE, ChooseFertilizerPayload.STREAM_CODEC,
                 (payload, context) -> FieldHeadMenu.chooseFertilizer(context.player(), payload.fertilizer()));
-        registrar.playToServer(SetFieldLevelPayload.TYPE, SetFieldLevelPayload.STREAM_CODEC,
-                (payload, context) -> FieldHeadMenu.stepLevel(context.player(), payload.pos(), StockLevels.Level.byId(payload.which()),
-                        payload.delta(), payload.shift()));
+        registrar.playToServer(SetFieldAmountPayload.TYPE, SetFieldAmountPayload.STREAM_CODEC,
+                (payload, context) -> FieldHeadMenu.setAmount(context.player(), payload.pos(), FieldAmount.byId(payload.which()), payload.value()));
         toMenu(registrar, ShuttleBuildStepPayload.TYPE, ShuttleBuildStepPayload.STREAM_CODEC, ShuttleWorkshopMenu.class,
                 (player, menu, payload) -> menu.reportStep(payload.step()));
         toMenu(registrar, EngraveShuttlePayload.TYPE, EngraveShuttlePayload.STREAM_CODEC, ShuttleWorkshopMenu.class,

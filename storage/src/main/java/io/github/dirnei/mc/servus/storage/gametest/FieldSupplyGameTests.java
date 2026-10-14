@@ -55,7 +55,7 @@ public final class FieldSupplyGameTests {
     private static void boneMeal(FieldHeadBlockEntity head, int reserve) {
         head.setFertilizer(new ItemStack(Items.BONE_MEAL));
         head.setFertilizeMode(FertilizeMode.AFTER_PLANTING);
-        head.stepReserve(reserve - head.reserve());
+        head.setReserve(reserve);
     }
 
     private static int buffered(FieldHeadBlockEntity head, SupplyBuffer.Part part) {

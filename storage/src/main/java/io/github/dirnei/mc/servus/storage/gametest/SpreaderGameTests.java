@@ -10,6 +10,7 @@ import static io.github.dirnei.mc.servus.storage.gametest.FarmFixtures.out;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.field.FertilizeMode;
+import io.github.dirnei.mc.servus.storage.field.FieldAmount;
 import io.github.dirnei.mc.servus.storage.field.FertilizeStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.SupplyBuffer;
@@ -64,7 +65,7 @@ public final class SpreaderGameTests {
         FieldFixtures.water(farm.head());
         farm.head().setFertilizer(new ItemStack(Items.BONE_MEAL));
         farm.head().setFertilizeMode(mode);
-        farm.head().stepReserve(reserve - farm.head().reserve());
+        farm.head().setReserve(reserve);
     }
 
     /** A wheat crop of that age on farmland. */
@@ -242,7 +243,7 @@ public final class SpreaderGameTests {
         });
     }
 
-    /** The fertilizer is chosen by id from the tag only; mode, threshold and reserve buttons work and the settings are saved. */
+    /** The fertilizer is chosen by id from the tag only; mode and threshold buttons and the typed reserve work and the settings are saved. */
     @ServusGameTest(timeoutTicks = 100)
     public static void menuChoosesFertilizerAndSettings(GameTestHelper helper) {
         FarmFixtures.Farm farm = spreaderFarm(helper, spreader());
@@ -265,13 +266,12 @@ public final class SpreaderGameTests {
         int percent = head.fertilizePercent();
         menu.clickMenuButton(player, FieldHeadMenu.BUTTON_FERTILIZE_UP);
         helper.assertTrue(head.fertilizePercent() == Math.min(100, percent + 10), "+ raises the fertilize threshold");
-        head.stepReserve(5 - head.reserve());
-        menu.clickMenuButton(player, FieldHeadMenu.BUTTON_RESERVE);
-        helper.assertTrue(head.reserve() == 0, "-10 from 5 stops at 0, got " + head.reserve());
-        menu.clickMenuButton(player, FieldHeadMenu.BUTTON_RESERVE + 3);
-        menu.clickMenuButton(player, FieldHeadMenu.BUTTON_RESERVE + 3);
-        menu.clickMenuButton(player, FieldHeadMenu.BUTTON_RESERVE + 2);
-        helper.assertTrue(head.reserve() == 21, "+10, +10 and +1 make 21, got " + head.reserve());
+        BlockPos pos = helper.absolutePos(HEAD);
+        head.setReserve(5);
+        FieldHeadMenu.setAmount(player, pos, FieldAmount.RESERVE, -10);
+        helper.assertTrue(head.reserve() == 0, "-10 typed stops at 0, got " + head.reserve());
+        FieldHeadMenu.setAmount(player, pos, FieldAmount.RESERVE, 21);
+        helper.assertTrue(head.reserve() == 21, "21 typed makes 21, got " + head.reserve());
         helper.assertTrue(!menu.clickMenuButton(player, 99), "unknown buttons are refused");
         CompoundTag tag = head.saveWithFullMetadata(helper.getLevel().registryAccess());
         FieldHeadBlockEntity copy = new FieldHeadBlockEntity(head.getBlockPos(), head.getBlockState());
