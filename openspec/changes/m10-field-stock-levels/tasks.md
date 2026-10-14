@@ -38,7 +38,7 @@ Apply after `m10-field-head-buffer` is archived.
   - With a fertilize level below the stock no Spreader comes.
   - The Stock tab reads as a table: warehouse counts, then the head's buffer, then Keep at least, Harvest up to and Fertilize below, explanations only in tooltips; typed levels and both reserves stick, Keep anti-corrosion in stock keeps honeycomb in the warehouse, the Water tab picks the anti-corrosion item and Off lets the copper age, Enter and clicking away both commit, the buffer counts show; the Field and Fertilizer tabs are no longer crowded and long item names fit.
   - The statuses read well.
-  - Clicking and dragging the ripe bar sets the harvest threshold; the Water tab shows the water use per minute and the time to the next aging step; an axe costs 2 durability per rail.
+  - Clicking and dragging the ripe bar sets the harvest threshold; the Water tab shows the water use per minute and, in the stage tooltip, the time to the next aging step; an axe costs 2 durability per rail.
 
   Verify: the user confirms in game.
 
@@ -67,3 +67,4 @@ The user asked for a minimum stock level for honeycomb too.
 
 - [x] 9.1 Pure `FieldThreshold.fromFraction`, `FieldWater.perMinute`, `FieldWater.ticksToUse`, `FieldDuration`, `FieldCorrosion.axeDamage`; JUnit in `FieldThresholdTest`, `FieldWaterTest`, `FieldDurationTest`, `FieldCorrosionTest`. `axe_damage_per_rail` in `storage/field.json` and `StorageStatsManager`; `FarmRailBlock` charges it. `FieldHeadBlockEntity.waterPerMinute`, `secondsToAging`, `setHarvestPercent`; `FieldHeadMenu` data slots and `BUTTON_HARVEST_PERCENT`; `FieldHeadScreen` slider and Water tab lines; lang keys. GameTests `FieldLevelGameTests.ripeSliderSetsThreshold`, `RailCorrosionGameTests.waterRateAndAgingEstimate`, the axe tests on `axe_damage_per_rail`. Docs in `storage.md`. Verify: `gradlew :storage:runData`, `gradlew build test runGameTestServerAll` green, `openspec validate m10-field-stock-levels --strict` passes, docs tests green.
 - [x] 9.2 `corrosion_water` from 64000 to 6000 in `storage/field.json` and `StorageStatsManager` (a stage in 1 to 2 hours of watering), docs in `storage.md`. Verify: `gradlew build test runGameTestServerAll` green, docs tests green.
+- [x] 9.3 The time to the next aging step moves from its own line into the tooltip of the corrosion stage line (`FieldHeadScreen`), docs in `storage.md`. Verify: `gradlew build` green, docs tests green.
