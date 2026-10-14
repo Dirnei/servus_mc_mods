@@ -234,6 +234,7 @@ What every finished milestone built lives in `openspec/specs/`; the archived cha
 | M9 Alchemy | Tria Prima, Calciner, Purifier, Coagulator and Athanor builds, journal, Elixir of Sight, Gnome Hollow, facade panels, beam engine Burner Pump, electric beam engine Electric Pump, Ender Anchor area with Anchor Upgrades and a chunk cap (`m9-anchor-range`) |
 
 ### M9: what is left
+- Built as a play check follow up: `m9-calciner-tanks-direct`. The Calciner fills its two Fluid Tanks directly, with no Sulfur or Mercury of its own and no fluid ports. The Ash Pan holds a stack of Ash (`item_capacity` in the machine data). The Receiver is a copper condenser whose tap drips into the basin.
 - Balance pass and the docs Balance lab on the new data.
 - Later: Citrinitas and Rubedo, Salamanders, Undines and Sylphs, endless works at the end.
 

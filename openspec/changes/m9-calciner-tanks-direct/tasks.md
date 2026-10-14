@@ -25,7 +25,7 @@
 
 ## 4. Texts
 
-- [ ] 4.1 Update the Calciner entry in `manufacturing/.../datagen/book/WorkshopCategory.java` (condenser and drip, tanks filled directly, Ash Pan holds a stack, waits when the Ash Pan or a tank is full) and the Calciner line in `docs/src/content/docs/mods/manufacturing.md`. Add this change to the M9 list in `PLAN.md`. Verify: `gradlew :manufacturing:runData` green and docs tests green.
+- [x] 4.1 Update the Calciner entry in `manufacturing/.../datagen/book/WorkshopCategory.java` (condenser and drip, tanks filled directly, Ash Pan holds a stack, waits when the Ash Pan or a tank is full) and the Calciner line in `docs/src/content/docs/mods/manufacturing.md`. Add this change to the M9 list in `PLAN.md`. Verify: `gradlew :manufacturing:runData` green and docs tests green.
 
 ## 5. Integration
 

@@ -81,8 +81,8 @@ final class WorkshopCategory extends CategoryProvider {
             e.text("parts", "The Parts",
                     "Three parts stack in the middle: the Ash Pan at the bottom between Deepslate Tiles, the Firebox above it between "
                             + "two Fluid Tanks, and the Calciner, the mouth, between Stone Bricks.\n\n"
-                            + "On top of the mouth sits the Alembic, the copper still, and the Sulfur Hood crowns it. The Receiver stands right "
-                            + "of the still and catches what drips from its spout. The Copper Duct leads from the Hood down into the left Stone Bricks.");
+                            + "On top of the mouth sits the Alembic, the copper still, and the Sulfur Hood crowns it. The Receiver, a copper "
+                            + "condenser, stands right of the still over a stone basin, and the still's beak leads into it. The Copper Duct leads from the Hood down into the left Stone Bricks.");
             e.crafting("recipe", mod + "calciner", mod + "calciner_firebox", "The mouth with its cauldron, and the Firebox.");
             e.crafting("recipe_pan", mod + "calciner_ash_pan", mod + "alembic", "The Ash Pan and the Alembic.");
             e.crafting("recipe_receiver", mod + "receiver", mod + "sulfur_hood", "The Receiver and the Sulfur Hood.");
@@ -94,14 +94,14 @@ final class WorkshopCategory extends CategoryProvider {
             e.text("firing", "Firing It",
                     "Hand the matter to the mouth, or let a hopper or a pipe feed it. Coal and other fuel go into the Firebox below; "
                             + "one coal burns for several items. Sneak with an empty hand at the mouth to take the matter back.\n\n"
-                            + "When a principle has no room left, the Calciner waits.");
+                            + "When a tank or the Ash Pan is full, the Calciner waits.");
             e.text("emptying", "Taking Them Out",
-                    "Each principle leaves where it belongs. Salt stays behind as ash in the Ash Pan. Mercury drips from the Receiver "
-                            + "and runs down into the right tank, and Sulfur rises into the Hood and runs down the duct into the left tank.\n\n"
+                    "Each principle leaves where it belongs. Salt stays behind as ash in the Ash Pan. Mercury cools in the Receiver, "
+                            + "drips from its tap into the basin and runs down into the right tank, and Sulfur rises into the Hood and runs down the duct into the left tank.\n\n"
                             + "Take them from the tanks with a bucket, or with a pipe whose side at the tank you set to pull in with the carrot: "
                             + "a tank on a plain side only ever fills.\n\n"
                             + "The Salt stays in the Ash Pan as Ash, one Ash for every 100 Salt. Take it with an empty hand, or put a hopper "
-                            + "under the Ash Pan, and wash it in the Purifier. When the Ash Pan is full, the Calciner waits.");
+                            + "under the Ash Pan, and wash it in the Purifier. The Ash Pan holds a stack of 64 Ash; when it is full, the Calciner waits.");
             e.list("burns", "What Burns", AlchemyRecipeTable.calcination().stream()
                     .map(row -> PrincipleText.line(row.label(), row.output())).toList());
         });
