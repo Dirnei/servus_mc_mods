@@ -152,6 +152,14 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     private final Set<BlockPos> unfed = new HashSet<>();
     /** Game time of the last call for a Spreader, -1 for none. */
     private long lastFertilizeCall = -1;
+    /** The item the field's harvests bring home the most of, see {@link Produce}; null until the first harvest. */
+    private Item produce;
+    /** The harvest limit in items of the produce; -1 follows {@code harvest_limit}. */
+    private int harvestLimit = -1;
+    /** The fertilize level in items of the produce; -1 follows {@code fertilize_below}. */
+    private int fertilizeBelow = -1;
+    /** The warehouse stock of the produce, read at each field check; not saved. */
+    private long produceStock;
 
     // Rebuilt after a load or change, never saved.
     private FieldStatus status = FieldStatus.NO_FIELD;
@@ -725,11 +733,15 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
 
     /** Sets the crop of the field (empty clears it); a crop turns harvest only off. Items that plant no age crop are ignored. */
     public void setCrop(ItemStack stack) {
+        Item before = crop.getStackInSlot(0).getItem();
         if (stack.isEmpty()) {
             crop.setStackInSlot(0, ItemStack.EMPTY);
         } else if (isCropItem(stack)) {
             crop.setStackInSlot(0, stack.copyWithCount(1));
             harvestOnly = false;
+        }
+        if (crop.getStackInSlot(0).getItem() != before) {
+            forgetProduce();
         }
         lookDirty = true;
         setChanged();
@@ -797,8 +809,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     /** Harvest without planting; turning it on clears the crop. */
     public void setHarvestOnly(boolean on) {
         harvestOnly = on;
-        if (on) {
+        if (on && !crop.getStackInSlot(0).isEmpty()) {
             crop.setStackInSlot(0, ItemStack.EMPTY);
+            forgetProduce();
         }
         lookDirty = true;
         setChanged();
@@ -871,9 +884,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         return growing;
     }
 
-    /** The plots that need a dose now by the mode; empty while fertilizing is off or the head serves no field. */
+    /**
+     * The plots that need a dose now by the mode; empty while fertilizing is
+     * off, waits on the stock levels or the head serves no field.
+     */
     public Set<BlockPos> fertilizeTargets() {
-        if (status != FieldStatus.SERVING || !fertilizing()) {
+        if (status != FieldStatus.SERVING || !fertilizing() || !fertilizeAllowed()) {
             return Set.of();
         }
         return switch (fertilizeMode) {
@@ -885,7 +901,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
 
     /** How many plots need a dose now. */
     public int fertilizeTargetCount() {
-        if (status != FieldStatus.SERVING || !fertilizing()) {
+        if (status != FieldStatus.SERVING || !fertilizing() || !fertilizeAllowed()) {
             return 0;
         }
         return FertilizePlan.targets(fertilizeMode, unfedGrowing().size(), ripeness.growing().size(), ripeCount(), plantedCount(), fertilizePercent());
@@ -903,9 +919,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         return unfed.size();
     }
 
-    /** Whether the field calls a Spreader now: plots need a dose, the buffer holds the fertilizer and the interval passed. */
+    /**
+     * Whether the field calls a Spreader now: the stock levels allow it, plots
+     * need a dose, the buffer holds the fertilizer and the interval passed.
+     */
     public boolean fertilizeDue(long now) {
-        return status == FieldStatus.SERVING && fertilizing()
+        return status == FieldStatus.SERVING && fertilizing() && fertilizeAllowed()
                 && FertilizePlan.due(fertilizeTargetCount(), supplyCount(SupplyBuffer.Part.FERTILIZER), 0, now, lastFertilizeCall,
                         StorageStatsManager.INSTANCE.fertilizeInterval());
     }
@@ -949,6 +968,89 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             return Optional.empty();
         }
         return network().flatMap(warehouse -> warehouse.spreadWorker(worldPosition)).flatMap(ShuttleItem::plate);
+    }
+
+    /** The field's produce, empty until the first harvest; on the client as last synced. */
+    public ItemStack produce() {
+        return produce == null ? ItemStack.EMPTY : new ItemStack(produce);
+    }
+
+    /** Whether the head learned its produce, so the stock levels apply. */
+    public boolean produceKnown() {
+        return produce != null;
+    }
+
+    /**
+     * Learns the produce from what a run that harvested brought home, by item
+     * id and count; the crop item counts only when nothing else came.
+     */
+    public void learnProduce(Map<Identifier, Long> tally) {
+        Map<String, Long> byId = new HashMap<>();
+        tally.forEach((id, count) -> byId.merge(id.toString(), count, Long::sum));
+        String cropId = plantMode() ? BuiltInRegistries.ITEM.getKey(crop.getStackInSlot(0).getItem()).toString() : null;
+        Produce.pick(byId, cropId)
+                .map(Identifier::tryParse)
+                .flatMap(BuiltInRegistries.ITEM::getOptional)
+                .ifPresent(this::setProduce);
+    }
+
+    private void setProduce(Item item) {
+        if (item != produce) {
+            produce = item;
+            produceStock = 0;
+            setChanged();
+            syncClients();
+        }
+    }
+
+    private void forgetProduce() {
+        setProduce(null);
+    }
+
+    /** The warehouse stock of the produce as last read at a field check. */
+    public long produceStock() {
+        return produceStock;
+    }
+
+    /** Reads the produce stock from the warehouse; called at each field check. Server side. */
+    public void readProduceStock(WarehouseNetwork warehouse) {
+        produceStock = produce == null ? 0 : warehouse.available(ItemKey.of(new ItemStack(produce)));
+    }
+
+    /** The harvest limit in items of the produce; 0 for none. */
+    public int harvestLimit() {
+        return harvestLimit >= 0 ? harvestLimit : StockLevels.clamp(StorageStatsManager.INSTANCE.harvestLimit());
+    }
+
+    /** The fertilize level in items of the produce; 0 for none. */
+    public int fertilizeBelow() {
+        return fertilizeBelow >= 0 ? fertilizeBelow : StockLevels.clamp(StorageStatsManager.INSTANCE.fertilizeBelow());
+    }
+
+    /** Moves one level by delta, kept in range, and moves the other along so the fertilize level stays at or below the limit. */
+    public void stepLevel(StockLevels.Level which, int delta) {
+        int limit = harvestLimit();
+        int below = fertilizeBelow();
+        if (which == StockLevels.Level.HARVEST) {
+            limit = StockLevels.step(limit, delta);
+        } else {
+            below = StockLevels.step(below, delta);
+        }
+        StockLevels.Levels ordered = StockLevels.keepOrder(limit, below, which);
+        harvestLimit = ordered.harvestLimit();
+        fertilizeBelow = ordered.fertilizeBelow();
+        lookDirty = true;
+        setChanged();
+    }
+
+    /** Whether the field harvests nothing now: the produce stock reached the harvest limit. */
+    public boolean harvestPaused() {
+        return StockLevels.harvestPaused(produceKnown(), produceStock, harvestLimit());
+    }
+
+    /** Whether the stock levels let the field call a Spreader. */
+    public boolean fertilizeAllowed() {
+        return StockLevels.fertilizeAllowed(produceKnown(), produceStock, fertilizeBelow(), harvestLimit());
     }
 
     /** The warehouse queued a fertilize run for this field at that game time. */
@@ -1190,6 +1292,15 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         }
         tag.putLongArray("Unfed", unfed.stream().mapToLong(BlockPos::asLong).toArray());
         output.putLong("FertilizeCalled", lastFertilizeCall);
+        if (produce != null) {
+            output.putString("Produce", BuiltInRegistries.ITEM.getKey(produce).toString());
+        }
+        if (harvestLimit >= 0) {
+            output.putInt("HarvestLimit", harvestLimit);
+        }
+        if (fertilizeBelow >= 0) {
+            output.putInt("FertilizeBelow", fertilizeBelow);
+        }
         output.store(tag);
     }
 
@@ -1238,9 +1349,18 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             unfed.add(BlockPos.of(packed));
         }
         lastFertilizeCall = tag.contains("FertilizeCalled") ? input.getLongOr("FertilizeCalled", 0L) : -1;
+        produce = readItem(tag, "Produce");
+        harvestLimit = tag.contains("HarvestLimit") ? StockLevels.clamp(input.getIntOr("HarvestLimit", 0)) : -1;
+        fertilizeBelow = tag.contains("FertilizeBelow") ? StockLevels.clamp(input.getIntOr("FertilizeBelow", 0)) : -1;
         if (tag.contains("WaterLevel")) {
             clientWaterLevel = input.getByteOr("WaterLevel", (byte) 0);
         }
+    }
+
+    /** The item saved under the key, null for none or an unknown id. */
+    private static Item readItem(CompoundTag tag, String key) {
+        Identifier id = tag.contains(key) ? Identifier.tryParse(tag.getStringOr(key, "")) : null;
+        return id == null ? null : BuiltInRegistries.ITEM.getOptional(id).orElse(null);
     }
 
     @Override
@@ -1260,6 +1380,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         tag.putByte("WaterLevel", (byte) FieldHeadLook.waterLevel(tank.getFluidAmount(), tank.getCapacity()));
         Item antiCorrosionItem = buffer.item(SupplyBuffer.Part.ANTI_CORROSION);
         tag.putString("AntiCorrosionItem", antiCorrosionItem == null ? "" : BuiltInRegistries.ITEM.getKey(antiCorrosionItem).toString());
+        tag.putString("Produce", produce == null ? "" : BuiltInRegistries.ITEM.getKey(produce).toString());
         return tag;
     }
 

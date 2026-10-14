@@ -1073,7 +1073,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /**
      * Queues a supply run for each Field Head on this warehouse's rails whose
      * buffer runs low, and a field run for each that has work, when a
-     * matching shuttle can take it. Polls the loaded heads only.
+     * matching shuttle can take it. Each head reads its produce stock first.
+     * Polls the loaded heads only.
      */
     private void tickFields() {
         if (status() != Status.ONLINE) {
@@ -1082,14 +1083,12 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         boolean harvesters = fleet.hasFieldShuttles(JobNeeds.HARVESTER);
         boolean spreaders = fleet.hasFieldShuttles(JobNeeds.SPREADER);
         boolean suppliers = fleet.hasShuttles();
-        if (!harvesters && !spreaders && !suppliers) {
-            return;
-        }
         for (FieldHeadBlockEntity head : FieldHeads.heads(level)) {
             if (head.status() != FieldStatus.SERVING || head.rails().isEmpty()
                     || !members().contains(Conversions.toNodePos(head.rails().iterator().next()))) {
                 continue;
             }
+            head.readProduceStock(this);
             BlockPos pos = head.getBlockPos();
             if (suppliers && !fleet.hasSupplyJob(pos) && supplyDue(head)) {
                 fleet.requestSupply(new SupplyJob(pos));
