@@ -58,7 +58,8 @@ public final class DuctOverlayRenderer {
                 int colour = LOAD_COLOURS[Math.min(LOAD_COLOURS.length - 1, ClientDuctLoads.level(pos))];
                 poseStack.pushPose();
                 poseStack.translate(pos.getX() - camera.x, pos.getY() - camera.y, pos.getZ() - camera.z);
-                DuctShapes.Box centre = DuctShapes.center(DuctShapes.centerRadius(duct.lines().size(), duct.connections()), duct.pose());
+                DuctShapes.Box centre = DuctShapes.center(DuctShapes.centerRadius(duct.lines().size(), duct.connections()), duct.pose(),
+                        duct.poseFaces(), DuctShapes.armRadii(duct.armMasks()));
                 box(consumer, poseStack.last(), grown(centre.x0(), -1), grown(centre.y0(), -1), grown(centre.z0(), -1),
                         grown(centre.x1(), 1), grown(centre.y1(), 1), grown(centre.z1(), 1),
                         (colour >> 16) & 0xFF, (colour >> 8) & 0xFF, colour & 0xFF);

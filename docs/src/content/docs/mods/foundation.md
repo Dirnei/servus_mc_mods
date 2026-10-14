@@ -53,11 +53,11 @@ Ducts rest on what holds them up instead of floating in the middle of the block:
 - **Going up**: a floor run that turns up bends cleanly: the bend lies on the floor with the run and its arm rises straight from there. A duct that feeds a machine beside it and also goes up stays in the middle of its block instead, so the run goes straight up from the connection; its arms stay straight, and a floor run joining it steps up in its own block next to it.
 - **Middle across**: ducts never move toward a wall or into a corner. Runs along a floor stay in the middle across the run, and climbs run up the middle of their blocks.
 - **Draping**: a duct with nothing under it takes the floor height of the neighbour ducts beside it, as long as they agree, so a run over the edge of a step or a short gap stays level. Only direct neighbours count: a long span stays in the middle between its two ends. The top or bottom of a climb also follows a draped neighbour beside it, so a pipe that climbs, crosses one block of air and lands on a block stays level.
-- **Steps**: where two connected ducts still sit at different heights, the arm between them makes a short step up or down so the run stays joined.
-- **Endpoints**: an arm into an inventory or machine always ends in the middle of that face with its ring, stepping there from a resting duct.
+- **Steps**: where two connected ducts still sit at different heights, one of them bends up or down in the middle of its block, so the run stays joined.
+- **Endpoints**: an arm into an inventory or machine always ends in the middle of that face with its ring; a resting duct bends up to it in the middle of its block.
 - **Facades**: a duct with any facade stays in the middle of its block, so its arms pass the holes of hollow facades.
 
-The outline, collision and the carrot follow the duct where it is drawn, including its steps.
+The outline, collision and the carrot follow the duct where it is drawn, including its bends.
 
 ### Data line
 

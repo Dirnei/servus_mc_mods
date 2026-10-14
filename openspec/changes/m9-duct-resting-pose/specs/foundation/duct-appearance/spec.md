@@ -125,22 +125,22 @@ A duct SHALL stay in the middle of its block on both horizontal axes, whatever b
 - **THEN** that duct moves to the middle of its block and its arms through hollow panels pass through the holes
 
 ### Requirement: Arms step between positions
-Two connected ducts SHALL draw their shared arm at one position where they meet at the shared face. When a duct sits elsewhere than that position, its arm SHALL make a short step up or down from the duct to the face, so the run stays joined. The position at the face SHALL be the one of a duct that stays in the middle because it has an arm up and an arm into an inventory or machine, so that such a junction keeps straight arms and its neighbours step; else the one of the duct that rests on a floor or is held in the middle by a panel, else the one of a draped duct.
+Two connected ducts SHALL draw their shared arm at one position where they meet at the shared face. When a duct sits elsewhere than that position, its centre SHALL grow up or down until it reaches the arm at that position, and the arm SHALL run straight from the centre to the face, so the run stays joined and the bend happens in the middle of the block, never near its edge. The position at the face SHALL be the one of a duct that stays in the middle because it has an arm up and an arm into an inventory or machine, so that such a junction keeps straight arms and its neighbours step; else the one of the duct that rests on a floor or is held in the middle by a panel, else the one of a draped duct.
 
 #### Scenario: Off the edge of a floor
 - **WHEN** a run on a floor continues into open air past the edge of the floor and the next duct stays in the middle
-- **THEN** the run steps between floor height and the middle with no gap
+- **THEN** the run steps between floor height and the middle with no gap, the vertical part in the middle of the stepping duct's block
 
 #### Scenario: Duct beside a facade duct
 - **WHEN** a duct on the floor connects to a duct with a facade panel
 - **THEN** the arm steps so both meet at the middle of the shared face
 
 ### Requirement: Endpoint arms end centred
-An arm that touches an inventory or machine SHALL end in the middle of that face with its channel ring there, as without a resting pose. When the duct rests elsewhere, the arm SHALL step from the duct to the middle of the face.
+An arm that touches an inventory or machine SHALL end in the middle of that face with its channel ring there, as without a resting pose. When the duct rests elsewhere, its centre SHALL grow to the middle and the arm SHALL run straight into the middle of the face.
 
 #### Scenario: Floor duct into a furnace
 - **WHEN** a duct lying on the floor touches a furnace to its east
-- **THEN** the arm steps up and enters the middle of the furnace face, and its ring is centred on that face
+- **THEN** the duct's centre rises from the floor to the middle of its block, and the arm runs straight into the middle of the furnace face with its ring centred on that face
 
 #### Scenario: Centred duct into a chest
 - **WHEN** a duct in the middle of its block touches a chest
@@ -162,11 +162,11 @@ The resting pose SHALL be worked out when a duct is placed, when it gains or los
 - **THEN** every duct shows the same pose as before
 
 ### Requirement: Outline and clicks follow the pose
-A duct's outline, collision and the parts the Configuration Carrot can click SHALL match where the duct is drawn, including steps. The data load overlay of the goggles SHALL be drawn around the duct's centre where it is drawn.
+A duct's outline, collision and the parts the Configuration Carrot can click SHALL match where the duct is drawn, including a centre that grew. The data load overlay of the goggles SHALL be drawn around the duct's centre where it is drawn.
 
 #### Scenario: Carrot on a floor duct arm
 - **WHEN** the player uses the carrot on the arm of a floor duct that steps up into a chest
-- **THEN** the endpoint GUI for that side opens, whether the click hits the low part, the step or the centred end
+- **THEN** the endpoint GUI for that side opens wherever the click hits the arm
 
 #### Scenario: Walking over a floor duct
 - **WHEN** a player walks across a thin duct lying on the floor

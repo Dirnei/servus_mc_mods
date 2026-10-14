@@ -1,9 +1,9 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
+import static io.github.dirnei.mc.servus.foundation.logistics.duct.DuctShapes.max;
+import static io.github.dirnei.mc.servus.foundation.logistics.duct.DuctShapes.min;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctPose.Height;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctPose.Rank;
@@ -16,6 +16,7 @@ class DuctShapesPoseTest {
 
     private static final float LIFT = DuctShapes.LIFT;
     private static final int EAST = 1 << DuctShapes.EAST;
+    private static final int WEST = 1 << DuctShapes.WEST;
     private static final int FLOOR = DuctPose.of(Height.LOW, Rank.ANCHORED);
 
     /** Faces of a duct whose every arm side meets the neighbour at {@code pose}. */
@@ -23,13 +24,22 @@ class DuctShapesPoseTest {
         return DuctPose.faces(pose, 63, 0, new int[] {pose, pose, pose, pose, pose, pose});
     }
 
+    /** Arm radii with {@code radius} on the sides of the mask and none elsewhere. */
+    private static int[] radii(int radius, int sides) {
+        int[] result = new int[6];
+        for (int side = 0; side < 6; side++) {
+            result[side] = (sides & 1 << side) != 0 ? radius : 0;
+        }
+        return result;
+    }
+
     @Test
     void middlePoseMatchesOldBoxes() {
-        assertEquals(new Box(6, 6, 6, 10, 10, 10), DuctShapes.center(2, DuctPose.CENTRED));
-        assertEquals(List.of(new Box(6, 6, 0, 10, 10, 6)), DuctShapes.arm(DuctShapes.NORTH, 2, 2, DuctPose.CENTRED, 0));
-        assertEquals(List.of(new Box(11, 5, 5, 16, 11, 11)), DuctShapes.arm(DuctShapes.EAST, 3, 3, DuctPose.CENTRED, 0));
-        assertEquals(List.of(new Box(6, 0, 6, 10, 6, 10)), DuctShapes.arm(DuctShapes.DOWN, 2, 2, DuctPose.CENTRED, 0));
-        assertEquals(List.of(new Box(6, 6, 12, 10, 10, 16)), DuctShapes.arm(DuctShapes.SOUTH, 2, 4, DuctPose.CENTRED, 0),
+        assertEquals(new Box(6, 6, 6, 10, 10, 10), DuctShapes.center(2, DuctPose.CENTRED, 0, radii(2, 63)));
+        assertEquals(new Box(6, 6, 0, 10, 10, 6), DuctShapes.arm(DuctShapes.NORTH, 2, DuctShapes.center(2), 0));
+        assertEquals(new Box(11, 5, 5, 16, 11, 11), DuctShapes.arm(DuctShapes.EAST, 3, DuctShapes.center(3), 0));
+        assertEquals(new Box(6, 0, 6, 10, 6, 10), DuctShapes.arm(DuctShapes.DOWN, 2, DuctShapes.center(2), 0));
+        assertEquals(new Box(6, 6, 12, 10, 10, 16), DuctShapes.arm(DuctShapes.SOUTH, 2, DuctShapes.center(4), 0),
                 "a thin arm starts at a thick centre's face");
     }
 
@@ -40,33 +50,38 @@ class DuctShapesPoseTest {
     }
 
     @Test
-    void armStretchesToMovedCentre() {
+    void armsFollowTheLowCentre() {
         int faces = facesLike(FLOOR);
-        assertEquals(List.of(new Box(10, LIFT, 6, 16, LIFT + 4, 10)), DuctShapes.arm(DuctShapes.EAST, 2, 2, FLOOR, faces));
-        assertEquals(List.of(new Box(6, LIFT + 4, 6, 10, 16, 10)), DuctShapes.arm(DuctShapes.UP, 2, 2, FLOOR, faces),
+        Box centre = DuctShapes.center(2, FLOOR, faces, radii(2, EAST | 1 << DuctShapes.UP));
+        assertEquals(new Box(6, LIFT, 6, 10, LIFT + 4, 10), centre, "a duct whose arms all meet low keeps its low centre");
+        assertEquals(new Box(10, LIFT, 6, 16, LIFT + 4, 10), DuctShapes.arm(DuctShapes.EAST, 2, centre, faces));
+        assertEquals(new Box(6, LIFT + 4, 6, 10, 16, 10), DuctShapes.arm(DuctShapes.UP, 2, centre, faces),
                 "the arm up starts at the low centre's top");
     }
 
+    /** A low duct whose east arm meets its face in the middle: the bend is the centre itself, in the middle of the block. */
     @Test
-    void endpointArmStepsToMiddle() {
-        int faces = DuctPose.faces(FLOOR, EAST, EAST, new int[6]);
-        DuctShapes.ArmBoxes arm = DuctShapes.armBoxes(DuctShapes.EAST, 2, 2, FLOOR, faces);
-        assertNotNull(arm.step());
-        assertBox(new Box(14, 6, 6, 16, 10, 10), arm.segment());
+    void bendHappensInTheMiddle() {
+        int faces = DuctPose.faces(FLOOR, WEST | EAST, EAST, new int[6]);
+        Box centre = DuctShapes.center(2, FLOOR, faces, radii(2, WEST | EAST));
+        assertBox(new Box(6, LIFT, 6, 10, 10, 10), centre);
+        assertBox(new Box(0, LIFT, 6, 6, LIFT + 4, 10), DuctShapes.arm(DuctShapes.WEST, 2, centre, faces));
+        assertBox(new Box(10, 6, 6, 16, 10, 10), DuctShapes.arm(DuctShapes.EAST, 2, centre, faces));
     }
 
     @Test
-    void stepBoxSpansBothHeights() {
-        int faces = DuctPose.faces(FLOOR, EAST, EAST, new int[6]);
-        Box step = DuctShapes.armBoxes(DuctShapes.EAST, 2, 2, FLOOR, faces).step();
-        assertBox(new Box(10, LIFT, 6, 14, 10, 10), step);
+    void centreDropsToALowFace() {
+        Box centre = DuctShapes.center(4, DuctPose.CENTRED, EAST, radii(2, EAST | WEST));
+        assertBox(new Box(4, LIFT, 4, 12, 12, 12), centre);
+        assertBox(new Box(12, LIFT, 6, 16, LIFT + 4, 10), DuctShapes.arm(DuctShapes.EAST, 2, centre, EAST));
     }
 
     @Test
-    void verticalArmNeverSteps() {
+    void verticalArmsStartAtTheCentre() {
         int draped = DuctPose.of(Height.LOW, Rank.DRAPED);
-        assertEquals(List.of(new Box(6, LIFT + 4, 6, 10, 16, 10)), DuctShapes.arm(DuctShapes.UP, 2, 2, draped, 63));
-        assertEquals(List.of(new Box(6, 0, 6, 10, LIFT, 10)), DuctShapes.arm(DuctShapes.DOWN, 2, 2, draped, 63));
+        Box centre = DuctShapes.center(2, draped, 63, radii(2, 1 << DuctShapes.UP | 1 << DuctShapes.DOWN));
+        assertEquals(new Box(6, LIFT + 4, 6, 10, 16, 10), DuctShapes.arm(DuctShapes.UP, 2, centre, 63));
+        assertEquals(new Box(6, 0, 6, 10, LIFT, 10), DuctShapes.arm(DuctShapes.DOWN, 2, centre, 63));
     }
 
     /** The low bend's arm up and the centred duct's arm down above it read as one straight vertical arm. */
@@ -74,8 +89,9 @@ class DuctShapesPoseTest {
     void lowBendArmUpJoinsCentredArmAbove() {
         for (int centre = 2; centre <= 5; centre++) {
             for (int armRadius = 2; armRadius <= Math.min(4, centre); armRadius++) {
-                Box up = DuctShapes.armBoxes(DuctShapes.UP, armRadius, centre, FLOOR, facesLike(FLOOR)).segment();
-                Box down = DuctShapes.armBoxes(DuctShapes.DOWN, armRadius, armRadius, DuctPose.CENTRED, 0).segment();
+                Box bend = DuctShapes.center(centre, FLOOR, facesLike(FLOOR), radii(armRadius, WEST | 1 << DuctShapes.UP));
+                Box up = DuctShapes.arm(DuctShapes.UP, armRadius, bend, facesLike(FLOOR));
+                Box down = DuctShapes.arm(DuctShapes.DOWN, armRadius, DuctShapes.center(armRadius), 0);
                 String radii = "radii " + centre + "/" + armRadius;
                 assertEquals(LIFT + 2 * centre, up.y0(), 1e-4, radii + ": the arm up starts on the low centre's top");
                 assertEquals(16, up.y1(), radii + ": the arm up reaches the top face");
@@ -89,25 +105,11 @@ class DuctShapesPoseTest {
     }
 
     @Test
-    void thickCentreArmStepFitsRoom() {
-        DuctShapes.ArmBoxes arm = DuctShapes.armBoxes(DuctShapes.EAST, 2, 4, DuctPose.CENTRED, EAST);
-        assertBox(new Box(12, LIFT, 6, 16 - DuctShapes.RING_DEPTH, 10, 10), arm.step());
-        assertBox(new Box(16 - DuctShapes.RING_DEPTH, LIFT, 6, 16, LIFT + 4, 10), arm.segment());
-    }
-
-    @Test
-    void segmentAlwaysFollowsStep() {
-        for (int centre = 2; centre <= 5; centre++) {
-            for (int armRadius = 2; armRadius <= Math.min(4, centre); armRadius++) {
-                for (int side = DuctShapes.NORTH; side <= DuctShapes.EAST; side++) {
-                    DuctShapes.ArmBoxes arm = DuctShapes.armBoxes(side, armRadius, centre, DuctPose.CENTRED, 1 << side);
-                    assertNotNull(arm.step());
-                    int axis = DuctPose.axisOf(side);
-                    assertTrue(max(arm.segment(), axis) - min(arm.segment(), axis) >= DuctShapes.RING_DEPTH,
-                            "radii " + centre + "/" + armRadius + " side " + side + ": the ring depth stays free for the segment");
-                }
-            }
-        }
+    void armRadiiCountTheLinesPerSide() {
+        int[] radii = DuctShapes.armRadii(new int[] {EAST | WEST, EAST, 0});
+        assertEquals(DuctShapes.THICK_RADIUS, radii[DuctShapes.EAST]);
+        assertEquals(DuctShapes.THIN_RADIUS, radii[DuctShapes.WEST]);
+        assertEquals(0, radii[DuctShapes.UP]);
     }
 
     @Test
@@ -117,10 +119,12 @@ class DuctShapesPoseTest {
             for (int faces = 0; faces < 64; faces++) {
                 for (int centre = 2; centre <= 5; centre++) {
                     for (int armRadius = 2; armRadius <= Math.min(4, centre); armRadius++) {
+                        int[] radii = radii(armRadius, 63);
+                        Box centreBox = DuctShapes.center(centre, pose, faces, radii);
                         List<Box> boxes = new ArrayList<>();
-                        boxes.add(DuctShapes.center(centre, pose));
+                        boxes.add(centreBox);
                         for (int side = 0; side < 6; side++) {
-                            boxes.addAll(DuctShapes.arm(side, armRadius, centre, pose, faces));
+                            boxes.add(DuctShapes.arm(side, armRadius, centreBox, faces));
                         }
                         assertNoSharedPlanes(boxes, "pose " + pose + " faces " + faces + " radii " + centre + "/" + armRadius);
                     }
@@ -158,21 +162,5 @@ class DuctShapesPoseTest {
             }
         }
         return true;
-    }
-
-    private static float min(Box box, int axis) {
-        return switch (axis) {
-            case 0 -> box.x0();
-            case 1 -> box.y0();
-            default -> box.z0();
-        };
-    }
-
-    private static float max(Box box, int axis) {
-        return switch (axis) {
-            case 0 -> box.x1();
-            case 1 -> box.y1();
-            default -> box.z1();
-        };
     }
 }

@@ -141,13 +141,13 @@ public class UtilityDuctBlock extends ConnectableBlock {
         key |= (long) (faces & 63) << (shift + 13);
         int centerRadius = DuctShapes.centerRadius(Integer.bitCount(linesMask & DuctParts.ALL), all);
         return SHAPES.computeIfAbsent(key, k -> {
-            VoxelShape shape = box(DuctShapes.center(centerRadius, pose));
+            int[] armRadius = DuctShapes.armRadii(arms);
+            DuctShapes.Box centre = DuctShapes.center(centerRadius, pose, faces, armRadius);
+            VoxelShape shape = box(centre);
             for (Direction direction : Direction.values()) {
-                int armLines = armLines(arms, direction);
-                if (armLines > 0) {
-                    for (DuctShapes.Box arm : DuctShapes.arm(direction.ordinal(), DuctShapes.radius(armLines), centerRadius, pose, faces)) {
-                        shape = Shapes.or(shape, box(arm));
-                    }
+                int side = direction.ordinal();
+                if (armRadius[side] > 0) {
+                    shape = Shapes.or(shape, box(DuctShapes.arm(side, armRadius[side], centre, faces)));
                 }
                 int bit = DuctModelData.bit(direction);
                 if (((solidPanels | hollowPanels) & bit) != 0) {
@@ -158,18 +158,6 @@ public class UtilityDuctBlock extends ConnectableBlock {
             }
             return shape;
         });
-    }
-
-    /** How many lines have an arm on that side. */
-    private static int armLines(int[] arms, Direction direction) {
-        int bit = DuctModelData.bit(direction);
-        int count = 0;
-        for (int i = 0; i < arms.length && i < Line.VALUES.length; i++) {
-            if ((arms[i] & bit) != 0) {
-                count++;
-            }
-        }
-        return count;
     }
 
     private static VoxelShape box(DuctShapes.Box box) {
@@ -247,11 +235,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
 
     /** The side whose arm box contains the click location, or null for the centre or nothing. */
     private static Direction hitArm(UtilityDuctBlockEntity duct, Vec3 location, BlockPos pos) {
-        int[] armRadius = new int[6];
-        for (Direction direction : Direction.values()) {
-            int lines = armLines(duct.armMasks(), direction);
-            armRadius[direction.ordinal()] = lines == 0 ? 0 : DuctShapes.radius(lines);
-        }
+        int[] armRadius = DuctShapes.armRadii(duct.armMasks());
         int centerRadius = DuctShapes.centerRadius(duct.lines().size(), duct.connections());
         int side = ArmHit.hit((location.x - pos.getX()) * 16, (location.y - pos.getY()) * 16, (location.z - pos.getZ()) * 16,
                 centerRadius, armRadius, duct.pose(), duct.poseFaces());

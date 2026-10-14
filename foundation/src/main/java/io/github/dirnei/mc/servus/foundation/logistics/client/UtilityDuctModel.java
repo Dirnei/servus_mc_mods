@@ -107,7 +107,8 @@ public final class UtilityDuctModel implements DynamicBlockStateModel {
         int faces = valueOrZero(data.get(DuctModelData.FACES));
         int linesMask = DuctParts.normalize(lines);
         int centerRadius = DuctShapes.centerRadius(Integer.bitCount(linesMask), union(arms));
-        List<BakedQuad> quads = new ArrayList<>(poseQuads.center(DuctParts.centerName(linesMask, runAxis(arms)), centerRadius, pose));
+        DuctShapes.Box centre = DuctShapes.center(centerRadius, pose, faces, DuctShapes.armRadii(arms));
+        List<BakedQuad> quads = new ArrayList<>(poseQuads.center(DuctParts.centerName(linesMask, runAxis(arms)), centerRadius, centre));
         for (Direction direction : Direction.values()) {
             int armLines = 0;
             for (Line line : Line.VALUES) {
@@ -121,8 +122,7 @@ public final class UtilityDuctModel implements DynamicBlockStateModel {
             boolean endpoint = endpoints != null && (endpoints & DuctModelData.bit(direction)) != 0;
             int armRadius = DuctShapes.radius(Integer.bitCount(armLines));
             String armPart = DuctParts.armName(direction, armLines);
-            String stepPart = Integer.bitCount(armLines) >= 2 ? DuctParts.centerName(armLines, null) : armPart;
-            DuctPoseQuads.ArmQuads arm = poseQuads.arm(armPart, stepPart, direction, armRadius, centerRadius, pose, faces);
+            DuctPoseQuads.ArmQuads arm = poseQuads.arm(armPart, direction, armRadius, centre, faces);
             quads.addAll(arm.body());
             if (endpoint) {
                 quads.addAll(arm.ring());

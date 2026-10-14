@@ -85,26 +85,24 @@ All of this runs on the server thread inside `neighborChanged` and the existing 
 
 Alternative considered: computing the pose on the client from the `BlockAndTintGetter` in `collectParts`. It would avoid saving the pose. But the shape and the carrot hits are needed on the server too, and a block change two away does not reliably rebuild the section. Rejected.
 
-### D3: Arms stretch, steps are built in code
+### D3: Straight arms, the centre grows to bend in the middle
 
-An arm runs from the centre's edge on its axis (which moves with the centre for a vertical arm) to the block edge. A vertical arm is always straight and centred. A horizontal arm sits at the own height near the centre and at the face height at the face.
+An arm runs straight from the centre box's face on its axis to the block edge. A vertical arm is centred; a horizontal arm sits at the height where it meets its face.
 
-- When those differ, the arm becomes a step box, then a segment at the face height.
-- The step box sits against the centre, its length along the arm is the arm diameter clamped to the room left minus the ring depth (1 px), and it spans both heights. Keeping the ring depth free means the step never reaches the block edge where an endpoint ring lies. A horizontal arm always has at least 3 px of room (the centre is centred on X and Z and at most 5 px in radius), so the segment always follows.
-- Across the arm on the other horizontal axis, step and segment are as wide as the arm, like a straight arm.
+- The centre box is centred on X and Z and starts at the duct's own height. On Y it grows up or down until it spans every horizontal arm at its face height (`center(radius, pose, faces, armRadius)`). So where a duct and its arm's face sit at different heights, the vertical part of the bend is the centre itself, in the middle of the block.
+- The first cut built a step box against the centre and a segment from there to the edge. The fifth play test found the bend sat near the block edge (a thin duct's step ran from 10 to 14 px) and looked kinked; the user wants the 90 degree bend in the middle of the block, without rounding. Growing the centre puts it there and drops the step boxes and their sprite choice.
+- A vertical arm starts on the grown centre's top or bottom.
 
-`DuctShapes` has pose aware box functions: `center(radius, pose)`, `armBoxes(side, armRadius, centreRadius, pose, faces)` (step or none, plus the segment) and `arm(...)` as a list. The shape, `ArmHit` and the renderer all use them, which settles the "what you see is what you click" goal in one tested place.
+`DuctShapes` has pose aware box functions: `center(radius, pose, faces, armRadius)`, `arm(side, armRadius, centre, faces)` and `armRadii(armMasks)`. The shape, `ArmHit`, the overlay and the renderer all use them, which settles the "what you see is what you click" goal in one tested place.
 
 Z-fighting check:
 
-- The segment starts exactly at the step's outer face, opposite facing. Its top or bottom face and its side faces lie in planes of the step's faces, but the two only touch along an edge.
-- The step ends exactly at the centre's face. Its face toward the centre is left out when the centre covers it; otherwise it stays, opposite facing to the centre's face. Its floor face or top face may share a plane with the centre's, again touching only along an edge.
-- The step ends at least the ring depth before the block edge, so it never reaches the ring's outer face. The ring keeps its 0.5 px lip around the segment, exactly like on a straight arm.
-- Steps on two horizontal arms of one duct never cross: a step lies outside the centre on its own axis and within the centre's width on the other, so two steps touch at most along an edge.
-- A vertical arm lies within the centre's width on X and Z, outside the steps. Where a step's face toward the centre lies in the plane of a vertical arm's side, the two faces point opposite ways.
-- A low bend with an arm up: the arm up starts on the low centre's top face, its bottom face opposite facing to that top. Its sides lie within the centre's sides, in the same planes only when arm and centre are equally thick, and then they touch only along an edge. The horizontal arm of the bend lies outside the centre on its own axis and the arm up lies above the centre, so the two touch at most along an edge where an equally thick arm meets the centre's top corner. A bend lying low next to a low floor run has no step, so no step box meets the arm up.
+- An arm starts exactly on the centre's face on its axis, opposite facing. Its side, top and bottom faces lie outside the centre on that axis, so where they share a plane with a centre face (equal radii, or the arm at the centre's top or bottom height) the two only touch along an edge.
+- Arms on two horizontal axes lie outside the centre on their own axes and within the centre's width on the other, so they never overlap; they touch at most along an edge.
+- A vertical arm starts on the centre's top or bottom face, opposite facing, within the centre's width.
 - Two vertical arms of stacked ducts meet on the shared block face, opposite facing, with equal X and Z spans, so they read as one arm.
-- The floor contact is kept off the plane by `LIFT`.
+- The ring keeps its 0.5 px lip around the arm at the block edge, as on a straight arm.
+- The floor contact is kept off the plane by `LIFT`: the centre never grows below the duct's own height, which is the lowest height any arm meets.
 
 JUnit `segmentsTouchButDoNotOverlap` checks every pose, face mask and radius pair for same facing faces in one plane.
 
@@ -112,15 +110,14 @@ JUnit `segmentsTouchButDoNotOverlap` checks every pose, face mask and radius pai
 
 `UtilityDuctModel` keeps the datagen parts and changes how it uses them:
 
-- **Centre and junction quads** are translated by the pose with `MutableQuad.setFrom(quad).setPosition(i, ...)`. UVs stay, so the texture moves with the tube.
+- **Centre and junction quads** are fitted onto the centre box like an arm onto its box. A centre that only moved keeps its UVs; a centre that grew takes its UVs from the position, so its texture is not stretched.
 - **Arm body quads** (tint index < 0) are remapped vertex by vertex onto the segment box from D3:
-  - On the arm axis, coordinates at the baked inner end move to the new inner end (the centre's face, or the step's outer face).
+  - On the arm axis, coordinates at the baked inner end move to the new inner end (the centre's face).
   - On Y, a horizontal arm's coordinates move to the face height.
   - Faces with the plain line texture rebake UVs from position (`MutableQuad.bakeUvsFromPosition()`), so stretching does not smear the texel size.
   - Band faces keep their full face UVs, as datagen already gives them.
 - **Ring quads** (tint index >= 0) are translated by the face height only.
-- **Step boxes** are built with `MutableQuad.setCubeFace(Direction, from, to)` plus `bakeUvsFromPosition()`. Single line arms use the line's sprite. Multi line arms use the `duct_junction` sprite, the neutral fitting colour the spec already uses where axes meet, so no band orientation is needed. The sprites come from the existing part quads (`materialInfo().sprite()`), which keeps the data tier reskin working because it runs after.
-- **Cache**: results per part name, height and face height, in a `ConcurrentHashMap` like `skinned`. It is cleared on resource reload together with the model.
+- **Cache**: results per part name and box, in a `ConcurrentHashMap` like `skinned`. It is cleared on resource reload together with the model.
 
 `DuctModelData` gains `POSE` (int: height and rank of the resting pose) and `FACES` (int: one bit per side whose arm meets its face low).
 
@@ -145,7 +142,7 @@ APIs checked in `neoforge-26.1.2.116-sources.jar`: `MutableQuad.setFrom`, `setPo
 
 | Logic | Where | Checked by |
 |---|---|---|
-| Base pose, drape, face rank, step boxes, arm hit | `DuctPose`, `DuctShapes`, `ArmHit` | JUnit |
+| Base pose, drape, face rank, centre and arm boxes, arm hit | `DuctPose`, `DuctShapes`, `ArmHit` | JUnit |
 | Sturdy tests, neighbour notification, save and sync | `UtilityDuctBlockEntity`, `UtilityDuctBlock` | manual play check |
 | Quad transforms, step quads, overlay | client | manual play check from several angles |
 

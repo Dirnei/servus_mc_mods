@@ -41,14 +41,15 @@ class ArmHitTest {
         assertEquals(ArmHit.NONE, ArmHit.hit(5, 8, 2, 2, ARMS, DuctPose.CENTRED, 0), "outside a thin arm");
     }
 
-    /** A thin floor duct with an arm east into a chest: the arm steps up to the middle of the face. */
+    /** A thin floor duct with an arm east into a chest: its centre grows up to the middle, where the arm runs straight. */
     private static final int FLOOR = DuctPose.of(DuctPose.Height.LOW, DuctPose.Rank.ANCHORED);
     private static final int EAST_ENDPOINT = DuctPose.faces(FLOOR, 1 << DuctShapes.EAST, 1 << DuctShapes.EAST, new int[6]);
     private static final int[] EAST_ARM = {0, 0, 0, 0, 0, 2};
 
     @Test
-    void hitOnStepCountsAsArm() {
-        assertEquals(DuctShapes.EAST, ArmHit.hit(12, 8, 8, 2, EAST_ARM, FLOOR, EAST_ENDPOINT), "above the low centre, on the step");
+    void hitOnRaisedArmCountsAsArm() {
+        assertEquals(DuctShapes.EAST, ArmHit.hit(12, 8, 8, 2, EAST_ARM, FLOOR, EAST_ENDPOINT), "the arm in the middle of the block");
+        assertEquals(ArmHit.NONE, ArmHit.hit(12, 2, 8, 2, EAST_ARM, FLOOR, EAST_ENDPOINT), "nothing low beside the centre");
     }
 
     @Test
@@ -61,8 +62,9 @@ class ArmHitTest {
     }
 
     @Test
-    void hitAtMovedCentreIsCentre() {
-        assertEquals(ArmHit.CENTER, ArmHit.hit(8, 2, 8, 2, EAST_ARM, FLOOR, EAST_ENDPOINT));
-        assertEquals(ArmHit.NONE, ArmHit.hit(8, 8, 8, 2, EAST_ARM, FLOOR, EAST_ENDPOINT), "the middle of the block is empty");
+    void hitOnGrownCentreIsCentre() {
+        assertEquals(ArmHit.CENTER, ArmHit.hit(8, 2, 8, 2, EAST_ARM, FLOOR, EAST_ENDPOINT), "the low end of the centre");
+        assertEquals(ArmHit.CENTER, ArmHit.hit(8, 8, 8, 2, EAST_ARM, FLOOR, EAST_ENDPOINT), "the centre reaches up to the arm");
+        assertEquals(ArmHit.NONE, ArmHit.hit(8, 12, 8, 2, EAST_ARM, FLOOR, EAST_ENDPOINT), "nothing above the arm");
     }
 }
