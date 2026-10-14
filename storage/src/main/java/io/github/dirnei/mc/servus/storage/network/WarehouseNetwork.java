@@ -16,6 +16,8 @@ import io.github.dirnei.mc.servus.storage.field.FieldDue;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldHeads;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
+import io.github.dirnei.mc.servus.storage.field.SupplyBuffer;
+import io.github.dirnei.mc.servus.storage.field.SupplyPlan;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
 import io.github.dirnei.mc.servus.storage.order.StockRules;
@@ -27,6 +29,7 @@ import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.shuttle.FertilizeJob;
 import io.github.dirnei.mc.servus.storage.shuttle.FieldJob;
+import io.github.dirnei.mc.servus.storage.shuttle.SupplyJob;
 import io.github.dirnei.mc.servus.storage.shuttle.LiftCar;
 import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
 import io.github.dirnei.mc.servus.storage.shuttle.PutAwayJob;
@@ -59,6 +62,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -1067,8 +1071,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /**
-     * Queues a field run for each Field Head on this warehouse's rails that has
-     * work, when a matching shuttle can take it. Polls the loaded heads only.
+     * Queues a supply run for each Field Head on this warehouse's rails whose
+     * buffer runs low, and a field run for each that has work, when a
+     * matching shuttle can take it. Polls the loaded heads only.
      */
     private void tickFields() {
         if (status() != Status.ONLINE) {
@@ -1076,7 +1081,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         boolean harvesters = fleet.hasFieldShuttles(JobNeeds.HARVESTER);
         boolean spreaders = fleet.hasFieldShuttles(JobNeeds.SPREADER);
-        if (!harvesters && !spreaders) {
+        boolean suppliers = fleet.hasShuttles();
+        if (!harvesters && !spreaders && !suppliers) {
             return;
         }
         for (FieldHeadBlockEntity head : FieldHeads.heads(level)) {
@@ -1085,6 +1091,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 continue;
             }
             BlockPos pos = head.getBlockPos();
+            if (suppliers && !fleet.hasSupplyJob(pos) && supplyDue(head)) {
+                fleet.requestSupply(new SupplyJob(pos));
+            }
             if (harvesters && !fleet.hasFieldJob(pos) && fleet.fieldReachable(pos, JobNeeds.HARVESTER)) {
                 boolean seeds = head.plantMode() && available(ItemKey.of(head.crop())) > 0;
                 if (FieldDue.due(head.harvestDue(), head.plantMode(), head.hydrated(), head.tillableCount(), head.plantableCount(), seeds)) {
@@ -1099,6 +1108,32 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 }
             }
         }
+    }
+
+    /** Whether a part of the head's buffer is low while this warehouse holds more of its item than the head keeps in stock. */
+    private boolean supplyDue(FieldHeadBlockEntity head) {
+        for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {
+            Item item = head.supplyItem(part);
+            if (item == null) {
+                continue;
+            }
+            int reserve = part == SupplyBuffer.Part.FERTILIZER ? head.reserve() : 0;
+            if (SupplyPlan.due(new SupplyPlan.Part(head.supplyCount(part), head.supplyLevel(part),
+                    available(ItemKey.of(new ItemStack(item))), reserve))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether a supply run for that head is queued or under way. */
+    public boolean hasSupplyJob(BlockPos head) {
+        return fleet.hasSupplyJob(head);
+    }
+
+    /** Whether a shuttle without a tool can drive to the farm rail beside that head, lifts allowed. */
+    public boolean supplyReachable(BlockPos head) {
+        return fleet.supplyReachable(head);
     }
 
     /** Whether some garage of this warehouse holds a shuttle for field jobs with these needs. */

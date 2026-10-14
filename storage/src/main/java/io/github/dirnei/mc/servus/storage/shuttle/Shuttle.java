@@ -33,6 +33,8 @@ final class Shuttle {
     HarvestRun run;
     /** The fertilize run of a Spreader out on a fertilize job, else null. */
     SpreadRun spread;
+    /** The supply run of a shuttle out on a supply job, else null. */
+    SupplyRun supply;
     /** Bottom of the shaft whose car the shuttle calls, rides or crosses; null when none. */
     BlockPos lift;
     /** Whether the shuttle crosses that shaft's deck rather than calling its car. */
@@ -77,9 +79,12 @@ final class Shuttle {
         return motion.currentNode();
     }
 
-    /** The field run of either kind the shuttle is out on, else null. */
+    /** The field run of any kind the shuttle is out on, else null. */
     FieldRun fieldRun() {
-        return run != null ? run : spread;
+        if (run != null) {
+            return run;
+        }
+        return spread != null ? spread : supply;
     }
 
     /** The cargo drawn on the cart: the first load that holds something. */

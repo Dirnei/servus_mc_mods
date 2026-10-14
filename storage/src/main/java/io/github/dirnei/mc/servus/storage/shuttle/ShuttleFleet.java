@@ -363,6 +363,7 @@ public final class ShuttleFleet {
             case PutAwayJob putAway -> host.dockRails(Conversions.toNodePos(putAway.station()));
             case FieldJob field -> fieldRuns.fieldRails(field.head());
             case FertilizeJob fertilize -> fieldRuns.fieldRails(fertilize.head());
+            case SupplyJob supply -> fieldRuns.headRails(supply.head());
         };
     }
 
@@ -427,6 +428,41 @@ public final class ShuttleFleet {
     public void requestFertilize(FertilizeJob job) {
         jobs.add(job);
         syncPending = true;
+    }
+
+    /** Queues a supply run for the buffer of that head. */
+    public void requestSupply(SupplyJob job) {
+        jobs.add(job);
+        syncPending = true;
+    }
+
+    /** Whether a supply run for that head is queued or under way. */
+    public boolean hasSupplyJob(BlockPos head) {
+        return sumQueued(job -> job instanceof SupplyJob supply && supply.head().equals(head) ? 1 : 0) > 0
+                || findShuttle(shuttle -> shuttle.supply != null && shuttle.supply.head.equals(head)) != null;
+    }
+
+    /**
+     * Whether some shuttle for warehouse jobs in a garage with a rail can
+     * drive from its garage to the farm rail beside that head, lifts allowed.
+     */
+    public boolean supplyReachable(BlockPos head) {
+        Set<NodePos> rails = fieldRuns.headRails(head);
+        if (rails.isEmpty()) {
+            return false;
+        }
+        for (Garage garage : garages.values()) {
+            if (garage.home == null) {
+                continue;
+            }
+            for (Shuttle shuttle : garage.shuttles) {
+                if (JobNeeds.WAREHOUSE.fits(shuttle.profile)
+                        && !RailPaths.find(garage.home, rails::contains, ways(shuttle)).isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** Whether some garage with a rail has a shuttle with a Harvester. */
@@ -649,6 +685,10 @@ public final class ShuttleFleet {
             fieldRuns.startSpread(shuttle, fertilize);
             return;
         }
+        if (job instanceof SupplyJob supply) {
+            fieldRuns.startSupply(shuttle, supply);
+            return;
+        }
         List<ShuttleJob> rest = new ArrayList<>();
         for (ShuttleJob next : later) {
             if (!taken.contains(next)) {
@@ -728,7 +768,7 @@ public final class ShuttleFleet {
             arrivePick(shuttle, pick);
         } else if (shuttle.lead() instanceof PutAwayJob putAway) {
             arrivePutAway(shuttle, putAway);
-        } else if (shuttle.lead() instanceof FieldJob || shuttle.lead() instanceof FertilizeJob) {
+        } else if (shuttle.lead() instanceof FieldJob || shuttle.lead() instanceof FertilizeJob || shuttle.lead() instanceof SupplyJob) {
             fieldRuns.arrive(shuttle);
             return;
         }
@@ -890,6 +930,7 @@ public final class ShuttleFleet {
         }
         shuttle.run = null;
         shuttle.spread = null;
+        shuttle.supply = null;
         return true;
     }
 

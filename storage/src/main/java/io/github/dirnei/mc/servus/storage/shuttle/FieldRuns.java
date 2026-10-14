@@ -12,26 +12,31 @@ import io.github.dirnei.mc.servus.storage.field.HarvesterWork;
 import io.github.dirnei.mc.servus.storage.field.PlotState;
 import io.github.dirnei.mc.servus.storage.field.PlotWork;
 import io.github.dirnei.mc.servus.storage.field.SeedPlan;
+import io.github.dirnei.mc.servus.storage.field.SupplyBuffer;
+import io.github.dirnei.mc.servus.storage.field.SupplyPlan;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleTiers;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.BoneMealItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LevelEvent;
 
 /**
  * The legs of field runs: a harvester harvests, tills, plants and fetches
- * seeds, a Spreader fetches fertilizer and doses plots, and both put their
- * cargo away. Called by the fleet when a field run starts or its shuttle arrives.
+ * seeds, a Spreader fetches fertilizer and doses plots, a supply run fills a
+ * Field Head's buffer, and all put their cargo away. Called by the fleet when
+ * a field run starts or its shuttle arrives.
  */
 final class FieldRuns {
 
@@ -68,6 +73,34 @@ final class FieldRuns {
             }
         }
         return rails;
+    }
+
+    /** The farm rail beside the head, where its buffer is filled and taken from, while a shuttle of this warehouse drives on it. */
+    Set<NodePos> headRails(BlockPos headPos) {
+        FieldHeadBlockEntity head = servingHead(headPos);
+        BlockPos rail = head == null ? null : head.headRail();
+        if (rail == null || !host.isTravelNode(Conversions.toNodePos(rail))) {
+            return Set.of();
+        }
+        return Set.of(Conversions.toNodePos(rail));
+    }
+
+    /** Whether the shuttle stands on the farm rail beside the head. */
+    private static boolean atHead(Shuttle shuttle, FieldHeadBlockEntity head) {
+        BlockPos rail = head.headRail();
+        return rail != null && rail.equals(Conversions.toBlockPos(shuttle.at()));
+    }
+
+    /** Drives to the farm rail beside the head; false when no way leads there. */
+    private boolean goToHead(Shuttle shuttle, FieldHeadBlockEntity head) {
+        List<NodePos> path = pathTo(shuttle, headRails(head.getBlockPos()));
+        if (path.isEmpty()) {
+            return false;
+        }
+        shuttle.leg = Leg.TO_HEAD;
+        shuttle.motion = new ShuttleMotion(path);
+        fleet.markSync();
+        return true;
     }
 
     private static ItemKey cropKey(FieldHeadBlockEntity head) {
@@ -112,7 +145,9 @@ final class FieldRuns {
                 }
             }
             default -> {
-                if (shuttle.spread != null) {
+                if (shuttle.supply != null) {
+                    arriveSupply(shuttle);
+                } else if (shuttle.spread != null) {
                     arriveSpread(shuttle);
                 } else {
                     arriveHarvest(shuttle);
@@ -541,7 +576,9 @@ final class FieldRuns {
             waitStore(shuttle);
             return;
         }
-        if (shuttle.spread != null) {
+        if (shuttle.supply != null) {
+            supplyTurn(shuttle);
+        } else if (shuttle.spread != null) {
             spreadTurn(shuttle);
         } else {
             turn(shuttle);
@@ -823,5 +860,156 @@ final class FieldRuns {
         }
         head.dosed(plot);
         head.recheckNow(plot);
+    }
+
+    /** Starts a supply run for the head's buffer; a head that serves no field ends the run at once. */
+    void startSupply(Shuttle shuttle, SupplyJob job) {
+        FieldHeadBlockEntity head = servingHead(job.head());
+        if (head == null) {
+            shuttle.loads.clear();
+            return;
+        }
+        SupplyRun run = new SupplyRun(job.head(), shuttle.profile.stacks());
+        planSupply(run, head);
+        shuttle.supply = run;
+        supplyTurn(shuttle);
+    }
+
+    /**
+     * Plans what the run picks for each part of the buffer: what it is short
+     * of its level, low parts first, as far as the cargo has room.
+     */
+    private void planSupply(SupplyRun run, FieldHeadBlockEntity head) {
+        run.reserve = head.reserve();
+        FieldCargo<ItemKey> planned = new FieldCargo<>(run.cargo.slots());
+        for (boolean lowPass : new boolean[] {true, false}) {
+            for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {
+                Item item = head.supplyItem(part);
+                int held = head.supplyCount(part);
+                int level = head.supplyLevel(part);
+                if (item == null || run.keys.containsKey(part) || SupplyPlan.low(held, level) != lowPass) {
+                    continue;
+                }
+                ItemKey key = ItemKey.of(new ItemStack(item));
+                int max = key.stack(1).getMaxStackSize();
+                int amount = SupplyPlan.toBring(held, level, host.available(key), run.reserveOf(part), planned.room(key, max));
+                if (amount > 0) {
+                    planned.add(List.of(new FieldCargo.Entry<>(key, amount, max)));
+                    run.keys.put(part, key);
+                    run.remaining.put(part, amount);
+                }
+            }
+        }
+    }
+
+    /**
+     * Decides what a supply run does next: pick the planned items, stop at
+     * the head's rail to fill the buffer and load stale items, then put what
+     * it carries away and go home.
+     */
+    private void supplyTurn(Shuttle shuttle) {
+        SupplyRun run = shuttle.supply;
+        fleet.markSync();
+        if (!host.isTravelNode(shuttle.at())) {
+            lose(shuttle);
+            return;
+        }
+        FieldHeadBlockEntity head = servingHead(run.head);
+        if (head != null && !run.fetched) {
+            if (fetchSupply(shuttle)) {
+                return;
+            }
+            run.fetched = true;
+        }
+        if (head != null && !run.unloaded && (!run.cargo.isEmpty() || head.holdsStale())) {
+            if (atHead(shuttle, head)) {
+                unloadAtHead(run, head);
+            } else if (goToHead(shuttle, head)) {
+                return;
+            }
+        }
+        run.unloaded = true;
+        if (!run.cargo.isEmpty() || !run.store.isEmpty()) {
+            unloadToStore(run, null, 0);
+            continueStore(shuttle);
+            return;
+        }
+        shuttle.loads.clear();
+        shuttle.supply = null;
+        fleet.goHome(shuttle);
+    }
+
+    /** Drives to the next storage block holding a planned item; blocks no rail reaches give their part at once. False when none is left. */
+    private boolean fetchSupply(Shuttle shuttle) {
+        SupplyRun run = shuttle.supply;
+        for (Map.Entry<SupplyBuffer.Part, ItemKey> planned : run.keys.entrySet()) {
+            if (run.remaining.getOrDefault(planned.getKey(), 0) <= 0) {
+                continue;
+            }
+            for (BlockPos source : host.sourcesHolding(planned.getValue())) {
+                if (!run.sourcesTried.add(source)) {
+                    continue;
+                }
+                Set<NodePos> dock = host.dockRails(Conversions.toNodePos(source));
+                List<NodePos> path = pathTo(shuttle, dock);
+                if (!path.isEmpty()) {
+                    run.source = source;
+                    shuttle.leg = Leg.TO_SUPPLY;
+                    shuttle.motion = new ShuttleMotion(path);
+                    return true;
+                }
+                if (handsOverAtOnce(shuttle, source, dock)) {
+                    loadSupply(run, source);
+                }
+            }
+        }
+        return false;
+    }
+
+    /** Takes what the run still picks of every planned item from the source, never the stock at or below the reserve. */
+    private void loadSupply(SupplyRun run, BlockPos source) {
+        for (Map.Entry<SupplyBuffer.Part, ItemKey> planned : run.keys.entrySet()) {
+            SupplyBuffer.Part part = planned.getKey();
+            ItemKey key = planned.getValue();
+            int left = run.remaining.getOrDefault(part, 0);
+            int max = key.stack(1).getMaxStackSize();
+            int amount = SupplyPlan.toBring(0, left, host.available(key), run.reserveOf(part), run.cargo.room(key, max));
+            if (amount <= 0) {
+                continue;
+            }
+            ItemStack taken = host.extractFrom(source, key, amount);
+            run.remaining.put(part, left - taken.getCount());
+            stow(run, source, key, taken, max);
+        }
+    }
+
+    private void arriveSupply(Shuttle shuttle) {
+        SupplyRun run = shuttle.supply;
+        if (shuttle.leg == Leg.TO_SUPPLY && run.source != null && servingHead(run.head) != null) {
+            loadSupply(run, run.source);
+        }
+        run.source = null;
+        supplyTurn(shuttle);
+    }
+
+    /** At the head's rail: stale items come aboard to be put away, then the cargo fills the buffer as far as it takes it. */
+    private static void unloadAtHead(FieldRun run, FieldHeadBlockEntity head) {
+        run.store.addAll(head.takeStale());
+        for (FieldCargo.Entry<ItemKey> entry : run.cargo.entries()) {
+            for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {
+                fillFromCargo(run, head, part, entry.key());
+            }
+        }
+    }
+
+    /** Moves as much of the key from the cargo into the part as it takes; returns how many moved. */
+    private static int fillFromCargo(FieldRun run, FieldHeadBlockEntity head, SupplyBuffer.Part part, ItemKey key) {
+        int carried = run.cargo.count(key);
+        if (carried <= 0 || !key.components().isEmpty()) {
+            return 0;
+        }
+        int moved = head.fillSupply(part, key.item(), carried);
+        run.cargo.take(key, moved);
+        return moved;
     }
 }

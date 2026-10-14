@@ -11,7 +11,7 @@
 
 ## 3. Supply runs
 
-- [ ] 3.1 Add `SupplyJob` and `SupplyRun`, queue them in `WarehouseNetwork.tickFields` with `JobNeeds.WAREHOUSE`, and add `hasSupplyJob`. Plan with `SupplyPlan`, fetch with lifts allowed, unload at the head's rail, take stale items back, and handle runs that cannot go on (in `FieldRuns` and `ShuttleFleet`). Verify: `gradlew build` green.
+- [x] 3.1 Add `SupplyJob` and `SupplyRun`, queue them in `WarehouseNetwork.tickFields` with `JobNeeds.WAREHOUSE`, and add `hasSupplyJob`. Plan with `SupplyPlan`, fetch with lifts allowed, unload at the head's rail, take stale items back, and handle runs that cannot go on (in `FieldRuns` and `ShuttleFleet`). Verify: `gradlew build` green.
 - [ ] 3.2 Field shuttles use the buffer. The Spreader takes fertilizer at the head's rail instead of racks, and `FertilizeJob` needs a non empty buffer. The Harvester takes its seed shortfall from the buffer. Leftovers fill the buffer before racks. Verify: `gradlew build` green.
 - [ ] 3.3 Statuses: `FertilizeStatus.NO_SUPPLY_SHUTTLE` and `SUPPLY_COMING`, the new field work statuses, red markers and the head's ripe share bar problem state; the field command prints the buffer. Verify: `gradlew :storage:runData` and `gradlew build` green.
 
