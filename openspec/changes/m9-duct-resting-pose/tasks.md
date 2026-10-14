@@ -90,7 +90,7 @@
   - segment B and ring: the ring lip stays on the face span, B is inset by at most 0.015 px: a hairline gap, no shared plane.
   - stepping arms on different axes: insets differ per arm axis, no shared plane where they cross (JUnit `segmentsTouchButDoNotOverlap`).
   - duct and floor or wall: every part keeps `LIFT` (0.05 px) off the block face.
-- [ ] 4.3 In `foundation/.../logistics/client/DuctOverlayRenderer.java`, draw the load box around `DuctShapes.center(radius, pose)` grown by 0.5 px. Verify: `gradlew build` green.
+- [x] 4.3 In `foundation/.../logistics/client/DuctOverlayRenderer.java`, draw the load box around `DuctShapes.center(radius, pose)` grown by 0.5 px. Verify: `gradlew build` green.
 
 ## 5. Texts
 

@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.data.ClientDuctLoads;
 import io.github.dirnei.mc.servus.foundation.item.GogglesItem;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctShapes;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctTracker;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
@@ -19,7 +20,8 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
 /**
  * While the player reveals hidden things: draws the centre of every data duct
- * in the colour of its load over the last second, from idle green to full red.
+ * in the colour of its load over the last second, from idle green to full red,
+ * around the centre where it is drawn at its resting pose.
  * Ducts behind facade panels are not drawn; the player sees the panel.
  */
 @EventBusSubscriber(modid = ServusFoundationIds.MOD_ID, value = Dist.CLIENT)
@@ -27,8 +29,8 @@ public final class DuctOverlayRenderer {
 
     private static final double RANGE_SQ = 32.0 * 32.0;
     private static final int A = 110;
-    private static final float LOAD_LO = 3.5F / 16.0F;
-    private static final float LOAD_HI = 12.5F / 16.0F;
+    /** How far in pixels the load box stands off the duct's centre. */
+    private static final float LOAD_MARGIN = 0.5F;
     /** Load colours by level: idle, light, half, busy, full. */
     private static final int[] LOAD_COLOURS = {0x3CC85A, 0xA0DC3C, 0xF0DC3C, 0xFF9628, 0xF03228};
 
@@ -56,7 +58,9 @@ public final class DuctOverlayRenderer {
                 int colour = LOAD_COLOURS[Math.min(LOAD_COLOURS.length - 1, ClientDuctLoads.level(pos))];
                 poseStack.pushPose();
                 poseStack.translate(pos.getX() - camera.x, pos.getY() - camera.y, pos.getZ() - camera.z);
-                box(consumer, poseStack.last(), LOAD_LO, LOAD_LO, LOAD_LO, LOAD_HI, LOAD_HI, LOAD_HI,
+                DuctShapes.Box centre = DuctShapes.center(DuctShapes.centerRadius(duct.lines().size(), duct.connections()), duct.pose());
+                box(consumer, poseStack.last(), grown(centre.x0(), -1), grown(centre.y0(), -1), grown(centre.z0(), -1),
+                        grown(centre.x1(), 1), grown(centre.y1(), 1), grown(centre.z1(), 1),
                         (colour >> 16) & 0xFF, (colour >> 8) & 0xFF, colour & 0xFF);
                 poseStack.popPose();
             }
@@ -64,6 +68,11 @@ public final class DuctOverlayRenderer {
         if (any) {
             buffers.endBatch(ServusRenderTypes.OVERLAY);
         }
+    }
+
+    /** A box coordinate in pixels moved outward by the load margin, in blocks. */
+    private static float grown(float pixels, int outward) {
+        return (pixels + outward * LOAD_MARGIN) / 16.0F;
     }
 
     private static void box(VertexConsumer consumer, PoseStack.Pose pose, float x0, float y0, float z0, float x1, float y1, float z1,
