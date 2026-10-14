@@ -11,7 +11,7 @@
 ## 3. Integration
 
 - [x] 3.1 Full `gradlew build`, unit tests and storage GameTests green. The game launches with all three mods.
-- [ ] 3.2 Play check in game by the user from main:
+- [x] 3.2 Play check in game by the user from main:
   - The Harvester shows no flicker on its arms and reel.
   - A Spreader shows its hopper and bar at the back, on Mk1 to Mk3, with the Handling mast and crane and the spoiler.
   - Nothing flickers from several angles while it drives.

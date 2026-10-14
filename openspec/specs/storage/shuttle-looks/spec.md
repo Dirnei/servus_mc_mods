@@ -12,7 +12,7 @@ A shuttle SHALL be drawn as a body with a hold, drive parts, a Handling part and
 - The drive SHALL follow the Speed count in look steps: no Speed shows plain wheels, and more Speed shows a bigger drive (for example 1 to 2, 3 to 5 and 6 or more). Each step SHALL look different from the others.
 - The last Speed step SHALL show a rear spoiler: a full width steel wing over the back of the hold, reaching a little past the back, with dark iron end plates on both tips, carried by two struts near the middle that lean back from the hold into the wing. The spoiler SHALL sit above every Handling part and SHALL stay inside the rail's block.
 - The Handling part SHALL follow the Handling count in look steps: no Handling shows nothing, a few show a small loading arm, many show the arm with a roller bed (for example 1 to 3 and 4 or more).
-- A fitted tool SHALL be drawn on the front of the shuttle and MAY reach out to the sides past the body; the Harvester shows a reel across the front, the Spreader a hopper box with a spreader bar across the front.
+- A fitted tool SHALL be drawn where it works and MAY reach out to the sides past the body: the Harvester shows a reel across the front, the Spreader a hopper box with a spreader bar across the back, behind the Handling part. A shuttle SHALL carry at most one tool.
 The front of the shuttle SHALL face the way it drives.
 
 #### Scenario: Two tiers side by side
@@ -29,7 +29,7 @@ The front of the shuttle SHALL face the way it drives.
 
 #### Scenario: Spreader at work
 - **WHEN** a Spreader shuttle drives along a farm rail
-- **THEN** a hopper box with a spreader bar is drawn on its front, the bar reaching out past both sides of the body
+- **THEN** a hopper box with a spreader bar is drawn at its back, the bar reaching out past both sides of the body, and nothing is drawn on its front
 
 #### Scenario: Count inside a look step
 - **WHEN** a shuttle goes from four to five Speed upgrades
@@ -42,6 +42,10 @@ The front of the shuttle SHALL face the way it drives.
 #### Scenario: Spoiler over the crane
 - **WHEN** a Mk3 shuttle with eight Speed and eight Handling upgrades drives past a rack
 - **THEN** the spoiler is drawn above the crane without touching it, and no part of the spoiler is drawn inside the rack's block
+
+#### Scenario: Spreader behind the crane
+- **WHEN** a Mk3 Spreader shuttle with eight Speed and eight Handling upgrades is drawn
+- **THEN** the hopper box sits behind the loading mast and below the spoiler, and no two of these parts flicker against each other
 
 ### Requirement: The item looks like the shuttle
 A shuttle item SHALL show the same composed look as the shuttle on the rails, in inventories, the garage GUI, the Shuttle Workshop and when held or dropped. Installing or removing an upgrade or a tool, or a tier build, SHALL change the item's look at once.
