@@ -71,6 +71,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     public static final int DEFAULT_DOSES_PER_PLOT = 2;
     public static final int DEFAULT_FERTILIZER_RESERVE = 64;
     public static final double DEFAULT_FERTILIZE_SHARE = 0.5;
+    public static final int DEFAULT_SEED_BUFFER = 64;
+    public static final int DEFAULT_FERTILIZER_BUFFER = 64;
 
     private static final Identifier WAREHOUSE = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "warehouse");
     private static final Identifier RACK = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "rack");
@@ -136,6 +138,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     private volatile int dosesPerPlot = DEFAULT_DOSES_PER_PLOT;
     private volatile int fertilizerReserve = DEFAULT_FERTILIZER_RESERVE;
     private volatile double fertilizeShare = DEFAULT_FERTILIZE_SHARE;
+    private volatile int seedBuffer = DEFAULT_SEED_BUFFER;
+    private volatile int fertilizerBuffer = DEFAULT_FERTILIZER_BUFFER;
 
     private StorageStatsManager() {
         super(ExtraCodecs.JSON, FileToIdConverter.json(DIRECTORY));
@@ -194,6 +198,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         dosesPerPlot = intField(files.get(FIELD), "doses_per_plot", DEFAULT_DOSES_PER_PLOT);
         fertilizerReserve = countField(files.get(FIELD), "fertilizer_reserve", DEFAULT_FERTILIZER_RESERVE);
         fertilizeShare = Math.min(1.0, doubleField(files.get(FIELD), "fertilize_share", DEFAULT_FERTILIZE_SHARE));
+        seedBuffer = countField(files.get(FIELD), "seed_buffer", DEFAULT_SEED_BUFFER);
+        fertilizerBuffer = countField(files.get(FIELD), "fertilizer_buffer", DEFAULT_FERTILIZER_BUFFER);
         shuttleTiers = ShuttleStatsReader.read(files.get(SHUTTLE));
         ServusStorage.LOGGER.info("Warehouse polls {} sources per tick", sourcesPerTick);
     }
@@ -477,7 +483,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         return fieldCorrosionWater;
     }
 
-    /** How many anti-corrosion items the data line keeps in a Field Head. */
+    /** How many anti-corrosion items supply runs keep in a Field Head's buffer. */
     public int fieldAntiCorrosionLevel() {
         return fieldAntiCorrosionLevel;
     }
@@ -510,6 +516,26 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     /** The ripe share below which a head in Until ripe share mode calls a Spreader, until set per head. */
     public double fertilizeShare() {
         return fertilizeShare;
+    }
+
+    /** How many seeds of its crop supply runs keep in a Field Head's buffer; 0 turns the part off. */
+    public int seedBuffer() {
+        return seedBuffer;
+    }
+
+    /** For tests: sets the seed buffer level as if a datapack had been loaded. */
+    public void setSeedBuffer(int level) {
+        seedBuffer = level;
+    }
+
+    /** How many items of its fertilizer supply runs keep in a Field Head's buffer; 0 turns the part off. */
+    public int fertilizerBuffer() {
+        return fertilizerBuffer;
+    }
+
+    /** For tests: sets the fertilizer buffer level as if a datapack had been loaded. */
+    public void setFertilizerBuffer(int level) {
+        fertilizerBuffer = level;
     }
 
     /** Shuttle speed, stop times and tiers from {@code shuttle.json}. */

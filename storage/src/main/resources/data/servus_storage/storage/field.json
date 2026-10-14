@@ -13,5 +13,7 @@
   "fertilize_interval": 600,
   "doses_per_plot": 2,
   "fertilizer_reserve": 64,
-  "fertilize_share": 0.5
+  "fertilize_share": 0.5,
+  "seed_buffer": 64,
+  "fertilizer_buffer": 64
 }

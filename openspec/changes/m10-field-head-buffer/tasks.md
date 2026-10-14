@@ -2,7 +2,7 @@
 
 ## 1. Pure logic and data
 
-- [ ] 1.1 Add pure `SupplyPlan` (`low`, `toBring`, `due`) in `storage/.../field/` with JUnit `SupplyPlanTest`: below and at half the level, a fill to the level, reserve kept, cargo room cap, nothing in stock, a level of 0 turns a part off. Add `seed_buffer` and `fertilizer_buffer` to `storage/field.json` and `StorageStatsManager`. Verify: `gradlew :storage:test` green.
+- [x] 1.1 Add pure `SupplyPlan` (`low`, `toBring`, `due`) in `storage/.../field/` with JUnit `SupplyPlanTest`: below and at half the level, a fill to the level, reserve kept, cargo room cap, nothing in stock, a level of 0 turns a part off. Add `seed_buffer` and `fertilizer_buffer` to `storage/field.json` and `StorageStatsManager`. Verify: `gradlew :storage:test` green.
 
 ## 2. The head's buffer
 
