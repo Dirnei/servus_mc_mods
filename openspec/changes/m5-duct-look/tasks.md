@@ -19,7 +19,7 @@
 
 ## 5. Integration
 
-- [ ] 5.1 Full `gradlew build test runGameTestServerAll` green; the game launches with all three mods.
+- [x] 5.1 Full `gradlew build test runGameTestServerAll` green; the game launches with all three mods.
 - [ ] 5.2 Play check in game by the user from main:
   - Every line and data tier looks like its hose or cable; the icons in the hotbar match.
   - On straight runs along X, Z and Y the ribs and braids cross the duct on all four sides, at one spacing, without seams at block borders or joints, never mirrored.
