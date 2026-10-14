@@ -30,6 +30,21 @@ class MachineDefaultsTest {
     }
 
     @Test
+    void factoriesHaveNoItemBuffer() {
+        assertEquals(0, MachineStats.burner(20).itemCapacity());
+        assertEquals(0, MachineStats.powered(40, 20, 8000).itemCapacity());
+        assertEquals(0, MachineStats.burnerPump(20, 100, 4000, 2).itemCapacity());
+    }
+
+    @Test
+    void registeredItemCapacityIsLookedUp() {
+        MachineDefaults.register("test_items:pan", "burner", List.of(),
+                new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, 0, 0, "", 0, 64));
+
+        assertEquals(64, MachineDefaults.stats("test_items:pan").itemCapacity());
+    }
+
+    @Test
     void unknownMachineFails() {
         assertThrows(NoSuchElementException.class, () -> MachineDefaults.info("test_unknown:nope"));
     }
