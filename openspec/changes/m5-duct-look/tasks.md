@@ -2,7 +2,7 @@
 
 ## 1. Artwork
 
-- [ ] 1.1 Write `tools/duct-textures/gen.py` (Python 3, standard library only) from the preview's option B strips and option C icons (design D3 to D5): line strips, band sets with `_duplex` and `_fast` copies, `duct_fitting_2/4/5`, `duct_ring`, the six item icons; `--check` verifies the band split (every band at least 2 px, bands cover the thickness). Run it into `foundation/src/main/resources/assets/servus_foundation/textures/`, delete every `duct_*_v*.png` and `duct_junction.png`. Verify: `python tools/duct-textures/gen.py --check` passes, a second run changes no file (`git status` clean after it), `gradlew build` green.
+- [x] 1.1 Write `tools/duct-textures/gen.py` (Python 3, standard library only) from the preview's option B strips and option C icons (design D3 to D5): line strips, band sets with `_duplex` and `_fast` copies, `duct_fitting_2/4/5`, `duct_ring`, the six item icons; `--check` verifies the band split (every band at least 2 px, bands cover the thickness). Run it into `foundation/src/main/resources/assets/servus_foundation/textures/`, delete every `duct_*_v*.png` and `duct_junction.png`. Verify: `python tools/duct-textures/gen.py --check` passes, a second run changes no file (`git status` clean after it), `gradlew build` green.
 
 ## 2. UVs along the run
 
