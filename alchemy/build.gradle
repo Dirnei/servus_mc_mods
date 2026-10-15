@@ -49,11 +49,11 @@ neoForge {
             // Game data export for the documentation site (docs/).
             systemProperty 'servus.gamedata.output', rootProject.file('docs/src/data/gamedata.json').absolutePath
             // Hand written resources, Alchemy's first: machine stats live in the mod that owns the machine.
-            systemProperty 'servus.gamedata.resources', ['alchemy', 'foundation', 'storage']
+            systemProperty 'servus.gamedata.resources', ['alchemy', 'foundation', 'shuttles']
                     .collect { rootProject.file("${it}/src/main/resources").absolutePath }
                     .join(File.pathSeparator)
             // Recipes and lang of every Servus mod, read as files so mods not loaded here still take part.
-            systemProperty 'servus.gamedata.generated', ['foundation', 'alchemy', 'storage']
+            systemProperty 'servus.gamedata.generated', ['foundation', 'alchemy', 'shuttles']
                     .collect { rootProject.file("${it}/src/generated/resources").absolutePath }
                     .join(File.pathSeparator)
             // Machine models use the shared machine textures that Foundation ships.
@@ -64,5 +64,5 @@ neoForge {
 
 // The export reads the other mods' generated recipes, so `gradlew runData` writes them first.
 tasks.matching { it.name == 'runData' }.configureEach {
-    mustRunAfter ':foundation:runData', ':storage:runData'
+    mustRunAfter ':foundation:runData', ':shuttles:runData'
 }

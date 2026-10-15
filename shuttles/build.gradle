@@ -1,4 +1,4 @@
-// Servus: Storage. Shared configuration lives in the root build.gradle.
+// Servus: Shuttles. Shared configuration lives in the root build.gradle.
 evaluationDependsOn(':foundation')
 
 dependencies {

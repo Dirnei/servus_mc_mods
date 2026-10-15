@@ -13,4 +13,4 @@ rootProject.name = 'servus_mc_mods'
 
 include 'foundation'
 include 'alchemy'
-include 'storage'
+include 'shuttles'

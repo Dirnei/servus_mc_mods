@@ -177,8 +177,8 @@ apply plugin: 'net.neoforged.moddev'
 evaluationDependsOnChildren()
 
 // Only the mod projects included in settings.gradle take part (the 26.1.2 port builds
-// Foundation alone until Alchemy and Storage are ported).
-def allServusMods = ['foundation', 'alchemy', 'storage'].findAll { findProject(":${it}") != null }.collect { name ->
+// Foundation alone until Alchemy and Shuttles are ported).
+def allServusMods = ['foundation', 'alchemy', 'shuttles'].findAll { findProject(":${it}") != null }.collect { name ->
     def sub = project(":${name}")
     sub.neoForge.mods.getByName(sub.mod_id)
 }
