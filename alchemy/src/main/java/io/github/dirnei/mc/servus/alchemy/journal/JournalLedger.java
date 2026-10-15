@@ -126,6 +126,32 @@ public final class JournalLedger {
         return done;
     }
 
+    /**
+     * Finishes the chapter and every unfinished chapter on its parent chain, with every task at its count, and
+     * returns the newly finished chapters from the root down. An unknown chapter or parent changes nothing.
+     */
+    public static List<String> finish(Collection<ChapterDef> chapters, TeamJournal journal, String chapterId) {
+        Map<String, ChapterDef> byId = new HashMap<>();
+        chapters.forEach(chapter -> byId.put(chapter.id(), chapter));
+        List<ChapterDef> chain = new ArrayList<>();
+        Optional<String> next = Optional.of(chapterId);
+        while (next.isPresent() && !journal.isFinished(next.get())) {
+            ChapterDef chapter = byId.get(next.get());
+            if (chapter == null || chain.contains(chapter)) {
+                return List.of();
+            }
+            chain.addFirst(chapter);
+            next = chapter.parent();
+        }
+        List<String> done = new ArrayList<>();
+        for (ChapterDef chapter : chain) {
+            chapter.tasks().forEach(task -> journal.setCount(chapter.id(), task.id(), task.count()));
+            journal.markFinished(chapter.id());
+            done.add(chapter.id());
+        }
+        return done;
+    }
+
     /** Whether every task of the chapter reached its count. A chapter without tasks is never complete by events. */
     public static boolean isComplete(ChapterDef chapter, TeamJournal journal) {
         if (chapter.tasks().isEmpty()) {

@@ -103,6 +103,34 @@ class JournalLedgerTest {
     }
 
     @Test
+    void finishingAChapterFinishesItsParentsFirst() {
+        TeamJournal journal = new TeamJournal();
+        assertEquals(List.of("s:villach", "s:schwaz"), JournalLedger.finish(BOOK, journal, "s:schwaz"));
+        assertTrue(journal.isFinished("s:villach"));
+        assertTrue(journal.isFinished("s:schwaz"));
+        assertEquals(1000, journal.count("s:villach", "salt"));
+        assertEquals(10, journal.count("s:schwaz", "calcine_more"));
+    }
+
+    @Test
+    void finishingStopsAtFinishedChapters() {
+        TeamJournal journal = new TeamJournal();
+        journal.markFinished("s:villach");
+        assertEquals(List.of("s:schwaz"), JournalLedger.finish(BOOK, journal, "s:schwaz"));
+        assertEquals(0, journal.count("s:villach", "calcine"), "a finished parent is left as it was");
+        assertEquals(List.of(), JournalLedger.finish(BOOK, journal, "s:schwaz"), "already finished");
+    }
+
+    @Test
+    void finishingAnUnknownChapterChangesNothing() {
+        TeamJournal journal = new TeamJournal();
+        assertEquals(List.of(), JournalLedger.finish(BOOK, journal, "s:nowhere"));
+        ChapterDef orphan = new ChapterDef("s:orphan", Optional.of("s:missing"), 5, List.of());
+        assertEquals(List.of(), JournalLedger.finish(List.of(VILLACH, orphan), journal, "s:orphan"));
+        assertTrue(journal.finished().isEmpty());
+    }
+
+    @Test
     void zeroCountTasksAreRefused() {
         assertThrows(IllegalArgumentException.class, () -> new TaskDef("bad", "calcine", "", 0));
     }
