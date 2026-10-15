@@ -64,6 +64,9 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         SEEDED, ALREADY_SEEDED, NO_ROOT
     }
 
+    /** {@link #shownBoundAt()} of a Hollow the client did not see being bound. */
+    public static final long NOT_SEEN_BINDING = Long.MIN_VALUE;
+
     private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), false, this::setChanged);
     private final State growth = new State();
     private final HollowStore store = new HollowStore(DEFAULTS.itemCapacity());
@@ -74,6 +77,8 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
     private ItemStack shownYield = ItemStack.EMPTY;
     private int shownSteps;
     private int shownColor = VeinData.DEFAULT_COLOR;
+    private long shownBoundAt = NOT_SEEN_BINDING;
+    private boolean shownOnce;
     private boolean shownBoosted;
 
     public GnomeHollowBlockEntity(BlockPos pos, BlockState state) {
@@ -330,6 +335,14 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         return growth.bound;
     }
 
+    /**
+     * The game time at which the client saw a gnome being bound here, or {@link #NOT_SEEN_BINDING} when it was bound
+     * before the client knew the Hollow or is not bound.
+     */
+    public long shownBoundAt() {
+        return shownBoundAt;
+    }
+
     /** Whether a gift boost runs, as the client knows it. */
     public boolean shownBoosted() {
         return shownBoosted;
@@ -383,7 +396,9 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         tanks.load(tag.getCompoundOrEmpty("Principles"));
         vein = tag.contains("Vein") ? Identifier.tryParse(input.getStringOr("Vein", "")) : null;
         growth.ripeness = input.getIntOr("Ripeness", 0);
+        boolean wasBound = growth.bound;
         growth.bound = input.getBooleanOr("Bound", false);
+        noteBinding(wasBound);
         growth.stepTimer = input.getIntOr("StepTimer", 0);
         growth.yieldTimer = input.getIntOr("YieldTimer", 0);
         store.load(input.getIntOr("Stored", 0));
@@ -394,6 +409,17 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
             shownYield = ValueIo.parseStack(registries, tag.getCompoundOrEmpty("ShownYield"));
             shownSteps = input.getIntOr("ShownSteps", 0);
             shownColor = input.getIntOr("ShownColor", VeinData.DEFAULT_COLOR);
+        }
+    }
+
+    /** On the client, remembers when it saw the gnome being bound, so the sight can open the cave. */
+    private void noteBinding(boolean wasBound) {
+        boolean seenBinding = shownOnce && !wasBound && growth.bound;
+        shownOnce = true;
+        if (!growth.bound) {
+            shownBoundAt = NOT_SEEN_BINDING;
+        } else if (seenBinding && level != null && level.isClientSide()) {
+            shownBoundAt = level.getGameTime();
         }
     }
 

@@ -21,5 +21,5 @@ Under Elemental Sight a Gnome Hollow is still a stone block with spinning item i
 
 - `alchemy/.../hollow/GnomeHollowBlock.java`: a horizontal `FACING` set on placement; the block model stays stone for every facing.
 - `alchemy/.../client/sight/HollowRevealRenderer.java`: draws the shell instead of item icons.
-- New textures: crack mask, flowing material (animated, greyscale, tinted per vein), cave entry, crystals; a colour per vein in the vein data.
+- New textures: rock, crack mask, material grain (greyscale, tinted per vein), cave entry, crystals; a colour per vein in the vein data.
 - `alchemy/.../hollow/VeinData.java` and the vein JSON: a `color` per vein.
