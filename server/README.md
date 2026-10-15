@@ -1,7 +1,7 @@
 # Play test server
 
-A NeoForge 1.21.1 server in Docker with the Servus mods and the same helper mods as the dev runs
-(Modonomicon, JEI, Jade, FTB Ultimine with FTB Library and Architectury).
+A NeoForge 26.1.2 server in Docker with the Servus mods and the same helper mods as the dev runs
+(Modonomicon, JEI, Jade, FTB Ultimine with FTB Library).
 
 ## Host
 
@@ -37,7 +37,7 @@ reports, some of them for NeoForge packs ([#1170](https://github.com/FTBTeam/FTB
 [#1219](https://github.com/FTBTeam/FTB-App/issues/1219),
 [#1285](https://github.com/FTBTeam/FTB-App/issues/1285)). If it fails, make the instance by hand:
 
-1. Create Instance, Vanilla, Minecraft 1.21.1 with NeoForge 21.1.255.
+1. Create Instance, Vanilla, Minecraft 26.1.2 with NeoForge 26.1.2.
 2. Open the instance folder and unpack the jars from `-mods.zip` into its `mods` folder.
 
 The hand made instance always works.

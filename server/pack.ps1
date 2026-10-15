@@ -41,8 +41,7 @@ $deps = @(
     @{ g = 'mezz.jei'; a = "jei-$mc-neoforge"; v = $props['jei_version'] },
     @{ g = 'maven.modrinth'; a = 'jade'; v = $props['jade_version'] },
     @{ g = 'dev.ftb.mods'; a = 'ftb-library-neoforge'; v = $props['ftb_library_version'] },
-    @{ g = 'dev.ftb.mods'; a = 'ftb-ultimine-neoforge'; v = $props['ftb_ultimine_version'] },
-    @{ g = 'dev.architectury'; a = 'architectury-neoforge'; v = $null }
+    @{ g = 'dev.ftb.mods'; a = 'ftb-ultimine-neoforge'; v = $props['ftb_ultimine_version'] }
 )
 foreach ($d in $deps) {
     $dir = Join-Path $cache "$($d.g)\$($d.a)"
