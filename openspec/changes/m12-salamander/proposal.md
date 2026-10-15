@@ -5,7 +5,7 @@
 ## What Changes
 
 - New entity **Salamander** (the mod's first entity): a lizard of glowing coals with a snout, glowing eyes, a three segment tail that sways, four legs and a crest of flickering flames, drawn full bright. Fire immune, walks on lava like a Strider and on land, harmless.
-- It spawns rarely in Nether lava (Nether Wastes and Basalt Deltas) through a NeoForge biome modifier and a lava spawn placement; the spawn weight is data.
+- It lives mainly in the Crimson Forest, a bit less in the Warped Forest, on the ground near crimson or warped stems, wart blocks and Nether Wart, and rarely on lava lakes in the Nether Wastes and Basalt Deltas. A NeoForge biome modifier holds the weights, a block tag the home blocks, and a crowd limit from data keeps it from crowding an area. (Revised after the play check: on lava only and at weight 5 it practically never spawned.)
 - Hidden: a wild salamander is not drawn (no model, shadow or name) for a player without Elemental Sight, and Jade does not name it; a stray flame particle now and then is all that shows. A befriended salamander is drawn for everyone.
 - Befriending: right click a wild salamander with a Gold Ingot. Each ingot is used up and befriends with a chance from data (example 1 in 3), hearts on success, smoke on failure.
 - A befriended salamander follows its owner, teleports to them when far away, sits and stands up on an empty hand right click by the owner, never despawns, and walks to a nearby lit campfire to lie in it when idle.
@@ -29,7 +29,8 @@ None.
 - New package `alchemy/.../salamander/`: entity, goals, pure `SalamanderTemper` and `Digestion`, reload listener for the temper data, spawn and attribute registration.
 - New client classes: model, renderer, render state, layer registration; Jade ray trace callback.
 - Registries: an entity type register, items Sal Ammoniac, Ignis Perpetuus, Salamander spawn egg.
-- Data: `servus_alchemy/salamander_temper/salamander.json`, `neoforge/biome_modifier/salamander.json`, Athanor recipe through `AlchemyRecipeTable`.
+- Data: `servus_alchemy/salamander_temper/salamander.json` (with the spawn numbers), `neoforge/biome_modifier/salamander.json`, block tag `servus_alchemy:salamander_home` from datagen, Athanor recipe through `AlchemyRecipeTable`.
+- Spawning: a custom spawn placement type for ground or lava and a spawn rule with the home and crowd checks; pure `SalamanderSpawn` for the checks.
 - Assets: entity texture, item textures, generated item models and lang.
 - Journal: `WorkshopCategory` entry. Docs: Alchemy page and a datapack reference page.
 - Tests: JUnit for the pure logic, GameTests in a new `SalamanderGameTests`.

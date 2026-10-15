@@ -15,11 +15,20 @@
 - [x] 3.1 `AlchemyRecipeTable.athanor()` gains `ignis_perpetuus` (D11); `:alchemy:runData` writes the recipe. GameTests `ignisNeedsCitrinitas` (made on Citrinitas, nothing on Albedo) and `ignisIsNotAFuel` in `SalamanderGameTests`. Verify: `gradlew build`, `:alchemy:runGameTestServer` green.
 - [x] 3.2 Workshop entry `salamander` in `WorkshopCategory` (D12), `:alchemy:runData`. Docs: Salamander section in `docs/src/content/docs/mods/alchemy.md`, new `reference/datapack/salamander.md` (temper file, biome modifier). Verify: `gradlew build` green, generated book entry present, no em dash in the diff.
 
-## 4. Integration
+## 4. Spawning after the play check
 
-- [x] 4.1 Full `gradlew build test :alchemy:runGameTestServer` green.
-- [ ] 4.2 User play check in game:
-  - In the Nether (Nether Wastes or Basalt Deltas lava), without Elemental Sight: no salamander drawn, only a flame now and then; with the sight the salamander shows on the lava, glows, sways its tail, its crest flickers; no flicker of faces from any angle.
+- [ ] 4.1 Pure `salamander/SalamanderSpawn.java` (`crowdAllows(wildNearby, max)`, `homeWithin(dx, dy, dz, radius)`) and the `spawn` object in `SalamanderTemper` (home radius, crowd radius, crowd max, biome chance, defaults, validation). JUnit `SalamanderSpawnTest` (`homeWithinRadiusCounts`, `homeOutsideRadiusDoesNot`, `crowdAtMaxRefuses`, `crowdBelowMaxAllows`, `crowdMaxZeroRefusesAll`) and new cases in `SalamanderTemperTest` (`spawnDefaultsWithoutObject`, `rejectsNegativeRadius`, `rejectsBiomeChanceAboveOne`). Verify: `gradlew :alchemy:test` green.
+- [ ] 4.2 Tags in datagen: block tag `servus_alchemy:salamander_home` in `ServusAlchemyBlockTagsProvider` and biome tag `servus_alchemy:salamander_lava` in a new `ServusAlchemyBiomeTagsProvider` registered in `ServusAlchemyDataGen`; `:alchemy:runData`. Verify: generated tag files present, `gradlew build` green.
+- [ ] 4.3 Spawning: `salamander/SalamanderPlacement.java` (ground or lava), the spawn rule in `Salamander.checkSpawnRules` (D7) and its registration in `registry/ServusAlchemyEntities.java`; drop the wild lava preference in `getWalkTargetValue` (D1); replace `neoforge/biome_modifier/salamander.json` with `salamander_forest.json` and `salamander_lava.json`; add the `spawn` object to `salamander_temper/salamander.json`. Verify: `gradlew build` green.
+- [ ] 4.4 GameTests in `SalamanderGameTests`: `spawnsNearCrimsonStems`, `spawnsNearNetherWart`, `refusesBareNylium`, `refusesWhenCrowded`, `petsDoNotCrowd`, `stillSpawnsOnOpenLava`, `refusesLavaOutsideLavaBiomes`; update `shippedTemperAndSpawnsLoad` for the two biome modifiers and the spawn numbers; replace `spawnsOnlyOnOpenLava` if it is covered. Verify: `:alchemy:runGameTestServer` green.
+- [ ] 4.5 Journal and docs: first page of the Workshop entry `salamander` in `WorkshopCategory` becomes "Among the Crimson Stems" (D12); `docs/src/content/docs/mods/alchemy.md` Salamander section and `docs/src/content/docs/reference/datapack/salamander.md` (spawn object, both biome modifiers, the two tags); `:alchemy:runData`. Verify: `gradlew build` green, docs `npm run build` green, no em dash in the diff.
+- [ ] 4.6 Full `gradlew build test :alchemy:runGameTestServer` green.
+
+## 5. Integration
+
+- [x] 5.1 Full `gradlew build test :alchemy:runGameTestServer` green.
+- [ ] 5.2 User play check in game:
+  - In a Crimson Forest, without Elemental Sight: no salamander drawn, only a flame among the stems now and then; with the sight salamanders show near the crimson trees and Nether Wart, not crowded (a few per area), glow, sway their tails, crests flicker; no flicker of faces from any angle. In a Warped Forest a bit fewer; on lava lakes in the Nether Wastes or Basalt Deltas now and then one.
   - Gold Ingots befriend it after a few tries (hearts), then it shows without the sight, follows, teleports, sits on an empty hand click, lies in a lit campfire nearby.
   - Feeding it a Gold Ingot gives one Sal Ammoniac after about 60 s; a second ingot is refused meanwhile.
   - Sal Ammoniac with 500 mB Sulfur on a yellow Athanor makes Ignis Perpetuus; tooltips read in Paracelsus' voice; the Workshop entry "The Salamander" reads well; spawn egg works.

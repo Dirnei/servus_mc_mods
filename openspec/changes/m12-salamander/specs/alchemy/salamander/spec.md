@@ -4,16 +4,43 @@ The salamander is Alchemy's fire elemental: a hidden pet from the Nether's lava 
 
 ## ADDED Requirements
 
-### Requirement: The salamander lives in Nether lava
-Alchemy SHALL add a salamander creature that spawns rarely on lava in the Nether Wastes and the Basalt Deltas. The spawn weight and group size SHALL be data in a biome modifier. It SHALL spawn only on a lava block whose lava column is topped by air.
+### Requirement: Where the salamander lives
+Alchemy SHALL add a salamander creature that spawns mainly in the Crimson Forest, a bit less in the Warped Forest and rarely on lava in the Nether Wastes and the Basalt Deltas. In the forests it SHALL spawn only on the ground within a home distance from data (example 4 blocks) of a block in the block tag `servus_alchemy:salamander_home` (crimson and warped stems, both wart blocks, the Nether Wart plant). On lava it SHALL spawn only on a lava block whose lava column is topped by air. Weights and group sizes SHALL be data in a biome modifier.
+
+#### Scenario: Among the crimson stems
+- **WHEN** the Nether spawns creatures on Crimson Nylium two blocks from a Crimson Stem
+- **THEN** a salamander may spawn there, about as often as a Strider on a lava lake
+
+#### Scenario: Warped Forest
+- **WHEN** the Nether spawns creatures on Warped Nylium next to a Warped Stem
+- **THEN** a salamander may spawn there, a bit less often than in the Crimson Forest
+
+#### Scenario: Far from the trees
+- **WHEN** the Nether tries to spawn a salamander on Crimson Nylium with no home block within the home distance
+- **THEN** no salamander spawns there
 
 #### Scenario: Spawning on a lava lake
 - **WHEN** the Nether spawns creatures near a lava lake in the Nether Wastes
-- **THEN** a salamander may spawn on the lava, rarer than a Strider
+- **THEN** a salamander may spawn on the lava, rarer than in the forests and rarer than a Strider
 
 #### Scenario: Not in the Overworld
 - **WHEN** creatures spawn in an Overworld biome
 - **THEN** no salamander spawns
+
+### Requirement: Not overcrowded
+A wild salamander SHALL NOT spawn when a crowd limit from data (example 3) of wild salamanders already lives within a crowd radius from data (example 32 blocks) of the spawn spot. Befriended salamanders SHALL NOT count.
+
+#### Scenario: Crowd full
+- **WHEN** three wild salamanders live within 32 blocks of a spawn spot in the Crimson Forest
+- **THEN** no further salamander spawns there
+
+#### Scenario: Pets do not count
+- **WHEN** three befriended salamanders sit within 32 blocks of the spot
+- **THEN** a wild salamander may still spawn there
+
+#### Scenario: Pure crowd check
+- **WHEN** the crowd check gets 2 wild salamanders in range and a limit of 3
+- **THEN** it allows the spawn, and with 3 it refuses, computed by pure Java covered by JUnit
 
 ### Requirement: Fire immune and harmless
 A salamander SHALL be immune to fire and lava damage, SHALL walk on the lava surface and on land, SHALL never attack, and SHALL not burn.
@@ -30,8 +57,8 @@ A salamander SHALL be immune to fire and lava damage, SHALL walk on the lava sur
 A wild salamander SHALL not be drawn for a player without Elemental Sight: no model, no shadow, no name. Jade SHALL not name a wild salamander for such a player. A wild salamander SHALL now and then give off a flame particle that every player sees. A befriended salamander SHALL be drawn for every player.
 
 #### Scenario: Without the sight
-- **WHEN** a player without Elemental Sight looks at a wild salamander on the lava
-- **THEN** they see no salamander, only a flame flickering on the lava now and then
+- **WHEN** a player without Elemental Sight looks at a wild salamander among the crimson stems or on the lava
+- **THEN** they see no salamander, only a flame flickering there now and then
 
 #### Scenario: Under the sight
 - **WHEN** a player with Elemental Sight looks at the same salamander
@@ -83,11 +110,15 @@ The owner SHALL feed a befriended salamander a Gold Ingot by right clicking it. 
 - **THEN** the ingot is not used up
 
 ### Requirement: Salamander numbers are data
-The befriend chance and the digest time SHALL come from a datapack file per entity type. Without a file the salamander SHALL use built in defaults.
+The befriend chance, the digest time, the home distance, the crowd radius and the crowd limit SHALL come from a datapack file per entity type. Without a file the salamander SHALL use built in defaults.
 
 #### Scenario: Pack changes the chance
 - **WHEN** a datapack sets the befriend chance to 1
 - **THEN** every Gold Ingot befriends a wild salamander
+
+#### Scenario: Pack changes the crowd
+- **WHEN** a datapack sets the crowd limit to 1
+- **THEN** no wild salamander spawns within the crowd radius of another wild one
 
 ### Requirement: Ignis Perpetuus
 Alchemy SHALL add Ignis Perpetuus, an item made on an Athanor of at least the Citrinitas tier from one Sal Ammoniac and Sulfur. It SHALL be a building part only and SHALL not burn as a fuel.

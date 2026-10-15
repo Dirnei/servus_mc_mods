@@ -6,7 +6,8 @@ See proposal.md for the why. Alchemy has no entity yet; the gnomes are drawn by 
 
 APIs verified in the Minecraft 26.1.2 and NeoForge 26.1.2.116 sources:
 - `DeferredRegister.createEntities(modid).registerEntityType(name, factory, category, builder)`; `EntityType.Builder.sized`, `fireImmune`, `clientTrackingRange`.
-- `EntityAttributeCreationEvent.put(type, AttributeSupplier)` and `RegisterSpawnPlacementsEvent.register(type, SpawnPlacementTypes.IN_LAVA, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, predicate, Operation.REPLACE)` on the mod bus.
+- `EntityAttributeCreationEvent.put(type, AttributeSupplier)` and `RegisterSpawnPlacementsEvent.register(type, placementType, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, predicate, Operation.REPLACE)` on the mod bus. `SpawnPlacementType` is an interface with `isSpawnPositionOk(LevelReader, BlockPos, EntityType)` and a default `adjustSpawnPosition`, so a mod can supply its own.
+- Creature spawning (`MobCategory.CREATURE`, a persistent category) runs every 400 game ticks (`ServerChunkCache`: `getGameTime() % 400L == 0L`). Vanilla gives the Strider weight 60, group 1 to 2, in the Nether Wastes, Soul Sand Valley, Basalt Deltas and Crimson Forest; the Warped Forest has no creature spawns (`NetherBiomes`).
 - `neoforge:add_spawns` biome modifier: `biomes` plus `spawners` as a list of `{type, weight, minCount, maxCount}` (`WeightedList<SpawnerData>`); the creature category comes from the entity type.
 - Entity type registers before items (`BuiltInRegistries` order), so `new Item.Properties().spawnEgg(type)` in an item supplier works; spawn eggs in 26.1 have their own item texture.
 - Client: `EntityRenderersEvent.RegisterLayerDefinitions.registerLayerDefinition`, `RegisterRenderers.registerEntityRenderer`; `MobRenderer<T, S extends LivingEntityRenderState, M>` with `extractRenderState`, `getBlockLightLevel` (Blaze returns 15 for full bright) and `EntityRenderer.shouldRender`, which skips model, shadow and name together.
@@ -29,7 +30,7 @@ APIs verified in the Minecraft 26.1.2 and NeoForge 26.1.2.116 sources:
 ## Decisions
 
 ### D1 A TamableAnimal that walks on lava
-`Salamander extends TamableAnimal`. From the Strider: `canStandOnFluid` for lava, path malus 0 for lava and fire, a navigation that accepts lava and fire path types and lava as a stable destination, the float logic that lifts it out of deep lava, and `getWalkTargetValue` that prefers lava for a wild salamander only (a pet should not drift into lava while following). Entity type: creature category, `fireImmune()`, size 0.6 by 0.5, tracking range 10. Attributes: 10 health, speed 0.2. `isFood` is false and there is no offspring: no breeding. "Swims in lava" is walking on the lava surface like a Strider. Wild ones despawn (`removeWhenFarAway` is `!isTame()`).
+`Salamander extends TamableAnimal`. From the Strider: `canStandOnFluid` for lava, path malus 0 for lava and fire, a navigation that accepts lava and fire path types and lava as a stable destination, the float logic that lifts it out of deep lava, and no lava preference in `getWalkTargetValue`: a wild salamander roams the forest floor as well as the lava, and a pet does not drift into lava while following. Entity type: creature category, `fireImmune()`, size 0.6 by 0.5, tracking range 10. Attributes: 10 health, speed 0.2. `isFood` is false and there is no offspring: no breeding. "Swims in lava" is walking on the lava surface like a Strider. Wild ones despawn (`removeWhenFarAway` is `!isTame()`).
 - Alternative: a `PathfinderMob` with its own owner code. Rejected: TamableAnimal already brings owner, sitting, following and teleport.
 
 ### D2 Goals
@@ -50,10 +51,23 @@ The owner's right click with a Gold Ingot while `Digestion` is idle uses one ing
 ```json
 { "befriend_chance": 0.33, "digest_ticks": 1200 }
 ```
-Pure record `SalamanderTemper(befriendChance, digestTicks)` validates (chance 0 to 1, ticks at least 1) and decides `befriends(roll)`; `SalamanderTemperData` loads it, with `SalamanderTemper.DEFAULT` (same numbers) when no file exists. Spawning is data in `data/servus_alchemy/neoforge/biome_modifier/salamander.json`: Nether Wastes and Basalt Deltas, weight 5 (Strider has 60), group 1.
+Pure record `SalamanderTemper(befriendChance, digestTicks)` validates (chance 0 to 1, ticks at least 1) and decides `befriends(roll)`; `SalamanderTemperData` loads it, with `SalamanderTemper.DEFAULT` (same numbers) when no file exists. The same file holds the spawn numbers in a `spawn` object:
+```json
+{ "befriend_chance": 0.33, "digest_ticks": 1200,
+  "spawn": { "home_radius": 4, "crowd_radius": 32, "crowd_max": 3,
+             "biome_chance": { "minecraft:warped_forest": 0.5 } } }
+```
+Each field has a default in `SalamanderTemper.DEFAULT`; a biome without a `biome_chance` entry passes every try. Spawning weights are data in biome modifiers. One `neoforge:add_spawns` file gives one weight to all its biomes, so there are two files in `data/servus_alchemy/neoforge/biome_modifier/`: `salamander_forest.json` for the Crimson Forest and the Warped Forest (weight 40, group 1 to 2) and `salamander_lava.json` for the Nether Wastes and Basalt Deltas (weight 5, group 1); the old `salamander.json` goes.
+- Why the numbers: in the Crimson Forest the Strider's 60 picks mostly fail on nylium, so weight 40 makes the salamander roughly as common as a Strider by a lava lake. The Warped Forest has no other creature, so a weight there means every creature pick is a salamander; its "a bit less" therefore comes from `biome_chance` 0.5, not from the weight. On lava 5 against 60 stays rare.
+- Overcrowding is held by the crowd check, not by the creature cap alone: the cap counts all creatures around a player, while the crowd check counts wild salamanders around the spawn spot.
 
 ### D7 Spawn placement
-`IN_LAVA`, `MOTION_BLOCKING_NO_LEAVES`, the Strider rule (walk up the lava column, the block above must be air), registered with `Operation.REPLACE`.
+A custom `SpawnPlacementType` (`SalamanderPlacement`) accepts either a lava spot (`SpawnPlacementTypes.IN_LAVA`) or a ground spot (`SpawnPlacementTypes.ON_GROUND`), with `MOTION_BLOCKING_NO_LEAVES`, registered with `Operation.REPLACE`. The spawn rule `Salamander.checkSpawnRules` then decides:
+- On lava: the Strider rule (walk up the lava column, the block above must be air), and only in a biome of the tag `servus_alchemy:salamander_lava` (Nether Wastes, Basalt Deltas).
+- On the ground: a block of the tag `servus_alchemy:salamander_home` within `home_radius` (a box of at most 9 by 9 by 9 blocks read once per spawn try, never per tick).
+- Both: `biome_chance` of the biome, then fewer than `crowd_max` wild salamanders within `crowd_radius` (`getEntitiesOfClass` with a filter on `!isTame()`).
+The block tag `salamander_home` holds `#minecraft:crimson_stems`, `#minecraft:warped_stems`, `minecraft:nether_wart_block`, `minecraft:warped_wart_block` and `minecraft:nether_wart`; both tags come from datagen (`ServusAlchemyBlockTagsProvider`, a new biome tags provider).
+Pure `SalamanderSpawn` (no Minecraft imports) holds `crowdAllows(wildNearby, max)` and `homeWithin(dx, dy, dz, radius)`, covered by JUnit.
 
 ### D8 Model
 `SalamanderModel` after the salamander of `elementals.html`, in model units (y down, head at negative z, ground at y 24). Texture 64 by 64. All boxes with their faces (Y is the HTML height above ground, Z the HTML forward axis):
@@ -94,7 +108,7 @@ A 64 by 64 texture generated by a script in the job directory: coal red body (`#
 `AlchemyRecipeTable.athanor()` gains `ignis_perpetuus`: one Sal Ammoniac, 500 mB Sulfur, tier 2, 200 ticks. The recipe provider, the Workshop and the docs game data read it from there.
 
 ### D12 Journal
-The Workshop gets an entry "The Salamander" (`salamander`, icon Ignis Perpetuus) under The Yellow Ring, unlocked by the `journal/schwaz` node like the other Citrinitas entries: where it lives, the sight, gold to befriend, sitting and campfires, Sal Ammoniac, and Ignis Perpetuus with its craft text from the table. Wandering years gets no salamander task: chapter tasks are all required and the plan keeps the salamander optional ("Players who skip the salamander still reach Rubedo").
+The Workshop gets an entry "The Salamander" (`salamander`, icon Ignis Perpetuus) under The Yellow Ring, unlocked by the `journal/schwaz` node like the other Citrinitas entries: where it lives (first page "Among the Crimson Stems": mostly the Crimson Forest near its trees and Nether Wart, a bit less among the warped trees, and now and then a flame on a lava lake), the sight, gold to befriend, sitting and campfires, Sal Ammoniac, and Ignis Perpetuus with its craft text from the table. Wandering years gets no salamander task: chapter tasks are all required and the plan keeps the salamander optional ("Players who skip the salamander still reach Rubedo").
 
 ## Risks / Trade-offs
 
@@ -107,7 +121,7 @@ The Workshop gets an entry "The Salamander" (`salamander`, icon Ignis Perpetuus)
 
 - Befriending is right click with a Gold Ingot (not thrown gold picked up like a Piglin); chance 1 in 3 per ingot (`befriend_chance` 0.33).
 - Digest time 60 s (`digest_ticks` 1200), one Gold Ingot gives one Sal Ammoniac; only the owner can feed it.
-- Spawns in the Nether Wastes and Basalt Deltas only (where the big lava lakes are), weight 5 against the Strider's 60, alone.
+- Spawns mainly in the Crimson Forest (weight 40, groups 1 to 2) and a bit less in the Warped Forest (same weight, `biome_chance` 0.5), on the ground within 4 blocks of crimson or warped stems, wart blocks or Nether Wart; rarely on lava in the Nether Wastes and Basalt Deltas (weight 5, alone); at most 3 wild ones within 32 blocks. "Netherwarts" means the wart blocks and the Nether Wart plant. Revised after the play check, where lava only at weight 5 practically never spawned.
 - Wild salamanders despawn like other wild creatures; befriended ones never.
 - No dynamic light: vanilla has none; the model is full bright instead.
 - Lying in a campfire is the sitting pose on the campfire block within 8 blocks; it does not take a pose when the owner calls.
