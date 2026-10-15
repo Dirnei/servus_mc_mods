@@ -2,7 +2,7 @@
 
 ## 1. Drip rule
 
-- [ ] 1.1 Pure `hollow/PrincipleDrip.java` (design D3) with JUnit `PrincipleDripTest`: `dripsOnlyWhatTheStepTakes`, `limitedByPerDrip`, `limitedByHeldAndRoom`, `nothingWithoutCost`. Verify: `gradlew :alchemy:test` green.
+- [x] 1.1 Pure `hollow/PrincipleDrip.java` (design D3) with JUnit `PrincipleDripTest`: `dripsOnlyWhatTheStepTakes`, `limitedByPerDrip`, `limitedByHeldAndRoom`, `nothingWithoutCost`. Verify: `gradlew :alchemy:test` green.
 
 ## 2. The block
 
