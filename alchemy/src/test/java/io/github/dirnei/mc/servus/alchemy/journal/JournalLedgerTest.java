@@ -81,6 +81,28 @@ class JournalLedgerTest {
     }
 
     @Test
+    void chainOpensOneAfterAnother() {
+        ChapterDef wandering = new ChapterDef("s:wandering_years", Optional.of("s:schwaz"), 2, List.of(
+                new TaskDef("citrinitas_craft", "athanor", "tier:citrinitas", 1),
+                new TaskDef("gnomes", "bind", "", 4)));
+        ChapterDef basel = new ChapterDef("s:basel_salzburg", Optional.of("s:wandering_years"), 3, List.of(
+                new TaskDef("crafts", "athanor", "", 16)));
+        List<ChapterDef> book = List.of(VILLACH, SCHWAZ, wandering, basel);
+        TeamJournal journal = new TeamJournal();
+        journal.markFinished("s:villach");
+        JournalLedger.record(book, journal, "athanor", task -> filter(task, "tier:citrinitas"), 1);
+        assertEquals(0, journal.count("s:wandering_years", "citrinitas_craft"), "Wandering years waits for Schwaz");
+        assertEquals(0, journal.count("s:basel_salzburg", "crafts"), "Basel waits too");
+        journal.markFinished("s:schwaz");
+        JournalLedger.record(book, journal, "athanor", task -> filter(task, "tier:citrinitas"), 1);
+        assertEquals(1, journal.count("s:wandering_years", "citrinitas_craft"));
+        assertEquals(0, journal.count("s:basel_salzburg", "crafts"), "Basel opens only after Wandering years");
+        assertEquals(List.of("s:wandering_years"), JournalLedger.record(book, journal, "bind", task -> true, 4));
+        JournalLedger.record(book, journal, "athanor", task -> filter(task, "tier:rubedo"), 1);
+        assertEquals(1, journal.count("s:basel_salzburg", "crafts"));
+    }
+
+    @Test
     void zeroCountTasksAreRefused() {
         assertThrows(IllegalArgumentException.class, () -> new TaskDef("bad", "calcine", "", 0));
     }

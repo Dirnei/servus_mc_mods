@@ -727,6 +727,50 @@ public final class AlchemyGameTests {
         });
     }
 
+    static final String WANDERING_YEARS = "servus_alchemy:wandering_years";
+    static final String BASEL_SALZBURG = "servus_alchemy:basel_salzburg";
+
+    /** A craft on a Citrinitas Athanor counts for Wandering years once the team finished Schwaz, not before. */
+    @ServusGameTest(timeoutTicks = 300)
+    public static void citrinitasCraftCountsForWanderingYears(GameTestHelper helper) {
+        UUID team = UUID.randomUUID();
+        ServerLevel level = helper.getLevel();
+        HollowGameTests.finishVillach(level, team);
+        Journal.recordAthanor(level, team, new ItemStack(Items.BLAZE_POWDER), "citrinitas");
+        helper.assertTrue(Journal.journalOf(level.getServer(), team).count(WANDERING_YEARS, "citrinitas_craft") == 0,
+                "nothing counts for Wandering years before Schwaz");
+        HollowGameTests.finishSchwaz(level, team);
+        AthanorBlockEntity athanor = athanor(helper);
+        athanor.setTeam(team);
+        saltRing(helper);
+        amethystRing(helper);
+        helper.runAfterDelay(2, () -> pour(helper, new Principles(0, 200, 0)));
+        athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GUNPOWDER));
+        helper.succeedWhen(() -> helper.assertTrue(
+                Journal.journalOf(level.getServer(), team).count(WANDERING_YEARS, "citrinitas_craft") == 1,
+                "the Citrinitas craft should count"));
+    }
+
+    /** Wandering years finishes from its events and opens Basel and Salzburg. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void wanderingYearsFinishesAndOpensBasel(GameTestHelper helper) {
+        UUID team = UUID.randomUUID();
+        ServerLevel level = helper.getLevel();
+        HollowGameTests.finishVillach(level, team);
+        HollowGameTests.finishSchwaz(level, team);
+        Journal.recordAthanor(level, team, new ItemStack(Items.BLAZE_POWDER), "rubedo");
+        helper.assertTrue(Journal.journalOf(level.getServer(), team).count(BASEL_SALZBURG, "rubedo_craft") == 0, "Basel waits");
+        Journal.recordAthanor(level, team, new ItemStack(Items.BLAZE_POWDER), "citrinitas");
+        Journal.recordItem(level, team, "bind", new ItemStack(Items.RAW_GOLD), 1);
+        Journal.recordItem(level, team, "bind", new ItemStack(Items.RAW_IRON), 3);
+        helper.assertTrue(Journal.isFinished(level.getServer(), team, WANDERING_YEARS), "Wandering years should be finished");
+        Journal.recordAthanor(level, team, new ItemStack(Items.BLAZE_POWDER), "rubedo");
+        JournalLedger.TeamJournal journal = Journal.journalOf(level.getServer(), team);
+        helper.assertTrue(journal.count(BASEL_SALZBURG, "rubedo_craft") == 1 && journal.count(BASEL_SALZBURG, "crafts") == 1,
+                "the Rubedo craft counts for Basel and Salzburg");
+        helper.succeed();
+    }
+
     /** Drinking the Elixir of Sight gives Elemental Sight and leaves a glass bottle. */
     @ServusGameTest(timeoutTicks = 20)
     public static void elixirGivesElementalSight(GameTestHelper helper) {
