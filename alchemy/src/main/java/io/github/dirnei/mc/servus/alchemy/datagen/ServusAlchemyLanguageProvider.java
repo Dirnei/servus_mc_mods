@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.PrincipleText;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import net.minecraft.data.PackOutput;
@@ -152,6 +153,14 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("gui.servus_alchemy.jei.athanor.tier", "Stage: %s");
         add(ServusAlchemyItems.SULFUR.get(), "Sulfur");
         add(ServusAlchemyItems.QUICKSILVER.get(), "Quicksilver");
+        add(ServusAlchemyItems.SAL_AMMONIAC.get(), "Sal Ammoniac");
+        add(ServusAlchemyItems.SAL_AMMONIAC.get().getDescriptionId() + ".quote",
+                "The salamander gives back what it eats, only better. Do not tell the goldsmiths.");
+        add(ServusAlchemyItems.IGNIS_PERPETUUS.get(), "Ignis Perpetuus");
+        add(ServusAlchemyItems.IGNIS_PERPETUUS.get().getDescriptionId() + ".quote",
+                "Do not ask what it is. It burns forever, that is all you need to know.");
+        add(ServusAlchemyItems.SALAMANDER_SPAWN_EGG.get(), "Salamander Spawn Egg");
+        add(ServusAlchemyEntities.SALAMANDER.get(), "Salamander");
         for (Principle principle : Principle.values()) {
             String name = PrincipleText.name(principle);
             PrincipleFluids.Entry entry = PrincipleFluids.entry(principle);

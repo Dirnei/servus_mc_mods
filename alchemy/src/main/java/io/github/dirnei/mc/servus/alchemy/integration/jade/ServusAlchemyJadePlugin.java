@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlock;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorCrownBlock;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPartBlock;
+import io.github.dirnei.mc.servus.alchemy.salamander.Salamander;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
@@ -32,6 +33,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.fluids.FluidStack;
 import snownee.jade.api.BlockAccessor;
+import snownee.jade.api.EntityAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.IServerDataProvider;
 import snownee.jade.api.ITooltip;
@@ -74,6 +76,13 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
         registration.addRayTraceCallback((hit, accessor, original) -> {
             if (accessor instanceof BlockAccessor block && block.getBlock() instanceof GnomeHollowBlock && !ElementalSight.active(block.getPlayer())) {
                 return registration.blockAccessor().from(block).blockState(Blocks.STONE.defaultBlockState()).blockEntity(() -> null).build();
+            }
+            return accessor;
+        });
+        registration.addRayTraceCallback((hit, accessor, original) -> {
+            if (accessor instanceof EntityAccessor entity && entity.getEntity() instanceof Salamander salamander
+                    && !salamander.shownTo(ElementalSight.active(entity.getPlayer()))) {
+                return null;
             }
             return accessor;
         });

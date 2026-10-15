@@ -140,6 +140,11 @@ public class Salamander extends TamableAnimal {
         }
     }
 
+    /** Whether a viewer sees this salamander: a befriended one always, a wild one only with Elemental Sight. */
+    public boolean shownTo(boolean sighted) {
+        return isTame() || sighted;
+    }
+
     /** Whether a Gold Ingot is still being digested. */
     public boolean isDigesting() {
         return digestion.busy();
