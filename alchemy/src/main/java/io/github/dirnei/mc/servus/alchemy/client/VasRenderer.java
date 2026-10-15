@@ -124,7 +124,7 @@ public final class VasRenderer extends BufferedBlockEntityRenderer<VasBlockEntit
      * A box around the pose's origin, in pixels. The block box drawer takes its texture coordinates from the box's place in
      * the unit cube, so the box is drawn half a block over and the pose moved back.
      */
-    private static void pixelBox(VertexConsumer consumer, PoseStack poseStack, float x0, float y0, float z0, float x1, float y1, float z1,
+    static void pixelBox(VertexConsumer consumer, PoseStack poseStack, float x0, float y0, float z0, float x1, float y1, float z1,
                                  TextureAtlasSprite sprite, int color, int light) {
         poseStack.pushPose();
         poseStack.translate(-0.5F, -0.5F, -0.5F);

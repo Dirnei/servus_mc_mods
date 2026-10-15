@@ -133,6 +133,11 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add(ServusAlchemyBlocks.RECEPTACULUM.get(), "Receptaculum");
         add(ServusAlchemyBlocks.VAS_HERMETICUM.get(), "Vas Hermeticum");
         add(ServusAlchemyItems.SEALED_FLASK.get(), "Sealed Flask");
+        add(ServusAlchemyBlocks.PRELUM.get(), "Prelum");
+        add(ServusAlchemyItems.PRELUM_SCREW.get(), "Prelum Screw");
+        add(ServusAlchemyItems.PRELUM_SCREW.get().getDescriptionId() + ".quote",
+                "Iron that has breathed the dragon's breath does not bend. It turns, and it presses, and it never tires.");
+        add("gui.servus_alchemy.jei.pressing", "Pressing");
         add("gui.servus_alchemy.receptaculum.gifts", "Gifts");
         add("gui.servus_alchemy.receptaculum.elixir", "Elixir");
         add("message.servus_alchemy.homunculus.whisper.1", "[storyteller] ...warm... always so warm...");

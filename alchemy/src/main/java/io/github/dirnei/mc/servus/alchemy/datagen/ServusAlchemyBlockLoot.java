@@ -40,6 +40,7 @@ final class ServusAlchemyBlockLoot extends BlockLootSubProvider {
             ServusAlchemyBlocks.PRINCIPLE_DROPPER.get(),
             ServusAlchemyBlocks.SALAMANDER_FORGE.get(),
             ServusAlchemyBlocks.RECEPTACULUM.get(),
+            ServusAlchemyBlocks.PRELUM.get(),
             ServusAlchemyBlocks.VAS_HERMETICUM.get());
 
     ServusAlchemyBlockLoot(HolderLookup.Provider registries) {

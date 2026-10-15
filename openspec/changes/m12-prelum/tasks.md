@@ -7,7 +7,7 @@
 
 ## 2. Look
 
-- [ ] 2.1 Models `prelum` and `prelum_item` and the block state in `AlchemyModels` (D9, overlap check in design), item model for the screw, loot `dropSelf`, pickaxe tag, lang names; `client/PrelumRenderer.java` registered in `ServusAlchemyClient` (D9); `:alchemy:runData`, commit generated files. Verify: `gradlew build` green.
+- [x] 2.1 Models `prelum` and `prelum_item` and the block state in `AlchemyModels` (D9, overlap check in design), item model for the screw, loot `dropSelf`, pickaxe tag, lang names; `client/PrelumRenderer.java` registered in `ServusAlchemyClient` (D9); `:alchemy:runData`, commit generated files. Verify: `gradlew build` green.
 
 ## 3. Recipes
 

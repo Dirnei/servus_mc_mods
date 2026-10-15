@@ -35,6 +35,7 @@ final class ServusAlchemyBlockTagsProvider extends BlockTagsProvider {
                 .add(ServusAlchemyBlocks.GNOME_HOLLOW.get())
                 .add(ServusAlchemyBlocks.PRINCIPLE_DROPPER.get())
                 .add(ServusAlchemyBlocks.SALAMANDER_FORGE.get())
-                .add(ServusAlchemyBlocks.RECEPTACULUM.get());
+                .add(ServusAlchemyBlocks.RECEPTACULUM.get())
+                .add(ServusAlchemyBlocks.PRELUM.get());
     }
 }

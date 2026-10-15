@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerShellBlock;
 import io.github.dirnei.mc.servus.alchemy.coagulator.VatBlock;
 import io.github.dirnei.mc.servus.alchemy.homunculus.VasBlock;
+import io.github.dirnei.mc.servus.alchemy.prelum.PrelumBlock;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierBlock;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierSideBlock;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
@@ -75,6 +76,45 @@ final class AlchemyModels {
         forge();
         receptaculum();
         vas();
+        prelum();
+    }
+
+    /**
+     * The Prelum, a screw press: a polished deepslate base with a steel press bed, two dark oak posts and a head beam with a
+     * hole for the screw. The block entity renderer draws the screw, its bar and the press plate, which move; the item model
+     * shows them at rest. The boxes are listed with their overlap check in the m12-prelum design.
+     */
+    private void prelum() {
+        BlockModelBuilder model = prelumFrame("prelum");
+        BlockModelBuilder item = prelumFrame("prelum_item");
+        float py = PrelumBlock.PLATE_REST;
+        box(item, 4.5F, py, 4.5F, 11.5F, py + 1.5F, 11.5F, "#steel");
+        box(item, 6.75F, py + 1.5F, 6.75F, 9.25F, py + 7.5F, 9.25F, "#steel");
+        box(item, 3, py + 7.5F, 7.5F, 13, py + 8.5F, 8.5F, "#steel");
+        box(item, 1.5F, py + 7.5F, 7.1F, 3, py + 8.9F, 8.9F, "#steel");
+        box(item, 13, py + 7.5F, 7.1F, 14.5F, py + 8.9F, 8.9F, "#steel");
+        Block block = ServusAlchemyBlocks.PRELUM.get();
+        states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(model)
+                .rotationY(ModelRotations.rotationY(state.getValue(MachineBlock.FACING)))
+                .build());
+        states.simpleBlockItem(block, item);
+    }
+
+    private BlockModelBuilder prelumFrame(String name) {
+        BlockModelBuilder model = builder(name)
+                .texture("base", states.mcLoc(POLISHED_DEEPSLATE)).texture("steel", STEEL)
+                .texture("oak", states.mcLoc("block/stripped_dark_oak_log"))
+                .texture("particle", states.mcLoc(POLISHED_DEEPSLATE));
+        box(model, 0, 0, 0, 16, 3, 16, "#base");
+        box(model, 3.5F, 3, 3.5F, 12.5F, 4, 12.5F, "#steel");
+        box(model, 1, 3, 6, 4, 9, 10, "#oak");
+        box(model, 12, 3, 6, 15, 9, 10, "#oak");
+        box(model, 1, 9, 5, 6, 11.5F, 11, "#oak");
+        box(model, 10, 9, 5, 15, 11.5F, 11, "#oak");
+        box(model, 6, 9, 5, 10, 11.5F, 6, "#oak");
+        box(model, 6, 9, 10, 10, 11.5F, 11, "#oak");
+        return model;
     }
 
     /**
