@@ -2,7 +2,7 @@
 
 ## 1. Recipe and machine
 
-- [ ] 1.1 Defaults: `AlchemyMachineDefaults` adds `prelum` (kind crafter, recipe type `servus_alchemy:pressing`, `work_ticks` 600, D5), data `machine/prelum.json`; JUnit `AlchemyMachineDefaultsTest.prelumPressesSlowly`. Verify: `gradlew :alchemy:test` green.
+- [x] 1.1 Defaults: `AlchemyMachineDefaults` adds `prelum` (kind crafter, recipe type `servus_alchemy:pressing`, `work_ticks` 600, D5), data `machine/prelum.json`; JUnit `AlchemyMachineDefaultsTest.prelumPressesSlowly`. Verify: `gradlew :alchemy:test` green.
 - [ ] 1.2 `prelum/PressingRecipe.java` (D1), registration and client sync in `ServusAlchemyRecipes` and `ServusAlchemy`; `prelum/PrelumBlock.java`, `prelum/PrelumBlockEntity.java`, `prelum/PrelumMenu.java` (D3, D4, D6, D10 event); registrations in `ServusAlchemyBlocks`, `ServusAlchemyItems` (block item, `prelum_screw`, creative tab), `ServusAlchemyBlockEntities`, `ServusAlchemyMenus`; capabilities in `ServusAlchemyEvents`; `client/MachineScreens.PRELUM` and registration in `ServusAlchemyClient` (D7); GUI texture `textures/gui/prelum.png` and item texture `textures/item/prelum_screw.png` from a script in the job directory. Verify: `gradlew build` green.
 
 ## 2. Look

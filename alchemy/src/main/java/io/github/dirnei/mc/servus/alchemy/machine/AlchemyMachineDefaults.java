@@ -26,6 +26,7 @@ public final class AlchemyMachineDefaults {
         add("principle_dropper", "crafter", List.of(), dropper(20, 25, 1000));
         add("salamander_forge", "crafter", List.of("minecraft:smelting"), forge(200));
         add("receptaculum", "crafter", List.of(), alchemy(0));
+        add("prelum", "crafter", List.of("servus_alchemy:pressing"), forge(600));
     }
 
     /**
@@ -46,7 +47,10 @@ public final class AlchemyMachineDefaults {
         return new MachineStats(interval, 0, 0, 1, 0, 1, 0, perDrip, tank, 0, "", 0, 0);
     }
 
-    /** The Salamander Forge smelts one item every {@code workTicks}, whatever the recipe's own cooking time. */
+    /**
+     * The Salamander Forge smelts one item every {@code workTicks}, whatever the recipe's own cooking time; the Prelum keeps
+     * {@code workTicks} as its default press time, while each pressing recipe sets its own.
+     */
     private static MachineStats forge(int workTicks) {
         return new MachineStats(workTicks, 0, 0, 1, 0, 1, 0, 0, 0, 0, "", 0, 0);
     }

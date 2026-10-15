@@ -45,6 +45,15 @@ class AlchemyMachineDefaultsTest {
     }
 
     @Test
+    void prelumPressesSlowly() {
+        MachineDefaults.MachineInfo info = MachineDefaults.info("servus_alchemy:prelum");
+        assertEquals("crafter", info.kind());
+        assertEquals(List.of("servus_alchemy:pressing"), info.recipeTypes());
+        assertEquals(600, info.stats().workTicks());
+        assertEquals(0, info.stats().energyPerTick());
+    }
+
+    @Test
     void unknownMachineFails() {
         assertThrows(NoSuchElementException.class, () -> MachineDefaults.info("servus_alchemy:nope"));
     }
