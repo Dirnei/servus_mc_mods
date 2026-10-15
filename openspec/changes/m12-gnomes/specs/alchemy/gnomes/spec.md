@@ -12,15 +12,19 @@ A gnome SHALL be an entity of one of three kinds: Old Miner, Lantern Bearer or H
 - **THEN** the gnome takes no damage
 
 ### Requirement: The Old Miner works his Hollow
-Binding a gnome to a Hollow SHALL bring an Old Miner out of it. He SHALL wander within a few blocks of his Hollow on its level, walk into the cave entry and swing his pickaxe there while the vein works, and come out again now and then. Breaking his Hollow SHALL remove him. A gnome gift used on him SHALL count as given to his Hollow.
+Binding a gnome to a Hollow SHALL bring an Old Miner out of it. He SHALL wander within a few blocks of his Hollow on its level; while his vein ripens he SHALL tend it, tapping the cracks of the Hollow, and once it is ripe he SHALL walk into the cave entry and swing his pickaxe there, coming out again now and then. Breaking his Hollow SHALL remove him. A gnome gift or a Seed used on him SHALL count as used on his Hollow.
 
 #### Scenario: Binding
-- **WHEN** a player under the sight binds a gnome to a ripe Hollow
-- **THEN** an Old Miner steps out of the Hollow's cave entry
+- **WHEN** a player under the sight offers a Salt Crystal to an empty Hollow
+- **THEN** an Old Miner steps out of the Hollow's new cave entry
 
 #### Scenario: Hollow broken
 - **WHEN** the Hollow of an Old Miner is broken
 - **THEN** the Old Miner is gone
+
+#### Scenario: Seed to the gnome
+- **WHEN** a player under the sight gives a Seed of Iron to an Old Miner whose Hollow holds no vein
+- **THEN** his Hollow holds an iron vein and he starts tending it
 
 #### Scenario: Gift to the gnome
 - **WHEN** a player under the sight uses a cookie on an Old Miner

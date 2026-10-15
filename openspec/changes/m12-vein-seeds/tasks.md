@@ -5,10 +5,12 @@
 
 ## 2. Planting and recipes
 
-- [ ] 2.1 `VeinData` without `samples` and `chapter`, vein JSON updated; `GnomeHollowBlock` plants only seeds, action bar text for other items; JUnit for the vein parsing; GameTests for planting a seed and refusing raw ore; run `:alchemy:test` and `:alchemy:runGameTestServer`
-- [ ] 2.2 Athanor seed recipes per tier (datagen), journal Workshop text and Athanor recipe list; GameTest that the Seed of Gold needs a Citrinitas Athanor; run `runData` and `:alchemy:runGameTestServer`
-- [ ] 2.3 Launch the client from main: seeds show their names and colours, JEI shows the Athanor recipes
+- [ ] 2.1 `VeinData` without `samples` and `chapter`, vein JSON updated; JUnit for the vein parsing; run `:alchemy:test`
+- [ ] 2.2 New order in `GnomeHollowBlock` / `GnomeHollowBlockEntity`: Salt Crystal binds an empty Hollow, Seed plants on a bound Hollow, another Seed swaps the vein, ripening only while bound, action bar texts; GameTests for bind first, plant, refuse raw ore, refuse without gnome, swap; run `:alchemy:runGameTestServer`
+- [ ] 2.3 Journal: `bind` without item, `ripen` event with the yield, chapter JSON and task names updated; GameTest that a ripe gold vein finishes the task; run `:alchemy:runGameTestServer`
+- [ ] 2.4 Athanor seed recipes per tier (datagen), journal Workshop text and Athanor recipe list; GameTest that the Seed of Gold needs a Citrinitas Athanor; run `runData` and `:alchemy:runGameTestServer`
+- [ ] 2.5 Launch the client from main: seeds show their names and colours, JEI shows the Athanor recipes
 
 ## 3. Play check
 
-- [ ] 3.1 User play check: seeds made at the right Athanor tiers, planting by seed, raw ore refused
+- [ ] 3.1 User play check: Salt Crystal calls the gnome first, seeds made at the right Athanor tiers and planted by him, another seed swaps the vein, raw ore refused

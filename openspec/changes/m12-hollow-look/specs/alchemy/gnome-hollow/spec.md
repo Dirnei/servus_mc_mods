@@ -8,16 +8,16 @@ A Gnome Hollow SHALL look like a plain stone block. Only while the local player 
 - **THEN** they see a plain stone block
 
 #### Scenario: Empty under the sight
-- **WHEN** a player with Elemental Sight looks at a Hollow without a sample
+- **WHEN** a player with Elemental Sight looks at a Hollow without a gnome
 - **THEN** they see dark dry cracks on every side, with no glow and no cave entry
 
 #### Scenario: Ripening under the sight
 - **WHEN** a planted iron Hollow goes from half ripe to ripe while a player with Elemental Sight watches
-- **THEN** the iron coloured material creeps further along the cracks until they are full, still without a cave entry
+- **THEN** the iron coloured material creeps further along the cracks until they are full
 
 #### Scenario: The Hollow opens
-- **WHEN** a player with Elemental Sight binds a gnome to a ripe Hollow
-- **THEN** the rock on the Hollow's facing side crumbles away into a cave entry lined with crystals of the vein
+- **WHEN** a player with Elemental Sight binds a gnome to an empty Hollow
+- **THEN** the rock on the Hollow's facing side crumbles away into a cave entry, with dry cracks until he is given a seed
 
 #### Scenario: Pick block
 - **WHEN** a creative player without Elemental Sight picks a Gnome Hollow

@@ -8,9 +8,12 @@
 - **Name:** `getName` returns `Component.translatable("item.servus_alchemy.seed.of", veinName)`, with the vein name from `vein.<ns>.<path>` ("Gold"); unknown or missing vein: "Unknown Seed".
 - **Tint:** the item model (datagen) has a tint source `servus_alchemy:vein_color` (a registered `ItemTintSource`) that reads the component and looks the colour up in the client's vein table; layer 0 is a greyscale seed texture, layer 1 an untinted husk.
 - **Vein table on the client:** `VeinSyncPayload` (id, colour, yield) sent on `OnDatapackSyncEvent` (login and reload), kept in `ClientVeins`. The Hollow renderer of `m12-hollow-look` uses it too.
-- **Gate:** the Athanor tier only. `chapter` and `samples` leave `VeinData`; the journal keeps its chapter tasks, and Wandering years' "bind a gold vein" stays reachable because the Citrinitas Athanor needs no chapter.
+- **Gate:** the Athanor tier only. `chapter` and `samples` leave `VeinData`; the journal keeps its chapter tasks, and Wandering years' "ripen a gold vein" stays reachable because the Citrinitas Athanor needs no chapter.
 - **Recipes** (datagen, data JSON): iron and copper tier 1 (raw + 250 Salt + 100 Mercury), gold tier 2 (Raw Gold + 250 Salt + 250 Sulfur + 250 Mercury), redstone tier 2 (Redstone Dust + 250 Sulfur + 250 Mercury), diamond tier 3 (Diamond + 500 of each). Example numbers.
-- **Existing Hollows** keep their planted vein; only planting changes.
+- **Order at the Hollow:** `bound` no longer requires `ripe`. States: empty (no gnome), bound (gnome, no vein), planted (gnome and vein, ripening), ripe (digging). The Salt Crystal binds an empty Hollow; a Seed plants on a bound Hollow; a Seed of another vein clears vein and ripeness and plants the new one (store kept); ripening ticks only on a bound Hollow.
+- **Seeds to the gnome:** the gnome entity of `m12-gnomes` forwards a Seed used on him to his Hollow; until that change, seeds go to the Hollow.
+- **Journal events:** `bind` is recorded without an item when the gnome moves in; `ripen` is recorded with the yield when the vein reaches its last step. `wandering_years.json` task `gold` becomes `{"event": "ripen", "filter": "minecraft:raw_gold"}`, `basel_salzburg.json` task `diamond` becomes `{"event": "ripen", "filter": "minecraft:diamond"}`; their lang names become "Ripen a gold vein" and "Ripen a diamond vein".
+- **Existing Hollows** keep their vein and gnome; a planted Hollow without a gnome from before waits for a Salt Crystal.
 
 ## Assumptions to confirm with the user
 
