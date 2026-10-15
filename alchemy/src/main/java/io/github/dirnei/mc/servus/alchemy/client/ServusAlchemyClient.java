@@ -1,12 +1,15 @@
 package io.github.dirnei.mc.servus.alchemy.client;
 
+import com.klikli_dev.modonomicon.client.render.page.PageRendererRegistry;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.client.journal.JournalTasksPageRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.salamander.SalamanderModel;
 import io.github.dirnei.mc.servus.alchemy.client.salamander.SalamanderRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.sight.HollowRevealRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.sight.OldGnomeRevealRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.sight.RevealRenderers;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
+import io.github.dirnei.mc.servus.alchemy.journal.JournalTasksPage;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyMenus;
 import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
@@ -57,11 +60,12 @@ public final class ServusAlchemyClient {
         IconExporter.registerRendererIfRequested(event);
     }
 
-    /** The dev only icon export, when the iconExport run asks for it, and the Elemental Sight renderers. */
+    /** The dev only icon export, when the iconExport run asks for it, the Elemental Sight renderers and the journal task page. */
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         IconExporter.registerIfRequested();
         RevealRenderers.add(new HollowRevealRenderer());
         RevealRenderers.add(new OldGnomeRevealRenderer());
+        PageRendererRegistry.registerPageRenderer(JournalTasksPage.ID, page -> new JournalTasksPageRenderer((JournalTasksPage) page));
     }
 }

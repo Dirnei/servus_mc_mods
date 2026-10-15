@@ -6,7 +6,7 @@
 ## 2. Page
 
 - [x] 2.1 Page type `JournalTasksPage` (codec, stream codec) registered in common setup; datagen model for the page in `JournalEntries`; run `runData` and `:alchemy:build`
-- [ ] 2.2 Client renderer `JournalTasksPageRenderer`: boxes, check marks, counts, bar, finished line; registered on the client; run `:alchemy:build`
+- [x] 2.2 Client renderer `JournalTasksPageRenderer`: boxes, check marks, counts, bar, finished line; registered on the client; run `:alchemy:build`
 - [ ] 2.3 Task page first after the title in every chapter entry, prose task lists removed, task name lang keys; run `runData` and `:alchemy:build`
 
 ## 3. Tests
