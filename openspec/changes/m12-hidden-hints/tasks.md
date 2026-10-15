@@ -6,7 +6,7 @@
 
 ## 2. Sound and the simple hints
 
-- [ ] 2.1 `hint/HintSounds.java` registered in `ServusAlchemy` (D1); sound definitions provider in datagen with the subtitle; `GnomeHollowBlock.animateTick` (D2), `Salamander` dancing flame (D3), `VasBlock.animateTick` (D4); `:alchemy:runData`. Verify: `gradlew build` green.
+- [x] 2.1 `hint/HintSounds.java` registered in `ServusAlchemy` (D1); sound definitions provider in datagen with the subtitle; `GnomeHollowBlock.animateTick` (D2), `Salamander` dancing flame (D3), `VasBlock.animateTick` (D4); `:alchemy:runData`. Verify: `gradlew build` green.
 
 ## 3. The old gnome
 

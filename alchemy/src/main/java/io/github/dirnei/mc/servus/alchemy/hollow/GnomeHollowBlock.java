@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.alchemy.hollow;
 
 import com.mojang.serialization.MapCodec;
+import io.github.dirnei.mc.servus.alchemy.hint.HintSounds;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Binding;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Gift;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Seeding;
@@ -12,6 +13,8 @@ import java.util.Locale;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -38,6 +41,9 @@ public class GnomeHollowBlock extends BaseEntityBlock {
 
     public static final MapCodec<GnomeHollowBlock> CODEC = simpleCodec(GnomeHollowBlock::new);
     private static final String MESSAGE = "message.servus_alchemy.gnome_hollow.";
+    /** One animation tick in this many knocks; the client picks a block near the player every few seconds. */
+    private static final int KNOCK_CHANCE = 6;
+    private static final float KNOCK_VOLUME = 0.35F;
 
     public GnomeHollowBlock(Properties properties) {
         super(properties);
@@ -62,6 +68,15 @@ public class GnomeHollowBlock extends BaseEntityBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide() ? null
                 : createTickerHelper(type, ServusAlchemyBlockEntities.GNOME_HOLLOW.get(), GnomeHollowBlockEntity::serverTick);
+    }
+
+    /** A working gnome knocks softly now and then, heard by everyone near, with or without the sight. */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (random.nextInt(KNOCK_CHANCE) == 0 && level.getBlockEntity(pos) instanceof GnomeHollowBlockEntity hollow && hollow.shownBound()) {
+            level.playLocalSound(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, HintSounds.KNOCK.get(), SoundSource.BLOCKS,
+                    KNOCK_VOLUME, 0.8F + random.nextFloat() * 0.2F, false);
+        }
     }
 
     @Override

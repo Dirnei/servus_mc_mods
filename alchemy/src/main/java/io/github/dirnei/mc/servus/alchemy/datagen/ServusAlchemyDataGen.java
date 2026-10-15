@@ -41,6 +41,7 @@ public final class ServusAlchemyDataGen {
         event.addProvider(new ServusAlchemyLanguageProvider(output, bookLang));
         event.addProvider(new ServusAlchemyBlockStateProvider(output));
         event.addProvider(new ServusAlchemyItemModelProvider(output));
+        event.addProvider(new ServusAlchemySoundsProvider(output));
 
         event.addProvider(new ServusAlchemyBlockTagsProvider(output, lookup));
         event.addProvider(new ServusAlchemyRecipeProvider.Runner(output, lookup));

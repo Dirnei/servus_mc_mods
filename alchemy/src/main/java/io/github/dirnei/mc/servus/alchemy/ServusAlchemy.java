@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.alchemy.gametest.HollowGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.PrelumGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.PurifierGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.SalamanderGameTests;
+import io.github.dirnei.mc.servus.alchemy.hint.HintSounds;
 import io.github.dirnei.mc.servus.alchemy.machine.AlchemyMachineDefaults;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
@@ -43,6 +44,7 @@ public final class ServusAlchemy {
         ServusAlchemyItems.ITEMS.register(modEventBus);
         ServusAlchemyBlockEntities.BLOCK_ENTITIES.register(modEventBus);
         ServusAlchemyMenus.MENUS.register(modEventBus);
+        HintSounds.SOUNDS.register(modEventBus);
         ServusAlchemyRecipes.RECIPE_TYPES.register(modEventBus);
         ServusAlchemyRecipes.RECIPE_SERIALIZERS.register(modEventBus);
         ServusGameTests.register(modEventBus, ServusAlchemyIds.MOD_ID, List.of(

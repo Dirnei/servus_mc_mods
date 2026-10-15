@@ -4,6 +4,9 @@ import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -38,6 +41,11 @@ public class VasBlock extends BaseEntityBlock {
     public static final MapCodec<VasBlock> CODEC = simpleCodec(VasBlock::new);
     public static final BooleanProperty FREED = BooleanProperty.create("freed");
     private static final VoxelShape SHAPE = Shapes.or(Block.box(1, 0, 1, 15, 11, 15), Block.box(6, 11, 6, 10, 17, 10));
+    /** One animation tick in this many stirs the liquid; one stir in this many also makes a sound. */
+    private static final int STIR_CHANCE = 5;
+    private static final int STIR_SOUND_CHANCE = 4;
+    /** The surface of the liquid in the flask, in blocks. */
+    private static final double SURFACE_Y = 8 / 16.0;
 
     public VasBlock(Properties properties) {
         super(properties);
@@ -52,6 +60,24 @@ public class VasBlock extends BaseEntityBlock {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FREED);
+    }
+
+    /** The homunculus stirs its liquid now and then, seen by everyone, with or without the sight; once freed it is gone. */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (state.getValue(FREED) || random.nextInt(STIR_CHANCE) != 0) {
+            return;
+        }
+        double y = pos.getY() + SURFACE_Y;
+        for (int i = 0; i < 2; i++) {
+            level.addParticle(ParticleTypes.BUBBLE_POP, pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.25, y,
+                    pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.25, 0, 0.02, 0);
+        }
+        level.addParticle(ParticleTypes.SPLASH, pos.getX() + 0.5, y, pos.getZ() + 0.5, 0, 0.05, 0);
+        if (random.nextInt(STIR_SOUND_CHANCE) == 0) {
+            level.playLocalSound(pos.getX() + 0.5, y, pos.getZ() + 0.5, SoundEvents.BUBBLE_COLUMN_BUBBLE_POP, SoundSource.BLOCKS,
+                    0.3F, 0.8F + random.nextFloat() * 0.3F, false);
+        }
     }
 
     @Override

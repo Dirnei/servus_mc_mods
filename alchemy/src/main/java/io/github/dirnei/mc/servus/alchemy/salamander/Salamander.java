@@ -55,6 +55,10 @@ public class Salamander extends TamableAnimal {
     private static final String DIGEST_TAG = "digest_ticks";
     /** One flame particle about every two seconds marks a wild salamander for everyone. */
     private static final int FLAME_HINT_CHANCE = 40;
+    /** About every ten seconds a wild salamander's flame dances: a small rising circle of flames. */
+    private static final int FLAME_DANCE_CHANCE = 200;
+    private static final int FLAME_DANCE_STEPS = 6;
+    private static final double FLAME_DANCE_RADIUS = 0.3;
 
     private final Digestion digestion = new Digestion();
 
@@ -161,8 +165,24 @@ public class Salamander extends TamableAnimal {
             if (digestion.tick()) {
                 spawnAtLocation(server, new ItemStack(ServusAlchemyItems.SAL_AMMONIAC.get()));
             }
-        } else if (!isTame() && random.nextInt(FLAME_HINT_CHANCE) == 0) {
-            level().addParticle(ParticleTypes.FLAME, getRandomX(0.4), getY() + 0.3, getRandomZ(0.4), 0.0, 0.02, 0.0);
+        } else if (!isTame()) {
+            if (random.nextInt(FLAME_HINT_CHANCE) == 0) {
+                level().addParticle(ParticleTypes.FLAME, getRandomX(0.4), getY() + 0.3, getRandomZ(0.4), 0.0, 0.02, 0.0);
+            }
+            if (random.nextInt(FLAME_DANCE_CHANCE) == 0) {
+                danceFlame();
+            }
+        }
+    }
+
+    /** A few flames that circle up from where the wild salamander swims. */
+    private void danceFlame() {
+        for (int i = 0; i < FLAME_DANCE_STEPS; i++) {
+            double angle = i * Math.PI * 2 / FLAME_DANCE_STEPS;
+            double x = getX() + Math.cos(angle) * FLAME_DANCE_RADIUS;
+            double z = getZ() + Math.sin(angle) * FLAME_DANCE_RADIUS;
+            level().addParticle(ParticleTypes.FLAME, x, getY() + 0.2 + i * 0.08, z,
+                    -Math.sin(angle) * 0.03, 0.05, Math.cos(angle) * 0.03);
         }
     }
 

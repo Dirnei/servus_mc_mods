@@ -149,6 +149,7 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("message.servus_alchemy.homunculus.secret.2", "[storyteller] \"Thank you. Now listen, and I will tell you what he never wrote down.\"");
         add("message.servus_alchemy.homunculus.secret.3", "[storyteller] The secret goes here.");
         add("message.servus_alchemy.homunculus.secret.4", "[storyteller] \"I will stay and work for you. Not because I must. Because you asked.\"");
+        add("subtitles.servus_alchemy.hint.knock", "Something knocks in the rock");
         add("message.servus_alchemy.gnome_hollow.bound", "A gnome takes your offering and sets to work.");
         add("message.servus_alchemy.gnome_hollow.no_vein", "Nothing grows here yet. Seed the hollow with a sample of ore.");
         add("message.servus_alchemy.gnome_hollow.not_ripe", "The vein is not ripe yet.");

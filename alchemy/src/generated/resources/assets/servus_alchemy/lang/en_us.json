@@ -433,5 +433,6 @@
   "message.servus_alchemy.purifier.missing": "The Purifier is not complete: %s needed %s. The Purifier page of Paracelsus' Journal shows the build.",
   "research_node.servus_alchemy.journal.schwaz": "The Schwaz chapter",
   "research_node.servus_alchemy.journal.villach": "The Villach chapter",
-  "research_node.servus_alchemy.journal.wandering_years": "The Wandering years chapter"
+  "research_node.servus_alchemy.journal.wandering_years": "The Wandering years chapter",
+  "subtitles.servus_alchemy.hint.knock": "Something knocks in the rock"
 }
