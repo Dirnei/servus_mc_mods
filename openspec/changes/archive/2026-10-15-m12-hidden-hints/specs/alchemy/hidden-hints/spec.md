@@ -1,3 +1,7 @@
+## Purpose
+
+Everything hidden behind Elemental Sight gives a hint without it, so the player knows when to drink: knocking, dust, traces and Paracelsus' old gnome.
+
 ## ADDED Requirements
 
 ### Requirement: Knock sound

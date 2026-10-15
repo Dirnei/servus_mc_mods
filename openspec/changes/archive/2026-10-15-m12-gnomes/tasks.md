@@ -12,8 +12,8 @@
 
 - [x] 3.1 House Gnome in front of the Ancient Hollow, journal on him finds the old gnome, `OldGnomeRevealRenderer` removed; GameTest for the find; run `:alchemy:runGameTestServer`
 - [x] 3.2 Lantern Bearer spawned when the knocking wakes, walks to the Ancient Hollow, leaves when found or after 20 minutes; GameTest that he spawns and goes; run `:alchemy:runGameTestServer`
-- [ ] 3.3 Launch the client from main: all three gnomes under the sight, none without it
+- [x] 3.3 Launch the client from main: all three gnomes under the sight, none without it
 
 ## 4. Play check
 
-- [ ] 4.1 User play check: the Old Miner walks and works at his Hollow, the Lantern Bearer leads to the old gnome, the House Gnome waits there, all only under the sight
+- [x] 4.1 User play check: the Old Miner walks and works at his Hollow, the Lantern Bearer leads to the old gnome, the House Gnome waits there, all only under the sight

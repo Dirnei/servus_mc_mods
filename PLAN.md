@@ -140,8 +140,8 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 - **Balance pass** and the docs Balance lab on the new data, including CPU slots, buffer room and recipes.
 - **Checkpoint: play it.** Is Nigredo to Albedo fun for a casual player and for a planner? Adjust before Citrinitas.
 - **Journal guidance:** new journal events `build` (a machine formed or placed) and `make` (a first item made) (`find` exists since `m12-hidden-hints`), so chapters react to what the player builds; progress per team, unlocked for every member (decided 2026-10-12).
-- **M12 Alchemy, Citrinitas and Rubedo**, as planned in `alchemy_plan.md` (decided 2026-10-15). Applied and waiting for the user play check, to archive in this order: `m12-hidden-hints`, `m12-gnomes` (the three gnomes of the elementals sheet as a walking entity seen only under the sight). Still open in M12:
-  - `m12-house-gnome`: befriend the old gnome found by `m12-hidden-hints` and take him home as the House Gnome companion, a second voice next to the journal; what he does is open (`alchemy_plan.md`). The team's found state is already kept in world data.
+- **M12 Alchemy, Citrinitas and Rubedo**, as planned in `alchemy_plan.md` (decided 2026-10-15). Proposed, not applied: `m12-receptaculum-pipes` (no pipe connects to a machine's fixed front; pipes put only liked gifts into the Receptaculum's gift slots). Still open in M12:
+  - `m12-house-gnome`: befriend the old gnome found through the hints and take him home as the House Gnome companion, a second voice next to the journal; what he does is open (`alchemy_plan.md`). The team's found state is already kept in world data.
   - Story texts for the storyteller: every line starting with "[storyteller]" (Wandering years, Basel and Salzburg, the homunculus' whispers and secret, the old gnome's greeting) and the knocker folklore of The Old Gnome; historical claims are checked when the text is written.
   - The open story and play questions in `alchemy_plan.md`, "Open".
 - Better upgrade items from Alchemy through the Foundation upgrade API.

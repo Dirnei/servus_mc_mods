@@ -1,3 +1,7 @@
+## Purpose
+
+The gnomes of the elementals sheet as walking creatures seen only under the sight: the Old Miner at his Hollow, the Lantern Bearer and the House Gnome.
+
 ## ADDED Requirements
 
 ### Requirement: Gnomes are seen only under the sight

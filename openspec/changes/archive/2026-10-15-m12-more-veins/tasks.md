@@ -12,4 +12,4 @@
 
 ## 3. Verification
 
-- [ ] 3.1 Full `gradlew build test :alchemy:runGameTestServer` green apart from the known FTB Chunks anchor tests; the game launches with all three mods; user play check: the three Seeds in the creative tab and JEI with their names and colours, made at the right Athanor stages, planted, and their colours readable in the cracks under the sight.
+- [x] 3.1 Full `gradlew build test :alchemy:runGameTestServer` green apart from the known FTB Chunks anchor tests; the game launches with all three mods; user play check: the three Seeds in the creative tab and JEI with their names and colours, made at the right Athanor stages, planted, and their colours readable in the cracks under the sight.
