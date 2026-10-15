@@ -148,6 +148,10 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 
 ### Open: Foundation
 
+- Duct GUI and investigation (explored 2026-10-15). Proposed, not applied, to be applied in this order:
+  - `m5-duct-filter-picker`: set filter slots by JEI drag or a search popup, without owning the item; the item picker moves to Foundation.
+  - `m5-named-channels`: channels become a team wide list with name, dye colour and icon, created on the fly in the duct GUI; "This cable" or "All" in the picker.
+  - `m5-data-potato`: the Data Potato takes the load overlay from the carrot and reports ducts and tanks into chat.
 - Power Cable with a tiered transfer rate.
 - Hand made patterns for Machine Adapters, if the play tests ask for them.
 
