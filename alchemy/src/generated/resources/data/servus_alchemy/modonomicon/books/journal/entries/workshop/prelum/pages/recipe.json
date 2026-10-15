@@ -1,0 +1,10 @@
+{
+  "type": "modonomicon:crafting_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "recipe",
+  "recipe_id_1": "servus_alchemy:prelum",
+  "sort_number": 3,
+  "text": "book.servus_alchemy.journal.workshop.prelum.recipe.text"
+}

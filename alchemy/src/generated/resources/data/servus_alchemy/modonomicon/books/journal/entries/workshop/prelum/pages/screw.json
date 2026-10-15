@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "screw",
+  "item": {
+    "id": "servus_alchemy:prelum_screw"
+  },
+  "sort_number": 2,
+  "text": "book.servus_alchemy.journal.workshop.prelum.screw.text",
+  "title": "book.servus_alchemy.journal.workshop.prelum.screw.title"
+}

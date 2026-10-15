@@ -318,7 +318,8 @@ final class JournalEntries {
                             + "To finish this chapter:\n\n"
                             + "- Finish a craft on a Rubedo Athanor\n"
                             + "- Bind a gnome to a diamond vein\n"
-                            + "- Finish 16 crafts on the Athanor\n\n"
+                            + "- Finish 16 crafts on the Athanor\n"
+                            + "- Press a Netherite Scrap at the Prelum\n\n"
                             + "Your team shares this work. See your progress with /servus_alchemy journal.");
             text("unlocks", "What Follows",
                     "Here the notes break off. The pages after this one are still blank.");

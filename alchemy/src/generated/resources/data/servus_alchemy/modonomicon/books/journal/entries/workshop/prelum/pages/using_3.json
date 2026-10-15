@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "using_3",
+  "show_title_separator": true,
+  "sort_number": 6,
+  "text": "book.servus_alchemy.journal.workshop.prelum.using_3.text",
+  "title": ""
+}

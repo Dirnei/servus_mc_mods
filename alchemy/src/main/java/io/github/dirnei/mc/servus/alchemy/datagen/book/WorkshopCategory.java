@@ -31,15 +31,15 @@ final class WorkshopCategory extends CategoryProvider {
     @Override
     protected String[] generateEntryMap() {
         return new String[] {
-                "_____________________",
-                "___p___c___u___o___a_",
-                "_______f_____________",
-                "___________________s_",
-                "___________________e_",
-                "___________________h_",
-                "_________________d_y_",
-                "_______________g_m_r_",
-                "_________________v_q_",
+                "_______________________",
+                "___p___c___u___o___a___",
+                "_______f_______________",
+                "___________________s___",
+                "___________________e___",
+                "___________________h___",
+                "_________________d_y___",
+                "_______________g_m_r_l_",
+                "_________________v_q___",
         };
     }
 
@@ -67,6 +67,8 @@ final class WorkshopCategory extends CategoryProvider {
         BookEntryModel receptaculum = add(receptaculum().generate('q').withParent(red)
                 .withCondition(condition().researchNodeUnlocked(JournalResearch.WANDERING_YEARS)));
         add(vas().generate('v').withParent(receptaculum)
+                .withCondition(condition().researchNodeUnlocked(JournalResearch.WANDERING_YEARS)));
+        add(prelum().generate('l').withParent(red)
                 .withCondition(condition().researchNodeUnlocked(JournalResearch.WANDERING_YEARS)));
     }
 
@@ -402,6 +404,30 @@ final class WorkshopCategory extends CategoryProvider {
                             + "It takes the ore the gnomes dug and lays it into the Receptaculum, and when a gnome tires "
                             + "it brings it a gift from the gift slots.\n\n"
                             + "Only the sight shows him at his work. Do not listen too closely to what he mutters.");
+        });
+    }
+
+    private WorkshopEntry prelum() {
+        AlchemyRecipeTable.AthanorCraft craft = athanorCraft("prelum_screw");
+        AlchemyRecipeTable.Press press = AlchemyRecipeTable.pressing().getFirst();
+        return new WorkshopEntry(this, "prelum", "The Prelum", "Rubedo: the press at the end of the Work",
+                ServusAlchemyItems.PRELUM.get(), e -> {
+            e.text("story", "The Press",
+                    "[storyteller] The dead head! Caput Mortuum, the worthless earth that stays when the Salt is gone. "
+                            + "For years I swept it out of the vat and they laughed. Press it, I say, press it hard enough and long enough "
+                            + "and the dead head gives up the black metal of the burning world. The dragon's breath makes the screw. "
+                            + "I have seen the dragon. Or I dreamt it. The screw is real.");
+            e.spotlight("screw", ServusAlchemyItems.PRELUM_SCREW.get(), "Prelum Screw",
+                    "Lay " + craft.inputLabel() + " on a red Athanor and feed it " + PrincipleText.amounts(craft.principles()) + ". "
+                            + "One bottle from the End, once: the screw does not wear out.");
+            e.crafting("recipe", ServusAlchemyIds.MOD_ID + ":prelum",
+                    "The screw over a Heavy Weighted Pressure Plate between two Stripped Dark Oak Logs, on Polished Deepslate.");
+            e.text("using", "Using It",
+                    "Lay " + press.count() + " " + press.label() + " in the left slot. The press needs no fire and no principles; "
+                            + "it turns its bar, lowers its plate and after " + press.time() / 20 + " seconds gives one "
+                            + AlchemyRecipeTable.label(press.result()) + ". Smith four scraps with four Gold Ingots into a Netherite Ingot.\n\n"
+                            + "Hoppers and Item Pipes feed it from any side but the front, and it pushes its scrap into a chest beside it. "
+                            + "On a data line it presses what a Crafting CPU orders.");
         });
     }
 

@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorRecipe;
+import io.github.dirnei.mc.servus.alchemy.prelum.PressingRecipe;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurificationRecipe;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyRecipes;
@@ -21,7 +22,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
-/** Shows the calcination, purification, coagulation and Athanor recipes in JEI. Only loaded when JEI is present. */
+/** Shows the calcination, purification, coagulation, Athanor and pressing recipes in JEI. Only loaded when JEI is present. */
 @JeiPlugin
 public final class ServusAlchemyJeiPlugin implements IModPlugin {
 
@@ -35,6 +36,8 @@ public final class ServusAlchemyJeiPlugin implements IModPlugin {
             RecipeType.createRecipeHolderType(ServusAlchemyRecipes.COAGULATION_ID);
     public static final RecipeType<RecipeHolder<AthanorRecipe>> ATHANOR =
             RecipeType.createRecipeHolderType(ServusAlchemyRecipes.ATHANOR_ID);
+    public static final RecipeType<RecipeHolder<PressingRecipe>> PRESSING =
+            RecipeType.createRecipeHolderType(ServusAlchemyRecipes.PRESSING_ID);
 
     @Override
     public Identifier getPluginUid() {
@@ -47,7 +50,8 @@ public final class ServusAlchemyJeiPlugin implements IModPlugin {
                 new CalcinationRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new PurificationRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new CoagulationRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
-                new AthanorRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
+                new AthanorRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new PressingRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
     }
 
     @Override
@@ -60,6 +64,7 @@ public final class ServusAlchemyJeiPlugin implements IModPlugin {
         registration.addRecipes(PURIFICATION, ServusRecipes.all(minecraft.level, ServusAlchemyRecipes.PURIFICATION.get()));
         registration.addRecipes(COAGULATION, CoagulatorBlockEntity.sortedRecipes(minecraft.level));
         registration.addRecipes(ATHANOR, ServusRecipes.all(minecraft.level, ServusAlchemyRecipes.ATHANOR.get()));
+        registration.addRecipes(PRESSING, ServusRecipes.all(minecraft.level, ServusAlchemyRecipes.PRESSING.get()));
     }
 
     @Override
@@ -68,6 +73,7 @@ public final class ServusAlchemyJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ServusAlchemyItems.PURIFIER.get()), PURIFICATION);
         registration.addRecipeCatalyst(new ItemStack(ServusAlchemyItems.COAGULATOR.get()), COAGULATION);
         registration.addRecipeCatalyst(new ItemStack(ServusAlchemyItems.ATHANOR.get()), ATHANOR);
+        registration.addRecipeCatalyst(new ItemStack(ServusAlchemyItems.PRELUM.get()), PRESSING);
         registration.addCraftingStation(RecipeTypes.SMELTING, ServusAlchemyItems.SALAMANDER_FORGE.get());
     }
 }
