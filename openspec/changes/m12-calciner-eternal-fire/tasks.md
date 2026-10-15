@@ -7,7 +7,7 @@
 
 ## 2. Fire that never goes out
 
-- [ ] 2.1 `foundation/.../machine/BurnerMachineBlockEntity.java`: add `protected boolean eternalFire()` (default false); while true `tick()` burns without `consumeFuel()` and without counting `burnTime` down, `upkeep()` returns null and `getData` reports a full burn. Verify: `gradlew build` and `gradlew test` green, existing burner GameTests unchanged.
+- [x] 2.1 `foundation/.../machine/BurnerMachineBlockEntity.java`: add `protected boolean eternalFire()` (default false); while true `tick()` burns without `consumeFuel()` and without counting `burnTime` down, `upkeep()` returns null and `getData` reports a full burn. Verify: `gradlew build` and `gradlew test` green, existing burner GameTests unchanged.
 - [ ] 2.2 `alchemy/.../CalcinerBlockEntity.java`: third slot `SLOT_IGNIS`, `eternalFire()` from it, `workTicks()` through `EternalFireSpeed` with `EternalFireData`, `burns()` false while the Ignis is set, `setIgnis(Player, InteractionHand)` (one item, fuel slot back to the player), `takeIgnis(Player)`, `removeIgnis()` for drops, `Ignis` in `getUpdateTag` and a block update plus `invalidateCapabilities` on the Firebox position on every change. Verify: `gradlew build` green.
 
 ## 3. The Firebox
