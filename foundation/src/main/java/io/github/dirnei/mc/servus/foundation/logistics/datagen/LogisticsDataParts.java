@@ -158,9 +158,8 @@ public final class LogisticsDataParts {
         provider.add("gui.servus_foundation.filter_none", "None, clear the slot");
         provider.add("gui.servus_foundation.priority", "Priority %s");
         provider.add("gui.servus_foundation.no_lines", "No lines");
-        for (int channel = 1; channel <= 8; channel++) {
-            provider.add("gui.servus_foundation.channel." + channel, "Channel " + channel);
-        }
+        provider.add("gui.servus_foundation.channel.default", "Default");
+        provider.add("gui.servus_foundation.channel.button", "Channel: %s");
         provider.add("gui.servus_foundation.line.item", "Items");
         provider.add("gui.servus_foundation.line.energy", "Energy");
         provider.add("gui.servus_foundation.line.fluid", "Fluids");
