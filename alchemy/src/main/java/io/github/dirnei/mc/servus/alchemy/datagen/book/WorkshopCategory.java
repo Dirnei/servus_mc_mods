@@ -115,7 +115,9 @@ final class WorkshopCategory extends CategoryProvider {
             e.text("firing", "Firing It",
                     "Hand the matter to the mouth, or let a hopper or a pipe feed it. Coal and other fuel go into the Firebox below; "
                             + "one coal burns for several items. Sneak with an empty hand at the mouth to take the matter back.\n\n"
-                            + "When a tank or the Ash Pan is full, the Calciner waits.");
+                            + "When a tank or the Ash Pan is full, the Calciner waits.\n\n"
+                            + "Set Ignis Perpetuus into the Firebox and it burns forever without fuel and calcines faster. "
+                            + "Sneak with an empty hand at the Firebox to take it back.");
             e.text("emptying", "Taking Them Out",
                     "Each principle leaves where it belongs. Salt stays behind as ash in the Ash Pan. Mercury cools in the Receiver, "
                             + "drips from its tap into the basin and runs down into the right tank, and Sulfur rises into the Hood and runs down the duct into the left tank.\n\n"
@@ -362,7 +364,9 @@ final class WorkshopCategory extends CategoryProvider {
                             + "One ingot at a time; it will not take the next before it is done.");
             e.spotlight("ignis", ServusAlchemyItems.IGNIS_PERPETUUS.get(), "Ignis Perpetuus",
                     "Lay " + craft.inputLabel() + " on a yellow Athanor and feed it " + PrincipleText.amounts(craft.principles()) + ". "
-                            + "The flame that never goes out. It does not feed a furnace; it is built into greater works.");
+                            + "The flame that never goes out. It does not feed a furnace, but set into the Firebox of a Calciner "
+                            + "it fires it forever and makes it calcine faster; sneak with an empty hand at the Firebox to take it back. "
+                            + "It is also built into greater works.");
         });
     }
 
