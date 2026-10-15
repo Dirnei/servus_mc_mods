@@ -227,8 +227,10 @@ final class JournalEntries {
                             + "But mind the dose: the dose makes the poison, and now and then the elixir bites back.\n\n"
                             + "The miners of Schwaz say the metals grow in the mountain like roots, tended by gnomes. "
                             + "Burn cracked stone bricks with Salt and Mercury on a white Athanor into a Gnome Hollow. To common eyes it is stone. "
-                            + "Drink the elixir, give it a sample of ore and pour Salt and Mercury into it until the vein is ripe. "
-                            + "Then offer a Salt Crystal: a gnome takes it and digs that ore for you, for as long as the Hollow stands.");
+                            + "Drink the elixir and offer it a Salt Crystal: a gnome takes it and moves in. "
+                            + "Raw ore will not take root. The seed of a metal does, and the white Athanor makes the seeds of iron and copper. "
+                            + "Give one to the gnome, pour Salt and Mercury in until the vein is ripe, and he digs that ore for you, "
+                            + "for as long as the Hollow stands.");
         }
 
         @Override
@@ -317,7 +319,7 @@ final class JournalEntries {
                             + "out of the rock. The sun! Yellow fire, yellow stone. Or bile. The same thing, the same thing.");
             text("tasks", "The Way",
                     "Set an Amethyst Block on each Salt Crystal Block of the white ring and the Athanor burns yellow: Citrinitas. "
-                            + "Now the gnomes take nobler samples: gold, redstone and diamond.");
+                            + "Its fire makes nobler seeds, of gold and of redstone, and a ripe vein of gold proves them.");
             text("unlocks", "What Follows",
                     "Finishing the Wandering years opens the next chapter of the journal: Basel and Salzburg, and the red fire.");
         }

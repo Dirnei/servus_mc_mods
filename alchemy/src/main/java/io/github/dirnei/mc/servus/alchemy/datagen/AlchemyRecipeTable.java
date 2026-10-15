@@ -1,14 +1,17 @@
 package io.github.dirnei.mc.servus.alchemy.datagen;
 
 import io.github.dirnei.mc.servus.alchemy.Principles;
+import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorRecipe;
 import io.github.dirnei.mc.servus.alchemy.datagen.gamedata.GameDataExportProvider;
+import io.github.dirnei.mc.servus.alchemy.hollow.VeinSeedItem;
 import io.github.dirnei.mc.servus.alchemy.prelum.PressingRecipe;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import java.util.List;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -138,7 +141,23 @@ public final class AlchemyRecipeTable {
                 new AthanorCraft("sealed_flask", "Crying Obsidian", "Sealed Flask", Input.of(Items.CRYING_OBSIDIAN),
                         new Principles(250, 0, 500), 3, new ItemStackTemplate(ServusAlchemyItems.SEALED_FLASK.get()), 200),
                 new AthanorCraft("prelum_screw", "Dragon's Breath", "Prelum Screw", Input.of(Items.DRAGON_BREATH),
-                        new Principles(0, 500, 500), 3, new ItemStackTemplate(ServusAlchemyItems.PRELUM_SCREW.get()), 200));
+                        new Principles(0, 500, 500), 3, new ItemStackTemplate(ServusAlchemyItems.PRELUM_SCREW.get()), 200),
+                seed("iron", "Raw Iron", Input.of(Tags.Items.RAW_MATERIALS_IRON), new Principles(250, 0, 100), 1),
+                seed("copper", "Raw Copper", Input.of(Tags.Items.RAW_MATERIALS_COPPER), new Principles(250, 0, 100), 1),
+                seed("gold", "Raw Gold", Input.of(Tags.Items.RAW_MATERIALS_GOLD), new Principles(250, 250, 250), 2),
+                seed("redstone", "Redstone Dust", Input.of(Tags.Items.DUSTS_REDSTONE), new Principles(0, 250, 250), 2),
+                seed("diamond", "Diamond", Input.of(Tags.Items.GEMS_DIAMOND), new Principles(500, 500, 500), 3));
+    }
+
+    /** The Seed of a shipped vein, made from its raw material at the stage of that vein. */
+    private static AthanorCraft seed(String vein, String inputLabel, Input input, Principles principles, int tier) {
+        return new AthanorCraft("seed_of_" + vein, inputLabel, "Seed of " + GameDataExportProvider.titleCase(vein), input, principles, tier,
+                VeinSeedItem.template(Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, vein)), 200);
+    }
+
+    /** The Athanor crafts that make Seeds, in the order of their stages. */
+    public static List<AthanorCraft> seeds() {
+        return athanor().stream().filter(craft -> craft.name().startsWith("seed_of_")).toList();
     }
 
     /** The English name of an Athanor stage. */

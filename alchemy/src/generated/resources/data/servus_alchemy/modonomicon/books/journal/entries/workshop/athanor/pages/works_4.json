@@ -3,9 +3,9 @@
   "condition": {
     "type": "modonomicon:none"
   },
-  "id": "growing_3",
+  "id": "works_4",
   "show_title_separator": true,
-  "sort_number": 4,
-  "text": "book.servus_alchemy.journal.workshop.gnome_hollow.growing_3.text",
+  "sort_number": 14,
+  "text": "book.servus_alchemy.journal.workshop.athanor.works_4.text",
   "title": ""
 }

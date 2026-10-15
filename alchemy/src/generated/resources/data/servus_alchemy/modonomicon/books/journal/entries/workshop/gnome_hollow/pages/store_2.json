@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "store_2",
+  "show_title_separator": true,
+  "sort_number": 9,
+  "text": "book.servus_alchemy.journal.workshop.gnome_hollow.store_2.text",
+  "title": ""
+}

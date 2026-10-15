@@ -4,10 +4,12 @@ import io.github.dirnei.mc.servus.alchemy.datagen.gamedata.GameDataExportProvide
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyComponents;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import java.util.Optional;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 
 /**
  * A Seed of a metal: one item for every vein, naming its vein in the {@code servus_alchemy:vein} component. It is
@@ -23,9 +25,13 @@ public class VeinSeedItem extends Item {
 
     /** A Seed of {@code vein}. */
     public static ItemStack of(Identifier vein) {
-        ItemStack stack = new ItemStack(ServusAlchemyItems.SEED.get());
-        stack.set(ServusAlchemyComponents.VEIN.get(), vein);
-        return stack;
+        return template(vein).create();
+    }
+
+    /** A Seed of {@code vein} as a recipe result. */
+    public static ItemStackTemplate template(Identifier vein) {
+        return new ItemStackTemplate(ServusAlchemyItems.SEED.get(),
+                DataComponentPatch.builder().set(ServusAlchemyComponents.VEIN.get(), vein).build());
     }
 
     /** The vein {@code stack} plants, empty when it is no Seed or names no vein. */

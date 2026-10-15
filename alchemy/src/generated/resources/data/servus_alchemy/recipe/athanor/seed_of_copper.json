@@ -1,0 +1,19 @@
+{
+  "type": "servus_alchemy:athanor",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:raw_materials/copper"
+  },
+  "principles": {
+    "mercury": 100,
+    "salt": 250
+  },
+  "result": {
+    "components": {
+      "servus_alchemy:vein": "servus_alchemy:copper"
+    },
+    "id": "servus_alchemy:seed"
+  },
+  "tier": 1,
+  "time": 200
+}

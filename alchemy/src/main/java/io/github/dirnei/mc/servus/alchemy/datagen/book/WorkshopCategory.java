@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.alchemy.datagen.ServusAlchemyMultiblockProvide
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
+import java.util.List;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 
@@ -257,15 +258,23 @@ final class WorkshopCategory extends CategoryProvider {
             e.spotlight("hollow", ServusAlchemyItems.GNOME_HOLLOW.get(), "Gnome Hollow",
                     "A home for a gnome. To common eyes it is only stone.");
             e.text("making", "Making It", albedoCraftText(craft));
-            e.text("growing", "Growing a Vein",
+            e.text("gnome", "Calling the Gnome",
                     "Drink the Elixir of Sight first. To common eyes the Hollow is only stone, and it answers no one who cannot see.\n\n"
-                            + "Under the sight, use a raw ore or an ore block on it to seed a vein, and pour Salt and Mercury in by bucket. "
-                            + "No pipe reaches it. Step by step the vein ripens.\n\n"
-                            + "When it is ripe, use a Salt Crystal on it. A gnome takes it and digs that ore for you, "
-                            + "as long as the Hollow stands.");
+                            + "Under the sight, use a Salt Crystal on the empty Hollow. A gnome takes it and moves in. "
+                            + "He waits for a seed to plant.");
+            e.text("seeds", "Seeds of Metals",
+                    "Raw ore does not take root; the gnome wants the seed of a metal. The Athanor makes them: "
+                            + seedText(1) + " on a white Athanor. Nobler seeds need a hotter fire.\n\n"
+                            + "Give the seed to the Hollow and the gnome plants it.");
+            e.text("growing", "Growing a Vein",
+                    "Pour Salt and Mercury in by bucket. No pipe reaches it. Step by step the vein ripens while the gnome tends it, "
+                            + "and once ripe he digs its ore for you, as long as the Hollow stands.\n\n"
+                            + "Give him the seed of another metal and he digs the old vein out and plants the new one. "
+                            + "The old vein is lost; what he dug stays in his store.");
             e.text("store", "The Gnome's Store",
                     "The gnome keeps what it digs in a small store inside the Hollow and stops when the store is full. "
-                            + "Use an empty hand on the Hollow, under the sight, to take the ore out.");
+                            + "Use an empty hand on the Hollow, under the sight, to take the ore out. "
+                            + "After a new seed, take the old ore out before he digs the new one.");
             e.text("gifts", "Gifts",
                     "Gnomes have a sweet tooth. Under the sight, hand a working gnome a cookie, bread or berries and it digs "
                             + "twice as fast for a while. It needs no gifts to work; it only works slower without them. "
@@ -289,8 +298,7 @@ final class WorkshopCategory extends CategoryProvider {
             e.multiblock("ring", ServusAlchemyMultiblockProvider.athanor("citrinitas"), "The Yellow Ring",
                     "Twelve Amethyst Blocks on the twelve Salt Crystal Blocks. Press Visualize, then click the ground.");
             e.text("veins", "Noble Veins",
-                    "Once Schwaz is finished, the gnomes take nobler samples: raw gold or any gold ore for gold, "
-                            + "redstone dust or any redstone ore for redstone, a diamond or any diamond ore for diamonds.\n\n"
+                    "The yellow fire makes nobler seeds: " + seedText(2) + ". Only the red fire makes " + seedText(3) + ".\n\n"
                             + "Noble veins drink more Salt and Mercury, the diamond Sulfur as well, and the gnomes dig them slower.");
         });
     }
@@ -445,6 +453,14 @@ final class WorkshopCategory extends CategoryProvider {
                             + "Hoppers and Item Pipes feed it from any side but the front, and it pushes its scrap into a chest beside it. "
                             + "On a data line it presses what a Crafting CPU orders.");
         });
+    }
+
+    /** The Seeds of one stage with what they are made from: "the Seed of Gold from Raw Gold and ...". */
+    private static String seedText(int tier) {
+        List<String> seeds = AlchemyRecipeTable.seeds().stream().filter(craft -> craft.tier() == tier)
+                .map(craft -> "the " + craft.resultLabel() + " from " + craft.inputLabel()).toList();
+        return seeds.size() < 2 ? String.join("", seeds)
+                : String.join(", ", seeds.subList(0, seeds.size() - 1)) + " and " + seeds.getLast();
     }
 
     private static String albedoCraftText(AlchemyRecipeTable.AthanorCraft craft) {

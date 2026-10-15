@@ -1,0 +1,19 @@
+{
+  "type": "servus_alchemy:athanor",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:dusts/redstone"
+  },
+  "principles": {
+    "mercury": 250,
+    "sulfur": 250
+  },
+  "result": {
+    "components": {
+      "servus_alchemy:vein": "servus_alchemy:redstone"
+    },
+    "id": "servus_alchemy:seed"
+  },
+  "tier": 2,
+  "time": 200
+}

@@ -1,0 +1,20 @@
+{
+  "type": "servus_alchemy:athanor",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:gems/diamond"
+  },
+  "principles": {
+    "mercury": 500,
+    "salt": 500,
+    "sulfur": 500
+  },
+  "result": {
+    "components": {
+      "servus_alchemy:vein": "servus_alchemy:diamond"
+    },
+    "id": "servus_alchemy:seed"
+  },
+  "tier": 3,
+  "time": 200
+}

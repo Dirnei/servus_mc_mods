@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.alchemy.Principle;
 import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.Principles;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Binding;
@@ -377,6 +378,27 @@ public final class HollowGameTests {
 
     private static int goldTask(GameTestHelper helper, UUID team) {
         return Journal.journalOf(helper.getLevel().getServer(), team).count(AlchemyGameTests.WANDERING_YEARS, "gold");
+    }
+
+    /** Raw Gold and the principles make a Seed of Gold on a Citrinitas Athanor, not on an Albedo one. */
+    @ServusGameTest(timeoutTicks = 600)
+    public static void seedOfGoldNeedsCitrinitas(GameTestHelper helper) {
+        AthanorBlockEntity athanor = AlchemyGameTests.athanor(helper);
+        AlchemyGameTests.saltRing(helper);
+        athanor.checkTier();
+        helper.assertTrue(athanor.tier() == 1, "the salt ring makes Albedo, got " + athanor.tier());
+        athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.RAW_GOLD));
+        helper.runAfterDelay(2, () -> AlchemyGameTests.pour(helper, new Principles(250, 250, 250)));
+        helper.runAfterDelay(250, () -> {
+            helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).isEmpty(), "no Seed of Gold at Albedo");
+            AlchemyGameTests.amethystRing(helper);
+            athanor.checkTier();
+            helper.succeedWhen(() -> {
+                ItemStack made = athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT);
+                helper.assertTrue(VeinSeedItem.vein(made).map(id -> id.getPath().equals("gold")).orElse(false),
+                        "a Seed of Gold should be made, got " + made);
+            });
+        });
     }
 
     /** A working Hollow offers no item, fluid, energy or production capability on any side. */

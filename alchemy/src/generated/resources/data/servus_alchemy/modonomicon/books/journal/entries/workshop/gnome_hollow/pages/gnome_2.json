@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "gnome_2",
+  "show_title_separator": true,
+  "sort_number": 3,
+  "text": "book.servus_alchemy.journal.workshop.gnome_hollow.gnome_2.text",
+  "title": ""
+}
