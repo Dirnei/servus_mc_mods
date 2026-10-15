@@ -1,0 +1,70 @@
+{
+  "tier": 3,
+  "color": "#B3261E",
+  "blocks": [
+    {
+      "offset": [
+        -2,
+        1,
+        -2
+      ],
+      "block": "minecraft:crying_obsidian"
+    },
+    {
+      "offset": [
+        -2,
+        1,
+        2
+      ],
+      "block": "minecraft:crying_obsidian"
+    },
+    {
+      "offset": [
+        2,
+        1,
+        -2
+      ],
+      "block": "minecraft:crying_obsidian"
+    },
+    {
+      "offset": [
+        2,
+        1,
+        2
+      ],
+      "block": "minecraft:crying_obsidian"
+    },
+    {
+      "offset": [
+        -2,
+        2,
+        -2
+      ],
+      "block": "minecraft:crying_obsidian"
+    },
+    {
+      "offset": [
+        -2,
+        2,
+        2
+      ],
+      "block": "minecraft:crying_obsidian"
+    },
+    {
+      "offset": [
+        2,
+        2,
+        -2
+      ],
+      "block": "minecraft:crying_obsidian"
+    },
+    {
+      "offset": [
+        2,
+        2,
+        2
+      ],
+      "block": "minecraft:crying_obsidian"
+    }
+  ]
+}

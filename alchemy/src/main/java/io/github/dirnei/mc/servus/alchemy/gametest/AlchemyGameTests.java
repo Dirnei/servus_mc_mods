@@ -360,6 +360,17 @@ public final class AlchemyGameTests {
         helper.assertTrue(albedo.validate(helper.getLevel(), anchor) == null, "the Albedo schematic wants the ring");
         saltRing(helper);
         helper.assertTrue(albedo.validate(helper.getLevel(), anchor) != null, "the Albedo schematic accepts the ring");
+        Multiblock citrinitas = ModonomiconAPI.get()
+                .getMultiblock(Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "athanor_citrinitas"));
+        Multiblock rubedo = ModonomiconAPI.get()
+                .getMultiblock(Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "athanor_rubedo"));
+        helper.assertTrue(citrinitas != null && rubedo != null, "the Citrinitas and Rubedo schematics should be loaded");
+        helper.assertTrue(citrinitas.validate(helper.getLevel(), anchor) == null, "the Citrinitas schematic wants the amethyst");
+        amethystRing(helper);
+        helper.assertTrue(citrinitas.validate(helper.getLevel(), anchor) != null, "the Citrinitas schematic accepts the amethyst");
+        helper.assertTrue(rubedo.validate(helper.getLevel(), anchor) == null, "the Rubedo schematic wants the pillars");
+        rubedoPillars(helper);
+        helper.assertTrue(rubedo.validate(helper.getLevel(), anchor) != null, "the Rubedo schematic accepts the pillars");
         helper.succeed();
     }
 
@@ -390,6 +401,28 @@ public final class AlchemyGameTests {
             for (int dz = -2; dz <= 2; dz++) {
                 if (Math.abs(dx) + Math.abs(dz) > 2) {
                     helper.setBlock(MACHINE.offset(dx, -1, dz), ServusAlchemyBlocks.SALT_CRYSTAL_BLOCK.get().defaultBlockState());
+                }
+            }
+        }
+    }
+
+    /** The Citrinitas ring: twelve Amethyst Blocks standing on the twelve cells of the salt ring. */
+    static void amethystRing(GameTestHelper helper) {
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                if (Math.abs(dx) + Math.abs(dz) > 2) {
+                    helper.setBlock(MACHINE.offset(dx, 0, dz), Blocks.AMETHYST_BLOCK);
+                }
+            }
+        }
+    }
+
+    /** The Rubedo pillars: two Crying Obsidian on each corner of the amethyst ring. */
+    static void rubedoPillars(GameTestHelper helper) {
+        for (int dy = 1; dy <= 2; dy++) {
+            for (int dx = -2; dx <= 2; dx += 4) {
+                for (int dz = -2; dz <= 2; dz += 4) {
+                    helper.setBlock(MACHINE.offset(dx, dy, dz), Blocks.CRYING_OBSIDIAN);
                 }
             }
         }
@@ -448,6 +481,41 @@ public final class AlchemyGameTests {
                 helper.succeed();
             });
         });
+    }
+
+    /** Amethyst on the salt ring makes Citrinitas; without the salt ring it counts for nothing, and a gap falls back to Albedo. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void citrinitasRingMakesTierTwo(GameTestHelper helper) {
+        AthanorBlockEntity athanor = athanor(helper);
+        amethystRing(helper);
+        athanor.checkTier();
+        helper.assertTrue(athanor.tier() == 0, "amethyst without the salt ring is Nigredo, got " + athanor.tier());
+        saltRing(helper);
+        athanor.checkTier();
+        helper.assertTrue(athanor.tier() == 2 && helper.getBlockState(MACHINE).getValue(AthanorBlock.TIER) == 2,
+                "the amethyst ring makes Citrinitas, got " + athanor.tier());
+        helper.assertTrue(athanor.tierName().equals("citrinitas"), "the stage is Citrinitas, got " + athanor.tierName());
+        helper.setBlock(MACHINE.offset(2, 0, 2), Blocks.AIR);
+        athanor.checkTier();
+        helper.assertTrue(athanor.tier() == 1, "a gap in the amethyst is Albedo, got " + athanor.tier());
+        helper.succeed();
+    }
+
+    /** Crying Obsidian pillars on the amethyst corners make Rubedo; a short pillar falls back to Citrinitas. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void rubedoPillarsMakeTierThree(GameTestHelper helper) {
+        AthanorBlockEntity athanor = athanor(helper);
+        saltRing(helper);
+        amethystRing(helper);
+        rubedoPillars(helper);
+        athanor.checkTier();
+        helper.assertTrue(athanor.tier() == 3 && helper.getBlockState(MACHINE).getValue(AthanorBlock.TIER) == 3,
+                "the pillars make Rubedo, got " + athanor.tier());
+        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, true);
+        helper.setBlock(MACHINE.offset(-2, 2, -2), Blocks.AIR);
+        athanor.checkTier();
+        helper.assertTrue(athanor.tier() == 2, "a short pillar is Citrinitas, got " + athanor.tier());
+        helper.succeed();
     }
 
     /** A Sulfur bucket emptied into a tank of the build is there for the Athanor. */

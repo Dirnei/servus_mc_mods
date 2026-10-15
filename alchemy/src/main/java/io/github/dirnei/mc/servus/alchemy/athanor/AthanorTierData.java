@@ -48,7 +48,7 @@ public final class AthanorTierData extends SimpleJsonResourceReloadListener<Json
     public static final AthanorTierData INSTANCE = new AthanorTierData();
 
     /** The tiers Alchemy ships, by file name; the journal draws a schematic for each. */
-    public static final List<String> SHIPPED = List.of("albedo");
+    public static final List<String> SHIPPED = List.of("albedo", "citrinitas", "rubedo");
 
     /** Reads a shipped tier straight from the mod's own resources, for the data generator. */
     public static TierDef readShipped(String name) {

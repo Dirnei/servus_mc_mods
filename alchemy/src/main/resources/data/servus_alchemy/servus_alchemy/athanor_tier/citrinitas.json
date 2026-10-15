@@ -1,0 +1,102 @@
+{
+  "tier": 2,
+  "color": "#F2C531",
+  "blocks": [
+    {
+      "offset": [
+        -2,
+        0,
+        -2
+      ],
+      "block": "minecraft:amethyst_block"
+    },
+    {
+      "offset": [
+        -2,
+        0,
+        -1
+      ],
+      "block": "minecraft:amethyst_block"
+    },
+    {
+      "offset": [
+        -2,
+        0,
+        1
+      ],
+      "block": "minecraft:amethyst_block"
+    },
+    {
+      "offset": [
+        -2,
+        0,
+        2
+      ],
+      "block": "minecraft:amethyst_block"
+    },
+    {
+      "offset": [
+        -1,
+        0,
+        -2
+      ],
+      "block": "minecraft:amethyst_block"
+    },
+    {
+      "offset": [
+        -1,
+        0,
+        2
+      ],
+      "block": "minecraft:amethyst_block"
+    },
+    {
+      "offset": [
+        1,
+        0,
+        -2
+      ],
+      "block": "minecraft:amethyst_block"
+    },
+    {
+      "offset": [
+        1,
+        0,
+        2
+      ],
+      "block": "minecraft:amethyst_block"
+    },
+    {
+      "offset": [
+        2,
+        0,
+        -2
+      ],
+      "block": "minecraft:amethyst_block"
+    },
+    {
+      "offset": [
+        2,
+        0,
+        -1
+      ],
+      "block": "minecraft:amethyst_block"
+    },
+    {
+      "offset": [
+        2,
+        0,
+        1
+      ],
+      "block": "minecraft:amethyst_block"
+    },
+    {
+      "offset": [
+        2,
+        0,
+        2
+      ],
+      "block": "minecraft:amethyst_block"
+    }
+  ]
+}

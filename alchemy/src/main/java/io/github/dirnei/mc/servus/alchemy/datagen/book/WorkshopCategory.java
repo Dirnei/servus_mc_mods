@@ -178,7 +178,8 @@ final class WorkshopCategory extends CategoryProvider {
                     "Use an item on it to lay it on top. It burns what its tanks hold, and the work lies on top when it is done: "
                             + "take it with an empty hand, or sneak to take the item back. Hoppers and pipes may do both.\n\n"
                             + "Alone its flame is black: Nigredo. Twelve Salt Crystal Blocks around its hearth, filling it out to a square, "
-                            + "turn the flame white: Albedo. Some works need the white fire.");
+                            + "turn the flame white: Albedo. Amethyst Blocks on that ring turn it yellow: Citrinitas. "
+                            + "Pillars of Crying Obsidian on the amethyst corners turn it red: Rubedo. Some works need a higher fire.");
             e.list("works", "Its Works", AlchemyRecipeTable.athanor().stream()
                     .map(craft -> PrincipleText.line(craft.resultLabel() + " from " + craft.inputLabel(), craft.principles())
                             + (craft.tier() > 0 ? " (" + AlchemyRecipeTable.stageName(craft.tier()) + ")" : ""))

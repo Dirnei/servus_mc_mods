@@ -1,0 +1,56 @@
+{
+  "type": "modonomicon:dense",
+  "mapping": {
+    "0": {
+      "type": "modonomicon:block",
+      "block": "minecraft:bricks"
+    },
+    "A": {
+      "type": "modonomicon:block",
+      "block": "servus_alchemy:athanor"
+    },
+    "B": {
+      "type": "modonomicon:block",
+      "block": "minecraft:bricks"
+    },
+    "C": {
+      "type": "modonomicon:block",
+      "block": "servus_alchemy:salt_crystal_block"
+    },
+    "D": {
+      "type": "modonomicon:block",
+      "block": "servus_alchemy:copper_duct"
+    },
+    "E": {
+      "type": "modonomicon:block",
+      "block": "minecraft:amethyst_block"
+    },
+    "T": {
+      "type": "modonomicon:block",
+      "block": "servus_foundation:fluid_tank"
+    }
+  },
+  "pattern": [
+    [
+      "_____",
+      "_____",
+      "DD_DD",
+      "__D__",
+      "__D__"
+    ],
+    [
+      "EE_EE",
+      "E___E",
+      "T_A_T",
+      "E___E",
+      "EETEE"
+    ],
+    [
+      "CCBCC",
+      "CBBBC",
+      "BB0BB",
+      "CBBBC",
+      "CCBCC"
+    ]
+  ]
+}

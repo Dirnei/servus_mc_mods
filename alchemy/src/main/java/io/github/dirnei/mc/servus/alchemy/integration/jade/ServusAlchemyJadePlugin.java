@@ -159,6 +159,11 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
             data.put("Athanor", tag);
         }
 
+        /** The stage of a tier name in words; a datapack tier without a translation shows its file name. */
+        private static Component stageName(String tier) {
+            return Component.translatableWithFallback("gui.servus_alchemy.athanor.stage." + tier, tier);
+        }
+
         void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
             CompoundTag data = accessor.getServerData();
             if (!data.contains("Athanor")) {
@@ -166,7 +171,7 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
             }
             CompoundTag tag = data.getCompoundOrEmpty("Athanor");
             tooltip.add(Component.translatable(tag.getBooleanOr("Formed", false) ? "jade.servus_alchemy.athanor.stage"
-                    : "jade.servus_alchemy.athanor.unformed", tag.getStringOr("Tier", "")));
+                    : "jade.servus_alchemy.athanor.unformed", stageName(tag.getStringOr("Tier", ""))));
             ItemStack input = parseStack(accessor, tag.getCompoundOrEmpty("Input"));
             ItemStack output = parseStack(accessor, tag.getCompoundOrEmpty("Output"));
             tooltip.add(Component.translatable("jade.servus_alchemy.athanor.input", stackText(input)));
