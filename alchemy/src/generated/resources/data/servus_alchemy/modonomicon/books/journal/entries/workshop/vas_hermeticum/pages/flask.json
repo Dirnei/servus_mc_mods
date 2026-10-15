@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "flask",
+  "item": {
+    "id": "servus_alchemy:sealed_flask"
+  },
+  "sort_number": 2,
+  "text": "book.servus_alchemy.journal.workshop.vas_hermeticum.flask.text",
+  "title": "book.servus_alchemy.journal.workshop.vas_hermeticum.flask.title"
+}

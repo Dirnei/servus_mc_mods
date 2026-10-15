@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "chest",
+  "item": {
+    "id": "servus_alchemy:receptaculum"
+  },
+  "sort_number": 0,
+  "text": "book.servus_alchemy.journal.workshop.receptaculum.chest.text",
+  "title": "book.servus_alchemy.journal.workshop.receptaculum.chest.title"
+}

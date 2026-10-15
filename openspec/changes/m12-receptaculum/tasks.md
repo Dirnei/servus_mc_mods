@@ -16,7 +16,7 @@
 
 ## 4. Recipes and journal
 
-- [ ] 4.1 Athanor `sealed_flask` in `AlchemyRecipeTable` and crafting `receptaculum` in `ServusAlchemyRecipeProvider` (D13); Workshop entries `receptaculum` and `vas_hermeticum` (D15); docs section in `docs/src/content/docs/mods/alchemy.md`; `:alchemy:runData`. Verify: `gradlew build` green, no em dash and no "star" in the journal, docs or lang outside the whisper lines.
+- [x] 4.1 Athanor `sealed_flask` in `AlchemyRecipeTable` and crafting `receptaculum` in `ServusAlchemyRecipeProvider` (D13); Workshop entries `receptaculum` and `vas_hermeticum` (D15); docs section in `docs/src/content/docs/mods/alchemy.md`; `:alchemy:runData`. Verify: `gradlew build` green, no em dash and no "star" in the journal, docs or lang outside the whisper lines.
 
 ## 5. Behaviour tests
 

@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "slots",
+  "show_title_separator": true,
+  "sort_number": 2,
+  "text": "book.servus_alchemy.journal.workshop.receptaculum.slots.text",
+  "title": "book.servus_alchemy.journal.workshop.receptaculum.slots.title"
+}

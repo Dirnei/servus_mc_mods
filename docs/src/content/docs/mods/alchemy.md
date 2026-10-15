@@ -80,6 +80,17 @@ A furnace with the eternal flame inside: crafted from one Ignis Perpetuus in the
 - **Data line:** it is a producer, so a Crafting CPU orders smelting from it directly, with no Machine Adapter. It keeps no upkeep.
 - **Speed:** `work_ticks` in `servus_alchemy:salamander_forge` (see [Machine stats](/servus_mc_mods/reference/datapack/machines/)).
 
+## The Receptaculum and the Vas Hermeticum
+
+The homunculus is the only machine that takes the ore out of the Gnome Hollows. It lives in a stack of two blocks:
+
+- **Receptaculum:** a Hearth Chest crafted from Ignis Perpetuus between Deepslate Bricks, a Chest above it and three Bricks below. Its fire always burns. Its screen has 27 yield slots (take only), 3 gift slots and 1 Elixir slot. It is a normal Servus machine: Hoppers and Item Pipes take the yield out and bring gifts and Elixir in on every side but the front, and it pushes its yield into neighbours. On a data line it is a producer that lists the yields of the Hollows in reach, so a Crafting CPU orders grown ore from it.
+- **Sealed Flask:** made on a Rubedo Athanor from Crying Obsidian with 250 Salt and 500 Mercury. It places the **Vas Hermeticum**, and only on top of a Receptaculum; breaking the Receptaculum breaks the Vas.
+- **Growing:** the homunculus grows for 48000 ticks (two in-game days) while it is fed. One Elixir of Sight from the Elixir slot feeds it for 12000 ticks, while it grows and while it works. Without Elixir it pauses.
+- **Work:** every 100 ticks a grown, fed homunculus takes the stored ore of every Gnome Hollow in the 5x5 area on the Receptaculum's level into the yield slots, and gives a gift from the gift slots to each gnome whose boost has less than 1200 ticks left.
+- **Hidden:** without Elemental Sight the Vas is glass with murky liquid. Under the sight you see the homunculus in it and chains to the Hollows in its reach.
+- **Numbers:** `data/<namespace>/servus_alchemy/homunculus/<name>.json` with `grow_ticks`, `work_interval`, `elixir_ticks` and `gift_below_ticks`.
+
 ## Coagulator products
 
 Salt Crystal, Sulfur and Quicksilver are the first alchemical materials. The plain goods of Nigredo come from the principles alone: clay balls and bone meal. The Coagulator also makes flint, gunpowder, redstone, glowstone dust, bone meal and slime balls from the principles. No metal comes from principles; metals are grown by the gnomes.

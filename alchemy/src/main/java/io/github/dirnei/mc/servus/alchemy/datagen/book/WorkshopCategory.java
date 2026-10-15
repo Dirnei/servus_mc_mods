@@ -39,6 +39,7 @@ final class WorkshopCategory extends CategoryProvider {
                 "___________________h_",
                 "_________________d_y_",
                 "_______________g_m_r_",
+                "_________________v_q_",
         };
     }
 
@@ -61,7 +62,11 @@ final class WorkshopCategory extends CategoryProvider {
                 .withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ)));
         add(forge().generate('g').withParent(salamander)
                 .withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ)));
-        add(redCrown().generate('r').withParent(yellow)
+        BookEntryModel red = add(redCrown().generate('r').withParent(yellow)
+                .withCondition(condition().researchNodeUnlocked(JournalResearch.WANDERING_YEARS)));
+        BookEntryModel receptaculum = add(receptaculum().generate('q').withParent(red)
+                .withCondition(condition().researchNodeUnlocked(JournalResearch.WANDERING_YEARS)));
+        add(vas().generate('v').withParent(receptaculum)
                 .withCondition(condition().researchNodeUnlocked(JournalResearch.WANDERING_YEARS)));
     }
 
@@ -355,6 +360,48 @@ final class WorkshopCategory extends CategoryProvider {
                             + "Its fire burns day and night and lights the room around it.\n\n"
                             + "Lay the ore in the top slot and take the metal from the right. Hoppers and Item Pipes feed it from any side but the front, "
                             + "and it pushes its work into a chest beside it. On a data line it smelts what a Crafting CPU orders.");
+        });
+    }
+
+    private WorkshopEntry receptaculum() {
+        return new WorkshopEntry(this, "receptaculum", "The Receptaculum", "Rubedo: the warm chest below the glass",
+                ServusAlchemyItems.RECEPTACULUM.get(), e -> {
+            e.spotlight("chest", ServusAlchemyItems.RECEPTACULUM.get(), "The Receptaculum",
+                    "A chest with a fire in its belly. What my little helper gathers falls into it, "
+                            + "and its fire keeps him warm, as every homunculus must be kept warm.");
+            e.crafting("recipe", ServusAlchemyIds.MOD_ID + ":receptaculum",
+                    "Ignis Perpetuus between Deepslate Bricks, a Chest above it and a hearth of Bricks below.");
+            e.text("slots", "Its Slots",
+                    "The upper row holds three gifts for the gnomes on the left and the Elixir of Sight on the right. "
+                            + "Below lie twenty-seven slots for the yield; you may only take from them.\n\n"
+                            + "Hoppers and Item Pipes take the yield out on every side but the front and bring gifts and Elixir in. "
+                            + "Pipe nothing else into it: whatever is no Elixir lands among the gifts. "
+                            + "On a data line a Crafting CPU orders ore from it as from any machine.");
+        });
+    }
+
+    private WorkshopEntry vas() {
+        AlchemyRecipeTable.AthanorCraft craft = athanorCraft("sealed_flask");
+        return new WorkshopEntry(this, "vas_hermeticum", "The Vas Hermeticum", "Rubedo: the faithful little helper",
+                ServusAlchemyItems.SEALED_FLASK.get(), e -> {
+            e.text("helper", "My Little Helper",
+                    "They laughed in Basel when I wrote it down. Seal the seed in the glass, keep it warm forty days, "
+                            + "feed it the arcanum, and a little man grows in it, wiser than the fool who made it.\n\n"
+                            + "They laugh no more. Mine sits in his glass and works for me, my faithful little helper, "
+                            + "and he never complains.");
+            e.spotlight("flask", ServusAlchemyItems.SEALED_FLASK.get(), "Sealed Flask",
+                    "Lay " + craft.inputLabel() + " on a red Athanor and feed it " + PrincipleText.amounts(craft.principles()) + ". "
+                            + "Set it on a Receptaculum; it stands nowhere else.");
+            e.text("growing", "Growing",
+                    "Lay the Elixir of Sight into the Receptaculum's Elixir slot. The homunculus grows while it drinks, "
+                            + "two days and two nights, and the Elixir runs out as it grows and as it works. "
+                            + "Without the Elixir it sleeps and waits.\n\n"
+                            + "Break the glass and it is gone; a new flask starts a new one from the seed.");
+            e.text("work", "Its Work",
+                    "Grown, it reaches every Gnome Hollow on the Receptaculum's level, two blocks to every side. "
+                            + "It takes the ore the gnomes dug and lays it into the Receptaculum, and when a gnome tires "
+                            + "it brings it a gift from the gift slots.\n\n"
+                            + "Only the sight shows him at his work. Do not listen too closely to what he mutters.");
         });
     }
 

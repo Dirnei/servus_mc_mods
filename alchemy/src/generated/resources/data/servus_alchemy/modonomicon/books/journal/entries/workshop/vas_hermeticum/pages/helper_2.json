@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "helper_2",
+  "show_title_separator": true,
+  "sort_number": 1,
+  "text": "book.servus_alchemy.journal.workshop.vas_hermeticum.helper_2.text",
+  "title": ""
+}

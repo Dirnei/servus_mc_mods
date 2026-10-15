@@ -271,6 +271,12 @@
       "inputs": [],
       "outputs": []
     },
+    "servus_alchemy:athanor/sealed_flask": {
+      "type": "servus_alchemy:athanor",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
     "servus_alchemy:calciner": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["BIB", "BCB"],
@@ -432,6 +438,25 @@
       ],
       "outputs": [
         {"item": "servus_alchemy:receiver", "count": 1}
+      ]
+    },
+    "servus_alchemy:receptaculum": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["DCD", "DID", "BBB"],
+      "key": {
+        "B": {"item": "minecraft:bricks"},
+        "C": {"item": "minecraft:chest"},
+        "D": {"item": "minecraft:deepslate_bricks"},
+        "I": {"item": "servus_alchemy:ignis_perpetuus"}
+      },
+      "inputs": [
+        {"item": "minecraft:bricks", "count": 3},
+        {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:deepslate_bricks", "count": 4},
+        {"item": "servus_alchemy:ignis_perpetuus", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:receptaculum", "count": 1}
       ]
     },
     "servus_alchemy:residue_crock": {

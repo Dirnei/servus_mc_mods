@@ -102,6 +102,16 @@ final class ServusAlchemyRecipeProvider extends RecipeProvider {
                 .define('F', Items.FURNACE)
                 .unlockedBy("has_ignis_perpetuus", has(ServusAlchemyItems.IGNIS_PERPETUUS.get()))
                 .save(output);
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusAlchemyItems.RECEPTACULUM.get())
+                .pattern("DCD")
+                .pattern("DID")
+                .pattern("BBB")
+                .define('D', Items.DEEPSLATE_BRICKS)
+                .define('C', Items.CHEST)
+                .define('I', ServusAlchemyItems.IGNIS_PERPETUUS.get())
+                .define('B', Items.BRICKS)
+                .unlockedBy("has_ignis_perpetuus", has(ServusAlchemyItems.IGNIS_PERPETUUS.get()))
+                .save(output);
         ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusAlchemyItems.CALCINER.get())
                 .pattern("BIB")
                 .pattern("BCB")

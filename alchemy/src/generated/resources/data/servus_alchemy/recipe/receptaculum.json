@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "minecraft:bricks",
+    "C": "minecraft:chest",
+    "D": "minecraft:deepslate_bricks",
+    "I": "servus_alchemy:ignis_perpetuus"
+  },
+  "pattern": [
+    "DCD",
+    "DID",
+    "BBB"
+  ],
+  "result": {
+    "id": "servus_alchemy:receptaculum"
+  }
+}
