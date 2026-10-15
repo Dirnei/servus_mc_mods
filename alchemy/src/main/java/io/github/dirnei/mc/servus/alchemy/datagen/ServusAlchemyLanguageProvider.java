@@ -132,6 +132,9 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("message.servus_alchemy.gnome_hollow.ripening", "The vein ripens: %s / %s");
         add("message.servus_alchemy.gnome_hollow.ripe", "The vein is ripe. Offer a Salt Crystal.");
         add("message.servus_alchemy.gnome_hollow.working", "A gnome is at work. Nothing to take yet.");
+        add("message.servus_alchemy.gnome_hollow.gift_taken", "The gnome takes your gift and digs with a will.");
+        add("message.servus_alchemy.gnome_hollow.gift_disliked", "The gnome wrinkles its nose. It does not want this.");
+        add("message.servus_alchemy.gnome_hollow.gift_no_gnome", "No gnome is here to take a gift.");
         add(ElementalSight.ELIXIR.get(), "Elixir of Sight");
         add(ElementalSight.EFFECT.get(), "Elemental Sight");
         add("gui.servus_alchemy.athanor.stage.nigredo", "Nigredo");

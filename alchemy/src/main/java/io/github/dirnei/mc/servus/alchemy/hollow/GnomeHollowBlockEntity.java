@@ -50,6 +50,11 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         BOUND, NO_VEIN, NOT_RIPE, ALREADY_BOUND, NO_SIGHT
     }
 
+    /** What offering a gift did. */
+    public enum Gift {
+        TAKEN, DISLIKED, NO_GNOME
+    }
+
     /** What a seeding attempt did. */
     public enum Seeding {
         SEEDED, ALREADY_SEEDED, NO_ROOT
@@ -59,10 +64,12 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
     private final State growth = new State();
     private final HollowStore store = new HollowStore(DEFAULTS.itemCapacity());
     private final TeamOwnership ownership = new TeamOwnership(this);
+    private final GiftBoost boost = new GiftBoost();
     private Identifier vein;
     /** On the client: the vein's yield and its ripening steps, from the update tag. */
     private ItemStack shownYield = ItemStack.EMPTY;
     private int shownSteps;
+    private boolean shownBoosted;
 
     public GnomeHollowBlockEntity(BlockPos pos, BlockState state) {
         super(ServusAlchemyBlockEntities.GNOME_HOLLOW.get(), pos, state);
@@ -78,6 +85,20 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
 
     public HollowStore store() {
         return store;
+    }
+
+    public GiftBoost boost() {
+        return boost;
+    }
+
+    /** Ticks left of the running gift boost, 0 without one; a giver may wait until this runs low. */
+    public int boostTicksLeft() {
+        return boost.ticksLeft();
+    }
+
+    /** How many times faster the gnome digs now, 1 without a gift. */
+    public double boostFactor() {
+        return boost.factor();
     }
 
     public Optional<Identifier> vein() {
@@ -161,6 +182,27 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         return Binding.BOUND;
     }
 
+    /**
+     * Offers one item to the gnome, by hand or from another block. On {@link Gift#TAKEN} the boost starts or restarts
+     * with the gift's factor and duration; the stack is never changed here, so the caller uses up one item.
+     */
+    public Gift offerGift(ItemStack stack) {
+        if (veinDef().isEmpty() || !growth.bound) {
+            return Gift.NO_GNOME;
+        }
+        Optional<GnomeGiftData.GiftDef> gift = GnomeGiftData.INSTANCE.forItem(stack);
+        if (gift.isEmpty()) {
+            return Gift.DISLIKED;
+        }
+        boolean wasBoosted = boost.active();
+        boost.give(gift.get().factor(), gift.get().durationTicks());
+        setChanged();
+        if (!wasBoosted) {
+            syncToClients();
+        }
+        return Gift.TAKEN;
+    }
+
     /** Empties the store into stacks of the vein's yield; empty when nothing is stored or the vein's data is gone. */
     public List<ItemStack> takeStore() {
         Optional<VeinDef> def = veinDef();
@@ -187,11 +229,19 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         MachineStats stats = stats();
         tanks.setCapacity(stats.fluidCapacity());
         store.setCapacity(stats.itemCapacity());
+        boolean wasBoosted = boost.active();
+        int work = boost.work();
+        if (wasBoosted) {
+            setChanged();
+            if (!boost.active()) {
+                syncToClients();
+            }
+        }
         Optional<VeinDef> def = veinDef();
         if (def.isEmpty()) {
             return;
         }
-        Outcome outcome = VeinGrowth.tick(def.get().growth(), growth, tanks.contents(), store.hasRoom());
+        Outcome outcome = VeinGrowth.tick(def.get().growth(), growth, tanks.contents(), store.hasRoom(), work);
         switch (outcome) {
             case RIPENED -> {
                 tanks.take(def.get().growth().stepCost());
@@ -224,6 +274,11 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
 
     public boolean shownBound() {
         return growth.bound;
+    }
+
+    /** Whether a gift boost runs, as the client knows it. */
+    public boolean shownBoosted() {
+        return shownBoosted;
     }
 
     @Override
@@ -260,6 +315,8 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         output.putInt("StepTimer", growth.stepTimer);
         output.putInt("YieldTimer", growth.yieldTimer);
         output.putInt("Stored", store.count());
+        output.putDouble("GiftFactor", boost.factor());
+        output.putInt("GiftTicks", boost.ticksLeft());
         ownership.save(tag);
         output.store(tag);
     }
@@ -276,6 +333,8 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         growth.stepTimer = input.getIntOr("StepTimer", 0);
         growth.yieldTimer = input.getIntOr("YieldTimer", 0);
         store.load(input.getIntOr("Stored", 0));
+        boost.load(input.getDoubleOr("GiftFactor", 1), input.getIntOr("GiftTicks", 0));
+        shownBoosted = input.getBooleanOr("Boosted", false);
         ownership.load(tag);
         if (tag.contains("ShownYield")) {
             shownYield = ValueIo.parseStack(registries, tag.getCompoundOrEmpty("ShownYield"));
@@ -288,6 +347,7 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         CompoundTag tag = super.getUpdateTag(registries);
         tag.putInt("Ripeness", growth.ripeness);
         tag.putBoolean("Bound", growth.bound);
+        tag.putBoolean("Boosted", boost.active());
         Optional<VeinDef> def = veinDef();
         tag.put("ShownYield", def.map(d -> d.yield().isEmpty() ? new CompoundTag() : ValueIo.saveStack(registries, d.yield())).orElseGet(CompoundTag::new));
         tag.putInt("ShownSteps", def.map(d -> d.growth().steps()).orElse(0));

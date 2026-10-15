@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.alchemy.hollow;
 
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Binding;
+import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Gift;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Seeding;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinData.VeinDef;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
@@ -30,7 +31,8 @@ import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /**
  * The Gnome Hollow block: plain stone to anyone without Elemental Sight. Under the sight a sample of ore seeds it,
- * principle buckets fill it, a Salt Crystal binds a gnome to a ripe vein and an empty hand takes the dug ore out.
+ * principle buckets fill it, a Salt Crystal binds a gnome to a ripe vein, a liked gift speeds the gnome up and an
+ * empty hand takes the dug ore out.
  */
 public class GnomeHollowBlock extends BaseEntityBlock {
 
@@ -86,6 +88,8 @@ public class GnomeHollowBlock extends BaseEntityBlock {
                 if (!FluidUtil.interactWithFluidHandler(player, hand, pos, hollow.tanks(), null)) {
                     tell(player, "refused");
                 }
+            } else if (hollow.vein().isPresent() && (hollow.growth().bound || GnomeGiftData.INSTANCE.forItem(stack).isPresent())) {
+                give(hollow, stack, player);
             } else {
                 seed(hollow, stack, player);
             }
@@ -114,6 +118,14 @@ public class GnomeHollowBlock extends BaseEntityBlock {
             crystal.shrink(1);
         }
         tell(player, binding.name().toLowerCase(Locale.ROOT));
+    }
+
+    private static void give(GnomeHollowBlockEntity hollow, ItemStack gift, Player player) {
+        Gift result = hollow.offerGift(gift);
+        if (result == Gift.TAKEN && !player.getAbilities().instabuild) {
+            gift.shrink(1);
+        }
+        tell(player, "gift_" + result.name().toLowerCase(Locale.ROOT));
     }
 
     private static void seed(GnomeHollowBlockEntity hollow, ItemStack sample, Player player) {

@@ -1,0 +1,5 @@
+{
+  "items": ["minecraft:cookie", "minecraft:bread", "minecraft:sweet_berries", "minecraft:glow_berries"],
+  "factor": 2.0,
+  "duration_ticks": 12000
+}

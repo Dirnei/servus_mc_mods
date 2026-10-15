@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.Principles;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Binding;
+import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Gift;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
@@ -17,6 +18,9 @@ import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -281,6 +285,94 @@ public final class HollowGameTests {
         state.getBlock().playerDestroy(helper.getLevel(), player, helper.absolutePos(MACHINE), state, hollow, new ItemStack(Items.STONE_PICKAXE));
         helper.assertItemEntityCountIs(Items.RAW_IRON, MACHINE, 2, 5);
         helper.assertItemEntityCountIs(ServusAlchemyItems.GNOME_HOLLOW.get(), MACHINE, 2, 1);
+        helper.succeed();
+    }
+
+    /** A bound, working gnome under its base rate. */
+    static GnomeHollowBlockEntity workingHollow(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        hollow.growth().bound = true;
+        return hollow;
+    }
+
+    /** A cookie given by hand under the sight is used up and makes the gnome dig twice as fast. */
+    @ServusGameTest(timeoutTicks = 3 * IRON_YIELD_TICKS)
+    public static void likedGiftSpeedsUpTheGnome(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = workingHollow(helper);
+        ItemStack cookies = new ItemStack(Items.COOKIE, 3);
+        helper.useBlock(MACHINE, player(helper, cookies, true));
+        helper.assertTrue(cookies.getCount() == 2, "one cookie is used up, " + cookies.getCount() + " left");
+        helper.assertTrue(hollow.boostFactor() == 2 && hollow.boostTicksLeft() == 12000,
+                "a cookie boosts x2 for 12,000 ticks, got x" + hollow.boostFactor() + " for " + hollow.boostTicksLeft());
+        helper.runAfterDelay(2 * IRON_YIELD_TICKS + 10, () -> {
+            helper.assertTrue(hollow.store().count() == 4, "twice the base rate of 2 raw iron, got " + hollow.store().count());
+            helper.succeed();
+        });
+    }
+
+    /** Under the sight a stick on a bound Hollow stays in the hand and starts no boost. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void dislikedItemIsRefused(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = workingHollow(helper);
+        ItemStack stick = new ItemStack(Items.STICK);
+        helper.useBlock(MACHINE, player(helper, stick, true));
+        helper.assertTrue(stick.getCount() == 1, "the stick stays in the hand");
+        helper.assertTrue(hollow.boostTicksLeft() == 0, "no boost from a stick");
+        helper.assertTrue(hollow.offerGift(new ItemStack(Items.RAW_IRON)) == Gift.DISLIKED, "raw iron is no gift");
+        helper.succeed();
+    }
+
+    /** Without the sight a cookie does nothing to the Hollow. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void noGiftWithoutSight(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = workingHollow(helper);
+        ItemStack cookie = new ItemStack(Items.COOKIE);
+        helper.useBlock(MACHINE, player(helper, cookie, false));
+        helper.assertTrue(cookie.getCount() == 1, "the cookie stays in the hand");
+        helper.assertTrue(hollow.boostTicksLeft() == 0, "no boost without the sight");
+        helper.succeed();
+    }
+
+    /** A ripe Hollow without a bound gnome takes no gift; a block offering one never loses its item. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void noGiftWithoutGnome(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        ItemStack cookie = new ItemStack(Items.COOKIE);
+        helper.useBlock(MACHINE, player(helper, cookie, true));
+        helper.assertTrue(cookie.getCount() == 1 && hollow.boostTicksLeft() == 0, "no gnome, no gift");
+        hollow.growth().bound = true;
+        helper.assertTrue(hollow.offerGift(cookie) == Gift.TAKEN, "a bound gnome takes the cookie");
+        helper.assertTrue(cookie.getCount() == 1, "offerGift leaves the stack to the caller");
+        helper.succeed();
+    }
+
+    /** A boost runs out and the gnome digs at the base rate again. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void boostExpires(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = workingHollow(helper);
+        hollow.boost().give(2, 20);
+        int[] timer = new int[1];
+        helper.startSequence()
+                .thenExecuteAfter(30, () -> {
+                    helper.assertTrue(hollow.boostTicksLeft() == 0 && hollow.boostFactor() == 1, "the boost should have run out");
+                    timer[0] = hollow.growth().yieldTimer;
+                })
+                .thenExecuteAfter(10, () -> helper.assertTrue(hollow.growth().yieldTimer == timer[0] + 10,
+                        "base rate: 10 ticks of work in 10 ticks, got " + (hollow.growth().yieldTimer - timer[0])))
+                .thenSucceed();
+    }
+
+    /** The boost's factor and time left are saved with the Hollow. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void boostIsSaved(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = workingHollow(helper);
+        hollow.boost().give(2, 5000);
+        CompoundTag saved = hollow.saveWithoutMetadata(helper.getLevel().registryAccess());
+        helper.setBlock(MACHINE, Blocks.AIR.defaultBlockState());
+        GnomeHollowBlockEntity fresh = hollow(helper, UUID.randomUUID());
+        fresh.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), saved));
+        helper.assertTrue(fresh.boostFactor() == 2 && fresh.boostTicksLeft() == 5000,
+                "x2 for 5,000 ticks should be loaded, got x" + fresh.boostFactor() + " for " + fresh.boostTicksLeft());
         helper.succeed();
     }
 }
