@@ -2,9 +2,9 @@ package io.github.dirnei.mc.servus.alchemy.registry;
 
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.salamander.Salamander;
+import io.github.dirnei.mc.servus.alchemy.salamander.SalamanderPlacement;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -32,7 +32,7 @@ public final class ServusAlchemyEntities {
 
     @SubscribeEvent
     public static void onSpawnPlacements(RegisterSpawnPlacementsEvent event) {
-        event.register(SALAMANDER.get(), SpawnPlacementTypes.IN_LAVA, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Salamander::checkSpawnRules,
+        event.register(SALAMANDER.get(), SalamanderPlacement.INSTANCE, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Salamander::checkSpawnRules,
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
     }
 }

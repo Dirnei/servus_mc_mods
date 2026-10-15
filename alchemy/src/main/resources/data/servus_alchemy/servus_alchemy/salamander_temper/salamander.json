@@ -1,4 +1,12 @@
 {
   "befriend_chance": 0.33,
-  "digest_ticks": 1200
+  "digest_ticks": 1200,
+  "spawn": {
+    "home_radius": 4,
+    "crowd_radius": 32,
+    "crowd_max": 3,
+    "biome_chance": {
+      "minecraft:warped_forest": 0.5
+    }
+  }
 }

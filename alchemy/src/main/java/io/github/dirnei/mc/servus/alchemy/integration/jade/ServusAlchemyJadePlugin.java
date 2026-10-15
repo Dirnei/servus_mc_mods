@@ -17,6 +17,7 @@ import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPorts;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerShellBlock;
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierBlock;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierSideBlock;
@@ -339,6 +340,7 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
             CompoundTag tag = new CompoundTag();
             tag.put("Input", saveStack(accessor, calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_INPUT)));
             tag.put("Fuel", saveStack(accessor, calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_FUEL)));
+            tag.putBoolean("Ignis", calciner.hasIgnis());
             tag.putInt("Progress", calciner.progressPercent());
             tag.putInt("Ash", calciner.ashCount());
             tag.putInt("AshRoom", calciner.ashRoom());
@@ -354,7 +356,12 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
             ItemStack input = parseStack(accessor, tag.getCompoundOrEmpty("Input"));
             ItemStack fuel = parseStack(accessor, tag.getCompoundOrEmpty("Fuel"));
             tooltip.add(Component.translatable("jade.servus_alchemy.calciner.input", stackText(input)));
-            tooltip.add(Component.translatable("jade.servus_alchemy.calciner.fuel", stackText(fuel)));
+            if (tag.getBooleanOr("Ignis", false)) {
+                tooltip.add(Component.translatable("jade.servus_alchemy.calciner.eternal_fire",
+                        new ItemStack(ServusAlchemyItems.IGNIS_PERPETUUS.get()).getHoverName()));
+            } else {
+                tooltip.add(Component.translatable("jade.servus_alchemy.calciner.fuel", stackText(fuel)));
+            }
             tooltip.add(Component.translatable("jade.servus_alchemy.calciner.progress", tag.getIntOr("Progress", 0)));
             tooltip.add(Component.translatable("jade.servus_alchemy.calciner.ash", tag.getIntOr("Ash", 0),
                     tag.getIntOr("AshRoom", 0)));

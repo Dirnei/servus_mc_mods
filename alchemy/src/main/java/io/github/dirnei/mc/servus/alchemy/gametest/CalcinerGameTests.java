@@ -42,6 +42,7 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 
@@ -488,6 +489,199 @@ public final class CalcinerGameTests {
         use(helper, player, ashPan);
         helper.assertTrue(player.getInventory().countItem(ServusAlchemyItems.ASH.get()) == 5, "the player gets 5 Ash");
         helper.assertTrue(calciner.salt() == 0, "the Ash Pan is empty");
+        helper.succeed();
+    }
+
+    static ItemStack ignis(int count) {
+        return new ItemStack(ServusAlchemyItems.IGNIS_PERPETUUS.get(), count);
+    }
+
+    static BlockPos firebox(BlockPos controller) {
+        return cellPos(controller, Role.FIREBOX, Direction.NORTH);
+    }
+
+    /** A formed Calciner facing north with Ignis Perpetuus set into its Firebox by hand. */
+    static CalcinerBlockEntity withIgnis(GameTestHelper helper, BlockPos controller) {
+        CalcinerBlockEntity calciner = formed(helper, controller, Direction.NORTH);
+        use(helper, player(helper, ignis(1)), firebox(controller));
+        helper.assertTrue(calciner.hasIgnis(), "the Calciner should hold the Ignis Perpetuus");
+        return calciner;
+    }
+
+    /** One of two Ignis Perpetuus in hand goes into the Firebox. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void ignisSetByHand(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
+        Player player = player(helper, ignis(2));
+        use(helper, player, firebox(CALCINER));
+        helper.assertTrue(calciner.hasIgnis(), "the Calciner holds the Ignis Perpetuus");
+        helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_IGNIS).getCount() == 1, "it holds one");
+        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).getCount() == 1, "the player keeps one");
+        helper.succeed();
+    }
+
+    /** Setting the Ignis Perpetuus gives the coal in the fuel slot back to the player. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void ignisReturnsFuel(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 5));
+        Player player = player(helper, ignis(1));
+        use(helper, player, firebox(CALCINER));
+        helper.assertTrue(player.getInventory().countItem(Items.COAL) == 5, "the player gets the 5 coal");
+        helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_FUEL).isEmpty(), "the fuel slot is empty");
+        helper.succeed();
+    }
+
+    /** A Calciner holds one Ignis Perpetuus; a second stays in the player's hand. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void ignisOnlyOne(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = withIgnis(helper, CALCINER);
+        Player player = player(helper, ignis(1));
+        use(helper, player, firebox(CALCINER));
+        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).getCount() == 1, "the player keeps the second");
+        helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_IGNIS).getCount() == 1, "the Calciner holds one");
+        helper.succeed();
+    }
+
+    /** Ignis Perpetuus used on the mouth is neither set nor taken as matter. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void ignisNotAtTheMouth(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
+        Player player = player(helper, ignis(1));
+        use(helper, player, CALCINER);
+        helper.assertTrue(!calciner.hasIgnis(), "nothing is set at the mouth");
+        helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_INPUT).isEmpty(), "the input stays empty");
+        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).getCount() == 1, "the player keeps it");
+        helper.succeed();
+    }
+
+    /** No port takes Ignis Perpetuus, neither the Firebox nor the mouth. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void ignisNotByPipe(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
+        for (BlockPos pos : new BlockPos[] {firebox(CALCINER), CALCINER}) {
+            ItemView port = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(pos), Direction.SOUTH));
+            helper.assertTrue(port != null && port.insertItem(0, ignis(1), false).getCount() == 1, "the port at " + pos + " takes no Ignis");
+        }
+        helper.assertTrue(!calciner.hasIgnis(), "nothing is set");
+        helper.succeed();
+    }
+
+    /** With the eternal flame the Calciner calcines without fuel until the Ash Pan is full and keeps the Ignis. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void ignisBurnsWithoutFuel(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = withIgnis(helper, CALCINER);
+        calciner.putSalt(6200);
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE, 3));
+        helper.succeedWhen(() -> {
+            helper.assertTrue(calciner.ashCount() == 64, "the Ash Pan should fill up, holds " + calciner.ashCount());
+            helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_INPUT).getCount() == 1, "one cobblestone waits");
+            helper.assertTrue(calciner.hasIgnis(), "the Ignis Perpetuus is still there");
+        });
+    }
+
+    /** With the eternal flame the Firebox takes coal neither by hand nor through its port. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void ignisRefusesCoal(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = withIgnis(helper, CALCINER);
+        Player player = player(helper, new ItemStack(Items.COAL, 4));
+        use(helper, player, firebox(CALCINER));
+        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).getCount() == 4, "the player keeps the coal");
+        ItemView port = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(firebox(CALCINER)), Direction.SOUTH));
+        helper.assertTrue(port != null && port.insertItem(0, new ItemStack(Items.COAL, 3), false).getCount() == 3, "the port takes no coal");
+        helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_FUEL).isEmpty(), "the fuel slot stays empty");
+        helper.succeed();
+    }
+
+    /** With the eternal flame the Firebox reports no upkeep, also to a cache made before. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void ignisNoUpkeep(GameTestHelper helper) {
+        formed(helper, CALCINER, Direction.NORTH);
+        BlockCapabilityCache<UpkeepHolder, Direction> cache = BlockCapabilityCache.create(ServusFoundationCapabilities.UPKEEP,
+                helper.getLevel(), helper.absolutePos(firebox(CALCINER)), null);
+        helper.assertTrue(cache.getCapability() != null, "the Firebox reports upkeep while it burns coal");
+        use(helper, player(helper, ignis(1)), firebox(CALCINER));
+        helper.assertTrue(cache.getCapability() == null, "the Firebox reports no upkeep with the eternal flame");
+        helper.succeed();
+    }
+
+    /** With the shipped data the eternal flame calcines a cobblestone in 40 ticks, coal in 80. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void ignisTwiceAsFast(GameTestHelper helper) {
+        BlockPos eternalAt = new BlockPos(2, 3, 5);
+        BlockPos coalAt = new BlockPos(6, 3, 5);
+        CalcinerBlockEntity eternal = withIgnis(helper, eternalAt);
+        CalcinerBlockEntity coal = formed(helper, coalAt, Direction.NORTH);
+        coal.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL));
+        eternal.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE, 2));
+        coal.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE, 2));
+        helper.startSequence()
+                .thenExecuteAfter(60, () -> {
+                    helper.assertTrue(eternal.salt() == 100, "the eternal flame has calcined one cobblestone, got " + eternal.salt());
+                    helper.assertTrue(coal.salt() == 0, "coal has calcined none yet, got " + coal.salt());
+                })
+                .thenExecuteAfter(40, () -> {
+                    helper.assertTrue(eternal.salt() == 200, "the eternal flame has calcined two, got " + eternal.salt());
+                    helper.assertTrue(coal.salt() == 100, "coal has calcined one, got " + coal.salt());
+                })
+                .thenSucceed();
+    }
+
+    /** Sneaking with an empty hand takes the Ignis Perpetuus back; without fuel the Calciner then stops. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void ignisTakenBack(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = withIgnis(helper, CALCINER);
+        Player player = player(helper, ItemStack.EMPTY);
+        player.setShiftKeyDown(true);
+        use(helper, player, firebox(CALCINER));
+        helper.assertTrue(!calciner.hasIgnis(), "the Calciner holds no Ignis Perpetuus");
+        helper.assertTrue(player.getInventory().countItem(ServusAlchemyItems.IGNIS_PERPETUUS.get()) == 1, "the player gets it back");
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE));
+        helper.runAfterDelay(60, () -> {
+            helper.assertTrue(calciner.salt() == 0, "without fuel nothing is calcined");
+            helper.succeed();
+        });
+    }
+
+    /** Unformed and formed again, the Calciner keeps its Ignis Perpetuus and burns without fuel again. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void ignisKeptWhileUnformed(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = withIgnis(helper, CALCINER);
+        BlockPos brick = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(1), Facing.NORTH);
+        helper.getLevel().destroyBlock(helper.absolutePos(brick), false);
+        helper.assertBlockProperty(CALCINER, CalcinerBlock.FORMED, false);
+        helper.assertTrue(calciner.hasIgnis(), "the unformed Calciner keeps the Ignis Perpetuus");
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE));
+        helper.startSequence()
+                .thenExecuteAfter(60, () -> {
+                    helper.assertTrue(calciner.salt() == 0, "the unformed Calciner does not work");
+                    helper.setBlock(brick, Blocks.STONE_BRICKS);
+                    use(helper, player(helper, new ItemStack(ServusAlchemyItems.PARACELSUS_JOURNAL.get())), CALCINER);
+                    helper.assertBlockProperty(CALCINER, CalcinerBlock.FORMED, true);
+                    helper.assertTrue(calciner.hasIgnis(), "formed again it still holds the Ignis Perpetuus");
+                })
+                .thenWaitUntil(() -> helper.assertTrue(calciner.salt() == 100, "it calcines without fuel again, got " + calciner.salt()))
+                .thenSucceed();
+    }
+
+    /** A broken Firebox drops itself and the Calciner's Ignis Perpetuus. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void fireboxBrokenDropsIgnis(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = withIgnis(helper, CALCINER);
+        helper.getLevel().destroyBlock(helper.absolutePos(firebox(CALCINER)), true);
+        helper.assertItemEntityPresent(ServusAlchemyItems.FIREBOX.get(), firebox(CALCINER), 2.0);
+        helper.assertItemEntityPresent(ServusAlchemyItems.IGNIS_PERPETUUS.get(), firebox(CALCINER), 2.0);
+        helper.assertTrue(!calciner.hasIgnis(), "the Calciner holds no Ignis Perpetuus");
+        helper.succeed();
+    }
+
+    /** A broken Calciner drops its Ignis Perpetuus with itself. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void calcinerBrokenDropsIgnis(GameTestHelper helper) {
+        withIgnis(helper, CALCINER);
+        helper.getLevel().destroyBlock(helper.absolutePos(CALCINER), true);
+        helper.assertItemEntityPresent(ServusAlchemyItems.CALCINER.get(), CALCINER, 2.0);
+        helper.assertItemEntityPresent(ServusAlchemyItems.IGNIS_PERPETUUS.get(), CALCINER, 2.0);
         helper.succeed();
     }
 }

@@ -116,7 +116,9 @@ final class WorkshopCategory extends CategoryProvider {
             e.text("firing", "Firing It",
                     "Hand the matter to the mouth, or let a hopper or a pipe feed it. Coal and other fuel go into the Firebox below; "
                             + "one coal burns for several items. Sneak with an empty hand at the mouth to take the matter back.\n\n"
-                            + "When a tank or the Ash Pan is full, the Calciner waits.");
+                            + "When a tank or the Ash Pan is full, the Calciner waits.\n\n"
+                            + "Set Ignis Perpetuus into the Firebox and it burns forever without fuel and calcines faster. "
+                            + "Sneak with an empty hand at the Firebox to take it back.");
             e.text("emptying", "Taking Them Out",
                     "Each principle leaves where it belongs. Salt stays behind as ash in the Ash Pan. Mercury cools in the Receiver, "
                             + "drips from its tap into the basin and runs down into the right tank, and Sulfur rises into the Hood and runs down the duct into the left tank.\n\n"
@@ -356,9 +358,10 @@ final class WorkshopCategory extends CategoryProvider {
         AlchemyRecipeTable.AthanorCraft craft = athanorCraft("ignis_perpetuus");
         return new WorkshopEntry(this, "salamander", "The Salamander", "Citrinitas: the fire that eats gold",
                 ServusAlchemyItems.IGNIS_PERPETUUS.get(), e -> {
-            e.text("lava", "In the Lava",
-                    "In the lava lakes of the Nether, in its wastes and its basalt deltas, live the salamanders, lizards of glowing coal. "
-                            + "Without the sight you see only a flame that dances on the lava a little too long. "
+            e.text("stems", "Among the Crimson Stems",
+                    "The salamanders, lizards of glowing coal, live in the Nether's crimson forests, near the crimson trees and the Nether Wart. "
+                            + "Fewer live among the warped trees; now and then one swims on lava.\n\n"
+                            + "Without the sight you see only a flame that dances a little too long. "
                             + "Drink the Elixir of Sight and you see them. Fire and lava do them no harm, and they harm nobody.");
             e.text("gold", "Gold for a Friend",
                     "Hold out a Gold Ingot to a salamander you can see. It eats every ingot, and now and then it takes a liking to you: "
@@ -370,7 +373,10 @@ final class WorkshopCategory extends CategoryProvider {
                             + "One ingot at a time; it will not take the next before it is done.");
             e.spotlight("ignis", ServusAlchemyItems.IGNIS_PERPETUUS.get(), "Ignis Perpetuus",
                     "Lay " + craft.inputLabel() + " on a yellow Athanor and feed it " + PrincipleText.amounts(craft.principles()) + ". "
-                            + "The flame that never goes out. It does not feed a furnace; it is built into greater works.");
+                            + "The flame that never goes out. It does not feed a furnace; it fires a Calciner and is built into greater works.");
+            e.text("eternal_fire", "The Eternal Flame",
+                    "Set Ignis Perpetuus into the Firebox of a Calciner and it fires the Calciner forever, without coal, "
+                            + "and makes it calcine faster. Sneak with an empty hand at the Firebox to take it back.");
         });
     }
 

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.alchemy.client;
 
+import com.google.common.base.Suppliers;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -10,6 +11,7 @@ import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerLayout;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerStructure;
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.structure.Offset;
 import io.github.dirnei.mc.servus.foundation.client.BufferedBlockEntityRenderer;
 import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
@@ -26,17 +28,19 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import java.util.function.Supplier;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
  * Draws what a formed Calciner holds: the matter in the crucible and the ash heap in the Ash Pan by how full it is. While
  * the Calciner works, Mercury drips from the Receiver's tap into the basin, and a puddle lies there while the Mercury tank
- * holds fluid. The tanks show their own level. The rest of the structure is
+ * holds fluid. Ignis Perpetuus set into the Firebox glows behind its grate. The tanks show their own level. The rest of the structure is
  * chunk baked from block models.
  */
 public final class CalcinerRenderer extends BufferedBlockEntityRenderer<CalcinerBlockEntity> {
@@ -57,6 +61,11 @@ public final class CalcinerRenderer extends BufferedBlockEntityRenderer<Calciner
     private static final float PUDDLE_BOTTOM = 12.1F;
     private static final float PUDDLE_TOP = 12.7F;
 
+    private static final Supplier<ItemStack> IGNIS = Suppliers.memoize(() -> new ItemStack(ServusAlchemyItems.IGNIS_PERPETUUS.get()));
+    private static final float IGNIS_SCALE = 6 / 16F;
+    /** Height of the Ignis Perpetuus' centre in the Firebox, in sixteenths. */
+    private static final float IGNIS_CENTRE = 8.05F;
+
     public CalcinerRenderer(BlockEntityRendererProvider.Context context) {
     }
 
@@ -71,6 +80,27 @@ public final class CalcinerRenderer extends BufferedBlockEntityRenderer<Calciner
         renderAsh(calciner, facing, poseStack, consumer, packedLight);
         renderBasin(calciner, facing, partialTick, poseStack, consumer, packedLight);
         renderInput(calciner, facing, poseStack, buffers, packedLight);
+        renderIgnis(calciner, facing, poseStack, buffers);
+    }
+
+    /**
+     * The eternal flame standing on the coals behind the Firebox grate, glowing at full brightness. The item is 6 px
+     * tall and less than half a pixel thick, centred 2 px behind the front: clear of the grate plane (1 px), the back
+     * wall (3 px) and the top of the coals (5 px, the item starts at 5.05 px).
+     */
+    private static void renderIgnis(CalcinerBlockEntity calciner, Direction facing, PoseStack poseStack, SubmitBuffers buffers) {
+        if (!calciner.hasIgnis()) {
+            return;
+        }
+        Offset offset = CalcinerLayout.worldOffset(CalcinerLayout.part(Role.FIREBOX), CalcinerStructure.facing(facing));
+        float[] spot = rotate(8 / 16F, 2 / 16F, 8 / 16F, 2 / 16F, facing);
+        poseStack.pushPose();
+        poseStack.translate(offset.x() + spot[0], offset.y() + IGNIS_CENTRE / 16, offset.z() + spot[1]);
+        poseStack.mulPose(Axis.YP.rotationDegrees(-facing.toYRot()));
+        poseStack.scale(IGNIS_SCALE, IGNIS_SCALE, IGNIS_SCALE);
+        RenderSubmit.item(poseStack, buffers.collector(), IGNIS.get(), ItemDisplayContext.FIXED, calciner.getLevel(),
+                (int) calciner.getBlockPos().asLong(), LightCoordsUtil.FULL_BRIGHT);
+        poseStack.popPose();
     }
 
     /** The ash heap in the Ash Pan, rising with the Salt it holds out of its room. */

@@ -55,10 +55,19 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
         builder.add(FACING, FORMED, LIT);
     }
 
-    /** The Firebox takes fuel by hand. */
+    /** The Firebox takes fuel by hand, or Ignis Perpetuus as its eternal flame. */
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (role == Role.FIREBOX && state.getValue(FORMED) && stack.is(ServusAlchemyItems.IGNIS_PERPETUUS.get())) {
+            CalcinerBlockEntity calciner = CalcinerPorts.calciner(level, pos, state);
+            if (calciner != null) {
+                if (!level.isClientSide()) {
+                    calciner.setIgnis(player, hand);
+                }
+                return InteractionResult.SUCCESS;
+            }
+        }
         if (role == Role.FIREBOX && state.getValue(FORMED) && stack.getBurnTime(null, level.fuelValues()) > 0) {
             CalcinerBlockEntity calciner = CalcinerPorts.calciner(level, pos, state);
             if (calciner != null) {
@@ -74,9 +83,15 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
         return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
-    /** An empty hand on the Ash Pan of a formed Calciner takes all its Ash. */
+    /**
+     * An empty hand on the Ash Pan of a formed Calciner takes all its Ash; sneaking with an empty hand on the Firebox
+     * takes its Ignis Perpetuus back.
+     */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (role == Role.FIREBOX && state.getValue(FORMED) && player.isShiftKeyDown()) {
+            return takeIgnis(state, level, pos, player);
+        }
         if (role != Role.ASH_PAN || !state.getValue(FORMED)) {
             return InteractionResult.PASS;
         }
@@ -91,6 +106,17 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
                 PlayerItems.give(player, new ItemStack(ServusAlchemyItems.ASH.get(), count));
                 ash -= count;
             }
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    private static InteractionResult takeIgnis(BlockState state, Level level, BlockPos pos, Player player) {
+        CalcinerBlockEntity calciner = CalcinerPorts.calciner(level, pos, state);
+        if (calciner == null || !calciner.hasIgnis()) {
+            return InteractionResult.PASS;
+        }
+        if (!level.isClientSide()) {
+            calciner.takeIgnis(player);
         }
         return InteractionResult.SUCCESS;
     }
@@ -131,8 +157,15 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
         CalcinerStructure.neighbourChanged(level, state, pos);
     }
 
+    /** A broken Firebox drops the Calciner's Ignis Perpetuus before the structure unforms. */
     @Override
     protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        if (role == Role.FIREBOX && state.getValue(FORMED)) {
+            CalcinerBlockEntity calciner = CalcinerPorts.calciner(level, pos, state);
+            if (calciner != null) {
+                Block.popResource(level, pos, calciner.removeIgnis());
+            }
+        }
         CalcinerStructure.broken(level, state, pos);
         super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }

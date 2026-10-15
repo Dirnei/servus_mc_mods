@@ -18,8 +18,9 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
 
 /**
- * Loads how a salamander takes to gold from {@code data/<namespace>/servus_alchemy/salamander_temper/<name>.json}; the file id
- * is the entity type id.
+ * Loads how a salamander takes to gold and where it spawns from
+ * {@code data/<namespace>/servus_alchemy/salamander_temper/<name>.json}; the file id is the entity type id. The {@code spawn}
+ * object and each of its fields may be left out for the defaults.
  */
 public final class SalamanderTemperData extends SimpleJsonResourceReloadListener<JsonElement> {
 
@@ -28,9 +29,23 @@ public final class SalamanderTemperData extends SimpleJsonResourceReloadListener
 
     public static final String DIRECTORY = "servus_alchemy/salamander_temper";
 
+    private static final SalamanderTemper.Spawn SPAWN_DEFAULT = SalamanderTemper.Spawn.DEFAULT;
+
+    private static final Codec<SalamanderTemper.Spawn> SPAWN_CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.intRange(0, SalamanderTemper.Spawn.MAX_HOME_RADIUS).optionalFieldOf("home_radius", SPAWN_DEFAULT.homeRadius())
+                    .forGetter(SalamanderTemper.Spawn::homeRadius),
+            Codec.intRange(0, Integer.MAX_VALUE).optionalFieldOf("crowd_radius", SPAWN_DEFAULT.crowdRadius())
+                    .forGetter(SalamanderTemper.Spawn::crowdRadius),
+            Codec.intRange(0, Integer.MAX_VALUE).optionalFieldOf("crowd_max", SPAWN_DEFAULT.crowdMax())
+                    .forGetter(SalamanderTemper.Spawn::crowdMax),
+            Codec.unboundedMap(Codec.STRING, Codec.doubleRange(0, 1)).optionalFieldOf("biome_chance", SPAWN_DEFAULT.biomeChance())
+                    .forGetter(SalamanderTemper.Spawn::biomeChance)
+    ).apply(instance, SalamanderTemper.Spawn::new));
+
     private static final Codec<SalamanderTemper> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.doubleRange(0, 1).fieldOf("befriend_chance").forGetter(SalamanderTemper::befriendChance),
-            Codec.intRange(1, Integer.MAX_VALUE).fieldOf("digest_ticks").forGetter(SalamanderTemper::digestTicks)
+            Codec.intRange(1, Integer.MAX_VALUE).fieldOf("digest_ticks").forGetter(SalamanderTemper::digestTicks),
+            SPAWN_CODEC.optionalFieldOf("spawn", SPAWN_DEFAULT).forGetter(SalamanderTemper::spawn)
     ).apply(instance, SalamanderTemper::new));
 
     public static final SalamanderTemperData INSTANCE = new SalamanderTemperData();

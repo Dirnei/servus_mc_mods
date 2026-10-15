@@ -10,7 +10,7 @@
 - Befriending: right click a wild salamander with a Gold Ingot. Each ingot is used up and befriends with a chance from data (example 1 in 3), hearts on success, smoke on failure.
 - A befriended salamander follows its owner, teleports to them when far away, sits and stands up on an empty hand right click by the owner, never despawns, and walks to a nearby lit campfire to lie in it when idle.
 - Sal Ammoniac: the owner feeds a befriended salamander a Gold Ingot by hand; it digests it and drops one Sal Ammoniac after a time from data (example 60 s), one ingot at a time.
-- Ignis Perpetuus: new item made on a Citrinitas Athanor from one Sal Ammoniac and Sulfur. It is a building part only, not a fuel.
+- Ignis Perpetuus: new item made on a Citrinitas Athanor from one Sal Ammoniac and Sulfur. It is a building part, not a furnace fuel.
 - Tooltips in Paracelsus' voice on Sal Ammoniac and Ignis Perpetuus; a Salamander spawn egg for testing; a Workshop entry "The Salamander" that unlocks with the Wandering years chapter.
 - No journal task asks for the salamander: the plan keeps it optional for progression (see design).
 

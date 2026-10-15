@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.alchemy.datagen;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.hint.OldGnome;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
+import io.github.dirnei.mc.servus.alchemy.salamander.Salamander;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
@@ -41,5 +42,7 @@ final class ServusAlchemyBlockTagsProvider extends BlockTagsProvider {
                 .add(ServusAlchemyBlocks.PRELUM.get())
                 .add(ServusAlchemyBlocks.ANCIENT_HOLLOW.get());
         tag(OldGnome.WAKES).add(Blocks.DEEPSLATE);
+        tag(Salamander.HOME).addTag(BlockTags.CRIMSON_STEMS).addTag(BlockTags.WARPED_STEMS)
+                .add(Blocks.NETHER_WART_BLOCK).add(Blocks.WARPED_WART_BLOCK).add(Blocks.NETHER_WART);
     }
 }

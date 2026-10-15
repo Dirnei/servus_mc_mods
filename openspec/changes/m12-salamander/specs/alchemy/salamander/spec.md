@@ -121,7 +121,7 @@ The befriend chance, the digest time, the home distance, the crowd radius and th
 - **THEN** no wild salamander spawns within the crowd radius of another wild one
 
 ### Requirement: Ignis Perpetuus
-Alchemy SHALL add Ignis Perpetuus, an item made on an Athanor of at least the Citrinitas tier from one Sal Ammoniac and Sulfur. It SHALL be a building part only and SHALL not burn as a fuel.
+Alchemy SHALL add Ignis Perpetuus, an item made on an Athanor of at least the Citrinitas tier from one Sal Ammoniac and Sulfur. It SHALL be a building part and SHALL not burn as a furnace fuel.
 
 #### Scenario: Citrinitas craft
 - **WHEN** Sal Ammoniac lies on a Citrinitas Athanor with enough Sulfur in its tanks

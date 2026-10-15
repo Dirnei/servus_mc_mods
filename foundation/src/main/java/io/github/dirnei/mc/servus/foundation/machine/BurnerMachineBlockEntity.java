@@ -54,9 +54,9 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
     /** Performs one finished work cycle. Only called when {@link #canWork()} was true. */
     protected abstract void finishWork();
 
-    /** The fuel slot as upkeep, or null when the machine's stats keep none. */
+    /** The fuel slot as upkeep, or null when the machine's stats keep none or an eternal fire burns. */
     public UpkeepHolder upkeep() {
-        return stats().hasUpkeep() ? upkeep : null;
+        return stats().hasUpkeep() && !eternalFire() ? upkeep : null;
     }
 
     private ItemStack upkeepStack() {
@@ -79,9 +79,20 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
         return burnTime > 0;
     }
 
+    /**
+     * Whether a fire that never goes out burns in this machine. While true the machine works without fuel, its burn
+     * does not count down and it reports no upkeep. False by default.
+     */
+    protected boolean eternalFire() {
+        return false;
+    }
+
     @Override
     protected boolean tick() {
         boolean hasWork = canWork();
+        if (eternalFire()) {
+            return workOverEternalFire(hasWork);
+        }
         if (burnTime > 0) {
             burnTime--;
         }
@@ -93,6 +104,17 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
             consumeFuel();
         }
         if (burnTime <= 0) {
+            return false;
+        }
+        if (stepProgress()) {
+            finishWork();
+        }
+        return true;
+    }
+
+    private boolean workOverEternalFire(boolean hasWork) {
+        if (!hasWork) {
+            resetProgress();
             return false;
         }
         if (stepProgress()) {
@@ -119,8 +141,12 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
         inventory.setStackInSlot(fuelSlot(), fuel.isEmpty() ? remainder : fuel);
     }
 
+    /** An eternal fire shows as a full burn. */
     @Override
     protected int getData(int index) {
+        if (eternalFire() && (index == DATA_BURN_TIME || index == DATA_BURN_DURATION)) {
+            return 1;
+        }
         return switch (index) {
             case DATA_BURN_TIME -> burnTime;
             case DATA_BURN_DURATION -> burnDuration;

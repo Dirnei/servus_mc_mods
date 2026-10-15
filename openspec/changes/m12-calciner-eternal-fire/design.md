@@ -46,7 +46,7 @@ Alternative: a new field in Foundation's `MachineStats`. Rejected: Foundation's 
 `CalcinerProvider` writes `Ignis` into the server data; the client shows a line `jade.servus_alchemy.calciner.eternal_fire` ("Fire: Ignis Perpetuus") instead of the fuel line while it is set. Lang comes from `ServusAlchemyLanguageProvider`.
 
 ### Journal
-`WorkshopCategory`: the Ignis Perpetuus spotlight on the Salamander entry and the fire text of the Calciner entry say that set into a Calciner's Firebox it burns forever and calcines faster, and that a sneak with an empty hand takes it back. The text says "faster", not the number, because the number lives in the datapack.
+`WorkshopCategory`: the Ignis Perpetuus spotlight on the Salamander entry with a text page "The Eternal Flame" after it (a spotlight page is not split, so it stays short) and the fire text of the Calciner entry say that set into a Calciner's Firebox it burns forever and calcines faster, and that a sneak with an empty hand takes it back. The text says "faster", not the number, because the number lives in the datapack.
 
 ### APIs used
 - `SimpleJsonResourceReloadListener`, `FileToIdConverter`, `AddServerReloadListenersEvent` (already used by `OldGnomeData` and `AlchemyEvents`, NeoForge 26.1).

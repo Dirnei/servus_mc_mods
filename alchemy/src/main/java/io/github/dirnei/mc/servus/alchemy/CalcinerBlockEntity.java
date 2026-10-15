@@ -1,8 +1,12 @@
 package io.github.dirnei.mc.servus.alchemy;
 
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerLayout;
+import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPorts;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerStructure;
+import io.github.dirnei.mc.servus.alchemy.calciner.EternalFireData;
+import io.github.dirnei.mc.servus.alchemy.calciner.EternalFireSpeed;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurificationRecipe;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
@@ -19,10 +23,12 @@ import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -45,6 +51,8 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
 
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_FUEL = 1;
+    /** The eternal flame set into the Firebox; no port reaches it. */
+    public static final int SLOT_IGNIS = 2;
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "calciner");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
     private static final int SYNC_INTERVAL = 10;
@@ -70,9 +78,11 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
     private Item sentInput;
     /** On the client: the matter shown in the crucible. */
     private ItemStack shownInput = ItemStack.EMPTY;
+    /** On the client: whether the Firebox shows the eternal flame. */
+    private boolean shownIgnis;
 
     public CalcinerBlockEntity(BlockPos pos, BlockState state) {
-        super(ServusAlchemyBlockEntities.CALCINER.get(), pos, state, 2);
+        super(ServusAlchemyBlockEntities.CALCINER.get(), pos, state, 3);
         AlchemyMachines.closeAllSides(this);
     }
 
@@ -273,7 +283,66 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
 
     @Override
     protected int workTicks() {
-        return currentRecipe().map(recipe -> Math.max(1, recipe.time())).orElse(Integer.MAX_VALUE);
+        return currentRecipe().map(recipe -> eternalFire()
+                ? EternalFireSpeed.cycleTicks(recipe.time(), EternalFireData.INSTANCE.speed())
+                : Math.max(1, recipe.time())).orElse(Integer.MAX_VALUE);
+    }
+
+    /** The Calciner burns without fuel while it holds Ignis Perpetuus. */
+    @Override
+    protected boolean eternalFire() {
+        return !inventory.getStackInSlot(SLOT_IGNIS).isEmpty();
+    }
+
+    /** Whether Ignis Perpetuus is set into the Firebox; on the client as last synced. */
+    public boolean hasIgnis() {
+        return level != null && level.isClientSide() ? shownIgnis : eternalFire();
+    }
+
+    /**
+     * Sets one Ignis Perpetuus from the player's hand into the Firebox and gives the fuel slot's content to the player.
+     * Does nothing when the Calciner already holds one or the hand holds none.
+     */
+    public void setIgnis(Player player, InteractionHand hand) {
+        ItemStack held = player.getItemInHand(hand);
+        if (eternalFire() || !held.is(ServusAlchemyItems.IGNIS_PERPETUUS.get())) {
+            return;
+        }
+        inventory.setStackInSlot(SLOT_IGNIS, held.copyWithCount(1));
+        held.consume(1, player);
+        PlayerItems.give(player, inventory.getStackInSlot(SLOT_FUEL).copy());
+        inventory.setStackInSlot(SLOT_FUEL, ItemStack.EMPTY);
+        burnTime = 0;
+        burnDuration = 0;
+        ignisChanged();
+    }
+
+    /** Gives the Ignis Perpetuus back to the player; the Calciner needs fuel again. */
+    public void takeIgnis(Player player) {
+        PlayerItems.give(player, removeIgnis());
+    }
+
+    /** Takes the Ignis Perpetuus out of the Calciner and returns it, empty when there was none. */
+    public ItemStack removeIgnis() {
+        ItemStack ignis = inventory.getStackInSlot(SLOT_IGNIS).copy();
+        if (!ignis.isEmpty()) {
+            inventory.setStackInSlot(SLOT_IGNIS, ItemStack.EMPTY);
+            ignisChanged();
+        }
+        return ignis;
+    }
+
+    private void ignisChanged() {
+        setChanged();
+        if (level == null) {
+            return;
+        }
+        level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        if (getBlockState().getBlock() instanceof CalcinerBlock) {
+            Direction direction = getBlockState().getValue(MachineBlock.FACING);
+            level.invalidateCapabilities(CalcinerStructure.pos(worldPosition, CalcinerLayout.part(Role.FIREBOX),
+                    CalcinerStructure.facing(direction)));
+        }
     }
 
     /** On the client: the matter drawn in the crucible of the formed Calciner. */
@@ -300,6 +369,7 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
         tag.putInt("SaltRoom", saltRoom());
         ItemStack shown = inventory.getStackInSlot(SLOT_INPUT).copyWithCount(1);
         tag.put("ShownInput", shown.isEmpty() ? new CompoundTag() : ValueIo.saveStack(registries, shown));
+        tag.putBoolean("Ignis", eternalFire());
         return tag;
     }
 
@@ -319,6 +389,7 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
         HolderLookup.Provider registries = input.lookup();
         salt = Math.max(0, tag.getIntOr("Salt", 0));
         shownSaltRoom = tag.getIntOr("SaltRoom", shownSaltRoom);
+        shownIgnis = tag.getBooleanOr("Ignis", shownIgnis);
         ownership.load(tag);
         if (tag.contains("ShownInput")) {
             shownInput = ValueIo.parseStack(registries, tag.getCompoundOrEmpty("ShownInput"));
@@ -331,8 +402,8 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
         return null;
     }
 
-    /** Whether a stack burns as furnace fuel in this world. */
+    /** Whether a stack goes into the fuel slot: furnace fuel, and only while no eternal flame burns. */
     private boolean burns(ItemStack stack) {
-        return level != null && stack.getBurnTime(null, level.fuelValues()) > 0;
+        return level != null && !eternalFire() && stack.getBurnTime(null, level.fuelValues()) > 0;
     }
 }
