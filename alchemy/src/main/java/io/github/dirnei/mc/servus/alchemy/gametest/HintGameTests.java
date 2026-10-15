@@ -20,6 +20,7 @@ import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -29,6 +30,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.TypedEntityData;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -285,6 +287,62 @@ public final class HintGameTests {
                 "the find counts for the finder's team");
         helper.assertTrue(gnome.isRemoved(), "once found, the House Gnome leaves");
         helper.succeed();
+    }
+
+    /** Wakes the old gnome by breaking {@link #FACE} for real: the block is gone, as after a player broke it. */
+    private static AncientHollowBlockEntity wokenByBreaking(GameTestHelper helper, UUID team) {
+        BlockPos pos = helper.absolutePos(FACE);
+        helper.setBlock(FACE, Blocks.AIR);
+        Optional<BlockPos> woken = OldGnome.onBroken(helper.getLevel(), team, pos, Blocks.DEEPSLATE.defaultBlockState(), CERTAIN,
+                RandomSource.create(42));
+        if (woken.isEmpty() || !(helper.getLevel().getBlockEntity(woken.get()) instanceof AncientHollowBlockEntity hollow)) {
+            throw helper.assertionException(Component.literal("the old gnome should wake"));
+        }
+        return hollow;
+    }
+
+    private static Gnome lanternBearer(GameTestHelper helper, AncientHollowBlockEntity hollow) {
+        return helper.getLevel().getEntitiesOfClass(Gnome.class, new AABB(hollow.getBlockPos()).inflate(12),
+                gnome -> gnome.kind() == GnomeKind.LANTERN && gnome.livesAt(hollow.getBlockPos())).stream().findFirst()
+                .orElseThrow(() -> helper.assertionException(Component.literal("a Lantern Bearer should belong to the Hollow")));
+    }
+
+    /** When the knocking wakes, the Lantern Bearer appears where the block was broken and walks to the Ancient Hollow. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void lanternBearerLeadsToTheHollow(GameTestHelper helper) {
+        tunnel(helper);
+        AncientHollowBlockEntity hollow = wokenByBreaking(helper, afterSchwaz(helper.getLevel()));
+        Gnome bearer = lanternBearer(helper, hollow);
+        helper.assertTrue(bearer.blockPosition().equals(helper.absolutePos(FACE)), "he appears where the block was broken");
+        Vec3 front = hollow.inFront(0.5);
+        helper.succeedWhen(() -> helper.assertTrue(bearer.position().distanceTo(front) <= 2.5,
+                "he should wait at the Hollow, " + bearer.position().distanceTo(front) + " away"));
+    }
+
+    /** Once the old gnome is found the Lantern Bearer leaves. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void lanternBearerLeavesWhenFound(GameTestHelper helper) {
+        tunnel(helper);
+        UUID team = afterSchwaz(helper.getLevel());
+        AncientHollowBlockEntity hollow = wokenByBreaking(helper, team);
+        Gnome bearer = lanternBearer(helper, hollow);
+        OldGnome.find(helper.getLevel(), team, hollow);
+        helper.succeedWhen(() -> helper.assertTrue(bearer.isRemoved(), "the Lantern Bearer should leave"));
+    }
+
+    /** After 20 minutes without the old gnome found the Lantern Bearer leaves; the old gnome stays. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void lanternBearerLeavesAfterTwentyMinutes(GameTestHelper helper) {
+        tunnel(helper);
+        AncientHollowBlockEntity hollow = wokenByBreaking(helper, afterSchwaz(helper.getLevel()));
+        Gnome bearer = lanternBearer(helper, hollow);
+        CompoundTag aged = new CompoundTag();
+        aged.putInt("Life", Gnome.LANTERN_LIFE - 1);
+        TypedEntityData.of(bearer.getType(), aged).loadInto(bearer);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(bearer.isRemoved(), "the Lantern Bearer should leave after 20 minutes");
+            helper.assertTrue(hollow.gnome().isPresent(), "the House Gnome still waits");
+        });
     }
 
     /** Without the sight the journal does nothing to him. */

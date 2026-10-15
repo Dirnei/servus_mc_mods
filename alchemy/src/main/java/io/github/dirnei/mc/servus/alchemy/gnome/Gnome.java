@@ -51,6 +51,8 @@ public class Gnome extends PathfinderMob {
     /** How far an Old Miner strays from his Hollow, and the House Gnome from the Ancient Hollow. */
     private static final int MINER_HOME_RADIUS = 4;
     private static final int HOUSE_HOME_RADIUS = 1;
+    /** Ticks the Lantern Bearer waits for the old gnome to be found before he leaves: 20 minutes. */
+    public static final int LANTERN_LIFE = 24_000;
     /** How often a gnome asks his hollow whether it still keeps him. */
     private static final int HOLLOW_CHECK_INTERVAL = 20;
 
@@ -145,6 +147,7 @@ public class Gnome extends PathfinderMob {
     @Override
     protected void registerGoals() {
         goalSelector.addGoal(1, new TendHollowGoal(this));
+        goalSelector.addGoal(2, new LeadToHollowGoal(this));
         goalSelector.addGoal(4, new MoveTowardsRestrictionGoal(this, 0.8));
         goalSelector.addGoal(6, new WanderNearHollowGoal(this));
         goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 8.0F));
@@ -162,13 +165,16 @@ public class Gnome extends PathfinderMob {
         }
     }
 
-    /** Whether the hollow he belongs to still keeps him; a gnome nobody keeps leaves. */
+    /**
+     * Whether the hollow he belongs to still keeps him; a gnome nobody keeps leaves. The Old Miner and the House Gnome
+     * are kept by their hollow's UUID, the Lantern Bearer until the old gnome is found or his time is up.
+     */
     private boolean keptByHollow(ServerLevel level, BlockPos pos) {
         BlockEntity host = level.getBlockEntity(pos);
         return switch (kind()) {
             case MINER -> host instanceof GnomeHollowBlockEntity hollow && hollow.keepsGnome(getUUID());
             case HOUSE -> host instanceof AncientHollowBlockEntity ancient && !ancient.found() && ancient.keepsGnome(getUUID());
-            case LANTERN -> true;
+            case LANTERN -> host instanceof AncientHollowBlockEntity ancient && !ancient.found() && life < LANTERN_LIFE;
         };
     }
 

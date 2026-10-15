@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.alchemy.hint;
 
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.gnome.Gnome;
+import io.github.dirnei.mc.servus.alchemy.gnome.GnomeKind;
 import io.github.dirnei.mc.servus.alchemy.hint.AncientHollowSite.Site;
 import io.github.dirnei.mc.servus.alchemy.hint.OldGnomeLedger.Entry;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
@@ -19,6 +21,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -31,7 +34,8 @@ import net.minecraft.world.phys.Vec3;
 /**
  * Paracelsus' old gnome from the mines of Schwaz. He sleeps until a team that finished the wake chapter mines deep; then a
  * wall nearby becomes his Ancient Hollow, which knocks, lets dust fall and leaves traces until the team finds him under the
- * sight. Everything here reacts to a block break, a pickup or a click; nothing scans the world.
+ * sight. His apprentice, the Lantern Bearer, appears where the waking block was broken and walks ahead to the Hollow.
+ * Everything here reacts to a block break, a pickup or a click; nothing scans the world.
  */
 public final class OldGnome {
 
@@ -99,10 +103,16 @@ public final class OldGnome {
         }
         hollow.setTeam(team);
         hollow.summonGnome(level);
+        Vec3 apprentice = Vec3.atBottomCenterOf(pos);
+        Gnome.spawn(level, GnomeKind.LANTERN, at, apprentice, yRotTowards(apprentice, hollow.inFront(0.5)));
         data.wake(team, at.asLong(), level.dimension().identifier().toString());
         dropTrace(level, hollow.inFront(0.3).subtract(0, 0.3, 0), random);
         hollow.knock();
         return Optional.of(at);
+    }
+
+    private static float yRotTowards(Vec3 from, Vec3 to) {
+        return (float) (Mth.atan2(to.z - from.z, to.x - from.x) * Mth.RAD_TO_DEG) - 90.0F;
     }
 
     private static void maybeDropTrace(ServerLevel level, UUID team, BlockPos pos, OldGnomeSettings settings, RandomSource random) {
