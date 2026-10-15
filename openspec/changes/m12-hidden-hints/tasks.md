@@ -28,7 +28,7 @@
 
 ## 7. Verification
 
-- [ ] 7.1 Full `gradlew build test :alchemy:runGameTestServer` green; client smoke start from main reaches the title screen without errors mentioning servus.
+- [x] 7.1 Full `gradlew build test :alchemy:runGameTestServer` green; client smoke start from main reaches the title screen without errors mentioning servus.
 - [ ] 7.2 User play check in game:
   - A Gnome Hollow with a bound gnome knocks softly now and then; the subtitle reads "Something knocks in the rock".
   - A wild salamander in lava sometimes shows a little spiral of flames; a Vas bubbles now and then without the sight.
