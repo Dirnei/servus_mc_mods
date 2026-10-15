@@ -2,7 +2,7 @@
 
 ## 1. Pure dose
 
-- [ ] 1.1 Pure `ElixirDose` in `alchemy/src/main/java/.../alchemy/sight/` (design D1). JUnit `alchemy/src/test/java/.../alchemy/sight/ElixirDoseTest`: `chanceZeroNeverPoisons`, `chanceOneAlwaysPoisons`, `rollBelowChancePoisons`, `sightedAddsExtraChance`, `extraChanceIsCapped`, `harmlessNeverPoisons`, `rejectsChanceOutsideRange`. Verify: `gradlew :alchemy:test` green.
+- [x] 1.1 Pure `ElixirDose` in `alchemy/src/main/java/.../alchemy/sight/` (design D1). JUnit `alchemy/src/test/java/.../alchemy/sight/ElixirDoseTest`: `chanceZeroNeverPoisons`, `chanceOneAlwaysPoisons`, `rollBelowChancePoisons`, `sightedAddsExtraChance`, `extraChanceIsCapped`, `harmlessNeverPoisons`, `rejectsChanceOutsideRange`. Verify: `gradlew :alchemy:test` green.
 
 ## 2. Poison on drinking
 
