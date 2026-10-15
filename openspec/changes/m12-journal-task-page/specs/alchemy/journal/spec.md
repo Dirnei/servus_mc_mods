@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Task page with live progress
-Every chapter entry of the journal book SHALL show a task page as the first page after its title. It SHALL list each task of the chapter with a short name, the team's progress against the task's count (for example "40 / 100") and a mark once the task is done. When the team has finished the chapter, the page SHALL say so. The page SHALL show the reader's team progress as it is now, also while the book stays open.
+Every chapter entry of the journal book SHALL open with a task page. It SHALL list each task of the chapter with a short name, the team's progress against the task's count (for example "40 / 100") and a mark once the task is done. When the team has finished the chapter, the page SHALL say so. The page SHALL show the reader's team progress as it is now, also while the book stays open.
 
 #### Scenario: Progress shows in the book
 - **WHEN** a player whose team has calcined 40 of 100 items opens the Villach entry

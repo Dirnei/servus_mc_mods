@@ -4,7 +4,7 @@ The journal hides what a chapter asks for in its prose, often on a later page, a
 
 ## What Changes
 
-- New book page type: the chapter's task list. Every chapter entry shows it as the first page after its title, so the open chapter's work is visible on the first spread.
+- New book page type: the chapter's task list. Every chapter entry opens with it, so the open chapter's work is visible on the first spread.
 - Each task shows a short name, its progress as "40 / 100" with a small bar, and a check mark once done. A finished chapter says so above the list.
 - The server sends each player their team's journal progress at login, after `/reload` and when it changes (collected and sent once per server tick).
 - The task lists in the chapter prose go; the prose keeps the story and the how to.

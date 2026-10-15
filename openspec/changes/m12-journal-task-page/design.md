@@ -13,7 +13,7 @@ Chapters and counts live on the server (`JournalChapters`, `JournalSavedData`). 
 - **Own page type** `servus_alchemy:journal_tasks` with one field `chapter`, registered with `BookPageTypeRegistry.register(id, MapCodec, StreamCodec)` during common setup, and a renderer registered with `PageRendererRegistry.registerPageRenderer(id, factory)` on the client. A dynamic text macro (`DynamicTextMacroRegistry`) was the alternative; its loader returns a fixed map and is evaluated when the book prerenders, so it cannot show live counts. Verify the `BookPage` constructor and `BookPageRenderer` methods in the 2.17.0 jar before coding.
 - **Payload** `JournalProgressPayload` (play, server to client): for each chapter of the reader's team that is open or finished, the chapter id, finished flag and per task the id, count and needed. The client keeps the last one in `ClientJournalProgress`; the renderer reads it each frame, so an open book updates too.
 - **Sending:** `Journal.record` and `Journal.finish` put the team in a dirty set; a server tick handler drains it once per tick and sends to the team's online members (mailbox pattern). Login and the datapack sync after `/reload` send to the affected players.
-- **Page layout:** title "The Work", then per task: an empty box or a check mark, the task name, and right aligned "count / needed" over a 2 px bar in the book's ink colour. A finished chapter shows "Finished" under the title. Long names wrap.
+- **Page layout:** title "The Work", then per task: a box filled green when done, the task name (no numbers, the count shows them), and a bar with "count / needed" at its right. A finished chapter shows "Finished" under the title. Long names wrap. Prose task pages are titled "The Way" (or "The Errand") so they do not repeat the title.
 - **Task names:** hand written in `ServusAlchemyLanguageProvider` as `journal.servus_alchemy.<chapter>.task.<id>`; a GameTest checks every loaded task has a key.
 - **Prose:** the "To finish this chapter" lists and "To go on" sentences leave the story pages.
 
@@ -24,5 +24,5 @@ Chapters and counts live on the server (`JournalChapters`, `JournalSavedData`). 
 
 ## Assumptions to confirm with the user
 
-- The task page sits right after the chapter title page (first spread), before the story continues.
+- The task page is the first page of every chapter entry (left side of the first spread), the story starts on the right.
 - Short task names, for example "Calcine 100 things", "Gather 1,000 mB of Salt", "Bind a gnome to a gold vein".
