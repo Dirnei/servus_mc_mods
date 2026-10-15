@@ -21,7 +21,7 @@ Every field is optional. A field the file leaves out, or a missing file, falls b
 
 | Field | Type | Default | Meaning |
 |---|---|---|---|
-| `work_ticks` | int | per machine | Ticks per work cycle. Used by the pumps and as the Principle Dropper's drip interval; the Calciner and Coagulator take the recipe's time. |
+| `work_ticks` | int | per machine | Ticks per work cycle. Used by the pumps, as the Principle Dropper's drip interval and as the Salamander Forge's time per item; the Calciner and Coagulator take the recipe's time. |
 | `energy_per_tick` | int | per machine | FE a powered machine consumes per working tick, or FE a generator produces per burning tick. |
 | `energy_capacity` | int | per machine | Size of the FE buffer. 0 for burner machines. |
 | `fuel_divisor` | int | 1 | Furnace burn time of a fuel item is divided by this. Values below 1 count as 1. |
@@ -65,6 +65,7 @@ These are the defaults built into the code, used for any field a file leaves out
 | `athanor` | crafter | `servus_alchemy:athanor` | 1 | 0 | 0 | 1 | 4000 |
 | `gnome_hollow` | crafter | vein yield | 1 | 0 | 0 | 1 | 4000 |
 | `principle_dropper` | crafter | drips into the Gnome Hollow below | 20 | 0 | 0 | 1 | 1000 |
+| `salamander_forge` | crafter | `minecraft:smelting`, without fuel | 200 | 0 | 0 | 1 | 0 |
 | `servus_foundation:coal_generator` | generator | burns fuel | 1 | 40 | 16000 | 4 | 0 |
 | `servus_foundation:ender_anchor` | powered | nothing, upkeep only | 1 | 10 per chunk | 20000 | 1 | 0 |
 | `servus_foundation:burner_pump` | burner | water | 20 | 0 | 0 | 1 | 4000 |

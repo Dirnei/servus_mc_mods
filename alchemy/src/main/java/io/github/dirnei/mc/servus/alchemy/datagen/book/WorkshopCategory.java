@@ -38,7 +38,7 @@ final class WorkshopCategory extends CategoryProvider {
                 "___________________e_",
                 "___________________h_",
                 "_________________d_y_",
-                "_________________m_r_",
+                "_______________g_m_r_",
         };
     }
 
@@ -57,7 +57,9 @@ final class WorkshopCategory extends CategoryProvider {
                 .withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ)));
         add(dropper().generate('d').withParent(yellow)
                 .withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ)));
-        add(salamander().generate('m').withParent(yellow)
+        BookEntryModel salamander = add(salamander().generate('m').withParent(yellow)
+                .withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ)));
+        add(forge().generate('g').withParent(salamander)
                 .withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ)));
         add(redCrown().generate('r').withParent(yellow)
                 .withCondition(condition().researchNodeUnlocked(JournalResearch.WANDERING_YEARS)));
@@ -338,6 +340,21 @@ final class WorkshopCategory extends CategoryProvider {
             e.spotlight("ignis", ServusAlchemyItems.IGNIS_PERPETUUS.get(), "Ignis Perpetuus",
                     "Lay " + craft.inputLabel() + " on a yellow Athanor and feed it " + PrincipleText.amounts(craft.principles()) + ". "
                             + "The flame that never goes out. It does not feed a furnace; it is built into greater works.");
+        });
+    }
+
+    private WorkshopEntry forge() {
+        return new WorkshopEntry(this, "salamander_forge", "The Salamander Forge", "Citrinitas: the furnace that needs no coal",
+                ServusAlchemyItems.SALAMANDER_FORGE.get(), e -> {
+            e.spotlight("forge", ServusAlchemyItems.SALAMANDER_FORGE.get(), "The Salamander Forge",
+                    "A furnace with the eternal flame shut inside. It has eaten its last lump of coal.");
+            e.crafting("recipe", ServusAlchemyIds.MOD_ID + ":salamander_forge",
+                    "Ignis Perpetuus over a Furnace, walled in Deepslate Bricks.");
+            e.text("using", "Using It",
+                    "It smelts what a furnace smelts, as fast as a furnace, and never asks for fuel. "
+                            + "Its fire burns day and night and lights the room around it.\n\n"
+                            + "Lay the ore in the top slot and take the metal from the right. Hoppers and Item Pipes feed it from any side but the front, "
+                            + "and it pushes its work into a chest beside it. On a data line it smelts what a Crafting CPU orders.");
         });
     }
 

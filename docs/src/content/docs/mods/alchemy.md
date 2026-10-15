@@ -71,6 +71,15 @@ In the lava lakes of the Nether Wastes and the Basalt Deltas live the salamander
 
 The salamander is optional for the journal chapters. See [Salamander](/servus_mc_mods/reference/datapack/salamander/) for the numbers.
 
+## The Salamander Forge
+
+A furnace with the eternal flame inside: crafted from one Ignis Perpetuus in the middle, a Furnace below it and seven Deepslate Bricks around them. It smelts every smelting recipe like a vanilla furnace, one item every 200 ticks, and never takes fuel. Its fire always burns, so it is always lit and gives off light level 13.
+
+- **Slots:** an input and an output, no fuel slot. The screen shows the flame always full.
+- **Automation:** a normal Servus machine. Hoppers and Item Pipes reach it on every side but the front; it pushes its output into neighbouring inventories; the side panel and the Configuration Carrot set each side.
+- **Data line:** it is a producer, so a Crafting CPU orders smelting from it directly, with no Machine Adapter. It keeps no upkeep.
+- **Speed:** `work_ticks` in `servus_alchemy:salamander_forge` (see [Machine stats](/servus_mc_mods/reference/datapack/machines/)).
+
 ## Coagulator products
 
 Salt Crystal, Sulfur and Quicksilver are the first alchemical materials. The plain goods of Nigredo come from the principles alone: clay balls and bone meal. The Coagulator also makes flint, gunpowder, redstone, glowstone dust, bone meal and slime balls from the principles. No metal comes from principles; metals are grown by the gnomes.

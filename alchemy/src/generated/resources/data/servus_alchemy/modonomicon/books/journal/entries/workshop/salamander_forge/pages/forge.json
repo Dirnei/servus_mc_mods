@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "forge",
+  "item": {
+    "id": "servus_alchemy:salamander_forge"
+  },
+  "sort_number": 0,
+  "text": "book.servus_alchemy.journal.workshop.salamander_forge.forge.text",
+  "title": "book.servus_alchemy.journal.workshop.salamander_forge.forge.title"
+}
