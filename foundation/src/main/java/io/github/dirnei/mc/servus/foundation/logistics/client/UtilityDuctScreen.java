@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.client.ItemPicker;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
+import io.github.dirnei.mc.servus.foundation.logistics.menu.ClientCableChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.SetDuctFilterPayload;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.UtilityDuctMenu;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
@@ -35,7 +36,8 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
  * button; the Item Pipe page adds the filter slots and the priority. The
  * Power Cable and Fluid Pipe pages have no filter or priority; the data page
  * only switches the side on or off and removes the line. A left click with an
- * empty cursor on a filter slot opens a search popup over every item for that slot.
+ * empty cursor on a filter slot opens a search popup over every item for that
+ * slot; the channel button opens the {@link ChannelPopup}.
  */
 public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> {
 
@@ -61,6 +63,7 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
     private Line shownPage;
     private int linesSeen = -1;
     private final ItemPicker filterPicker;
+    private final ChannelPopup channelPopup;
     private boolean filterPickerFilled;
     /** The filter slot the open popup sets. */
     private int pickerSlot;
@@ -69,6 +72,8 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         super(menu, playerInventory, title, 176, 204);
         this.filterPicker = new ItemPicker(Component.translatable("gui.servus_foundation.filter_picker"),
                 entry -> sendFilter(pickerSlot, entry.itemId()));
+        this.channelPopup = new ChannelPopup(menu);
+        ClientCableChannels.clear();
     }
 
     @Override
@@ -77,6 +82,7 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         this.inventoryLabelX = MARGIN;
         this.inventoryLabelY = UtilityDuctMenu.INVENTORY_Y - 11;
         filterPicker.setArea(leftPos, topPos, imageWidth, imageHeight);
+        channelPopup.setArea(leftPos, topPos, imageWidth, imageHeight);
         rebuildButtons();
     }
 
@@ -90,8 +96,9 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         return shownPage == Line.ITEM;
     }
 
+    /** Whether a popup covers the GUI: the filter picker or the channel popup. */
     public boolean isPickerOpen() {
-        return filterPicker.isOpen();
+        return filterPicker.isOpen() || channelPopup.isOpen();
     }
 
     /** The 16 by 16 item area of a filter slot, absolute screen coordinates. */
@@ -148,8 +155,7 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         addRenderableWidget(modeButton);
         if (line != Line.DATA) {
             addRenderableWidget(new ChannelButton(leftPos + MARGIN, topPos + CHANNEL_Y, imageWidth - 2 * MARGIN,
-                    () -> menu.duct().channel(line, menu.side()), () -> {
-                    }));
+                    () -> menu.duct().channel(line, menu.side()), () -> channelPopup.open(line)));
         }
         int removeY = line == Line.ITEM ? PRIORITY_Y : line == Line.DATA ? CHANNEL_Y : CHANNEL_Y + ChannelButton.HEIGHT + 8;
         Button remove = Button.builder(Component.literal("x"), button -> press(UtilityDuctMenu.BUTTON_REMOVE_LINE + line.ordinal()))
@@ -220,6 +226,14 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         if (filterPicker.isOpen() && shownPage != Line.ITEM) {
             filterPicker.close();
         }
+        if (channelPopup.isOpen() && channelPopup.line() != shownPage) {
+            channelPopup.close();
+        }
+        if (channelPopup.isOpen()) {
+            super.extractRenderState(guiGraphics, -1, -1, partialTick);
+            channelPopup.render(guiGraphics, font, mouseX, mouseY, partialTick);
+            return;
+        }
         if (filterPicker.isOpen()) {
             super.extractRenderState(guiGraphics, -1, -1, partialTick);
             filterPicker.renderPopup(guiGraphics, font, mouseX, mouseY, partialTick);
@@ -265,6 +279,9 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (channelPopup.isOpen()) {
+            return channelPopup.mouseClicked(event, doubleClick);
+        }
         if (filterPicker.isOpen()) {
             return filterPicker.mouseClicked(event, doubleClick);
         }
@@ -279,27 +296,27 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
-        return filterPicker.mouseDragged(event.x(), event.y()) || super.mouseDragged(event, dragX, dragY);
+        return channelPopup.mouseDragged(event) || filterPicker.mouseDragged(event.x(), event.y()) || super.mouseDragged(event, dragX, dragY);
     }
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
-        return filterPicker.mouseReleased() || super.mouseReleased(event);
+        return channelPopup.mouseReleased() || filterPicker.mouseReleased() || super.mouseReleased(event);
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        return filterPicker.mouseScrolled(scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        return channelPopup.mouseScrolled(scrollY) || filterPicker.mouseScrolled(scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     /** While the popup is open every key goes to it, so typing E does not close the GUI and Escape closes only the popup. */
     @Override
     public boolean keyPressed(KeyEvent event) {
-        return filterPicker.keyPressed(event) || super.keyPressed(event);
+        return channelPopup.keyPressed(event) || filterPicker.keyPressed(event) || super.keyPressed(event);
     }
 
     @Override
     public boolean charTyped(CharacterEvent event) {
-        return filterPicker.charTyped(event) || super.charTyped(event);
+        return channelPopup.charTyped(event) || filterPicker.charTyped(event) || super.charTyped(event);
     }
 }

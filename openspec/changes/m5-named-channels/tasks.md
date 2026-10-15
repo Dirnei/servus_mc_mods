@@ -21,7 +21,7 @@
 ## 5. GUI
 
 - [x] 5.1 `foundation/.../logistics/client/ChannelButton.java` becomes the wide channel button (swatch, icon, name); `UtilityDuctScreen` lays it out instead of the eight cells and moves the filter row if needed. Verify: `gradlew build` green; in game the button shows Default on a new duct.
-- [ ] 5.2 Add `ChannelPopup` and `ChannelForm` in `foundation/.../logistics/client/` (design D7): search, This cable / All toggle, rows with pencil and trash, "+ New", form with name, 16 swatches and icon via `ItemPicker`, name problems shown from `ChannelList.nameProblem`. Lang keys in `ServusFoundationLanguageProvider` (Default, popup, toggle, form, problems, trash tooltip), run `gradlew :foundation:runData`. Verify: `gradlew build` green; in game: create "Iron ore" red with iron ore icon on one chest side, pick it on a second side via "This cable", items flow; recolour to blue and both rings turn blue; trash is disabled with "used on 2 loaded sides"; a black channel's ring is visible on the duct.
+- [x] 5.2 Add `ChannelPopup` and `ChannelForm` in `foundation/.../logistics/client/` (design D7): search, This cable / All toggle, rows with pencil and trash, "+ New", form with name, 16 swatches and icon via `ItemPicker`, name problems shown from `ChannelList.nameProblem`. Lang keys in `ServusFoundationLanguageProvider` (Default, popup, toggle, form, problems, trash tooltip), run `gradlew :foundation:runData`. Verify: `gradlew build` green; in game: create "Iron ore" red with iron ore icon on one chest side, pick it on a second side via "This cable", items flow; recolour to blue and both rings turn blue; trash is disabled with "used on 2 loaded sides"; a black channel's ring is visible on the duct.
 
 ## 6. Plan and integration
 
