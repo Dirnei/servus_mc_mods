@@ -16,7 +16,7 @@
 
 ## 4. JEI drag
 
-- [ ] 4.1 Add `foundation/.../integration/jei/DuctFilterGhostHandler.java` and register it in `ServusFoundationJeiPlugin.registerGuiHandlers` (design D5); add `UtilityDuctScreen.filterSlotArea(int)` and an `isPickerOpen()` the handler checks. Verify: `gradlew build` green; in game with JEI, dragging an item from the JEI list highlights the nine slots on the Item Pipe page only, dropping sets the slot, and nothing highlights on the Power Cable page.
+- [x] 4.1 Add `foundation/.../integration/jei/DuctFilterGhostHandler.java` and register it in `ServusFoundationJeiPlugin.registerGuiHandlers` (design D5); add `UtilityDuctScreen.filterSlotArea(int)` and an `isPickerOpen()` the handler checks. Verify: `gradlew build` green; in game with JEI, dragging an item from the JEI list highlights the nine slots on the Item Pipe page only, dropping sets the slot, and nothing highlights on the Power Cable page.
 
 ## 5. Plan and integration
 

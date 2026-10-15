@@ -12,6 +12,7 @@ import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
@@ -19,6 +20,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -69,7 +71,7 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
     public UtilityDuctScreen(UtilityDuctMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, 176, 204);
         this.filterPicker = new ItemPicker(Component.translatable("gui.servus_foundation.filter_picker"),
-                entry -> ClientPacketDistributor.sendToServer(new SetDuctFilterPayload(pickerSlot, entry.itemId())));
+                entry -> sendFilter(pickerSlot, entry.itemId()));
     }
 
     @Override
@@ -79,6 +81,25 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         this.inventoryLabelY = UtilityDuctMenu.INVENTORY_Y - 11;
         filterPicker.setArea(leftPos, topPos, imageWidth, imageHeight);
         rebuildButtons();
+    }
+
+    /** Asks the server to set a filter slot to the item with that id; empty clears it. */
+    public void sendFilter(int slot, Optional<Identifier> item) {
+        ClientPacketDistributor.sendToServer(new SetDuctFilterPayload(slot, item));
+    }
+
+    /** Whether the filter slots show, that is the Item Pipe page is selected. */
+    public boolean showsFilter() {
+        return shownPage == Line.ITEM;
+    }
+
+    public boolean isPickerOpen() {
+        return filterPicker.isOpen();
+    }
+
+    /** The 16 by 16 item area of a filter slot, absolute screen coordinates. */
+    public Rect2i filterSlotArea(int slot) {
+        return new Rect2i(leftPos + UtilityDuctMenu.SLOT_X + slot * 18, topPos + UtilityDuctMenu.FILTER_Y, 16, 16);
     }
 
     private void openFilterPicker(int slot) {

@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.integration.jei;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.logistics.client.UtilityDuctScreen;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.HollowFacadeRecipe;
@@ -14,6 +15,7 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.ingredients.subtypes.UidContext;
+import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -39,7 +41,8 @@ import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 
 /**
  * Shows Foundation's special crafting recipes in JEI as example recipes, since JEI cannot
- * read recipes without fixed ingredients. Only loaded when JEI is present.
+ * read recipes without fixed ingredients, and lets items dragged from JEI set duct
+ * filter slots. Only loaded when JEI is present.
  */
 @JeiPlugin
 public final class ServusFoundationJeiPlugin implements IModPlugin {
@@ -51,6 +54,12 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
     @Override
     public Identifier getPluginUid() {
         return UID;
+    }
+
+    /** Items dragged from JEI onto a duct filter slot set that slot. */
+    @Override
+    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
+        registration.addGhostIngredientHandler(UtilityDuctScreen.class, new DuctFilterGhostHandler());
     }
 
     /** Facades and Hollow Facades differ only by their block component; tell them apart by that block. */
