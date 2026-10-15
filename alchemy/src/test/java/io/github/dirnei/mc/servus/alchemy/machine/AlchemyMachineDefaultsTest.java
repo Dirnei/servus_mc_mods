@@ -32,7 +32,7 @@ class AlchemyMachineDefaultsTest {
         MachineStats stats = MachineDefaults.stats("servus_alchemy:principle_dropper");
         assertEquals(20, stats.workTicks());
         assertEquals(25, stats.fluidPerCycle());
-        assertEquals(1000, stats.fluidCapacity());
+        assertEquals(3000, stats.fluidCapacity());
     }
 
     @Test

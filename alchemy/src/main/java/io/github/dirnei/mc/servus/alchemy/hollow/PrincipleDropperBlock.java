@@ -34,8 +34,9 @@ public class PrincipleDropperBlock extends BaseEntityBlock {
             Block.box(3, 0, 3, 4.5, 4, 4.5), Block.box(11.5, 0, 3, 13, 4, 4.5),
             Block.box(3, 0, 11.5, 4.5, 4, 13), Block.box(11.5, 0, 11.5, 13, 4, 13),
             Block.box(7, 0.25, 7, 9, 4, 9),
-            Block.box(3, 4, 3, 13, 5, 13), Block.box(4, 5, 4, 12, 13, 12),
-            Block.box(3.5, 13, 3.5, 12.5, 14, 12.5), Block.box(6, 14, 6, 10, 16, 10));
+            Block.box(1.75, 4, 1.75, 14.25, 5, 14.25),
+            tube(0), tube(1), tube(2),
+            Block.box(6.5, 5, 6.5, 9.5, 14.5, 9.5), Block.box(6, 14.5, 6, 10, 16, 10));
 
     public PrincipleDropperBlock(Properties properties) {
         super(properties);
@@ -49,6 +50,12 @@ public class PrincipleDropperBlock extends BaseEntityBlock {
     @Override
     protected RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
+    }
+
+    private static VoxelShape tube(int index) {
+        float[] centre = PrincipleDropperTubes.CENTRES[index];
+        float collar = PrincipleDropperTubes.RADIUS + 0.25F;
+        return Block.box(centre[0] - collar, 5, centre[1] - collar, centre[0] + collar, PrincipleDropperTubes.GLASS_TOP + 0.75F, centre[1] + collar);
     }
 
     @Override

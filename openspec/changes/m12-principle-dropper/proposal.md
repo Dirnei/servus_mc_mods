@@ -4,7 +4,7 @@
 
 ## What Changes
 
-- New block **Principle Dropper**: a small copper and glass drip vessel with a spout. It holds one small tank per principle (example 1,000 mB), fills from pipes, ducts and buckets through the standard fluid capability (fill only, never drained) and takes only Salt, Sulfur and Mercury.
+- New block **Principle Dropper**: a small copper and glass drip vessel with a spout. It holds one tank per principle (example 3,000 mB, three buckets), each shown in its own glass tube, fills from pipes, ducts and buckets through the standard fluid capability (fill only, never drained) and takes only Salt, Sulfur and Mercury.
 - Placed directly on top of a Gnome Hollow, it drips the principles the Hollow's vein still drinks into the Hollow's tanks at a datapack rate (example 25 mB per principle every 20 ticks) until the vein is ripe. A ripe vein, an empty Hollow (no vein) or any other block below gets nothing; the Dropper never pushes into other blocks.
 - The Hollow keeps exposing no capabilities; it gets an internal method to receive drips, mirroring the bucket path. Jade shows the Dropper's own tanks and nothing about the block below.
 - Coloured drip particles of each principle dripping, sent by a block event, so the Dropper shows it works.

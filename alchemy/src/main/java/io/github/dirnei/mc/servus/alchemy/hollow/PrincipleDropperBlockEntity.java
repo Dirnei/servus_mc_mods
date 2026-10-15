@@ -10,9 +10,15 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStatsManager;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -30,9 +36,13 @@ public class PrincipleDropperBlockEntity extends BlockEntity {
     static final int DRIP_EVENT = 1;
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
     private static final float DROP_SCALE = 0.6F;
+    /** A tube's drawn level changes in this many steps from empty to full. */
+    private static final int LEVEL_STEPS = 28;
 
     private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), false, this::setChanged);
     private int timer;
+    /** The tube levels the clients last got. */
+    private int drawn = -1;
 
     public PrincipleDropperBlockEntity(BlockPos pos, BlockState state) {
         super(ServusAlchemyBlockEntities.PRINCIPLE_DROPPER.get(), pos, state);
@@ -54,6 +64,7 @@ public class PrincipleDropperBlockEntity extends BlockEntity {
     private void tick() {
         MachineStats stats = stats();
         tanks.setCapacity(stats.fluidCapacity());
+        syncLevels();
         if (++timer < Math.max(1, stats.workTicks())) {
             return;
         }
@@ -81,6 +92,18 @@ public class PrincipleDropperBlockEntity extends BlockEntity {
             }
             return bits;
         }).orElse(0);
+    }
+
+    /** Sends the tanks to the clients when a tube's drawn level changed. */
+    private void syncLevels() {
+        int now = 0;
+        for (Principle principle : Principle.values()) {
+            now = now * (LEVEL_STEPS + 1) + tanks.amount(principle) * LEVEL_STEPS / Math.max(1, tanks.capacity());
+        }
+        if (now != drawn && level != null) {
+            drawn = now;
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
     }
 
     /** On clients a drip shows as drops of each dripped principle's colour falling from the spout. */
@@ -117,6 +140,21 @@ public class PrincipleDropperBlockEntity extends BlockEntity {
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         tanks.load(ValueIo.getTag(input, "Principles"));
+        tanks.setCapacity(input.getIntOr("TankCapacity", tanks.capacity()));
         timer = input.getIntOr("DripTimer", 0);
+    }
+
+    /** The clients draw the liquid in each tube. */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        tag.put("Principles", tanks.save(registries));
+        tag.putInt("TankCapacity", tanks.capacity());
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 }

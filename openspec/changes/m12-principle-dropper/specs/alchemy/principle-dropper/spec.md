@@ -5,7 +5,7 @@ The Principle Dropper automates feeding a Gnome Hollow in Citrinitas: fed by pip
 ## ADDED Requirements
 
 ### Requirement: Principle tanks fed from outside
-The Principle Dropper SHALL hold one tank per principle (example 1,000 mB each). It SHALL expose the standard fluid capability on every side, which SHALL fill the tank of the offered principle and refuse any other fluid, and SHALL never give fluid back. A player SHALL pour a principle bucket into it by using the bucket on it, with or without Elemental Sight, and get the empty bucket back.
+The Principle Dropper SHALL hold one tank per principle (example 3,000 mB each) and SHALL show each principle in its own glass tube, filled as high as its tank is full. It SHALL expose the standard fluid capability on every side, which SHALL fill the tank of the offered principle and refuse any other fluid, and SHALL never give fluid back. A player SHALL pour a principle bucket into it by using the bucket on it, with or without Elemental Sight, and get the empty bucket back.
 
 #### Scenario: Filled by capability
 - **WHEN** 500 mB Salt and 500 mB Water are offered to a Dropper through its fluid capability
@@ -18,6 +18,10 @@ The Principle Dropper SHALL hold one tank per principle (example 1,000 mB each).
 #### Scenario: Bucket by hand
 - **WHEN** a player without Elemental Sight uses a Mercury bucket on a Dropper
 - **THEN** its Mercury tank gains 1,000 mB and the player holds an empty bucket
+
+#### Scenario: Liquids in the tubes
+- **WHEN** the Dropper holds 3,000 mB Salt, 1,500 mB Mercury and no Sulfur
+- **THEN** the Salt tube is full, the Mercury tube half full and the Sulfur tube empty
 
 ### Requirement: Dripping onto the Hollow below
 A Dropper standing directly on top of a Gnome Hollow SHALL, at the drip interval (example every 20 ticks), move up to the drip amount (example 25 mB) of each principle it holds into the Hollow's tank of that principle, as long as the Hollow's vein is seeded and not ripe, the vein's ripening step takes that principle, and the Hollow's tank has room. It SHALL move nothing into a Hollow without a vein, into a ripe vein, or any principle the vein does not take. The Hollow SHALL keep exposing no capability, and SHALL ripen from dripped principles exactly as from poured ones.
