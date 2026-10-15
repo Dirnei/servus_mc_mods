@@ -2,7 +2,7 @@
 
 ## 1. Picker in Foundation
 
-- [ ] 1.1 Move `storage/.../picker/PickerList.java` and `PickerStock.java` to `foundation/.../picker/`, their tests `PickerListTest` and `PickerStockTest` to `foundation/src/test/java/.../foundation/picker/`, and `storage/.../client/ItemPicker.java` to `foundation/.../client/ItemPicker.java` (design D1). Update the imports in `storage/.../client/FieldHeadScreen.java`, `CropPickerEntries.java`, `TagPickerEntries.java` and `menu/FieldHeadMenu.java`. Verify: `gradlew :foundation:test :storage:test` green (the moved tests run in Foundation), `gradlew build` green.
+- [x] 1.1 Move `storage/.../picker/PickerList.java` and `PickerStock.java` to `foundation/.../picker/`, their tests `PickerListTest` and `PickerStockTest` to `foundation/src/test/java/.../foundation/picker/`, and `storage/.../client/ItemPicker.java` to `foundation/.../client/ItemPicker.java` (design D1). Update the imports in `storage/.../client/FieldHeadScreen.java`, `CropPickerEntries.java`, `TagPickerEntries.java` and `menu/FieldHeadMenu.java`. Verify: `gradlew :foundation:test :storage:test` green (the moved tests run in Foundation), `gradlew build` green.
 - [ ] 1.2 `foundation/.../client/ItemPicker.java`: allow opening the popup without the button (design D1), so a caller can open it for its own target; the Field Head keeps using the button. Verify: `gradlew build` green; in game the Field Head crop picker still opens, searches and picks.
 
 ## 2. Filter by id on the server

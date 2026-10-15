@@ -1,11 +1,10 @@
-package io.github.dirnei.mc.servus.storage.client;
+package io.github.dirnei.mc.servus.foundation.client;
 
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
-import io.github.dirnei.mc.servus.foundation.client.PopupPanel;
-import io.github.dirnei.mc.servus.storage.picker.PickerList;
-import io.github.dirnei.mc.servus.storage.picker.PickerStock;
+import io.github.dirnei.mc.servus.foundation.picker.PickerList;
+import io.github.dirnei.mc.servus.foundation.picker.PickerStock;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +52,8 @@ public final class ItemPicker {
     private static final int GREY = 0xFF707070;
     private static final int SELECTED = 0xFF8FC08F;
     private static final int HOVERED = 0x60FFFFFF;
+    private static final int DARK = 0xFF373737;
+    private static final int SLOT = 0xFF8B8B8B;
 
     /** One entry: an id (an item id, or {@link PickerList#NONE_ID}), its icon (may be empty) and its name. */
     public record Entry(String id, ItemStack icon, Component name) {
@@ -149,8 +150,8 @@ public final class ItemPicker {
         open = true;
         dragging = false;
         search = new EditBox(Minecraft.getInstance().font, x + PAD, y + TITLE_HEIGHT + PAD, LIST_WIDTH + BAR_GAP + BAR_WIDTH, SEARCH_HEIGHT,
-                Component.translatable("gui.servus_storage.picker.search"));
-        search.setHint(Component.translatable("gui.servus_storage.picker.search"));
+                Component.translatable("gui.servus_foundation.picker.search"));
+        search.setHint(Component.translatable("gui.servus_foundation.picker.search"));
         search.setMaxLength(50);
         search.setResponder(text -> refilter());
         search.setFocused(true);
@@ -202,7 +203,7 @@ public final class ItemPicker {
     public void renderButton(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY) {
         boolean hovered = !open && overButton(mouseX, mouseY);
         int right = buttonX + buttonWidth;
-        PanelPainter.bordered(graphics, buttonX + 1, buttonY + 1, buttonWidth - 2, BUTTON_HEIGHT - 2, PanelPainter.DARK,
+        PopupPanel.bordered(graphics, buttonX + 1, buttonY + 1, buttonWidth - 2, BUTTON_HEIGHT - 2, DARK,
                 hovered ? 0xFFDDDDDD : 0xFFA0A0A0);
         graphics.fill(buttonX + 1, buttonY + 1, right - 1, buttonY + 2, 0xFFFFFFFF);
         Entry entry = current();
@@ -235,7 +236,7 @@ public final class ItemPicker {
         search.extractRenderState(graphics, mouseX, mouseY, partialTick);
         int lx = listX();
         int ly = listY();
-        PanelPainter.bordered(graphics, lx, ly, LIST_WIDTH, ROWS * ROW, PanelPainter.DARK, PanelPainter.SLOT);
+        PopupPanel.bordered(graphics, lx, ly, LIST_WIDTH, ROWS * ROW, DARK, SLOT);
         int hovered = indexAt(mouseX, mouseY);
         for (int row = 0; row < ROWS; row++) {
             int index = scroll + row;
@@ -267,7 +268,7 @@ public final class ItemPicker {
         int max = maxScroll();
         if (max > 0) {
             int bx = barX();
-            graphics.fill(bx, ly, bx + BAR_WIDTH, ly + ROWS * ROW, PanelPainter.DARK);
+            graphics.fill(bx, ly, bx + BAR_WIDTH, ly + ROWS * ROW, DARK);
             int knob = knobHeight();
             int ky = ly + (ROWS * ROW - knob) * scroll / max;
             graphics.fill(bx + 1, ky + 1, bx + BAR_WIDTH - 1, ky + knob - 1, 0xFFDDDDDD);

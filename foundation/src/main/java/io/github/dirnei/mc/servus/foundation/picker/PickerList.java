@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.storage.picker;
+package io.github.dirnei.mc.servus.foundation.picker;
 
 import java.util.ArrayList;
 import java.util.Collection;

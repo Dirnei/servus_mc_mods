@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Rect;
+import io.github.dirnei.mc.servus.foundation.client.PopupPanel;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 /** Paints vanilla style panels, insets, slot frames and boxes with fills. */
@@ -71,7 +72,6 @@ final class PanelPainter {
 
     /** A filled box with a one pixel border around it; {@code x, y, w, h} is the inside, absolute. */
     static void bordered(GuiGraphicsExtractor graphics, int x, int y, int w, int h, int border, int face) {
-        graphics.fill(x - 1, y - 1, x + w + 1, y + h + 1, border);
-        graphics.fill(x, y, x + w, y + h, face);
+        PopupPanel.bordered(graphics, x, y, w, h, border, face);
     }
 }

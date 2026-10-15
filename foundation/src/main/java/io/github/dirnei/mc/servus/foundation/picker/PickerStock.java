@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.storage.picker;
+package io.github.dirnei.mc.servus.foundation.picker;
 
 import java.util.Locale;
 import java.util.Map;

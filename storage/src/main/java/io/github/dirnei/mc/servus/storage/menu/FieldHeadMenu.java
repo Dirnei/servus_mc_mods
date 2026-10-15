@@ -16,7 +16,7 @@ import io.github.dirnei.mc.servus.storage.field.FieldWorkerPayload;
 import io.github.dirnei.mc.servus.storage.field.SupplyBuffer;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
-import io.github.dirnei.mc.servus.storage.picker.PickerStock;
+import io.github.dirnei.mc.servus.foundation.picker.PickerStock;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

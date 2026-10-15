@@ -53,6 +53,7 @@
   "gui.servus_foundation.mode.input": "Pull in",
   "gui.servus_foundation.mode.output": "Push out",
   "gui.servus_foundation.no_lines": "No lines",
+  "gui.servus_foundation.picker.search": "Search",
   "gui.servus_foundation.priority": "Priority %s",
   "gui.servus_foundation.pump.source_missing": "Needs an infinite water source below",
   "gui.servus_foundation.pump.source_ok": "Infinite water source below",

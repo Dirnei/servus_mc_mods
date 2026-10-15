@@ -18,4 +18,10 @@ public final class PopupPanel {
         graphics.fill(x + 1, y + 1, x + width - 1, y + height - 1, 0xFFFFFFFF);
         graphics.fill(x + 2, y + 2, x + width - 2, y + height - 2, 0xFFC6C6C6);
     }
+
+    /** A filled box with a one pixel border around it; {@code x, y, w, h} is the inside, absolute. */
+    public static void bordered(GuiGraphicsExtractor graphics, int x, int y, int w, int h, int border, int face) {
+        graphics.fill(x - 1, y - 1, x + w + 1, y + h + 1, border);
+        graphics.fill(x, y, x + w, y + h, face);
+    }
 }

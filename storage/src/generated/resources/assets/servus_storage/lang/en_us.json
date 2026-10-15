@@ -196,7 +196,6 @@
   "gui.servus_storage.packing_station.to_storage.tooltip": "Items that arrived over the data line and wait to be put away into the warehouse",
   "gui.servus_storage.packing_station.upgrades": "Upgrades",
   "gui.servus_storage.packing_station.upgrades.tooltip": "Speed Upgrades multiply how many items per second the station converts in each direction",
-  "gui.servus_storage.picker.search": "Search",
   "gui.servus_storage.production.busiest_duct": "Busiest duct: %s, %s of %s items/s",
   "gui.servus_storage.production.cpu.blocks": "%s CPU blocks, %s Buffer blocks",
   "gui.servus_storage.production.cpu.buffer": "Buffer: %s of %s stacks",

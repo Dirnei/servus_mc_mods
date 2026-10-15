@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.storage.picker;
+package io.github.dirnei.mc.servus.foundation.picker;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

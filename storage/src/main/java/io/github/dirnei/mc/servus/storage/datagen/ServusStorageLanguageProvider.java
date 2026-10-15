@@ -168,7 +168,6 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.field_head.crop_picker", "Crop");
         add("gui.servus_storage.field_head.crop_none", "None, harvest only");
         add("gui.servus_storage.field_head.crop_no_stock", "None in the warehouse: the first planting needs seeds there");
-        add("gui.servus_storage.picker.search", "Search");
         add("gui.servus_storage.field_head.water", "Water %s / %s mB");
         add("gui.servus_storage.field_head.size", "%s rails, %s plots");
         add("gui.servus_storage.field_head.radius", "Radius %s");

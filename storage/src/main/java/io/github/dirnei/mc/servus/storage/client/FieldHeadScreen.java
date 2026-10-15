@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import io.github.dirnei.mc.servus.foundation.client.ItemPicker;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.storage.field.ChooseAntiCorrosionPayload;
@@ -18,7 +19,7 @@ import io.github.dirnei.mc.servus.storage.field.SetFieldAmountPayload;
 import io.github.dirnei.mc.servus.storage.field.SupplyBuffer;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu.Page;
-import io.github.dirnei.mc.servus.storage.picker.PickerList;
+import io.github.dirnei.mc.servus.foundation.picker.PickerList;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import java.util.ArrayList;
 import java.util.List;
