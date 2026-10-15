@@ -14,7 +14,7 @@
 
 ## 4. Texts and docs
 
-- [ ] 4.1 Journal Workshop entry "Gnome Hollow" in `datagen/book/WorkshopCategory.java`: a short "Gifts" page; `:alchemy:runData`. Docs: `docs/src/content/docs/mods/alchemy.md` (gifts in the Gnomes section) and new `docs/src/content/docs/reference/datapack/gnome-gifts.md` (format and shipped gifts). Verify: `gradlew build` green, the generated page holds the gifts text, no em dash in the diff.
+- [x] 4.1 Journal Workshop entry "Gnome Hollow" in `datagen/book/WorkshopCategory.java`: a short "Gifts" page; `:alchemy:runData`. Docs: `docs/src/content/docs/mods/alchemy.md` (gifts in the Gnomes section) and new `docs/src/content/docs/reference/datapack/gnome-gifts.md` (format and shipped gifts). Verify: `gradlew build` green, the generated page holds the gifts text, no em dash in the diff.
 
 ## 5. Integration
 

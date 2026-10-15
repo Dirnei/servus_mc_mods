@@ -47,8 +47,9 @@ There is no ore generation to plan around: the miners of Paracelsus' time believ
 2. **Ripen** it: pour Salt and Mercury buckets into it (the empty bucket comes back; each tank holds 4,000 mB). Every 5 seconds the vein grows a step and takes 100 mB Salt and 20 mB Mercury. Twenty steps make it ripe; without principles it waits.
 3. **Bind** a gnome: use a Salt Crystal on the ripe Hollow.
 4. The gnome **works** forever: one raw ore every 10 seconds into the Hollow's store, which holds 64 items. A full store stops the gnome. Use an empty hand on the Hollow to take the store into your inventory; what does not fit drops.
+5. **Gifts** (optional): use a cookie, bread, sweet berries or glow berries on a working Hollow and its gnome digs twice as fast for 10 minutes. A new gift restarts the 10 minutes; gifts do not add up. Without gifts the gnome works at its normal pace, and it refuses anything else. See [Gnome gifts](/servus_mc_mods/reference/datapack/gnome-gifts/).
 
-Under Elemental Sight you see the vein's ore budding on the Hollow, more and larger as it ripens, and the red cap of its gnome, and Jade shows the vein, its ripeness, the store and the principles. A failed action under the sight tells you why on the action bar; an empty hand on an empty store tells you how the vein is doing.
+Under Elemental Sight you see the vein's ore budding on the Hollow, more and larger as it ripens, and the red cap of its gnome, and Jade shows the vein, its ripeness, the store, the principles and a running gift with its time left. A gifted gnome spins faster. A failed action under the sight tells you why on the action bar; an empty hand on an empty store tells you how the vein is doing.
 
 Breaking a Hollow under the sight drops an empty Gnome Hollow and the ore in its store; the vein, its principles and its gnome are lost. Moving a Hollow means growing the vein again.
 

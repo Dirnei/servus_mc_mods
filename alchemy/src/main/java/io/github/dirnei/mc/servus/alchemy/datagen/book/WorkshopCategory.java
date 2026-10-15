@@ -241,6 +241,10 @@ final class WorkshopCategory extends CategoryProvider {
             e.text("store", "The Gnome's Store",
                     "The gnome keeps what it digs in a small store inside the Hollow and stops when the store is full. "
                             + "Use an empty hand on the Hollow, under the sight, to take the ore out.");
+            e.text("gifts", "Gifts",
+                    "Gnomes have a sweet tooth. Under the sight, hand a working gnome a cookie, bread or berries and it digs "
+                            + "twice as fast for a while. It needs no gifts to work; it only works slower without them. "
+                            + "Anything else it will not touch.");
             e.text("moving", "Moving It",
                     "Break the Hollow under the sight and you get an empty Hollow back, with the ore from its store. "
                             + "The vein, its principles and its gnome are lost.\n\n"

@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "gifts",
+  "show_title_separator": true,
+  "sort_number": 6,
+  "text": "book.servus_alchemy.journal.workshop.gnome_hollow.gifts.text",
+  "title": "book.servus_alchemy.journal.workshop.gnome_hollow.gifts.title"
+}
