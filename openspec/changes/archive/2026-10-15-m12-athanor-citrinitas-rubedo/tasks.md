@@ -22,7 +22,7 @@
 
 - [x] 5.1 Docs: `docs/src/content/docs/mods/alchemy.md` (stages Citrinitas and Rubedo, noble veins, chapters), `reference/datapack/athanor.md` (shipped tiers), `veins.md` (shipped veins), `journal.md` (shipped chapters). Verify: no em dash in the diff, `gradlew build` green.
 - [x] 5.2 Full `gradlew build test :alchemy:runGameTestServer` green.
-- [ ] 5.3 User play check in game:
+- [x] 5.3 User play check in game:
   - Twelve Amethyst Blocks on the salt ring turn the Athanor's flame yellow, Jade shows "Stage: Citrinitas"; four Crying Obsidian pillars two high turn it red, "Stage: Rubedo".
   - The Yellow Ring and The Red Crown Workshop schematics Visualize and match the build.
   - After Schwaz the Wandering years entry and The Yellow Ring unlock; raw gold seeds a vein under the sight, before Schwaz it does not.
