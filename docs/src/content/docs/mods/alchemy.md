@@ -17,6 +17,10 @@ Each chapter of the journal tells part of Paracelsus' life and lists tasks: do s
 
 - **Villach** (Nigredo): calcine 100 things, gather 1,000 mB of Salt, coagulate your first Salt Crystal.
 - **Schwaz** (Albedo): opens after Villach; finish one craft on an Albedo Athanor, drink the Elixir of Sight and bind a gnome.
+- **Wandering years** (Citrinitas): opens after Schwaz; finish one craft on a Citrinitas Athanor, bind a gnome to a gold vein and bind four gnomes.
+- **Basel and Salzburg** (Rubedo): opens after Wandering years; finish one craft on a Rubedo Athanor, bind a gnome to a diamond vein and finish 16 Athanor crafts.
+
+The story pages of Wandering years and Basel and Salzburg are placeholders for now and start with "[storyteller]".
 
 ## The three principles
 
@@ -27,7 +31,7 @@ Salt, Sulfur and Mercury are fluids. They flow through the Fluid Pipe, wait in F
 - **Calciner**: a furnace built 3 wide and 5 tall and formed with the Journal. It burns one item into its principles, for example one cobblestone into 100 mB Salt and 10 mB Mercury in 4 seconds. It takes common matter: cobblestone, stone, dirt, sand, gravel, logs, planks, leaves, saplings, crops, seeds, coal, raw ores, redstone and bones. It puts Sulfur and Mercury straight into its two Fluid Tanks (Sulfur left, Mercury right), and Mercury drips from its copper condenser into a stone basin above its tank. The Salt stays in the Ash Pan as Ash, up to a stack of 64. When a tank or the Ash Pan is full, it waits. Calcination is fire: the Calciner burns any furnace fuel in its fuel slot, one coal for 10 items, and needs no FE. On the data line it asks for coal to keep its fuel stocked. Bricks, iron, a furnace and a cauldron.
 - **Coagulator**: makes the recipe you pick in its GUI from a fixed amount of each principle, for example a Salt Crystal from 250 mB Salt in 2 seconds. Each principle goes only into its own tank, and a side set to one principle in the Fluids tab takes only that one. It needs no power: the joined principles only take the recipe's time to set. Iron, glass, a cauldron and redstone.
 
-- **Athanor**: the alchemist's furnace and the heart of the lab. Lay an item on it, feed it principles by bucket or pipe, and it burns them into the craft of that item, for example gunpowder and 200 mB Sulfur into Blaze Powder. It needs no FE. The blocks built around it set its stage, shown by its flame: alone it is Nigredo (black); twelve Salt Crystal Blocks around its diamond brick hearth make it Albedo (white), which some crafts need. Bricks, a blast furnace and a cauldron.
+- **Athanor**: the alchemist's furnace and the heart of the lab. Lay an item on it, feed it principles by bucket or pipe, and it burns them into the craft of that item, for example gunpowder and 200 mB Sulfur into Blaze Powder. It needs no FE. The blocks built around it set its stage, shown by its flame: alone it is Nigredo (black); twelve Salt Crystal Blocks around its diamond brick hearth make it Albedo (white), which some crafts need. Twelve Amethyst Blocks standing on those Salt Crystal Blocks make it Citrinitas (yellow), and four pillars of two Crying Obsidian on the amethyst corners make it Rubedo (red). Each stage needs the blocks of the stages below it; the Workshop shows each build as a schematic. Bricks, a blast furnace and a cauldron.
 - **Salt Crystal Block**: grown on the Athanor from one Salt Crystal and 1,000 mB Salt; it cannot be crafted or split at a table.
 - **Gnome Hollow**: grows an ore vein, see [Gnomes](#gnomes). Made on an Albedo Athanor from cracked stone bricks, 500 mB Salt and 250 mB Mercury.
 
@@ -43,7 +47,7 @@ Paracelsus' elementals live inside their element the way we live in air, and com
 
 There is no ore generation to plan around: the miners of Paracelsus' time believed metals grow in the mountain, and here they do. A **Gnome Hollow** is disguised as stone. Without Elemental Sight it looks like stone, Jade calls it Stone, a right click does nothing and breaking it drops cobblestone (stone with Silk Touch); the vein is lost. It has no screen, and no pipe or duct connects to it. Everything is done by hand under the sight:
 
-1. **Seed** it with a sample of ore: use raw iron or any iron ore (or copper) on it. One item is used. The vein must belong to a journal chapter your team has finished; iron and copper open with Villach.
+1. **Seed** it with a sample of ore: use raw iron or any iron ore (or copper) on it. One item is used. The vein must belong to a journal chapter your team has finished; iron and copper open with Villach. Gold (raw gold or any gold ore), redstone (redstone dust or any redstone ore) and diamond (a diamond or any diamond ore) open with Schwaz; they need more principles and the gnomes dig them slower.
 2. **Ripen** it: pour Salt and Mercury buckets into it (the empty bucket comes back; each tank holds 4,000 mB). Every 5 seconds the vein grows a step and takes 100 mB Salt and 20 mB Mercury. Twenty steps make it ripe; without principles it waits.
 3. **Bind** a gnome: use a Salt Crystal on the ripe Hollow.
 4. The gnome **works** forever: one raw ore every 10 seconds into the Hollow's store, which holds 64 items. A full store stops the gnome. Use an empty hand on the Hollow to take the store into your inventory; what does not fit drops.
@@ -55,7 +59,7 @@ Breaking a Hollow under the sight drops an empty Gnome Hollow and the ore in its
 
 ## Coagulator products
 
-Salt Crystal, Sulfur and Quicksilver are the first alchemical materials. The Coagulator also makes clay, flint, gunpowder, redstone, glowstone dust, bone meal and slime balls from the principles. No metal comes from principles; metals are grown by the gnomes.
+Salt Crystal, Sulfur and Quicksilver are the first alchemical materials. The plain goods of Nigredo come from the principles alone: clay balls and bone meal. The Coagulator also makes flint, gunpowder, redstone, glowstone dust, bone meal and slime balls from the principles. No metal comes from principles; metals are grown by the gnomes.
 
 ## How it connects
 

@@ -44,6 +44,8 @@ A finished chapter grants the advancement `<namespace>:journal/<chapter>`. The j
 |---|---|---|
 | `villach` | none | `calcine` 100, `principle` salt 1,000, `coagulate` `servus_alchemy:salt_crystal` 1 |
 | `schwaz` | `villach` | `athanor` `tier:albedo` 1, `sight` 1, `bind` 1 |
+| `wandering_years` | `schwaz` | `athanor` `tier:citrinitas` 1, `bind` `minecraft:raw_gold` 1, `bind` 4 |
+| `basel_salzburg` | `wandering_years` | `athanor` `tier:rubedo` 1, `bind` `minecraft:diamond` 1, `athanor` 16 |
 
 ## Locked recipes
 

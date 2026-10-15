@@ -40,4 +40,12 @@ data/<namespace>/servus_alchemy/athanor_tier/<name>.json
 | `color` | string | `#FFFFFF` | The flame colour of the stage. |
 | `blocks` | list | required | Each entry has an `offset` `[x, y, z]` from the Athanor and a `block` id. |
 
-Tier 0, Nigredo, is the Athanor alone. The shipped `albedo.json` is tier 1: eight `servus_alchemy:salt_crystal_block` around the Athanor on its own level. The Athanor checks its tier when it is placed or used, when a craft starts and every 5 seconds.
+Tier 0, Nigredo, is the Athanor alone. Shipped tiers, offsets from the Athanor (y -1 is the hearth layer):
+
+| File | Tier | Colour | Blocks |
+|---|---|---|---|
+| `albedo.json` | 1 | `#F2F0EA` | twelve `servus_alchemy:salt_crystal_block` at y -1, the cells of the 5 by 5 square outside the diamond hearth |
+| `citrinitas.json` | 2 | `#F2C531` | twelve `minecraft:amethyst_block` at y 0, on the Salt Crystal Blocks |
+| `rubedo.json` | 3 | `#B3261E` | eight `minecraft:crying_obsidian` at y 1 and 2 on the four corners (x and z of -2 and 2) |
+
+The Athanor checks its tier when it is placed or used, when a craft starts and every 5 seconds. Jade shows the stage by name.

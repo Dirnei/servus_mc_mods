@@ -27,5 +27,8 @@ Shipped veins:
 |---|---|---|---|---|---|
 | `iron` | `c:ores/iron`, `c:raw_materials/iron` | raw iron | Villach | 20 steps of 100 ticks, 100 Salt and 20 Mercury each | one per 200 ticks |
 | `copper` | `c:ores/copper`, `c:raw_materials/copper` | raw copper | Villach | 20 steps of 100 ticks, 100 Salt and 20 Mercury each | one per 200 ticks |
+| `gold` | `c:ores/gold`, `c:raw_materials/gold` | raw gold | Schwaz | 30 steps of 100 ticks, 150 Salt and 50 Mercury each | one per 300 ticks |
+| `redstone` | `c:ores/redstone`, `c:dusts/redstone` | redstone dust | Schwaz | 30 steps of 100 ticks, 100 Salt and 100 Mercury each | one per 200 ticks |
+| `diamond` | `c:ores/diamond`, `c:gems/diamond` | diamond | Schwaz | 40 steps of 100 ticks, 200 Salt, 50 Sulfur and 100 Mercury each | one per 1,200 ticks |
 
 Because samples are matched by `c:` tags, ores of other mods can be grown by adding a vein file for their tags.
