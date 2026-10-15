@@ -13,7 +13,7 @@
 ## 3. Ignis Perpetuus and journal
 
 - [x] 3.1 `AlchemyRecipeTable.athanor()` gains `ignis_perpetuus` (D11); `:alchemy:runData` writes the recipe. GameTests `ignisNeedsCitrinitas` (made on Citrinitas, nothing on Albedo) and `ignisIsNotAFuel` in `SalamanderGameTests`. Verify: `gradlew build`, `:alchemy:runGameTestServer` green.
-- [ ] 3.2 Workshop entry `salamander` in `WorkshopCategory` (D12), `:alchemy:runData`. Docs: Salamander section in `docs/src/content/docs/mods/alchemy.md`, new `reference/datapack/salamander.md` (temper file, biome modifier). Verify: `gradlew build` green, generated book entry present, no em dash in the diff.
+- [x] 3.2 Workshop entry `salamander` in `WorkshopCategory` (D12), `:alchemy:runData`. Docs: Salamander section in `docs/src/content/docs/mods/alchemy.md`, new `reference/datapack/salamander.md` (temper file, biome modifier). Verify: `gradlew build` green, generated book entry present, no em dash in the diff.
 
 ## 4. Integration
 

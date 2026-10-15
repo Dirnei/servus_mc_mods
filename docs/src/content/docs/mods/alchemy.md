@@ -60,6 +60,17 @@ Under Elemental Sight you see the vein's ore budding on the Hollow, more and lar
 
 Breaking a Hollow under the sight drops an empty Gnome Hollow and the ore in its store; the vein, its principles and its gnome are lost. Moving a Hollow means growing the vein again.
 
+## The Salamander
+
+In the lava lakes of the Nether Wastes and the Basalt Deltas live the salamanders, lizards of glowing coal with a crest of flame. They are rare, and without Elemental Sight you see only a flame that flickers on the lava now and then; Jade does not name them either. With the sight they show. They walk on lava and on land, fire and lava do not hurt them, and they never attack.
+
+- **Befriending:** use a Gold Ingot on a wild salamander. Every ingot is eaten, and each has a 1 in 3 chance to befriend it (hearts; smoke when it does not). A befriended salamander is yours and shows itself to everyone.
+- **Pet:** it follows you and teleports to you when it falls far behind, sits or stands up when you use an empty hand on it, never despawns, and when idle walks into a lit campfire within 8 blocks and lies there. It gives off no light of its own beyond its glow.
+- **Sal Ammoniac:** use a Gold Ingot on your own salamander. It digests it for 60 seconds and drops one Sal Ammoniac; it takes the next ingot only when it is done.
+- **Ignis Perpetuus:** one Sal Ammoniac with 500 mB Sulfur on a Citrinitas Athanor makes the eternal flame, a building part for later works. It is not a fuel.
+
+The salamander is optional for the journal chapters. See [Salamander](/servus_mc_mods/reference/datapack/salamander/) for the numbers.
+
 ## Coagulator products
 
 Salt Crystal, Sulfur and Quicksilver are the first alchemical materials. The plain goods of Nigredo come from the principles alone: clay balls and bone meal. The Coagulator also makes flint, gunpowder, redstone, glowstone dust, bone meal and slime balls from the principles. No metal comes from principles; metals are grown by the gnomes.

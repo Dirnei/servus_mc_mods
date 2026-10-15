@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "sal_ammoniac",
+  "item": {
+    "id": "servus_alchemy:sal_ammoniac"
+  },
+  "sort_number": 4,
+  "text": "book.servus_alchemy.journal.workshop.salamander.sal_ammoniac.text",
+  "title": "book.servus_alchemy.journal.workshop.salamander.sal_ammoniac.title"
+}

@@ -38,7 +38,7 @@ final class WorkshopCategory extends CategoryProvider {
                 "___________________e_",
                 "___________________h_",
                 "_________________d_y_",
-                "___________________r_",
+                "_________________m_r_",
         };
     }
 
@@ -56,6 +56,8 @@ final class WorkshopCategory extends CategoryProvider {
         BookEntryModel yellow = add(yellowRing().generate('y').withParent(hollow)
                 .withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ)));
         add(dropper().generate('d').withParent(yellow)
+                .withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ)));
+        add(salamander().generate('m').withParent(yellow)
                 .withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ)));
         add(redCrown().generate('r').withParent(yellow)
                 .withCondition(condition().researchNodeUnlocked(JournalResearch.WANDERING_YEARS)));
@@ -314,6 +316,28 @@ final class WorkshopCategory extends CategoryProvider {
             e.text("binding", "Still by Hand",
                     "The drops only ripen the vein. Binding the gnome with a Salt Crystal and taking its ore out remain your work, "
                             + "under the sight.");
+        });
+    }
+
+    private WorkshopEntry salamander() {
+        AlchemyRecipeTable.AthanorCraft craft = athanorCraft("ignis_perpetuus");
+        return new WorkshopEntry(this, "salamander", "The Salamander", "Citrinitas: the fire that eats gold",
+                ServusAlchemyItems.IGNIS_PERPETUUS.get(), e -> {
+            e.text("lava", "In the Lava",
+                    "In the lava lakes of the Nether, in its wastes and its basalt deltas, live the salamanders, lizards of glowing coal. "
+                            + "Without the sight you see only a flame that dances on the lava a little too long. "
+                            + "Drink the Elixir of Sight and you see them. Fire and lava do them no harm, and they harm nobody.");
+            e.text("gold", "Gold for a Friend",
+                    "Hold out a Gold Ingot to a salamander you can see. It eats every ingot, and now and then it takes a liking to you: "
+                            + "hearts, and it is yours. A befriended salamander shows itself to everyone.\n\n"
+                            + "It follows you, even through the lava, and finds you when you go too far. "
+                            + "Click it with an empty hand to make it sit or stand. It likes to lie in a lit campfire.");
+            e.spotlight("sal_ammoniac", ServusAlchemyItems.SAL_AMMONIAC.get(), "Sal Ammoniac",
+                    "Feed your salamander a Gold Ingot and wait a minute. It gives back one lump of Sal Ammoniac. "
+                            + "One ingot at a time; it will not take the next before it is done.");
+            e.spotlight("ignis", ServusAlchemyItems.IGNIS_PERPETUUS.get(), "Ignis Perpetuus",
+                    "Lay " + craft.inputLabel() + " on a yellow Athanor and feed it " + PrincipleText.amounts(craft.principles()) + ". "
+                            + "The flame that never goes out. It does not feed a furnace; it is built into greater works.");
         });
     }
 

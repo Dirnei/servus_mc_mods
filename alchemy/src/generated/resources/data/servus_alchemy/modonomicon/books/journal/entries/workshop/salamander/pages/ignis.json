@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "ignis",
+  "item": {
+    "id": "servus_alchemy:ignis_perpetuus"
+  },
+  "sort_number": 5,
+  "text": "book.servus_alchemy.journal.workshop.salamander.ignis.text",
+  "title": "book.servus_alchemy.journal.workshop.salamander.ignis.title"
+}
