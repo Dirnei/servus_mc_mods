@@ -2,7 +2,7 @@
 
 ## 1. Pure logic
 
-- [ ] 1.1 `hint/OldGnomeLedger.java` (D6) and `hint/AncientHollowSite.java` (D7); JUnit `OldGnomeLedgerTest` (`wakesOnlyOnce`, `lostBeforeFoundMayWakeAgain`, `foundNeverWakesAgain`, `lostAtOtherPosIsIgnored`, `foundOnlyFromAwake`) and `AncientHollowSiteTest` (`picksTheTunnelWall`, `startDirectionChangesTheChoice`, `noneWithoutAir`, `skipsTheBrokenBlockItself`, `sideFacesTheAir`). Verify: `gradlew :alchemy:test` green.
+- [x] 1.1 `hint/OldGnomeLedger.java` (D6) and `hint/AncientHollowSite.java` (D7); JUnit `OldGnomeLedgerTest` (`wakesOnlyOnce`, `lostBeforeFoundMayWakeAgain`, `foundNeverWakesAgain`, `lostAtOtherPosIsIgnored`, `foundOnlyFromAwake`) and `AncientHollowSiteTest` (`picksTheTunnelWall`, `startDirectionChangesTheChoice`, `noneWithoutAir`, `skipsTheBrokenBlockItself`, `sideFacesTheAir`). Verify: `gradlew :alchemy:test` green.
 
 ## 2. Sound and the simple hints
 
