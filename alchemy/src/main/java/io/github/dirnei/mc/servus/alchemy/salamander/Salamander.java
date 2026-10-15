@@ -1,9 +1,14 @@
 package io.github.dirnei.mc.servus.alchemy.salamander;
 
+import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -47,6 +52,13 @@ import org.jspecify.annotations.Nullable;
  * and its owner feeds it gold that it gives back as Sal Ammoniac. Fire immune, harmless, walks on lava and land.
  */
 public class Salamander extends TamableAnimal {
+
+    /** Blocks a wild salamander spawns near on the ground: the Nether's stems, wart blocks and Nether Wart. */
+    public static final TagKey<Block> HOME = TagKey.create(Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "salamander_home"));
+    /** Biomes where a wild salamander spawns on lava. */
+    public static final TagKey<Biome> LAVA_BIOMES = TagKey.create(Registries.BIOME,
+            Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "salamander_lava"));
 
     /** Entity event: hearts, the taming succeeded. */
     private static final byte EVENT_BEFRIENDED = 7;
