@@ -9,4 +9,4 @@
 
 ## 3. Play check
 
-- [ ] 3.1 User play check: `/servus_alchemy journal finish servus_alchemy:schwaz` in the play world unlocks the Citrinitas entries
+- [x] 3.1 User play check: `/servus_alchemy journal finish servus_alchemy:schwaz` in the play world unlocks the Citrinitas entries

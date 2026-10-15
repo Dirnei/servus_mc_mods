@@ -25,7 +25,7 @@
 ## 6. Verification
 
 - [x] 6.1 Full `gradlew build test :alchemy:runGameTestServer` green; client smoke start from main reaches the title screen without errors mentioning servus.
-- [ ] 6.2 User play check in game:
+- [x] 6.2 User play check in game:
   - The Prelum looks like a heavy screw press: deepslate base, steel bed, dark oak posts and beam, steel screw, bar and plate; no flicker from any angle, also while the plate moves.
   - While pressing, the bar turns and the plate goes down and up; idle, the plate rests at the top. The item shows the whole press.
   - The screen shows input, arrow and output plus the side panel; 16 Caput Mortuum become one Netherite Scrap after 30 s, without fuel; Cobblestone is refused.

@@ -5,4 +5,4 @@
 
 ## 2. Play check
 
-- [ ] 2.1 User play check: "No recipe" stops a running Coagulator and is marked while nothing is selected; hovering a popup entry shows its tooltip
+- [x] 2.1 User play check: "No recipe" stops a running Coagulator and is marked while nothing is selected; hovering a popup entry shows its tooltip
