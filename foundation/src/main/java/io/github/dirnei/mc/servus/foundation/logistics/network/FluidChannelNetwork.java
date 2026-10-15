@@ -2,7 +2,6 @@ package io.github.dirnei.mc.servus.foundation.logistics.network;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.fluid.FluidRouting;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctFluidHandler;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
@@ -85,7 +84,7 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
         Endpoint(BlockPos target, SideMode mode, int channel, BlockCapabilityCache<ResourceHandler<FluidResource>, Direction> cache) {
             this.target = target;
             this.mode = mode;
-            this.channel = DuctChannels.clamp(channel);
+            this.channel = channel;
             this.cache = cache;
         }
 
@@ -136,16 +135,13 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
         if (level == null || endpoints.isEmpty()) {
             return;
         }
-        List<List<Endpoint>> perChannel = new ArrayList<>(DuctChannels.COUNT);
-        for (int channel = 0; channel < DuctChannels.COUNT; channel++) {
-            perChannel.add(new ArrayList<>());
-        }
+        Map<Integer, List<Endpoint>> perChannel = new HashMap<>();
         for (List<Endpoint> list : endpoints.values()) {
             for (Endpoint endpoint : list) {
-                perChannel.get(endpoint.channel).add(endpoint);
+                perChannel.computeIfAbsent(endpoint.channel, c -> new ArrayList<>()).add(endpoint);
             }
         }
-        for (List<Endpoint> channel : perChannel) {
+        for (List<Endpoint> channel : perChannel.values()) {
             if (channel.size() >= 2) {
                 tickChannel(channel);
             }
@@ -221,12 +217,11 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
             return 0;
         }
         FluidKey key = FluidKey.of(resource);
-        int clamped = DuctChannels.clamp(channel);
         List<Sink> sinks = new ArrayList<>();
         long room = 0;
         for (List<Endpoint> list : endpoints.values()) {
             for (Endpoint endpoint : list) {
-                if (endpoint.channel != clamped || !endpoint.mode.allowsExtract() || endpoint.target.equals(origin)) {
+                if (endpoint.channel != channel || !endpoint.mode.allowsExtract() || endpoint.target.equals(origin)) {
                     continue;
                 }
                 FluidView handler = endpoint.handler();

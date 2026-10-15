@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
+import io.github.dirnei.mc.servus.foundation.logistics.channel.ChannelColours;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.storage.shuttle.module.EngraveShuttlePayload;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleBuild;
@@ -54,6 +54,8 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
     private static final int COLOUR_WELDED = 0xFFFFB030;
     private static final int COLOUR_SEAM = 0xFF805020;
     private static final int COLOUR_SEAM_LATER = 0x60FFFFFF;
+    /** The dye colour of each wire colour index: white, orange, magenta, light blue, yellow, lime, pink, cyan. */
+    private static final int[] WIRE_DYES = {0, 1, 2, 3, 4, 5, 6, 9};
     private static final int INFO_X = 30;
     private static final int SHEET_X = 104;
     /** The remove buttons sit at the right edge of the left panel, clear of the info lines and the sheet. */
@@ -275,16 +277,20 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         for (int i = 0; i < left.size(); i++) {
             int target = wires.wiredTo(i);
             if (target >= 0) {
-                line(graphics, contact(true, i, left.size()), contact(false, target, right.size()), DuctChannels.color(left.get(i)));
+                line(graphics, contact(true, i, left.size()), contact(false, target, right.size()), wireColour(left.get(i)));
             }
         }
         if (wires.selected() >= 0) {
-            line(graphics, contact(true, wires.selected(), left.size()), new Spot(mouseX, mouseY), DuctChannels.color(left.get(wires.selected())));
+            line(graphics, contact(true, wires.selected(), left.size()), new Spot(mouseX, mouseY), wireColour(left.get(wires.selected())));
         }
         for (int i = 0; i < left.size(); i++) {
-            square(graphics, contact(true, i, left.size()), DuctChannels.color(left.get(i)), i == wires.selected());
-            square(graphics, contact(false, i, right.size()), DuctChannels.color(right.get(i)), false);
+            square(graphics, contact(true, i, left.size()), wireColour(left.get(i)), i == wires.selected());
+            square(graphics, contact(false, i, right.size()), wireColour(right.get(i)), false);
         }
+    }
+
+    private static int wireColour(int wire) {
+        return ChannelColours.argb(WIRE_DYES[wire]);
     }
 
     /** Seam points, welded ones bright, the current seam darker, later seams faint. */

@@ -311,7 +311,7 @@ public final class PumpGameTests {
 
     /**
      * Two generators and two Electric Pumps along one Power Cable run: generator A
-     * and pump A on channel 1, generator B (no fuel) and pump B on channel 2. Only
+     * and pump A on Default, generator B (no fuel) and pump B on a channel of its own. Only
      * pump A gets energy, so channels keep energy apart.
      */
     @ServusGameTest(timeoutTicks = 200)
@@ -331,15 +331,16 @@ public final class PumpGameTests {
         placeElectricPump(helper, pumpA);
         placeElectricPump(helper, pumpB);
         UtilityDuctBlockEntity ductB = helper.getBlockEntity(new BlockPos(7, 2, 3), UtilityDuctBlockEntity.class);
-        ductB.setChannel(Line.ENERGY, Direction.WEST, 1);
-        ductB.setChannel(Line.ENERGY, Direction.EAST, 1);
+        int power = GameTestSteps.channel(helper, "Pump B");
+        ductB.setChannel(Line.ENERGY, Direction.WEST, power);
+        ductB.setChannel(Line.ENERGY, Direction.EAST, power);
 
         helper.runAfterDelay(60, () -> {
             PoweredMachineBlockEntity a = helper.getBlockEntity(pumpA, PoweredMachineBlockEntity.class);
             PoweredMachineBlockEntity b = helper.getBlockEntity(pumpB, PoweredMachineBlockEntity.class);
-            helper.assertTrue(a.energyStorage().getEnergyStored() > 0, "pump A on channel 1 should receive energy");
+            helper.assertTrue(a.energyStorage().getEnergyStored() > 0, "pump A on Default should receive energy");
             helper.assertTrue(b.energyStorage().getEnergyStored() == 0,
-                    "pump B on channel 2 must stay empty, got " + b.energyStorage().getEnergyStored());
+                    "pump B on its own channel must stay empty, got " + b.energyStorage().getEnergyStored());
             helper.succeed();
         });
     }

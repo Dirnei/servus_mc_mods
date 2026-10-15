@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.client;
 
+import io.github.dirnei.mc.servus.foundation.logistics.channel.ClientChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DataCableItem;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctParts;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
@@ -71,6 +71,6 @@ public final class DuctBlockColor implements BlockTintSource {
             // The data line has no channels; its ring shows the tier.
             return duct.lineItem(Line.DATA) instanceof DataCableItem cable ? cable.ringColour() | 0xFF000000 : DATA_RING;
         }
-        return DuctChannels.color(duct.channel(line, DuctParts.ringSide(tintIndex))) | 0xFF000000;
+        return ClientChannels.argb(duct.channel(line, DuctParts.ringSide(tintIndex)));
     }
 }

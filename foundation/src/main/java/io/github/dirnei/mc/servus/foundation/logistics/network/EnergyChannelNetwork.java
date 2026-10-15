@@ -4,7 +4,6 @@ import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.energy.EnergyDistributor;
 import io.github.dirnei.mc.servus.foundation.energy.EnergySink;
 import io.github.dirnei.mc.servus.foundation.energy.EnergySource;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctStatsManager;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
@@ -15,6 +14,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
@@ -48,40 +48,34 @@ public final class EnergyChannelNetwork extends LineNetwork<EnergyChannelNetwork
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void onTick() {
         if (level == null || endpoints.isEmpty()) {
             return;
         }
-        List<EnergySource>[] sources = new List[DuctChannels.COUNT];
-        List<EnergySink>[] sinks = new List[DuctChannels.COUNT];
+        Map<Integer, List<EnergySource>> sources = new HashMap<>();
+        Map<Integer, List<EnergySink>> sinks = new HashMap<>();
         for (List<Endpoint> list : endpoints.values()) {
             for (Endpoint endpoint : list) {
                 EnergyView storage = EnergyView.of(endpoint.cache().getCapability());
                 if (storage == null) {
                     continue;
                 }
-                int channel = DuctChannels.clamp(endpoint.channel());
+                int channel = endpoint.channel();
                 boolean mayPull = endpoint.mode().allowsInsert();
                 boolean mayPush = endpoint.mode().allowsExtract();
                 if (mayPull && storage.canExtract()) {
-                    if (sources[channel] == null) {
-                        sources[channel] = new ArrayList<>();
-                    }
-                    sources[channel].add(storage::extractEnergy);
+                    sources.computeIfAbsent(channel, c -> new ArrayList<>()).add(storage::extractEnergy);
                 } else if (mayPush && storage.canReceive()) {
-                    if (sinks[channel] == null) {
-                        sinks[channel] = new ArrayList<>();
-                    }
-                    sinks[channel].add(storage::receiveEnergy);
+                    sinks.computeIfAbsent(channel, c -> new ArrayList<>()).add(storage::receiveEnergy);
                 }
             }
         }
         int rate = DuctStatsManager.INSTANCE.energyPerTick();
-        for (int channel = 0; channel < DuctChannels.COUNT; channel++) {
-            if (sources[channel] != null && sinks[channel] != null) {
-                EnergyDistributor.distribute(sources[channel], sinks[channel], rate);
+        sources.forEach((channel, channelSources) -> {
+            List<EnergySink> channelSinks = sinks.get(channel);
+            if (channelSinks != null) {
+                EnergyDistributor.distribute(channelSources, channelSinks, rate);
             }
-        }
+        });
     }
 }

@@ -11,7 +11,7 @@
 
 ## 3. Ducts on channel ids
 
-- [ ] 3.1 `foundation/.../logistics/duct/UtilityDuctBlockEntity.java`: `int[][]` channels, `setChannel` without clamping, `channel(line, side)` resolves unknown ids to 0 through `ChannelLookup` (design D2), save and load as ints; `DuctModelData` unchanged in shape. Delete `DuctChannels.java`; `DuctBlockColor` uses `ClientChannels.colour`. Update `ServusLogisticsGameTests` and `PumpGameTests` to create channels in `DuctChannelData` instead of `setChannel(..., 1)`. Add GameTests `unknownChannelReadsDefault` and `routingOnCreatedChannel` in `ServusLogisticsGameTests`. Verify: `gradlew build` green, GameTests pass in `gradlew :foundation:runGameTestServer`.
+- [x] 3.1 `foundation/.../logistics/duct/UtilityDuctBlockEntity.java`: `int[][]` channels, `setChannel` without clamping, `channel(line, side)` resolves unknown ids to 0 through `ChannelLookup` (design D2), save and load as ints; `DuctModelData` unchanged in shape. Delete `DuctChannels.java`; `DuctBlockColor` uses `ClientChannels.colour`. Update `ServusLogisticsGameTests` and `PumpGameTests` to create channels in `DuctChannelData` instead of `setChannel(..., 1)`. Add GameTests `unknownChannelReadsDefault` and `routingOnCreatedChannel` in `ServusLogisticsGameTests`. Verify: `gradlew build` green, GameTests pass in `gradlew :foundation:runGameTestServer`.
 - [ ] 3.2 `foundation/.../logistics/network/LineNetwork.java` and the three line networks: `channel(P)` and `channelUses()` (design D4); a helper that sums loaded uses over all line networks of all server levels. GameTest `channelUsesCountEndpoints` (two chests on one created channel give 2, a side without a block gives nothing). Verify: `gradlew build` green, GameTests pass.
 
 ## 4. Server requests

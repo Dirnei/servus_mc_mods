@@ -10,6 +10,8 @@ import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.UtilityDuctMenu;
 import io.github.dirnei.mc.servus.foundation.logistics.network.DuctEvent;
+import io.github.dirnei.mc.servus.foundation.logistics.channel.ChannelList;
+import io.github.dirnei.mc.servus.foundation.logistics.channel.ChannelLookup;
 import io.github.dirnei.mc.servus.foundation.logistics.network.EnergyChannelNetwork;
 import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork;
 import io.github.dirnei.mc.servus.foundation.logistics.network.ItemChannelNetwork;
@@ -84,7 +86,10 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
     private final EnumSet<Line> lines = EnumSet.noneOf(Line.class);
     private final SideMode[][] modes = new SideMode[Line.VALUES.length][SIDES];
-    private final byte[][] channels = new byte[Line.VALUES.length][SIDES];
+    /** Channel ids live under a key of their own, so sides saved on the eight fixed channels load on Default. */
+    private static final String CHANNELS_KEY = "ChannelIds";
+
+    private final int[][] channels = new int[Line.VALUES.length][SIDES];
     private final ItemSlots[] filters = new ItemSlots[SIDES];
     private final int[] priorities = new int[SIDES];
     private final int[] arms = new int[Line.VALUES.length];
@@ -221,17 +226,22 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         };
     }
 
-    /** The channel of a line's side, 0 to {@link DuctChannels#COUNT} minus one. */
+    /** The channel id of a line's side; a channel that no longer exists reads as Default (0). */
     public int channel(Line line, Direction side) {
-        return channels[line.ordinal()][side.ordinal()];
+        int stored = channels[line.ordinal()][side.ordinal()];
+        if (stored == ChannelList.DEFAULT_ID || level == null) {
+            return stored;
+        }
+        return ChannelLookup.of(level).exists(stored) ? stored : ChannelList.DEFAULT_ID;
     }
 
+    /** Puts a line's side on a channel id; negative ids put it on Default. */
     public void setChannel(Line line, Direction side, int channel) {
-        byte clamped = (byte) DuctChannels.clamp(channel);
-        if (channels[line.ordinal()][side.ordinal()] == clamped) {
+        int id = Math.max(ChannelList.DEFAULT_ID, channel);
+        if (channels[line.ordinal()][side.ordinal()] == id) {
             return;
         }
-        channels[line.ordinal()][side.ordinal()] = clamped;
+        channels[line.ordinal()][side.ordinal()] = id;
         configChanged();
     }
 
@@ -239,7 +249,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     public boolean storesChannel(Set<Integer> ids) {
         for (Line line : Line.VALUES) {
             for (Direction side : DIRECTIONS) {
-                if (ids.contains((int) channels[line.ordinal()][side.ordinal()])) {
+                if (ids.contains(channels[line.ordinal()][side.ordinal()])) {
                     return true;
                 }
             }
@@ -889,7 +899,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
     }
 
-    /** Only modes other than both and channels other than 0 are written. */
+    /** Only modes other than both and channels other than Default are written. */
     private void saveModesAndChannels(ValueOutput output) {
         CompoundTag modeTag = new CompoundTag();
         CompoundTag channelTag = new CompoundTag();
@@ -902,7 +912,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
                     perSideModes.putString(direction.getSerializedName(), mode.name().toLowerCase(Locale.ROOT));
                 }
                 int channel = channel(line, direction);
-                if (channel != 0) {
+                if (channel != ChannelList.DEFAULT_ID) {
                     perSideChannels.putInt(direction.getSerializedName(), channel);
                 }
             }
@@ -914,7 +924,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             }
         }
         ValueIo.putTag(output, "Modes", modeTag);
-        ValueIo.putTag(output, "Channels", channelTag);
+        ValueIo.putTag(output, CHANNELS_KEY, channelTag);
     }
 
     private void saveFiltersAndPriorities(ValueOutput output) {
@@ -992,7 +1002,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             Arrays.fill(row, SideMode.BOTH);
         }
         CompoundTag modeTag = ValueIo.getTag(input, "Modes");
-        CompoundTag channelTag = ValueIo.getTag(input, "Channels");
+        CompoundTag channelTag = ValueIo.getTag(input, CHANNELS_KEY);
         for (Line line : Line.VALUES) {
             CompoundTag perSideModes = modeTag.getCompoundOrEmpty(line.id());
             CompoundTag perSideChannels = channelTag.getCompoundOrEmpty(line.id());
@@ -1005,7 +1015,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
                     }
                 }
                 channels[line.ordinal()][direction.ordinal()] =
-                        (byte) DuctChannels.clamp(perSideChannels.getIntOr(direction.getSerializedName(), 0));
+                        Math.max(ChannelList.DEFAULT_ID, perSideChannels.getIntOr(direction.getSerializedName(), ChannelList.DEFAULT_ID));
             }
         }
     }

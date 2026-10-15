@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.foundation.logistics.menu;
 
-import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
@@ -43,8 +42,6 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
     public static final int BUTTON_REMOVE_LINE = 20;
     public static final int BUTTON_PRIORITY_DOWN = 30;
     public static final int BUTTON_PRIORITY_UP = 31;
-    /** Channel button: {@code BUTTON_CHANNEL + line.ordinal() * DuctChannels.COUNT + channel}. */
-    public static final int BUTTON_CHANNEL = 40;
 
     private static final int DATA_PRIORITY = 0;
 
@@ -153,14 +150,6 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
         if (id == BUTTON_PRIORITY_DOWN || id == BUTTON_PRIORITY_UP) {
             duct.setPriority(side, duct.priority(side) + (id == BUTTON_PRIORITY_UP ? 1 : -1));
             data.set(DATA_PRIORITY, duct.priority(side));
-            return true;
-        }
-        if (id >= BUTTON_CHANNEL && id < BUTTON_CHANNEL + Line.VALUES.length * DuctChannels.COUNT) {
-            int offset = id - BUTTON_CHANNEL;
-            Line line = Line.byOrdinal(offset / DuctChannels.COUNT);
-            if (duct.has(line)) {
-                duct.setChannel(line, side, offset % DuctChannels.COUNT);
-            }
             return true;
         }
         return false;

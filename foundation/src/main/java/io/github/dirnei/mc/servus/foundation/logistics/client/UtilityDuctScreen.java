@@ -3,7 +3,6 @@ package io.github.dirnei.mc.servus.foundation.logistics.client;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.client.ItemPicker;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.SetDuctFilterPayload;
@@ -32,7 +31,7 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /**
  * The endpoint GUI of one duct side: one tab per present line on the left
- * edge, and the page of the selected line with its mode, channels and remove
+ * edge, and the page of the selected line with its mode, channel and remove
  * button; the Item Pipe page adds the filter slots and the priority. The
  * Power Cable and Fluid Pipe pages have no filter or priority; the data page
  * only switches the side on or off and removes the line. A left click with an
@@ -45,9 +44,7 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
     private static final int MARGIN = 8;
     private static final int MODE_Y = 18;
     private static final int MODE_HEIGHT = 20;
-    private static final int CHANNEL_Y = 44;
-    private static final int CHANNEL_SIZE = 16;
-    private static final int CHANNEL_STRIDE = 20;
+    private static final int CHANNEL_Y = 42;
     private static final int FILTER_LABEL_Y = 62;
     private static final int PRIORITY_Y = 94;
     private static final int REMOVE_WIDTH = 16;
@@ -149,13 +146,12 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         modeButton = Button.builder(Component.empty(), button -> press(UtilityDuctMenu.BUTTON_CYCLE_MODE + line.ordinal()))
                 .bounds(leftPos + MARGIN, topPos + MODE_Y, imageWidth - 2 * MARGIN, MODE_HEIGHT).build();
         addRenderableWidget(modeButton);
-        for (int channel = 0; line != Line.DATA && channel < DuctChannels.COUNT; channel++) {
-            int id = UtilityDuctMenu.BUTTON_CHANNEL + line.ordinal() * DuctChannels.COUNT + channel;
-            int current = channel;
-            addRenderableWidget(new ChannelButton(leftPos + MARGIN + channel * CHANNEL_STRIDE, topPos + CHANNEL_Y, CHANNEL_SIZE, channel,
-                    () -> menu.duct().channel(line, menu.side()) == current, () -> press(id)));
+        if (line != Line.DATA) {
+            addRenderableWidget(new ChannelButton(leftPos + MARGIN, topPos + CHANNEL_Y, imageWidth - 2 * MARGIN,
+                    () -> menu.duct().channel(line, menu.side()), () -> {
+                    }));
         }
-        int removeY = line == Line.ITEM ? PRIORITY_Y : line == Line.DATA ? CHANNEL_Y : CHANNEL_Y + CHANNEL_SIZE + 10;
+        int removeY = line == Line.ITEM ? PRIORITY_Y : line == Line.DATA ? CHANNEL_Y : CHANNEL_Y + ChannelButton.HEIGHT + 8;
         Button remove = Button.builder(Component.literal("x"), button -> press(UtilityDuctMenu.BUTTON_REMOVE_LINE + line.ordinal()))
                 .bounds(leftPos + imageWidth - MARGIN - REMOVE_WIDTH, topPos + removeY, REMOVE_WIDTH, 16).build();
         remove.setTooltip(Tooltip.create(Component.translatable("gui.servus_foundation.remove." + line.id())));

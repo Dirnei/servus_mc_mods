@@ -1,11 +1,13 @@
 package io.github.dirnei.mc.servus.foundation.gametest;
 
+import io.github.dirnei.mc.servus.foundation.logistics.channel.DuctChannelData;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DataCableItem;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,6 +34,11 @@ public final class GameTestSteps {
      * Places a Utility Duct, lets {@code setup} add its lines, then refreshes the
      * connection flags from the neighbours, which {@code setBlock} skips.
      */
+    /** Creates a red duct channel for a team of its own and returns its id. */
+    public static int channel(GameTestHelper helper, String name) {
+        return DuctChannelData.get(helper.getLevel().getServer()).create(UUID.randomUUID(), name, 14, null).orElseThrow().id();
+    }
+
     public static UtilityDuctBlockEntity duct(GameTestHelper helper, BlockPos pos, Consumer<UtilityDuctBlockEntity> setup) {
         helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
         UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);

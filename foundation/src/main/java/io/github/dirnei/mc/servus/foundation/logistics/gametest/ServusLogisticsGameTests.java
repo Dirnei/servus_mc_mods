@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.logistics.gametest;
 
+import static io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps.channel;
 import static io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps.drops;
 import static io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps.duct;
 
@@ -9,6 +10,7 @@ import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataSummary;
 import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.logistics.channel.DuctChannelData;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctModelData;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctPose;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctShapes;
@@ -25,6 +27,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -91,7 +94,7 @@ public final class ServusLogisticsGameTests {
         return total;
     }
 
-    /** Chest A pulls into channel 1; chest B on channel 1 gets everything, chest C on channel 2 nothing. */
+    /** Chest A pulls into Default; chest B on Default gets everything, chest C on a created channel nothing. */
     @ServusGameTest(timeoutTicks = 200)
     public static void itemsStayOnTheirChannel(GameTestHelper helper) {
         chest(helper, CHEST_A).setItem(0, new ItemStack(Items.COBBLESTONE, 20));
@@ -101,12 +104,12 @@ public final class ServusLogisticsGameTests {
         duct(helper, DUCT_B, Line.ITEM);
         UtilityDuctBlockEntity c = duct(helper, DUCT_C, Line.ITEM);
         a.setMode(Line.ITEM, Direction.NORTH, SideMode.INPUT);
-        c.setChannel(Line.ITEM, Direction.NORTH, 1);
+        c.setChannel(Line.ITEM, Direction.NORTH, channel(helper, "Other"));
 
         helper.runAfterDelay(80, () -> {
             helper.assertTrue(count(helper, CHEST_B, Items.COBBLESTONE) == 20,
-                    "chest B on channel 1 should hold all 20 cobblestone, got " + count(helper, CHEST_B, Items.COBBLESTONE));
-            helper.assertTrue(count(helper, CHEST_C, Items.COBBLESTONE) == 0, "chest C on channel 2 must receive nothing");
+                    "chest B on Default should hold all 20 cobblestone, got " + count(helper, CHEST_B, Items.COBBLESTONE));
+            helper.assertTrue(count(helper, CHEST_C, Items.COBBLESTONE) == 0, "chest C on the other channel must receive nothing");
             helper.assertTrue(count(helper, CHEST_A, Items.COBBLESTONE) == 0, "chest A should be emptied");
             helper.succeed();
         });
@@ -125,16 +128,56 @@ public final class ServusLogisticsGameTests {
         UtilityDuctBlockEntity c = duct(helper, DUCT_C, Line.ITEM);
         a.filter(Direction.NORTH).setStackInSlot(0, new ItemStack(Items.COBBLESTONE));
         a.setMode(Line.ITEM, Direction.NORTH, SideMode.INPUT);
-        c.setChannel(Line.ITEM, Direction.NORTH, 1);
+        c.setChannel(Line.ITEM, Direction.NORTH, channel(helper, "Other"));
 
         helper.runAfterDelay(80, () -> {
             helper.assertTrue(count(helper, CHEST_B, Items.COBBLESTONE) == 10, "chest B should receive the 10 cobblestone");
             helper.assertTrue(count(helper, CHEST_B, Items.DIRT) == 0, "dirt must not pass the filter");
             helper.assertTrue(count(helper, CHEST_A, Items.DIRT) == 10, "dirt stays in chest A");
             helper.assertTrue(count(helper, CHEST_C, Items.COBBLESTONE) == 0 && count(helper, CHEST_C, Items.DIRT) == 0,
-                    "chest C on channel 2 must receive nothing");
+                    "chest C on the other channel must receive nothing");
             helper.succeed();
         });
+    }
+
+    /** Chests A and B on a created channel trade, chest C on Default gets nothing. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void routingOnCreatedChannel(GameTestHelper helper) {
+        chest(helper, CHEST_A).setItem(0, new ItemStack(Items.IRON_ORE, 16));
+        chest(helper, CHEST_B);
+        chest(helper, CHEST_C);
+        UtilityDuctBlockEntity a = duct(helper, DUCT_A, Line.ITEM);
+        UtilityDuctBlockEntity b = duct(helper, DUCT_B, Line.ITEM);
+        duct(helper, DUCT_C, Line.ITEM);
+        int iron = channel(helper, "Iron ore");
+        a.setMode(Line.ITEM, Direction.NORTH, SideMode.INPUT);
+        a.setChannel(Line.ITEM, Direction.NORTH, iron);
+        b.setChannel(Line.ITEM, Direction.NORTH, iron);
+        helper.assertTrue(a.channel(Line.ITEM, Direction.NORTH) == iron, "side A reads the created channel");
+
+        helper.runAfterDelay(80, () -> {
+            helper.assertTrue(count(helper, CHEST_B, Items.IRON_ORE) == 16,
+                    "chest B on the created channel should hold all 16 iron ore, got " + count(helper, CHEST_B, Items.IRON_ORE));
+            helper.assertTrue(count(helper, CHEST_C, Items.IRON_ORE) == 0, "chest C on Default must receive nothing");
+            helper.succeed();
+        });
+    }
+
+    /** A side on an id no channel has, or on a deleted channel, reads Default and keeps the id stored. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void unknownChannelReadsDefault(GameTestHelper helper) {
+        UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM);
+        DuctChannelData data = DuctChannelData.get(helper.getLevel().getServer());
+        duct.setChannel(Line.ITEM, Direction.NORTH, data.list().nextId() + 1000);
+        helper.assertTrue(duct.channel(Line.ITEM, Direction.NORTH) == 0, "an unknown id reads as Default");
+
+        int gold = channel(helper, "Gold");
+        duct.setChannel(Line.ITEM, Direction.EAST, gold);
+        helper.assertTrue(duct.channel(Line.ITEM, Direction.EAST) == gold, "a created channel reads as itself");
+        data.delete(gold);
+        helper.assertTrue(duct.channel(Line.ITEM, Direction.EAST) == 0, "a deleted channel reads as Default");
+        helper.assertTrue(duct.storesChannel(Set.of(gold)), "the deleted id stays stored");
+        helper.succeed();
     }
 
     /**
@@ -457,12 +500,13 @@ public final class ServusLogisticsGameTests {
         UtilityDuctBlockEntity b = duct(helper, DUCT_B, Line.FLUID);
         duct(helper, DUCT_C, Line.FLUID);
         a.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
-        a.setChannel(Line.FLUID, Direction.NORTH, 1);
-        b.setChannel(Line.FLUID, Direction.NORTH, 1);
+        int water = channel(helper, "Water");
+        a.setChannel(Line.FLUID, Direction.NORTH, water);
+        b.setChannel(Line.FLUID, Direction.NORTH, water);
 
         helper.runAfterDelay(10, () -> {
-            helper.assertTrue(holds(helper, CHEST_B, Fluids.WATER, 1000), "the cauldron on channel 2 should hold the water, got " + describe(helper, CHEST_B));
-            helper.assertTrue(holds(helper, CHEST_C, Fluids.WATER, 0), "the cauldron on channel 1 must stay empty, got " + describe(helper, CHEST_C));
+            helper.assertTrue(holds(helper, CHEST_B, Fluids.WATER, 1000), "the cauldron on the created channel should hold the water, got " + describe(helper, CHEST_B));
+            helper.assertTrue(holds(helper, CHEST_C, Fluids.WATER, 0), "the cauldron on Default must stay empty, got " + describe(helper, CHEST_C));
             helper.succeed();
         });
     }
