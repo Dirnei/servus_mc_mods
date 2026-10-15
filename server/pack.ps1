@@ -26,7 +26,7 @@ if (-not $NoBuild) {
 
 # Servus jars
 $jars = @()
-foreach ($p in 'foundation', 'alchemy', 'storage') {
+foreach ($p in 'foundation', 'alchemy', 'shuttles') {
     $jar = Get-ChildItem (Join-Path $root "$p\build\libs") -Filter "servus_$p-*.jar" |
         Where-Object { $_.Name -notmatch '-(sources|javadoc)\.jar$' } |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1

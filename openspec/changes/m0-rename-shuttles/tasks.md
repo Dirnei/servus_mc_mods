@@ -19,7 +19,7 @@
 ## 4. Docs, CI and tools
 
 - [x] 4.1 Rename `docs/src/content/docs/mods/storage.md` to `mods/shuttles.md` (title "Servus: Shuttles", datapack paths `data/<namespace>/shuttles/`), update the sidebar slug in `docs/astro.config.mjs` and the links and mentions in `index.mdx`, `getting-started.md`, `foundation.md` and `alchemy.md`. In code, `MODS` and `ServusMod` in `docs/src/lib/recipegraph.ts`, `MOD_NAMES` in `RecipeGraph.tsx`, the `lab-mod-*` classes in `docs/src/styles/lab.css`, `recipegraph.test.ts` and `fixtures/tier1-gamedata.json`. `git mv docs/src/icons/servus_storage docs/src/icons/servus_shuttles`. Verify: `npm test` and `npm run build` in `docs/` green.
-- [ ] 4.2 Point `.github/workflows/build.yml` at `shuttles/build/libs/*.jar` and `server/pack.ps1` at the `shuttles` project. Verify: read both files, run `gradlew build` and check `shuttles/build/libs` holds `servus_shuttles-*.jar`.
+- [x] 4.2 Point `.github/workflows/build.yml` at `shuttles/build/libs/*.jar` and `server/pack.ps1` at the `shuttles` project. Verify: read both files, run `gradlew build` and check `shuttles/build/libs` holds `servus_shuttles-*.jar`.
 
 ## 5. Integration
 

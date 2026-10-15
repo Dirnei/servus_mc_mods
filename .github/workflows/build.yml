@@ -38,5 +38,5 @@ jobs:
           path: |
             foundation/build/libs/*.jar
             alchemy/build/libs/*.jar
-            storage/build/libs/*.jar
+            shuttles/build/libs/*.jar
           if-no-files-found: error
