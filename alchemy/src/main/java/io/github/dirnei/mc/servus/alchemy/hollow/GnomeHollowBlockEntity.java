@@ -319,6 +319,9 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
             case RIPENED -> {
                 tanks.take(def.get().growth().stepCost());
                 syncToClients();
+                if (growth.ripe(def.get().growth()) && level instanceof ServerLevel server) {
+                    Journal.recordItem(server, team(), "ripen", yield, 1);
+                }
             }
             case YIELD -> {
                 storedYield = yield.copyWithCount(1);

@@ -3,7 +3,7 @@
   "order": 2,
   "tasks": [
     {"id": "citrinitas_craft", "event": "athanor", "filter": "tier:citrinitas", "count": 1},
-    {"id": "gold", "event": "bind", "filter": "minecraft:raw_gold", "count": 1},
+    {"id": "gold", "event": "ripen", "filter": "minecraft:raw_gold", "count": 1},
     {"id": "gnomes", "event": "bind", "count": 4}
   ]
 }

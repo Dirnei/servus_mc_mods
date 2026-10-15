@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Binding;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Gift;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Seeding;
+import io.github.dirnei.mc.servus.alchemy.hollow.VeinGrowth;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinSeedItem;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
@@ -72,7 +73,7 @@ public final class HollowGameTests {
     static void finishSchwaz(ServerLevel level, UUID team) {
         Journal.recordAthanor(level, team, new ItemStack(Items.EXPERIENCE_BOTTLE), "albedo");
         Journal.recordEvent(level, team, "sight", 1);
-        Journal.recordItem(level, team, "bind", new ItemStack(Items.RAW_IRON), 1);
+        Journal.recordEvent(level, team, "bind", 1);
     }
 
     /** A Seed of the shipped vein {@code path}. */
@@ -348,6 +349,34 @@ public final class HollowGameTests {
         int count = Journal.journalOf(helper.getLevel().getServer(), hollow.team()).count("servus_alchemy:schwaz", "gnome");
         helper.assertTrue(count == 1, "the bound gnome should count for Schwaz, got " + count);
         helper.succeed();
+    }
+
+    /** The last ripening step of a gold vein counts for Wandering years' gold task; earlier steps do not. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void ripeGoldVeinCountsForWanderingYears(GameTestHelper helper) {
+        UUID team = UUID.randomUUID();
+        finishVillach(helper.getLevel(), team);
+        finishSchwaz(helper.getLevel(), team);
+        GnomeHollowBlockEntity hollow = plantedHollow(helper, "gold");
+        hollow.setTeam(team);
+        VeinGrowth.Vein gold = hollow.veinDef().orElseThrow().growth();
+        hollow.tanks().insert(gold.stepCost().plus(gold.stepCost()));
+        hollow.growth().ripeness = gold.steps() - 2;
+        hollow.growth().stepTimer = gold.stepTicks() - 1;
+        helper.runAfterDelay(2, () -> {
+            helper.assertTrue(hollow.growth().ripeness == gold.steps() - 1, "one step short of ripe");
+            helper.assertTrue(goldTask(helper, team) == 0, "an unripe vein counts nothing");
+            hollow.growth().stepTimer = gold.stepTicks() - 1;
+            helper.runAfterDelay(2, () -> {
+                helper.assertTrue(hollow.growth().ripe(gold), "the gold vein should be ripe");
+                helper.assertTrue(goldTask(helper, team) == 1, "the ripe gold vein counts, got " + goldTask(helper, team));
+                helper.succeed();
+            });
+        });
+    }
+
+    private static int goldTask(GameTestHelper helper, UUID team) {
+        return Journal.journalOf(helper.getLevel().getServer(), team).count(AlchemyGameTests.WANDERING_YEARS, "gold");
     }
 
     /** A working Hollow offers no item, fluid, energy or production capability on any side. */

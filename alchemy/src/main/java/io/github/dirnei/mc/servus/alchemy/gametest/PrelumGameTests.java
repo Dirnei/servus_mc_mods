@@ -207,8 +207,8 @@ public final class PrelumGameTests {
         HollowGameTests.finishVillach(level, team);
         HollowGameTests.finishSchwaz(level, team);
         Journal.recordAthanor(level, team, new ItemStack(Items.BLAZE_POWDER), "citrinitas");
-        Journal.recordItem(level, team, "bind", new ItemStack(Items.RAW_GOLD), 1);
-        Journal.recordItem(level, team, "bind", new ItemStack(Items.RAW_IRON), 3);
+        Journal.recordItem(level, team, "ripen", new ItemStack(Items.RAW_GOLD), 1);
+        Journal.recordEvent(level, team, "bind", 3);
     }
 
     /** The first pressed scrap counts for Basel and Salzburg and, with its other tasks, finishes the chapter. */
@@ -219,7 +219,7 @@ public final class PrelumGameTests {
         openBasel(level, team);
         helper.assertTrue(Journal.isFinished(level.getServer(), team, AlchemyGameTests.WANDERING_YEARS), "Wandering years is finished");
         Journal.recordAthanor(level, team, new ItemStack(Items.BLAZE_POWDER), "rubedo");
-        Journal.recordItem(level, team, "bind", new ItemStack(Items.DIAMOND), 1);
+        Journal.recordItem(level, team, "ripen", new ItemStack(Items.DIAMOND), 1);
         for (int craft = 1; craft < 16; craft++) {
             Journal.recordAthanor(level, team, new ItemStack(Items.BLAZE_POWDER), "citrinitas");
         }

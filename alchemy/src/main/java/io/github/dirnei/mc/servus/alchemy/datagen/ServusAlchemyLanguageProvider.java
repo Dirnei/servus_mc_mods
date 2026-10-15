@@ -127,10 +127,10 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("journal.servus_alchemy.schwaz.task.sight", "Drink the Elixir of Sight");
         add("journal.servus_alchemy.schwaz.task.gnome", "Bind a gnome");
         add("journal.servus_alchemy.wandering_years.task.citrinitas_craft", "Craft on a Citrinitas Athanor");
-        add("journal.servus_alchemy.wandering_years.task.gold", "Bind a gnome to a gold vein");
+        add("journal.servus_alchemy.wandering_years.task.gold", "Ripen a gold vein");
         add("journal.servus_alchemy.wandering_years.task.gnomes", "Bind gnomes");
         add("journal.servus_alchemy.basel_salzburg.task.rubedo_craft", "Craft on a Rubedo Athanor");
-        add("journal.servus_alchemy.basel_salzburg.task.diamond", "Bind a gnome to a diamond vein");
+        add("journal.servus_alchemy.basel_salzburg.task.diamond", "Ripen a diamond vein");
         add("journal.servus_alchemy.basel_salzburg.task.crafts", "Finish Athanor crafts");
         add("journal.servus_alchemy.basel_salzburg.task.scrap", "Press a Netherite Scrap");
         add("journal.servus_alchemy.old_gnome.task.trace", "Find one of his traces");

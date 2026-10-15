@@ -829,8 +829,8 @@ public final class AlchemyGameTests {
         Journal.recordAthanor(level, team, new ItemStack(Items.BLAZE_POWDER), "rubedo");
         helper.assertTrue(Journal.journalOf(level.getServer(), team).count(BASEL_SALZBURG, "rubedo_craft") == 0, "Basel waits");
         Journal.recordAthanor(level, team, new ItemStack(Items.BLAZE_POWDER), "citrinitas");
-        Journal.recordItem(level, team, "bind", new ItemStack(Items.RAW_GOLD), 1);
-        Journal.recordItem(level, team, "bind", new ItemStack(Items.RAW_IRON), 3);
+        Journal.recordItem(level, team, "ripen", new ItemStack(Items.RAW_GOLD), 1);
+        Journal.recordEvent(level, team, "bind", 3);
         helper.assertTrue(Journal.isFinished(level.getServer(), team, WANDERING_YEARS), "Wandering years should be finished");
         Journal.recordAthanor(level, team, new ItemStack(Items.BLAZE_POWDER), "rubedo");
         JournalLedger.TeamJournal journal = Journal.journalOf(level.getServer(), team);

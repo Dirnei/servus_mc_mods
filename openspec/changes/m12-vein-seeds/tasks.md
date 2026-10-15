@@ -7,7 +7,7 @@
 
 - [x] 2.1 `VeinData` without `samples` and `chapter`, vein JSON updated; JUnit for the vein parsing; run `:alchemy:test`
 - [x] 2.2 New order in `GnomeHollowBlock` / `GnomeHollowBlockEntity`: Salt Crystal binds an empty Hollow, Seed plants on a bound Hollow, another Seed swaps the vein, ripening only while bound, action bar texts; GameTests for bind first, plant, refuse raw ore, refuse without gnome, swap; run `:alchemy:runGameTestServer`
-- [ ] 2.3 Journal: `bind` without item, `ripen` event with the yield, chapter JSON and task names updated; GameTest that a ripe gold vein finishes the task; run `:alchemy:runGameTestServer`
+- [x] 2.3 Journal: `bind` without item, `ripen` event with the yield, chapter JSON and task names updated; GameTest that a ripe gold vein finishes the task; run `:alchemy:runGameTestServer`
 - [ ] 2.4 Athanor seed recipes per tier (datagen), journal Workshop text and Athanor recipe list; GameTest that the Seed of Gold needs a Citrinitas Athanor; run `runData` and `:alchemy:runGameTestServer`
 - [ ] 2.5 Launch the client from main: seeds show their names and colours, JEI shows the Athanor recipes
 
