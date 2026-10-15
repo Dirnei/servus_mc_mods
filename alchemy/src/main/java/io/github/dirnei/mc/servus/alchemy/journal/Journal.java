@@ -87,6 +87,7 @@ public final class Journal {
         JournalSavedData data = JournalSavedData.get(server);
         List<String> finished = JournalLedger.record(JournalChapters.INSTANCE.chapters(), data.forTeam(team), event, matches, amount);
         data.setDirty();
+        JournalSync.markChanged(team);
         awardOnline(server, team, finished);
     }
 
@@ -98,6 +99,7 @@ public final class Journal {
         JournalSavedData data = JournalSavedData.get(server);
         List<String> finished = JournalLedger.finish(JournalChapters.INSTANCE.chapters(), data.forTeam(team), chapter);
         data.setDirty();
+        JournalSync.markChanged(team);
         awardOnline(server, team, finished);
         return finished;
     }

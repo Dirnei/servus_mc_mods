@@ -1,7 +1,7 @@
 ## 1. Progress to the client
 
 - [x] 1.1 `JournalProgressPayload` with stream codec and pure `JournalProgress.snapshot(chapters, journal)` (open and finished chapters only) in `alchemy/.../journal/`; JUnit `JournalProgressTest` (open chapter listed, locked chapter left out, finished flag); run `:alchemy:test`
-- [ ] 1.2 Register the payload (`ServusAlchemyPayloads`), client cache `ClientJournalProgress`, dirty team set in `Journal` drained per server tick, sends at login and datapack sync; run `:alchemy:build`
+- [x] 1.2 Register the payload (`ServusAlchemyPayloads`), client cache `ClientJournalProgress`, dirty team set in `Journal` drained per server tick, sends at login and datapack sync; run `:alchemy:build`
 
 ## 2. Page
 
