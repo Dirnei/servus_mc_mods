@@ -21,5 +21,5 @@
 
 ## 5. Plan and integration
 
-- [ ] 5.1 Play check notes in game: potato shows load colours and see-through panels but no side markers; carrot shows side markers and panels but no load; goggles show all; potato on an arm, a centre and a tank prints the reports. Verify: the user's play check from main.
-- [ ] 5.2 Full `gradlew build`, `gradlew test` green, the GameTests pass, and the client launches with all three mods.
+- [x] 5.1 Play check notes in game: potato shows load colours and see-through panels but no side markers; carrot shows side markers and panels but no load; goggles show all; potato on an arm, a centre and a tank prints the reports. Verify: the user's play check from main.
+- [x] 5.2 Full `gradlew build`, `gradlew test` green, the GameTests pass, and the client launches with all three mods.

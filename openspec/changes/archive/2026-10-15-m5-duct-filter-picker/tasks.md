@@ -20,4 +20,4 @@
 
 ## 5. Plan and integration
 
-- [ ] 5.1 Full `gradlew build`, `gradlew test` green, the GameTests pass, and the client launches with all three mods (play check from main by the user). Build, unit tests (Foundation 372, Alchemy 199, Storage 575) and GameTests (Foundation 143, Storage 622) are green; waits for the user's play check.
+- [x] 5.1 Full `gradlew build`, `gradlew test` green, the GameTests pass, and the client launches with all three mods (play check from main by the user). Build, unit tests (Foundation 372, Alchemy 199, Storage 575) and GameTests (Foundation 143, Storage 622) are green; waits for the user's play check.

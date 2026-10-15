@@ -26,4 +26,4 @@
 ## 6. Plan and integration
 
 - [x] 6.1 `PLAN.md`: keep the `m5-named-channels` open point until archive; nothing else changes. Verify: `openspec validate m5-named-channels --strict` passes.
-- [ ] 6.2 Full `gradlew build`, `gradlew test` green, the GameTests pass, and the client launches with all three mods (play check from main by the user).
+- [x] 6.2 Full `gradlew build`, `gradlew test` green, the GameTests pass, and the client launches with all three mods (play check from main by the user).

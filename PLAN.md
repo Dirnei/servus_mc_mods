@@ -127,7 +127,7 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 | M1 Foundations | network graph with split and merge, mailbox tick, `NetworkManager`, Configuration Carrot, config |
 | M2, M3 Factorio style factory | superseded by M9; what lived on: pumps, Sink, Ender Anchor, side config, JEI, the docs site and Balance lab |
 | M4 Storage first slice | Heavy Duty Rack with sections, Warehouse Controller, terminal |
-| M5 Logistics | Utility Duct with item, power and fluid lines, modes, channels, filters, priorities, facades, goggles, Fluid Tank |
+| M5 Logistics | Utility Duct with item, power and fluid lines, modes, named team channels, filters with search and JEI, priorities, facades, goggles, Data Potato, Fluid Tank |
 | M6 Storage automation | rails, elevators with lift cars, simulated shuttles, garages, Inbound Station, Zone Labels, placement assist |
 | M7 Autocrafting integration | production API, work orders, stock rules, Outbound Station, Crafting Station |
 | M8 On-demand autocrafting | Servus: Foundation merge, data cable with tiers, Packing Station, Storage Terminal, Crafting CPU, Production Terminal, Pattern Storage, Machine Adapter |
@@ -148,10 +148,7 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 
 ### Open: Foundation
 
-- Duct GUI and investigation (explored 2026-10-15). Proposed, not applied, to be applied in this order:
-  - `m5-duct-filter-picker`: set filter slots by JEI drag or a search popup, without owning the item; the item picker moves to Foundation.
-  - `m5-named-channels`: channels become a team wide list with name, dye colour and icon, created on the fly in the duct GUI; "This cable" or "All" in the picker.
-  - `m5-data-potato`: the Data Potato takes the load overlay from the carrot and reports ducts and tanks into chat.
+- Deeper inspection with the Data Potato: throughput per channel, why items are stuck, machine and storage reports.
 - Power Cable with a tiered transfer rate.
 - Hand made patterns for Machine Adapters, if the play tests ask for them.
 
