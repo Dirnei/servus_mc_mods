@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.alchemy;
 
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTierData;
+import io.github.dirnei.mc.servus.alchemy.hint.OldGnomeData;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeGiftData;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinData;
 import io.github.dirnei.mc.servus.alchemy.homunculus.HomunculusData;
@@ -26,5 +27,6 @@ public final class AlchemyEvents {
         event.addListener(ElixirDoseData.LISTENER_ID, ElixirDoseData.INSTANCE);
         event.addListener(SalamanderTemperData.LISTENER_ID, SalamanderTemperData.INSTANCE);
         event.addListener(HomunculusData.LISTENER_ID, HomunculusData.INSTANCE);
+        event.addListener(OldGnomeData.LISTENER_ID, OldGnomeData.INSTANCE);
     }
 }

@@ -1,0 +1,10 @@
+{
+  "wake_chance": 0.003,
+  "wake_chapter": "servus_alchemy:schwaz",
+  "max_y": 0,
+  "knock_range": 24,
+  "knock_interval": 100,
+  "dust_range": 6,
+  "trace_range": 8,
+  "trace_chance": 0.15
+}
