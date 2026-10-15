@@ -47,7 +47,6 @@ public final class ServusAlchemyEvents {
             registerCalciner(event);
             registerCoagulator(event);
             registerAthanor(event);
-            registerGnomeHollow(event);
         }
 
         /** Ash and water go into the Vat, the Salt comes out of the Catch Basin, the residue out of the Residue Crock. */
@@ -84,15 +83,6 @@ public final class ServusAlchemyEvents {
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusAlchemyBlockEntities.ATHANOR.get(),
                     (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusAlchemyBlockEntities.ATHANOR.get(),
-                    (machine, side) -> machine.production());
-        }
-
-        private static void registerGnomeHollow(RegisterCapabilitiesEvent event) {
-            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusAlchemyBlockEntities.GNOME_HOLLOW.get(),
-                    (machine, side) -> machine.sideHandler(side));
-            event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusAlchemyBlockEntities.GNOME_HOLLOW.get(),
-                    (machine, side) -> machine.fluidHandler(side));
-            event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusAlchemyBlockEntities.GNOME_HOLLOW.get(),
                     (machine, side) -> machine.production());
         }
     }

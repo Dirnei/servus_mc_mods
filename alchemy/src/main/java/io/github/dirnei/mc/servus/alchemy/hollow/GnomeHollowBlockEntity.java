@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.alchemy.hollow;
 
-import io.github.dirnei.mc.servus.alchemy.AlchemyMachines;
 import io.github.dirnei.mc.servus.alchemy.PrincipleTanks;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.TeamOwned;
@@ -11,43 +10,38 @@ import io.github.dirnei.mc.servus.alchemy.hollow.VeinGrowth.State;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
-import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
-import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
-import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
+import io.github.dirnei.mc.servus.foundation.machine.MachineStatsManager;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 /**
- * A Gnome Hollow: seeded with a sample of ore, ripened with principles, and once a gnome is bound
- * it yields the vein's ore forever. Clients get the vein's look for drawing under Elemental Sight.
+ * A Gnome Hollow: seeded by hand with a sample of ore, ripened with principles poured in by bucket, and once a gnome
+ * is bound it digs the vein's ore into a small internal store until that is full. It offers nothing to pipes or
+ * other blocks; only a player under Elemental Sight tends it. Clients get the vein's look for drawing under the sight.
  */
-public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOwned {
+public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
 
-    public static final int SLOT_SAMPLE = 0;
-    public static final int SLOT_OUTPUT = 1;
-    public static final int DATA_RIPENESS = AlchemyMachines.DATA_COUNT;
-    public static final int DATA_STEPS = DATA_RIPENESS + 1;
-    public static final int DATA_BOUND = DATA_RIPENESS + 2;
-    public static final int DATA_COUNT = DATA_RIPENESS + 3;
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "gnome_hollow");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
@@ -56,8 +50,14 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOw
         BOUND, NO_VEIN, NOT_RIPE, ALREADY_BOUND, NO_SIGHT
     }
 
+    /** What a seeding attempt did. */
+    public enum Seeding {
+        SEEDED, ALREADY_SEEDED, NO_ROOT
+    }
+
     private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), false, this::setChanged);
     private final State growth = new State();
+    private final HollowStore store = new HollowStore(DEFAULTS.itemCapacity());
     private final TeamOwnership ownership = new TeamOwnership(this);
     private Identifier vein;
     /** On the client: the vein's yield and its ripening steps, from the update tag. */
@@ -65,7 +65,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOw
     private int shownSteps;
 
     public GnomeHollowBlockEntity(BlockPos pos, BlockState state) {
-        super(ServusAlchemyBlockEntities.GNOME_HOLLOW.get(), pos, state, 2);
+        super(ServusAlchemyBlockEntities.GNOME_HOLLOW.get(), pos, state);
     }
 
     public PrincipleTanks tanks() {
@@ -76,22 +76,26 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOw
         return growth;
     }
 
+    public HollowStore store() {
+        return store;
+    }
+
     public Optional<Identifier> vein() {
         return Optional.ofNullable(vein);
     }
 
-    private Optional<VeinDef> veinDef() {
+    /** The vein's definition, empty without a vein or when its data is gone. */
+    public Optional<VeinDef> veinDef() {
         return vein == null ? Optional.empty() : VeinData.INSTANCE.get(vein);
-    }
-
-    /** Neighbours fill the tanks on every non disabled side; nothing comes out. */
-    public LegacyFluidHandler fluidHandler(Direction side) {
-        return side == null || sideMode(side).allowsInsert() ? tanks : null;
     }
 
     @Override
     public TeamOwnership ownership() {
         return ownership;
+    }
+
+    private static MachineStats stats() {
+        return MachineStatsManager.INSTANCE.get(ID, DEFAULTS);
     }
 
     /** Whether the owner's team may grow this vein: its chapter must be finished. */
@@ -105,24 +109,32 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOw
         return Journal.isFinished(server.getServer(), team(), def.chapter().get().toString());
     }
 
+    /** Whether {@code stack} would seed this Hollow now. */
+    public boolean acceptsSample(ItemStack stack) {
+        return vein == null && veinFor(stack).isPresent();
+    }
+
     private Optional<Map.Entry<Identifier, VeinDef>> veinFor(ItemStack stack) {
         return VeinData.INSTANCE.forSample(stack).filter(entry -> mayGrow(entry.getValue()));
     }
 
-    private void seedFromSlot() {
-        ItemStack sample = inventory.getStackInSlot(SLOT_SAMPLE);
-        if (vein != null || sample.isEmpty()) {
-            return;
+    /** Seeds an empty Hollow with the vein {@code sample} belongs to; the caller uses up the sample on {@link Seeding#SEEDED}. */
+    public Seeding seed(ItemStack sample) {
+        if (vein != null) {
+            return Seeding.ALREADY_SEEDED;
         }
-        veinFor(sample).ifPresent(entry -> {
-            vein = entry.getKey();
-            growth.ripeness = 0;
-            growth.bound = false;
-            growth.stepTimer = 0;
-            growth.yieldTimer = 0;
-            inventory.extractItem(SLOT_SAMPLE, 1, false);
-            syncToClients();
-        });
+        Optional<Map.Entry<Identifier, VeinDef>> entry = veinFor(sample);
+        if (entry.isEmpty()) {
+            return Seeding.NO_ROOT;
+        }
+        vein = entry.get().getKey();
+        growth.ripeness = 0;
+        growth.bound = false;
+        growth.stepTimer = 0;
+        growth.yieldTimer = 0;
+        setChanged();
+        syncToClients();
+        return Seeding.SEEDED;
     }
 
     /** A Salt Crystal offered by a player: binds a gnome to a ripe vein if the player sees it. */
@@ -149,107 +161,55 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOw
         return Binding.BOUND;
     }
 
-    @Override
-    protected boolean tick() {
-        tanks.setCapacity(stats().fluidCapacity());
-        seedFromSlot();
+    /** Empties the store into stacks of the vein's yield; empty when nothing is stored or the vein's data is gone. */
+    public List<ItemStack> takeStore() {
         Optional<VeinDef> def = veinDef();
-        if (def.isEmpty()) {
-            return false;
+        if (def.isEmpty() || store.isEmpty()) {
+            return List.of();
         }
         ItemStack yield = def.get().yield();
-        Outcome outcome = VeinGrowth.tick(def.get().growth(), growth, tanks.contents(), canInsertOutput(SLOT_OUTPUT, yield));
+        int left = store.takeAll();
+        setChanged();
+        List<ItemStack> stacks = new ArrayList<>();
+        while (left > 0) {
+            int count = Math.min(left, yield.getMaxStackSize());
+            stacks.add(yield.copyWithCount(count));
+            left -= count;
+        }
+        return stacks;
+    }
+
+    public static void serverTick(Level level, BlockPos pos, BlockState state, GnomeHollowBlockEntity hollow) {
+        hollow.tick();
+    }
+
+    private void tick() {
+        MachineStats stats = stats();
+        tanks.setCapacity(stats.fluidCapacity());
+        store.setCapacity(stats.itemCapacity());
+        Optional<VeinDef> def = veinDef();
+        if (def.isEmpty()) {
+            return;
+        }
+        Outcome outcome = VeinGrowth.tick(def.get().growth(), growth, tanks.contents(), store.hasRoom());
         switch (outcome) {
             case RIPENED -> {
                 tanks.take(def.get().growth().stepCost());
                 syncToClients();
             }
-            case YIELD -> insertOutput(SLOT_OUTPUT, yield.copy());
+            case YIELD -> store.add();
             default -> {
             }
         }
         if (outcome != Outcome.NONE || growth.stepTimer > 0 || growth.yieldTimer > 0) {
             setChanged();
         }
-        return growth.bound;
     }
 
     private void syncToClients() {
         if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
-    }
-
-    @Override
-    protected Identifier machineId() {
-        return ID;
-    }
-
-    @Override
-    protected MachineStats defaultStats() {
-        return DEFAULTS;
-    }
-
-    @Override
-    protected boolean isInputSlot(int slot) {
-        return slot == SLOT_SAMPLE;
-    }
-
-    @Override
-    protected boolean isOutputSlot(int slot) {
-        return slot == SLOT_OUTPUT;
-    }
-
-    @Override
-    protected boolean acceptsInput(int slot, ItemStack stack) {
-        return vein == null && veinFor(stack).isPresent();
-    }
-
-    @Override
-    protected int workTicks() {
-        return veinDef().map(def -> growth.ripe(def.growth()) ? def.growth().yieldTicks() : def.growth().stepTicks()).orElse(0);
-    }
-
-    @Override
-    protected int dataCount() {
-        return DATA_COUNT;
-    }
-
-    @Override
-    protected int getData(int index) {
-        if (index == DATA_RIPENESS) {
-            return growth.ripeness;
-        }
-        if (index == DATA_STEPS) {
-            return veinDef().map(def -> def.growth().steps()).orElse(0);
-        }
-        if (index == DATA_BOUND) {
-            return growth.bound ? 1 : 0;
-        }
-        if (index == DATA_PROGRESS) {
-            return growth.bound ? growth.yieldTimer : growth.stepTimer;
-        }
-        int tank = AlchemyMachines.tankData(tanks, index);
-        return tank >= 0 ? tank : super.getData(index);
-    }
-
-    /** The Foundation production view: a working Hollow makes its yield from nothing. */
-    public ProductionProvider production() {
-        return new ProductionProvider() {
-            @Override
-            public List<ProductionRecipe> recipes() {
-                Optional<VeinDef> def = veinDef();
-                if (def.isEmpty() || !growth.bound || !growth.ripe(def.get().growth())) {
-                    return List.of();
-                }
-                return List.of(new ProductionRecipe(vein, List.of(), List.of(def.get().yield().copy()), def.get().growth().yieldTicks()));
-            }
-
-            @Override
-            public Optional<Identifier> active() {
-                return recipes().isEmpty() ? Optional.empty() : Optional.of(vein);
-            }
-        };
     }
 
     /** The vein's yield as the client knows it, empty without a vein. */
@@ -299,6 +259,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOw
         output.putBoolean("Bound", growth.bound);
         output.putInt("StepTimer", growth.stepTimer);
         output.putInt("YieldTimer", growth.yieldTimer);
+        output.putInt("Stored", store.count());
         ownership.save(tag);
         output.store(tag);
     }
@@ -314,6 +275,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOw
         growth.bound = input.getBooleanOr("Bound", false);
         growth.stepTimer = input.getIntOr("StepTimer", 0);
         growth.yieldTimer = input.getIntOr("YieldTimer", 0);
+        store.load(input.getIntOr("Stored", 0));
         ownership.load(tag);
         if (tag.contains("ShownYield")) {
             shownYield = ValueIo.parseStack(registries, tag.getCompoundOrEmpty("ShownYield"));
@@ -333,7 +295,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements TeamOw
     }
 
     @Override
-    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new GnomeHollowMenu(containerId, playerInventory, this);
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 }

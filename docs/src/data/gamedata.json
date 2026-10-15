@@ -63,7 +63,7 @@
       "fluid_per_cycle": 0,
       "fluid_capacity": 4000,
       "min_source_neighbours": 0,
-      "item_capacity": 0,
+      "item_capacity": 64,
       "upkeep_level": 0
     },
     "servus_alchemy:purifier": {

@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.alchemy.gametest;
 
 import io.github.dirnei.mc.servus.alchemy.Principle;
+import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.Principles;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Binding;
@@ -9,16 +10,15 @@ import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
-import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
-import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -26,18 +26,20 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.neoforged.neoforge.capabilities.Capabilities;
 
-/** The Gnome Hollow: seeding, ripening, binding, working. */
+/** The Gnome Hollow: tended by hand under Elemental Sight, stone to everyone else. */
 public final class HollowGameTests {
 
     private static final BlockPos MACHINE = AlchemyGameTests.MACHINE;
     private static final int IRON_STEPS = 20;
+    private static final int IRON_YIELD_TICKS = 200;
 
     private HollowGameTests() {
     }
 
     static GnomeHollowBlockEntity hollow(GameTestHelper helper, UUID team) {
-        helper.setBlock(MACHINE, ServusAlchemyBlocks.GNOME_HOLLOW.get().defaultBlockState().setValue(MachineBlock.FACING, Direction.NORTH));
+        helper.setBlock(MACHINE, ServusAlchemyBlocks.GNOME_HOLLOW.get().defaultBlockState());
         GnomeHollowBlockEntity hollow = helper.getBlockEntity(MACHINE, GnomeHollowBlockEntity.class);
         hollow.setTeam(team);
         return hollow;
@@ -51,46 +53,65 @@ public final class HollowGameTests {
     }
 
     /** A seeded iron vein, ripe or not, for a team that finished Villach. */
-    static GnomeHollowBlockEntity ironHollow(GameTestHelper helper, boolean ripe, Runnable then) {
+    static GnomeHollowBlockEntity ironHollow(GameTestHelper helper, boolean ripe) {
         UUID team = UUID.randomUUID();
         finishVillach(helper.getLevel(), team);
         GnomeHollowBlockEntity hollow = hollow(helper, team);
-        hollow.inventory().setStackInSlot(GnomeHollowBlockEntity.SLOT_SAMPLE, new ItemStack(Items.RAW_IRON));
-        helper.runAfterDelay(2, () -> {
-            helper.assertTrue(hollow.vein().isPresent(), "the sample should seed a vein");
-            if (ripe) {
-                hollow.growth().ripeness = IRON_STEPS;
-            }
-            then.run();
-        });
+        hollow.seed(new ItemStack(Items.RAW_IRON));
+        helper.assertTrue(hollow.vein().isPresent(), "raw iron should seed a vein");
+        if (ripe) {
+            hollow.growth().ripeness = IRON_STEPS;
+        }
         return hollow;
     }
 
-    /** Raw iron seeds an iron vein only once the team finished Villach; the sample is used up. */
+    /** A survival mock player with {@code stack} in the main hand, with or without Elemental Sight. */
+    static Player player(GameTestHelper helper, ItemStack stack, boolean sight) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        if (sight) {
+            giveSight(player);
+        }
+        return player;
+    }
+
+    static void giveSight(Player player) {
+        player.addEffect(new MobEffectInstance(ElementalSight.EFFECT, 200));
+    }
+
+    /** Raw iron seeds an iron vein by hand only under the sight and once the team finished Villach. */
     @ServusGameTest(timeoutTicks = 40)
-    public static void seedingNeedsVillach(GameTestHelper helper) {
+    public static void seedingNeedsVillachAndSight(GameTestHelper helper) {
         UUID team = UUID.randomUUID();
         GnomeHollowBlockEntity hollow = hollow(helper, team);
-        ItemStack sample = new ItemStack(Items.RAW_IRON);
-        helper.assertTrue(!hollow.isItemValid(GnomeHollowBlockEntity.SLOT_SAMPLE, sample), "no iron before Villach");
+        ItemStack sample = new ItemStack(Items.RAW_IRON, 2);
+        Player player = player(helper, sample, true);
+        helper.useBlock(MACHINE, player);
+        helper.assertTrue(hollow.vein().isEmpty() && sample.getCount() == 2, "no iron before Villach");
         finishVillach(helper.getLevel(), team);
-        helper.assertTrue(hollow.isItemValid(GnomeHollowBlockEntity.SLOT_SAMPLE, sample), "iron after Villach");
-        helper.assertTrue(!hollow.isItemValid(GnomeHollowBlockEntity.SLOT_SAMPLE, new ItemStack(Items.COBBLESTONE)), "cobblestone seeds nothing");
-        hollow.inventory().setStackInSlot(GnomeHollowBlockEntity.SLOT_SAMPLE, sample);
-        helper.succeedWhen(() -> {
-            helper.assertTrue(hollow.vein().map(id -> id.getPath().equals("iron")).orElse(false), "an iron vein should be seeded");
-            helper.assertTrue(hollow.inventory().getStackInSlot(GnomeHollowBlockEntity.SLOT_SAMPLE).isEmpty(), "the sample is used up");
-            helper.assertTrue(!hollow.isItemValid(GnomeHollowBlockEntity.SLOT_SAMPLE, new ItemStack(Items.RAW_COPPER)), "one vein per hollow");
-        });
+        player.removeAllEffects();
+        helper.useBlock(MACHINE, player);
+        helper.assertTrue(hollow.vein().isEmpty() && sample.getCount() == 2, "without the sight the Hollow is stone");
+        giveSight(player);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.COBBLESTONE));
+        helper.useBlock(MACHINE, player);
+        helper.assertTrue(hollow.vein().isEmpty(), "cobblestone seeds nothing");
+        player.setItemInHand(InteractionHand.MAIN_HAND, sample);
+        helper.useBlock(MACHINE, player);
+        helper.assertTrue(hollow.vein().map(id -> id.getPath().equals("iron")).orElse(false), "an iron vein should be seeded");
+        helper.assertTrue(sample.getCount() == 1, "one sample is used up");
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.RAW_COPPER));
+        helper.useBlock(MACHINE, player);
+        helper.assertTrue(hollow.vein().map(id -> id.getPath().equals("iron")).orElse(false), "one vein per hollow");
+        helper.succeed();
     }
 
     /** One ripening step takes its principles and waits for more. */
     @ServusGameTest(timeoutTicks = 300)
     public static void ripeningTakesPrinciples(GameTestHelper helper) {
-        GnomeHollowBlockEntity[] holder = new GnomeHollowBlockEntity[1];
-        holder[0] = ironHollow(helper, false, () -> holder[0].tanks().insert(new Principles(150, 0, 30)));
+        GnomeHollowBlockEntity hollow = ironHollow(helper, false);
+        hollow.tanks().insert(new Principles(150, 0, 30));
         helper.runAfterDelay(250, () -> {
-            GnomeHollowBlockEntity hollow = holder[0];
             helper.assertTrue(hollow.growth().ripeness == 1, "one step should have grown, got " + hollow.growth().ripeness);
             helper.assertTrue(hollow.tanks().amount(Principle.SALT) == 50, "50 mB Salt should remain, got " + hollow.tanks().amount(Principle.SALT));
             helper.assertTrue(hollow.tanks().amount(Principle.MERCURY) == 10, "10 mB Mercury should remain");
@@ -98,66 +119,109 @@ public final class HollowGameTests {
         });
     }
 
+    /** A Salt bucket pours into the Hollow only under the sight, and the empty bucket comes back. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void bucketNeedsSight(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = ironHollow(helper, false);
+        Player player = player(helper, new ItemStack(PrincipleFluids.entry(Principle.SALT).bucket().get()), false);
+        helper.useBlock(MACHINE, player);
+        helper.assertTrue(hollow.tanks().amount(Principle.SALT) == 0, "without the sight the bucket pours nothing in");
+        giveSight(player);
+        helper.useBlock(MACHINE, player);
+        helper.assertTrue(hollow.tanks().amount(Principle.SALT) == 1000, "with the sight 1,000 mB Salt, got " + hollow.tanks().amount(Principle.SALT));
+        helper.assertTrue(player.getMainHandItem().is(Items.BUCKET), "the empty bucket comes back");
+        helper.succeed();
+    }
+
     /** Only a player with Elemental Sight can bind a gnome, and only to a ripe vein. */
     @ServusGameTest(timeoutTicks = 40)
     public static void bindingNeedsElementalSight(GameTestHelper helper) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        GnomeHollowBlockEntity[] holder = new GnomeHollowBlockEntity[1];
-        holder[0] = ironHollow(helper, false, () -> {
-            GnomeHollowBlockEntity hollow = holder[0];
-            player.addEffect(new MobEffectInstance(ElementalSight.EFFECT, 200));
-            helper.assertTrue(hollow.bind(player) == Binding.NOT_RIPE, "an unripe vein takes no gnome");
-            hollow.growth().ripeness = IRON_STEPS;
-            player.removeAllEffects();
-            helper.assertTrue(hollow.bind(player) == Binding.NO_SIGHT, "without the sight no gnome is bound");
-            player.addEffect(new MobEffectInstance(ElementalSight.EFFECT, 200));
-            helper.assertTrue(hollow.bind(player) == Binding.BOUND, "with the sight a gnome is bound");
-            helper.assertTrue(hollow.bind(player) == Binding.ALREADY_BOUND, "one gnome per vein");
+        GnomeHollowBlockEntity hollow = ironHollow(helper, false);
+        ItemStack crystals = new ItemStack(ServusAlchemyItems.SALT_CRYSTAL.get(), 3);
+        Player player = player(helper, crystals, true);
+        helper.assertTrue(hollow.bind(player) == Binding.NOT_RIPE, "an unripe vein takes no gnome");
+        hollow.growth().ripeness = IRON_STEPS;
+        player.removeAllEffects();
+        helper.assertTrue(hollow.bind(player) == Binding.NO_SIGHT, "without the sight no gnome is bound");
+        helper.useBlock(MACHINE, player);
+        helper.assertTrue(!hollow.growth().bound && crystals.getCount() == 3, "a crystal used without the sight does nothing");
+        giveSight(player);
+        helper.useBlock(MACHINE, player);
+        helper.assertTrue(hollow.growth().bound, "with the sight a gnome is bound");
+        helper.assertTrue(crystals.getCount() == 2, "the crystal is used up");
+        helper.assertTrue(hollow.bind(player) == Binding.ALREADY_BOUND, "one gnome per vein");
+        helper.succeed();
+    }
+
+    /** A bound gnome digs raw iron into the store and pushes nothing into a chest beside it. */
+    @ServusGameTest(timeoutTicks = 600)
+    public static void boundHollowFillsItsStore(GameTestHelper helper) {
+        BlockPos chestPos = MACHINE.east();
+        helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
+        GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        hollow.growth().bound = true;
+        helper.succeedWhen(() -> {
+            helper.assertTrue(hollow.store().count() >= 2, "the store should get raw iron, has " + hollow.store().count());
+            helper.assertTrue(chest.isEmpty(), "nothing is pushed into the chest");
+        });
+    }
+
+    /** A full store stops the gnome. */
+    @ServusGameTest(timeoutTicks = 2 * IRON_YIELD_TICKS)
+    public static void fullStoreStops(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        hollow.growth().bound = true;
+        hollow.store().load(64);
+        helper.runAfterDelay(IRON_YIELD_TICKS + 20, () -> {
+            helper.assertTrue(hollow.store().count() == 64, "the store stays at 64, has " + hollow.store().count());
+            helper.assertTrue(hollow.growth().yieldTimer == 0, "the gnome waits while the store is full");
             helper.succeed();
         });
     }
 
-    /** A bound gnome digs raw iron at the vein's rate and the Hollow pushes it into a chest. */
-    @ServusGameTest(timeoutTicks = 600)
-    public static void boundHollowYieldsIntoAChest(GameTestHelper helper) {
-        BlockPos chestPos = MACHINE.east();
-        helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
-        ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
-        GnomeHollowBlockEntity[] holder = new GnomeHollowBlockEntity[1];
-        holder[0] = ironHollow(helper, true, () -> {
-            holder[0].growth().bound = true;
-            holder[0].sideConfig().set(RelativeSide.LEFT, SideMode.PUSH);
-        });
-        helper.succeedWhen(() -> helper.assertTrue(chest.countItem(Items.RAW_IRON) >= 2, "the chest should get raw iron"));
+    /** An empty hand under the sight takes the whole store; without the sight it takes nothing. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void emptyHandTakesTheStore(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        hollow.store().load(70);
+        Player player = player(helper, ItemStack.EMPTY, false);
+        helper.useBlock(MACHINE, player);
+        helper.assertTrue(hollow.store().count() == 70, "without the sight nothing is taken");
+        giveSight(player);
+        helper.useBlock(MACHINE, player);
+        helper.assertTrue(hollow.store().isEmpty(), "the store is empty");
+        int taken = player.getInventory().countItem(Items.RAW_IRON);
+        helper.assertTrue(taken == 70, "the player holds 70 raw iron, got " + taken);
+        helper.succeed();
     }
 
     /** Binding a gnome counts for Schwaz. */
     @ServusGameTest(timeoutTicks = 40)
     public static void bindingCountsForSchwaz(GameTestHelper helper) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        player.addEffect(new MobEffectInstance(ElementalSight.EFFECT, 200));
-        GnomeHollowBlockEntity[] holder = new GnomeHollowBlockEntity[1];
-        holder[0] = ironHollow(helper, true, () -> {
-            holder[0].bind(player);
-            int count = Journal.journalOf(helper.getLevel().getServer(), holder[0].team()).count("servus_alchemy:schwaz", "gnome");
-            helper.assertTrue(count == 1, "the bound gnome should count for Schwaz, got " + count);
-            helper.succeed();
-        });
+        Player player = player(helper, ItemStack.EMPTY, true);
+        GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        hollow.bind(player);
+        int count = Journal.journalOf(helper.getLevel().getServer(), hollow.team()).count("servus_alchemy:schwaz", "gnome");
+        helper.assertTrue(count == 1, "the bound gnome should count for Schwaz, got " + count);
+        helper.succeed();
     }
 
-    /** A working Hollow is a producer of its yield with no inputs. */
+    /** A working Hollow offers no item, fluid, energy or production capability on any side. */
     @ServusGameTest(timeoutTicks = 40)
-    public static void workingHollowIsAProducer(GameTestHelper helper) {
-        GnomeHollowBlockEntity[] holder = new GnomeHollowBlockEntity[1];
-        holder[0] = ironHollow(helper, true, () -> {
-            ProductionProvider production = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION,
-                    helper.absolutePos(MACHINE), Direction.UP);
-            helper.assertTrue(production != null && production.recipes().isEmpty(), "no recipes before a gnome is bound");
-            holder[0].growth().bound = true;
-            helper.assertTrue(production.recipes().size() == 1, "one recipe once a gnome works");
-            helper.assertTrue(production.recipes().get(0).inputs().isEmpty(), "no inputs");
-            helper.assertTrue(production.recipes().get(0).outputs().get(0).is(Items.RAW_IRON), "raw iron out");
-            helper.succeed();
-        });
+    public static void noCapabilities(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        hollow.growth().bound = true;
+        BlockPos pos = helper.absolutePos(MACHINE);
+        ServerLevel level = helper.getLevel();
+        List<Direction> sides = new ArrayList<>(List.of(Direction.values()));
+        sides.add(null);
+        for (Direction side : sides) {
+            helper.assertTrue(level.getCapability(Capabilities.Item.BLOCK, pos, side) == null, "no items toward " + side);
+            helper.assertTrue(level.getCapability(Capabilities.Fluid.BLOCK, pos, side) == null, "no fluids toward " + side);
+            helper.assertTrue(level.getCapability(Capabilities.Energy.BLOCK, pos, side) == null, "no energy toward " + side);
+            helper.assertTrue(level.getCapability(ServusFoundationCapabilities.PRODUCTION, pos, side) == null, "no production toward " + side);
+        }
+        helper.succeed();
     }
 }

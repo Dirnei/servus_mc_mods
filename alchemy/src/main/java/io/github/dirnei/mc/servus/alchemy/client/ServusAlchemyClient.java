@@ -23,7 +23,6 @@ public final class ServusAlchemyClient {
     @SubscribeEvent
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(ServusAlchemyMenus.COAGULATOR.get(), CoagulatorScreen::new);
-        event.register(ServusAlchemyMenus.GNOME_HOLLOW.get(), GnomeHollowScreen::new);
     }
 
     @SubscribeEvent

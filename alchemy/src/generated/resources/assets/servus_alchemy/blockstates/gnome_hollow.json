@@ -1,27 +1,6 @@
 {
   "variants": {
-    "facing=east,lit=false": {
-      "model": "servus_alchemy:block/gnome_hollow"
-    },
-    "facing=east,lit=true": {
-      "model": "servus_alchemy:block/gnome_hollow"
-    },
-    "facing=north,lit=false": {
-      "model": "servus_alchemy:block/gnome_hollow"
-    },
-    "facing=north,lit=true": {
-      "model": "servus_alchemy:block/gnome_hollow"
-    },
-    "facing=south,lit=false": {
-      "model": "servus_alchemy:block/gnome_hollow"
-    },
-    "facing=south,lit=true": {
-      "model": "servus_alchemy:block/gnome_hollow"
-    },
-    "facing=west,lit=false": {
-      "model": "servus_alchemy:block/gnome_hollow"
-    },
-    "facing=west,lit=true": {
+    "": {
       "model": "servus_alchemy:block/gnome_hollow"
     }
   }

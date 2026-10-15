@@ -22,7 +22,7 @@ public final class AlchemyMachineDefaults {
         add("coagulator", "crafter", List.of("servus_alchemy:coagulation"), alchemy(4000));
         add("athanor", "crafter", List.of("servus_alchemy:athanor"), alchemy(4000));
         add("purifier", "crafter", List.of("servus_alchemy:purification"), alchemy(4000));
-        add("gnome_hollow", "crafter", List.of(), alchemy(4000));
+        add("gnome_hollow", "crafter", List.of(), hollow(4000, 64));
     }
 
     /**
@@ -31,6 +31,11 @@ public final class AlchemyMachineDefaults {
      */
     private static MachineStats calciner(int fuelDivisor, int ash) {
         return new MachineStats(1, 0, 0, fuelDivisor, 0, 1, 0, 0, 0, 0, MachineStats.DEFAULT_UPKEEP_ITEM, MachineStats.DEFAULT_UPKEEP_LEVEL, ash);
+    }
+
+    /** The Gnome Hollow: each principle tank holds {@code tank} mB, its store {@code store} items of the vein's yield. */
+    private static MachineStats hollow(int tank, int store) {
+        return new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, tank, 0, "", 0, store);
     }
 
     /** An unpowered alchemy machine: recipe time decides the cycle, each principle tank holds {@code tank} mB. */
