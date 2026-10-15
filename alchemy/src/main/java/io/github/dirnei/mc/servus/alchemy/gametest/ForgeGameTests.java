@@ -14,9 +14,11 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
@@ -26,6 +28,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
@@ -190,6 +193,19 @@ public final class ForgeGameTests {
                     .orElse(null);
             helper.assertTrue(member != null && member.roles().equals(Set.of(DataRole.PRODUCER)), "the Forge should be a producer only, got " + member);
         });
+    }
+
+    /** Deepslate Bricks around Ignis Perpetuus over a Furnace make the Forge at a crafting table. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void forgeRecipeShipped(GameTestHelper helper) {
+        ItemStack bricks = new ItemStack(Items.DEEPSLATE_BRICKS);
+        CraftingInput grid = CraftingInput.of(3, 3, List.of(bricks, bricks, bricks,
+                bricks, new ItemStack(ServusAlchemyItems.IGNIS_PERPETUUS.get()), bricks,
+                bricks, new ItemStack(Items.FURNACE), bricks));
+        ItemStack result = ServusRecipes.craftingFor(helper.getLevel(), grid)
+                .map(holder -> holder.value().assemble(grid)).orElse(ItemStack.EMPTY);
+        helper.assertTrue(result.is(ServusAlchemyItems.SALAMANDER_FORGE.get()) && result.getCount() == 1, "the grid should make one Forge, got " + result);
+        helper.succeed();
     }
 
     /** Breaking it drops the Forge and what it holds. */

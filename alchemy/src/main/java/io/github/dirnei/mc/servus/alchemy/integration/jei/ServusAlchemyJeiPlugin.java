@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyRecipes;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
@@ -67,5 +68,6 @@ public final class ServusAlchemyJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ServusAlchemyItems.PURIFIER.get()), PURIFICATION);
         registration.addRecipeCatalyst(new ItemStack(ServusAlchemyItems.COAGULATOR.get()), COAGULATION);
         registration.addRecipeCatalyst(new ItemStack(ServusAlchemyItems.ATHANOR.get()), ATHANOR);
+        registration.addCraftingStation(RecipeTypes.SMELTING, ServusAlchemyItems.SALAMANDER_FORGE.get());
     }
 }

@@ -15,7 +15,7 @@
 
 ## 4. Recipe, journal and docs
 
-- [ ] 4.1 Shaped recipe in `ServusAlchemyRecipeProvider` (D9); GameTest `forgeRecipeShipped` in `ForgeGameTests` (the recipe resolves to the Forge); JEI crafting station in `ServusAlchemyJeiPlugin`; `:alchemy:runData`. Verify: `gradlew build`, `:alchemy:runGameTestServer` green.
+- [x] 4.1 Shaped recipe in `ServusAlchemyRecipeProvider` (D9); GameTest `forgeRecipeShipped` in `ForgeGameTests` (the recipe resolves to the Forge); JEI crafting station in `ServusAlchemyJeiPlugin`; `:alchemy:runData`. Verify: `gradlew build`, `:alchemy:runGameTestServer` green.
 - [ ] 4.2 Workshop entry `salamander_forge` in `WorkshopCategory` (D10); `:alchemy:runData`. Docs: Salamander Forge section in `docs/src/content/docs/mods/alchemy.md`, row and text in `reference/datapack/machines.md`. Verify: `gradlew build` green, no em dash in the diff.
 
 ## 5. Verification

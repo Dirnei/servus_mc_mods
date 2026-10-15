@@ -433,6 +433,23 @@
         {"item": "servus_alchemy:residue_crock", "count": 1}
       ]
     },
+    "servus_alchemy:salamander_forge": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["DDD", "DID", "DFD"],
+      "key": {
+        "D": {"item": "minecraft:deepslate_bricks"},
+        "F": {"item": "minecraft:furnace"},
+        "I": {"item": "servus_alchemy:ignis_perpetuus"}
+      },
+      "inputs": [
+        {"item": "minecraft:deepslate_bricks", "count": 7},
+        {"item": "minecraft:furnace", "count": 1},
+        {"item": "servus_alchemy:ignis_perpetuus", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:salamander_forge", "count": 1}
+      ]
+    },
     "servus_alchemy:sulfur_hood": {
       "type": "minecraft:crafting_shaped",
       "pattern": [" C ", "CBC"],
@@ -1254,6 +1271,9 @@
     "minecraft:crafting_table": {
       "name": "Crafting Table"
     },
+    "minecraft:deepslate_bricks": {
+      "name": "Deepslate Bricks"
+    },
     "minecraft:dispenser": {
       "name": "Dispenser"
     },
@@ -1343,6 +1363,9 @@
     },
     "servus_alchemy:gnome_hollow": {
       "name": "Gnome Hollow"
+    },
+    "servus_alchemy:ignis_perpetuus": {
+      "name": "Ignis Perpetuus"
     },
     "servus_alchemy:paracelsus_journal": {
       "name": "Paracelsus' Journal"

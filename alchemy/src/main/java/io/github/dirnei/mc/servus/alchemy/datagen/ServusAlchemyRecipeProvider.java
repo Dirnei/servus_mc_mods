@@ -93,6 +93,15 @@ final class ServusAlchemyRecipeProvider extends RecipeProvider {
     }
 
     private void crafting(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusAlchemyItems.SALAMANDER_FORGE.get())
+                .pattern("DDD")
+                .pattern("DID")
+                .pattern("DFD")
+                .define('D', Items.DEEPSLATE_BRICKS)
+                .define('I', ServusAlchemyItems.IGNIS_PERPETUUS.get())
+                .define('F', Items.FURNACE)
+                .unlockedBy("has_ignis_perpetuus", has(ServusAlchemyItems.IGNIS_PERPETUUS.get()))
+                .save(output);
         ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusAlchemyItems.CALCINER.get())
                 .pattern("BIB")
                 .pattern("BCB")

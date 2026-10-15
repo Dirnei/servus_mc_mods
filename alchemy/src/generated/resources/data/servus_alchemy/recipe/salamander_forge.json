@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": "minecraft:deepslate_bricks",
+    "F": "minecraft:furnace",
+    "I": "servus_alchemy:ignis_perpetuus"
+  },
+  "pattern": [
+    "DDD",
+    "DID",
+    "DFD"
+  ],
+  "result": {
+    "id": "servus_alchemy:salamander_forge"
+  }
+}
