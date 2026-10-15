@@ -6,7 +6,7 @@
 
 ## 2. Poison on drinking
 
-- [ ] 2.1 `ElixirDoseData` (D2) registered in `AlchemyEvents`; `data/servus_alchemy/servus_alchemy/elixir_dose/elixir_of_sight.json`; `ElixirOfSightItem.drink` and `finishUsingItem` (D3); lang key `message.servus_alchemy.elixir_of_sight.poisoned` in `ServusAlchemyLanguageProvider`; `:alchemy:runData`. GameTests in `AlchemyGameTests`: `elixirChanceOnePoisonsAndGrantsSight`, `elixirChanceZeroNeverPoisons` (50 drinks), `shippedElixirDoseLoads`. Verify: `gradlew build`, `:alchemy:runGameTestServer` green.
+- [x] 2.1 `ElixirDoseData` (D2) registered in `AlchemyEvents`; `data/servus_alchemy/servus_alchemy/elixir_dose/elixir_of_sight.json`; `ElixirOfSightItem.drink` and `finishUsingItem` (D3); lang key `message.servus_alchemy.elixir_of_sight.poisoned` in `ServusAlchemyLanguageProvider`; `:alchemy:runData`. GameTests in `AlchemyGameTests`: `elixirChanceOnePoisonsAndGrantsSight`, `elixirChanceZeroNeverPoisons` (50 drinks), `shippedElixirDoseLoads`. Verify: `gradlew build`, `:alchemy:runGameTestServer` green.
 
 ## 3. Texts and docs
 

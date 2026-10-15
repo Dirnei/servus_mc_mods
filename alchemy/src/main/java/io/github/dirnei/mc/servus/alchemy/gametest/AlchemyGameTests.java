@@ -23,6 +23,9 @@ import io.github.dirnei.mc.servus.alchemy.journal.ParacelsusJournalItem;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
+import io.github.dirnei.mc.servus.alchemy.sight.ElixirDose;
+import io.github.dirnei.mc.servus.alchemy.sight.ElixirDoseData;
+import io.github.dirnei.mc.servus.alchemy.sight.ElixirOfSightItem;
 import io.github.dirnei.mc.servus.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.foundation.gametest.PlayerClicks;
@@ -49,6 +52,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
@@ -798,6 +802,41 @@ public final class AlchemyGameTests {
         helper.assertTrue(ElementalSight.active(player), "the drinker should have Elemental Sight");
         helper.assertTrue(player.getEffect(ElementalSight.EFFECT).getDuration() == ElementalSight.DURATION, "for three minutes");
         helper.assertTrue(left.is(Items.GLASS_BOTTLE), "a glass bottle should be left, got " + left);
+        helper.succeed();
+    }
+
+    /** A dose of certain poison gives Poison and Nausea and still Elemental Sight. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void elixirChanceOnePoisonsAndGrantsSight(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        boolean poisoned = ElixirOfSightItem.drink(helper.getLevel(), player, new ElixirDose(1, 0, 200, 100));
+        helper.assertTrue(poisoned, "the drink should poison");
+        helper.assertTrue(player.getEffect(MobEffects.POISON) != null && player.getEffect(MobEffects.POISON).getDuration() == 200,
+                "Poison for 200 ticks");
+        helper.assertTrue(player.getEffect(MobEffects.NAUSEA) != null && player.getEffect(MobEffects.NAUSEA).getDuration() == 100,
+                "Nausea for 100 ticks");
+        helper.assertTrue(ElementalSight.active(player), "the poisoned drinker still has Elemental Sight");
+        helper.succeed();
+    }
+
+    /** A dose without chance never poisons, however often the elixir is drunk, also under the sight. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void elixirChanceZeroNeverPoisons(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ElixirDose harmless = new ElixirDose(0, 0, 200, 200);
+        for (int drink = 0; drink < 50; drink++) {
+            helper.assertFalse(ElixirOfSightItem.drink(helper.getLevel(), player, harmless), "drink " + drink + " should not poison");
+        }
+        helper.assertFalse(player.hasEffect(MobEffects.POISON) || player.hasEffect(MobEffects.NAUSEA), "no Poison and no Nausea");
+        helper.assertTrue(ElementalSight.active(player), "the drinker has Elemental Sight");
+        helper.succeed();
+    }
+
+    /** The shipped data gives the Elixir of Sight a 15 % chance, 15 % more under the sight, and 10 s of Poison and Nausea. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void shippedElixirDoseLoads(GameTestHelper helper) {
+        ElixirDose dose = ElixirDoseData.INSTANCE.forItem(ElementalSight.ELIXIR.get());
+        helper.assertTrue(dose.equals(new ElixirDose(0.15, 0.15, 200, 200)), "shipped dose, got " + dose);
         helper.succeed();
     }
 

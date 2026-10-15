@@ -324,6 +324,7 @@
   "message.servus_alchemy.coagulator.at.right_of_the_middle_vat": "right of the middle Vat",
   "message.servus_alchemy.coagulator.formed": "The Coagulator is ready.",
   "message.servus_alchemy.coagulator.missing": "The Coagulator is not complete: %s needed %s. The Coagulator page of Paracelsus' Journal shows the build.",
+  "message.servus_alchemy.elixir_of_sight.poisoned": "The dose makes the poison! Too much, you fool, too much.",
   "message.servus_alchemy.gnome_hollow.already_bound": "A gnome already works this vein.",
   "message.servus_alchemy.gnome_hollow.already_seeded": "A vein already grows here.",
   "message.servus_alchemy.gnome_hollow.bound": "A gnome takes your offering and sets to work.",

@@ -1,0 +1,6 @@
+{
+  "poison_chance": 0.15,
+  "extra_chance_while_sighted": 0.15,
+  "poison_ticks": 200,
+  "nausea_ticks": 200
+}

@@ -142,6 +142,7 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("message.servus_alchemy.gnome_hollow.gift_disliked", "The gnome wrinkles its nose. It does not want this.");
         add("message.servus_alchemy.gnome_hollow.gift_no_gnome", "No gnome is here to take a gift.");
         add(ElementalSight.ELIXIR.get(), "Elixir of Sight");
+        add("message.servus_alchemy.elixir_of_sight.poisoned", "The dose makes the poison! Too much, you fool, too much.");
         add(ElementalSight.EFFECT.get(), "Elemental Sight");
         add("gui.servus_alchemy.athanor.stage.nigredo", "Nigredo");
         add("gui.servus_alchemy.athanor.stage.albedo", "Albedo");
