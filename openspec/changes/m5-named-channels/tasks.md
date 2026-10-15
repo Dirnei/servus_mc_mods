@@ -6,7 +6,7 @@
 
 ## 2. Saved data, lookup and sync
 
-- [ ] 2.1 Add `foundation/.../logistics/channel/DuctChannelData.java` (SavedData on the overworld, codec over entries and next id) and `ChannelLookup` with the server side (design D1, D3). Verify: `gradlew build` green.
+- [x] 2.1 Add `foundation/.../logistics/channel/DuctChannelData.java` (SavedData on the overworld, codec over entries and next id) and `ChannelLookup` with the server side (design D1, D3). Verify: `gradlew build` green.
 - [ ] 2.2 Add `ChannelListPayload` (to client), `ClientChannels` (client cache, `ChannelLookup` client side, re-tint of ducts on colour changes, design D6), send on `PlayerLoggedInEvent` and after every change with `PacketDistributor.sendToAllPlayers`; register in `foundation/.../data/ServusFoundationPayloads.java`. Verify: `gradlew build` green.
 
 ## 3. Ducts on channel ids
