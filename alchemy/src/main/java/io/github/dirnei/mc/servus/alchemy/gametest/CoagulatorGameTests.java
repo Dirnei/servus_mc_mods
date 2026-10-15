@@ -5,6 +5,7 @@ import com.klikli_dev.modonomicon.api.multiblock.Multiblock;
 import io.github.dirnei.mc.servus.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.alchemy.CoagulatorBlock;
 import io.github.dirnei.mc.servus.alchemy.CoagulatorBlockEntity;
+import io.github.dirnei.mc.servus.alchemy.CoagulatorMenu;
 import io.github.dirnei.mc.servus.alchemy.Principle;
 import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.Principles;
@@ -31,6 +32,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HopperBlock;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
@@ -205,6 +207,23 @@ public final class CoagulatorGameTests {
         helper.assertTrue(vatHandler(helper, COAGULATOR, 1) == null, "an unformed Vat offers nothing");
         helper.runAfterDelay(100, () -> {
             helper.assertTrue(coagulator.inventory().getStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT).isEmpty(), "nothing is made");
+            helper.succeed();
+        });
+    }
+
+    /** Picking "No recipe" clears the selection, and the Coagulator leaves its Salt alone. */
+    @ServusGameTest(timeoutTicks = 120)
+    public static void noRecipeStopsTheCoagulator(GameTestHelper helper) {
+        CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
+        coagulator.select(AlchemyGameTests.coagulation("salt_crystal"));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        CoagulatorMenu menu = new CoagulatorMenu(0, player.getInventory(), coagulator);
+        helper.assertTrue(menu.clickMenuButton(player, CoagulatorMenu.RECIPE_BUTTON_NONE), "the button should be taken");
+        helper.assertTrue(coagulator.selected().isEmpty(), "the selection should be cleared");
+        coagulator.tanks().insert(new Principles(250, 0, 0));
+        helper.runAfterDelay(100, () -> {
+            helper.assertTrue(coagulator.inventory().getStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT).isEmpty(), "nothing is made");
+            helper.assertTrue(coagulator.tanks().contents().equals(new Principles(250, 0, 0)), "the Salt stays in the tank");
             helper.succeed();
         });
     }

@@ -16,6 +16,8 @@ public class CoagulatorMenu extends PrincipleMenu {
 
     /** Button ids from this value on select the recipe with that index in the sorted list. */
     public static final int RECIPE_BUTTON_FIRST = 100;
+    /** Button id that clears the selection, which stops the Coagulator. */
+    public static final int RECIPE_BUTTON_NONE = RECIPE_BUTTON_FIRST - 1;
 
     public CoagulatorMenu(int containerId, Inventory playerInventory, MachineBlockEntity machine) {
         super(ServusAlchemyMenus.COAGULATOR.get(), containerId, playerInventory, machine);
@@ -46,6 +48,10 @@ public class CoagulatorMenu extends PrincipleMenu {
         Principle principle = PrincipleBuckets.gaugeOf(id);
         if (principle != null) {
             return machine instanceof CoagulatorBlockEntity coagulator && PrincipleBuckets.clickGauge(player, this, coagulator.tanks(), principle);
+        }
+        if (id == RECIPE_BUTTON_NONE && machine instanceof CoagulatorBlockEntity coagulator) {
+            coagulator.select(null);
+            return true;
         }
         int index = id - RECIPE_BUTTON_FIRST;
         if (index >= 0 && id < SIDE_BUTTON_FIRST && machine instanceof CoagulatorBlockEntity coagulator) {
