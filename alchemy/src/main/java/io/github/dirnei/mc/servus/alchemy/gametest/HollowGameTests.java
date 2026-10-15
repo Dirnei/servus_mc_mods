@@ -61,6 +61,13 @@ public final class HollowGameTests {
         Journal.recordItem(level, team, "coagulate", new ItemStack(ServusAlchemyItems.SALT_CRYSTAL.get()), 1);
     }
 
+    /** Finishes Schwaz through its events; Villach must be finished first. */
+    static void finishSchwaz(ServerLevel level, UUID team) {
+        Journal.recordAthanor(level, team, new ItemStack(Items.EXPERIENCE_BOTTLE), "albedo");
+        Journal.recordEvent(level, team, "sight", 1);
+        Journal.recordItem(level, team, "bind", new ItemStack(Items.RAW_IRON), 1);
+    }
+
     /** A seeded iron vein, ripe or not, for a team that finished Villach. */
     static GnomeHollowBlockEntity ironHollow(GameTestHelper helper, boolean ripe) {
         UUID team = UUID.randomUUID();
@@ -113,6 +120,74 @@ public final class HollowGameTests {
         helper.useBlock(MACHINE, player);
         helper.assertTrue(hollow.vein().map(id -> id.getPath().equals("iron")).orElse(false), "one vein per hollow");
         helper.succeed();
+    }
+
+    /** Raw gold takes root only once the team finished Schwaz, a chapter after iron. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void goldNeedsSchwaz(GameTestHelper helper) {
+        UUID team = UUID.randomUUID();
+        finishVillach(helper.getLevel(), team);
+        GnomeHollowBlockEntity hollow = hollow(helper, team);
+        ItemStack sample = new ItemStack(Items.RAW_GOLD, 2);
+        Player player = player(helper, sample, true);
+        helper.useBlock(MACHINE, player);
+        helper.assertTrue(hollow.vein().isEmpty() && sample.getCount() == 2, "no gold after Villach alone");
+        finishSchwaz(helper.getLevel(), team);
+        helper.assertTrue(Journal.isFinished(helper.getLevel().getServer(), team, "servus_alchemy:schwaz"), "Schwaz should be finished");
+        helper.useBlock(MACHINE, player);
+        helper.assertTrue(hollow.vein().map(id -> id.getPath().equals("gold")).orElse(false), "a gold vein should be seeded");
+        helper.assertTrue(sample.getCount() == 1, "one sample is used up");
+        helper.succeed();
+    }
+
+    /** Any ore in the common gold ore tag seeds gold, here Nether Gold Ore. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void goldOreOfTheTagSeeds(GameTestHelper helper) {
+        UUID team = UUID.randomUUID();
+        finishVillach(helper.getLevel(), team);
+        finishSchwaz(helper.getLevel(), team);
+        GnomeHollowBlockEntity hollow = hollow(helper, team);
+        helper.assertTrue(hollow.seed(new ItemStack(Items.NETHER_GOLD_ORE)) == GnomeHollowBlockEntity.Seeding.SEEDED, "Nether Gold Ore should seed");
+        helper.assertTrue(hollow.vein().map(id -> id.getPath().equals("gold")).orElse(false), "the vein is gold");
+        helper.succeed();
+    }
+
+    /** Redstone dust and a diamond seed their veins after Schwaz. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void redstoneAndDiamondSeed(GameTestHelper helper) {
+        UUID team = UUID.randomUUID();
+        finishVillach(helper.getLevel(), team);
+        GnomeHollowBlockEntity redstone = hollow(helper, team);
+        helper.assertTrue(redstone.seed(new ItemStack(Items.REDSTONE)) == GnomeHollowBlockEntity.Seeding.NO_ROOT, "no redstone before Schwaz");
+        finishSchwaz(helper.getLevel(), team);
+        helper.assertTrue(redstone.seed(new ItemStack(Items.REDSTONE)) == GnomeHollowBlockEntity.Seeding.SEEDED, "redstone dust should seed");
+        helper.assertTrue(redstone.vein().map(id -> id.getPath().equals("redstone")).orElse(false), "the vein is redstone");
+        BlockPos second = MACHINE.east(2);
+        helper.setBlock(second, ServusAlchemyBlocks.GNOME_HOLLOW.get().defaultBlockState());
+        GnomeHollowBlockEntity diamond = helper.getBlockEntity(second, GnomeHollowBlockEntity.class);
+        diamond.setTeam(team);
+        helper.assertTrue(diamond.seed(new ItemStack(Items.DIAMOND)) == GnomeHollowBlockEntity.Seeding.SEEDED, "a diamond should seed");
+        helper.assertTrue(diamond.vein().map(id -> id.getPath().equals("diamond")).orElse(false), "the vein is diamond");
+        helper.succeed();
+    }
+
+    /** A gnome bound to a ripe diamond vein digs diamonds into its store. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void diamondGnomeYieldsDiamonds(GameTestHelper helper) {
+        UUID team = UUID.randomUUID();
+        finishVillach(helper.getLevel(), team);
+        finishSchwaz(helper.getLevel(), team);
+        GnomeHollowBlockEntity hollow = hollow(helper, team);
+        hollow.seed(new ItemStack(Items.DIAMOND));
+        int steps = hollow.veinDef().orElseThrow().growth().steps();
+        int yieldTicks = hollow.veinDef().orElseThrow().growth().yieldTicks();
+        hollow.growth().ripeness = steps;
+        hollow.growth().bound = true;
+        hollow.growth().yieldTimer = yieldTicks - 20;
+        helper.succeedWhen(() -> {
+            helper.assertTrue(hollow.store().count() == 1, "the store should hold a diamond, has " + hollow.store().count());
+            helper.assertTrue(hollow.takeStore().getFirst().is(Items.DIAMOND), "the store holds diamonds");
+        });
     }
 
     /** One ripening step takes its principles and waits for more. */

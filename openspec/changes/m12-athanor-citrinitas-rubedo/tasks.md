@@ -7,7 +7,7 @@
 
 ## 2. Noble veins
 
-- [ ] 2.1 Data `vein/gold.json`, `redstone.json`, `diamond.json` (D5). GameTests in `HollowGameTests`: `goldNeedsSchwaz` (raw gold refused after Villach only, seeds after Schwaz), `goldOreOfTheTagSeeds` (Nether Gold Ore), `redstoneAndDiamondSeed` (redstone dust and a diamond seed their veins after Schwaz), `diamondGnomeYieldsDiamonds` (ripe bound diamond Hollow stores a Diamond after its yield time). Verify: `gradlew build`, `:alchemy:runGameTestServer` green.
+- [x] 2.1 Data `vein/gold.json`, `redstone.json`, `diamond.json` (D5). GameTests in `HollowGameTests`: `goldNeedsSchwaz` (raw gold refused after Villach only, seeds after Schwaz), `goldOreOfTheTagSeeds` (Nether Gold Ore), `redstoneAndDiamondSeed` (redstone dust and a diamond seed their veins after Schwaz), `diamondGnomeYieldsDiamonds` (ripe bound diamond Hollow stores a Diamond after its yield time). Verify: `gradlew build`, `:alchemy:runGameTestServer` green.
 
 ## 3. Chapters
 

@@ -1,0 +1,9 @@
+{
+  "samples": ["c:ores/gold", "c:raw_materials/gold"],
+  "yield": {"id": "minecraft:raw_gold"},
+  "chapter": "servus_alchemy:schwaz",
+  "steps": 30,
+  "step_ticks": 100,
+  "step_cost": {"salt": 150, "mercury": 50},
+  "yield_ticks": 300
+}
