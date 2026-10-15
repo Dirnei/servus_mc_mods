@@ -47,6 +47,8 @@ public final class ServusAlchemyEvents {
             registerCalciner(event);
             registerCoagulator(event);
             registerAthanor(event);
+            event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusAlchemyBlockEntities.PRINCIPLE_DROPPER.get(),
+                    (dropper, side) -> dropper.tanks());
         }
 
         /** Ash and water go into the Vat, the Salt comes out of the Catch Basin, the residue out of the Residue Crock. */

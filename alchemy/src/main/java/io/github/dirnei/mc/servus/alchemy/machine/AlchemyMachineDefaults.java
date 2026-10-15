@@ -23,6 +23,7 @@ public final class AlchemyMachineDefaults {
         add("athanor", "crafter", List.of("servus_alchemy:athanor"), alchemy(4000));
         add("purifier", "crafter", List.of("servus_alchemy:purification"), alchemy(4000));
         add("gnome_hollow", "crafter", List.of(), hollow(4000, 64));
+        add("principle_dropper", "crafter", List.of(), dropper(20, 25, 1000));
     }
 
     /**
@@ -36,6 +37,11 @@ public final class AlchemyMachineDefaults {
     /** The Gnome Hollow: each principle tank holds {@code tank} mB, its store {@code store} items of the vein's yield. */
     private static MachineStats hollow(int tank, int store) {
         return new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, tank, 0, "", 0, store);
+    }
+
+    /** The Principle Dropper: every {@code interval} ticks it drips up to {@code perDrip} mB of each principle; each tank holds {@code tank} mB. */
+    private static MachineStats dropper(int interval, int perDrip, int tank) {
+        return new MachineStats(interval, 0, 0, 1, 0, 1, 0, perDrip, tank, 0, "", 0, 0);
     }
 
     /** An unpowered alchemy machine: recipe time decides the cycle, each principle tank holds {@code tank} mB. */

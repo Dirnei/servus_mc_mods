@@ -27,6 +27,14 @@ class AlchemyMachineDefaultsTest {
     }
 
     @Test
+    void dropperDripsByItsStats() {
+        MachineStats stats = MachineDefaults.stats("servus_alchemy:principle_dropper");
+        assertEquals(20, stats.workTicks());
+        assertEquals(25, stats.fluidPerCycle());
+        assertEquals(1000, stats.fluidCapacity());
+    }
+
+    @Test
     void unknownMachineFails() {
         assertThrows(NoSuchElementException.class, () -> MachineDefaults.info("servus_alchemy:nope"));
     }

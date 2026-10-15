@@ -26,6 +26,7 @@ public final class ServusAlchemyItems {
     public static final DeferredItem<BlockItem> VAT = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.VAT);
     public static final DeferredItem<BlockItem> ATHANOR = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.ATHANOR);
     public static final DeferredItem<BlockItem> GNOME_HOLLOW = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.GNOME_HOLLOW);
+    public static final DeferredItem<BlockItem> PRINCIPLE_DROPPER = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.PRINCIPLE_DROPPER);
 
     public static final DeferredItem<Item> ASH = ITEMS.registerSimpleItem("ash");
     /** What stays behind when the Purifier has washed the Salt out of the Ash. */
@@ -41,7 +42,7 @@ public final class ServusAlchemyItems {
     /** Items shown in the Servus creative tab, in order. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(PARACELSUS_JOURNAL, CALCINER, FIREBOX, ASH_PAN,
             ALEMBIC, RECEIVER, SULFUR_HOOD, COPPER_DUCT, PURIFIER, CATCH_BASIN, RESIDUE_CROCK, COAGULATOR, VAT, ATHANOR, GNOME_HOLLOW,
-            ASH, CAPUT_MORTUUM, SALT_CRYSTAL, SALT_CRYSTAL_BLOCK, SULFUR, QUICKSILVER);
+            PRINCIPLE_DROPPER, ASH, CAPUT_MORTUUM, SALT_CRYSTAL, SALT_CRYSTAL_BLOCK, SULFUR, QUICKSILVER);
 
     private ServusAlchemyItems() {
     }

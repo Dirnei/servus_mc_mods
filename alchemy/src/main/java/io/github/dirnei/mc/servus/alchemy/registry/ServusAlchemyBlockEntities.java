@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
+import io.github.dirnei.mc.servus.alchemy.hollow.PrincipleDropperBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierBlockEntity;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
@@ -30,6 +31,9 @@ public final class ServusAlchemyBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GnomeHollowBlockEntity>> GNOME_HOLLOW =
             register("gnome_hollow", GnomeHollowBlockEntity::new, ServusAlchemyBlocks.GNOME_HOLLOW);
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PrincipleDropperBlockEntity>> PRINCIPLE_DROPPER =
+            register("principle_dropper", PrincipleDropperBlockEntity::new, ServusAlchemyBlocks.PRINCIPLE_DROPPER);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PurifierBlockEntity>> PURIFIER =
             register("purifier", PurifierBlockEntity::new, ServusAlchemyBlocks.PURIFIER);

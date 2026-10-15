@@ -1,6 +1,9 @@
 package io.github.dirnei.mc.servus.alchemy.hollow;
 
+import io.github.dirnei.mc.servus.alchemy.Principle;
+import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.PrincipleTanks;
+import io.github.dirnei.mc.servus.alchemy.Principles;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.TeamOwned;
 import io.github.dirnei.mc.servus.alchemy.TeamOwnership;
@@ -34,6 +37,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
  * A Gnome Hollow: seeded by hand with a sample of ore, ripened with principles poured in by bucket, and once a gnome
@@ -201,6 +205,35 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
             syncToClients();
         }
         return Gift.TAKEN;
+    }
+
+    /**
+     * Principles dripped in by a Principle Dropper above: like a poured bucket, but taken only while the vein is
+     * seeded, not ripe and its steps take that principle. Returns the mB taken.
+     */
+    int receiveDrip(Principle principle, int amount) {
+        Optional<VeinDef> def = veinDef();
+        if (amount <= 0 || def.isEmpty() || growth.ripe(def.get().growth()) || def.get().growth().stepCost().get(principle) <= 0) {
+            return 0;
+        }
+        return tanks.tank(principle).fill(new FluidStack(PrincipleFluids.fluid(principle), amount), false);
+    }
+
+    /** What one drip from above may bring: what the vein's steps take, and the free space of each tank. */
+    Optional<DripNeed> dripNeed() {
+        Optional<VeinDef> def = veinDef();
+        if (def.isEmpty() || growth.ripe(def.get().growth())) {
+            return Optional.empty();
+        }
+        Principles room = Principles.NONE;
+        for (Principle principle : Principle.values()) {
+            room = room.with(principle, Math.max(0, tanks.capacity() - tanks.amount(principle)));
+        }
+        return Optional.of(new DripNeed(def.get().growth().stepCost(), room));
+    }
+
+    /** What an unripe vein drinks per step and how much more each tank of the Hollow holds. */
+    record DripNeed(Principles stepCost, Principles room) {
     }
 
     /** Empties the store into stacks of the vein's yield; empty when nothing is stored or the vein's data is gone. */

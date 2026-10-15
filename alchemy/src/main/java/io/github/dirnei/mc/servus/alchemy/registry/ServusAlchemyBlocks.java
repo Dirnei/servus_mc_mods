@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerShellBlock;
 import io.github.dirnei.mc.servus.alchemy.coagulator.VatBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlock;
+import io.github.dirnei.mc.servus.alchemy.hollow.PrincipleDropperBlock;
 import io.github.dirnei.mc.servus.alchemy.purifier.CatchBasinBlock;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierBlock;
 import io.github.dirnei.mc.servus.alchemy.purifier.ResidueCrockBlock;
@@ -80,6 +81,10 @@ public final class ServusAlchemyBlocks {
 
     public static final DeferredBlock<GnomeHollowBlock> GNOME_HOLLOW = BLOCKS.registerBlock("gnome_hollow", GnomeHollowBlock::new,
             () -> BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(1.5F, 6.0F).requiresCorrectToolForDrops().sound(SoundType.STONE));
+
+    /** The Principle Dropper, a copper drip vessel that feeds the Gnome Hollow below it. */
+    public static final DeferredBlock<PrincipleDropperBlock> PRINCIPLE_DROPPER = BLOCKS.registerBlock("principle_dropper",
+            PrincipleDropperBlock::new, () -> copper());
 
     private static DeferredBlock<CalcinerPartBlock> calcinerPart(String name, Role role, BlockBehaviour.Properties properties) {
         return BLOCKS.registerBlock(name, props -> new CalcinerPartBlock(role, props), () -> properties);
