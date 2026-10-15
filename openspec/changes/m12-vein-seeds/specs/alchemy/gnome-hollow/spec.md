@@ -81,6 +81,10 @@ A Seed SHALL be one item that names its vein. It SHALL be named "Seed of" follow
 - **WHEN** a player hovers a Seed of Gold
 - **THEN** it reads "Seed of Gold" and is drawn golden yellow
 
+#### Scenario: Seeds can be browsed
+- **WHEN** a player opens the Servus creative tab or searches JEI for "seed"
+- **THEN** there is one Seed for every loaded vein, each as its own entry
+
 ### Requirement: Seeds come from the Athanor
 Alchemy SHALL ship an Athanor recipe per vein that turns its raw material and principles into its Seed, at the tier of its stage: Seed of Iron from Raw Iron and Seed of Copper from Raw Copper on an Albedo Athanor, Seed of Gold from Raw Gold and Seed of Redstone from Redstone Dust on a Citrinitas Athanor, Seed of Diamond from a Diamond on a Rubedo Athanor (principles as example numbers in the data).
 

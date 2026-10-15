@@ -4,6 +4,8 @@ import io.github.dirnei.mc.servus.alchemy.Principle;
 import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPorts;
 import io.github.dirnei.mc.servus.alchemy.coagulator.CoagulatorStructure;
+import io.github.dirnei.mc.servus.alchemy.hollow.ClientVeins;
+import io.github.dirnei.mc.servus.alchemy.hollow.VeinSeedItem;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierStructure;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
@@ -34,6 +36,7 @@ public final class ServusAlchemyEvents {
         public static void onBuildCreativeTab(BuildCreativeModeTabContentsEvent event) {
             if (event.getTabKey().equals(ServusFoundationCreativeTabs.SERVUS_KEY)) {
                 ServusAlchemyItems.CREATIVE_TAB_ORDER.forEach(event::accept);
+                ClientVeins.ids().forEach(vein -> event.accept(VeinSeedItem.of(vein)));
                 event.accept(ElementalSight.ELIXIR.get());
                 for (Principle principle : Principle.values()) {
                     event.accept(PrincipleFluids.entry(principle).bucket().get());

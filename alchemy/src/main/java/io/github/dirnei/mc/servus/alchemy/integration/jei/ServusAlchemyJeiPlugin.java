@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorRecipe;
 import io.github.dirnei.mc.servus.alchemy.prelum.PressingRecipe;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurificationRecipe;
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyComponents;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyRecipes;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
@@ -17,12 +18,16 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
-/** Shows the calcination, purification, coagulation, Athanor and pressing recipes in JEI. Only loaded when JEI is present. */
+/**
+ * Shows the calcination, purification, coagulation, Athanor and pressing recipes in JEI and lists every vein's Seed.
+ * Only loaded when JEI is present.
+ */
 @JeiPlugin
 public final class ServusAlchemyJeiPlugin implements IModPlugin {
 
@@ -42,6 +47,12 @@ public final class ServusAlchemyJeiPlugin implements IModPlugin {
     @Override
     public Identifier getPluginUid() {
         return UID;
+    }
+
+    /** Each vein's Seed is its own entry. */
+    @Override
+    public void registerItemSubtypes(ISubtypeRegistration registration) {
+        registration.registerFromDataComponentTypes(ServusAlchemyItems.SEED.get(), ServusAlchemyComponents.VEIN.get());
     }
 
     @Override
