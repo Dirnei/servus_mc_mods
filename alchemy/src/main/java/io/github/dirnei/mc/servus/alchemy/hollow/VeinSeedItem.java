@@ -46,7 +46,8 @@ public class VeinSeedItem extends Item {
                 .orElseGet(() -> Component.translatable(KEY + ".unknown"));
     }
 
-    private static boolean loaded(Identifier vein) {
-        return VeinData.INSTANCE.get(vein).isPresent();
+    /** Whether the server loaded {@code vein}: its data on the server, what it sent on a client. */
+    public static boolean loaded(Identifier vein) {
+        return VeinData.INSTANCE.get(vein).isPresent() || ClientVeins.get(vein).isPresent();
     }
 }

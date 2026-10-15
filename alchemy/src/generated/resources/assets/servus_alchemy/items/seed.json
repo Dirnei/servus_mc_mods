@@ -1,0 +1,11 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "servus_alchemy:item/seed",
+    "tints": [
+      {
+        "type": "servus_alchemy:vein_color"
+      }
+    ]
+  }
+}

@@ -1,9 +1,11 @@
 package io.github.dirnei.mc.servus.alchemy.datagen;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.github.dirnei.mc.servus.alchemy.Principle;
 import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.client.hollow.VeinColorTint;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ItemModelProvider;
@@ -30,6 +32,7 @@ final class ServusAlchemyItemModelProvider extends ItemModelProvider {
         basicItem(ServusAlchemyItems.RED_FELT_SCRAP.get());
         basicItem(ServusAlchemyItems.SALT_OFFERING.get());
         basicItem(ServusAlchemyItems.SALAMANDER_SPAWN_EGG.get());
+        seed();
         basicItem(ElementalSight.ELIXIR.get());
         basicItem(ServusAlchemyItems.PARACELSUS_JOURNAL.get());
         // NeoForge's fluid container model with the textures of its own bucket model, without a cover layer.
@@ -45,5 +48,15 @@ final class ServusAlchemyItemModelProvider extends ItemModelProvider {
             model.addProperty("fluid", entry.source().getId().toString());
             itemModelDefinition(entry.bucket().getId(), model);
         }
+    }
+
+    /** The greyscale seed tinted in its vein's colour, with the untinted husk drawn over it. */
+    private void seed() {
+        basicItem(ServusAlchemyItems.SEED.get()).texture("layer1", modLoc("item/seed_husk"));
+        JsonObject tint = new JsonObject();
+        tint.addProperty("type", VeinColorTint.ID.toString());
+        JsonArray tints = new JsonArray();
+        tints.add(tint);
+        itemTints(ServusAlchemyItems.SEED.getId(), tints);
     }
 }

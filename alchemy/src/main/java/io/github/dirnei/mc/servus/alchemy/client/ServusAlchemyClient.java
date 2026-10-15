@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.alchemy.client;
 
 import com.klikli_dev.modonomicon.client.render.page.PageRendererRegistry;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.client.hollow.VeinColorTint;
 import io.github.dirnei.mc.servus.alchemy.client.journal.JournalTasksPageRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.salamander.SalamanderModel;
 import io.github.dirnei.mc.servus.alchemy.client.salamander.SalamanderRenderer;
@@ -20,6 +21,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterPictureInPictureRenderersEvent;
 
@@ -48,6 +50,11 @@ public final class ServusAlchemyClient {
         event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.PRELUM.get(), PrelumRenderer::new);
         event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.PRINCIPLE_DROPPER.get(), PrincipleDropperRenderer::new);
         event.registerEntityRenderer(ServusAlchemyEntities.SALAMANDER.get(), SalamanderRenderer::new);
+    }
+
+    @SubscribeEvent
+    public static void onRegisterItemTints(RegisterColorHandlersEvent.ItemTintSources event) {
+        event.register(VeinColorTint.ID, VeinColorTint.MAP_CODEC);
     }
 
     @SubscribeEvent

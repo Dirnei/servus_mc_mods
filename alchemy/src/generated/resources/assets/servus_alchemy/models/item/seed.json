@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "servus_alchemy:item/seed",
+    "layer1": "servus_alchemy:item/seed_husk"
+  }
+}

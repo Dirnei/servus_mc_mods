@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.datagen.model;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ public class ModelProvider<T extends ModelBuilder<T>> {
     private final Map<Identifier, String> itemTypes = new HashMap<>();
     private final Map<Identifier, JsonObject> rawItemModels = new LinkedHashMap<>();
     private final Set<Identifier> oversizedInGui = new HashSet<>();
+    private final Map<Identifier, JsonArray> itemTints = new HashMap<>();
 
     public ModelProvider(String modid, String folder, Function<Identifier, T> factory) {
         this.modid = modid;
@@ -97,6 +99,11 @@ public class ModelProvider<T extends ModelBuilder<T>> {
         itemTypes.put(itemId, type);
     }
 
+    /** Gives an item's definition these tint sources, one per model layer from layer 0; later layers stay untinted. */
+    public void itemTints(Identifier itemId, JsonArray tints) {
+        itemTints.put(itemId, tints);
+    }
+
     /**
      * Marks an item whose model reaches past its slot in GUIs; its definition gets
      * {@code "oversized_in_gui": true} so the slot icon is not cut at the 16 pixel slot.
@@ -134,11 +141,14 @@ public class ModelProvider<T extends ModelBuilder<T>> {
         return !itemId.getPath().contains("/") && BuiltInRegistries.ITEM.containsKey(itemId) ? itemId : null;
     }
 
-    /** {@code {"model": {"type": <type>, "model": "<location>"}}}, plus {@code oversized_in_gui} when marked. */
+    /** {@code {"model": {"type": <type>, "model": "<location>"}}}, plus its tints and {@code oversized_in_gui} when marked. */
     private JsonObject itemDefinition(Identifier model, Identifier itemId) {
         JsonObject inner = new JsonObject();
         inner.addProperty("type", itemModelTypeOf(itemId));
         inner.addProperty("model", model.toString());
+        if (itemTints.containsKey(itemId)) {
+            inner.add("tints", itemTints.get(itemId));
+        }
         JsonObject root = new JsonObject();
         root.add("model", inner);
         if (oversizedInGui.contains(itemId)) {

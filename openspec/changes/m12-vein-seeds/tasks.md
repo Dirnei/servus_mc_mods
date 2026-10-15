@@ -1,7 +1,7 @@
 ## 1. Seed
 
 - [x] 1.1 Data component `servus_alchemy:vein`, item `servus_alchemy:seed` with its name from the vein, lang ("Seed of %s", vein names, "Unknown Seed"); run `runData` and `:alchemy:build`
-- [ ] 1.2 `VeinSyncPayload` and `ClientVeins`, sent on datapack sync; tint source `servus_alchemy:vein_color` and item model with greyscale seed and husk layers (texture generator script); run `runData` and `:alchemy:build`
+- [x] 1.2 `VeinSyncPayload` and `ClientVeins`, sent on datapack sync; tint source `servus_alchemy:vein_color` and item model with greyscale seed and husk layers (texture generator script); run `runData` and `:alchemy:build`
 
 ## 2. Planting and recipes
 
