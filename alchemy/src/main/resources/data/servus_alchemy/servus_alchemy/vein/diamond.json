@@ -1,8 +1,6 @@
 {
-  "samples": ["c:ores/diamond", "c:gems/diamond"],
   "yield": {"id": "minecraft:diamond"},
   "color": "#50e8de",
-  "chapter": "servus_alchemy:schwaz",
   "steps": 40,
   "step_ticks": 100,
   "step_cost": {"salt": 200, "mercury": 100, "sulfur": 50},

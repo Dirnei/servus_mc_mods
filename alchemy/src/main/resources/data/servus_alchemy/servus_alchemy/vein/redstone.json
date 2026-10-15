@@ -1,8 +1,6 @@
 {
-  "samples": ["c:ores/redstone", "c:dusts/redstone"],
   "yield": {"id": "minecraft:redstone"},
   "color": "#e8281e",
-  "chapter": "servus_alchemy:schwaz",
   "steps": 30,
   "step_ticks": 100,
   "step_cost": {"salt": 100, "mercury": 100},

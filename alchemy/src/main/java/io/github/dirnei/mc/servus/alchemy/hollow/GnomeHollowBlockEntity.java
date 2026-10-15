@@ -19,7 +19,6 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineStatsManager;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -129,24 +128,9 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         return MachineStatsManager.INSTANCE.get(ID, DEFAULTS);
     }
 
-    /** Whether the owner's team may grow this vein: its chapter must be finished. */
-    public boolean mayGrow(VeinDef def) {
-        if (def.chapter().isEmpty()) {
-            return true;
-        }
-        if (!(level instanceof ServerLevel server) || team() == null) {
-            return false;
-        }
-        return Journal.isFinished(server.getServer(), team(), def.chapter().get().toString());
-    }
-
-    /** Whether {@code stack} would seed this Hollow now. */
-    public boolean acceptsSample(ItemStack stack) {
-        return vein == null && veinFor(stack).isPresent();
-    }
-
-    private Optional<Map.Entry<Identifier, VeinDef>> veinFor(ItemStack stack) {
-        return VeinData.INSTANCE.forSample(stack).filter(entry -> mayGrow(entry.getValue()));
+    /** The loaded vein a Seed plants, empty for anything else. */
+    private static Optional<Identifier> veinFor(ItemStack stack) {
+        return VeinSeedItem.vein(stack).filter(vein -> VeinData.INSTANCE.get(vein).isPresent());
     }
 
     /** Seeds an empty Hollow with the vein {@code sample} belongs to; the caller uses up the sample on {@link Seeding#SEEDED}. */
@@ -154,11 +138,11 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         if (vein != null) {
             return Seeding.ALREADY_SEEDED;
         }
-        Optional<Map.Entry<Identifier, VeinDef>> entry = veinFor(sample);
-        if (entry.isEmpty()) {
+        Optional<Identifier> planted = veinFor(sample);
+        if (planted.isEmpty()) {
             return Seeding.NO_ROOT;
         }
-        vein = entry.get().getKey();
+        vein = planted.get();
         growth.ripeness = 0;
         growth.bound = false;
         growth.stepTimer = 0;

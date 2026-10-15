@@ -1,8 +1,6 @@
 {
-  "samples": ["c:ores/iron", "c:raw_materials/iron"],
   "yield": {"id": "minecraft:raw_iron"},
   "color": "#d88c62",
-  "chapter": "servus_alchemy:villach",
   "steps": 20,
   "step_ticks": 100,
   "step_cost": {"salt": 100, "mercury": 20},
