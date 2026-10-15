@@ -17,7 +17,7 @@
 
 ## 4. Integration
 
-- [ ] 4.1 Full `gradlew build test :alchemy:runGameTestServer` green.
+- [x] 4.1 Full `gradlew build test :alchemy:runGameTestServer` green.
 - [ ] 4.2 User play check in game:
   - In the Nether (Nether Wastes or Basalt Deltas lava), without Elemental Sight: no salamander drawn, only a flame now and then; with the sight the salamander shows on the lava, glows, sways its tail, its crest flickers; no flicker of faces from any angle.
   - Gold Ingots befriend it after a few tries (hearts), then it shows without the sight, follows, teleports, sits on an empty hand click, lies in a lit campfire nearby.
