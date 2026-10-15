@@ -16,7 +16,7 @@
 
 ## 4. Server requests
 
-- [ ] 4.1 Add `SetSideChannelPayload`, `CreateChannelPayload`, `EditChannelPayload`, `DeleteChannelPayload` (to server) and `CableChannelsPayload` (to client) with their checks (design D5); `UtilityDuctMenu` drops `BUTTON_CHANNEL`, sends `CableChannelsPayload` on open, after the player's change and every 20 ticks while it changed. GameTests in `ServusLogisticsGameTests`: `createAssignsToSide`, `deleteOnlyOpenSideFallsBack`, `deleteRefusedWhileUsed`, `otherTeamCannotEdit` (two mock players, a test team provider). Verify: `gradlew build` green, GameTests pass.
+- [x] 4.1 Add `SetSideChannelPayload`, `CreateChannelPayload`, `EditChannelPayload`, `DeleteChannelPayload` (to server) and `CableChannelsPayload` (to client) with their checks (design D5); `UtilityDuctMenu` drops `BUTTON_CHANNEL`, sends `CableChannelsPayload` on open, after the player's change and every 20 ticks while it changed. GameTests in `ServusLogisticsGameTests`: `createAssignsToSide`, `deleteOnlyOpenSideFallsBack`, `deleteRefusedWhileUsed`, `otherTeamCannotEdit` (mock players; the request methods in `ChannelRequests` take the team id, so tests pass team ids directly instead of installing a team provider). Verify: `gradlew build` green, GameTests pass.
 
 ## 5. GUI
 

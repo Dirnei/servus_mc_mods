@@ -45,7 +45,7 @@ Ids are allocated from a counter in the saved data and never reused; 0 is the De
 | `EditChannelPayload` | to server | id, name, colour, icon | save in the edit form |
 | `DeleteChannelPayload` | to server | line, id | trash |
 
-Every server handler checks that the player has a `UtilityDuctMenu` open, that the line is present, that the channel belongs to the player's team (or is Default for `SetSideChannel`), and re-runs `nameProblem` and `deletable`; a refused request changes nothing. The form shows name problems from the same pure check against the synced list before sending, so the server refusal only matters on a race. `BUTTON_CHANNEL` and its button ids go.
+The handlers resolve the team with `Teams.teamOf` and call `ChannelRequests`, whose methods take the player and the team id (GameTest mock players are no `ServerPlayer`). Every request checks that the player has a `UtilityDuctMenu` open, that the line is present, that the channel belongs to the player's team (or is Default for `SetSideChannel`), and re-runs `nameProblem` and `deletable`; a refused request changes nothing. The form shows name problems from the same pure check against the synced list before sending, so the server refusal only matters on a race. `BUTTON_CHANNEL` and its button ids go.
 
 ### D6: Client cache and re-tint
 

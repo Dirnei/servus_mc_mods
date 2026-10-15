@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataSummary;
 import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.logistics.channel.Channel;
 import io.github.dirnei.mc.servus.foundation.logistics.channel.DuctChannelData;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctModelData;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctPose;
@@ -17,6 +18,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctShapes;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
+import io.github.dirnei.mc.servus.foundation.logistics.menu.ChannelRequests;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.UtilityDuctMenu;
 import io.github.dirnei.mc.servus.foundation.logistics.network.ChannelUses;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -936,6 +939,115 @@ public final class ServusLogisticsGameTests {
         UtilityDuctBlockEntity cable = duct(helper, DUCT.south(), Line.ENERGY);
         openDuctMenu(helper, player, cable);
         helper.assertFalse(UtilityDuctMenu.setFilterById(player, 0, id(Items.DIAMOND)), "a duct without an Item Pipe takes no filter");
+        helper.succeed();
+    }
+
+    private static DuctChannelData channels(GameTestHelper helper) {
+        return DuctChannelData.get(helper.getLevel().getServer());
+    }
+
+    /** "+ New" creates the channel for the team and puts the open side on it; a taken name or a missing line changes nothing. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void createAssignsToSide(GameTestHelper helper) {
+        chest(helper, DUCT.north());
+        UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        openDuctMenu(helper, player, duct);
+        UUID team = UUID.randomUUID();
+
+        helper.assertTrue(ChannelRequests.create(player, team, Line.ITEM.ordinal(), "Copper", 1, "minecraft:copper_ingot"),
+                "creating Copper should be taken");
+        List<Channel> list = channels(helper).list().forTeam(team);
+        helper.assertTrue(list.size() == 1, "the team has one channel, got " + list);
+        Channel copper = list.get(0);
+        helper.assertTrue(copper.name().equals("Copper") && copper.colour() == 1 && "minecraft:copper_ingot".equals(copper.icon()),
+                "Copper keeps name, colour and icon, got " + copper);
+        helper.assertTrue(duct.channel(Line.ITEM, Direction.NORTH) == copper.id(), "the open side is on Copper");
+
+        helper.assertFalse(ChannelRequests.create(player, team, Line.ITEM.ordinal(), " copper ", 2, ""), "a taken name is refused");
+        helper.assertFalse(ChannelRequests.create(player, team, Line.ENERGY.ordinal(), "Power", 3, ""), "a missing line is refused");
+        helper.assertFalse(ChannelRequests.create(player, team, Line.DATA.ordinal(), "Data", 3, ""), "the data line has no channels");
+        helper.assertTrue(channels(helper).list().forTeam(team).size() == 1, "no further channel was created");
+        helper.assertTrue(duct.channel(Line.ITEM, Direction.NORTH) == copper.id(), "the side stays on Copper");
+
+        helper.assertTrue(ChannelRequests.setSideChannel(player, team, Line.ITEM.ordinal(), 0), "Default can always be picked");
+        helper.assertTrue(duct.channel(Line.ITEM, Direction.NORTH) == 0, "the side is back on Default");
+        player.containerMenu = player.inventoryMenu;
+        helper.assertFalse(ChannelRequests.create(player, team, Line.ITEM.ordinal(), "Tin", 4, ""), "without the GUI open nothing is created");
+        helper.succeed();
+    }
+
+    /** Deleting the channel only the open side uses removes it and puts the side on Default. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void deleteOnlyOpenSideFallsBack(GameTestHelper helper) {
+        chest(helper, DUCT.north());
+        UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        openDuctMenu(helper, player, duct);
+        UUID team = UUID.randomUUID();
+        helper.assertTrue(ChannelRequests.create(player, team, Line.ITEM.ordinal(), "Gold", 4, ""), "creating Gold should be taken");
+        int gold = duct.channel(Line.ITEM, Direction.NORTH);
+
+        helper.runAfterDelay(5, () -> {
+            helper.assertTrue(ChannelRequests.delete(player, team, Line.ITEM.ordinal(), gold), "Gold, used only here, may be deleted");
+            helper.assertFalse(channels(helper).list().exists(gold), "Gold is gone");
+            helper.assertTrue(duct.channel(Line.ITEM, Direction.NORTH) == 0, "the side is on Default");
+            helper.assertFalse(duct.storesChannel(Set.of(gold)), "the side no longer stores Gold");
+            helper.succeed();
+        });
+    }
+
+    /** A channel used by another loaded side stays; once only the open side uses it, deleting works. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void deleteRefusedWhileUsed(GameTestHelper helper) {
+        chest(helper, CHEST_A);
+        chest(helper, CHEST_B);
+        UtilityDuctBlockEntity a = duct(helper, DUCT_A, Line.ITEM);
+        UtilityDuctBlockEntity b = duct(helper, DUCT_B, Line.ITEM);
+        UUID team = UUID.randomUUID();
+        int iron = channels(helper).create(team, "Iron ore", 14, null).orElseThrow().id();
+        a.setChannel(Line.ITEM, Direction.NORTH, iron);
+        b.setChannel(Line.ITEM, Direction.NORTH, iron);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        openDuctMenu(helper, player, a);
+
+        helper.runAfterDelay(5, () -> {
+            helper.assertFalse(ChannelRequests.delete(player, team, Line.ITEM.ordinal(), iron), "Iron ore on two loaded sides stays");
+            helper.assertTrue(channels(helper).list().exists(iron), "Iron ore still exists");
+            helper.assertTrue(a.channel(Line.ITEM, Direction.NORTH) == iron, "the open side stays on Iron ore");
+            b.setChannel(Line.ITEM, Direction.NORTH, 0);
+            helper.assertTrue(ChannelRequests.delete(player, team, Line.ITEM.ordinal(), iron), "with only the open side left it may go");
+            helper.assertTrue(a.channel(Line.ITEM, Direction.NORTH) == 0, "the open side is on Default");
+            helper.succeed();
+        });
+    }
+
+    /** Another team can neither pick, edit nor delete a channel; a team mate may edit and pick it. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void otherTeamCannotEdit(GameTestHelper helper) {
+        chest(helper, DUCT.north());
+        UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM);
+        UUID owners = UUID.randomUUID();
+        UUID strangers = UUID.randomUUID();
+        int iron = channels(helper).create(owners, "Iron ore", 14, null).orElseThrow().id();
+
+        Player stranger = helper.makeMockPlayer(GameType.SURVIVAL);
+        openDuctMenu(helper, stranger, duct);
+        helper.assertFalse(ChannelRequests.setSideChannel(stranger, strangers, Line.ITEM.ordinal(), iron), "another team cannot pick it");
+        helper.assertFalse(ChannelRequests.edit(stranger, strangers, iron, "Mine", 1, ""), "another team cannot edit it");
+        helper.assertFalse(ChannelRequests.delete(stranger, strangers, Line.ITEM.ordinal(), iron), "another team cannot delete it");
+        Channel kept = channels(helper).list().get(iron);
+        helper.assertTrue(kept != null && kept.name().equals("Iron ore") && kept.colour() == 14, "the channel is unchanged, got " + kept);
+        helper.assertTrue(duct.channel(Line.ITEM, Direction.NORTH) == 0, "the side stays on Default");
+
+        Player mate = helper.makeMockPlayer(GameType.SURVIVAL);
+        openDuctMenu(helper, mate, duct);
+        helper.assertTrue(ChannelRequests.edit(mate, owners, iron, "Iron", 11, "minecraft:iron_ore"), "a team mate may edit it");
+        Channel edited = channels(helper).list().get(iron);
+        helper.assertTrue(edited.name().equals("Iron") && edited.colour() == 11 && "minecraft:iron_ore".equals(edited.icon()),
+                "the edit is kept, got " + edited);
+        helper.assertTrue(ChannelRequests.setSideChannel(mate, owners, Line.ITEM.ordinal(), iron), "a team mate may pick it");
+        helper.assertTrue(duct.channel(Line.ITEM, Direction.NORTH) == iron, "the side is on Iron");
         helper.succeed();
     }
 

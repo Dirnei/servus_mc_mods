@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsB
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsMenus;
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.team.Teams;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
@@ -13,6 +14,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -21,14 +23,18 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The endpoint configuration of one duct side: per present line (Item Pipe,
  * Power Cable, Fluid Pipe) the mode, the channel and a remove button (the data
  * line only on or off and remove), for the
  * Item Pipe the side's filter as ghost slots and its priority, plus the
- * player inventory. Everything but the slots goes through button ids; a filter
- * slot is also set by item id through {@link SetDuctFilterPayload}.
+ * player inventory. Everything but the slots and the channel goes through
+ * button ids; a filter slot is also set by item id through
+ * {@link SetDuctFilterPayload}, and channels go through {@link ChannelRequests}.
+ * While open, the server sends the player the side's cable channels
+ * ({@link CableChannelsPayload}) once a second when they changed.
  */
 public class UtilityDuctMenu extends AbstractContainerMenu {
 
@@ -44,18 +50,23 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
     public static final int BUTTON_PRIORITY_UP = 31;
 
     private static final int DATA_PRIORITY = 0;
+    private static final int CABLE_SYNC_TICKS = 20;
 
     private final UtilityDuctBlockEntity duct;
     private final Direction side;
     private final ContainerLevelAccess access;
     private final ContainerData data;
+    private final Player player;
     /** The line whose page the screen shows; client side view state. */
     private Line page;
+    private int cableSyncCountdown;
+    private CableChannelsPayload cableChannelsSent;
 
     public UtilityDuctMenu(int containerId, Inventory playerInventory, UtilityDuctBlockEntity duct, Direction side) {
         super(ServusLogisticsMenus.UTILITY_DUCT.get(), containerId);
         this.duct = duct;
         this.side = side;
+        this.player = playerInventory.player;
         this.access = ContainerLevelAccess.create(duct.getLevel(), duct.getBlockPos());
         this.data = new SimpleContainerData(1);
         addDataSlots(data);
@@ -119,6 +130,26 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
     public void broadcastChanges() {
         data.set(DATA_PRIORITY, duct.priority(side));
         super.broadcastChanges();
+        if (--cableSyncCountdown <= 0) {
+            cableSyncCountdown = CABLE_SYNC_TICKS;
+            sendCableChannels(false);
+        }
+    }
+
+    /**
+     * Server side: sends the player the side's cable channels, unless they
+     * equal what was sent last and {@code force} is false. Players without a
+     * connection, such as GameTest players, get nothing.
+     */
+    public void sendCableChannels(boolean force) {
+        if (!(player instanceof ServerPlayer serverPlayer) || serverPlayer.connection == null) {
+            return;
+        }
+        CableChannelsPayload payload = ChannelRequests.cableChannels(this, Teams.teamOf(serverPlayer), serverPlayer.level().getServer());
+        if (force || !payload.equals(cableChannelsSent)) {
+            cableChannelsSent = payload;
+            PacketDistributor.sendToPlayer(serverPlayer, payload);
+        }
     }
 
     @Override
