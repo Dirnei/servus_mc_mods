@@ -36,3 +36,10 @@ A Heavy Duty Rack bay SHALL hold any items in a fixed number of slots (`slots` i
 #### Scenario: Front with a rack in hand
 - **WHEN** a player holding a rack right clicks the front of a rack
 - **THEN** the GUI opens and nothing is placed
+
+### Requirement: One rack in the creative tab and JEI
+The creative tab and the recipe viewer SHALL list one Heavy Duty Rack, the oak one; the recipe viewer SHALL show the rack recipe accepting any planks.
+
+#### Scenario: Creative tab
+- **WHEN** the player opens the Servus creative tab
+- **THEN** one Heavy Duty Rack with oak boards is listed

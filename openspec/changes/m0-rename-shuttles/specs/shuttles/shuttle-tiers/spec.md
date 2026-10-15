@@ -19,3 +19,14 @@ A shuttle SHALL be one of three items: Shuttle Mk1, Shuttle Mk2 and Shuttle Mk3.
 #### Scenario: A datapack changes the stacks
 - **WHEN** a datapack sets Mk2 to 6 stacks and the server reloads
 - **THEN** Mk2 shuttles carry up to six jobs per trip
+
+### Requirement: Count upgrades
+A shuttle SHALL hold a count of Speed upgrades and a count of Handling upgrades. The Speed upgrade SHALL be the Foundation Speed Upgrade item; the Handling Upgrade SHALL be a craftable Shuttles item. A count SHALL never exceed the max of the shuttle's tier. The counts SHALL be stored on the shuttle item with its tool, so a shuttle keeps them in inventories, garages, the workshop and through tier builds. The tooltip of a shuttle SHALL list its counts and its tool. A shuttle with no counts and no tool SHALL stack with a newly made shuttle of its tier.
+
+#### Scenario: Max of the tier
+- **WHEN** a Mk1 shuttle with a max of 2 already has two Speed upgrades
+- **THEN** a third Speed upgrade does not go in
+
+#### Scenario: Counts survive a build
+- **WHEN** a Mk1 shuttle with two Speed upgrades and a Harvester is built into a Mk2 shuttle
+- **THEN** the Mk2 shuttle has two Speed upgrades and the Harvester, and takes up to four Speed upgrades

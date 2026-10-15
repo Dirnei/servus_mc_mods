@@ -13,7 +13,7 @@
 
 ## 3. Specs and planning
 
-- [ ] 3.1 `git mv openspec/specs/storage openspec/specs/shuttles`. Edit each moved spec's title line to `# shuttles/<cap> Specification` and the Purpose texts naming the mod (`crafting-station`, `data-carriers`). Verify: `openspec validate m0-rename-shuttles --strict` is valid with no "target spec does not exist" notices, and `openspec validate --specs` is green.
+- [x] 3.1 `git mv openspec/specs/storage openspec/specs/shuttles`. Edit each moved spec's title line to `# shuttles/<cap> Specification` and the Purpose texts naming the mod (`crafting-station`, `data-carriers`). Verify: `openspec validate m0-rename-shuttles --strict` is valid with no "target spec does not exist" notices, and `openspec validate --specs` is green.
 - [ ] 3.2 Update PLAN.md (mod table, dependency text, repository layout and package list, the Storage sections and open points where they name the mod), CLAUDE.md (stack, projects, mod ids, dependency rule, capability path example), `openspec/config.yaml` context, README (table, run commands, data paths) and PROGRESSION.md. "Storage" stays where it means storing items. No line says the old name is kept for later. No em dashes. Verify: a grep for `servus_storage`, `:storage` and `Servus: Storage` in these files finds nothing, and `openspec validate --all` is green.
 
 ## 4. Docs, CI and tools

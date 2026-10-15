@@ -30,7 +30,11 @@ None.
 - `shuttles/crafting-cpu` (moved from `storage/crafting-cpu`): stats folder `data/<ns>/shuttles/`, Shuttles ships the later step.
 - `shuttles/crafting-station` (moved): power stats in `shuttles/power.json`.
 - `shuttles/field-head` (moved): stats folder, tags `servus_shuttles:fertilizer` and `servus_shuttles:anti_corrosion`.
-- `shuttles/harvester`, `shuttles/heavy-duty-rack`, `shuttles/inbound-station`, `shuttles/rail-elevator`, `shuttles/shuttle-garage`, `shuttles/shuttle-tiers`, `shuttles/shuttles`, `shuttles/site-wake`, `shuttles/warehouse-controller` (moved): stats folder `data/<ns>/shuttles/`.
+- `shuttles/harvester`, `shuttles/inbound-station`, `shuttles/rail-elevator`, `shuttles/shuttle-garage`, `shuttles/site-wake` (moved): stats folder `data/<ns>/shuttles/`.
+- `shuttles/heavy-duty-rack` (moved): stats folder; the creative tab scenario names the shared Servus tab.
+- `shuttles/shuttle-tiers` (moved): stats folder; the Handling Upgrade is a Shuttles item.
+- `shuttles/shuttles` (moved): stats folder; the look reference points at `shuttles/shuttle-looks`.
+- `shuttles/warehouse-controller` (moved): stats folder; the Wireless Upgrade is a Shuttles item, the supplier reference points at `shuttles/packing-station`.
 - `shuttles/rail-corrosion` (moved): stats folder and tag `servus_shuttles:anti_corrosion`.
 
 The other specs under `storage/` move too, but only their title and Purpose name the mod, so they have no delta.
@@ -52,4 +56,4 @@ The other specs under `storage/` move too, but only their title and Purpose name
 - Docs site: mod page, sidebar, links, lab components and tests, icons folder, `gamedata.json`.
 - CI and tools: `.github/workflows/build.yml`, `server/pack.ps1`.
 - Planning: PLAN.md, CLAUDE.md, `openspec/config.yaml`, README, PROGRESSION; main specs move to `openspec/specs/shuttles/`.
-- Ordering: the open change `m5-duct-filter-picker` moves classes out of `storage/`, and `m5-named-channels`, `m5-data-potato` and `m12-receptaculum-pipes` touch the repo widely. This change is applied when no other change is open, so none of them has to be rewritten.
+- Ordering: `m5-duct-filter-picker`, `m5-named-channels`, `m5-data-potato` and `m12-receptaculum-pipes` are archived before this change is applied, so no open change has to be rewritten.
