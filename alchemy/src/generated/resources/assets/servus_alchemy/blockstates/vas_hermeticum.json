@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "freed=false": {
+      "model": "servus_alchemy:block/vas_hermeticum"
+    },
+    "freed=true": {
+      "model": "servus_alchemy:block/vas_hermeticum_freed"
+    }
+  }
+}

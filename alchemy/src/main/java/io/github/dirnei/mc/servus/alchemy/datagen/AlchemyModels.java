@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerLayout;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerShellBlock;
 import io.github.dirnei.mc.servus.alchemy.coagulator.VatBlock;
+import io.github.dirnei.mc.servus.alchemy.homunculus.VasBlock;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierBlock;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierSideBlock;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
@@ -72,6 +73,83 @@ final class AlchemyModels {
         vat();
         dropper();
         forge();
+        receptaculum();
+        vas();
+    }
+
+    /**
+     * The Receptaculum, a Hearth Chest: a brick hearth with an open grate, embers and three flames, a deepslate slab, an iron
+     * banded deepslate brick chest with a tile lid and a brass hasp, and a brass collar the Vas stands on. One model for
+     * lit and unlit: the fire never goes out.
+     */
+    private void receptaculum() {
+        BlockModelBuilder model = builder("receptaculum")
+                .texture("bricks", states.mcLoc(BRICKS)).texture("slab", states.mcLoc(POLISHED_DEEPSLATE))
+                .texture("embers", states.mcLoc(EMBERS)).texture("flame", states.modLoc("block/receptaculum_flame"))
+                .texture("steel", STEEL).texture("body", states.mcLoc("block/deepslate_bricks"))
+                .texture("lid", states.mcLoc(DEEPSLATE_TILES)).texture("brass", states.modLoc("block/receptaculum_brass"))
+                .texture("particle", states.mcLoc("block/deepslate_bricks"));
+        box(model, 0, 0, 0, 16, 1, 16, "#bricks");
+        box(model, 0, 1, 14, 16, 5, 16, "#bricks");
+        box(model, 0, 1, 0, 4, 5, 14, "#bricks");
+        box(model, 12, 1, 0, 16, 5, 14, "#bricks");
+        box(model, 4, 4.2F, 0, 12, 5, 14, "#bricks");
+        box(model, 0, 5, 0, 16, 6, 16, "#slab");
+        glowing(model, 4, 1, 2, 12, 1.6F, 14, "#embers");
+        glowing(model, 5, 1.6F, 3, 6.5F, 3.6F, 4.5F, "#flame");
+        glowing(model, 7.25F, 1.6F, 5, 8.75F, 4, 6.5F, "#flame");
+        glowing(model, 9.5F, 1.6F, 3, 11, 3.2F, 4.5F, "#flame");
+        for (float x : new float[] {5.75F, 7.75F, 9.75F}) {
+            box(model, x, 1, 0.5F, x + 0.5F, 4.2F, 1, "#steel");
+        }
+        box(model, 0.5F, 6, 0.5F, 15.5F, 14, 15.5F, "#body");
+        box(model, 3.1F, 6, 0.3F, 3.9F, 13.9F, 15.7F, "#steel");
+        box(model, 12.1F, 6, 0.3F, 12.9F, 13.9F, 15.7F, "#steel");
+        box(model, 0.3F, 14, 0.3F, 15.7F, 15.2F, 15.7F, "#lid");
+        box(model, 6.8F, 11.5F, 0, 9.2F, 14.6F, 0.5F, "#brass");
+        box(model, 2, 15.2F, 2, 14, 16, 14, "#brass");
+        Block block = ServusAlchemyBlocks.RECEPTACULUM.get();
+        states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(model)
+                .rotationY(ModelRotations.rotationY(state.getValue(MachineBlock.FACING)))
+                .build());
+        states.simpleBlockItem(block, model);
+    }
+
+    /**
+     * The Vas Hermeticum: a glass flask with a stepped bulb and a neck, murky liquid inside and, until it is freed, a red
+     * wax seal with a brass stamp. Neighbouring glass parts overlap by a twentieth of a pixel, so no faces share a plane.
+     */
+    private void vas() {
+        ModelFile sealed = vasModel("vas_hermeticum", true);
+        ModelFile freed = vasModel("vas_hermeticum_freed", false);
+        states.getVariantBuilder(ServusAlchemyBlocks.VAS_HERMETICUM.get()).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(VasBlock.FREED) ? freed : sealed)
+                .build());
+    }
+
+    private ModelFile vasModel(String name, boolean seal) {
+        BlockModelBuilder model = builder(name)
+                .texture("glass", states.modLoc("block/vas_glass")).texture("liquid", states.modLoc("block/vas_liquid"))
+                .texture("seal", states.modLoc("block/vas_seal")).texture("brass", states.modLoc("block/receptaculum_brass"))
+                .texture("particle", states.modLoc("block/vas_glass"));
+        box(model, 4, 0, 4, 12, 1, 12, "#glass");
+        box(model, 2.5F, 0.95F, 2.5F, 13.5F, 2.95F, 13.5F, "#glass");
+        box(model, 1, 2.9F, 1, 15, 8.9F, 15, "#glass");
+        box(model, 2.5F, 8.85F, 2.5F, 13.5F, 10.85F, 13.5F, "#glass");
+        box(model, 6, 10.8F, 6, 10, 16.8F, 10, "#glass");
+        box(model, 2.8F, 1.05F, 2.8F, 13.2F, 3, 13.2F, "#liquid");
+        box(model, 1.3F, 2.95F, 1.3F, 14.7F, 7.9F, 14.7F, "#liquid");
+        if (seal) {
+            box(model, 5.4F, 16.4F, 5.4F, 10.6F, 18, 10.6F, "#seal");
+            box(model, 6.8F, 18, 6.8F, 9.2F, 18.3F, 9.2F, "#brass");
+        }
+        return model;
+    }
+
+    /** A box that glows at full light, for embers and flames. */
+    private static void glowing(BlockModelBuilder model, float x1, float y1, float z1, float x2, float y2, float z2, String texture) {
+        model.element().from(x1, y1, z1).to(x2, y2, z2).lightEmission(15).allFaces((direction, face) -> face.texture(texture)).end();
     }
 
     /**
