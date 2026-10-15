@@ -44,6 +44,8 @@ All machines face the player on placement, open a GUI on right click, push outpu
 
 Paracelsus' elementals live inside their element the way we live in air, and common eyes do not see them. The **Elixir of Sight**, made on an Albedo Athanor from Quicksilver with 100 mB Salt, 100 mB Sulfur and 250 mB Mercury, is drunk like a potion and gives **Elemental Sight** for three minutes. While it lasts you see what is hidden from others, such as the gnomes at work in the rock.
 
+The dose makes the poison: each drink has a 15 % chance to give you Poison and Nausea for 10 seconds, and 30 % when you drink again while the sight still lasts. You get the sight either way. See [Elixir dose](/servus_mc_mods/reference/datapack/elixir-dose/).
+
 ## Gnomes
 
 There is no ore generation to plan around: the miners of Paracelsus' time believed metals grow in the mountain, and here they do. A **Gnome Hollow** is disguised as stone. Without Elemental Sight it looks like stone, Jade calls it Stone, a right click does nothing and breaking it drops cobblestone (stone with Silk Touch); the vein is lost. It has no screen, and no pipe or duct connects to it. Everything is done by hand under the sight:

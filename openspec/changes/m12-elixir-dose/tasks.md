@@ -10,7 +10,7 @@
 
 ## 3. Texts and docs
 
-- [ ] 3.1 Journal: Schwaz tasks page (`JournalEntries`) and Workshop "Elixir of Sight" spotlight (`WorkshopCategory`) mention the dose (D4); `:alchemy:runData`. Docs: `docs/src/content/docs/mods/alchemy.md` and new `docs/src/content/docs/reference/datapack/elixir-dose.md`. Verify: `gradlew build` green, generated journal JSON holds the dose text, no em dash in the diff.
+- [x] 3.1 Journal: Schwaz tasks page (`JournalEntries`) and Workshop "Elixir of Sight" spotlight (`WorkshopCategory`) mention the dose (D4); `:alchemy:runData`. Docs: `docs/src/content/docs/mods/alchemy.md` and new `docs/src/content/docs/reference/datapack/elixir-dose.md`. Verify: `gradlew build` green, generated journal JSON holds the dose text, no em dash in the diff.
 
 ## 4. Integration
 

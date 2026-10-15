@@ -232,6 +232,9 @@ final class WorkshopCategory extends CategoryProvider {
             e.spotlight("elixir", ElementalSight.ELIXIR.get(), "Elixir of Sight",
                     "Drink it and for a few minutes you see the spirits of the earth and what they tend.");
             e.text("brewing", "Brewing It", albedoCraftText(craft));
+            e.text("dose", "The Dose",
+                    "The dose makes the poison. Now and then a drink sickens you: poison and a spinning head for a few breaths, "
+                            + "though the sight comes all the same. Drink again while the sight still lasts and the risk grows.");
         });
     }
 
