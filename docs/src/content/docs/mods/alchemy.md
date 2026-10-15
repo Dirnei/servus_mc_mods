@@ -19,6 +19,7 @@ Each chapter of the journal tells part of Paracelsus' life and lists tasks: do s
 - **Schwaz** (Albedo): opens after Villach; finish one craft on an Albedo Athanor, drink the Elixir of Sight and bind a gnome.
 - **Wandering years** (Citrinitas): opens after Schwaz; finish one craft on a Citrinitas Athanor, bind a gnome to a gold vein and bind four gnomes.
 - **Basel and Salzburg** (Rubedo): opens after Wandering years; finish one craft on a Rubedo Athanor, bind a gnome to a diamond vein and finish 16 Athanor crafts.
+- **The Old Gnome** (a side chapter): opens after Schwaz; find one of the old gnome's traces and find him. No other chapter waits for it.
 
 The story pages of Wandering years and Basel and Salzburg are placeholders for now and start with "[storyteller]".
 
@@ -102,6 +103,16 @@ The Press at the end of the Work. It presses the Caput Mortuum the Purifier leav
 - **Data line:** it is a producer, so a Crafting CPU orders Netherite Scrap from it. It keeps no upkeep.
 - **Journal:** the first pressed Netherite Scrap is a task of the Basel and Salzburg chapter.
 - **Numbers:** the `servus_alchemy:pressing` recipes (see [Recipes](/servus_mc_mods/reference/datapack/recipes/)).
+
+## Hints and the old gnome
+
+Everything hidden behind Elemental Sight gives a hint without it, so you know when to drink. The hints come from far to close: **knocking** in the rock (subtitle "Something knocks in the rock"), which you hear from its direction; **dust** that trickles from one block; and **traces**, small items to pick up: a Tiny Pickaxe, a Scrap of Red Felt and a Bowl of Salt. Picking up a trace tells the journal "They are near. Drink, and look."
+
+- **Gnome Hollow:** a Hollow with a bound gnome knocks softly now and then.
+- **Salamander:** a wild salamander in Nether lava shows a flame now and then, and sometimes a little spiral of dancing flames.
+- **Vas Hermeticum:** until the homunculus is freed, the liquid in the Vas bubbles by itself now and then.
+- **The old gnome:** once your team has finished Schwaz, every Deepslate block a team member breaks below Y 0 has a small chance (0.3 %) to wake Paracelsus' old gnome. A Deepslate block in a wall a few blocks away, with air beside it, becomes his **Ancient Hollow**: it looks like Deepslate, Jade calls it Deepslate and it drops Cobbled Deepslate. A trace lies in front of it. While you are within 24 blocks it knocks every few seconds, within 6 blocks dust falls from it, and Deepslate your team breaks within 8 blocks of it sometimes drops another trace. Under the sight you see the old gnome with his red cap and long white beard; use the journal on him to find him. Each team has one old gnome; if the Ancient Hollow is broken before you find him, he can wake again elsewhere. Taking him home comes later.
+- **Numbers:** `data/<namespace>/servus_alchemy/old_gnome/old_gnome.json`, see [Old gnome](/servus_mc_mods/reference/datapack/old-gnome/).
 
 ## Coagulator products
 

@@ -24,7 +24,7 @@
 
 ## 6. Docs and plan
 
-- [ ] 6.1 Docs: hints and the old gnome in `docs/src/content/docs/mods/alchemy.md`, `old_gnome.json` in the datapack reference; PLAN.md M12: open points House Gnome companion (`m12-house-gnome`), storyteller texts, play check of all M12 changes. Verify: no em dash in the diff.
+- [x] 6.1 Docs: hints and the old gnome in `docs/src/content/docs/mods/alchemy.md`, `old_gnome.json` in the datapack reference; PLAN.md M12: open points House Gnome companion (`m12-house-gnome`), storyteller texts, play check of all M12 changes. Verify: no em dash in the diff.
 
 ## 7. Verification
 

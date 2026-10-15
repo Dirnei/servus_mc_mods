@@ -28,7 +28,7 @@ Each task:
 | Field | Type | Default | Meaning |
 |---|---|---|---|
 | `id` | string | required | Unique within the chapter, shown in `/servus_alchemy journal`. |
-| `event` | string | required | `calcine` (items calcined), `principle` (mB of a principle made), `coagulate` (items coagulated), `athanor` (Athanor crafts), `sight` (Elixirs of Sight drunk), `bind` (gnomes bound, by yield item) or `press` (items pressed at the Prelum, by result item). |
+| `event` | string | required | `calcine` (items calcined), `principle` (mB of a principle made), `coagulate` (items coagulated), `athanor` (Athanor crafts), `sight` (Elixirs of Sight drunk), `bind` (gnomes bound, by yield item), `press` (items pressed at the Prelum, by result item) or `find` (a trace picked up, by item; the old gnome found, filter `servus_alchemy:old_gnome`). |
 | `filter` | string | any | An item id or `#tag` for item events, a principle (`salt`, `sulfur`, `mercury`) for `principle`, or `tier:<name>` for `athanor`. |
 | `count` | int | 1 | How much the task needs. 1 makes it a first time task. |
 
@@ -46,6 +46,7 @@ A finished chapter grants the advancement `<namespace>:journal/<chapter>`. The j
 | `schwaz` | `villach` | `athanor` `tier:albedo` 1, `sight` 1, `bind` 1 |
 | `wandering_years` | `schwaz` | `athanor` `tier:citrinitas` 1, `bind` `minecraft:raw_gold` 1, `bind` 4 |
 | `basel_salzburg` | `wandering_years` | `athanor` `tier:rubedo` 1, `bind` `minecraft:diamond` 1, `athanor` 16, `press` `minecraft:netherite_scrap` 1 |
+| `old_gnome` | `schwaz` | `find` `#servus_alchemy:hint_traces` 1, `find` `servus_alchemy:old_gnome` 1 (a side chapter: no chapter has it as parent) |
 
 ## Locked recipes
 
