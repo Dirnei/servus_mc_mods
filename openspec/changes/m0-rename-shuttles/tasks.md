@@ -9,7 +9,7 @@
 
 - [x] 2.1 Move `shuttles/src/main/resources/assets/servus_storage` and `data/servus_storage` to `servus_shuttles`, and the stats folder `data/servus_shuttles/storage` to `data/servus_shuttles/shuttles`. Replace every `servus_storage` string in hand written JSON and Java (lang keys, tags, texture and model paths), and "Servus: Storage" in English lang text. Verify: `gradlew build`, and a grep for `servus_storage`, `servus.storage`, `ServusStorage` and `Servus: Storage` under `shuttles/src/main` and `shuttles/src/test` finds nothing.
 - [x] 2.2 Delete `shuttles/src/generated/resources`, run `:foundation:runData`, `:shuttles:runData` and `:alchemy:runData`. Verify: the generated assets, recipes, loot tables and tags exist under `servus_shuttles` only, `docs/src/data/gamedata.json` has no `servus_storage`, and `gradlew build` is green.
-- [ ] 2.3 Run `:shuttles:runGameTestServer`, `:foundation:runGameTestServer` and `:alchemy:runGameTestServer`. Verify: all three green (the field, spreader, CPU and shuttle tests load the stats from `shuttles/`).
+- [x] 2.3 Run `:shuttles:runGameTestServer`, `:foundation:runGameTestServer` and `:alchemy:runGameTestServer`. Verify: all three green (the field, spreader, CPU and shuttle tests load the stats from `shuttles/`).
 
 ## 3. Specs and planning
 
