@@ -7,6 +7,9 @@ import io.github.dirnei.mc.servus.alchemy.Principles;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.TeamOwned;
 import io.github.dirnei.mc.servus.alchemy.TeamOwnership;
+import io.github.dirnei.mc.servus.alchemy.gnome.Gnome;
+import io.github.dirnei.mc.servus.alchemy.gnome.GnomeKeeper;
+import io.github.dirnei.mc.servus.alchemy.gnome.GnomeKind;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinData.VeinDef;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinGrowth.Outcome;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinGrowth.State;
@@ -20,7 +23,9 @@ import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -36,6 +41,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
@@ -43,6 +49,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
  * it while he tends it, and once ripe he digs the vein's ore into a small internal store until that is full. Another
  * Seed makes him dig out the old vein and plant the new one; the store keeps what he dug. It offers nothing to pipes
  * or other blocks; only a player under Elemental Sight tends it. Clients get the vein's look for drawing under the sight.
+ * The bound gnome is an Old Miner entity kept by the Hollow; breaking the Hollow sends him away.
  */
 public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
 
@@ -88,6 +95,7 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
     private final HollowStore store = new HollowStore(DEFAULTS.itemCapacity());
     private final TeamOwnership ownership = new TeamOwnership(this);
     private final GiftBoost boost = new GiftBoost();
+    private final GnomeKeeper keeper = new GnomeKeeper(GnomeKind.MINER, this::setChanged);
     private Identifier vein;
     /** One of what the store holds, empty while it is empty; it may differ from the vein's yield after a swap. */
     private ItemStack storedYield = ItemStack.EMPTY;
@@ -190,9 +198,26 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         setChanged();
         syncToClients();
         if (level instanceof ServerLevel server) {
+            summonGnome(server);
             Journal.recordEvent(server, team(), "bind", 1);
         }
         return Binding.BOUND;
+    }
+
+    /** Brings the Old Miner out of the cave entry, or out of another side with room when it is walled up. */
+    private void summonGnome(ServerLevel server) {
+        Direction side = GnomeKeeper.exitSide(server, worldPosition, getBlockState().getValue(GnomeHollowBlock.FACING));
+        keeper.summon(server, worldPosition, Vec3.atBottomCenterOf(worldPosition.relative(side)), side.toYRot());
+    }
+
+    /** Whether the gnome with {@code id} is the Old Miner of this Hollow. */
+    public boolean keepsGnome(UUID id) {
+        return keeper.keeps(id);
+    }
+
+    /** The Old Miner of this Hollow while he is loaded; empty on the client. */
+    public Optional<Gnome> gnome() {
+        return level instanceof ServerLevel server ? keeper.find(server) : Optional.empty();
     }
 
     /**
@@ -298,6 +323,9 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
     }
 
     private void tick() {
+        if (growth.bound && level instanceof ServerLevel server && keeper.tick(server, worldPosition)) {
+            summonGnome(server);
+        }
         MachineStats stats = stats();
         tanks.setCapacity(stats.fluidCapacity());
         store.setCapacity(stats.itemCapacity());
@@ -374,6 +402,14 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
     }
 
     @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (level instanceof ServerLevel server) {
+            keeper.dismiss(server);
+        }
+        super.preRemoveSideEffects(pos, state);
+    }
+
+    @Override
     public void onLoad() {
         super.onLoad();
         if (level != null && level.isClientSide()) {
@@ -414,6 +450,7 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         output.putInt("GiftTicks", boost.ticksLeft());
         ownership.save(tag);
         output.store(tag);
+        keeper.save(output);
     }
 
     @Override
@@ -434,6 +471,7 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         boost.load(input.getDoubleOr("GiftFactor", 1), input.getIntOr("GiftTicks", 0));
         shownBoosted = input.getBooleanOr("Boosted", false);
         ownership.load(tag);
+        keeper.load(input);
         if (tag.contains("ShownYield")) {
             shownYield = ValueIo.parseStack(registries, tag.getCompoundOrEmpty("ShownYield"));
             shownSteps = input.getIntOr("ShownSteps", 0);

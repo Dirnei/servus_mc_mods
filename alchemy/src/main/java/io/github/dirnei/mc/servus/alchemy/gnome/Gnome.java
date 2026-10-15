@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.alchemy.gnome;
 
+import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyEntities;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
@@ -20,6 +21,7 @@ import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
@@ -37,6 +39,8 @@ public class Gnome extends PathfinderMob {
     public static final String KIND_TAG = "Kind";
     private static final String HOLLOW_TAG = "Hollow";
     private static final String LIFE_TAG = "Life";
+    /** How often a gnome asks his hollow whether it still keeps him. */
+    private static final int HOLLOW_CHECK_INTERVAL = 20;
 
     /** Whether the player of this client has Elemental Sight; set by the client, so a server sees every gnome. */
     private static BooleanSupplier viewerSees = () -> true;
@@ -125,9 +129,26 @@ public class Gnome extends PathfinderMob {
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!level().isClientSide()) {
+        if (level() instanceof ServerLevel server) {
             life++;
+            if (hollow != null && life % HOLLOW_CHECK_INTERVAL == 0 && server.isLoaded(hollow) && !keptByHollow(server, hollow)) {
+                discard();
+            }
         }
+    }
+
+    /** Whether the hollow he belongs to still keeps him; a gnome nobody keeps leaves. */
+    private boolean keptByHollow(ServerLevel level, BlockPos pos) {
+        BlockEntity host = level.getBlockEntity(pos);
+        return switch (kind()) {
+            case MINER -> host instanceof GnomeHollowBlockEntity hollow && hollow.keepsGnome(getUUID());
+            case LANTERN, HOUSE -> true;
+        };
+    }
+
+    /** Whether a gnome fits into the block at {@code pos}: nothing there to collide with. */
+    public static boolean roomAt(Level level, BlockPos pos) {
+        return level.getBlockState(pos).getCollisionShape(level, pos).isEmpty();
     }
 
     @Override

@@ -5,7 +5,7 @@
 
 ## 2. Old Miner
 
-- [ ] 2.1 Hollow keeps its gnome's UUID; binding spawns the Old Miner at the cave entry, breaking discards him, a missing gnome is respawned on load; GameTests for bind and break; run `:alchemy:runGameTestServer`
+- [x] 2.1 Hollow keeps its gnome's UUID; binding spawns the Old Miner at the cave entry, breaking discards him, a missing gnome is respawned on load; GameTests for bind and break; run `:alchemy:runGameTestServer`
 - [ ] 2.2 Goals: wander near home, work at the cave entry while the vein works, walk out now and then; gifts on the gnome go to his Hollow; GameTest for the gift; run `:alchemy:runGameTestServer`
 
 ## 3. Old gnome and apprentice
