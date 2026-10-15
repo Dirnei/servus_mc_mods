@@ -54,6 +54,10 @@ public class GnomeHollowBlock extends BaseEntityBlock {
     /** One animation tick in this many knocks; the client picks a block near the player every few seconds. */
     private static final int KNOCK_CHANCE = 6;
     private static final float KNOCK_VOLUME = 0.35F;
+    /** Ticks between two knocks of all Hollows together, so a row of them sounds like one gnome. */
+    private static final int KNOCK_GAP_TICKS = 200;
+    /** Client game time of the last knock of any Hollow. */
+    private static long lastKnock = Long.MIN_VALUE;
 
     public GnomeHollowBlock(Properties properties) {
         super(properties);
@@ -101,13 +105,23 @@ public class GnomeHollowBlock extends BaseEntityBlock {
                 : createTickerHelper(type, ServusAlchemyBlockEntities.GNOME_HOLLOW.get(), GnomeHollowBlockEntity::serverTick);
     }
 
-    /** A working gnome knocks softly now and then, heard by everyone near, with or without the sight. */
+    /**
+     * A working gnome knocks softly now and then, heard by everyone near, with or without the sight. All Hollows share one
+     * pause between knocks, so many of them side by side knock no more often than one.
+     */
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        if (random.nextInt(KNOCK_CHANCE) == 0 && level.getBlockEntity(pos) instanceof GnomeHollowBlockEntity hollow && hollow.shownBound()) {
+        if (random.nextInt(KNOCK_CHANCE) == 0 && knockDue(level.getGameTime())
+                && level.getBlockEntity(pos) instanceof GnomeHollowBlockEntity hollow && hollow.shownBound()) {
+            lastKnock = level.getGameTime();
             level.playLocalSound(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, HintSounds.KNOCK.get(), SoundSource.BLOCKS,
                     KNOCK_VOLUME, 0.8F + random.nextFloat() * 0.2F, false);
         }
+    }
+
+    /** Whether the shared pause is over; a game time before the last knock means another world was joined. */
+    private static boolean knockDue(long now) {
+        return now < lastKnock || now - lastKnock >= KNOCK_GAP_TICKS;
     }
 
     @Override

@@ -8,7 +8,7 @@ Alchemy SHALL register the sound event `servus_alchemy:hint.knock`, made from va
 - **THEN** the subtitle reads "Something knocks in the rock"
 
 ### Requirement: Working gnome knocks
-A Gnome Hollow whose gnome is bound SHALL now and then play the knock sound softly at its position for every nearby player, with or without Elemental Sight. The sound SHALL be played by the client from the block's animation tick, so no server work and no block scan is involved. A Hollow without a bound gnome SHALL stay silent.
+A Gnome Hollow whose gnome is bound SHALL now and then play the knock sound softly at its position for every nearby player, with or without Elemental Sight. The sound SHALL be played by the client from the block's animation tick, so no server work and no block scan is involved. A Hollow without a bound gnome SHALL stay silent. All Hollows a player hears SHALL share one pause between knocks (example 10 seconds), so many Hollows side by side knock no more often than one.
 
 #### Scenario: Bound gnome
 - **WHEN** a player stands for a minute next to a Hollow with a bound gnome
@@ -17,6 +17,10 @@ A Gnome Hollow whose gnome is bound SHALL now and then play the knock sound soft
 #### Scenario: No gnome
 - **WHEN** a Hollow has no bound gnome
 - **THEN** it never knocks
+
+#### Scenario: A farm of Hollows
+- **WHEN** a player stands next to ten Hollows with bound gnomes side by side
+- **THEN** they hear a knock no more often than once every 10 seconds, as next to one Hollow
 
 ### Requirement: Salamander flame dances
 A wild salamander SHALL now and then show, besides its single flame, a short dancing flame: a few flame particles circling up above it, visible without Elemental Sight. A befriended salamander SHALL show neither.

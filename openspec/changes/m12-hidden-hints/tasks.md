@@ -29,6 +29,7 @@
 ## 7. Verification
 
 - [x] 7.1 Full `gradlew build test :alchemy:runGameTestServer` green; client smoke start from main reaches the title screen without errors mentioning servus.
+- [x] 7.3 Play check fix: all Hollows share one 200 tick pause between knocks (`KNOCK_GAP_TICKS`, `knockDue` in `hollow/GnomeHollowBlock.java`), so a farm knocks no more often than one Hollow. Verify: `gradlew build test` green; heard in game.
 - [ ] 7.2 User play check in game:
   - A Gnome Hollow with a bound gnome knocks softly now and then; the subtitle reads "Something knocks in the rock".
   - A wild salamander in lava sometimes shows a little spiral of flames; a Vas bubbles now and then without the sight.
