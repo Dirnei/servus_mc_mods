@@ -191,11 +191,11 @@ public final class SalamanderGameTests {
 
     /**
      * The shipped spawn numbers with a crowd radius of 3, so wild salamanders of the other tests running beside this one do
-     * not count.
+     * not count, and without biome chances, so every try reaches the spot rules.
      */
     private static SalamanderTemper.Spawn isolated() {
         SalamanderTemper.Spawn shipped = SalamanderTemperData.INSTANCE.forType(ServusAlchemyEntities.SALAMANDER.get()).spawn();
-        return new SalamanderTemper.Spawn(shipped.homeRadius(), 3, shipped.crowdMax(), shipped.biomeChance());
+        return new SalamanderTemper.Spawn(shipped.homeRadius(), 3, shipped.crowdMax(), Map.of());
     }
 
     private static void biome(GameTestHelper helper, BlockPos around, ResourceKey<Biome> key) {
