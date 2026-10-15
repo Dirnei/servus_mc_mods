@@ -22,7 +22,7 @@ Foundation loads on its own, and each content mod loads with only Foundation ins
 - **Facade**: any full block without a block entity plus one nugget of any kind (iron, gold or a mod's copper nugget) gives six facades of that block. Use one on a face of a duct to cover that face with a thin panel of the block. A facade closes the face, so ducts and machines behind it do not connect; sneak with the Configuration Carrot on it to take it off.
 - **Hollow Facade**: eight facades of one block around an empty centre give eight hollow facades. They cover a face like a facade, but the duct passes through the hole in the middle and keeps its connection.
 - **Fluid Tank**: a glass block with a copper frame that holds one fluid. Copper ingots in the corners, glass on the top, left and right edges, and any solid block in the bottom middle, which becomes the tank's floor.
-- **Machine Adapter**: makes a machine of vanilla or another mod a producer on the data line. Copper ingots around a hopper, redstone and a Data Cable over a row of planks; it shows the wood of the planks, like the Storage blocks.
+- **Machine Adapter**: makes a machine of vanilla or another mod a producer on the data line. Copper ingots around a hopper, redstone and a Data Cable over a row of planks; it shows the wood of the planks, like the Shuttles blocks.
 
 All of them are listed in the Servus creative tab.
 
@@ -168,7 +168,7 @@ The Configuration Carrot carries a layer, Items by default. Right click the air 
 - **Tick mailbox**: network events are queued and handled once per server tick, in order.
 - **Energy distribution**: fair sharing of FE between sources and sinks, used by the Power Cable.
 - **Teams**: every player has a team id. Without a team mod it is the player's own id. Research and Ender Anchor limits are per team.
-- **Production and stock API**: the capabilities `servus_foundation:production`, `servus_foundation:stock_provider` and `servus_foundation:stock_sink`, plus a pure order planner, and `servus_foundation:supplier` and `servus_foundation:upkeep` for keeping machines stocked. This is how a Storage warehouse learns what a Alchemy machine can make without the two mods knowing each other.
+- **Production and stock API**: the capabilities `servus_foundation:production`, `servus_foundation:stock_provider` and `servus_foundation:stock_sink`, plus a pure order planner, and `servus_foundation:supplier` and `servus_foundation:upkeep` for keeping machines stocked. This is how a Shuttles warehouse learns what a Alchemy machine can make without the two mods knowing each other.
 
 ## Datapack values
 
