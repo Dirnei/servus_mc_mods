@@ -20,7 +20,7 @@
 
 ## 5. Behaviour tests
 
-- [ ] 5.1 GameTests in new `HintGameTests` (registered in `ServusAlchemy`): `wakesAfterTheChapter`, `notBeforeTheChapter`, `notAboveTheHeight`, `onlyOncePerTeam`, `lostBeforeFoundWakesAgain`, `foundNeverWakesAgain`, `traceLiesInFrontWhenHeWakes`, `traceDropsNearHim`, `tracePickupCountsFind`, `journalUnderSightFindsHim`, `journalWithoutSightDoesNothing`, `breaksIntoCobbledDeepslate`, `oldGnomeChapterFinishes`, `shippedSettings`. Verify: `:alchemy:runGameTestServer` green.
+- [x] 5.1 GameTests in new `HintGameTests` (registered in `ServusAlchemy`): `wakesAfterTheChapter`, `notBeforeTheChapter`, `notAboveTheHeight`, `onlyOncePerTeam`, `lostBeforeFoundWakesAgain`, `foundNeverWakesAgain`, `traceLiesInFrontWhenHeWakes`, `traceDropsNearHim`, `tracePickupCountsFind`, `journalUnderSightFindsHim`, `journalWithoutSightDoesNothing`, `breaksIntoCobbledDeepslate`, `oldGnomeChapterFinishes`, `shippedSettings`. Verify: `:alchemy:runGameTestServer` green.
 
 ## 6. Docs and plan
 
