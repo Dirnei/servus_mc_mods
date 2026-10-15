@@ -33,6 +33,10 @@ import org.lwjgl.glfw.GLFW;
  * first, stopping when they return true. While {@link #isOpen()} the screen
  * should pass {@code -1, -1} as the mouse to {@code super.extractRenderState}
  * and skip its own tooltips.
+ *
+ * <p>Without a button: skip {@link #setButton} and {@link #renderButton} and
+ * open the popup with {@link #open(String)} from the screen's own click, for
+ * example on a slot; the screen remembers what the pick is for.
  */
 public final class ItemPicker {
 
@@ -146,6 +150,13 @@ public final class ItemPicker {
         return open;
     }
 
+    /** Opens the popup with {@code selectedId} as the current choice, scrolled to it. */
+    public void open(String selectedId) {
+        setSelected(selectedId);
+        open();
+    }
+
+    /** Opens the popup with the current choice, scrolled to it. */
     public void open() {
         open = true;
         dragging = false;
