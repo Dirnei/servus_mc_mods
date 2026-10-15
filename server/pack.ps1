@@ -62,7 +62,7 @@ $jars | ForEach-Object { Copy-Item $_.FullName $mods }
 
 # Player packs. Every jar goes in as an override, so no download links are needed.
 $sha = (git -C $root rev-parse --short HEAD).Trim()
-$version = "$($props['mod_version'])-$sha"
+$version = "$($props['pack_version'])-$sha"
 New-Item -ItemType Directory $dist -Force | Out-Null
 Get-ChildItem $dist -File | Remove-Item
 Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem

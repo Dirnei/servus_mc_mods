@@ -1,0 +1,97 @@
+name: Release
+
+# Releases one mod per tag: <mod>-v<version>, for example shuttles-v0.2.0 or foundation-v0.3.0-beta.
+# The version must match mod_version in <mod>/gradle.properties. A version containing "alpha" or
+# "beta" is published as that type, anything else as release.
+#
+# Repository settings:
+#   secret   CURSEFORGE_TOKEN            CurseForge API token (curseforge.com, account, API tokens)
+#   variable CURSEFORGE_ID_FOUNDATION    project ids from each CurseForge project page;
+#   variable CURSEFORGE_ID_ALCHEMY       a mod without an id is released on GitHub only
+#   variable CURSEFORGE_ID_SHUTTLES
+
+on:
+  push:
+    tags:
+      - 'foundation-v*'
+      - 'alchemy-v*'
+      - 'shuttles-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read the tag
+        id: meta
+        env:
+          TAG: ${{ github.ref_name }}
+          ID_FOUNDATION: ${{ vars.CURSEFORGE_ID_FOUNDATION }}
+          ID_ALCHEMY: ${{ vars.CURSEFORGE_ID_ALCHEMY }}
+          ID_SHUTTLES: ${{ vars.CURSEFORGE_ID_SHUTTLES }}
+        run: |
+          mod="${TAG%%-v*}"
+          version="${TAG#*-v}"
+          declared=$(sed -n 's/^mod_version=//p' "$mod/gradle.properties" | tr -d '\r')
+          if [ "$declared" != "$version" ]; then
+            echo "::error::Tag $TAG says $version but $mod/gradle.properties has mod_version=$declared"
+            exit 1
+          fi
+          case "$version" in
+            *alpha*) type=alpha ;;
+            *beta*) type=beta ;;
+            *) type=release ;;
+          esac
+          case "$mod" in
+            foundation) cf_id="$ID_FOUNDATION"; deps="" ;;
+            alchemy) cf_id="$ID_ALCHEMY"; deps="servus_foundation(required){curseforge:$ID_FOUNDATION}" ;;
+            shuttles) cf_id="$ID_SHUTTLES"; deps="servus_foundation(required){curseforge:$ID_FOUNDATION}" ;;
+          esac
+          name=$(sed -n 's/^mod_name=//p' "$mod/gradle.properties" | tr -d '\r')
+          mc=$(sed -n 's/^minecraft_version=//p' gradle.properties | tr -d '\r')
+          git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
+          {
+            echo "mod=$mod"
+            echo "version=$version"
+            echo "type=$type"
+            echo "cf_id=$cf_id"
+            echo "deps=$deps"
+            echo "name=$name $version"
+            echo "mc=$mc"
+            echo "changelog<<EOF"
+            git tag -l --format='%(contents)' "$TAG"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build and test
+        run: ./gradlew :${{ steps.meta.outputs.mod }}:build --no-daemon
+
+      - name: Publish to GitHub and CurseForge
+        uses: Kira-NT/mc-publish@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          curseforge-id: ${{ steps.meta.outputs.cf_id }}
+          curseforge-token: ${{ steps.meta.outputs.cf_id != '' && secrets.CURSEFORGE_TOKEN || '' }}
+          files: ${{ steps.meta.outputs.mod }}/build/libs/servus_*-${{ steps.meta.outputs.version }}.jar
+          name: ${{ steps.meta.outputs.name }}
+          version: ${{ steps.meta.outputs.version }}
+          version-type: ${{ steps.meta.outputs.type }}
+          changelog: ${{ steps.meta.outputs.changelog }}
+          loaders: neoforge
+          game-versions: ${{ steps.meta.outputs.mc }}
+          java: 25
+          dependencies: ${{ steps.meta.outputs.deps }}

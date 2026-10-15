@@ -58,7 +58,7 @@ subprojects {
     apply plugin: 'net.neoforged.moddev'
     apply plugin: 'idea'
 
-    version = rootProject.mod_version
+    version = project.mod_version
     group = rootProject.mod_group_id
 
     base {
@@ -129,9 +129,9 @@ subprojects {
                 mod_name               : project.mod_name,
                 mod_description        : project.mod_description,
                 mod_license            : rootProject.mod_license,
-                mod_version            : rootProject.mod_version,
+                mod_version            : project.mod_version,
                 mod_authors            : rootProject.mod_authors,
-                foundation_version_range: "[${rootProject.mod_version},)".toString(),
+                foundation_version_range: "[${project(':foundation').mod_version},)".toString(),
         ]
         inputs.properties replaceProperties
         expand replaceProperties

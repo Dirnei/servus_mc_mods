@@ -88,6 +88,16 @@ Launch with `gradlew runClientAll`, create a new world, and take the Servus crea
 
 The wrench rotates machines and sneak wrench dismantles them. Balance numbers live in `alchemy/src/main/resources/data/servus_alchemy/machine/` and the deposit, recipe and tech JSON files next to them.
 
+## Releasing
+
+Each mod has its own version (`mod_version` in `<mod>/gradle.properties`). Alchemy and Shuttles require Foundation at the version Foundation has when they are built.
+
+1. Set the new `mod_version` in the mod's `gradle.properties` and commit.
+2. Tag and push: `git tag -a shuttles-v0.2.0 -m "What changed"` then `git push origin shuttles-v0.2.0`. The tag message becomes the changelog. A version containing `alpha` or `beta` (`0.2.0-beta`) is published as that type.
+3. `.github/workflows/release.yml` builds and tests that mod, then creates the GitHub release with the jar and uploads it to CurseForge.
+
+One time setup on GitHub (Settings, Secrets and variables, Actions): the secret `CURSEFORGE_TOKEN` (CurseForge account, API tokens) and the variables `CURSEFORGE_ID_FOUNDATION`, `CURSEFORGE_ID_ALCHEMY`, `CURSEFORGE_ID_SHUTTLES` with each project id from its CurseForge page. A mod without an id is released on GitHub only.
+
 ## Development workflow
 
 Work is planned and tracked with OpenSpec. See `CLAUDE.md` for the spec-driven workflow and `openspec/` for the specs and changes.
