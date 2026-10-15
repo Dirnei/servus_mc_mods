@@ -1,10 +1,12 @@
 package io.github.dirnei.mc.servus.alchemy.registry;
 
+import io.github.dirnei.mc.servus.alchemy.QuoteItem;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.journal.ParacelsusJournalItem;
 import java.util.List;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.SpawnEggItem;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -36,13 +38,21 @@ public final class ServusAlchemyItems {
     public static final DeferredItem<Item> SULFUR = ITEMS.registerSimpleItem("sulfur");
     public static final DeferredItem<Item> QUICKSILVER = ITEMS.registerSimpleItem("quicksilver");
 
+    /** What a befriended salamander gives back for a Gold Ingot. */
+    public static final DeferredItem<QuoteItem> SAL_AMMONIAC = ITEMS.registerItem("sal_ammoniac", QuoteItem::new);
+    /** The eternal flame: a building part, not a fuel. */
+    public static final DeferredItem<QuoteItem> IGNIS_PERPETUUS = ITEMS.registerItem("ignis_perpetuus", QuoteItem::new);
+    public static final DeferredItem<SpawnEggItem> SALAMANDER_SPAWN_EGG = ITEMS.registerItem("salamander_spawn_egg", SpawnEggItem::new,
+            () -> new Item.Properties().spawnEgg(ServusAlchemyEntities.SALAMANDER.get()));
+
     public static final DeferredItem<ParacelsusJournalItem> PARACELSUS_JOURNAL = ITEMS.registerItem("paracelsus_journal",
             ParacelsusJournalItem::new, () -> new Item.Properties().stacksTo(1));
 
     /** Items shown in the Servus creative tab, in order. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(PARACELSUS_JOURNAL, CALCINER, FIREBOX, ASH_PAN,
             ALEMBIC, RECEIVER, SULFUR_HOOD, COPPER_DUCT, PURIFIER, CATCH_BASIN, RESIDUE_CROCK, COAGULATOR, VAT, ATHANOR, GNOME_HOLLOW,
-            PRINCIPLE_DROPPER, ASH, CAPUT_MORTUUM, SALT_CRYSTAL, SALT_CRYSTAL_BLOCK, SULFUR, QUICKSILVER);
+            PRINCIPLE_DROPPER, ASH, CAPUT_MORTUUM, SALT_CRYSTAL, SALT_CRYSTAL_BLOCK, SULFUR, QUICKSILVER,
+            SAL_AMMONIAC, IGNIS_PERPETUUS, SALAMANDER_SPAWN_EGG);
 
     private ServusAlchemyItems() {
     }

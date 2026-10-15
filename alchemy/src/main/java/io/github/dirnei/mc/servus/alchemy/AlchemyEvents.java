@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTierData;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeGiftData;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinData;
+import io.github.dirnei.mc.servus.alchemy.salamander.SalamanderTemperData;
 import io.github.dirnei.mc.servus.alchemy.sight.ElixirDoseData;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -22,5 +23,6 @@ public final class AlchemyEvents {
         event.addListener(VeinData.LISTENER_ID, VeinData.INSTANCE);
         event.addListener(GnomeGiftData.LISTENER_ID, GnomeGiftData.INSTANCE);
         event.addListener(ElixirDoseData.LISTENER_ID, ElixirDoseData.INSTANCE);
+        event.addListener(SalamanderTemperData.LISTENER_ID, SalamanderTemperData.INSTANCE);
     }
 }
