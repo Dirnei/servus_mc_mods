@@ -52,6 +52,7 @@ public final class ServusAlchemy {
         ServusRecipes.syncToClients(ServusAlchemyRecipes.COAGULATION);
         ServusRecipes.syncToClients(ServusAlchemyRecipes.ATHANOR);
         ServusRecipes.syncToClients(ServusAlchemyRecipes.PURIFICATION);
+        ServusRecipes.syncToClients(ServusAlchemyRecipes.PRESSING);
         LOGGER.info("Servus: Alchemy loaded");
     }
 }

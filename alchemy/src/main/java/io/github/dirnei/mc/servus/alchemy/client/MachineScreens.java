@@ -16,6 +16,9 @@ public final class MachineScreens {
     /** The Receptaculum: slots only, with the side panel. */
     public static final Layout RECEPTACULUM = new Layout(false, false, false, gui("receptaculum"));
 
+    /** The Prelum: input, arrow and output, no flame and no energy bar. */
+    public static final Layout PRELUM = new Layout(false, true, false, gui("prelum"));
+
     private MachineScreens() {
     }
 

@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.alchemy.CalcinationRecipe;
 import io.github.dirnei.mc.servus.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorRecipe;
+import io.github.dirnei.mc.servus.alchemy.prelum.PressingRecipe;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurificationRecipe;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -46,6 +47,13 @@ public final class ServusAlchemyRecipes {
             RECIPE_TYPES.register("purification", () -> RecipeType.simple(PURIFICATION_ID));
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<PurificationRecipe>> PURIFICATION_SERIALIZER =
             RECIPE_SERIALIZERS.register("purification", () -> PurificationRecipe.SERIALIZER);
+
+    public static final Identifier PRESSING_ID =
+            Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "pressing");
+    public static final DeferredHolder<RecipeType<?>, RecipeType<PressingRecipe>> PRESSING =
+            RECIPE_TYPES.register("pressing", () -> RecipeType.simple(PRESSING_ID));
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<PressingRecipe>> PRESSING_SERIALIZER =
+            RECIPE_SERIALIZERS.register("pressing", () -> PressingRecipe.SERIALIZER);
 
     private ServusAlchemyRecipes() {
     }

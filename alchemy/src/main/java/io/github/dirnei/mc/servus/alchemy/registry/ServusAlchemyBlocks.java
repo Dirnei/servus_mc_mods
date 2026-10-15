@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerShellBlock;
 import io.github.dirnei.mc.servus.alchemy.coagulator.VatBlock;
 import io.github.dirnei.mc.servus.alchemy.forge.SalamanderForgeBlock;
+import io.github.dirnei.mc.servus.alchemy.prelum.PrelumBlock;
 import io.github.dirnei.mc.servus.alchemy.homunculus.ReceptaculumBlock;
 import io.github.dirnei.mc.servus.alchemy.homunculus.VasBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlock;
@@ -93,6 +94,11 @@ public final class ServusAlchemyBlocks {
     public static final DeferredBlock<SalamanderForgeBlock> SALAMANDER_FORGE = BLOCKS.registerBlock("salamander_forge",
             SalamanderForgeBlock::new, () -> BlockBehaviour.Properties.of().mapColor(MapColor.DEEPSLATE).strength(3.5F, 6.0F)
                     .requiresCorrectToolForDrops().sound(SoundType.DEEPSLATE_BRICKS).noOcclusion().lightLevel(state -> 13));
+
+    /** The Prelum, the screw press that makes Netherite Scrap from Caput Mortuum. */
+    public static final DeferredBlock<PrelumBlock> PRELUM = BLOCKS.registerBlock("prelum",
+            PrelumBlock::new, () -> BlockBehaviour.Properties.of().mapColor(MapColor.DEEPSLATE).strength(3.5F, 6.0F)
+                    .requiresCorrectToolForDrops().sound(SoundType.POLISHED_DEEPSLATE).noOcclusion());
 
     /** The Receptaculum, a Hearth Chest whose fire always burns under the Vas Hermeticum. */
     public static final DeferredBlock<ReceptaculumBlock> RECEPTACULUM = BLOCKS.registerBlock("receptaculum",

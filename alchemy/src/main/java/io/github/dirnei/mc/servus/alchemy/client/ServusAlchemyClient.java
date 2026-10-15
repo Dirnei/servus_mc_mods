@@ -30,6 +30,7 @@ public final class ServusAlchemyClient {
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(ServusAlchemyMenus.COAGULATOR.get(), CoagulatorScreen::new);
         event.register(ServusAlchemyMenus.SALAMANDER_FORGE.get(), MachineScreens.machineScreen(MachineScreens.SALAMANDER_FORGE));
+        event.register(ServusAlchemyMenus.PRELUM.get(), MachineScreens.machineScreen(MachineScreens.PRELUM));
         event.register(ServusAlchemyMenus.RECEPTACULUM.get(), (MachineMenu menu, Inventory inventory, Component title) -> new ReceptaculumScreen(menu, inventory, title));
     }
 

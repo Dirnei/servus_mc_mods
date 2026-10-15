@@ -31,6 +31,9 @@ public final class ServusAlchemyItems {
     public static final DeferredItem<BlockItem> PRINCIPLE_DROPPER = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.PRINCIPLE_DROPPER);
     public static final DeferredItem<BlockItem> SALAMANDER_FORGE = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.SALAMANDER_FORGE);
     public static final DeferredItem<BlockItem> RECEPTACULUM = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.RECEPTACULUM);
+    public static final DeferredItem<BlockItem> PRELUM = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.PRELUM);
+    /** The Prelum's screw, tempered in Dragon's Breath on a Rubedo Athanor. */
+    public static final DeferredItem<QuoteItem> PRELUM_SCREW = ITEMS.registerItem("prelum_screw", QuoteItem::new);
     /** The homunculus' flask from the Athanor; it places the Vas Hermeticum, and only on a Receptaculum. */
     public static final DeferredItem<BlockItem> SEALED_FLASK = ITEMS.registerItem("sealed_flask",
             properties -> new BlockItem(ServusAlchemyBlocks.VAS_HERMETICUM.get(), properties), () -> new Item.Properties().stacksTo(16));
@@ -57,7 +60,7 @@ public final class ServusAlchemyItems {
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(PARACELSUS_JOURNAL, CALCINER, FIREBOX, ASH_PAN,
             ALEMBIC, RECEIVER, SULFUR_HOOD, COPPER_DUCT, PURIFIER, CATCH_BASIN, RESIDUE_CROCK, COAGULATOR, VAT, ATHANOR, GNOME_HOLLOW,
             PRINCIPLE_DROPPER, ASH, CAPUT_MORTUUM, SALT_CRYSTAL, SALT_CRYSTAL_BLOCK, SULFUR, QUICKSILVER,
-            SAL_AMMONIAC, IGNIS_PERPETUUS, SALAMANDER_FORGE, RECEPTACULUM, SEALED_FLASK, SALAMANDER_SPAWN_EGG);
+            SAL_AMMONIAC, IGNIS_PERPETUUS, SALAMANDER_FORGE, RECEPTACULUM, SEALED_FLASK, PRELUM_SCREW, PRELUM, SALAMANDER_SPAWN_EGG);
 
     private ServusAlchemyItems() {
     }
