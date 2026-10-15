@@ -18,6 +18,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.UtilityDuctMenu;
+import io.github.dirnei.mc.servus.foundation.logistics.network.ChannelUses;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
@@ -159,6 +160,28 @@ public final class ServusLogisticsGameTests {
             helper.assertTrue(count(helper, CHEST_B, Items.IRON_ORE) == 16,
                     "chest B on the created channel should hold all 16 iron ore, got " + count(helper, CHEST_B, Items.IRON_ORE));
             helper.assertTrue(count(helper, CHEST_C, Items.IRON_ORE) == 0, "chest C on Default must receive nothing");
+            helper.succeed();
+        });
+    }
+
+    /** Two chests on one created channel count as two uses; a side on it that touches no block counts nothing. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void channelUsesCountEndpoints(GameTestHelper helper) {
+        chest(helper, CHEST_A);
+        chest(helper, CHEST_B);
+        UtilityDuctBlockEntity a = duct(helper, DUCT_A, Line.ITEM);
+        UtilityDuctBlockEntity b = duct(helper, DUCT_B, Line.ITEM);
+        int copper = channel(helper, "Copper");
+        a.setChannel(Line.ITEM, Direction.NORTH, copper);
+        b.setChannel(Line.ITEM, Direction.NORTH, copper);
+        a.setChannel(Line.ITEM, Direction.UP, copper);
+
+        helper.runAfterDelay(5, () -> {
+            int loaded = ChannelUses.loaded(helper.getLevel().getServer()).getOrDefault(copper, 0);
+            helper.assertTrue(loaded == 2, "two chest sides use the channel, got " + loaded);
+            int onCable = ChannelUses.onCable(a, Line.ITEM).getOrDefault(copper, 0);
+            helper.assertTrue(onCable == 2, "the cable of duct A carries both uses, got " + onCable);
+            helper.assertTrue(ChannelUses.onCable(a, Line.ENERGY).isEmpty(), "a missing line has no uses");
             helper.succeed();
         });
     }

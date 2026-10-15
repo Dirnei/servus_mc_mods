@@ -32,7 +32,7 @@ Ids are allocated from a counter in the saved data and never reused; 0 is the De
 
 ### D4: Uses come from the line networks
 
-`LineNetwork` gets `channelUses()`, a map from channel id to the number of its endpoints on that id (through a new abstract `channel(P)` per endpoint type). "This cable" is the key set of `channelUses()` of the network at the duct for the open line (`NetworkSet.networkAt`). Loaded uses for the delete rule are summed over every item, power and fluid line network of every server level. Only endpoints count: a side not touching a block carries no traffic, and if it names a deleted channel D2 puts it on Default. Alternative: scan every loaded duct. Rejected, it would need a server side tracker that the networks already are.
+`LineNetwork` gets `channelUses()`, a map from channel id to the number of its member ducts' sides on that id whose arm of the line ends at a block other than a duct (`hasArm` and `isEndpoint`, read live from the member ducts, since the cached endpoints exist for every enabled side, air and duct sides included). `ChannelUses` sums them (`loaded`) and reads one duct's run (`onCable`). "This cable" is the key set of `channelUses()` of the network at the duct for the open line (`NetworkSet.networkAt`). Loaded uses for the delete rule are summed over every item, power and fluid line network of every server level. Only endpoints count: a side not touching a block carries no traffic, and if it names a deleted channel D2 puts it on Default. Alternative: scan every loaded duct. Rejected, it would need a server side tracker that the networks already are.
 
 ### D5: Payloads
 

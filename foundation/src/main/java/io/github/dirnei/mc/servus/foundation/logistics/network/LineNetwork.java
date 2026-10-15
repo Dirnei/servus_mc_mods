@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
 import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
@@ -40,6 +41,28 @@ public abstract class LineNetwork<P> extends ServusNetwork<UtilityDuctBlockEntit
 
     /** The endpoint of one enabled duct side whose neighbour is at {@code target}. */
     protected abstract P endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int channel);
+
+    /**
+     * How many sides of this network sit on each channel id, counting only
+     * sides whose arm of this line ends at a block other than a duct.
+     */
+    public Map<Integer, Integer> channelUses() {
+        Map<Integer, Integer> uses = new HashMap<>();
+        if (level == null) {
+            return uses;
+        }
+        for (NodePos pos : endpoints.keySet()) {
+            if (!(level.getBlockEntity(Conversions.toBlockPos(pos)) instanceof UtilityDuctBlockEntity duct)) {
+                continue;
+            }
+            for (Direction side : Direction.values()) {
+                if (duct.hasArm(line, side) && duct.isEndpoint(side)) {
+                    uses.merge(duct.channel(line, side), 1, Integer::sum);
+                }
+            }
+        }
+        return uses;
+    }
 
     /** Called after endpoints were added, rebuilt or removed. */
     protected void endpointsChanged() {
