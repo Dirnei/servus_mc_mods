@@ -119,7 +119,9 @@ public final class AlchemyRecipeTable {
                 new AthanorCraft("elixir_of_sight", "Quicksilver", "Elixir of Sight", Input.of(ServusAlchemyItems.QUICKSILVER.get()),
                         new Principles(100, 100, 250), 1, new ItemStackTemplate(ElementalSight.ELIXIR.get()), 200),
                 new AthanorCraft("gnome_hollow", "Cracked Stone Bricks", "Gnome Hollow", Input.of(Items.CRACKED_STONE_BRICKS),
-                        new Principles(500, 0, 250), 1, new ItemStackTemplate(ServusAlchemyItems.GNOME_HOLLOW.get()), 200));
+                        new Principles(500, 0, 250), 1, new ItemStackTemplate(ServusAlchemyItems.GNOME_HOLLOW.get()), 200),
+                new AthanorCraft("principle_dropper", "Principle Vat", "Principle Dropper", Input.of(ServusAlchemyItems.VAT.get()),
+                        new Principles(250, 250, 250), 2, new ItemStackTemplate(ServusAlchemyItems.PRINCIPLE_DROPPER.get()), 200));
     }
 
     /** The English name of an Athanor stage. */

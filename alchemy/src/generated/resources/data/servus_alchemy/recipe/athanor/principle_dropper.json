@@ -1,0 +1,17 @@
+{
+  "type": "servus_alchemy:athanor",
+  "input": {
+    "count": 1,
+    "ingredient": "servus_alchemy:principle_vat"
+  },
+  "principles": {
+    "mercury": 250,
+    "salt": 250,
+    "sulfur": 250
+  },
+  "result": {
+    "id": "servus_alchemy:principle_dropper"
+  },
+  "tier": 2,
+  "time": 200
+}

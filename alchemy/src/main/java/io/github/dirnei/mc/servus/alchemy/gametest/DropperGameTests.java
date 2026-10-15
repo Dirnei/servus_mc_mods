@@ -2,9 +2,12 @@ package io.github.dirnei.mc.servus.alchemy.gametest;
 
 import io.github.dirnei.mc.servus.alchemy.Principle;
 import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
+import io.github.dirnei.mc.servus.alchemy.Principles;
+import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.PrincipleDropperBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
@@ -145,5 +148,27 @@ public final class DropperGameTests {
             helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK, pos, side) == null, "no items toward " + side);
         }
         helper.succeed();
+    }
+
+    /** A Principle Vat and the three principles make a Principle Dropper on a Citrinitas Athanor, not on an Albedo one. */
+    @ServusGameTest(timeoutTicks = 600)
+    public static void dropperNeedsCitrinitas(GameTestHelper helper) {
+        AthanorBlockEntity athanor = AlchemyGameTests.athanor(helper);
+        AlchemyGameTests.saltRing(helper);
+        athanor.checkTier();
+        helper.assertTrue(athanor.tier() == 1, "the salt ring makes Albedo, got " + athanor.tier());
+        athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(ServusAlchemyItems.VAT.get()));
+        helper.runAfterDelay(2, () -> AlchemyGameTests.pour(helper, new Principles(250, 250, 250)));
+        helper.runAfterDelay(250, () -> {
+            helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).isEmpty(), "no Dropper at Albedo");
+            AlchemyGameTests.amethystRing(helper);
+            athanor.checkTier();
+            helper.assertTrue(athanor.tier() == 2, "the amethyst ring makes Citrinitas, got " + athanor.tier());
+            helper.succeedWhen(() -> {
+                helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).is(ServusAlchemyItems.PRINCIPLE_DROPPER.get()),
+                        "a Principle Dropper should be made");
+                helper.assertTrue(athanor.principles().isEmpty(), "the principles are burned");
+            });
+        });
     }
 }
