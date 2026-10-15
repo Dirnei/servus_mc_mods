@@ -47,6 +47,10 @@ public final class ServusAlchemyEvents {
             registerCalciner(event);
             registerCoagulator(event);
             registerAthanor(event);
+            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusAlchemyBlockEntities.SALAMANDER_FORGE.get(),
+                    (forge, side) -> forge.sideHandler(side));
+            event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusAlchemyBlockEntities.SALAMANDER_FORGE.get(),
+                    (forge, side) -> forge.production());
             event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusAlchemyBlockEntities.PRINCIPLE_DROPPER.get(),
                     (dropper, side) -> dropper.tanks());
         }

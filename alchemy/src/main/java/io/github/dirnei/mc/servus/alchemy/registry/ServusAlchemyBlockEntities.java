@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlockEntity;
+import io.github.dirnei.mc.servus.alchemy.forge.SalamanderForgeBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.PrincipleDropperBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierBlockEntity;
@@ -37,6 +38,9 @@ public final class ServusAlchemyBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PurifierBlockEntity>> PURIFIER =
             register("purifier", PurifierBlockEntity::new, ServusAlchemyBlocks.PURIFIER);
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SalamanderForgeBlockEntity>> SALAMANDER_FORGE =
+            register("salamander_forge", SalamanderForgeBlockEntity::new, ServusAlchemyBlocks.SALAMANDER_FORGE);
 
     private ServusAlchemyBlockEntities() {
     }

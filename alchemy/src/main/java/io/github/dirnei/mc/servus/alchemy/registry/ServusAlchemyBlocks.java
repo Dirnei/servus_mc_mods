@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerShellBlock;
 import io.github.dirnei.mc.servus.alchemy.coagulator.VatBlock;
+import io.github.dirnei.mc.servus.alchemy.forge.SalamanderForgeBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.PrincipleDropperBlock;
 import io.github.dirnei.mc.servus.alchemy.purifier.CatchBasinBlock;
@@ -85,6 +86,11 @@ public final class ServusAlchemyBlocks {
     /** The Principle Dropper, a copper drip vessel that feeds the Gnome Hollow below it. */
     public static final DeferredBlock<PrincipleDropperBlock> PRINCIPLE_DROPPER = BLOCKS.registerBlock("principle_dropper",
             PrincipleDropperBlock::new, () -> copper());
+
+    /** The Salamander Forge, a deepslate furnace whose eternal flame always burns and always gives light. */
+    public static final DeferredBlock<SalamanderForgeBlock> SALAMANDER_FORGE = BLOCKS.registerBlock("salamander_forge",
+            SalamanderForgeBlock::new, () -> BlockBehaviour.Properties.of().mapColor(MapColor.DEEPSLATE).strength(3.5F, 6.0F)
+                    .requiresCorrectToolForDrops().sound(SoundType.DEEPSLATE_BRICKS).noOcclusion().lightLevel(state -> 13));
 
     private static DeferredBlock<CalcinerPartBlock> calcinerPart(String name, Role role, BlockBehaviour.Properties properties) {
         return BLOCKS.registerBlock(name, props -> new CalcinerPartBlock(role, props), () -> properties);

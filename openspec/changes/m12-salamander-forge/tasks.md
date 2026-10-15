@@ -3,7 +3,7 @@
 ## 1. The machine
 
 - [x] 1.1 Defaults: `AlchemyMachineDefaults` adds `salamander_forge` (D3), data `machine/salamander_forge.json`; JUnit `AlchemyMachineDefaultsTest.forgeSmeltsAtFurnacePace` (kind crafter, recipe type `minecraft:smelting`, `work_ticks` 200). Verify: `gradlew :alchemy:test` green.
-- [ ] 1.2 `forge/SalamanderForgeBlock.java`, `forge/SalamanderForgeBlockEntity.java`, `forge/SalamanderForgeMenu.java` (D1, D2, D4, D6); registrations in `ServusAlchemyBlocks`, `ServusAlchemyItems` (creative tab), `ServusAlchemyBlockEntities`, `ServusAlchemyMenus`; item and production capabilities in `ServusAlchemyEvents`; screen layout in `client/MachineScreens` and registration in `ServusAlchemyClient` (D7); GUI texture `textures/gui/salamander_forge.png` from a script in the job directory. Verify: `gradlew build` green.
+- [x] 1.2 `forge/SalamanderForgeBlock.java`, `forge/SalamanderForgeBlockEntity.java`, `forge/SalamanderForgeMenu.java` (D1, D2, D4, D6); registrations in `ServusAlchemyBlocks`, `ServusAlchemyItems` (creative tab), `ServusAlchemyBlockEntities`, `ServusAlchemyMenus`; item and production capabilities in `ServusAlchemyEvents`; screen layout in `client/MachineScreens` and registration in `ServusAlchemyClient` (D7); GUI texture `textures/gui/salamander_forge.png` from a script in the job directory. Verify: `gradlew build` green.
 
 ## 2. Look
 
