@@ -169,8 +169,11 @@ public final class SalamanderGameTests {
     public static void shippedTemperAndSpawnsLoad(GameTestHelper helper) {
         SalamanderTemper temper = SalamanderTemperData.INSTANCE.forType(ServusAlchemyEntities.SALAMANDER.get());
         SalamanderTemper shipped = new SalamanderTemper(0.33, 1200,
-                new SalamanderTemper.Spawn(4, 32, 3, Map.of("minecraft:warped_forest", 0.5)));
+                new SalamanderTemper.Spawn(4, 32, 3,
+                        Map.of("minecraft:warped_forest", 0.5, "minecraft:nether_wastes", 0.2, "minecraft:basalt_deltas", 0.2)));
         helper.assertTrue(temper.equals(shipped), "shipped temper expected, got " + temper);
+        helper.assertTrue(ServusAlchemyEntities.SALAMANDER.get().getCategory() != EntityType.STRIDER.getCategory(),
+                "Striders, which never despawn, do not fill the salamander's spawn cap");
         var modifiers = helper.getLevel().registryAccess().lookupOrThrow(NeoForgeRegistries.Keys.BIOME_MODIFIERS);
         for (String name : new String[] {"salamander_forest", "salamander_lava"}) {
             helper.assertTrue(modifiers.get(ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS,

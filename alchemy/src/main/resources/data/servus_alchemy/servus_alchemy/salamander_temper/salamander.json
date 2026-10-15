@@ -6,7 +6,9 @@
     "crowd_radius": 32,
     "crowd_max": 3,
     "biome_chance": {
-      "minecraft:warped_forest": 0.5
+      "minecraft:warped_forest": 0.5,
+      "minecraft:nether_wastes": 0.2,
+      "minecraft:basalt_deltas": 0.2
     }
   }
 }

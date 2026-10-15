@@ -26,7 +26,7 @@ The `spawn` object and each of its fields may be left out; the default is the sh
 | `home_radius` | int, 0 to 4 | 4 | A ground spawn needs a block of the tag `servus_alchemy:salamander_home` within this many blocks on each axis (a box of at most 9 by 9 by 9). |
 | `crowd_radius` | int, at least 0 | 32 | Wild salamanders within this many blocks of the spot count against `crowd_max`. |
 | `crowd_max` | int, at least 0 | 3 | No wild salamander spawns where this many wild ones already live within `crowd_radius`. Befriended ones never count; 0 stops all spawns. |
-| `biome_chance` | map of biome id to number, 0 to 1 | `{"minecraft:warped_forest": 0.5}` | Chance that a spawn try in that biome goes on. A biome without an entry always goes on. |
+| `biome_chance` | map of biome id to number, 0 to 1 | `{"minecraft:warped_forest": 0.5, "minecraft:nether_wastes": 0.2, "minecraft:basalt_deltas": 0.2}` | Chance that a spawn try in that biome goes on. A biome without an entry always goes on. |
 
 Shipped temper:
 
@@ -38,7 +38,7 @@ Shipped temper:
     "home_radius": 4,
     "crowd_radius": 32,
     "crowd_max": 3,
-    "biome_chance": { "minecraft:warped_forest": 0.5 }
+    "biome_chance": { "minecraft:warped_forest": 0.5, "minecraft:nether_wastes": 0.2, "minecraft:basalt_deltas": 0.2 }
   }
 }
 ```
@@ -49,7 +49,7 @@ Shipped temper:
 
 ## Spawning
 
-Salamanders spawn as creatures in two places:
+Salamanders spawn in the ambient group, like bats, in two places:
 
 - **On the ground** near a block of the block tag `servus_alchemy:salamander_home` (within `home_radius`). The tag holds `#minecraft:crimson_stems`, `#minecraft:warped_stems`, `minecraft:nether_wart_block`, `minecraft:warped_wart_block` and `minecraft:nether_wart`.
 - **On lava** whose column is topped by air, and only in a biome of the biome tag `servus_alchemy:salamander_lava` (the Nether Wastes and the Basalt Deltas).
@@ -78,4 +78,4 @@ Both then need the biome's `biome_chance` and room in the crowd. The biomes, wei
 }
 ```
 
-In the Crimson Forest most of the Strider's weight 60 picks fail on nylium, so weight 40 makes salamanders about as common as Striders on a lava lake. The Warped Forest has no other creature, so there every creature pick is a salamander; it has fewer because of its `biome_chance` of 0.5, not because of the weight. On lava, weight 5 against the Strider's 60 keeps them rare. A pack can override these files or the tags, or remove the spawns with `neoforge:remove_spawns`.
+Striders are creatures and never despawn, so in the Nether they fill the creature cap; in the ambient group salamanders have a cap of their own, and spawning is tried every tick. No other ambient mob spawns in these biomes, so the weights only matter against spawns another pack adds. How often salamanders show comes from `biome_chance` (fewer in the Warped Forest, rare on lava) and the crowd limit. A pack can override these files or the tags, or remove the spawns with `neoforge:remove_spawns`.

@@ -25,6 +25,7 @@
 - [x] 4.6 Full `gradlew build test :alchemy:runGameTestServer` green.
 
 - [x] 4.7 Play check fix: `Salamander.getWalkTargetValue` returns 0, so vanilla's own spawn check no longer refuses dark spots; GameTest `spawnsInTheDark` in `SalamanderGameTests`. Verify: `gradlew build test :alchemy:runGameTestServer` green.
+- [x] 4.8 Play check fix: the salamander spawns in `MobCategory.AMBIENT` (`registry/ServusAlchemyEntities.java`), because Striders that never despawn fill the creature cap; `biome_chance` 0.2 for the Nether Wastes and Basalt Deltas in `salamander_temper/salamander.json`; `shippedTemperAndSpawnsLoad` checks the numbers and that the salamander is not in the Strider's group; docs `reference/datapack/salamander.md`. Verify: `gradlew build test :alchemy:runGameTestServer` green apart from the FTB Chunks anchor tests.
 
 ## 5. Integration
 

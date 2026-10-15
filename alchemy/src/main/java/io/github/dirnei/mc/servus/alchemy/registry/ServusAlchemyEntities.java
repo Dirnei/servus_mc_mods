@@ -21,7 +21,7 @@ public final class ServusAlchemyEntities {
     public static final DeferredRegister.Entities ENTITIES = DeferredRegister.createEntities(ServusAlchemyIds.MOD_ID);
 
     public static final DeferredHolder<EntityType<?>, EntityType<Salamander>> SALAMANDER = ENTITIES.registerEntityType("salamander",
-            Salamander::new, MobCategory.CREATURE, builder -> builder.sized(0.6F, 0.5F).fireImmune().clientTrackingRange(10));
+            Salamander::new, MobCategory.AMBIENT, builder -> builder.sized(0.6F, 0.5F).fireImmune().clientTrackingRange(10));
     public static final DeferredHolder<EntityType<?>, EntityType<Gnome>> GNOME = ENTITIES.registerEntityType("gnome",
             Gnome::new, MobCategory.MISC, builder -> builder.sized(0.5F, 0.9F).fireImmune().clientTrackingRange(8));
 

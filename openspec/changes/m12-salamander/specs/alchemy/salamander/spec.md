@@ -9,7 +9,7 @@ Alchemy SHALL add a salamander creature that spawns mainly in the Crimson Forest
 
 #### Scenario: Among the crimson stems
 - **WHEN** the Nether spawns creatures on Crimson Nylium two blocks from a Crimson Stem
-- **THEN** a salamander may spawn there, about as often as a Strider on a lava lake
+- **THEN** a salamander may spawn there
 
 #### Scenario: Warped Forest
 - **WHEN** the Nether spawns creatures on Warped Nylium next to a Warped Stem
@@ -26,6 +26,13 @@ Alchemy SHALL add a salamander creature that spawns mainly in the Crimson Forest
 #### Scenario: Not in the Overworld
 - **WHEN** creatures spawn in an Overworld biome
 - **THEN** no salamander spawns
+
+### Requirement: Striders do not crowd it out
+The salamander SHALL spawn in a spawn group of its own cap, apart from the Striders, so the Striders of a Nether that never despawn cannot keep it from spawning.
+
+#### Scenario: Nether full of Striders
+- **WHEN** a player stands in a Crimson Forest while the creature cap around them is full of Striders
+- **THEN** salamanders still spawn near the crimson trees
 
 ### Requirement: Not overcrowded
 A wild salamander SHALL NOT spawn when a crowd limit from data (example 3) of wild salamanders already lives within a crowd radius from data (example 32 blocks) of the spawn spot. Befriended salamanders SHALL NOT count.
