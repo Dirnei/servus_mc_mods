@@ -18,7 +18,9 @@ import io.github.dirnei.mc.servus.alchemy.athanor.AthanorLayout;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.journal.JournalBookItem;
+import io.github.dirnei.mc.servus.alchemy.journal.JournalChapters;
 import io.github.dirnei.mc.servus.alchemy.journal.JournalLedger;
+import io.github.dirnei.mc.servus.alchemy.journal.JournalSync;
 import io.github.dirnei.mc.servus.alchemy.journal.ParacelsusJournalItem;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
@@ -47,6 +49,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.locale.Language;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -276,6 +279,31 @@ public final class AlchemyGameTests {
         }
         helper.assertTrue(!Journal.isFinished(server, team, "servus_alchemy:basel_salzburg"), "Basel and Salzburg stays open");
         helper.assertTrue(Journal.finish(server, team, VILLACH).isEmpty(), "a finished chapter finishes only once");
+        helper.succeed();
+    }
+
+    /** Every task of every shipped chapter has a name for the journal's task page. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void everyJournalTaskHasAName(GameTestHelper helper) {
+        for (JournalLedger.ChapterDef chapter : JournalChapters.INSTANCE.chapters()) {
+            Identifier id = Identifier.parse(chapter.id());
+            for (JournalLedger.TaskDef task : chapter.tasks()) {
+                String key = "journal." + id.getNamespace() + "." + id.getPath() + ".task." + task.id();
+                helper.assertTrue(Language.getInstance().has(key), "missing task name " + key);
+            }
+        }
+        helper.succeed();
+    }
+
+    /** Journal work queues the team's progress for its members, and the tick drain sends and clears it. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void journalWorkQueuesTheTeamsProgress(GameTestHelper helper) {
+        UUID team = UUID.randomUUID();
+        ServerLevel level = helper.getLevel();
+        Journal.recordItem(level, team, "calcine", new ItemStack(Items.COBBLESTONE), 1);
+        helper.assertTrue(JournalSync.isQueued(team), "calcining should queue the team");
+        JournalSync.drain(level.getServer());
+        helper.assertTrue(!JournalSync.isQueued(team), "the drain should clear the queue");
         helper.succeed();
     }
 

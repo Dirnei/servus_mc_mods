@@ -11,7 +11,7 @@
 
 ## 3. Tests
 
-- [ ] 3.1 GameTests: every shipped task has a lang key; recording an event marks the team dirty and the drain clears it; run `:alchemy:runGameTestServer`
+- [x] 3.1 GameTests: every shipped task has a lang key; recording an event marks the team dirty and the drain clears it; run `:alchemy:runGameTestServer`
 - [ ] 3.2 Launch the client from main and open the journal: the page renders without errors
 
 ## 4. Play check
