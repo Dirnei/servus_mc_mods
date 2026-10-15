@@ -350,9 +350,10 @@ final class WorkshopCategory extends CategoryProvider {
         AlchemyRecipeTable.AthanorCraft craft = athanorCraft("ignis_perpetuus");
         return new WorkshopEntry(this, "salamander", "The Salamander", "Citrinitas: the fire that eats gold",
                 ServusAlchemyItems.IGNIS_PERPETUUS.get(), e -> {
-            e.text("lava", "In the Lava",
-                    "In the lava lakes of the Nether, in its wastes and its basalt deltas, live the salamanders, lizards of glowing coal. "
-                            + "Without the sight you see only a flame that dances on the lava a little too long. "
+            e.text("stems", "Among the Crimson Stems",
+                    "The salamanders, lizards of glowing coal, live in the Nether's crimson forests, near the crimson trees and the Nether Wart. "
+                            + "Fewer live among the warped trees; now and then one swims on lava.\n\n"
+                            + "Without the sight you see only a flame that dances a little too long. "
                             + "Drink the Elixir of Sight and you see them. Fire and lava do them no harm, and they harm nobody.");
             e.text("gold", "Gold for a Friend",
                     "Hold out a Gold Ingot to a salamander you can see. It eats every ingot, and now and then it takes a liking to you: "
@@ -364,9 +365,10 @@ final class WorkshopCategory extends CategoryProvider {
                             + "One ingot at a time; it will not take the next before it is done.");
             e.spotlight("ignis", ServusAlchemyItems.IGNIS_PERPETUUS.get(), "Ignis Perpetuus",
                     "Lay " + craft.inputLabel() + " on a yellow Athanor and feed it " + PrincipleText.amounts(craft.principles()) + ". "
-                            + "The flame that never goes out. It does not feed a furnace, but set into the Firebox of a Calciner "
-                            + "it fires it forever and makes it calcine faster; sneak with an empty hand at the Firebox to take it back. "
-                            + "It is also built into greater works.");
+                            + "The flame that never goes out. It does not feed a furnace; it fires a Calciner and is built into greater works.");
+            e.text("eternal_fire", "The Eternal Flame",
+                    "Set Ignis Perpetuus into the Firebox of a Calciner and it fires the Calciner forever, without coal, "
+                            + "and makes it calcine faster. Sneak with an empty hand at the Firebox to take it back.");
         });
     }
 

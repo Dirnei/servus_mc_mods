@@ -63,7 +63,7 @@ Breaking a Hollow under the sight drops an empty Gnome Hollow and the ore in its
 
 ## The Salamander
 
-In the lava lakes of the Nether Wastes and the Basalt Deltas live the salamanders, lizards of glowing coal with a crest of flame. They are rare, and without Elemental Sight you see only a flame that flickers on the lava now and then; Jade does not name them either. With the sight they show. They walk on lava and on land, fire and lava do not hurt them, and they never attack.
+The salamanders, lizards of glowing coal with a crest of flame, live mostly in the Crimson Forest, on the ground within 4 blocks of crimson trees (stems or wart blocks) or Nether Wart. Fewer live in the Warped Forest near the warped trees, and now and then one spawns on a lava lake in the Nether Wastes or the Basalt Deltas. They never crowd: no wild one spawns where 3 wild salamanders already live within 32 blocks; befriended ones do not count. Without Elemental Sight you see only a flame that flickers now and then; Jade does not name them either. With the sight they show. They walk on lava and on land, fire and lava do not hurt them, and they never attack.
 
 - **Befriending:** use a Gold Ingot on a wild salamander. Every ingot is eaten, and each has a 1 in 3 chance to befriend it (hearts; smoke when it does not). A befriended salamander is yours and shows itself to everyone.
 - **Pet:** it follows you and teleports to you when it falls far behind, sits or stands up when you use an empty hand on it, never despawns, and when idle walks into a lit campfire within 8 blocks and lies there. It gives off no light of its own beyond its glow.
@@ -109,7 +109,7 @@ The Press at the end of the Work. It presses the Caput Mortuum the Purifier leav
 Everything hidden behind Elemental Sight gives a hint without it, so you know when to drink. The hints come from far to close: **knocking** in the rock (subtitle "Something knocks in the rock"), which you hear from its direction; **dust** that trickles from one block; and **traces**, small items to pick up: a Tiny Pickaxe, a Scrap of Red Felt and a Bowl of Salt. Picking up a trace tells the journal "They are near. Drink, and look."
 
 - **Gnome Hollow:** a Hollow with a bound gnome knocks softly now and then.
-- **Salamander:** a wild salamander in Nether lava shows a flame now and then, and sometimes a little spiral of dancing flames.
+- **Salamander:** a wild salamander shows a flame now and then, and sometimes a little spiral of dancing flames.
 - **Vas Hermeticum:** until the homunculus is freed, the liquid in the Vas bubbles by itself now and then.
 - **The old gnome:** once your team has finished Schwaz, every Deepslate block a team member breaks below Y 0 has a small chance (0.3 %) to wake Paracelsus' old gnome. A Deepslate block in a wall a few blocks away, with air beside it, becomes his **Ancient Hollow**: it looks like Deepslate, Jade calls it Deepslate and it drops Cobbled Deepslate. A trace lies in front of it. While you are within 24 blocks it knocks every few seconds, within 6 blocks dust falls from it, and Deepslate your team breaks within 8 blocks of it sometimes drops another trace. Under the sight you see the old gnome with his red cap and long white beard; use the journal on him to find him. Each team has one old gnome; if the Ancient Hollow is broken before you find him, he can wake again elsewhere. Taking him home comes later.
 - **Numbers:** `data/<namespace>/servus_alchemy/old_gnome/old_gnome.json`, see [Old gnome](/servus_mc_mods/reference/datapack/old-gnome/).

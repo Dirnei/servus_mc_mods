@@ -3,9 +3,9 @@
   "condition": {
     "type": "modonomicon:none"
   },
-  "id": "lava_2",
+  "id": "stems_2",
   "show_title_separator": true,
   "sort_number": 1,
-  "text": "book.servus_alchemy.journal.workshop.salamander.lava_2.text",
+  "text": "book.servus_alchemy.journal.workshop.salamander.stems_2.text",
   "title": ""
 }

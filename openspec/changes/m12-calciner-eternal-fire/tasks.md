@@ -21,6 +21,7 @@
   - Notes, coplanar check against the Firebox model (front at z 0, opening x 3 to 13 and y 2 to 12, recess 3 px deep, grate plane at z 1, coals box x 3 to 13, y 2 to 5, z 1.5 to 3): the item is 6 px square at scale 6/16, centred at x 8, y 8.05, z 2, so it spans x 5 to 11, y 5.05 to 11.05 and z 1.81 to 2.19. Grate (z 1) and item front (z 1.81): apart. Back wall (z 3) and item back (z 2.19): apart. Coals top (y 5) and item bottom (y 5.05): apart, and the item never overlaps the coals box. Opening sides (x 3, 13) and top (y 12) lie outside the item. The front face (z 0) is 1.8 px away. Per pixel side faces of the item lie on 0.375 px steps from x 5 and y 5.05, none on 3, 13, 2, 5 or 12. No shared plane.
 - [x] 4.2 Jade: `alchemy/.../integration/jade/ServusAlchemyJadePlugin.java` writes `Ignis` and shows `jade.servus_alchemy.calciner.eternal_fire` instead of the fuel line; add the key in `ServusAlchemyLanguageProvider.java`. Verify: `gradlew runData` and `gradlew build` green.
 - [x] 4.3 Journal: `alchemy/.../datagen/book/WorkshopCategory.java` Ignis Perpetuus spotlight and the Calciner fire text say it burns a Calciner forever and faster when set into the Firebox, and a sneak with an empty hand takes it back. Verify: `gradlew runData` regenerates the pages, `gradlew build` green.
+  - Notes: a spotlight page is not split, so the spotlight only says that it fires a Calciner, and a text page "The Eternal Flame" right after it says the rest.
 
 ## 5. Plans and docs
 

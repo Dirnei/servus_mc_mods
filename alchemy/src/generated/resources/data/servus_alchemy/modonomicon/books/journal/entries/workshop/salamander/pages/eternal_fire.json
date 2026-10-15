@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "eternal_fire",
+  "show_title_separator": true,
+  "sort_number": 6,
+  "text": "book.servus_alchemy.journal.workshop.salamander.eternal_fire.text",
+  "title": "book.servus_alchemy.journal.workshop.salamander.eternal_fire.title"
+}
