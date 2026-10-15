@@ -20,7 +20,7 @@
 
 ## 5. Integration
 
-- [ ] 5.1 Full `gradlew build test :alchemy:runGameTestServer` green.
+- [x] 5.1 Full `gradlew build test :alchemy:runGameTestServer` green.
 - [ ] 5.2 User play check in game:
   - Without Elemental Sight a placed Hollow looks like stone, Jade shows Stone with the stone icon, right click with raw iron, a Salt bucket, a Salt Crystal or an empty hand does nothing, pick block gives Stone.
   - A duct with item and fluid pipes beside it shows no connection.
