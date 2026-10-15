@@ -74,9 +74,9 @@ public final class HomunculusGameTests {
         helper.setBlock(pos, ServusAlchemyBlocks.GNOME_HOLLOW.get().defaultBlockState());
         GnomeHollowBlockEntity hollow = helper.getBlockEntity(pos, GnomeHollowBlockEntity.class);
         hollow.setTeam(team);
-        hollow.seed(new ItemStack(Items.RAW_IRON));
-        hollow.growth().ripeness = IRON_STEPS;
         hollow.growth().bound = true;
+        hollow.seed(HollowGameTests.seed("iron"));
+        hollow.growth().ripeness = IRON_STEPS;
         hollow.store().load(stored);
         return hollow;
     }

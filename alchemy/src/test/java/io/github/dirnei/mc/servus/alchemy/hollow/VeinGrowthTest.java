@@ -16,6 +16,13 @@ class VeinGrowthTest {
     private static final Vein IRON = new Vein(2, 3, new Principles(100, 0, 20), 4);
     private static final Principles PLENTY = new Principles(1000, 0, 1000);
 
+    /** A vein with a gnome, ripe or not. */
+    private static State tended() {
+        State state = new State();
+        state.bound = true;
+        return state;
+    }
+
     private static Outcome run(State state, Principles held, boolean room, int ticks) {
         Outcome last = Outcome.NONE;
         for (int i = 0; i < ticks; i++) {
@@ -29,7 +36,7 @@ class VeinGrowthTest {
 
     @Test
     void waitsWithoutPrinciples() {
-        State state = new State();
+        State state = tended();
         assertEquals(Outcome.NONE, run(state, new Principles(50, 0, 20), true, 10));
         assertEquals(0, state.ripeness);
         assertEquals(0, state.stepTimer, "the timer does not run while waiting");
@@ -37,7 +44,7 @@ class VeinGrowthTest {
 
     @Test
     void stepsFollowTheStepTime() {
-        State state = new State();
+        State state = tended();
         assertEquals(Outcome.NONE, VeinGrowth.tick(IRON, state, PLENTY, true));
         assertEquals(Outcome.NONE, VeinGrowth.tick(IRON, state, PLENTY, true));
         assertEquals(Outcome.RIPENED, VeinGrowth.tick(IRON, state, PLENTY, true));
@@ -46,15 +53,17 @@ class VeinGrowthTest {
 
     @Test
     void ripenessStopsAtTheSteps() {
-        State state = new State();
+        State state = tended();
         run(state, PLENTY, true, 30);
         assertEquals(2, state.ripeness);
         assertTrue(state.ripe(IRON));
     }
 
     @Test
-    void noYieldBeforeABinding() {
+    void nothingHappensWithoutAGnome() {
         State state = new State();
+        assertEquals(Outcome.NONE, run(state, PLENTY, true, 20));
+        assertEquals(0, state.ripeness, "no gnome tends it, so it does not ripen");
         state.ripeness = 2;
         assertEquals(Outcome.NONE, run(state, PLENTY, true, 20));
         state.bound = true;
@@ -100,7 +109,7 @@ class VeinGrowthTest {
 
     @Test
     void workDoesNotSpeedRipening() {
-        State state = new State();
+        State state = tended();
         for (int i = 0; i < 3; i++) {
             VeinGrowth.tick(IRON, state, PLENTY, true, 5);
         }

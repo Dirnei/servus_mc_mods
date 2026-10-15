@@ -59,9 +59,13 @@ public final class VeinGrowth {
 
     /**
      * Advances the vein by one tick in which a working gnome digs {@code work} ticks' worth; ripening ignores it.
-     * At most one item is yielded per tick.
+     * Nothing happens without a bound gnome: he tends the vein while it ripens and digs it once ripe. At most one item
+     * is yielded per tick.
      */
     public static Outcome tick(Vein vein, State state, Principles held, boolean outputHasRoom, int work) {
+        if (!state.bound) {
+            return Outcome.NONE;
+        }
         if (!state.ripe(vein)) {
             if (!held.covers(vein.stepCost())) {
                 return Outcome.NONE;
@@ -73,7 +77,7 @@ public final class VeinGrowth {
             state.ripeness++;
             return Outcome.RIPENED;
         }
-        if (!state.bound || !outputHasRoom) {
+        if (!outputHasRoom) {
             return Outcome.NONE;
         }
         state.yieldTimer += Math.max(0, work);

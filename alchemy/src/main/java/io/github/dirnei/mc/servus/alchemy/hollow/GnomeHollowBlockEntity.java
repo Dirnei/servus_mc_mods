@@ -39,9 +39,10 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
- * A Gnome Hollow: seeded by hand with a sample of ore, ripened with principles poured in by bucket, and once a gnome
- * is bound it digs the vein's ore into a small internal store until that is full. It offers nothing to pipes or
- * other blocks; only a player under Elemental Sight tends it. Clients get the vein's look for drawing under the sight.
+ * A Gnome Hollow: a Salt Crystal calls a gnome in, he plants the vein of a Seed, principles poured in by bucket ripen
+ * it while he tends it, and once ripe he digs the vein's ore into a small internal store until that is full. Another
+ * Seed makes him dig out the old vein and plant the new one; the store keeps what he dug. It offers nothing to pipes
+ * or other blocks; only a player under Elemental Sight tends it. Clients get the vein's look for drawing under the sight.
  */
 public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
 
@@ -50,7 +51,7 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
 
     /** What a binding attempt did. */
     public enum Binding {
-        BOUND, NO_VEIN, NOT_RIPE, ALREADY_BOUND, NO_SIGHT
+        BOUND, ALREADY_BOUND, NO_SIGHT
     }
 
     /** What offering a gift did. */
@@ -58,9 +59,25 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         TAKEN, DISLIKED, NO_GNOME
     }
 
-    /** What a seeding attempt did. */
+    /** What giving a Seed did. */
     public enum Seeding {
-        SEEDED, ALREADY_SEEDED, NO_ROOT
+        /** The gnome planted the Seed's vein in an empty Hollow. */
+        PLANTED,
+        /** The gnome dug out the vein of another kind and planted the Seed's. */
+        SWAPPED,
+        /** The Hollow already grows this vein. */
+        SAME_VEIN,
+        /** No gnome lives in the Hollow to plant it. */
+        NO_GNOME,
+        /** The item is no Seed. */
+        NOT_A_SEED,
+        /** The Seed names no loaded vein. */
+        UNKNOWN_SEED;
+
+        /** Whether the Seed was planted, so the caller uses it up. */
+        public boolean planted() {
+            return this == PLANTED || this == SWAPPED;
+        }
     }
 
     /** {@link #shownBoundAt()} of a Hollow the client did not see being bound. */
@@ -72,6 +89,8 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
     private final TeamOwnership ownership = new TeamOwnership(this);
     private final GiftBoost boost = new GiftBoost();
     private Identifier vein;
+    /** One of what the store holds, empty while it is empty; it may differ from the vein's yield after a swap. */
+    private ItemStack storedYield = ItemStack.EMPTY;
     /** On the client: the vein's yield and its ripening steps, from the update tag. */
     private ItemStack shownYield = ItemStack.EMPTY;
     private int shownSteps;
@@ -128,41 +147,41 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         return MachineStatsManager.INSTANCE.get(ID, DEFAULTS);
     }
 
-    /** The loaded vein a Seed plants, empty for anything else. */
-    private static Optional<Identifier> veinFor(ItemStack stack) {
-        return VeinSeedItem.vein(stack).filter(vein -> VeinData.INSTANCE.get(vein).isPresent());
-    }
-
-    /** Seeds an empty Hollow with the vein {@code sample} belongs to; the caller uses up the sample on {@link Seeding#SEEDED}. */
-    public Seeding seed(ItemStack sample) {
-        if (vein != null) {
-            return Seeding.ALREADY_SEEDED;
+    /**
+     * The gnome plants the vein a Seed names; a vein of another kind is dug out and lost, the store and the tanks stay.
+     * The stack is never changed here, so the caller uses up one Seed when {@link Seeding#planted()}.
+     */
+    public Seeding seed(ItemStack stack) {
+        if (!growth.bound) {
+            return Seeding.NO_GNOME;
         }
-        Optional<Identifier> planted = veinFor(sample);
-        if (planted.isEmpty()) {
-            return Seeding.NO_ROOT;
+        Optional<Identifier> named = VeinSeedItem.vein(stack);
+        if (named.isEmpty()) {
+            return Seeding.NOT_A_SEED;
         }
-        vein = planted.get();
+        if (VeinData.INSTANCE.get(named.get()).isEmpty()) {
+            return Seeding.UNKNOWN_SEED;
+        }
+        if (named.get().equals(vein)) {
+            return Seeding.SAME_VEIN;
+        }
+        Seeding result = vein == null ? Seeding.PLANTED : Seeding.SWAPPED;
+        if (!store.isEmpty()) {
+            storedYield = storedYield().copyWithCount(1);
+        }
+        vein = named.get();
         growth.ripeness = 0;
-        growth.bound = false;
         growth.stepTimer = 0;
         growth.yieldTimer = 0;
         setChanged();
         syncToClients();
-        return Seeding.SEEDED;
+        return result;
     }
 
-    /** A Salt Crystal offered by a player: binds a gnome to a ripe vein if the player sees it. */
+    /** A Salt Crystal offered by a player: calls a gnome into a Hollow without one if the player sees it. */
     public Binding bind(Player player) {
-        Optional<VeinDef> def = veinDef();
-        if (def.isEmpty()) {
-            return Binding.NO_VEIN;
-        }
         if (growth.bound) {
             return Binding.ALREADY_BOUND;
-        }
-        if (!growth.ripe(def.get().growth())) {
-            return Binding.NOT_RIPE;
         }
         if (!ElementalSight.active(player)) {
             return Binding.NO_SIGHT;
@@ -171,7 +190,7 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         setChanged();
         syncToClients();
         if (level instanceof ServerLevel server) {
-            Journal.recordItem(server, team(), "bind", def.get().yield(), 1);
+            Journal.recordEvent(server, team(), "bind", 1);
         }
         return Binding.BOUND;
     }
@@ -181,7 +200,7 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
      * with the gift's factor and duration; the stack is never changed here, so the caller uses up one item.
      */
     public Gift offerGift(ItemStack stack) {
-        if (veinDef().isEmpty() || !growth.bound) {
+        if (!growth.bound) {
             return Gift.NO_GNOME;
         }
         Optional<GnomeGiftData.GiftDef> gift = GnomeGiftData.INSTANCE.forItem(stack);
@@ -226,14 +245,22 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
     record DripNeed(Principles stepCost, Principles room) {
     }
 
-    /** Empties the store into stacks of the vein's yield; empty when nothing is stored or the vein's data is gone. */
+    /** One of what the store holds: what was dug, else the vein's yield; empty without either. */
+    public ItemStack storedYield() {
+        if (!storedYield.isEmpty()) {
+            return storedYield;
+        }
+        return veinDef().map(VeinDef::yield).orElse(ItemStack.EMPTY);
+    }
+
+    /** Empties the store into stacks of what it holds; empty when nothing is stored or that is unknown. */
     public List<ItemStack> takeStore() {
-        Optional<VeinDef> def = veinDef();
-        if (def.isEmpty() || store.isEmpty()) {
+        ItemStack yield = storedYield();
+        if (yield.isEmpty() || store.isEmpty()) {
             return List.of();
         }
-        ItemStack yield = def.get().yield();
         int left = store.takeAll();
+        storedYield = ItemStack.EMPTY;
         setChanged();
         List<ItemStack> stacks = new ArrayList<>();
         while (left > 0) {
@@ -244,19 +271,26 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         return stacks;
     }
 
-    /** Takes up to {@code max} items of the store as one stack of the vein's yield, for the homunculus; empty when nothing is taken. */
+    /** Takes up to {@code max} items of the store as one stack, for the homunculus; empty when nothing is taken. */
     public ItemStack takeYield(int max) {
-        Optional<VeinDef> def = veinDef();
-        if (def.isEmpty() || max <= 0) {
+        ItemStack yield = storedYield();
+        if (yield.isEmpty() || max <= 0) {
             return ItemStack.EMPTY;
         }
-        ItemStack yield = def.get().yield();
         int taken = store.take(Math.min(max, yield.getMaxStackSize()));
         if (taken == 0) {
             return ItemStack.EMPTY;
         }
+        if (store.isEmpty()) {
+            storedYield = ItemStack.EMPTY;
+        }
         setChanged();
         return yield.copyWithCount(taken);
+    }
+
+    /** Whether the gnome may put {@code yield} into the store: room left, and nothing else in it. */
+    private boolean storeTakes(ItemStack yield) {
+        return store.hasRoom() && (store.isEmpty() || ItemStack.isSameItemSameComponents(storedYield(), yield));
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, GnomeHollowBlockEntity hollow) {
@@ -279,13 +313,17 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         if (def.isEmpty()) {
             return;
         }
-        Outcome outcome = VeinGrowth.tick(def.get().growth(), growth, tanks.contents(), store.hasRoom(), work);
+        ItemStack yield = def.get().yield();
+        Outcome outcome = VeinGrowth.tick(def.get().growth(), growth, tanks.contents(), storeTakes(yield), work);
         switch (outcome) {
             case RIPENED -> {
                 tanks.take(def.get().growth().stepCost());
                 syncToClients();
             }
-            case YIELD -> store.add();
+            case YIELD -> {
+                storedYield = yield.copyWithCount(1);
+                store.add();
+            }
             default -> {
             }
         }
@@ -366,6 +404,9 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         output.putInt("StepTimer", growth.stepTimer);
         output.putInt("YieldTimer", growth.yieldTimer);
         output.putInt("Stored", store.count());
+        if (!storedYield.isEmpty()) {
+            tag.put("StoredYield", ValueIo.saveStack(registries, storedYield));
+        }
         output.putDouble("GiftFactor", boost.factor());
         output.putInt("GiftTicks", boost.ticksLeft());
         ownership.save(tag);
@@ -386,6 +427,7 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         growth.stepTimer = input.getIntOr("StepTimer", 0);
         growth.yieldTimer = input.getIntOr("YieldTimer", 0);
         store.load(input.getIntOr("Stored", 0));
+        storedYield = tag.contains("StoredYield") ? ValueIo.parseStack(registries, tag.getCompoundOrEmpty("StoredYield")) : ItemStack.EMPTY;
         boost.load(input.getDoubleOr("GiftFactor", 1), input.getIntOr("GiftTicks", 0));
         shownBoosted = input.getBooleanOr("Boosted", false);
         ownership.load(tag);

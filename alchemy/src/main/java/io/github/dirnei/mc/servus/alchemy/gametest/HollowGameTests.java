@@ -3,10 +3,13 @@ package io.github.dirnei.mc.servus.alchemy.gametest;
 import io.github.dirnei.mc.servus.alchemy.Principle;
 import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.Principles;
+import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Binding;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Gift;
+import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Seeding;
+import io.github.dirnei.mc.servus.alchemy.hollow.VeinSeedItem;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
@@ -21,6 +24,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.block.state.BlockState;
@@ -71,13 +75,28 @@ public final class HollowGameTests {
         Journal.recordItem(level, team, "bind", new ItemStack(Items.RAW_IRON), 1);
     }
 
-    /** A seeded iron vein, ripe or not, for a team that finished Villach. */
+    /** A Seed of the shipped vein {@code path}. */
+    static ItemStack seed(String path) {
+        return VeinSeedItem.of(Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, path));
+    }
+
+    /** A Hollow at {@link #MACHINE} with a gnome in it, for a fresh team. */
+    static GnomeHollowBlockEntity boundHollow(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = hollow(helper, UUID.randomUUID());
+        hollow.growth().bound = true;
+        return hollow;
+    }
+
+    /** A Hollow with a gnome and the shipped vein {@code path} planted at ripeness 0. */
+    static GnomeHollowBlockEntity plantedHollow(GameTestHelper helper, String path) {
+        GnomeHollowBlockEntity hollow = boundHollow(helper);
+        helper.assertTrue(hollow.seed(seed(path)) == Seeding.PLANTED, "the Seed of " + path + " should be planted");
+        return hollow;
+    }
+
+    /** An iron vein with its gnome, ripe or not. */
     static GnomeHollowBlockEntity ironHollow(GameTestHelper helper, boolean ripe) {
-        UUID team = UUID.randomUUID();
-        finishVillach(helper.getLevel(), team);
-        GnomeHollowBlockEntity hollow = hollow(helper, team);
-        hollow.seed(new ItemStack(Items.RAW_IRON));
-        helper.assertTrue(hollow.vein().isPresent(), "raw iron should seed a vein");
+        GnomeHollowBlockEntity hollow = plantedHollow(helper, "iron");
         if (ripe) {
             hollow.growth().ripeness = IRON_STEPS;
         }
@@ -98,94 +117,151 @@ public final class HollowGameTests {
         player.addEffect(new MobEffectInstance(ElementalSight.EFFECT, 200));
     }
 
-    /** Raw iron seeds an iron vein by hand only under the sight and once the team finished Villach. */
+    /** A Salt Crystal calls a gnome into an empty Hollow under the sight; no vein is needed and one gnome is enough. */
     @ServusGameTest(timeoutTicks = 40)
-    public static void seedingNeedsVillachAndSight(GameTestHelper helper) {
-        UUID team = UUID.randomUUID();
-        GnomeHollowBlockEntity hollow = hollow(helper, team);
-        ItemStack sample = new ItemStack(Items.RAW_IRON, 2);
-        Player player = player(helper, sample, true);
+    public static void saltCrystalCallsTheGnomeFirst(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = hollow(helper, UUID.randomUUID());
+        ItemStack crystals = new ItemStack(ServusAlchemyItems.SALT_CRYSTAL.get(), 3);
+        Player player = player(helper, crystals, false);
         helper.useBlock(MACHINE, player);
-        helper.assertTrue(hollow.vein().isEmpty() && sample.getCount() == 2, "no iron before Villach");
-        finishVillach(helper.getLevel(), team);
-        player.removeAllEffects();
-        helper.useBlock(MACHINE, player);
-        helper.assertTrue(hollow.vein().isEmpty() && sample.getCount() == 2, "without the sight the Hollow is stone");
+        helper.assertTrue(!hollow.growth().bound && crystals.getCount() == 3, "without the sight the crystal does nothing");
+        helper.assertTrue(hollow.bind(player) == Binding.NO_SIGHT, "without the sight no gnome is bound");
         giveSight(player);
-        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.COBBLESTONE));
         helper.useBlock(MACHINE, player);
-        helper.assertTrue(hollow.vein().isEmpty(), "cobblestone seeds nothing");
-        player.setItemInHand(InteractionHand.MAIN_HAND, sample);
+        helper.assertTrue(hollow.growth().bound && hollow.vein().isEmpty(), "a gnome moves into the empty Hollow");
+        helper.assertTrue(crystals.getCount() == 2, "the crystal is used up");
         helper.useBlock(MACHINE, player);
-        helper.assertTrue(hollow.vein().map(id -> id.getPath().equals("iron")).orElse(false), "an iron vein should be seeded");
-        helper.assertTrue(sample.getCount() == 1, "one sample is used up");
-        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.RAW_COPPER));
-        helper.useBlock(MACHINE, player);
-        helper.assertTrue(hollow.vein().map(id -> id.getPath().equals("iron")).orElse(false), "one vein per hollow");
+        helper.assertTrue(crystals.getCount() == 2, "a second crystal stays in the hand");
+        helper.assertTrue(hollow.bind(player) == Binding.ALREADY_BOUND, "one gnome per Hollow");
         helper.succeed();
     }
 
-    /** Raw gold takes root only once the team finished Schwaz, a chapter after iron. */
-    @ServusGameTest(timeoutTicks = 20)
-    public static void goldNeedsSchwaz(GameTestHelper helper) {
-        UUID team = UUID.randomUUID();
-        finishVillach(helper.getLevel(), team);
-        GnomeHollowBlockEntity hollow = hollow(helper, team);
-        ItemStack sample = new ItemStack(Items.RAW_GOLD, 2);
-        Player player = player(helper, sample, true);
+    /** Under the sight the gnome plants a Seed of Iron, whatever chapter the team reached; one Seed is used up. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void gnomePlantsASeed(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = boundHollow(helper);
+        ItemStack seeds = seed("iron").copyWithCount(2);
+        Player player = player(helper, seeds, false);
         helper.useBlock(MACHINE, player);
-        helper.assertTrue(hollow.vein().isEmpty() && sample.getCount() == 2, "no gold after Villach alone");
-        finishSchwaz(helper.getLevel(), team);
-        helper.assertTrue(Journal.isFinished(helper.getLevel().getServer(), team, "servus_alchemy:schwaz"), "Schwaz should be finished");
+        helper.assertTrue(hollow.vein().isEmpty() && seeds.getCount() == 2, "without the sight the Hollow is stone");
+        giveSight(player);
         helper.useBlock(MACHINE, player);
-        helper.assertTrue(hollow.vein().map(id -> id.getPath().equals("gold")).orElse(false), "a gold vein should be seeded");
-        helper.assertTrue(sample.getCount() == 1, "one sample is used up");
+        helper.assertTrue(hollow.vein().map(id -> id.getPath().equals("iron")).orElse(false), "an iron vein should be planted");
+        helper.assertTrue(hollow.growth().ripeness == 0, "the vein starts at ripeness 0");
+        helper.assertTrue(seeds.getCount() == 1, "one Seed is used up");
+        helper.useBlock(MACHINE, player);
+        helper.assertTrue(seeds.getCount() == 1, "a Seed of the vein that grows stays in the hand");
         helper.succeed();
     }
 
-    /** Any ore in the common gold ore tag seeds gold, here Nether Gold Ore. */
-    @ServusGameTest(timeoutTicks = 20)
-    public static void goldOreOfTheTagSeeds(GameTestHelper helper) {
-        UUID team = UUID.randomUUID();
-        finishVillach(helper.getLevel(), team);
-        finishSchwaz(helper.getLevel(), team);
-        GnomeHollowBlockEntity hollow = hollow(helper, team);
-        helper.assertTrue(hollow.seed(new ItemStack(Items.NETHER_GOLD_ORE)) == GnomeHollowBlockEntity.Seeding.SEEDED, "Nether Gold Ore should seed");
-        helper.assertTrue(hollow.vein().map(id -> id.getPath().equals("gold")).orElse(false), "the vein is gold");
+    /** Raw ore and ore blocks plant nothing, even with a gnome: only Seeds do. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void rawOreIsRefused(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = boundHollow(helper);
+        for (ItemStack sample : List.of(new ItemStack(Items.RAW_GOLD), new ItemStack(Items.GOLD_ORE), new ItemStack(Items.DIAMOND))) {
+            Player player = player(helper, sample, true);
+            helper.useBlock(MACHINE, player);
+            helper.assertTrue(hollow.vein().isEmpty() && sample.getCount() == 1, sample.getItem() + " should plant nothing");
+            helper.assertTrue(hollow.seed(sample) == Seeding.NOT_A_SEED, sample.getItem() + " is no Seed");
+        }
         helper.succeed();
     }
 
-    /** Redstone dust and a diamond seed their veins after Schwaz. */
-    @ServusGameTest(timeoutTicks = 20)
-    public static void redstoneAndDiamondSeed(GameTestHelper helper) {
-        UUID team = UUID.randomUUID();
-        finishVillach(helper.getLevel(), team);
-        GnomeHollowBlockEntity redstone = hollow(helper, team);
-        helper.assertTrue(redstone.seed(new ItemStack(Items.REDSTONE)) == GnomeHollowBlockEntity.Seeding.NO_ROOT, "no redstone before Schwaz");
-        finishSchwaz(helper.getLevel(), team);
-        helper.assertTrue(redstone.seed(new ItemStack(Items.REDSTONE)) == GnomeHollowBlockEntity.Seeding.SEEDED, "redstone dust should seed");
-        helper.assertTrue(redstone.vein().map(id -> id.getPath().equals("redstone")).orElse(false), "the vein is redstone");
-        BlockPos second = MACHINE.east(2);
-        helper.setBlock(second, ServusAlchemyBlocks.GNOME_HOLLOW.get().defaultBlockState());
-        GnomeHollowBlockEntity diamond = helper.getBlockEntity(second, GnomeHollowBlockEntity.class);
-        diamond.setTeam(team);
-        helper.assertTrue(diamond.seed(new ItemStack(Items.DIAMOND)) == GnomeHollowBlockEntity.Seeding.SEEDED, "a diamond should seed");
-        helper.assertTrue(diamond.vein().map(id -> id.getPath().equals("diamond")).orElse(false), "the vein is diamond");
+    /** A Hollow without a gnome takes no Seed. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void seedNeedsAGnome(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = hollow(helper, UUID.randomUUID());
+        ItemStack seed = seed("iron");
+        helper.useBlock(MACHINE, player(helper, seed, true));
+        helper.assertTrue(hollow.vein().isEmpty() && seed.getCount() == 1, "no gnome, nothing planted");
+        helper.assertTrue(hollow.seed(seed) == Seeding.NO_GNOME, "the Hollow needs a gnome first");
         helper.succeed();
+    }
+
+    /** A Seed of a vein that is not loaded plants nothing. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void unknownSeedPlantsNothing(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = boundHollow(helper);
+        ItemStack seed = VeinSeedItem.of(Identifier.fromNamespaceAndPath("servus_test", "tin"));
+        helper.assertTrue(hollow.seed(seed) == Seeding.UNKNOWN_SEED && hollow.vein().isEmpty(), "an unknown vein plants nothing");
+        helper.succeed();
+    }
+
+    /** Every shipped vein is planted by its own Seed. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void everyShippedSeedPlants(GameTestHelper helper) {
+        List<String> veins = List.of("iron", "copper", "gold", "redstone", "diamond");
+        for (int i = 0; i < veins.size(); i++) {
+            BlockPos pos = MACHINE.east(i);
+            helper.setBlock(pos, ServusAlchemyBlocks.GNOME_HOLLOW.get().defaultBlockState());
+            GnomeHollowBlockEntity hollow = helper.getBlockEntity(pos, GnomeHollowBlockEntity.class);
+            hollow.growth().bound = true;
+            String vein = veins.get(i);
+            helper.assertTrue(hollow.seed(seed(vein)) == Seeding.PLANTED, "the Seed of " + vein + " should be planted");
+            helper.assertTrue(hollow.vein().map(id -> id.getPath().equals(vein)).orElse(false), "the vein is " + vein);
+        }
+        helper.succeed();
+    }
+
+    /** A Seed of another kind makes the gnome dig out the ripe iron vein and plant gold; the store keeps its iron. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void anotherSeedSwapsTheVein(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        hollow.store().load(5);
+        ItemStack gold = seed("gold");
+        helper.useBlock(MACHINE, player(helper, gold, true));
+        helper.assertTrue(gold.isEmpty(), "the Seed of Gold is used up");
+        helper.assertTrue(hollow.vein().map(id -> id.getPath().equals("gold")).orElse(false), "the Hollow grows gold now");
+        helper.assertTrue(hollow.growth().ripeness == 0 && hollow.growth().bound, "the gold vein starts at 0 and the gnome stays");
+        List<ItemStack> taken = hollow.takeStore();
+        helper.assertTrue(taken.size() == 1 && taken.getFirst().is(Items.RAW_IRON) && taken.getFirst().getCount() == 5,
+                "the store keeps the 5 Raw Iron, got " + taken);
+        helper.succeed();
+    }
+
+    /** After a swap the gnome digs nothing into a store that still holds the old vein's ore. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void storeOfTheOldVeinWaits(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        hollow.growth().yieldTimer = IRON_YIELD_TICKS - 1;
+        helper.runAfterDelay(5, () -> {
+            helper.assertTrue(hollow.store().count() == 1, "the iron gnome dug one Raw Iron");
+            hollow.seed(seed("gold"));
+            int steps = hollow.veinDef().orElseThrow().growth().steps();
+            hollow.growth().ripeness = steps;
+            hollow.growth().yieldTimer = hollow.veinDef().orElseThrow().growth().yieldTicks() - 1;
+            helper.runAfterDelay(5, () -> {
+                helper.assertTrue(hollow.store().count() == 1, "no gold joins the Raw Iron, has " + hollow.store().count());
+                helper.assertTrue(hollow.takeStore().getFirst().is(Items.RAW_IRON), "the Raw Iron comes out");
+                helper.runAfterDelay(5, () -> {
+                    helper.assertTrue(hollow.store().count() == 1 && hollow.storedYield().is(Items.RAW_GOLD),
+                            "with the store empty the gnome digs gold");
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    /** A planted vein without a gnome, from before gnomes came first, does not ripen. */
+    @ServusGameTest(timeoutTicks = 300)
+    public static void noRipeningWithoutAGnome(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = ironHollow(helper, false);
+        hollow.growth().bound = false;
+        hollow.tanks().insert(new Principles(150, 0, 30));
+        helper.runAfterDelay(250, () -> {
+            helper.assertTrue(hollow.growth().ripeness == 0, "nobody tends it, so it stays at 0");
+            helper.assertTrue(hollow.tanks().amount(Principle.SALT) == 150, "its Salt stays in the tank");
+            helper.succeed();
+        });
     }
 
     /** A gnome bound to a ripe diamond vein digs diamonds into its store. */
     @ServusGameTest(timeoutTicks = 100)
     public static void diamondGnomeYieldsDiamonds(GameTestHelper helper) {
-        UUID team = UUID.randomUUID();
-        finishVillach(helper.getLevel(), team);
-        finishSchwaz(helper.getLevel(), team);
-        GnomeHollowBlockEntity hollow = hollow(helper, team);
-        hollow.seed(new ItemStack(Items.DIAMOND));
+        GnomeHollowBlockEntity hollow = plantedHollow(helper, "diamond");
         int steps = hollow.veinDef().orElseThrow().growth().steps();
         int yieldTicks = hollow.veinDef().orElseThrow().growth().yieldTicks();
         hollow.growth().ripeness = steps;
-        hollow.growth().bound = true;
         hollow.growth().yieldTimer = yieldTicks - 20;
         helper.succeedWhen(() -> {
             helper.assertTrue(hollow.store().count() == 1, "the store should hold a diamond, has " + hollow.store().count());
@@ -220,26 +296,6 @@ public final class HollowGameTests {
         helper.succeed();
     }
 
-    /** Only a player with Elemental Sight can bind a gnome, and only to a ripe vein. */
-    @ServusGameTest(timeoutTicks = 40)
-    public static void bindingNeedsElementalSight(GameTestHelper helper) {
-        GnomeHollowBlockEntity hollow = ironHollow(helper, false);
-        ItemStack crystals = new ItemStack(ServusAlchemyItems.SALT_CRYSTAL.get(), 3);
-        Player player = player(helper, crystals, true);
-        helper.assertTrue(hollow.bind(player) == Binding.NOT_RIPE, "an unripe vein takes no gnome");
-        hollow.growth().ripeness = IRON_STEPS;
-        player.removeAllEffects();
-        helper.assertTrue(hollow.bind(player) == Binding.NO_SIGHT, "without the sight no gnome is bound");
-        helper.useBlock(MACHINE, player);
-        helper.assertTrue(!hollow.growth().bound && crystals.getCount() == 3, "a crystal used without the sight does nothing");
-        giveSight(player);
-        helper.useBlock(MACHINE, player);
-        helper.assertTrue(hollow.growth().bound, "with the sight a gnome is bound");
-        helper.assertTrue(crystals.getCount() == 2, "the crystal is used up");
-        helper.assertTrue(hollow.bind(player) == Binding.ALREADY_BOUND, "one gnome per vein");
-        helper.succeed();
-    }
-
     /** A bound gnome digs raw iron into the store and pushes nothing into a chest beside it. */
     @ServusGameTest(timeoutTicks = 600)
     public static void boundHollowFillsItsStore(GameTestHelper helper) {
@@ -247,7 +303,6 @@ public final class HollowGameTests {
         helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
         ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
         GnomeHollowBlockEntity hollow = ironHollow(helper, true);
-        hollow.growth().bound = true;
         helper.succeedWhen(() -> {
             helper.assertTrue(hollow.store().count() >= 2, "the store should get raw iron, has " + hollow.store().count());
             helper.assertTrue(chest.isEmpty(), "nothing is pushed into the chest");
@@ -258,7 +313,6 @@ public final class HollowGameTests {
     @ServusGameTest(timeoutTicks = 2 * IRON_YIELD_TICKS)
     public static void fullStoreStops(GameTestHelper helper) {
         GnomeHollowBlockEntity hollow = ironHollow(helper, true);
-        hollow.growth().bound = true;
         hollow.store().load(64);
         helper.runAfterDelay(IRON_YIELD_TICKS + 20, () -> {
             helper.assertTrue(hollow.store().count() == 64, "the store stays at 64, has " + hollow.store().count());
@@ -283,11 +337,13 @@ public final class HollowGameTests {
         helper.succeed();
     }
 
-    /** Binding a gnome counts for Schwaz. */
+    /** Binding a gnome counts for Schwaz, with no vein planted yet. */
     @ServusGameTest(timeoutTicks = 40)
     public static void bindingCountsForSchwaz(GameTestHelper helper) {
         Player player = player(helper, ItemStack.EMPTY, true);
-        GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        UUID team = UUID.randomUUID();
+        finishVillach(helper.getLevel(), team);
+        GnomeHollowBlockEntity hollow = hollow(helper, team);
         hollow.bind(player);
         int count = Journal.journalOf(helper.getLevel().getServer(), hollow.team()).count("servus_alchemy:schwaz", "gnome");
         helper.assertTrue(count == 1, "the bound gnome should count for Schwaz, got " + count);
@@ -298,7 +354,6 @@ public final class HollowGameTests {
     @ServusGameTest(timeoutTicks = 40)
     public static void noCapabilities(GameTestHelper helper) {
         GnomeHollowBlockEntity hollow = ironHollow(helper, true);
-        hollow.growth().bound = true;
         BlockPos pos = helper.absolutePos(MACHINE);
         ServerLevel level = helper.getLevel();
         List<Direction> sides = new ArrayList<>(List.of(Direction.values()));
@@ -345,7 +400,6 @@ public final class HollowGameTests {
     @ServusGameTest(timeoutTicks = 40)
     public static void breakWithSightDropsAFreshHollow(GameTestHelper helper) {
         GnomeHollowBlockEntity hollow = ironHollow(helper, true);
-        hollow.growth().bound = true;
         List<ItemStack> drops = drops(helper, hollow, player(helper, ItemStack.EMPTY, true), new ItemStack(Items.STONE_PICKAXE));
         helper.assertTrue(dropsExactly(drops, ServusAlchemyItems.GNOME_HOLLOW.get()), "one Gnome Hollow should drop, got " + drops);
         helper.assertTrue(drops.get(0).getComponentsPatch().isEmpty(), "the dropped Hollow carries nothing");
@@ -368,9 +422,7 @@ public final class HollowGameTests {
 
     /** A bound, working gnome under its base rate. */
     static GnomeHollowBlockEntity workingHollow(GameTestHelper helper) {
-        GnomeHollowBlockEntity hollow = ironHollow(helper, true);
-        hollow.growth().bound = true;
-        return hollow;
+        return ironHollow(helper, true);
     }
 
     /** A cookie given by hand under the sight is used up and makes the gnome dig twice as fast. */
@@ -411,10 +463,11 @@ public final class HollowGameTests {
         helper.succeed();
     }
 
-    /** A ripe Hollow without a bound gnome takes no gift; a block offering one never loses its item. */
+    /** A Hollow without a gnome takes no gift; a block offering one never loses its item. */
     @ServusGameTest(timeoutTicks = 40)
     public static void noGiftWithoutGnome(GameTestHelper helper) {
         GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        hollow.growth().bound = false;
         ItemStack cookie = new ItemStack(Items.COOKIE);
         helper.useBlock(MACHINE, player(helper, cookie, true));
         helper.assertTrue(cookie.getCount() == 1 && hollow.boostTicksLeft() == 0, "no gnome, no gift");

@@ -41,9 +41,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /**
- * The Gnome Hollow block: plain stone to anyone without Elemental Sight. Under the sight a sample of ore seeds it,
- * principle buckets fill it, a Salt Crystal binds a gnome to a ripe vein, a liked gift speeds the gnome up and an
- * empty hand takes the dug ore out. {@link #FACING} points at the player who placed it; the cave entry of a bound
+ * The Gnome Hollow block: plain stone to anyone without Elemental Sight. Under the sight a Salt Crystal calls a gnome
+ * in, a Seed is planted by him, principle buckets fill it, a liked gift speeds the gnome up and an empty hand takes
+ * the dug ore out. {@link #FACING} points at the player who placed it; the cave entry of a bound
  * Hollow opens on that side.
  */
 public class GnomeHollowBlock extends BaseEntityBlock {
@@ -134,7 +134,7 @@ public class GnomeHollowBlock extends BaseEntityBlock {
                 if (!FluidUtil.interactWithFluidHandler(player, hand, pos, hollow.tanks(), null)) {
                     tell(player, "refused");
                 }
-            } else if (hollow.vein().isPresent() && (hollow.growth().bound || GnomeGiftData.INSTANCE.forItem(stack).isPresent())) {
+            } else if (GnomeGiftData.INSTANCE.forItem(stack).isPresent()) {
                 give(hollow, stack, player);
             } else {
                 seed(hollow, stack, player);
@@ -174,16 +174,19 @@ public class GnomeHollowBlock extends BaseEntityBlock {
         tell(player, "gift_" + result.name().toLowerCase(Locale.ROOT));
     }
 
-    private static void seed(GnomeHollowBlockEntity hollow, ItemStack sample, Player player) {
-        Seeding seeding = hollow.seed(sample);
-        if (seeding == Seeding.SEEDED && !player.getAbilities().instabuild) {
-            sample.shrink(1);
+    private static void seed(GnomeHollowBlockEntity hollow, ItemStack seed, Player player) {
+        Seeding seeding = hollow.seed(seed);
+        if (seeding.planted() && !player.getAbilities().instabuild) {
+            seed.shrink(1);
         }
         tell(player, seeding.name().toLowerCase(Locale.ROOT));
     }
 
-    /** How the vein is doing, for an empty hand on an empty store. */
+    /** How the Hollow is doing, for an empty hand on an empty store. */
     private static Component status(GnomeHollowBlockEntity hollow) {
+        if (!hollow.growth().bound) {
+            return Component.translatable(MESSAGE + "no_gnome");
+        }
         Optional<VeinDef> def = hollow.veinDef();
         if (def.isEmpty()) {
             return Component.translatable(MESSAGE + "no_vein");
@@ -192,7 +195,7 @@ public class GnomeHollowBlock extends BaseEntityBlock {
         if (hollow.growth().ripeness < steps) {
             return Component.translatable(MESSAGE + "ripening", hollow.growth().ripeness, steps);
         }
-        return Component.translatable(MESSAGE + (hollow.growth().bound ? "working" : "ripe"));
+        return Component.translatable(MESSAGE + "working");
     }
 
     private static void tell(Player player, String key) {

@@ -241,20 +241,18 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
             }
             CompoundTag tag = data.getCompoundOrEmpty("Hollow");
             ItemStack yield = parseStack(accessor, tag.getCompoundOrEmpty("Yield"));
+            int steps = tag.getIntOr("Steps", 0);
+            int ripeness = tag.getIntOr("Ripeness", 0);
+            boolean ripe = !yield.isEmpty() && ripeness >= steps;
             if (yield.isEmpty()) {
                 tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.no_vein"));
             } else {
                 tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.vein", yield.getHoverName()));
-                int steps = tag.getIntOr("Steps", 0);
-                int ripeness = tag.getIntOr("Ripeness", 0);
-                if (tag.getBooleanOr("Bound", false)) {
-                    tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.gnome"));
-                } else if (ripeness >= steps) {
-                    tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.ripe"));
-                } else {
+                if (!ripe) {
                     tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.ripeness", ripeness, steps));
                 }
             }
+            tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow." + gnomeKey(tag.getBooleanOr("Bound", false), yield, ripe)));
             int giftTicks = tag.getIntOr("GiftTicks", 0);
             if (giftTicks > 0) {
                 tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.gift", factorText(tag.getDoubleOr("GiftFactor", 1)),
@@ -266,6 +264,17 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
                 tooltip.add(Component.translatable("jade.servus_alchemy.calciner.principle", tag.getIntOr(principle.id(), 0), tank,
                         principleName(principle)));
             }
+        }
+
+        /** What the gnome of the Hollow does, as a key under {@code jade.servus_alchemy.gnome_hollow}. */
+        private static String gnomeKey(boolean bound, ItemStack yield, boolean ripe) {
+            if (!bound) {
+                return "no_gnome";
+            }
+            if (yield.isEmpty()) {
+                return "gnome_waits";
+            }
+            return ripe ? "gnome" : "gnome_tends";
         }
 
         @Override

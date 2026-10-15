@@ -137,13 +137,13 @@ public class VasBlockEntity extends BlockEntity {
         updateReach(hollows);
         int multiplier = multiplier();
         for (GnomeHollowBlockEntity hollow : hollows) {
-            hollow.veinDef().ifPresent(def -> {
-                int max = receptaculum.yieldRoom(def.yield()) / multiplier;
-                ItemStack taken = hollow.takeYield(max);
+            ItemStack stored = hollow.storedYield();
+            if (!stored.isEmpty()) {
+                ItemStack taken = hollow.takeYield(receptaculum.yieldRoom(stored) / multiplier);
                 if (!taken.isEmpty()) {
                     receptaculum.insertYield(taken.copyWithCount(taken.getCount() * multiplier));
                 }
-            });
+            }
             if (hollow.growth().bound && HomunculusLife.wantsGift(hollow.boostTicksLeft(), settings)) {
                 receptaculum.giveGift(hollow);
             }

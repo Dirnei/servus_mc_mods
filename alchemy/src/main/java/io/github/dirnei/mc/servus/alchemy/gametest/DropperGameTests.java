@@ -112,7 +112,8 @@ public final class DropperGameTests {
         fill(helper, Principle.SALT, 500);
         helper.runAfterDelay(SEVERAL_DRIPS, () -> {
             helper.assertTrue(dropper.tanks().amount(Principle.SALT) == 500, "a Hollow without a vein gets no Salt");
-            hollow.seed(new ItemStack(Items.RAW_IRON));
+            hollow.growth().bound = true;
+            hollow.seed(HollowGameTests.seed("iron"));
             hollow.growth().ripeness = hollow.veinDef().orElseThrow().growth().steps();
             helper.runAfterDelay(SEVERAL_DRIPS, () -> {
                 helper.assertTrue(dropper.tanks().amount(Principle.SALT) == 500, "a ripe vein gets no Salt");
