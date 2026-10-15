@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataSummary;
 import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.item.Reveal;
 import io.github.dirnei.mc.servus.foundation.logistics.channel.Channel;
 import io.github.dirnei.mc.servus.foundation.logistics.channel.DuctChannelData;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctModelData;
@@ -40,6 +41,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerInput;
@@ -1077,5 +1079,33 @@ public final class ServusLogisticsGameTests {
         helper.assertTrue(slot.is(Items.COBBLESTONE) && slot.getCount() == 1, "the slot shows one cobblestone, got " + slot);
         helper.assertTrue(menu.getCarried().is(Items.COBBLESTONE) && menu.getCarried().getCount() == 32, "the cursor still holds 32 cobblestone");
         helper.succeed();
+    }
+
+    /** Carrot configures, potato analyses, goggles do both, a pickaxe neither; panels follow either rule. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void revealRules(GameTestHelper helper) {
+        assertReveal(helper, holding(helper, new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get())), "carrot", true, false);
+        assertReveal(helper, holding(helper, new ItemStack(ServusFoundationItems.DATA_POTATO.get())), "potato", false, true);
+        assertReveal(helper, holding(helper, new ItemStack(Items.IRON_PICKAXE)), "pickaxe", false, false);
+        Player goggles = holding(helper, ItemStack.EMPTY);
+        goggles.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ServusFoundationItems.GOGGLES.get()));
+        assertReveal(helper, goggles, "goggles", true, true);
+        Player offhand = holding(helper, ItemStack.EMPTY);
+        offhand.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ServusFoundationItems.DATA_POTATO.get()));
+        assertReveal(helper, offhand, "potato in the off hand", false, true);
+        helper.succeed();
+    }
+
+    private static Player holding(GameTestHelper helper, ItemStack stack) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        return player;
+    }
+
+    private static void assertReveal(GameTestHelper helper, Player player, String what, boolean configuring, boolean analysing) {
+        helper.assertTrue(Reveal.configuring(player) == configuring, what + ": configuring should be " + configuring);
+        helper.assertTrue(Reveal.analysing(player) == analysing, what + ": analysing should be " + analysing);
+        helper.assertTrue(Reveal.seesThroughPanels(player) == (configuring || analysing),
+                what + ": panels see-through should be " + (configuring || analysing));
     }
 }
