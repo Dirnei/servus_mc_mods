@@ -79,7 +79,7 @@ public class AncientHollowBlock extends BaseEntityBlock {
         return InteractionResult.SUCCESS;
     }
 
-    /** Deepslate to a player without the sight, so picking it betrays nothing. */
+    /** Deepslate, so picking it betrays nothing; the Ancient Hollow has no item of its own. */
     @Override
     public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player) {
         return new ItemStack(Items.DEEPSLATE);
