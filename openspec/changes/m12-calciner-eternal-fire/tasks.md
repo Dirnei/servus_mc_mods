@@ -29,3 +29,4 @@
 ## 6. Verification
 
 - [ ] 6.1 Full `gradlew build` and `gradlew test` green, the game launches with all three mods; play check by the user from the main checkout: set the Ignis by hand, coal comes back, it calcines twice as fast without fuel, the glow in the grate seen from the front and both sides idle and working without flicker, Jade line, take back, break the Firebox and the Calciner.
+  - Build, unit tests and both GameTest servers are green; play check pending.
