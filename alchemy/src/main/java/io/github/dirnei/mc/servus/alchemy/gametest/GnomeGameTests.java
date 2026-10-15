@@ -1,9 +1,11 @@
 package io.github.dirnei.mc.servus.alchemy.gametest;
 
 import io.github.dirnei.mc.servus.alchemy.gnome.Gnome;
+import io.github.dirnei.mc.servus.alchemy.gnome.GnomeAction;
 import io.github.dirnei.mc.servus.alchemy.gnome.GnomeKind;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
+import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Work;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
@@ -15,9 +17,12 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
@@ -26,7 +31,8 @@ import net.minecraft.world.phys.Vec3;
 /** The gnome entities: the Old Miner of a Gnome Hollow, the Lantern Bearer and the House Gnome. */
 public final class GnomeGameTests {
 
-    private static final BlockPos HOLLOW = AlchemyGameTests.MACHINE;
+    /** On the floor of the empty test structure, so the gnome walks around it on its level. */
+    private static final BlockPos HOLLOW = new BlockPos(3, 0, 3);
 
     private GnomeGameTests() {
     }
@@ -142,5 +148,51 @@ public final class GnomeGameTests {
         Gnome gnome = ServusAlchemyEntities.GNOME.get().spawn(helper.getLevel(), egg, null, helper.absolutePos(new BlockPos(x, 1, 6)),
                 EntitySpawnReason.SPAWN_ITEM_USE, false, false);
         helper.assertTrue(gnome != null && gnome.kind() == kind, "the egg should bring a " + kind.serializedName());
+    }
+
+    /** Uses what {@code player} holds on {@code gnome}, as a right click on him does. */
+    private static InteractionResult useOn(Gnome gnome, Player player) {
+        return gnome.interact(player, InteractionHand.MAIN_HAND, gnome.position());
+    }
+
+    /** A Seed given to the Old Miner under the sight is planted in his Hollow, and he goes tapping its cracks. */
+    @ServusGameTest(timeoutTicks = 300)
+    public static void seedGivenToTheGnomeIsPlanted(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = calledHollow(helper);
+        Gnome gnome = gnomeOf(helper, hollow);
+        ItemStack seeds = HollowGameTests.seed("iron").copyWithCount(2);
+        useOn(gnome, HollowGameTests.player(helper, seeds, false));
+        helper.assertTrue(hollow.vein().isEmpty() && seeds.getCount() == 2, "without the sight he takes nothing");
+        useOn(gnome, HollowGameTests.player(helper, seeds, true));
+        helper.assertTrue(hollow.vein().map(id -> id.getPath().equals("iron")).orElse(false), "his Hollow holds an iron vein");
+        helper.assertTrue(seeds.getCount() == 1, "one Seed is used up");
+        helper.assertTrue(hollow.work() == Work.TEND, "the vein wants tending");
+        helper.succeedWhen(() -> helper.assertTrue(gnome.action() == GnomeAction.TAP, "he should tap the cracks"));
+    }
+
+    /** A cookie given to the Old Miner under the sight gifts his Hollow. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void giftToTheGnomeGiftsHisHollow(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = calledHollow(helper);
+        ItemStack cookies = new ItemStack(Items.COOKIE, 3);
+        helper.assertTrue(useOn(gnomeOf(helper, hollow), HollowGameTests.player(helper, cookies, true)).consumesAction(),
+                "he takes the cookie");
+        helper.assertTrue(cookies.getCount() == 2, "one cookie is used up, " + cookies.getCount() + " left");
+        helper.assertTrue(hollow.boostTicksLeft() > 0 && hollow.boostFactor() > 1, "his Hollow is gifted");
+        helper.succeed();
+    }
+
+    /** With a ripe vein the Old Miner stands at the cave entry and swings his pickaxe. */
+    @ServusGameTest(timeoutTicks = 300)
+    public static void ripeVeinIsDugAtTheCaveEntry(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = calledHollow(helper);
+        hollow.seed(HollowGameTests.seed("iron"));
+        hollow.growth().ripeness = hollow.veinDef().orElseThrow().growth().steps();
+        Gnome gnome = gnomeOf(helper, hollow);
+        BlockPos entry = helper.absolutePos(HOLLOW.north());
+        helper.succeedWhen(() -> {
+            helper.assertTrue(gnome.action() == GnomeAction.DIG, "he should dig");
+            helper.assertTrue(gnome.blockPosition().equals(entry), "he digs at the cave entry, at " + gnome.blockPosition());
+        });
     }
 }

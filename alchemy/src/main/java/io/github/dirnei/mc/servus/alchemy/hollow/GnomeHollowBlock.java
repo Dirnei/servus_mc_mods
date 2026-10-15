@@ -128,19 +128,27 @@ public class GnomeHollowBlock extends BaseEntityBlock {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         if (!level.isClientSide()) {
-            if (stack.is(ServusAlchemyItems.SALT_CRYSTAL.get())) {
-                bind(hollow, stack, player);
-            } else if (!FluidUtil.getFirstStackContained(stack).isEmpty()) {
-                if (!FluidUtil.interactWithFluidHandler(player, hand, pos, hollow.tanks(), null)) {
-                    tell(player, "refused");
-                }
-            } else if (GnomeGiftData.INSTANCE.forItem(stack).isPresent()) {
-                give(hollow, stack, player);
-            } else {
-                seed(hollow, stack, player);
-            }
+            tend(hollow, stack, player, hand);
         }
         return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * A player under the sight uses {@code stack} on the Hollow or on its gnome: a Salt Crystal calls the gnome, a bucket
+     * pours or fills, a liked gift speeds him up, anything else is offered as a Seed. Server side.
+     */
+    public static void tend(GnomeHollowBlockEntity hollow, ItemStack stack, Player player, InteractionHand hand) {
+        if (stack.is(ServusAlchemyItems.SALT_CRYSTAL.get())) {
+            bind(hollow, stack, player);
+        } else if (!FluidUtil.getFirstStackContained(stack).isEmpty()) {
+            if (!FluidUtil.interactWithFluidHandler(player, hand, hollow.getBlockPos(), hollow.tanks(), null)) {
+                tell(player, "refused");
+            }
+        } else if (GnomeGiftData.INSTANCE.forItem(stack).isPresent()) {
+            give(hollow, stack, player);
+        } else {
+            seed(hollow, stack, player);
+        }
     }
 
     @Override
@@ -149,13 +157,18 @@ public class GnomeHollowBlock extends BaseEntityBlock {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide()) {
-            var stacks = hollow.takeStore();
-            if (stacks.isEmpty()) {
-                player.sendOverlayMessage(status(hollow));
-            }
-            stacks.forEach(player.getInventory()::placeItemBackInInventory);
+            takeOut(hollow, player);
         }
         return InteractionResult.SUCCESS;
+    }
+
+    /** An empty hand on the Hollow or its gnome takes out what he dug, or tells how the Hollow is doing. Server side. */
+    public static void takeOut(GnomeHollowBlockEntity hollow, Player player) {
+        var stacks = hollow.takeStore();
+        if (stacks.isEmpty()) {
+            player.sendOverlayMessage(status(hollow));
+        }
+        stacks.forEach(player.getInventory()::placeItemBackInInventory);
     }
 
     private static void bind(GnomeHollowBlockEntity hollow, ItemStack crystal, Player player) {

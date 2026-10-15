@@ -87,6 +87,16 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         }
     }
 
+    /** What the gnome of a Hollow has to do now. */
+    public enum Work {
+        /** Nothing: no gnome, no vein, or a ripe vein with a full store. */
+        REST,
+        /** The vein ripens: he tends it. */
+        TEND,
+        /** The vein is ripe and the store has room: he digs. */
+        DIG
+    }
+
     /** {@link #shownBoundAt()} of a Hollow the client did not see being bound. */
     public static final long NOT_SEEN_BINDING = Long.MIN_VALUE;
 
@@ -207,7 +217,20 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
     /** Brings the Old Miner out of the cave entry, or out of another side with room when it is walled up. */
     private void summonGnome(ServerLevel server) {
         Direction side = GnomeKeeper.exitSide(server, worldPosition, getBlockState().getValue(GnomeHollowBlock.FACING));
-        keeper.summon(server, worldPosition, Vec3.atBottomCenterOf(worldPosition.relative(side)), side.toYRot());
+        BlockPos spot = Gnome.standingSpot(server, worldPosition.relative(side));
+        keeper.summon(server, worldPosition, Vec3.atBottomCenterOf(spot), side.toYRot());
+    }
+
+    /** What the gnome has to do now; server side. */
+    public Work work() {
+        Optional<VeinDef> def = veinDef();
+        if (!growth.bound || def.isEmpty()) {
+            return Work.REST;
+        }
+        if (!growth.ripe(def.get().growth())) {
+            return Work.TEND;
+        }
+        return storeTakes(def.get().yield()) ? Work.DIG : Work.REST;
     }
 
     /** Whether the gnome with {@code id} is the Old Miner of this Hollow. */

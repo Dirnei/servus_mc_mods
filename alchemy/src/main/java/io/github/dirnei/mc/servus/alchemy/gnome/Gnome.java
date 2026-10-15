@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.alchemy.gnome;
 
+import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
+import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyEntities;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
@@ -10,6 +12,8 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
@@ -18,8 +22,10 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.MoveTowardsRestrictionGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.storage.ValueInput;
@@ -39,6 +45,9 @@ public class Gnome extends PathfinderMob {
     public static final String KIND_TAG = "Kind";
     private static final String HOLLOW_TAG = "Hollow";
     private static final String LIFE_TAG = "Life";
+    /** How far an Old Miner strays from his Hollow, and the House Gnome from the Ancient Hollow. */
+    private static final int MINER_HOME_RADIUS = 4;
+    private static final int HOUSE_HOME_RADIUS = 1;
     /** How often a gnome asks his hollow whether it still keeps him. */
     private static final int HOLLOW_CHECK_INTERVAL = 20;
 
@@ -70,6 +79,7 @@ public class Gnome extends PathfinderMob {
         }
         gnome.setKind(kind);
         gnome.hollow = hollow.immutable();
+        gnome.stayNearHollow();
         gnome.snapTo(at.x, at.y, at.z, yRot, 0);
         gnome.setYHeadRot(yRot);
         gnome.setYBodyRot(yRot);
@@ -120,8 +130,20 @@ public class Gnome extends PathfinderMob {
         return life;
     }
 
+    /** Keeps the Old Miner near his Hollow and the House Gnome at the Ancient Hollow; the Lantern Bearer walks freely. */
+    private void stayNearHollow() {
+        if (hollow == null || kind() == GnomeKind.LANTERN) {
+            clearHome();
+        } else {
+            setHomeTo(hollow, kind() == GnomeKind.MINER ? MINER_HOME_RADIUS : HOUSE_HOME_RADIUS);
+        }
+    }
+
     @Override
     protected void registerGoals() {
+        goalSelector.addGoal(1, new TendHollowGoal(this));
+        goalSelector.addGoal(4, new MoveTowardsRestrictionGoal(this, 0.8));
+        goalSelector.addGoal(6, new WanderNearHollowGoal(this));
         goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 8.0F));
         goalSelector.addGoal(9, new RandomLookAroundGoal(this));
     }
@@ -146,9 +168,42 @@ public class Gnome extends PathfinderMob {
         };
     }
 
+    /**
+     * Where a gnome stands to work at the block {@code beside} a hollow: there when it has a floor, else on the floor
+     * one block lower when there is room, else there anyway.
+     */
+    public static BlockPos standingSpot(Level level, BlockPos beside) {
+        if (!roomAt(level, beside.below()) || !roomAt(level, beside)) {
+            return beside;
+        }
+        return roomAt(level, beside.below(2)) ? beside : beside.below();
+    }
+
     /** Whether a gnome fits into the block at {@code pos}: nothing there to collide with. */
     public static boolean roomAt(Level level, BlockPos pos) {
         return level.getBlockState(pos).getCollisionShape(level, pos).isEmpty();
+    }
+
+    /**
+     * A player under the sight may hand the Old Miner whatever the Hollow takes; it counts as used on his Hollow, so he
+     * never stands in the way of tending it.
+     */
+    @Override
+    protected InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (!ElementalSight.active(player) || kind() != GnomeKind.MINER || hollow == null
+                || !(level().getBlockEntity(hollow) instanceof GnomeHollowBlockEntity home)) {
+            return InteractionResult.PASS;
+        }
+        if (level().isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+        ItemStack stack = player.getItemInHand(hand);
+        if (stack.isEmpty()) {
+            GnomeHollowBlock.takeOut(home, player);
+        } else {
+            GnomeHollowBlock.tend(home, stack, player, hand);
+        }
+        return InteractionResult.SUCCESS_SERVER;
     }
 
     @Override
@@ -226,5 +281,6 @@ public class Gnome extends PathfinderMob {
         setKind(GnomeKind.byName(input.getStringOr(KIND_TAG, GnomeKind.MINER.serializedName())));
         hollow = input.read(HOLLOW_TAG, BlockPos.CODEC).orElse(null);
         life = input.getIntOr(LIFE_TAG, 0);
+        stayNearHollow();
     }
 }
