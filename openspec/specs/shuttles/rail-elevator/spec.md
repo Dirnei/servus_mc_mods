@@ -124,7 +124,7 @@ A segment with at least one rail beside it SHALL have a deck that covers the sha
 - **THEN** the deck rail's heads continue the outside heads without a step, on oak sleepers
 
 ### Requirement: One lift car per shaft
-Every shaft SHALL have exactly one lift car. The car SHALL be drawn as a platform at rail height with a sleeve around each corner post, and SHALL move only along its shaft at `lift_speed` (in `data/<ns>/storage/warehouse.json`, for example 0.1 blocks per tick). The car SHALL stay at the last floor it served and SHALL start at the lowest segment when the shaft is built or the world is loaded.
+Every shaft SHALL have exactly one lift car. The car SHALL be drawn as a platform at rail height with a sleeve around each corner post, and SHALL move only along its shaft at `lift_speed` (in `data/<ns>/shuttles/warehouse.json`, for example 0.1 blocks per tick). The car SHALL stay at the last floor it served and SHALL start at the lowest segment when the shaft is built or the world is loaded.
 
 #### Scenario: New shaft
 - **WHEN** a player builds a shaft of four segments

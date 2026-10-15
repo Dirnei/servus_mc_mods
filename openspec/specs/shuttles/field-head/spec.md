@@ -7,7 +7,7 @@ The Field Head waters a field of farm rails and keeps track of which plots are r
 ## Requirements
 
 ### Requirement: One head per field
-A Field Head SHALL be a craftable block. It SHALL serve the field of a farm rail touching one of its four horizontal sides; when it touches farm rails of more than one field it SHALL serve the field of the first one in the order north, east, south, west. A field SHALL have at most one serving head: when several heads touch the same field, only one serves it and the others SHALL show that the field has another head. A field larger than the maximum size (`max_rails` in `data/<ns>/storage/field.json`, example 128 rails) SHALL NOT be served, and the head SHALL show that the field is too large. A head without a farm rail beside it SHALL show that it has no field.
+A Field Head SHALL be a craftable block. It SHALL serve the field of a farm rail touching one of its four horizontal sides; when it touches farm rails of more than one field it SHALL serve the field of the first one in the order north, east, south, west. A field SHALL have at most one serving head: when several heads touch the same field, only one serves it and the others SHALL show that the field has another head. A field larger than the maximum size (`max_rails` in `data/<ns>/shuttles/field.json`, example 128 rails) SHALL NOT be served, and the head SHALL show that the field is too large. A head without a farm rail beside it SHALL show that it has no field.
 
 #### Scenario: Head beside a run
 - **WHEN** a Field Head is placed beside the end of a run of four farm rails
@@ -353,7 +353,7 @@ The mapping from planted count, ripe count, threshold and due state to a bar ste
 - **THEN** the window level is the lowest step, half, and full
 
 ### Requirement: Fertilize settings per head
-Each Field Head SHALL keep its own fertilizer (an item of the tag `servus_storage:fertilizer`, bone meal by default in the tag, or none), a fertilize mode (Off, After planting, Until ripe share), a fertilize threshold in percent (default from `fertilize_share` in `field.json`, example 0.5) and a Keep in stock reserve (default from `fertilizer_reserve`, example 64, never below 0). Fertilizing SHALL be on only while a fertilizer is chosen and the mode is not Off. The settings SHALL be kept when the world is saved.
+Each Field Head SHALL keep its own fertilizer (an item of the tag `servus_shuttles:fertilizer`, bone meal by default in the tag, or none), a fertilize mode (Off, After planting, Until ripe share), a fertilize threshold in percent (default from `fertilize_share` in `field.json`, example 0.5) and a Keep in stock reserve (default from `fertilizer_reserve`, example 64, never below 0). Fertilizing SHALL be on only while a fertilizer is chosen and the mode is not Off. The settings SHALL be kept when the world is saved.
 
 #### Scenario: Defaults
 - **WHEN** a player places a new Field Head
@@ -471,7 +471,7 @@ While harvesting is stopped at the limit, the Field tab's work status SHALL say 
 - **THEN** the head's harvest limit does not change
 
 ### Requirement: Anti-corrosion item and reserve per head
-Each Field Head SHALL keep its own anti-corrosion item: an item of the tag `servus_storage:anti_corrosion`, the first item of the tag until the player chooses one, or Off. While it is Off the anti-corrosion part of the buffer SHALL have no level, the items it holds SHALL count as stale, and the field SHALL age without upkeep. The choice SHALL be kept when the world is saved, and the server SHALL refuse an item outside the tag.
+Each Field Head SHALL keep its own anti-corrosion item: an item of the tag `servus_shuttles:anti_corrosion`, the first item of the tag until the player chooses one, or Off. While it is Off the anti-corrosion part of the buffer SHALL have no level, the items it holds SHALL count as stale, and the field SHALL age without upkeep. The choice SHALL be kept when the world is saved, and the server SHALL refuse an item outside the tag.
 
 Each Field Head SHALL also keep an anti-corrosion Keep in stock reserve (default from `anti_corrosion_reserve` in `field.json`, example 0, never below 0), kept when the world is saved. Supply runs SHALL never take the warehouse stock of the anti-corrosion item at or below it, and a low anti-corrosion part SHALL call a supply run only while the warehouse holds more than the reserve.
 

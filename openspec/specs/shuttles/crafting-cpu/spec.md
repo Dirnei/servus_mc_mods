@@ -63,7 +63,7 @@ A formed CPU block or Buffer block touching a data line SHALL be a member of tha
 - **THEN** the duct shows no arm toward it
 
 ### Requirement: Order slots
-A formed CPU SHALL have `orders_per_cpu_block` order slots (example 1, from `data/<ns>/storage/cpu.json`) for each of its CPU blocks; Buffer blocks add none. It SHALL run at most that many open orders at a time, the oldest first. Further orders on that CPU SHALL wait and show "waiting for CPU" until a slot is free. Right clicking a formed CPU or Buffer block with an empty hand or with any item except the Configuration Carrot, a Crafting CPU block and a CPU Buffer block SHALL show in the action bar how many slots are in use, how many orders wait and how many buffer stacks are in use of how many; a sneaking player holding an item uses that item instead. Right clicking any CPU or Buffer block, formed or not, while holding a Crafting CPU block or a CPU Buffer block SHALL place that block against it without sneaking.
+A formed CPU SHALL have `orders_per_cpu_block` order slots (example 1, from `data/<ns>/shuttles/cpu.json`) for each of its CPU blocks; Buffer blocks add none. It SHALL run at most that many open orders at a time, the oldest first. Further orders on that CPU SHALL wait and show "waiting for CPU" until a slot is free. Right clicking a formed CPU or Buffer block with an empty hand or with any item except the Configuration Carrot, a Crafting CPU block and a CPU Buffer block SHALL show in the action bar how many slots are in use, how many orders wait and how many buffer stacks are in use of how many; a sneaking player holding an item uses that item instead. Right clicking any CPU or Buffer block, formed or not, while holding a Crafting CPU block or a CPU Buffer block SHALL place that block against it without sneaking.
 
 #### Scenario: Slots from CPU blocks
 - **WHEN** a 2x2x2 CPU is formed from 8 CPU blocks and `orders_per_cpu_block` is 1
@@ -186,7 +186,7 @@ A work order made for a Storage Terminal request SHALL remember that terminal. W
 - **THEN** its outputs are put away as before
 
 ### Requirement: Intermediates go straight to the next step
-When the CPU collects outputs of a step that a later step of the same order still needs, and that later step is delivering on another producer, it SHALL send them as packets straight from the step's producer to the later step's producer, up to what the later step still needs, counted as fed inputs of the later step and as collected outputs of the step. Outputs beyond that SHALL go to the CPU's buffer while a later step still needs them, else to a Packing Station. Storage SHALL ship the later step only the inputs it still needs after that.
+When the CPU collects outputs of a step that a later step of the same order still needs, and that later step is delivering on another producer, it SHALL send them as packets straight from the step's producer to the later step's producer, up to what the later step still needs, counted as fed inputs of the later step and as collected outputs of the step. Outputs beyond that SHALL go to the CPU's buffer while a later step still needs them, else to a Packing Station. Shuttles SHALL ship the later step only the inputs it still needs after that.
 
 #### Scenario: Planks to sticks on two stations
 - **WHEN** an order for 8 sticks has a planks step on one Crafting Station and a sticks step on a second station
@@ -201,7 +201,7 @@ When the CPU collects outputs of a step that a later step of the same order stil
 - **THEN** 2 planks go to the later step and 2 to a Packing Station
 
 ### Requirement: Waiting for the next step
-When a later step of the same order still needs a step's outputs but is not delivering yet, because it runs on the same producer or its producer is busy with another order, the outputs SHALL go as packets from the producer into the CPU's buffer, up to what the later steps still need and as far as the buffer has room, counted as collected outputs of the step. Outputs that do not fit SHALL wait at their producer for up to `handoff_wait_ticks` (example 100, from `data/<ns>/storage/cpu.json`) and then go to a Packing Station; on the same producer they SHALL go to a Packing Station without waiting. The order SHALL remember what went to storage this way.
+When a later step of the same order still needs a step's outputs but is not delivering yet, because it runs on the same producer or its producer is busy with another order, the outputs SHALL go as packets from the producer into the CPU's buffer, up to what the later steps still need and as far as the buffer has room, counted as collected outputs of the step. Outputs that do not fit SHALL wait at their producer for up to `handoff_wait_ticks` (example 100, from `data/<ns>/shuttles/cpu.json`) and then go to a Packing Station; on the same producer they SHALL go to a Packing Station without waiting. The order SHALL remember what went to storage this way.
 
 #### Scenario: Same producer
 - **WHEN** a chain from oak logs to a crafting table runs both steps on one Crafting Station and the CPU has buffer room
@@ -245,7 +245,7 @@ A handoff SHALL be booked in the production ledger like other transfers: the ste
 - **THEN** the order completes with 8 sticks at the terminal and no planks lost
 
 ### Requirement: Forming says why not
-When the carrot does not form a CPU, the action bar SHALL say why, checked in this order: too big when more than `max_blocks` blocks are joined (example 512, from `data/<ns>/storage/cpu.json`); too small when a side of the smallest box around the joined blocks is shorter than 2; not a box when a corner of that box is not one of them; a gap with its position, the lowest first, when another place of that box is not one of them; no CPU block when all of them are Buffer blocks. Right clicking an unformed block with an empty hand SHALL say how to form a CPU.
+When the carrot does not form a CPU, the action bar SHALL say why, checked in this order: too big when more than `max_blocks` blocks are joined (example 512, from `data/<ns>/shuttles/cpu.json`); too small when a side of the smallest box around the joined blocks is shorter than 2; not a box when a corner of that box is not one of them; a gap with its position, the lowest first, when another place of that box is not one of them; no CPU block when all of them are Buffer blocks. Right clicking an unformed block with an empty hand SHALL say how to form a CPU.
 
 #### Scenario: Gap
 - **WHEN** a 3x3x3 box of CPU blocks misses its middle block and the player uses the carrot
@@ -279,7 +279,7 @@ Only unformed blocks SHALL join a box when the carrot is used; blocks of a forme
 - **THEN** both form together as one 4x2x2 CPU
 
 ### Requirement: CPU buffer room
-A formed CPU SHALL have buffer room of `stacks_per_buffer_block` stacks (example 1, from `data/<ns>/storage/cpu.json`) for each of its Buffer blocks; CPU blocks add none. A stack SHALL be one item type of one order up to that item's maximum stack size. All orders of the CPU SHALL share the room, first come first served, and items on their way into the buffer SHALL hold their room until they land.
+A formed CPU SHALL have buffer room of `stacks_per_buffer_block` stacks (example 1, from `data/<ns>/shuttles/cpu.json`) for each of its Buffer blocks; CPU blocks add none. A stack SHALL be one item type of one order up to that item's maximum stack size. All orders of the CPU SHALL share the room, first come first served, and items on their way into the buffer SHALL hold their room until they land.
 
 #### Scenario: One stack of planks
 - **WHEN** an order puts 64 Oak Planks into the buffer of a CPU with 1 stack of room

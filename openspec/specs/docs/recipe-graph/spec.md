@@ -20,13 +20,6 @@ Each recipe node SHALL show what makes it: Crafting, Assembler, Crusher, Smeltin
 - **WHEN** the game data marks the facade recipe special
 - **THEN** the graph shows a facade recipe node labelled special with no edges
 
-### Requirement: Mod colours and filter
-Nodes SHALL be coloured by the mod of their id: one colour each for Foundation, Alchemy and Storage, and a neutral colour for vanilla items and tags. The user SHALL be able to show or hide each mod's recipes; an item node SHALL stay visible while any visible recipe uses or produces it.
-
-#### Scenario: Only Storage
-- **WHEN** the user hides Foundation and Alchemy
-- **THEN** only Storage recipes and their inputs and outputs remain, and copper wire is gone
-
 ### Requirement: Ancestor highlight
 Selecting an item SHALL highlight that item, every recipe that produces it and, repeating backwards, their inputs and producing recipes down to the leaves. All other nodes and edges SHALL be dimmed. Selecting the item again or pressing Escape SHALL clear the highlight.
 
@@ -95,3 +88,10 @@ The Recipe graph SHALL draw every production and crafting recipe from the game d
 #### Scenario: Redstone is a leaf
 - **WHEN** no Servus recipe outputs redstone and the power cable recipe uses it
 - **THEN** redstone appears as a node with no incoming recipe
+
+### Requirement: Colours and filter per mod
+Nodes SHALL be coloured by the mod of their id: one colour each for Foundation, Alchemy and Shuttles, and a neutral colour for vanilla items and tags. The user SHALL be able to show or hide each mod's recipes; an item node SHALL stay visible while any visible recipe uses or produces it.
+
+#### Scenario: Only Shuttles
+- **WHEN** the user hides Foundation and Alchemy
+- **THEN** only Shuttles recipes and their inputs and outputs remain, and copper wire is gone

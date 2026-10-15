@@ -7,7 +7,7 @@ The Heavy Duty Rack is the warehouse's mixed storage bay: a chest sized inventor
 ## Requirements
 
 ### Requirement: Chest sized inventory with a GUI
-A Heavy Duty Rack bay SHALL hold any items in a fixed number of slots (`slots` in `data/<ns>/storage/rack.json`, example 27). Right clicking the front face of any bay with an empty hand or a non tool item SHALL open a chest style GUI for the whole section the bay belongs to: the slots of every bay of the section, bay after bay from left to right as seen from the front, all shown at once above the player inventory, with shift click moving stacks between them. The GUI SHALL grow with the section (example: 9 rows for a section of three bays of 27 slots) and SHALL NOT scroll. Each bay SHALL store its own part of the slots. The GUI SHALL close when a bay of its section is removed or the section changes. Clicking any other face SHALL behave like clicking a plain block, so a held block is placed against it.
+A Heavy Duty Rack bay SHALL hold any items in a fixed number of slots (`slots` in `data/<ns>/shuttles/rack.json`, example 27). Right clicking the front face of any bay with an empty hand or a non tool item SHALL open a chest style GUI for the whole section the bay belongs to: the slots of every bay of the section, bay after bay from left to right as seen from the front, all shown at once above the player inventory, with shift click moving stacks between them. The GUI SHALL grow with the section (example: 9 rows for a section of three bays of 27 slots) and SHALL NOT scroll. Each bay SHALL store its own part of the slots. The GUI SHALL close when a bay of its section is removed or the section changes. Clicking any other face SHALL behave like clicking a plain block, so a held block is placed against it.
 
 #### Scenario: Open and store
 - **WHEN** a player right clicks the front of a single rack and shift clicks a stack of planks from the inventory
@@ -202,7 +202,7 @@ Every rack's frame (posts, beams and edges) SHALL show a blackened wrought iron 
 The creative tab and the recipe viewer SHALL list one Heavy Duty Rack, the oak one; the recipe viewer SHALL show the rack recipe accepting any planks.
 
 #### Scenario: Creative tab
-- **WHEN** the player opens the Servus Storage creative tab
+- **WHEN** the player opens the Servus creative tab
 - **THEN** one Heavy Duty Rack with oak boards is listed
 
 ### Requirement: Racks join only through a front rail

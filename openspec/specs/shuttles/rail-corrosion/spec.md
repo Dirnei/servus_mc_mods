@@ -36,7 +36,7 @@ A crafted farm rail SHALL be fresh copper and the stage SHALL NOT be stored on t
 - **THEN** all rails of the joined field show exposed
 
 ### Requirement: Aging by water used
-A Field Head serving a field SHALL count the water it uses to hydrate the field. Every `corrosion_water` mB of that water (from `data/<ns>/storage/field.json`, example 64000) one aging step SHALL be due. When an aging step is due and the head holds an anti-corrosion item, the head SHALL use one of them and the stage SHALL stay; otherwise the field SHALL go one stage further. The counted water SHALL be kept when the world is saved. Aging SHALL happen only when water is used, never by a timer or a scan.
+A Field Head serving a field SHALL count the water it uses to hydrate the field. Every `corrosion_water` mB of that water (from `data/<ns>/shuttles/field.json`, example 64000) one aging step SHALL be due. When an aging step is due and the head holds an anti-corrosion item, the head SHALL use one of them and the stage SHALL stay; otherwise the field SHALL go one stage further. The counted water SHALL be kept when the world is saved. Aging SHALL happen only when water is used, never by a timer or a scan.
 
 #### Scenario: Step without upkeep
 - **WHEN** a copper field's head has used `corrosion_water` mB and holds no anti-corrosion item
@@ -91,7 +91,7 @@ The next and previous stage, the stage of a join, the counting of water into agi
 - **THEN** the join gives exposed
 
 ### Requirement: Anti-corrosion slot
-Anti-corrosion items SHALL be the item tag `servus_storage:anti_corrosion`, holding honeycomb by default, so packs can add their own. The anti-corrosion part of the Field Head's supply buffer SHALL take only those items. Supply runs SHALL keep it at `anti_corrosion_level` (from `field.json`, example 8) of the item it holds, or of the first item of the tag while it is empty. Players, hoppers, item pipes and the data line SHALL neither put items in nor take them out. Its items SHALL drop when the head is broken.
+Anti-corrosion items SHALL be the item tag `servus_shuttles:anti_corrosion`, holding honeycomb by default, so packs can add their own. The anti-corrosion part of the Field Head's supply buffer SHALL take only those items. Supply runs SHALL keep it at `anti_corrosion_level` (from `field.json`, example 8) of the item it holds, or of the first item of the tag while it is empty. Players, hoppers, item pipes and the data line SHALL neither put items in nor take them out. Its items SHALL drop when the head is broken.
 
 #### Scenario: Filled by hand
 - **WHEN** a player tries to put honeycomb into the head's GUI

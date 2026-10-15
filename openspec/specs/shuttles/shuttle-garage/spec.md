@@ -7,7 +7,7 @@ The Shuttle Garage is where a warehouse keeps its shuttles: each garage holds a 
 ## Requirements
 
 ### Requirement: Garage block and capacity
-The Shuttle Garage SHALL be a block with a horizontal facing that holds up to `garage_capacity` shuttles (example 4, from `data/<ns>/storage/warehouse.json`). Right clicking it SHALL open a GUI with one slot per shuttle place and the player inventory. A Shuttle item in a slot is a shuttle of the garage; taking it out removes the shuttle. Only Shuttle items fit the slots, one per slot, with or without modules. A slot SHALL keep its shuttle's modules. The GUI SHALL say how many shuttles the garage has and how many are out.
+The Shuttle Garage SHALL be a block with a horizontal facing that holds up to `garage_capacity` shuttles (example 4, from `data/<ns>/shuttles/warehouse.json`). Right clicking it SHALL open a GUI with one slot per shuttle place and the player inventory. A Shuttle item in a slot is a shuttle of the garage; taking it out removes the shuttle. Only Shuttle items fit the slots, one per slot, with or without modules. A slot SHALL keep its shuttle's modules. The GUI SHALL say how many shuttles the garage has and how many are out.
 
 #### Scenario: Add and take back
 - **WHEN** a player puts two Shuttle items into the garage slots and then takes one out again
