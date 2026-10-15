@@ -24,6 +24,7 @@ public final class AlchemyMachineDefaults {
         add("purifier", "crafter", List.of("servus_alchemy:purification"), alchemy(4000));
         add("gnome_hollow", "crafter", List.of(), hollow(4000, 64));
         add("principle_dropper", "crafter", List.of(), dropper(20, 25, 1000));
+        add("salamander_forge", "crafter", List.of("minecraft:smelting"), forge(200));
     }
 
     /**
@@ -42,6 +43,11 @@ public final class AlchemyMachineDefaults {
     /** The Principle Dropper: every {@code interval} ticks it drips up to {@code perDrip} mB of each principle; each tank holds {@code tank} mB. */
     private static MachineStats dropper(int interval, int perDrip, int tank) {
         return new MachineStats(interval, 0, 0, 1, 0, 1, 0, perDrip, tank, 0, "", 0, 0);
+    }
+
+    /** The Salamander Forge smelts one item every {@code workTicks}, whatever the recipe's own cooking time. */
+    private static MachineStats forge(int workTicks) {
+        return new MachineStats(workTicks, 0, 0, 1, 0, 1, 0, 0, 0, 0, "", 0, 0);
     }
 
     /** An unpowered alchemy machine: recipe time decides the cycle, each principle tank holds {@code tank} mB. */

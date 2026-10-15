@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
+import java.util.List;
 import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,15 @@ class AlchemyMachineDefaultsTest {
         assertEquals(20, stats.workTicks());
         assertEquals(25, stats.fluidPerCycle());
         assertEquals(1000, stats.fluidCapacity());
+    }
+
+    @Test
+    void forgeSmeltsAtFurnacePace() {
+        MachineDefaults.MachineInfo info = MachineDefaults.info("servus_alchemy:salamander_forge");
+        assertEquals("crafter", info.kind());
+        assertEquals(List.of("minecraft:smelting"), info.recipeTypes());
+        assertEquals(200, info.stats().workTicks());
+        assertEquals(0, info.stats().energyPerTick());
     }
 
     @Test
