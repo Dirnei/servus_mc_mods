@@ -53,6 +53,14 @@ public final class ServusAlchemyItems {
     public static final DeferredItem<SpawnEggItem> SALAMANDER_SPAWN_EGG = ITEMS.registerItem("salamander_spawn_egg", SpawnEggItem::new,
             () -> new Item.Properties().spawnEgg(ServusAlchemyEntities.SALAMANDER.get()));
 
+    /** Traces the old gnome leaves behind: picking one up tells the journal he is near. */
+    public static final DeferredItem<QuoteItem> TINY_PICKAXE = ITEMS.registerItem("tiny_pickaxe", QuoteItem::new,
+            () -> new Item.Properties().stacksTo(16));
+    public static final DeferredItem<QuoteItem> RED_FELT_SCRAP = ITEMS.registerItem("red_felt_scrap", QuoteItem::new,
+            () -> new Item.Properties().stacksTo(16));
+    public static final DeferredItem<QuoteItem> SALT_OFFERING = ITEMS.registerItem("salt_offering", QuoteItem::new,
+            () -> new Item.Properties().stacksTo(16));
+
     public static final DeferredItem<ParacelsusJournalItem> PARACELSUS_JOURNAL = ITEMS.registerItem("paracelsus_journal",
             ParacelsusJournalItem::new, () -> new Item.Properties().stacksTo(1));
 
@@ -60,7 +68,8 @@ public final class ServusAlchemyItems {
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(PARACELSUS_JOURNAL, CALCINER, FIREBOX, ASH_PAN,
             ALEMBIC, RECEIVER, SULFUR_HOOD, COPPER_DUCT, PURIFIER, CATCH_BASIN, RESIDUE_CROCK, COAGULATOR, VAT, ATHANOR, GNOME_HOLLOW,
             PRINCIPLE_DROPPER, ASH, CAPUT_MORTUUM, SALT_CRYSTAL, SALT_CRYSTAL_BLOCK, SULFUR, QUICKSILVER,
-            SAL_AMMONIAC, IGNIS_PERPETUUS, SALAMANDER_FORGE, RECEPTACULUM, SEALED_FLASK, PRELUM_SCREW, PRELUM, SALAMANDER_SPAWN_EGG);
+            SAL_AMMONIAC, IGNIS_PERPETUUS, SALAMANDER_FORGE, RECEPTACULUM, SEALED_FLASK, PRELUM_SCREW, PRELUM, SALAMANDER_SPAWN_EGG,
+            TINY_PICKAXE, RED_FELT_SCRAP, SALT_OFFERING);
 
     private ServusAlchemyItems() {
     }

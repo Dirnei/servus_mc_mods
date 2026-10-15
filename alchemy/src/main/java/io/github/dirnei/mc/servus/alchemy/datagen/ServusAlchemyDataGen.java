@@ -44,6 +44,7 @@ public final class ServusAlchemyDataGen {
         event.addProvider(new ServusAlchemySoundsProvider(output));
 
         event.addProvider(new ServusAlchemyBlockTagsProvider(output, lookup));
+        event.addProvider(new ServusAlchemyItemTagsProvider(output, lookup));
         event.addProvider(new ServusAlchemyRecipeProvider.Runner(output, lookup));
         event.addProvider(new ServusAlchemyMultiblockProvider(output));
         event.addProvider(new AdvancementProvider(output, lookup, List.of(new JournalAdvancements())));

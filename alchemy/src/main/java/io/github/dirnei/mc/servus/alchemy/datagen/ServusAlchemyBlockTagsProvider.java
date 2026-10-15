@@ -1,11 +1,13 @@
 package io.github.dirnei.mc.servus.alchemy.datagen;
 
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.hint.OldGnome;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 
 final class ServusAlchemyBlockTagsProvider extends BlockTagsProvider {
@@ -36,6 +38,8 @@ final class ServusAlchemyBlockTagsProvider extends BlockTagsProvider {
                 .add(ServusAlchemyBlocks.PRINCIPLE_DROPPER.get())
                 .add(ServusAlchemyBlocks.SALAMANDER_FORGE.get())
                 .add(ServusAlchemyBlocks.RECEPTACULUM.get())
-                .add(ServusAlchemyBlocks.PRELUM.get());
+                .add(ServusAlchemyBlocks.PRELUM.get())
+                .add(ServusAlchemyBlocks.ANCIENT_HOLLOW.get());
+        tag(OldGnome.WAKES).add(Blocks.DEEPSLATE);
     }
 }

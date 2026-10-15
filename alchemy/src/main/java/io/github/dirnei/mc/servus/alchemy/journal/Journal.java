@@ -69,6 +69,11 @@ public final class Journal {
         record(level, team, event, task -> task.filter().isEmpty(), amount);
     }
 
+    /** A named event, such as {@code find} of the old gnome. Filters are the name. */
+    public static void recordNamed(ServerLevel level, UUID team, String event, String name) {
+        record(level, team, event, task -> task.filter().isEmpty() || task.filter().equals(name), 1);
+    }
+
     /** A {@code principle} event: mB of one principle made. Filters are a principle name. */
     public static void recordPrinciple(ServerLevel level, UUID team, Principle principle, int amount) {
         record(level, team, "principle", task -> task.filter().isEmpty() || task.filter().equals(principle.id()), amount);

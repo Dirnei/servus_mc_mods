@@ -26,6 +26,9 @@ final class ServusAlchemyItemModelProvider extends ItemModelProvider {
         basicItem(ServusAlchemyItems.IGNIS_PERPETUUS.get());
         basicItem(ServusAlchemyItems.SEALED_FLASK.get());
         basicItem(ServusAlchemyItems.PRELUM_SCREW.get());
+        basicItem(ServusAlchemyItems.TINY_PICKAXE.get());
+        basicItem(ServusAlchemyItems.RED_FELT_SCRAP.get());
+        basicItem(ServusAlchemyItems.SALT_OFFERING.get());
         basicItem(ServusAlchemyItems.SALAMANDER_SPAWN_EGG.get());
         basicItem(ElementalSight.ELIXIR.get());
         basicItem(ServusAlchemyItems.PARACELSUS_JOURNAL.get());

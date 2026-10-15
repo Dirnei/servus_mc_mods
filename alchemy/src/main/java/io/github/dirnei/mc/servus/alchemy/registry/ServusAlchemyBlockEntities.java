@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.alchemy.forge.SalamanderForgeBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.prelum.PrelumBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.homunculus.ReceptaculumBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.homunculus.VasBlockEntity;
+import io.github.dirnei.mc.servus.alchemy.hint.AncientHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.PrincipleDropperBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierBlockEntity;
@@ -53,6 +54,9 @@ public final class ServusAlchemyBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VasBlockEntity>> VAS_HERMETICUM =
             register("vas_hermeticum", VasBlockEntity::new, ServusAlchemyBlocks.VAS_HERMETICUM);
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AncientHollowBlockEntity>> ANCIENT_HOLLOW =
+            register("ancient_hollow", AncientHollowBlockEntity::new, ServusAlchemyBlocks.ANCIENT_HOLLOW);
 
     private ServusAlchemyBlockEntities() {
     }

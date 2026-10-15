@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerShellBlock;
 import io.github.dirnei.mc.servus.alchemy.coagulator.VatBlock;
 import io.github.dirnei.mc.servus.alchemy.forge.SalamanderForgeBlock;
+import io.github.dirnei.mc.servus.alchemy.hint.AncientHollowBlock;
 import io.github.dirnei.mc.servus.alchemy.prelum.PrelumBlock;
 import io.github.dirnei.mc.servus.alchemy.homunculus.ReceptaculumBlock;
 import io.github.dirnei.mc.servus.alchemy.homunculus.VasBlock;
@@ -85,6 +86,11 @@ public final class ServusAlchemyBlocks {
 
     public static final DeferredBlock<GnomeHollowBlock> GNOME_HOLLOW = BLOCKS.registerBlock("gnome_hollow", GnomeHollowBlock::new,
             () -> BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(1.5F, 6.0F).requiresCorrectToolForDrops().sound(SoundType.STONE));
+
+    /** The old gnome's Ancient Hollow: Deepslate to the eye, no item; it appears only when he wakes. */
+    public static final DeferredBlock<AncientHollowBlock> ANCIENT_HOLLOW = BLOCKS.registerBlock("ancient_hollow", AncientHollowBlock::new,
+            () -> BlockBehaviour.Properties.of().mapColor(MapColor.DEEPSLATE).strength(3.0F, 6.0F).requiresCorrectToolForDrops()
+                    .sound(SoundType.DEEPSLATE));
 
     /** The Principle Dropper, a copper drip vessel that feeds the Gnome Hollow below it. */
     public static final DeferredBlock<PrincipleDropperBlock> PRINCIPLE_DROPPER = BLOCKS.registerBlock("principle_dropper",

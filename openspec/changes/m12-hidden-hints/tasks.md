@@ -11,7 +11,7 @@
 ## 3. The old gnome
 
 - [x] 3.1 `hint/OldGnomeSettings.java`, `hint/OldGnomeData.java` (registered in `AlchemyEvents`), `data/servus_alchemy/servus_alchemy/old_gnome/old_gnome.json` (D5); `hint/OldGnomeSavedData.java` (D6). Verify: `gradlew build` green.
-- [ ] 3.2 Trace items in `ServusAlchemyItems` and the creative tab, textures from a script in the job directory, item models, tag `hint_traces` (D10); `hint/AncientHollowBlock.java`, `hint/AncientHollowBlockEntity.java`, `hint/AncientHollowTracker.java`, registrations, block state and model, loot, pickaxe and `wakes_old_gnome` tags (D8); `hint/OldGnome.java`, `hint/HintEvents.java` (D9); `Journal.recordNamed` (D12); Jade callback; lang; `:alchemy:runData`. Verify: `gradlew build` green.
+- [x] 3.2 Trace items in `ServusAlchemyItems` and the creative tab, textures from a script in the job directory, item models, tag `hint_traces` (D10); `hint/AncientHollowBlock.java`, `hint/AncientHollowBlockEntity.java`, `hint/AncientHollowTracker.java`, registrations, block state and model, loot, pickaxe and `wakes_old_gnome` tags (D8); `hint/OldGnome.java`, `hint/HintEvents.java` (D9); `Journal.recordNamed` (D12); Jade callback; lang; `:alchemy:runData`. Verify: `gradlew build` green.
 - [ ] 3.3 `client/sight/OldGnomeRevealRenderer.java` registered in `ServusAlchemyClient` (D11, overlap check in design). Verify: `gradlew build` green.
 
 ## 4. Journal and book

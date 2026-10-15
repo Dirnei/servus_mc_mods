@@ -53,6 +53,15 @@ final class ServusAlchemyBlockLoot extends BlockLootSubProvider {
         dropOther(ServusAlchemyBlocks.CALCINER_STONE_BRICKS.get(), Items.STONE_BRICKS);
         dropOther(ServusAlchemyBlocks.CALCINER_DEEPSLATE_TILES.get(), Items.DEEPSLATE_TILES);
         add(ServusAlchemyBlocks.GNOME_HOLLOW.get(), gnomeHollow());
+        add(ServusAlchemyBlocks.ANCIENT_HOLLOW.get(), ancientHollow());
+    }
+
+    /** What Deepslate drops: itself with Silk Touch, else Cobbled Deepslate. */
+    private LootTable.Builder ancientHollow() {
+        return LootTable.lootTable().withPool(applyExplosionCondition(ServusAlchemyBlocks.ANCIENT_HOLLOW.get(), LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1.0F))
+                .add(LootItem.lootTableItem(Items.DEEPSLATE).when(hasSilkTouch())
+                        .otherwise(LootItem.lootTableItem(Items.COBBLED_DEEPSLATE)))));
     }
 
     /** Itself to a breaker under Elemental Sight, else what stone drops. */
@@ -69,6 +78,7 @@ final class ServusAlchemyBlockLoot extends BlockLootSubProvider {
     @Override
     protected Iterable<Block> getKnownBlocks() {
         return Stream.concat(SELF_DROPPING.stream(), Stream.of(ServusAlchemyBlocks.CALCINER_STONE_BRICKS.get(),
-                ServusAlchemyBlocks.CALCINER_DEEPSLATE_TILES.get(), ServusAlchemyBlocks.GNOME_HOLLOW.get())).toList();
+                ServusAlchemyBlocks.CALCINER_DEEPSLATE_TILES.get(), ServusAlchemyBlocks.GNOME_HOLLOW.get(),
+                ServusAlchemyBlocks.ANCIENT_HOLLOW.get())).toList();
     }
 }

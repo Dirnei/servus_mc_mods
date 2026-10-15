@@ -150,6 +150,15 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("message.servus_alchemy.homunculus.secret.3", "[storyteller] The secret goes here.");
         add("message.servus_alchemy.homunculus.secret.4", "[storyteller] \"I will stay and work for you. Not because I must. Because you asked.\"");
         add("subtitles.servus_alchemy.hint.knock", "Something knocks in the rock");
+        add(ServusAlchemyBlocks.ANCIENT_HOLLOW.get(), "Ancient Hollow");
+        add(ServusAlchemyItems.TINY_PICKAXE.get(), "Tiny Pickaxe");
+        add(ServusAlchemyItems.TINY_PICKAXE.get().getDescriptionId() + ".quote", "Too small for any hand I know. Somebody is digging down there.");
+        add(ServusAlchemyItems.RED_FELT_SCRAP.get(), "Scrap of Red Felt");
+        add(ServusAlchemyItems.RED_FELT_SCRAP.get().getDescriptionId() + ".quote", "Torn from a little red cap. I have seen such caps before, in Schwaz.");
+        add(ServusAlchemyItems.SALT_OFFERING.get(), "Bowl of Salt");
+        add(ServusAlchemyItems.SALT_OFFERING.get().getDescriptionId() + ".quote", "An offering, left in the dark. The miners did the same for the little ones.");
+        add("message.servus_alchemy.old_gnome.trace", "They are near. Drink, and look.");
+        add("message.servus_alchemy.old_gnome.greeting", "[storyteller] \"Theophrastus? No... but that is his book. Sit, sit. I have waited a long time.\"");
         add("message.servus_alchemy.gnome_hollow.bound", "A gnome takes your offering and sets to work.");
         add("message.servus_alchemy.gnome_hollow.no_vein", "Nothing grows here yet. Seed the hollow with a sample of ore.");
         add("message.servus_alchemy.gnome_hollow.not_ripe", "The vein is not ripe yet.");

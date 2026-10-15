@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorCrownBlock;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.alchemy.salamander.Salamander;
+import io.github.dirnei.mc.servus.alchemy.hint.AncientHollowBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
@@ -46,7 +47,8 @@ import snownee.jade.api.config.IPluginConfig;
 /**
  * Shows what the alchemy blocks hold: a formed Calciner from any of its blocks (matter, fuel,
  * progress, the three principles) and the Purifier (Ash, water, Salt, progress). A Gnome Hollow shows as Stone to a viewer
- * without Elemental Sight and as itself, with its vein and store, to one with it. Only Jade loads this class.
+ * without Elemental Sight and as itself, with its vein and store, to one with it; the Ancient Hollow shows as Deepslate without
+ * the sight. Only Jade loads this class.
  */
 @WailaPlugin(ServusAlchemyIds.MOD_ID)
 public final class ServusAlchemyJadePlugin implements IWailaPlugin {
@@ -76,6 +78,9 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
         registration.addRayTraceCallback((hit, accessor, original) -> {
             if (accessor instanceof BlockAccessor block && block.getBlock() instanceof GnomeHollowBlock && !ElementalSight.active(block.getPlayer())) {
                 return registration.blockAccessor().from(block).blockState(Blocks.STONE.defaultBlockState()).blockEntity(() -> null).build();
+            }
+            if (accessor instanceof BlockAccessor block && block.getBlock() instanceof AncientHollowBlock && !ElementalSight.active(block.getPlayer())) {
+                return registration.blockAccessor().from(block).blockState(Blocks.DEEPSLATE.defaultBlockState()).blockEntity(() -> null).build();
             }
             return accessor;
         });

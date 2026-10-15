@@ -28,6 +28,7 @@ final class ServusAlchemyBlockStateProvider extends BlockStateProvider {
         athanor();
         athanorCrown();
         gnomeHollow();
+        ancientHollow();
         for (Principle principle : Principle.values()) {
             PrincipleFluids.Entry entry = PrincipleFluids.entry(principle);
             simpleBlock(entry.block().get(), models().getBuilder(principle.id())
@@ -96,5 +97,12 @@ final class ServusAlchemyBlockStateProvider extends BlockStateProvider {
         ModelFile model = models().cubeAll("gnome_hollow", mcLoc("block/stone"));
         getVariantBuilder(ServusAlchemyBlocks.GNOME_HOLLOW.get()).forAllStates(state -> ConfiguredModel.builder().modelFile(model).build());
         simpleBlockItem(ServusAlchemyBlocks.GNOME_HOLLOW.get(), model);
+    }
+
+    /** Deepslate to the common eye: the old gnome is drawn only under Elemental Sight. */
+    private void ancientHollow() {
+        ModelFile model = models().withExistingParent("ancient_hollow", mcLoc("block/cube_column"))
+                .texture("side", mcLoc("block/deepslate")).texture("end", mcLoc("block/deepslate_top"));
+        getVariantBuilder(ServusAlchemyBlocks.ANCIENT_HOLLOW.get()).forAllStates(state -> ConfiguredModel.builder().modelFile(model).build());
     }
 }

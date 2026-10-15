@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "servus_alchemy:block/ancient_hollow"
+    },
+    "facing=north": {
+      "model": "servus_alchemy:block/ancient_hollow"
+    },
+    "facing=south": {
+      "model": "servus_alchemy:block/ancient_hollow"
+    },
+    "facing=west": {
+      "model": "servus_alchemy:block/ancient_hollow"
+    }
+  }
+}
