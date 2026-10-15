@@ -30,7 +30,7 @@
 ## 5. Integration
 
 - [x] 5.1 Full `gradlew build test :alchemy:runGameTestServer` green.
-- [ ] 5.2 User play check in game:
+- [x] 5.2 User play check in game:
   - In a Crimson Forest, without Elemental Sight: no salamander drawn, only a flame among the stems now and then; with the sight salamanders show near the crimson trees and Nether Wart, not crowded (a few per area), glow, sway their tails, crests flicker; no flicker of faces from any angle. In a Warped Forest a bit fewer; on lava lakes in the Nether Wastes or Basalt Deltas now and then one.
   - Gold Ingots befriend it after a few tries (hearts), then it shows without the sight, follows, teleports, sits on an empty hand click, lies in a lit campfire nearby.
   - Feeding it a Gold Ingot gives one Sal Ammoniac after about 60 s; a second ingot is refused meanwhile.
