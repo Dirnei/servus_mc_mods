@@ -43,7 +43,7 @@ public final class MachineEvents {
         @SubscribeEvent
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.Item.BLOCK, MachineContent.COAL_GENERATOR_ENTITY.get(),
-                    (machine, side) -> machine.sideHandler(side));
+                    (machine, side) -> machine.itemCapability(side));
             // The generator's top carries its chimney: no energy there.
             event.registerBlockEntity(Capabilities.Energy.BLOCK, MachineContent.COAL_GENERATOR_ENTITY.get(),
                     (machine, side) -> side == Direction.UP ? null : machine.energyStorage());
@@ -53,7 +53,7 @@ public final class MachineEvents {
             event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, MachineContent.BURNER_PUMP_ENTITY.get(),
                     (machine, side) -> machine.upkeep());
             event.registerBlockEntity(Capabilities.Item.BLOCK, MachineContent.BURNER_PUMP_ENTITY.get(),
-                    (machine, side) -> machine.sideHandler(side));
+                    (machine, side) -> machine.itemCapability(side));
             event.registerBlockEntity(Capabilities.Fluid.BLOCK, MachineContent.BURNER_PUMP_ENTITY.get(),
                     (machine, side) -> machine.fluidHandler(side));
             // A pump takes energy only where it also gives water: not through its front or bottom.

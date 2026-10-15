@@ -51,15 +51,15 @@ public final class ServusAlchemyEvents {
             registerCoagulator(event);
             registerAthanor(event);
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusAlchemyBlockEntities.SALAMANDER_FORGE.get(),
-                    (forge, side) -> forge.sideHandler(side));
+                    (forge, side) -> forge.itemCapability(side));
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusAlchemyBlockEntities.SALAMANDER_FORGE.get(),
                     (forge, side) -> forge.production());
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusAlchemyBlockEntities.RECEPTACULUM.get(),
-                    (receptaculum, side) -> receptaculum.sideHandler(side));
+                    (receptaculum, side) -> receptaculum.itemCapability(side));
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusAlchemyBlockEntities.RECEPTACULUM.get(),
                     (receptaculum, side) -> receptaculum.production());
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusAlchemyBlockEntities.PRELUM.get(),
-                    (prelum, side) -> prelum.sideHandler(side));
+                    (prelum, side) -> prelum.itemCapability(side));
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusAlchemyBlockEntities.PRELUM.get(),
                     (prelum, side) -> prelum.production());
             event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusAlchemyBlockEntities.PRINCIPLE_DROPPER.get(),
@@ -98,7 +98,7 @@ public final class ServusAlchemyEvents {
 
         private static void registerAthanor(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusAlchemyBlockEntities.ATHANOR.get(),
-                    (machine, side) -> machine.sideHandler(side));
+                    (machine, side) -> machine.itemCapability(side));
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusAlchemyBlockEntities.ATHANOR.get(),
                     (machine, side) -> machine.production());
         }

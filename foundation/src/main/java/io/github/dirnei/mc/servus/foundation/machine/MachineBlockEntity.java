@@ -129,6 +129,15 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         return false;
     }
 
+    /** Whether automation may put the stack into a slot the screen accepts it in; pipes and hoppers may be stricter. */
+    protected boolean acceptsAutomationInput(int slot, ItemStack stack) {
+        return true;
+    }
+
+    private boolean automationAccepts(int slot, ItemStack stack) {
+        return isItemValid(slot, stack) && acceptsAutomationInput(slot, stack);
+    }
+
     /** One server tick of machine logic. Return true while the machine is working, for the lit state. */
     protected abstract boolean tick();
 
@@ -181,6 +190,17 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
 
     public ItemSlots inventory() {
         return inventory;
+    }
+
+    /**
+     * The item capability on {@code side}: none on a side the block fixes to Off, so pipes and hoppers do not connect
+     * there; otherwise {@link #sideHandler}.
+     */
+    public ResourceHandler<ItemResource> itemCapability(Direction side) {
+        if (side != null && sideMode(side) == SideMode.DISABLED && sideConfig.isLocked(relativeSide(side))) {
+            return null;
+        }
+        return sideHandler(side);
     }
 
     /** The item handler automation sees from {@code side}; null means no particular side. */
@@ -332,7 +352,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
                 continue;
             }
             for (int slot = 0; slot < inventory.getSlots(); slot++) {
-                if (!(isInputSlot(slot) || isFuelSlot(slot)) || !isItemValid(slot, offered)) {
+                if (!(isInputSlot(slot) || isFuelSlot(slot)) || !automationAccepts(slot, offered)) {
                     continue;
                 }
                 int moved = offered.getCount() - inventory.insertItem(slot, offered, true).getCount();
@@ -488,7 +508,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
 
         @Override
         public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            if (!mode().allowsInsert() || !isItemValid(slot, stack)) {
+            if (!mode().allowsInsert() || !automationAccepts(slot, stack)) {
                 return stack;
             }
             return inventory.insertItem(slot, stack, simulate);
@@ -509,7 +529,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return mode().allowsInsert() && (isInputSlot(slot) || isFuelSlot(slot)) && MachineBlockEntity.this.isItemValid(slot, stack);
+            return mode().allowsInsert() && (isInputSlot(slot) || isFuelSlot(slot)) && automationAccepts(slot, stack);
         }
     }
 }

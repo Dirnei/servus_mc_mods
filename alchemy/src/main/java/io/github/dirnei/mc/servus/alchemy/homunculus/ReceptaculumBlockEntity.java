@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.alchemy.homunculus;
 
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.hollow.GnomeGiftData;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Gift;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinData.VeinDef;
@@ -83,6 +84,12 @@ public class ReceptaculumBlockEntity extends MachineBlockEntity {
     protected boolean acceptsInput(int slot, ItemStack stack) {
         boolean elixir = stack.is(ElementalSight.ELIXIR.get());
         return slot == SLOT_ELIXIR ? elixir : !elixir;
+    }
+
+    /** Pipes and hoppers fill the gift slots only with what gnomes like, so other items stay in the pipe. */
+    @Override
+    protected boolean acceptsAutomationInput(int slot, ItemStack stack) {
+        return slot == SLOT_ELIXIR || GnomeGiftData.INSTANCE.forItem(stack).isPresent();
     }
 
     /** The fire always burns. */

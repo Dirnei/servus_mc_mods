@@ -12,6 +12,8 @@ import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
@@ -333,5 +335,54 @@ public final class HomunculusGameTests {
                     athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).is(ServusAlchemyItems.SEALED_FLASK.get()),
                     "a Sealed Flask should be made"));
         });
+    }
+
+    /** An Item Pipe on the Receptaculum's side carries its yield into a chest behind the pipe. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void pipeTakesTheYieldFromTheSide(GameTestHelper helper) {
+        ReceptaculumBlockEntity receptaculum = receptaculum(helper);
+        receptaculum.inventory().setStackInSlot(0, new ItemStack(Items.RAW_IRON, 5));
+        BlockPos chest = RECEPTACULUM.east(2);
+        helper.setBlock(chest, Blocks.CHEST);
+        GameTestSteps.duct(helper, RECEPTACULUM.east(), Line.ITEM);
+        helper.succeedWhen(() -> {
+            ItemView view = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(chest), Direction.WEST));
+            helper.assertTrue(view != null && view.getStackInSlot(0).is(Items.RAW_IRON) && view.getStackInSlot(0).getCount() == 5,
+                    "the chest should hold the 5 Raw Iron");
+        });
+    }
+
+    /** A pipe at the fixed front draws no arm and finds no item handler; a pipe on a side connects. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void noPipeArmAtTheFront(GameTestHelper helper) {
+        receptaculum(helper);
+        UtilityDuctBlockEntity front = GameTestSteps.duct(helper, RECEPTACULUM.north(), Line.ITEM);
+        UtilityDuctBlockEntity side = GameTestSteps.duct(helper, RECEPTACULUM.east(), Line.ITEM);
+        helper.assertFalse(front.hasArm(Line.ITEM, Direction.SOUTH), "no arm to the front");
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(RECEPTACULUM), Direction.NORTH) == null,
+                "no item handler at the front");
+        helper.assertTrue(side.hasArm(Line.ITEM, Direction.WEST), "an arm to the side");
+        helper.succeed();
+    }
+
+    /** Automation puts a cookie into a gift slot and refuses Cobblestone. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void automationRefusesJunkGifts(GameTestHelper helper) {
+        ReceptaculumBlockEntity receptaculum = receptaculum(helper);
+        ItemView side = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(RECEPTACULUM), Direction.EAST));
+        helper.assertTrue(side.insertItem(new ItemStack(Items.COBBLESTONE), false).getCount() == 1, "Cobblestone is refused");
+        helper.assertTrue(side.insertItem(new ItemStack(Items.COOKIE), false).isEmpty(), "the cookie goes in");
+        helper.assertTrue(receptaculum.inventory().getStackInSlot(ReceptaculumBlockEntity.GIFT_FIRST).is(Items.COOKIE),
+                "the cookie lies in the first gift slot");
+        helper.succeed();
+    }
+
+    /** By hand the gift slots still take anything but the Elixir. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void handTakesAnyGift(GameTestHelper helper) {
+        ReceptaculumBlockEntity receptaculum = receptaculum(helper);
+        helper.assertTrue(receptaculum.isItemValid(ReceptaculumBlockEntity.GIFT_FIRST, new ItemStack(Items.COBBLESTONE)),
+                "the screen's gift slot takes Cobblestone");
+        helper.succeed();
     }
 }

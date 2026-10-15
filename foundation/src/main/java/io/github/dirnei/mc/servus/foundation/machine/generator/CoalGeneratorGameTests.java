@@ -231,4 +231,15 @@ public final class CoalGeneratorGameTests {
             helper.assertTrue(helper.getBlockState(GEN.above()).getValue(MachineBlock.LIT), "the chimney is lit while the cube burns");
         });
     }
+
+    /** The generator's front and chimney are fixed to Off and offer no item handler; its free sides do. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void fixedFrontOffersNoItems(GameTestHelper helper) {
+        place(helper, GEN, Direction.NORTH);
+        BlockPos pos = helper.absolutePos(GEN);
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK, pos, Direction.NORTH) == null, "no items at the front");
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK, pos.above(), Direction.UP) == null, "no items at the chimney");
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK, pos, Direction.EAST) != null, "items on a free side");
+        helper.succeed();
+    }
 }
