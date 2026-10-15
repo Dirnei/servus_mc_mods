@@ -48,6 +48,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
@@ -259,6 +260,22 @@ public final class AlchemyGameTests {
         // Awarding is not tested: Modonomicon syncs book data on every award, which a mock connection cannot carry.
         AdvancementHolder advancement = level.getServer().getAdvancements().get(Journal.advancementId(VILLACH));
         helper.assertTrue(advancement != null, "the Villach advancement should exist");
+        helper.succeed();
+    }
+
+    /** Finishing Wandering years by command finishes the shipped chapters above it and opens Basel and Salzburg. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void finishingAChapterFinishesItsParents(GameTestHelper helper) {
+        UUID team = UUID.randomUUID();
+        MinecraftServer server = helper.getLevel().getServer();
+        List<String> finished = Journal.finish(server, team, "servus_alchemy:wandering_years");
+        helper.assertTrue(finished.equals(List.of(VILLACH, "servus_alchemy:schwaz", "servus_alchemy:wandering_years")),
+                "Villach, Schwaz and Wandering years should finish in order, got " + finished);
+        for (String chapter : finished) {
+            helper.assertTrue(server.getAdvancements().get(Journal.advancementId(chapter)) != null, "missing advancement of " + chapter);
+        }
+        helper.assertTrue(!Journal.isFinished(server, team, "servus_alchemy:basel_salzburg"), "Basel and Salzburg stays open");
+        helper.assertTrue(Journal.finish(server, team, VILLACH).isEmpty(), "a finished chapter finishes only once");
         helper.succeed();
     }
 
