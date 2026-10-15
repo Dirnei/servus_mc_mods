@@ -10,6 +10,9 @@ import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlock;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorCrownBlock;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPartBlock;
+import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlock;
+import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
+import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPorts;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerShellBlock;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierBlock;
@@ -25,6 +28,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.fluids.FluidStack;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
@@ -38,7 +42,8 @@ import snownee.jade.api.config.IPluginConfig;
 
 /**
  * Shows what the alchemy blocks hold: a formed Calciner from any of its blocks (matter, fuel,
- * progress, the three principles) and the Purifier (Ash, water, Salt, progress). Only Jade loads this class.
+ * progress, the three principles) and the Purifier (Ash, water, Salt, progress). A Gnome Hollow shows as Stone to a viewer
+ * without Elemental Sight and as itself, with its vein and store, to one with it. Only Jade loads this class.
  */
 @WailaPlugin(ServusAlchemyIds.MOD_ID)
 public final class ServusAlchemyJadePlugin implements IWailaPlugin {
@@ -52,6 +57,7 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
         registration.registerBlockDataProvider(PurifierProvider.INSTANCE, PurifierBlock.class);
         registration.registerBlockDataProvider(PurifierProvider.INSTANCE, PurifierSideBlock.class);
         registration.registerBlockDataProvider(AthanorProvider.INSTANCE, AthanorBlock.class);
+        registration.registerBlockDataProvider(HollowProvider.INSTANCE, GnomeHollowBlock.class);
     }
 
     @Override
@@ -63,6 +69,13 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(purifier, PurifierBlock.class);
         registration.registerBlockComponent(purifier, PurifierSideBlock.class);
         registration.registerBlockComponent(new ClientProvider(AthanorProvider.UID, AthanorProvider.INSTANCE::appendTooltip), AthanorBlock.class);
+        registration.registerBlockComponent(new ClientProvider(HollowProvider.UID, HollowProvider.INSTANCE::appendTooltip), GnomeHollowBlock.class);
+        registration.addRayTraceCallback((hit, accessor, original) -> {
+            if (accessor instanceof BlockAccessor block && block.getBlock() instanceof GnomeHollowBlock && !ElementalSight.active(block.getPlayer())) {
+                return registration.blockAccessor().from(block).blockState(Blocks.STONE.defaultBlockState()).blockEntity(() -> null).build();
+            }
+            return accessor;
+        });
         // The space above a formed Athanor, where its item lies, shows the Athanor.
         registration.addRayTraceCallback((hit, accessor, original) -> {
             if (accessor instanceof BlockAccessor block && block.getBlock() instanceof AthanorCrownBlock) {
@@ -149,6 +162,68 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
             tooltip.add(Component.translatable("jade.servus_alchemy.calciner.progress", tag.getIntOr("Progress", 0)));
             for (Principle principle : Principle.values()) {
                 tooltip.add(Component.translatable("jade.servus_alchemy.athanor.principle", tag.getIntOr(principle.id(), 0),
+                        principleName(principle)));
+            }
+        }
+
+        @Override
+        public Identifier getUid() {
+            return UID;
+        }
+    }
+
+    /** The Gnome Hollow under Elemental Sight: its vein, ripeness or gnome, its store and its principles. */
+    private enum HollowProvider implements IServerDataProvider<BlockAccessor> {
+        INSTANCE;
+
+        private static final Identifier UID = Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "gnome_hollow");
+
+        @Override
+        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+            if (!(accessor.getBlockEntity() instanceof GnomeHollowBlockEntity hollow) || !ElementalSight.active(accessor.getPlayer())) {
+                return;
+            }
+            CompoundTag tag = new CompoundTag();
+            hollow.veinDef().ifPresent(vein -> {
+                tag.put("Yield", saveStack(accessor, vein.yield()));
+                tag.putInt("Steps", vein.growth().steps());
+            });
+            tag.putInt("Ripeness", hollow.growth().ripeness);
+            tag.putBoolean("Bound", hollow.growth().bound);
+            tag.putInt("Stored", hollow.store().count());
+            tag.putInt("Capacity", hollow.store().capacity());
+            tag.putInt("Tank", hollow.tanks().capacity());
+            for (Principle principle : Principle.values()) {
+                tag.putInt(principle.id(), hollow.tanks().amount(principle));
+            }
+            data.put("Hollow", tag);
+        }
+
+        void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            CompoundTag data = accessor.getServerData();
+            if (!data.contains("Hollow")) {
+                return;
+            }
+            CompoundTag tag = data.getCompoundOrEmpty("Hollow");
+            ItemStack yield = parseStack(accessor, tag.getCompoundOrEmpty("Yield"));
+            if (yield.isEmpty()) {
+                tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.no_vein"));
+            } else {
+                tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.vein", yield.getHoverName()));
+                int steps = tag.getIntOr("Steps", 0);
+                int ripeness = tag.getIntOr("Ripeness", 0);
+                if (tag.getBooleanOr("Bound", false)) {
+                    tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.gnome"));
+                } else if (ripeness >= steps) {
+                    tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.ripe"));
+                } else {
+                    tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.ripeness", ripeness, steps));
+                }
+            }
+            tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.store", tag.getIntOr("Stored", 0), tag.getIntOr("Capacity", 0)));
+            int tank = tag.getIntOr("Tank", 0);
+            for (Principle principle : Principle.values()) {
+                tooltip.add(Component.translatable("jade.servus_alchemy.calciner.principle", tag.getIntOr(principle.id(), 0), tank,
                         principleName(principle)));
             }
         }

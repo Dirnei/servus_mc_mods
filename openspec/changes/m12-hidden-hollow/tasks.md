@@ -12,7 +12,7 @@
 
 ## 3. Jade
 
-- [ ] 3.1 `integration/jade/ServusAlchemyJadePlugin.java` (D5): ray trace callback shows Stone without the sight; with the sight a `HollowProvider` server data (yield, ripeness, steps, bound, store, capacity, principles) and client component. Lang keys `jade.servus_alchemy.gnome_hollow.*` via datagen, `:alchemy:runData`. Verify: `gradlew build` green.
+- [x] 3.1 `integration/jade/ServusAlchemyJadePlugin.java` (D5): ray trace callback shows Stone without the sight; with the sight a `HollowProvider` server data (yield, ripeness, steps, bound, store, capacity, principles) and client component. Lang keys `jade.servus_alchemy.gnome_hollow.*` via datagen, `:alchemy:runData`. Verify: `gradlew build` green.
 
 ## 4. Texts and docs
 

@@ -42,6 +42,12 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("message.servus_alchemy.purifier.at.on_the_other_side_of_the_log", "on the other side of the log");
         add("message.servus_alchemy.purifier.at.itself", "here");
         add("jade.servus_alchemy.purifier.residue", "Caput Mortuum: %s");
+        add("jade.servus_alchemy.gnome_hollow.no_vein", "No vein");
+        add("jade.servus_alchemy.gnome_hollow.vein", "Vein: %s");
+        add("jade.servus_alchemy.gnome_hollow.ripeness", "Ripeness %s / %s");
+        add("jade.servus_alchemy.gnome_hollow.ripe", "Ripe, waiting for a gnome");
+        add("jade.servus_alchemy.gnome_hollow.gnome", "A gnome is at work");
+        add("jade.servus_alchemy.gnome_hollow.store", "Store: %s / %s");
         add(ServusAlchemyBlocks.VAT.get(), "Principle Vat");
         add("message.servus_alchemy.coagulator.formed", "The Coagulator is ready.");
         add("message.servus_alchemy.athanor.formed", "The Athanor is ready.");
