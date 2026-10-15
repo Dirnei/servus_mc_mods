@@ -16,7 +16,7 @@
 
 ## 4. Nigredo goods
 
-- [ ] 4.1 GameTests in `CoagulatorGameTests`: `coagulatorMakesClay` and `coagulatorMakesBoneMeal` (selected recipe, principles poured into the vats, result on the casting table). Verify: `:alchemy:runGameTestServer` green.
+- [x] 4.1 GameTests in `CoagulatorGameTests`: `coagulatorMakesClay` and `coagulatorMakesBoneMeal` (selected recipe, principles poured into the vats, result on the casting table). Verify: `:alchemy:runGameTestServer` green.
 
 ## 5. Docs and integration
 

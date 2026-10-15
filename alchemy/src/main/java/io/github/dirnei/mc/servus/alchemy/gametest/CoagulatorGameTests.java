@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.alchemy.gametest;
 
 import com.klikli_dev.modonomicon.api.ModonomiconAPI;
 import com.klikli_dev.modonomicon.api.multiblock.Multiblock;
+import io.github.dirnei.mc.servus.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.alchemy.CoagulatorBlock;
 import io.github.dirnei.mc.servus.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.Principle;
@@ -18,6 +19,7 @@ import io.github.dirnei.mc.servus.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.alchemy.structure.Structures;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import net.minecraft.core.BlockPos;
@@ -26,6 +28,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -163,6 +166,33 @@ public final class CoagulatorGameTests {
         vatHandler(helper, COAGULATOR, 1).fill(new FluidStack(PrincipleFluids.fluid(Principle.SALT), 250), false);
         helper.succeedWhen(() -> helper.assertTrue(hopper.countItem(ServusAlchemyItems.SALT_CRYSTAL.get()) == 1,
                 "the hopper should take the Salt Crystal"));
+    }
+
+    /** Clay Ball, a Nigredo good, comes from the principles alone. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void coagulatorMakesClay(GameTestHelper helper) {
+        makesFromPrinciples(helper, "clay_ball", Items.CLAY_BALL);
+    }
+
+    /** Bone Meal, a Nigredo good, comes from the principles alone. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void coagulatorMakesBoneMeal(GameTestHelper helper) {
+        makesFromPrinciples(helper, "bone_meal", Items.BONE_MEAL);
+    }
+
+    /** Selects the shipped recipe {@code name}, gives the formed Coagulator exactly its principles and waits for one {@code result}. */
+    private static void makesFromPrinciples(GameTestHelper helper, String name, Item result) {
+        CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
+        Identifier id = AlchemyGameTests.coagulation(name);
+        CoagulationRecipe recipe = ServusRecipes.byId(helper.getLevel(), id)
+                .map(holder -> (CoagulationRecipe) holder.value()).orElseThrow(() -> new IllegalStateException("missing " + id));
+        helper.assertTrue(recipe.ingredient().isEmpty() && recipe.chapter().isEmpty(), name + " needs no item and no chapter");
+        coagulator.select(id);
+        coagulator.tanks().insert(recipe.input());
+        helper.succeedWhen(() -> {
+            helper.assertTrue(coagulator.inventory().getStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT).is(result), name + " should be made");
+            helper.assertTrue(coagulator.tanks().contents().equals(Principles.NONE), "the principles are used up");
+        });
     }
 
     /** An unformed Coagulator with Salt and a recipe makes nothing and offers no port. */
