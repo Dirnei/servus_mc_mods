@@ -10,8 +10,8 @@
 - [x] 2.3 Journal: `bind` without item, `ripen` event with the yield, chapter JSON and task names updated; GameTest that a ripe gold vein finishes the task; run `:alchemy:runGameTestServer`
 - [x] 2.4 Athanor seed recipes per tier (datagen), journal Workshop text and Athanor recipe list; GameTest that the Seed of Gold needs a Citrinitas Athanor; run `runData` and `:alchemy:runGameTestServer`
 - [x] 2.6 Play check fix: one Seed per loaded vein in the Servus creative tab (from `ClientVeins.ids()` in `ServusAlchemyEvents`) and each Seed its own JEI entry (`registerItemSubtypes` with the `vein` component in `ServusAlchemyJeiPlugin`); run `:alchemy:build :alchemy:test`
-- [ ] 2.5 Launch the client from main: seeds show their names and colours, JEI shows the Athanor recipes
+- [x] 2.5 Launch the client from main: seeds show their names and colours, JEI shows the Athanor recipes
 
 ## 3. Play check
 
-- [ ] 3.1 User play check: Salt Crystal calls the gnome first, seeds made at the right Athanor tiers and planted by him, another seed swaps the vein, raw ore refused
+- [x] 3.1 User play check: Salt Crystal calls the gnome first, seeds made at the right Athanor tiers and planted by him, another seed swaps the vein, raw ore refused
