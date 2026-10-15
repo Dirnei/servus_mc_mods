@@ -229,6 +229,10 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
                 "Do not ask what it is. It burns forever, that is all you need to know.");
         add(ServusAlchemyItems.SALAMANDER_SPAWN_EGG.get(), "Salamander Spawn Egg");
         add(ServusAlchemyEntities.SALAMANDER.get(), "Salamander");
+        add(ServusAlchemyEntities.GNOME.get(), "Gnome");
+        add(ServusAlchemyItems.MINER_GNOME_SPAWN_EGG.get(), "Old Miner Spawn Egg");
+        add(ServusAlchemyItems.LANTERN_GNOME_SPAWN_EGG.get(), "Lantern Bearer Spawn Egg");
+        add(ServusAlchemyItems.HOUSE_GNOME_SPAWN_EGG.get(), "House Gnome Spawn Egg");
         for (Principle principle : Principle.values()) {
             String name = PrincipleText.name(principle);
             PrincipleFluids.Entry entry = PrincipleFluids.entry(principle);

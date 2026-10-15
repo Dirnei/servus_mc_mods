@@ -32,6 +32,9 @@ final class ServusAlchemyItemModelProvider extends ItemModelProvider {
         basicItem(ServusAlchemyItems.RED_FELT_SCRAP.get());
         basicItem(ServusAlchemyItems.SALT_OFFERING.get());
         basicItem(ServusAlchemyItems.SALAMANDER_SPAWN_EGG.get());
+        basicItem(ServusAlchemyItems.MINER_GNOME_SPAWN_EGG.get());
+        basicItem(ServusAlchemyItems.LANTERN_GNOME_SPAWN_EGG.get());
+        basicItem(ServusAlchemyItems.HOUSE_GNOME_SPAWN_EGG.get());
         seed();
         basicItem(ElementalSight.ELIXIR.get());
         basicItem(ServusAlchemyItems.PARACELSUS_JOURNAL.get());

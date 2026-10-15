@@ -1,13 +1,18 @@
 package io.github.dirnei.mc.servus.alchemy.registry;
 
 import io.github.dirnei.mc.servus.alchemy.QuoteItem;
+import io.github.dirnei.mc.servus.alchemy.gnome.Gnome;
+import io.github.dirnei.mc.servus.alchemy.gnome.GnomeKind;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinSeedItem;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.journal.ParacelsusJournalItem;
 import java.util.List;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.world.item.component.TypedEntityData;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -55,6 +60,9 @@ public final class ServusAlchemyItems {
     public static final DeferredItem<QuoteItem> IGNIS_PERPETUUS = ITEMS.registerItem("ignis_perpetuus", QuoteItem::new);
     public static final DeferredItem<SpawnEggItem> SALAMANDER_SPAWN_EGG = ITEMS.registerItem("salamander_spawn_egg", SpawnEggItem::new,
             () -> new Item.Properties().spawnEgg(ServusAlchemyEntities.SALAMANDER.get()));
+    public static final DeferredItem<SpawnEggItem> MINER_GNOME_SPAWN_EGG = gnomeSpawnEgg(GnomeKind.MINER);
+    public static final DeferredItem<SpawnEggItem> LANTERN_GNOME_SPAWN_EGG = gnomeSpawnEgg(GnomeKind.LANTERN);
+    public static final DeferredItem<SpawnEggItem> HOUSE_GNOME_SPAWN_EGG = gnomeSpawnEgg(GnomeKind.HOUSE);
 
     /** Traces the old gnome leaves behind: picking one up tells the journal he is near. */
     public static final DeferredItem<QuoteItem> TINY_PICKAXE = ITEMS.registerItem("tiny_pickaxe", QuoteItem::new,
@@ -72,8 +80,18 @@ public final class ServusAlchemyItems {
             ALEMBIC, RECEIVER, SULFUR_HOOD, COPPER_DUCT, PURIFIER, CATCH_BASIN, RESIDUE_CROCK, COAGULATOR, VAT, ATHANOR, GNOME_HOLLOW,
             PRINCIPLE_DROPPER, ASH, CAPUT_MORTUUM, SALT_CRYSTAL, SALT_CRYSTAL_BLOCK, SULFUR, QUICKSILVER,
             SAL_AMMONIAC, IGNIS_PERPETUUS, SALAMANDER_FORGE, RECEPTACULUM, SEALED_FLASK, PRELUM_SCREW, PRELUM, SALAMANDER_SPAWN_EGG,
-            TINY_PICKAXE, RED_FELT_SCRAP, SALT_OFFERING);
+            MINER_GNOME_SPAWN_EGG, LANTERN_GNOME_SPAWN_EGG, HOUSE_GNOME_SPAWN_EGG, TINY_PICKAXE, RED_FELT_SCRAP, SALT_OFFERING);
 
     private ServusAlchemyItems() {
+    }
+
+    /** A spawn egg for a gnome of {@code kind} without a hollow, for tests. */
+    private static DeferredItem<SpawnEggItem> gnomeSpawnEgg(GnomeKind kind) {
+        return ITEMS.registerItem(kind.serializedName() + "_gnome_spawn_egg", SpawnEggItem::new, () -> {
+            CompoundTag data = new CompoundTag();
+            data.putString(Gnome.KIND_TAG, kind.serializedName());
+            return new Item.Properties().spawnEgg(ServusAlchemyEntities.GNOME.get())
+                    .component(DataComponents.ENTITY_DATA, TypedEntityData.of(ServusAlchemyEntities.GNOME.get(), data));
+        });
     }
 }

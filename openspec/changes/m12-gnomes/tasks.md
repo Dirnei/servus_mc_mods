@@ -1,6 +1,6 @@
 ## 1. Entity
 
-- [ ] 1.1 `GnomeKind`, `Gnome` entity type registration, synced kind, invulnerable, no push, no leash, persistent; spawn egg per kind; lang; run `runData` and `:alchemy:build`
+- [x] 1.1 `GnomeKind`, `Gnome` entity type registration, synced kind, invulnerable, no push, no leash, persistent; spawn egg per kind; lang; run `runData` and `:alchemy:build`
 - [ ] 1.2 Model after the sheet (shared body, prop per kind), textures from a generator script, renderer drawn only under the sight, walk, swing, sway and blink animation; list overlapping boxes for z-fighting; run `:alchemy:build`
 
 ## 2. Old Miner

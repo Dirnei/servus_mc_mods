@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.alchemy.registry;
 
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.gnome.Gnome;
 import io.github.dirnei.mc.servus.alchemy.salamander.Salamander;
 import io.github.dirnei.mc.servus.alchemy.salamander.SalamanderPlacement;
 import net.minecraft.world.entity.EntityType;
@@ -21,6 +22,8 @@ public final class ServusAlchemyEntities {
 
     public static final DeferredHolder<EntityType<?>, EntityType<Salamander>> SALAMANDER = ENTITIES.registerEntityType("salamander",
             Salamander::new, MobCategory.CREATURE, builder -> builder.sized(0.6F, 0.5F).fireImmune().clientTrackingRange(10));
+    public static final DeferredHolder<EntityType<?>, EntityType<Gnome>> GNOME = ENTITIES.registerEntityType("gnome",
+            Gnome::new, MobCategory.MISC, builder -> builder.sized(0.5F, 0.9F).fireImmune().clientTrackingRange(8));
 
     private ServusAlchemyEntities() {
     }
@@ -28,6 +31,7 @@ public final class ServusAlchemyEntities {
     @SubscribeEvent
     public static void onAttributes(EntityAttributeCreationEvent event) {
         event.put(SALAMANDER.get(), Salamander.createAttributes().build());
+        event.put(GNOME.get(), Gnome.createAttributes().build());
     }
 
     @SubscribeEvent
