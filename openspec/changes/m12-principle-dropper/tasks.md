@@ -13,7 +13,7 @@
 ## 3. Craft, journal and docs
 
 - [x] 3.1 Athanor craft `principle_dropper` in `AlchemyRecipeTable` (D8); `:alchemy:runData`. GameTest `dropperNeedsCitrinitas` in `DropperGameTests` (an Albedo Athanor does not make it, a Citrinitas one does). Verify: `:alchemy:runGameTestServer` green.
-- [ ] 3.2 Workshop entry `principle_dropper` in `WorkshopCategory` (D9); `:alchemy:runData`. Docs: `docs/src/content/docs/mods/alchemy.md` (machines and Gnomes sections), `reference/datapack/machines.md` (row and fields). Verify: `gradlew build` green, no em dash in the diff.
+- [x] 3.2 Workshop entry `principle_dropper` in `WorkshopCategory` (D9); `:alchemy:runData`. Docs: `docs/src/content/docs/mods/alchemy.md` (machines and Gnomes sections), `reference/datapack/machines.md` (row and fields). Verify: `gradlew build` green, no em dash in the diff.
 
 ## 4. Verification
 

@@ -37,7 +37,7 @@ final class WorkshopCategory extends CategoryProvider {
                 "___________________s_",
                 "___________________e_",
                 "___________________h_",
-                "___________________y_",
+                "_________________d_y_",
                 "___________________r_",
         };
     }
@@ -54,6 +54,8 @@ final class WorkshopCategory extends CategoryProvider {
         BookEntryModel elixir = add(albedo(elixir().generate('e').withParent(block)));
         BookEntryModel hollow = add(albedo(hollow().generate('h').withParent(elixir)));
         BookEntryModel yellow = add(yellowRing().generate('y').withParent(hollow)
+                .withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ)));
+        add(dropper().generate('d').withParent(yellow)
                 .withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ)));
         add(redCrown().generate('r').withParent(yellow)
                 .withCondition(condition().researchNodeUnlocked(JournalResearch.WANDERING_YEARS)));
@@ -289,6 +291,26 @@ final class WorkshopCategory extends CategoryProvider {
                             + "Then the flame turns red: Rubedo.");
             e.multiblock("crown", ServusAlchemyMultiblockProvider.athanor("rubedo"), "The Red Crown",
                     "Four pillars of Crying Obsidian on the amethyst corners. Press Visualize, then click the ground.");
+        });
+    }
+
+    private WorkshopEntry dropper() {
+        AlchemyRecipeTable.AthanorCraft craft = athanorCraft("principle_dropper");
+        return new WorkshopEntry(this, "principle_dropper", "Principle Dropper", "Citrinitas: the Hollow fed by drops",
+                ServusAlchemyItems.PRINCIPLE_DROPPER.get(), e -> {
+            e.spotlight("dropper", ServusAlchemyItems.PRINCIPLE_DROPPER.get(), "Principle Dropper",
+                    "A vat taught to weep. It lets the principles fall drop by drop, so no pipe need ever touch the Hollow.");
+            e.text("making", "Making It",
+                    "Lay " + craft.inputLabel() + " on a yellow Athanor and feed it " + PrincipleText.amounts(craft.principles()) + ".");
+            e.text("using", "Using It",
+                    "Set the Dropper right on top of a Gnome Hollow and lead Salt, Sulfur and Mercury into it with a Fluid Pipe, "
+                            + "or pour buckets in. Each principle has its own small tank.\n\n"
+                            + "While the vein below is seeded and not yet ripe, the Dropper lets fall what the vein drinks, a few drops at a time, "
+                            + "and the vein ripens without your buckets. A ripe vein, an empty Hollow or plain stone gets nothing; "
+                            + "the Dropper keeps its principles and pours them into nothing else.");
+            e.text("binding", "Still by Hand",
+                    "The drops only ripen the vein. Binding the gnome with a Salt Crystal and taking its ore out remain your work, "
+                            + "under the sight.");
         });
     }
 

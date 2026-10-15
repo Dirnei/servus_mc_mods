@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "making",
+  "show_title_separator": true,
+  "sort_number": 1,
+  "text": "book.servus_alchemy.journal.workshop.principle_dropper.making.text",
+  "title": "book.servus_alchemy.journal.workshop.principle_dropper.making.title"
+}

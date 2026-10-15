@@ -21,13 +21,13 @@ Every field is optional. A field the file leaves out, or a missing file, falls b
 
 | Field | Type | Default | Meaning |
 |---|---|---|---|
-| `work_ticks` | int | per machine | Ticks per work cycle. Used by the pumps; the Calciner and Coagulator take the recipe's time. |
+| `work_ticks` | int | per machine | Ticks per work cycle. Used by the pumps and as the Principle Dropper's drip interval; the Calciner and Coagulator take the recipe's time. |
 | `energy_per_tick` | int | per machine | FE a powered machine consumes per working tick, or FE a generator produces per burning tick. |
 | `energy_capacity` | int | per machine | Size of the FE buffer. 0 for burner machines. |
 | `fuel_divisor` | int | 1 | Furnace burn time of a fuel item is divided by this. Values below 1 count as 1. |
 | `items_per_tick` | int | 0 | Reserved for item throughput. No Alchemy machine uses it yet. |
-| `fluid_per_cycle` | int | 0 | mB of water a pump adds to its buffer per work cycle. |
-| `fluid_capacity` | int | 0 | Size of a pump's water buffer, or of each principle tank of the Calciner and Coagulator, in mB. |
+| `fluid_per_cycle` | int | 0 | mB of water a pump adds to its buffer per work cycle, or mB of each principle one drip of the Principle Dropper carries. |
+| `fluid_capacity` | int | 0 | Size of a pump's water buffer, or of each principle tank of the Calciner, Coagulator, Gnome Hollow and Principle Dropper, in mB. |
 | `item_capacity` | int | 0 | Items a machine's own store holds: the Calciner's Ash Pan and the Gnome Hollow's store of dug ore. |
 | `min_source_neighbours` | int | 0 | How many of the four horizontal neighbours of the water source below a pump must be water sources too. |
 | `upkeep_item` | item id | per machine | The item a machine keeps stocked in its fuel slot from the data line. `minecraft:coal` for the Burner Pump, the Coal Generator and the Calciner, empty for the others. |
@@ -64,12 +64,13 @@ These are the defaults built into the code, used for any field a file leaves out
 | `coagulator` | crafter | `servus_alchemy:coagulation` | 1 | 0 | 0 | 1 | 4000 |
 | `athanor` | crafter | `servus_alchemy:athanor` | 1 | 0 | 0 | 1 | 4000 |
 | `gnome_hollow` | crafter | vein yield | 1 | 0 | 0 | 1 | 4000 |
+| `principle_dropper` | crafter | drips into the Gnome Hollow below | 20 | 0 | 0 | 1 | 1000 |
 | `servus_foundation:coal_generator` | generator | burns fuel | 1 | 40 | 16000 | 4 | 0 |
 | `servus_foundation:ender_anchor` | powered | nothing, upkeep only | 1 | 10 per chunk | 20000 | 1 | 0 |
 | `servus_foundation:burner_pump` | burner | water | 20 | 0 | 0 | 1 | 4000 |
 | `servus_foundation:electric_pump` | powered | water | 20 | 20 | 8000 | 1 | 4000 |
 
-`items_per_tick` is 0 for every machine. `item_capacity` is 64 for the Calciner and the Gnome Hollow and 0 for the others. The pumps add `fluid_per_cycle` 250 (Burner Pump) and 500 (Electric Pump) and `min_source_neighbours` 2; these are 0 for every other machine. `upkeep_item` is `minecraft:coal` and `upkeep_level` 16 for the Burner Pump, the Coal Generator and the Calciner; every other machine keeps no upkeep.
+`items_per_tick` is 0 for every machine. `item_capacity` is 64 for the Calciner and the Gnome Hollow and 0 for the others. The pumps add `fluid_per_cycle` 250 (Burner Pump) and 500 (Electric Pump) and `min_source_neighbours` 2, and the Principle Dropper `fluid_per_cycle` 25; these are 0 for every other machine. `upkeep_item` is `minecraft:coal` and `upkeep_level` 16 for the Burner Pump, the Coal Generator and the Calciner; every other machine keeps no upkeep.
 
 The shipped stats files repeat these defaults.
 

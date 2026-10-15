@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "dropper",
+  "item": {
+    "id": "servus_alchemy:principle_dropper"
+  },
+  "sort_number": 0,
+  "text": "book.servus_alchemy.journal.workshop.principle_dropper.dropper.text",
+  "title": "book.servus_alchemy.journal.workshop.principle_dropper.dropper.title"
+}
