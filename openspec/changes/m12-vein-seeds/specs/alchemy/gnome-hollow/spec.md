@@ -52,6 +52,22 @@ A vein SHALL be a JSON file at `data/<namespace>/servus_alchemy/vein/<name>.json
 - **WHEN** the shipped data holds an iron vein with yield Raw Iron
 - **THEN** a Hollow planted with a Seed of Iron yields Raw Iron once ripe
 
+#### Scenario: Gold before Schwaz
+- **WHEN** a team that finished Villach but not Schwaz has a Seed of Gold and a Hollow with a gnome
+- **THEN** the gnome plants the gold vein: the chapter no longer gates it, making the Seed of Gold on a Citrinitas Athanor does
+
+#### Scenario: Gold after Schwaz
+- **WHEN** a player under Elemental Sight gives a Seed of Gold to a Hollow with a gnome
+- **THEN** the Hollow holds a gold vein at ripeness 0
+
+#### Scenario: Ore of the tag
+- **WHEN** a player under Elemental Sight uses a gold ore block on a Hollow with a gnome
+- **THEN** nothing is planted: ores of a tag no longer plant veins, only Seeds do
+
+#### Scenario: Diamond
+- **WHEN** a ripe diamond vein is worked by its gnome
+- **THEN** its store fills with Diamonds, and its Seed came from a Rubedo Athanor
+
 #### Scenario: A vein from a datapack
 - **WHEN** a datapack adds a vein `mypack:tin` and an Athanor recipe for its Seed
 - **THEN** the Seed of Tin can be made, shows the tin vein's colour and plants a tin vein
