@@ -5,7 +5,7 @@ Every chapter entry of the journal book SHALL open with a task page. It SHALL li
 
 #### Scenario: Progress shows in the book
 - **WHEN** a player whose team has calcined 40 of 100 items opens the Villach entry
-- **THEN** the task page shows "Calcine 100 things" with "40 / 100" and no mark
+- **THEN** the task page shows "Calcine things" with "40 / 100" and no mark
 
 #### Scenario: Task done
 - **WHEN** the team coagulates its first Salt Crystal while the player reads the Villach entry

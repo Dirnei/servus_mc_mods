@@ -25,4 +25,4 @@ Chapters and counts live on the server (`JournalChapters`, `JournalSavedData`). 
 ## Assumptions to confirm with the user
 
 - The task page is the first page of every chapter entry (left side of the first spread), the story starts on the right.
-- Short task names, for example "Calcine 100 things", "Gather 1,000 mB of Salt", "Bind a gnome to a gold vein".
+- Short task names without numbers, for example "Calcine things", "Gather Salt (mB)", "Bind a gnome to a gold vein"; the count shows the numbers.
