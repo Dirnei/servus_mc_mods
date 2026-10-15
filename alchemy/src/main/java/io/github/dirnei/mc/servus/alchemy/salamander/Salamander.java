@@ -93,7 +93,11 @@ public class Salamander extends TamableAnimal {
      */
     public static boolean checkSpawnRules(EntityType<Salamander> type, LevelAccessor level, EntitySpawnReason reason, BlockPos pos,
                                           RandomSource random) {
-        SalamanderTemper.Spawn spawn = SalamanderTemperData.INSTANCE.forType(type).spawn();
+        return spawnAllowed(level, pos, random, SalamanderTemperData.INSTANCE.forType(type).spawn());
+    }
+
+    /** {@link #checkSpawnRules} with the given spawn numbers. */
+    public static boolean spawnAllowed(LevelAccessor level, BlockPos pos, RandomSource random, SalamanderTemper.Spawn spawn) {
         Holder<Biome> biome = level.getBiome(pos);
         String biomeId = biome.unwrapKey().map(key -> key.identifier().toString()).orElse("");
         if (!spawn.biomeAllows(biomeId, random.nextDouble())) {

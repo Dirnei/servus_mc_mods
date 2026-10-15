@@ -6,17 +6,23 @@ import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.salamander.Salamander;
+import io.github.dirnei.mc.servus.alchemy.salamander.SalamanderPlacement;
 import io.github.dirnei.mc.servus.alchemy.salamander.SalamanderTemper;
 import io.github.dirnei.mc.servus.alchemy.salamander.SalamanderTemperData;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.commands.FillBiomeCommand;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -157,32 +163,132 @@ public final class SalamanderGameTests {
         helper.succeed();
     }
 
-    /** The shipped temper data loads and the biome modifier that spawns salamanders is registered. */
+    /** The shipped temper data with its spawn numbers loads, and both biome modifiers that spawn salamanders are registered. */
     @ServusGameTest(timeoutTicks = 20)
     public static void shippedTemperAndSpawnsLoad(GameTestHelper helper) {
         SalamanderTemper temper = SalamanderTemperData.INSTANCE.forType(ServusAlchemyEntities.SALAMANDER.get());
-        helper.assertTrue(temper.equals(new SalamanderTemper(0.33, 1200)), "shipped temper expected, got " + temper);
+        SalamanderTemper shipped = new SalamanderTemper(0.33, 1200,
+                new SalamanderTemper.Spawn(4, 32, 3, Map.of("minecraft:warped_forest", 0.5)));
+        helper.assertTrue(temper.equals(shipped), "shipped temper expected, got " + temper);
         var modifiers = helper.getLevel().registryAccess().lookupOrThrow(NeoForgeRegistries.Keys.BIOME_MODIFIERS);
+        for (String name : new String[] {"salamander_forest", "salamander_lava"}) {
+            helper.assertTrue(modifiers.get(ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS,
+                    Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, name))).isPresent(), "the biome modifier " + name + " is loaded");
+        }
         helper.assertTrue(modifiers.get(ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS,
-                Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "salamander"))).isPresent(), "the salamander biome modifier is loaded");
+                Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "salamander"))).isEmpty(), "the old biome modifier is gone");
         helper.succeed();
     }
 
-    /** It spawns on lava with air above, not under a roof and not on stone. */
+    /** The floor block under the ground spawn spot. */
+    private static final BlockPos GROUND = new BlockPos(4, 1, 4);
+    /** Where a salamander would spawn on the ground. */
+    private static final BlockPos GROUND_SPOT = GROUND.above();
+
+    /**
+     * The shipped spawn numbers with a crowd radius of 3, so wild salamanders of the other tests running beside this one do
+     * not count.
+     */
+    private static SalamanderTemper.Spawn isolated() {
+        SalamanderTemper.Spawn shipped = SalamanderTemperData.INSTANCE.forType(ServusAlchemyEntities.SALAMANDER.get()).spawn();
+        return new SalamanderTemper.Spawn(shipped.homeRadius(), 3, shipped.crowdMax(), shipped.biomeChance());
+    }
+
+    private static void biome(GameTestHelper helper, BlockPos around, ResourceKey<Biome> key) {
+        BlockPos at = helper.absolutePos(around);
+        Holder<Biome> biome = helper.getLevel().registryAccess().lookupOrThrow(Registries.BIOME).getOrThrow(key);
+        FillBiomeCommand.fill(helper.getLevel(), at.offset(-4, -4, -4), at.offset(4, 4, 4), biome);
+    }
+
+    /** Whether the spawn placement and the spawn rule both let a salamander spawn at {@code pos}. */
+    private static boolean spawnsAt(GameTestHelper helper, BlockPos pos) {
+        BlockPos at = helper.absolutePos(pos);
+        return SalamanderPlacement.INSTANCE.isSpawnPositionOk(helper.getLevel(), at, ServusAlchemyEntities.SALAMANDER.get())
+                && Salamander.spawnAllowed(helper.getLevel(), at, helper.getLevel().getRandom(), isolated());
+    }
+
+    /** Crimson Nylium in a Crimson Forest with a Crimson Stem two blocks from the spot. */
+    private static void crimsonFloor(GameTestHelper helper) {
+        biome(helper, GROUND_SPOT, Biomes.CRIMSON_FOREST);
+        helper.setBlock(GROUND, Blocks.CRIMSON_NYLIUM);
+        helper.setBlock(GROUND_SPOT.east(2), Blocks.CRIMSON_STEM);
+    }
+
+    /** It spawns on Crimson Nylium near a Crimson Stem. */
     @ServusGameTest(timeoutTicks = 20)
-    public static void spawnsOnlyOnOpenLava(GameTestHelper helper) {
+    public static void spawnsNearCrimsonStems(GameTestHelper helper) {
+        crimsonFloor(helper);
+        helper.assertTrue(spawnsAt(helper, GROUND_SPOT), "a spot two blocks from a Crimson Stem allows a spawn");
+        helper.succeed();
+    }
+
+    /** It spawns near Nether Wart on Soul Sand. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void spawnsNearNetherWart(GameTestHelper helper) {
+        biome(helper, GROUND_SPOT, Biomes.CRIMSON_FOREST);
+        helper.setBlock(GROUND, Blocks.CRIMSON_NYLIUM);
+        helper.setBlock(GROUND.west(3), Blocks.SOUL_SAND);
+        helper.setBlock(GROUND_SPOT.west(3), Blocks.NETHER_WART);
+        helper.assertTrue(spawnsAt(helper, GROUND_SPOT), "a spot three blocks from Nether Wart allows a spawn");
+        helper.succeed();
+    }
+
+    /** Bare nylium with the nearest stem beyond the home radius allows no spawn. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void refusesBareNylium(GameTestHelper helper) {
+        biome(helper, GROUND_SPOT, Biomes.CRIMSON_FOREST);
+        helper.setBlock(GROUND, Blocks.CRIMSON_NYLIUM);
+        helper.setBlock(GROUND_SPOT.east(5), Blocks.CRIMSON_STEM);
+        helper.assertTrue(!spawnsAt(helper, GROUND_SPOT), "a stem five blocks away is too far");
+        helper.succeed();
+    }
+
+    /** Three wild salamanders around the spot stop the next one. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void refusesWhenCrowded(GameTestHelper helper) {
+        crimsonFloor(helper);
+        for (int i = 0; i < 3; i++) {
+            helper.spawnWithNoFreeWill(ServusAlchemyEntities.SALAMANDER.get(), GROUND_SPOT.north(1 + i % 2).west(i / 2));
+        }
+        helper.assertTrue(!spawnsAt(helper, GROUND_SPOT), "three wild salamanders around refuse a fourth");
+        helper.succeed();
+    }
+
+    /** Befriended salamanders around the spot do not count against the crowd. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void petsDoNotCrowd(GameTestHelper helper) {
+        crimsonFloor(helper);
+        Player owner = playerWithGold(helper, 3);
+        for (int i = 0; i < 3; i++) {
+            Salamander pet = helper.spawnWithNoFreeWill(ServusAlchemyEntities.SALAMANDER.get(), GROUND_SPOT.north(1 + i % 2).west(i / 2));
+            pet.offerGold(owner, owner.getMainHandItem(), ALWAYS);
+            helper.assertTrue(pet.isTame(), "the pet should be befriended");
+        }
+        helper.assertTrue(spawnsAt(helper, GROUND_SPOT), "three pets around still allow a wild one");
+        helper.succeed();
+    }
+
+    /** In the Nether Wastes it spawns on lava with air above, not under a roof. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void stillSpawnsOnOpenLava(GameTestHelper helper) {
         BlockPos open = new BlockPos(4, 1, 4);
         BlockPos roofed = new BlockPos(6, 1, 4);
+        biome(helper, open, Biomes.NETHER_WASTES);
         helper.setBlock(open, Blocks.LAVA);
         helper.setBlock(roofed, Blocks.LAVA);
         helper.setBlock(roofed.above(), Blocks.STONE);
-        var type = ServusAlchemyEntities.SALAMANDER.get();
-        var level = helper.getLevel();
-        var random = level.getRandom();
-        helper.assertTrue(Salamander.checkSpawnRules(type, level, EntitySpawnReason.NATURAL, helper.absolutePos(open), random),
-                "open lava allows a spawn");
-        helper.assertTrue(!Salamander.checkSpawnRules(type, level, EntitySpawnReason.NATURAL, helper.absolutePos(roofed), random),
-                "roofed lava does not");
+        helper.assertTrue(spawnsAt(helper, open), "open lava allows a spawn");
+        helper.assertTrue(!spawnsAt(helper, roofed), "roofed lava does not");
+        helper.succeed();
+    }
+
+    /** Lava in a biome outside the lava tag allows no spawn. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void refusesLavaOutsideLavaBiomes(GameTestHelper helper) {
+        BlockPos open = new BlockPos(4, 1, 4);
+        biome(helper, open, Biomes.CRIMSON_FOREST);
+        helper.setBlock(open, Blocks.LAVA);
+        helper.assertTrue(!spawnsAt(helper, open), "lava in the Crimson Forest allows no spawn");
         helper.succeed();
     }
 
