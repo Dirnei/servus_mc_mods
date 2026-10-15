@@ -10,7 +10,7 @@ A vein is planted with a raw ore or an ore block, and gold, redstone and diamond
   - Albedo: Seed of Iron (Raw Iron), Seed of Copper (Raw Copper).
   - Citrinitas: Seed of Gold (Raw Gold), Seed of Redstone (Redstone Dust).
   - Rubedo: Seed of Diamond (Diamond).
-- **BREAKING** for the vein data: `samples` and `chapter` leave the vein JSON. A vein is planted only by its seed. (Unreleased, so no migration.)
+- `samples` and `chapter` leave the vein JSON. A vein is planted only by its seed.
 - The client learns the veins (id, colour, yield) at login and reload, for the seed's name and tint.
 
 ## Capabilities
