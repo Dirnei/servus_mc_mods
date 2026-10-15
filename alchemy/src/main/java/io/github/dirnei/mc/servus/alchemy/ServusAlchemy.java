@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.alchemy.gametest.AlchemyGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.CalcinerGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.CoagulatorGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.DropperGameTests;
+import io.github.dirnei.mc.servus.alchemy.gametest.ForgeGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.HollowGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.PurifierGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.SalamanderGameTests;
@@ -44,7 +45,7 @@ public final class ServusAlchemy {
         ServusAlchemyRecipes.RECIPE_SERIALIZERS.register(modEventBus);
         ServusGameTests.register(modEventBus, ServusAlchemyIds.MOD_ID, List.of(
                 AlchemyGameTests.class, CalcinerGameTests.class, PurifierGameTests.class, CoagulatorGameTests.class, HollowGameTests.class,
-                DropperGameTests.class, SalamanderGameTests.class));
+                DropperGameTests.class, SalamanderGameTests.class, ForgeGameTests.class));
         ServusRecipes.syncToClients(ServusAlchemyRecipes.CALCINATION);
         ServusRecipes.syncToClients(ServusAlchemyRecipes.COAGULATION);
         ServusRecipes.syncToClients(ServusAlchemyRecipes.ATHANOR);

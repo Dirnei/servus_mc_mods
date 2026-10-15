@@ -11,7 +11,7 @@
 
 ## 3. Behaviour tests
 
-- [ ] 3.1 GameTests in new `ForgeGameTests` (registered in `ServusAlchemy`): `smeltsIronWithoutFuel`, `refusesWhatDoesNotSmelt`, `stopsWhenOutputIsFull`, `alwaysLitAndGlows`, `hopperInChestOut` (hopper above feeds, chest below gets the ingots through the push), `pipeFeedsTheForge` (Item Pipe pulls Raw Iron from a chest into the Forge), `offSideRefuses`, `frontIsClosed`, `exposesSmeltingProduction` (Raw Iron to Iron Ingot at the work time, active recipe), `producerOnTheDataLine` (producer, no upkeep), `breakingDropsContents`. Verify: `:alchemy:runGameTestServer` green.
+- [x] 3.1 GameTests in new `ForgeGameTests` (registered in `ServusAlchemy`): `smeltsIronWithoutFuel`, `refusesWhatDoesNotSmelt`, `stopsWhenOutputIsFull`, `alwaysLitAndGlows`, `hopperInChestOut` (hopper above feeds, chest below gets the ingots through the push), `pipeFeedsTheForge` (Item Pipe pulls Raw Iron from a chest into the Forge), `offSideAndFrontRefuse`, `exposesSmeltingProduction` (Raw Iron to Iron Ingot at the work time, active recipe), `producerOnTheDataLine` (producer, no upkeep), `breakingDropsContents`. Verify: `:alchemy:runGameTestServer` green.
 
 ## 4. Recipe, journal and docs
 
