@@ -1,0 +1,30 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_alchemy:opus",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "servus_alchemy:journal/schwaz"
+  },
+  "description": "book.servus_alchemy.journal.opus.wandering_years.description",
+  "icon": {
+    "id": "minecraft:raw_gold"
+  },
+  "id": "servus_alchemy:opus/wandering_years",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.servus_alchemy.journal.opus.wandering_years.name",
+  "parents": [
+    {
+      "entry": "servus_alchemy:opus/schwaz"
+    }
+  ],
+  "sort_number": 3,
+  "x": 5,
+  "y": 0
+}

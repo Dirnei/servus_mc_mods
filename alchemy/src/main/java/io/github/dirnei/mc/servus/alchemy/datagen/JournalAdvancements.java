@@ -29,7 +29,9 @@ final class JournalAdvancements implements AdvancementSubProvider {
 
     static final List<Chapter> CHAPTERS = List.of(
             new Chapter("villach", ServusAlchemyItems.CALCINER.get()),
-            new Chapter("schwaz", Items.IRON_PICKAXE));
+            new Chapter("schwaz", Items.IRON_PICKAXE),
+            new Chapter("wandering_years", Items.RAW_GOLD),
+            new Chapter("basel_salzburg", Items.CRYING_OBSIDIAN));
 
     @Override
     public void generate(HolderLookup.Provider registries, Consumer<AdvancementHolder> saver) {

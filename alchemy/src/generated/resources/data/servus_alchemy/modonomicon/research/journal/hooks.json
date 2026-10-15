@@ -4,5 +4,17 @@
     "id": "servus_alchemy:journal/villach_finished_hook",
     "trigger_target": "servus_alchemy:journal/villach",
     "trigger_type": "modonomicon:advancement"
+  },
+  {
+    "fact_id": "servus_alchemy:journal/schwaz_finished",
+    "id": "servus_alchemy:journal/schwaz_finished_hook",
+    "trigger_target": "servus_alchemy:journal/schwaz",
+    "trigger_type": "modonomicon:advancement"
+  },
+  {
+    "fact_id": "servus_alchemy:journal/wandering_years_finished",
+    "id": "servus_alchemy:journal/wandering_years_finished_hook",
+    "trigger_target": "servus_alchemy:journal/wandering_years",
+    "trigger_type": "modonomicon:advancement"
   }
 ]

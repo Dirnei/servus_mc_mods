@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "block",
+  "item": {
+    "id": "minecraft:crying_obsidian"
+  },
+  "sort_number": 0,
+  "text": "book.servus_alchemy.journal.workshop.crying_obsidian.block.text",
+  "title": "book.servus_alchemy.journal.workshop.crying_obsidian.block.title"
+}

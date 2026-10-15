@@ -1,0 +1,26 @@
+{
+  "parent": "servus_alchemy:journal/wandering_years",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "journal.servus_alchemy.basel_salzburg.finished"
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "minecraft:crying_obsidian"
+    },
+    "title": {
+      "translate": "journal.servus_alchemy.basel_salzburg"
+    }
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

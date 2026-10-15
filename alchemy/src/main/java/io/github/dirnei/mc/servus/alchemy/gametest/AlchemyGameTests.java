@@ -692,6 +692,25 @@ public final class AlchemyGameTests {
         helper.succeed();
     }
 
+    /** The new chapters have advancements, and the Schwaz and Wandering years advancements unlock their research nodes. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void newChapterAdvancementsUnlockTheirNodes(GameTestHelper helper) {
+        ServerPlayer player = PlayerClicks.player(helper, MACHINE, ItemStack.EMPTY);
+        var research = ResearchServices.state();
+        for (String chapter : List.of("schwaz", "wandering_years")) {
+            Identifier node = Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "journal/" + chapter);
+            helper.assertFalse(research.isNodeUnlocked(player, node), "the " + chapter + " node starts locked");
+            AdvancementHolder advancement = helper.getLevel().getServer().getAdvancements()
+                    .get(Journal.advancementId(ServusAlchemyIds.MOD_ID + ":" + chapter));
+            helper.assertTrue(advancement != null, "the " + chapter + " advancement exists");
+            advancement.value().criteria().keySet().forEach(criterion -> player.getAdvancements().award(advancement, criterion));
+            helper.assertTrue(research.isNodeUnlocked(player, node), "the " + chapter + " advancement unlocks its node");
+        }
+        helper.assertTrue(helper.getLevel().getServer().getAdvancements().get(Journal.advancementId(BASEL_SALZBURG)) != null,
+                "the Basel and Salzburg advancement exists");
+        helper.succeed();
+    }
+
     /** Breaking the crown breaks the Athanor below. */
     @ServusGameTest(timeoutTicks = 20)
     public static void breakingTheCrownBreaksTheAthanor(GameTestHelper helper) {

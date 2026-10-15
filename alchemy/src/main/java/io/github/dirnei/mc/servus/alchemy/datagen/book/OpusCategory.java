@@ -16,9 +16,9 @@ final class OpusCategory extends CategoryProvider {
     @Override
     protected String[] generateEntryMap() {
         return new String[] {
-                "_____________________",
-                "_____p___v___s_______",
-                "_____________________",
+                "_________________________",
+                "_____p___v___s___w___b___",
+                "_________________________",
         };
     }
 
@@ -32,6 +32,14 @@ final class OpusCategory extends CategoryProvider {
         schwaz.withParent(villach);
         schwaz.withCondition(condition().researchNodeUnlocked(JournalResearch.VILLACH));
         add(schwaz);
+        BookEntryModel wandering = new JournalEntries.WanderingYears(this).generate('w');
+        wandering.withParent(schwaz);
+        wandering.withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ));
+        add(wandering);
+        BookEntryModel basel = new JournalEntries.BaselSalzburg(this).generate('b');
+        basel.withParent(wandering);
+        basel.withCondition(condition().researchNodeUnlocked(JournalResearch.WANDERING_YEARS));
+        add(basel);
     }
 
     @Override

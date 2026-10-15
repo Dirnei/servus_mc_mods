@@ -1,0 +1,30 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_alchemy:opus",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "servus_alchemy:journal/wandering_years"
+  },
+  "description": "book.servus_alchemy.journal.opus.basel_salzburg.description",
+  "icon": {
+    "id": "minecraft:crying_obsidian"
+  },
+  "id": "servus_alchemy:opus/basel_salzburg",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.servus_alchemy.journal.opus.basel_salzburg.name",
+  "parents": [
+    {
+      "entry": "servus_alchemy:opus/wandering_years"
+    }
+  ],
+  "sort_number": 4,
+  "x": 9,
+  "y": 0
+}

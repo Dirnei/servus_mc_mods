@@ -1,0 +1,30 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_alchemy:workshop",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "servus_alchemy:journal/schwaz"
+  },
+  "description": "book.servus_alchemy.journal.workshop.amethyst_ring.description",
+  "icon": {
+    "id": "minecraft:amethyst_block"
+  },
+  "id": "servus_alchemy:workshop/amethyst_ring",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.servus_alchemy.journal.workshop.amethyst_ring.name",
+  "parents": [
+    {
+      "entry": "servus_alchemy:workshop/gnome_hollow"
+    }
+  ],
+  "sort_number": 9,
+  "x": 9,
+  "y": 2
+}

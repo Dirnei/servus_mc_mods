@@ -1,0 +1,30 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_alchemy:workshop",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "servus_alchemy:journal/wandering_years"
+  },
+  "description": "book.servus_alchemy.journal.workshop.crying_obsidian.description",
+  "icon": {
+    "id": "minecraft:crying_obsidian"
+  },
+  "id": "servus_alchemy:workshop/crying_obsidian",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.servus_alchemy.journal.workshop.crying_obsidian.name",
+  "parents": [
+    {
+      "entry": "servus_alchemy:workshop/amethyst_ring"
+    }
+  ],
+  "sort_number": 10,
+  "x": 9,
+  "y": 3
+}

@@ -1,0 +1,12 @@
+{
+  "type": "modonomicon:multiblock",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "crown",
+  "multiblock_id": "servus_alchemy:athanor_rubedo",
+  "multiblock_name": "book.servus_alchemy.journal.workshop.crying_obsidian.crown.title",
+  "show_visualize_button": true,
+  "sort_number": 2,
+  "text": "book.servus_alchemy.journal.workshop.crying_obsidian.crown.text"
+}

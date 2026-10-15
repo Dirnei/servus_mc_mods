@@ -250,4 +250,97 @@ final class JournalEntries {
             return "schwaz";
         }
     }
+
+    static final class WanderingYears extends TextEntry {
+
+        WanderingYears(CategoryProviderBase parent) {
+            super(parent);
+        }
+
+        @Override
+        protected void generatePages() {
+            text("story", "Wandering Years",
+                    "[storyteller] Roads. Years of roads, I stopped counting, the counting stopped me. Every town its own quack, "
+                            + "every university the same dead Latin. I learned more from barbers, hangmen and the old women who sell herbs "
+                            + "than from all the doctors and their Galen. Write that down. I am writing it down!\n\n"
+                            + "The gnomes of Schwaz laughed at my iron. Iron is for nails, they said. Feed us better and we dig the sun "
+                            + "out of the rock. The sun! Yellow fire, yellow stone. Or bile. The same thing, the same thing.");
+            text("tasks", "The Work",
+                    "Set an Amethyst Block on each Salt Crystal Block of the white ring and the Athanor burns yellow: Citrinitas. "
+                            + "Now the gnomes take nobler samples: gold, redstone and diamond.\n\n"
+                            + "To finish this chapter:\n\n"
+                            + "- Finish a craft on a Citrinitas Athanor\n"
+                            + "- Bind a gnome to a gold vein\n"
+                            + "- Bind four gnomes\n\n"
+                            + "Your team shares this work. See your progress with /servus_alchemy journal.");
+            text("unlocks", "What Follows",
+                    "Finishing the Wandering years opens the next chapter of the journal: Basel and Salzburg, and the red fire.");
+        }
+
+        @Override
+        protected String entryName() {
+            return "Wandering Years";
+        }
+
+        @Override
+        protected String entryDescription() {
+            return "Citrinitas: the yellow fire";
+        }
+
+        @Override
+        ItemLike icon() {
+            return Items.RAW_GOLD;
+        }
+
+        @Override
+        protected String entryId() {
+            return "wandering_years";
+        }
+    }
+
+    static final class BaselSalzburg extends TextEntry {
+
+        BaselSalzburg(CategoryProviderBase parent) {
+            super(parent);
+        }
+
+        @Override
+        protected void generatePages() {
+            text("story", "Basel and Salzburg",
+                    "[storyteller] Basel made me town physician and the professors hated me for it. I lectured in German, "
+                            + "not in their Latin, and I gave their great book to the fire. Let them howl! Then out, at night, like a thief. "
+                            + "And Salzburg at the end. The end? Who is writing this?\n\n"
+                            + "Red. The Work ends in red. Obsidian that weeps, from beyond the burning gate, more than any broken portal gives. "
+                            + "The fire wants a crown. Four pillars. Two stones high. I counted them twice.");
+            text("tasks", "The Work",
+                    "Stand two Crying Obsidian on each corner of the yellow ring and the Athanor burns red: Rubedo.\n\n"
+                            + "To finish this chapter:\n\n"
+                            + "- Finish a craft on a Rubedo Athanor\n"
+                            + "- Bind a gnome to a diamond vein\n"
+                            + "- Finish 16 crafts on the Athanor\n\n"
+                            + "Your team shares this work. See your progress with /servus_alchemy journal.");
+            text("unlocks", "What Follows",
+                    "Here the notes break off. The pages after this one are still blank.");
+        }
+
+        @Override
+        protected String entryName() {
+            return "Basel and Salzburg";
+        }
+
+        @Override
+        protected String entryDescription() {
+            return "Rubedo: the red fire";
+        }
+
+        @Override
+        ItemLike icon() {
+            return Items.CRYING_OBSIDIAN;
+        }
+
+        @Override
+        protected String entryId() {
+            return "basel_salzburg";
+        }
+    }
 }

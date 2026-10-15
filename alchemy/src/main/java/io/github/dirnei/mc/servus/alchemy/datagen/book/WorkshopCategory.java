@@ -19,7 +19,8 @@ import net.minecraft.world.level.block.Block;
 /**
  * The Workshop: how to build and use each alchemy machine, with its crafting recipe and the list
  * of what it works, read from the same table that writes the recipes. Nigredo entries are open
- * from the start; Albedo entries open with the Schwaz chapter, once Villach is finished.
+ * from the start; Albedo entries open with the Schwaz chapter, once Villach is finished, Citrinitas
+ * entries with Wandering years and Rubedo entries with Basel and Salzburg.
  */
 final class WorkshopCategory extends CategoryProvider {
 
@@ -36,6 +37,8 @@ final class WorkshopCategory extends CategoryProvider {
                 "___________________s_",
                 "___________________e_",
                 "___________________h_",
+                "___________________y_",
+                "___________________r_",
         };
     }
 
@@ -49,7 +52,11 @@ final class WorkshopCategory extends CategoryProvider {
         add(pipes().generate('f').withParent(calciner));
         BookEntryModel block = add(albedo(saltCrystalBlock().generate('s').withParent(athanor)));
         BookEntryModel elixir = add(albedo(elixir().generate('e').withParent(block)));
-        add(albedo(hollow().generate('h').withParent(elixir)));
+        BookEntryModel hollow = add(albedo(hollow().generate('h').withParent(elixir)));
+        BookEntryModel yellow = add(yellowRing().generate('y').withParent(hollow)
+                .withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ)));
+        add(redCrown().generate('r').withParent(yellow)
+                .withCondition(condition().researchNodeUnlocked(JournalResearch.WANDERING_YEARS)));
     }
 
     /** Locks an Albedo entry until the Villach chapter is finished. */
@@ -250,6 +257,38 @@ final class WorkshopCategory extends CategoryProvider {
                     "Break the Hollow under the sight and you get an empty Hollow back, with the ore from its store. "
                             + "The vein, its principles and its gnome are lost.\n\n"
                             + "Break it without the sight and it is only stone.");
+        });
+    }
+
+    private WorkshopEntry yellowRing() {
+        return new WorkshopEntry(this, "amethyst_ring", "The Yellow Ring", "Citrinitas: the yellow fire",
+                Items.AMETHYST_BLOCK, e -> {
+            e.spotlight("block", Items.AMETHYST_BLOCK, "Amethyst Block",
+                    "Four shards of the violet crystal that grows in the hollow stones of the deep make a block. "
+                            + "Twelve of them on the white ring turn the Athanor's flame yellow.");
+            e.text("build", "Building It",
+                    "Set an Amethyst Block on each of the twelve Salt Crystal Blocks of the white ring, on the Athanor's own level. "
+                            + "The front stays open. Without the salt below it the amethyst counts for nothing.");
+            e.multiblock("ring", ServusAlchemyMultiblockProvider.athanor("citrinitas"), "The Yellow Ring",
+                    "Twelve Amethyst Blocks on the twelve Salt Crystal Blocks. Press Visualize, then click the ground.");
+            e.text("veins", "Noble Veins",
+                    "Once Schwaz is finished, the gnomes take nobler samples: raw gold or any gold ore for gold, "
+                            + "redstone dust or any redstone ore for redstone, a diamond or any diamond ore for diamonds.\n\n"
+                            + "Noble veins drink more Salt and Mercury, the diamond Sulfur as well, and the gnomes dig them slower.");
+        });
+    }
+
+    private WorkshopEntry redCrown() {
+        return new WorkshopEntry(this, "crying_obsidian", "The Red Crown", "Rubedo: the red fire",
+                Items.CRYING_OBSIDIAN, e -> {
+            e.spotlight("block", Items.CRYING_OBSIDIAN, "Crying Obsidian",
+                    "Obsidian that weeps. A ruined portal holds a little, the Piglins of the Nether trade it for gold, "
+                            + "and the chests of their bastions keep more.");
+            e.text("build", "Building It",
+                    "Stand a pillar of two Crying Obsidian on each corner Amethyst Block of the yellow ring, eight in all. "
+                            + "Then the flame turns red: Rubedo.");
+            e.multiblock("crown", ServusAlchemyMultiblockProvider.athanor("rubedo"), "The Red Crown",
+                    "Four pillars of Crying Obsidian on the amethyst corners. Press Visualize, then click the ground.");
         });
     }
 

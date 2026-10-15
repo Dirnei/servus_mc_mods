@@ -1,0 +1,26 @@
+{
+  "parent": "servus_alchemy:journal/schwaz",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "journal.servus_alchemy.wandering_years.finished"
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "minecraft:raw_gold"
+    },
+    "title": {
+      "translate": "journal.servus_alchemy.wandering_years"
+    }
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

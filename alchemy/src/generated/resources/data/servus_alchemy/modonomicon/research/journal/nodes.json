@@ -4,5 +4,17 @@
     "required_facts": [
       "servus_alchemy:journal/villach_finished"
     ]
+  },
+  {
+    "id": "servus_alchemy:journal/schwaz",
+    "required_facts": [
+      "servus_alchemy:journal/schwaz_finished"
+    ]
+  },
+  {
+    "id": "servus_alchemy:journal/wandering_years",
+    "required_facts": [
+      "servus_alchemy:journal/wandering_years_finished"
+    ]
   }
 ]

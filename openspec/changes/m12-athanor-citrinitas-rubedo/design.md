@@ -57,7 +57,7 @@ All three carry `"chapter": "servus_alchemy:schwaz"`: like iron, which needs the
 - `diamond`: `bind`, `minecraft:diamond`, 1
 - `crafts`: `athanor`, no filter, 16
 
-`JournalAdvancements.CHAPTERS` gets `wandering_years` (icon Raw Gold) and `basel_salzburg` (icon Crying Obsidian). `JournalResearch` gets nodes `journal/schwaz` and `journal/wandering_years` (and `journal/basel_salzburg` for the Rubedo workshop entry), each declared from `onAdvancementEarned` of the chapter's advancement, like Villach. `OpusCategory` adds entries `w` and `b` after `s`, parents and conditions on the previous chapter's node. Lang keys `journal.servus_alchemy.<chapter>` and `.finished` in `ServusAlchemyLanguageProvider`.
+`JournalAdvancements.CHAPTERS` gets `wandering_years` (icon Raw Gold) and `basel_salzburg` (icon Crying Obsidian). `JournalResearch` gets nodes `journal/schwaz` (opens Wandering years and The Yellow Ring) and `journal/wandering_years` (opens Basel and Salzburg and The Red Crown), each declared from `onAdvancementEarned` of the chapter's advancement, like Villach. Basel and Salzburg needs no node until a later chapter follows it. `OpusCategory` adds entries `w` and `b` after `s`, parents and conditions on the previous chapter's node. Lang keys `journal.servus_alchemy.<chapter>` and `.finished` in `ServusAlchemyLanguageProvider`.
 
 ### D7 Workshop entries
 `WorkshopCategory` adds, under the Salt Crystal Block entry column:
