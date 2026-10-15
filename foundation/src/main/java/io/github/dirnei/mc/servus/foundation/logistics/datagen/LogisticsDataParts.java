@@ -186,6 +186,12 @@ public final class LogisticsDataParts {
         provider.add("gui.servus_foundation.mode.input", "Pull in");
         provider.add("gui.servus_foundation.mode.output", "Push out");
         provider.add("gui.servus_foundation.mode.disabled", "Disabled");
+        provider.add("message.servus_foundation.potato.duct_side", "Utility Duct, %s side (loaded ducts only)");
+        provider.add("message.servus_foundation.potato.duct_centre", "Utility Duct, centre (loaded ducts only)");
+        provider.add("message.servus_foundation.potato.item_side", "%s: %s, %s, priority %s, %s ducts, %s in / %s out");
+        provider.add("message.servus_foundation.potato.side", "%s: %s, %s, %s ducts, %s in / %s out");
+        provider.add("message.servus_foundation.potato.run", "%s: %s ducts");
+        provider.add("message.servus_foundation.potato.data", "%s: %s, %s items/s, %s used");
         provider.add("gui.servus_foundation.side.down", "Down");
         provider.add("gui.servus_foundation.side.up", "Up");
         provider.add("gui.servus_foundation.side.north", "North");

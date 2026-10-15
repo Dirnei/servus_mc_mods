@@ -42,7 +42,7 @@ Item Pipe: Push, "Iron ore", priority 2, 14 ducts, 2 in / 3 out
 Power Cable: In and out, Default, 9 ducts, 1 in / 4 out
 Data Cable: Fast Data Cable, 64 items/s, 45 used
 ```
-The arm is found with `ArmHit.hit` from the click location like the carrot does. `in` and `out` come from the pure `EndpointTally` (D4) over the network's endpoints on the side's channel (`LineNetwork.channel(P)` from `m5-named-channels`; the endpoint's mode through a new `mode(P)`).
+The arm is found with `ArmHit.hit` from the click location like the carrot does. `in` and `out` come from the pure `EndpointTally` (D4) over the side's channel. Its input is `LineNetwork.blockSides()`: the channel and mode of every member duct side whose arm of the line ends at a block (`hasArm` and `isEndpoint`, read live like `channelUses()`, which now counts over the same list). The cached endpoints are not used, because one exists for every enabled side, air and duct sides included. Lines go out with `player.sendSystemMessage`; `DuctReport.of(duct, side)` returns them as a list so GameTests read them directly, and `PlayerClicks` can collect the chat packets of a full click.
 
 ### D4: Pure endpoint tally
 

@@ -1,21 +1,41 @@
 package io.github.dirnei.mc.servus.foundation.item;
 
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctReport;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
 
 /**
  * The Data Potato, Servus' investigation tool. Held, it shows analysis views
- * such as the data duct load; it never configures or dismantles anything.
+ * such as the data duct load; used on a duct it prints a report into chat.
+ * It never configures or dismantles anything, also when sneaking.
  */
 public class DataPotatoItem extends Item {
 
     public DataPotatoItem(Properties properties) {
         super(properties.stacksTo(1));
+    }
+
+    @Override
+    public InteractionResult useOn(UseOnContext context) {
+        Level level = context.getLevel();
+        if (!(level.getBlockEntity(context.getClickedPos()) instanceof UtilityDuctBlockEntity duct)) {
+            return InteractionResult.PASS;
+        }
+        Player player = context.getPlayer();
+        if (!level.isClientSide() && player != null) {
+            DuctReport.at(duct, context.getClickLocation()).forEach(player::sendSystemMessage);
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Override

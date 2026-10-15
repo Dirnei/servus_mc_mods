@@ -3,13 +3,17 @@ package io.github.dirnei.mc.servus.foundation.gametest;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.embedded.EmbeddedChannel;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.Connection;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
@@ -44,6 +48,15 @@ public final class PlayerClicks {
 
     /** As {@link #player(GameTestHelper, BlockPos, ItemStack)} in the given game mode. */
     public static ServerPlayer player(GameTestHelper helper, BlockPos standNear, ItemStack held, GameType gameType) {
+        return player(helper, standNear, held, gameType, new ArrayList<>());
+    }
+
+    /** As {@link #player(GameTestHelper, BlockPos, ItemStack)}, adding every chat line the server sends the player to {@code chat}. */
+    public static ServerPlayer player(GameTestHelper helper, BlockPos standNear, ItemStack held, List<Component> chat) {
+        return player(helper, standNear, held, GameType.SURVIVAL, chat);
+    }
+
+    private static ServerPlayer player(GameTestHelper helper, BlockPos standNear, ItemStack held, GameType gameType, List<Component> chat) {
         CommonListenerCookie cookie = CommonListenerCookie.createInitial(new GameProfile(UUID.randomUUID(), "test-click-player"), false);
         ServerPlayer player = new ServerPlayer(helper.getLevel().getServer(), helper.getLevel(), cookie.gameProfile(), cookie.clientInformation());
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
@@ -51,6 +64,9 @@ public final class PlayerClicks {
         new ServerGamePacketListenerImpl(helper.getLevel().getServer(), connection, player, cookie) {
             @Override
             public void send(Packet<?> packet, @Nullable ChannelFutureListener listener) {
+                if (packet instanceof ClientboundSystemChatPacket message && !message.overlay()) {
+                    chat.add(message.content());
+                }
             }
         };
         player.setGameMode(gameType);

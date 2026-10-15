@@ -13,7 +13,7 @@
 ## 3. Duct report
 
 - [x] 3.1 Add pure `foundation/.../logistics/network/EndpointTally.java` (design D4) and `EndpointTallyTest` in `foundation/src/test/java/.../logistics/network/` (`inAndOutCountsBoth`, `pullInCountsIn`, `pushOutCountsOut`, `disabledIgnored`, `otherChannelIgnored`). Verify: `gradlew :foundation:test` green.
-- [ ] 3.2 `LineNetwork.mode(P)` per endpoint type; add `foundation/.../logistics/duct/DuctReport.java` (design D3) and call it from `DataPotatoItem.useOn`; `UtilityDuctBlock.useItemOn` passes the potato. Lang keys for the report lines. GameTests `potatoReportsItemArm`, `potatoReportsDataLine`, `potatoChangesNothing` (capture the chat lines with a mock player). Verify: `gradlew build` green, GameTests pass.
+- [x] 3.2 `LineNetwork.blockSides()` (channel and mode of member duct sides that touch a block, shared with `channelUses()`); add `foundation/.../logistics/duct/DuctReport.java` (design D3) and call it from `DataPotatoItem.useOn`; `UtilityDuctBlock.useItemOn` passes the potato. Lang keys for the report lines. GameTests `potatoReportsItemArm`, `potatoReportsDataLine`, `potatoChangesNothing` in `logistics/gametest/DataPotatoGameTests.java` (report lists read directly; the full click collects chat through `PlayerClicks`). Verify: `gradlew build` green, GameTests pass.
 
 ## 4. Tank report
 

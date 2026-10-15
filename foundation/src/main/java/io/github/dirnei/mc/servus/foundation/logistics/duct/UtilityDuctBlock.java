@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataSummary;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.foundation.item.DataPotatoItem;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import java.util.Map;
@@ -98,11 +99,12 @@ public class UtilityDuctBlock extends ConnectableBlock {
         }
     }
 
-    /** Wrench, line and facade items handle the click themselves instead of opening the menu. */
+    /** Wrench, Data Potato, line and facade items handle the click themselves instead of opening the menu. */
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (stack.getItem() instanceof ConfigurationCarrotItem || stack.getItem() instanceof LineItem || stack.getItem() instanceof FacadeItem) {
+        if (stack.getItem() instanceof ConfigurationCarrotItem || stack.getItem() instanceof DataPotatoItem
+                || stack.getItem() instanceof LineItem || stack.getItem() instanceof FacadeItem) {
             return InteractionResult.PASS;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -234,7 +236,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
     }
 
     /** The side whose arm box contains the click location, or null for the centre or nothing. */
-    private static Direction hitArm(UtilityDuctBlockEntity duct, Vec3 location, BlockPos pos) {
+    static Direction hitArm(UtilityDuctBlockEntity duct, Vec3 location, BlockPos pos) {
         int[] armRadius = DuctShapes.armRadii(duct.armMasks());
         int centerRadius = DuctShapes.centerRadius(duct.lines().size(), duct.connections());
         int side = ArmHit.hit((location.x - pos.getX()) * 16, (location.y - pos.getY()) * 16, (location.z - pos.getZ()) * 16,

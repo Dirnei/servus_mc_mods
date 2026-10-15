@@ -48,8 +48,20 @@ public abstract class LineNetwork<P> extends ServusNetwork<UtilityDuctBlockEntit
      */
     public Map<Integer, Integer> channelUses() {
         Map<Integer, Integer> uses = new HashMap<>();
+        for (EndpointTally.Side side : blockSides()) {
+            uses.merge(side.channel(), 1, Integer::sum);
+        }
+        return uses;
+    }
+
+    /**
+     * The channel and mode of every member duct side whose arm of this line
+     * ends at a block other than a duct, read live from the loaded ducts.
+     */
+    public List<EndpointTally.Side> blockSides() {
+        List<EndpointTally.Side> sides = new ArrayList<>();
         if (level == null) {
-            return uses;
+            return sides;
         }
         for (NodePos pos : endpoints.keySet()) {
             if (!(level.getBlockEntity(Conversions.toBlockPos(pos)) instanceof UtilityDuctBlockEntity duct)) {
@@ -57,11 +69,11 @@ public abstract class LineNetwork<P> extends ServusNetwork<UtilityDuctBlockEntit
             }
             for (Direction side : Direction.values()) {
                 if (duct.hasArm(line, side) && duct.isEndpoint(side)) {
-                    uses.merge(duct.channel(line, side), 1, Integer::sum);
+                    sides.add(new EndpointTally.Side(duct.channel(line, side), duct.mode(line, side)));
                 }
             }
         }
-        return uses;
+        return sides;
     }
 
     /** Called after endpoints were added, rebuilt or removed. */
