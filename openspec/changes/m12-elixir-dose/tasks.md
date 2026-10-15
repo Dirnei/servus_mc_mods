@@ -14,7 +14,7 @@
 
 ## 4. Integration
 
-- [ ] 4.1 Full `gradlew build test :alchemy:runGameTestServer` green.
+- [x] 4.1 Full `gradlew build test :alchemy:runGameTestServer` green.
 - [ ] 4.2 User play check in game:
   - Drinking several elixirs: now and then Poison and Nausea set in, the action bar scolds about the dose, and Elemental Sight is there every time.
   - Drinking again while Sight is active poisons more often (about twice as often).
