@@ -19,11 +19,11 @@ Builds on `m5-duct-filter-picker` (applied first): `ItemPicker` and `PickerList`
 
 ### D1: A channel is a global int id, Default is 0
 
-Ids are allocated from a counter in the saved data and never reused; 0 is the Default channel and is never stored as an entry. A side keeps an `int` per line and side (the `byte[][]` becomes `int[][]`), saved only when not 0, as today. Keeping an int means routing, `RoundRobinPlan` and the model data stay as they are. Alternative: UUIDs. Rejected, larger in saves and payloads with no benefit inside one world.
+Ids are allocated from a counter in the saved data and never reused; 0 is the Default channel and is never stored as an entry. A side keeps an `int` per line and side (the `byte[][]` becomes `int[][]`), saved only when not 0. The ids are saved under a new key `ChannelIds` instead of `Channels`, so sides saved on the eight fixed channels load on Default and never land on a newly created channel with the same small id. Keeping an int means routing, `RoundRobinPlan` and the model data stay as they are. Alternative: UUIDs. Rejected, larger in saves and payloads with no benefit inside one world.
 
 ### D2: Unknown ids resolve to Default on read
 
-`UtilityDuctBlockEntity.channel(line, side)` returns the stored id only if the channel exists, else 0. Existence comes from a small `ChannelLookup` on both sides: the server's saved data, the client's `ClientChannels` cache, picked by `level.isClientSide()`. This covers deleted channels, sides in areas that were unloaded during a delete, and old saves (channels 1 to 7 load as unknown ids, so Default). Endpoints are built through this getter, so routing never sees a deleted id. Alternative: rewrite sides on delete. Rejected, unloaded ducts cannot be reached.
+`UtilityDuctBlockEntity.channel(line, side)` returns the stored id only if the channel exists, else 0. Existence comes from a small `ChannelLookup` on both sides: the server's saved data, the client's `ClientChannels` cache (in `logistics/channel`, without client imports), picked by whether the level is a `ServerLevel`. This covers deleted channels, sides in areas that were unloaded during a delete, and ids of other worlds. Endpoints are built through this getter, so routing never sees a deleted id. Alternative: rewrite sides on delete. Rejected, unloaded ducts cannot be reached.
 
 ### D3: Saved data and pure list
 
@@ -39,7 +39,7 @@ Ids are allocated from a counter in the saved data and never reused; 0 is the De
 | Payload | Direction | Content | When |
 |---|---|---|---|
 | `ChannelListPayload` | to client | every channel | join (`PlayerLoggedInEvent`), and to all players after any create, edit or delete |
-| `CableChannelsPayload` | to client | per line of the open side: used ids on this cable; loaded use counts of the player's team channels | GUI open, after the player's own change, and every 20 ticks while open when it changed |
+| `CableChannelsPayload` | to client | the player's team id; per line of the open side: used ids on this cable; loaded use counts of the player's team channels | GUI open, after the player's own change, and every 20 ticks while open when it changed |
 | `SetSideChannelPayload` | to server | line, channel id | pick in the popup |
 | `CreateChannelPayload` | to server | line, name, colour, icon | save in the "+ New" form; creates and assigns |
 | `EditChannelPayload` | to server | id, name, colour, icon | save in the edit form |
@@ -49,14 +49,15 @@ The handlers resolve the team with `Teams.teamOf` and call `ChannelRequests`, wh
 
 ### D6: Client cache and re-tint
 
-`ClientChannels` holds the synced list. When a `ChannelListPayload` changes the colour of an id, it marks every loaded duct using that id dirty with `levelRenderer.setBlocksDirty` over `DuctTracker.live`, as `PanelReveal` does; a duct whose own channel changes keeps today's `sendBlockUpdated` path. `DuctBlockColor` reads `ChannelColours` through `ClientChannels.colour(id)`.
+`ClientChannels` holds the synced list. When a `ChannelListPayload` changes the ring colour of an id (an added or removed id counts when its colour differs from Default's), the client listener `ChannelRetint`, installed in `FMLClientSetupEvent`, marks every loaded duct using that id dirty with `levelRenderer.setBlocksDirty` over `DuctTracker.live`, as `PanelReveal` does; a duct whose own channel changes keeps today's `sendBlockUpdated` path. `DuctBlockColor` reads `ChannelColours` through `ClientChannels.argb(id)`.
 
 ### D7: GUI
 
-The channel row becomes one `ChannelButton` (swatch, icon, name) across the page width. It opens `ChannelPopup` (`foundation/logistics/client/`), built on `PopupPanel` like `ItemPicker`: search field, two state toggle "This cable" / "All" (default "This cable"), list rows with swatch, icon, name and, for team channels, pencil and trash (trash greyed with the use count tooltip when not deletable), and "+ New". The form (`ChannelForm`) has an `EditBox` for the name, a 2 by 8 grid of dye swatches, an icon button that opens the Foundation `ItemPicker` with every item plus "none", and Save and Cancel. Dye names come from the vanilla `color.minecraft.<dye>` lang keys.
+The channel row becomes one `ChannelButton` (swatch, icon, name) across the page width. It opens `ChannelPopup` (`foundation/logistics/client/`), built on `PopupPanel` like `ItemPicker`: search field, two state toggle "This cable" / "All" (default "This cable"; both list only the player's team's channels plus Default, the team id coming from `CableChannelsPayload`), list rows with swatch, icon, name and, for team channels, pencil and trash (trash greyed with the use count tooltip when not deletable), and "+ New". The form (`ChannelForm`) has an `EditBox` for the name, a 2 by 8 grid of dye swatches, an icon button that opens the Foundation `ItemPicker` with every item plus "No icon", and Save and Cancel. A new channel starts on the first dye colour from orange that the team has not used yet. Dye names come from the vanilla `color.minecraft.<dye>` lang keys.
 
 ### APIs
 
+- The Shuttle Workshop wire minigame in Storage drew its wires with the old eight channel colours; it keeps those eight colours through `ChannelColours` (white, orange, magenta, light blue, yellow, lime, pink, cyan).
 - Minecraft: `SavedData`, `SavedDataType`, `DimensionDataStorage.computeIfAbsent` (as `EnderAnchorData`), `DyeColor` order for the palette, `EditBox`, `LevelRenderer.setBlocksDirty`.
 - NeoForge: `RegisterPayloadHandlersEvent` with `playToClient` and `playToServer`, `PacketDistributor.sendToPlayer` and `sendToAllPlayers`, `PlayerEvent.PlayerLoggedInEvent`, `ClientPacketDistributor.sendToServer`.
 
