@@ -12,7 +12,7 @@
 
 ## 3. The Firebox
 
-- [ ] 3.1 `alchemy/.../calciner/CalcinerPartBlock.java`: Ignis in hand on a formed Firebox sets it (before the fuel branch), sneak with an empty hand takes it back, and `affectNeighborsAfterRemoval` on the Firebox pops the Ignis before the structure unforms. Verify: `gradlew build` green.
+- [x] 3.1 `alchemy/.../calciner/CalcinerPartBlock.java`: Ignis in hand on a formed Firebox sets it (before the fuel branch), sneak with an empty hand takes it back, and `affectNeighborsAfterRemoval` on the Firebox pops the Ignis before the structure unforms. Verify: `gradlew build` green.
 - [ ] 3.2 GameTests in `alchemy/.../gametest/CalcinerGameTests.java`: `ignisSetByHand`, `ignisReturnsFuel`, `ignisOnlyOne`, `ignisNotAtTheMouth`, `ignisNotByPipe`, `ignisBurnsWithoutFuel`, `ignisRefusesCoal` (hand and port), `ignisNoUpkeep`, `ignisTwiceAsFast` (40 against 80 ticks with the shipped data), `ignisTakenBack`, `ignisKeptWhileUnformed`, `fireboxBrokenDropsIgnis`, `calcinerBrokenDropsIgnis`; `SalamanderGameTests.ignisIsNotAFuel` still passes. Verify: `gradlew build` and the GameTest run green.
 
 ## 4. Show and tell
