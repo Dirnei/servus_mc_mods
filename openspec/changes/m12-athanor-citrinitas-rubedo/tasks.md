@@ -2,7 +2,7 @@
 
 ## 1. Athanor tiers
 
-- [ ] 1.1 Pure tests first: `AthanorTiersTest` `citrinitasNeedsAlbedo`, `rubedoOnTopOfCitrinitas`, `shortPillarIsCitrinitas`; `AthanorLayoutTest` `rubedoSchematicHasFourLayers` (design D1, D2). Verify: `gradlew :alchemy:test` green.
+- [x] 1.1 Pure tests first: `AthanorTiersTest` `citrinitasNeedsAlbedo`, `rubedoOnTopOfCitrinitas`, `shortPillarIsCitrinitas`; `AthanorLayoutTest` `rubedoSchematicHasFourLayers` (design D1, D2). Verify: `gradlew :alchemy:test` green.
 - [ ] 1.2 Data `athanor_tier/citrinitas.json` and `rubedo.json` (D1 to D3), `AthanorTierData.SHIPPED`; Jade stage name (D4) in `integration/jade/ServusAlchemyJadePlugin.java`; Athanor Workshop "Its Fire" text names the yellow and red flames; `:alchemy:runData` writes `athanor_citrinitas` and `athanor_rubedo`. GameTests in `AlchemyGameTests`: `citrinitasRingMakesTierTwo` (with salt ring tier 2 and block state 2, without the salt ring tier 0, a missing amethyst tier 1), `rubedoPillarsMakeTierThree` (tier 3, a missing top block tier 2), extend `athanorSchematicsMatchTheBuilds` with the Citrinitas and Rubedo schematics. Verify: `gradlew build`, `:alchemy:runGameTestServer` green.
 
 ## 2. Noble veins

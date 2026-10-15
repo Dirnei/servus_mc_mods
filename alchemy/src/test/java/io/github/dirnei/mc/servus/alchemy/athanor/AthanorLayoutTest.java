@@ -58,6 +58,40 @@ class AthanorLayoutTest {
     }
 
     @Test
+    void rubedoSchematicHasFourLayers() {
+        List<BlockAt> extra = new ArrayList<>();
+        for (int dz = -2; dz <= 2; dz++) {
+            for (int dx = -2; dx <= 2; dx++) {
+                if (Math.abs(dx) + Math.abs(dz) > 2) {
+                    extra.add(new BlockAt(dx, -1, dz, SALT));
+                }
+            }
+        }
+        for (int dz = -2; dz <= 2; dz++) {
+            for (int dx = -2; dx <= 2; dx++) {
+                if (Math.abs(dx) + Math.abs(dz) > 2) {
+                    extra.add(new BlockAt(dx, 0, dz, "minecraft:amethyst_block"));
+                }
+            }
+        }
+        for (int dy = 1; dy <= 2; dy++) {
+            for (int dx = -2; dx <= 2; dx += 4) {
+                for (int dz = -2; dz <= 2; dz += 4) {
+                    extra.add(new BlockAt(dx, dy, dz, "minecraft:crying_obsidian"));
+                }
+            }
+        }
+        AthanorLayout.Schematic schematic = AthanorLayout.schematic(extra);
+        assertEquals(List.of(
+                List.of("F___F", "_____", "_____", "_____", "F___F"),
+                List.of("F___F", "_____", "DD_DD", "__D__", "F_D_F"),
+                List.of("EE_EE", "E___E", "T_A_T", "E___E", "EETEE"),
+                List.of("CCBCC", "CBBBC", "BB0BB", "CBBBC", "CCBCC")), schematic.layers());
+        assertEquals("minecraft:amethyst_block", schematic.mapping().get('E'));
+        assertEquals("minecraft:crying_obsidian", schematic.mapping().get('F'));
+    }
+
+    @Test
     void tanksFacingNorth() {
         assertEquals(List.of(new Tank(TankSide.LEFT, 2, 0), new Tank(TankSide.BACK, 0, 2), new Tank(TankSide.RIGHT, -2, 0)),
                 AthanorLayout.tanks(Facing.NORTH));

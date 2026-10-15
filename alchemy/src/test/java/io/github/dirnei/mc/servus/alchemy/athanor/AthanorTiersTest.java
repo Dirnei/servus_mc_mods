@@ -71,6 +71,67 @@ class AthanorTiersTest {
         assertEquals(0, tier(List.of(ALBEDO), world(placed)));
     }
 
+    private static final String AMETHYST = "minecraft:amethyst_block";
+    private static final String CRYING = "minecraft:crying_obsidian";
+
+    /** The twelve cells of the 5 by 5 square outside the diamond hearth, at height {@code dy}. */
+    private static List<BlockAt> squareCorners(int dy, String block) {
+        List<BlockAt> cells = new ArrayList<>();
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                if (Math.abs(dx) + Math.abs(dz) > 2) {
+                    cells.add(new BlockAt(dx, dy, dz, block));
+                }
+            }
+        }
+        return cells;
+    }
+
+    private static List<BlockAt> pillars() {
+        List<BlockAt> pillars = new ArrayList<>();
+        for (int dy = 1; dy <= 2; dy++) {
+            for (int dx = -2; dx <= 2; dx += 4) {
+                for (int dz = -2; dz <= 2; dz += 4) {
+                    pillars.add(new BlockAt(dx, dy, dz, CRYING));
+                }
+            }
+        }
+        return pillars;
+    }
+
+    private static final List<TierDef> STAGES = List.of(
+            new TierDef("albedo", 1, 0xF2F0EA, squareCorners(-1, SALT)),
+            new TierDef("citrinitas", 2, 0xF2C531, squareCorners(0, AMETHYST)),
+            new TierDef("rubedo", 3, 0xB3261E, pillars()));
+
+    @Test
+    void citrinitasNeedsAlbedo() {
+        assertEquals(0, tier(STAGES, world(squareCorners(0, AMETHYST))), "amethyst without the salt ring is Nigredo");
+        List<BlockAt> placed = new ArrayList<>(squareCorners(-1, SALT));
+        placed.addAll(squareCorners(0, AMETHYST));
+        assertEquals(2, tier(STAGES, world(placed)));
+        assertEquals("citrinitas", AthanorTiers.nameOf(STAGES, 2));
+        placed.remove(placed.size() - 1);
+        assertEquals(1, tier(STAGES, world(placed)), "a missing amethyst is Albedo");
+    }
+
+    @Test
+    void rubedoOnTopOfCitrinitas() {
+        List<BlockAt> placed = new ArrayList<>(squareCorners(-1, SALT));
+        placed.addAll(squareCorners(0, AMETHYST));
+        placed.addAll(pillars());
+        assertEquals(3, tier(STAGES, world(placed)));
+        assertEquals("rubedo", AthanorTiers.nameOf(STAGES, 3));
+    }
+
+    @Test
+    void shortPillarIsCitrinitas() {
+        List<BlockAt> placed = new ArrayList<>(squareCorners(-1, SALT));
+        placed.addAll(squareCorners(0, AMETHYST));
+        placed.addAll(pillars().stream().filter(block -> !(block.dy() == 2 && block.dx() == 2 && block.dz() == 2)).toList());
+        assertEquals(2, tier(STAGES, world(placed)));
+    }
+
     @Test
     void tierNumbersStartAtOne() {
         assertThrows(IllegalArgumentException.class, () -> new TierDef("bad", 0, 0, List.of()));
