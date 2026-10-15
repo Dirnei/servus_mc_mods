@@ -224,9 +224,9 @@ final class JournalEntries {
                             + "The spirits of the earth live in the rock as we live in air, and common eyes do not see them. "
                             + "On a white Athanor, Quicksilver and the three principles give the Elixir of Sight.\n\n"
                             + "The miners of Schwaz say the metals grow in the mountain like roots, tended by gnomes. "
-                            + "Burn cracked stone bricks with Salt and Mercury on a white Athanor into a Gnome Hollow, give it a sample of ore, "
-                            + "and feed it Salt and Mercury until the vein is ripe. Then drink the elixir and offer a Salt Crystal: "
-                            + "a gnome takes it and digs that ore for you, for as long as the Hollow stands.\n\n"
+                            + "Burn cracked stone bricks with Salt and Mercury on a white Athanor into a Gnome Hollow. To common eyes it is stone. "
+                            + "Drink the elixir, give it a sample of ore and pour Salt and Mercury into it until the vein is ripe. "
+                            + "Then offer a Salt Crystal: a gnome takes it and digs that ore for you, for as long as the Hollow stands.\n\n"
                             + "To go on: finish one craft on an Albedo Athanor, drink the Elixir of Sight, and bind a gnome.");
         }
 

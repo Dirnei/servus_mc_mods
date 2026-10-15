@@ -233,10 +233,18 @@ final class WorkshopCategory extends CategoryProvider {
                     "A home for a gnome. To common eyes it is only stone.");
             e.text("making", "Making It", albedoCraftText(craft));
             e.text("growing", "Growing a Vein",
-                    "Put a raw ore or an ore block into its sample slot. Feed it Salt and Mercury by pipe or bucket, "
-                            + "and step by step the vein ripens.\n\n"
-                            + "When it is ripe, drink the Elixir of Sight and use a Salt Crystal on the Hollow. A gnome takes it "
-                            + "and digs that ore for you, as long as the Hollow stands.");
+                    "Drink the Elixir of Sight first. To common eyes the Hollow is only stone, and it answers no one who cannot see.\n\n"
+                            + "Under the sight, use a raw ore or an ore block on it to seed a vein, and pour Salt and Mercury in by bucket. "
+                            + "No pipe reaches it. Step by step the vein ripens.\n\n"
+                            + "When it is ripe, use a Salt Crystal on it. A gnome takes it and digs that ore for you, "
+                            + "as long as the Hollow stands.");
+            e.text("store", "The Gnome's Store",
+                    "The gnome keeps what it digs in a small store inside the Hollow and stops when the store is full. "
+                            + "Use an empty hand on the Hollow, under the sight, to take the ore out.");
+            e.text("moving", "Moving It",
+                    "Break the Hollow under the sight and you get an empty Hollow back, with the ore from its store. "
+                            + "The vein, its principles and its gnome are lost.\n\n"
+                            + "Break it without the sight and it is only stone.");
         });
     }
 

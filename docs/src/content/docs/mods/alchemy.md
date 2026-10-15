@@ -20,7 +20,7 @@ Each chapter of the journal tells part of Paracelsus' life and lists tasks: do s
 
 ## The three principles
 
-Salt, Sulfur and Mercury are fluids. They flow through the Fluid Pipe, wait in Fluid Tanks, go into buckets and can be voided in the Sink like any other fluid. Poured into the world they flow like water but never make new sources. To fill a bucket with one principle, open the Calciner and click its gauge with the empty bucket; to pour a principle bucket into the Coagulator, Athanor or Gnome Hollow, use it on the block (in the Coagulator you can also click a gauge with it).
+Salt, Sulfur and Mercury are fluids. They flow through the Fluid Pipe, wait in Fluid Tanks, go into buckets and can be voided in the Sink like any other fluid. Poured into the world they flow like water but never make new sources. To fill a bucket with one principle, open the Calciner and click its gauge with the empty bucket; to pour a principle bucket into the Coagulator or Athanor, use it on the block (in the Coagulator you can also click a gauge with it). The Gnome Hollow takes buckets only under Elemental Sight.
 
 ## Machines
 
@@ -33,7 +33,7 @@ Salt, Sulfur and Mercury are fluids. They flow through the Fluid Pipe, wait in F
 
 Nigredo runs on fire and time, no FE needed. Power for later machines, water, voiding surplus and chunk loading come from [Servus: Foundation](/servus_mc_mods/mods/foundation/#machines): the Coal Generator, the Burner and Electric Pump, the Sink and the Ender Anchor.
 
-All machines face the player on placement, open a GUI on right click, push output into adjacent inventories and drop their contents when broken. Powered machines only draw energy on ticks they work and keep their progress when power runs out.
+All machines face the player on placement, open a GUI on right click, push output into adjacent inventories and drop their contents when broken. The Gnome Hollow is the exception: it hides as stone, see [Gnomes](#gnomes). Powered machines only draw energy on ticks they work and keep their progress when power runs out.
 
 ## Elemental Sight
 
@@ -41,14 +41,16 @@ Paracelsus' elementals live inside their element the way we live in air, and com
 
 ## Gnomes
 
-There is no ore generation to plan around: the miners of Paracelsus' time believed metals grow in the mountain, and here they do. A **Gnome Hollow** looks like plain stone.
+There is no ore generation to plan around: the miners of Paracelsus' time believed metals grow in the mountain, and here they do. A **Gnome Hollow** is disguised as stone. Without Elemental Sight it looks like stone, Jade calls it Stone, a right click does nothing and breaking it drops cobblestone (stone with Silk Touch); the vein is lost. It has no screen, and no pipe or duct connects to it. Everything is done by hand under the sight:
 
-1. **Seed** it with a sample of ore: put raw iron or any iron ore (or copper) into its sample slot. One item is used. The vein must belong to a journal chapter your team has finished; iron and copper open with Villach.
-2. **Ripen** it: every 5 seconds the vein grows a step and takes 100 mB Salt and 20 mB Mercury from the Hollow's tanks, which fill by pipe or bucket. Twenty steps make it ripe; without principles it waits.
-3. **Bind** a gnome: drink the Elixir of Sight and use a Salt Crystal on the ripe Hollow. Without the sight nothing happens.
-4. The gnome **works** forever: one raw ore every 10 seconds into the output slot, pushed out like any machine output. It needs nothing more.
+1. **Seed** it with a sample of ore: use raw iron or any iron ore (or copper) on it. One item is used. The vein must belong to a journal chapter your team has finished; iron and copper open with Villach.
+2. **Ripen** it: pour Salt and Mercury buckets into it (the empty bucket comes back; each tank holds 4,000 mB). Every 5 seconds the vein grows a step and takes 100 mB Salt and 20 mB Mercury. Twenty steps make it ripe; without principles it waits.
+3. **Bind** a gnome: use a Salt Crystal on the ripe Hollow.
+4. The gnome **works** forever: one raw ore every 10 seconds into the Hollow's store, which holds 64 items. A full store stops the gnome. Use an empty hand on the Hollow to take the store into your inventory; what does not fit drops.
 
-Under Elemental Sight you see the vein's ore budding on the Hollow, more and larger as it ripens, and the red cap of its gnome. Without the sight it is a stone block. On the data line a working Hollow is a producer of its ore.
+Under Elemental Sight you see the vein's ore budding on the Hollow, more and larger as it ripens, and the red cap of its gnome, and Jade shows the vein, its ripeness, the store and the principles. A failed action under the sight tells you why on the action bar; an empty hand on an empty store tells you how the vein is doing.
+
+Breaking a Hollow under the sight drops an empty Gnome Hollow and the ore in its store; the vein, its principles and its gnome are lost. Moving a Hollow means growing the vein again.
 
 ## Coagulator products
 
@@ -57,4 +59,4 @@ Salt Crystal, Sulfur and Quicksilver are the first alchemical materials. The Coa
 ## How it connects
 
 - [Servus: Foundation](/servus_mc_mods/mods/foundation/): side configuration, the Configuration Carrot, the Fluid Pipe and Fluid Tank, Power Cables and Item Pipes.
-- [Storage](/servus_mc_mods/mods/storage/): a Coagulator on the data line is a producer of its selected recipe, so a Crafting CPU can order Salt Crystals or gunpowder. Its principles must reach it by pipe; the data line only carries items. The Calciner is no producer. A working Gnome Hollow is a producer of its ore with no inputs.
+- [Storage](/servus_mc_mods/mods/storage/): a Coagulator on the data line is a producer of its selected recipe, so a Crafting CPU can order Salt Crystals or gunpowder. Its principles must reach it by pipe; the data line only carries items. The Calciner is no producer, and neither is the Gnome Hollow.

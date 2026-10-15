@@ -16,7 +16,7 @@
 
 ## 4. Texts and docs
 
-- [ ] 4.1 Journal: Workshop entry "Gnome Hollow" in `datagen/book/WorkshopCategory.java` (seed by hand under the sight, buckets by hand, no pipes, the store and taking it out, breaking with and without the sight) and the Schwaz text in `JournalEntries.java`; `:alchemy:runData`. Docs: `docs/src/content/docs/mods/alchemy.md` (Gnomes, principles by bucket, no producer on the data line) and `reference/datapack/machines.md` (the store capacity). Verify: `gradlew build` green, generated pages contain the new texts, no em dash in the diff.
+- [x] 4.1 Journal: Workshop entry "Gnome Hollow" in `datagen/book/WorkshopCategory.java` (seed by hand under the sight, buckets by hand, no pipes, the store and taking it out, breaking with and without the sight) and the Schwaz text in `JournalEntries.java`; `:alchemy:runData`. Docs: `docs/src/content/docs/mods/alchemy.md` (Gnomes, principles by bucket, no producer on the data line) and `reference/datapack/machines.md` (the store capacity). Verify: `gradlew build` green, generated pages contain the new texts, no em dash in the diff.
 
 ## 5. Integration
 
