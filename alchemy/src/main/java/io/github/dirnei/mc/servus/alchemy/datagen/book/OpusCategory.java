@@ -18,7 +18,7 @@ final class OpusCategory extends CategoryProvider {
         return new String[] {
                 "_________________________",
                 "_____p___v___s___w___b___",
-                "_________________________",
+                "_____________o___________",
         };
     }
 
@@ -32,6 +32,10 @@ final class OpusCategory extends CategoryProvider {
         schwaz.withParent(villach);
         schwaz.withCondition(condition().researchNodeUnlocked(JournalResearch.VILLACH));
         add(schwaz);
+        BookEntryModel oldGnome = new JournalEntries.OldGnome(this).generate('o');
+        oldGnome.withParent(schwaz);
+        oldGnome.withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ));
+        add(oldGnome);
         BookEntryModel wandering = new JournalEntries.WanderingYears(this).generate('w');
         wandering.withParent(schwaz);
         wandering.withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ));

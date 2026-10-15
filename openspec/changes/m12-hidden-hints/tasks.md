@@ -16,7 +16,7 @@
 
 ## 4. Journal and book
 
-- [ ] 4.1 `journal/old_gnome.json`, side chapter advancement in `JournalAdvancements`, Opus entry `old_gnome`, Workshop entry `knockers`, lang (D12, D13); `:alchemy:runData`. Verify: `gradlew build` green.
+- [x] 4.1 `journal/old_gnome.json`, side chapter advancement in `JournalAdvancements`, Opus entry `old_gnome`, Workshop entry `knockers`, lang (D12, D13); `:alchemy:runData`. Verify: `gradlew build` green.
 
 ## 5. Behaviour tests
 

@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "tasks",
+  "show_title_separator": true,
+  "sort_number": 5,
+  "text": "book.servus_alchemy.journal.opus.old_gnome.tasks.text",
+  "title": "book.servus_alchemy.journal.opus.old_gnome.tasks.title"
+}

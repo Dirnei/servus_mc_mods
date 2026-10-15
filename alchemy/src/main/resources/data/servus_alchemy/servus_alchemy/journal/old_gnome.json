@@ -1,0 +1,8 @@
+{
+  "parent": "servus_alchemy:schwaz",
+  "order": 4,
+  "tasks": [
+    {"id": "trace", "event": "find", "filter": "#servus_alchemy:hint_traces", "count": 1},
+    {"id": "gnome", "event": "find", "filter": "servus_alchemy:old_gnome", "count": 1}
+  ]
+}

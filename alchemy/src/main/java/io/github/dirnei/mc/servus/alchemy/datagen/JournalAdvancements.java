@@ -3,7 +3,9 @@ package io.github.dirnei.mc.servus.alchemy.datagen;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
@@ -33,6 +35,13 @@ final class JournalAdvancements implements AdvancementSubProvider {
             new Chapter("wandering_years", Items.RAW_GOLD),
             new Chapter("basel_salzburg", Items.CRYING_OBSIDIAN));
 
+    /** A side chapter: path, icon and the main chapter it hangs from. No main chapter waits for it. */
+    record SideChapter(String path, ItemLike icon, String parent) {
+    }
+
+    static final List<SideChapter> SIDE_CHAPTERS = List.of(
+            new SideChapter("old_gnome", ServusAlchemyItems.TINY_PICKAXE.get(), "schwaz"));
+
     @Override
     public void generate(HolderLookup.Provider registries, Consumer<AdvancementHolder> saver) {
         AdvancementHolder parent = Advancement.Builder.advancement()
@@ -43,16 +52,25 @@ final class JournalAdvancements implements AdvancementSubProvider {
                         AdvancementType.TASK, false, false, false)
                 .addCriterion(Journal.CRITERION, CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
                 .save(saver, ServusAlchemyIds.MOD_ID + ":journal/root");
+        Map<String, AdvancementHolder> saved = new HashMap<>();
         for (Chapter chapter : CHAPTERS) {
-            String key = "journal." + ServusAlchemyIds.MOD_ID + "." + chapter.path();
-            parent = Advancement.Builder.advancement()
-                    .parent(parent)
-                    .display(chapter.icon(),
-                            Component.translatable(key),
-                            Component.translatable(key + ".finished"),
-                            null, AdvancementType.GOAL, true, true, false)
-                    .addCriterion(Journal.CRITERION, CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
-                    .save(saver, Journal.advancementId(ServusAlchemyIds.MOD_ID + ":" + chapter.path()).toString());
+            parent = chapter(parent, chapter.path(), chapter.icon(), saver);
+            saved.put(chapter.path(), parent);
         }
+        for (SideChapter side : SIDE_CHAPTERS) {
+            chapter(saved.get(side.parent()), side.path(), side.icon(), saver);
+        }
+    }
+
+    private static AdvancementHolder chapter(AdvancementHolder parent, String path, ItemLike icon, Consumer<AdvancementHolder> saver) {
+        String key = "journal." + ServusAlchemyIds.MOD_ID + "." + path;
+        return Advancement.Builder.advancement()
+                .parent(parent)
+                .display(icon,
+                        Component.translatable(key),
+                        Component.translatable(key + ".finished"),
+                        null, AdvancementType.GOAL, true, true, false)
+                .addCriterion(Journal.CRITERION, CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
+                .save(saver, Journal.advancementId(ServusAlchemyIds.MOD_ID + ":" + path).toString());
     }
 }

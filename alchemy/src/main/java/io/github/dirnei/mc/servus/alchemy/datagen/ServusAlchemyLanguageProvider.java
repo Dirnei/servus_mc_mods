@@ -107,6 +107,8 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("journal.servus_alchemy.schwaz", "Schwaz");
         add("journal.servus_alchemy.villach.finished", "Finished the Villach chapter of the journal");
         add("journal.servus_alchemy.schwaz.finished", "Finished the Schwaz chapter of the journal");
+        add("journal.servus_alchemy.old_gnome", "The Old Gnome");
+        add("journal.servus_alchemy.old_gnome.finished", "Found Paracelsus' old gnome deep in the deepslate");
         add("journal.servus_alchemy.wandering_years", "Wandering Years");
         add("journal.servus_alchemy.wandering_years.finished", "Finished the Wandering Years chapter of the journal");
         add("journal.servus_alchemy.basel_salzburg", "Basel and Salzburg");

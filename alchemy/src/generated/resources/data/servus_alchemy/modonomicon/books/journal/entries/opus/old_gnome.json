@@ -1,0 +1,30 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_alchemy:opus",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "servus_alchemy:journal/schwaz"
+  },
+  "description": "book.servus_alchemy.journal.opus.old_gnome.description",
+  "icon": {
+    "id": "servus_alchemy:tiny_pickaxe"
+  },
+  "id": "servus_alchemy:opus/old_gnome",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.servus_alchemy.journal.opus.old_gnome.name",
+  "parents": [
+    {
+      "entry": "servus_alchemy:opus/schwaz"
+    }
+  ],
+  "sort_number": 3,
+  "x": 1,
+  "y": 1
+}

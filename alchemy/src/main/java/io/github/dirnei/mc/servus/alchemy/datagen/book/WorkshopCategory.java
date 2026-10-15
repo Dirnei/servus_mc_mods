@@ -36,7 +36,7 @@ final class WorkshopCategory extends CategoryProvider {
                 "_______f_______________",
                 "___________________s___",
                 "___________________e___",
-                "___________________h___",
+                "_________________k_h___",
                 "_________________d_y___",
                 "_______________g_m_r_l_",
                 "_________________v_q___",
@@ -54,6 +54,7 @@ final class WorkshopCategory extends CategoryProvider {
         BookEntryModel block = add(albedo(saltCrystalBlock().generate('s').withParent(athanor)));
         BookEntryModel elixir = add(albedo(elixir().generate('e').withParent(block)));
         BookEntryModel hollow = add(albedo(hollow().generate('h').withParent(elixir)));
+        add(albedo(knockers().generate('k').withParent(hollow)));
         BookEntryModel yellow = add(yellowRing().generate('y').withParent(hollow)
                 .withCondition(condition().researchNodeUnlocked(JournalResearch.SCHWAZ)));
         add(dropper().generate('d').withParent(yellow)
@@ -325,6 +326,21 @@ final class WorkshopCategory extends CategoryProvider {
             e.text("binding", "Still by Hand",
                     "The drops only ripen the vein. Binding the gnome with a Salt Crystal and taking its ore out remain your work, "
                             + "under the sight.");
+        });
+    }
+
+    private WorkshopEntry knockers() {
+        return new WorkshopEntry(this, "knockers", "Knocking in the Rock", "Signs of what the eye cannot see",
+                ServusAlchemyItems.TINY_PICKAXE.get(), e -> {
+            e.text("signs", "Three Signs",
+                    "What lives in the elements hides from common eyes, but not from common ears. First you hear it: a knocking in the rock, "
+                            + "and it comes from somewhere, so follow it. Closer, dust trickles from one block. Closest of all, you find what "
+                            + "they leave behind: a tiny pickaxe, a scrap of red felt, a little bowl of salt.\n\n"
+                            + "Then drink the Elixir of Sight, and look.");
+            e.text("who", "Who Knocks",
+                    "A gnome at work in a Gnome Hollow knocks softly now and then. A salamander in the lava of the Nether shows as a flame "
+                            + "that dances a little too long. The homunculus in its Vas stirs the liquid by itself.\n\n"
+                            + "And deep in the deepslate, if you have walked with me to Schwaz, someone older may knock for you.");
         });
     }
 

@@ -252,6 +252,54 @@ final class JournalEntries {
         }
     }
 
+    static final class OldGnome extends TextEntry {
+
+        OldGnome(CategoryProviderBase parent) {
+            super(parent);
+        }
+
+        @Override
+        protected void generatePages() {
+            text("story", "The Knockers",
+                    "In Schwaz the old hewers would stop and listen. A knocking in the rock, where no man worked: the Bergmaennlein, "
+                            + "the little miners. Knock before a rich vein, knock before the roof comes down. The wise ones left them bread "
+                            + "and a pinch of salt, and laughed at nobody.\n\n"
+                            + "Miners in far lands, I am told, call them Knockers and leave them the crust of their pasty. "
+                            + "Every mine has its little people, and every honest miner knows it.");
+            text("gnome", "My Old Friend",
+                    "One of them followed me out of Schwaz. A grey beard down to his boots, a red cap, a temper like a cracked lamp. "
+                            + "He knew more of the mountain than every assayer in Tyrol. When I left for the road he stayed below, "
+                            + "deep in the dark rock, and I never found him again.\n\n"
+                            + "If you hear knocking deep in the deepslate, follow it.");
+            text("tasks", "The Work",
+                    "This is not part of the Great Work. It is an old man's errand.\n\n"
+                            + "Mine deep, below the stone, where the deepslate is. If he hears this journal he will knock. "
+                            + "Follow the knocking; where dust trickles from one block, look for the things he leaves behind. "
+                            + "Then drink the Elixir of Sight, and hold this journal up to him.\n\n"
+                            + "To finish: find one of his traces, and find him.");
+        }
+
+        @Override
+        protected String entryName() {
+            return "The Old Gnome";
+        }
+
+        @Override
+        protected String entryDescription() {
+            return "Something knocks in the rock";
+        }
+
+        @Override
+        ItemLike icon() {
+            return ServusAlchemyItems.TINY_PICKAXE.get();
+        }
+
+        @Override
+        protected String entryId() {
+            return "old_gnome";
+        }
+    }
+
     static final class WanderingYears extends TextEntry {
 
         WanderingYears(CategoryProviderBase parent) {
