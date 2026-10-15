@@ -17,7 +17,7 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Full `gradlew build test :alchemy:runGameTestServer` green.
+- [x] 4.1 Full `gradlew build test :alchemy:runGameTestServer` green.
 - [ ] 4.2 User play check in game:
   - The Dropper looks like a copper and glass drip vessel; no flicker from any angle.
   - A Fluid Pipe on a Utility Duct connects to the Dropper and fills it; Jade shows its three tanks.
