@@ -11,3 +11,7 @@
 ## Assumptions to confirm with the user
 
 - The "No recipe" entry is the first cell of the popup, drawn as a barrier.
+
+## Popup tooltip
+
+- A deferred tooltip is shown only if it was the first one set in the frame, so the popup's and the button's tooltips were dropped whenever anything set one earlier. They now use `setTooltipForNextFrame(..., replaceExisting = true)`: the popup lies on top of everything, so its tooltip wins.

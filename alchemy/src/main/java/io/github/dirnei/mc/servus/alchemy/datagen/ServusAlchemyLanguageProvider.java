@@ -100,7 +100,8 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("message.servus_alchemy.calciner.below", "below the %s");
         add(ServusAlchemyBlocks.COAGULATOR.get(), "Coagulator");
         add("gui.servus_alchemy.coagulator.needs", "%s mB %s");
-        add("gui.servus_alchemy.coagulator.select", "Select recipe");
+        add("gui.servus_alchemy.coagulator.none", "No recipe");
+        add("gui.servus_alchemy.coagulator.none.tooltip", "The Coagulator stops and keeps its principles");
         add("gui.servus_alchemy.coagulator.pick", "Pick a recipe");
         add("gui.servus_alchemy.coagulator.chapter", "Needs the journal chapter %s");
         add("journal.servus_alchemy.villach", "Villach");
