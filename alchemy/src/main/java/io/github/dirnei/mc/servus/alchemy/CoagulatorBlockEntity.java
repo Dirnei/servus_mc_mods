@@ -241,7 +241,7 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements TeamOwn
             }
             List<RecipeHolder<CoagulationRecipe>> recipes = sortedRecipes(level);
             for (int i = 0; i < recipes.size(); i++) {
-                if (recipes.get(i).id().equals(selected)) {
+                if (recipes.get(i).id().identifier().equals(selected)) {
                     return i + 1;
                 }
             }

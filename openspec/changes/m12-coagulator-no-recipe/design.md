@@ -15,3 +15,4 @@
 ## Popup tooltip
 
 - A deferred tooltip is shown only if it was the first one set in the frame, so the popup's and the button's tooltips were dropped whenever anything set one earlier. They now use `setTooltipForNextFrame(..., replaceExisting = true)`: the popup lies on top of everything, so its tooltip wins.
+- The selected index sent to the screen compared the recipe's `ResourceKey` with the selected `Identifier`, so the screen always saw no selection; it now compares `id().identifier()`.

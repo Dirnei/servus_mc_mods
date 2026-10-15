@@ -23,6 +23,7 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -32,6 +33,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HopperBlock;
@@ -218,8 +220,13 @@ public final class CoagulatorGameTests {
         coagulator.select(AlchemyGameTests.coagulation("salt_crystal"));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         CoagulatorMenu menu = new CoagulatorMenu(0, player.getInventory(), coagulator);
+        int index = menu.selectedIndex();
+        List<RecipeHolder<CoagulationRecipe>> recipes = CoagulatorBlockEntity.sortedRecipes(helper.getLevel());
+        helper.assertTrue(index >= 0 && recipes.get(index).id().identifier().equals(AlchemyGameTests.coagulation("salt_crystal")),
+                "the menu should report the selected Salt Crystal, got " + index);
         helper.assertTrue(menu.clickMenuButton(player, CoagulatorMenu.RECIPE_BUTTON_NONE), "the button should be taken");
         helper.assertTrue(coagulator.selected().isEmpty(), "the selection should be cleared");
+        helper.assertTrue(menu.selectedIndex() == -1, "the menu should report no recipe");
         coagulator.tanks().insert(new Principles(250, 0, 0));
         helper.runAfterDelay(100, () -> {
             helper.assertTrue(coagulator.inventory().getStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT).isEmpty(), "nothing is made");
