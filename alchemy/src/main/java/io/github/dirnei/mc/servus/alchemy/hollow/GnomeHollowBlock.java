@@ -12,6 +12,7 @@ import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import java.util.Locale;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
@@ -21,25 +22,34 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /**
  * The Gnome Hollow block: plain stone to anyone without Elemental Sight. Under the sight a sample of ore seeds it,
  * principle buckets fill it, a Salt Crystal binds a gnome to a ripe vein, a liked gift speeds the gnome up and an
- * empty hand takes the dug ore out.
+ * empty hand takes the dug ore out. {@link #FACING} points at the player who placed it; the cave entry of a bound
+ * Hollow opens on that side.
  */
 public class GnomeHollowBlock extends BaseEntityBlock {
 
     public static final MapCodec<GnomeHollowBlock> CODEC = simpleCodec(GnomeHollowBlock::new);
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     private static final String MESSAGE = "message.servus_alchemy.gnome_hollow.";
     /** One animation tick in this many knocks; the client picks a block near the player every few seconds. */
     private static final int KNOCK_CHANCE = 6;
@@ -47,6 +57,27 @@ public class GnomeHollowBlock extends BaseEntityBlock {
 
     public GnomeHollowBlock(Properties properties) {
         super(properties);
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(FACING);
+    }
+
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
     @Override

@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.alchemy.gametest;
 import io.github.dirnei.mc.servus.alchemy.Principle;
 import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.Principles;
+import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Binding;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Gift;
@@ -10,6 +11,7 @@ import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import java.util.ArrayList;
@@ -35,6 +37,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 
 /** The Gnome Hollow: tended by hand under Elemental Sight, stone to everyone else. */
@@ -449,5 +452,24 @@ public final class HollowGameTests {
         helper.assertTrue(fresh.boostFactor() == 2 && fresh.boostTicksLeft() == 5000,
                 "x2 for 5,000 ticks should be loaded, got x" + fresh.boostFactor() + " for " + fresh.boostTicksLeft());
         helper.succeed();
+    }
+
+    /** A placed Hollow faces the player who placed it, from whichever side he stands. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void placedHollowFacesThePlacer(GameTestHelper helper) {
+        helper.setBlock(MACHINE.below(), Blocks.STONE);
+        assertPlacedFacing(helper, Direction.SOUTH);
+        helper.setBlock(MACHINE, Blocks.AIR);
+        assertPlacedFacing(helper, Direction.EAST);
+        helper.succeed();
+    }
+
+    /** Places a Hollow on {@link #MACHINE} as a player standing on its {@code side}, looking at it. */
+    private static void assertPlacedFacing(GameTestHelper helper, Direction side) {
+        Player player = player(helper, ItemStack.EMPTY, false);
+        Vec3 feet = Vec3.atBottomCenterOf(helper.absolutePos(MACHINE.relative(side, 2)));
+        player.snapTo(feet.x, feet.y, feet.z, side.getOpposite().toYRot(), 0);
+        GameTestSteps.useOn(helper, player, new ItemStack(ServusAlchemyItems.GNOME_HOLLOW.get()), MACHINE.below(), Direction.UP);
+        helper.assertBlockProperty(MACHINE, GnomeHollowBlock.FACING, side);
     }
 }
