@@ -299,6 +299,12 @@
       "inputs": [],
       "outputs": []
     },
+    "servus_alchemy:athanor/seed_of_coal": {
+      "type": "servus_alchemy:athanor",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
     "servus_alchemy:athanor/seed_of_copper": {
       "type": "servus_alchemy:athanor",
       "special": true,
@@ -311,6 +317,12 @@
       "inputs": [],
       "outputs": []
     },
+    "servus_alchemy:athanor/seed_of_emerald": {
+      "type": "servus_alchemy:athanor",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
     "servus_alchemy:athanor/seed_of_gold": {
       "type": "servus_alchemy:athanor",
       "special": true,
@@ -318,6 +330,12 @@
       "outputs": []
     },
     "servus_alchemy:athanor/seed_of_iron": {
+      "type": "servus_alchemy:athanor",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:athanor/seed_of_quartz": {
       "type": "servus_alchemy:athanor",
       "special": true,
       "inputs": [],

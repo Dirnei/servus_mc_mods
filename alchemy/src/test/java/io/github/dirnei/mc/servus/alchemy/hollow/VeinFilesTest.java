@@ -18,7 +18,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 class VeinFilesTest {
 
     static List<String> veins() {
-        return List.of("iron", "copper", "gold", "redstone", "diamond");
+        return List.of("coal", "iron", "copper", "gold", "redstone", "quartz", "diamond", "emerald");
     }
 
     private static JsonObject load(String vein) throws IOException {

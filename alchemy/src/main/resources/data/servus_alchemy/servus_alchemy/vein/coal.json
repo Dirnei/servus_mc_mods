@@ -1,0 +1,8 @@
+{
+  "yield": {"id": "minecraft:coal"},
+  "color": "#5c5c66",
+  "steps": 15,
+  "step_ticks": 100,
+  "step_cost": {"salt": 60, "sulfur": 20},
+  "yield_ticks": 100
+}

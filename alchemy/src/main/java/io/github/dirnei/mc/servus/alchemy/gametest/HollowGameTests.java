@@ -22,6 +22,7 @@ import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabili
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -383,20 +384,49 @@ public final class HollowGameTests {
     /** Raw Gold and the principles make a Seed of Gold on a Citrinitas Athanor, not on an Albedo one. */
     @ServusGameTest(timeoutTicks = 600)
     public static void seedOfGoldNeedsCitrinitas(GameTestHelper helper) {
+        seedMadeFromTier(helper, new ItemStack(Items.RAW_GOLD), new Principles(250, 250, 250), "gold", 2);
+    }
+
+    /** Coal and the principles make a Seed of Coal on an Albedo Athanor, not on a Nigredo one. */
+    @ServusGameTest(timeoutTicks = 600)
+    public static void seedOfCoalOnAlbedo(GameTestHelper helper) {
+        seedMadeFromTier(helper, new ItemStack(Items.COAL), new Principles(150, 150, 0), "coal", 1);
+    }
+
+    /** Nether Quartz and the principles make a Seed of Quartz on a Citrinitas Athanor, not on an Albedo one. */
+    @ServusGameTest(timeoutTicks = 600)
+    public static void seedOfQuartzNeedsCitrinitas(GameTestHelper helper) {
+        seedMadeFromTier(helper, new ItemStack(Items.QUARTZ), new Principles(250, 0, 250), "quartz", 2);
+    }
+
+    /** An Emerald and the principles make a Seed of Emerald on a Rubedo Athanor, not on a Citrinitas one. */
+    @ServusGameTest(timeoutTicks = 600)
+    public static void seedOfEmeraldNeedsRubedo(GameTestHelper helper) {
+        seedMadeFromTier(helper, new ItemStack(Items.EMERALD), new Principles(500, 500, 500), "emerald", 3);
+    }
+
+    /**
+     * Builds the Athanor one ring below {@code tier}, checks that {@code input} with {@code principles} makes nothing there,
+     * then adds the ring of {@code tier} and expects a Seed of {@code vein}.
+     */
+    private static void seedMadeFromTier(GameTestHelper helper, ItemStack input, Principles principles, String vein, int tier) {
         AthanorBlockEntity athanor = AlchemyGameTests.athanor(helper);
-        AlchemyGameTests.saltRing(helper);
+        List<Consumer<GameTestHelper>> rings = List.of(AlchemyGameTests::saltRing, AlchemyGameTests::amethystRing,
+                AlchemyGameTests::rubedoPillars);
+        rings.subList(0, tier - 1).forEach(ring -> ring.accept(helper));
         athanor.checkTier();
-        helper.assertTrue(athanor.tier() == 1, "the salt ring makes Albedo, got " + athanor.tier());
-        athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.RAW_GOLD));
-        helper.runAfterDelay(2, () -> AlchemyGameTests.pour(helper, new Principles(250, 250, 250)));
+        helper.assertTrue(athanor.tier() == tier - 1, "the Athanor should be at tier " + (tier - 1) + ", got " + athanor.tier());
+        athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, input);
+        helper.runAfterDelay(2, () -> AlchemyGameTests.pour(helper, principles));
         helper.runAfterDelay(250, () -> {
-            helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).isEmpty(), "no Seed of Gold at Albedo");
-            AlchemyGameTests.amethystRing(helper);
+            helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).isEmpty(),
+                    "no Seed of " + vein + " below tier " + tier);
+            rings.get(tier - 1).accept(helper);
             athanor.checkTier();
             helper.succeedWhen(() -> {
                 ItemStack made = athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT);
-                helper.assertTrue(VeinSeedItem.vein(made).map(id -> id.getPath().equals("gold")).orElse(false),
-                        "a Seed of Gold should be made, got " + made);
+                helper.assertTrue(VeinSeedItem.vein(made).map(id -> id.getPath().equals(vein)).orElse(false),
+                        "a Seed of " + vein + " should be made, got " + made);
             });
         });
     }

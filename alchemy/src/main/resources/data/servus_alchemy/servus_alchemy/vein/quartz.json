@@ -1,0 +1,8 @@
+{
+  "yield": {"id": "minecraft:quartz"},
+  "color": "#ece4d8",
+  "steps": 30,
+  "step_ticks": 100,
+  "step_cost": {"salt": 150, "mercury": 50},
+  "yield_ticks": 200
+}

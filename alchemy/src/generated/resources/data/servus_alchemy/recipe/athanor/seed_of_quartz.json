@@ -1,0 +1,19 @@
+{
+  "type": "servus_alchemy:athanor",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:gems/quartz"
+  },
+  "principles": {
+    "mercury": 250,
+    "salt": 250
+  },
+  "result": {
+    "components": {
+      "servus_alchemy:vein": "servus_alchemy:quartz"
+    },
+    "id": "servus_alchemy:seed"
+  },
+  "tier": 2,
+  "time": 200
+}

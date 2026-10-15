@@ -142,11 +142,14 @@ public final class AlchemyRecipeTable {
                         new Principles(250, 0, 500), 3, new ItemStackTemplate(ServusAlchemyItems.SEALED_FLASK.get()), 200),
                 new AthanorCraft("prelum_screw", "Dragon's Breath", "Prelum Screw", Input.of(Items.DRAGON_BREATH),
                         new Principles(0, 500, 500), 3, new ItemStackTemplate(ServusAlchemyItems.PRELUM_SCREW.get()), 200),
+                seed("coal", "Coal", Input.of(Items.COAL), new Principles(150, 150, 0), 1),
                 seed("iron", "Raw Iron", Input.of(Tags.Items.RAW_MATERIALS_IRON), new Principles(250, 0, 100), 1),
                 seed("copper", "Raw Copper", Input.of(Tags.Items.RAW_MATERIALS_COPPER), new Principles(250, 0, 100), 1),
                 seed("gold", "Raw Gold", Input.of(Tags.Items.RAW_MATERIALS_GOLD), new Principles(250, 250, 250), 2),
                 seed("redstone", "Redstone Dust", Input.of(Tags.Items.DUSTS_REDSTONE), new Principles(0, 250, 250), 2),
-                seed("diamond", "Diamond", Input.of(Tags.Items.GEMS_DIAMOND), new Principles(500, 500, 500), 3));
+                seed("quartz", "Nether Quartz", Input.of(Tags.Items.GEMS_QUARTZ), new Principles(250, 0, 250), 2),
+                seed("diamond", "Diamond", Input.of(Tags.Items.GEMS_DIAMOND), new Principles(500, 500, 500), 3),
+                seed("emerald", "Emerald", Input.of(Tags.Items.GEMS_EMERALD), new Principles(500, 500, 500), 3));
     }
 
     /** The Seed of a shipped vein, made from its raw material at the stage of that vein. */

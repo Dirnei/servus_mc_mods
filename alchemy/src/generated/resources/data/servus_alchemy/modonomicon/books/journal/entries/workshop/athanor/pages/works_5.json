@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "works_5",
+  "show_title_separator": true,
+  "sort_number": 15,
+  "text": "book.servus_alchemy.journal.workshop.athanor.works_5.text",
+  "title": ""
+}

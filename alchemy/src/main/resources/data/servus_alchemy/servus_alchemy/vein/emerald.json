@@ -1,0 +1,8 @@
+{
+  "yield": {"id": "minecraft:emerald"},
+  "color": "#2fd66a",
+  "steps": 40,
+  "step_ticks": 100,
+  "step_cost": {"salt": 200, "mercury": 100, "sulfur": 50},
+  "yield_ticks": 1200
+}
