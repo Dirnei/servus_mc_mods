@@ -73,6 +73,7 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
     /** On the client: the vein's yield and its ripening steps, from the update tag. */
     private ItemStack shownYield = ItemStack.EMPTY;
     private int shownSteps;
+    private int shownColor = VeinData.DEFAULT_COLOR;
     private boolean shownBoosted;
 
     public GnomeHollowBlockEntity(BlockPos pos, BlockState state) {
@@ -320,6 +321,11 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         return shownSteps <= 0 ? 0 : Math.min(1F, growth.ripeness / (float) shownSteps);
     }
 
+    /** The RGB of the vein's material under the sight, as the client knows it. */
+    public int shownColor() {
+        return shownColor;
+    }
+
     public boolean shownBound() {
         return growth.bound;
     }
@@ -387,6 +393,7 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         if (tag.contains("ShownYield")) {
             shownYield = ValueIo.parseStack(registries, tag.getCompoundOrEmpty("ShownYield"));
             shownSteps = input.getIntOr("ShownSteps", 0);
+            shownColor = input.getIntOr("ShownColor", VeinData.DEFAULT_COLOR);
         }
     }
 
@@ -399,6 +406,7 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         Optional<VeinDef> def = veinDef();
         tag.put("ShownYield", def.map(d -> d.yield().isEmpty() ? new CompoundTag() : ValueIo.saveStack(registries, d.yield())).orElseGet(CompoundTag::new));
         tag.putInt("ShownSteps", def.map(d -> d.growth().steps()).orElse(0));
+        tag.putInt("ShownColor", def.map(VeinDef::color).orElse(VeinData.DEFAULT_COLOR));
         return tag;
     }
 

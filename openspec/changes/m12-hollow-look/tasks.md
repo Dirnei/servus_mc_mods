@@ -1,6 +1,6 @@
 ## 1. Data
 
-- [ ] 1.1 `color` in `VeinData` with default, colours in the shipped vein JSON; JUnit for the colour parsing; run `:alchemy:test`
+- [x] 1.1 `color` in `VeinData` with default, colours in the shipped vein JSON; JUnit for the colour parsing; run `:alchemy:test`
 - [ ] 1.2 `FACING` on `GnomeHollowBlock` set on placement, blockstate datagen maps all facings to stone; GameTest that a placed Hollow faces the placer; run `runData`, `:alchemy:build` and `:alchemy:runGameTestServer`
 
 ## 2. Look

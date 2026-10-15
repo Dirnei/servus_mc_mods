@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.dirnei.mc.servus.alchemy.HexColor;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemy;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers.BlockAt;
@@ -85,11 +86,7 @@ public final class AthanorTierData extends SimpleJsonResourceReloadListener<Json
     }
 
     private static int parseColor(String color) {
-        try {
-            return Integer.parseInt(color.startsWith("#") ? color.substring(1) : color, 16);
-        } catch (NumberFormatException e) {
-            return 0xFFFFFF;
-        }
+        return HexColor.parse(color).orElse(0xFFFFFF);
     }
 
     public List<TierDef> tiers() {

@@ -1,6 +1,7 @@
 {
   "samples": ["c:ores/gold", "c:raw_materials/gold"],
   "yield": {"id": "minecraft:raw_gold"},
+  "color": "#fad63e",
   "chapter": "servus_alchemy:schwaz",
   "steps": 30,
   "step_ticks": 100,
