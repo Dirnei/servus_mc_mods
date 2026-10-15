@@ -56,7 +56,7 @@ Numbers are examples. The real ones live in datapack JSON.
 - **The player has to go to the Nether** to progress.
 - **Salamander (pet):** salamanders live in the Nether's lava lakes and basalt deltas. Without Sight only an odd flame dances on the lava; with Sight the salamander shows. Thrown Gold Ingots befriend it after a few tries, like a wolf with bones. A befriended salamander shows itself to everyone, follows the player, sits on command, likes lying in a campfire and gives off light.
 - **Sal Ammoniac:** a befriended salamander fed Gold Ingots digests them into Sal Ammoniac. (Historically alchemists got sal ammoniac from the soot of burnt camel dung, *to check*.)
-- **Ignis Perpetuus:** Sal Ammoniac and Sulfur at the Athanor make the eternal flame. It builds the **Salamander Forge**, an infinite furnace, and the **Receptaculum**. Players who skip the salamander still reach Rubedo, but without automated extraction from the Hollows.
+- **Ignis Perpetuus:** Sal Ammoniac and Sulfur at the Athanor make the eternal flame. It builds the **Salamander Forge**, an infinite furnace, and the **Receptaculum**. Set into the Firebox of a Calciner it fires it forever and calcines faster. Players who skip the salamander still reach Rubedo, but without automated extraction from the Hollows.
 - The loop: gnomes grow gold, the salamander turns gold into Sal Ammoniac, the eternal flame heats the Receptaculum, and the homunculus automates the gnomes.
 - Ring: **Crying Obsidian** (Ruined Portals, Piglin bartering, Bastion chests). Ask for more than a Ruined Portal usually holds, so the Nether trip is the normal way.
 
@@ -148,7 +148,6 @@ Story (for the storyteller):
 - The homunculus' whispers about the star.
 Play:
 - Does the Prelum make Netherite Scrap or Netherite Ingots? What does one press cost in Caput Mortuum?
-- Is Ignis Perpetuus also an endless fuel (for example in the Calciner), or only a building part?
 - Is the Philosopher's Stone still in the plan? Is "make anything learned by burning" dropped?
 - Our own recipe for Crying Obsidian (proposal: Obsidian, Ghast Tear and Mercury at the Athanor), or only vanilla sources?
 - How fast the poison chance of the Elixir is, and what it does.

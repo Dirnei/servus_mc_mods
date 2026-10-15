@@ -24,7 +24,7 @@
 
 ## 5. Plans and docs
 
-- [ ] 5.1 `alchemy_plan.md`: remove the answered open question "Is Ignis Perpetuus also an endless fuel" and note under Citrinitas that it fires the Calciner forever and faster; `docs/src/content/docs/mods/alchemy.md`: replace "It is not a fuel" for Ignis Perpetuus and add the eternal flame to the Calciner line. Verify: docs build (`npm run build` in `docs/`) green.
+- [x] 5.1 `alchemy_plan.md`: remove the answered open question "Is Ignis Perpetuus also an endless fuel" and note under Citrinitas that it fires the Calciner forever and faster; `docs/src/content/docs/mods/alchemy.md`: replace "It is not a fuel" for Ignis Perpetuus and add the eternal flame to the Calciner line. Verify: docs build (`npm run build` in `docs/`) green.
 
 ## 6. Verification
 
