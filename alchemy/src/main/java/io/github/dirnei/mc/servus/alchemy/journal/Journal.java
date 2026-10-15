@@ -87,7 +87,23 @@ public final class Journal {
         JournalSavedData data = JournalSavedData.get(server);
         List<String> finished = JournalLedger.record(JournalChapters.INSTANCE.chapters(), data.forTeam(team), event, matches, amount);
         data.setDirty();
-        for (String chapter : finished) {
+        awardOnline(server, team, finished);
+    }
+
+    /**
+     * Finishes the chapter and its unfinished parents for the team, as if every task were done, and returns the
+     * newly finished chapters; empty when the chapter is unknown or already finished.
+     */
+    public static List<String> finish(MinecraftServer server, UUID team, String chapter) {
+        JournalSavedData data = JournalSavedData.get(server);
+        List<String> finished = JournalLedger.finish(JournalChapters.INSTANCE.chapters(), data.forTeam(team), chapter);
+        data.setDirty();
+        awardOnline(server, team, finished);
+        return finished;
+    }
+
+    private static void awardOnline(MinecraftServer server, UUID team, List<String> chapters) {
+        for (String chapter : chapters) {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 if (team.equals(Teams.teamOf(player))) {
                     award(player, chapter);

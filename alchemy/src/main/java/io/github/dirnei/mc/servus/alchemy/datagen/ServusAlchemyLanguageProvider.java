@@ -121,6 +121,9 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("commands.servus_alchemy.journal.finished", "finished");
         add("commands.servus_alchemy.journal.open", "open");
         add("commands.servus_alchemy.journal.task", "  %s: %s / %s");
+        add("commands.servus_alchemy.journal.unknown", "No journal chapter %s");
+        add("commands.servus_alchemy.journal.already", "%s was already finished");
+        add("commands.servus_alchemy.journal.now_finished", "%s is now finished");
         add("gui.servus_alchemy.jei.calcination", "Calcination");
         add("gui.servus_alchemy.jei.coagulation", "Coagulation");
         add(ServusAlchemyItems.ASH.get(), "Ash");

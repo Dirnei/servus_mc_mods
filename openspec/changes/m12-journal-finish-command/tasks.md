@@ -4,7 +4,7 @@
 
 ## 2. Command
 
-- [ ] 2.1 Add `Journal.finish` and the `journal finish <chapter>` operator command with suggestions in `Journal.java` and `JournalCommand.java`, lang keys in `ServusAlchemyLanguageProvider`; run `runData` and `:alchemy:build`
+- [x] 2.1 Add `Journal.finish` and the `journal finish <chapter>` operator command with suggestions in `Journal.java` and `JournalCommand.java`, lang keys in `ServusAlchemyLanguageProvider`; run `runData` and `:alchemy:build`
 - [ ] 2.2 GameTest: the command path through `Journal.finish` finishes Villach and Schwaz for a team; run `:alchemy:runGameTestServer`
 
 ## 3. Play check
