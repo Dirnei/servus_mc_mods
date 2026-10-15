@@ -30,7 +30,7 @@ See proposal.md for the why. `ElixirOfSightItem.finishUsingItem` adds Elemental 
 `finishUsingItem` (server side) reads `sighted` before adding the new Sight, then calls the static `ElixirOfSightItem.drink(ServerLevel, LivingEntity, ElixirDose)`, which adds Sight, rolls `level.getRandom().nextDouble()` and, when poisoned, adds `MobEffects.POISON` and `MobEffects.NAUSEA` (skipping a 0 duration) and sends `message.servus_alchemy.elixir_of_sight.poisoned` with `Player.sendOverlayMessage` (verified in 26.1.2 sources). `drink` returns whether it poisoned. GameTests call `drink` with a chance 1 or chance 0 dose: the test hook is the dose argument, so no global override can leak into parallel tests.
 
 ### D4 Texts
-Action bar line: "The dose makes the poison! Too much, you fool, too much." Schwaz tasks page and the Workshop "Elixir of Sight" spotlight get one sentence each about the dose.
+Action bar line: "The dose makes the poison! Too much, you fool, too much." The Schwaz tasks page gets one sentence about the dose; the Workshop entry "Elixir of Sight" gets its own text page "The Dose" (the spotlight page has no room).
 
 ## Risks / Trade-offs
 
@@ -44,7 +44,7 @@ Action bar line: "The dose makes the poison! Too much, you fool, too much." Schw
 - Sight is always granted, poisoned or not; the Sight duration stays three minutes and is not in data.
 - Only the action bar line, no chat line; no sound beyond vanilla's.
 - Without a data file the elixir is harmless.
-- Journal mentions are one sentence in Schwaz and one in the Workshop entry; the quote is Paracelsus' famous 1538 sentence (historical, fine to keep).
+- Journal mentions are one sentence in Schwaz and a page "The Dose" in the Workshop entry; the quote is Paracelsus' famous 1538 sentence (historical, fine to keep).
 
 ## Ideas
 
