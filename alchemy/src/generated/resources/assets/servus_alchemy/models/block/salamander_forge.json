@@ -1,0 +1,274 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks"
+        },
+        "east": {
+          "texture": "#bricks"
+        },
+        "north": {
+          "texture": "#bricks"
+        },
+        "south": {
+          "texture": "#bricks"
+        },
+        "up": {
+          "texture": "#bricks"
+        },
+        "west": {
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        0,
+        0,
+        4
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks"
+        },
+        "east": {
+          "texture": "#bricks"
+        },
+        "north": {
+          "texture": "#bricks"
+        },
+        "south": {
+          "texture": "#bricks"
+        },
+        "up": {
+          "texture": "#bricks"
+        },
+        "west": {
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        3,
+        16,
+        4
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks"
+        },
+        "east": {
+          "texture": "#bricks"
+        },
+        "north": {
+          "texture": "#bricks"
+        },
+        "south": {
+          "texture": "#bricks"
+        },
+        "up": {
+          "texture": "#bricks"
+        },
+        "west": {
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        13,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        4
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks"
+        },
+        "east": {
+          "texture": "#bricks"
+        },
+        "north": {
+          "texture": "#bricks"
+        },
+        "south": {
+          "texture": "#bricks"
+        },
+        "up": {
+          "texture": "#bricks"
+        },
+        "west": {
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        3,
+        11,
+        0
+      ],
+      "to": [
+        13,
+        16,
+        4
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks"
+        },
+        "east": {
+          "texture": "#bricks"
+        },
+        "north": {
+          "texture": "#bricks"
+        },
+        "south": {
+          "texture": "#bricks"
+        },
+        "up": {
+          "texture": "#bricks"
+        },
+        "west": {
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        3,
+        0,
+        0
+      ],
+      "to": [
+        13,
+        3,
+        4
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#embers"
+        },
+        "east": {
+          "texture": "#embers"
+        },
+        "north": {
+          "texture": "#embers"
+        },
+        "south": {
+          "texture": "#embers"
+        },
+        "up": {
+          "texture": "#embers"
+        },
+        "west": {
+          "texture": "#embers"
+        }
+      },
+      "from": [
+        3,
+        3,
+        2
+      ],
+      "light_emission": 15,
+      "to": [
+        13,
+        5,
+        4
+      ]
+    },
+    {
+      "faces": {
+        "north": {
+          "texture": "#fire",
+          "uv": [
+            0,
+            6,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#fire",
+          "uv": [
+            0,
+            6,
+            16,
+            16
+          ]
+        }
+      },
+      "from": [
+        3,
+        5,
+        3
+      ],
+      "light_emission": 15,
+      "to": [
+        13,
+        11,
+        3
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#steel"
+        },
+        "east": {
+          "texture": "#steel"
+        },
+        "north": {
+          "texture": "#emblem",
+          "uv": [
+            0,
+            4,
+            16,
+            12
+          ]
+        },
+        "up": {
+          "texture": "#steel"
+        },
+        "west": {
+          "texture": "#steel"
+        }
+      },
+      "from": [
+        5,
+        12,
+        -0.5
+      ],
+      "to": [
+        11,
+        15,
+        0
+      ]
+    }
+  ],
+  "textures": {
+    "bricks": "minecraft:block/deepslate_bricks",
+    "embers": "minecraft:block/magma",
+    "emblem": "servus_alchemy:block/salamander_forge_emblem",
+    "fire": "minecraft:block/fire_0",
+    "particle": "minecraft:block/deepslate_bricks",
+    "steel": "servus_foundation:block/electric_pump_steel"
+  }
+}

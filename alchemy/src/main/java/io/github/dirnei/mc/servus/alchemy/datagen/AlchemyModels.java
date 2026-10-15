@@ -16,6 +16,7 @@ import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelRotations;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
+import java.util.Set;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
 
@@ -70,6 +71,45 @@ final class AlchemyModels {
         coagulator();
         vat();
         dropper();
+        forge();
+    }
+
+    /**
+     * The Salamander Forge: a deepslate brick block with an open mouth, glowing embers on its floor, a full bright fire
+     * standing in it and a steel plate with a salamander above it. One model for lit and unlit: the fire never goes out.
+     */
+    private void forge() {
+        BlockModelBuilder model = builder("salamander_forge")
+                .texture("bricks", states.mcLoc("block/deepslate_bricks")).texture("embers", states.mcLoc(EMBERS))
+                .texture("fire", states.mcLoc("block/fire_0")).texture("steel", STEEL)
+                .texture("emblem", states.modLoc("block/salamander_forge_emblem"))
+                .texture("particle", states.mcLoc("block/deepslate_bricks"));
+        box(model, 0, 0, 4, 16, 16, 16, "#bricks");
+        box(model, 0, 0, 0, 3, 16, 4, "#bricks");
+        box(model, 13, 0, 0, 16, 16, 4, "#bricks");
+        box(model, 3, 11, 0, 13, 16, 4, "#bricks");
+        box(model, 3, 0, 0, 13, 3, 4, "#bricks");
+        model.element().from(3, 3, 2).to(13, 5, 4).lightEmission(15).allFaces((direction, face) -> face.texture("#embers")).end();
+        model.element().from(3, 5, 3).to(13, 11, 3).lightEmission(15)
+                .face(Direction.NORTH).uvs(0, 6, 16, 16).texture("#fire").end()
+                .face(Direction.SOUTH).uvs(0, 6, 16, 16).texture("#fire").end()
+                .end();
+        // No back face: it would lie on the lintel's front.
+        model.element().from(5, 12, -0.5F).to(11, 15, 0)
+                .allFacesExcept((direction, face) -> {
+                    if (direction == Direction.NORTH) {
+                        face.uvs(0, 4, 16, 12).texture("#emblem");
+                    } else {
+                        face.texture("#steel");
+                    }
+                }, Set.of(Direction.SOUTH))
+                .end();
+        Block block = ServusAlchemyBlocks.SALAMANDER_FORGE.get();
+        states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(model)
+                .rotationY(ModelRotations.rotationY(state.getValue(MachineBlock.FACING)))
+                .build());
+        states.simpleBlockItem(block, model);
     }
 
     /**

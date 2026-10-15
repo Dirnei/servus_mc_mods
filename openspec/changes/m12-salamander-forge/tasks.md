@@ -7,7 +7,7 @@
 
 ## 2. Look
 
-- [ ] 2.1 Foundation `ModelBuilder.ElementBuilder.lightEmission` (D8); emblem texture `textures/block/salamander_forge_emblem.png` from a script in the job directory; model and block state in `AlchemyModels` (D8, overlap check in design), loot `dropSelf`, pickaxe tag, lang name; `:alchemy:runData`, commit generated files. Verify: `gradlew build` green.
+- [x] 2.1 Foundation `ModelBuilder.ElementBuilder.lightEmission` (D8); emblem texture `textures/block/salamander_forge_emblem.png` from a script in the job directory; model and block state in `AlchemyModels` (D8, overlap check in design), loot `dropSelf`, pickaxe tag, lang name; `:alchemy:runData`, commit generated files. Verify: `gradlew build` green.
 
 ## 3. Behaviour tests
 

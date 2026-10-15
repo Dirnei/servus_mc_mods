@@ -37,7 +37,8 @@ final class ServusAlchemyBlockLoot extends BlockLootSubProvider {
             ServusAlchemyBlocks.COAGULATOR.get(),
             ServusAlchemyBlocks.SALT_CRYSTAL_BLOCK.get(),
             ServusAlchemyBlocks.ATHANOR.get(),
-            ServusAlchemyBlocks.PRINCIPLE_DROPPER.get());
+            ServusAlchemyBlocks.PRINCIPLE_DROPPER.get(),
+            ServusAlchemyBlocks.SALAMANDER_FORGE.get());
 
     ServusAlchemyBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);

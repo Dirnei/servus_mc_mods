@@ -129,6 +129,7 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
         private final Map<Direction, FaceBuilder> faces = new EnumMap<>(Direction.class);
         private final List<Direction> faceOrder = new ArrayList<>();
         private @Nullable RotationBuilder rotation;
+        private int lightEmission;
 
         public ElementBuilder from(float x, float y, float z) {
             from = new float[] {x, y, z};
@@ -168,6 +169,15 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
             return rotation;
         }
 
+        /** Light the element's faces are drawn with at least, 0 to 15; 15 draws them full bright. */
+        public ElementBuilder lightEmission(int level) {
+            if (level < 0 || level > 15) {
+                throw new IllegalArgumentException("light emission must be 0 to 15, was " + level);
+            }
+            lightEmission = level;
+            return this;
+        }
+
         public T end() {
             return self();
         }
@@ -184,6 +194,9 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
                 faceJson.add(direction.getSerializedName(), faces.get(direction).toJson());
             }
             json.add("faces", faceJson);
+            if (lightEmission > 0) {
+                json.addProperty("light_emission", lightEmission);
+            }
             return json;
         }
 

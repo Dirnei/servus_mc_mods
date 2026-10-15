@@ -128,6 +128,7 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add(ServusAlchemyBlocks.ATHANOR.get(), "Athanor");
         add(ServusAlchemyBlocks.GNOME_HOLLOW.get(), "Gnome Hollow");
         add(ServusAlchemyBlocks.PRINCIPLE_DROPPER.get(), "Principle Dropper");
+        add(ServusAlchemyBlocks.SALAMANDER_FORGE.get(), "Salamander Forge");
         add("message.servus_alchemy.gnome_hollow.bound", "A gnome takes your offering and sets to work.");
         add("message.servus_alchemy.gnome_hollow.no_vein", "Nothing grows here yet. Seed the hollow with a sample of ore.");
         add("message.servus_alchemy.gnome_hollow.not_ripe", "The vein is not ripe yet.");
