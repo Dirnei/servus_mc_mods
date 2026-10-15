@@ -13,7 +13,8 @@ import net.minecraft.world.level.saveddata.SavedDataType;
 
 /**
  * The duct channels of every team, saved with the overworld. Every create,
- * edit and delete goes through here on the server thread.
+ * edit and delete goes through here on the server thread and is sent to
+ * every player.
  */
 public final class DuctChannelData extends SavedData {
 
@@ -63,13 +64,18 @@ public final class DuctChannelData extends SavedData {
     public boolean delete(int id) {
         boolean deleted = list.delete(id);
         if (deleted) {
-            setDirty();
+            changed();
         }
         return deleted;
     }
 
     private Optional<Channel> changedIfPresent(Optional<Channel> channel) {
-        channel.ifPresent(c -> setDirty());
+        channel.ifPresent(c -> changed());
         return channel;
+    }
+
+    private void changed() {
+        setDirty();
+        ChannelSync.broadcast(list);
     }
 }

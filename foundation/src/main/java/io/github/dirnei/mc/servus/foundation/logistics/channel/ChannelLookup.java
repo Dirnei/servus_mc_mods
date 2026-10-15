@@ -15,6 +15,6 @@ public interface ChannelLookup {
             ChannelList list = DuctChannelData.get(server.getServer()).list();
             return list::exists;
         }
-        return id -> id == ChannelList.DEFAULT_ID;
+        return id -> ClientChannels.list().exists(id);
     }
 }

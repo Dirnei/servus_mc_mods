@@ -235,6 +235,18 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         configChanged();
     }
 
+    /** Whether any side of any line stores one of these channel ids, channels that no longer exist included. */
+    public boolean storesChannel(Set<Integer> ids) {
+        for (Line line : Line.VALUES) {
+            for (Direction side : DIRECTIONS) {
+                if (ids.contains((int) channels[line.ordinal()][side.ordinal()])) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /** Six bit mask of the sides that carry an arm of the line, {@code 1 << side.ordinal()}. */
     public int arms(Line line) {
         return arms[line.ordinal()];
