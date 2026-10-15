@@ -11,7 +11,7 @@
 
 ## 3. Client
 
-- [ ] 3.1 Textures from a script in the job directory (D12); `ReceptaculumScreen` registered in `ServusAlchemyClient` (D14); `VasRenderer` registered (D10). Verify: `gradlew build` green.
+- [x] 3.1 Textures from a script in the job directory (D12); `ReceptaculumScreen` registered in `ServusAlchemyClient` (D14); `VasRenderer` registered (D10). Verify: `gradlew build` green.
 - [ ] 3.2 Models and block states in `AlchemyModels` (D11), item model for the Sealed Flask, loot (`dropSelf` for both), pickaxe tag, lang (names, screen labels, whispers and secret placeholders); `:alchemy:runData`, commit generated files. Verify: `gradlew build` green.
 
 ## 4. Recipes and journal
