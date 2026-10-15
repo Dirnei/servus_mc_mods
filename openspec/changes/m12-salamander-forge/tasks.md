@@ -20,7 +20,7 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Full `gradlew build test :alchemy:runGameTestServer` green; client smoke start from main reaches the title screen without errors mentioning servus.
+- [x] 5.1 Full `gradlew build test :alchemy:runGameTestServer` green; client smoke start from main reaches the title screen without errors mentioning servus.
 - [ ] 5.2 User play check in game:
   - The Forge looks like a compact deepslate brick furnace with an open mouth, glowing embers and a full bright fire, a steel plate with a salamander above the mouth; no flicker from any angle, also while the fire animates.
   - It lights the room at all times; flames and smoke rise from the mouth.
