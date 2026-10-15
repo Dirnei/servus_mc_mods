@@ -2,7 +2,7 @@
 
 ## 1. Pure channel list
 
-- [ ] 1.1 Add `foundation/.../logistics/channel/Channel.java`, `ChannelList.java` and `ChannelColours.java` (design D3), no Minecraft imports. JUnit in `foundation/src/test/java/.../logistics/channel/`: `ChannelListTest` (`createAllocatesNewIds`, `idsNeverReused`, `renameKeepsId`, `emptyNameRefused`, `longNameRefused`, `takenNameIgnoresCase`, `sameNameInOtherTeam`, `deletableWhenUnused`, `deletableWhenOnlyOpenSide`, `notDeletableWithOtherUses`, `defaultNeverEditedOrDeleted`, `matchingByText`, `matchingByUsedIds`, `defaultListedFirst`) and `ChannelColoursTest` (`sixteenColours`, `blackIsLifted`). Verify: `gradlew :foundation:test` green.
+- [x] 1.1 Add `foundation/.../logistics/channel/Channel.java`, `ChannelList.java` and `ChannelColours.java` (design D3), no Minecraft imports. JUnit in `foundation/src/test/java/.../logistics/channel/`: `ChannelListTest` (`createAllocatesNewIds`, `idsNeverReused`, `renameKeepsId`, `emptyNameRefused`, `longNameRefused`, `takenNameIgnoresCase`, `sameNameInOtherTeam`, `deletableWhenUnused`, `deletableWhenOnlyOpenSide`, `notDeletableWithOtherUses`, `defaultNeverEditedOrDeleted`, `matchingByText`, `matchingByUsedIds`, `defaultListedFirst`) and `ChannelColoursTest` (`sixteenColours`, `blackIsLifted`). Verify: `gradlew :foundation:test` green.
 
 ## 2. Saved data, lookup and sync
 
