@@ -271,6 +271,7 @@
   "commands.servus_alchemy.journal.task": "  %s: %s / %s",
   "config.jade.plugin_servus_alchemy.athanor": "Athanor",
   "config.jade.plugin_servus_alchemy.calciner": "Calciner",
+  "config.jade.plugin_servus_alchemy.gnome_hollow": "Gnome Hollow",
   "config.jade.plugin_servus_alchemy.purifier": "Purifier",
   "effect.servus_alchemy.elemental_sight": "Elemental Sight",
   "entity.servus_alchemy.salamander": "Salamander",

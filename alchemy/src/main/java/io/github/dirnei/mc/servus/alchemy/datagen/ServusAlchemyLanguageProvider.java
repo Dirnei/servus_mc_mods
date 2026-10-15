@@ -86,6 +86,7 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("config.jade.plugin_servus_alchemy.calciner", "Calciner");
         add("config.jade.plugin_servus_alchemy.purifier", "Purifier");
         add("config.jade.plugin_servus_alchemy.athanor", "Athanor");
+        add("config.jade.plugin_servus_alchemy.gnome_hollow", "Gnome Hollow");
         add("jade.servus_alchemy.athanor.stage", "Stage: %s");
         add("jade.servus_alchemy.athanor.unformed", "Not formed (stage %s)");
         add("jade.servus_alchemy.athanor.input", "Burning: %s");
