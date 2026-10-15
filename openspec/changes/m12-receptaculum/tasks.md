@@ -7,7 +7,7 @@
 ## 2. Blocks and behaviour
 
 - [x] 2.1 `homunculus/HomunculusData.java` (D6) registered in `AlchemyEvents`, data `servus_alchemy/homunculus/homunculus.json`; `GnomeHollowBlockEntity.takeYield(int)` (D4); machine defaults `receptaculum` in `AlchemyMachineDefaults`. Verify: `gradlew build` green.
-- [ ] 2.2 `ReceptaculumBlock`, `ReceptaculumBlockEntity`, `ReceptaculumMenu` (D1, D5, D14); shared fire particles extracted from `SalamanderForgeBlock` into `HearthFire`; `VasBlock`, `VasBlockEntity` with growth, upkeep, harvest, gifts, whispers, freeing and sync (D2 to D9); registrations in `ServusAlchemyBlocks`, `ServusAlchemyItems` (Sealed Flask as the Vas' block item, creative tab), `ServusAlchemyBlockEntities`, `ServusAlchemyMenus`; item and production capabilities in `ServusAlchemyEvents`. Verify: `gradlew build` green.
+- [x] 2.2 `ReceptaculumBlock`, `ReceptaculumBlockEntity`, `ReceptaculumMenu` (D1, D5, D14); shared fire particles extracted from `SalamanderForgeBlock` into `HearthFire`; `VasBlock`, `VasBlockEntity` with growth, upkeep, harvest, gifts, whispers, freeing and sync (D2 to D9); registrations in `ServusAlchemyBlocks`, `ServusAlchemyItems` (Sealed Flask as the Vas' block item, creative tab), `ServusAlchemyBlockEntities`, `ServusAlchemyMenus`; item and production capabilities in `ServusAlchemyEvents`. Verify: `gradlew build` green.
 
 ## 3. Client
 

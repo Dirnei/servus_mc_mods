@@ -10,6 +10,8 @@ import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerShellBlock;
 import io.github.dirnei.mc.servus.alchemy.coagulator.VatBlock;
 import io.github.dirnei.mc.servus.alchemy.forge.SalamanderForgeBlock;
+import io.github.dirnei.mc.servus.alchemy.homunculus.ReceptaculumBlock;
+import io.github.dirnei.mc.servus.alchemy.homunculus.VasBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.PrincipleDropperBlock;
 import io.github.dirnei.mc.servus.alchemy.purifier.CatchBasinBlock;
@@ -91,6 +93,16 @@ public final class ServusAlchemyBlocks {
     public static final DeferredBlock<SalamanderForgeBlock> SALAMANDER_FORGE = BLOCKS.registerBlock("salamander_forge",
             SalamanderForgeBlock::new, () -> BlockBehaviour.Properties.of().mapColor(MapColor.DEEPSLATE).strength(3.5F, 6.0F)
                     .requiresCorrectToolForDrops().sound(SoundType.DEEPSLATE_BRICKS).noOcclusion().lightLevel(state -> 13));
+
+    /** The Receptaculum, a Hearth Chest whose fire always burns under the Vas Hermeticum. */
+    public static final DeferredBlock<ReceptaculumBlock> RECEPTACULUM = BLOCKS.registerBlock("receptaculum",
+            ReceptaculumBlock::new, () -> BlockBehaviour.Properties.of().mapColor(MapColor.DEEPSLATE).strength(3.5F, 6.0F)
+                    .requiresCorrectToolForDrops().sound(SoundType.DEEPSLATE_BRICKS).lightLevel(state -> 12));
+
+    /** The Vas Hermeticum, the sealed glass flask of the homunculus; its item is the Sealed Flask. */
+    public static final DeferredBlock<VasBlock> VAS_HERMETICUM = BLOCKS.registerBlock("vas_hermeticum",
+            VasBlock::new, () -> BlockBehaviour.Properties.of().mapColor(MapColor.NONE).strength(0.3F)
+                    .sound(SoundType.GLASS).noOcclusion());
 
     private static DeferredBlock<CalcinerPartBlock> calcinerPart(String name, Role role, BlockBehaviour.Properties properties) {
         return BLOCKS.registerBlock(name, props -> new CalcinerPartBlock(role, props), () -> properties);

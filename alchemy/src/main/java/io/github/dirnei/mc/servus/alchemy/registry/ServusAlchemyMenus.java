@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.alchemy.registry;
 import io.github.dirnei.mc.servus.alchemy.CoagulatorMenu;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.forge.SalamanderForgeMenu;
+import io.github.dirnei.mc.servus.alchemy.homunculus.ReceptaculumMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
@@ -19,6 +20,9 @@ public final class ServusAlchemyMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<SalamanderForgeMenu>> SALAMANDER_FORGE =
             MENUS.register("salamander_forge", () -> IMenuTypeExtension.create(SalamanderForgeMenu::fromNetwork));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<ReceptaculumMenu>> RECEPTACULUM =
+            MENUS.register("receptaculum", () -> IMenuTypeExtension.create(ReceptaculumMenu::fromNetwork));
 
     private ServusAlchemyMenus() {
     }

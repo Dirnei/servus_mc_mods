@@ -5,6 +5,8 @@ import io.github.dirnei.mc.servus.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.forge.SalamanderForgeBlockEntity;
+import io.github.dirnei.mc.servus.alchemy.homunculus.ReceptaculumBlockEntity;
+import io.github.dirnei.mc.servus.alchemy.homunculus.VasBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.PrincipleDropperBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierBlockEntity;
@@ -41,6 +43,12 @@ public final class ServusAlchemyBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SalamanderForgeBlockEntity>> SALAMANDER_FORGE =
             register("salamander_forge", SalamanderForgeBlockEntity::new, ServusAlchemyBlocks.SALAMANDER_FORGE);
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ReceptaculumBlockEntity>> RECEPTACULUM =
+            register("receptaculum", ReceptaculumBlockEntity::new, ServusAlchemyBlocks.RECEPTACULUM);
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VasBlockEntity>> VAS_HERMETICUM =
+            register("vas_hermeticum", VasBlockEntity::new, ServusAlchemyBlocks.VAS_HERMETICUM);
 
     private ServusAlchemyBlockEntities() {
     }

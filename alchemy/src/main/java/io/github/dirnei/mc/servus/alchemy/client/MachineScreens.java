@@ -13,6 +13,9 @@ public final class MachineScreens {
     /** The Salamander Forge: the furnace's flame, always full, and its arrow; no energy bar. */
     public static final Layout SALAMANDER_FORGE = new Layout(true, true, false, gui("salamander_forge"));
 
+    /** The Receptaculum: slots only, with the side panel. */
+    public static final Layout RECEPTACULUM = new Layout(false, false, false, gui("receptaculum"));
+
     private MachineScreens() {
     }
 

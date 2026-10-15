@@ -51,6 +51,10 @@ public final class ServusAlchemyEvents {
                     (forge, side) -> forge.sideHandler(side));
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusAlchemyBlockEntities.SALAMANDER_FORGE.get(),
                     (forge, side) -> forge.production());
+            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusAlchemyBlockEntities.RECEPTACULUM.get(),
+                    (receptaculum, side) -> receptaculum.sideHandler(side));
+            event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusAlchemyBlockEntities.RECEPTACULUM.get(),
+                    (receptaculum, side) -> receptaculum.production());
             event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusAlchemyBlockEntities.PRINCIPLE_DROPPER.get(),
                     (dropper, side) -> dropper.tanks());
         }

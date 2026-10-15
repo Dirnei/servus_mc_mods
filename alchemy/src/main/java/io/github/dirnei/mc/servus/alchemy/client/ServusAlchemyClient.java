@@ -8,6 +8,9 @@ import io.github.dirnei.mc.servus.alchemy.client.sight.RevealRenderers;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyMenus;
+import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -27,6 +30,7 @@ public final class ServusAlchemyClient {
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(ServusAlchemyMenus.COAGULATOR.get(), CoagulatorScreen::new);
         event.register(ServusAlchemyMenus.SALAMANDER_FORGE.get(), MachineScreens.machineScreen(MachineScreens.SALAMANDER_FORGE));
+        event.register(ServusAlchemyMenus.RECEPTACULUM.get(), (MachineMenu menu, Inventory inventory, Component title) -> new ReceptaculumScreen(menu, inventory, title));
     }
 
     @SubscribeEvent
@@ -35,6 +39,7 @@ public final class ServusAlchemyClient {
         event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.PURIFIER.get(), PurifierRenderer::new);
         event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.COAGULATOR.get(), CoagulatorRenderer::new);
         event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.ATHANOR.get(), AthanorRenderer::new);
+        event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.VAS_HERMETICUM.get(), VasRenderer::new);
         event.registerEntityRenderer(ServusAlchemyEntities.SALAMANDER.get(), SalamanderRenderer::new);
     }
 

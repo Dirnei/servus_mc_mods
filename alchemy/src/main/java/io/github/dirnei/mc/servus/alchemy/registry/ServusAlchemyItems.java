@@ -30,6 +30,10 @@ public final class ServusAlchemyItems {
     public static final DeferredItem<BlockItem> GNOME_HOLLOW = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.GNOME_HOLLOW);
     public static final DeferredItem<BlockItem> PRINCIPLE_DROPPER = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.PRINCIPLE_DROPPER);
     public static final DeferredItem<BlockItem> SALAMANDER_FORGE = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.SALAMANDER_FORGE);
+    public static final DeferredItem<BlockItem> RECEPTACULUM = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.RECEPTACULUM);
+    /** The homunculus' flask from the Athanor; it places the Vas Hermeticum, and only on a Receptaculum. */
+    public static final DeferredItem<BlockItem> SEALED_FLASK = ITEMS.registerItem("sealed_flask",
+            properties -> new BlockItem(ServusAlchemyBlocks.VAS_HERMETICUM.get(), properties), () -> new Item.Properties().stacksTo(16));
 
     public static final DeferredItem<Item> ASH = ITEMS.registerSimpleItem("ash");
     /** What stays behind when the Purifier has washed the Salt out of the Ash. */
@@ -53,7 +57,7 @@ public final class ServusAlchemyItems {
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(PARACELSUS_JOURNAL, CALCINER, FIREBOX, ASH_PAN,
             ALEMBIC, RECEIVER, SULFUR_HOOD, COPPER_DUCT, PURIFIER, CATCH_BASIN, RESIDUE_CROCK, COAGULATOR, VAT, ATHANOR, GNOME_HOLLOW,
             PRINCIPLE_DROPPER, ASH, CAPUT_MORTUUM, SALT_CRYSTAL, SALT_CRYSTAL_BLOCK, SULFUR, QUICKSILVER,
-            SAL_AMMONIAC, IGNIS_PERPETUUS, SALAMANDER_FORGE, SALAMANDER_SPAWN_EGG);
+            SAL_AMMONIAC, IGNIS_PERPETUUS, SALAMANDER_FORGE, RECEPTACULUM, SEALED_FLASK, SALAMANDER_SPAWN_EGG);
 
     private ServusAlchemyItems() {
     }
