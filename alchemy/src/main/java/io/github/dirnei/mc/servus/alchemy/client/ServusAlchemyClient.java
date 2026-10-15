@@ -2,6 +2,8 @@ package io.github.dirnei.mc.servus.alchemy.client;
 
 import com.klikli_dev.modonomicon.client.render.page.PageRendererRegistry;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.client.gnome.GnomeModel;
+import io.github.dirnei.mc.servus.alchemy.client.gnome.GnomeRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.hollow.VeinColorTint;
 import io.github.dirnei.mc.servus.alchemy.client.journal.JournalTasksPageRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.salamander.SalamanderModel;
@@ -9,11 +11,14 @@ import io.github.dirnei.mc.servus.alchemy.client.salamander.SalamanderRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.sight.HollowRevealRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.sight.OldGnomeRevealRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.sight.RevealRenderers;
+import io.github.dirnei.mc.servus.alchemy.gnome.Gnome;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
+import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.alchemy.journal.JournalTasksPage;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyMenus;
 import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.api.distmarker.Dist;
@@ -50,6 +55,7 @@ public final class ServusAlchemyClient {
         event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.PRELUM.get(), PrelumRenderer::new);
         event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.PRINCIPLE_DROPPER.get(), PrincipleDropperRenderer::new);
         event.registerEntityRenderer(ServusAlchemyEntities.SALAMANDER.get(), SalamanderRenderer::new);
+        event.registerEntityRenderer(ServusAlchemyEntities.GNOME.get(), GnomeRenderer::new);
     }
 
     @SubscribeEvent
@@ -60,6 +66,7 @@ public final class ServusAlchemyClient {
     @SubscribeEvent
     public static void onRegisterLayers(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(SalamanderModel.LAYER, SalamanderModel::createBodyLayer);
+        event.registerLayerDefinition(GnomeModel.LAYER, GnomeModel::createBodyLayer);
     }
 
     /** Dev only icon export for the docs: its renderer exists only when the iconExport run asks for it. */
@@ -68,12 +75,16 @@ public final class ServusAlchemyClient {
         IconExporter.registerRendererIfRequested(event);
     }
 
-    /** The dev only icon export, when the iconExport run asks for it, the Elemental Sight renderers and the journal task page. */
+    /**
+     * The dev only icon export, when the iconExport run asks for it, the Elemental Sight renderers, the sight check that
+     * lets only the sighted click gnomes, and the journal task page.
+     */
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         IconExporter.registerIfRequested();
         RevealRenderers.add(new HollowRevealRenderer());
         RevealRenderers.add(new OldGnomeRevealRenderer());
+        Gnome.watchSightWith(() -> ElementalSight.active(Minecraft.getInstance().player));
         PageRendererRegistry.registerPageRenderer(JournalTasksPage.ID, page -> new JournalTasksPageRenderer((JournalTasksPage) page));
     }
 }
