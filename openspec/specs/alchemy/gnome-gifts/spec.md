@@ -1,4 +1,10 @@
-## ADDED Requirements
+# alchemy/gnome-gifts Specification
+
+## Purpose
+
+Gifts a gnome likes make him dig his vein faster for a while; without gifts he keeps the base rate.
+
+## Requirements
 
 ### Requirement: Gifts are data
 The gifts gnomes like SHALL come from datapack files `data/<namespace>/servus_alchemy/gnome_gift/<name>.json`, each naming liked items and item tags, a speed factor of at least 1 and a duration in ticks. An item SHALL use the first gift file by id that names it or one of its tags; an item that no file names SHALL be disliked. The shipped data SHALL like, for example, cookie, bread, sweet berries and glow berries at x2 for 10 minutes.

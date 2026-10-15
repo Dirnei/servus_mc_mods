@@ -19,7 +19,7 @@
 ## 5. Integration
 
 - [x] 5.1 Full `gradlew build test :alchemy:runGameTestServer` green.
-- [ ] 5.2 User play check in game:
+- [x] 5.2 User play check in game:
   - Under Elemental Sight a cookie on a bound Hollow is used up, the action bar says the gnome is pleased, the red cap spins faster and Jade shows "Gift: x2" with the time counting down.
   - The store fills about twice as fast while boosted, at the base rate after the boost ends.
   - A stick on a bound Hollow stays in the hand with a hint; a cookie on a ripe but unbound Hollow stays with a hint.
