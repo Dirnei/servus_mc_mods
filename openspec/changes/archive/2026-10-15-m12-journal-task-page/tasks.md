@@ -12,8 +12,8 @@
 ## 3. Tests
 
 - [x] 3.1 GameTests: every shipped task has a lang key; recording an event marks the team dirty and the drain clears it; run `:alchemy:runGameTestServer`
-- [ ] 3.2 Launch the client from main and open the journal: the page renders without errors
+- [x] 3.2 Launch the client from main and open the journal: the page renders without errors
 
 ## 4. Play check
 
-- [ ] 4.1 User play check: the Villach page shows live counts while the Calciner works, check marks appear, a finished chapter says so
+- [x] 4.1 User play check: the Villach page shows live counts while the Calciner works, check marks appear, a finished chapter says so
