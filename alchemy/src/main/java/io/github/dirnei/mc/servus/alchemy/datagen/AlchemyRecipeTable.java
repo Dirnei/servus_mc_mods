@@ -121,7 +121,9 @@ public final class AlchemyRecipeTable {
                 new AthanorCraft("gnome_hollow", "Cracked Stone Bricks", "Gnome Hollow", Input.of(Items.CRACKED_STONE_BRICKS),
                         new Principles(500, 0, 250), 1, new ItemStackTemplate(ServusAlchemyItems.GNOME_HOLLOW.get()), 200),
                 new AthanorCraft("principle_dropper", "Principle Vat", "Principle Dropper", Input.of(ServusAlchemyItems.VAT.get()),
-                        new Principles(250, 250, 250), 2, new ItemStackTemplate(ServusAlchemyItems.PRINCIPLE_DROPPER.get()), 200));
+                        new Principles(250, 250, 250), 2, new ItemStackTemplate(ServusAlchemyItems.PRINCIPLE_DROPPER.get()), 200),
+                new AthanorCraft("ignis_perpetuus", "Sal Ammoniac", "Ignis Perpetuus", Input.of(ServusAlchemyItems.SAL_AMMONIAC.get()),
+                        new Principles(0, 500, 0), 2, new ItemStackTemplate(ServusAlchemyItems.IGNIS_PERPETUUS.get()), 200));
     }
 
     /** The English name of an Athanor stage. */

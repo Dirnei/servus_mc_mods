@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.alchemy.gametest;
 
+import io.github.dirnei.mc.servus.alchemy.Principles;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.salamander.Salamander;
@@ -181,6 +183,37 @@ public final class SalamanderGameTests {
                 "open lava allows a spawn");
         helper.assertTrue(!Salamander.checkSpawnRules(type, level, EntitySpawnReason.NATURAL, helper.absolutePos(roofed), random),
                 "roofed lava does not");
+        helper.succeed();
+    }
+
+    /** Sal Ammoniac and Sulfur make Ignis Perpetuus on a Citrinitas Athanor, not on an Albedo one. */
+    @ServusGameTest(timeoutTicks = 600)
+    public static void ignisNeedsCitrinitas(GameTestHelper helper) {
+        AthanorBlockEntity athanor = AlchemyGameTests.athanor(helper);
+        AlchemyGameTests.saltRing(helper);
+        athanor.checkTier();
+        helper.assertTrue(athanor.tier() == 1, "the salt ring makes Albedo, got " + athanor.tier());
+        athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(ServusAlchemyItems.SAL_AMMONIAC.get()));
+        helper.runAfterDelay(2, () -> AlchemyGameTests.pour(helper, new Principles(0, 500, 0)));
+        helper.runAfterDelay(250, () -> {
+            helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).isEmpty(), "no Ignis Perpetuus at Albedo");
+            AlchemyGameTests.amethystRing(helper);
+            athanor.checkTier();
+            helper.assertTrue(athanor.tier() == 2, "the amethyst ring makes Citrinitas, got " + athanor.tier());
+            helper.succeedWhen(() -> {
+                helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).is(ServusAlchemyItems.IGNIS_PERPETUUS.get()),
+                        "Ignis Perpetuus should be made");
+                helper.assertTrue(athanor.principles().isEmpty(), "the Sulfur is burned");
+            });
+        });
+    }
+
+    /** Ignis Perpetuus is a building part: no furnace burns it. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void ignisIsNotAFuel(GameTestHelper helper) {
+        ItemStack ignis = new ItemStack(ServusAlchemyItems.IGNIS_PERPETUUS.get());
+        helper.assertTrue(!helper.getLevel().fuelValues().isFuel(ignis), "Ignis Perpetuus must not be a fuel");
+        helper.assertTrue(helper.getLevel().fuelValues().isFuel(new ItemStack(Items.COAL)), "coal still is");
         helper.succeed();
     }
 }

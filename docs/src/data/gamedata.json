@@ -221,6 +221,12 @@
       "inputs": [],
       "outputs": []
     },
+    "servus_alchemy:athanor/ignis_perpetuus": {
+      "type": "servus_alchemy:athanor",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
     "servus_alchemy:athanor/principle_dropper": {
       "type": "servus_alchemy:athanor",
       "special": true,

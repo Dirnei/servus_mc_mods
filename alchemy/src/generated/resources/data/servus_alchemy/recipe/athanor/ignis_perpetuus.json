@@ -1,0 +1,15 @@
+{
+  "type": "servus_alchemy:athanor",
+  "input": {
+    "count": 1,
+    "ingredient": "servus_alchemy:sal_ammoniac"
+  },
+  "principles": {
+    "sulfur": 500
+  },
+  "result": {
+    "id": "servus_alchemy:ignis_perpetuus"
+  },
+  "tier": 2,
+  "time": 200
+}
