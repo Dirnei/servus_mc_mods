@@ -36,6 +36,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
@@ -84,6 +85,15 @@ public class Salamander extends TamableAnimal {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Animal.createAnimalAttributes().add(Attributes.MAX_HEALTH, 10.0).add(Attributes.MOVEMENT_SPEED, 0.2);
+    }
+
+    /**
+     * Every spot is as good as another: no pull toward lava and none toward light. Natural spawning refuses a mob whose
+     * value is negative, and the animal default of light minus 0.5 is negative almost everywhere in the dark Nether.
+     */
+    @Override
+    public float getWalkTargetValue(BlockPos pos, LevelReader level) {
+        return 0.0F;
     }
 
     /**

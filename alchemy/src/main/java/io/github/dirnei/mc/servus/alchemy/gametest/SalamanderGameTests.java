@@ -20,6 +20,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.commands.FillBiomeCommand;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
@@ -205,6 +206,24 @@ public final class SalamanderGameTests {
         BlockPos at = helper.absolutePos(pos);
         return SalamanderPlacement.INSTANCE.isSpawnPositionOk(helper.getLevel(), at, ServusAlchemyEntities.SALAMANDER.get())
                 && Salamander.spawnAllowed(helper.getLevel(), at, helper.getLevel().getRandom(), isolated());
+    }
+
+    /** In the dark, as nearly everywhere in the Nether, the salamander's own spawn check still passes. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void spawnsInTheDark(GameTestHelper helper) {
+        for (BlockPos at : BlockPos.betweenClosed(GROUND_SPOT.offset(-1, -1, -1), GROUND_SPOT.offset(1, 1, 1))) {
+            if (!at.equals(GROUND_SPOT)) {
+                helper.setBlock(at.immutable(), Blocks.DEEPSLATE);
+            }
+        }
+        helper.runAfterDelay(20, () -> {
+            BlockPos at = helper.absolutePos(GROUND_SPOT);
+            helper.assertTrue(helper.getLevel().getMaxLocalRawBrightness(at) < 8, "the spot is dark");
+            Salamander salamander = helper.spawn(ServusAlchemyEntities.SALAMANDER.get(), GROUND_SPOT);
+            helper.assertTrue(salamander.checkSpawnRules(helper.getLevel(), EntitySpawnReason.NATURAL),
+                    "a dark spot does not stop a natural spawn");
+            helper.succeed();
+        });
     }
 
     /** Crimson Nylium in a Crimson Forest with a Crimson Stem two blocks from the spot. */

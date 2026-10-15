@@ -24,6 +24,8 @@
 - [x] 4.5 Journal and docs: first page of the Workshop entry `salamander` in `WorkshopCategory` becomes "Among the Crimson Stems" (D12); `docs/src/content/docs/mods/alchemy.md` Salamander section and `docs/src/content/docs/reference/datapack/salamander.md` (spawn object, both biome modifiers, the two tags); `:alchemy:runData`. Verify: `gradlew build` green, docs `npm run build` green, no em dash in the diff.
 - [x] 4.6 Full `gradlew build test :alchemy:runGameTestServer` green.
 
+- [x] 4.7 Play check fix: `Salamander.getWalkTargetValue` returns 0, so vanilla's own spawn check no longer refuses dark spots; GameTest `spawnsInTheDark` in `SalamanderGameTests`. Verify: `gradlew build test :alchemy:runGameTestServer` green.
+
 ## 5. Integration
 
 - [x] 5.1 Full `gradlew build test :alchemy:runGameTestServer` green.
