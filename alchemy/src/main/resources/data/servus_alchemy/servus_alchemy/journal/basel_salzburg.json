@@ -4,6 +4,7 @@
   "tasks": [
     {"id": "rubedo_craft", "event": "athanor", "filter": "tier:rubedo", "count": 1},
     {"id": "diamond", "event": "bind", "filter": "minecraft:diamond", "count": 1},
-    {"id": "crafts", "event": "athanor", "count": 16}
+    {"id": "crafts", "event": "athanor", "count": 16},
+    {"id": "scrap", "event": "press", "filter": "minecraft:netherite_scrap", "count": 1}
   ]
 }

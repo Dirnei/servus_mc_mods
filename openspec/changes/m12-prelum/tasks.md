@@ -15,7 +15,7 @@
 
 ## 4. Behaviour tests
 
-- [ ] 4.1 GameTests in new `PrelumGameTests` (registered in `ServusAlchemy`): `pressesCaputMortuumIntoScrap`, `waitsForAFullCharge`, `refusesOtherItems`, `stopsWhenOutputIsFull`, `outputThroughTheCapability`, `frontRefuses`, `hopperInChestOut`, `exposesPressingProduction`, `producerOnTheDataLine`, `pressingCountsForBasel`, `pressingRecipeShipped`, `screwNeedsDragonsBreathOnRubedo` (the Athanor recipe takes Dragon's Breath at tier 3 and the crafting recipe needs the screw), `breakingDropsContents`. Verify: `:alchemy:runGameTestServer` green.
+- [x] 4.1 GameTests in new `PrelumGameTests` (registered in `ServusAlchemy`): `pressesCaputMortuumIntoScrap`, `waitsForAFullCharge`, `refusesOtherItems`, `stopsWhenOutputIsFull`, `outputThroughTheCapability`, `frontRefuses`, `hopperInChestOut`, `exposesPressingProduction`, `producerOnTheDataLine`, `pressingCountsForBasel`, `pressingRecipeShipped`, `screwNeedsDragonsBreathOnRubedo` (the Athanor recipe takes Dragon's Breath at tier 3 and the crafting recipe needs the screw), `breakingDropsContents`. Verify: `:alchemy:runGameTestServer` green.
 
 ## 5. Journal, JEI and docs
 
