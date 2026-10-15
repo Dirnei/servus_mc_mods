@@ -153,6 +153,14 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add(ServusAlchemyBlocks.SALT_CRYSTAL_BLOCK.get(), "Salt Crystal Block");
         add(ServusAlchemyBlocks.ATHANOR.get(), "Athanor");
         add(ServusAlchemyBlocks.GNOME_HOLLOW.get(), "Gnome Hollow");
+        add(ServusAlchemyItems.SEED.get(), "Seed");
+        add("item.servus_alchemy.seed.of", "Seed of %s");
+        add("item.servus_alchemy.seed.unknown", "Unknown Seed");
+        add("vein.servus_alchemy.iron", "Iron");
+        add("vein.servus_alchemy.copper", "Copper");
+        add("vein.servus_alchemy.gold", "Gold");
+        add("vein.servus_alchemy.redstone", "Redstone");
+        add("vein.servus_alchemy.diamond", "Diamond");
         add(ServusAlchemyBlocks.PRINCIPLE_DROPPER.get(), "Principle Dropper");
         add(ServusAlchemyBlocks.SALAMANDER_FORGE.get(), "Salamander Forge");
         add(ServusAlchemyBlocks.RECEPTACULUM.get(), "Receptaculum");

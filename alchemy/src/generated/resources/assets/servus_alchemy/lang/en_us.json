@@ -373,6 +373,9 @@
   "item.servus_alchemy.salt_offering": "Bowl of Salt",
   "item.servus_alchemy.salt_offering.quote": "An offering, left in the dark. The miners did the same for the little ones.",
   "item.servus_alchemy.sealed_flask": "Sealed Flask",
+  "item.servus_alchemy.seed": "Seed",
+  "item.servus_alchemy.seed.of": "Seed of %s",
+  "item.servus_alchemy.seed.unknown": "Unknown Seed",
   "item.servus_alchemy.sulfur": "Sulfur",
   "item.servus_alchemy.sulfur_bucket": "Sulfur Bucket",
   "item.servus_alchemy.tiny_pickaxe": "Tiny Pickaxe",
@@ -484,5 +487,10 @@
   "research_node.servus_alchemy.journal.schwaz": "The Schwaz chapter",
   "research_node.servus_alchemy.journal.villach": "The Villach chapter",
   "research_node.servus_alchemy.journal.wandering_years": "The Wandering years chapter",
-  "subtitles.servus_alchemy.hint.knock": "Something knocks in the rock"
+  "subtitles.servus_alchemy.hint.knock": "Something knocks in the rock",
+  "vein.servus_alchemy.copper": "Copper",
+  "vein.servus_alchemy.diamond": "Diamond",
+  "vein.servus_alchemy.gold": "Gold",
+  "vein.servus_alchemy.iron": "Iron",
+  "vein.servus_alchemy.redstone": "Redstone"
 }

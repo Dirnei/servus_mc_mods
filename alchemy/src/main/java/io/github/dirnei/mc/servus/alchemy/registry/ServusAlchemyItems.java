@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.alchemy.registry;
 
 import io.github.dirnei.mc.servus.alchemy.QuoteItem;
+import io.github.dirnei.mc.servus.alchemy.hollow.VeinSeedItem;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.journal.ParacelsusJournalItem;
 import java.util.List;
@@ -45,6 +46,8 @@ public final class ServusAlchemyItems {
     public static final DeferredItem<BlockItem> SALT_CRYSTAL_BLOCK = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.SALT_CRYSTAL_BLOCK);
     public static final DeferredItem<Item> SULFUR = ITEMS.registerSimpleItem("sulfur");
     public static final DeferredItem<Item> QUICKSILVER = ITEMS.registerSimpleItem("quicksilver");
+    /** The seed of a metal from the Athanor; a gnome plants it in his Hollow. */
+    public static final DeferredItem<VeinSeedItem> SEED = ITEMS.registerItem("seed", VeinSeedItem::new);
 
     /** What a befriended salamander gives back for a Gold Ingot. */
     public static final DeferredItem<QuoteItem> SAL_AMMONIAC = ITEMS.registerItem("sal_ammoniac", QuoteItem::new);
