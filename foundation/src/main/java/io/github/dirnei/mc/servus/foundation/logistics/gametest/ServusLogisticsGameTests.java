@@ -15,6 +15,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctShapes;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
+import io.github.dirnei.mc.servus.foundation.logistics.menu.UtilityDuctMenu;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
@@ -26,12 +27,15 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -820,6 +824,79 @@ public final class ServusLogisticsGameTests {
         helper.assertTrue(duct.isEndpoint(Direction.DOWN), "the furnace is an endpoint");
         helper.assertTrue(duct.pose() == DuctPose.CENTRED, "the duct stays centred, got " + duct.pose());
         helper.assertTrue(duct.poseFaces() == 0, "the arm ends in the middle of the furnace top");
+        helper.succeed();
+    }
+
+    /** A mock player standing at the duct with the endpoint GUI of its north side open, as the filter payload finds it. */
+    private static UtilityDuctMenu openDuctMenu(GameTestHelper helper, Player player, UtilityDuctBlockEntity duct) {
+        player.snapTo(Vec3.atBottomCenterOf(helper.absolutePos(DUCT).east()));
+        UtilityDuctMenu menu = new UtilityDuctMenu(1, player.getInventory(), duct, Direction.NORTH);
+        player.containerMenu = menu;
+        return menu;
+    }
+
+    private static Optional<Identifier> id(Item item) {
+        return Optional.of(BuiltInRegistries.ITEM.getKey(item));
+    }
+
+    /**
+     * A filter slot is set by item id with an empty inventory and the side then
+     * passes only that item; an empty id clears it, and nothing changes without
+     * the GUI open, without an Item Pipe or for a slot out of range.
+     */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void filterSetByIdWithoutOwning(GameTestHelper helper) {
+        UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        openDuctMenu(helper, player, duct);
+        helper.assertTrue(player.getInventory().isEmpty(), "the player starts with an empty inventory");
+
+        helper.assertTrue(UtilityDuctMenu.setFilterById(player, 0, id(Items.DIAMOND)), "the diamond id should be taken");
+        helper.assertTrue(duct.filter(Direction.NORTH).getStackInSlot(0).is(Items.DIAMOND), "the first slot shows a diamond");
+        helper.assertTrue(duct.filterAllows(Direction.NORTH, new ItemStack(Items.DIAMOND)), "the side passes diamonds");
+        helper.assertFalse(duct.filterAllows(Direction.NORTH, new ItemStack(Items.DIRT)), "the side holds back dirt");
+        helper.assertTrue(player.getInventory().isEmpty(), "the inventory stays empty");
+
+        helper.assertFalse(UtilityDuctMenu.setFilterById(player, UtilityDuctBlockEntity.FILTER_SLOTS, id(Items.DIRT)),
+                "a slot out of range is refused");
+        helper.assertTrue(UtilityDuctMenu.setFilterById(player, 0, Optional.empty()), "the none entry should be taken");
+        helper.assertTrue(duct.filter(Direction.NORTH).getStackInSlot(0).isEmpty(), "the none entry clears the slot");
+
+        player.containerMenu = player.inventoryMenu;
+        helper.assertFalse(UtilityDuctMenu.setFilterById(player, 0, id(Items.DIAMOND)), "without the GUI open nothing is set");
+        helper.assertTrue(duct.filter(Direction.NORTH).getStackInSlot(0).isEmpty(), "the slot stays empty");
+
+        UtilityDuctBlockEntity cable = duct(helper, DUCT.south(), Line.ENERGY);
+        openDuctMenu(helper, player, cable);
+        helper.assertFalse(UtilityDuctMenu.setFilterById(player, 0, id(Items.DIAMOND)), "a duct without an Item Pipe takes no filter");
+        helper.succeed();
+    }
+
+    /** Right clicking a filter slot clears it and leaves the cursor alone. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void filterRightClickClears(GameTestHelper helper) {
+        UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        UtilityDuctMenu menu = openDuctMenu(helper, player, duct);
+        menu.setFilter(2, new ItemStack(Items.COBBLESTONE));
+        menu.setCarried(new ItemStack(Items.DIRT, 5));
+        menu.clicked(2, 1, ContainerInput.PICKUP, player);
+        helper.assertTrue(duct.filter(Direction.NORTH).getStackInSlot(2).isEmpty(), "the right clicked slot is empty");
+        helper.assertTrue(menu.getCarried().is(Items.DIRT) && menu.getCarried().getCount() == 5, "the cursor keeps its 5 dirt");
+        helper.succeed();
+    }
+
+    /** Clicking a filter slot with a stack on the cursor sets one copy and keeps the whole cursor stack. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void filterCursorItemKept(GameTestHelper helper) {
+        UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        UtilityDuctMenu menu = openDuctMenu(helper, player, duct);
+        menu.setCarried(new ItemStack(Items.COBBLESTONE, 32));
+        menu.clicked(0, 0, ContainerInput.PICKUP, player);
+        ItemStack slot = duct.filter(Direction.NORTH).getStackInSlot(0);
+        helper.assertTrue(slot.is(Items.COBBLESTONE) && slot.getCount() == 1, "the slot shows one cobblestone, got " + slot);
+        helper.assertTrue(menu.getCarried().is(Items.COBBLESTONE) && menu.getCarried().getCount() == 32, "the cursor still holds 32 cobblestone");
         helper.succeed();
     }
 }
