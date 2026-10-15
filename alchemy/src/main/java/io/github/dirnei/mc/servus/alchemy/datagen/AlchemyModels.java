@@ -133,18 +133,36 @@ final class AlchemyModels {
                 .texture("glass", states.modLoc("block/vas_glass")).texture("liquid", states.modLoc("block/vas_liquid"))
                 .texture("seal", states.modLoc("block/vas_seal")).texture("brass", states.modLoc("block/receptaculum_brass"))
                 .texture("particle", states.modLoc("block/vas_glass"));
-        box(model, 4, 0, 4, 12, 1, 12, "#glass");
-        box(model, 2.5F, 0.95F, 2.5F, 13.5F, 2.95F, 13.5F, "#glass");
-        box(model, 1, 2.9F, 1, 15, 8.9F, 15, "#glass");
-        box(model, 2.5F, 8.85F, 2.5F, 13.5F, 10.85F, 13.5F, "#glass");
-        box(model, 6, 10.8F, 6, 10, 16.8F, 10, "#glass");
-        box(model, 2.8F, 1.05F, 2.8F, 13.2F, 3, 13.2F, "#liquid");
-        box(model, 1.3F, 2.95F, 1.3F, 14.7F, 7.9F, 14.7F, "#liquid");
+        clampedBox(model, 4, 0, 4, 12, 1, 12, "#glass");
+        clampedBox(model, 2.5F, 0.95F, 2.5F, 13.5F, 2.95F, 13.5F, "#glass");
+        clampedBox(model, 1, 2.9F, 1, 15, 8.9F, 15, "#glass");
+        clampedBox(model, 2.5F, 8.85F, 2.5F, 13.5F, 10.85F, 13.5F, "#glass");
+        clampedBox(model, 6, 10.8F, 6, 10, 16.8F, 10, "#glass");
+        clampedBox(model, 2.8F, 1.05F, 2.8F, 13.2F, 3, 13.2F, "#liquid");
+        clampedBox(model, 1.3F, 2.95F, 1.3F, 14.7F, 7.9F, 14.7F, "#liquid");
         if (seal) {
-            box(model, 5.4F, 16.4F, 5.4F, 10.6F, 18, 10.6F, "#seal");
-            box(model, 6.8F, 18, 6.8F, 9.2F, 18.3F, 9.2F, "#brass");
+            clampedBox(model, 5.4F, 16.4F, 5.4F, 10.6F, 18, 10.6F, "#seal");
+            clampedBox(model, 6.8F, 18, 6.8F, 9.2F, 18.3F, 9.2F, "#brass");
         }
         return model;
+    }
+
+    /** A box whose faces map the texture by position like {@link #box}, shifted onto the sprite for parts above the block. */
+    private static void clampedBox(BlockModelBuilder model, float x1, float y1, float z1, float x2, float y2, float z2, String texture) {
+        float top = clamp(16 - y2);
+        float bottom = clamp(top + y2 - y1);
+        model.element().from(x1, y1, z1).to(x2, y2, z2).allFaces((direction, face) -> {
+            switch (direction.getAxis()) {
+                case Y -> face.uvs(x1, z1, x2, z2);
+                case Z -> face.uvs(x1, top, x2, bottom);
+                default -> face.uvs(z1, top, z2, bottom);
+            }
+            face.texture(texture);
+        }).end();
+    }
+
+    private static float clamp(float uv) {
+        return Math.max(0, Math.min(16, uv));
     }
 
     /** A box that glows at full light, for embers and flames. */
