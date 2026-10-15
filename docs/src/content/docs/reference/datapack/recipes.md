@@ -1,11 +1,11 @@
 ---
 title: Recipes
-description: The calcination and coagulation recipe formats of Servus Alchemy.
+description: The calcination, coagulation and pressing recipe formats of Servus Alchemy.
 sidebar:
   order: 4
 ---
 
-Servus Alchemy adds two recipe types: `servus_alchemy:calcination` for the Calciner and `servus_alchemy:coagulation` for the Coagulator. Times and amounts on this page are current values; they live in datapack JSON and modpacks can change them.
+Servus Alchemy adds these recipe types, among others: `servus_alchemy:calcination` for the Calciner, `servus_alchemy:coagulation` for the Coagulator and `servus_alchemy:pressing` for the Prelum. Times and amounts on this page are current values; they live in datapack JSON and modpacks can change them.
 
 ## File location
 
@@ -81,3 +81,22 @@ Built in coagulation recipes (40 ticks each, no item ingredient):
 | `glowstone_dust` | 0 | 100 | 100 | 1 glowstone dust |
 | `bone_meal` | 60 | 20 | 0 | 1 bone meal |
 | `slime_ball` | 0 | 50 | 150 | 1 slime ball |
+
+## Pressing
+
+The Prelum runs `servus_alchemy:pressing` recipes. It needs no fuel and no principles.
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| `type` | string | required | `servus_alchemy:pressing` |
+| `input` | sized ingredient | required | One `item` or `tag` with a `count` (default 1). The Prelum presses once its input slot holds the count. |
+| `result` | item stack | required | `id` and `count` (default 1). |
+| `time` | int | required | Ticks per pressing. |
+
+An item without a pressing recipe is refused by the Prelum.
+
+Built in pressing recipe:
+
+| Recipe | Input | Result | Time |
+|---|---|---|---|
+| `netherite_scrap` | 16 `servus_alchemy:caput_mortuum` | 1 Netherite Scrap | 600 |

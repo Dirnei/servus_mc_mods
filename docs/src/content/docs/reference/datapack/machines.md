@@ -66,6 +66,7 @@ These are the defaults built into the code, used for any field a file leaves out
 | `gnome_hollow` | crafter | vein yield | 1 | 0 | 0 | 1 | 4000 |
 | `principle_dropper` | crafter | drips into the Gnome Hollow below | 20 | 0 | 0 | 1 | 1000 |
 | `salamander_forge` | crafter | `minecraft:smelting`, without fuel | 200 | 0 | 0 | 1 | 0 |
+| `prelum` | crafter | `servus_alchemy:pressing`, without fuel; each recipe's `time` decides | 600 | 0 | 0 | 1 | 0 |
 | `servus_foundation:coal_generator` | generator | burns fuel | 1 | 40 | 16000 | 4 | 0 |
 | `servus_foundation:ender_anchor` | powered | nothing, upkeep only | 1 | 10 per chunk | 20000 | 1 | 0 |
 | `servus_foundation:burner_pump` | burner | water | 20 | 0 | 0 | 1 | 4000 |

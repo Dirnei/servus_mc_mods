@@ -20,7 +20,7 @@
 ## 5. Journal, JEI and docs
 
 - [x] 5.1 `basel_salzburg.json` gains the `press` task and the Basel and Salzburg task page lists it (D10); Workshop entry `prelum` in `WorkshopCategory` (D11); JEI `PressingRecipeCategory` and catalyst in `ServusAlchemyJeiPlugin`; lang for the category; `:alchemy:runData`. Verify: `gradlew build`, `:alchemy:runGameTestServer` green.
-- [ ] 5.2 Docs: Prelum section in `docs/src/content/docs/mods/alchemy.md`, pressing recipe and machine row in the datapack reference. Verify: no em dash in the diff.
+- [x] 5.2 Docs: Prelum section in `docs/src/content/docs/mods/alchemy.md`, pressing recipe and machine row in the datapack reference. Verify: no em dash in the diff.
 
 ## 6. Verification
 

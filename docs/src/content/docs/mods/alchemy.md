@@ -91,6 +91,18 @@ The homunculus is the only machine that takes the ore out of the Gnome Hollows. 
 - **Hidden:** without Elemental Sight the Vas is glass with murky liquid. Under the sight you see the homunculus in it and chains to the Hollows in its reach.
 - **Numbers:** `data/<namespace>/servus_alchemy/homunculus/<name>.json` with `grow_ticks`, `work_interval`, `elixir_ticks` and `gift_below_ticks`.
 
+## The Prelum
+
+The Press at the end of the Work. It presses the Caput Mortuum the Purifier leaves behind into Netherite Scrap; four scraps and four Gold Ingots make a Netherite Ingot at a vanilla crafting table.
+
+- **Built once with Dragon's Breath:** one Dragon's Breath with 500 mB Sulfur and 500 mB Mercury on a Rubedo Athanor makes the Prelum Screw. The Prelum is crafted from the screw at the top, a Heavy Weighted Pressure Plate between two Stripped Dark Oak Logs, and three Polished Deepslate below.
+- **Pressing:** 16 Caput Mortuum make one Netherite Scrap every 600 ticks (30 seconds). It needs no fuel and no principles. While it presses, its bar turns and its plate goes down onto the bed and up again.
+- **Slots:** an input that takes only what a pressing recipe accepts, and an output.
+- **Automation:** a normal Servus machine. Hoppers and Item Pipes reach it on every side but the front; it pushes its output into neighbouring inventories; the side panel and the Configuration Carrot set each side.
+- **Data line:** it is a producer, so a Crafting CPU orders Netherite Scrap from it. It keeps no upkeep.
+- **Journal:** the first pressed Netherite Scrap is a task of the Basel and Salzburg chapter.
+- **Numbers:** the `servus_alchemy:pressing` recipes (see [Recipes](/servus_mc_mods/reference/datapack/recipes/)).
+
 ## Coagulator products
 
 Salt Crystal, Sulfur and Quicksilver are the first alchemical materials. The plain goods of Nigredo come from the principles alone: clay balls and bone meal. The Coagulator also makes flint, gunpowder, redstone, glowstone dust, bone meal and slime balls from the principles. No metal comes from principles; metals are grown by the gnomes.
