@@ -36,6 +36,8 @@
   "gui.servus_foundation.ender_anchor.upkeep.tooltip": "Energy the area costs per tick: energy per chunk times its chunks",
   "gui.servus_foundation.ender_anchor.upkeep.value": "%s FE/t",
   "gui.servus_foundation.filter": "Filter (empty = everything)",
+  "gui.servus_foundation.filter_none": "None, clear the slot",
+  "gui.servus_foundation.filter_picker": "Filter item",
   "gui.servus_foundation.fluid_gauge.empty": "Empty",
   "gui.servus_foundation.fluid_side.all": "All fluids",
   "gui.servus_foundation.line.data": "Data",

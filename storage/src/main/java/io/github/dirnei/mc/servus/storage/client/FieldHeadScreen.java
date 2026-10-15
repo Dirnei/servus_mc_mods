@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Consumer;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -134,13 +133,13 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     public FieldHeadScreen(FieldHeadMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, FieldHeadMenu.IMAGE_WIDTH, FieldHeadMenu.IMAGE_HEIGHT);
         this.cropPicker = picker("crop_picker", "crop_no_stock", CropPickerEntries.build(),
-                entry -> ClientPacketDistributor.sendToServer(new ChooseFieldCropPayload(idOf(entry))));
+                entry -> ClientPacketDistributor.sendToServer(new ChooseFieldCropPayload(entry.itemId())));
         this.fertilizerPicker = picker("fertilizer_picker", "fertilizer_no_stock",
                 TagPickerEntries.build(FieldHeadBlockEntity.FERTILIZER, Component.translatable("gui.servus_storage.field_head.fertilizer_none")),
-                entry -> ClientPacketDistributor.sendToServer(new ChooseFertilizerPayload(idOf(entry))));
+                entry -> ClientPacketDistributor.sendToServer(new ChooseFertilizerPayload(entry.itemId())));
         this.antiCorrosionPicker = picker("anti_corrosion_picker", "anti_corrosion_no_stock",
                 TagPickerEntries.build(FieldHeadBlockEntity.ANTI_CORROSION, Component.translatable("gui.servus_storage.field_head.anti_corrosion_none")),
-                entry -> ClientPacketDistributor.sendToServer(new ChooseAntiCorrosionPayload(idOf(entry))));
+                entry -> ClientPacketDistributor.sendToServer(new ChooseAntiCorrosionPayload(entry.itemId())));
     }
 
     private static ItemPicker picker(String title, String zeroHint, List<ItemPicker.Entry> entries,
@@ -149,11 +148,6 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         picker.setEntries(entries);
         picker.setZeroHint(Component.translatable("gui.servus_storage.field_head." + zeroHint));
         return picker;
-    }
-
-    /** The picked item id, or empty for the none entry. */
-    private static Optional<Identifier> idOf(ItemPicker.Entry entry) {
-        return entry.isNone() ? Optional.empty() : Optional.ofNullable(Identifier.tryParse(entry.id()));
     }
 
     /** The picker of the shown page, null on pages without one. */
@@ -177,19 +171,15 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         return antiCorrosionPicker.isOpen() ? antiCorrosionPicker : null;
     }
 
-    private static String pickerId(ItemStack stack) {
-        return stack.isEmpty() ? PickerList.NONE_ID : BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-    }
-
     /** Hands the head's crop and fertilizer and the menu's stock to the pickers. */
     private void syncPickers() {
-        cropPicker.setSelected(menu.harvestOnly() ? PickerList.NONE_ID : pickerId(menu.crop()));
+        cropPicker.setSelected(menu.harvestOnly() ? PickerList.NONE_ID : ItemPicker.Entry.idOf(menu.crop()));
         if (menu.stock() != cropPickerStock) {
             cropPickerStock = menu.stock();
             cropPicker.setStock(CropPickerEntries.keyed(cropPickerStock));
         }
-        fertilizerPicker.setSelected(pickerId(menu.fertilizer()));
-        antiCorrosionPicker.setSelected(pickerId(menu.antiCorrosion()));
+        fertilizerPicker.setSelected(ItemPicker.Entry.idOf(menu.fertilizer()));
+        antiCorrosionPicker.setSelected(ItemPicker.Entry.idOf(menu.antiCorrosion()));
         if (menu.supplyStock() != supplyPickerStock) {
             supplyPickerStock = menu.supplyStock();
             fertilizerPicker.setStock(CropPickerEntries.keyed(supplyPickerStock));

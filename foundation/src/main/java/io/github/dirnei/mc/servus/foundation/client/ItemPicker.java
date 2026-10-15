@@ -9,12 +9,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 
@@ -68,6 +71,16 @@ public final class ItemPicker {
 
         public boolean isNone() {
             return PickerList.NONE_ID.equals(id);
+        }
+
+        /** The entry's item id, or empty for the none entry or an id that does not parse. */
+        public Optional<Identifier> itemId() {
+            return isNone() ? Optional.empty() : Optional.ofNullable(Identifier.tryParse(id));
+        }
+
+        /** The entry id of a stack's item; {@link PickerList#NONE_ID} for an empty stack. */
+        public static String idOf(ItemStack stack) {
+            return stack.isEmpty() ? PickerList.NONE_ID : BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         }
     }
 

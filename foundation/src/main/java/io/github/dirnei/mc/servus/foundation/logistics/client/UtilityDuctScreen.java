@@ -1,9 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.logistics.client;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.client.ItemPicker;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
+import io.github.dirnei.mc.servus.foundation.logistics.menu.SetDuctFilterPayload;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.UtilityDuctMenu;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import java.util.ArrayList;
@@ -13,19 +16,25 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /**
  * The endpoint GUI of one duct side: one tab per present line on the left
  * edge, and the page of the selected line with its mode, channels and remove
  * button; the Item Pipe page adds the filter slots and the priority. The
  * Power Cable and Fluid Pipe pages have no filter or priority; the data page
- * only switches the side on or off and removes the line.
+ * only switches the side on or off and removes the line. A left click with an
+ * empty cursor on a filter slot opens a search popup over every item for that slot.
  */
 public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> {
 
@@ -52,9 +61,15 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
     private Button modeButton;
     private Line shownPage;
     private int linesSeen = -1;
+    private final ItemPicker filterPicker;
+    private boolean filterPickerFilled;
+    /** The filter slot the open popup sets. */
+    private int pickerSlot;
 
     public UtilityDuctScreen(UtilityDuctMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, 176, 204);
+        this.filterPicker = new ItemPicker(Component.translatable("gui.servus_foundation.filter_picker"),
+                entry -> ClientPacketDistributor.sendToServer(new SetDuctFilterPayload(pickerSlot, entry.itemId())));
     }
 
     @Override
@@ -62,7 +77,28 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         super.init();
         this.inventoryLabelX = MARGIN;
         this.inventoryLabelY = UtilityDuctMenu.INVENTORY_Y - 11;
+        filterPicker.setArea(leftPos, topPos, imageWidth, imageHeight);
         rebuildButtons();
+    }
+
+    private void openFilterPicker(int slot) {
+        if (!filterPickerFilled) {
+            filterPicker.setEntries(FilterPickerEntries.get());
+            filterPickerFilled = true;
+        }
+        pickerSlot = slot;
+        filterPicker.open(ItemPicker.Entry.idOf(menu.getSlot(slot).getItem()));
+    }
+
+    /** A left click with an empty cursor on a filter slot opens the popup and sends nothing. */
+    @Override
+    protected void slotClicked(Slot slot, int slotId, int buttonNum, ContainerInput containerInput) {
+        if (slot != null && slot.index < UtilityDuctBlockEntity.FILTER_SLOTS && shownPage == Line.ITEM
+                && containerInput == ContainerInput.PICKUP && buttonNum == 0 && menu.getCarried().isEmpty()) {
+            openFilterPicker(slot.index);
+            return;
+        }
+        super.slotClicked(slot, slotId, buttonNum, containerInput);
     }
 
     /** The present lines in tab order. */
@@ -164,6 +200,15 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
                     : "gui.servus_foundation.mode." + mode.name().toLowerCase(Locale.ROOT);
             modeButton.setMessage(Component.translatable(key));
         }
+        if (filterPicker.isOpen() && shownPage != Line.ITEM) {
+            filterPicker.close();
+        }
+        if (filterPicker.isOpen()) {
+            super.extractRenderState(guiGraphics, -1, -1, partialTick);
+            filterPicker.renderPopup(guiGraphics, font, mouseX, mouseY, partialTick);
+            filterPicker.renderTooltip(guiGraphics, font, mouseX, mouseY);
+            return;
+        }
         super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         Line hovered = tabAt(mouseX, mouseY);
         if (hovered != null) {
@@ -203,6 +248,9 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (filterPicker.isOpen()) {
+            return filterPicker.mouseClicked(event, doubleClick);
+        }
         Line tab = tabAt(event.x(), event.y());
         if (tab != null) {
             menu.setPage(tab);
@@ -210,5 +258,31 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
             return true;
         }
         return super.mouseClicked(event, doubleClick);
+    }
+
+    @Override
+    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+        return filterPicker.mouseDragged(event.x(), event.y()) || super.mouseDragged(event, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(MouseButtonEvent event) {
+        return filterPicker.mouseReleased() || super.mouseReleased(event);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        return filterPicker.mouseScrolled(scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    /** While the popup is open every key goes to it, so typing E does not close the GUI and Escape closes only the popup. */
+    @Override
+    public boolean keyPressed(KeyEvent event) {
+        return filterPicker.keyPressed(event) || super.keyPressed(event);
+    }
+
+    @Override
+    public boolean charTyped(CharacterEvent event) {
+        return filterPicker.charTyped(event) || super.charTyped(event);
     }
 }

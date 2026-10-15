@@ -12,7 +12,7 @@
 
 ## 3. Search popup in the duct GUI
 
-- [ ] 3.1 `foundation/.../logistics/client/UtilityDuctScreen.java`: an `ItemPicker` over the GUI with every registered item but air, built once per session and sorted by name (design D2); a left click on a filter slot with an empty cursor opens it for that slot and sends nothing (design D3); picking sends `SetDuctFilterPayload`, "none" clears; forward mouse and key events to the popup first and hide slot tooltips while it is open. Add the lang keys for the popup title in `foundation/.../datagen/ServusFoundationLanguageProvider.java` and run `gradlew :foundation:runData`. Verify: `gradlew build` green; in game, with an empty inventory, click a filter slot, type "diam", pick Diamond, and the slot shows it; Escape closes without change; right click clears.
+- [x] 3.1 `foundation/.../logistics/client/UtilityDuctScreen.java`: an `ItemPicker` over the GUI with every registered item but air, built once per session and sorted by name (design D2); a left click on a filter slot with an empty cursor opens it for that slot and sends nothing (design D3); picking sends `SetDuctFilterPayload`, "none" clears; forward mouse and key events to the popup first and hide slot tooltips while it is open. Add the lang keys for the popup title and the none entry in `foundation/.../logistics/datagen/LogisticsDataParts.java` (the picker's search hint in `foundation/.../datagen/ServusFoundationLanguageProvider.java`) and run `gradlew :foundation:runData`. Verify: `gradlew build` green; in game, with an empty inventory, click a filter slot, type "diam", pick Diamond, and the slot shows it; Escape closes without change; right click clears.
 
 ## 4. JEI drag
 

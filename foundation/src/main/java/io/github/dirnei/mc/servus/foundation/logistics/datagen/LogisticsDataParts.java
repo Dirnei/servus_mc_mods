@@ -154,6 +154,8 @@ public final class LogisticsDataParts {
         provider.add("gui.servus_foundation.data.on", "Data: on");
         provider.add("gui.servus_foundation.data.off", "Data: off");
         provider.add("gui.servus_foundation.filter", "Filter (empty = everything)");
+        provider.add("gui.servus_foundation.filter_picker", "Filter item");
+        provider.add("gui.servus_foundation.filter_none", "None, clear the slot");
         provider.add("gui.servus_foundation.priority", "Priority %s");
         provider.add("gui.servus_foundation.no_lines", "No lines");
         for (int channel = 1; channel <= 8; channel++) {
