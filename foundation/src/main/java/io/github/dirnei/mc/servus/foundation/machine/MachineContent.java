@@ -91,7 +91,7 @@ public final class MachineContent {
             blockEntity("ender_anchor", EnderAnchorBlockEntity::new, ENDER_ANCHOR);
     public static final DeferredHolder<MenuType<?>, MenuType<EnderAnchorMenu>> ENDER_ANCHOR_MENU =
             menu("ender_anchor", EnderAnchorMenu::fromNetwork);
-    /** Widens an Ender Anchor's area and lets a Storage warehouse site wake. */
+    /** Widens an Ender Anchor's area and lets a Shuttles warehouse site wake. */
     public static final DeferredItem<AnchorUpgradeItem> ANCHOR_UPGRADE =
             ITEMS.registerItem("anchor_upgrade", AnchorUpgradeItem::new, () -> new Item.Properties().stacksTo(16));
 

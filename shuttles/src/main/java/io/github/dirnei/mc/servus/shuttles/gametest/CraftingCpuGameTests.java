@@ -1,0 +1,604 @@
+package io.github.dirnei.mc.servus.shuttles.gametest;
+
+import static io.github.dirnei.mc.servus.shuttles.gametest.CpuLine.ACCESS;
+import static io.github.dirnei.mc.servus.shuttles.gametest.CpuLine.CONTROLLER;
+import static io.github.dirnei.mc.servus.shuttles.gametest.CpuLine.CPU_A;
+import static io.github.dirnei.mc.servus.shuttles.gametest.CpuLine.PATTERNS;
+import static io.github.dirnei.mc.servus.shuttles.gametest.CpuLine.PLANKS;
+import static io.github.dirnei.mc.servus.shuttles.gametest.CpuLine.RACK_A;
+import static io.github.dirnei.mc.servus.shuttles.gametest.CpuLine.RACK_B;
+import static io.github.dirnei.mc.servus.shuttles.gametest.CpuLine.STATION;
+import static io.github.dirnei.mc.servus.shuttles.gametest.CpuLine.STICK;
+import static io.github.dirnei.mc.servus.shuttles.gametest.CpuLine.cpu;
+import static io.github.dirnei.mc.servus.shuttles.gametest.CpuLine.line;
+import static io.github.dirnei.mc.servus.shuttles.gametest.CpuLine.setup;
+import static io.github.dirnei.mc.servus.shuttles.gametest.CpuLine.stock;
+import static io.github.dirnei.mc.servus.shuttles.gametest.CpuLine.warehouse;
+
+import io.github.dirnei.mc.servus.foundation.data.DataRole;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
+import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlock;
+import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.cpu.CpuBox;
+import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
+import io.github.dirnei.mc.servus.shuttles.cpu.CpuShape;
+import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
+import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
+import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.shuttles.order.OrderBook;
+import io.github.dirnei.mc.servus.shuttles.order.OrderStep;
+import io.github.dirnei.mc.servus.shuttles.order.StockRule;
+import io.github.dirnei.mc.servus.shuttles.order.WorkOrder;
+import io.github.dirnei.mc.servus.shuttles.pattern.PatternStorageBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
+import io.github.dirnei.mc.servus.shuttles.terminal.RequestRow;
+import io.github.dirnei.mc.servus.shuttles.terminal.RuleRow;
+import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlockEntity;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+
+/** Crafting CPUs on the line of {@link CpuLine}: forming boxes, orders, slots and stock rules; a second CPU can stand at z 5 to 7. */
+public final class CraftingCpuGameTests {
+
+    private static final BlockPos CPU_B = new BlockPos(6, 1, 5);
+
+    private CraftingCpuGameTests() {
+    }
+
+    private static boolean form(GameTestHelper helper, BlockPos at) {
+        return CpuBuild.form(helper, at).formed();
+    }
+
+    /** The message key the carrot would show for a result. */
+    private static String messageKey(CpuBox.Result result) {
+        return CpuBlock.message(result).getContents() instanceof TranslatableContents contents ? contents.getKey() : "";
+    }
+
+    private static RuleRow ruleRow(WarehouseNetwork network, Item item) {
+        for (RuleRow row : network.ruleRows()) {
+            if (row.stack().is(item)) {
+                return row;
+            }
+        }
+        return null;
+    }
+
+    private static List<WorkOrder> allOrders(GameTestHelper helper) {
+        return CpuOrders.cpus(helper.getLevel(), line(helper)).stream().flatMap(cpu -> cpu.book().orders().stream()).toList();
+    }
+
+    /** 27 blocks form a cube with the master at the lowest corner; breaking one unforms the rest. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuFormsAndUnforms(GameTestHelper helper) {
+        CpuBuild.cube(helper, CPU_A);
+        helper.assertTrue(form(helper, CPU_A.offset(1, 1, 1)), "clicking the middle block should form the cube");
+        for (int part = 0; part < CpuShape.PARTS; part++) {
+            CpuShape.Vec offset = CpuShape.offset(part);
+            var state = helper.getBlockState(CPU_A.offset(offset.x(), offset.y(), offset.z()));
+            helper.assertTrue(state.getValue(CpuBlock.FORMED) && state.getValue(CpuBlock.PART) == part, "part " + part + " should be formed");
+        }
+        helper.assertTrue(CpuBlock.master(helper.getLevel(), helper.absolutePos(CPU_A.offset(2, 2, 2))) != null, "every block finds its master");
+        helper.setBlock(CPU_A.offset(1, 2, 1), Blocks.AIR.defaultBlockState());
+        helper.assertTrue(!helper.getBlockState(CPU_A).getValue(CpuBlock.FORMED), "the master unforms");
+        helper.assertTrue(!helper.getBlockState(CPU_A.offset(2, 0, 2)).getValue(CpuBlock.FORMED), "the far corner unforms");
+        helper.succeed();
+    }
+
+    /** A cube with one block missing does not form. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuIncompleteCubeDoesNotForm(GameTestHelper helper) {
+        CpuBuild.cube(helper, CPU_A);
+        helper.setBlock(CPU_A.offset(1, 1, 0), Blocks.AIR.defaultBlockState());
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A);
+        helper.assertTrue(!result.formed() && result.reason() == CpuBox.Reason.GAP, "26 blocks do not form: " + result);
+        helper.assertTrue(!helper.getBlockState(CPU_A).getValue(CpuBlock.FORMED), "the corner stays unformed");
+        helper.succeed();
+    }
+
+    /** A formed CPU touching a data duct is a link member; the duct shows an arm toward it. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void cpuJoinsTheDataLine(GameTestHelper helper) {
+        setup(helper, true);
+        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40,
+                () -> "the CPU should be on the line, members " + line(helper).dataMembers(DataRole.LINK), () -> {
+                    helper.assertTrue(CpuOrders.cpus(helper.getLevel(), line(helper)).get(0) == cpu(helper, CPU_A), "the CPU found is the cube's master");
+                    helper.succeed();
+                });
+    }
+
+    /** Eight CPU blocks form the smallest CPU from any block and get eight slots. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuSmallestBoxForms(GameTestHelper helper) {
+        CpuBuild.box(helper, CPU_A, 2, 2, 2, 8);
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A.offset(1, 1, 0));
+        helper.assertTrue(result.formed(), "a 2x2x2 box forms: " + result);
+        helper.assertTrue(messageKey(result).equals("message.servus_shuttles.cpu.formed"), "the carrot says formed");
+        for (int y = 0; y < 2; y++) {
+            for (int z = 0; z < 2; z++) {
+                for (int x = 0; x < 2; x++) {
+                    helper.assertTrue(helper.getBlockState(CPU_A.offset(x, y, z)).getValue(CpuBlock.FORMED), "every block is formed");
+                    helper.assertTrue(cpu(helper, CPU_A.offset(x, y, z)).getBlockPos().equals(helper.absolutePos(CPU_A)),
+                            "every block finds the master at the lowest corner");
+                }
+            }
+        }
+        helper.assertTrue(helper.getBlockState(CPU_A).getValue(CpuBlock.PART) == 0, "the corner is part 0");
+        helper.succeed();
+    }
+
+    /** A 3x2x2 box of 4 CPU blocks and 8 Buffer blocks forms from a Buffer block: 4 slots, 8 stacks. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuBoxWithBuffersForms(GameTestHelper helper) {
+        Set<BlockPos> cpus = Set.of(new BlockPos(0, 0, 0), new BlockPos(2, 1, 1), new BlockPos(1, 0, 1), new BlockPos(2, 0, 0));
+        CpuBuild.box(helper, CPU_A, 3, 2, 2, offset -> !cpus.contains(offset));
+        helper.assertTrue(helper.getBlockState(CPU_A.offset(1, 1, 0)).is(ServusShuttlesBlocks.CPU_BUFFER.get()), "the clicked block is a Buffer block");
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A.offset(1, 1, 0));
+        helper.assertTrue(result.formed(), "the box forms: " + result);
+        CpuBlockEntity cpu = cpu(helper, CPU_A);
+        helper.assertTrue(cpu.slots() == 4 && cpu.room() == 8 && cpu.cpuBlocks() == 4 && cpu.bufferBlocks() == 8,
+                "4 slots and 8 stacks, got " + cpu.slots() + " and " + cpu.room());
+        helper.assertTrue(helper.getBlockState(CPU_A.offset(1, 1, 0)).is(ServusShuttlesBlocks.CPU_BUFFER.get()), "Buffer blocks stay Buffer blocks");
+        helper.succeed();
+    }
+
+    /** A 3x3x3 box without its middle block says where the gap is. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuGapSaysWhere(GameTestHelper helper) {
+        CpuBuild.cube(helper, CPU_A);
+        helper.setBlock(CPU_A.offset(1, 1, 1), Blocks.AIR.defaultBlockState());
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A);
+        BlockPos middle = helper.absolutePos(CPU_A.offset(1, 1, 1));
+        helper.assertTrue(!result.formed() && result.reason() == CpuBox.Reason.GAP
+                && result.gap().equals(new CpuShape.Vec(middle.getX(), middle.getY(), middle.getZ())), "a gap at the middle: " + result);
+        helper.assertTrue(messageKey(result).equals("message.servus_shuttles.cpu.gap"), "the carrot names the gap");
+        helper.assertTrue(!helper.getBlockState(CPU_A).getValue(CpuBlock.FORMED), "nothing forms");
+        helper.succeed();
+    }
+
+    /** An L shape is not a box. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuLShapeIsNoBox(GameTestHelper helper) {
+        CpuBuild.box(helper, CPU_A, 3, 2, 2, 12);
+        helper.setBlock(CPU_A.offset(2, 1, 0), Blocks.AIR.defaultBlockState());
+        helper.setBlock(CPU_A.offset(2, 1, 1), Blocks.AIR.defaultBlockState());
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A);
+        helper.assertTrue(result.reason() == CpuBox.Reason.NOT_A_BOX, "not a box: " + result);
+        helper.assertTrue(messageKey(result).equals("message.servus_shuttles.cpu.not_a_box"), "the carrot says not a box");
+        helper.succeed();
+    }
+
+    /** A flat 2x2x1 layer is too small. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuFlatIsTooSmall(GameTestHelper helper) {
+        CpuBuild.box(helper, CPU_A, 2, 1, 2, 4);
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A);
+        helper.assertTrue(result.reason() == CpuBox.Reason.TOO_SMALL, "too small: " + result);
+        helper.assertTrue(messageKey(result).equals("message.servus_shuttles.cpu.too_small"), "the carrot says too small");
+        helper.assertTrue(!helper.getBlockState(CPU_A).getValue(CpuBlock.FORMED), "nothing forms");
+        helper.succeed();
+    }
+
+    /** A box of Buffer blocks only needs a CPU block. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuBufferOnlyRefused(GameTestHelper helper) {
+        CpuBuild.box(helper, CPU_A, 2, 2, 2, 0);
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A);
+        helper.assertTrue(result.reason() == CpuBox.Reason.NO_CPU_BLOCK, "no CPU block: " + result);
+        helper.assertTrue(messageKey(result).equals("message.servus_shuttles.cpu.no_cpu_block"), "the carrot says no CPU block");
+        helper.succeed();
+    }
+
+    /** A new box built against a formed CPU forms on its own; both keep their own slots. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuBoxBesideFormedFormsAlone(GameTestHelper helper) {
+        CpuBuild.box(helper, CPU_A, 2, 2, 2, 8);
+        CpuBlockEntity first = CpuBuild.formed(helper, CPU_A);
+        BlockPos second = CPU_A.offset(2, 0, 0);
+        CpuBuild.box(helper, second, 2, 2, 2, 8);
+        CpuBlockEntity other = CpuBuild.formed(helper, second);
+        helper.assertTrue(first != other && first.slots() == 8 && other.slots() == 8, "two CPUs with 8 slots each");
+        helper.assertTrue(cpu(helper, CPU_A.offset(1, 1, 1)) == first && cpu(helper, second.offset(1, 1, 1)) == other,
+                "each block keeps its own CPU");
+        helper.setBlock(second.offset(1, 1, 1), Blocks.AIR.defaultBlockState());
+        helper.assertTrue(helper.getBlockState(CPU_A.offset(1, 0, 0)).getValue(CpuBlock.FORMED), "breaking the second leaves the first formed");
+        helper.assertTrue(!helper.getBlockState(second).getValue(CpuBlock.FORMED), "the second unforms");
+        helper.succeed();
+    }
+
+    /** Two unformed 2x2x2 boxes that touch along a face form one 4x2x2 CPU. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuTwoUnformedBoxesFormOne(GameTestHelper helper) {
+        CpuBuild.box(helper, CPU_A, 2, 2, 2, 8);
+        CpuBuild.box(helper, CPU_A.offset(2, 0, 0), 2, 2, 2, 8);
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A.offset(3, 1, 1));
+        helper.assertTrue(result.formed() && result.box().size().equals(new CpuShape.Vec(4, 2, 2)), "one 4x2x2 box: " + result);
+        CpuBlockEntity cpu = cpu(helper, CPU_A.offset(3, 1, 1));
+        helper.assertTrue(cpu.getBlockPos().equals(helper.absolutePos(CPU_A)) && cpu.slots() == 16, "one CPU with 16 slots, got " + cpu.slots());
+        helper.succeed();
+    }
+
+    /** A CPU whose only block on the duct is a Buffer block joins the line and takes orders. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void cpuBufferBlockJoinsTheLine(GameTestHelper helper) {
+        setup(helper, false);
+        // The duct at (5,2,2) touches only the box's block at (6,2,2), offset (0,1,1).
+        CpuBuild.box(helper, CPU_A, 2, 2, 2, offset -> offset.equals(new BlockPos(0, 1, 1)) || offset.getY() == 1);
+        helper.assertTrue(helper.getBlockState(new BlockPos(6, 2, 2)).is(ServusShuttlesBlocks.CPU_BUFFER.get()), "a Buffer block faces the duct");
+        CpuBuild.formed(helper, CPU_A);
+        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40,
+                () -> "the CPU should be on the line", () -> {
+                    CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
+                    helper.assertTrue(placed.made() && placed.cpu().equals(helper.absolutePos(CPU_A)), "the CPU takes the order: " + placed.refusal());
+                    helper.succeed();
+                });
+    }
+
+    /** Slots come from CPU blocks: 8 CPU blocks give 8 slots and no buffer. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuSlotsFromCpuBlocks(GameTestHelper helper) {
+        CpuBuild.box(helper, CPU_A, 2, 2, 2, 8);
+        CpuBlockEntity cpu = CpuBuild.formed(helper, CPU_A);
+        helper.assertTrue(cpu.slots() == 8 && cpu.room() == 0, "8 slots and no buffer, got " + cpu.slots() + " and " + cpu.room());
+        helper.succeed();
+    }
+
+    /** A request that stock cannot fill becomes an order on the CPU; the sticks are crafted over the line and reach the terminal. */
+    @ServusGameTest(timeoutTicks = 1000)
+    public static void cpuOrderCraftsShortfallOverTheLine(GameTestHelper helper) {
+        setup(helper, true);
+        HeavyRackBlockEntity planks = stock(helper, RACK_A, Items.OAK_PLANKS, 10);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
+            menu.request(STICK, 8);
+            helper.assertTrue(menu.stock().message().isEmpty(), "the request should be accepted, got " + menu.stock().message());
+            CpuBlockEntity cpu = cpu(helper, CPU_A);
+            List<WorkOrder> orders = cpu.book().orders();
+            helper.assertTrue(orders.size() == 1 && orders.get(0).amount() == 8 && orders.get(0).steps().size() == 1
+                    && orders.get(0).steps().get(0).batches() == 2, "one order with one sticks step of two batches, got " + orders);
+            helper.assertTrue(orders.get(0).steps().get(0).producer().equals(helper.absolutePos(STATION)), "the step runs on the station");
+            helper.assertTrue(orders.get(0).reserved().getOrDefault(PLANKS, 0) == 4, "four planks should be reserved");
+            List<RequestRow> rows = menu.stock().requests();
+            helper.assertTrue(rows.size() == 1 && rows.get(0).state().equals("PRODUCING"), "the request should be producing, got " + rows);
+            // The sticks land straight in the terminal; the order is booked done on a following tick.
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) == 8
+                            && cpu.book().orders().stream().noneMatch(WorkOrder::open), 900,
+                    () -> "eight sticks should reach the terminal, had " + terminal.outputCount(Items.STICK) + " orders " + cpu.book().orders()
+                            + " steps " + cpu.book().orders().get(0).steps().stream().map(st -> st.state() + "/" + st.reason()).toList(), () -> {
+                        helper.assertTrue(WarehouseFixtures.count(planks, Items.OAK_PLANKS) == 6, "four planks should have been used, rack has " + WarehouseFixtures.count(planks, Items.OAK_PLANKS));
+                        helper.assertTrue(cpu.book().orders().stream().noneMatch(WorkOrder::open), "the order should be done: " + cpu.book().orders());
+                        helper.succeed();
+                    });
+        });
+    }
+
+    /** Nothing makes bread: the request is refused as out of stock and a manual order says no producer. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void orderWithoutProducerIsRefused(GameTestHelper helper) {
+        setup(helper, true);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
+            menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 5);
+            helper.assertTrue(menu.stock().message().equals("out_of_stock"), "bread cannot be made: " + menu.stock().message());
+            helper.assertTrue(allOrders(helper).isEmpty() && menu.stock().requests().isEmpty(), "no order and no request");
+            helper.assertTrue(warehouse(helper).order(ItemKey.of(new ItemStack(Items.BREAD)), 5).equals("no_producer"), "a manual bread order says no producer");
+            helper.succeed();
+        });
+    }
+
+    /** Sticks from planks from logs: the planks step runs first, then the sticks step, on the same station. */
+    @ServusGameTest(timeoutTicks = 1400)
+    public static void twoLevelOrderRunsLeavesFirst(GameTestHelper helper) {
+        setup(helper, true);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
+        patterns.set(1, StationJobs.planks());
+        HeavyRackBlockEntity logs = stock(helper, RACK_A, Items.OAK_LOG, 2);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
+            menu.request(STICK, 8);
+            helper.assertTrue(menu.stock().message().isEmpty(), "the request should be accepted, got " + menu.stock().message());
+            CpuBlockEntity cpu = cpu(helper, CPU_A);
+            List<WorkOrder> orders = cpu.book().orders();
+            helper.assertTrue(orders.size() == 1 && orders.get(0).steps().size() == 2, "one order with two steps, got " + orders);
+            List<OrderStep> steps = orders.get(0).steps();
+            helper.assertTrue(steps.get(0).output().is(Items.OAK_PLANKS) && steps.get(0).batches() == 1, "planks first, one batch: " + steps.get(0).output());
+            helper.assertTrue(steps.get(1).output().is(Items.STICK) && steps.get(1).batches() == 2, "sticks second, two batches: " + steps.get(1).output());
+            helper.assertTrue(orders.get(0).reserved().getOrDefault(ItemKey.of(new ItemStack(Items.OAK_LOG)), 0) == 1, "one log should be reserved");
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) == 8, 1300,
+                    () -> "eight sticks should reach the terminal, had " + terminal.outputCount(Items.STICK) + " steps "
+                            + cpu.book().orders().get(0).steps().stream().map(st -> st.state() + "/" + st.reason()).toList(), () -> {
+                        helper.assertTrue(WarehouseFixtures.count(logs, Items.OAK_LOG) == 1, "one log should be left, rack has " + WarehouseFixtures.count(logs, Items.OAK_LOG));
+                        helper.succeed();
+                    });
+        });
+    }
+
+    /** A second order finds the first order's planks reserved; cancelling the first frees them. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void cancelReleasesReservation(GameTestHelper helper) {
+        setup(helper, true);
+        stock(helper, RACK_A, Items.OAK_PLANKS, 4);
+        helper.runAfterDelay(10, () -> {
+            OrderBook book = cpu(helper, CPU_A).book();
+            OrderBook.Created first = book.create(STICK, 8, 0);
+            OrderBook.Created second = book.create(STICK, 8, 0);
+            helper.assertTrue(first.made() && second.made(), "both orders should be created");
+            helper.assertTrue(first.order().reserved().getOrDefault(PLANKS, 0) == 4, "the first order reserves the four planks");
+            helper.assertTrue(second.order().state() == WorkOrder.State.BLOCKED && second.order().reason().startsWith("missing"),
+                    "the second order finds no planks: " + second.order().state() + " " + second.order().reason());
+            helper.assertTrue(book.cancel(first.order().id()), "the first order can be cancelled");
+            helper.assertTrue(book.reservedTotal().getOrDefault(PLANKS, 0) == 0, "cancelling frees the planks");
+            helper.assertTrue(first.order().state() == WorkOrder.State.CANCELLED, "the first order is cancelled");
+            helper.succeed();
+        });
+    }
+
+    /** One CPU with two slots: the third order waits, and the summary says so. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void cpuSlotsQueueThirdOrder(GameTestHelper helper) {
+        setup(helper, false);
+        CpuBuild.formSlotted(helper, CPU_A);
+        helper.runAfterDelay(10, () -> {
+            CpuBlockEntity cpu = cpu(helper, CPU_A);
+            helper.assertTrue(cpu.slots() == 2, "two slots from two CPU blocks, got " + cpu.slots());
+            for (int i = 0; i < 3; i++) {
+                CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
+                helper.assertTrue(placed.made() && placed.cpu().equals(cpu.getBlockPos()), "order " + i + " should land on the CPU: " + placed.refusal());
+            }
+            List<WorkOrder> orders = cpu.book().orders();
+            helper.assertTrue(orders.get(0).state() != WorkOrder.State.WAITING && orders.get(1).state() != WorkOrder.State.WAITING,
+                    "the two oldest take the slots: " + orders.get(0).state() + " " + orders.get(1).state());
+            helper.assertTrue(orders.get(2).state() == WorkOrder.State.WAITING && orders.get(2).reason().equals(OrderBook.WAITING_REASON),
+                    "the third waits for the CPU: " + orders.get(2).state());
+            Component summary = cpu.summary();
+            helper.assertTrue(summary.getContents() instanceof TranslatableContents contents
+                            && Arrays.equals(contents.getArgs(), new Object[] {2, 2, 1, 0, 6}),
+                    "summary should say 2 of 2 in use, 1 waiting and 0 of 6 buffer stacks, got " + summary.getString());
+            helper.succeed();
+        });
+    }
+
+    /** Two CPUs with two slots each share four orders without a wait. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void twoCpusShareOrders(GameTestHelper helper) {
+        setup(helper, false);
+        CpuBuild.formSlotted(helper, CPU_A);
+        CpuBuild.formSlotted(helper, CPU_B);
+        TerminalWiring.dataDuct(helper, new BlockPos(5, 2, 3));
+        TerminalWiring.dataDuct(helper, new BlockPos(5, 2, 4));
+        TerminalWiring.dataDuct(helper, new BlockPos(5, 2, 5));
+        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 2, 40,
+                () -> "both CPUs should be on the line", () -> {
+                    for (int i = 0; i < 4; i++) {
+                        helper.assertTrue(CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0).made(), "order " + i + " should be made");
+                    }
+                    CpuBlockEntity a = cpu(helper, CPU_A);
+                    CpuBlockEntity b = cpu(helper, CPU_B);
+                    helper.assertTrue(a.book().openCount() == 2 && b.book().openCount() == 2,
+                            "two orders each, got " + a.book().openCount() + " and " + b.book().openCount());
+                    helper.assertTrue(allOrders(helper).stream().noneMatch(order -> order.state() == WorkOrder.State.WAITING), "no order waits");
+                    helper.succeed();
+                });
+    }
+
+    /** Breaking a block of the CPU cancels its orders and releases their reservations. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void cpuUnformCancelsOrders(GameTestHelper helper) {
+        setup(helper, true);
+        stock(helper, RACK_A, Items.OAK_PLANKS, 4);
+        helper.runAfterDelay(10, () -> {
+            CpuBlockEntity cpu = cpu(helper, CPU_A);
+            OrderBook.Created created = cpu.book().create(STICK, 8, 0);
+            helper.assertTrue(created.made() && cpu.book().reservedTotal().getOrDefault(PLANKS, 0) == 4, "the order reserves four planks");
+            helper.setBlock(CPU_A.offset(2, 2, 2), Blocks.AIR.defaultBlockState());
+            helper.assertTrue(created.order().state() == WorkOrder.State.CANCELLED, "the order is cancelled: " + created.order().state());
+            helper.assertTrue(cpu.book().reservedTotal().isEmpty(), "reservations are released");
+            helper.assertTrue(!helper.getBlockState(CPU_A).getValue(CpuBlock.FORMED), "the cube is unformed");
+            helper.succeed();
+        });
+    }
+
+    /** Without a CPU on the line the shortfall stays missing while the rest is delivered. */
+    @ServusGameTest(timeoutTicks = 400)
+    public static void noCpuLeavesShortfallMissing(GameTestHelper helper) {
+        setup(helper, false);
+        stock(helper, RACK_B, Items.STICK, 3);
+        stock(helper, RACK_A, Items.OAK_PLANKS, 10);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
+            menu.request(STICK, 8);
+            helper.assertTrue(menu.stock().message().isEmpty(), "the request for the three sticks in stock is accepted: " + menu.stock().message());
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) == 3
+                            && menu.stock().requests().size() == 1 && menu.stock().requests().get(0).state().equals("MISSING"), 300,
+                    () -> "three sticks delivered and the rest missing, had " + terminal.outputCount(Items.STICK) + " " + menu.stock().requests(),
+                    () -> {
+                        helper.assertTrue(menu.stock().requests().get(0).missing() == 5, "five sticks are missing");
+                        helper.succeed();
+                    });
+        });
+    }
+
+    /** A rule below its minimum orders up to the maximum through the CPU and reads ok once the sticks are in stock. */
+    @ServusGameTest(timeoutTicks = 1200)
+    public static void stockRuleOrdersThroughCpu(GameTestHelper helper) {
+        setup(helper, true);
+        stock(helper, RACK_A, Items.OAK_PLANKS, 10);
+        stock(helper, RACK_B, Items.STICK, 2);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = warehouse(helper);
+            network.setStockRule(STICK, 8, 16);
+            Waits.when(helper, () -> !cpu(helper, CPU_A).book().orders().isEmpty(), 60, () -> "the rule should order", () -> {
+                List<WorkOrder> orders = cpu(helper, CPU_A).book().orders();
+                helper.assertTrue(orders.size() == 1 && orders.get(0).amount() == 14 && orders.get(0).requestId() == OrderBook.RULE_ORIGIN,
+                        "the rule should order 14 sticks, got " + orders);
+                RuleRow row = ruleRow(network, Items.STICK);
+                helper.assertTrue(row != null && row.state().equals("ordering"), "the rule should read ordering: " + row);
+                Waits.when(helper, () -> network.index().count(STICK) >= 16
+                                && "ok".equals(ruleRow(network, Items.STICK).state()), 1100,
+                        () -> "at least 16 sticks and ok expected, have " + network.index().count(STICK) + " " + ruleRow(network, Items.STICK),
+                        helper::succeed);
+            });
+        });
+    }
+
+    /** A rule above its minimum orders nothing. */
+    @ServusGameTest(timeoutTicks = 300)
+    public static void stockRuleIgnoresWhenEnough(GameTestHelper helper) {
+        setup(helper, true);
+        stock(helper, RACK_B, Items.STICK, 10);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = warehouse(helper);
+            network.setStockRule(STICK, 8, 16);
+            helper.runAfterDelay(150, () -> {
+                helper.assertTrue(allOrders(helper).isEmpty(), "no order should be created");
+                RuleRow row = ruleRow(network, Items.STICK);
+                helper.assertTrue(row != null && row.state().equals("ok"), "the rule should read ok: " + row);
+                helper.succeed();
+            });
+        });
+    }
+
+    /** A rule for an item nothing makes reads no producer and orders nothing. */
+    @ServusGameTest(timeoutTicks = 300)
+    public static void stockRuleWithoutProducerShowsReason(GameTestHelper helper) {
+        setup(helper, true);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = warehouse(helper);
+            network.setStockRule(ItemKey.of(new ItemStack(Items.BREAD)), 8, 16);
+            helper.runAfterDelay(150, () -> {
+                helper.assertTrue(allOrders(helper).isEmpty(), "no order should be created");
+                RuleRow row = ruleRow(network, Items.BREAD);
+                helper.assertTrue(row != null && row.state().equals("no_producer"), "the rule should read no producer: " + row);
+                helper.assertTrue(network.removeStockRule(ItemKey.of(new ItemStack(Items.BREAD))), "the rule can be removed");
+                helper.assertTrue(network.ruleRows().isEmpty(), "no rules left");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Without a CPU on the warehouse's line a low rule reads no CPU. */
+    @ServusGameTest(timeoutTicks = 300)
+    public static void stockRuleWithoutCpu(GameTestHelper helper) {
+        setup(helper, false);
+        stock(helper, RACK_A, Items.OAK_PLANKS, 10);
+        stock(helper, RACK_B, Items.STICK, 2);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = warehouse(helper);
+            network.setStockRule(STICK, 8, 16);
+            Waits.when(helper, () -> {
+                RuleRow row = ruleRow(network, Items.STICK);
+                return row != null && row.state().equals("no_cpu");
+            }, 200, () -> "the rule should read no CPU: " + ruleRow(network, Items.STICK), helper::succeed);
+        });
+    }
+
+    /** Rules survive a save and load of the controller. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void stockRulesPersist(GameTestHelper helper) {
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, CONTROLLER);
+        controller.rules().set(new StockRule(STICK, 8, 16));
+        CompoundTag tag = controller.saveWithoutMetadata(helper.getLevel().registryAccess());
+        WarehouseControllerBlockEntity copy = new WarehouseControllerBlockEntity(helper.absolutePos(CONTROLLER), controller.getBlockState());
+        copy.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), tag));
+        StockRule rule = copy.rules().get(STICK);
+        helper.assertTrue(rule != null && rule.min() == 8 && rule.max() == 16, "the rule should survive save and load: " + rule);
+        helper.succeed();
+    }
+
+    /** Any held item but the carrot falls through to the CPU summary; the carrot keeps forming the cube. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void cpuSummaryWithAnyItem(GameTestHelper helper) {
+        BlockPos at = new BlockPos(3, 1, 3);
+        helper.setBlock(at, ServusShuttlesBlocks.CRAFTING_CPU.get().defaultBlockState());
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos pos = helper.absolutePos(at);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
+        ItemStack cobble = new ItemStack(Items.COBBLESTONE);
+        player.setItemInHand(InteractionHand.MAIN_HAND, cobble);
+        InteractionResult withBlock = helper.getBlockState(at).useItemOn(cobble, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        helper.assertTrue(withBlock == InteractionResult.TRY_WITH_EMPTY_HAND, "cobblestone should reach the summary, got " + withBlock);
+        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
+        InteractionResult withCarrot = helper.getBlockState(at).useItemOn(carrot, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        helper.assertTrue(withCarrot == InteractionResult.PASS, "the carrot should keep its own use, got " + withCarrot);
+        ItemStack buffer = new ItemStack(ServusShuttlesBlocks.CPU_BUFFER.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, buffer);
+        InteractionResult withBuffer = helper.getBlockState(at).useItemOn(buffer, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        helper.assertTrue(withBuffer == InteractionResult.PASS, "a Buffer block should place against a CPU block, got " + withBuffer);
+        helper.succeed();
+    }
+
+    /** Every block of a formed 3x2x2 box knows its place class; breaking one returns the rest to the casing. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuPartsFollowForming(GameTestHelper helper) {
+        CpuBuild.box(helper, CPU_A, 3, 2, 2, 12);
+        helper.assertTrue(form(helper, CPU_A), "the box should form");
+        CpuShape.Vec size = new CpuShape.Vec(3, 2, 2);
+        for (int y = 0; y < 2; y++) {
+            for (int z = 0; z < 2; z++) {
+                for (int x = 0; x < 3; x++) {
+                    int part = CpuBox.part(new CpuShape.Vec(x, y, z), size);
+                    BlockState state = helper.getBlockState(CPU_A.offset(x, y, z));
+                    helper.assertTrue(state.getValue(CpuBlock.FORMED) && state.getValue(CpuBlock.PART) == part,
+                            "block " + x + "," + y + "," + z + " should be place " + part + ", got " + state);
+                }
+            }
+        }
+        helper.assertTrue(helper.getBlockState(CPU_A.offset(1, 1, 1)).getValue(CpuBlock.PART) == CpuShape.part(1, 2, 2),
+                "the middle of the top back edge is middle on x only");
+        helper.setBlock(CPU_A.offset(1, 1, 1), Blocks.AIR.defaultBlockState());
+        BlockState corner = helper.getBlockState(CPU_A.offset(2, 1, 1));
+        helper.assertTrue(!corner.getValue(CpuBlock.FORMED) && corner.getValue(CpuBlock.PART) == 0 && !corner.getValue(CpuBlock.ACTIVE),
+                "an unformed block shows the casing, got " + corner);
+        helper.succeed();
+    }
+
+    /** The cube's lights run while its CPU has open orders and glow when it has none. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void cpuLightsFollowOrders(GameTestHelper helper) {
+        setup(helper, true);
+        helper.runAfterDelay(10, () -> {
+            BlockPos far = CPU_A.offset(2, 2, 2);
+            helper.assertTrue(!helper.getBlockState(far).getValue(CpuBlock.ACTIVE), "an idle CPU glows");
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
+            helper.assertTrue(placed.made(), "the order should land: " + placed.refusal());
+            Waits.when(helper, () -> helper.getBlockState(far).getValue(CpuBlock.ACTIVE), 20,
+                    () -> "the lights should run with an order", () -> {
+                        cpu(helper, CPU_A).book().cancelAll();
+                        Waits.when(helper, () -> !helper.getBlockState(far).getValue(CpuBlock.ACTIVE)
+                                        && !helper.getBlockState(CPU_A).getValue(CpuBlock.ACTIVE), 20,
+                                () -> "the lights should glow again once the order is cancelled", helper::succeed);
+                    });
+        });
+    }
+}

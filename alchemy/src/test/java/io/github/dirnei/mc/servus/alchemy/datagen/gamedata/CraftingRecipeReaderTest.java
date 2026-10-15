@@ -38,14 +38,14 @@ class CraftingRecipeReaderTest {
 
     @Test
     void servusGridTypeKeepsRowsAndTags() {
-        Crafting rack = read("servus_storage:heavy_rack", """
-                {"type": "servus_storage:heavy_rack", "category": "misc",
+        Crafting rack = read("servus_shuttles:heavy_rack", """
+                {"type": "servus_shuttles:heavy_rack", "category": "misc",
                  "key": {"I": {"item": "minecraft:iron_ingot"}, "P": {"tag": "minecraft:planks"}},
                  "pattern": ["I I", "PPP", "I I"],
-                 "result": {"count": 1, "id": "servus_storage:heavy_rack"}}
+                 "result": {"count": 1, "id": "servus_shuttles:heavy_rack"}}
                 """);
 
-        assertEquals("servus_storage:heavy_rack", rack.type());
+        assertEquals("servus_shuttles:heavy_rack", rack.type());
         assertEquals(List.of("I I", "PPP", "I I"), rack.pattern());
         assertEquals(Stack.tag("minecraft:planks", 1), rack.key().get("P"));
         assertTrue(rack.inputs().contains(Stack.item("minecraft:iron_ingot", 4)));
@@ -54,10 +54,10 @@ class CraftingRecipeReaderTest {
 
     @Test
     void shapelessRecipeHasNoPattern() {
-        Crafting label = read("servus_storage:zone_label", """
+        Crafting label = read("servus_shuttles:zone_label", """
                 {"type": "minecraft:crafting_shapeless", "category": "equipment",
                  "ingredients": [{"item": "minecraft:paper"}, {"tag": "c:dyes"}],
-                 "result": {"count": 1, "id": "servus_storage:zone_label"}}
+                 "result": {"count": 1, "id": "servus_shuttles:zone_label"}}
                 """);
 
         assertNull(label.pattern());

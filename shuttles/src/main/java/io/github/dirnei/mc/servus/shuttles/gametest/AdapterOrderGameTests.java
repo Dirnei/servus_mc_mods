@@ -1,0 +1,177 @@
+package io.github.dirnei.mc.servus.shuttles.gametest;
+
+import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
+import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlock;
+import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlockEntity;
+import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
+import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
+import io.github.dirnei.mc.servus.shuttles.order.OrderStep;
+import io.github.dirnei.mc.servus.shuttles.order.WorkOrder;
+import java.util.List;
+import java.util.Set;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FurnaceBlock;
+import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
+
+/** A Machine Adapter on a vanilla furnace as a producer of the CPU, with its fuel refilled from the warehouse. */
+public final class AdapterOrderGameTests {
+
+    private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
+    private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
+    /** Racks west of the rails at y 0 under the controller and the Packing Station; the garage north of them. */
+    private static final BlockPos COBBLE_RACK = new BlockPos(1, 0, 2);
+    private static final BlockPos COAL_RACK = new BlockPos(1, 0, 3);
+    private static final BlockPos GARAGE = new BlockPos(2, 0, 1);
+    private static final BlockPos ADAPTER = new BlockPos(4, 1, 3);
+    private static final BlockPos FURNACE = new BlockPos(5, 1, 3);
+    private static final BlockPos CPU = new BlockPos(6, 1, 1);
+    private static final BlockPos LINE = new BlockPos(4, 2, 3);
+    private static final ItemKey STONE = ItemKey.of(new ItemStack(Items.STONE));
+
+    private AdapterOrderGameTests() {
+    }
+
+    /** Warehouse with cobblestone and coal, Packing Station, an adapter on a furnace and a CPU on one data line. */
+    private static void setup(GameTestHelper helper) {
+        setup(helper, new ItemStack(Items.COBBLESTONE, 16));
+    }
+
+    /** The same line with {@code material} instead of cobblestone in the first rack. */
+    private static void setup(GameTestHelper helper, ItemStack material) {
+        WarehouseFixtures.controller(helper, CONTROLLER);
+        for (BlockPos rail : List.of(CONTROLLER.below(), ACCESS.below())) {
+            WarehouseFixtures.rail(helper, rail);
+        }
+        for (BlockPos pos : List.of(COBBLE_RACK, COAL_RACK)) {
+            WarehouseFixtures.rack(helper, pos, Direction.EAST);
+        }
+        WarehouseFixtures.stock(helper, COBBLE_RACK, material);
+        WarehouseFixtures.stock(helper, COAL_RACK, new ItemStack(Items.COAL, 32));
+        WarehouseFixtures.garage(helper, GARAGE, Direction.NORTH, 1);
+        TerminalWiring.place(helper, ACCESS);
+        helper.setBlock(FURNACE, Blocks.FURNACE.defaultBlockState().setValue(FurnaceBlock.FACING, Direction.SOUTH));
+        helper.setBlock(ADAPTER, AdapterContent.BLOCK.get().defaultBlockState().setValue(MachineAdapterBlock.FACING, Direction.EAST));
+        for (BlockPos pos : List.of(new BlockPos(3, 2, 3), LINE, new BlockPos(5, 2, 3))) {
+            TerminalWiring.dataDuct(helper, pos);
+        }
+        CpuBuild.formCube(helper, CPU);
+    }
+
+    private static boolean ready(GameTestHelper helper) {
+        return DataLines.ready(helper, LINE, 1);
+    }
+
+    private static DataNetwork line(GameTestHelper helper) {
+        return DataLines.at(helper, LINE);
+    }
+
+    private static AbstractFurnaceBlockEntity furnace(GameTestHelper helper) {
+        return helper.getBlockEntity(FURNACE, AbstractFurnaceBlockEntity.class);
+    }
+
+    /** The adapter asks the warehouse for its coal until the furnace holds the profile's level of 16. */
+    @ServusGameTest(timeoutTicks = 600)
+    public static void adapterUpkeepFromWarehouse(GameTestHelper helper) {
+        setup(helper);
+        MachineAdapterBlockEntity adapter = helper.getBlockEntity(ADAPTER, MachineAdapterBlockEntity.class);
+        Waits.when(helper, () -> furnace(helper).getItem(1).is(Items.COAL) && furnace(helper).getItem(1).getCount() == 16, 500,
+                () -> "the furnace should get 16 coal, has " + furnace(helper).getItem(1) + ", expected " + adapter.expected(), () -> {
+            helper.assertTrue(adapter.upkeepItem().is(Items.COAL) && adapter.upkeepLevel() == 16, "coal at 16 from the profile");
+            helper.succeed();
+        });
+    }
+
+    /** An order for stone runs on the adapter: cobblestone in, stone back, no coal in the step. */
+    @ServusGameTest(timeoutTicks = 2400)
+    public static void adapterSmeltsAnOrder(GameTestHelper helper) {
+        setup(helper);
+        Waits.when(helper, () -> ready(helper), 60, () -> "the adapter and the CPU should join the line", () -> {
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STONE, 4, 0);
+            helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
+            WorkOrder order = placed.created().order();
+            OrderStep step = order.steps().get(0);
+            helper.assertTrue(step.producer().equals(helper.absolutePos(ADAPTER)), "the step runs on the adapter, got " + step.producer());
+            helper.assertTrue(step.inputs().size() == 1 && step.inputs().containsKey(ItemKey.of(new ItemStack(Items.COBBLESTONE))),
+                    "the step needs cobblestone only, got " + step.inputs());
+            Waits.when(helper, () -> order.state() == WorkOrder.State.DONE, 2300,
+                    () -> "the order should finish, state " + order.state() + " " + order.reason() + ", step " + step.state()
+                            + " " + step.reason() + ", fed " + step.fed(ItemKey.of(new ItemStack(Items.COBBLESTONE)))
+                            + ", collected " + step.collected(STONE) + ", furnace " + furnace(helper).getItem(0) + " / "
+                            + furnace(helper).getItem(1) + " / " + furnace(helper).getItem(2), helper::succeed);
+        });
+    }
+
+    /**
+     * A step on a Machine Adapter runs on the furnace's own
+     * fuel. Once the cobblestone is in the furnace the warehouse loses its FE,
+     * and the furnace still smelts it.
+     */
+    @ServusGameTest(timeoutTicks = 2400)
+    public static void adapterStepKeepsRunning(GameTestHelper helper) {
+        setup(helper);
+        furnace(helper).setItem(1, new ItemStack(Items.COAL, 16));
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
+        Waits.when(helper, () -> ready(helper), 60, () -> "the adapter and the CPU should join the line", () -> {
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STONE, 4, 0);
+            helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
+            Waits.when(helper, () -> furnace(helper).getItem(0).is(Items.COBBLESTONE), 2000,
+                    () -> "the cobblestone should reach the furnace, has " + furnace(helper).getItem(0), () -> {
+                controller.setEnergy(0);
+                int before = furnace(helper).getItem(2).getCount();
+                Waits.when(helper, () -> furnace(helper).getItem(2).getCount() > before
+                                || placed.created().order().steps().get(0).collected(STONE) > 0, 400,
+                        () -> "the furnace keeps smelting without warehouse power, output " + furnace(helper).getItem(2), helper::succeed);
+            });
+        });
+    }
+
+    /** A third rack east of the rail under the controller, facing it. */
+    private static final BlockPos SECOND_RACK = new BlockPos(3, 0, 2);
+    private static final ItemKey CHARCOAL = ItemKey.of(new ItemStack(Items.CHARCOAL));
+
+    /** Charcoal with only birch logs in stock runs on birch, not on the first log the furnace knows. */
+    @ServusGameTest(timeoutTicks = 2400)
+    public static void charcoalFromBirchOnly(GameTestHelper helper) {
+        setup(helper, new ItemStack(Items.BIRCH_LOG, 8));
+        Waits.when(helper, () -> ready(helper) && CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 4).missing().isEmpty(),
+                100, () -> "the line and the indexed birch logs should be ready", () -> {
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), CHARCOAL, 4, 0);
+            helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
+            WorkOrder order = placed.created().order();
+            helper.assertTrue(order.steps().size() == 1, "one step, got " + order.steps().size());
+            OrderStep step = order.steps().get(0);
+            helper.assertTrue(step.inputs().keySet().equals(Set.of(ItemKey.of(new ItemStack(Items.BIRCH_LOG)))),
+                    "the step should smelt birch logs, got " + step.inputs());
+            Waits.when(helper, () -> order.state() == WorkOrder.State.DONE, 2300,
+                    () -> "the order should finish, state " + order.state() + " " + order.reason() + ", step " + step.state()
+                            + " " + step.reason() + ", collected " + step.collected(CHARCOAL), helper::succeed);
+        });
+    }
+
+    /** With 6 oak and 4 birch logs the preview for 10 charcoal takes both from stock and misses nothing. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void charcoalPreviewSplitsLogs(GameTestHelper helper) {
+        setup(helper, new ItemStack(Items.OAK_LOG, 6));
+        WarehouseFixtures.rack(helper, SECOND_RACK, Direction.WEST);
+        WarehouseFixtures.stock(helper, SECOND_RACK, new ItemStack(Items.BIRCH_LOG, 4));
+        Waits.when(helper, () -> ready(helper), 60, () -> "the adapter and the CPU should join the line", () -> {
+            Waits.when(helper, () -> CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 10).missing().isEmpty(), 100,
+                    () -> "nothing should be missing, got " + CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 10), () -> {
+                var preview = CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 10);
+                helper.assertTrue(preview.fromStock().getOrDefault(ItemKey.of(new ItemStack(Items.OAK_LOG)), 0) == 6
+                                && preview.fromStock().getOrDefault(ItemKey.of(new ItemStack(Items.BIRCH_LOG)), 0) == 4,
+                        "6 oak and 4 birch logs from stock, got " + preview.fromStock());
+                helper.assertTrue(preview.toCraft().getOrDefault(CHARCOAL, 0) == 10, "10 charcoal to craft, got " + preview.toCraft());
+                helper.succeed();
+            });
+        });
+    }
+}

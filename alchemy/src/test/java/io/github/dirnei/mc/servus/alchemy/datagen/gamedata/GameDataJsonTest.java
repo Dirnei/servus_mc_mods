@@ -33,9 +33,9 @@ class GameDataJsonTest {
                         List.of(Stack.item("minecraft:iron_ingot", 2)),
                         List.of(Stack.item("servus_alchemy:iron_gear", 1)), 20));
         List<Crafting> crafting = List.of(
-                new Crafting("servus_storage:zone_label", "minecraft:crafting_shapeless", false, null, null,
+                new Crafting("servus_shuttles:zone_label", "minecraft:crafting_shapeless", false, null, null,
                         List.of(Stack.tag("c:dyes", 1), Stack.item("minecraft:paper", 1)),
-                        List.of(Stack.item("servus_storage:zone_label", 1))),
+                        List.of(Stack.item("servus_shuttles:zone_label", 1))),
                 new Crafting("servus_foundation:power_cable", "minecraft:crafting_shaped", false,
                         List.of("CCC", "RGR", "CCC"),
                         Map.of("R", Stack.item("minecraft:redstone", 1), "C", Stack.item("minecraft:copper_ingot", 1)),
@@ -97,8 +97,8 @@ class GameDataJsonTest {
         String facade = json.substring(json.indexOf("\"servus_foundation:facade\": {"),
                 json.indexOf("\"servus_foundation:power_cable\": {"));
         String cable = json.substring(json.indexOf("\"servus_foundation:power_cable\": {"),
-                json.indexOf("\"servus_storage:zone_label\": {"));
-        String label = json.substring(json.indexOf("\"servus_storage:zone_label\": {"), json.indexOf("\"deposits\""));
+                json.indexOf("\"servus_shuttles:zone_label\": {"));
+        String label = json.substring(json.indexOf("\"servus_shuttles:zone_label\": {"), json.indexOf("\"deposits\""));
 
         assertTrue(facade.contains("\"special\": true"));
         assertFalse(facade.contains("pattern"));
