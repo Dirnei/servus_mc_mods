@@ -2,7 +2,7 @@
 
 ## 1. Pure logic
 
-- [ ] 1.1 `salamander/SalamanderTemper.java` (record, validation, `befriends(roll)`, `DEFAULT`) and `salamander/Digestion.java` (countdown: `start`, `tick` returns true once done, `busy`, `remaining`). JUnit `SalamanderTemperTest` (`rejectsChanceOutsideZeroToOne`, `rejectsDigestBelowOneTick`, `rollBelowChanceBefriends`, `chanceOneAlwaysBefriends`, `chanceZeroNever`) and `DigestionTest` (`idleIsNotBusy`, `finishesAfterTicks`, `finishesOnlyOnce`, `restoredRemainingCounts`). Verify: `gradlew :alchemy:test` green.
+- [x] 1.1 `salamander/SalamanderTemper.java` (record, validation, `befriends(roll)`, `DEFAULT`) and `salamander/Digestion.java` (countdown: `start`, `tick` returns true once done, `busy`, `remaining`). JUnit `SalamanderTemperTest` (`rejectsChanceOutsideZeroToOne`, `rejectsDigestBelowOneTick`, `rollBelowChanceBefriends`, `chanceOneAlwaysBefriends`, `chanceZeroNever`) and `DigestionTest` (`idleIsNotBusy`, `finishesAfterTicks`, `finishesOnlyOnce`, `restoredRemainingCounts`). Verify: `gradlew :alchemy:test` green.
 
 ## 2. Entity and items
 
