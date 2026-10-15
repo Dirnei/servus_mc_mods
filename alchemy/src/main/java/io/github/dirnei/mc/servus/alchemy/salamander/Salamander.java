@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -35,13 +36,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.event.EventHooks;
@@ -85,14 +86,45 @@ public class Salamander extends TamableAnimal {
         return Animal.createAnimalAttributes().add(Attributes.MAX_HEALTH, 10.0).add(Attributes.MOVEMENT_SPEED, 0.2);
     }
 
-    /** Spawns only on lava whose column is topped by air, like the Strider. */
+    /**
+     * Where a wild salamander may spawn: on lava whose column is topped by air in a {@link #LAVA_BIOMES} biome, like the
+     * Strider, or on the ground near a {@link #HOME} block; in both cases only when its biome's chance passes and the crowd
+     * of wild salamanders around is below the limit. The numbers come from the salamander's temper data.
+     */
     public static boolean checkSpawnRules(EntityType<Salamander> type, LevelAccessor level, EntitySpawnReason reason, BlockPos pos,
                                           RandomSource random) {
+        SalamanderTemper.Spawn spawn = SalamanderTemperData.INSTANCE.forType(type).spawn();
+        Holder<Biome> biome = level.getBiome(pos);
+        String biomeId = biome.unwrapKey().map(key -> key.identifier().toString()).orElse("");
+        if (!spawn.biomeAllows(biomeId, random.nextDouble())) {
+            return false;
+        }
+        boolean spot = level.getFluidState(pos).is(FluidTags.LAVA)
+                ? biome.is(LAVA_BIOMES) && lavaOpenAbove(level, pos)
+                : homeNear(level, pos, spawn.homeRadius());
+        return spot && SalamanderSpawn.crowdAllows(wildAround(level, pos, spawn.crowdRadius()), spawn.crowdMax());
+    }
+
+    private static boolean lavaOpenAbove(LevelAccessor level, BlockPos pos) {
         BlockPos.MutableBlockPos check = pos.mutable();
         do {
             check.move(Direction.UP);
         } while (level.getFluidState(check).is(FluidTags.LAVA));
         return level.getBlockState(check).isAir();
+    }
+
+    /** Whether a home block stands in the box of {@code radius} around {@code pos}; reads that box once. */
+    private static boolean homeNear(LevelAccessor level, BlockPos pos, int radius) {
+        for (BlockPos at : BlockPos.betweenClosed(pos.offset(-radius, -radius, -radius), pos.offset(radius, radius, radius))) {
+            if (level.getBlockState(at).is(HOME)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static int wildAround(LevelAccessor level, BlockPos pos, int radius) {
+        return level.getEntitiesOfClass(Salamander.class, new AABB(pos).inflate(radius), salamander -> !salamander.isTame()).size();
     }
 
     @Override
@@ -231,18 +263,6 @@ public class Salamander extends TamableAnimal {
     @Override
     protected PathNavigation createNavigation(Level level) {
         return new SalamanderNavigation(this, level);
-    }
-
-    /** A wild salamander keeps to the lava; a befriended one walks where its owner goes. */
-    @Override
-    public float getWalkTargetValue(BlockPos pos, LevelReader level) {
-        if (isTame()) {
-            return super.getWalkTargetValue(pos, level);
-        }
-        if (level.getBlockState(pos).getFluidState().is(FluidTags.LAVA)) {
-            return 10.0F;
-        }
-        return isInLava() ? Float.NEGATIVE_INFINITY : 0.0F;
     }
 
     @Override

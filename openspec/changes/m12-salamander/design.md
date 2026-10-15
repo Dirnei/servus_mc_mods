@@ -67,7 +67,7 @@ A custom `SpawnPlacementType` (`SalamanderPlacement`) accepts either a lava spot
 - On the ground: a block of the tag `servus_alchemy:salamander_home` within `home_radius` (a box of at most 9 by 9 by 9 blocks read once per spawn try, never per tick).
 - Both: `biome_chance` of the biome, then fewer than `crowd_max` wild salamanders within `crowd_radius` (`getEntitiesOfClass` with a filter on `!isTame()`).
 The block tag `salamander_home` holds `#minecraft:crimson_stems`, `#minecraft:warped_stems`, `minecraft:nether_wart_block`, `minecraft:warped_wart_block` and `minecraft:nether_wart`; both tags come from datagen (`ServusAlchemyBlockTagsProvider`, a new biome tags provider).
-Pure `SalamanderSpawn` (no Minecraft imports) holds `crowdAllows(wildNearby, max)` and `homeWithin(dx, dy, dz, radius)`, covered by JUnit.
+Pure `SalamanderSpawn` (no Minecraft imports) holds `crowdAllows(wildNearby, max)`, covered by JUnit. The home box is `BlockPos.betweenClosed` over the home radius, which `SalamanderTemper.Spawn` keeps between 0 and 4; a pure box check would only repeat the loop bounds.
 
 ### D8 Model
 `SalamanderModel` after the salamander of `elementals.html`, in model units (y down, head at negative z, ground at y 24). Texture 64 by 64. All boxes with their faces (Y is the HTML height above ground, Z the HTML forward axis):
@@ -127,7 +127,7 @@ The Workshop gets an entry "The Salamander" (`salamander`, icon Ignis Perpetuus)
 - Lying in a campfire is the sitting pose on the campfire block within 8 blocks; it does not take a pose when the owner calls.
 - The hint without the sight is a flame particle about every 2 s; the richer hints come with `m12-hidden-hints`.
 - Hidden means not drawn and not named in Jade; it can still be hit and clicked without the sight.
-- Ignis Perpetuus: one Sal Ammoniac and 500 mB Sulfur on a Citrinitas Athanor, 200 ticks; only a building part, not a fuel.
+- Ignis Perpetuus: one Sal Ammoniac and 500 mB Sulfur on a Citrinitas Athanor, 200 ticks; a building part and not a furnace fuel (the Calciner takes it as its eternal flame, `m12-calciner-eternal-fire`).
 - No journal task for the salamander, as it is optional for progression.
 - Tooltip texts: Ignis Perpetuus "Do not ask what it is. It burns forever, that is all you need to know."; Sal Ammoniac "The salamander gives back what it eats, only better. Do not tell the goldsmiths." (the historical camel dung source stays out of game text; to check).
 - Health 10, speed 0.2, harmless, no breeding.
