@@ -32,6 +32,7 @@ final class ServusAlchemyBlockTagsProvider extends BlockTagsProvider {
                 .add(ServusAlchemyBlocks.COAGULATOR.get())
                 .add(ServusAlchemyBlocks.SALT_CRYSTAL_BLOCK.get())
                 .add(ServusAlchemyBlocks.ATHANOR.get())
-                .add(ServusAlchemyBlocks.GNOME_HOLLOW.get());
+                .add(ServusAlchemyBlocks.GNOME_HOLLOW.get())
+                .add(ServusAlchemyBlocks.PRINCIPLE_DROPPER.get());
     }
 }

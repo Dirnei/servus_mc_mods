@@ -126,6 +126,7 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add(ServusAlchemyBlocks.SALT_CRYSTAL_BLOCK.get(), "Salt Crystal Block");
         add(ServusAlchemyBlocks.ATHANOR.get(), "Athanor");
         add(ServusAlchemyBlocks.GNOME_HOLLOW.get(), "Gnome Hollow");
+        add(ServusAlchemyBlocks.PRINCIPLE_DROPPER.get(), "Principle Dropper");
         add("message.servus_alchemy.gnome_hollow.bound", "A gnome takes your offering and sets to work.");
         add("message.servus_alchemy.gnome_hollow.no_vein", "Nothing grows here yet. Seed the hollow with a sample of ore.");
         add("message.servus_alchemy.gnome_hollow.not_ripe", "The vein is not ripe yet.");

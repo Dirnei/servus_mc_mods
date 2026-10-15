@@ -69,6 +69,30 @@ final class AlchemyModels {
         purifier();
         coagulator();
         vat();
+        dropper();
+    }
+
+    /**
+     * The Principle Dropper: a glass bulb on a copper plate standing on four legs, a lid with an inlet neck on top and
+     * a spout from the plate down to the Hollow below. Boxes only touch where they meet, so no faces share a plane.
+     */
+    private void dropper() {
+        BlockModelBuilder model = builder("principle_dropper")
+                .texture("copper", states.mcLoc(COPPER)).texture("cut", states.mcLoc(CUT_COPPER))
+                .texture("glass", states.mcLoc("block/glass")).texture("particle", states.mcLoc(COPPER));
+        for (float x : new float[] {3, 11.5F}) {
+            for (float z : new float[] {3, 11.5F}) {
+                box(model, x, 0, z, x + 1.5F, 4, z + 1.5F, "#cut");
+            }
+        }
+        box(model, 7, 1, 7, 9, 4, 9, "#cut");
+        box(model, 7.5F, 0.25F, 7.5F, 8.5F, 1, 8.5F, "#cut");
+        box(model, 3, 4, 3, 13, 5, 13, "#copper");
+        // The whole glass sprite on each face, so its frame lines run along the bulb's edges.
+        model.element().from(4, 5, 4).to(12, 13, 12).allFaces((direction, face) -> face.uvs(0, 0, 16, 16).texture("#glass")).end();
+        box(model, 3.5F, 13, 3.5F, 12.5F, 14, 12.5F, "#cut");
+        box(model, 6, 14, 6, 10, 16, 10, "#copper");
+        states.simpleBlockWithItem(ServusAlchemyBlocks.PRINCIPLE_DROPPER.get(), model);
     }
 
     /** The Coagulator: a cobblestone block with its front while unformed; formed, a stone casting table with an iron mold. */

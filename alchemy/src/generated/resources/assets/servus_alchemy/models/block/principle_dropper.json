@@ -1,0 +1,367 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#cut"
+        },
+        "east": {
+          "texture": "#cut"
+        },
+        "north": {
+          "texture": "#cut"
+        },
+        "south": {
+          "texture": "#cut"
+        },
+        "up": {
+          "texture": "#cut"
+        },
+        "west": {
+          "texture": "#cut"
+        }
+      },
+      "from": [
+        3,
+        0,
+        3
+      ],
+      "to": [
+        4.5,
+        4,
+        4.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#cut"
+        },
+        "east": {
+          "texture": "#cut"
+        },
+        "north": {
+          "texture": "#cut"
+        },
+        "south": {
+          "texture": "#cut"
+        },
+        "up": {
+          "texture": "#cut"
+        },
+        "west": {
+          "texture": "#cut"
+        }
+      },
+      "from": [
+        3,
+        0,
+        11.5
+      ],
+      "to": [
+        4.5,
+        4,
+        13
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#cut"
+        },
+        "east": {
+          "texture": "#cut"
+        },
+        "north": {
+          "texture": "#cut"
+        },
+        "south": {
+          "texture": "#cut"
+        },
+        "up": {
+          "texture": "#cut"
+        },
+        "west": {
+          "texture": "#cut"
+        }
+      },
+      "from": [
+        11.5,
+        0,
+        3
+      ],
+      "to": [
+        13,
+        4,
+        4.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#cut"
+        },
+        "east": {
+          "texture": "#cut"
+        },
+        "north": {
+          "texture": "#cut"
+        },
+        "south": {
+          "texture": "#cut"
+        },
+        "up": {
+          "texture": "#cut"
+        },
+        "west": {
+          "texture": "#cut"
+        }
+      },
+      "from": [
+        11.5,
+        0,
+        11.5
+      ],
+      "to": [
+        13,
+        4,
+        13
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#cut"
+        },
+        "east": {
+          "texture": "#cut"
+        },
+        "north": {
+          "texture": "#cut"
+        },
+        "south": {
+          "texture": "#cut"
+        },
+        "up": {
+          "texture": "#cut"
+        },
+        "west": {
+          "texture": "#cut"
+        }
+      },
+      "from": [
+        7,
+        1,
+        7
+      ],
+      "to": [
+        9,
+        4,
+        9
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#cut"
+        },
+        "east": {
+          "texture": "#cut"
+        },
+        "north": {
+          "texture": "#cut"
+        },
+        "south": {
+          "texture": "#cut"
+        },
+        "up": {
+          "texture": "#cut"
+        },
+        "west": {
+          "texture": "#cut"
+        }
+      },
+      "from": [
+        7.5,
+        0.25,
+        7.5
+      ],
+      "to": [
+        8.5,
+        1,
+        8.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#copper"
+        },
+        "east": {
+          "texture": "#copper"
+        },
+        "north": {
+          "texture": "#copper"
+        },
+        "south": {
+          "texture": "#copper"
+        },
+        "up": {
+          "texture": "#copper"
+        },
+        "west": {
+          "texture": "#copper"
+        }
+      },
+      "from": [
+        3,
+        4,
+        3
+      ],
+      "to": [
+        13,
+        5,
+        13
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        }
+      },
+      "from": [
+        4,
+        5,
+        4
+      ],
+      "to": [
+        12,
+        13,
+        12
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#cut"
+        },
+        "east": {
+          "texture": "#cut"
+        },
+        "north": {
+          "texture": "#cut"
+        },
+        "south": {
+          "texture": "#cut"
+        },
+        "up": {
+          "texture": "#cut"
+        },
+        "west": {
+          "texture": "#cut"
+        }
+      },
+      "from": [
+        3.5,
+        13,
+        3.5
+      ],
+      "to": [
+        12.5,
+        14,
+        12.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#copper"
+        },
+        "east": {
+          "texture": "#copper"
+        },
+        "north": {
+          "texture": "#copper"
+        },
+        "south": {
+          "texture": "#copper"
+        },
+        "up": {
+          "texture": "#copper"
+        },
+        "west": {
+          "texture": "#copper"
+        }
+      },
+      "from": [
+        6,
+        14,
+        6
+      ],
+      "to": [
+        10,
+        16,
+        10
+      ]
+    }
+  ],
+  "textures": {
+    "copper": "minecraft:block/copper_block",
+    "cut": "minecraft:block/cut_copper",
+    "glass": "minecraft:block/glass",
+    "particle": "minecraft:block/copper_block"
+  }
+}
