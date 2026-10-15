@@ -1,0 +1,7 @@
+{
+  "grow_ticks": 48000,
+  "work_interval": 100,
+  "elixir_ticks": 12000,
+  "gift_below_ticks": 1200,
+  "freed_multiplier": 2
+}

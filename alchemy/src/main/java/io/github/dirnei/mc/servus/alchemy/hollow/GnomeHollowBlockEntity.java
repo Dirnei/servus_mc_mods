@@ -254,6 +254,21 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         return stacks;
     }
 
+    /** Takes up to {@code max} items of the store as one stack of the vein's yield, for the homunculus; empty when nothing is taken. */
+    public ItemStack takeYield(int max) {
+        Optional<VeinDef> def = veinDef();
+        if (def.isEmpty() || max <= 0) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack yield = def.get().yield();
+        int taken = store.take(Math.min(max, yield.getMaxStackSize()));
+        if (taken == 0) {
+            return ItemStack.EMPTY;
+        }
+        setChanged();
+        return yield.copyWithCount(taken);
+    }
+
     public static void serverTick(Level level, BlockPos pos, BlockState state, GnomeHollowBlockEntity hollow) {
         hollow.tick();
     }

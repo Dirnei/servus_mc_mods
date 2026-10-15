@@ -25,6 +25,7 @@ public final class AlchemyMachineDefaults {
         add("gnome_hollow", "crafter", List.of(), hollow(4000, 64));
         add("principle_dropper", "crafter", List.of(), dropper(20, 25, 1000));
         add("salamander_forge", "crafter", List.of("minecraft:smelting"), forge(200));
+        add("receptaculum", "crafter", List.of(), alchemy(0));
     }
 
     /**
