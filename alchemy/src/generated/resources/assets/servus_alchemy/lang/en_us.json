@@ -384,6 +384,7 @@
   "jade.servus_alchemy.athanor.unformed": "Not formed (stage %s)",
   "jade.servus_alchemy.calciner.ash": "Ash: %s / %s",
   "jade.servus_alchemy.calciner.empty": "none",
+  "jade.servus_alchemy.calciner.eternal_fire": "Fire: %s",
   "jade.servus_alchemy.calciner.fuel": "Fuel: %s",
   "jade.servus_alchemy.calciner.input": "Matter: %s",
   "jade.servus_alchemy.calciner.principle": "%s / %s mB %s",

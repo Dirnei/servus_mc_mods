@@ -78,6 +78,7 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("message.servus_alchemy.calciner.formed", "The Calciner is ready.");
         add("jade.servus_alchemy.calciner.input", "Matter: %s");
         add("jade.servus_alchemy.calciner.fuel", "Fuel: %s");
+        add("jade.servus_alchemy.calciner.eternal_fire", "Fire: %s");
         add("jade.servus_alchemy.calciner.progress", "Progress: %s%%");
         add("jade.servus_alchemy.calciner.principle", "%s / %s mB %s");
         add("jade.servus_alchemy.calciner.ash", "Ash: %s / %s");
