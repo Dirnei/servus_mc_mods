@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.client.salamander.SalamanderModel;
 import io.github.dirnei.mc.servus.alchemy.client.salamander.SalamanderRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.sight.HollowRevealRenderer;
+import io.github.dirnei.mc.servus.alchemy.client.sight.OldGnomeRevealRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.sight.RevealRenderers;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyEntities;
@@ -61,5 +62,6 @@ public final class ServusAlchemyClient {
     public static void onClientSetup(FMLClientSetupEvent event) {
         IconExporter.registerIfRequested();
         RevealRenderers.add(new HollowRevealRenderer());
+        RevealRenderers.add(new OldGnomeRevealRenderer());
     }
 }
