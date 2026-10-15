@@ -141,6 +141,7 @@
   "message.servus_foundation.potato.item_side": "%s: %s, %s, priority %s, %s ducts, %s in / %s out",
   "message.servus_foundation.potato.run": "%s: %s ducts",
   "message.servus_foundation.potato.side": "%s: %s, %s, %s ducts, %s in / %s out",
+  "message.servus_foundation.potato.tank_size": "Size: %s x %s x %s blocks",
   "message.servus_foundation.sink.casing": "Build a 2x2x2 cube of Sink blocks and click its front with the Configuration Carrot",
   "message.servus_foundation.sink.incomplete": "A Sink needs a full 2x2x2 cube of Sink blocks behind this face",
   "message.servus_foundation.sink.side_face": "Click a side of the cube: that side becomes the front",

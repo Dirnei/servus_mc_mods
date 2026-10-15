@@ -23,7 +23,7 @@ Applied after `m5-duct-filter-picker` and `m5-named-channels`; the duct report r
 
 ### D2: The potato is a plain item that acts in `useOn`
 
-`DataPotatoItem` (`foundation/item/`), stacks to 1, registered in `ServusFoundationItems` and the Servus creative tab. `useOn` runs only on the server: a duct gives the duct report, a Fluid Tank the tank report, anything else passes. Each report line goes out with `player.sendSystemMessage`. `UtilityDuctBlock.useItemOn` and `FluidTankBlock.useItemOn` add the potato to the items they pass through, so the click reaches the item instead of `useWithoutItem`. The potato never configures or dismantles, also when sneaking.
+`DataPotatoItem` (`foundation/item/`), stacks to 1, registered in `ServusFoundationItems` and the Servus creative tab. `useOn` runs only on the server: a duct gives the duct report, a Fluid Tank the tank report, anything else passes. Each report line goes out with `player.sendSystemMessage`. `UtilityDuctBlock.useItemOn` adds the potato to the items it passes through, so the click reaches the item instead of `useWithoutItem`; `FluidTankBlock.useItemOn` passes it already (D5). The potato never configures or dismantles, also when sneaking.
 
 ### D3: Duct report
 
@@ -50,7 +50,7 @@ The arm is found with `ArmHit.hit` from the click location like the carrot does.
 
 ### D5: Tank report
 
-`FluidTankBlock.describe(content, capacity)` gives the fill line; the report adds the size from the tank's `TankShape` box (`TankNetwork.boxAt`) as `w x h x d`. One or two chat lines.
+`TankReport` (`foundation/logistics/tank/`) builds two chat lines: `FluidTankBlock.describe(content, capacity)` for the fill line, then the size from the tank's `TankShape` box (`TankNetwork.boxAt`) as `w x h x d`. `FluidTankBlock.useItemOn` already returns `PASS` for every item that is not a fluid container, so the potato's click reaches the item without a change there.
 
 ### D6: Item look and recipe
 

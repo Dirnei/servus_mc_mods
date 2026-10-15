@@ -11,8 +11,12 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
+import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlockEntity;
+import io.github.dirnei.mc.servus.foundation.logistics.tank.TankReport;
+import io.github.dirnei.mc.servus.foundation.logistics.tank.TankStatsManager;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +28,9 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 public final class DataPotatoGameTests {
 
@@ -120,6 +127,38 @@ public final class DataPotatoGameTests {
         });
     }
 
+    /** A 3 by 2 by 3 tank with 12,000 mB of water and an empty single tank, the second through a full click. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void potatoReportsTank(GameTestHelper helper) {
+        BlockPos min = new BlockPos(2, 1, 2);
+        for (BlockPos pos : BlockPos.betweenClosed(min, min.offset(2, 1, 2))) {
+            helper.setBlock(pos.immutable(), ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
+        }
+        BlockPos single = new BlockPos(8, 1, 8);
+        helper.setBlock(single, ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
+        int cap = TankStatsManager.INSTANCE.capacityPerBlock();
+
+        helper.runAfterDelay(2, () -> {
+            FluidView handler = FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(min), Direction.UP));
+            helper.assertTrue(handler != null && handler.fill(new FluidStack(Fluids.WATER, 12000), false) == 12000, "the tank takes 12,000 mB");
+            List<Component> report = TankReport.of(helper.getBlockEntity(min, FluidTankBlockEntity.class));
+            Object[] content = assertKey(helper, report.get(0), "message.servus_foundation.fluid_tank.content");
+            helper.assertTrue(text(content[0]).equals(Fluids.WATER.getFluidType().getDescriptionId()), "the fluid is water, got " + text(content[0]));
+            helper.assertTrue(content[1].equals(12000) && content[2].equals(18 * cap), "12,000 of " + 18 * cap + " mB, got "
+                    + content[1] + " of " + content[2]);
+            Object[] size = assertKey(helper, report.get(1), KEY + "tank_size");
+            helper.assertTrue(Arrays.asList(size).equals(List.of(3, 2, 3)), "the size is 3 x 2 x 3, got " + Arrays.asList(size));
+
+            List<Component> chat = new ArrayList<>();
+            PlayerClicks.use(helper, PlayerClicks.player(helper, single, new ItemStack(ServusFoundationItems.DATA_POTATO.get()), chat), single);
+            helper.assertTrue(chat.size() == 2, "the click prints two lines, got " + chat);
+            Object[] empty = assertKey(helper, chat.get(0), "message.servus_foundation.fluid_tank.empty");
+            helper.assertTrue(empty[0].equals(cap), "the capacity is " + cap + ", got " + empty[0]);
+            helper.assertTrue(Arrays.asList(assertKey(helper, chat.get(1), KEY + "tank_size")).equals(List.of(1, 1, 1)), "the size is 1 x 1 x 1");
+            helper.succeed();
+        });
+    }
+
     private static UtilityDuctBlockEntity[] chestRow(GameTestHelper helper) {
         BlockPos[] positions = {DUCT_A, DUCT_B, DUCT_C};
         UtilityDuctBlockEntity[] ducts = new UtilityDuctBlockEntity[positions.length];
@@ -130,10 +169,11 @@ public final class DataPotatoGameTests {
         return ducts;
     }
 
-    /** Asserts the line's lang key and returns its arguments. */
+    /** Asserts the line's lang key, the potato's own keys without their prefix, and returns its arguments. */
     private static Object[] assertKey(GameTestHelper helper, Component line, String key) {
-        helper.assertTrue(line.getContents() instanceof TranslatableContents contents && contents.getKey().equals(KEY + key),
-                "expected " + KEY + key + ", got " + line);
+        String full = key.startsWith("message.") ? key : KEY + key;
+        helper.assertTrue(line.getContents() instanceof TranslatableContents contents && contents.getKey().equals(full),
+                "expected " + full + ", got " + line);
         return ((TranslatableContents) line.getContents()).getArgs();
     }
 

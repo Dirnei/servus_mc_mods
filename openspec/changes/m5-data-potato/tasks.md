@@ -17,7 +17,7 @@
 
 ## 4. Tank report
 
-- [ ] 4.1 Tank report in `DataPotatoItem` with `FluidTankBlock.describe` plus the box size (design D5); `FluidTankBlock.useItemOn` passes the potato. Lang key for the size line. GameTest `potatoReportsTank` (3 by 2 by 3 tank with water, and an empty single tank). Verify: `gradlew build` green, GameTests pass.
+- [x] 4.1 Tank report in `logistics/tank/TankReport.java`, called from `DataPotatoItem`, with `FluidTankBlock.describe` plus the box size (design D5); `FluidTankBlock.useItemOn` already passes the potato. Lang key for the size line. GameTest `potatoReportsTank` (3 by 2 by 3 tank with water, and an empty single tank). Verify: `gradlew build` green, GameTests pass.
 
 ## 5. Plan and integration
 

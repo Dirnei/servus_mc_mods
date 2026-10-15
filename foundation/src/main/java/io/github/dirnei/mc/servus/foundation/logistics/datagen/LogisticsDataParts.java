@@ -192,6 +192,7 @@ public final class LogisticsDataParts {
         provider.add("message.servus_foundation.potato.side", "%s: %s, %s, %s ducts, %s in / %s out");
         provider.add("message.servus_foundation.potato.run", "%s: %s ducts");
         provider.add("message.servus_foundation.potato.data", "%s: %s, %s items/s, %s used");
+        provider.add("message.servus_foundation.potato.tank_size", "Size: %s x %s x %s blocks");
         provider.add("gui.servus_foundation.side.down", "Down");
         provider.add("gui.servus_foundation.side.up", "Up");
         provider.add("gui.servus_foundation.side.north", "North");
