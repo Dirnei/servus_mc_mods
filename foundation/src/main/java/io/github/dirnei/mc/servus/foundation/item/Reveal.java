@@ -21,7 +21,7 @@ public final class Reveal {
 
     /** Goggles worn or a Data Potato in either hand. */
     public static boolean analysing(Player player) {
-        return GogglesItem.isWearing(player);
+        return GogglesItem.isWearing(player) || holds(player, DataPotatoItem.class);
     }
 
     /** Configuring or analysing. */

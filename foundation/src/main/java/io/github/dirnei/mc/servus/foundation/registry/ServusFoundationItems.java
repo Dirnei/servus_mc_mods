@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.foundation.registry;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.foundation.item.DataPotatoItem;
 import io.github.dirnei.mc.servus.foundation.item.GogglesItem;
 import io.github.dirnei.mc.servus.foundation.upgrade.UpgradeItem;
 import net.minecraft.world.item.Item;
@@ -16,6 +17,8 @@ public final class ServusFoundationItems {
             ITEMS.registerItem("configuration_carrot", ConfigurationCarrotItem::new, () -> new Item.Properties().stacksTo(1));
     public static final DeferredItem<GogglesItem> GOGGLES =
             ITEMS.registerItem("engineer_goggles", GogglesItem::new, () -> new Item.Properties());
+    public static final DeferredItem<DataPotatoItem> DATA_POTATO =
+            ITEMS.registerItem("data_potato", DataPotatoItem::new, () -> new Item.Properties());
 
     public static final DeferredItem<UpgradeItem> SPEED_UPGRADE =
             ITEMS.registerItem("speed_upgrade", properties -> new UpgradeItem(2, properties), () -> new Item.Properties().stacksTo(16));

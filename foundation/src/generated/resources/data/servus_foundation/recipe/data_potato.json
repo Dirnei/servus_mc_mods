@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "D": "servus_foundation:data_cable",
+    "P": "minecraft:potato",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "R",
+    "D",
+    "P"
+  ],
+  "result": {
+    "id": "servus_foundation:data_potato"
+  }
+}

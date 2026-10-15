@@ -6,7 +6,7 @@
 
 ## 2. The item
 
-- [ ] 2.1 Add `foundation/.../item/DataPotatoItem.java`, register `data_potato` in `registry/ServusFoundationItems.java` and the Servus creative tab, include it in `Reveal.analysing` and `seesThroughPanels`. Datagen: `basicItem` in `ServusFoundationItemModelProvider`, the recipe in `ServusFoundationRecipeProvider` (design D6), lang name and tooltip in `ServusFoundationLanguageProvider`; run `gradlew :foundation:runData`. Verify: `gradlew build` green.
+- [x] 2.1 Add `foundation/.../item/DataPotatoItem.java`, register `data_potato` in `registry/ServusFoundationItems.java` and the Servus creative tab, include it in `Reveal.analysing` and `seesThroughPanels`. Datagen: `basicItem` in `ServusFoundationItemModelProvider`, the recipe in `ServusFoundationRecipeProvider` (design D6), lang name and tooltip in `ServusFoundationLanguageProvider`; run `gradlew :foundation:runData`. Verify: `gradlew build` green.
 - [ ] 2.2 Add `tools/potato-texture/gen.py` and generate `foundation/src/main/resources/assets/servus_foundation/textures/item/data_potato.png` (design D6). Verify: a second run changes no file, `gradlew build` green, the client log shows no missing texture.
 - [ ] 2.3 GameTest `revealRules` in `foundation/.../logistics/gametest/ServusLogisticsGameTests.java` (carrot: configuring only; potato: analysing only; goggles: both; pickaxe: neither; panels for all three). Verify: GameTests pass in `gradlew :foundation:runGameTestServer`.
 

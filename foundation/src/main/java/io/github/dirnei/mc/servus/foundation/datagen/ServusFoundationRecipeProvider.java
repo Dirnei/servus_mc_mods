@@ -50,6 +50,16 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_carrot", has(Items.CARROT))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusFoundationItems.DATA_POTATO.get())
+                .pattern("R")
+                .pattern("D")
+                .pattern("P")
+                .define('R', Items.REDSTONE)
+                .define('D', ServusLogisticsItems.DATA_CABLE.get())
+                .define('P', Items.POTATO)
+                .unlockedBy("has_data_cable", has(ServusLogisticsItems.DATA_CABLE.get()))
+                .save(output);
+
         ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusFoundationItems.SPEED_UPGRADE.get())
                 .pattern("RGR")
                 .pattern("GCG")
