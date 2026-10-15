@@ -24,7 +24,7 @@
 
 ## 6. Verification
 
-- [ ] 6.1 Full `gradlew build test :alchemy:runGameTestServer` green; client smoke start to the title screen, killed by its command line, no errors mentioning servus; the FTB "Missing entity icon settings for servus_alchemy:salamander" warning fixed in a separate commit if it is a simple asset.
+- [x] 6.1 Full `gradlew build test :alchemy:runGameTestServer` green; client smoke start to the title screen, killed by its command line, no errors mentioning servus; the FTB "Missing entity icon settings for servus_alchemy:salamander" warning fixed in a separate commit if it is a simple asset.
 - [ ] 6.2 User play check in game:
   - The Receptaculum reads as a hearth chest: brick hearth with a grated fire and flames, iron banded deepslate body, tile lid, brass collar; it lights the room; no flicker from any angle.
   - The Sealed Flask places only on a Receptaculum; the Vas looks like a glass flask with murky liquid and a red seal; no flicker in the glass or liquid from any angle.
