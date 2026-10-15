@@ -6,7 +6,7 @@ Under Elemental Sight a Gnome Hollow is still a stone block with spinning item i
 
 - Under Elemental Sight the Hollow is drawn as a darkened, cracked block instead of stone with icons. Without the sight it stays plain stone, as before.
 - An empty Hollow shows only dry, dark cracks. Once a sample is planted, the vein's material creeps along the cracks with ripeness and flows slowly, glowing in the vein's colour; near ripe, a few nodules break out of the cracks.
-- One side is a cave entry: dark inside, a faint glow once planted, crystals of the vein's colour around its mouth near ripe. The side faces the player who placed the Hollow.
+- Binding a gnome opens a cave entry on one side: the rock crumbles away, dark inside with a faint glow, crystals of the vein's colour around its mouth near ripe. Before that every side is cracked rock. The side faces the player who placed the Hollow.
 - A gifted gnome makes the material flow faster.
 - The spinning yield icons and the red mushroom go. The gnome itself becomes an entity in `m12-gnomes`.
 
