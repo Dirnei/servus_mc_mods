@@ -9,7 +9,6 @@ import io.github.dirnei.mc.servus.alchemy.client.journal.JournalTasksPageRendere
 import io.github.dirnei.mc.servus.alchemy.client.salamander.SalamanderModel;
 import io.github.dirnei.mc.servus.alchemy.client.salamander.SalamanderRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.sight.HollowRevealRenderer;
-import io.github.dirnei.mc.servus.alchemy.client.sight.OldGnomeRevealRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.sight.RevealRenderers;
 import io.github.dirnei.mc.servus.alchemy.gnome.Gnome;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
@@ -83,7 +82,6 @@ public final class ServusAlchemyClient {
     public static void onClientSetup(FMLClientSetupEvent event) {
         IconExporter.registerIfRequested();
         RevealRenderers.add(new HollowRevealRenderer());
-        RevealRenderers.add(new OldGnomeRevealRenderer());
         Gnome.watchSightWith(() -> ElementalSight.active(Minecraft.getInstance().player));
         PageRendererRegistry.registerPageRenderer(JournalTasksPage.ID, page -> new JournalTasksPageRenderer((JournalTasksPage) page));
     }

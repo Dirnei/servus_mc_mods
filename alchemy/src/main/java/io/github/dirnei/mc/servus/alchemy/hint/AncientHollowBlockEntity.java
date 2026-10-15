@@ -1,23 +1,21 @@
 package io.github.dirnei.mc.servus.alchemy.hint;
 
+import io.github.dirnei.mc.servus.alchemy.gnome.Gnome;
+import io.github.dirnei.mc.servus.alchemy.gnome.GnomeKeeper;
+import io.github.dirnei.mc.servus.alchemy.gnome.GnomeKind;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
+import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -27,7 +25,8 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * The old gnome in his Ancient Hollow: whose he is, whether he was found, and the hints he gives until then. Knocks come in
- * series from the block itself, so players hear where they come from; dust is sent only to players close by.
+ * series from the block itself, so players hear where they come from; dust is sent only to players close by. Until he is
+ * found he stands in front of the open face as a House Gnome entity kept by the Hollow.
  */
 public class AncientHollowBlockEntity extends BlockEntity {
 
@@ -43,6 +42,7 @@ public class AncientHollowBlockEntity extends BlockEntity {
     private int knockTimer = -1;
     private int knocksLeft;
     private int gapTimer;
+    private final GnomeKeeper keeper = new GnomeKeeper(GnomeKind.HOUSE, this::setChanged);
 
     public AncientHollowBlockEntity(BlockPos pos, BlockState state) {
         super(ServusAlchemyBlockEntities.ANCIENT_HOLLOW.get(), pos, state);
@@ -62,14 +62,30 @@ public class AncientHollowBlockEntity extends BlockEntity {
         return found;
     }
 
-    /** Marks the old gnome found: he stops knocking and the reveal hides him. */
+    /** Marks the old gnome found: he stops knocking and his House Gnome leaves. */
     public void markFound() {
         found = true;
         knocksLeft = 0;
         setChanged();
-        if (level != null) {
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        if (level instanceof ServerLevel server) {
+            keeper.dismiss(server);
         }
+    }
+
+    /** Brings the House Gnome out to stand in front of the open face, looking out. */
+    public void summonGnome(ServerLevel server) {
+        BlockPos spot = Gnome.standingSpot(server, worldPosition.relative(openFace()));
+        keeper.summon(server, worldPosition, Vec3.atBottomCenterOf(spot), openFace().toYRot());
+    }
+
+    /** Whether the gnome with {@code id} is the House Gnome of this Hollow. */
+    public boolean keepsGnome(UUID id) {
+        return keeper.keeps(id);
+    }
+
+    /** The House Gnome of this Hollow while he is loaded. */
+    public Optional<Gnome> gnome() {
+        return level instanceof ServerLevel server ? keeper.find(server) : Optional.empty();
     }
 
     /** The side of the block that faces the air. */
@@ -96,6 +112,9 @@ public class AncientHollowBlockEntity extends BlockEntity {
     }
 
     private void tick(ServerLevel server, OldGnomeSettings settings) {
+        if (keeper.tick(server, worldPosition)) {
+            summonGnome(server);
+        }
         if (knockTimer < 0) {
             knockTimer = server.getRandom().nextInt(settings.knockInterval());
         }
@@ -129,30 +148,13 @@ public class AncientHollowBlockEntity extends BlockEntity {
 
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        if (level instanceof ServerLevel server && team != null && !found) {
-            OldGnome.lost(server, team, pos);
+        if (level instanceof ServerLevel server) {
+            keeper.dismiss(server);
+            if (team != null && !found) {
+                OldGnome.lost(server, team, pos);
+            }
         }
         super.preRemoveSideEffects(pos, state);
-    }
-
-    @Override
-    public void onLoad() {
-        super.onLoad();
-        if (level != null && level.isClientSide()) {
-            AncientHollowTracker.add(this);
-        }
-    }
-
-    @Override
-    public void setRemoved() {
-        AncientHollowTracker.remove(this);
-        super.setRemoved();
-    }
-
-    @Override
-    public void onChunkUnloaded() {
-        super.onChunkUnloaded();
-        AncientHollowTracker.remove(this);
     }
 
     @Override
@@ -162,6 +164,7 @@ public class AncientHollowBlockEntity extends BlockEntity {
             output.store("Team", UUIDUtil.CODEC, team);
         }
         output.putBoolean("Found", found);
+        keeper.save(output);
     }
 
     @Override
@@ -169,17 +172,6 @@ public class AncientHollowBlockEntity extends BlockEntity {
         super.loadAdditional(input);
         team = input.read("Team", UUIDUtil.CODEC).orElse(null);
         found = input.getBooleanOr("Found", false);
-    }
-
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = super.getUpdateTag(registries);
-        tag.putBoolean("Found", found);
-        return tag;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
+        keeper.load(input);
     }
 }

@@ -1,9 +1,12 @@
 package io.github.dirnei.mc.servus.alchemy.gnome;
 
+import io.github.dirnei.mc.servus.alchemy.hint.AncientHollowBlockEntity;
+import io.github.dirnei.mc.servus.alchemy.hint.OldGnome;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyEntities;
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import net.minecraft.core.BlockPos;
@@ -164,7 +167,8 @@ public class Gnome extends PathfinderMob {
         BlockEntity host = level.getBlockEntity(pos);
         return switch (kind()) {
             case MINER -> host instanceof GnomeHollowBlockEntity hollow && hollow.keepsGnome(getUUID());
-            case LANTERN, HOUSE -> true;
+            case HOUSE -> host instanceof AncientHollowBlockEntity ancient && !ancient.found() && ancient.keepsGnome(getUUID());
+            case LANTERN -> true;
         };
     }
 
@@ -185,25 +189,38 @@ public class Gnome extends PathfinderMob {
     }
 
     /**
-     * A player under the sight may hand the Old Miner whatever the Hollow takes; it counts as used on his Hollow, so he
-     * never stands in the way of tending it.
+     * What a player under the sight uses on a gnome counts as used on his hollow: the Old Miner takes whatever his Hollow
+     * takes, so he never stands in the way of tending it, and Paracelsus' Journal finds the House Gnome.
      */
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if (!ElementalSight.active(player) || kind() != GnomeKind.MINER || hollow == null
-                || !(level().getBlockEntity(hollow) instanceof GnomeHollowBlockEntity home)) {
+        if (!ElementalSight.active(player) || hollow == null) {
             return InteractionResult.PASS;
         }
-        if (level().isClientSide()) {
+        ItemStack stack = player.getItemInHand(hand);
+        BlockEntity host = level().getBlockEntity(hollow);
+        if (kind() == GnomeKind.MINER && host instanceof GnomeHollowBlockEntity home) {
+            if (!level().isClientSide()) {
+                tendHollow(home, player, hand, stack);
+            }
             return InteractionResult.SUCCESS;
         }
-        ItemStack stack = player.getItemInHand(hand);
+        if (kind() == GnomeKind.HOUSE && host instanceof AncientHollowBlockEntity ancient
+                && stack.is(ServusAlchemyItems.PARACELSUS_JOURNAL.get())) {
+            if (level() instanceof ServerLevel server) {
+                OldGnome.find(server, player, ancient);
+            }
+            return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.PASS;
+    }
+
+    private static void tendHollow(GnomeHollowBlockEntity home, Player player, InteractionHand hand, ItemStack stack) {
         if (stack.isEmpty()) {
             GnomeHollowBlock.takeOut(home, player);
         } else {
             GnomeHollowBlock.tend(home, stack, player, hand);
         }
-        return InteractionResult.SUCCESS_SERVER;
     }
 
     @Override

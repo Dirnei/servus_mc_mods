@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.alchemy.gametest;
 
+import io.github.dirnei.mc.servus.alchemy.gnome.Gnome;
+import io.github.dirnei.mc.servus.alchemy.gnome.GnomeKind;
 import io.github.dirnei.mc.servus.alchemy.hint.AncientHollowBlock;
 import io.github.dirnei.mc.servus.alchemy.hint.AncientHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hint.OldGnome;
@@ -245,6 +247,43 @@ public final class HintGameTests {
         helper.assertTrue(hollow.found() && state(helper, team) == State.FOUND, "he is found");
         helper.assertTrue(Journal.journalOf(helper.getLevel().getServer(), finder).count(OLD_GNOME_CHAPTER, "gnome") == 1,
                 "the find counts for the finder's team");
+        helper.succeed();
+    }
+
+    private static Gnome houseGnome(GameTestHelper helper, AncientHollowBlockEntity hollow) {
+        return hollow.gnome().orElseThrow(() -> helper.assertionException(Component.literal("the old gnome should stand at his Hollow")));
+    }
+
+    /** When he wakes, the old gnome stands as a House Gnome in front of his Hollow's open face, kept by it. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void houseGnomeWaitsAtTheAncientHollow(GameTestHelper helper) {
+        tunnel(helper);
+        AncientHollowBlockEntity hollow = woken(helper, afterSchwaz(helper.getLevel()));
+        Gnome gnome = houseGnome(helper, hollow);
+        helper.assertTrue(gnome.kind() == GnomeKind.HOUSE && hollow.keepsGnome(gnome.getUUID()), "a House Gnome kept by the Hollow");
+        BlockPos front = hollow.getBlockPos().relative(hollow.openFace());
+        helper.assertTrue(gnome.blockPosition().equals(front), "he stands in front of the open face, at " + gnome.blockPosition());
+        helper.succeed();
+    }
+
+    /** Under the sight the journal used on the House Gnome finds him as on the Hollow; then he leaves. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void journalOnTheHouseGnomeFindsHim(GameTestHelper helper) {
+        tunnel(helper);
+        UUID team = afterSchwaz(helper.getLevel());
+        AncientHollowBlockEntity hollow = woken(helper, team);
+        Gnome gnome = houseGnome(helper, hollow);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ServusAlchemyItems.PARACELSUS_JOURNAL.get()));
+        helper.assertFalse(gnome.interact(player, InteractionHand.MAIN_HAND, gnome.position()).consumesAction(), "unseen, he takes nothing");
+        helper.assertFalse(hollow.found(), "without the sight he is not found");
+        player.addEffect(new MobEffectInstance(ElementalSight.EFFECT, 200));
+        UUID finder = afterSchwaz(helper.getLevel(), OldGnome.teamOf(player));
+        helper.assertTrue(gnome.interact(player, InteractionHand.MAIN_HAND, gnome.position()).consumesAction(), "the journal is used on him");
+        helper.assertTrue(hollow.found() && state(helper, team) == State.FOUND, "he is found");
+        helper.assertTrue(Journal.journalOf(helper.getLevel().getServer(), finder).count(OLD_GNOME_CHAPTER, "gnome") == 1,
+                "the find counts for the finder's team");
+        helper.assertTrue(gnome.isRemoved(), "once found, the House Gnome leaves");
         helper.succeed();
     }
 

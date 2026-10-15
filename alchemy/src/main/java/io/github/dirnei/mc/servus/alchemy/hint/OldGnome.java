@@ -98,6 +98,7 @@ public final class OldGnome {
             return Optional.empty();
         }
         hollow.setTeam(team);
+        hollow.summonGnome(level);
         data.wake(team, at.asLong(), level.dimension().identifier().toString());
         dropTrace(level, hollow.inFront(0.3).subtract(0, 0.3, 0), random);
         hollow.knock();
