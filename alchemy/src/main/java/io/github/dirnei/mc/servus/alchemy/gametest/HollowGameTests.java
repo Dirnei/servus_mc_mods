@@ -17,6 +17,11 @@ import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.Item;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -222,6 +227,60 @@ public final class HollowGameTests {
             helper.assertTrue(level.getCapability(Capabilities.Energy.BLOCK, pos, side) == null, "no energy toward " + side);
             helper.assertTrue(level.getCapability(ServusFoundationCapabilities.PRODUCTION, pos, side) == null, "no production toward " + side);
         }
+        helper.succeed();
+    }
+
+    private static List<ItemStack> drops(GameTestHelper helper, GnomeHollowBlockEntity hollow, Player player, ItemStack tool) {
+        return Block.getDrops(hollow.getBlockState(), helper.getLevel(), helper.absolutePos(MACHINE), hollow, player, tool);
+    }
+
+    private static boolean dropsExactly(List<ItemStack> drops, Item item) {
+        return drops.size() == 1 && drops.get(0).is(item) && drops.get(0).getCount() == 1;
+    }
+
+    /** Without the sight a Hollow breaks like stone into Cobblestone. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void breakWithoutSightDropsCobblestone(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        hollow.store().load(5);
+        List<ItemStack> drops = drops(helper, hollow, player(helper, ItemStack.EMPTY, false), new ItemStack(Items.STONE_PICKAXE));
+        helper.assertTrue(dropsExactly(drops, Items.COBBLESTONE), "one Cobblestone should drop, got " + drops);
+        helper.succeed();
+    }
+
+    /** Without the sight Silk Touch gives Stone. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void silkTouchWithoutSightDropsStone(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        ItemStack tool = new ItemStack(Items.DIAMOND_PICKAXE);
+        tool.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH), 1);
+        List<ItemStack> drops = drops(helper, hollow, player(helper, ItemStack.EMPTY, false), tool);
+        helper.assertTrue(dropsExactly(drops, Items.STONE), "one Stone should drop, got " + drops);
+        helper.succeed();
+    }
+
+    /** Under the sight a fresh, empty Hollow drops. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void breakWithSightDropsAFreshHollow(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        hollow.growth().bound = true;
+        List<ItemStack> drops = drops(helper, hollow, player(helper, ItemStack.EMPTY, true), new ItemStack(Items.STONE_PICKAXE));
+        helper.assertTrue(dropsExactly(drops, ServusAlchemyItems.GNOME_HOLLOW.get()), "one Gnome Hollow should drop, got " + drops);
+        helper.assertTrue(drops.get(0).getComponentsPatch().isEmpty(), "the dropped Hollow carries nothing");
+        helper.succeed();
+    }
+
+    /** Broken under the sight, the store comes out beside the fresh Hollow. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void breakWithSightDropsTheStore(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        hollow.store().load(5);
+        BlockState state = hollow.getBlockState();
+        Player player = player(helper, ItemStack.EMPTY, true);
+        helper.setBlock(MACHINE, Blocks.AIR.defaultBlockState());
+        state.getBlock().playerDestroy(helper.getLevel(), player, helper.absolutePos(MACHINE), state, hollow, new ItemStack(Items.STONE_PICKAXE));
+        helper.assertItemEntityCountIs(Items.RAW_IRON, MACHINE, 2, 5);
+        helper.assertItemEntityCountIs(ServusAlchemyItems.GNOME_HOLLOW.get(), MACHINE, 2, 1);
         helper.succeed();
     }
 }

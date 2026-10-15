@@ -141,6 +141,15 @@ public class GnomeHollowBlock extends BaseEntityBlock {
         player.sendOverlayMessage(Component.translatable(MESSAGE + key));
     }
 
+    /** The loot table drops stone or a fresh Hollow; under the sight the stored ore comes out as well. */
+    @Override
+    public void playerDestroy(Level level, Player player, BlockPos pos, BlockState state, BlockEntity blockEntity, ItemStack tool) {
+        super.playerDestroy(level, player, pos, state, blockEntity, tool);
+        if (ElementalSight.active(player) && blockEntity instanceof GnomeHollowBlockEntity hollow) {
+            hollow.takeStore().forEach(stack -> popResource(level, pos, stack));
+        }
+    }
+
     /** Stone to a player without the sight, so picking it betrays nothing. */
     @Override
     public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player) {
