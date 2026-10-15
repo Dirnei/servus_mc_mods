@@ -227,6 +227,7 @@
   "jade.servus_alchemy.calciner.principle": "%s / %s mB %s",
   "jade.servus_alchemy.calciner.progress": "Progress: %s%%",
   "jade.servus_alchemy.calciner.stack": "%s %s",
+  "jade.servus_alchemy.gnome_hollow.gift": "Gift: x%s, %s left",
   "jade.servus_alchemy.gnome_hollow.gnome": "A gnome is at work",
   "jade.servus_alchemy.gnome_hollow.no_vein": "No vein",
   "jade.servus_alchemy.gnome_hollow.ripe": "Ripe, waiting for a gnome",

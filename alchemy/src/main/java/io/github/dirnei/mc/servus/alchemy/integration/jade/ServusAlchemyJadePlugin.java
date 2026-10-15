@@ -22,6 +22,7 @@ import io.github.dirnei.mc.servus.alchemy.purifier.PurifierStructure;
 import io.github.dirnei.mc.servus.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import java.util.List;
+import java.util.Locale;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -98,6 +99,17 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
     private static Component stackText(ItemStack stack) {
         return stack.isEmpty() ? Component.translatable("jade.servus_alchemy.calciner.empty")
                 : Component.translatable("jade.servus_alchemy.calciner.stack", stack.getCount(), stack.getHoverName());
+    }
+
+    /** A factor as "2" or "1.5". */
+    private static String factorText(double factor) {
+        return factor == Math.rint(factor) ? Long.toString(Math.round(factor)) : String.format(Locale.ROOT, "%.1f", factor);
+    }
+
+    /** Game ticks as minutes and seconds, "8:00". */
+    private static String clockText(int ticks) {
+        int seconds = ticks / 20;
+        return String.format(Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
     }
 
     private static Component principleName(Principle principle) {
@@ -192,6 +204,10 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
             tag.putBoolean("Bound", hollow.growth().bound);
             tag.putInt("Stored", hollow.store().count());
             tag.putInt("Capacity", hollow.store().capacity());
+            if (hollow.boostTicksLeft() > 0) {
+                tag.putDouble("GiftFactor", hollow.boostFactor());
+                tag.putInt("GiftTicks", hollow.boostTicksLeft());
+            }
             tag.putInt("Tank", hollow.tanks().capacity());
             for (Principle principle : Principle.values()) {
                 tag.putInt(principle.id(), hollow.tanks().amount(principle));
@@ -219,6 +235,11 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
                 } else {
                     tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.ripeness", ripeness, steps));
                 }
+            }
+            int giftTicks = tag.getIntOr("GiftTicks", 0);
+            if (giftTicks > 0) {
+                tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.gift", factorText(tag.getDoubleOr("GiftFactor", 1)),
+                        clockText(giftTicks)));
             }
             tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.store", tag.getIntOr("Stored", 0), tag.getIntOr("Capacity", 0)));
             int tank = tag.getIntOr("Tank", 0);

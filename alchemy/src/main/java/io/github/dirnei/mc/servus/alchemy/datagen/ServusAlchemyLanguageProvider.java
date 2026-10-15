@@ -48,6 +48,7 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("jade.servus_alchemy.gnome_hollow.ripe", "Ripe, waiting for a gnome");
         add("jade.servus_alchemy.gnome_hollow.gnome", "A gnome is at work");
         add("jade.servus_alchemy.gnome_hollow.store", "Store: %s / %s");
+        add("jade.servus_alchemy.gnome_hollow.gift", "Gift: x%s, %s left");
         add(ServusAlchemyBlocks.VAT.get(), "Principle Vat");
         add("message.servus_alchemy.coagulator.formed", "The Coagulator is ready.");
         add("message.servus_alchemy.athanor.formed", "The Athanor is ready.");

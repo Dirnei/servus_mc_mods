@@ -29,6 +29,9 @@ public final class HollowRevealRenderer implements RevealRenderers.RevealRendere
             {0.7F, 0.4F, 1.02F}, {0.3F, 0.65F, 1.02F},
             {-0.02F, 0.3F, 0.65F}, {-0.02F, 0.7F, 0.25F},
     };
+    /** How much faster a gifted gnome moves; whole, so the looping time wraps without a jump. */
+    private static final int GIFTED_PACE = 2;
+
     /** Built on first draw: item components are not bound while client setup runs. */
     private static ItemStack gnomeCap;
 
@@ -63,10 +66,11 @@ public final class HollowRevealRenderer implements RevealRenderers.RevealRendere
                 poseStack.popPose();
             }
             if (hollow.shownBound()) {
-                float bob = (float) Math.sin(time * Math.PI * 16) * 0.05F;
+                float pace = hollow.shownBoosted() ? GIFTED_PACE : 1;
+                float bob = (float) Math.sin(time * pace * Math.PI * 16) * 0.05F;
                 poseStack.pushPose();
                 poseStack.translate(0.5F, 1.2F + bob, 0.5F);
-                poseStack.mulPose(Axis.YP.rotationDegrees(time * 720F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(time * pace * 720F));
                 poseStack.scale(0.6F, 0.6F, 0.6F);
                 if (gnomeCap == null) {
                     gnomeCap = new ItemStack(Items.RED_MUSHROOM);

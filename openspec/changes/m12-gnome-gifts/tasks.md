@@ -10,7 +10,7 @@
 
 ## 3. Showing the boost
 
-- [ ] 3.1 Jade `HollowProvider` gift line (D7) with lang key `jade.servus_alchemy.gnome_hollow.gift`; `HollowRevealRenderer` faster gnome while boosted (D6); `:alchemy:runData`. Verify: `gradlew build` green.
+- [x] 3.1 Jade `HollowProvider` gift line (D7) with lang key `jade.servus_alchemy.gnome_hollow.gift`; `HollowRevealRenderer` faster gnome while boosted (D6); `:alchemy:runData`. Verify: `gradlew build` green.
 
 ## 4. Texts and docs
 
