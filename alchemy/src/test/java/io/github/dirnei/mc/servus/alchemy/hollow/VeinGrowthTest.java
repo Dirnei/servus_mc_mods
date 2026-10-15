@@ -85,6 +85,29 @@ class VeinGrowthTest {
     }
 
     @Test
+    void doubleWorkYieldsTwiceAsFast() {
+        State state = new State();
+        state.ripeness = 2;
+        state.bound = true;
+        int yields = 0;
+        for (int i = 0; i < 40; i++) {
+            if (VeinGrowth.tick(IRON, state, Principles.NONE, true, 2) == Outcome.YIELD) {
+                yields++;
+            }
+        }
+        assertEquals(20, yields);
+    }
+
+    @Test
+    void workDoesNotSpeedRipening() {
+        State state = new State();
+        for (int i = 0; i < 3; i++) {
+            VeinGrowth.tick(IRON, state, PLENTY, true, 5);
+        }
+        assertEquals(1, state.ripeness, "one step per step time, whatever the gnome's work");
+    }
+
+    @Test
     void zeroNumbersAreRefused() {
         assertThrows(IllegalArgumentException.class, () -> new Vein(0, 1, Principles.NONE, 1));
     }

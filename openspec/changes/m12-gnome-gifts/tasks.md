@@ -2,7 +2,7 @@
 
 ## 1. Pure timing
 
-- [ ] 1.1 Pure `GiftBoost` in `alchemy/src/main/java/.../alchemy/hollow/` (design D1) and the `work` overload of `VeinGrowth.tick` (D2). JUnit `GiftBoostTest`: `baseRateWithoutGift`, `factorTwoDoublesWork`, `fractionalFactorCarries`, `runsOutAfterDuration`, `newGiftRefreshesInsteadOfStacking`, `loadKeepsFactorAndTicks`; `VeinGrowthTest`: `doubleWorkYieldsTwiceAsFast`, `workDoesNotSpeedRipening`. Verify: `gradlew :alchemy:test` green.
+- [x] 1.1 Pure `GiftBoost` in `alchemy/src/main/java/.../alchemy/hollow/` (design D1) and the `work` overload of `VeinGrowth.tick` (D2). JUnit `GiftBoostTest`: `baseRateWithoutGift`, `factorTwoDoublesWork`, `fractionalFactorCarries`, `runsOutAfterDuration`, `newGiftRefreshesInsteadOfStacking`, `loadKeepsFactorAndTicks`; `VeinGrowthTest`: `doubleWorkYieldsTwiceAsFast`, `workDoesNotSpeedRipening`. Verify: `gradlew :alchemy:test` green.
 
 ## 2. Gifts on the Hollow
 

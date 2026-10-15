@@ -54,6 +54,14 @@ public final class VeinGrowth {
      * @param outputHasRoom whether a yielded item would fit
      */
     public static Outcome tick(Vein vein, State state, Principles held, boolean outputHasRoom) {
+        return tick(vein, state, held, outputHasRoom, 1);
+    }
+
+    /**
+     * Advances the vein by one tick in which a working gnome digs {@code work} ticks' worth; ripening ignores it.
+     * At most one item is yielded per tick.
+     */
+    public static Outcome tick(Vein vein, State state, Principles held, boolean outputHasRoom, int work) {
         if (!state.ripe(vein)) {
             if (!held.covers(vein.stepCost())) {
                 return Outcome.NONE;
@@ -68,10 +76,11 @@ public final class VeinGrowth {
         if (!state.bound || !outputHasRoom) {
             return Outcome.NONE;
         }
-        if (++state.yieldTimer < vein.yieldTicks()) {
+        state.yieldTimer += Math.max(0, work);
+        if (state.yieldTimer < vein.yieldTicks()) {
             return Outcome.NONE;
         }
-        state.yieldTimer = 0;
+        state.yieldTimer = Math.min(state.yieldTimer - vein.yieldTicks(), vein.yieldTicks() - 1);
         return Outcome.YIELD;
     }
 }
