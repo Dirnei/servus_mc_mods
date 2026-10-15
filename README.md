@@ -6,9 +6,9 @@ A family of NeoForge mods for Minecraft 1.21.1. See `PLAN.md` for the design and
 |---|---|---|
 | Servus: Foundation | `servus_foundation` | `foundation/` |
 | Servus: Alchemy | `servus_alchemy` | `alchemy/` |
-| Servus: Storage | `servus_storage` | `storage/` |
+| Servus: Shuttles | `servus_shuttles` | `shuttles/` |
 
-Alchemy and Storage depend only on Servus: Foundation, the base mod with the shared API, the Utility Duct, the Fluid Tank and the tools.
+Alchemy and Shuttles depend only on Servus: Foundation, the base mod with the shared API, the Utility Duct, the Fluid Tank and the tools.
 
 ## Prerequisites
 
@@ -31,8 +31,8 @@ Each mod project has its own run configurations. Content mod runs always load Se
 gradlew :foundation:runClient        # Foundation alone
 gradlew :alchemy:runClient           # Alchemy plus Foundation
 gradlew :foundation:runServer        # Foundation alone, dedicated server
-gradlew :storage:runData             # data generation for Storage
-gradlew :storage:runGameTestServer   # game tests for Storage (exits with an error until tests exist)
+gradlew :shuttles:runData            # data generation for Shuttles
+gradlew :shuttles:runGameTestServer  # game tests for Shuttles
 ```
 
 Combined runs with all three mods are defined in the root project:
@@ -71,7 +71,7 @@ Launch with `gradlew runClientAll`, create a new world, and take the Servus crea
 7. Researched machines are assembled, not hand crafted: Electric Extractor (twice as fast, powered), Crusher (ore to two grit, grit smelts to ingots). Stone Processing adds stone, stone bricks and glass recipes to the assembler.
 8. The Ender Anchor keeps its chunk running while powered, or a 3 by 3 or 5 by 5 square of chunks with one or two Anchor Upgrades. The per team limit in chunks (`maxLoadedChunksPerTeam`) and the FTB Chunks rule are in `config/servus_foundation-common.toml`.
 
-## Storage playtest guide
+## Shuttles playtest guide
 
 1. Crate: planks around a chest. Right click with items to fill it (double right click empties your inventory of that item), left click to take a stack, sneak left click for one. It shows its item and count on the front.
 2. Shelving Rack: planks and sticks. Four compartments on the front; right click a compartment to put the held stack there, right click with an empty hand to take it.

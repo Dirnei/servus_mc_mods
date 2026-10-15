@@ -6,9 +6,9 @@ A family of NeoForge mods for Minecraft 26.1.2, built to fit packs like ATM11 bu
 |---|---|---|
 | Servus: Foundation | `servus_foundation` | Base of the family: shared APIs, network graph, tick mailbox, the Utility Duct (item, energy, fluid and data lines) with facades, the Fluid Tank, pumps, the Sink, the Ender Anchor, the Coal Generator, Configuration Carrot (the wrench role), goggles, config helpers |
 | Servus: Alchemy | `servus_alchemy` | Alchemy after Paracelsus: the three principles, gnome grown ore veins, the Athanor and his journal as the tech tree |
-| Servus: Storage | `servus_storage` | In-world warehouse storage that scales to shuttles, autocrafting and wireless access |
+| Servus: Shuttles | `servus_shuttles` | An automated warehouse run by shuttles on rails: storage, autocrafting, field farming and outposts |
 
-Alchemy and Storage depend only on Servus: Foundation and never on each other. When both are installed, extra features light up through the Foundation API.
+Alchemy and Shuttles depend only on Servus: Foundation and never on each other. When both are installed, extra features light up through the Foundation API.
 
 ---
 
@@ -35,7 +35,7 @@ servus_mc_mods/
   docs/                     documentation site and Balance lab (Astro, Starlight), deployed to GitHub Pages
   foundation/               servus_foundation
   alchemy/                  servus_alchemy
-  storage/                  servus_storage
+  shuttles/                 servus_shuttles
     gradle.properties       mod id and name
     build.gradle            dependencies and loaded mods
     src/main/java           mod code
@@ -45,7 +45,7 @@ servus_mc_mods/
     runs/                   game directories per run config, gitignored
 ```
 
-Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.servus`. Base package `io.github.dirnei.mc.servus`, with one subpackage per mod: `foundation`, `alchemy`, `storage`. Inside Foundation the API packages sit directly under `foundation` and the duct, tank and facade content under `foundation.logistics`. License: MIT.
+Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.servus`. Base package `io.github.dirnei.mc.servus`, with one subpackage per mod: `foundation`, `alchemy`, `shuttles`. Inside Foundation the API packages sit directly under `foundation` and the duct, tank and facade content under `foundation.logistics`. License: MIT.
 
 ---
 
@@ -81,9 +81,9 @@ The stage plan for Citrinitas and Rubedo, the hidden Gnome Hollow, the homunculu
 
 ### 2.2 Servus: Foundation
 
-The base mod every Servus mod builds on: the shared API, the Configuration Carrot, the goggles, the Utility Duct with its lines and the general utilities (Fluid Tank, pumps, Sink, Ender Anchor, Coal Generator). They live here because Storage needs them as much as Alchemy. Everything in Foundation uses plain crafting recipes.
+The base mod every Servus mod builds on: the shared API, the Configuration Carrot, the goggles, the Utility Duct with its lines and the general utilities (Fluid Tank, pumps, Sink, Ender Anchor, Coal Generator). They live here because Shuttles needs them as much as Alchemy. Everything in Foundation uses plain crafting recipes.
 
-### 2.3 Servus: Storage
+### 2.3 Servus: Shuttles
 
 **Core idea:** the player builds a real warehouse. In-world storage, no storage disks.
 
@@ -91,9 +91,9 @@ The base mod every Servus mod builds on: the shared API, the Configuration Carro
 - **Shuttles are simulated as data** on the warehouse network and only drawn moving on the client. No real entities. Every pick and put-away runs through racks and shuttles.
 - **Rails or cable:** only storage touches rails, so shuttles can reach it. Everything else sits on the data cable. The Warehouse Controller sits on the rails and is connected to the cable.
 - **Power:** the warehouse runs on FE through its controller, one power connection per site; nothing costs FE while idle.
-- **Field work** stays in Storage: shuttles with tool modules leave the warehouse on Farm Rails and tend fields; one tool per shuttle.
+- **Field work** stays in Shuttles: shuttles with tool modules leave the warehouse on Farm Rails and tend fields; one tool per shuttle.
 
-### 2.4 Integration: Storage + Alchemy (autocrafting)
+### 2.4 Integration: Shuttles + Alchemy (autocrafting)
 
 - **Production on demand** is the USP. Nothing runs without an order: a machine on the data cable produces exactly what was ordered and then waits, while stations and pipes cover what runs all the time.
 - **One route for orders:** everything on demand runs over the data cable. The Crafting CPU owns work orders.
@@ -126,9 +126,9 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 | M0 Repository and build | multi project Gradle with ModDevGradle, run configs, CI, the port to 26.1.2 |
 | M1 Foundations | network graph with split and merge, mailbox tick, `NetworkManager`, Configuration Carrot, config |
 | M2, M3 Factorio style factory | superseded by M9; what lived on: pumps, Sink, Ender Anchor, side config, JEI, the docs site and Balance lab |
-| M4 Storage first slice | Heavy Duty Rack with sections, Warehouse Controller, terminal |
+| M4 Warehouse first slice | Heavy Duty Rack with sections, Warehouse Controller, terminal |
 | M5 Logistics | Utility Duct with item, power and fluid lines, modes, named team channels, filters with search and JEI, priorities, facades, goggles, Data Potato, Fluid Tank |
-| M6 Storage automation | rails, elevators with lift cars, simulated shuttles, garages, Inbound Station, Zone Labels, placement assist |
+| M6 Warehouse automation | rails, elevators with lift cars, simulated shuttles, garages, Inbound Station, Zone Labels, placement assist |
 | M7 Autocrafting integration | production API, work orders, stock rules, Outbound Station, Crafting Station |
 | M8 On-demand autocrafting | Servus: Foundation merge, data cable with tiers, Packing Station, Storage Terminal, Crafting CPU, Production Terminal, Pattern Storage, Machine Adapter |
 | M9 Alchemy, Nigredo and Albedo | Tria Prima, Calciner, Purifier, Coagulator and Athanor builds, journal, Elixir of Sight, Gnome Hollow, facade panels, beam engine pumps, Ender Anchor area |
@@ -152,7 +152,7 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 - Power Cable with a tiered transfer rate.
 - Hand made patterns for Machine Adapters, if the play tests ask for them.
 
-### Open: Storage
+### Open: Shuttles
 
 - `m10-lumber`: a Lumber module for tree fields; later field kinds beyond crops.
 - SEND and KEEP rules between sites in the controller GUI (the local min/max stock rules join the same list) and an In transit view.
@@ -168,4 +168,3 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 - Alchemist's Spectacles as a permanent Elemental Sight in a later stage
 - Field kinds beyond crops (trees first, then others) and which modules they need
 - Art style and texture direction (shared look across the family)
-- Final name for the storage mod (Servus: Storage vs Servus: Warehouse)

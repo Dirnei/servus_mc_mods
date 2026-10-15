@@ -4,12 +4,12 @@ schema: spec-driven
 context: |
   Servus mod family for Minecraft 26.1.2 on NeoForge 26.1.2.x, Java 25, ModDevGradle, Mojang's official names.
   Multi project Gradle repo: foundation (servus_foundation), alchemy (servus_alchemy),
-  storage (servus_storage).
+  shuttles (servus_shuttles).
   Roadmap, architecture principles and milestones live in PLAN.md at the repo root. Read it first.
   Project rules live in CLAUDE.md at the repo root.
 
   Hard constraints:
-  - Alchemy and Storage depend only on servus_foundation (API plus the Utility Duct, Fluid
+  - Alchemy and Shuttles depend only on servus_foundation (API plus the Utility Duct, Fluid
     Tank and tools). They never depend on each other.
   - World, block entity and capability access only on the server thread.
   - Networks use the mailbox pattern: events queued, drained once per server tick. No Akka, no Pekko.
@@ -24,7 +24,7 @@ context: |
   Conventions:
   - One change per milestone item from PLAN.md. Change names are kebab-case with a milestone
     prefix, for example m1-network-graph.
-  - Capability paths are <mod>/<capability>, for example foundation/network-graph or storage/crates.
+  - Capability paths are <mod>/<capability>, for example foundation/network-graph or shuttles/shuttle-garage.
     Cross mod integration specs go under foundation/.
 
 # Per-artifact rules.
