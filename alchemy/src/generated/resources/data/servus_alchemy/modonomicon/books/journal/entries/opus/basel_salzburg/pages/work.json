@@ -1,0 +1,9 @@
+{
+  "type": "servus_alchemy:journal_tasks",
+  "chapter": "servus_alchemy:basel_salzburg",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "work",
+  "sort_number": 0
+}

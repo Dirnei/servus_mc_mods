@@ -5,7 +5,7 @@
   },
   "id": "story",
   "show_title_separator": true,
-  "sort_number": 0,
+  "sort_number": 1,
   "text": "book.servus_alchemy.journal.opus.old_gnome.story.text",
   "title": "book.servus_alchemy.journal.opus.old_gnome.story.title"
 }

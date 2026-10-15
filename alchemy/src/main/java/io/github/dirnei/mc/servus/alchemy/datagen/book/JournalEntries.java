@@ -9,6 +9,7 @@ import com.klikli_dev.modonomicon.api.datagen.book.page.BookMultiblockPageModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookSpotlightPageModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookTextPageModel;
 import com.klikli_dev.modonomicon.client.gui.book.theme.GuiSprite;
+import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import java.util.List;
 import net.minecraft.resources.Identifier;
@@ -47,6 +48,11 @@ final class JournalEntries {
                 }
                 pageText(parts.get(i));
             }
+        }
+
+        /** The chapter's tasks with the reader's team progress; the chapter id is the entry id. */
+        void tasks() {
+            page("work", () -> JournalTasksPageModel.of(ServusAlchemyIds.MOD_ID + ":" + entryId()));
         }
 
         /** A spotlight page that shows an item with a title and a short text. */
@@ -165,18 +171,12 @@ final class JournalEntries {
 
         @Override
         protected void generatePages() {
+            tasks();
             text("story", "Villach",
                     "My father was a physician in Villach, in Carinthia, a country of mines and smelters. "
                             + "There I first watched ore turn into metal in the fire.\n\n"
                             + "Every body is made of three: Salt, which gives it form, Sulfur, which burns, and Mercury, the spirit that flies off. "
                             + "Burn a thing in the Calciner and the three part from each other. Join them again in the Coagulator.");
-            text("tasks", "The Work",
-                    "To finish this chapter:\n\n"
-                            + "- Calcine 100 things\n"
-                            + "- Gather 1,000 mB of Salt\n"
-                            + "- Wash Ash into Salt in the Purifier\n"
-                            + "- Coagulate your first Salt Crystal\n\n"
-                            + "Your team shares this work. See your progress with /servus_alchemy journal.");
             text("athanor", "The Athanor",
                     "Every alchemist needs a furnace that never goes out. Build an Athanor of bricks, a blast furnace and a cauldron. "
                             + "Lay an item on it and feed it principles by bucket or pipe; it burns them into something new.\n\n"
@@ -214,11 +214,12 @@ final class JournalEntries {
 
         @Override
         protected void generatePages() {
+            tasks();
             text("story", "Schwaz",
                     "In the silver mines of Schwaz in Tyrol I worked among the miners and saw the sickness the mountain gives them.\n\n"
                             + "The old miners say that metals grow in the rock like plants, and that small spirits of the earth live in the galleries. "
                             + "If the mountain grows its ores, perhaps it can be asked to.");
-            text("tasks", "The Work",
+            text("tasks", "The Way",
                     "Salt is the body of all things. Press nine Salt Crystals into a block, eight such blocks into a ring around your Athanor, "
                             + "and its flame turns white: Albedo.\n\n"
                             + "The spirits of the earth live in the rock as we live in air, and common eyes do not see them. "
@@ -227,8 +228,7 @@ final class JournalEntries {
                             + "The miners of Schwaz say the metals grow in the mountain like roots, tended by gnomes. "
                             + "Burn cracked stone bricks with Salt and Mercury on a white Athanor into a Gnome Hollow. To common eyes it is stone. "
                             + "Drink the elixir, give it a sample of ore and pour Salt and Mercury into it until the vein is ripe. "
-                            + "Then offer a Salt Crystal: a gnome takes it and digs that ore for you, for as long as the Hollow stands.\n\n"
-                            + "To go on: finish one craft on an Albedo Athanor, drink the Elixir of Sight, and bind a gnome.");
+                            + "Then offer a Salt Crystal: a gnome takes it and digs that ore for you, for as long as the Hollow stands.");
         }
 
         @Override
@@ -260,6 +260,7 @@ final class JournalEntries {
 
         @Override
         protected void generatePages() {
+            tasks();
             text("story", "The Knockers",
                     "In Schwaz the old hewers would stop and listen. A knocking in the rock, where no man worked: the Bergmaennlein, "
                             + "the little miners. Knock before a rich vein, knock before the roof comes down. The wise ones left them bread "
@@ -271,12 +272,11 @@ final class JournalEntries {
                             + "He knew more of the mountain than every assayer in Tyrol. When I left for the road he stayed below, "
                             + "deep in the dark rock, and I never found him again.\n\n"
                             + "If you hear knocking deep in the deepslate, follow it.");
-            text("tasks", "The Work",
+            text("tasks", "The Errand",
                     "This is not part of the Great Work. It is an old man's errand.\n\n"
                             + "Mine deep, below the stone, where the deepslate is. If he hears this journal he will knock. "
                             + "Follow the knocking; where dust trickles from one block, look for the things he leaves behind. "
-                            + "Then drink the Elixir of Sight, and hold this journal up to him.\n\n"
-                            + "To finish: find one of his traces, and find him.");
+                            + "Then drink the Elixir of Sight, and hold this journal up to him.");
         }
 
         @Override
@@ -308,20 +308,16 @@ final class JournalEntries {
 
         @Override
         protected void generatePages() {
+            tasks();
             text("story", "Wandering Years",
                     "[storyteller] Roads. Years of roads, I stopped counting, the counting stopped me. Every town its own quack, "
                             + "every university the same dead Latin. I learned more from barbers, hangmen and the old women who sell herbs "
                             + "than from all the doctors and their Galen. Write that down. I am writing it down!\n\n"
                             + "The gnomes of Schwaz laughed at my iron. Iron is for nails, they said. Feed us better and we dig the sun "
                             + "out of the rock. The sun! Yellow fire, yellow stone. Or bile. The same thing, the same thing.");
-            text("tasks", "The Work",
+            text("tasks", "The Way",
                     "Set an Amethyst Block on each Salt Crystal Block of the white ring and the Athanor burns yellow: Citrinitas. "
-                            + "Now the gnomes take nobler samples: gold, redstone and diamond.\n\n"
-                            + "To finish this chapter:\n\n"
-                            + "- Finish a craft on a Citrinitas Athanor\n"
-                            + "- Bind a gnome to a gold vein\n"
-                            + "- Bind four gnomes\n\n"
-                            + "Your team shares this work. See your progress with /servus_alchemy journal.");
+                            + "Now the gnomes take nobler samples: gold, redstone and diamond.");
             text("unlocks", "What Follows",
                     "Finishing the Wandering years opens the next chapter of the journal: Basel and Salzburg, and the red fire.");
         }
@@ -355,20 +351,15 @@ final class JournalEntries {
 
         @Override
         protected void generatePages() {
+            tasks();
             text("story", "Basel and Salzburg",
                     "[storyteller] Basel made me town physician and the professors hated me for it. I lectured in German, "
                             + "not in their Latin, and I gave their great book to the fire. Let them howl! Then out, at night, like a thief. "
                             + "And Salzburg at the end. The end? Who is writing this?\n\n"
                             + "Red. The Work ends in red. Obsidian that weeps, from beyond the burning gate, more than any broken portal gives. "
                             + "The fire wants a crown. Four pillars. Two stones high. I counted them twice.");
-            text("tasks", "The Work",
-                    "Stand two Crying Obsidian on each corner of the yellow ring and the Athanor burns red: Rubedo.\n\n"
-                            + "To finish this chapter:\n\n"
-                            + "- Finish a craft on a Rubedo Athanor\n"
-                            + "- Bind a gnome to a diamond vein\n"
-                            + "- Finish 16 crafts on the Athanor\n"
-                            + "- Press a Netherite Scrap at the Prelum\n\n"
-                            + "Your team shares this work. See your progress with /servus_alchemy journal.");
+            text("tasks", "The Way",
+                    "Stand two Crying Obsidian on each corner of the yellow ring and the Athanor burns red: Rubedo.");
             text("unlocks", "What Follows",
                     "Here the notes break off. The pages after this one are still blank.");
         }

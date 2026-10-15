@@ -1,0 +1,9 @@
+{
+  "type": "servus_alchemy:journal_tasks",
+  "chapter": "servus_alchemy:wandering_years",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "work",
+  "sort_number": 0
+}
