@@ -20,7 +20,7 @@
 
 ## 5. Behaviour tests
 
-- [ ] 5.1 GameTests in new `HomunculusGameTests` (registered in `ServusAlchemy`): `vasOnlyOnReceptaculum`, `vasBreaksWithReceptaculum`, `growsWithElixir`, `pausesWithoutElixir`, `harvestsHollowsInReach`, `ignoresOtherLevels`, `stopsWithoutElixir`, `deliversGifts`, `dislikedGiftStays`, `netherStarFreesAndDoubles`, `starDoesNothingWhileGrowing`, `pipeTakesTheYield`, `slotRules`, `exposesProduction`, `receptaculumRecipeShipped`, `sealedFlaskNeedsRubedo`. Verify: `:alchemy:runGameTestServer` green.
+- [x] 5.1 GameTests in new `HomunculusGameTests` (registered in `ServusAlchemy`): `vasOnlyOnReceptaculum`, `vasBreaksWithReceptaculum`, `growsWithElixir`, `pausesWithoutElixir`, `harvestsHollowsInReachOnly` (also a Hollow a level up), `stopsWithoutElixir`, `deliversGifts`, `dislikedGiftStays`, `netherStarFreesAndDoubles`, `starDoesNothingWhileGrowing`, `automationReachesTheSlots`, `slotRules`, `exposesProduction`, `receptaculumRecipeShipped`, `sealedFlaskNeedsRubedo`. Verify: `:alchemy:runGameTestServer` green.
 
 ## 6. Verification
 
