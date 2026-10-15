@@ -236,6 +236,10 @@ if (findProject(':alchemy') != null) dependencies {
         exclude group: 'dev.ftb.mods', module: 'ftb-ranks-neoforge'
         exclude group: 'dev.ftb.mods', module: 'ftb-ez-crystals'
     }
+    runtimeOnly "dev.ftb.mods:ftb-teams-neoforge:${ftb_teams_version}"
+    runtimeOnly("dev.ftb.mods:ftb-chunks-neoforge:${ftb_chunks_version}") {
+        exclude group: 'dev.ftb.mods', module: 'ftb-backups-3'
+    }
 }
 
 tasks.named('jar').configure {

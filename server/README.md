@@ -1,7 +1,7 @@
 # Play test server
 
 A NeoForge 26.1.2 server in Docker with the Servus mods and the same helper mods as the dev runs
-(Modonomicon, JEI, Jade, FTB Ultimine with FTB Library).
+(Modonomicon, JEI, Jade, FTB Ultimine and FTB Chunks with FTB Library and FTB Teams).
 
 ## Host
 

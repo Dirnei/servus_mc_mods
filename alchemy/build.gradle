@@ -18,16 +18,19 @@ dependencies {
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 
-    // Playtest conveniences in dev runs only: block info and vein mining.
+    // Playtest conveniences in dev runs only: block info, vein mining and a map.
     // Only the Jade plugin class touches Jade, and Jade alone loads it.
     compileOnly "maven.modrinth:jade:${jade_version}"
     localRuntime "maven.modrinth:jade:${jade_version}"
-    // FTB Library pulls Architectury in through its own metadata.
     localRuntime "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
     localRuntime("dev.ftb.mods:ftb-ultimine-neoforge:${ftb_ultimine_version}") {
         // Only Ultimine itself; its metadata also lists Ranks and EZ Crystals.
         exclude group: 'dev.ftb.mods', module: 'ftb-ranks-neoforge'
         exclude group: 'dev.ftb.mods', module: 'ftb-ez-crystals'
+    }
+    localRuntime "dev.ftb.mods:ftb-teams-neoforge:${ftb_teams_version}"
+    localRuntime("dev.ftb.mods:ftb-chunks-neoforge:${ftb_chunks_version}") {
+        exclude group: 'dev.ftb.mods', module: 'ftb-backups-3'
     }
 }
 
