@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.foundation.block.SidedBlockEntity;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
-import io.github.dirnei.mc.servus.foundation.item.GogglesItem;
+import io.github.dirnei.mc.servus.foundation.item.Reveal;
 import io.github.dirnei.mc.servus.foundation.side.FluidSides;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideLayer;
@@ -21,7 +21,6 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
@@ -57,9 +56,7 @@ public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity>
         if (player == null) {
             return false;
         }
-        return player.getMainHandItem().getItem() instanceof ConfigurationCarrotItem
-                || player.getOffhandItem().getItem() instanceof ConfigurationCarrotItem
-                || player.getItemBySlot(EquipmentSlot.HEAD).getItem() instanceof GogglesItem;
+        return Reveal.configuring(player);
     }
 
     @Override

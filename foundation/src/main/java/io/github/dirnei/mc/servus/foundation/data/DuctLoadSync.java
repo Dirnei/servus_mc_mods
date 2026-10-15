@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.foundation.data;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.data.packet.DuctBudget;
-import io.github.dirnei.mc.servus.foundation.item.GogglesItem;
+import io.github.dirnei.mc.servus.foundation.item.Reveal;
 import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,8 +17,8 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * Sends the load levels of busy data ducts near each player who reveals
- * hidden things (goggles worn or Configuration Carrot held), twice a second
+ * Sends the load levels of busy data ducts near each player who is
+ * analysing (goggles worn or Data Potato held), twice a second
  * and only when they changed, so the overlay never queries per frame.
  */
 @EventBusSubscriber(modid = ServusFoundationIds.MOD_ID)
@@ -36,7 +36,7 @@ public final class DuctLoadSync {
         if (!(event.getEntity() instanceof ServerPlayer player) || player.tickCount % INTERVAL != 0) {
             return;
         }
-        Map<Long, Integer> levels = GogglesItem.reveals(player) ? levels(player) : Map.of();
+        Map<Long, Integer> levels = Reveal.analysing(player) ? levels(player) : Map.of();
         Map<Long, Integer> last = SENT.getOrDefault(player.getUUID(), Map.of());
         if (!levels.equals(last)) {
             SENT.put(player.getUUID(), levels);

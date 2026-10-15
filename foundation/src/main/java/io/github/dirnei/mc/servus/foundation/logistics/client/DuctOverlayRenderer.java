@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.data.ClientDuctLoads;
-import io.github.dirnei.mc.servus.foundation.item.GogglesItem;
+import io.github.dirnei.mc.servus.foundation.item.Reveal;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctShapes;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctTracker;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
@@ -19,7 +19,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
 /**
- * While the player reveals hidden things: draws the centre of every data duct
+ * While the player is analysing: draws the centre of every data duct
  * in the colour of its load over the last second, from idle green to full red,
  * around the centre where it is drawn at its resting pose.
  * Ducts behind facade panels are not drawn; the player sees the panel.
@@ -40,7 +40,7 @@ public final class DuctOverlayRenderer {
     @SubscribeEvent
     public static void onRenderLevelStage(RenderLevelStageEvent.AfterTranslucentBlocks event) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null || minecraft.level == null || !GogglesItem.reveals(minecraft.player)) {
+        if (minecraft.player == null || minecraft.level == null || !Reveal.analysing(minecraft.player)) {
             return;
         }
         Vec3 camera = event.getLevelRenderState().cameraRenderState.pos;

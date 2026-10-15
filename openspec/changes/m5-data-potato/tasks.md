@@ -2,7 +2,7 @@
 
 ## 1. Reveal rules
 
-- [ ] 1.1 Add `foundation/.../item/Reveal.java` with `configuring`, `analysing`, `seesThroughPanels` (design D1); remove `GogglesItem.reveals`; switch `client/SideMarkerRenderer.configuring`, `data/DuctLoadSync`, `logistics/client/DuctOverlayRenderer` and `logistics/client/PanelReveal`. The potato check is added with the item in 2.1, so for now `analysing` is goggles only. Verify: `gradlew build` green.
+- [x] 1.1 Add `foundation/.../item/Reveal.java` with `configuring`, `analysing`, `seesThroughPanels` (design D1); remove `GogglesItem.reveals`; switch `client/SideMarkerRenderer.configuring`, `data/DuctLoadSync`, `logistics/client/DuctOverlayRenderer` and `logistics/client/PanelReveal`. The potato check is added with the item in 2.1, so for now `analysing` is goggles only. Verify: `gradlew build` green.
 
 ## 2. The item
 

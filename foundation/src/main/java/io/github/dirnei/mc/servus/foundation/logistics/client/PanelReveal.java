@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.client;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
-import io.github.dirnei.mc.servus.foundation.item.GogglesItem;
+import io.github.dirnei.mc.servus.foundation.item.Reveal;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctTracker;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import net.minecraft.client.Minecraft;
@@ -12,7 +12,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 /**
- * Whether the player reveals hidden things (goggles or carrot), for the duct
+ * Whether the player reveals hidden things (goggles, carrot or Data Potato), for the duct
  * model: while revealing, facade panels render half transparent. Panels live in
  * the chunk mesh, so when the state flips every loaded duct with panels is
  * marked dirty once; nothing is rebuilt while the state holds.
@@ -33,7 +33,7 @@ public final class PanelReveal {
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
-        boolean now = minecraft.player != null && GogglesItem.reveals(minecraft.player);
+        boolean now = minecraft.player != null && Reveal.seesThroughPanels(minecraft.player);
         if (now == revealing) {
             return;
         }

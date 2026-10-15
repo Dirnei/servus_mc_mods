@@ -14,9 +14,4 @@ public class GogglesItem extends Item {
     public static boolean isWearing(Player player) {
         return player.getItemBySlot(EquipmentSlot.HEAD).getItem() instanceof GogglesItem;
     }
-
-    /** The shared rule: goggles on the head or a Configuration Carrot in either hand. */
-    public static boolean reveals(Player player) {
-        return isWearing(player) || ConfigurationCarrotItem.heldLayer(player) != null;
-    }
 }
