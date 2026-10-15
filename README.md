@@ -1,106 +1,58 @@
+<img src="branding/servus.png" alt="Servus" width="96" align="right">
+
 # Servus mod family
 
-A family of NeoForge mods for Minecraft 1.21.1. See `PLAN.md` for the design and roadmap.
+NeoForge mods for Minecraft 26.1.2.
 
-| Mod | Mod ID | Folder |
-|---|---|---|
-| Servus: Foundation | `servus_foundation` | `foundation/` |
-| Servus: Alchemy | `servus_alchemy` | `alchemy/` |
-| Servus: Shuttles | `servus_shuttles` | `shuttles/` |
+| | Mod | Mod ID | |
+|---|---|---|---|
+| <img src="branding/foundation.png" width="40"> | **Servus: Foundation** | `servus_foundation` | The base: Utility Duct (items, power, fluids, data), Fluid Tank, pumps, Coal Generator, Sink, Ender Anchor, Machine Adapter and tools. |
+| <img src="branding/alchemy.png" width="40"> | **Servus: Alchemy** | `servus_alchemy` | Paracelsian alchemy: Salt, Sulfur and Mercury from the Calciner, Coagulator and Athanor, gnomes that grow ore veins, a salamander from the Nether. |
+| <img src="branding/shuttles.png" width="40"> | **Servus: Shuttles** | `servus_shuttles` | An automated warehouse run by shuttles on rails: storage, autocrafting, field farming and outposts. |
 
-Alchemy and Shuttles depend only on Servus: Foundation, the base mod with the shared API, the Utility Duct, the Fluid Tank and the tools.
+Alchemy and Shuttles each need Foundation, but not each other.
 
-## Prerequisites
+Player documentation: https://dirnei.github.io/servus_mc_mods/
 
-- JDK 21 (Temurin recommended). Gradle also auto provisions a toolchain through the foojay resolver.
-- Nothing else. The Gradle wrapper downloads Gradle, NeoForge and Minecraft on first use.
+## Build
 
-## Build and test
-
-```
-gradlew build          # compiles all three mods, runs unit tests, writes jars to <mod>/build/libs
-gradlew test           # unit tests only
-gradlew clean build    # from scratch
-```
-
-## Run
-
-Each mod project has its own run configurations. Content mod runs always load Servus: Foundation as well.
+Needs a JDK 21 to run Gradle; the Java 25 toolchain for the mods is downloaded automatically.
 
 ```
-gradlew :foundation:runClient        # Foundation alone
-gradlew :alchemy:runClient           # Alchemy plus Foundation
-gradlew :foundation:runServer        # Foundation alone, dedicated server
-gradlew :shuttles:runData            # data generation for Shuttles
-gradlew :shuttles:runGameTestServer  # game tests for Shuttles
+gradlew build                 # all mods, unit tests, jars in <mod>/build/libs
+gradlew runClientAll          # client with all three mods
+gradlew runServerAll          # dedicated server with all three mods
+gradlew runGameTestServerAll  # GameTests
+gradlew :alchemy:runData      # datagen, also writes docs/src/data/gamedata.json
 ```
 
-Combined runs with all three mods are defined in the root project:
+Each project also has its own runs, such as `:shuttles:runClient`. Game directories are under `runs/` and not tracked.
 
-```
-gradlew runClientAll
-gradlew runServerAll
-gradlew runGameTestServerAll
-```
+## Docs site
 
-Game directories are `runs/client`, `runs/server`, `runs/data` and `runs/gametest` inside each project (or the repo root for the combined runs). They are gitignored. Dedicated server runs need `eula=true` in `runs/server/eula.txt`.
-
-## Documentation site and Balance lab
-
-The docs live in `docs/` (Astro with Starlight) and are published at https://dirnei.github.io/servus_mc_mods/ by the `Docs` workflow. The Balance lab there shows production chains, power and coal for a target rate, and research times, and lets you try number changes and draft new content, then export them as a proposal.
+`docs/` is an Astro Starlight site with the player docs and the Balance lab. CI fails when `docs/src/data/gamedata.json` is out of date, so run the data run after changing balance data.
 
 ```
 cd docs
 npm ci
-npm run dev      # local site at http://localhost:4321/servus_mc_mods/
-npm test         # ratio math and proposal tests
+npm run dev
+npm test
 ```
-
-The lab reads `docs/src/data/gamedata.json`. It is written by `gradlew :alchemy:runData` and committed; the Build workflow fails when it is out of date, so run the data run after changing machine, deposit, tech or recipe data.
-
-## Playtest (Tier 1)
-
-Launch with `gradlew runClientAll`, create a new world, and take the Servus creative tab or craft from vanilla materials:
-
-1. Find or place deposits (iron, copper, coal, stone patches on the surface).
-2. Burner Extractor on a deposit, Burner Smelter next to it, coal in both. Machines push output into adjacent inventories.
-3. Coal Generator plus Utility Ducts with a Power Cable (from Servus: Foundation) carry FE to an Assembler Mk1 and a Research Lab.
-4. In the Assembler, lay out a recipe in the pattern grid and press plus, or press the plus button on any recipe in JEI. An Assembler Mk1 holds two recipes and alternates between them. Every machine GUI has a side panel on the left to set which sides take input and give output.
-5. Utility Ducts with an Item Pipe route pushed items to the next inventory on the same channel.
-6. Red packs go into the Research Lab; open the Tech Tree from its GUI and pick a tech.
-7. Researched machines are assembled, not hand crafted: Electric Extractor (twice as fast, powered), Crusher (ore to two grit, grit smelts to ingots). Stone Processing adds stone, stone bricks and glass recipes to the assembler.
-8. The Ender Anchor keeps its chunk running while powered, or a 3 by 3 or 5 by 5 square of chunks with one or two Anchor Upgrades. The per team limit in chunks (`maxLoadedChunksPerTeam`) and the FTB Chunks rule are in `config/servus_foundation-common.toml`.
-
-## Shuttles playtest guide
-
-1. Crate: planks around a chest. Right click with items to fill it (double right click empties your inventory of that item), left click to take a stack, sneak left click for one. It shows its item and count on the front.
-2. Shelving Rack: planks and sticks. Four compartments on the front; right click a compartment to put the held stack there, right click with an empty hand to take it.
-3. Warehouse Controller: iron, redstone, chest and planks. Touching crates, racks and terminals form a warehouse; chests and machines touching any of them are indexed too. Exactly one controller per warehouse. Right click it for a summary.
-4. Storage Terminal: glass, iron, chest and planks. Opens the stock view: type to search, click to pull a stack to the cursor, shift click to pull into the inventory, click the grid with a carried stack or shift click an inventory slot to store.
-5. Ops can inspect any warehouse with `/servus_warehouse info <x> <y> <z>` on a storage block.
-
-## Foundation playtest guide (ducts, tanks, tools)
-
-1. Item Pipe (iron, glass, chest) and Power Cable (copper, redstone, glass) place a Utility Duct carrying that line. Use a line item on an existing duct to add the other line. A duct with one line is thin, with both lines thicker, and each line shows its own color.
-2. Use the Configuration Carrot on an arm that touches a chest or machine to open that side's configuration: per line a mode (in and out, pull in, push out, disabled), one of eight colored channels (items and energy only flow between sides on the same channel; the ring at the arm's end shows the color), and for the Item Pipe up to nine filter items (empty means everything) and a priority. The carrot on the centre, on an arm toward another duct or a bare hand opens nothing.
-3. Facades: craft any full block with an iron ingot for six facades, use one on a duct and it looks like that block. Sneak wrench takes the facade off first, a second sneak wrench removes the duct and drops its channels.
-4. Engineer Goggles (leather, iron, glass) go on your head. While wearing them, or holding the wrench, hidden ducts show through walls as an orange overlay.
-
-The wrench rotates machines and sneak wrench dismantles them. Balance numbers live in `alchemy/src/main/resources/data/servus_alchemy/machine/` and the deposit, recipe and tech JSON files next to them.
 
 ## Releasing
 
-Each mod has its own version (`mod_version` in `<mod>/gradle.properties`). Alchemy and Shuttles require Foundation at the version Foundation has when they are built.
+Each mod has its own version in `<mod>/gradle.properties`. To release one, bump `mod_version`, commit, then push a tag:
 
-1. Set the new `mod_version` in the mod's `gradle.properties` and commit.
-2. Tag and push: `git tag -a shuttles-v0.2.0 -m "What changed"` then `git push origin shuttles-v0.2.0`. The tag message becomes the changelog. A version containing `alpha` or `beta` (`0.2.0-beta`) is published as that type.
-3. `.github/workflows/release.yml` builds and tests that mod, then creates the GitHub release with the jar and uploads it to CurseForge.
+```
+git tag -a shuttles-v0.2.0 -m "What changed"
+git push origin shuttles-v0.2.0
+```
 
-One time setup on GitHub (Settings, Secrets and variables, Actions): the secret `CURSEFORGE_TOKEN` (CurseForge account, API tokens) and the variables `CURSEFORGE_ID_FOUNDATION`, `CURSEFORGE_ID_ALCHEMY`, `CURSEFORGE_ID_SHUTTLES` with each project id from its CurseForge page. A mod without an id is released on GitHub only.
+The Release workflow checks that the tag matches `mod_version`, builds the mod, creates the GitHub release and uploads the jar to CurseForge. The tag message is the changelog; a version containing `alpha` or `beta` is published as that type. It needs the secret `CURSEFORGE_TOKEN` and the variables `CURSEFORGE_ID_FOUNDATION`, `CURSEFORGE_ID_ALCHEMY` and `CURSEFORGE_ID_SHUTTLES`; a mod without an id goes to GitHub only.
 
-## Development workflow
+## Development
 
-Work is planned and tracked with OpenSpec. See `CLAUDE.md` for the spec-driven workflow and `openspec/` for the specs and changes.
+Work is planned with OpenSpec: `openspec/specs/` describes what is built, `PLAN.md` what is still open. See `CLAUDE.md` for the workflow and project rules.
 
 ## License
 
