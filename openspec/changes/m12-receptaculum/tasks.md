@@ -2,7 +2,7 @@
 
 ## 1. Pure logic
 
-- [ ] 1.1 `homunculus/HomunculusReach.java`, `HomunculusLife.java`, `ElixirUpkeep.java`, `HomunculusSettings.java`, `WhisperClock.java` (D2, D3, D6, D8); `hollow/HollowStore.take(int)` (D4). JUnit: `HomunculusReachTest` (24 offsets, no centre, corners in, 3 out), `HomunculusLifeTest` (grows only when fed, grows up once, works every interval when grown and fed, freed works unfed, saved state resumes), `ElixirUpkeepTest` (takes a bottle only when none in use, one bottle lasts its ticks, starves without a bottle), `WhisperClockTest` (delay inside the bounds, fires once per delay), `HollowStoreTest.takePart` (takes up to the count, never below zero). Verify: `gradlew :alchemy:test` green.
+- [x] 1.1 `homunculus/HomunculusReach.java`, `HomunculusLife.java`, `ElixirUpkeep.java`, `HomunculusSettings.java`, `WhisperClock.java` (D2, D3, D6, D8); `hollow/HollowStore.take(int)` (D4). JUnit: `HomunculusReachTest` (24 offsets, no centre, corners in, 3 out), `HomunculusLifeTest` (grows only when fed, grows up once, works every interval when grown and fed, freed works unfed, saved state resumes), `ElixirUpkeepTest` (takes a bottle only when none in use, one bottle lasts its ticks, starves without a bottle), `WhisperClockTest` (delay inside the bounds, fires once per delay), `HollowStoreTest.takePart` (takes up to the count, never below zero). Verify: `gradlew :alchemy:test` green.
 
 ## 2. Blocks and behaviour
 

@@ -47,6 +47,13 @@ public final class HollowStore {
         return taken;
     }
 
+    /** Takes up to {@code max} items out of the store and returns how many it took. */
+    public int take(int max) {
+        int taken = Math.max(0, Math.min(max, count));
+        count -= taken;
+        return taken;
+    }
+
     /** Sets the count as saved, never below zero. */
     public void load(int count) {
         this.count = Math.max(0, count);

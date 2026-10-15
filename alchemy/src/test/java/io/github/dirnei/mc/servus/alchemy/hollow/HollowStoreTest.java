@@ -53,4 +53,16 @@ class HollowStoreTest {
         store.load(-4);
         assertTrue(store.isEmpty());
     }
+
+    @Test
+    void takePart() {
+        HollowStore store = new HollowStore(64);
+        store.load(5);
+        assertEquals(3, store.take(3));
+        assertEquals(2, store.count());
+        assertEquals(2, store.take(10));
+        assertTrue(store.isEmpty());
+        assertEquals(0, store.take(4));
+        assertEquals(0, store.take(-1));
+    }
 }
