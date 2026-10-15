@@ -5,7 +5,7 @@ The Salamander Forge is Alchemy's furnace of the eternal flame: built with Ignis
 ## ADDED Requirements
 
 ### Requirement: The Forge smelts without fuel
-The Salamander Forge SHALL smelt every smelting recipe (`minecraft:smelting`) that takes one item, one item per work cycle, from its input slot into its output slot. It SHALL have no fuel slot and SHALL never consume fuel. The time of a work cycle SHALL be the `work_ticks` of `servus_alchemy:salamander_forge` in the machine stats data (example 200 ticks, the pace of a vanilla furnace). It SHALL stop and keep its progress at zero while the input is empty or the output cannot take the result.
+The Salamander Forge SHALL smelt every smelting recipe (`minecraft:smelting`) that takes one item, one item per work cycle, from its input slot into its output slot. It SHALL have no fuel slot and SHALL never consume fuel. The time of a work cycle SHALL be the `work_ticks` of `servus_alchemy:salamander_forge` in the machine stats data (example 100 ticks, twice the pace of a vanilla furnace). It SHALL stop and keep its progress at zero while the input is empty or the output cannot take the result.
 
 #### Scenario: Iron without fuel
 - **WHEN** 2 Raw Iron lie in the input slot of a Forge and nothing else is in it

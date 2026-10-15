@@ -39,8 +39,8 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 public final class ForgeGameTests {
 
     private static final BlockPos FORGE = AlchemyGameTests.MACHINE.above();
-    /** Two items at the shipped pace of 200 ticks each, with room to spare. */
-    private static final int TWO_ITEMS = 500;
+    /** Two items at the shipped pace of 100 ticks each, with room to spare. */
+    private static final int TWO_ITEMS = 300;
 
     private ForgeGameTests() {
     }
@@ -172,7 +172,7 @@ public final class ForgeGameTests {
                 .filter(recipe -> recipe.inputs().getFirst().is(Items.RAW_IRON) && recipe.outputs().getFirst().is(Items.IRON_INGOT))
                 .findFirst();
         helper.assertTrue(iron.isPresent(), "Raw Iron to Iron Ingot should be on offer");
-        helper.assertTrue(iron.get().ticks() == 200, "at the Forge's 200 ticks, got " + iron.get().ticks());
+        helper.assertTrue(iron.get().ticks() == 100, "at the Forge's 100 ticks, got " + iron.get().ticks());
         helper.assertTrue(production.active().isEmpty(), "an empty Forge works on nothing");
         forge.inventory().setStackInSlot(SalamanderForgeBlockEntity.SLOT_INPUT, new ItemStack(Items.RAW_IRON, 1));
         helper.assertTrue(production.active().equals(Optional.of(iron.get().id())), "the Raw Iron recipe is active");

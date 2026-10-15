@@ -5,7 +5,7 @@
 ## What Changes
 
 - New block **Salamander Forge**: a compact deepslate brick furnace with an open fire mouth that always burns (glowing embers, a flame that gives off light, a small steel plate with a salamander on the front). It is lit at all times and gives off light like a lit furnace.
-- It smelts every smelting recipe like a vanilla furnace, one item per work cycle, and never takes fuel. It has an input slot and an output slot, no fuel slot. The work time per item is datapack data (example 200 ticks, the pace of a vanilla furnace).
+- It smelts every smelting recipe like a vanilla furnace, one item per work cycle, and never takes fuel. It has an input slot and an output slot, no fuel slot. The work time per item is datapack data (example 100 ticks, twice the pace of a vanilla furnace).
 - A normal Foundation machine: faces the player, opens a furnace like screen (input, eternal flame, progress arrow, output, the side panel), exposes its items to pipes and hoppers on every side but the front with Foundation's side configuration, pushes its output into neighbours, is configured and dismantled with the carrot and drops its contents when broken.
 - A producer on the data line: it exposes the Foundation production capability with every single item smelting recipe, so the Crafting CPU can order smelting from it directly, without a Machine Adapter. It keeps no upkeep.
 - Made at a crafting table from one Ignis Perpetuus, a Furnace and seven Deepslate Bricks. A Workshop entry "The Salamander Forge" opens with the Wandering years chapter, beside "The Salamander". JEI lists the Forge as a smelting station.

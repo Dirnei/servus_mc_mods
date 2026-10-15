@@ -24,7 +24,7 @@ New package `forge`: `SalamanderForgeBlock extends MachineBlock` (block entity t
 The server looks the recipe up with a `RecipeManager.createCheck(RecipeType.SMELTING)` cached check and `getRecipeFor(new SingleRecipeInput(stack), serverLevel)`, then `recipe.value().assemble(input)` for the result (both verified in the 26.1.2 sources of `AbstractFurnaceBlockEntity`). Whether a stack may go into the input is `level.recipeAccess().propertySet(RecipePropertySet.FURNACE_INPUT).test(stack)`, which works on the client and the server, so the menu slot and automation agree. A work cycle runs while the input has a recipe and the output takes the result; when it finishes, one input item is used and the result goes to the output.
 
 ### D3 Work time from data
-`AlchemyMachineDefaults` registers `salamander_forge` as kind `crafter` with recipe type `minecraft:smelting` and `work_ticks` 200; `data/servus_alchemy/machine/salamander_forge.json` repeats it. The Forge uses `work_ticks` for every recipe instead of each recipe's cooking time: every vanilla smelting recipe takes 200 ticks, so it smelts at a vanilla furnace's pace, and a datapack makes it faster with one number. The production recipes report the same time.
+`AlchemyMachineDefaults` registers `salamander_forge` as kind `crafter` with recipe type `minecraft:smelting` and `work_ticks` 100; `data/servus_alchemy/machine/salamander_forge.json` repeats it. The Forge uses `work_ticks` for every recipe instead of each recipe's cooking time: every vanilla smelting recipe takes 200 ticks, so it smelts twice as fast as a vanilla furnace, and a modpack retunes it with one number in a datapack. The production recipes report the same time.
 
 ### D4 Always lit
 `tick()` returns true, so the base keeps `LIT` true; the default state is lit, so a freshly placed Forge is lit before its first tick. The light level is a constant 13 in the block properties. The block state model ignores `LIT` (one model, rotated by facing). The menu data returns 1 for burn time and burn duration, so the screen draws the full furnace flame.
@@ -69,7 +69,7 @@ Shaped crafting recipe in `ServusAlchemyRecipeProvider`: `DDD / DID / DFD` with 
 
 ## Assumptions to confirm with the user
 
-- Speed: 200 ticks per item for every recipe (`work_ticks` in `salamander_forge.json`), the pace of a vanilla furnace; not faster.
+- Speed: 100 ticks per item for every recipe (`work_ticks` in `salamander_forge.json`), twice a vanilla furnace (user, 2026-10-15: at least twice as fast, configurable for modpacks through the datapack).
 - Smelting only (`minecraft:smelting`), not blasting or smoking.
 - No experience is given for smelted items.
 - Sides: Foundation's default (every side Auto, front closed), not a fixed top in, bottom out; the carrot sets that up.

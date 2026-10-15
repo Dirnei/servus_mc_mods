@@ -24,7 +24,7 @@ public final class AlchemyMachineDefaults {
         add("purifier", "crafter", List.of("servus_alchemy:purification"), alchemy(4000));
         add("gnome_hollow", "crafter", List.of(), hollow(4000, 64));
         add("principle_dropper", "crafter", List.of(), dropper(20, 25, 1000));
-        add("salamander_forge", "crafter", List.of("minecraft:smelting"), forge(200));
+        add("salamander_forge", "crafter", List.of("minecraft:smelting"), forge(100));
         add("receptaculum", "crafter", List.of(), alchemy(0));
         add("prelum", "crafter", List.of("servus_alchemy:pressing"), forge(600));
     }

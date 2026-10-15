@@ -36,11 +36,11 @@ class AlchemyMachineDefaultsTest {
     }
 
     @Test
-    void forgeSmeltsAtFurnacePace() {
+    void forgeSmeltsTwiceAsFastAsAFurnace() {
         MachineDefaults.MachineInfo info = MachineDefaults.info("servus_alchemy:salamander_forge");
         assertEquals("crafter", info.kind());
         assertEquals(List.of("minecraft:smelting"), info.recipeTypes());
-        assertEquals(200, info.stats().workTicks());
+        assertEquals(100, info.stats().workTicks());
         assertEquals(0, info.stats().energyPerTick());
     }
 

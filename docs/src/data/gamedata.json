@@ -133,7 +133,7 @@
     "servus_alchemy:salamander_forge": {
       "kind": "crafter",
       "recipe_types": ["minecraft:smelting"],
-      "work_ticks": 200,
+      "work_ticks": 100,
       "energy_per_tick": 0,
       "energy_capacity": 0,
       "fuel_divisor": 1,
