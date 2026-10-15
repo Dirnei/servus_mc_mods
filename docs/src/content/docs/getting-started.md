@@ -11,12 +11,12 @@ Numbers on this page are the current defaults. Balance values live in datapack J
 
 ## Install
 
-You need Minecraft 1.21.1 with NeoForge 21.1.x. Servus: Foundation is required by every Servus mod. Alchemy and Storage each run with only Foundation, and together.
+You need Minecraft 1.21.1 with NeoForge 21.1.x. Servus: Foundation is required by every Servus mod. Alchemy and Shuttles each run with only Foundation, and together.
 
 | Mod | Needs |
 |---|---|
 | Servus: Foundation | nothing else |
-| Servus: Storage | Servus: Foundation |
+| Servus: Shuttles | Servus: Foundation |
 | Servus: Alchemy | Servus: Foundation |
 
 JEI is optional. With it installed, calcination and coagulation recipes show up in their own categories.

@@ -50,7 +50,7 @@ The mod id lives in `ServusStorageIds.MOD_ID`, and a few literals repeat it: the
 
 ### Docs, CI and tools
 - `docs/src/content/docs/mods/storage.md` becomes `mods/shuttles.md` (title "Servus: Shuttles"), with the sidebar slug in `docs/astro.config.mjs` and the links in `index.mdx`, `getting-started.md`, `foundation.md` and `alchemy.md`. Datapack paths on the page say `data/<namespace>/shuttles/`.
-- Lab code: `MODS` and the `ServusMod` type in `docs/src/lib/recipegraph.ts`, `MOD_NAMES` in `RecipeGraph.tsx`, the store in `store.ts`, `recipegraph.test.ts` and the fixture `tier1-gamedata.json`.
+- Lab code: `MODS` and the `ServusMod` type in `docs/src/lib/recipegraph.ts`, `MOD_NAMES` in `RecipeGraph.tsx`, the `lab-mod-*` colour classes in `lab.css`, `recipegraph.test.ts` and the fixture `tier1-gamedata.json`.
 - `git mv docs/src/icons/servus_storage docs/src/icons/servus_shuttles`; `gradlew iconExport` afterwards must leave `git status` clean in that folder.
 - `.github/workflows/build.yml` collects `shuttles/build/libs/*.jar`; `server/pack.ps1` builds `shuttles`.
 

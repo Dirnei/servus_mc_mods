@@ -19,7 +19,7 @@ export default defineConfig({
 					items: [
 						{ slug: 'mods/foundation' },
 						{ slug: 'mods/alchemy' },
-						{ slug: 'mods/storage' },
+						{ slug: 'mods/shuttles' },
 					],
 				},
 				{ label: 'Datapack reference', items: [{ autogenerate: { directory: 'reference/datapack' } }] },

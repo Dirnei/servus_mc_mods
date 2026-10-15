@@ -1,7 +1,7 @@
 import { type GameData, type Stack, stackKey } from './gamedata';
 
 /** The Servus mods in display order. Everything else, tags included, counts as vanilla. */
-export const MODS = ['foundation', 'alchemy', 'storage'] as const;
+export const MODS = ['foundation', 'alchemy', 'shuttles'] as const;
 export type ServusMod = (typeof MODS)[number];
 export type Mod = ServusMod | 'vanilla';
 

@@ -22,7 +22,7 @@ function fixture(entries: Record<string, [string, number, string, number][]>): G
 
 describe('recipe graph', () => {
 	test('mods come from the namespace', () => {
-		expect(modOf('servus_storage:shuttle')).toBe('storage');
+		expect(modOf('servus_shuttles:shuttle')).toBe('shuttles');
 		expect(modOf('servus_foundation:data_cable')).toBe('foundation');
 		expect(modOf('minecraft:redstone')).toBe('vanilla');
 		expect(modOf('#minecraft:planks')).toBe('vanilla');
@@ -31,7 +31,7 @@ describe('recipe graph', () => {
 	test('recipe kinds', () => {
 		expect(recipeKind('servus_alchemy:assembling', false)).toBe('Assembler');
 		expect(recipeKind('minecraft:smelting', false)).toBe('Smelting');
-		expect(recipeKind('servus_storage:heavy_rack', true)).toBe('Crafting');
+		expect(recipeKind('servus_shuttles:heavy_rack', true)).toBe('Crafting');
 		expect(recipeKind('servus_foo:bar', false)).toBe('servus_foo:bar');
 	});
 
@@ -56,27 +56,27 @@ describe('recipe graph', () => {
 	});
 
 	test('hiding mods keeps only the visible recipes and their items', () => {
-		const graph = buildRecipeGraph(data, ['storage']);
-		expect([...graph.recipes.values()].every((recipe) => recipe.mod === 'storage')).toBe(true);
-		expect(graph.recipes.has('servus_storage:shuttle')).toBe(true);
+		const graph = buildRecipeGraph(data, ['shuttles']);
+		expect([...graph.recipes.values()].every((recipe) => recipe.mod === 'shuttles')).toBe(true);
+		expect(graph.recipes.has('servus_shuttles:shuttle')).toBe(true);
 		expect(graph.items).not.toContain('servus_alchemy:copper_wire');
 	});
 
 	test('ancestors of the shuttle reach the leaves and skip unrelated recipes', () => {
 		const graph = buildRecipeGraph(data);
-		const { nodes, edges } = ancestors(graph, 'servus_storage:shuttle');
+		const { nodes, edges } = ancestors(graph, 'servus_shuttles:shuttle');
 		for (const node of [
-			recipeNode('servus_storage:shuttle'),
-			recipeNode('servus_storage:rail'),
-			itemNode('servus_storage:rail'),
+			recipeNode('servus_shuttles:shuttle'),
+			recipeNode('servus_shuttles:rail'),
+			itemNode('servus_shuttles:rail'),
 			itemNode('minecraft:iron_ingot'),
 			itemNode('minecraft:redstone'),
 			itemNode('minecraft:stick'),
 		]) {
 			expect(nodes).toContain(node);
 		}
-		expect(nodes).not.toContain(recipeNode('servus_storage:heavy_rack'));
-		expect(edges).toContain(edgeId({ from: itemNode('minecraft:stick'), to: recipeNode('servus_storage:rail') }));
+		expect(nodes).not.toContain(recipeNode('servus_shuttles:heavy_rack'));
+		expect(edges).toContain(edgeId({ from: itemNode('minecraft:stick'), to: recipeNode('servus_shuttles:rail') }));
 	});
 
 	test('the facade is a special node without edges', () => {
@@ -104,10 +104,10 @@ describe('raw cost', () => {
 	});
 
 	test('Servus intermediates are expanded', () => {
-		const cost = rawCost(buildRecipeGraph(data), 'servus_storage:shuttle');
+		const cost = rawCost(buildRecipeGraph(data), 'servus_shuttles:shuttle');
 		// 5 iron in the shuttle plus 6 of the 8 per rail craft: 5 + 6 / 8.
 		expect(cost.amounts.get('minecraft:iron_ingot')).toBeCloseTo(5.75);
-		expect(cost.amounts.has('servus_storage:rail')).toBe(false);
+		expect(cost.amounts.has('servus_shuttles:rail')).toBe(false);
 	});
 
 	test('a Servus item without a recipe is marked', () => {
@@ -134,17 +134,17 @@ describe('raw cost', () => {
 			fixture({
 				'servus_foundation:circuit_by_hand': [['minecraft:copper_ingot', 4, 'servus_foundation:circuit', 1]],
 				'servus_foundation:circuit_in_assembler': [['minecraft:copper_ingot', 2, 'servus_foundation:circuit', 1]],
-				'servus_storage:shuttle': [['servus_foundation:circuit', 2, 'servus_storage:shuttle', 1]],
+				'servus_shuttles:shuttle': [['servus_foundation:circuit', 2, 'servus_shuttles:shuttle', 1]],
 			}),
 		);
-		const first = rawCost(graph, 'servus_storage:shuttle');
+		const first = rawCost(graph, 'servus_shuttles:shuttle');
 		expect(first.routes.get('servus_foundation:circuit')).toEqual({
 			options: ['servus_foundation:circuit_by_hand', 'servus_foundation:circuit_in_assembler'],
 			chosen: 'servus_foundation:circuit_by_hand',
 		});
 		expect(first.amounts.get('minecraft:copper_ingot')).toBe(8);
 
-		const switched = rawCost(graph, 'servus_storage:shuttle', { 'servus_foundation:circuit': 'servus_foundation:circuit_in_assembler' });
+		const switched = rawCost(graph, 'servus_shuttles:shuttle', { 'servus_foundation:circuit': 'servus_foundation:circuit_in_assembler' });
 		expect(switched.amounts.get('minecraft:copper_ingot')).toBe(4);
 	});
 });

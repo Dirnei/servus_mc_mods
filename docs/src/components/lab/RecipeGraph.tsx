@@ -20,7 +20,7 @@ import { ItemIcon } from './icons';
 const MOD_NAMES: Record<string, string> = {
 	foundation: 'Foundation',
 	alchemy: 'Alchemy',
-	storage: 'Storage',
+	shuttles: 'Shuttles',
 	vanilla: 'Minecraft',
 };
 

@@ -121,4 +121,4 @@ Salt Crystal, Sulfur and Quicksilver are the first alchemical materials. The pla
 ## How it connects
 
 - [Servus: Foundation](/servus_mc_mods/mods/foundation/): side configuration, the Configuration Carrot, the Fluid Pipe and Fluid Tank, Power Cables and Item Pipes.
-- [Storage](/servus_mc_mods/mods/storage/): a Coagulator on the data line is a producer of its selected recipe, so a Crafting CPU can order Salt Crystals or gunpowder. Its principles must reach it by pipe; the data line only carries items. The Calciner is no producer, and neither is the Gnome Hollow.
+- [Shuttles](/servus_mc_mods/mods/shuttles/): a Coagulator on the data line is a producer of its selected recipe, so a Crafting CPU can order Salt Crystals or gunpowder. Its principles must reach it by pipe; the data line only carries items. The Calciner is no producer, and neither is the Gnome Hollow.
