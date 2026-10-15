@@ -1,0 +1,17 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "servus_shuttles:block/elevator_frame"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/elevator_head"
+      },
+      "when": {
+        "up": "false"
+      }
+    }
+  ]
+}

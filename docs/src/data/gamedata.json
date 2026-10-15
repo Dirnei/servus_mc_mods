@@ -701,6 +701,23 @@
         {"item": "servus_foundation:data_cable", "count": 4}
       ]
     },
+    "servus_foundation:data_potato": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["R", "D", "P"],
+      "key": {
+        "D": {"item": "servus_foundation:data_cable"},
+        "P": {"item": "minecraft:potato"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:potato", "count": 1},
+        {"item": "minecraft:redstone", "count": 1},
+        {"item": "servus_foundation:data_cable", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_foundation:data_potato", "count": 1}
+      ]
+    },
     "servus_foundation:duplex_data_cable": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["DQD"],
@@ -912,7 +929,7 @@
         {"item": "servus_foundation:speed_upgrade", "count": 1}
       ]
     },
-    "servus_storage:crafting_cpu": {
+    "servus_shuttles:crafting_cpu": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["IRI", "RCR", "PPP"],
       "key": {
@@ -928,10 +945,10 @@
         {"item": "minecraft:redstone", "count": 3}
       ],
       "outputs": [
-        {"item": "servus_storage:crafting_cpu", "count": 4}
+        {"item": "servus_shuttles:crafting_cpu", "count": 4}
       ]
     },
-    "servus_storage:crafting_cpu_buffer": {
+    "servus_shuttles:crafting_cpu_buffer": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["IRI", "RCR", "PPP"],
       "key": {
@@ -947,10 +964,10 @@
         {"item": "minecraft:redstone", "count": 3}
       ],
       "outputs": [
-        {"item": "servus_storage:crafting_cpu_buffer", "count": 4}
+        {"item": "servus_shuttles:crafting_cpu_buffer", "count": 4}
       ]
     },
-    "servus_storage:crafting_station": {
+    "servus_shuttles:crafting_station": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["ITI", "ICI", "PPP"],
       "key": {
@@ -966,25 +983,25 @@
         {"item": "minecraft:iron_ingot", "count": 4}
       ],
       "outputs": [
-        {"item": "servus_storage:crafting_station", "count": 1}
+        {"item": "servus_shuttles:crafting_station", "count": 1}
       ]
     },
-    "servus_storage:elevator": {
+    "servus_shuttles:elevator": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["III", "IRI", "III"],
       "key": {
         "I": {"item": "minecraft:iron_ingot"},
-        "R": {"item": "servus_storage:rail"}
+        "R": {"item": "servus_shuttles:rail"}
       },
       "inputs": [
         {"item": "minecraft:iron_ingot", "count": 8},
-        {"item": "servus_storage:rail", "count": 1}
+        {"item": "servus_shuttles:rail", "count": 1}
       ],
       "outputs": [
-        {"item": "servus_storage:elevator", "count": 4}
+        {"item": "servus_shuttles:elevator", "count": 4}
       ]
     },
-    "servus_storage:farm_rail": {
+    "servus_shuttles:farm_rail": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["C C", "CPC", "C C"],
       "key": {
@@ -996,10 +1013,10 @@
         {"item": "minecraft:copper_ingot", "count": 6}
       ],
       "outputs": [
-        {"item": "servus_storage:farm_rail", "count": 16}
+        {"item": "servus_shuttles:farm_rail", "count": 16}
       ]
     },
-    "servus_storage:field_head": {
+    "servus_shuttles:field_head": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["IBI", "PCP", "PRP"],
       "key": {
@@ -1007,20 +1024,20 @@
         "C": {"item": "minecraft:composter"},
         "I": {"item": "minecraft:iron_ingot"},
         "P": {"tag": "minecraft:planks"},
-        "R": {"item": "servus_storage:farm_rail"}
+        "R": {"item": "servus_shuttles:farm_rail"}
       },
       "inputs": [
         {"tag": "minecraft:planks", "count": 4},
         {"item": "minecraft:composter", "count": 1},
         {"item": "minecraft:iron_ingot", "count": 2},
         {"item": "servus_foundation:fluid_tank", "count": 1},
-        {"item": "servus_storage:farm_rail", "count": 1}
+        {"item": "servus_shuttles:farm_rail", "count": 1}
       ],
       "outputs": [
-        {"item": "servus_storage:field_head", "count": 1}
+        {"item": "servus_shuttles:field_head", "count": 1}
       ]
     },
-    "servus_storage:handling_upgrade": {
+    "servus_shuttles:handling_upgrade": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["CRC", "RPR", "CRC"],
       "key": {
@@ -1034,10 +1051,10 @@
         {"item": "minecraft:redstone", "count": 4}
       ],
       "outputs": [
-        {"item": "servus_storage:handling_upgrade", "count": 1}
+        {"item": "servus_shuttles:handling_upgrade", "count": 1}
       ]
     },
-    "servus_storage:harvester": {
+    "servus_shuttles:harvester": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["ISI", "IHI", " P "],
       "key": {
@@ -1053,11 +1070,11 @@
         {"item": "minecraft:shears", "count": 1}
       ],
       "outputs": [
-        {"item": "servus_storage:harvester", "count": 1}
+        {"item": "servus_shuttles:harvester", "count": 1}
       ]
     },
-    "servus_storage:heavy_rack": {
-      "type": "servus_storage:heavy_rack",
+    "servus_shuttles:heavy_rack": {
+      "type": "servus_shuttles:heavy_rack",
       "pattern": ["I I", "PPP", "I I"],
       "key": {
         "I": {"item": "minecraft:iron_ingot"},
@@ -1068,10 +1085,10 @@
         {"item": "minecraft:iron_ingot", "count": 4}
       ],
       "outputs": [
-        {"item": "servus_storage:heavy_rack", "count": 1}
+        {"item": "servus_shuttles:heavy_rack", "count": 1}
       ]
     },
-    "servus_storage:inbound_station": {
+    "servus_shuttles:inbound_station": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["III", "ICI", "PHP"],
       "key": {
@@ -1087,10 +1104,10 @@
         {"item": "minecraft:iron_ingot", "count": 5}
       ],
       "outputs": [
-        {"item": "servus_storage:inbound_station", "count": 1}
+        {"item": "servus_shuttles:inbound_station", "count": 1}
       ]
     },
-    "servus_storage:outbound_station": {
+    "servus_shuttles:outbound_station": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["ICI", "IDI", "PHP"],
       "key": {
@@ -1108,10 +1125,10 @@
         {"item": "minecraft:iron_ingot", "count": 4}
       ],
       "outputs": [
-        {"item": "servus_storage:outbound_station", "count": 1}
+        {"item": "servus_shuttles:outbound_station", "count": 1}
       ]
     },
-    "servus_storage:packing_station": {
+    "servus_shuttles:packing_station": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["IRI", "OCO", "PPP"],
       "key": {
@@ -1129,10 +1146,10 @@
         {"item": "minecraft:redstone", "count": 1}
       ],
       "outputs": [
-        {"item": "servus_storage:packing_station", "count": 1}
+        {"item": "servus_shuttles:packing_station", "count": 1}
       ]
     },
-    "servus_storage:pattern_storage": {
+    "servus_shuttles:pattern_storage": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["IAI", "RCR", "PPP"],
       "key": {
@@ -1150,10 +1167,10 @@
         {"item": "minecraft:redstone", "count": 2}
       ],
       "outputs": [
-        {"item": "servus_storage:pattern_storage", "count": 1}
+        {"item": "servus_shuttles:pattern_storage", "count": 1}
       ]
     },
-    "servus_storage:production_terminal": {
+    "servus_shuttles:production_terminal": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["GGG", "CMC", "PRP"],
       "key": {
@@ -1171,10 +1188,10 @@
         {"item": "minecraft:redstone", "count": 1}
       ],
       "outputs": [
-        {"item": "servus_storage:production_terminal", "count": 1}
+        {"item": "servus_shuttles:production_terminal", "count": 1}
       ]
     },
-    "servus_storage:rail": {
+    "servus_shuttles:rail": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["I I", "IPI", "I I"],
       "key": {
@@ -1186,10 +1203,10 @@
         {"item": "minecraft:iron_ingot", "count": 6}
       ],
       "outputs": [
-        {"item": "servus_storage:rail", "count": 16}
+        {"item": "servus_shuttles:rail", "count": 16}
       ]
     },
-    "servus_storage:range_upgrade": {
+    "servus_shuttles:range_upgrade": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["ISI", "WCW", "ISI"],
       "key": {
@@ -1205,44 +1222,44 @@
         {"item": "minecraft:wheat_seeds", "count": 2}
       ],
       "outputs": [
-        {"item": "servus_storage:range_upgrade", "count": 1}
+        {"item": "servus_shuttles:range_upgrade", "count": 1}
       ]
     },
-    "servus_storage:shuttle": {
+    "servus_shuttles:shuttle": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["I I", "RBR", "III"],
       "key": {
-        "B": {"item": "servus_storage:rail"},
+        "B": {"item": "servus_shuttles:rail"},
         "I": {"item": "minecraft:iron_ingot"},
         "R": {"item": "minecraft:redstone"}
       },
       "inputs": [
         {"item": "minecraft:iron_ingot", "count": 5},
         {"item": "minecraft:redstone", "count": 2},
-        {"item": "servus_storage:rail", "count": 1}
+        {"item": "servus_shuttles:rail", "count": 1}
       ],
       "outputs": [
-        {"item": "servus_storage:shuttle", "count": 1}
+        {"item": "servus_shuttles:shuttle", "count": 1}
       ]
     },
-    "servus_storage:shuttle_garage": {
+    "servus_shuttles:shuttle_garage": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["IRI", "PPP"],
       "key": {
         "I": {"item": "minecraft:iron_ingot"},
         "P": {"tag": "minecraft:planks"},
-        "R": {"item": "servus_storage:rail"}
+        "R": {"item": "servus_shuttles:rail"}
       },
       "inputs": [
         {"tag": "minecraft:planks", "count": 3},
         {"item": "minecraft:iron_ingot", "count": 2},
-        {"item": "servus_storage:rail", "count": 1}
+        {"item": "servus_shuttles:rail", "count": 1}
       ],
       "outputs": [
-        {"item": "servus_storage:shuttle_garage", "count": 1}
+        {"item": "servus_shuttles:shuttle_garage", "count": 1}
       ]
     },
-    "servus_storage:shuttle_workshop": {
+    "servus_shuttles:shuttle_workshop": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["III", "PCP", "PPP"],
       "key": {
@@ -1256,10 +1273,10 @@
         {"item": "minecraft:iron_ingot", "count": 3}
       ],
       "outputs": [
-        {"item": "servus_storage:shuttle_workshop", "count": 1}
+        {"item": "servus_shuttles:shuttle_workshop", "count": 1}
       ]
     },
-    "servus_storage:spreader": {
+    "servus_shuttles:spreader": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["IHI", "IDI", " B "],
       "key": {
@@ -1275,10 +1292,10 @@
         {"item": "minecraft:iron_ingot", "count": 4}
       ],
       "outputs": [
-        {"item": "servus_storage:spreader", "count": 1}
+        {"item": "servus_shuttles:spreader", "count": 1}
       ]
     },
-    "servus_storage:storage_terminal": {
+    "servus_shuttles:storage_terminal": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["GGG", "ICI", "PPP"],
       "key": {
@@ -1294,10 +1311,10 @@
         {"item": "minecraft:iron_ingot", "count": 2}
       ],
       "outputs": [
-        {"item": "servus_storage:storage_terminal", "count": 1}
+        {"item": "servus_shuttles:storage_terminal", "count": 1}
       ]
     },
-    "servus_storage:warehouse_controller": {
+    "servus_shuttles:warehouse_controller": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["III", "RCR", "PPP"],
       "key": {
@@ -1313,10 +1330,10 @@
         {"item": "minecraft:redstone", "count": 2}
       ],
       "outputs": [
-        {"item": "servus_storage:warehouse_controller", "count": 1}
+        {"item": "servus_shuttles:warehouse_controller", "count": 1}
       ]
     },
-    "servus_storage:wireless_upgrade": {
+    "servus_shuttles:wireless_upgrade": {
       "type": "minecraft:crafting_shaped",
       "pattern": [" C ", "IEI", "RIR"],
       "key": {
@@ -1332,17 +1349,17 @@
         {"item": "minecraft:redstone", "count": 2}
       ],
       "outputs": [
-        {"item": "servus_storage:wireless_upgrade", "count": 1}
+        {"item": "servus_shuttles:wireless_upgrade", "count": 1}
       ]
     },
-    "servus_storage:zone_label": {
+    "servus_shuttles:zone_label": {
       "type": "minecraft:crafting_shapeless",
       "inputs": [
         {"tag": "c:dyes", "count": 1},
         {"item": "minecraft:paper", "count": 1}
       ],
       "outputs": [
-        {"item": "servus_storage:zone_label", "count": 1}
+        {"item": "servus_shuttles:zone_label", "count": 1}
       ]
     }
   },
@@ -1467,6 +1484,9 @@
     "minecraft:polished_deepslate": {
       "name": "Polished Deepslate"
     },
+    "minecraft:potato": {
+      "name": "Potato"
+    },
     "minecraft:quartz": {
       "name": "Nether Quartz"
     },
@@ -1563,6 +1583,9 @@
     "servus_foundation:data_cable": {
       "name": "Data Cable"
     },
+    "servus_foundation:data_potato": {
+      "name": "Data Potato"
+    },
     "servus_foundation:duplex_data_cable": {
       "name": "Duplex Data Cable"
     },
@@ -1599,76 +1622,76 @@
     "servus_foundation:speed_upgrade": {
       "name": "Speed Upgrade"
     },
-    "servus_storage:crafting_cpu": {
+    "servus_shuttles:crafting_cpu": {
       "name": "Crafting CPU"
     },
-    "servus_storage:crafting_cpu_buffer": {
+    "servus_shuttles:crafting_cpu_buffer": {
       "name": "CPU Buffer"
     },
-    "servus_storage:crafting_station": {
+    "servus_shuttles:crafting_station": {
       "name": "Crafting Station"
     },
-    "servus_storage:elevator": {
+    "servus_shuttles:elevator": {
       "name": "Rail Elevator"
     },
-    "servus_storage:farm_rail": {
+    "servus_shuttles:farm_rail": {
       "name": "Farm Rail"
     },
-    "servus_storage:field_head": {
+    "servus_shuttles:field_head": {
       "name": "Field Head"
     },
-    "servus_storage:handling_upgrade": {
+    "servus_shuttles:handling_upgrade": {
       "name": "Handling Upgrade"
     },
-    "servus_storage:harvester": {
+    "servus_shuttles:harvester": {
       "name": "Harvester"
     },
-    "servus_storage:heavy_rack": {
+    "servus_shuttles:heavy_rack": {
       "name": "Heavy Duty Rack"
     },
-    "servus_storage:inbound_station": {
+    "servus_shuttles:inbound_station": {
       "name": "Inbound Station"
     },
-    "servus_storage:outbound_station": {
+    "servus_shuttles:outbound_station": {
       "name": "Outbound Station"
     },
-    "servus_storage:packing_station": {
+    "servus_shuttles:packing_station": {
       "name": "Packing Station"
     },
-    "servus_storage:pattern_storage": {
+    "servus_shuttles:pattern_storage": {
       "name": "Pattern Storage"
     },
-    "servus_storage:production_terminal": {
+    "servus_shuttles:production_terminal": {
       "name": "Production Terminal"
     },
-    "servus_storage:rail": {
+    "servus_shuttles:rail": {
       "name": "Warehouse Rail"
     },
-    "servus_storage:range_upgrade": {
+    "servus_shuttles:range_upgrade": {
       "name": "Range Upgrade"
     },
-    "servus_storage:shuttle": {
+    "servus_shuttles:shuttle": {
       "name": "Shuttle Mk1"
     },
-    "servus_storage:shuttle_garage": {
+    "servus_shuttles:shuttle_garage": {
       "name": "Shuttle Garage"
     },
-    "servus_storage:shuttle_workshop": {
+    "servus_shuttles:shuttle_workshop": {
       "name": "Shuttle Workshop"
     },
-    "servus_storage:spreader": {
+    "servus_shuttles:spreader": {
       "name": "Spreader"
     },
-    "servus_storage:storage_terminal": {
+    "servus_shuttles:storage_terminal": {
       "name": "Storage Terminal"
     },
-    "servus_storage:warehouse_controller": {
+    "servus_shuttles:warehouse_controller": {
       "name": "Warehouse Controller"
     },
-    "servus_storage:wireless_upgrade": {
+    "servus_shuttles:wireless_upgrade": {
       "name": "Wireless Upgrade"
     },
-    "servus_storage:zone_label": {
+    "servus_shuttles:zone_label": {
       "name": "Zone Label"
     }
   }

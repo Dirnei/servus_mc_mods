@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "E": "minecraft:ender_eye",
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    " C ",
+    "IEI",
+    "RIR"
+  ],
+  "result": {
+    "id": "servus_shuttles:wireless_upgrade"
+  }
+}

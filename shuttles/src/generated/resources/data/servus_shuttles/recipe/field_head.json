@@ -1,0 +1,19 @@
+{
+  "type": "servus_foundation:wood_shaped",
+  "category": "misc",
+  "key": {
+    "B": "servus_foundation:fluid_tank",
+    "C": "minecraft:composter",
+    "I": "minecraft:iron_ingot",
+    "P": "#minecraft:planks",
+    "R": "servus_shuttles:farm_rail"
+  },
+  "pattern": [
+    "IBI",
+    "PCP",
+    "PRP"
+  ],
+  "result": {
+    "id": "servus_shuttles:field_head"
+  }
+}

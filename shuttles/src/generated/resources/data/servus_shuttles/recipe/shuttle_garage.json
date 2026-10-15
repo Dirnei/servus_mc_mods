@@ -1,0 +1,16 @@
+{
+  "type": "servus_foundation:wood_shaped",
+  "category": "misc",
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "P": "#minecraft:planks",
+    "R": "servus_shuttles:rail"
+  },
+  "pattern": [
+    "IRI",
+    "PPP"
+  ],
+  "result": {
+    "id": "servus_shuttles:shuttle_garage"
+  }
+}

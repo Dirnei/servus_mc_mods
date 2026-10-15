@@ -1,7 +1,7 @@
 {
   "values": [
-    "servus_storage:storage_terminal",
-    "servus_storage:crafting_station",
-    "servus_storage:shuttle_workshop"
+    "servus_shuttles:storage_terminal",
+    "servus_shuttles:crafting_station",
+    "servus_shuttles:shuttle_workshop"
   ]
 }

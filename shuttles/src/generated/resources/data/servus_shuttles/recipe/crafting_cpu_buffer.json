@@ -1,0 +1,19 @@
+{
+  "type": "servus_foundation:wood_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:chest",
+    "I": "minecraft:iron_ingot",
+    "P": "#minecraft:planks",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "IRI",
+    "RCR",
+    "PPP"
+  ],
+  "result": {
+    "count": 4,
+    "id": "servus_shuttles:crafting_cpu_buffer"
+  }
+}

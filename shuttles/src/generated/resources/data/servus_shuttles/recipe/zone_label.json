@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "minecraft:paper",
+    "#c:dyes"
+  ],
+  "result": {
+    "id": "servus_shuttles:zone_label"
+  }
+}

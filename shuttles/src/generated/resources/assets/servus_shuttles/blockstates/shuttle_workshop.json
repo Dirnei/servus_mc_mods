@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "servus_shuttles:block/shuttle_workshop"
+    }
+  }
+}

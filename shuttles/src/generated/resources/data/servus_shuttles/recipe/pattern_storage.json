@@ -1,0 +1,19 @@
+{
+  "type": "servus_foundation:wood_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:paper",
+    "C": "minecraft:chest",
+    "I": "minecraft:iron_ingot",
+    "P": "#minecraft:planks",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "IAI",
+    "RCR",
+    "PPP"
+  ],
+  "result": {
+    "id": "servus_shuttles:pattern_storage"
+  }
+}

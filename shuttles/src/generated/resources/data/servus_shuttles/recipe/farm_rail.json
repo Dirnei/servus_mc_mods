@@ -1,0 +1,17 @@
+{
+  "type": "servus_foundation:wood_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "P": "#minecraft:planks"
+  },
+  "pattern": [
+    "C C",
+    "CPC",
+    "C C"
+  ],
+  "result": {
+    "count": 16,
+    "id": "servus_shuttles:farm_rail"
+  }
+}

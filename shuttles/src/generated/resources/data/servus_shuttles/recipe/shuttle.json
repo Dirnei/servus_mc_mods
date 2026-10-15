@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": "servus_shuttles:rail",
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "I I",
+    "RBR",
+    "III"
+  ],
+  "result": {
+    "id": "servus_shuttles:shuttle"
+  }
+}

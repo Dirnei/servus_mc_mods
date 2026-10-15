@@ -1,18 +1,18 @@
 {
   "values": [
-    "servus_storage:warehouse_controller",
-    "servus_storage:rail",
-    "servus_storage:elevator",
-    "servus_storage:heavy_rack",
-    "servus_storage:inbound_station",
-    "servus_storage:packing_station",
-    "servus_storage:shuttle_garage",
-    "servus_storage:outbound_station",
-    "servus_storage:crafting_cpu",
-    "servus_storage:crafting_cpu_buffer",
-    "servus_storage:production_terminal",
-    "servus_storage:pattern_storage",
-    "servus_storage:farm_rail",
-    "servus_storage:field_head"
+    "servus_shuttles:warehouse_controller",
+    "servus_shuttles:rail",
+    "servus_shuttles:elevator",
+    "servus_shuttles:heavy_rack",
+    "servus_shuttles:inbound_station",
+    "servus_shuttles:packing_station",
+    "servus_shuttles:shuttle_garage",
+    "servus_shuttles:outbound_station",
+    "servus_shuttles:crafting_cpu",
+    "servus_shuttles:crafting_cpu_buffer",
+    "servus_shuttles:production_terminal",
+    "servus_shuttles:pattern_storage",
+    "servus_shuttles:farm_rail",
+    "servus_shuttles:field_head"
   ]
 }

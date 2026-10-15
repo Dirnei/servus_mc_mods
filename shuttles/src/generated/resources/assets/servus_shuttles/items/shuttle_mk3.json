@@ -1,0 +1,7 @@
+{
+  "model": {
+    "type": "servus_shuttles:shuttle",
+    "model": "servus_shuttles:item/shuttle_mk3"
+  },
+  "oversized_in_gui": true
+}

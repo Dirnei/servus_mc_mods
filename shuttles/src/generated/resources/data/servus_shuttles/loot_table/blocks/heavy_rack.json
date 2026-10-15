@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:block",
+  "functions": [
+    {
+      "function": "minecraft:copy_components",
+      "include": [
+        "servus_shuttles:rack_wood"
+      ],
+      "source": "block_entity"
+    }
+  ],
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "servus_shuttles:heavy_rack"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "servus_shuttles:blocks/heavy_rack"
+}

@@ -1,0 +1,19 @@
+{
+  "type": "servus_foundation:wood_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:chest",
+    "D": "minecraft:dropper",
+    "H": "minecraft:hopper",
+    "I": "minecraft:iron_ingot",
+    "P": "#minecraft:planks"
+  },
+  "pattern": [
+    "ICI",
+    "IDI",
+    "PHP"
+  ],
+  "result": {
+    "id": "servus_shuttles:outbound_station"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "servus_shuttles:heavy_rack",
+  "category": "misc",
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "P": "#minecraft:planks"
+  },
+  "pattern": [
+    "I I",
+    "PPP",
+    "I I"
+  ],
+  "result": {
+    "id": "servus_shuttles:heavy_rack"
+  }
+}

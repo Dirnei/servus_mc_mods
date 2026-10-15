@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_shuttle": {
+      "conditions": {
+        "items": [
+          {
+            "items": "servus_shuttles:shuttle"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "servus_shuttles:harvester"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_shuttle"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "servus_shuttles:harvester"
+    ]
+  }
+}

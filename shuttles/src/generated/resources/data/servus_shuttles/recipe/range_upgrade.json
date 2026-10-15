@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": "minecraft:composter",
+    "I": "minecraft:copper_ingot",
+    "S": "minecraft:wheat_seeds",
+    "W": "minecraft:bone_meal"
+  },
+  "pattern": [
+    "ISI",
+    "WCW",
+    "ISI"
+  ],
+  "result": {
+    "id": "servus_shuttles:range_upgrade"
+  }
+}

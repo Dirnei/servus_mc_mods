@@ -1,7 +1,0 @@
-{
-  "model": {
-    "type": "servus_storage:shuttle",
-    "model": "servus_storage:item/shuttle"
-  },
-  "oversized_in_gui": true
-}

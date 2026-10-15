@@ -1,0 +1,73 @@
+{
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#iron"
+        },
+        "east": {
+          "texture": "#iron"
+        },
+        "north": {
+          "texture": "#iron"
+        },
+        "south": {
+          "texture": "#iron"
+        },
+        "up": {
+          "texture": "#iron"
+        },
+        "west": {
+          "texture": "#iron"
+        }
+      },
+      "from": [
+        2,
+        0,
+        0
+      ],
+      "to": [
+        14,
+        1,
+        2
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#iron"
+        },
+        "east": {
+          "texture": "#iron"
+        },
+        "north": {
+          "texture": "#iron"
+        },
+        "south": {
+          "texture": "#iron"
+        },
+        "up": {
+          "texture": "#iron"
+        },
+        "west": {
+          "texture": "#iron"
+        }
+      },
+      "from": [
+        2,
+        0,
+        13
+      ],
+      "to": [
+        14,
+        1,
+        15
+      ]
+    }
+  ],
+  "textures": {
+    "board": "servus_shuttles:block/heavy_rack_board",
+    "iron": "servus_shuttles:block/heavy_rack_iron",
+    "particle": "servus_shuttles:block/heavy_rack_iron"
+  }
+}
