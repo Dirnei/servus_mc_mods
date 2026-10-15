@@ -1,0 +1,11 @@
+{
+  "type": "servus_alchemy:pressing",
+  "input": {
+    "count": 16,
+    "ingredient": "servus_alchemy:caput_mortuum"
+  },
+  "result": {
+    "id": "minecraft:netherite_scrap"
+  },
+  "time": 600
+}

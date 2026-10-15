@@ -275,6 +275,12 @@
       "inputs": [],
       "outputs": []
     },
+    "servus_alchemy:athanor/prelum_screw": {
+      "type": "servus_alchemy:athanor",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
     "servus_alchemy:athanor/principle_dropper": {
       "type": "servus_alchemy:athanor",
       "special": true,
@@ -398,6 +404,31 @@
       "outputs": [
         {"item": "servus_alchemy:paracelsus_journal", "count": 1}
       ]
+    },
+    "servus_alchemy:prelum": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": [" S ", "LPL", "DDD"],
+      "key": {
+        "D": {"item": "minecraft:polished_deepslate"},
+        "L": {"item": "minecraft:stripped_dark_oak_log"},
+        "P": {"item": "minecraft:heavy_weighted_pressure_plate"},
+        "S": {"item": "servus_alchemy:prelum_screw"}
+      },
+      "inputs": [
+        {"item": "minecraft:heavy_weighted_pressure_plate", "count": 1},
+        {"item": "minecraft:polished_deepslate", "count": 3},
+        {"item": "minecraft:stripped_dark_oak_log", "count": 2},
+        {"item": "servus_alchemy:prelum_screw", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_alchemy:prelum", "count": 1}
+      ]
+    },
+    "servus_alchemy:pressing/netherite_scrap": {
+      "type": "servus_alchemy:pressing",
+      "special": true,
+      "inputs": [],
+      "outputs": []
     },
     "servus_alchemy:principle_vat": {
       "type": "minecraft:crafting_shaped",
@@ -1358,6 +1389,9 @@
     "minecraft:gold_ingot": {
       "name": "Gold Ingot"
     },
+    "minecraft:heavy_weighted_pressure_plate": {
+      "name": "Heavy Weighted Pressure Plate"
+    },
     "minecraft:hopper": {
       "name": "Hopper"
     },
@@ -1382,6 +1416,9 @@
     "minecraft:piston": {
       "name": "Piston"
     },
+    "minecraft:polished_deepslate": {
+      "name": "Polished Deepslate"
+    },
     "minecraft:quartz": {
       "name": "Nether Quartz"
     },
@@ -1390,6 +1427,9 @@
     },
     "minecraft:shears": {
       "name": "Shears"
+    },
+    "minecraft:stripped_dark_oak_log": {
+      "name": "Stripped Dark Oak Log"
     },
     "minecraft:wheat_seeds": {
       "name": "Wheat Seeds"
@@ -1429,6 +1469,9 @@
     },
     "servus_alchemy:prelum": {
       "name": "Prelum"
+    },
+    "servus_alchemy:prelum_screw": {
+      "name": "Prelum Screw"
     },
     "servus_alchemy:principle_dropper": {
       "name": "Principle Dropper"

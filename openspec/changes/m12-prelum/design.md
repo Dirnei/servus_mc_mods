@@ -19,7 +19,7 @@ See proposal.md for the why. The Salamander Forge (`m12-salamander-forge`) set t
 ## Decisions
 
 ### D1 Pressing recipe type
-`prelum/PressingRecipe(SizedIngredient input, ItemStackTemplate resultTemplate, int time) implements AlchemyRecipe.CountedInput`, JSON `{"type": "servus_alchemy:pressing", "input": {"ingredient": ..., "count": 16}, "result": {"id": ...}, "time": 600}`, `time` optional with default 600. `assemble` returns the result. Registered as `PRESSING` in `ServusAlchemyRecipes` and synced to clients in `ServusAlchemy`. Alternative considered: input count and result in the machine stats JSON. Rejected: stats have no item fields, and a recipe type gives JEI and datapacks the familiar shape of the other alchemy machines.
+`prelum/PressingRecipe(SizedIngredient input, ItemStackTemplate resultTemplate, int time) implements AlchemyRecipe.CountedInput`, JSON `{"type": "servus_alchemy:pressing", "input": {"ingredient": ..., "count": 16}, "result": {"id": ...}, "time": 600}`, `time` required, so the shipped JSON shows it. `assemble` returns the result. Registered as `PRESSING` in `ServusAlchemyRecipes` and synced to clients in `ServusAlchemy`. Alternative considered: input count and result in the machine stats JSON. Rejected: stats have no item fields, and a recipe type gives JEI and datapacks the familiar shape of the other alchemy machines.
 
 ### D2 Datagen table
 `AlchemyRecipeTable.pressing()` returns one `Press("netherite_scrap", "Caput Mortuum", Input.of(CAPUT_MORTUUM), 16, NETHERITE_SCRAP, 600)` row; the recipe provider writes `recipe/pressing/netherite_scrap.json` from it and the Workshop reads it for its text.

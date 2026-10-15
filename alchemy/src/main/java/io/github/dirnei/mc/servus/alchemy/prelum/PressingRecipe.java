@@ -24,12 +24,13 @@ import net.neoforged.neoforge.common.crafting.SizedIngredient;
  */
 public record PressingRecipe(SizedIngredient input, ItemStackTemplate resultTemplate, int time) implements AlchemyRecipe.CountedInput {
 
+    /** The time Alchemy's own pressing takes. */
     public static final int DEFAULT_TIME = 600;
 
     public static final MapCodec<PressingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             SizedIngredient.NESTED_CODEC.fieldOf("input").forGetter(PressingRecipe::input),
             ItemStackTemplate.CODEC.fieldOf("result").forGetter(PressingRecipe::resultTemplate),
-            Codec.INT.optionalFieldOf("time", DEFAULT_TIME).forGetter(PressingRecipe::time)
+            Codec.INT.fieldOf("time").forGetter(PressingRecipe::time)
     ).apply(instance, PressingRecipe::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PressingRecipe> STREAM_CODEC = StreamCodec.composite(

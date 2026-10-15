@@ -11,7 +11,7 @@
 
 ## 3. Recipes
 
-- [ ] 3.1 `AlchemyRecipeTable.pressing()` and the Prelum Screw Athanor row (D2, D8); recipe provider writes the pressing recipe and the shaped Prelum recipe; `:alchemy:runData`. Verify: `gradlew build` green.
+- [x] 3.1 `AlchemyRecipeTable.pressing()` and the Prelum Screw Athanor row (D2, D8); recipe provider writes the pressing recipe and the shaped Prelum recipe; `:alchemy:runData`. Verify: `gradlew build` green.
 
 ## 4. Behaviour tests
 

@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.alchemy.CalcinationRecipe;
 import io.github.dirnei.mc.servus.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorRecipe;
+import io.github.dirnei.mc.servus.alchemy.prelum.PressingRecipe;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurificationRecipe;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
@@ -54,6 +55,15 @@ final class ServusAlchemyRecipeProvider extends RecipeProvider {
         purification(output);
         coagulation(output);
         athanor(output);
+        pressing(output);
+    }
+
+    /** What the Prelum presses, from the shared table the journal lists. */
+    private void pressing(RecipeOutput output) {
+        for (AlchemyRecipeTable.Press row : AlchemyRecipeTable.pressing()) {
+            output.accept(key("pressing/" + row.name()), new PressingRecipe(new SizedIngredient(row.input().ingredient(items), row.count()),
+                    row.result(), row.time()), null);
+        }
     }
 
     /** What the Purifier leaches, from the shared table the journal lists. */
@@ -111,6 +121,16 @@ final class ServusAlchemyRecipeProvider extends RecipeProvider {
                 .define('I', ServusAlchemyItems.IGNIS_PERPETUUS.get())
                 .define('B', Items.BRICKS)
                 .unlockedBy("has_ignis_perpetuus", has(ServusAlchemyItems.IGNIS_PERPETUUS.get()))
+                .save(output);
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusAlchemyItems.PRELUM.get())
+                .pattern(" S ")
+                .pattern("LPL")
+                .pattern("DDD")
+                .define('S', ServusAlchemyItems.PRELUM_SCREW.get())
+                .define('L', Items.STRIPPED_DARK_OAK_LOG)
+                .define('P', Items.HEAVY_WEIGHTED_PRESSURE_PLATE)
+                .define('D', Items.POLISHED_DEEPSLATE)
+                .unlockedBy("has_prelum_screw", has(ServusAlchemyItems.PRELUM_SCREW.get()))
                 .save(output);
         ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusAlchemyItems.CALCINER.get())
                 .pattern("BIB")

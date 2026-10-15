@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.alchemy.datagen;
 import io.github.dirnei.mc.servus.alchemy.Principles;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorRecipe;
 import io.github.dirnei.mc.servus.alchemy.datagen.gamedata.GameDataExportProvider;
+import io.github.dirnei.mc.servus.alchemy.prelum.PressingRecipe;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import java.util.List;
@@ -64,6 +65,10 @@ public final class AlchemyRecipeTable {
     public record Purify(String name, String label, Input input, int count, int water, int salt, ItemStackTemplate residue, int time) {
     }
 
+    /** One pressing at the Prelum: a counted item pressed into one result. */
+    public record Press(String name, String label, Input input, int count, ItemStackTemplate result, int time) {
+    }
+
     private AlchemyRecipeTable() {
     }
 
@@ -90,6 +95,12 @@ public final class AlchemyRecipeTable {
     public static List<Purify> purification() {
         return List.of(new Purify("ash", "Ash", Input.of(ServusAlchemyItems.ASH.get()), 4, 400, 400,
                 new ItemStackTemplate(ServusAlchemyItems.CAPUT_MORTUUM.get()), 160));
+    }
+
+    /** What the Prelum presses: Caput Mortuum into Netherite Scrap, the end of the Work. */
+    public static List<Press> pressing() {
+        return List.of(new Press("netherite_scrap", "Caput Mortuum", Input.of(ServusAlchemyItems.CAPUT_MORTUUM.get()), 16,
+                new ItemStackTemplate(Items.NETHERITE_SCRAP), PressingRecipe.DEFAULT_TIME));
     }
 
     /** What the Coagulator makes from the principles; no metal in Nigredo. */
@@ -125,7 +136,9 @@ public final class AlchemyRecipeTable {
                 new AthanorCraft("ignis_perpetuus", "Sal Ammoniac", "Ignis Perpetuus", Input.of(ServusAlchemyItems.SAL_AMMONIAC.get()),
                         new Principles(0, 500, 0), 2, new ItemStackTemplate(ServusAlchemyItems.IGNIS_PERPETUUS.get()), 200),
                 new AthanorCraft("sealed_flask", "Crying Obsidian", "Sealed Flask", Input.of(Items.CRYING_OBSIDIAN),
-                        new Principles(250, 0, 500), 3, new ItemStackTemplate(ServusAlchemyItems.SEALED_FLASK.get()), 200));
+                        new Principles(250, 0, 500), 3, new ItemStackTemplate(ServusAlchemyItems.SEALED_FLASK.get()), 200),
+                new AthanorCraft("prelum_screw", "Dragon's Breath", "Prelum Screw", Input.of(Items.DRAGON_BREATH),
+                        new Principles(0, 500, 500), 3, new ItemStackTemplate(ServusAlchemyItems.PRELUM_SCREW.get()), 200));
     }
 
     /** The English name of an Athanor stage. */
