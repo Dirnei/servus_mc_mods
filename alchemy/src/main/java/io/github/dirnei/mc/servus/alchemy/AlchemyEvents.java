@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.alchemy;
 
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTierData;
+import io.github.dirnei.mc.servus.alchemy.calciner.EternalFireData;
 import io.github.dirnei.mc.servus.alchemy.hint.OldGnomeData;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeGiftData;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinData;
@@ -22,6 +23,7 @@ public final class AlchemyEvents {
     @SubscribeEvent
     public static void onAddReloadListeners(AddServerReloadListenersEvent event) {
         event.addListener(AthanorTierData.LISTENER_ID, AthanorTierData.INSTANCE);
+        event.addListener(EternalFireData.LISTENER_ID, EternalFireData.INSTANCE);
         event.addListener(VeinData.LISTENER_ID, VeinData.INSTANCE);
         event.addListener(GnomeGiftData.LISTENER_ID, GnomeGiftData.INSTANCE);
         event.addListener(ElixirDoseData.LISTENER_ID, ElixirDoseData.INSTANCE);

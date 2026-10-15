@@ -3,7 +3,7 @@
 ## 1. Speed as pure logic and data
 
 - [x] 1.1 Add `alchemy/.../calciner/EternalFireSpeed.java` with `cycleTicks(int recipeTicks, int speed)` (`max(1, recipeTicks / max(1, speed))`) and `alchemy/src/test/java/.../calciner/EternalFireSpeedTest.java` with tests `halvesTheTime` (80, 2 gives 40), `roundsDown` (81, 2 gives 40), `neverBelowOneTick` (1, 4 gives 1), `speedOneKeepsTheTime` (80, 1 gives 80), `speedBelowOneCountsAsOne` (80, 0 gives 80). Verify: `gradlew :alchemy:test` green.
-- [ ] 1.2 Add `alchemy/.../calciner/EternalFireData.java` (reload listener for `servus_alchemy/eternal_fire`, file `calciner`, field `speed` 1 to 64, default 1), register it in `AlchemyEvents.java`, and ship `alchemy/src/main/resources/data/servus_alchemy/servus_alchemy/eternal_fire/calciner.json` with `{ "speed": 2 }`. Verify: `gradlew build` green.
+- [x] 1.2 Add `alchemy/.../calciner/EternalFireData.java` (reload listener for `servus_alchemy/eternal_fire`, file `calciner`, field `speed` 1 to 64, default 1), register it in `AlchemyEvents.java`, and ship `alchemy/src/main/resources/data/servus_alchemy/servus_alchemy/eternal_fire/calciner.json` with `{ "speed": 2 }`. Verify: `gradlew build` green.
 
 ## 2. Fire that never goes out
 
