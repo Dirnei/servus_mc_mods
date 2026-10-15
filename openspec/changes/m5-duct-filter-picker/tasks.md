@@ -7,7 +7,7 @@
 
 ## 2. Filter by id on the server
 
-- [ ] 2.1 Add `foundation/.../logistics/menu/SetDuctFilterPayload.java` and register it with `playToServer` in `foundation/.../data/ServusFoundationPayloads.java`; add `UtilityDuctMenu.setFilter(int, ItemStack)` and a static handler that checks the open menu, the Item Pipe and the slot range (design D4). Verify: `gradlew build` green.
+- [x] 2.1 Add `foundation/.../logistics/menu/SetDuctFilterPayload.java` and register it with `playToServer` in `foundation/.../data/ServusFoundationPayloads.java`; add `UtilityDuctMenu.setFilter(int, ItemStack)` and a static handler that checks the open menu, the Item Pipe and the slot range (design D4). Verify: `gradlew build` green.
 - [ ] 2.2 `UtilityDuctMenu.clicked`: right click on a filter slot clears it; left click with an item keeps today's copy (design D3). GameTests in `foundation/.../logistics/gametest/ServusLogisticsGameTests.java`: `filterSetByIdWithoutOwning` (mock player with empty inventory, `setFilter` through the payload handler, the side then passes only that item and the inventory stays empty), `filterRightClickClears`, `filterCursorItemKept`. Verify: `gradlew build` green and the GameTests pass in `gradlew :foundation:runGameTestServer`.
 
 ## 3. Search popup in the duct GUI

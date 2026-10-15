@@ -8,9 +8,12 @@ import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsM
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -25,7 +28,8 @@ import net.minecraft.world.item.ItemStack;
  * Power Cable, Fluid Pipe) the mode, the channel and a remove button (the data
  * line only on or off and remove), for the
  * Item Pipe the side's filter as ghost slots and its priority, plus the
- * player inventory. Everything but the slots goes through button ids.
+ * player inventory. Everything but the slots goes through button ids; a filter
+ * slot is also set by item id through {@link SetDuctFilterPayload}.
  */
 public class UtilityDuctMenu extends AbstractContainerMenu {
 
@@ -162,12 +166,39 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
         return false;
     }
 
+    /**
+     * Sets a filter slot to one copy of the stack, or clears it with an empty
+     * stack. Does nothing when the duct has no Item Pipe or the slot is out of
+     * range; returns whether the slot was set.
+     */
+    public boolean setFilter(int slot, ItemStack stack) {
+        if (!duct.has(Line.ITEM) || slot < 0 || slot >= UtilityDuctBlockEntity.FILTER_SLOTS) {
+            return false;
+        }
+        ((GhostSlot) slots.get(slot)).setGhost(stack);
+        return true;
+    }
+
+    /**
+     * Server side: sets a filter slot of the endpoint GUI the player has open to
+     * the item with that id; an empty id, an unknown id or air clears it.
+     * Returns false and changes nothing when the player has no usable endpoint
+     * GUI open, its duct has no Item Pipe or the slot is out of range.
+     */
+    public static boolean setFilterById(Player player, int slot, Optional<Identifier> item) {
+        if (!(player.containerMenu instanceof UtilityDuctMenu menu) || !menu.stillValid(player)) {
+            return false;
+        }
+        ItemStack stack = item.flatMap(BuiltInRegistries.ITEM::getOptional).map(ItemStack::new).orElse(ItemStack.EMPTY);
+        return menu.setFilter(slot, stack);
+    }
+
+    /** A click on a filter slot: right click clears it, any other click copies the cursor (an empty cursor clears). */
     @Override
     public void clicked(int slotId, int button, ContainerInput clickType, Player player) {
-        if (slotId >= 0 && slotId < UtilityDuctBlockEntity.FILTER_SLOTS && slots.get(slotId) instanceof GhostSlot ghost) {
-            if (ghost.isActive()) {
-                ghost.setGhost(getCarried());
-            }
+        if (slotId >= 0 && slotId < UtilityDuctBlockEntity.FILTER_SLOTS) {
+            boolean rightClick = clickType == ContainerInput.PICKUP && button == 1;
+            setFilter(slotId, rightClick ? ItemStack.EMPTY : getCarried());
             return;
         }
         super.clicked(slotId, button, clickType, player);
@@ -182,7 +213,7 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
                 ItemSlots filter = filter();
                 for (int i = 0; i < UtilityDuctBlockEntity.FILTER_SLOTS; i++) {
                     if (filter.getStackInSlot(i).isEmpty()) {
-                        ((GhostSlot) slots.get(i)).setGhost(stack);
+                        setFilter(i, stack);
                         break;
                     }
                 }
