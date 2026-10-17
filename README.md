@@ -41,14 +41,14 @@ npm test
 
 ## Releasing
 
-Each mod has its own version in `<mod>/gradle.properties`. To release one, bump `mod_version`, commit, then push a tag:
+Each mod is released on its own by pushing a tag `<mod>-v<version>`. The tag is the version; `mod_version` in `<mod>/gradle.properties` only names dev builds.
 
 ```
 git tag -a shuttles-v0.2.0 -m "What changed"
 git push origin shuttles-v0.2.0
 ```
 
-The Release workflow checks that the tag matches `mod_version`, builds the mod, creates the GitHub release and uploads the jar to CurseForge. The tag message is the changelog; a version containing `alpha` or `beta` is published as that type. It needs the secret `CURSEFORGE_TOKEN` and the variables `CURSEFORGE_ID_FOUNDATION`, `CURSEFORGE_ID_ALCHEMY` and `CURSEFORGE_ID_SHUTTLES`; a mod without an id goes to GitHub only.
+The Release workflow builds the mod with the tag's version, creates the GitHub release and uploads the jar to CurseForge. The tag message is the changelog; a version containing `alpha` or `beta` is published as that type. It needs the secret `CURSEFORGE_TOKEN` and the variables `CURSEFORGE_ID_FOUNDATION`, `CURSEFORGE_ID_ALCHEMY` and `CURSEFORGE_ID_SHUTTLES`; a mod without an id goes to GitHub only.
 
 ## Development
 

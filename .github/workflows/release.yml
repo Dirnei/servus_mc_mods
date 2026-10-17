@@ -1,7 +1,7 @@
 name: Release
 
 # Releases one mod per tag: <mod>-v<version>, for example shuttles-v0.2.0 or foundation-v0.3.0-beta.
-# The version must match mod_version in <mod>/gradle.properties. A version containing "alpha" or
+# The jar gets the tag's version; mod_version in gradle.properties only names dev builds. A version containing "alpha" or
 # "beta" is published as that type, anything else as release.
 #
 # Repository settings:
@@ -37,11 +37,6 @@ jobs:
         run: |
           mod="${TAG%%-v*}"
           version="${TAG#*-v}"
-          declared=$(sed -n 's/^mod_version=//p' "$mod/gradle.properties" | tr -d '\r')
-          if [ "$declared" != "$version" ]; then
-            echo "::error::Tag $TAG says $version but $mod/gradle.properties has mod_version=$declared"
-            exit 1
-          fi
           case "$version" in
             *alpha*) type=alpha ;;
             *beta*) type=beta ;;
@@ -78,7 +73,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build and test
-        run: ./gradlew :${{ steps.meta.outputs.mod }}:build --no-daemon
+        run: ./gradlew :${{ steps.meta.outputs.mod }}:build -Prelease_version_${{ steps.meta.outputs.mod }}=${{ steps.meta.outputs.version }} --no-daemon
 
       - name: Publish to GitHub and CurseForge
         uses: Kira-NT/mc-publish@v3
