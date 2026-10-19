@@ -59,6 +59,7 @@ foreach ($d in $deps) {
 if (Test-Path $mods) { Remove-Item $mods -Recurse -Force }
 New-Item -ItemType Directory $mods | Out-Null
 $jars | ForEach-Object { Copy-Item $_.FullName $mods }
+[IO.File]::WriteAllText((Join-Path $server 'versions.env'), "VERSION=$mc`nNEOFORGE_VERSION=$neo`n", [Text.UTF8Encoding]::new($false))
 
 # Player packs. Every jar goes in as an override, so no download links are needed.
 $sha = (git -C $root rev-parse --short HEAD).Trim()

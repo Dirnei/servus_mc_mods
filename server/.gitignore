@@ -2,3 +2,4 @@ data/
 mods/
 dist/
 .env
+versions.env

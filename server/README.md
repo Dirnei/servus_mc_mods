@@ -14,7 +14,11 @@ docker compose logs -f                 # wait for "Done"
 
 After a code change: run `pack.ps1` again, then `docker compose restart` so the server loads the
 same jars as the new pack. Players need the new pack too, or they cannot join. The world lives in
-`server\data` and survives restarts. Console: `docker attach servus-playtest`, leave with Ctrl+P Ctrl+Q.
+`server\data\world-26.1` (`LEVEL` in `.env`) and survives restarts. Console: `docker attach servus-playtest`,
+leave with Ctrl+P Ctrl+Q.
+
+Local testing with the Gradle dev client: set `ONLINE_MODE=FALSE` in `.env`, start `runClientAll`,
+Multiplayer, server address `localhost`.
 
 ## Players
 

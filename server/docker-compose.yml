@@ -1,16 +1,17 @@
-# Play test server for the Servus mods. Run pack.ps1 first: it fills ./mods.
+# Play test server for the Servus mods. Run pack.ps1 first: it fills ./mods and writes
+# versions.env (VERSION and NEOFORGE_VERSION from gradle.properties).
 # Start: docker compose up -d     Logs: docker compose logs -f     Stop: docker compose down
 services:
   mc:
-    image: itzg/minecraft-server:java21
+    image: itzg/minecraft-server:java25
     container_name: servus-playtest
     ports:
       - "25565:25565"
+    env_file: versions.env
     environment:
       EULA: "TRUE"
       TYPE: NEOFORGE
-      VERSION: "1.21.1"
-      NEOFORGE_VERSION: "${NEOFORGE_VERSION:-21.1.255}"
+      LEVEL: "${LEVEL:-world-26.1}"
       MEMORY: "${MEMORY:-4G}"
       MOTD: "Servus play test"
       DIFFICULTY: normal
