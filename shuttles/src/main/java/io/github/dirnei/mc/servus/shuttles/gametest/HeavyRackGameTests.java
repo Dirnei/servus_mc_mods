@@ -90,11 +90,12 @@ public final class HeavyRackGameTests {
         return BuiltInRegistries.BLOCK.getKey(block);
     }
 
-    /** The recipe remembers spruce, the majority, and the middle of three different woods. */
+    /** One craft gives three racks; they remember spruce, the majority, and the middle of three different woods. */
     @ServusGameTest(timeoutTicks = 20)
     public static void rackRecipePicksWood(GameTestHelper helper) {
         ItemStack spruce = craftRack(helper, Items.SPRUCE_PLANKS, Items.SPRUCE_PLANKS, Items.SPRUCE_PLANKS);
         helper.assertTrue(spruce.is(ServusShuttlesItems.HEAVY_RACK.get()), "the result is a rack");
+        helper.assertTrue(spruce.getCount() == 3, "one craft gives three racks, got " + spruce.getCount());
         helper.assertTrue(idOf(Blocks.SPRUCE_PLANKS).equals(spruce.get(ServusShuttlesComponents.RACK_WOOD.get())), "three spruce planks give spruce");
         ItemStack majority = craftRack(helper, Items.OAK_PLANKS, Items.SPRUCE_PLANKS, Items.OAK_PLANKS);
         helper.assertTrue(idOf(Blocks.OAK_PLANKS).equals(majority.get(ServusShuttlesComponents.RACK_WOOD.get())), "oak, spruce, oak gives oak");

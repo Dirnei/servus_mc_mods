@@ -1085,7 +1085,7 @@
         {"item": "minecraft:iron_ingot", "count": 4}
       ],
       "outputs": [
-        {"item": "servus_shuttles:heavy_rack", "count": 1}
+        {"item": "servus_shuttles:heavy_rack", "count": 3}
       ]
     },
     "servus_shuttles:inbound_station": {

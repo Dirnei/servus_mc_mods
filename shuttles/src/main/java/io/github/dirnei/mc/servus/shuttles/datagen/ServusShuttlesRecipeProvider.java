@@ -140,7 +140,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_rail", has(ServusShuttlesItems.RAIL.get()))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.HEAVY_RACK.get())
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.HEAVY_RACK.get(), 3)
                 .pattern("I I")
                 .pattern("PPP")
                 .pattern("I I")
