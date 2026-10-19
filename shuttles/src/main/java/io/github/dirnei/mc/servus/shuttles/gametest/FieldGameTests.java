@@ -215,6 +215,70 @@ public final class FieldGameTests {
         helper.succeed();
     }
 
+    /** Uses the stack on the head at {@code pos} and returns what the player holds afterwards. */
+    private static ItemStack useOnHead(GameTestHelper helper, BlockPos pos, Player player, ItemStack stack) {
+        BlockPos absolute = helper.absolutePos(pos);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        helper.getLevel().getBlockState(absolute).useItemOn(stack, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        return player.getItemInHand(InteractionHand.MAIN_HAND);
+    }
+
+    /** A water bucket empties into the head's buffer. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void fieldHeadTakesWaterBucket(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(5, 1, 5);
+        FieldFixtures.head(helper, pos);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack held = useOnHead(helper, pos, player, new ItemStack(Items.WATER_BUCKET));
+        FieldHeadBlockEntity head = helper.getBlockEntity(pos, FieldHeadBlockEntity.class);
+        helper.assertTrue(head.water() == 1000, "the bucket should pour 1000 mB in, got " + head.water());
+        helper.assertTrue(held.is(Items.BUCKET), "the player should hold an empty bucket");
+        helper.succeed();
+    }
+
+    /** A lava bucket stays full and the head stays empty. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void fieldHeadRefusesLavaBucket(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(5, 1, 5);
+        FieldFixtures.head(helper, pos);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack held = useOnHead(helper, pos, player, new ItemStack(Items.LAVA_BUCKET));
+        FieldHeadBlockEntity head = helper.getBlockEntity(pos, FieldHeadBlockEntity.class);
+        helper.assertTrue(head.water() == 0, "the head must refuse lava, holds " + head.water());
+        helper.assertTrue(held.is(Items.LAVA_BUCKET), "the player should keep the lava bucket");
+        helper.succeed();
+    }
+
+    /** An empty bucket takes no water from the head. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void fieldHeadGivesNoWaterToEmptyBucket(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(5, 1, 5);
+        FieldFixtures.head(helper, pos);
+        FieldFixtures.fluid(helper, pos).fill(new FluidStack(Fluids.WATER, 2000), false);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack held = useOnHead(helper, pos, player, new ItemStack(Items.BUCKET));
+        FieldHeadBlockEntity head = helper.getBlockEntity(pos, FieldHeadBlockEntity.class);
+        helper.assertTrue(head.water() == 2000, "the head must keep its water, holds " + head.water());
+        helper.assertTrue(held.is(Items.BUCKET), "the bucket should stay empty");
+        helper.succeed();
+    }
+
+    /** A full head leaves the water bucket full. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void fullFieldHeadKeepsBucket(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(5, 1, 5);
+        FieldFixtures.head(helper, pos);
+        int capacity = ShuttlesStatsManager.INSTANCE.fieldCapacity();
+        FieldFixtures.fluid(helper, pos).fill(new FluidStack(Fluids.WATER, capacity), false);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack held = useOnHead(helper, pos, player, new ItemStack(Items.WATER_BUCKET));
+        FieldHeadBlockEntity head = helper.getBlockEntity(pos, FieldHeadBlockEntity.class);
+        helper.assertTrue(head.water() == capacity, "the full head should stay full, holds " + head.water());
+        helper.assertTrue(held.is(Items.WATER_BUCKET), "the player should keep the water bucket");
+        helper.succeed();
+    }
+
     /** A water cauldron pulled in by a Utility Duct fluid line fills the head. */
     @ServusGameTest(timeoutTicks = 100)
     public static void headFillsThroughThePipe(GameTestHelper helper) {

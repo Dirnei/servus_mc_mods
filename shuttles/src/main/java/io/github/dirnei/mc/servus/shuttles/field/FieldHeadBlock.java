@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.field;
 
 import com.mojang.serialization.MapCodec;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -13,7 +14,10 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
@@ -87,6 +91,23 @@ public class FieldHeadBlock extends BaseEntityBlock {
             return null;
         }
         return createTickerHelper(type, ServusShuttlesBlockEntities.FIELD_HEAD.get(), FieldHeadBlockEntity::serverTick);
+    }
+
+    /**
+     * A fluid container (a bucket, or any item with a fluid handler) pours its
+     * water into the buffer; the head never fills it back. Other items open the GUI.
+     */
+    @Override
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                          Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (!Transfer.isFluidContainer(stack)) {
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
+        }
+        if (!level.isClientSide()) {
+            // ItemAccess keeps the container of a creative player, like a vanilla bucket.
+            FluidUtil.interactWithFluidHandler(player, hand, level, pos, hitResult.getDirection(), null);
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Override
