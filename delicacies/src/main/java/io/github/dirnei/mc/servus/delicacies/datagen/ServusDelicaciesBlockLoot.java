@@ -6,7 +6,9 @@ import io.github.dirnei.mc.servus.delicacies.crop.DelicaciesCropBlock;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesBlocks;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesItems;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import net.minecraft.advancements.criterion.StatePropertiesPredicate;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -23,7 +25,7 @@ import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
 import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
-/** Crop drops like vanilla: wheat style for seeded crops, carrot style for self planting ones. */
+/** Crop drops like vanilla (wheat style for seeded crops, carrot style for self planting ones); kitchen blocks drop themselves. */
 final class ServusDelicaciesBlockLoot extends BlockLootSubProvider {
 
     ServusDelicaciesBlockLoot(HolderLookup.Provider registries) {
@@ -38,6 +40,9 @@ final class ServusDelicaciesBlockLoot extends BlockLootSubProvider {
             add(block, crop.selfPlanting()
                     ? selfPlantingDrops(block, harvest, ripe(block))
                     : createCropDrops(block, harvest, ServusDelicaciesItems.planting(crop), ripe(block)));
+        }
+        for (Block block : kitchenBlocks()) {
+            dropSelf(block);
         }
     }
 
@@ -58,8 +63,13 @@ final class ServusDelicaciesBlockLoot extends BlockLootSubProvider {
                 .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(CropBlock.AGE, CropStages.MAX_AGE));
     }
 
+    private static List<Block> kitchenBlocks() {
+        return List.of(ServusDelicaciesBlocks.STOVE_TILE.get(), ServusDelicaciesBlocks.POT.get(), ServusDelicaciesBlocks.PAN.get(),
+                ServusDelicaciesBlocks.CUTTING_BOARD.get());
+    }
+
     @Override
     protected Iterable<Block> getKnownBlocks() {
-        return Arrays.stream(CropKind.values()).<Block>map(ServusDelicaciesBlocks::crop).toList();
+        return Stream.concat(Arrays.stream(CropKind.values()).<Block>map(ServusDelicaciesBlocks::crop), kitchenBlocks().stream()).toList();
     }
 }

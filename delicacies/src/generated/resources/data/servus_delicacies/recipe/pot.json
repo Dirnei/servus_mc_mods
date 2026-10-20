@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "I I",
+    "III"
+  ],
+  "result": {
+    "id": "servus_delicacies:pot"
+  }
+}

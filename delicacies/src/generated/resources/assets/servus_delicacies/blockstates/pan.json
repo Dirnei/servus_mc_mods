@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "cooking=false,facing=east": {
+      "model": "servus_delicacies:block/pan",
+      "y": 90
+    },
+    "cooking=false,facing=north": {
+      "model": "servus_delicacies:block/pan"
+    },
+    "cooking=false,facing=south": {
+      "model": "servus_delicacies:block/pan",
+      "y": 180
+    },
+    "cooking=false,facing=west": {
+      "model": "servus_delicacies:block/pan",
+      "y": 270
+    },
+    "cooking=true,facing=east": {
+      "model": "servus_delicacies:block/pan",
+      "y": 90
+    },
+    "cooking=true,facing=north": {
+      "model": "servus_delicacies:block/pan"
+    },
+    "cooking=true,facing=south": {
+      "model": "servus_delicacies:block/pan",
+      "y": 180
+    },
+    "cooking=true,facing=west": {
+      "model": "servus_delicacies:block/pan",
+      "y": 270
+    }
+  }
+}

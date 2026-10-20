@@ -1,0 +1,13 @@
+{
+  "type": "servus_delicacies:pan",
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": "#c:eggs"
+    }
+  ],
+  "result": {
+    "id": "servus_delicacies:fried_egg"
+  },
+  "time": 100
+}

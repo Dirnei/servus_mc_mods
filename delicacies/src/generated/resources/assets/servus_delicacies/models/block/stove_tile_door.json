@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "servus_delicacies:block/stove_tile",
+    "east": "servus_delicacies:block/stove_tile",
+    "north": "servus_delicacies:block/stove_tile_door",
+    "particle": "servus_delicacies:block/stove_tile",
+    "south": "servus_delicacies:block/stove_tile",
+    "up": "servus_delicacies:block/stove_plate",
+    "west": "servus_delicacies:block/stove_tile"
+  }
+}

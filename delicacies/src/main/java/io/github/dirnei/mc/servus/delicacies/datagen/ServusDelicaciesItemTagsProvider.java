@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.delicacies.datagen;
 import io.github.dirnei.mc.servus.delicacies.ServusDelicaciesIds;
 import io.github.dirnei.mc.servus.delicacies.crop.CropKind;
 import io.github.dirnei.mc.servus.delicacies.crop.CropTags;
+import io.github.dirnei.mc.servus.delicacies.kitchen.KitchenTags;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesItems;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
@@ -11,7 +12,7 @@ import net.minecraft.tags.ItemTags;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.ItemTagsProvider;
 
-/** Common crop and seed tags, and the vanilla tags farmer villagers and chickens use. */
+/** Common crop, seed, knife and food tags, and the vanilla tags farmer villagers and chickens use. */
 final class ServusDelicaciesItemTagsProvider extends ItemTagsProvider {
 
     ServusDelicaciesItemTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
@@ -30,5 +31,8 @@ final class ServusDelicaciesItemTagsProvider extends ItemTagsProvider {
                 tag(ItemTags.CHICKEN_FOOD).add(ServusDelicaciesItems.planting(crop));
             }
         }
+        tag(KitchenTags.KNIVES).add(ServusDelicaciesItems.KITCHEN_KNIFE.get());
+        tag(Tags.Items.TOOLS).addTag(KitchenTags.KNIVES);
+        ServusDelicaciesItems.FOODS.forEach(food -> tag(Tags.Items.FOODS).add(food.get()));
     }
 }

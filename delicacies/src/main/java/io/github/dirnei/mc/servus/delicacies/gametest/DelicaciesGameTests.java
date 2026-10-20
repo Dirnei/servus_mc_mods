@@ -7,7 +7,10 @@ public final class DelicaciesGameTests {
 
     public static final List<Class<?>> CLASSES = List.of(
             DelicaciesSetupGameTests.class,
-            CropGameTests.class);
+            CropGameTests.class,
+            StoveGameTests.class,
+            CookingGameTests.class,
+            CuttingBoardGameTests.class);
 
     private DelicaciesGameTests() {
     }

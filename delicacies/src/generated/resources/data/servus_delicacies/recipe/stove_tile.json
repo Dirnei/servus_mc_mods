@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "C": "minecraft:clay_ball",
+    "S": "#minecraft:stone_crafting_materials"
+  },
+  "pattern": [
+    "CCC",
+    "CSC",
+    "CCC"
+  ],
+  "result": {
+    "count": 4,
+    "id": "servus_delicacies:stove_tile"
+  }
+}

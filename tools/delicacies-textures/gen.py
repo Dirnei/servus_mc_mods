@@ -10,6 +10,7 @@ Grid sprites are drawn as character grids; a grid that lists only its left half 
 mirrored into the right half. Painted sprites shade masks as soft domes lit from the
 top left, with a fixed random seed per sprite so every run writes the same pixels.
 """
+import json
 import math
 import os
 import random
@@ -431,6 +432,204 @@ def mustard_stage(stage):
     return s
 
 
+# ---------- kitchen blocks (ported from the mockup) ----------
+IRON = R('#15171a', '#24272c', '#33373e', '#454a52', '#5b616a')
+BRASS = R('#5e4514', '#9a7428', '#c89c44', '#e8c46a')
+TILE = R('#163020', '#24503a', '#326a4c', '#4a8a64', '#7cb890')
+GLOW = [hx('#ffe08a'), hx('#ffb030'), hx('#e0601a')]
+
+
+def tex_noise(ramp, seed, base=2, spread=1):
+    rng = random.Random(seed)
+    s = Spr()
+    for y in range(S):
+        for x in range(S):
+            s.set(x, y, ramp[max(0, min(len(ramp) - 1, base + rng.randint(-spread, spread) * (1 if rng.random() < .35 else 0)))])
+    return s
+
+
+def kachel():
+    """Four green glazed tiles with a light top left rim, a dark bottom right rim and a raised round centre."""
+    s = Spr()
+    for ty in (0, 8):
+        for tx in (0, 8):
+            for y in range(8):
+                for x in range(8):
+                    if x == 0 or y == 0:
+                        c = TILE[4]
+                    elif x == 7 or y == 7:
+                        c = TILE[0]
+                    elif x == 1 or y == 1:
+                        c = TILE[3]
+                    else:
+                        r = math.hypot(x - 3.5, y - 3.5)
+                        c = TILE[3] if r < 1.2 else TILE[1] if r < 2.0 else TILE[2]
+                    s.set(tx + x, ty + y, c)
+    return s
+
+
+def kachel_door(lit, flicker=False):
+    """The tiles with a brass firebox door; its two slits glow while the fire burns, the flicker frame shifts the glow."""
+    s = kachel()
+    door = rect(3, 6, 12, 13)
+    for (x, y) in door:
+        s.set(x, y, BRASS[2])
+    for (x, y) in boundary(door):
+        s.set(x, y, BRASS[0])
+    for y in (8, 10):
+        for x in range(5, 11):
+            if not lit:
+                s.set(x, y, BRASS[0])
+            elif flicker:
+                s.set(x, y, [GLOW[1], GLOW[2], GLOW[0]][(x * 2 + y) % 3])
+            else:
+                s.set(x, y, GLOW[(x + y) % 3])
+    s.set(11, 9, BRASS[3])
+    return s
+
+
+def herd_top(lit):
+    """The iron cooking plate with a brass rim and a hob ring; the ring glows dark red while lit."""
+    s = tex_noise(IRON, 'ht', base=3)
+    for (x, y) in boundary(rect(0, 0, 15, 15)):
+        s.set(x, y, BRASS[2])
+    for (x, y) in rect(1, 1, 14, 14):
+        r = math.hypot(x + .5 - 8, y + .5 - 8)
+        if abs(r - 5.6) < .55 or abs(r - 3.4) < .5 or abs(r - 1.3) < .5:
+            s.set(x, y, IRON[1])
+        elif r < 6.2 and lit and (x + y) % 2 == 0:
+            s.set(x, y, hx('#5a2418'))
+    return s
+
+
+def strip(*frames):
+    """Animation frames stacked top to bottom into one texture."""
+    return [row for frame in frames for row in frame.image()]
+
+
+# The door's flicker: frame indices of the strip and ticks per frame.
+DOOR_FLICKER = {'animation': {'frames': [0, 1, 0, 0, 1, 1, 0, 1], 'frametime': 3}}
+
+
+# ---------- kitchen items ----------
+POTATO = R('#6b4a1c', '#b8903e', '#dcbc66', '#eed58e', '#f8eab8')
+EGG_WHITE = R('#a8a294', '#e2ded2', '#f2f0ea', '#fcfbf8')
+YOLK = R('#a0580a', '#e2921a', '#f6c03a', '#ffe27a')
+FRIED = R('#4e260a', '#874615', '#b8722a', '#d89c48', '#efc56e')
+ONION_PIECE = R('#8a7a5a', '#d8cba4', '#ece2c4', '#f8f2e0')
+STEEL = R('#34383e', '#666d76', '#959da6', '#c4cad0', '#eef1f4')
+WOOD = R('#3a220e', '#66401f', '#8c5a2e', '#ae7842')
+
+
+def boiled_potatoes():
+    """Three peeled potatoes with parsley flecks."""
+    s = Spr()
+    rng = rng_for('bp')
+    for (cx, cy, rx, ry) in ((5.2, 10.6, 3.8, 3.0), (10.8, 10.9, 3.8, 3.0), (8.0, 6.6, 3.6, 2.9)):
+        paint(s, ellipse(cx, cy, rx, ry), POTATO, rng, noise=.06, k=1.8)
+    for (x, y) in ((4, 9), (9, 10), (7, 6), (12, 11), (8, 5), (5, 11)):
+        s.set(x, y, PARS[2])
+    return s
+
+
+def fried_egg():
+    """A fried egg seen from above: white with crisp brown edges and a round yolk."""
+    s = Spr()
+    rng = rng_for('fe')
+    white = ellipse(8, 8.6, 6.4, 5.4) | ellipse(4.8, 10.4, 3.4, 3.4) | ellipse(11.4, 6.4, 3.4, 3.0)
+    paint(s, white, EGG_WHITE, rng, noise=.04, k=.6)
+    for (x, y) in boundary(white):
+        if rng.random() < .4:
+            s.set(x, y, FRIED[2])
+    paint(s, ellipse(8.4, 8.2, 2.7, 2.5), YOLK, rng, noise=.03, k=2.0)
+    s.set(7, 7, YOLK[3])
+    return s
+
+
+def rings(s, rng, centres, ramp):
+    """Onion rings seen slightly from above: light upper arcs, darker lower arcs with a dark rim."""
+    for (cx, cy, r) in centres:
+        for y in range(S):
+            for x in range(S):
+                d = math.hypot(x + .5 - cx, (y + .5 - cy) * 1.25)
+                if abs(d - r) < .75:
+                    shade = 3 if y + .5 < cy else 2
+                    if rng.random() < .15:
+                        shade -= 1
+                    s.set(x, y, ramp[shade])
+                elif abs(d - r) < 1.25 and y + .5 > cy:
+                    s.set(x, y, ramp[0])
+
+
+def fried_onions():
+    """A heap of golden fried onion rings."""
+    s = Spr()
+    rng = rng_for('fo')
+    rings(s, rng, ((5.5, 10.5, 3.2), (10.5, 10.8, 3.0), (8.0, 6.8, 3.0)), FRIED)
+    return s
+
+
+def fried_potatoes():
+    """Golden fried potato slices with onion bits."""
+    s = Spr()
+    rng = rng_for('fp')
+    for (cx, cy) in ((4.6, 11.0), (8.4, 12.0), (12.0, 10.6), (6.4, 7.6), (10.4, 7.0), (8.2, 4.4)):
+        paint(s, ellipse(cx, cy, 2.9, 2.2), FRIED, rng, noise=.1, k=1.0, bias=.15)
+    for (x, y) in ((6, 10), (10, 11), (9, 7), (5, 7), (12, 9), (8, 4)):
+        s.set(x, y, ONION_PIECE[2])
+    return s
+
+
+def chopped_onion():
+    """A small heap of pale onion cubes."""
+    s = Spr()
+    rng = rng_for('co')
+    cubes = [(3, 11), (6, 12), (9, 12), (12, 11), (5, 9), (8, 9), (11, 9), (7, 6), (10, 6)]
+    for (x, y) in cubes:
+        jx = rng.choice((0, 0, 1))
+        for (dx, dy, c) in ((0, 0, 3), (1, 0, 2), (0, 1, 2), (1, 1, 1)):
+            s.set(x + jx + dx, y + dy, ONION_PIECE[c])
+        s.set(x + jx + 2, y + 1, ONION_PIECE[0])
+        s.set(x + jx, y + 2, ONION_PIECE[0])
+        s.set(x + jx + 1, y + 2, ONION_PIECE[0])
+    return s
+
+
+def shredded_cabbage():
+    """A loose heap of thin pale green cabbage strands."""
+    s = Spr()
+    rng = rng_for('sc')
+    for i in range(9):
+        y0 = 6 + i * .9
+        x0 = 2.5 + rng.random() * 2
+        x1 = 11 + rng.random() * 2.5
+        c = CAB[1 + (i % 3)]
+        for x in range(int(x0), int(x1) + 1):
+            y = int(round(y0 + math.sin(x * .9 + i) * 1.1))
+            s.set(x, y, c)
+            if rng.random() < .25:
+                s.set(x, y + 1, CAB[1])
+    return s
+
+
+def kitchen_knife():
+    """A kitchen knife held like a vanilla tool: wooden handle bottom left, steel blade to the top right."""
+    s = Spr()
+    for (x, y) in capsule(2.2, 13.8, 5.4, 10.6, 1.15):
+        s.set(x, y, WOOD[2] if x + y < 16 else WOOD[1])
+    for (x, y) in ((3, 12), (5, 10)):
+        s.set(x, y, BRASS[3])
+    blade = poly([(4.6, 8.6), (7.8, 11.2), (15.2, 2.8), (14.9, 0.6)])
+    for (x, y) in blade:
+        s.set(x, y, STEEL[2])
+    for (x, y) in boundary(blade):
+        s.set(x, y, STEEL[1] if x + y > 16 else STEEL[3])
+    for (x, y) in ((7, 9), (9, 7), (11, 5), (13, 3)):
+        s.set(x, y, STEEL[4])
+    s.set(5, 10, STEEL[1])
+    return s
+
+
 def stages(name, draw):
     return {'block/%s_stage%d' % (name, i): draw(i).image() for i in range(4)}
 
@@ -453,6 +652,21 @@ SPRITES.update(stages('onion', onion_stage))
 SPRITES.update(stages('parsley', parsley_stage))
 SPRITES.update(stages('horseradish', horseradish_stage))
 SPRITES.update(stages('mustard', mustard_stage))
+SPRITES.update({
+    'block/stove_tile': kachel().image(),
+    'block/stove_tile_door': kachel_door(False).image(),
+    'block/stove_tile_door_lit': strip(kachel_door(True), kachel_door(True, flicker=True)),
+    'block/stove_plate': herd_top(False).image(),
+    'block/stove_plate_lit': herd_top(True).image(),
+    'item/boiled_potatoes': boiled_potatoes().image(),
+    'item/fried_egg': fried_egg().image(),
+    'item/fried_onions': fried_onions().image(),
+    'item/fried_potatoes': fried_potatoes().image(),
+    'item/chopped_onion': chopped_onion().image(),
+    'item/shredded_cabbage': shredded_cabbage().image(),
+    'item/kitchen_knife': kitchen_knife().image(),
+})
+ANIMATIONS = {'block/stove_tile_door_lit': DOOR_FLICKER}
 
 
 def png_bytes(img):
@@ -481,6 +695,9 @@ def main():
     preview = sys.argv[2] if len(sys.argv) == 3 and sys.argv[1] == '--preview' else None
     for name, img in SPRITES.items():
         write(os.path.join(TEXTURES, name + '.png'), img)
+    for name, meta in ANIMATIONS.items():
+        with open(os.path.join(TEXTURES, name + '.png.mcmeta'), 'w', newline='\n') as f:
+            f.write(json.dumps(meta, indent=2) + '\n')
         if preview:
             write(os.path.join(preview, name.replace('/', '_') + '.png'), scaled(img, 8))
 

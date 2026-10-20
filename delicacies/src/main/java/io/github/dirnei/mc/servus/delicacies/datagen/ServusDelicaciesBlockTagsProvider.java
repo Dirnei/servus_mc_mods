@@ -9,7 +9,10 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 
-/** The crop blocks count as crops for bees and villagers and keep their farmland from drying back to dirt. */
+/**
+ * The crop blocks count as crops for bees and villagers and keep their farmland from drying back to dirt; the kitchen
+ * blocks are mined with a pickaxe, the Cutting Board with an axe.
+ */
 final class ServusDelicaciesBlockTagsProvider extends BlockTagsProvider {
 
     ServusDelicaciesBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
@@ -22,5 +25,8 @@ final class ServusDelicaciesBlockTagsProvider extends BlockTagsProvider {
             tag(BlockTags.CROPS).add(ServusDelicaciesBlocks.crop(crop));
             tag(BlockTags.MAINTAINS_FARMLAND).add(ServusDelicaciesBlocks.crop(crop));
         }
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ServusDelicaciesBlocks.STOVE_TILE.get(), ServusDelicaciesBlocks.POT.get(),
+                ServusDelicaciesBlocks.PAN.get());
+        tag(BlockTags.MINEABLE_WITH_AXE).add(ServusDelicaciesBlocks.CUTTING_BOARD.get());
     }
 }

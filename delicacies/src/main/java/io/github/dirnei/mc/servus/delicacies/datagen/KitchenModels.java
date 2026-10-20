@@ -1,0 +1,107 @@
+package io.github.dirnei.mc.servus.delicacies.datagen;
+
+import io.github.dirnei.mc.servus.delicacies.board.CuttingBoardBlock;
+import io.github.dirnei.mc.servus.delicacies.cooking.VesselBlock;
+import io.github.dirnei.mc.servus.delicacies.cooking.VesselParts;
+import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesBlocks;
+import io.github.dirnei.mc.servus.delicacies.stove.StoveTileBlock;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelRotations;
+import java.util.Set;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+
+/**
+ * The kitchen's block models: the Stove Tile loose and formed (cooking plate on top, firebox door on the front, cold
+ * and lit), and the Pot, Pan and Cutting Board from {@link VesselParts}, built facing north. Box faces take their UVs
+ * from their position, so a part shows the matching piece of its texture.
+ */
+final class KitchenModels {
+
+    /** Walls and rims stand on the bottom: no down faces. */
+    private static final Set<Direction> RESTING = Set.of(Direction.DOWN);
+
+    private KitchenModels() {
+    }
+
+    static void register(BlockStateProvider provider) {
+        stoveTile(provider);
+        Identifier steel = Identifier.fromNamespaceAndPath("servus_foundation", "block/electric_pump_steel");
+        Identifier heavyIron = Identifier.fromNamespaceAndPath("servus_foundation", "block/heavy_iron");
+        Identifier oak = provider.mcLoc("block/oak_planks");
+
+        BlockModelBuilder pot = model(provider, "pot", steel).texture("body", steel).texture("handle", heavyIron);
+        box(pot, VesselParts.POT_BOTTOM, "#body", Set.of());
+        for (float[] wall : VesselParts.POT_WALLS) {
+            box(pot, wall, "#body", RESTING);
+        }
+        box(pot, VesselParts.POT_HANDLE_WEST, "#handle", Set.of(Direction.EAST));
+        box(pot, VesselParts.POT_HANDLE_EAST, "#handle", Set.of(Direction.WEST));
+        facing(provider, ServusDelicaciesBlocks.POT.get(), VesselBlock.FACING, pot);
+
+        BlockModelBuilder pan = model(provider, "pan", heavyIron).texture("body", heavyIron).texture("handle", oak);
+        box(pan, VesselParts.PAN_BOTTOM, "#body", Set.of());
+        for (float[] rim : VesselParts.PAN_RIMS) {
+            box(pan, rim, "#body", RESTING);
+        }
+        box(pan, VesselParts.PAN_HANDLE, "#handle", Set.of(Direction.WEST));
+        facing(provider, ServusDelicaciesBlocks.PAN.get(), VesselBlock.FACING, pan);
+
+        Identifier birch = provider.mcLoc("block/birch_planks");
+        BlockModelBuilder board = model(provider, "cutting_board", birch).texture("wood", birch);
+        box(board, VesselParts.BOARD, "#wood", Set.of());
+        facing(provider, ServusDelicaciesBlocks.CUTTING_BOARD.get(), CuttingBoardBlock.FACING, board);
+    }
+
+    /** Loose: tiles all round. Formed: plate on top, the door tile with its door on the north face, turned to the front. */
+    private static void stoveTile(BlockStateProvider provider) {
+        Identifier tile = provider.modLoc("block/stove_tile");
+        ModelFile loose = provider.models().cubeAll("stove_tile", tile);
+        ModelFile[][] formed = new ModelFile[2][2];
+        for (int door = 0; door < 2; door++) {
+            for (int lit = 0; lit < 2; lit++) {
+                String suffix = (door == 1 ? "_door" : "_formed") + (lit == 1 ? "_lit" : "");
+                Identifier plate = provider.modLoc("block/stove_plate" + (lit == 1 ? "_lit" : ""));
+                Identifier front = door == 1 ? provider.modLoc("block/stove_tile_door" + (lit == 1 ? "_lit" : "")) : tile;
+                formed[door][lit] = provider.models().cube("stove_tile" + suffix, tile, plate, front, tile, tile, tile)
+                        .texture("particle", tile);
+            }
+        }
+        Block block = ServusDelicaciesBlocks.STOVE_TILE.get();
+        provider.getVariantBuilder(block).forAllStates(state -> {
+            if (!state.getValue(StoveTileBlock.FORMED)) {
+                return new ConfiguredModel[] {new ConfiguredModel(loose)};
+            }
+            ModelFile model = formed[state.getValue(StoveTileBlock.DOOR) ? 1 : 0][state.getValue(StoveTileBlock.LIT) ? 1 : 0];
+            return ConfiguredModel.builder().modelFile(model)
+                    .rotationY(ModelRotations.rotationY(state.getValue(StoveTileBlock.FACING))).build();
+        });
+        provider.simpleBlockItem(block, loose);
+    }
+
+    private static BlockModelBuilder model(BlockStateProvider provider, String name, Identifier particle) {
+        return provider.models().withExistingParent(name, provider.mcLoc("block/block")).texture("particle", particle);
+    }
+
+    /** One variant per facing, turned from the north built model; the item shows the model unturned. */
+    private static void facing(BlockStateProvider provider, Block block, EnumProperty<Direction> facing, ModelFile model) {
+        provider.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder().modelFile(model)
+                .rotationY(ModelRotations.rotationY(state.getValue(facing))).build());
+        provider.simpleBlockItem(block, model);
+    }
+
+    /** A box of {@code b} (pixels) with every face but {@code skip} showing {@code texture}. */
+    private static void box(BlockModelBuilder model, float[] b, String texture, Set<Direction> skip) {
+        BlockModelBuilder.ElementBuilder element = model.element().from(b[0], b[1], b[2]).to(b[3], b[4], b[5]);
+        for (Direction direction : Direction.values()) {
+            if (!skip.contains(direction)) {
+                element.face(direction).texture(texture).end();
+            }
+        }
+    }
+}

@@ -1,0 +1,187 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#body"
+        },
+        "east": {
+          "texture": "#body"
+        },
+        "north": {
+          "texture": "#body"
+        },
+        "south": {
+          "texture": "#body"
+        },
+        "up": {
+          "texture": "#body"
+        },
+        "west": {
+          "texture": "#body"
+        }
+      },
+      "from": [
+        1,
+        0,
+        2
+      ],
+      "to": [
+        12,
+        1,
+        14
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#body"
+        },
+        "north": {
+          "texture": "#body"
+        },
+        "south": {
+          "texture": "#body"
+        },
+        "up": {
+          "texture": "#body"
+        },
+        "west": {
+          "texture": "#body"
+        }
+      },
+      "from": [
+        1,
+        1,
+        2
+      ],
+      "to": [
+        12,
+        2.5,
+        3
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#body"
+        },
+        "north": {
+          "texture": "#body"
+        },
+        "south": {
+          "texture": "#body"
+        },
+        "up": {
+          "texture": "#body"
+        },
+        "west": {
+          "texture": "#body"
+        }
+      },
+      "from": [
+        1,
+        1,
+        13
+      ],
+      "to": [
+        12,
+        2.5,
+        14
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#body"
+        },
+        "north": {
+          "texture": "#body"
+        },
+        "south": {
+          "texture": "#body"
+        },
+        "up": {
+          "texture": "#body"
+        },
+        "west": {
+          "texture": "#body"
+        }
+      },
+      "from": [
+        1,
+        1,
+        3
+      ],
+      "to": [
+        2,
+        2.5,
+        13
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#body"
+        },
+        "north": {
+          "texture": "#body"
+        },
+        "south": {
+          "texture": "#body"
+        },
+        "up": {
+          "texture": "#body"
+        },
+        "west": {
+          "texture": "#body"
+        }
+      },
+      "from": [
+        11,
+        1,
+        3
+      ],
+      "to": [
+        12,
+        2.5,
+        13
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#handle"
+        },
+        "east": {
+          "texture": "#handle"
+        },
+        "north": {
+          "texture": "#handle"
+        },
+        "south": {
+          "texture": "#handle"
+        },
+        "up": {
+          "texture": "#handle"
+        }
+      },
+      "from": [
+        12,
+        1.5,
+        7.25
+      ],
+      "to": [
+        16,
+        2.5,
+        8.75
+      ]
+    }
+  ],
+  "textures": {
+    "body": "servus_foundation:block/heavy_iron",
+    "handle": "minecraft:block/oak_planks",
+    "particle": "servus_foundation:block/heavy_iron"
+  }
+}

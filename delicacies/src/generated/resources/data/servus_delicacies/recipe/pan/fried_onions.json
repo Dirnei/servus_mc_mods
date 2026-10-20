@@ -1,0 +1,13 @@
+{
+  "type": "servus_delicacies:pan",
+  "ingredients": [
+    {
+      "count": 2,
+      "ingredient": "servus_delicacies:chopped_onion"
+    }
+  ],
+  "result": {
+    "id": "servus_delicacies:fried_onions"
+  },
+  "time": 120
+}

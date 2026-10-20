@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "servus_delicacies:block/cutting_board",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "servus_delicacies:block/cutting_board"
+    },
+    "facing=south": {
+      "model": "servus_delicacies:block/cutting_board",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "servus_delicacies:block/cutting_board",
+      "y": 270
+    }
+  }
+}

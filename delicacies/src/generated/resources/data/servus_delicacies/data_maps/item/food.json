@@ -1,0 +1,20 @@
+{
+  "values": {
+    "servus_delicacies:boiled_potatoes": {
+      "nutrition": 5,
+      "saturation": 6.0
+    },
+    "servus_delicacies:fried_egg": {
+      "nutrition": 4,
+      "saturation": 4.8
+    },
+    "servus_delicacies:fried_onions": {
+      "nutrition": 3,
+      "saturation": 3.6
+    },
+    "servus_delicacies:fried_potatoes": {
+      "nutrition": 8,
+      "saturation": 12.8
+    }
+  }
+}

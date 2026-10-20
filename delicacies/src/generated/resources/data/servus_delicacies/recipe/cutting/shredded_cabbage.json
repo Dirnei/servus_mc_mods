@@ -1,0 +1,9 @@
+{
+  "type": "servus_delicacies:cutting",
+  "ingredient": "#c:crops/cabbage",
+  "result": {
+    "count": 2,
+    "id": "servus_delicacies:shredded_cabbage"
+  },
+  "tool": "#c:tools/knife"
+}

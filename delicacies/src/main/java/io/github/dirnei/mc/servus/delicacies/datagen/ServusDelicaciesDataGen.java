@@ -35,5 +35,6 @@ public final class ServusDelicaciesDataGen {
         event.addProvider(new ServusDelicaciesBlockTagsProvider(output, lookup));
         event.addProvider(new ServusDelicaciesItemTagsProvider(output, lookup));
         event.addProvider(new ServusDelicaciesDataMapProvider(output, lookup));
+        event.addProvider(new ServusDelicaciesRecipeProvider.Runner(output, lookup));
     }
 }

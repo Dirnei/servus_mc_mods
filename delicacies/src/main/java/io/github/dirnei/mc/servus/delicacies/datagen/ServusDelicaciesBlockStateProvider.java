@@ -15,7 +15,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
 
-/** Block states and block models of the crops, and the item models of every Delicacies item. */
+/** Block states and block models of the crops and the kitchen, and the item models of every Delicacies item. */
 final class ServusDelicaciesBlockStateProvider extends BlockStateProvider {
 
     ServusDelicaciesBlockStateProvider(PackOutput output) {
@@ -27,9 +27,13 @@ final class ServusDelicaciesBlockStateProvider extends BlockStateProvider {
         for (CropKind crop : CropKind.values()) {
             crop(ServusDelicaciesBlocks.crop(crop), crop);
         }
+        KitchenModels.register(this);
         for (DeferredItem<? extends Item> item : ServusDelicaciesItems.CREATIVE_TAB_ORDER) {
-            itemModels().basicItem(item.get());
+            if (!ServusDelicaciesItems.BLOCK_MODEL_ITEMS.contains(item)) {
+                itemModels().basicItem(item.get());
+            }
         }
+        itemModels().basicItem(ServusDelicaciesItems.KITCHEN_KNIFE.get()).parent(new ModelFile.UncheckedModelFile("item/handheld"));
     }
 
     /** A vanilla crop model per growth look and one variant per age. */

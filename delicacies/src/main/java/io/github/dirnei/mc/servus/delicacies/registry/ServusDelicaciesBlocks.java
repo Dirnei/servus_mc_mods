@@ -3,6 +3,10 @@ package io.github.dirnei.mc.servus.delicacies.registry;
 import io.github.dirnei.mc.servus.delicacies.ServusDelicaciesIds;
 import io.github.dirnei.mc.servus.delicacies.crop.CropKind;
 import io.github.dirnei.mc.servus.delicacies.crop.DelicaciesCropBlock;
+import io.github.dirnei.mc.servus.delicacies.board.CuttingBoardBlock;
+import io.github.dirnei.mc.servus.delicacies.cooking.PanBlock;
+import io.github.dirnei.mc.servus.delicacies.cooking.PotBlock;
+import io.github.dirnei.mc.servus.delicacies.stove.StoveTileBlock;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
@@ -20,6 +24,39 @@ public final class ServusDelicaciesBlocks {
 
     /** One crop block per crop, with the properties of vanilla carrots. */
     public static final Map<CropKind, DeferredBlock<DelicaciesCropBlock>> CROPS = cropBlocks();
+
+    /** The Stove Tile, loose or part of a Tiled Stove. */
+    public static final DeferredBlock<StoveTileBlock> STOVE_TILE = BLOCKS.registerBlock("stove_tile", StoveTileBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_GREEN)
+                    .strength(1.5F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.STONE)
+                    .lightLevel(StoveTileBlock::lightLevel));
+
+    /** The Pot, family steel. */
+    public static final DeferredBlock<PotBlock> POT = BLOCKS.registerBlock("pot", PotBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .strength(2.0F, 6.0F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion());
+
+    /** The Pan, dark iron with a wooden handle. */
+    public static final DeferredBlock<PanBlock> PAN = BLOCKS.registerBlock("pan", PanBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .strength(2.0F, 6.0F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion());
+
+    /** The Cutting Board. */
+    public static final DeferredBlock<CuttingBoardBlock> CUTTING_BOARD = BLOCKS.registerBlock("cutting_board", CuttingBoardBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .strength(1.0F)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion());
 
     private ServusDelicaciesBlocks() {
     }
