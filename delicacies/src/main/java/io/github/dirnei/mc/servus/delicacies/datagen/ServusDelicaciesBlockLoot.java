@@ -1,0 +1,65 @@
+package io.github.dirnei.mc.servus.delicacies.datagen;
+
+import io.github.dirnei.mc.servus.delicacies.crop.CropKind;
+import io.github.dirnei.mc.servus.delicacies.crop.CropStages;
+import io.github.dirnei.mc.servus.delicacies.crop.DelicaciesCropBlock;
+import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesBlocks;
+import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesItems;
+import java.util.Arrays;
+import java.util.Set;
+import net.minecraft.advancements.criterion.StatePropertiesPredicate;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.loot.BlockLootSubProvider;
+import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
+import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+
+/** Crop drops like vanilla: wheat style for seeded crops, carrot style for self planting ones. */
+final class ServusDelicaciesBlockLoot extends BlockLootSubProvider {
+
+    ServusDelicaciesBlockLoot(HolderLookup.Provider registries) {
+        super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
+    }
+
+    @Override
+    protected void generate() {
+        for (CropKind crop : CropKind.values()) {
+            DelicaciesCropBlock block = ServusDelicaciesBlocks.crop(crop);
+            Item harvest = ServusDelicaciesItems.harvest(crop);
+            add(block, crop.selfPlanting()
+                    ? selfPlantingDrops(block, harvest, ripe(block))
+                    : createCropDrops(block, harvest, ServusDelicaciesItems.planting(crop), ripe(block)));
+        }
+    }
+
+    /** One item at any age, and a Fortune raised binomial bonus when ripe, like vanilla carrots. */
+    private LootTable.Builder selfPlantingDrops(Block block, Item item, LootItemCondition.Builder ripe) {
+        return applyExplosionDecay(block, LootTable.lootTable()
+                .withPool(LootPool.lootPool().add(LootItem.lootTableItem(item)))
+                .withPool(LootPool.lootPool()
+                        .when(ripe)
+                        .add(LootItem.lootTableItem(item)
+                                .apply(ApplyBonusCount.addBonusBinomialDistributionCount(
+                                        registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE),
+                                        0.5714286F, 3)))));
+    }
+
+    private static LootItemCondition.Builder ripe(Block block) {
+        return LootItemBlockStatePropertyCondition.hasBlockStateProperties(block)
+                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(CropBlock.AGE, CropStages.MAX_AGE));
+    }
+
+    @Override
+    protected Iterable<Block> getKnownBlocks() {
+        return Arrays.stream(CropKind.values()).<Block>map(ServusDelicaciesBlocks::crop).toList();
+    }
+}

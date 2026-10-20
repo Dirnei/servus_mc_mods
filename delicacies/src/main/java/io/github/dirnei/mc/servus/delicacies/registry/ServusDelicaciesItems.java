@@ -1,7 +1,13 @@
 package io.github.dirnei.mc.servus.delicacies.registry;
 
 import io.github.dirnei.mc.servus.delicacies.ServusDelicaciesIds;
+import io.github.dirnei.mc.servus.delicacies.crop.CropKind;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -13,9 +19,55 @@ public final class ServusDelicaciesItems {
 
     public static final DeferredItem<Item> PRETZEL = ITEMS.registerSimpleItem("pretzel");
 
+    /** The item that plants each crop, a block item of its crop block named like an item. */
+    public static final Map<CropKind, DeferredItem<BlockItem>> PLANTING = plantingItems();
+
+    /** What each ripe crop gives; for a self planting crop this is its planting item. */
+    public static final Map<CropKind, DeferredItem<? extends Item>> HARVEST = harvestItems();
+
     /** Every Delicacies item in the order the creative tab lists it. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(PRETZEL);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = creativeTabOrder();
 
     private ServusDelicaciesItems() {
+    }
+
+    /** The item that plants {@code crop}. */
+    public static Item planting(CropKind crop) {
+        return PLANTING.get(crop).get();
+    }
+
+    /** The item a ripe {@code crop} gives. */
+    public static Item harvest(CropKind crop) {
+        return HARVEST.get(crop).get();
+    }
+
+    private static Map<CropKind, DeferredItem<BlockItem>> plantingItems() {
+        Map<CropKind, DeferredItem<BlockItem>> items = new EnumMap<>(CropKind.class);
+        for (CropKind crop : CropKind.values()) {
+            items.put(crop, ITEMS.registerItem(crop.plantingId(),
+                    properties -> new BlockItem(ServusDelicaciesBlocks.crop(crop), properties),
+                    Item.Properties::useItemDescriptionPrefix));
+        }
+        return Collections.unmodifiableMap(items);
+    }
+
+    private static Map<CropKind, DeferredItem<? extends Item>> harvestItems() {
+        Map<CropKind, DeferredItem<? extends Item>> items = new EnumMap<>(CropKind.class);
+        for (CropKind crop : CropKind.values()) {
+            items.put(crop, crop.selfPlanting() ? PLANTING.get(crop) : ITEMS.registerSimpleItem(crop.harvestId()));
+        }
+        return Collections.unmodifiableMap(items);
+    }
+
+    private static List<DeferredItem<? extends Item>> creativeTabOrder() {
+        List<DeferredItem<? extends Item>> order = new ArrayList<>();
+        order.add(PRETZEL);
+        order.addAll(HARVEST.values());
+        for (CropKind crop : CropKind.values()) {
+            if (!crop.selfPlanting()) {
+                order.add(PLANTING.get(crop));
+            }
+        }
+        return List.copyOf(order);
     }
 }

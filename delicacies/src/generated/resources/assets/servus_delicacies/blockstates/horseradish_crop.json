@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "age=0": {
+      "model": "servus_delicacies:block/horseradish_stage0"
+    },
+    "age=1": {
+      "model": "servus_delicacies:block/horseradish_stage0"
+    },
+    "age=2": {
+      "model": "servus_delicacies:block/horseradish_stage1"
+    },
+    "age=3": {
+      "model": "servus_delicacies:block/horseradish_stage1"
+    },
+    "age=4": {
+      "model": "servus_delicacies:block/horseradish_stage2"
+    },
+    "age=5": {
+      "model": "servus_delicacies:block/horseradish_stage2"
+    },
+    "age=6": {
+      "model": "servus_delicacies:block/horseradish_stage2"
+    },
+    "age=7": {
+      "model": "servus_delicacies:block/horseradish_stage3"
+    }
+  }
+}

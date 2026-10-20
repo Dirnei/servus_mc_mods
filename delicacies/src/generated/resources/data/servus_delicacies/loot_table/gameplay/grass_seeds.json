@@ -1,0 +1,53 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:inverted",
+          "term": {
+            "ability": "shears_dig",
+            "condition": "neoforge:can_item_perform_ability"
+          }
+        },
+        {
+          "chance": 0.06,
+          "condition": "minecraft:random_chance"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "servus_delicacies:cabbage_seeds",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "servus_delicacies:red_cabbage_seeds",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "servus_delicacies:onion"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "servus_delicacies:parsley_seeds",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "servus_delicacies:horseradish"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "servus_delicacies:mustard_seeds",
+          "weight": 3
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "servus_delicacies:gameplay/grass_seeds"
+}

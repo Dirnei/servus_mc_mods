@@ -1,0 +1,31 @@
+{
+  "values": {
+    "servus_delicacies:cabbage": {
+      "chance": 0.65
+    },
+    "servus_delicacies:cabbage_seeds": {
+      "chance": 0.3
+    },
+    "servus_delicacies:horseradish": {
+      "chance": 0.65
+    },
+    "servus_delicacies:mustard_seeds": {
+      "chance": 0.3
+    },
+    "servus_delicacies:onion": {
+      "chance": 0.65
+    },
+    "servus_delicacies:parsley": {
+      "chance": 0.65
+    },
+    "servus_delicacies:parsley_seeds": {
+      "chance": 0.3
+    },
+    "servus_delicacies:red_cabbage": {
+      "chance": 0.65
+    },
+    "servus_delicacies:red_cabbage_seeds": {
+      "chance": 0.3
+    }
+  }
+}

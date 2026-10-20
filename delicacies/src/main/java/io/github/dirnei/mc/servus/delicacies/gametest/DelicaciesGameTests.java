@@ -6,7 +6,8 @@ import java.util.List;
 public final class DelicaciesGameTests {
 
     public static final List<Class<?>> CLASSES = List.of(
-            DelicaciesSetupGameTests.class);
+            DelicaciesSetupGameTests.class,
+            CropGameTests.class);
 
     private DelicaciesGameTests() {
     }

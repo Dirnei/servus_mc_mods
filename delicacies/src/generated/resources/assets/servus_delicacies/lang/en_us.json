@@ -1,4 +1,19 @@
 {
+  "block.servus_delicacies.cabbage_crop": "Cabbages",
+  "block.servus_delicacies.horseradish_crop": "Horseradish",
+  "block.servus_delicacies.mustard_crop": "Mustard",
+  "block.servus_delicacies.onion_crop": "Onions",
+  "block.servus_delicacies.parsley_crop": "Parsley",
+  "block.servus_delicacies.red_cabbage_crop": "Red Cabbages",
+  "item.servus_delicacies.cabbage": "Cabbage",
+  "item.servus_delicacies.cabbage_seeds": "Cabbage Seeds",
+  "item.servus_delicacies.horseradish": "Horseradish",
+  "item.servus_delicacies.mustard_seeds": "Mustard Seeds",
+  "item.servus_delicacies.onion": "Onion",
+  "item.servus_delicacies.parsley": "Parsley",
+  "item.servus_delicacies.parsley_seeds": "Parsley Seeds",
   "item.servus_delicacies.pretzel": "Pretzel",
+  "item.servus_delicacies.red_cabbage": "Red Cabbage",
+  "item.servus_delicacies.red_cabbage_seeds": "Red Cabbage Seeds",
   "itemGroup.servus_delicacies": "Servus: Delicacies"
 }

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/crop",
+  "textures": {
+    "crop": "servus_delicacies:block/onion_stage2"
+  }
+}
