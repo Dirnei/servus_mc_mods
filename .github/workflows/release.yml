@@ -9,6 +9,7 @@ name: Release
 #   variable CURSEFORGE_ID_FOUNDATION    project ids from each CurseForge project page;
 #   variable CURSEFORGE_ID_ALCHEMY       a mod without an id is released on GitHub only
 #   variable CURSEFORGE_ID_SHUTTLES
+#   variable CURSEFORGE_ID_DELICACIES
 
 on:
   push:
@@ -16,6 +17,7 @@ on:
       - 'foundation-v*'
       - 'alchemy-v*'
       - 'shuttles-v*'
+      - 'delicacies-v*'
 
 permissions:
   contents: write
@@ -34,6 +36,7 @@ jobs:
           ID_FOUNDATION: ${{ vars.CURSEFORGE_ID_FOUNDATION }}
           ID_ALCHEMY: ${{ vars.CURSEFORGE_ID_ALCHEMY }}
           ID_SHUTTLES: ${{ vars.CURSEFORGE_ID_SHUTTLES }}
+          ID_DELICACIES: ${{ vars.CURSEFORGE_ID_DELICACIES }}
         run: |
           mod="${TAG%%-v*}"
           version="${TAG#*-v}"
@@ -46,6 +49,7 @@ jobs:
             foundation) cf_id="$ID_FOUNDATION"; deps="" ;;
             alchemy) cf_id="$ID_ALCHEMY"; deps="servus_foundation(required){curseforge:$ID_FOUNDATION}" ;;
             shuttles) cf_id="$ID_SHUTTLES"; deps="servus_foundation(required){curseforge:$ID_FOUNDATION}" ;;
+            delicacies) cf_id="$ID_DELICACIES"; deps="servus_foundation(required){curseforge:$ID_FOUNDATION}" ;;
           esac
           name=$(sed -n 's/^mod_name=//p' "$mod/gradle.properties" | tr -d '\r')
           mc=$(sed -n 's/^minecraft_version=//p' gradle.properties | tr -d '\r')

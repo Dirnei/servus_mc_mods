@@ -1,0 +1,24 @@
+// Servus: Delicacies. Shared configuration lives in the root build.gradle.
+evaluationDependsOn(':foundation')
+
+dependencies {
+    // Compile against Foundation, but do not put its jar on the run classpath: the run
+    // already loads Foundation from its source set via loadedMods below. Using
+    // implementation here makes FML see servus_foundation twice.
+    compileOnly project(':foundation')
+    testImplementation project(':foundation')
+}
+
+// Resolved outside the neoForge block: inside it, project(':foundation') would be
+// read as a dependency notation instead of the Gradle project.
+def foundationMod = project(':foundation').neoForge.mods.getByName('servus_foundation')
+def ownMod = neoForge.mods.getByName(project.mod_id)
+
+neoForge {
+    runs {
+        configureEach {
+            // Content mods are always launched together with Servus: Foundation.
+            loadedMods = [ownMod, foundationMod]
+        }
+    }
+}

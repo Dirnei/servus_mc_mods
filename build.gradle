@@ -50,7 +50,7 @@ allprojects {
     }
 }
 
-// Shared configuration for the four mod projects. Each subproject only adds
+// Shared configuration for the mod projects. Each subproject only adds
 // what differs: its mod id and name (gradle.properties), dependencies and
 // which mods its runs load (build.gradle).
 subprojects {
@@ -171,7 +171,7 @@ subprojects {
     }
 }
 
-// Combined run configurations that load all four mods together. The root
+// Combined run configurations that load all mods together. The root
 // project has no sources of its own; it only hosts these runs.
 apply plugin: 'net.neoforged.moddev'
 
@@ -179,7 +179,7 @@ evaluationDependsOnChildren()
 
 // Only the mod projects included in settings.gradle take part (the 26.1.2 port builds
 // Foundation alone until Alchemy and Shuttles are ported).
-def allServusMods = ['foundation', 'alchemy', 'shuttles'].findAll { findProject(":${it}") != null }.collect { name ->
+def allServusMods = ['foundation', 'alchemy', 'shuttles', 'delicacies'].findAll { findProject(":${it}") != null }.collect { name ->
     def sub = project(":${name}")
     sub.neoForge.mods.getByName(sub.mod_id)
 }

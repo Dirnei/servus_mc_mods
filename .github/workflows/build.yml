@@ -39,4 +39,5 @@ jobs:
             foundation/build/libs/*.jar
             alchemy/build/libs/*.jar
             shuttles/build/libs/*.jar
+            delicacies/build/libs/*.jar
           if-no-files-found: error

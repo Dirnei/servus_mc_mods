@@ -7,8 +7,10 @@ A family of NeoForge mods for Minecraft 26.1.2, built to fit packs like ATM11 bu
 | Servus: Foundation | `servus_foundation` | Base of the family: shared APIs, network graph, tick mailbox, the Utility Duct (item, energy, fluid and data lines) with facades, the Fluid Tank, pumps, the Sink, the Ender Anchor, the Coal Generator, Configuration Carrot (the wrench role), goggles, config helpers |
 | Servus: Alchemy | `servus_alchemy` | Alchemy after Paracelsus: the three principles, gnome grown ore veins, the Athanor and his journal as the tech tree |
 | Servus: Shuttles | `servus_shuttles` | An automated warehouse run by shuttles on rails: storage, autocrafting, field farming and outposts |
+| Servus: Delicacies | `servus_delicacies` | An alcohol free Bavarian kitchen: own crops, the Tiled Stove, Pretzels, dumplings, roast pork and plated meals |
+| Servus: Brewery | `servus_brewery` | Beer: barley and hops, the Brewhouse, malting, fermenting and casks, and the Rausch |
 
-Alchemy and Shuttles depend only on Servus: Foundation and never on each other. When both are installed, extra features light up through the Foundation API.
+Every mod depends on Servus: Foundation. Alchemy, Shuttles and Delicacies depend on nothing else and never on each other. Brewery depends on Foundation and Delicacies (it reuses the kitchen's firebox) and is a mod of its own so packs can leave alcohol out. When several mods are installed, extra features light up through the Foundation API.
 
 ---
 
@@ -36,6 +38,7 @@ servus_mc_mods/
   foundation/               servus_foundation
   alchemy/                  servus_alchemy
   shuttles/                 servus_shuttles
+  delicacies/               servus_delicacies
     gradle.properties       mod id and name
     build.gradle            dependencies and loaded mods
     src/main/java           mod code
@@ -45,7 +48,7 @@ servus_mc_mods/
     runs/                   game directories per run config, gitignored
 ```
 
-Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.servus`. Base package `io.github.dirnei.mc.servus`, with one subpackage per mod: `foundation`, `alchemy`, `shuttles`. Inside Foundation the API packages sit directly under `foundation` and the duct, tank and facade content under `foundation.logistics`. License: MIT.
+Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.servus`. Base package `io.github.dirnei.mc.servus`, with one subpackage per mod: `foundation`, `alchemy`, `shuttles`, `delicacies`, later `brewery`. Inside Foundation the API packages sit directly under `foundation` and the duct, tank and facade content under `foundation.logistics`. License: MIT.
 
 ---
 
@@ -100,6 +103,28 @@ The base mod every Servus mod builds on: the shared API, the Configuration Carro
 - **Machines say what they can do:** Servus machines expose the production capability and join the cable directly; machines of other mods join through the Machine Adapter.
 - **Upkeep is not part of a recipe:** fuel and the like are kept stocked at a level, independent of orders.
 
+### 2.5 Servus: Delicacies
+
+**Core idea:** an alcohol free Bavarian kitchen. The player grows the crops, mills the flour and cooks real dishes on a tiled stove.
+
+- **Own crops:** cabbage, red cabbage, onion, parsley, horseradish and mustard seed, tagged with `c:` tags (for example `c:crops/cabbage`) for other mods. No Croptopia dependency.
+- **One stove:** the Tiled Stove, a green tiled multiblock formed with the Configuration Carrot, smallest size 2x1, cheap enough for day one. One firebox heats every cooking spot on top: the Pot and the Pan. A Cutting Board does the prep and the Foundation Mill grinds the flour.
+- **By hand or by pipe:** every kitchen block works with right clicks and also exposes the standard item and fluid capabilities for pipes and Shuttles.
+- **Dishes:** Pretzel, Bread Roll, Weisswurst with Sweet Mustard, Leberkaese (a loaf you slice), Schnitzel, Cordon Bleu, Roast Pork with crackling and gravy, Sauerkraut and Cheese from the Fermenting Crock, Red Cabbage, Bread Dumpling, Potato Dumpling.
+- **Teller:** a plated meal is a placed block with portions; each empty hand right click eats one, and the whole meal gives a short buff.
+- **English names** wherever English has one; German only where English uses it too (Schnitzel, Sauerkraut, Weisswurst, Leberkaese). Only an `en_us` lang file.
+- Hunger and saturation values, recipes and cooking times are **datapack driven**.
+
+### 2.6 Servus: Brewery
+
+**Core idea:** Bavarian beer from the field to the glass, as a mod of its own so packs can skip alcohol.
+
+- **Brewhouse:** one bricked firebox multiblock (3x2) with the copper Brew Kettle and the Malt Kiln, which makes light or dark malt. The firebox is the Delicacies one.
+- **The chain:** barley on the Malting Floor, the kiln, the Foundation Mill grinds malt to grist, the Brew Kettle, the Fermenting Vat and a Cask with a brass tap. Yeast is crafted once and the vat always gives it back. Hops grow on a placed pole, two or three blocks tall.
+- **Drinks** only in half litre glasses: Helles, Dunkles and Weissbier. Drinking gives the empty glass back; it is refilled at the Cask tap.
+- **Rausch:** a hidden counter per player that rises per drink and decays over time, from Tipsy to Plastered with luck, armor and growing clumsiness, and a hangover the next morning that the Hair of the Dog cures. A config switch turns the screen wobble off.
+- Recipes, effects and Rausch levels are **datapack driven**.
+
 ---
 
 ## 3. Architecture principles
@@ -145,6 +170,29 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
   - Story texts for the storyteller: every line starting with "[storyteller]" (Wandering years, Basel and Salzburg, the homunculus' whispers and secret, the old gnome's greeting) and the knocker folklore of The Old Gnome; historical claims are checked when the text is written.
   - The open story and play questions in `alchemy_plan.md`, "Open".
 - Better upgrade items from Alchemy through the Foundation upgrade API.
+
+### Open: M14 Delicacies
+
+Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
+
+- `m14-mill` (Foundation): the **Mill**, a steel block that grinds only while it is driven, with the data driven recipe type `servus_foundation:milling` (Foundation ships gravel to sand; Delicacies adds wheat to flour, Brewery malt to grist). It brings the two drives: the **Hand Crank** (on the side of a block that takes drive, hold right click, slow, costs a little food exhaustion) and the **Electric Motor** (FE in at the back, shaft on the front, draws FE only while the driven block has work, takes the Speed Upgrade). A crank or motor drives only the block it touches; no shaft network.
+- `m14-crops`: cabbage, red cabbage, onion, parsley, horseradish, mustard seed.
+- `m14-tiled-stove`: the Tiled Stove multiblock with its firebox, the Pot and the Pan, the Cutting Board, and the small firebox interface ("am I hot") the cooking spots ask.
+- `m14-heating-element` (Foundation, after the Tiled Stove): the **Heating Element** upgrade lets a firebox take FE through a small iron power port instead of burning fuel, with coils over the door and a brass thermometer that climbs while it preheats; FE is the shared interface, no heat API. The Alchemy Calciner never takes it.
+- `m14-bakery` (needs the Mill): flour, Pretzel (with lye from wood ash, decided there), Bread Roll, bread crumbs.
+- `m14-meat-dishes`: Weisswurst with Sweet Mustard, Leberkaese, Schnitzel, Cordon Bleu, Roast Pork; Cheese from the Fermenting Crock.
+- `m14-sides`: Sauerkraut, Red Cabbage, Bread Dumpling, Potato Dumpling, potato salad.
+- `m14-teller`: plated meals with portions and a meal buff (Roast Pork with two dumplings and red cabbage, Schnitzel with potato salad, the Weisswurst breakfast; its Weissbier only when Brewery is installed).
+- Later: Obatzda, Radler (needs Brewery), Biergarten furniture.
+
+### Open: M15 Brewery
+
+- `m15-brewery-project`: the `:brewery` project for Servus: Brewery (`servus_brewery`), depending on Foundation and Delicacies.
+- `m15-crops`: barley, and hops on a placed pole.
+- `m15-brewhouse`: the Brewhouse firebox multiblock with the Brew Kettle and the Malt Kiln.
+- `m15-malting`: the Malting Floor, light and dark malt, grist from the Mill.
+- `m15-beer`: Yeast, Fermenting Vat, Cask with a brass tap, Helles, Dunkles and Weissbier in half litre glasses.
+- `m15-rausch`: the Rausch levels, the hangover and the Hair of the Dog; verify whether more knockback needs NeoForge's knockback event, since knockback resistance stops at 0.
 
 ### Open: Foundation
 

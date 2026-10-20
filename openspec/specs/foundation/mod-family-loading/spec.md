@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Defines how the three Servus mods load in NeoForge 1.21.1 and which dependency relationships between them are allowed, so that any combination of Foundation plus content mods works.
+Defines how the Servus mods load in NeoForge 26.1.2 and which dependency relationships between them are allowed, so that any combination of Foundation plus content mods works.
 
 ## Requirements
 
