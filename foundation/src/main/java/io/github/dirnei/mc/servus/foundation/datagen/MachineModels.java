@@ -10,7 +10,9 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BeamPumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -36,14 +38,43 @@ final class MachineModels {
      * @param b {@code {x0, y0, z0, x1, y1, z1}} in pixels
      */
     static BlockModelBuilder.ElementBuilder box(BlockModelBuilder model, float[] b, float dy, String sides, String ends) {
+        return box(model, b, dy, sides, ends, Set.of());
+    }
+
+    /**
+     * {@link #box(BlockModelBuilder, float[], float, String, String)} without the faces in {@code skip}, for parts
+     * that rest on another part. A box reaching past the block's edge gets its UVs shifted back into the texture.
+     */
+    static BlockModelBuilder.ElementBuilder box(BlockModelBuilder model, float[] b, float dy, String sides, String ends, Set<Direction> skip) {
         BlockModelBuilder.ElementBuilder element = model.element().from(b[0], b[1] + dy, b[2]).to(b[3], b[4] + dy, b[5]);
-        element.face(Direction.DOWN).texture(ends).uvs(b[0], 16 - b[5], b[3], 16 - b[2]).end();
-        element.face(Direction.UP).texture(ends).uvs(b[0], b[2], b[3], b[5]).end();
-        element.face(Direction.NORTH).texture(sides).uvs(16 - b[3], 16 - b[4], 16 - b[0], 16 - b[1]).end();
-        element.face(Direction.SOUTH).texture(sides).uvs(b[0], 16 - b[4], b[3], 16 - b[1]).end();
-        element.face(Direction.WEST).texture(sides).uvs(b[2], 16 - b[4], b[5], 16 - b[1]).end();
-        element.face(Direction.EAST).texture(sides).uvs(16 - b[5], 16 - b[4], 16 - b[2], 16 - b[1]).end();
+        float[] x = fitted(b[0], b[3]);
+        float[] y = fitted(b[1], b[4]);
+        float[] z = fitted(b[2], b[5]);
+        Map<Direction, float[]> uvs = Map.of(
+                Direction.DOWN, new float[] {x[0], 16 - z[1], x[1], 16 - z[0]},
+                Direction.UP, new float[] {x[0], z[0], x[1], z[1]},
+                Direction.NORTH, new float[] {16 - x[1], 16 - y[1], 16 - x[0], 16 - y[0]},
+                Direction.SOUTH, new float[] {x[0], 16 - y[1], x[1], 16 - y[0]},
+                Direction.WEST, new float[] {z[0], 16 - y[1], z[1], 16 - y[0]},
+                Direction.EAST, new float[] {16 - z[1], 16 - y[1], 16 - z[0], 16 - y[0]});
+        for (Direction direction : FACE_ORDER) {
+            if (!skip.contains(direction)) {
+                float[] uv = uvs.get(direction);
+                String texture = direction.getAxis() == Direction.Axis.Y ? ends : sides;
+                element.face(direction).texture(texture).uvs(uv[0], uv[1], uv[2], uv[3]).end();
+            }
+        }
         return element;
+    }
+
+    /** The face order models have always been written in. */
+    private static final List<Direction> FACE_ORDER = List.of(Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH,
+            Direction.WEST, Direction.EAST);
+
+    /** A span of at most 16 pixels moved into 0..16, so its UVs stay on the texture. */
+    private static float[] fitted(float from, float to) {
+        float shift = from < 0 ? -from : to > 16 ? 16 - to : 0;
+        return new float[] {from + shift, to + shift};
     }
 
     /** A thin rod moved up by {@code dy}; its sides take a one pixel strip of {@code texture}, since it can be taller than a block. */

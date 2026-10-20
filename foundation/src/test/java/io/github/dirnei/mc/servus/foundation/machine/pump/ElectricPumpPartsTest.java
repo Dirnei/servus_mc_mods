@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.machine.pump;
 
+import io.github.dirnei.mc.servus.foundation.machine.PixelBoxes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -51,10 +52,10 @@ class ElectricPumpPartsTest {
     void rotatedPartsStayInsideTheBlock() {
         for (int quarters = 0; quarters < 4; quarters++) {
             for (float[] part : ElectricPumpParts.lowerParts()) {
-                assertTrue(inside(BeamPumpParts.rotated(part, quarters)), "lower part turned " + quarters);
+                assertTrue(inside(PixelBoxes.rotated(part, quarters)), "lower part turned " + quarters);
             }
             for (float[] part : ElectricPumpParts.upperParts()) {
-                assertTrue(inside(BeamPumpParts.rotated(part, quarters)), "upper part turned " + quarters);
+                assertTrue(inside(PixelBoxes.rotated(part, quarters)), "upper part turned " + quarters);
             }
         }
     }
@@ -165,9 +166,9 @@ class ElectricPumpPartsTest {
             assertTrue(point[1] - half >= 0 && point[1] + half <= 32, "belt y at " + point[0] + ", " + point[1]);
         }
         for (int quarters = 0; quarters < 4; quarters++) {
-            assertTrue(inside(BeamPumpParts.rotated(ElectricPumpParts.MOTOR_PULLEY, quarters)), "motor pulley turned " + quarters);
-            assertTrue(inside(BeamPumpParts.rotated(ElectricPumpParts.AXLE_PULLEY, quarters)), "axle pulley turned " + quarters);
-            assertTrue(inside(BeamPumpParts.rotated(ElectricPumpParts.AXLE, quarters)), "axle turned " + quarters);
+            assertTrue(inside(PixelBoxes.rotated(ElectricPumpParts.MOTOR_PULLEY, quarters)), "motor pulley turned " + quarters);
+            assertTrue(inside(PixelBoxes.rotated(ElectricPumpParts.AXLE_PULLEY, quarters)), "axle pulley turned " + quarters);
+            assertTrue(inside(PixelBoxes.rotated(ElectricPumpParts.AXLE, quarters)), "axle turned " + quarters);
         }
         assertTrue(ElectricPumpParts.BELT_Z2 <= 16 && ElectricPumpParts.BELT_MARK[5] <= 16, "belt plane");
     }

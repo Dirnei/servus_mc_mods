@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.production;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.drive.Drivable;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.capabilities.BlockCapability;
@@ -27,6 +28,9 @@ public final class ServusFoundationCapabilities {
     public static final BlockCapability<UpkeepHolder, Direction> UPKEEP = sided("upkeep", UpkeepHolder.class);
 
     public static final BlockCapability<TransferGate, Direction> TRANSFER_GATE = sided("transfer_gate", TransferGate.class);
+
+    /** Where a crank or motor hands work to the block it touches; the context is the side it touches. */
+    public static final BlockCapability<Drivable, Direction> DRIVE = sided("drive", Drivable.class);
 
     /**
      * The door through which data line packets enter a block. It has the same

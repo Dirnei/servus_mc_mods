@@ -178,6 +178,22 @@
       "item_capacity": 0,
       "upkeep_level": 16
     },
+    "servus_foundation:electric_motor": {
+      "kind": "powered",
+      "recipe_types": [],
+      "work_ticks": 1,
+      "energy_per_tick": 20,
+      "energy_capacity": 8000,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1,
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 0,
+      "min_source_neighbours": 0,
+      "item_capacity": 0,
+      "upkeep_level": 0
+    },
     "servus_foundation:electric_pump": {
       "kind": "powered",
       "recipe_types": [],
@@ -750,6 +766,25 @@
         {"item": "servus_foundation:duplex_data_cable", "count": 2}
       ]
     },
+    "servus_foundation:electric_motor": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["ICI", "CRP", "ICI"],
+      "key": {
+        "C": {"item": "minecraft:copper_ingot"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"item": "servus_foundation:power_cable"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 3},
+        {"item": "minecraft:iron_ingot", "count": 4},
+        {"item": "minecraft:redstone", "count": 1},
+        {"item": "servus_foundation:power_cable", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_foundation:electric_motor", "count": 1}
+      ]
+    },
     "servus_foundation:electric_pump": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["CRC", "IPI", "CRC"],
@@ -853,6 +888,21 @@
       "inputs": [],
       "outputs": []
     },
+    "servus_foundation:hand_crank": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IS", "I "],
+      "key": {
+        "I": {"item": "minecraft:iron_ingot"},
+        "S": {"item": "minecraft:stick"}
+      },
+      "inputs": [
+        {"item": "minecraft:iron_ingot", "count": 2},
+        {"item": "minecraft:stick", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_foundation:hand_crank", "count": 1}
+      ]
+    },
     "servus_foundation:hollow_facade": {
       "type": "servus_foundation:hollow_facade",
       "special": true,
@@ -896,6 +946,29 @@
       "outputs": [
         {"item": "servus_foundation:machine_adapter", "count": 1}
       ]
+    },
+    "servus_foundation:mill": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": [" H ", "IGI", "III"],
+      "key": {
+        "G": {"item": "minecraft:grindstone"},
+        "H": {"item": "minecraft:hopper"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:grindstone", "count": 1},
+        {"item": "minecraft:hopper", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 5}
+      ],
+      "outputs": [
+        {"item": "servus_foundation:mill", "count": 1}
+      ]
+    },
+    "servus_foundation:milling/sand": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
     },
     "servus_foundation:power_cable": {
       "type": "minecraft:crafting_shaped",
@@ -1507,6 +1580,9 @@
     "minecraft:gold_ingot": {
       "name": "Gold Ingot"
     },
+    "minecraft:grindstone": {
+      "name": "Grindstone"
+    },
     "minecraft:heavy_weighted_pressure_plate": {
       "name": "Heavy Weighted Pressure Plate"
     },
@@ -1548,6 +1624,9 @@
     },
     "minecraft:shears": {
       "name": "Shears"
+    },
+    "minecraft:stick": {
+      "name": "Stick"
     },
     "minecraft:stripped_dark_oak_log": {
       "name": "Stripped Dark Oak Log"
@@ -1645,6 +1724,9 @@
     "servus_foundation:duplex_data_cable": {
       "name": "Duplex Data Cable"
     },
+    "servus_foundation:electric_motor": {
+      "name": "Electric Motor"
+    },
     "servus_foundation:electric_pump": {
       "name": "Electric Pump"
     },
@@ -1663,11 +1745,17 @@
     "servus_foundation:fluid_tank": {
       "name": "Fluid Tank"
     },
+    "servus_foundation:hand_crank": {
+      "name": "Hand Crank"
+    },
     "servus_foundation:item_pipe": {
       "name": "Item Pipe"
     },
     "servus_foundation:machine_adapter": {
       "name": "Machine Adapter"
+    },
+    "servus_foundation:mill": {
+      "name": "Mill"
     },
     "servus_foundation:power_cable": {
       "name": "Power Cable"

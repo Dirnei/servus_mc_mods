@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.machine;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.drive.DriveStatsManager;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.sink.SinkStatsManager;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
@@ -24,6 +25,7 @@ public final class MachineEvents {
     public static void onAddReloadListeners(AddServerReloadListenersEvent event) {
         event.addListener(MachineStatsManager.LISTENER_ID, MachineStatsManager.INSTANCE);
         event.addListener(SinkStatsManager.LISTENER_ID, SinkStatsManager.INSTANCE);
+        event.addListener(DriveStatsManager.LISTENER_ID, DriveStatsManager.INSTANCE);
     }
 
     /** Mod bus hooks. */
@@ -64,6 +66,12 @@ public final class MachineEvents {
             event.registerBlockEntity(Capabilities.Energy.BLOCK, MachineContent.ENDER_ANCHOR_ENTITY.get(),
                     (machine, side) -> machine.energyStorage());
             // Every formed Sink block hands out its controller's handlers, except on the front faces; casings offer none.
+            event.registerBlockEntity(Capabilities.Item.BLOCK, MachineContent.MILL_ENTITY.get(),
+                    (mill, side) -> mill.itemCapability(side));
+            event.registerBlockEntity(ServusFoundationCapabilities.DRIVE, MachineContent.MILL_ENTITY.get(),
+                    (mill, side) -> mill.drive(side));
+            event.registerBlockEntity(Capabilities.Energy.BLOCK, MachineContent.ELECTRIC_MOTOR_ENTITY.get(),
+                    (motor, side) -> motor.energyStorage(side));
             event.registerBlockEntity(Capabilities.Item.BLOCK, MachineContent.SINK_ENTITY.get(),
                     (sink, side) -> sink.itemHandler(side));
             event.registerBlockEntity(Capabilities.Fluid.BLOCK, MachineContent.SINK_ENTITY.get(),

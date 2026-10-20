@@ -22,6 +22,10 @@ public final class MachineClient {
     /** Pumps: a fluid gauge and the water source status line, no side panel. */
     public static final Layout BURNER_PUMP = new Layout(true, true, false, true, false, gui("burner_pump"));
     public static final Layout ELECTRIC_PUMP = new Layout(false, true, true, true, false, gui("electric_pump"));
+    /** The Mill: input, arrow and output with the side panel; no flame, no energy bar. */
+    public static final Layout MILL = new Layout(false, true, false, gui("mill"));
+    /** The Electric Motor: its upgrade slot and the energy bar, no side panel. */
+    public static final Layout ELECTRIC_MOTOR = new Layout(false, false, true, false, false, gui("electric_motor"));
 
     private MachineClient() {
     }
@@ -40,10 +44,12 @@ public final class MachineClient {
         event.register(MachineContent.BURNER_PUMP_MENU.get(), machineScreen(BURNER_PUMP));
         event.register(MachineContent.ELECTRIC_PUMP_MENU.get(), machineScreen(ELECTRIC_PUMP));
         event.register(MachineContent.SINK_MENU.get(), SinkScreen::new);
+        event.register(MachineContent.MILL_MENU.get(), machineScreen(MILL));
+        event.register(MachineContent.ELECTRIC_MOTOR_MENU.get(), machineScreen(ELECTRIC_MOTOR));
         event.register(MachineContent.ENDER_ANCHOR_MENU.get(), EnderAnchorScreen::new);
     }
 
-    /** The Sink fan and the moving parts of both beam pumps are standalone models drawn by block entity renderers. */
+    /** The Sink fan and the moving parts of the beam pumps, the Mill, the crank and the motor are standalone models drawn by block entity renderers. */
     @SubscribeEvent
     public static void onRegisterStandaloneModels(ModelEvent.RegisterStandalone event) {
         ModelKeys.register(event, SinkRenderer.FAN_MODEL);
@@ -61,6 +67,12 @@ public final class MachineClient {
         ModelKeys.register(event, ElectricPumpRenderer.MOTOR_PULLEY_MODEL);
         ModelKeys.register(event, ElectricPumpRenderer.BELT_MODEL);
         ModelKeys.register(event, ElectricPumpRenderer.BELT_MARK_MODEL);
+        ModelKeys.register(event, MillRenderer.HUB_MODEL);
+        ModelKeys.register(event, MillRenderer.SPOKE_MODEL);
+        ModelKeys.register(event, MillRenderer.RIM_MODEL);
+        ModelKeys.register(event, HandCrankRenderer.HANDLE_MODEL);
+        ModelKeys.register(event, ElectricMotorRenderer.COUPLING_MODEL);
+        ModelKeys.register(event, ElectricMotorRenderer.FAN_MODEL);
     }
 
     /** Every machine draws its side modes on the block. */
@@ -71,5 +83,8 @@ public final class MachineClient {
         event.registerBlockEntityRenderer(MachineContent.ELECTRIC_PUMP_ENTITY.get(), ElectricPumpRenderer::new);
         event.registerBlockEntityRenderer(MachineContent.SINK_ENTITY.get(), SinkRenderer::new);
         event.registerBlockEntityRenderer(MachineContent.ENDER_ANCHOR_ENTITY.get(), EnderAnchorRenderer::new);
+        event.registerBlockEntityRenderer(MachineContent.MILL_ENTITY.get(), MillRenderer::new);
+        event.registerBlockEntityRenderer(MachineContent.HAND_CRANK_ENTITY.get(), HandCrankRenderer::new);
+        event.registerBlockEntityRenderer(MachineContent.ELECTRIC_MOTOR_ENTITY.get(), ElectricMotorRenderer::new);
     }
 }

@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.machine.pump;
 
+import io.github.dirnei.mc.servus.foundation.machine.PartShapes;
+import io.github.dirnei.mc.servus.foundation.machine.PixelBoxes;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
@@ -26,14 +28,14 @@ public class BurnerPumpBlock extends BeamPumpBlock {
     public static final MapCodec<BurnerPumpBlock> CODEC = simpleCodec(BurnerPumpBlock::new);
 
     /** Symmetric, so one shape fits every facing; the small rod socket takes no space. */
-    private static final VoxelShape LOWER = Shapes.or(box(BeamPumpParts.BASE), box(BurnerPumpParts.FIREBOX),
-            box(BurnerPumpParts.DRUM_LOWER));
+    private static final VoxelShape LOWER = Shapes.or(PartShapes.box(BeamPumpParts.BASE), PartShapes.box(BurnerPumpParts.FIREBOX),
+            PartShapes.box(BurnerPumpParts.DRUM_LOWER));
     /** The upper parts per facing; the moving beam and rods take no space. */
     private static final Map<Direction, VoxelShape> UPPER = new EnumMap<>(Direction.class);
 
     static {
         for (Direction facing : Direction.Plane.HORIZONTAL) {
-            UPPER.put(facing, shapeOf(new float[][] {BurnerPumpParts.DRUM_UPPER, BurnerPumpParts.CYLINDER, BeamPumpParts.POST,
+            UPPER.put(facing, PartShapes.shapeOf(new float[][] {BurnerPumpParts.DRUM_UPPER, BurnerPumpParts.CYLINDER, BeamPumpParts.POST,
                     BurnerPumpParts.CHIMNEY}, facing));
         }
     }
@@ -68,7 +70,7 @@ public class BurnerPumpBlock extends BeamPumpBlock {
         if (isUpper(state) || !state.getValue(LIT) || random.nextFloat() >= 0.5F) {
             return;
         }
-        float[] top = BeamPumpParts.rotatedPoint(BurnerPumpParts.SMOKE_X, BurnerPumpParts.SMOKE_Z, quarters(state.getValue(FACING)));
+        float[] top = PixelBoxes.rotatedPoint(BurnerPumpParts.SMOKE_X, BurnerPumpParts.SMOKE_Z, PartShapes.quarters(state.getValue(FACING)));
         level.addAlwaysVisibleParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, true,
                 pos.getX() + top[0] / 16.0 + (random.nextDouble() - 0.5) / 16.0,
                 pos.getY() + 1 + BurnerPumpParts.SMOKE_Y / 16.0 + random.nextDouble() * 0.1,

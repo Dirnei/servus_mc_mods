@@ -1,0 +1,11 @@
+{
+  "type": "servus_foundation:milling",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:gravel"
+  },
+  "result": {
+    "id": "minecraft:sand"
+  },
+  "work": 200
+}

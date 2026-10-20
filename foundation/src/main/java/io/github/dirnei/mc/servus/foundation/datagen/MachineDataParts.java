@@ -1,7 +1,11 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.machine.mill.MillingRecipe;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import java.util.List;
 import java.util.function.Function;
 import net.minecraft.advancements.Criterion;
@@ -11,9 +15,13 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.world.item.Item;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
 /** Datagen of the machines Foundation owns: models, loot, tags, lang and recipes. */
@@ -30,12 +38,16 @@ final class MachineDataParts {
         SinkModels.sink(provider);
         SinkModels.chimney(provider);
         SinkModels.sinkFan(provider);
+        MillModels.mill(provider);
+        DriveModels.handCrank(provider);
+        DriveModels.electricMotor(provider);
     }
 
     /** Blocks that drop themselves and are mined with a pickaxe. */
     static List<Block> selfDropping() {
         return List.of(MachineContent.COAL_GENERATOR.get(), MachineContent.BURNER_PUMP.get(), MachineContent.ELECTRIC_PUMP.get(),
-                MachineContent.SINK.get(), MachineContent.CHIMNEY.get(), MachineContent.ENDER_ANCHOR.get());
+                MachineContent.SINK.get(), MachineContent.CHIMNEY.get(), MachineContent.ENDER_ANCHOR.get(), MachineContent.MILL.get(),
+                MachineContent.HAND_CRANK.get(), MachineContent.ELECTRIC_MOTOR.get());
     }
 
     static void lang(LanguageProvider provider) {
@@ -66,6 +78,11 @@ final class MachineDataParts {
         provider.add("servus_foundation.configuration.maxLoadedChunksPerTeam", "Max loaded chunks per team");
         provider.add("servus_foundation.configuration.enderAnchorRespectsFtbChunks", "Ender Anchor respects FTB Chunks");
         provider.add(MachineContent.SINK.get(), "Sink");
+        provider.add(MachineContent.MILL.get(), "Mill");
+        provider.add(MachineContent.HAND_CRANK.get(), "Hand Crank");
+        provider.add(MachineContent.ELECTRIC_MOTOR.get(), "Electric Motor");
+        provider.add("gui.servus_foundation.jei.milling", "Milling");
+        provider.add("gui.servus_foundation.jei.milling.work", "%s work");
         provider.add(MachineContent.CHIMNEY.get(), "Chimney");
         provider.add("gui.servus_foundation.sink.height", "Chimney height: %s");
         provider.add("gui.servus_foundation.sink.items", "Items: %s");
@@ -155,5 +172,37 @@ final class MachineDataParts {
                 .define('B', Items.BRICK)
                 .unlockedBy("has_brick", has.apply(Items.BRICK))
                 .save(output);
+
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.MILL_ITEM.get())
+                .pattern(" H ")
+                .pattern("IGI")
+                .pattern("III")
+                .define('H', Items.HOPPER)
+                .define('G', Items.GRINDSTONE)
+                .define('I', Items.IRON_INGOT)
+                .unlockedBy("has_grindstone", has.apply(Items.GRINDSTONE))
+                .save(output);
+
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.HAND_CRANK_ITEM.get())
+                .pattern("IS")
+                .pattern("I ")
+                .define('I', Items.IRON_INGOT)
+                .define('S', Items.STICK)
+                .unlockedBy("has_iron_ingot", has.apply(Items.IRON_INGOT))
+                .save(output);
+
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.ELECTRIC_MOTOR_ITEM.get())
+                .pattern("ICI")
+                .pattern("CRP")
+                .pattern("ICI")
+                .define('I', Items.IRON_INGOT)
+                .define('C', Items.COPPER_INGOT)
+                .define('R', Items.REDSTONE)
+                .define('P', ServusLogisticsItems.POWER_CABLE.get())
+                .unlockedBy("has_power_cable", has.apply(ServusLogisticsItems.POWER_CABLE.get()))
+                .save(output);
+
+        output.accept(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "milling/sand")),
+                new MillingRecipe(new SizedIngredient(Ingredient.of(Items.GRAVEL), 1), new ItemStackTemplate(Items.SAND), 200), null);
     }
 }

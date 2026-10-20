@@ -1,0 +1,47 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "north": {
+          "texture": "#fan",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#fan",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        }
+      },
+      "from": [
+        5.2,
+        5.2,
+        15.2
+      ],
+      "to": [
+        10.8,
+        10.8,
+        15.3
+      ]
+    }
+  ],
+  "textures": {
+    "copper": "minecraft:block/copper_block",
+    "fan": "servus_foundation:block/electric_pump_fan",
+    "grille": "servus_foundation:block/electric_motor_grille",
+    "heavy": "servus_foundation:block/heavy_iron",
+    "particle": "servus_foundation:block/electric_pump_steel",
+    "pulley": "servus_foundation:block/electric_pump_pulley",
+    "steel": "servus_foundation:block/electric_pump_steel",
+    "terminal": "servus_foundation:block/electric_pump_terminal"
+  }
+}

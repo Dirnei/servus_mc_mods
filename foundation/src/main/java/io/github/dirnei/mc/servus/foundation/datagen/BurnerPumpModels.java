@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 import io.github.dirnei.mc.servus.foundation.datagen.model.MultiPartBlockStateBuilder;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.machine.PartShapes;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BeamPumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BeamPumpParts;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpParts;
@@ -38,7 +39,7 @@ final class BurnerPumpModels {
         addUpper(upper, 0);
         MultiPartBlockStateBuilder builder = provider.getMultipartBuilder(block);
         for (Direction facing : Direction.Plane.HORIZONTAL) {
-            int rotation = BeamPumpBlock.quarters(facing) * 90;
+            int rotation = PartShapes.quarters(facing) * 90;
             for (boolean isLit : new boolean[] {false, true}) {
                 builder.part().modelFile(isLit ? lit : unlit).rotationY(rotation).addModel()
                         .condition(BeamPumpBlock.HALF, DoubleBlockHalf.LOWER)

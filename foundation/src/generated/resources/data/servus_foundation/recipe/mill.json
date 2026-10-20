@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": "minecraft:grindstone",
+    "H": "minecraft:hopper",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    " H ",
+    "IGI",
+    "III"
+  ],
+  "result": {
+    "id": "servus_foundation:mill"
+  }
+}

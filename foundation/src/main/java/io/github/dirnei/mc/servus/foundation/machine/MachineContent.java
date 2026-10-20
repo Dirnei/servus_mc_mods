@@ -1,6 +1,11 @@
 package io.github.dirnei.mc.servus.foundation.machine;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.drive.ElectricMotorBlock;
+import io.github.dirnei.mc.servus.foundation.drive.ElectricMotorBlockEntity;
+import io.github.dirnei.mc.servus.foundation.drive.ElectricMotorMenu;
+import io.github.dirnei.mc.servus.foundation.drive.HandCrankBlock;
+import io.github.dirnei.mc.servus.foundation.drive.HandCrankBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorBlock;
 import io.github.dirnei.mc.servus.foundation.machine.anchor.EnderAnchorBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlock;
@@ -10,6 +15,10 @@ import io.github.dirnei.mc.servus.foundation.machine.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.ElectricPumpMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.EnderAnchorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.SinkMenu;
+import io.github.dirnei.mc.servus.foundation.machine.mill.MillBlock;
+import io.github.dirnei.mc.servus.foundation.machine.mill.MillBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.mill.MillMenu;
+import io.github.dirnei.mc.servus.foundation.machine.mill.MillingRecipe;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpBlock;
@@ -21,10 +30,13 @@ import io.github.dirnei.mc.servus.foundation.machine.sink.SinkBlockEntity;
 import io.github.dirnei.mc.servus.foundation.upgrade.AnchorUpgradeItem;
 import java.util.List;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -48,6 +60,10 @@ public final class MachineContent {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, ServusFoundationIds.MOD_ID);
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, ServusFoundationIds.MOD_ID);
+    public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES =
+            DeferredRegister.create(Registries.RECIPE_TYPE, ServusFoundationIds.MOD_ID);
+    public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =
+            DeferredRegister.create(Registries.RECIPE_SERIALIZER, ServusFoundationIds.MOD_ID);
 
     public static final DeferredBlock<CoalGeneratorBlock> COAL_GENERATOR =
             BLOCKS.registerBlock("coal_generator", CoalGeneratorBlock::new,
@@ -95,6 +111,34 @@ public final class MachineContent {
     public static final DeferredItem<AnchorUpgradeItem> ANCHOR_UPGRADE =
             ITEMS.registerItem("anchor_upgrade", AnchorUpgradeItem::new, () -> new Item.Properties().stacksTo(16));
 
+    public static final Identifier MILLING_ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "milling");
+    public static final DeferredHolder<RecipeType<?>, RecipeType<MillingRecipe>> MILLING =
+            RECIPE_TYPES.register("milling", () -> RecipeType.simple(MILLING_ID));
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<MillingRecipe>> MILLING_SERIALIZER =
+            RECIPE_SERIALIZERS.register("milling", () -> MillingRecipe.SERIALIZER);
+
+    public static final DeferredBlock<MillBlock> MILL =
+            BLOCKS.registerBlock("mill", MillBlock::new, () -> unlitMachine().noOcclusion().pushReaction(PushReaction.BLOCK));
+    public static final DeferredItem<BlockItem> MILL_ITEM = ITEMS.registerSimpleBlockItem(MILL);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MillBlockEntity>> MILL_ENTITY =
+            blockEntity("mill", MillBlockEntity::new, MILL);
+    public static final DeferredHolder<MenuType<?>, MenuType<MillMenu>> MILL_MENU = menu("mill", MillMenu::fromNetwork);
+
+    public static final DeferredBlock<HandCrankBlock> HAND_CRANK =
+            BLOCKS.registerBlock("hand_crank", HandCrankBlock::new, () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL).strength(1.5F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.DESTROY));
+    public static final DeferredItem<BlockItem> HAND_CRANK_ITEM = ITEMS.registerSimpleBlockItem(HAND_CRANK);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<HandCrankBlockEntity>> HAND_CRANK_ENTITY =
+            blockEntity("hand_crank", HandCrankBlockEntity::new, HAND_CRANK);
+
+    public static final DeferredBlock<ElectricMotorBlock> ELECTRIC_MOTOR =
+            BLOCKS.registerBlock("electric_motor", ElectricMotorBlock::new, () -> unlitMachine().noOcclusion().pushReaction(PushReaction.BLOCK));
+    public static final DeferredItem<BlockItem> ELECTRIC_MOTOR_ITEM = ITEMS.registerSimpleBlockItem(ELECTRIC_MOTOR);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricMotorBlockEntity>> ELECTRIC_MOTOR_ENTITY =
+            blockEntity("electric_motor", ElectricMotorBlockEntity::new, ELECTRIC_MOTOR);
+    public static final DeferredHolder<MenuType<?>, MenuType<ElectricMotorMenu>> ELECTRIC_MOTOR_MENU =
+            menu("electric_motor", ElectricMotorMenu::fromNetwork);
+
     private MachineContent() {
     }
 
@@ -114,7 +158,8 @@ public final class MachineContent {
 
     /** Creative tab order of Foundation's machines. */
     public static List<DeferredItem<? extends Item>> creativeTabOrder() {
-        return List.of(BURNER_PUMP_ITEM, ELECTRIC_PUMP_ITEM, COAL_GENERATOR_ITEM, ENDER_ANCHOR_ITEM, ANCHOR_UPGRADE, SINK_ITEM, CHIMNEY_ITEM);
+        return List.of(BURNER_PUMP_ITEM, ELECTRIC_PUMP_ITEM, COAL_GENERATOR_ITEM, ENDER_ANCHOR_ITEM, ANCHOR_UPGRADE, SINK_ITEM, CHIMNEY_ITEM,
+                MILL_ITEM, HAND_CRANK_ITEM, ELECTRIC_MOTOR_ITEM);
     }
 
     /** Brick blocks of the Sink family: like vanilla bricks. */
@@ -136,11 +181,18 @@ public final class MachineContent {
                 .lightLevel(state -> state.getValue(MachineBlock.LIT) ? 13 : 0);
     }
 
+    /** Machine properties without the glow: blocks whose lit state only means they are working. */
+    public static BlockBehaviour.Properties unlitMachine() {
+        return machine().lightLevel(state -> 0);
+    }
+
     public static void register(IEventBus modEventBus) {
         FoundationMachines.registerDefaults();
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         BLOCK_ENTITIES.register(modEventBus);
         MENUS.register(modEventBus);
+        RECIPE_TYPES.register(modEventBus);
+        RECIPE_SERIALIZERS.register(modEventBus);
     }
 }

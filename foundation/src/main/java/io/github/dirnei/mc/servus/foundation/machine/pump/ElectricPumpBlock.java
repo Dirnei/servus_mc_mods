@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.machine.pump;
 
+import io.github.dirnei.mc.servus.foundation.machine.PartShapes;
+import io.github.dirnei.mc.servus.foundation.machine.PixelBoxes;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
@@ -34,8 +36,8 @@ public class ElectricPumpBlock extends BeamPumpBlock {
 
     static {
         for (Direction facing : Direction.Plane.HORIZONTAL) {
-            LOWER.put(facing, shapeOf(ElectricPumpParts.lowerParts(), facing));
-            UPPER.put(facing, shapeOf(ElectricPumpParts.upperParts(), facing));
+            LOWER.put(facing, PartShapes.shapeOf(ElectricPumpParts.lowerParts(), facing));
+            UPPER.put(facing, PartShapes.shapeOf(ElectricPumpParts.upperParts(), facing));
         }
     }
 
@@ -69,7 +71,7 @@ public class ElectricPumpBlock extends BeamPumpBlock {
         if (isUpper(state) || !state.getValue(LIT) || random.nextInt(SPARK_CHANCE) != 0) {
             return;
         }
-        float[] brush = BeamPumpParts.rotatedPoint(ElectricPumpParts.SPARK_X, ElectricPumpParts.SPARK_Z, quarters(state.getValue(FACING)));
+        float[] brush = PixelBoxes.rotatedPoint(ElectricPumpParts.SPARK_X, ElectricPumpParts.SPARK_Z, PartShapes.quarters(state.getValue(FACING)));
         level.addParticle(ParticleTypes.ELECTRIC_SPARK,
                 pos.getX() + brush[0] / 16.0,
                 pos.getY() + ElectricPumpParts.SPARK_Y / 16.0 + random.nextDouble() * 0.05,

@@ -8,6 +8,9 @@
     "servus_foundation:electric_pump",
     "servus_foundation:sink",
     "servus_foundation:chimney",
-    "servus_foundation:ender_anchor"
+    "servus_foundation:ender_anchor",
+    "servus_foundation:mill",
+    "servus_foundation:hand_crank",
+    "servus_foundation:electric_motor"
   ]
 }

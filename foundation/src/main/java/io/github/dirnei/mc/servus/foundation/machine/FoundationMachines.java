@@ -20,6 +20,7 @@ public final class FoundationMachines {
         add("burner_pump", "burner", MachineStats.burnerPump(20, 250, 4000, 2));
         add("electric_pump", "powered", MachineStats.poweredPump(20, 20, 8000, 500, 4000, 2));
         add("ender_anchor", "powered", MachineStats.powered(1, 10, 20000));
+        add("electric_motor", "powered", MachineStats.powered(1, 20, 8000));
     }
 
     private static void add(String path, String kind, MachineStats stats) {

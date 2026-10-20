@@ -16,9 +16,11 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.MachineGameTests;
 import io.github.dirnei.mc.servus.foundation.machine.anchor.AnchorGameTests;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
+import io.github.dirnei.mc.servus.foundation.machine.mill.MillGameTests;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpGameTests;
 import io.github.dirnei.mc.servus.foundation.machine.sink.SinkGameTests;
 import io.github.dirnei.mc.servus.foundation.network.NetworkTypes;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationComponents;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
@@ -50,7 +52,9 @@ public final class ServusFoundation {
         ServusGameTests.register(modEventBus, ServusFoundationIds.MOD_ID, List.of(
                 AdapterGameTests.class, DataCableTierGameTests.class, DataPotatoGameTests.class, FluidTankGameTests.class,
                 ServusLogisticsGameTests.class, UpgradeGameTests.class, MachineBaseGameTests.class,
-                MachineGameTests.class, AnchorGameTests.class, PumpGameTests.class, SinkGameTests.class, CoalGeneratorGameTests.class));
+                MachineGameTests.class, AnchorGameTests.class, PumpGameTests.class, SinkGameTests.class, CoalGeneratorGameTests.class,
+                MillGameTests.class));
+        ServusRecipes.syncToClients(MachineContent.MILLING);
         LOGGER.info("Servus: Foundation loaded");
     }
 }

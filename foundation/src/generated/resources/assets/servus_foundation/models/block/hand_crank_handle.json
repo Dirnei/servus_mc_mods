@@ -1,0 +1,215 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#steel",
+          "uv": [
+            7.25,
+            3,
+            8.75,
+            5
+          ]
+        },
+        "east": {
+          "texture": "#steel",
+          "uv": [
+            3,
+            7.25,
+            5,
+            8.75
+          ]
+        },
+        "north": {
+          "texture": "#steel",
+          "uv": [
+            7.25,
+            7.25,
+            8.75,
+            8.75
+          ]
+        },
+        "south": {
+          "texture": "#steel",
+          "uv": [
+            7.25,
+            7.25,
+            8.75,
+            8.75
+          ]
+        },
+        "up": {
+          "texture": "#steel",
+          "uv": [
+            7.25,
+            11,
+            8.75,
+            13
+          ]
+        },
+        "west": {
+          "texture": "#steel",
+          "uv": [
+            11,
+            7.25,
+            13,
+            8.75
+          ]
+        }
+      },
+      "from": [
+        7.25,
+        7.25,
+        11
+      ],
+      "to": [
+        8.75,
+        8.75,
+        13
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#heavy",
+          "uv": [
+            7,
+            5,
+            9,
+            6
+          ]
+        },
+        "east": {
+          "texture": "#heavy",
+          "uv": [
+            5,
+            2,
+            6,
+            9
+          ]
+        },
+        "north": {
+          "texture": "#heavy",
+          "uv": [
+            7,
+            2,
+            9,
+            9
+          ]
+        },
+        "south": {
+          "texture": "#heavy",
+          "uv": [
+            7,
+            2,
+            9,
+            9
+          ]
+        },
+        "up": {
+          "texture": "#heavy",
+          "uv": [
+            7,
+            10,
+            9,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#heavy",
+          "uv": [
+            10,
+            2,
+            11,
+            9
+          ]
+        }
+      },
+      "from": [
+        7,
+        7,
+        10
+      ],
+      "to": [
+        9,
+        14,
+        11
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#wood",
+          "uv": [
+            7.5,
+            6,
+            8.5,
+            10
+          ]
+        },
+        "east": {
+          "texture": "#wood",
+          "uv": [
+            6,
+            2.5,
+            10,
+            3.5
+          ]
+        },
+        "north": {
+          "texture": "#wood",
+          "uv": [
+            7.5,
+            2.5,
+            8.5,
+            3.5
+          ]
+        },
+        "south": {
+          "texture": "#wood",
+          "uv": [
+            7.5,
+            2.5,
+            8.5,
+            3.5
+          ]
+        },
+        "up": {
+          "texture": "#wood",
+          "uv": [
+            7.5,
+            6,
+            8.5,
+            10
+          ]
+        },
+        "west": {
+          "texture": "#wood",
+          "uv": [
+            6,
+            2.5,
+            10,
+            3.5
+          ]
+        }
+      },
+      "from": [
+        7.5,
+        12.5,
+        6
+      ],
+      "to": [
+        8.5,
+        13.5,
+        10
+      ]
+    }
+  ],
+  "textures": {
+    "heavy": "servus_foundation:block/heavy_iron",
+    "particle": "servus_foundation:block/heavy_iron",
+    "steel": "servus_foundation:block/electric_pump_steel",
+    "wood": "minecraft:block/oak_planks"
+  }
+}

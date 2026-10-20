@@ -7,6 +7,8 @@ import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.HollowFacadeRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankItem;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,8 +18,11 @@ import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
+import mezz.jei.api.registration.IRecipeCatalystRegistration;
+import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -40,7 +45,7 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 
 /**
- * Shows Foundation's special crafting recipes in JEI as example recipes, since JEI cannot
+ * Shows the Mill's milling recipes in JEI, and Foundation's special crafting recipes as example recipes, since JEI cannot
  * read recipes without fixed ingredients, and lets items dragged from JEI set duct
  * filter slots. Only loaded when JEI is present.
  */
@@ -76,7 +81,21 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
     }
 
     @Override
+    public void registerCategories(IRecipeCategoryRegistration registration) {
+        registration.addRecipeCategories(new MillingRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
+    }
+
+    @Override
+    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
+        registration.addRecipeCatalyst(new ItemStack(MachineContent.MILL_ITEM.get()), MillingRecipeCategory.TYPE);
+    }
+
+    @Override
     public void registerRecipes(IRecipeRegistration registration) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level != null) {
+            registration.addRecipes(MillingRecipeCategory.TYPE, ServusRecipes.all(minecraft.level, MachineContent.MILLING.get()));
+        }
         // Any solid full block is a floor; the slot cycles through these examples.
         Ingredient floors = Ingredient.of(Items.STONE_BRICKS, Items.COBBLESTONE, Items.COPPER_BLOCK, Items.SMOOTH_STONE,
                 Items.OAK_PLANKS, Items.BRICKS, Items.DEEPSLATE_TILES, Items.POLISHED_ANDESITE);

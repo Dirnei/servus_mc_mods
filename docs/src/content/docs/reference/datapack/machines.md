@@ -13,7 +13,7 @@ Every Servus machine reads its balance numbers from a machine stats file. All nu
 data/<namespace>/machine/<machine>.json
 ```
 
-The file name is the machine id and the namespace is the mod that owns the machine: the Coal Generator, the pumps and the Ender Anchor are `servus_foundation`, the other machines `servus_alchemy`. To retune the Calciner a datapack provides `data/servus_alchemy/machine/calciner.json`. Files are reloaded with `/reload`.
+The file name is the machine id and the namespace is the mod that owns the machine: the Coal Generator, the pumps, the Ender Anchor and the Electric Motor are `servus_foundation`, the other machines `servus_alchemy`. To retune the Calciner a datapack provides `data/servus_alchemy/machine/calciner.json`. Files are reloaded with `/reload`.
 
 ## Fields
 
@@ -71,6 +71,7 @@ These are the defaults built into the code, used for any field a file leaves out
 | `servus_foundation:ender_anchor` | powered | nothing, upkeep only | 1 | 10 per chunk | 20000 | 1 | 0 |
 | `servus_foundation:burner_pump` | burner | water | 20 | 0 | 0 | 1 | 4000 |
 | `servus_foundation:electric_pump` | powered | water | 20 | 20 | 8000 | 1 | 4000 |
+| `servus_foundation:electric_motor` | powered | drives the block its shaft faces | 1 | 20 | 8000 | 1 | 0 |
 
 `items_per_tick` is 0 for every machine. `item_capacity` is 64 for the Calciner and the Gnome Hollow and 0 for the others. The pumps add `fluid_per_cycle` 250 (Burner Pump) and 500 (Electric Pump) and `min_source_neighbours` 2, and the Principle Dropper `fluid_per_cycle` 25; these are 0 for every other machine. `upkeep_item` is `minecraft:coal` and `upkeep_level` 16 for the Burner Pump, the Coal Generator and the Calciner; every other machine keeps no upkeep.
 
@@ -87,6 +88,7 @@ Which number decides how long a cycle takes depends on the machine:
 | Research Lab | The current tech's `ticks_per_pack` per consumed pack. `work_ticks` is not used. |
 | Coal Generator | Produces `energy_per_tick` for as long as one fuel item burns. |
 | Burner Pump, Electric Pump | `work_ticks` per `fluid_per_cycle` mB of water. |
+| Electric Motor | One work tick per tick while the driven block wants work; the Mill finishes when the recipe's `work` is collected. |
 
 Fuel and energy:
 
@@ -94,6 +96,37 @@ Fuel and energy:
 - **Generators** use the same rule: with `fuel_divisor` 4, one coal burns 400 ticks (20 seconds) at 40 FE per tick, 16000 FE in total.
 - **Powered machines** draw `energy_per_tick` only on ticks they work. With less than that in the buffer, progress pauses and is kept. A cycle costs `energy_per_tick` times the cycle time, for example 20 FE x 80 ticks = 1600 FE to calcine one cobblestone.
 - **Ender Anchor** spends `energy_per_tick` for every chunk of its square every tick while it is active (1, 9 or 25 chunks with 0, 1 or 2 Anchor Upgrades) and releases its whole square when the buffer runs dry.
+
+## Drive
+
+The Hand Crank and the Electric Motor read how much work they give from a drive file:
+
+```
+data/<namespace>/drive/<driver>.json
+```
+
+Every field is optional and falls back to the driver's code default.
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| `work_per_turn` | int | 25 (Hand Crank) | Work a full turn of the crank gives the driven block. |
+| `exhaustion_per_turn` | float | 0.1 (Hand Crank) | Food exhaustion a full turn costs the player. 4 exhaustion is one hunger point or saturation point. |
+| `work_per_tick` | int | 5 (Electric Motor) | Work the motor gives per working tick, before upgrades. |
+
+The motor's FE comes from its machine stats above: it spends `energy_per_tick` on every tick it gives work, and nothing while the driven block has nothing to do. Upgrades multiply its work and its FE per tick alike. The Mill has no stats file; each milling recipe's `work` decides (see [Recipes](/servus_mc_mods/reference/datapack/recipes/)).
+
+```json
+{
+  "work_per_turn": 25,
+  "exhaustion_per_turn": 0.1
+}
+```
+
+```json
+{
+  "work_per_tick": 5
+}
+```
 
 ## Notes
 

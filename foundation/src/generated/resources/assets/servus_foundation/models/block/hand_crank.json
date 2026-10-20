@@ -1,0 +1,147 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#heavy",
+          "uv": [
+            5,
+            0,
+            11,
+            2
+          ]
+        },
+        "east": {
+          "texture": "#heavy",
+          "uv": [
+            0,
+            5,
+            2,
+            11
+          ]
+        },
+        "north": {
+          "texture": "#heavy",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        },
+        "south": {
+          "texture": "#heavy",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        },
+        "up": {
+          "texture": "#heavy",
+          "uv": [
+            5,
+            14,
+            11,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#heavy",
+          "uv": [
+            14,
+            5,
+            16,
+            11
+          ]
+        }
+      },
+      "from": [
+        5,
+        5,
+        15
+      ],
+      "to": [
+        11,
+        11,
+        17
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#heavy",
+          "uv": [
+            6.5,
+            1,
+            9.5,
+            3
+          ]
+        },
+        "east": {
+          "texture": "#heavy",
+          "uv": [
+            1,
+            6.5,
+            3,
+            9.5
+          ]
+        },
+        "north": {
+          "texture": "#heavy",
+          "uv": [
+            6.5,
+            6.5,
+            9.5,
+            9.5
+          ]
+        },
+        "south": {
+          "texture": "#heavy",
+          "uv": [
+            6.5,
+            6.5,
+            9.5,
+            9.5
+          ]
+        },
+        "up": {
+          "texture": "#heavy",
+          "uv": [
+            6.5,
+            13,
+            9.5,
+            15
+          ]
+        },
+        "west": {
+          "texture": "#heavy",
+          "uv": [
+            13,
+            6.5,
+            15,
+            9.5
+          ]
+        }
+      },
+      "from": [
+        6.5,
+        6.5,
+        13
+      ],
+      "to": [
+        9.5,
+        9.5,
+        15
+      ]
+    }
+  ],
+  "textures": {
+    "heavy": "servus_foundation:block/heavy_iron",
+    "particle": "servus_foundation:block/heavy_iron",
+    "steel": "servus_foundation:block/electric_pump_steel",
+    "wood": "minecraft:block/oak_planks"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "east": {
+          "texture": "#heavy",
+          "uv": [
+            6.2,
+            4.5,
+            9.8,
+            6
+          ]
+        },
+        "north": {
+          "texture": "#heavy",
+          "uv": [
+            1.3999996,
+            4.5,
+            2.8000002,
+            6
+          ]
+        },
+        "south": {
+          "texture": "#heavy",
+          "uv": [
+            13.2,
+            4.5,
+            14.6,
+            6
+          ]
+        },
+        "up": {
+          "texture": "#heavy",
+          "uv": [
+            13.2,
+            6.2,
+            14.6,
+            9.8
+          ]
+        },
+        "west": {
+          "texture": "#heavy",
+          "uv": [
+            6.2,
+            4.5,
+            9.8,
+            6
+          ]
+        }
+      },
+      "from": [
+        13.2,
+        10,
+        6.2
+      ],
+      "to": [
+        14.6,
+        11.5,
+        9.8
+      ]
+    }
+  ],
+  "textures": {
+    "brass": "servus_foundation:block/brass",
+    "chute": "servus_foundation:block/mill_chute",
+    "heavy": "servus_foundation:block/heavy_iron",
+    "hopper": "servus_foundation:block/mill_hopper_top",
+    "particle": "servus_foundation:block/electric_pump_steel",
+    "steel": "servus_foundation:block/electric_pump_steel"
+  }
+}

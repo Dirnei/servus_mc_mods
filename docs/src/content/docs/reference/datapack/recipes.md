@@ -1,11 +1,11 @@
 ---
 title: Recipes
-description: The calcination, coagulation and pressing recipe formats of Servus Alchemy.
+description: The calcination, coagulation and pressing recipe formats of Servus Alchemy and the milling recipe format of Servus Foundation.
 sidebar:
   order: 4
 ---
 
-Servus Alchemy adds these recipe types, among others: `servus_alchemy:calcination` for the Calciner, `servus_alchemy:coagulation` for the Coagulator and `servus_alchemy:pressing` for the Prelum. Times and amounts on this page are current values; they live in datapack JSON and modpacks can change them.
+Servus Alchemy adds these recipe types, among others: `servus_alchemy:calcination` for the Calciner, `servus_alchemy:coagulation` for the Coagulator and `servus_alchemy:pressing` for the Prelum. Servus Foundation adds `servus_foundation:milling` for the Mill. Times and amounts on this page are current values; they live in datapack JSON and modpacks can change them.
 
 ## File location
 
@@ -100,3 +100,22 @@ Built in pressing recipe:
 | Recipe | Input | Result | Time |
 |---|---|---|---|
 | `netherite_scrap` | 16 `servus_alchemy:caput_mortuum` | 1 Netherite Scrap | 600 |
+
+## Milling
+
+The Mill runs `servus_foundation:milling` recipes. It has no power of its own: a Hand Crank or an Electric Motor gives it work, and a milling is done once it has collected the recipe's `work`.
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| `type` | string | required | `servus_foundation:milling` |
+| `input` | sized ingredient | required | One `item` or `tag` with a `count` (default 1). The Mill grinds once its input slot holds the count. |
+| `result` | item stack | required | `id` and `count` (default 1). |
+| `work` | int | required | Work units one milling takes. A Hand Crank gives 25 per turn, an Electric Motor 5 per tick (see [Machine stats](/servus_mc_mods/reference/datapack/machines/)). |
+
+An item without a milling recipe is refused by the Mill. Any mod or datapack can add milling recipes under `data/<namespace>/recipe/`.
+
+Built in milling recipe:
+
+| Recipe | Input | Result | Work |
+|---|---|---|---|
+| `servus_foundation:milling/sand` | 1 Gravel | 1 Sand | 200 |

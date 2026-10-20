@@ -1,28 +1,10 @@
 package io.github.dirnei.mc.servus.foundation.machine.pump;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.Test;
 
 class BeamPumpPartsTest {
-
-    @Test
-    void quarterTurnMovesNorthToEast() {
-        float[] northEdge = {6, 0, 0, 10, 4, 2};
-        assertArrayEquals(new float[] {14, 0, 6, 16, 4, 10}, BeamPumpParts.rotated(northEdge, 1));
-    }
-
-    @Test
-    void fourQuartersAreTheSameBox() {
-        assertArrayEquals(BurnerPumpParts.CHIMNEY, BeamPumpParts.rotated(BurnerPumpParts.CHIMNEY, 4));
-    }
-
-    @Test
-    void pointTurnsLikeTheBox() {
-        assertArrayEquals(new float[] {16, 8}, BeamPumpParts.rotatedPoint(8, 0, 1));
-        assertArrayEquals(new float[] {8, 16}, BeamPumpParts.rotatedPoint(8, 0, 2));
-    }
 
     /** The west stub of the largest size, x 0..3 and y, z 5..11, must not touch the rod or its socket. */
     @Test

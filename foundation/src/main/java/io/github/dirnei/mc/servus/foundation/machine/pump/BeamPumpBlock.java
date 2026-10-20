@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.foundation.machine.pump;
 
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.PartShapes;
+import io.github.dirnei.mc.servus.foundation.machine.PixelBoxes;
 import io.github.dirnei.mc.servus.foundation.machine.TwoHalves;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -26,7 +28,6 @@ import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
@@ -49,25 +50,6 @@ public abstract class BeamPumpBlock extends PumpBlock {
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
         builder.add(HALF);
-    }
-
-    /** Quarter turns from the north built models to {@code facing}, as the blockstate rotates them. */
-    public static int quarters(Direction facing) {
-        return ((int) facing.toYRot() + 180) % 360 / 90;
-    }
-
-    /** A box in pixels as a shape. */
-    protected static VoxelShape box(float[] box) {
-        return Shapes.box(box[0] / 16.0, box[1] / 16.0, box[2] / 16.0, box[3] / 16.0, box[4] / 16.0, box[5] / 16.0);
-    }
-
-    /** The union of the parts turned to {@code facing}. */
-    protected static VoxelShape shapeOf(float[][] parts, Direction facing) {
-        VoxelShape shape = Shapes.empty();
-        for (float[] part : parts) {
-            shape = Shapes.or(shape, box(BeamPumpParts.rotated(part, quarters(facing))));
-        }
-        return shape;
     }
 
     /** The lower half's body without stubs, for a facing. */
@@ -155,7 +137,7 @@ public abstract class BeamPumpBlock extends PumpBlock {
         if (!(machine instanceof BeamPumpEngine engine) || engine.strokeClock().tick(state.getValue(LIT)) == 0) {
             return;
         }
-        float[] socket = BeamPumpParts.rotatedPoint(BeamPumpParts.SPLASH_X, BeamPumpParts.SPLASH_Z, quarters(state.getValue(FACING)));
+        float[] socket = PixelBoxes.rotatedPoint(BeamPumpParts.SPLASH_X, BeamPumpParts.SPLASH_Z, PartShapes.quarters(state.getValue(FACING)));
         RandomSource random = level.getRandom();
         for (int i = 0; i < 6; i++) {
             level.addParticle(ParticleTypes.SPLASH,
