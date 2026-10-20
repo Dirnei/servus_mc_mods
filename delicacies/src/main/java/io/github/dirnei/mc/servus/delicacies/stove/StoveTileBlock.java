@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.delicacies.stove;
 
 import com.mojang.serialization.MapCodec;
+import io.github.dirnei.mc.servus.delicacies.firebox.ElementUse;
 import io.github.dirnei.mc.servus.delicacies.kitchen.KitchenStatsManager;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesBlockEntities;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
@@ -37,6 +38,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * A Stove Tile. A straight row of loose tiles forms a Tiled Stove when the carrot clicks one of them: the clicked tile
  * gets the firebox door on {@link #FACING}, every tile a cooking plate on top. Breaking any tile unforms the stove.
+ * With a Heating Element the door shows coils and a thermometer and the {@link #PORT} tile a power port.
  */
 public class StoveTileBlock extends BaseEntityBlock implements Wrenchable {
 
@@ -47,18 +49,32 @@ public class StoveTileBlock extends BaseEntityBlock implements Wrenchable {
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
     /** The stove's front, where the door is. */
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+    /** The stove holds a Heating Element. */
+    public static final BooleanProperty HEATER = BooleanProperty.create("heater");
+    /** The tile at the end right of the front, which carries the power port. */
+    public static final BooleanProperty PORT = BooleanProperty.create("port");
     /** Light around a burning door. */
     public static final int DOOR_LIGHT = 13;
+    /** Light around a door whose coils glow. */
+    public static final int HEATER_LIGHT = 7;
 
     public StoveTileBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FORMED, false).setValue(DOOR, false).setValue(LIT, false)
-                .setValue(FACING, Direction.NORTH));
+                .setValue(FACING, Direction.NORTH).setValue(HEATER, false).setValue(PORT, false));
     }
 
     /** The light a tile in {@code state} gives. */
     public static int lightLevel(BlockState state) {
-        return state.getValue(FORMED) && state.getValue(DOOR) && state.getValue(LIT) ? DOOR_LIGHT : 0;
+        if (!state.getValue(FORMED) || !state.getValue(DOOR) || !state.getValue(LIT)) {
+            return 0;
+        }
+        return state.getValue(HEATER) ? HEATER_LIGHT : DOOR_LIGHT;
+    }
+
+    /** The face the power port of a {@link #PORT} tile is on: the end to the right seen from the front. */
+    public static Direction portFace(BlockState state) {
+        return state.getValue(FACING).getCounterClockWise();
     }
 
     @Override
@@ -68,7 +84,7 @@ public class StoveTileBlock extends BaseEntityBlock implements Wrenchable {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FORMED, DOOR, LIT, FACING);
+        builder.add(FORMED, DOOR, LIT, FACING, HEATER, PORT);
     }
 
     @Override
@@ -94,13 +110,31 @@ public class StoveTileBlock extends BaseEntityBlock implements Wrenchable {
         return state.getValue(FORMED) ? PushReaction.BLOCK : null;
     }
 
-    /** Fuel on a formed stove goes into its firebox; the carrot and other items pass. */
+    /**
+     * A Heating Element on a formed stove goes into its firebox, and so does fuel while it has none; the carrot and
+     * other items pass.
+     */
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                           InteractionHand hand, BlockHitResult hitResult) {
         if (stack.getItem() instanceof ConfigurationCarrotItem || !state.getValue(FORMED)
-                || !(level.getBlockEntity(pos) instanceof StoveTileBlockEntity tile) || !tile.isFuel(stack)) {
+                || !(level.getBlockEntity(pos) instanceof StoveTileBlockEntity tile)) {
             return InteractionResult.PASS;
+        }
+        if (ElementUse.isElement(stack)) {
+            if (!level.isClientSide() && tile.master() != null) {
+                ElementUse.install(level, pos, player, stack, tile::installElement);
+            }
+            return InteractionResult.SUCCESS;
+        }
+        if (!tile.isFuel(stack)) {
+            return InteractionResult.PASS;
+        }
+        if (tile.hasElement()) {
+            if (!level.isClientSide()) {
+                player.sendOverlayMessage(ElementUse.fuelRefused());
+            }
+            return InteractionResult.SUCCESS;
         }
         if (!level.isClientSide()) {
             ItemStack left = tile.addFuel(stack.copy());
@@ -114,11 +148,15 @@ public class StoveTileBlock extends BaseEntityBlock implements Wrenchable {
         return InteractionResult.SUCCESS;
     }
 
-    /** An empty hand tells whether the fire burns and how much fuel is left. */
+    /** An empty hand tells how the firebox heats; sneaking, it takes the Heating Element out. */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level instanceof ServerLevel && level.getBlockEntity(pos) instanceof StoveTileBlockEntity tile) {
-            player.sendOverlayMessage(tile.status());
+            if (player.isShiftKeyDown() && tile.master() != null) {
+                ElementUse.takeOut(level, pos, player, tile::takeElement);
+            } else {
+                player.sendOverlayMessage(tile.status());
+            }
         }
         return InteractionResult.SUCCESS;
     }
@@ -179,7 +217,7 @@ public class StoveTileBlock extends BaseEntityBlock implements Wrenchable {
             BlockPos at = master.relative(along, offset);
             BlockState state = level.getBlockState(at);
             level.setBlock(at, state.setValue(FORMED, true).setValue(DOOR, offset == 0).setValue(LIT, false)
-                    .setValue(FACING, front), Block.UPDATE_ALL);
+                    .setValue(FACING, front).setValue(HEATER, false).setValue(PORT, offset == row.from()), Block.UPDATE_ALL);
             if (level.getBlockEntity(at) instanceof StoveTileBlockEntity tile) {
                 if (offset == 0) {
                     tile.becomeMaster(along, row.from(), row.length());
@@ -204,10 +242,10 @@ public class StoveTileBlock extends BaseEntityBlock implements Wrenchable {
         };
     }
 
-    /** Flames and smoke at the burning door, and the crackle of a furnace now and then. */
+    /** Flames and smoke at a door with a wood fire, and the crackle of a furnace now and then. */
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        if (!state.getValue(DOOR) || !state.getValue(LIT)) {
+        if (!state.getValue(DOOR) || !state.getValue(LIT) || state.getValue(HEATER)) {
             return;
         }
         Direction front = state.getValue(FACING);

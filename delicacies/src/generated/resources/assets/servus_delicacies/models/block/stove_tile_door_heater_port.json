@@ -1,0 +1,146 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#tile"
+        },
+        "east": {
+          "cullface": "east",
+          "texture": "#tile"
+        },
+        "north": {
+          "cullface": "north",
+          "texture": "#front"
+        },
+        "south": {
+          "cullface": "south",
+          "texture": "#tile"
+        },
+        "up": {
+          "cullface": "up",
+          "texture": "#plate"
+        },
+        "west": {
+          "cullface": "west",
+          "texture": "#tile"
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#gauge",
+          "uv": [
+            0,
+            14,
+            16,
+            14.5
+          ]
+        },
+        "east": {
+          "texture": "#gauge",
+          "uv": [
+            1,
+            0,
+            1.5,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#gauge",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#gauge",
+          "uv": [
+            0,
+            1,
+            16,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#gauge",
+          "uv": [
+            14,
+            0,
+            14.5,
+            16
+          ]
+        }
+      },
+      "from": [
+        5.5,
+        10.5,
+        -0.25
+      ],
+      "to": [
+        10.5,
+        15.5,
+        0
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#iron"
+        },
+        "north": {
+          "texture": "#iron"
+        },
+        "south": {
+          "texture": "#iron"
+        },
+        "up": {
+          "texture": "#iron"
+        },
+        "west": {
+          "texture": "#port",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        }
+      },
+      "from": [
+        -1,
+        4,
+        5
+      ],
+      "to": [
+        0,
+        10,
+        11
+      ]
+    }
+  ],
+  "textures": {
+    "front": "servus_delicacies:block/stove_tile_door_heater_cold",
+    "gauge": "servus_delicacies:block/gauge_dial",
+    "iron": "servus_foundation:block/heavy_iron",
+    "particle": "servus_delicacies:block/stove_tile",
+    "plate": "servus_delicacies:block/stove_plate",
+    "port": "servus_delicacies:block/firebox_port",
+    "tile": "servus_delicacies:block/stove_tile"
+  }
+}

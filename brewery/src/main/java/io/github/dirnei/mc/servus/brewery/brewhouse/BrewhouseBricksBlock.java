@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.brewery.brewhouse.BrewhouseLayout.Cell;
 import io.github.dirnei.mc.servus.brewery.brewhouse.BrewhouseLayout.Kind;
 import io.github.dirnei.mc.servus.brewery.registry.ServusBreweryBlockEntities;
+import io.github.dirnei.mc.servus.delicacies.firebox.ElementUse;
 import java.util.Locale;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -34,7 +35,8 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Brewhouse Bricks: the firebox of the Brewhouse. Formed, the front bricks carry the fire doors, the four on the left
- * carry the kettle and take fuel, and the two on the right are the kiln trays.
+ * carry the kettle and take fuel, and the two on the right are the kiln trays. With a Heating Element the doors show
+ * coils, the bricks between them a thermometer and the back kiln brick a power port.
  */
 public class BrewhouseBricksBlock extends BrewhousePartBlock {
 
@@ -44,18 +46,25 @@ public class BrewhouseBricksBlock extends BrewhousePartBlock {
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
     /** What a kiln tray shows; unused on the other bricks. */
     public static final EnumProperty<TrayLook> TRAY = EnumProperty.create("tray", TrayLook.class);
+    /** The Brewhouse holds a Heating Element. */
+    public static final BooleanProperty HEATER = BooleanProperty.create("heater");
     /** Light around a burning door. */
     public static final int DOOR_LIGHT = 13;
+    /** Light around a door whose coils glow. */
+    public static final int HEATER_LIGHT = 7;
 
     public BrewhouseBricksBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FORMED, false).setValue(PART, BrewhousePart.KETTLE_FRONT_LEFT)
-                .setValue(FACING, Direction.NORTH).setValue(LIT, false).setValue(TRAY, TrayLook.EMPTY));
+                .setValue(FACING, Direction.NORTH).setValue(LIT, false).setValue(TRAY, TrayLook.EMPTY).setValue(HEATER, false));
     }
 
-    /** The light a brick in {@code state} gives: a burning door glows. */
+    /** The light a brick in {@code state} gives: a burning door glows, glowing coils more softly. */
     public static int lightLevel(BlockState state) {
-        return state.getValue(FORMED) && state.getValue(LIT) && state.getValue(PART).cell().hasDoor() ? DOOR_LIGHT : 0;
+        if (!state.getValue(FORMED) || !state.getValue(LIT) || !state.getValue(PART).cell().hasDoor()) {
+            return 0;
+        }
+        return state.getValue(HEATER) ? HEATER_LIGHT : DOOR_LIGHT;
     }
 
     @Override
@@ -65,7 +74,7 @@ public class BrewhouseBricksBlock extends BrewhousePartBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FORMED, PART, FACING, LIT, TRAY);
+        builder.add(FORMED, PART, FACING, LIT, TRAY, HEATER);
     }
 
     @Override
@@ -96,13 +105,19 @@ public class BrewhouseBricksBlock extends BrewhousePartBlock {
         return Component.translatable("message.servus_brewery.kiln.mode." + tray.toggleMode().name().toLowerCase(Locale.ROOT));
     }
 
-    /** Malt on a tray, fuel on any brick; the carrot and other items pass. */
+    /** A Heating Element or fuel on any brick, malt on a tray; the carrot and other items pass. */
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                           InteractionHand hand, BlockHitResult hitResult) {
         BrewhouseBlockEntity part = formedPart(level, pos, state);
         if (isCarrot(stack) || part == null) {
             return InteractionResult.PASS;
+        }
+        if (ElementUse.isElement(stack)) {
+            if (!level.isClientSide()) {
+                ElementUse.install(level, pos, player, stack, part::installElement);
+            }
+            return InteractionResult.SUCCESS;
         }
         KilnTray tray = part.tray();
         if (tray != null && tray.accepts(stack)) {
@@ -119,6 +134,12 @@ public class BrewhouseBricksBlock extends BrewhousePartBlock {
         if (!part.isFuel(stack)) {
             return tray != null ? InteractionResult.TRY_WITH_EMPTY_HAND : InteractionResult.PASS;
         }
+        if (part.hasElement()) {
+            if (!level.isClientSide()) {
+                player.sendOverlayMessage(ElementUse.fuelRefused());
+            }
+            return InteractionResult.SUCCESS;
+        }
         if (!level.isClientSide()) {
             ItemStack left = part.addFuel(stack.copy());
             if (left.getCount() != stack.getCount()) {
@@ -131,10 +152,14 @@ public class BrewhouseBricksBlock extends BrewhousePartBlock {
         return InteractionResult.SUCCESS;
     }
 
-    /** An empty hand takes a tray's malt, or tells the fire. */
+    /** An empty hand takes a tray's malt, or tells the fire; sneaking, it takes the Heating Element out. */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!(level instanceof ServerLevel) || !(level.getBlockEntity(pos) instanceof BrewhouseBlockEntity part)) {
+            return InteractionResult.SUCCESS;
+        }
+        if (player.isShiftKeyDown() && formedPart(level, pos, state) != null) {
+            ElementUse.takeOut(level, pos, player, part::takeElement);
             return InteractionResult.SUCCESS;
         }
         KilnTray tray = part.tray();
@@ -147,7 +172,7 @@ public class BrewhouseBricksBlock extends BrewhousePartBlock {
         return InteractionResult.SUCCESS;
     }
 
-    /** Flames and crackle at a burning door, and a little vapour over a tray that dries. */
+    /** Flames and crackle at a door with a wood fire, and a little vapour over a tray that dries. */
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         if (!state.getValue(FORMED) || !state.getValue(LIT)) {
@@ -155,7 +180,7 @@ public class BrewhouseBricksBlock extends BrewhousePartBlock {
         }
         Cell cell = state.getValue(PART).cell();
         Direction facing = state.getValue(FACING);
-        if (cell.hasDoor() && random.nextDouble() < 0.3) {
+        if (cell.hasDoor() && !state.getValue(HEATER) && random.nextDouble() < 0.3) {
             boolean kiln = cell.isKiln();
             float from = kiln ? BrewhouseModel.KILN_DOOR.u0() : Math.max(BrewhouseModel.KETTLE_DOOR.u0(), 16 * cell.column());
             float to = kiln ? BrewhouseModel.KILN_DOOR.u1() : Math.min(BrewhouseModel.KETTLE_DOOR.u1(), 16 * cell.column() + 16);

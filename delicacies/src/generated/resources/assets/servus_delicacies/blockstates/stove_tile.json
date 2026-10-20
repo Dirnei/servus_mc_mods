@@ -1,111 +1,435 @@
 {
   "variants": {
-    "door=false,facing=east,formed=false,lit=false": {
+    "door=false,facing=east,formed=false,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=false,facing=east,formed=false,lit=true": {
+    "door=false,facing=east,formed=false,heater=false,lit=false,port=true": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=false,facing=east,formed=true,lit=false": {
+    "door=false,facing=east,formed=false,heater=false,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=east,formed=false,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=east,formed=false,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=east,formed=false,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=east,formed=false,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=east,formed=false,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=east,formed=true,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile_formed",
       "y": 90
     },
-    "door=false,facing=east,formed=true,lit=true": {
+    "door=false,facing=east,formed=true,heater=false,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed",
+      "y": 90
+    },
+    "door=false,facing=east,formed=true,heater=false,lit=true,port=false": {
       "model": "servus_delicacies:block/stove_tile_formed_lit",
       "y": 90
     },
-    "door=false,facing=north,formed=false,lit=false": {
+    "door=false,facing=east,formed=true,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed_lit",
+      "y": 90
+    },
+    "door=false,facing=east,formed=true,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile_formed",
+      "y": 90
+    },
+    "door=false,facing=east,formed=true,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed_port",
+      "y": 90
+    },
+    "door=false,facing=east,formed=true,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile_formed_lit",
+      "y": 90
+    },
+    "door=false,facing=east,formed=true,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed_lit_port",
+      "y": 90
+    },
+    "door=false,facing=north,formed=false,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=false,facing=north,formed=false,lit=true": {
+    "door=false,facing=north,formed=false,heater=false,lit=false,port=true": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=false,facing=north,formed=true,lit=false": {
+    "door=false,facing=north,formed=false,heater=false,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=north,formed=false,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=north,formed=false,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=north,formed=false,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=north,formed=false,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=north,formed=false,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=north,formed=true,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile_formed"
     },
-    "door=false,facing=north,formed=true,lit=true": {
+    "door=false,facing=north,formed=true,heater=false,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed"
+    },
+    "door=false,facing=north,formed=true,heater=false,lit=true,port=false": {
       "model": "servus_delicacies:block/stove_tile_formed_lit"
     },
-    "door=false,facing=south,formed=false,lit=false": {
+    "door=false,facing=north,formed=true,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed_lit"
+    },
+    "door=false,facing=north,formed=true,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile_formed"
+    },
+    "door=false,facing=north,formed=true,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed_port"
+    },
+    "door=false,facing=north,formed=true,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile_formed_lit"
+    },
+    "door=false,facing=north,formed=true,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed_lit_port"
+    },
+    "door=false,facing=south,formed=false,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=false,facing=south,formed=false,lit=true": {
+    "door=false,facing=south,formed=false,heater=false,lit=false,port=true": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=false,facing=south,formed=true,lit=false": {
+    "door=false,facing=south,formed=false,heater=false,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=south,formed=false,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=south,formed=false,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=south,formed=false,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=south,formed=false,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=south,formed=false,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=south,formed=true,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile_formed",
       "y": 180
     },
-    "door=false,facing=south,formed=true,lit=true": {
+    "door=false,facing=south,formed=true,heater=false,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed",
+      "y": 180
+    },
+    "door=false,facing=south,formed=true,heater=false,lit=true,port=false": {
       "model": "servus_delicacies:block/stove_tile_formed_lit",
       "y": 180
     },
-    "door=false,facing=west,formed=false,lit=false": {
+    "door=false,facing=south,formed=true,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed_lit",
+      "y": 180
+    },
+    "door=false,facing=south,formed=true,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile_formed",
+      "y": 180
+    },
+    "door=false,facing=south,formed=true,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed_port",
+      "y": 180
+    },
+    "door=false,facing=south,formed=true,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile_formed_lit",
+      "y": 180
+    },
+    "door=false,facing=south,formed=true,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed_lit_port",
+      "y": 180
+    },
+    "door=false,facing=west,formed=false,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=false,facing=west,formed=false,lit=true": {
+    "door=false,facing=west,formed=false,heater=false,lit=false,port=true": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=false,facing=west,formed=true,lit=false": {
+    "door=false,facing=west,formed=false,heater=false,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=west,formed=false,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=west,formed=false,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=west,formed=false,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=west,formed=false,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=west,formed=false,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=false,facing=west,formed=true,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile_formed",
       "y": 270
     },
-    "door=false,facing=west,formed=true,lit=true": {
+    "door=false,facing=west,formed=true,heater=false,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed",
+      "y": 270
+    },
+    "door=false,facing=west,formed=true,heater=false,lit=true,port=false": {
       "model": "servus_delicacies:block/stove_tile_formed_lit",
       "y": 270
     },
-    "door=true,facing=east,formed=false,lit=false": {
+    "door=false,facing=west,formed=true,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed_lit",
+      "y": 270
+    },
+    "door=false,facing=west,formed=true,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile_formed",
+      "y": 270
+    },
+    "door=false,facing=west,formed=true,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed_port",
+      "y": 270
+    },
+    "door=false,facing=west,formed=true,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile_formed_lit",
+      "y": 270
+    },
+    "door=false,facing=west,formed=true,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_formed_lit_port",
+      "y": 270
+    },
+    "door=true,facing=east,formed=false,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=true,facing=east,formed=false,lit=true": {
+    "door=true,facing=east,formed=false,heater=false,lit=false,port=true": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=true,facing=east,formed=true,lit=false": {
+    "door=true,facing=east,formed=false,heater=false,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=east,formed=false,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=east,formed=false,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=east,formed=false,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=east,formed=false,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=east,formed=false,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=east,formed=true,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile_door",
       "y": 90
     },
-    "door=true,facing=east,formed=true,lit=true": {
+    "door=true,facing=east,formed=true,heater=false,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door",
+      "y": 90
+    },
+    "door=true,facing=east,formed=true,heater=false,lit=true,port=false": {
       "model": "servus_delicacies:block/stove_tile_door_lit",
       "y": 90
     },
-    "door=true,facing=north,formed=false,lit=false": {
+    "door=true,facing=east,formed=true,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door_lit",
+      "y": 90
+    },
+    "door=true,facing=east,formed=true,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile_door_heater",
+      "y": 90
+    },
+    "door=true,facing=east,formed=true,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door_heater_port",
+      "y": 90
+    },
+    "door=true,facing=east,formed=true,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile_door_lit_heater",
+      "y": 90
+    },
+    "door=true,facing=east,formed=true,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door_lit_heater_port",
+      "y": 90
+    },
+    "door=true,facing=north,formed=false,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=true,facing=north,formed=false,lit=true": {
+    "door=true,facing=north,formed=false,heater=false,lit=false,port=true": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=true,facing=north,formed=true,lit=false": {
+    "door=true,facing=north,formed=false,heater=false,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=north,formed=false,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=north,formed=false,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=north,formed=false,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=north,formed=false,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=north,formed=false,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=north,formed=true,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile_door"
     },
-    "door=true,facing=north,formed=true,lit=true": {
+    "door=true,facing=north,formed=true,heater=false,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door"
+    },
+    "door=true,facing=north,formed=true,heater=false,lit=true,port=false": {
       "model": "servus_delicacies:block/stove_tile_door_lit"
     },
-    "door=true,facing=south,formed=false,lit=false": {
+    "door=true,facing=north,formed=true,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door_lit"
+    },
+    "door=true,facing=north,formed=true,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile_door_heater"
+    },
+    "door=true,facing=north,formed=true,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door_heater_port"
+    },
+    "door=true,facing=north,formed=true,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile_door_lit_heater"
+    },
+    "door=true,facing=north,formed=true,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door_lit_heater_port"
+    },
+    "door=true,facing=south,formed=false,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=true,facing=south,formed=false,lit=true": {
+    "door=true,facing=south,formed=false,heater=false,lit=false,port=true": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=true,facing=south,formed=true,lit=false": {
+    "door=true,facing=south,formed=false,heater=false,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=south,formed=false,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=south,formed=false,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=south,formed=false,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=south,formed=false,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=south,formed=false,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=south,formed=true,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile_door",
       "y": 180
     },
-    "door=true,facing=south,formed=true,lit=true": {
+    "door=true,facing=south,formed=true,heater=false,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door",
+      "y": 180
+    },
+    "door=true,facing=south,formed=true,heater=false,lit=true,port=false": {
       "model": "servus_delicacies:block/stove_tile_door_lit",
       "y": 180
     },
-    "door=true,facing=west,formed=false,lit=false": {
+    "door=true,facing=south,formed=true,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door_lit",
+      "y": 180
+    },
+    "door=true,facing=south,formed=true,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile_door_heater",
+      "y": 180
+    },
+    "door=true,facing=south,formed=true,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door_heater_port",
+      "y": 180
+    },
+    "door=true,facing=south,formed=true,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile_door_lit_heater",
+      "y": 180
+    },
+    "door=true,facing=south,formed=true,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door_lit_heater_port",
+      "y": 180
+    },
+    "door=true,facing=west,formed=false,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=true,facing=west,formed=false,lit=true": {
+    "door=true,facing=west,formed=false,heater=false,lit=false,port=true": {
       "model": "servus_delicacies:block/stove_tile"
     },
-    "door=true,facing=west,formed=true,lit=false": {
+    "door=true,facing=west,formed=false,heater=false,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=west,formed=false,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=west,formed=false,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=west,formed=false,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=west,formed=false,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=west,formed=false,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile"
+    },
+    "door=true,facing=west,formed=true,heater=false,lit=false,port=false": {
       "model": "servus_delicacies:block/stove_tile_door",
       "y": 270
     },
-    "door=true,facing=west,formed=true,lit=true": {
+    "door=true,facing=west,formed=true,heater=false,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door",
+      "y": 270
+    },
+    "door=true,facing=west,formed=true,heater=false,lit=true,port=false": {
       "model": "servus_delicacies:block/stove_tile_door_lit",
+      "y": 270
+    },
+    "door=true,facing=west,formed=true,heater=false,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door_lit",
+      "y": 270
+    },
+    "door=true,facing=west,formed=true,heater=true,lit=false,port=false": {
+      "model": "servus_delicacies:block/stove_tile_door_heater",
+      "y": 270
+    },
+    "door=true,facing=west,formed=true,heater=true,lit=false,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door_heater_port",
+      "y": 270
+    },
+    "door=true,facing=west,formed=true,heater=true,lit=true,port=false": {
+      "model": "servus_delicacies:block/stove_tile_door_lit_heater",
+      "y": 270
+    },
+    "door=true,facing=west,formed=true,heater=true,lit=true,port=true": {
+      "model": "servus_delicacies:block/stove_tile_door_lit_heater_port",
       "y": 270
     }
   }

@@ -1,1299 +1,2595 @@
 {
   "variants": {
-    "facing=east,formed=false,lit=false,part=kettle_back_left,tray=dark": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kettle_back_left,tray=empty": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kettle_back_left,tray=green": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kettle_back_left,tray=pale": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kettle_back_right,tray=dark": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kettle_back_right,tray=empty": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kettle_back_right,tray=green": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kettle_back_right,tray=pale": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kettle_front_left,tray=dark": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kettle_front_left,tray=empty": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kettle_front_left,tray=green": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kettle_front_left,tray=pale": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kettle_front_right,tray=dark": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kettle_front_right,tray=empty": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kettle_front_right,tray=green": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kettle_front_right,tray=pale": {
+    "facing=east,formed=false,heater=false,lit=false,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kiln_back,tray=dark": {
+    "facing=east,formed=false,heater=false,lit=false,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kiln_back,tray=empty": {
+    "facing=east,formed=false,heater=false,lit=false,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kiln_back,tray=green": {
+    "facing=east,formed=false,heater=false,lit=false,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kiln_back,tray=pale": {
+    "facing=east,formed=false,heater=false,lit=false,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kiln_front,tray=dark": {
+    "facing=east,formed=false,heater=false,lit=false,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kiln_front,tray=empty": {
+    "facing=east,formed=false,heater=false,lit=false,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kiln_front,tray=green": {
+    "facing=east,formed=false,heater=false,lit=false,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=false,part=kiln_front,tray=pale": {
+    "facing=east,formed=false,heater=false,lit=false,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_back_left,tray=dark": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_back_left,tray=empty": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_back_left,tray=green": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_back_left,tray=pale": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_back_right,tray=dark": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_back_right,tray=empty": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_back_right,tray=green": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_back_right,tray=pale": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_front_left,tray=dark": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_front_left,tray=empty": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_front_left,tray=green": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_front_left,tray=pale": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_front_right,tray=dark": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_front_right,tray=empty": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_front_right,tray=green": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kettle_front_right,tray=pale": {
+    "facing=east,formed=false,heater=false,lit=true,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kiln_back,tray=dark": {
+    "facing=east,formed=false,heater=false,lit=true,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kiln_back,tray=empty": {
+    "facing=east,formed=false,heater=false,lit=true,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kiln_back,tray=green": {
+    "facing=east,formed=false,heater=false,lit=true,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kiln_back,tray=pale": {
+    "facing=east,formed=false,heater=false,lit=true,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kiln_front,tray=dark": {
+    "facing=east,formed=false,heater=false,lit=true,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kiln_front,tray=empty": {
+    "facing=east,formed=false,heater=false,lit=true,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kiln_front,tray=green": {
+    "facing=east,formed=false,heater=false,lit=true,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=false,lit=true,part=kiln_front,tray=pale": {
+    "facing=east,formed=false,heater=false,lit=true,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=east,formed=true,lit=false,part=kettle_back_left,tray=dark": {
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=false,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=false,heater=true,lit=true,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kettle_back_left,tray=empty": {
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kettle_back_left,tray=green": {
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kettle_back_left,tray=pale": {
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kettle_back_right,tray=dark": {
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kettle_back_right,tray=empty": {
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kettle_back_right,tray=green": {
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kettle_back_right,tray=pale": {
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kettle_front_left,tray=dark": {
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kettle_front_left,tray=empty": {
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kettle_front_left,tray=green": {
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kettle_front_left,tray=pale": {
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kettle_front_right,tray=dark": {
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kettle_front_right,tray=empty": {
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kettle_front_right,tray=green": {
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kettle_front_right,tray=pale": {
+    "facing=east,formed=true,heater=false,lit=false,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kiln_back,tray=dark": {
+    "facing=east,formed=true,heater=false,lit=false,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kiln_back,tray=empty": {
+    "facing=east,formed=true,heater=false,lit=false,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kiln_back,tray=green": {
+    "facing=east,formed=true,heater=false,lit=false,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kiln_back,tray=pale": {
+    "facing=east,formed=true,heater=false,lit=false,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kiln_front,tray=dark": {
+    "facing=east,formed=true,heater=false,lit=false,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_dark",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kiln_front,tray=empty": {
+    "facing=east,formed=true,heater=false,lit=false,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_empty",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kiln_front,tray=green": {
+    "facing=east,formed=true,heater=false,lit=false,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_green",
       "y": 90
     },
-    "facing=east,formed=true,lit=false,part=kiln_front,tray=pale": {
+    "facing=east,formed=true,heater=false,lit=false,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_pale",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_back_left,tray=dark": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_back_left,tray=empty": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_back_left,tray=green": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_back_left,tray=pale": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_back_right,tray=dark": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_back_right,tray=empty": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_back_right,tray=green": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_back_right,tray=pale": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_front_left,tray=dark": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_front_left,tray=empty": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_front_left,tray=green": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_front_left,tray=pale": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_front_right,tray=dark": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_front_right,tray=empty": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_front_right,tray=green": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kettle_front_right,tray=pale": {
+    "facing=east,formed=true,heater=false,lit=true,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kiln_back,tray=dark": {
+    "facing=east,formed=true,heater=false,lit=true,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kiln_back,tray=empty": {
+    "facing=east,formed=true,heater=false,lit=true,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kiln_back,tray=green": {
+    "facing=east,formed=true,heater=false,lit=true,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kiln_back,tray=pale": {
+    "facing=east,formed=true,heater=false,lit=true,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kiln_front,tray=dark": {
+    "facing=east,formed=true,heater=false,lit=true,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_dark",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kiln_front,tray=empty": {
+    "facing=east,formed=true,heater=false,lit=true,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_empty",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kiln_front,tray=green": {
+    "facing=east,formed=true,heater=false,lit=true,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_green",
       "y": 90
     },
-    "facing=east,formed=true,lit=true,part=kiln_front,tray=pale": {
+    "facing=east,formed=true,heater=false,lit=true,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_pale",
       "y": 90
     },
-    "facing=north,formed=false,lit=false,part=kettle_back_left,tray=dark": {
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_dark_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_empty_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_green_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=false,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_pale_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_dark_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_empty_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_green_heater",
+      "y": 90
+    },
+    "facing=east,formed=true,heater=true,lit=true,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_pale_heater",
+      "y": 90
+    },
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kettle_back_left,tray=empty": {
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kettle_back_left,tray=green": {
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kettle_back_left,tray=pale": {
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kettle_back_right,tray=dark": {
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kettle_back_right,tray=empty": {
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kettle_back_right,tray=green": {
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kettle_back_right,tray=pale": {
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kettle_front_left,tray=dark": {
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kettle_front_left,tray=empty": {
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kettle_front_left,tray=green": {
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kettle_front_left,tray=pale": {
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kettle_front_right,tray=dark": {
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kettle_front_right,tray=empty": {
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kettle_front_right,tray=green": {
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kettle_front_right,tray=pale": {
+    "facing=north,formed=false,heater=false,lit=false,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kiln_back,tray=dark": {
+    "facing=north,formed=false,heater=false,lit=false,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kiln_back,tray=empty": {
+    "facing=north,formed=false,heater=false,lit=false,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kiln_back,tray=green": {
+    "facing=north,formed=false,heater=false,lit=false,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kiln_back,tray=pale": {
+    "facing=north,formed=false,heater=false,lit=false,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kiln_front,tray=dark": {
+    "facing=north,formed=false,heater=false,lit=false,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kiln_front,tray=empty": {
+    "facing=north,formed=false,heater=false,lit=false,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kiln_front,tray=green": {
+    "facing=north,formed=false,heater=false,lit=false,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=false,part=kiln_front,tray=pale": {
+    "facing=north,formed=false,heater=false,lit=false,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_back_left,tray=dark": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_back_left,tray=empty": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_back_left,tray=green": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_back_left,tray=pale": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_back_right,tray=dark": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_back_right,tray=empty": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_back_right,tray=green": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_back_right,tray=pale": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_front_left,tray=dark": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_front_left,tray=empty": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_front_left,tray=green": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_front_left,tray=pale": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_front_right,tray=dark": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_front_right,tray=empty": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_front_right,tray=green": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kettle_front_right,tray=pale": {
+    "facing=north,formed=false,heater=false,lit=true,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kiln_back,tray=dark": {
+    "facing=north,formed=false,heater=false,lit=true,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kiln_back,tray=empty": {
+    "facing=north,formed=false,heater=false,lit=true,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kiln_back,tray=green": {
+    "facing=north,formed=false,heater=false,lit=true,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kiln_back,tray=pale": {
+    "facing=north,formed=false,heater=false,lit=true,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kiln_front,tray=dark": {
+    "facing=north,formed=false,heater=false,lit=true,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kiln_front,tray=empty": {
+    "facing=north,formed=false,heater=false,lit=true,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kiln_front,tray=green": {
+    "facing=north,formed=false,heater=false,lit=true,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=false,lit=true,part=kiln_front,tray=pale": {
+    "facing=north,formed=false,heater=false,lit=true,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=north,formed=true,lit=false,part=kettle_back_left,tray=dark": {
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=false,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=false,heater=true,lit=true,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
     },
-    "facing=north,formed=true,lit=false,part=kettle_back_left,tray=empty": {
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
     },
-    "facing=north,formed=true,lit=false,part=kettle_back_left,tray=green": {
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
     },
-    "facing=north,formed=true,lit=false,part=kettle_back_left,tray=pale": {
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
     },
-    "facing=north,formed=true,lit=false,part=kettle_back_right,tray=dark": {
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
     },
-    "facing=north,formed=true,lit=false,part=kettle_back_right,tray=empty": {
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
     },
-    "facing=north,formed=true,lit=false,part=kettle_back_right,tray=green": {
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
     },
-    "facing=north,formed=true,lit=false,part=kettle_back_right,tray=pale": {
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
     },
-    "facing=north,formed=true,lit=false,part=kettle_front_left,tray=dark": {
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left"
     },
-    "facing=north,formed=true,lit=false,part=kettle_front_left,tray=empty": {
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left"
     },
-    "facing=north,formed=true,lit=false,part=kettle_front_left,tray=green": {
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left"
     },
-    "facing=north,formed=true,lit=false,part=kettle_front_left,tray=pale": {
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left"
     },
-    "facing=north,formed=true,lit=false,part=kettle_front_right,tray=dark": {
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right"
     },
-    "facing=north,formed=true,lit=false,part=kettle_front_right,tray=empty": {
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right"
     },
-    "facing=north,formed=true,lit=false,part=kettle_front_right,tray=green": {
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right"
     },
-    "facing=north,formed=true,lit=false,part=kettle_front_right,tray=pale": {
+    "facing=north,formed=true,heater=false,lit=false,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right"
     },
-    "facing=north,formed=true,lit=false,part=kiln_back,tray=dark": {
+    "facing=north,formed=true,heater=false,lit=false,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark"
     },
-    "facing=north,formed=true,lit=false,part=kiln_back,tray=empty": {
+    "facing=north,formed=true,heater=false,lit=false,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty"
     },
-    "facing=north,formed=true,lit=false,part=kiln_back,tray=green": {
+    "facing=north,formed=true,heater=false,lit=false,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green"
     },
-    "facing=north,formed=true,lit=false,part=kiln_back,tray=pale": {
+    "facing=north,formed=true,heater=false,lit=false,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale"
     },
-    "facing=north,formed=true,lit=false,part=kiln_front,tray=dark": {
+    "facing=north,formed=true,heater=false,lit=false,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_dark"
     },
-    "facing=north,formed=true,lit=false,part=kiln_front,tray=empty": {
+    "facing=north,formed=true,heater=false,lit=false,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_empty"
     },
-    "facing=north,formed=true,lit=false,part=kiln_front,tray=green": {
+    "facing=north,formed=true,heater=false,lit=false,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_green"
     },
-    "facing=north,formed=true,lit=false,part=kiln_front,tray=pale": {
+    "facing=north,formed=true,heater=false,lit=false,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_pale"
     },
-    "facing=north,formed=true,lit=true,part=kettle_back_left,tray=dark": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
     },
-    "facing=north,formed=true,lit=true,part=kettle_back_left,tray=empty": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
     },
-    "facing=north,formed=true,lit=true,part=kettle_back_left,tray=green": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
     },
-    "facing=north,formed=true,lit=true,part=kettle_back_left,tray=pale": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
     },
-    "facing=north,formed=true,lit=true,part=kettle_back_right,tray=dark": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
     },
-    "facing=north,formed=true,lit=true,part=kettle_back_right,tray=empty": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
     },
-    "facing=north,formed=true,lit=true,part=kettle_back_right,tray=green": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
     },
-    "facing=north,formed=true,lit=true,part=kettle_back_right,tray=pale": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
     },
-    "facing=north,formed=true,lit=true,part=kettle_front_left,tray=dark": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit"
     },
-    "facing=north,formed=true,lit=true,part=kettle_front_left,tray=empty": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit"
     },
-    "facing=north,formed=true,lit=true,part=kettle_front_left,tray=green": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit"
     },
-    "facing=north,formed=true,lit=true,part=kettle_front_left,tray=pale": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit"
     },
-    "facing=north,formed=true,lit=true,part=kettle_front_right,tray=dark": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit"
     },
-    "facing=north,formed=true,lit=true,part=kettle_front_right,tray=empty": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit"
     },
-    "facing=north,formed=true,lit=true,part=kettle_front_right,tray=green": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit"
     },
-    "facing=north,formed=true,lit=true,part=kettle_front_right,tray=pale": {
+    "facing=north,formed=true,heater=false,lit=true,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit"
     },
-    "facing=north,formed=true,lit=true,part=kiln_back,tray=dark": {
+    "facing=north,formed=true,heater=false,lit=true,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark"
     },
-    "facing=north,formed=true,lit=true,part=kiln_back,tray=empty": {
+    "facing=north,formed=true,heater=false,lit=true,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty"
     },
-    "facing=north,formed=true,lit=true,part=kiln_back,tray=green": {
+    "facing=north,formed=true,heater=false,lit=true,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green"
     },
-    "facing=north,formed=true,lit=true,part=kiln_back,tray=pale": {
+    "facing=north,formed=true,heater=false,lit=true,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale"
     },
-    "facing=north,formed=true,lit=true,part=kiln_front,tray=dark": {
+    "facing=north,formed=true,heater=false,lit=true,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_dark"
     },
-    "facing=north,formed=true,lit=true,part=kiln_front,tray=empty": {
+    "facing=north,formed=true,heater=false,lit=true,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_empty"
     },
-    "facing=north,formed=true,lit=true,part=kiln_front,tray=green": {
+    "facing=north,formed=true,heater=false,lit=true,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_green"
     },
-    "facing=north,formed=true,lit=true,part=kiln_front,tray=pale": {
+    "facing=north,formed=true,heater=false,lit=true,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_pale"
     },
-    "facing=south,formed=false,lit=false,part=kettle_back_left,tray=dark": {
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_dark_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_empty_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_green_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=false,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_pale_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_dark_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_empty_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_green_heater"
+    },
+    "facing=north,formed=true,heater=true,lit=true,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_pale_heater"
+    },
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kettle_back_left,tray=empty": {
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kettle_back_left,tray=green": {
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kettle_back_left,tray=pale": {
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kettle_back_right,tray=dark": {
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kettle_back_right,tray=empty": {
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kettle_back_right,tray=green": {
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kettle_back_right,tray=pale": {
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kettle_front_left,tray=dark": {
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kettle_front_left,tray=empty": {
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kettle_front_left,tray=green": {
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kettle_front_left,tray=pale": {
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kettle_front_right,tray=dark": {
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kettle_front_right,tray=empty": {
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kettle_front_right,tray=green": {
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kettle_front_right,tray=pale": {
+    "facing=south,formed=false,heater=false,lit=false,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kiln_back,tray=dark": {
+    "facing=south,formed=false,heater=false,lit=false,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kiln_back,tray=empty": {
+    "facing=south,formed=false,heater=false,lit=false,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kiln_back,tray=green": {
+    "facing=south,formed=false,heater=false,lit=false,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kiln_back,tray=pale": {
+    "facing=south,formed=false,heater=false,lit=false,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kiln_front,tray=dark": {
+    "facing=south,formed=false,heater=false,lit=false,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kiln_front,tray=empty": {
+    "facing=south,formed=false,heater=false,lit=false,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kiln_front,tray=green": {
+    "facing=south,formed=false,heater=false,lit=false,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=false,part=kiln_front,tray=pale": {
+    "facing=south,formed=false,heater=false,lit=false,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_back_left,tray=dark": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_back_left,tray=empty": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_back_left,tray=green": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_back_left,tray=pale": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_back_right,tray=dark": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_back_right,tray=empty": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_back_right,tray=green": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_back_right,tray=pale": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_front_left,tray=dark": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_front_left,tray=empty": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_front_left,tray=green": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_front_left,tray=pale": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_front_right,tray=dark": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_front_right,tray=empty": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_front_right,tray=green": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kettle_front_right,tray=pale": {
+    "facing=south,formed=false,heater=false,lit=true,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kiln_back,tray=dark": {
+    "facing=south,formed=false,heater=false,lit=true,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kiln_back,tray=empty": {
+    "facing=south,formed=false,heater=false,lit=true,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kiln_back,tray=green": {
+    "facing=south,formed=false,heater=false,lit=true,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kiln_back,tray=pale": {
+    "facing=south,formed=false,heater=false,lit=true,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kiln_front,tray=dark": {
+    "facing=south,formed=false,heater=false,lit=true,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kiln_front,tray=empty": {
+    "facing=south,formed=false,heater=false,lit=true,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kiln_front,tray=green": {
+    "facing=south,formed=false,heater=false,lit=true,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=false,lit=true,part=kiln_front,tray=pale": {
+    "facing=south,formed=false,heater=false,lit=true,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=south,formed=true,lit=false,part=kettle_back_left,tray=dark": {
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=false,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=false,heater=true,lit=true,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kettle_back_left,tray=empty": {
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kettle_back_left,tray=green": {
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kettle_back_left,tray=pale": {
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kettle_back_right,tray=dark": {
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kettle_back_right,tray=empty": {
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kettle_back_right,tray=green": {
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kettle_back_right,tray=pale": {
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kettle_front_left,tray=dark": {
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kettle_front_left,tray=empty": {
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kettle_front_left,tray=green": {
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kettle_front_left,tray=pale": {
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kettle_front_right,tray=dark": {
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kettle_front_right,tray=empty": {
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kettle_front_right,tray=green": {
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kettle_front_right,tray=pale": {
+    "facing=south,formed=true,heater=false,lit=false,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kiln_back,tray=dark": {
+    "facing=south,formed=true,heater=false,lit=false,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kiln_back,tray=empty": {
+    "facing=south,formed=true,heater=false,lit=false,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kiln_back,tray=green": {
+    "facing=south,formed=true,heater=false,lit=false,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kiln_back,tray=pale": {
+    "facing=south,formed=true,heater=false,lit=false,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kiln_front,tray=dark": {
+    "facing=south,formed=true,heater=false,lit=false,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_dark",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kiln_front,tray=empty": {
+    "facing=south,formed=true,heater=false,lit=false,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_empty",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kiln_front,tray=green": {
+    "facing=south,formed=true,heater=false,lit=false,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_green",
       "y": 180
     },
-    "facing=south,formed=true,lit=false,part=kiln_front,tray=pale": {
+    "facing=south,formed=true,heater=false,lit=false,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_pale",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_back_left,tray=dark": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_back_left,tray=empty": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_back_left,tray=green": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_back_left,tray=pale": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_back_right,tray=dark": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_back_right,tray=empty": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_back_right,tray=green": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_back_right,tray=pale": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_front_left,tray=dark": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_front_left,tray=empty": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_front_left,tray=green": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_front_left,tray=pale": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_front_right,tray=dark": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_front_right,tray=empty": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_front_right,tray=green": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kettle_front_right,tray=pale": {
+    "facing=south,formed=true,heater=false,lit=true,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kiln_back,tray=dark": {
+    "facing=south,formed=true,heater=false,lit=true,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kiln_back,tray=empty": {
+    "facing=south,formed=true,heater=false,lit=true,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kiln_back,tray=green": {
+    "facing=south,formed=true,heater=false,lit=true,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kiln_back,tray=pale": {
+    "facing=south,formed=true,heater=false,lit=true,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kiln_front,tray=dark": {
+    "facing=south,formed=true,heater=false,lit=true,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_dark",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kiln_front,tray=empty": {
+    "facing=south,formed=true,heater=false,lit=true,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_empty",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kiln_front,tray=green": {
+    "facing=south,formed=true,heater=false,lit=true,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_green",
       "y": 180
     },
-    "facing=south,formed=true,lit=true,part=kiln_front,tray=pale": {
+    "facing=south,formed=true,heater=false,lit=true,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_pale",
       "y": 180
     },
-    "facing=west,formed=false,lit=false,part=kettle_back_left,tray=dark": {
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_dark_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_empty_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_green_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=false,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_pale_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_dark_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_empty_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_green_heater",
+      "y": 180
+    },
+    "facing=south,formed=true,heater=true,lit=true,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_pale_heater",
+      "y": 180
+    },
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kettle_back_left,tray=empty": {
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kettle_back_left,tray=green": {
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kettle_back_left,tray=pale": {
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kettle_back_right,tray=dark": {
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kettle_back_right,tray=empty": {
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kettle_back_right,tray=green": {
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kettle_back_right,tray=pale": {
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kettle_front_left,tray=dark": {
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kettle_front_left,tray=empty": {
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kettle_front_left,tray=green": {
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kettle_front_left,tray=pale": {
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kettle_front_right,tray=dark": {
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kettle_front_right,tray=empty": {
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kettle_front_right,tray=green": {
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kettle_front_right,tray=pale": {
+    "facing=west,formed=false,heater=false,lit=false,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kiln_back,tray=dark": {
+    "facing=west,formed=false,heater=false,lit=false,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kiln_back,tray=empty": {
+    "facing=west,formed=false,heater=false,lit=false,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kiln_back,tray=green": {
+    "facing=west,formed=false,heater=false,lit=false,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kiln_back,tray=pale": {
+    "facing=west,formed=false,heater=false,lit=false,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kiln_front,tray=dark": {
+    "facing=west,formed=false,heater=false,lit=false,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kiln_front,tray=empty": {
+    "facing=west,formed=false,heater=false,lit=false,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kiln_front,tray=green": {
+    "facing=west,formed=false,heater=false,lit=false,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=false,part=kiln_front,tray=pale": {
+    "facing=west,formed=false,heater=false,lit=false,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_back_left,tray=dark": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_back_left,tray=empty": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_back_left,tray=green": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_back_left,tray=pale": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_back_right,tray=dark": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_back_right,tray=empty": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_back_right,tray=green": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_back_right,tray=pale": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_front_left,tray=dark": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_front_left,tray=empty": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_front_left,tray=green": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_front_left,tray=pale": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_front_right,tray=dark": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_front_right,tray=empty": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_front_right,tray=green": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kettle_front_right,tray=pale": {
+    "facing=west,formed=false,heater=false,lit=true,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kiln_back,tray=dark": {
+    "facing=west,formed=false,heater=false,lit=true,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kiln_back,tray=empty": {
+    "facing=west,formed=false,heater=false,lit=true,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kiln_back,tray=green": {
+    "facing=west,formed=false,heater=false,lit=true,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kiln_back,tray=pale": {
+    "facing=west,formed=false,heater=false,lit=true,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kiln_front,tray=dark": {
+    "facing=west,formed=false,heater=false,lit=true,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kiln_front,tray=empty": {
+    "facing=west,formed=false,heater=false,lit=true,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kiln_front,tray=green": {
+    "facing=west,formed=false,heater=false,lit=true,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=false,lit=true,part=kiln_front,tray=pale": {
+    "facing=west,formed=false,heater=false,lit=true,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks"
     },
-    "facing=west,formed=true,lit=false,part=kettle_back_left,tray=dark": {
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=false,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=false,heater=true,lit=true,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks"
+    },
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kettle_back_left,tray=empty": {
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kettle_back_left,tray=green": {
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kettle_back_left,tray=pale": {
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kettle_back_right,tray=dark": {
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kettle_back_right,tray=empty": {
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kettle_back_right,tray=green": {
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kettle_back_right,tray=pale": {
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kettle_front_left,tray=dark": {
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kettle_front_left,tray=empty": {
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kettle_front_left,tray=green": {
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kettle_front_left,tray=pale": {
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kettle_front_right,tray=dark": {
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kettle_front_right,tray=empty": {
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kettle_front_right,tray=green": {
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kettle_front_right,tray=pale": {
+    "facing=west,formed=true,heater=false,lit=false,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kiln_back,tray=dark": {
+    "facing=west,formed=true,heater=false,lit=false,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kiln_back,tray=empty": {
+    "facing=west,formed=true,heater=false,lit=false,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kiln_back,tray=green": {
+    "facing=west,formed=true,heater=false,lit=false,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kiln_back,tray=pale": {
+    "facing=west,formed=true,heater=false,lit=false,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kiln_front,tray=dark": {
+    "facing=west,formed=true,heater=false,lit=false,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_dark",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kiln_front,tray=empty": {
+    "facing=west,formed=true,heater=false,lit=false,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_empty",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kiln_front,tray=green": {
+    "facing=west,formed=true,heater=false,lit=false,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_green",
       "y": 270
     },
-    "facing=west,formed=true,lit=false,part=kiln_front,tray=pale": {
+    "facing=west,formed=true,heater=false,lit=false,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_pale",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_back_left,tray=dark": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_back_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_back_left,tray=empty": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_back_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_back_left,tray=green": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_back_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_back_left,tray=pale": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_back_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_back_right,tray=dark": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_back_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_back_right,tray=empty": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_back_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_back_right,tray=green": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_back_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_back_right,tray=pale": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_back_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_front_left,tray=dark": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_front_left,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_front_left,tray=empty": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_front_left,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_front_left,tray=green": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_front_left,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_front_left,tray=pale": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_front_left,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_front_right,tray=dark": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_front_right,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_front_right,tray=empty": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_front_right,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_front_right,tray=green": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_front_right,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kettle_front_right,tray=pale": {
+    "facing=west,formed=true,heater=false,lit=true,part=kettle_front_right,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kiln_back,tray=dark": {
+    "facing=west,formed=true,heater=false,lit=true,part=kiln_back,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kiln_back,tray=empty": {
+    "facing=west,formed=true,heater=false,lit=true,part=kiln_back,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kiln_back,tray=green": {
+    "facing=west,formed=true,heater=false,lit=true,part=kiln_back,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kiln_back,tray=pale": {
+    "facing=west,formed=true,heater=false,lit=true,part=kiln_back,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kiln_front,tray=dark": {
+    "facing=west,formed=true,heater=false,lit=true,part=kiln_front,tray=dark": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_dark",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kiln_front,tray=empty": {
+    "facing=west,formed=true,heater=false,lit=true,part=kiln_front,tray=empty": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_empty",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kiln_front,tray=green": {
+    "facing=west,formed=true,heater=false,lit=true,part=kiln_front,tray=green": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_green",
       "y": 270
     },
-    "facing=west,formed=true,lit=true,part=kiln_front,tray=pale": {
+    "facing=west,formed=true,heater=false,lit=true,part=kiln_front,tray=pale": {
       "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_pale",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_dark_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_empty_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_green_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=false,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_pale_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_back_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_back_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_back_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_back_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_left",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_back_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_back_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_back_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_back_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_back_right",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_front_left,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_front_left,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_front_left,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_front_left,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_left_lit_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_front_right,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_front_right,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_front_right,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kettle_front_right,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kettle_front_right_lit_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kiln_back,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_dark_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kiln_back,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_empty_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kiln_back,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_green_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kiln_back,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_back_pale_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kiln_front,tray=dark": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_dark_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kiln_front,tray=empty": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_empty_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kiln_front,tray=green": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_green_heater",
+      "y": 270
+    },
+    "facing=west,formed=true,heater=true,lit=true,part=kiln_front,tray=pale": {
+      "model": "servus_brewery:block/brewhouse_bricks_kiln_front_lit_pale_heater",
       "y": 270
     }
   }

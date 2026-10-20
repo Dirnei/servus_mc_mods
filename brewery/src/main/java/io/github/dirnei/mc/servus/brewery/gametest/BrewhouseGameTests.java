@@ -19,8 +19,10 @@ import io.github.dirnei.mc.servus.delicacies.firebox.DelicaciesCapabilities;
 import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -29,6 +31,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -40,6 +43,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 
 /**
  * The Brewhouse forms from its ten parts with the carrot, unforms when one goes, burns fuel only for work, dries malt
@@ -296,6 +300,68 @@ public final class BrewhouseGameTests {
             helper.assertTrue(ServusRecipes.byId(helper.getLevel(), Identifier.fromNamespaceAndPath(ServusBreweryIds.MOD_ID, id)).isPresent(),
                     "Brewery should ship " + id);
         }
+        helper.succeed();
+    }
+
+    // ---------- Heating Element ----------
+
+    /** The Brewhouse faces north, so its right end, where the port is, faces west. */
+    private static final Direction PORT_FACE = Direction.WEST;
+
+    private static EnergyHandler energy(GameTestHelper helper, Cell cell, Direction side) {
+        return helper.getLevel().getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(at(cell)), side);
+    }
+
+    @ServusGameTest(timeoutTicks = 200)
+    public static void brewhouseWithElementBrews(GameTestHelper helper) {
+        BrewhouseBlockEntity master = formed(helper);
+        master.addFuel(new ItemStack(Items.COAL, 2));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        click(helper, player, at(Cell.KILN_FRONT), new ItemStack(ServusFoundationItems.HEATING_ELEMENT.get()));
+        helper.assertTrue(master.hasElement() && player.getMainHandItem().isEmpty(), "a click on a brick installs the element");
+        helper.assertTrue(helper.getBlockState(at(Cell.KETTLE_FRONT_RIGHT)).getValue(BrewhouseBricksBlock.HEATER), "the bricks show it");
+        master.heating().setHeat(master.heating().stats().hotAt() - 0.01F);
+        helper.onEachTick(() -> Transfer.receiveEnergy(energy(helper, Cell.KILN_BACK, PORT_FACE), 100, false));
+        fillPaleRecipe(helper);
+        helper.runAfterDelay(10, () -> {
+            helper.assertTrue(master.heating().heat().hot(), "hot after a little more heating");
+            helper.assertTrue(helper.getBlockState(at(Cell.COPPER_FRONT_LEFT)).getValue(BrewKettleBlock.BREWING), "the kettle brews on FE");
+            setProgress(helper, master, "KettleProgress", BREW_TIME - 5);
+            helper.succeedWhen(() -> {
+                assertPaleWortBrewed(helper, master.kettle());
+                helper.assertTrue(master.fuelStack().getCount() == 2, "the Coal is untouched");
+            });
+        });
+    }
+
+    @ServusGameTest(timeoutTicks = 40)
+    public static void brewhouseElementDropsOnUnform(GameTestHelper helper) {
+        BrewhouseBlockEntity master = formed(helper);
+        helper.assertTrue(master.installElement(), "the element goes in");
+        helper.destroyBlock(at(Cell.KILN_BACK));
+        helper.succeedWhen(() -> {
+            int dropped = GameTestSteps.drops(helper, MASTER, 4).stream().map(ItemEntity::getItem)
+                    .filter(stack -> stack.is(ServusFoundationItems.HEATING_ELEMENT.get())).mapToInt(ItemStack::getCount).sum();
+            helper.assertTrue(dropped == 1, "the element dropped, found " + dropped);
+        });
+    }
+
+    @ServusGameTest(timeoutTicks = 20)
+    public static void brewhousePortIsTheOnlyEnergyFace(GameTestHelper helper) {
+        BrewhouseBlockEntity master = formed(helper);
+        helper.assertTrue(energy(helper, Cell.KILN_BACK, PORT_FACE) == null, "no FE without the element");
+        master.installElement();
+        EnergyHandler port = energy(helper, Cell.KILN_BACK, PORT_FACE);
+        helper.assertTrue(port != null && Transfer.receiveEnergy(port, 500, false) == 500, "the port takes FE");
+        helper.assertTrue(energy(helper, Cell.KILN_BACK, Direction.SOUTH) == null, "the back takes none");
+        helper.assertTrue(energy(helper, Cell.KETTLE_FRONT_LEFT, Direction.NORTH) == null, "the front takes none");
+        helper.assertTrue(energy(helper, Cell.KILN_FRONT, PORT_FACE) == null, "the front kiln brick takes none");
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setShiftKeyDown(true);
+        click(helper, player, at(Cell.KETTLE_FRONT_LEFT), ItemStack.EMPTY);
+        helper.assertFalse(master.hasElement(), "a sneaking empty hand takes it out");
+        helper.assertTrue(player.getInventory().countItem(ServusFoundationItems.HEATING_ELEMENT.get()) == 1, "the player has it");
+        helper.assertTrue(energy(helper, Cell.KILN_BACK, PORT_FACE) == null, "and the port is gone");
         helper.succeed();
     }
 

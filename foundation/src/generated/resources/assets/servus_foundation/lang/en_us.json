@@ -140,6 +140,8 @@
   "item.servus_foundation.facade.named": "Facade (%s)",
   "item.servus_foundation.fast_data_cable": "Fast Data Cable",
   "item.servus_foundation.fluid_pipe": "Fluid Pipe",
+  "item.servus_foundation.heating_element": "Heating Element",
+  "item.servus_foundation.heating_element.tooltip": "Right click a firebox with it: it runs on FE instead of fuel",
   "item.servus_foundation.hollow_facade": "Hollow Facade",
   "item.servus_foundation.hollow_facade.named": "Hollow Facade (%s)",
   "item.servus_foundation.item_pipe": "Item Pipe",

@@ -1,16 +1,24 @@
 package io.github.dirnei.mc.servus.delicacies.stove;
 
 import io.github.dirnei.mc.servus.delicacies.firebox.Firebox;
-import io.github.dirnei.mc.servus.delicacies.firebox.FuelFire;
+import io.github.dirnei.mc.servus.delicacies.firebox.FireboxHeating;
 import io.github.dirnei.mc.servus.delicacies.firebox.HeatSource;
+import io.github.dirnei.mc.servus.delicacies.firebox.HeatingStats;
+import io.github.dirnei.mc.servus.delicacies.firebox.HeatingStatsManager;
 import io.github.dirnei.mc.servus.delicacies.kitchen.KitchenSlots;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesBlockEntities;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -21,12 +29,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jspecify.annotations.Nullable;
 
 /**
  * A Stove Tile. In a formed stove every tile knows its master, the tile with the door; the master keeps the row, the
- * fuel slot and the fire, and is the {@link Firebox} every tile offers to the cooking spot on top of it.
+ * fuel slot, the fire and the Heating Element, and is the {@link Firebox} every tile offers to the cooking spot on top
+ * of it. The tile with {@link StoveTileBlock#PORT} takes FE for the element on its outer end face.
  */
 public class StoveTileBlockEntity extends BlockEntity {
 
@@ -47,9 +57,10 @@ public class StoveTileBlockEntity extends BlockEntity {
             setChanged();
         }
     };
-    private final FuelFire fire = new FuelFire(this::burnNextFuel);
-    /** What heats this firebox; a later heat source on FE takes the fire's place here. */
-    private final HeatSource heat = fire;
+    private final FireboxHeating heating =
+            new FireboxHeating(HeatingStatsManager.TILED_STOVE, HeatingStats.TILED_STOVE, this::burnNextFuel, this::setChanged);
+    /** What heats this firebox: the wood fire, or the Heating Element once installed. */
+    private final HeatSource heat = heating.heat();
     private final Firebox firebox = new Firebox() {
         @Override
         public boolean isHot() {
@@ -61,7 +72,8 @@ public class StoveTileBlockEntity extends BlockEntity {
             demanded = true;
         }
     };
-    private final KitchenSlots fuelView = new KitchenSlots(fuel, (slot, stack) -> isFuel(stack), (slot, stack) -> !isFuel(stack));
+    private final KitchenSlots fuelView = new KitchenSlots(fuel, (slot, stack) -> isFuel(stack) && heating.acceptsFuel(),
+            (slot, stack) -> !isFuel(stack));
 
     public StoveTileBlockEntity(BlockPos pos, BlockState state) {
         super(ServusDelicaciesBlockEntities.STOVE_TILE.get(), pos, state);
@@ -127,7 +139,7 @@ public class StoveTileBlockEntity extends BlockEntity {
     private void leave() {
         masterOffset = null;
         length = 0;
-        fire.restore(0, 0);
+        heating.fire().restore(0, 0);
         demanded = false;
         setChanged();
     }
@@ -142,6 +154,7 @@ public class StoveTileBlockEntity extends BlockEntity {
         }
         List<BlockPos> members = members();
         fuel.dropAll(level, worldPosition);
+        heating.dropElement(level, worldPosition);
         for (BlockPos at : members) {
             if (at.equals(removed) || !level.isLoaded(at)) {
                 continue;
@@ -184,10 +197,10 @@ public class StoveTileBlockEntity extends BlockEntity {
         return masterOffset == null ? null : worldPosition.offset(masterOffset);
     }
 
-    /** The master's tick: the fire burns, and every tile shows whether it is lit. */
+    /** The master's tick: the fire or the element heats, every tile shows whether it is lit, and clients see the gauge. */
     void serverTick() {
         boolean wasHot = heat.hot();
-        heat.tick(demanded);
+        boolean gauge = heating.tick(demanded);
         demanded = false;
         if (heat.hot()) {
             setChanged();
@@ -195,6 +208,86 @@ public class StoveTileBlockEntity extends BlockEntity {
         if (wasHot != heat.hot()) {
             showLit(heat.hot());
         }
+        if (gauge) {
+            sendGauge();
+        }
+    }
+
+    private void sendGauge() {
+        if (level != null && !level.isClientSide()) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /** Installs a Heating Element into this tile's stove; false on a loose tile or when it has one. */
+    public boolean installElement() {
+        StoveTileBlockEntity master = master();
+        if (master == null || !master.heating.install()) {
+            return false;
+        }
+        master.elementChanged();
+        return true;
+    }
+
+    /** Takes the Heating Element out of this tile's stove; empty when there is none. */
+    public ItemStack takeElement() {
+        StoveTileBlockEntity master = master();
+        if (master == null) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack element = master.heating.takeElement();
+        if (!element.isEmpty()) {
+            master.elementChanged();
+        }
+        return element;
+    }
+
+    /** Whether this tile's stove holds a Heating Element. */
+    public boolean hasElement() {
+        StoveTileBlockEntity master = master();
+        return master != null && master.heating.hasElement();
+    }
+
+    private void elementChanged() {
+        if (level == null) {
+            return;
+        }
+        boolean element = heating.hasElement();
+        for (BlockPos at : members()) {
+            BlockState state = level.getBlockState(at);
+            if (state.getBlock() instanceof StoveTileBlock && state.getValue(StoveTileBlock.HEATER) != element) {
+                level.setBlock(at, state.setValue(StoveTileBlock.HEATER, element), Block.UPDATE_ALL);
+            }
+        }
+        showLit(heat.hot());
+        for (BlockPos at : members()) {
+            level.invalidateCapabilities(at);
+        }
+        setChanged();
+        sendGauge();
+    }
+
+    /** The FE buffer as automation sees it on {@code side}: only the port face of the port tile, with the element in. */
+    public @Nullable EnergyHandler energyCapability(@Nullable Direction side) {
+        BlockState state = getBlockState();
+        if (!(state.getBlock() instanceof StoveTileBlock) || !state.getValue(StoveTileBlock.PORT)) {
+            return null;
+        }
+        if (side != null && side != StoveTileBlock.portFace(state)) {
+            return null;
+        }
+        StoveTileBlockEntity master = master();
+        return master == null ? null : master.heating.energy();
+    }
+
+    /** The heating of this tile, meaningful on the master: for tests and the gauge. */
+    public FireboxHeating heating() {
+        return heating;
+    }
+
+    /** The heat the gauge on this door tile shows now, on the client. */
+    public float shownHeat(float partialTick) {
+        return level == null ? 0 : heating.shown(level.getGameTime(), partialTick);
     }
 
     private void showLit(boolean lit) {
@@ -232,7 +325,7 @@ public class StoveTileBlockEntity extends BlockEntity {
     /** Puts {@code stack} into the master's fuel slot; returns what did not fit. */
     public ItemStack addFuel(ItemStack stack) {
         StoveTileBlockEntity master = master();
-        if (master == null || !isFuel(stack)) {
+        if (master == null || !isFuel(stack) || !master.heating.acceptsFuel()) {
             return stack;
         }
         return master.fuel.insertItem(0, stack, false);
@@ -245,6 +338,10 @@ public class StoveTileBlockEntity extends BlockEntity {
             return Component.translatable("message.servus_delicacies.stove.loose");
         }
         String fire = master.heat.hot() ? "lit" : "cold";
+        if (master.heating.hasElement()) {
+            return Component.translatable("message.servus_delicacies.stove.electric." + fire, master.heating.heatPercent(),
+                    master.heating.hotAtPercent(), master.heating.storedEnergy());
+        }
         ItemStack stack = master.fuel.getStackInSlot(0);
         if (stack.isEmpty()) {
             return Component.translatable("message.servus_delicacies.stove." + fire + ".no_fuel");
@@ -280,8 +377,7 @@ public class StoveTileBlockEntity extends BlockEntity {
             output.putInt("Along", along.get3DDataValue());
             output.putInt("From", from);
             output.putInt("Length", length);
-            output.putInt("BurnLeft", fire.burnLeft());
-            output.putInt("BurnTotal", fire.burnTotal());
+            heating.save(output);
             fuel.save(output, "Fuel");
         }
     }
@@ -293,7 +389,18 @@ public class StoveTileBlockEntity extends BlockEntity {
         along = Direction.from3DDataValue(input.getIntOr("Along", Direction.EAST.get3DDataValue()));
         from = input.getIntOr("From", 0);
         length = input.getIntOr("Length", 0);
-        fire.restore(input.getIntOr("BurnLeft", 0), input.getIntOr("BurnTotal", 0));
+        heating.load(input);
         fuel.load(input, "Fuel");
+    }
+
+    /** Clients get only what the thermometer needs. */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return ValueIo.write(this, registries, heating::saveGauge);
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 }

@@ -1,0 +1,147 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#bricks",
+          "uv": [
+            0,
+            4,
+            16,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#bricks",
+          "uv": [
+            0,
+            4,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#bricks",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        12,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#iron",
+          "uv": [
+            0,
+            0,
+            8,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#iron",
+          "uv": [
+            0,
+            5,
+            0.5,
+            15
+          ]
+        },
+        "north": {
+          "texture": "#door",
+          "uv": [
+            0,
+            0,
+            8,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#iron",
+          "uv": [
+            0,
+            15.5,
+            8,
+            16
+          ]
+        }
+      },
+      "from": [
+        0,
+        1,
+        -0.5
+      ],
+      "to": [
+        8,
+        11,
+        0
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#copper",
+          "uv": [
+            0,
+            0,
+            14,
+            4
+          ]
+        },
+        "north": {
+          "texture": "#copper",
+          "uv": [
+            2,
+            0,
+            16,
+            4
+          ]
+        }
+      },
+      "from": [
+        0,
+        12,
+        2
+      ],
+      "to": [
+        14,
+        16,
+        16
+      ]
+    }
+  ],
+  "textures": {
+    "bricks": "minecraft:block/bricks",
+    "copper": "servus_brewery:block/brew_kettle_copper",
+    "door": "servus_brewery:block/brewhouse_door_heater",
+    "gauge": "servus_delicacies:block/gauge_dial",
+    "grate": "servus_brewery:block/kiln_grate",
+    "iron": "servus_foundation:block/heavy_iron",
+    "particle": "minecraft:block/bricks",
+    "port": "servus_delicacies:block/firebox_port"
+  }
+}

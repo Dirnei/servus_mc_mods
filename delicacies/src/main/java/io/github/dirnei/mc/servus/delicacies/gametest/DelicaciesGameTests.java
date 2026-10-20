@@ -14,7 +14,8 @@ public final class DelicaciesGameTests {
             BakeryGameTests.class,
             MeatGameTests.class,
             SidesGameTests.class,
-            TellerGameTests.class);
+            TellerGameTests.class,
+            HeatingElementGameTests.class);
 
     private DelicaciesGameTests() {
     }

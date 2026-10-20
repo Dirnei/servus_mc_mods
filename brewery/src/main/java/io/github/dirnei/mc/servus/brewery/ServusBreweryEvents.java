@@ -37,6 +37,8 @@ public final class ServusBreweryEvents {
                 (part, side) -> part.itemCapability());
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusBreweryBlockEntities.BREWHOUSE.get(),
                 (part, side) -> part.fluidCapability());
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, ServusBreweryBlockEntities.BREWHOUSE.get(),
+                (part, side) -> part.energyCapability(side));
         event.registerBlockEntity(Capabilities.Item.BLOCK, ServusBreweryBlockEntities.FERMENTING_VAT.get(),
                 (vat, side) -> vat.yeastSlot());
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusBreweryBlockEntities.FERMENTING_VAT.get(),

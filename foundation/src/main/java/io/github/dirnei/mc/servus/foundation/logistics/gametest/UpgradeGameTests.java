@@ -116,4 +116,26 @@ public final class UpgradeGameTests {
                 "the recipe makes one Capacity Upgrade, got " + result);
         helper.succeed();
     }
+
+    /** Speed and capacity slots refuse the Heating Element, it changes no rate, and its recipe makes one. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void heatingElementIsNoUpgrade(GameTestHelper helper) {
+        ItemStack element = new ItemStack(ServusFoundationItems.HEATING_ELEMENT.get());
+        helper.assertFalse(Upgrades.isUpgrade(element), "the Heating Element is not a speed upgrade");
+        helper.assertTrue(Upgrades.multiplier(element) == 1, "it changes no rate");
+        helper.assertTrue(new UpgradeSlots(1, null).insertItem(0, element.copy(), false).getCount() == 1, "the speed slot refuses it");
+        helper.assertTrue(new CapacityUpgradeSlots(1, null).insertItem(0, element.copy(), false).getCount() == 1,
+                "the capacity slot refuses it");
+        List<ItemStack> grid = new ArrayList<>();
+        for (char c : "CCCRIRCCC".toCharArray()) {
+            grid.add(new ItemStack(c == 'C' ? Items.COPPER_INGOT : c == 'R' ? Items.REDSTONE : Items.IRON_INGOT));
+        }
+        CraftingInput input = CraftingInput.of(3, 3, grid);
+        ItemStack result = helper.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
+                .map(holder -> holder.value().assemble(input))
+                .orElse(ItemStack.EMPTY);
+        helper.assertTrue(result.is(ServusFoundationItems.HEATING_ELEMENT.get()) && result.getCount() == 1,
+                "the recipe makes one Heating Element, got " + result);
+        helper.succeed();
+    }
 }

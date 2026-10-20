@@ -19,6 +19,8 @@ public final class BrewhouseModel {
     public static final String COPPER = "#copper";
     public static final String TRAY = "#tray";
     public static final String GRATE = "#grate";
+    public static final String GAUGE = "#gauge";
+    public static final String PORT = "#port";
 
     /** Height of the firebox in pixels. */
     public static final float FIREBOX_TOP = 12;
@@ -42,6 +44,16 @@ public final class BrewhouseModel {
     /** Every part of the formed Brewhouse. */
     public static final List<Part> PARTS = List.of(BRICK_BODY, KETTLE_DOOR, KILN_DOOR, KETTLE, DOME, PIPE, TRAY_PAN, TRAY_GRATE);
 
+    /** The round thermometer between the doors, shown with a Heating Element. */
+    public static final Part GAUGE_DIAL = gauge();
+    /** The flat iron power port on the right end of the back kiln brick, shown with a Heating Element. */
+    public static final Part POWER_PORT = port();
+    /** The parts a Heating Element adds; they take no part in the block shapes. */
+    public static final List<Part> HEATER_PARTS = List.of(GAUGE_DIAL, POWER_PORT);
+    /** Middle of the thermometer's face, where the needle turns. */
+    public static final float GAUGE_U = 29;
+    public static final float GAUGE_Y = 6;
+
     private BrewhouseModel() {
     }
 
@@ -59,6 +71,40 @@ public final class BrewhouseModel {
         textures.put(Side.UP, IRON);
         textures.put(Side.DOWN, IRON);
         return part(name, u0, -DOOR_DEPTH, y0, u1, 0, y1, textures, true);
+    }
+
+    /**
+     * The UVs of a side that do not follow the position rule, or null: the whole port texture on the port's face, and
+     * on the thermometer's edges the dial's outer ring (half a pixel of column 1 or 14, row 1 or 14), so they show brass
+     * only where the round dial reaches them.
+     */
+    public static float[] fixedUv(Part part, Side side) {
+        if (part == POWER_PORT && side == Side.RIGHT) {
+            return new float[] {0, 0, 16, 16};
+        }
+        if (part != GAUGE_DIAL) {
+            return null;
+        }
+        return switch (side) {
+            case LEFT -> new float[] {1, 0, 1.5F, 16};
+            case RIGHT -> new float[] {14, 0, 14.5F, 16};
+            case UP -> new float[] {0, 1, 16, 1.5F};
+            case DOWN -> new float[] {0, 14, 16, 14.5F};
+            default -> null;
+        };
+    }
+
+    private static Part gauge() {
+        Map<Side, String> textures = all(GAUGE);
+        textures.remove(Side.BACK);
+        return part("gauge", 26.5F, -0.25F, 3.5F, 31.5F, 0, 8.5F, textures, true);
+    }
+
+    private static Part port() {
+        Map<Side, String> textures = all(IRON);
+        textures.remove(Side.LEFT);
+        textures.put(Side.RIGHT, PORT);
+        return part("port", 48, 21, 3, 49, 27, 9, textures, false);
     }
 
     private static Part tray() {

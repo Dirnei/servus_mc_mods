@@ -1,0 +1,7 @@
+{
+  "energy_per_tick": 20,
+  "energy_buffer": 4000,
+  "heat_up_ticks": 200,
+  "cool_down_ticks": 1200,
+  "hot_at": 0.6
+}

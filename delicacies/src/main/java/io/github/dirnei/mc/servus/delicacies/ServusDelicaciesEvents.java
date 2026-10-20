@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.delicacies;
 
 import io.github.dirnei.mc.servus.delicacies.firebox.DelicaciesCapabilities;
+import io.github.dirnei.mc.servus.delicacies.firebox.HeatingStatsManager;
 import io.github.dirnei.mc.servus.delicacies.kitchen.KitchenStatsManager;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesBlockEntities;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -19,6 +20,7 @@ public final class ServusDelicaciesEvents {
     @SubscribeEvent
     public static void onAddReloadListeners(AddServerReloadListenersEvent event) {
         event.addListener(KitchenStatsManager.LISTENER_ID, KitchenStatsManager.INSTANCE);
+        event.addListener(HeatingStatsManager.LISTENER_ID, HeatingStatsManager.INSTANCE);
     }
 
     @SubscribeEvent
@@ -27,6 +29,8 @@ public final class ServusDelicaciesEvents {
                 (tile, context) -> tile.firebox());
         event.registerBlockEntity(Capabilities.Item.BLOCK, ServusDelicaciesBlockEntities.STOVE_TILE.get(),
                 (tile, side) -> tile.fuelCapability());
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, ServusDelicaciesBlockEntities.STOVE_TILE.get(),
+                (tile, side) -> tile.energyCapability(side));
         event.registerBlockEntity(Capabilities.Item.BLOCK, ServusDelicaciesBlockEntities.POT.get(),
                 (pot, side) -> pot.itemCapability());
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusDelicaciesBlockEntities.POT.get(),

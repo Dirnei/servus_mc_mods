@@ -1,0 +1,197 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#bricks",
+          "uv": [
+            0,
+            4,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#bricks",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        12,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#iron",
+          "uv": [
+            8,
+            0,
+            16,
+            0.5
+          ]
+        },
+        "north": {
+          "texture": "#door",
+          "uv": [
+            8,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#iron",
+          "uv": [
+            8,
+            15.5,
+            16,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#iron",
+          "uv": [
+            15.5,
+            5,
+            16,
+            15
+          ]
+        }
+      },
+      "from": [
+        8,
+        1,
+        -0.5
+      ],
+      "to": [
+        16,
+        11,
+        0
+      ]
+    },
+    {
+      "faces": {
+        "north": {
+          "texture": "#copper",
+          "uv": [
+            0,
+            0,
+            14,
+            4
+          ]
+        },
+        "west": {
+          "texture": "#copper",
+          "uv": [
+            2,
+            0,
+            16,
+            4
+          ]
+        }
+      },
+      "from": [
+        2,
+        12,
+        2
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#gauge",
+          "uv": [
+            0,
+            14,
+            16,
+            14.5
+          ]
+        },
+        "east": {
+          "texture": "#gauge",
+          "uv": [
+            1,
+            0,
+            1.5,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#gauge",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#gauge",
+          "uv": [
+            0,
+            1,
+            16,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#gauge",
+          "uv": [
+            14,
+            0,
+            14.5,
+            16
+          ]
+        }
+      },
+      "from": [
+        0.5,
+        3.5,
+        -0.25
+      ],
+      "to": [
+        5.5,
+        8.5,
+        0
+      ]
+    }
+  ],
+  "textures": {
+    "bricks": "minecraft:block/bricks",
+    "copper": "servus_brewery:block/brew_kettle_copper",
+    "door": "servus_brewery:block/brewhouse_door_heater",
+    "gauge": "servus_delicacies:block/gauge_dial",
+    "grate": "servus_brewery:block/kiln_grate",
+    "iron": "servus_foundation:block/heavy_iron",
+    "particle": "minecraft:block/bricks",
+    "port": "servus_delicacies:block/firebox_port"
+  }
+}

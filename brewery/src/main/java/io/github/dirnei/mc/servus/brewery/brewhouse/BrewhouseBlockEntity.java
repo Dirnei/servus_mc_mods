@@ -2,16 +2,25 @@ package io.github.dirnei.mc.servus.brewery.brewhouse;
 
 import io.github.dirnei.mc.servus.brewery.brewhouse.BrewhouseLayout.Cell;
 import io.github.dirnei.mc.servus.brewery.registry.ServusBreweryBlockEntities;
+import io.github.dirnei.mc.servus.brewery.ServusBreweryIds;
 import io.github.dirnei.mc.servus.delicacies.firebox.Firebox;
-import io.github.dirnei.mc.servus.delicacies.firebox.FuelFire;
+import io.github.dirnei.mc.servus.delicacies.firebox.FireboxHeating;
 import io.github.dirnei.mc.servus.delicacies.firebox.HeatSource;
+import io.github.dirnei.mc.servus.delicacies.firebox.HeatingStats;
 import io.github.dirnei.mc.servus.delicacies.kitchen.KitchenSlots;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -24,15 +33,25 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jspecify.annotations.Nullable;
 
 /**
  * A part of the Brewhouse, brick or kettle block. In a formed Brewhouse every part knows its master, the front left
- * brick; the master keeps the firebox, the Brew Kettle and the two kiln trays, and ticks them.
+ * brick; the master keeps the firebox with its Heating Element, the Brew Kettle and the two kiln trays, and ticks them.
  */
 public class BrewhouseBlockEntity extends BlockEntity {
+
+    /** The Brewhouse's id in {@code data/<ns>/heating/}. */
+    public static final Identifier HEATING = Identifier.fromNamespaceAndPath(ServusBreweryIds.MOD_ID, "brewhouse");
+    /** The Brewhouse's Heating Element numbers when no datapack names it. */
+    public static final HeatingStats HEATING_DEFAULTS = new HeatingStats(40, 8000, 300, 1600, 0.6F);
+    /** The brick whose outer end face carries the power port. */
+    public static final Cell PORT_CELL = Cell.KILN_BACK;
+    /** The front brick that carries the thermometer. */
+    public static final Cell GAUGE_CELL = Cell.KETTLE_FRONT_RIGHT;
 
     private @Nullable BlockPos masterOffset;
     private boolean demanded;
@@ -48,9 +67,9 @@ public class BrewhouseBlockEntity extends BlockEntity {
             setChanged();
         }
     };
-    private final FuelFire fire = new FuelFire(this::burnNextFuel);
-    /** What heats this firebox; a later heat source on FE takes the fire's place here. */
-    private final HeatSource heat = fire;
+    private final FireboxHeating heating = new FireboxHeating(HEATING, HEATING_DEFAULTS, this::burnNextFuel, this::setChanged);
+    /** What heats this firebox: the wood fire, or the Heating Element once installed. */
+    private final HeatSource heat = heating.heat();
     private final Firebox firebox = new Firebox() {
         @Override
         public boolean isHot() {
@@ -62,7 +81,8 @@ public class BrewhouseBlockEntity extends BlockEntity {
             demanded = true;
         }
     };
-    private final KitchenSlots fuelView = new KitchenSlots(fuel, (slot, stack) -> isFuel(stack), (slot, stack) -> !isFuel(stack));
+    private final KitchenSlots fuelView = new KitchenSlots(fuel, (slot, stack) -> isFuel(stack) && heating.acceptsFuel(),
+            (slot, stack) -> !isFuel(stack));
     private final BrewKettle kettle = new BrewKettle(this::getLevel, this::setChanged);
     private final KilnTray[] trays = {
             new KilnTray(this::getLevel, this::setChanged, look -> showTray(Cell.KILN_FRONT, look)),
@@ -131,7 +151,7 @@ public class BrewhouseBlockEntity extends BlockEntity {
 
     private void leave() {
         masterOffset = null;
-        fire.restore(0, 0);
+        heating.fire().restore(0, 0);
         demanded = false;
         brewing = false;
         setChanged();
@@ -144,6 +164,7 @@ public class BrewhouseBlockEntity extends BlockEntity {
         }
         List<BlockPos> members = members();
         fuel.dropAll(level, worldPosition);
+        heating.dropElement(level, worldPosition);
         kettle.dropAll(level, worldPosition);
         for (KilnTray tray : trays) {
             tray.dropAll(level, worldPosition);
@@ -198,7 +219,7 @@ public class BrewhouseBlockEntity extends BlockEntity {
         for (KilnTray tray : trays) {
             tray.tick(firebox);
         }
-        heat.tick(demanded);
+        boolean gauge = heating.tick(demanded);
         demanded = false;
         if (heat.hot()) {
             setChanged();
@@ -210,6 +231,87 @@ public class BrewhouseBlockEntity extends BlockEntity {
             brewing = nowBrewing;
             showBrewing(nowBrewing);
         }
+        if (gauge) {
+            sendGauge();
+        }
+    }
+
+    private void sendGauge() {
+        if (level != null && !level.isClientSide()) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /** Installs a Heating Element into this part's Brewhouse; false on a loose part or when it has one. */
+    public boolean installElement() {
+        BrewhouseBlockEntity master = master();
+        if (master == null || !master.heating.install()) {
+            return false;
+        }
+        master.elementChanged();
+        return true;
+    }
+
+    /** Takes the Heating Element out of this part's Brewhouse; empty when there is none. */
+    public ItemStack takeElement() {
+        BrewhouseBlockEntity master = master();
+        if (master == null) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack element = master.heating.takeElement();
+        if (!element.isEmpty()) {
+            master.elementChanged();
+        }
+        return element;
+    }
+
+    /** Whether this part's Brewhouse holds a Heating Element. */
+    public boolean hasElement() {
+        BrewhouseBlockEntity master = master();
+        return master != null && master.heating.hasElement();
+    }
+
+    private void elementChanged() {
+        if (level == null) {
+            return;
+        }
+        boolean element = heating.hasElement();
+        for (Cell cell : Cell.values()) {
+            if (cell.kind() == BrewhouseLayout.Kind.BRICK) {
+                setOn(cell, BrewhouseBricksBlock.HEATER, element);
+            }
+        }
+        showLit(heat.hot());
+        for (BlockPos at : members()) {
+            level.invalidateCapabilities(at);
+        }
+        setChanged();
+        sendGauge();
+    }
+
+    /** The heating of this part, meaningful on the master: for tests and the gauge. */
+    public FireboxHeating heating() {
+        return heating;
+    }
+
+    /** The heat the gauge shows now, on the client; read on the master. */
+    public float shownHeat(float partialTick) {
+        return level == null ? 0 : heating.shown(level.getGameTime(), partialTick);
+    }
+
+    /**
+     * The heat the gauge on this formed part shows, on the client: the master is found from the part's cell and facing,
+     * since clients do not hear of the master's offset.
+     */
+    public float shownGaugeHeat(float partialTick) {
+        Cell cell = cell();
+        if (cell == null || level == null) {
+            return 0;
+        }
+        Direction front = getBlockState().getValue(BrewhousePartBlock.FACING);
+        BlockPos master = worldPosition.relative(front.getCounterClockWise(), -cell.column())
+                .relative(front.getOpposite(), -cell.row()).below(cell.layer());
+        return level.getBlockEntity(master) instanceof BrewhouseBlockEntity part ? part.shownHeat(partialTick) : 0;
     }
 
     private void showLit(boolean lit) {
@@ -292,6 +394,17 @@ public class BrewhouseBlockEntity extends BlockEntity {
         return cell.underKettle() ? master.fuelView : master.kettle.items();
     }
 
+    /** The FE buffer on {@code side} of this part: only the outer end face of {@link #PORT_CELL}, with the element in. */
+    public @Nullable EnergyHandler energyCapability(@Nullable Direction side) {
+        Cell cell = cell();
+        BrewhouseBlockEntity master = master();
+        if (cell != PORT_CELL || master == null) {
+            return null;
+        }
+        Direction port = getBlockState().getValue(BrewhousePartBlock.FACING).getCounterClockWise();
+        return side == null || side == port ? master.heating.energy() : null;
+    }
+
     /** The fluid handler of a kettle block: water in, wort out; null elsewhere. */
     public @Nullable ResourceHandler<FluidResource> fluidCapability() {
         Cell cell = cell();
@@ -319,7 +432,7 @@ public class BrewhouseBlockEntity extends BlockEntity {
     /** Puts {@code stack} into the master's fuel slot; returns what did not fit. */
     public ItemStack addFuel(ItemStack stack) {
         BrewhouseBlockEntity master = master();
-        if (master == null || !isFuel(stack)) {
+        if (master == null || !isFuel(stack) || !master.heating.acceptsFuel()) {
             return stack;
         }
         return master.fuel.insertItem(0, stack, false);
@@ -343,6 +456,10 @@ public class BrewhouseBlockEntity extends BlockEntity {
             return Component.translatable("message.servus_brewery.brewhouse.loose");
         }
         String state = master.heat.hot() ? "lit" : "cold";
+        if (master.heating.hasElement()) {
+            return Component.translatable("message.servus_delicacies.stove.electric." + state, master.heating.heatPercent(),
+                    master.heating.hotAtPercent(), master.heating.storedEnergy());
+        }
         ItemStack stack = master.fuel.getStackInSlot(0);
         if (stack.isEmpty()) {
             return Component.translatable("message.servus_brewery.brewhouse." + state + ".no_fuel");
@@ -382,8 +499,7 @@ public class BrewhouseBlockEntity extends BlockEntity {
         }
         output.store("Master", BlockPos.CODEC, masterOffset);
         if (isMaster()) {
-            output.putInt("BurnLeft", fire.burnLeft());
-            output.putInt("BurnTotal", fire.burnTotal());
+            heating.save(output);
             fuel.save(output, "Fuel");
             kettle.save(output);
             trays[0].save(output, "Tray0");
@@ -395,10 +511,21 @@ public class BrewhouseBlockEntity extends BlockEntity {
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         masterOffset = input.read("Master", BlockPos.CODEC).orElse(null);
-        fire.restore(input.getIntOr("BurnLeft", 0), input.getIntOr("BurnTotal", 0));
+        heating.load(input);
         fuel.load(input, "Fuel");
         kettle.load(input);
         trays[0].load(input, "Tray0");
         trays[1].load(input, "Tray1");
+    }
+
+    /** Clients get only what the thermometer needs. */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return ValueIo.write(this, registries, heating::saveGauge);
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 }

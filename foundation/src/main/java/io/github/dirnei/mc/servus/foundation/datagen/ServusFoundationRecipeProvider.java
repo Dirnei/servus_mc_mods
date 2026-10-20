@@ -80,6 +80,16 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_bucket", has(Items.BUCKET))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusFoundationItems.HEATING_ELEMENT.get())
+                .pattern("CCC")
+                .pattern("RIR")
+                .pattern("CCC")
+                .define('C', Items.COPPER_INGOT)
+                .define('R', Items.REDSTONE)
+                .define('I', Items.IRON_INGOT)
+                .unlockedBy("has_copper", has(Items.COPPER_INGOT))
+                .save(output);
+
         ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusFoundationItems.GOGGLES.get())
                 .pattern("LIL")
                 .pattern("G G")

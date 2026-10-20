@@ -29,6 +29,7 @@ final class ServusDelicaciesLanguageProvider extends LanguageProvider {
         meatDishes();
         sides();
         teller();
+        heating();
     }
 
     /** The Plate, the plated meals and Properly Full. */
@@ -133,5 +134,18 @@ final class ServusDelicaciesLanguageProvider extends LanguageProvider {
             add(ServusDelicaciesItems.planting(crop), seeds);
         }
         add(ServusDelicaciesBlocks.crop(crop), block);
+    }
+
+    /** The Heating Element's messages on every firebox, and the stove's status with it. */
+    private void heating() {
+        String firebox = "message." + ServusDelicaciesIds.MOD_ID + ".firebox.";
+        add(firebox + "element_in", "Heating Element installed: this firebox now runs on FE");
+        add(firebox + "element_already", "This firebox already has a Heating Element");
+        add(firebox + "element_out", "Heating Element taken out: this firebox burns fuel again");
+        add(firebox + "no_element", "This firebox has no Heating Element");
+        add(firebox + "fuel_refused", "The Heating Element heats this firebox; take it out to burn fuel");
+        String stove = "message." + ServusDelicaciesIds.MOD_ID + ".stove.electric.";
+        add(stove + "lit", "Heating Element hot: %s%% (cooks from %s%%), %s FE stored");
+        add(stove + "cold", "Heating Element not hot yet: %s%% (cooks from %s%%), %s FE stored");
     }
 }

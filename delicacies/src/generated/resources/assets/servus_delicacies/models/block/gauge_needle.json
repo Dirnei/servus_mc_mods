@@ -1,0 +1,68 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#needle"
+        },
+        "east": {
+          "texture": "#needle"
+        },
+        "north": {
+          "texture": "#needle"
+        },
+        "up": {
+          "texture": "#needle"
+        },
+        "west": {
+          "texture": "#needle"
+        }
+      },
+      "from": [
+        7.8,
+        7.6,
+        -0.15
+      ],
+      "to": [
+        8.2,
+        10.2,
+        -0.1
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#hub"
+        },
+        "east": {
+          "texture": "#hub"
+        },
+        "north": {
+          "texture": "#hub"
+        },
+        "up": {
+          "texture": "#hub"
+        },
+        "west": {
+          "texture": "#hub"
+        }
+      },
+      "from": [
+        7.55,
+        7.55,
+        -0.27
+      ],
+      "to": [
+        8.45,
+        8.45,
+        -0.19
+      ]
+    }
+  ],
+  "textures": {
+    "hub": "servus_foundation:block/brass",
+    "needle": "servus_delicacies:block/gauge_needle",
+    "particle": "servus_delicacies:block/gauge_needle"
+  }
+}
