@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTests;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForgeMod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +21,7 @@ public final class ServusDelicacies {
     public static final Logger LOGGER = LoggerFactory.getLogger(ServusDelicacies.class);
 
     public ServusDelicacies(IEventBus modEventBus, ModContainer container) {
+        NeoForgeMod.enableMilkFluid();
         ServusDelicaciesBlocks.BLOCKS.register(modEventBus);
         ServusDelicaciesBlockEntities.BLOCK_ENTITIES.register(modEventBus);
         ServusDelicaciesRecipes.RECIPE_TYPES.register(modEventBus);

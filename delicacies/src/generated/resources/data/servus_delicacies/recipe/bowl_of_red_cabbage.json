@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "servus_delicacies:braised_red_cabbage",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "id": "servus_delicacies:bowl_of_red_cabbage"
+  }
+}

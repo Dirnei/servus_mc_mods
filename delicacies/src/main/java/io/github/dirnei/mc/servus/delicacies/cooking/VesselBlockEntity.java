@@ -82,7 +82,7 @@ public abstract class VesselBlockEntity<R extends VesselRecipe> extends KitchenB
     }
 
     /** An ingredient goes into the input stack that holds its kind, or into an empty one when none does. */
-    private boolean canHoldInput(int slot, ItemStack stack) {
+    protected boolean canHoldInput(int slot, ItemStack stack) {
         if (slot >= INPUTS || !accepts(stack)) {
             return false;
         }

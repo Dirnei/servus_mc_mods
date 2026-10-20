@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "servus_delicacies:sauerkraut",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "id": "servus_delicacies:bowl_of_sauerkraut"
+  }
+}

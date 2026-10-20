@@ -1,0 +1,18 @@
+{
+  "type": "servus_delicacies:fermenting",
+  "ingredients": [
+    {
+      "count": 4,
+      "ingredient": "servus_delicacies:shredded_cabbage"
+    },
+    {
+      "count": 1,
+      "ingredient": "#c:dusts/salt"
+    }
+  ],
+  "result": {
+    "count": 4,
+    "id": "servus_delicacies:sauerkraut"
+  },
+  "time": 72000
+}

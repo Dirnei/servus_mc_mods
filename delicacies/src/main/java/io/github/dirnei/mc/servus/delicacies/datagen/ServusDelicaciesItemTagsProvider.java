@@ -45,6 +45,9 @@ final class ServusDelicaciesItemTagsProvider extends ItemTagsProvider {
         tag(KitchenTags.ASH).add(ServusDelicaciesItems.WOOD_ASH.get())
                 .add(TagEntry.optionalElement(Identifier.fromNamespaceAndPath("servus_alchemy", "ash")));
         tag(Tags.Items.DUSTS).addTag(KitchenTags.SALT).addTag(KitchenTags.ASH);
+        ServusDelicaciesItems.SIDE_FOODS.forEach(food -> tag(Tags.Items.FOODS).add(food.get()));
+        ServusDelicaciesItems.BOWL_FOODS.forEach(food -> tag(Tags.Items.FOODS_SOUP).add(food.get()));
+        tag(KitchenTags.CHEESE).add(ServusDelicaciesItems.CHEESE.get());
         meatDishes();
     }
 

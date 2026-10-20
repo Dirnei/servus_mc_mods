@@ -38,6 +38,12 @@ final class ServusDelicaciesDataMapProvider extends DataMapProvider {
         food.add(ServusDelicaciesItems.FRIED_EGG, new FoodProperties(4, 4.8F, false), false);
         food.add(ServusDelicaciesItems.FRIED_ONIONS, new FoodProperties(3, 3.6F, false), false);
         food.add(ServusDelicaciesItems.FRIED_POTATOES, new FoodProperties(8, 12.8F, false), false);
+        food.add(ServusDelicaciesItems.BOWL_OF_SAUERKRAUT, new FoodProperties(4, 4.8F, false), false);
+        food.add(ServusDelicaciesItems.BOWL_OF_RED_CABBAGE, new FoodProperties(5, 6.0F, false), false);
+        food.add(ServusDelicaciesItems.POTATO_SALAD, new FoodProperties(6, 7.2F, false), false);
+        food.add(ServusDelicaciesItems.BREAD_DUMPLING, new FoodProperties(6, 7.2F, false), false);
+        food.add(ServusDelicaciesItems.POTATO_DUMPLING, new FoodProperties(5, 6.0F, false), false);
+        food.add(ServusDelicaciesItems.CHEESE, new FoodProperties(3, 3.6F, false), false);
         meatDishes(food);
     }
 

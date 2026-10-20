@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "sealed=false": {
+      "model": "servus_delicacies:block/fermenting_crock"
+    },
+    "sealed=true": {
+      "model": "servus_delicacies:block/fermenting_crock_sealed"
+    }
+  }
+}

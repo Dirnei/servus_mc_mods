@@ -25,6 +25,30 @@ final class ServusDelicaciesLanguageProvider extends LanguageProvider {
         crop(CropKind.MUSTARD, "Mustard Seeds", null, "Mustard");
         kitchen();
         meatDishes();
+        sides();
+    }
+
+    /** The Fermenting Crock, the sides, their messages and the JEI category. */
+    private void sides() {
+        add(ServusDelicaciesBlocks.FERMENTING_CROCK.get(), "Fermenting Crock");
+        add(ServusDelicaciesItems.SHREDDED_RED_CABBAGE.get(), "Shredded Red Cabbage");
+        add(ServusDelicaciesItems.GRATED_POTATO.get(), "Grated Potato");
+        add(ServusDelicaciesItems.SAUERKRAUT.get(), "Sauerkraut");
+        add(ServusDelicaciesItems.BRAISED_RED_CABBAGE.get(), "Braised Red Cabbage");
+        add(ServusDelicaciesItems.CHEESE.get(), "Cheese");
+        add(ServusDelicaciesItems.BREAD_DUMPLING.get(), "Bread Dumpling");
+        add(ServusDelicaciesItems.POTATO_DUMPLING.get(), "Potato Dumpling");
+        add(ServusDelicaciesItems.BOWL_OF_SAUERKRAUT.get(), "Bowl of Sauerkraut");
+        add(ServusDelicaciesItems.BOWL_OF_RED_CABBAGE.get(), "Bowl of Red Cabbage");
+        add(ServusDelicaciesItems.POTATO_SALAD.get(), "Potato Salad");
+        String crock = "message." + ServusDelicaciesIds.MOD_ID + ".crock.";
+        add(crock + "fermenting", "Fermenting into %s, about %s in-game hours left");
+        add(crock + "empty", "Put in what should ferment; the lid goes on once it matches a recipe");
+        add(crock + "unknown", "something");
+        String jei = "gui." + ServusDelicaciesIds.MOD_ID + ".jei.";
+        add(jei + "fermenting", "Fermenting Crock");
+        add(jei + "days", "%s days");
+        add(jei + "sealed", "Sealed in the crock");
     }
 
     /** The kitchen's blocks, items, messages and JEI categories. */

@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.delicacies.board.CuttingBoardBlockEntity;
 import io.github.dirnei.mc.servus.delicacies.cooking.BakingOvenBlockEntity;
 import io.github.dirnei.mc.servus.delicacies.cooking.PanBlockEntity;
 import io.github.dirnei.mc.servus.delicacies.cooking.PotBlockEntity;
+import io.github.dirnei.mc.servus.delicacies.crock.FermentingCrockBlockEntity;
 import io.github.dirnei.mc.servus.delicacies.stove.StoveTileBlockEntity;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
@@ -34,6 +35,9 @@ public final class ServusDelicaciesBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CuttingBoardBlockEntity>> CUTTING_BOARD =
             register("cutting_board", CuttingBoardBlockEntity::new, ServusDelicaciesBlocks.CUTTING_BOARD);
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FermentingCrockBlockEntity>> FERMENTING_CROCK =
+            register("fermenting_crock", FermentingCrockBlockEntity::new, ServusDelicaciesBlocks.FERMENTING_CROCK);
 
     private ServusDelicaciesBlockEntities() {
     }

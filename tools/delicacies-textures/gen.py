@@ -597,18 +597,23 @@ def chopped_onion():
 
 def shredded_cabbage():
     """A loose heap of thin pale green cabbage strands."""
+    return shredded(CAB, 'sc')
+
+
+def shredded(ramp, seed):
+    """A loose heap of thin cabbage strands in the cabbage's ramp."""
     s = Spr()
-    rng = rng_for('sc')
+    rng = rng_for(seed)
     for i in range(9):
         y0 = 6 + i * .9
         x0 = 2.5 + rng.random() * 2
         x1 = 11 + rng.random() * 2.5
-        c = CAB[1 + (i % 3)]
+        c = ramp[1 + (i % 3)]
         for x in range(int(x0), int(x1) + 1):
             y = int(round(y0 + math.sin(x * .9 + i) * 1.1))
             s.set(x, y, c)
             if rng.random() < .25:
-                s.set(x, y + 1, CAB[1])
+                s.set(x, y + 1, ramp[1])
     return s
 
 
@@ -1122,6 +1127,164 @@ SPRITES.update({
     'block/baking_oven_door': oven_door(False).image(),
     'block/baking_oven_door_lit': oven_door(True).image(),
 })
+
+
+# ---------- sides: Fermenting Crock, sauerkraut, red cabbage, cheese, dumplings ----------
+KRAUT = R('#6f6526', '#a89a48', '#cfc27a', '#e6dca2', '#f3edc8')
+SKN = R('#6b5530', '#a88c58', '#cdb37c', '#e3cf9e', '#f1e4c0')
+KKN = R('#7a6e4e', '#bfb185', '#d9cea6', '#ebe3c6', '#f8f3e2')
+CHEESE_RAMP = R('#a07d12', '#d9ae2a', '#e8c236', '#f7df6e')
+CHEESE_RIND = hx('#c98f1c')
+CROCK = R('#2e1c10', '#4e3019', '#6a4324', '#835632', '#9c6a40', '#b58254')
+SEAL_WATER = R('#24364e', '#35506e', '#4a6e92')
+
+
+def bowl(fill_ramp, seed, specks=(), pattern=None, mound=3.4):
+    """A white bowl with a blue band, heaped with food."""
+    s = Spr()
+    rng = rng_for(seed)
+    mnd = ellipse(7.5, 8.2, 6.0, mound) & {(x, y) for x in range(S) for y in range(0, 9)}
+    paint(s, mnd, fill_ramp, rng, noise=.25, k=1.4, specks=specks, pattern=pattern)
+    body = ellipse(7.5, 7.6, 7.2, 6.8) & {(x, y) for x in range(S) for y in range(8, 15)}
+    paint(s, body, CER, rng, noise=.04, k=1.8)
+    for x in range(1, 15):
+        if (x, 8) in body:
+            s.set(x, 8, CER[4])
+    for (x, y) in body - boundary(body):
+        if y == 10:
+            s.set(x, y, BLUE if x % 2 else BLUE2)
+    return s
+
+
+def sauerkraut_bowl():
+    return bowl(KRAUT, 'sk', pattern=lambda x, y: .35 * math.sin(x * 1.9 + y * 2.7))
+
+
+def blaukraut_bowl():
+    return bowl(REDK, 'bk', pattern=lambda x, y: .3 * math.sin(x * 2.3 - y * 2.1), specks=((hx('#b33b3b'), .03),))
+
+
+def potato_salad():
+    """The bowl heaped with potato slices, onion and parsley."""
+    return bowl(KKN, 'sa', specks=((PARS[2], .08), (ONION[3], .06)), pattern=lambda x, y: .25 * math.sin(x * 1.4 + y * .6))
+
+
+def knoedel(ramp, seed, specks):
+    s = Spr()
+    rng = rng_for(seed)
+    paint(s, ellipse(8, 13.0, 6.6, 2.0), GRAVY, rng, noise=.1, k=.3)
+    paint(s, ellipse(8, 8.3, 5.7, 5.5), ramp, rng, noise=.12, k=2.4, specks=specks)
+    return s
+
+
+def semmelknoedel():
+    return knoedel(SKN, 'skn', ((SKN[1], .12), (SKN[4], .06), (GREEN_FLECK, .06), (SEMMEL[2], .05)))
+
+
+def kartoffelknoedel():
+    s = knoedel(KKN, 'kkn', ((KKN[1], .03),))
+    s.set(6, 5, KKN[4])
+    s.set(5, 6, hx('#ffffff'))
+    return s
+
+
+def heap(ramp, seed, pattern, specks=()):
+    """A loose heap of cooked or fermented cabbage, without a bowl."""
+    s = Spr()
+    rng = rng_for(seed)
+    m = ellipse(8, 11.2, 6.6, 3.6) | ellipse(8, 8.8, 4.6, 3.6)
+    paint(s, m, ramp, rng, noise=.25, k=1.2, specks=specks, pattern=pattern)
+    return s
+
+
+def grated_potato():
+    """A pale heap of short potato gratings."""
+    s = Spr()
+    rng = rng_for('gp')
+    m = ellipse(8, 11.0, 6.0, 3.4) | ellipse(8, 9.0, 4.0, 3.0)
+    paint(s, m, POTATO, rng, noise=.1, k=1.0, bias=.15)
+    for _ in range(16):
+        x, y = rng.choice(sorted(m - boundary(m)))
+        s.set(x, y, POTATO[1])
+        s.set(x + 1, y, POTATO[4])
+    return s
+
+
+def cheese():
+    """A wedge of yellow cheese seen from the front: a light top, a darker cut face with holes and a rind on the back."""
+    s = Spr()
+    rng = rng_for('cheese')
+    top = poly([(1, 10), (12, 3), (15.5, 6.5), (4.5, 11.5)])
+    face = poly([(1, 10), (4.5, 11.5), (15.5, 6.5), (15.5, 11.5), (4.5, 15.5), (1, 14)])
+    paint(s, face, CHEESE_RAMP, rng, noise=.05, k=.3, bias=-.2)
+    paint(s, top, CHEESE_RAMP, rng, noise=.04, k=.2, bias=.35)
+    for (x, y) in face:
+        if x >= 14 and (x, y) not in boundary(face):
+            s.set(x, y, CHEESE_RIND)
+    for (cx, cy) in ((4, 13), (8, 12), (11, 11), (7, 14)):
+        s.set(cx, cy, CHEESE_RAMP[0])
+        s.set(cx + 1, cy, CHEESE_RAMP[1])
+    for (x, y) in ((8, 7), (11, 5)):
+        s.set(x, y, CHEESE_RAMP[2])
+    return s
+
+
+def crock_side():
+    """Brown salt glazed stoneware: a lighter glazed rim at the top, a dark band round the belly, darker drips."""
+    rng = rng_for('crock_side')
+    s = tex_noise(CROCK, 'crock_side', base=3)
+    for x in range(S):
+        for y in range(4, 8):
+            s.set(x, y, CROCK[4] if y == 6 else CROCK[5] if y == 5 and rng.random() < .3 else CROCK[4 - (y == 7)])
+        s.set(x, 11, CROCK[1])
+        s.set(x, 12, CROCK[2] if x % 3 else CROCK[1])
+        s.set(x, 15, CROCK[2])
+        if rng.random() < .3:
+            for y in range(8, 8 + rng.randint(1, 3)):
+                s.set(x, y, CROCK[2])
+    return s
+
+
+def crock_top():
+    """The top of the belly: dark inside the neck, the water of the seal in the ring between lip and neck."""
+    s = tex_noise(CROCK, 'crock_top', base=3)
+    for y in range(S):
+        for x in range(S):
+            ring = max(abs(x - 7.5), abs(y - 7.5))
+            if ring < 3:
+                s.set(x, y, CROCK[0] if (x + y) % 3 else CROCK[1])
+            elif 4 < ring < 5:
+                s.set(x, y, SEAL_WATER[2] if (x * 3 + y) % 5 == 0 else SEAL_WATER[1])
+    return s
+
+
+def crock_lid():
+    """The lid's glaze, a shade lighter than the crock, with a light ring."""
+    s = tex_noise(CROCK, 'crock_lid', base=4)
+    for y in range(S):
+        for x in range(S):
+            if abs(max(abs(x - 7.5), abs(y - 7.5)) - 3.5) < .6:
+                s.set(x, y, CROCK[5])
+    return s
+
+
+SPRITES.update({
+    'item/bowl_of_sauerkraut': sauerkraut_bowl().image(),
+    'item/bowl_of_red_cabbage': blaukraut_bowl().image(),
+    'item/potato_salad': potato_salad().image(),
+    'item/bread_dumpling': semmelknoedel().image(),
+    'item/potato_dumpling': kartoffelknoedel().image(),
+    'item/sauerkraut': heap(KRAUT, 'skh', lambda x, y: .35 * math.sin(x * 1.9 + y * 2.7)).image(),
+    'item/braised_red_cabbage': heap(REDK, 'bkh', lambda x, y: .3 * math.sin(x * 2.3 - y * 2.1), ((hx('#b33b3b'), .03),)).image(),
+    'item/shredded_red_cabbage': shredded(REDK, 'src').image(),
+    'item/grated_potato': grated_potato().image(),
+    'item/cheese': cheese().image(),
+    'block/crock_side': crock_side().image(),
+    'block/crock_top': crock_top().image(),
+    'block/crock_lid': crock_lid().image(),
+})
+
+
 SPRITES.update({
     'item/pork_cutlet': pork_cutlet().image(),
     'item/minced_pork': mince(RAW_PORK + [hx('#f8dad4')], 'mince_pork').image(),

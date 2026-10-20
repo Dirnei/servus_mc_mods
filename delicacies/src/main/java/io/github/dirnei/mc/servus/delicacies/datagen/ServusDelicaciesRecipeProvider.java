@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.delicacies.board.CuttingRecipe;
 import io.github.dirnei.mc.servus.delicacies.cooking.BakingRecipe;
 import io.github.dirnei.mc.servus.delicacies.cooking.PanRecipe;
 import io.github.dirnei.mc.servus.delicacies.cooking.PotRecipe;
+import io.github.dirnei.mc.servus.delicacies.crock.FermentingRecipe;
 import io.github.dirnei.mc.servus.delicacies.crop.CropKind;
 import io.github.dirnei.mc.servus.delicacies.crop.CropTags;
 import io.github.dirnei.mc.servus.delicacies.kitchen.KitchenTags;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -35,6 +37,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
+import net.neoforged.neoforge.fluids.crafting.FluidIngredient;
 import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
 
 /** The kitchen's crafting recipes, its starter pot, pan and cutting recipes, and the bakery from flour to Pretzel. */
@@ -69,6 +72,60 @@ final class ServusDelicaciesRecipeProvider extends RecipeProvider {
         cooking();
         bakery();
         meatDishes();
+        sides();
+    }
+
+    /** The Fermenting Crock, sauerkraut and cheese, red cabbage, the dumplings and the bowl servings. */
+    private void sides() {
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusDelicaciesItems.FERMENTING_CROCK.get())
+                .pattern("B B")
+                .pattern("B B")
+                .pattern("BBB")
+                .define('B', Items.BRICK)
+                .unlockedBy("has_brick", has(Items.BRICK))
+                .save(output);
+        Ingredient knife = tag(KitchenTags.KNIVES);
+        output.accept(key("cutting/shredded_red_cabbage"), new CuttingRecipe(tag(CropTags.crop(CropKind.RED_CABBAGE)), knife,
+                new ItemStackTemplate(ServusDelicaciesItems.SHREDDED_RED_CABBAGE.get(), 2)), null);
+        output.accept(key("cutting/grated_potato"), new CuttingRecipe(tag(Tags.Items.CROPS_POTATO), knife,
+                new ItemStackTemplate(ServusDelicaciesItems.GRATED_POTATO.get())), null);
+        SizedIngredient salt = new SizedIngredient(tag(KitchenTags.SALT), 1);
+        output.accept(key("fermenting/sauerkraut"), new FermentingRecipe(List.of(sized(ServusDelicaciesItems.SHREDDED_CABBAGE.get(), 4), salt),
+                Optional.empty(), new ItemStackTemplate(ServusDelicaciesItems.SAUERKRAUT.get(), 4), 72000), null);
+        output.accept(key("fermenting/cheese"), new FermentingRecipe(List.of(salt), Optional.of(milk(1000)),
+                new ItemStackTemplate(ServusDelicaciesItems.CHEESE.get(), 4), 48000), null);
+        output.accept(key("pot/braised_red_cabbage"), new PotRecipe(List.of(sized(ServusDelicaciesItems.SHREDDED_RED_CABBAGE.get(), 2),
+                sized(Items.APPLE, 1), sized(Items.SUGAR, 1)), Optional.of(SizedFluidIngredient.of(Fluids.WATER, 250)),
+                new ItemStackTemplate(ServusDelicaciesItems.BRAISED_RED_CABBAGE.get(), 2), 300), null);
+        output.accept(key("pot/bread_dumplings"), new PotRecipe(List.of(sized(ServusDelicaciesItems.BREAD_CRUMBS.get(), 2),
+                new SizedIngredient(tag(Tags.Items.EGGS), 1), sized(ServusDelicaciesItems.CHOPPED_ONION.get(), 1),
+                new SizedIngredient(tag(CropTags.crop(CropKind.PARSLEY)), 1)), Optional.of(milk(250)),
+                new ItemStackTemplate(ServusDelicaciesItems.BREAD_DUMPLING.get(), 2), 300), null);
+        output.accept(key("pot/potato_dumplings"), new PotRecipe(List.of(sized(ServusDelicaciesItems.GRATED_POTATO.get(), 2),
+                sized(ServusDelicaciesItems.BOILED_POTATOES.get(), 1), salt), Optional.of(SizedFluidIngredient.of(Fluids.WATER, 250)),
+                new ItemStackTemplate(ServusDelicaciesItems.POTATO_DUMPLING.get(), 2), 300), null);
+        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.FOOD, ServusDelicaciesItems.BOWL_OF_SAUERKRAUT.get())
+                .requires(ServusDelicaciesItems.SAUERKRAUT.get())
+                .requires(Items.BOWL)
+                .unlockedBy("has_sauerkraut", has(ServusDelicaciesItems.SAUERKRAUT.get()))
+                .save(output);
+        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.FOOD, ServusDelicaciesItems.BOWL_OF_RED_CABBAGE.get())
+                .requires(ServusDelicaciesItems.BRAISED_RED_CABBAGE.get())
+                .requires(Items.BOWL)
+                .unlockedBy("has_braised_red_cabbage", has(ServusDelicaciesItems.BRAISED_RED_CABBAGE.get()))
+                .save(output);
+        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.FOOD, ServusDelicaciesItems.POTATO_SALAD.get())
+                .requires(ServusDelicaciesItems.BOILED_POTATOES.get())
+                .requires(ServusDelicaciesItems.BOILED_POTATOES.get())
+                .requires(ServusDelicaciesItems.CHOPPED_ONION.get())
+                .requires(Items.BOWL)
+                .unlockedBy("has_boiled_potatoes", has(ServusDelicaciesItems.BOILED_POTATOES.get()))
+                .save(output);
+    }
+
+    /** {@code amount} of any fluid in {@code c:milk}. */
+    private SizedFluidIngredient milk(int amount) {
+        return new SizedFluidIngredient(FluidIngredient.of(registries.lookupOrThrow(Registries.FLUID).getOrThrow(Tags.Fluids.MILK)), amount);
     }
 
     private void crafting() {

@@ -28,5 +28,6 @@ final class ServusDelicaciesBlockTagsProvider extends BlockTagsProvider {
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ServusDelicaciesBlocks.STOVE_TILE.get(), ServusDelicaciesBlocks.POT.get(),
                 ServusDelicaciesBlocks.PAN.get(), ServusDelicaciesBlocks.BAKING_OVEN.get());
         tag(BlockTags.MINEABLE_WITH_AXE).add(ServusDelicaciesBlocks.CUTTING_BOARD.get());
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ServusDelicaciesBlocks.FERMENTING_CROCK.get());
     }
 }

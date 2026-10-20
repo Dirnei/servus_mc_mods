@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_boiled_potatoes": {
+      "conditions": {
+        "items": [
+          {
+            "items": "servus_delicacies:boiled_potatoes"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "servus_delicacies:potato_salad"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_boiled_potatoes"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "servus_delicacies:potato_salad"
+    ]
+  }
+}

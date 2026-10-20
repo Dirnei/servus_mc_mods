@@ -1,0 +1,26 @@
+{
+  "type": "servus_delicacies:pot",
+  "fluid": {
+    "amount": 250,
+    "ingredient": "minecraft:water"
+  },
+  "ingredients": [
+    {
+      "count": 2,
+      "ingredient": "servus_delicacies:grated_potato"
+    },
+    {
+      "count": 1,
+      "ingredient": "servus_delicacies:boiled_potatoes"
+    },
+    {
+      "count": 1,
+      "ingredient": "#c:dusts/salt"
+    }
+  ],
+  "result": {
+    "count": 2,
+    "id": "servus_delicacies:potato_dumpling"
+  },
+  "time": 300
+}

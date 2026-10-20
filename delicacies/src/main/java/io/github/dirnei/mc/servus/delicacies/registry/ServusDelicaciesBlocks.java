@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.delicacies.board.CuttingBoardBlock;
 import io.github.dirnei.mc.servus.delicacies.cooking.BakingOvenBlock;
 import io.github.dirnei.mc.servus.delicacies.cooking.PanBlock;
 import io.github.dirnei.mc.servus.delicacies.cooking.PotBlock;
+import io.github.dirnei.mc.servus.delicacies.crock.FermentingCrockBlock;
 import io.github.dirnei.mc.servus.delicacies.meat.LeberkaeseBlock;
 import io.github.dirnei.mc.servus.delicacies.stove.StoveTileBlock;
 import java.util.Collections;
@@ -69,6 +70,14 @@ public final class ServusDelicaciesBlocks {
                     .sound(SoundType.WOOD)
                     .noOcclusion());
 
+    /** The Fermenting Crock, brown stoneware with a water seal and a lid. */
+    public static final DeferredBlock<FermentingCrockBlock> FERMENTING_CROCK = BLOCKS.registerBlock("fermenting_crock",
+            FermentingCrockBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.TERRACOTTA_BROWN)
+                    .strength(1.5F, 6.0F)
+                    .sound(SoundType.STONE)
+                    .noOcclusion());
     /** A placed Leberkaese loaf, cut into slices with a knife. */
     public static final DeferredBlock<LeberkaeseBlock> LEBERKAESE = BLOCKS.registerBlock("leberkaese", LeberkaeseBlock::new,
             () -> BlockBehaviour.Properties.of()

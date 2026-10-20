@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.delicacies.board.CuttingRecipe;
 import io.github.dirnei.mc.servus.delicacies.cooking.BakingRecipe;
 import io.github.dirnei.mc.servus.delicacies.cooking.PanRecipe;
 import io.github.dirnei.mc.servus.delicacies.cooking.PotRecipe;
+import io.github.dirnei.mc.servus.delicacies.crock.FermentingRecipe;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesItems;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesRecipes;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
@@ -33,6 +34,9 @@ public final class ServusDelicaciesJeiPlugin implements IModPlugin {
     public static final RecipeType<RecipeHolder<CuttingRecipe>> CUTTING =
             RecipeType.createRecipeHolderType(ServusDelicaciesRecipes.CUTTING_ID);
 
+    public static final RecipeType<RecipeHolder<FermentingRecipe>> FERMENTING =
+            RecipeType.createRecipeHolderType(ServusDelicaciesRecipes.FERMENTING_ID);
+
     @Override
     public Identifier getPluginUid() {
         return UID;
@@ -46,6 +50,7 @@ public final class ServusDelicaciesJeiPlugin implements IModPlugin {
                 new VesselRecipeCategory<>(gui, PAN, "gui.servus_delicacies.jei.pan", ServusDelicaciesItems.PAN.get(), false),
                 new VesselRecipeCategory<>(gui, BAKING, "gui.servus_delicacies.jei.baking", ServusDelicaciesItems.BAKING_OVEN.get(), false),
                 new CuttingRecipeCategory(gui));
+        registration.addRecipeCategories(new FermentingRecipeCategory(gui));
     }
 
     @Override
@@ -58,6 +63,7 @@ public final class ServusDelicaciesJeiPlugin implements IModPlugin {
         registration.addRecipes(PAN, ServusRecipes.all(minecraft.level, ServusDelicaciesRecipes.PAN.get()));
         registration.addRecipes(BAKING, ServusRecipes.all(minecraft.level, ServusDelicaciesRecipes.BAKING.get()));
         registration.addRecipes(CUTTING, ServusRecipes.all(minecraft.level, ServusDelicaciesRecipes.CUTTING.get()));
+        registration.addRecipes(FERMENTING, ServusRecipes.all(minecraft.level, ServusDelicaciesRecipes.FERMENTING.get()));
         registration.addIngredientInfo(ServusDelicaciesItems.LEBERKAESE.get(),
                 Component.translatable("gui." + ServusDelicaciesIds.MOD_ID + ".jei.leberkaese_info"));
     }
@@ -70,5 +76,6 @@ public final class ServusDelicaciesJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ServusDelicaciesItems.STOVE_TILE.get()), POT, PAN, BAKING);
         registration.addRecipeCatalyst(new ItemStack(ServusDelicaciesItems.CUTTING_BOARD.get()), CUTTING);
         registration.addRecipeCatalyst(new ItemStack(ServusDelicaciesItems.KITCHEN_KNIFE.get()), CUTTING);
+        registration.addRecipeCatalyst(new ItemStack(ServusDelicaciesItems.FERMENTING_CROCK.get()), FERMENTING);
     }
 }

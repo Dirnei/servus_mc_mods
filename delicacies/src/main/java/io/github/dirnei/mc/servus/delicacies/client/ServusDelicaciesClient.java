@@ -19,5 +19,6 @@ public final class ServusDelicaciesClient {
         event.registerBlockEntityRenderer(ServusDelicaciesBlockEntities.POT.get(), VesselRenderer::new);
         event.registerBlockEntityRenderer(ServusDelicaciesBlockEntities.PAN.get(), VesselRenderer::new);
         event.registerBlockEntityRenderer(ServusDelicaciesBlockEntities.CUTTING_BOARD.get(), CuttingBoardRenderer::new);
+        event.registerBlockEntityRenderer(ServusDelicaciesBlockEntities.FERMENTING_CROCK.get(), CrockRenderer::new);
     }
 }

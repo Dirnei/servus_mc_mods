@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "servus_delicacies:boiled_potatoes",
+    "servus_delicacies:boiled_potatoes",
+    "servus_delicacies:chopped_onion",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "id": "servus_delicacies:potato_salad"
+  }
+}

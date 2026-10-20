@@ -18,7 +18,7 @@ import net.minecraft.world.level.material.Fluid;
  * JEI category for pot or pan recipes: the counted items, for the Pot the fluid, an arrow, the result, the time and
  * the reminder that it needs a burning stove.
  */
-final class VesselRecipeCategory<R extends VesselRecipe> extends KitchenRecipeCategory<R> {
+class VesselRecipeCategory<R extends VesselRecipe> extends KitchenRecipeCategory<R> {
 
     private static final int ITEMS_END = 1 + VesselBlockEntity.INPUTS * SLOT_STEP;
 
@@ -47,7 +47,17 @@ final class VesselRecipeCategory<R extends VesselRecipe> extends KitchenRecipeCa
     @Override
     public void draw(RecipeHolder<R> holder, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         super.draw(holder, recipeSlotsView, guiGraphics, mouseX, mouseY);
-        text(guiGraphics, Component.literal(String.format("%.1f s", holder.value().time() / 20.0)), 1, TEXT_Y);
-        text(guiGraphics, Component.translatable("gui.servus_delicacies.jei.hot_stove"), 36, TEXT_Y);
+        text(guiGraphics, timeText(holder.value()), 1, TEXT_Y);
+        text(guiGraphics, note(), 36, TEXT_Y);
+    }
+
+    /** How long the recipe takes, under the slots. */
+    protected Component timeText(R recipe) {
+        return Component.literal(String.format("%.1f s", recipe.time() / 20.0));
+    }
+
+    /** What the recipe needs besides its ingredients, next to the time. */
+    protected Component note() {
+        return Component.translatable("gui.servus_delicacies.jei.hot_stove");
     }
 }

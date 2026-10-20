@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_braised_red_cabbage": {
+      "conditions": {
+        "items": [
+          {
+            "items": "servus_delicacies:braised_red_cabbage"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "servus_delicacies:bowl_of_red_cabbage"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_braised_red_cabbage"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "servus_delicacies:bowl_of_red_cabbage"
+    ]
+  }
+}

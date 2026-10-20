@@ -1,0 +1,8 @@
+{
+  "type": "servus_delicacies:cutting",
+  "ingredient": "#c:crops/potato",
+  "result": {
+    "id": "servus_delicacies:grated_potato"
+  },
+  "tool": "#c:tools/knife"
+}

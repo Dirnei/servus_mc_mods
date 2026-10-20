@@ -4,6 +4,8 @@ import io.github.dirnei.mc.servus.delicacies.board.CuttingBoardBlock;
 import io.github.dirnei.mc.servus.delicacies.cooking.BakingOvenBlock;
 import io.github.dirnei.mc.servus.delicacies.cooking.VesselBlock;
 import io.github.dirnei.mc.servus.delicacies.cooking.VesselParts;
+import io.github.dirnei.mc.servus.delicacies.crock.CrockParts;
+import io.github.dirnei.mc.servus.delicacies.crock.FermentingCrockBlock;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesBlocks;
 import io.github.dirnei.mc.servus.delicacies.stove.StoveTileBlock;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
@@ -59,6 +61,47 @@ final class KitchenModels {
         BlockModelBuilder board = model(provider, "cutting_board", birch).texture("wood", birch);
         box(board, VesselParts.BOARD, "#wood", Set.of());
         facing(provider, ServusDelicaciesBlocks.CUTTING_BOARD.get(), CuttingBoardBlock.FACING, board);
+
+        fermentingCrock(provider);
+    }
+
+    /**
+     * The crock open and sealed. Neck and lip stand on the belly; the sealed model adds the lid with its skirt in the
+     * water seal and the knob, and leaves out the faces the lid covers.
+     */
+    private static void fermentingCrock(BlockStateProvider provider) {
+        Identifier side = provider.modLoc("block/crock_side");
+        ModelFile[] models = new ModelFile[2];
+        for (int sealed = 0; sealed < 2; sealed++) {
+            BlockModelBuilder crock = model(provider, "fermenting_crock" + (sealed == 1 ? "_sealed" : ""), side)
+                    .texture("side", side).texture("top", provider.modLoc("block/crock_top"))
+                    .texture("lid", provider.modLoc("block/crock_lid"));
+            BlockModelBuilder.ElementBuilder belly = crock.element().from(CrockParts.BELLY[0], CrockParts.BELLY[1], CrockParts.BELLY[2])
+                    .to(CrockParts.BELLY[3], CrockParts.BELLY[4], CrockParts.BELLY[5]);
+            for (Direction direction : Direction.values()) {
+                belly.face(direction).texture(direction == Direction.UP ? "#top" : "#side").end();
+            }
+            Set<Direction> neckSkip = sealed == 1 ? Set.of(Direction.DOWN, Direction.UP) : RESTING;
+            for (float[] neck : CrockParts.NECK) {
+                box(crock, neck, "#side", neckSkip);
+            }
+            for (float[] lip : CrockParts.LIP) {
+                box(crock, lip, "#side", RESTING);
+            }
+            if (sealed == 1) {
+                box(crock, CrockParts.LID, "#lid", Set.of());
+                box(crock, CrockParts.SKIRT_NORTH, "#lid", Set.of(Direction.UP));
+                box(crock, CrockParts.SKIRT_SOUTH, "#lid", Set.of(Direction.UP));
+                box(crock, CrockParts.SKIRT_WEST, "#lid", Set.of(Direction.UP, Direction.NORTH, Direction.SOUTH));
+                box(crock, CrockParts.SKIRT_EAST, "#lid", Set.of(Direction.UP, Direction.NORTH, Direction.SOUTH));
+                box(crock, CrockParts.KNOB, "#lid", Set.of(Direction.DOWN));
+            }
+            models[sealed] = crock;
+        }
+        Block block = ServusDelicaciesBlocks.FERMENTING_CROCK.get();
+        provider.getVariantBuilder(block).forAllStates(state ->
+                new ConfiguredModel[] {new ConfiguredModel(models[state.getValue(FermentingCrockBlock.SEALED) ? 1 : 0])});
+        provider.simpleBlockItem(block, models[0]);
     }
 
     /** Loose: tiles all round. Formed: plate on top, the door tile with its door on the north face, turned to the front. */

@@ -4,9 +4,25 @@
       "nutrition": 5,
       "saturation": 6.0
     },
+    "servus_delicacies:bowl_of_red_cabbage": {
+      "nutrition": 5,
+      "saturation": 6.0
+    },
+    "servus_delicacies:bowl_of_sauerkraut": {
+      "nutrition": 4,
+      "saturation": 4.8
+    },
+    "servus_delicacies:bread_dumpling": {
+      "nutrition": 6,
+      "saturation": 7.2
+    },
     "servus_delicacies:bread_roll": {
       "nutrition": 4,
       "saturation": 4.8
+    },
+    "servus_delicacies:cheese": {
+      "nutrition": 3,
+      "saturation": 3.6
     },
     "servus_delicacies:cordon_bleu": {
       "nutrition": 12,
@@ -39,6 +55,14 @@
     "servus_delicacies:leberkaese_slice": {
       "nutrition": 6,
       "saturation": 9.6
+    },
+    "servus_delicacies:potato_dumpling": {
+      "nutrition": 5,
+      "saturation": 6.0
+    },
+    "servus_delicacies:potato_salad": {
+      "nutrition": 6,
+      "saturation": 7.2
     },
     "servus_delicacies:pretzel": {
       "nutrition": 6,
