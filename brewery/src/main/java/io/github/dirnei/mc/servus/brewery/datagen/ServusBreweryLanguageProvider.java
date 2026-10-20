@@ -17,6 +17,11 @@ final class ServusBreweryLanguageProvider extends LanguageProvider {
     protected void addTranslations() {
         add("itemGroup." + ServusBreweryIds.MOD_ID, "Servus: Brewery");
         add(ServusBreweryItems.BEER_GLASS.get(), "Beer Glass");
+        add(ServusBreweryItems.WEISSBIER_GLASS.get(), "Weissbier Glass");
+        add(ServusBreweryItems.HELLES.get(), "Glass of Helles");
+        add(ServusBreweryItems.DUNKLES.get(), "Glass of Dunkles");
+        add(ServusBreweryItems.WEISSBIER.get(), "Glass of Weissbier");
+        add(ServusBreweryItems.YEAST.get(), "Yeast");
         add(ServusBreweryBlocks.BARLEY.get(), "Barley");
         add(ServusBreweryItems.BARLEY.get(), "Barley");
         add(ServusBreweryItems.BARLEY_SEEDS.get(), "Barley Seeds");
@@ -36,9 +41,14 @@ final class ServusBreweryLanguageProvider extends LanguageProvider {
         add(ServusBreweryItems.WHEAT_MALT_GRIST.get(), "Wheat Malt Grist");
         add(ServusBreweryBlocks.BREWHOUSE_BRICKS.get(), "Brewhouse Bricks");
         add(ServusBreweryBlocks.BREW_KETTLE.get(), "Brew Kettle");
-        wort(BreweryFluids.PALE_WORT, "Pale Wort");
-        wort(BreweryFluids.DARK_WORT, "Dark Wort");
-        wort(BreweryFluids.WHEAT_WORT, "Wheat Wort");
+        add(ServusBreweryBlocks.FERMENTING_VAT.get(), "Fermenting Vat");
+        add(ServusBreweryBlocks.CASK.get(), "Cask");
+        fluid(BreweryFluids.PALE_WORT, "Pale Wort");
+        fluid(BreweryFluids.DARK_WORT, "Dark Wort");
+        fluid(BreweryFluids.WHEAT_WORT, "Wheat Wort");
+        fluid(BreweryFluids.HELLES, "Helles");
+        fluid(BreweryFluids.DUNKLES, "Dunkles");
+        fluid(BreweryFluids.WEISSBIER, "Weissbier");
         add("message.servus_brewery.brewhouse.formed", "Brewhouse formed");
         add("message.servus_brewery.brewhouse.layout",
                 "A Brewhouse is six Brewhouse Bricks, three wide and two deep, with four Brew Kettle blocks on the left two by two");
@@ -52,15 +62,26 @@ final class ServusBreweryLanguageProvider extends LanguageProvider {
         add("message.servus_brewery.kettle.no_wort", "wort");
         add("message.servus_brewery.kiln.mode.pale", "Kiln tray: pale malt");
         add("message.servus_brewery.kiln.mode.dark", "Kiln tray: dark malt, kept longer on the fire");
+        add("message.servus_brewery.vat.empty", "The vat is empty");
+        add("message.servus_brewery.vat.wort", "%s mB %s, waiting for yeast");
+        add("message.servus_brewery.vat.fermenting", "Fermenting %s mB %s: %s%%");
+        add("message.servus_brewery.vat.beer", "%s mB %s, ready");
+        add("message.servus_brewery.cask.empty", "The cask is empty");
+        add("message.servus_brewery.cask.status", "%s mB %s");
+        add("message.servus_brewery.cask.wrong_glass", "%s does not go into this glass");
+        add("message.servus_brewery.cask.too_little", "Only %s mB %s left, not enough for a glass");
         add("gui.servus_brewery.jei.brewing", "Brewing");
+        add("gui.servus_brewery.jei.fermenting", "Fermenting");
+        add("gui.servus_brewery.jei.fermenting_time", "%s days in game");
+        add("gui.servus_brewery.jei.yeast_stays", "the yeast stays");
         add("gui.servus_brewery.jei.kilning", "Kilning");
         add("gui.servus_brewery.jei.hot_brewhouse", "over a burning Brewhouse");
         add("gui.servus_brewery.jei.dark", "Dark mode: %s, %s s more");
     }
 
-    private void wort(BreweryFluids.Wort wort, String name) {
-        add("fluid_type." + ServusBreweryIds.MOD_ID + "." + wort.id(), name);
-        add(wort.block().get(), name);
-        add(wort.bucket().get(), name + " Bucket");
+    private void fluid(BreweryFluids.BrewFluid fluid, String name) {
+        add("fluid_type." + ServusBreweryIds.MOD_ID + "." + fluid.id(), name);
+        add(fluid.block().get(), name);
+        add(fluid.bucket().get(), name + " Bucket");
     }
 }

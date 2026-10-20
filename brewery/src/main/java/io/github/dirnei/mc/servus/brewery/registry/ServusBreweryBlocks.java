@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.brewery.registry;
 
 import io.github.dirnei.mc.servus.brewery.ServusBreweryIds;
+import io.github.dirnei.mc.servus.brewery.beer.CaskBlock;
+import io.github.dirnei.mc.servus.brewery.beer.FermentingVatBlock;
 import io.github.dirnei.mc.servus.brewery.brewhouse.BrewKettleBlock;
 import io.github.dirnei.mc.servus.brewery.brewhouse.BrewhouseBricksBlock;
 import io.github.dirnei.mc.servus.brewery.crop.BarleyBlock;
@@ -65,6 +67,22 @@ public final class ServusBreweryBlocks {
                     .strength(3.0F, 6.0F)
                     .requiresCorrectToolForDrops()
                     .sound(SoundType.COPPER)
+                    .noOcclusion());
+
+    /** The open spruce vat that ferments wort into beer. */
+    public static final DeferredBlock<FermentingVatBlock> FERMENTING_VAT = BLOCKS.registerBlock("fermenting_vat",
+            FermentingVatBlock::new, () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.PODZOL)
+                    .strength(2.0F)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion());
+
+    /** The wooden barrel with a brass tap that stores beer and fills glasses. */
+    public static final DeferredBlock<CaskBlock> CASK = BLOCKS.registerBlock("cask", CaskBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.5F)
+                    .sound(SoundType.WOOD)
                     .noOcclusion());
 
     private ServusBreweryBlocks() {

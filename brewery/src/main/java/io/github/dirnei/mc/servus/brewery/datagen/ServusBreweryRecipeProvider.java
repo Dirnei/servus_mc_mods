@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.brewery.datagen;
 
 import io.github.dirnei.mc.servus.brewery.ServusBreweryIds;
+import io.github.dirnei.mc.servus.brewery.beer.FermentingRecipe;
+import io.github.dirnei.mc.servus.brewery.beer.TappingRecipe;
 import io.github.dirnei.mc.servus.brewery.brewhouse.BrewingRecipe;
 import io.github.dirnei.mc.servus.brewery.brewhouse.KilningRecipe;
 import io.github.dirnei.mc.servus.brewery.malting.GerminatingRecipe;
@@ -12,24 +14,32 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.resources.Identifier;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import net.neoforged.neoforge.fluids.FluidStackTemplate;
+import net.neoforged.neoforge.fluids.crafting.FluidIngredient;
 import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
 
 /**
  * The Brewery recipes: Hop Poles from sticks, soaked grain from a water bucket, the Malting Floor, germinating on the
- * floor, milling malt to grist, the Brewhouse parts, brewing wort and kilning malt.
+ * floor, milling malt to grist, the Brewhouse parts, brewing wort, kilning malt, Yeast, the glasses, the Fermenting
+ * Vat and the Cask, fermenting wort into beer and tapping beer into glasses.
  */
 final class ServusBreweryRecipeProvider extends RecipeProvider {
 
@@ -42,6 +52,9 @@ final class ServusBreweryRecipeProvider extends RecipeProvider {
     private static final int BREW_TIME = 400;
     private static final int KILN_TIME = 600;
     private static final int KILN_DARK_TIME = 600;
+    private static final int LAGER_TIME = 36000;
+    private static final int WEISSBIER_TIME = 24000;
+    private static final int GLASS_AMOUNT = 500;
 
     private ServusBreweryRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
         super(registries, output);
@@ -115,6 +128,67 @@ final class ServusBreweryRecipeProvider extends RecipeProvider {
         kilning("pale_malt", ServusBreweryItems.GREEN_MALT.get(), ServusBreweryItems.PALE_MALT.get(),
                 Optional.of(new KilningRecipe.Dark(new ItemStackTemplate(ServusBreweryItems.DARK_MALT.get()), KILN_DARK_TIME)));
         kilning("wheat_malt", ServusBreweryItems.GREEN_WHEAT_MALT.get(), ServusBreweryItems.WHEAT_MALT.get(), Optional.empty());
+
+        cellar();
+    }
+
+    /** Yeast, the glasses, the vat and the Cask; fermenting and tapping. */
+    private void cellar() {
+        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.FOOD, ServusBreweryItems.YEAST.get())
+                .requires(Items.WHEAT)
+                .requires(Items.SUGAR)
+                .requires(DataComponentIngredient.of(false, DataComponents.POTION_CONTENTS, new PotionContents(Potions.WATER), Items.POTION))
+                .unlockedBy("has_sugar", has(Items.SUGAR))
+                .save(output);
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.FOOD, ServusBreweryItems.BEER_GLASS.get(), 2)
+                .pattern("G G")
+                .pattern("GGG")
+                .define('G', Items.GLASS)
+                .unlockedBy("has_glass", has(Items.GLASS))
+                .save(output);
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.FOOD, ServusBreweryItems.WEISSBIER_GLASS.get(), 2)
+                .pattern("G G")
+                .pattern("G G")
+                .pattern(" G ")
+                .define('G', Items.GLASS)
+                .unlockedBy("has_glass", has(Items.GLASS))
+                .save(output);
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusBreweryItems.FERMENTING_VAT.get())
+                .pattern("P P")
+                .pattern("IPI")
+                .pattern("PPP")
+                .define('P', Items.SPRUCE_PLANKS)
+                .define('I', Items.IRON_INGOT)
+                .unlockedBy("has_wort", has(BreweryFluids.PALE_WORT.bucket().get()))
+                .save(output);
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusBreweryItems.CASK.get())
+                .pattern("PPP")
+                .pattern("PGP")
+                .pattern("PPP")
+                .define('P', ItemTags.PLANKS)
+                .define('G', Items.GOLD_INGOT)
+                .unlockedBy("has_gold_ingot", has(Items.GOLD_INGOT))
+                .save(output);
+
+        fermenting("helles", BreweryFluids.PALE_WORT, BreweryFluids.HELLES, LAGER_TIME);
+        fermenting("dunkles", BreweryFluids.DARK_WORT, BreweryFluids.DUNKLES, LAGER_TIME);
+        fermenting("weissbier", BreweryFluids.WHEAT_WORT, BreweryFluids.WEISSBIER, WEISSBIER_TIME);
+
+        tapping("helles", ServusBreweryItems.BEER_GLASS.get(), BreweryFluids.HELLES, ServusBreweryItems.HELLES.get());
+        tapping("dunkles", ServusBreweryItems.BEER_GLASS.get(), BreweryFluids.DUNKLES, ServusBreweryItems.DUNKLES.get());
+        tapping("weissbier", ServusBreweryItems.WEISSBIER_GLASS.get(), BreweryFluids.WEISSBIER, ServusBreweryItems.WEISSBIER.get());
+    }
+
+    private void fermenting(String name, BreweryFluids.BrewFluid wort, BreweryFluids.BrewFluid beer, int time) {
+        output.accept(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusBreweryIds.MOD_ID, "fermenting/" + name)),
+                new FermentingRecipe(Ingredient.of(ServusBreweryItems.YEAST.get()), FluidIngredient.of(wort.source().get()),
+                        beer.source().get(), time), null);
+    }
+
+    private void tapping(String name, Item glass, BreweryFluids.BrewFluid beer, Item full) {
+        output.accept(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusBreweryIds.MOD_ID, "tapping/" + name)),
+                new TappingRecipe(Ingredient.of(glass), FluidIngredient.of(beer.source().get()), GLASS_AMOUNT, new ItemStackTemplate(full)),
+                null);
     }
 
     private static SizedIngredient sized(Item item, int count) {
@@ -122,7 +196,7 @@ final class ServusBreweryRecipeProvider extends RecipeProvider {
     }
 
     /** Grist and hops with water brewed into a wort. */
-    private void brewing(String name, BreweryFluids.Wort wort, SizedIngredient... ingredients) {
+    private void brewing(String name, BreweryFluids.BrewFluid wort, SizedIngredient... ingredients) {
         output.accept(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusBreweryIds.MOD_ID, "brewing/" + name)),
                 new BrewingRecipe(List.of(ingredients), SizedFluidIngredient.of(Fluids.WATER, BREW_WATER),
                         new FluidStackTemplate(wort.source().get(), BREW_WORT), BREW_TIME), null);

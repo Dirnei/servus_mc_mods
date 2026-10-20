@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "content=beer": {
+      "model": "servus_brewery:block/fermenting_vat_beer"
+    },
+    "content=empty": {
+      "model": "servus_brewery:block/fermenting_vat"
+    },
+    "content=fermenting": {
+      "model": "servus_brewery:block/fermenting_vat_fermenting"
+    },
+    "content=wort": {
+      "model": "servus_brewery:block/fermenting_vat_wort"
+    }
+  }
+}

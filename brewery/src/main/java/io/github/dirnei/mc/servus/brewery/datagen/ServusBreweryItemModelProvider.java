@@ -11,12 +11,13 @@ import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
 
-/** Flat item models from the item textures; block items use their block models, wort buckets the NeoForge fluid container. */
+/** Flat item models from the item textures; block items use their block models, wort and beer buckets the NeoForge fluid container. */
 final class ServusBreweryItemModelProvider extends ItemModelProvider {
 
     /** Block items whose item model is their block model. */
     private static final Set<DeferredItem<? extends Item>> BLOCK_MODELS =
-            Set.of(ServusBreweryItems.MALTING_FLOOR, ServusBreweryItems.BREWHOUSE_BRICKS, ServusBreweryItems.BREW_KETTLE);
+            Set.of(ServusBreweryItems.MALTING_FLOOR, ServusBreweryItems.BREWHOUSE_BRICKS, ServusBreweryItems.BREW_KETTLE,
+                    ServusBreweryItems.FERMENTING_VAT, ServusBreweryItems.CASK);
 
     ServusBreweryItemModelProvider(PackOutput output) {
         super(output, ServusBreweryIds.MOD_ID);
@@ -28,7 +29,7 @@ final class ServusBreweryItemModelProvider extends ItemModelProvider {
                 .filter(item -> !BLOCK_MODELS.contains(item) && !(item.get() instanceof BucketItem))
                 .forEach(item -> basicItem(item.get()));
         // NeoForge's fluid container model with the textures of its own bucket model, without a cover layer.
-        for (BreweryFluids.Wort wort : BreweryFluids.WORTS) {
+        for (BreweryFluids.BrewFluid fluid : BreweryFluids.ALL) {
             JsonObject textures = new JsonObject();
             textures.addProperty("particle", "minecraft:item/bucket");
             textures.addProperty("base", "minecraft:item/bucket");
@@ -36,8 +37,8 @@ final class ServusBreweryItemModelProvider extends ItemModelProvider {
             JsonObject model = new JsonObject();
             model.addProperty("type", "neoforge:fluid_container");
             model.add("textures", textures);
-            model.addProperty("fluid", wort.source().getId().toString());
-            itemModelDefinition(wort.bucket().getId(), model);
+            model.addProperty("fluid", fluid.source().getId().toString());
+            itemModelDefinition(fluid.bucket().getId(), model);
         }
     }
 }

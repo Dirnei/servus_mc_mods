@@ -1,0 +1,19 @@
+{
+  "values": {
+    "servus_brewery:dunkles": {
+      "can_always_eat": true,
+      "nutrition": 3,
+      "saturation": 1.5
+    },
+    "servus_brewery:helles": {
+      "can_always_eat": true,
+      "nutrition": 2,
+      "saturation": 1.0
+    },
+    "servus_brewery:weissbier": {
+      "can_always_eat": true,
+      "nutrition": 3,
+      "saturation": 1.2
+    }
+  }
+}

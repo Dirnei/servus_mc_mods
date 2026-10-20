@@ -1,0 +1,7 @@
+{
+  "type": "servus_brewery:fermenting",
+  "result": "servus_brewery:weissbier",
+  "time": 24000,
+  "wort": "servus_brewery:wheat_wort",
+  "yeast": "servus_brewery:yeast"
+}

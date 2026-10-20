@@ -19,8 +19,8 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.CropBlock;
 
 /**
- * Block states and models of the barley crop, the Hop Pole, the Malting Floor, the Brewhouse ({@link BrewhouseModels})
- * and the wort liquids. The pole is a
+ * Block states and models of the barley crop, the Hop Pole, the Malting Floor, the Brewhouse ({@link BrewhouseModels}),
+ * the Fermenting Vat and the Cask ({@link CellarModels}) and the wort and beer liquids. The pole is a
  * 2 px post; leaf planes sit 0.5 px off its faces and the cone planes further
  * out, so no two faces share a plane. The floor is a 2 px spruce base with a
  * 1 px rim; the grain is a single top face 0.2 px below the rim top.
@@ -51,8 +51,9 @@ final class ServusBreweryBlockStateProvider extends BlockStateProvider {
         hopPole();
         maltingFloor();
         new BrewhouseModels(this).register();
-        for (BreweryFluids.Wort wort : BreweryFluids.WORTS) {
-            simpleBlock(wort.block().get(), models().getBuilder(wort.id()).texture("particle", mcLoc("block/water_still")));
+        new CellarModels(this).register();
+        for (BreweryFluids.BrewFluid fluid : BreweryFluids.ALL) {
+            simpleBlock(fluid.block().get(), models().getBuilder(fluid.id()).texture("particle", mcLoc("block/water_still")));
         }
     }
 

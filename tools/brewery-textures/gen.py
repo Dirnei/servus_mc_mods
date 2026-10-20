@@ -475,6 +475,120 @@ def strip(*frames):
 DOOR_FLICKER = {'animation': {'frames': [0, 1, 0, 0, 1, 1, 0, 1], 'frametime': 3}}
 
 
+# ---------- beer (ported from the mockup's mug, dunkles and weissbier) ----------
+HELL = ramp('#8a4e06', '#c77d0e', '#e6a01c', '#f5c14a')
+WEISS = ramp('#a5560c', '#d98622', '#eba845', '#f5c873')
+FOAM = ramp('#a8a294', '#d8d4c8', '#f0eee6', '#fdfcf8')
+WORT = ramp('#6e4410', '#8e5a18', '#a8701f', '#c8902a', '#dcae52')
+YEAST = ramp('#7a6236', '#b89c62', '#d6bd84', '#e8d6a4', '#f6ebc6')
+PAPER = ramp('#8c8a84', '#c8c6c0', '#e4e2dc', '#f6f5f2')
+SPRUCE = ramp('#3d2a16', '#553b20', '#6b4a29', '#7d5a34', '#8f6a3f')
+GLASS_HI = (255, 255, 255, 220)
+BUBBLE = (255, 246, 216, 200)
+# Helles colours the Dunkles icon replaces: the beer's middle and dark tone.
+DUNKLES_RECOLOUR = {(230, 160, 28, 255): (112, 58, 22, 255), (199, 125, 14, 255): (78, 38, 12, 255)}
+
+
+def full_glass(beer, seed, top=4, left=3, right=10):
+    """A full half litre glass: beer darkening to the bottom, bubbles, a glint, a foam head and the handle ring."""
+    img = canvas()
+    rng = random.Random(seed)
+    shell = rect(left, top, right, 14)
+    fill(img, shell, GLASS)
+    inside = rect(left + 1, top + 2, right - 1, 13)
+    for (x, y) in inside:
+        t = (y - top) / (14 - top)
+        v = 1 - t * .8 + rng.uniform(-.12, .12)
+        put(img, x, y, beer[max(0, min(len(beer) - 1, int(v * (len(beer) - 1) + .5)))])
+    fill(img, boundary(shell), GLASS_EDGE)
+    fill(img, {(x, y) for (x, y) in inside if (x - left) % 3 == 1 and (y - top) % 3 == 1}, BUBBLE)
+    for y in range(top + 2, 13):
+        put(img, left + 1, y, GLASS_HI)
+    foam = ellipse((left + right + 1) / 2, top + .8, (right - left + 1) / 2 + .2, 2.0) | rect(left, top, right, top + 1)
+    paint(img, foam, FOAM, rng, noise=.15, k=1.0, bias=.25)
+    put(img, left + 2, top + 2, FOAM[2])
+    ring = capsule(right + 2.2, top + 3.5, right + 2.2, top + 8.5, 2.0) - capsule(right + 2.0, top + 3.5, right + 2.0, top + 8.5, .9)
+    fill(img, {(x, y) for (x, y) in ring if x > right}, GLASS_EDGE)
+    return img
+
+
+def recoloured(img, colours):
+    return [[colours.get(px, px) for px in row] for row in img]
+
+
+def weissbier(full):
+    """The tall wheat beer glass, narrow at the foot and wide at the top; full with a foam crown."""
+    img = canvas()
+    rng = random.Random('weiss')
+
+    def half_width(y):
+        if y >= 14:
+            return 3.0
+        t = (13 - y) / 12
+        return 2.2 + 2.2 * t * t
+
+    shell = {(x, y) for y in range(1, 16) for x in range(SIZE) if abs(x + .5 - 8) <= half_width(y)}
+    fill(img, shell, GLASS)
+    for (x, y) in shell:
+        if full and 4 <= y <= 13 and abs(x + .5 - 8) <= half_width(y) - 1:
+            v = .9 - (y - 5) / 12 + rng.uniform(-.2, .2)
+            put(img, x, y, WEISS[max(0, min(3, int(v * 3 + .5)))])
+    fill(img, boundary(shell), GLASS_EDGE)
+    if not full:
+        return img
+    foam = {(x, y) for (x, y) in shell if y <= 4} | ellipse(8, 1.6, 3.6, 1.6)
+    paint(img, foam, FOAM, rng, noise=.15, k=1.0, bias=.3)
+    for y in range(6, 13):
+        put(img, int(8 - half_width(y) + 1.2), y, GLASS_HI)
+    return img
+
+
+def yeast():
+    """A cube of fresh yeast, half wrapped in paper, with a few crumbs on top."""
+    img = canvas()
+    rng = random.Random('yeast')
+    cake = rect(3, 4, 12, 12)
+    paint(img, cake, YEAST, rng, noise=.1, k=1.4)
+    for (x, y) in ((5, 6), (8, 5), (10, 7), (6, 8), (9, 9)):
+        put(img, x, y, YEAST[1])
+    wrapper = rect(2, 9, 13, 13)
+    paint(img, wrapper, PAPER, rng, noise=.06, k=0.8)
+    for x in range(3, 13):
+        put(img, x, 10, PAPER[1] if x % 3 else PAPER[3])
+    return img
+
+
+def vat_side():
+    """Spruce staves with two iron bands and rivets (the mockup's vat_side, staves drawn instead of vanilla planks)."""
+    rng = random.Random('vat')
+    img = canvas()
+    for x in range(SIZE):
+        stave = x // 4
+        for y in range(SIZE):
+            base = 2 + (1 if stave % 2 else 0) - (1 if x % 4 == 0 else 0)
+            step = rng.choice((-1, 0, 0, 0, 1))
+            img[y][x] = SPRUCE[max(0, min(len(SPRUCE) - 1, base + step))]
+    for y in (2, 12):
+        for x in range(SIZE):
+            put(img, x, y, IRON[2])
+            put(img, x, y + 1, IRON[1])
+        for x in (2, 10):
+            put(img, x, y, IRON[4])
+    return img
+
+
+def liquid(colors, seed, foam=False):
+    """A still surface: the ramp's noise with light flecks, more and wider for foam (the mockup's liquid)."""
+    img = tex_noise(colors, seed, base=2)
+    rng = random.Random(seed)
+    for _ in range(14 if foam else 6):
+        x, y = rng.randint(1, 14), rng.randint(1, 14)
+        put(img, x, y, colors[-1])
+        if foam:
+            put(img, x + 1, y, colors[-1])
+    return img
+
+
 ITEM_SPRITES = {
     'beer_glass': empty_glass(),
     'barley': barley(),
@@ -492,6 +606,11 @@ ITEM_SPRITES = {
     'pale_malt_grist': grist(MALT, 'pale_malt_grist'),
     'dark_malt_grist': grist(DARK_MALT, 'dark_malt_grist'),
     'wheat_malt_grist': grist(WHEAT_MALT, 'wheat_malt_grist'),
+    'yeast': yeast(),
+    'weissbier_glass': weissbier(False),
+    'helles': full_glass(HELL, 'helles'),
+    'dunkles': recoloured(full_glass(HELL, 'helles'), DUNKLES_RECOLOUR),
+    'weissbier': weissbier(True),
 }
 
 BLOCK_SPRITES = {
@@ -508,6 +627,11 @@ BLOCK_SPRITES = {
     'brewhouse_door': fire_door(False),
     'brewhouse_door_lit': strip(fire_door(True), fire_door(True, flicker=True)),
     'kiln_grate': kiln_grate(),
+    'fermenting_vat_side': vat_side(),
+    'vat_wort': liquid(WORT, 'wort'),
+    'vat_foam': liquid(FOAM, 'foam', True),
+    'vat_beer': liquid(HELL, 'beer'),
+    'cask_tap': tex_noise(BRASS, 'tap', base=2),
 }
 
 BLOCK_ANIMATIONS = {

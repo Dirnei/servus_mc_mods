@@ -1,0 +1,9 @@
+{
+  "type": "servus_brewery:tapping",
+  "amount": 500,
+  "beer": "servus_brewery:dunkles",
+  "glass": "servus_brewery:beer_glass",
+  "result": {
+    "id": "servus_brewery:dunkles"
+  }
+}

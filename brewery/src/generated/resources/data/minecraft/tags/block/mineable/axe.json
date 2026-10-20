@@ -1,6 +1,8 @@
 {
   "values": [
     "servus_brewery:hop_pole",
-    "servus_brewery:malting_floor"
+    "servus_brewery:malting_floor",
+    "servus_brewery:fermenting_vat",
+    "servus_brewery:cask"
   ]
 }

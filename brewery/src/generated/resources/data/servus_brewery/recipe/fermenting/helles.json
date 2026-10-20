@@ -1,0 +1,7 @@
+{
+  "type": "servus_brewery:fermenting",
+  "result": "servus_brewery:helles",
+  "time": 36000,
+  "wort": "servus_brewery:pale_wort",
+  "yeast": "servus_brewery:yeast"
+}

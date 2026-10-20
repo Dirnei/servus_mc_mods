@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.brewery.registry;
 
 import io.github.dirnei.mc.servus.brewery.ServusBreweryIds;
+import io.github.dirnei.mc.servus.brewery.beer.CaskBlockEntity;
+import io.github.dirnei.mc.servus.brewery.beer.FermentingVatBlockEntity;
 import io.github.dirnei.mc.servus.brewery.brewhouse.BrewhouseBlockEntity;
 import io.github.dirnei.mc.servus.brewery.malting.MaltingFloorBlockEntity;
 import net.minecraft.core.registries.Registries;
@@ -22,6 +24,13 @@ public final class ServusBreweryBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BrewhouseBlockEntity>> BREWHOUSE =
             BLOCK_ENTITIES.register("brewhouse", () -> new BlockEntityType<>(BrewhouseBlockEntity::new,
                     ServusBreweryBlocks.BREWHOUSE_BRICKS.get(), ServusBreweryBlocks.BREW_KETTLE.get()));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FermentingVatBlockEntity>> FERMENTING_VAT =
+            BLOCK_ENTITIES.register("fermenting_vat",
+                    () -> new BlockEntityType<>(FermentingVatBlockEntity::new, ServusBreweryBlocks.FERMENTING_VAT.get()));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CaskBlockEntity>> CASK =
+            BLOCK_ENTITIES.register("cask", () -> new BlockEntityType<>(CaskBlockEntity::new, ServusBreweryBlocks.CASK.get()));
 
     private ServusBreweryBlockEntities() {
     }

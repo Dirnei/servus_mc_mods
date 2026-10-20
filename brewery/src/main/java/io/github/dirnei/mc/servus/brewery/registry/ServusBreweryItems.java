@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.brewery.registry;
 
 import io.github.dirnei.mc.servus.brewery.ServusBreweryIds;
+import io.github.dirnei.mc.servus.brewery.beer.BeerItem;
 import java.util.List;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -12,8 +13,28 @@ public final class ServusBreweryItems {
 
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(ServusBreweryIds.MOD_ID);
 
-    /** The empty half litre glass that every beer is served in. */
-    public static final DeferredItem<Item> BEER_GLASS = ITEMS.registerSimpleItem("beer_glass");
+    /** Empty glasses stack this far; full ones do not stack. */
+    private static final int EMPTY_GLASS_STACK = 16;
+
+    /** The empty half litre glass for Helles and Dunkles. */
+    public static final DeferredItem<Item> BEER_GLASS = ITEMS.registerItem("beer_glass", Item::new,
+            () -> new Item.Properties().stacksTo(EMPTY_GLASS_STACK));
+
+    /** The tall empty glass that only Weissbier goes into. */
+    public static final DeferredItem<Item> WEISSBIER_GLASS = ITEMS.registerItem("weissbier_glass", Item::new,
+            () -> new Item.Properties().stacksTo(EMPTY_GLASS_STACK));
+
+    /** A half litre of Helles, tapped at a Cask. */
+    public static final DeferredItem<BeerItem> HELLES = beer("helles", BEER_GLASS);
+
+    /** A half litre of Dunkles, tapped at a Cask. */
+    public static final DeferredItem<BeerItem> DUNKLES = beer("dunkles", BEER_GLASS);
+
+    /** A half litre of Weissbier in its own glass, tapped at a Cask. */
+    public static final DeferredItem<BeerItem> WEISSBIER = beer("weissbier", WEISSBIER_GLASS);
+
+    /** Crafted once; the Fermenting Vat never uses it up. */
+    public static final DeferredItem<Item> YEAST = ITEMS.registerSimpleItem("yeast");
 
     /** Plants the barley crop; named after the item, not the crop block. */
     public static final DeferredItem<BlockItem> BARLEY_SEEDS = ITEMS.registerItem("barley_seeds",
@@ -66,13 +87,23 @@ public final class ServusBreweryItems {
 
     public static final DeferredItem<BlockItem> BREW_KETTLE = ITEMS.registerSimpleBlockItem(ServusBreweryBlocks.BREW_KETTLE);
 
+    public static final DeferredItem<BlockItem> FERMENTING_VAT = ITEMS.registerSimpleBlockItem(ServusBreweryBlocks.FERMENTING_VAT);
+
+    public static final DeferredItem<BlockItem> CASK = ITEMS.registerSimpleBlockItem(ServusBreweryBlocks.CASK);
+
     /** Every Brewery item in the order the creative tab lists it. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(
-            BEER_GLASS, BARLEY_SEEDS, BARLEY, HOP_RHIZOME, HOPS, HOP_POLE,
+            BEER_GLASS, WEISSBIER_GLASS, HELLES, DUNKLES, WEISSBIER, YEAST, BARLEY_SEEDS, BARLEY, HOP_RHIZOME, HOPS, HOP_POLE,
             MALTING_FLOOR, SOAKED_BARLEY, SOAKED_WHEAT, GREEN_MALT, GREEN_WHEAT_MALT, PALE_MALT, DARK_MALT, WHEAT_MALT,
-            PALE_MALT_GRIST, DARK_MALT_GRIST, WHEAT_MALT_GRIST, BREWHOUSE_BRICKS, BREW_KETTLE,
-            BreweryFluids.PALE_WORT.bucket(), BreweryFluids.DARK_WORT.bucket(), BreweryFluids.WHEAT_WORT.bucket());
+            PALE_MALT_GRIST, DARK_MALT_GRIST, WHEAT_MALT_GRIST, BREWHOUSE_BRICKS, BREW_KETTLE, FERMENTING_VAT, CASK,
+            BreweryFluids.PALE_WORT.bucket(), BreweryFluids.DARK_WORT.bucket(), BreweryFluids.WHEAT_WORT.bucket(),
+            BreweryFluids.HELLES.bucket(), BreweryFluids.DUNKLES.bucket(), BreweryFluids.WEISSBIER.bucket());
 
     private ServusBreweryItems() {
+    }
+
+    /** A full glass that does not stack and leaves {@code glass} when drunk. */
+    private static DeferredItem<BeerItem> beer(String name, DeferredItem<Item> glass) {
+        return ITEMS.registerItem(name, BeerItem::new, () -> new Item.Properties().stacksTo(1).usingConvertsTo(glass.get()));
     }
 }

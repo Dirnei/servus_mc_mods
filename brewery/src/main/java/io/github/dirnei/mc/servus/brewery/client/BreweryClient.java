@@ -11,7 +11,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterFluidModelsEvent;
 import net.neoforged.neoforge.client.fluid.FluidTintSource;
 
-/** Client looks of Servus: Brewery: the worts as tinted water. */
+/** Client looks of Servus: Brewery: the worts and beers as tinted water. */
 @EventBusSubscriber(modid = ServusBreweryIds.MOD_ID, value = Dist.CLIENT)
 public final class BreweryClient {
 
@@ -22,14 +22,14 @@ public final class BreweryClient {
     private BreweryClient() {
     }
 
-    /** Every wort flows like water, tinted in its colour. */
+    /** Every wort and beer flows like water, tinted in its colour. */
     @SubscribeEvent
     public static void onRegisterFluidModels(RegisterFluidModelsEvent event) {
-        for (BreweryFluids.Wort wort : BreweryFluids.WORTS) {
-            int colour = OPAQUE | wort.color();
+        for (BreweryFluids.BrewFluid fluid : BreweryFluids.ALL) {
+            int colour = OPAQUE | fluid.color();
             FluidTintSource tint = state -> colour;
             event.register(new FluidModel.Unbaked(new Material(STILL), new Material(FLOWING), null, tint),
-                    wort.source(), wort.flowing());
+                    fluid.source(), fluid.flowing());
         }
     }
 }

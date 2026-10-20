@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.brewery.integration.jei;
 
 import io.github.dirnei.mc.servus.brewery.ServusBreweryIds;
+import io.github.dirnei.mc.servus.brewery.beer.FermentingRecipe;
 import io.github.dirnei.mc.servus.brewery.brewhouse.BrewingRecipe;
 import io.github.dirnei.mc.servus.brewery.brewhouse.KilningRecipe;
 import io.github.dirnei.mc.servus.brewery.registry.ServusBreweryItems;
@@ -18,7 +19,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
-/** Shows the Brew Kettle and Malt Kiln recipes in JEI. Only loaded when JEI is present. */
+/** Shows the Brew Kettle, Malt Kiln and Fermenting Vat recipes in JEI. Only loaded when JEI is present. */
 @JeiPlugin
 public final class ServusBreweryJeiPlugin implements IModPlugin {
 
@@ -26,6 +27,8 @@ public final class ServusBreweryJeiPlugin implements IModPlugin {
 
     public static final RecipeType<RecipeHolder<BrewingRecipe>> BREWING = RecipeType.createRecipeHolderType(ServusBreweryRecipes.BREWING_ID);
     public static final RecipeType<RecipeHolder<KilningRecipe>> KILNING = RecipeType.createRecipeHolderType(ServusBreweryRecipes.KILNING_ID);
+    public static final RecipeType<RecipeHolder<FermentingRecipe>> FERMENTING =
+            RecipeType.createRecipeHolderType(ServusBreweryRecipes.FERMENTING_ID);
 
     @Override
     public Identifier getPluginUid() {
@@ -35,7 +38,7 @@ public final class ServusBreweryJeiPlugin implements IModPlugin {
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
         IGuiHelper gui = registration.getJeiHelpers().getGuiHelper();
-        registration.addRecipeCategories(new BrewingRecipeCategory(gui), new KilningRecipeCategory(gui));
+        registration.addRecipeCategories(new BrewingRecipeCategory(gui), new KilningRecipeCategory(gui), new FermentingRecipeCategory(gui));
     }
 
     @Override
@@ -46,11 +49,13 @@ public final class ServusBreweryJeiPlugin implements IModPlugin {
         }
         registration.addRecipes(BREWING, ServusRecipes.all(minecraft.level, ServusBreweryRecipes.BREWING.get()));
         registration.addRecipes(KILNING, ServusRecipes.all(minecraft.level, ServusBreweryRecipes.KILNING.get()));
+        registration.addRecipes(FERMENTING, ServusRecipes.all(minecraft.level, ServusBreweryRecipes.FERMENTING.get()));
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(new ItemStack(ServusBreweryItems.BREW_KETTLE.get()), BREWING);
         registration.addRecipeCatalyst(new ItemStack(ServusBreweryItems.BREWHOUSE_BRICKS.get()), BREWING, KILNING);
+        registration.addRecipeCatalyst(new ItemStack(ServusBreweryItems.FERMENTING_VAT.get()), FERMENTING);
     }
 }

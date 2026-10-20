@@ -18,7 +18,10 @@ import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 
-/** Barley drops by age like wheat; a Hop Pole drops itself, its rhizome at the foot and Hops from cones; the Malting Floor and the Brewhouse parts drop themselves. */
+/**
+ * Barley drops by age like wheat; a Hop Pole drops itself, its rhizome at the foot and Hops from cones; the Malting
+ * Floor, the Brewhouse parts, the Fermenting Vat and the Cask drop themselves.
+ */
 final class ServusBreweryBlockLoot extends BlockLootSubProvider {
 
     ServusBreweryBlockLoot(HolderLookup.Provider registries) {
@@ -48,11 +51,14 @@ final class ServusBreweryBlockLoot extends BlockLootSubProvider {
         dropSelf(ServusBreweryBlocks.MALTING_FLOOR.get());
         dropSelf(ServusBreweryBlocks.BREWHOUSE_BRICKS.get());
         dropSelf(ServusBreweryBlocks.BREW_KETTLE.get());
+        dropSelf(ServusBreweryBlocks.FERMENTING_VAT.get());
+        dropSelf(ServusBreweryBlocks.CASK.get());
     }
 
     @Override
     protected Iterable<Block> getKnownBlocks() {
         return List.of(ServusBreweryBlocks.BARLEY.get(), ServusBreweryBlocks.HOP_POLE.get(), ServusBreweryBlocks.MALTING_FLOOR.get(),
-                ServusBreweryBlocks.BREWHOUSE_BRICKS.get(), ServusBreweryBlocks.BREW_KETTLE.get());
+                ServusBreweryBlocks.BREWHOUSE_BRICKS.get(), ServusBreweryBlocks.BREW_KETTLE.get(), ServusBreweryBlocks.FERMENTING_VAT.get(),
+                ServusBreweryBlocks.CASK.get());
     }
 }

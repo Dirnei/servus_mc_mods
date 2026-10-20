@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "servus_brewery:block/cask",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "servus_brewery:block/cask"
+    },
+    "facing=south": {
+      "model": "servus_brewery:block/cask",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "servus_brewery:block/cask",
+      "y": 270
+    }
+  }
+}
