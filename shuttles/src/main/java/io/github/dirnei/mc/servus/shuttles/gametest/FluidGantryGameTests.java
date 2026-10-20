@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
+import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlock;
@@ -13,12 +14,14 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /** Placing, refusing, breaking and placing back a Fluid Gantry, and its keep levels. */
@@ -190,6 +193,81 @@ public final class FluidGantryGameTests {
         gantry.setLock(0, Fluids.WATER);
         gantry.setMode(GantryMode.STORAGE);
         helper.assertTrue(gantry.keptLevel(0) == 0 && !menu.showsKeep(), "a Storage gantry keeps no level");
+        helper.succeed();
+    }
+
+    /** Stone under the rail spot and both legs, from {@code fromZ} to {@code toZ}, with nothing on it. */
+    private static void floor(GameTestHelper helper, int fromZ, int toZ) {
+        for (int z = fromZ; z <= toZ; z++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                WarehouseFixtures.stone(helper, new BlockPos(RAIL.getX() + dx, 0, z));
+            }
+        }
+    }
+
+    private static long railItemsAround(GameTestHelper helper, BlockPos pos) {
+        return helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(pos)).inflate(2)).stream()
+                .filter(entity -> entity.getItem().is(ServusShuttlesItems.RAIL.get())).count();
+    }
+
+    /** On a bare floor the gantry lays its own rail along the way the player looks and stands over it. */
+    @ServusGameTest
+    public static void gantryPlacedOnFloorLaysRail(GameTestHelper helper) {
+        floor(helper, RAIL.getZ(), RAIL.getZ());
+        ItemStack left = GantryFixtures.use(helper, RAIL.below(), new ItemStack(ServusShuttlesItems.FLUID_GANTRY.get()));
+        helper.assertTrue(helper.getBlockState(RAIL).is(ServusShuttlesBlocks.RAIL.get()), "a rail lies on the floor");
+        helper.assertTrue(isPart(helper, RAIL.west(), GantryPart.LEFT_LOW) && isPart(helper, RAIL.east(), GantryPart.RIGHT_LOW)
+                && isPart(helper, RAIL.above(), GantryPart.BEAM), "the gantry stands over its rail, legs west and east");
+        helper.assertTrue(GantryFixtures.master(helper, RAIL).ownsRail(), "the rail is the gantry's own");
+        helper.assertTrue(left.isEmpty(), "placing used up the item");
+        helper.succeed();
+    }
+
+    /** Breaking a gantry that laid its rail takes the rail too, and no rail item drops. */
+    @ServusGameTest
+    public static void ownRailGoesWithGantry(GameTestHelper helper) {
+        floor(helper, RAIL.getZ(), RAIL.getZ());
+        GantryFixtures.use(helper, RAIL.below(), new ItemStack(ServusShuttlesItems.FLUID_GANTRY.get()));
+        helper.getLevel().destroyBlock(helper.absolutePos(RAIL.above()), true);
+        helper.assertTrue(noGantryAround(helper, RAIL), "no part is left");
+        helper.assertTrue(helper.getBlockState(RAIL).isAir(), "the gantry's rail is gone");
+        helper.assertTrue(GantryFixtures.droppedGantries(helper, RAIL).size() == 1, "one gantry item dropped");
+        helper.assertTrue(railItemsAround(helper, RAIL) == 0, "no rail item dropped");
+        helper.succeed();
+    }
+
+    /** A rail that was there before the gantry stays when the gantry is broken. */
+    @ServusGameTest
+    public static void existingRailStaysWhenGantryBreaks(GameTestHelper helper) {
+        GantryFixtures.railAlongZ(helper, RAIL.getX(), 2, 6);
+        FluidGantryBlockEntity gantry = GantryFixtures.place(helper, RAIL);
+        helper.assertTrue(!gantry.ownsRail(), "a rail that was there is not the gantry's");
+        helper.getLevel().destroyBlock(helper.absolutePos(RAIL.west()), true);
+        helper.assertTrue(noGantryAround(helper, RAIL), "no part is left");
+        helper.assertTrue(helper.getBlockState(RAIL).is(ServusShuttlesBlocks.RAIL.get()), "the rail stays");
+        helper.succeed();
+    }
+
+    /** Without solid ground under a leg nothing is placed, not even the rail. */
+    @ServusGameTest
+    public static void floorPlacementRefusedWithoutFooting(GameTestHelper helper) {
+        WarehouseFixtures.stone(helper, RAIL.below());
+        WarehouseFixtures.stone(helper, RAIL.west().below());
+        ItemStack stack = GantryFixtures.use(helper, RAIL.below(), new ItemStack(ServusShuttlesItems.FLUID_GANTRY.get()));
+        helper.assertTrue(noGantryAround(helper, RAIL), "no gantry without footing");
+        helper.assertTrue(helper.getBlockState(RAIL).isAir(), "no rail is laid");
+        helper.assertTrue(stack.getCount() == 1, "the player keeps the gantry");
+        helper.succeed();
+    }
+
+    /** A rail laid later in front of the gantry connects to the gantry's own rail. */
+    @ServusGameTest
+    public static void ownRailJoinsTheWarehouse(GameTestHelper helper) {
+        floor(helper, RAIL.getZ() - 1, RAIL.getZ());
+        GantryFixtures.use(helper, RAIL.below(), new ItemStack(ServusShuttlesItems.FLUID_GANTRY.get()));
+        WarehouseFixtures.rail(helper, RAIL.north());
+        helper.assertBlockProperty(RAIL, ConnectableBlock.NORTH, true);
+        helper.assertBlockProperty(RAIL.north(), ConnectableBlock.SOUTH, true);
         helper.succeed();
     }
 }

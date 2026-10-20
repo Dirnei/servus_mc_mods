@@ -11,6 +11,16 @@ import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.List;
 import java.util.OptionalInt;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponentGetter;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import org.jspecify.annotations.Nullable;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.TickTask;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -35,13 +45,19 @@ import net.minecraft.world.level.storage.ValueOutput;
  * The lowest segment also keeps the shaft's Speed upgrades; every segment has
  * the slots, but the others stay empty.
  */
-public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuProvider {
+public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuProvider, WoodHolder {
 
     private static final String LIFT_Y = "LiftY";
     private static final String UPGRADES = "Upgrades";
+    private static final String REPLACED_RAIL = "ReplacedRail";
+    private static final String RAIL_WOOD = "RailWood";
 
     private float liftY = Float.NaN;
     private boolean loading;
+    private final WoodSlot woodSlot = new WoodSlot(this);
+    /** The segment took the place of a Warehouse Rail, which comes back when the segment goes. */
+    private boolean replacedRail;
+    private @Nullable Identifier railWood;
     private final LiftUpgradeSlots upgrades = new LiftUpgradeSlots(ShuttlesStatsManager.INSTANCE.liftUpgradeSlots(), this::upgradesChanged);
 
     public ElevatorBlockEntity(BlockPos pos, BlockState state) {
@@ -102,6 +118,7 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
+        woodSlot.save(tag);
         if (!Float.isNaN(liftY)) {
             tag.putFloat(LIFT_Y, liftY);
         }
@@ -113,12 +130,54 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
+    /** The segment stands where a Warehouse Rail with that sleeper wood lay; the rail comes back when it goes. */
+    public void rememberRail(@Nullable Identifier wood) {
+        replacedRail = true;
+        railWood = wood;
+        setChanged();
+    }
+
+    public boolean replacedRail() {
+        return replacedRail;
+    }
+
+    @Override
+    public WoodSlot woodSlot() {
+        return woodSlot;
+    }
+
+    @Override
+    protected void applyImplicitComponents(DataComponentGetter input) {
+        super.applyImplicitComponents(input);
+        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        woodSlot.collect(builder);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        WoodSlot.removeFromTag(output);
+    }
+
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
         tag.put(UPGRADES, upgrades.serializeNBT(registries));
+        woodSlot.save(tag);
+        if (replacedRail) {
+            tag.putBoolean(REPLACED_RAIL, true);
+            if (railWood != null) {
+                tag.putString(RAIL_WOOD, railWood.toString());
+            }
+        }
         output.store(tag);
     }
 
@@ -127,6 +186,9 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
+        woodSlot.load(input);
+        replacedRail = tag.getBooleanOr(REPLACED_RAIL, false);
+        railWood = tag.getString(RAIL_WOOD).map(Identifier::tryParse).orElse(null);
         if (tag.contains(LIFT_Y)) {
             liftY = input.getFloatOr(LIFT_Y, 0F);
         }
@@ -137,11 +199,21 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
         }
     }
 
-    /** When the block is removed, its upgrades go to the heir segment of the shaft, or drop. */
+    /**
+     * When the block is removed, its upgrades go to the heir segment of the shaft, or drop,
+     * and a rail it replaced is put back once the removal is done.
+     */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
         Level level = this.level;
+        if (replacedRail && level instanceof ServerLevel server) {
+            replacedRail = false;
+            Identifier wood = railWood;
+            MinecraftServer minecraft = server.getServer();
+            // After the removal: the level still sends the segment's own neighbour updates as air.
+            minecraft.schedule(new TickTask(minecraft.getTickCount(), () -> ElevatorBlock.putRailBack(server, pos, wood)));
+        }
         if (level == null || upgradeCount() <= 0) {
             return;
         }

@@ -13,6 +13,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.BlockGetter;
@@ -107,6 +109,17 @@ public class ElevatorBlock extends ConnectableBlock {
     @Override
     public boolean isScaffolding(BlockState state, LevelReader level, BlockPos pos, LivingEntity entity) {
         return true;
+    }
+
+    /** Lays the Warehouse Rail a removed segment had replaced, when nothing else took its place. */
+    static void putRailBack(Level level, BlockPos pos, @Nullable Identifier wood) {
+        if (!level.getBlockState(pos).isAir()) {
+            return;
+        }
+        level.setBlock(pos, Block.updateFromNeighbourShapes(ServusShuttlesBlocks.RAIL.get().defaultBlockState(), level, pos), Block.UPDATE_ALL);
+        if (wood != null && level.getBlockEntity(pos) instanceof RailBlockEntity rail) {
+            rail.woodSlot().set(wood);
+        }
     }
 
     /** A segment stands on a solid block or on another segment. */

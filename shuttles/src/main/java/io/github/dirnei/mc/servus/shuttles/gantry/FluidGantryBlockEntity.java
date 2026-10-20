@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.foundation.upgrade.CapacityUpgradeSlots;
 import io.github.dirnei.mc.servus.shuttles.menu.FluidGantryMenu;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
@@ -33,6 +34,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
@@ -57,6 +59,7 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
     private static final String[] KEEP_KEYS = {"LeftKeep", "RightKeep"};
     private static final String MODE = "Mode";
     private static final String UPGRADES = "Upgrades";
+    private static final String OWN_RAIL = "OwnRail";
     private static final String[] SHOWN_FLUID_KEYS = {"ShownLeft", "ShownRight"};
     private static final String[] SHOWN_STEP_KEYS = {"StepLeft", "StepRight"};
     private static final String STEPS = "Steps";
@@ -73,6 +76,8 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
     private final CapacityUpgradeSlots upgrades =
             new CapacityUpgradeSlots(ShuttlesStatsManager.INSTANCE.gantryUpgradeSlots(), this::upgradesChanged);
     private boolean dropOnRemove = true;
+    /** The gantry laid the rail under its beam, so the rail goes when the gantry goes. */
+    private boolean ownRail;
     private final GantryFluidHandler manualHandler = new GantryFluidHandler(this, true, true);
     private final GantryFluidHandler importHandler = new GantryFluidHandler(this, true, false);
     private final GantryFluidHandler exportHandler = new GantryFluidHandler(this, false, true);
@@ -447,6 +452,16 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
         return new FluidGantryMenu(containerId, playerInventory, this);
     }
 
+    /** The rail under the beam is the gantry's own: it laid it on the floor. */
+    public void markOwnRail() {
+        ownRail = true;
+        setChanged();
+    }
+
+    public boolean ownsRail() {
+        return ownRail;
+    }
+
     /** Removing the gantry drops no item: a creative player broke it. */
     public void dropNothing() {
         dropOnRemove = false;
@@ -463,6 +478,7 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
         }
         output.store(MODE, GantryMode.CODEC, mode);
         upgrades.save(output, UPGRADES);
+        output.putBoolean(OWN_RAIL, ownRail);
     }
 
     @Override
@@ -477,6 +493,7 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
             keeps[tank] = Math.clamp(input.getIntOr(KEEP_KEYS[tank], 0), 0, capacity());
         }
         mode = input.read(MODE, GantryMode.CODEC).orElse(GantryMode.STORAGE);
+        ownRail = input.getBooleanOr(OWN_RAIL, false);
         if (input.getString(SHOWN_FLUID_KEYS[0]).isPresent()) {
             Pumping shownPump = input.getString(PUMP_FLUID).map(Identifier::tryParse).flatMap(BuiltInRegistries.FLUID::getOptional)
                     .filter(fluid -> fluid != Fluids.EMPTY)
@@ -494,14 +511,27 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
                 .orElse(Fluids.EMPTY);
     }
 
-    /** Drops the gantry item when the master goes away, unless a creative player broke it. */
+    /**
+     * Drops the gantry item when the master goes away, unless a creative player broke it,
+     * and takes away the rail the gantry laid, which drops nothing.
+     */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
         Level level = this.level;
-        if (level != null && dropOnRemove) {
+        if (level == null) {
+            return;
+        }
+        if (dropOnRemove) {
             dropOnRemove = false;
             Block.popResource(level, pos, dropItem());
+        }
+        if (ownRail) {
+            ownRail = false;
+            BlockPos rail = FluidGantryBlock.railPos(pos, state);
+            if (level.getBlockState(rail).is(ServusShuttlesBlocks.RAIL.get())) {
+                level.setBlock(rail, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+            }
         }
     }
 }

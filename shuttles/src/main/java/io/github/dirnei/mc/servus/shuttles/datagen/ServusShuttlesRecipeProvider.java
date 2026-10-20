@@ -139,7 +139,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('I', Items.IRON_INGOT)
                 .define('R', ServusShuttlesItems.RAIL.get())
                 .unlockedBy("has_rail", has(ServusShuttlesItems.RAIL.get()))
-                .save(output);
+                .save(WoodRecipes.output(output, registries));
 
         // The Fluid Gantry: two Fluid Tanks for the legs, a copper ingot for the spout, the rail it stands over.
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.FLUID_GANTRY.get())

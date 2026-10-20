@@ -519,6 +519,6 @@
     "particle": "servus_shuttles:block/elevator",
     "rail_head": "servus_shuttles:block/rail_head",
     "skin": "servus_shuttles:block/elevator",
-    "sleeper": "minecraft:block/oak_planks"
+    "sleeper": "servus_foundation:block/wood_board"
   }
 }

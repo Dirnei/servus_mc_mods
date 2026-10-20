@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
+import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
@@ -174,5 +177,25 @@ public final class GantryTankGameTests {
         helper.assertTrue(Transfer.fill(gantry.manualHandler(), new FluidStack(Fluids.LAVA, 1000), false) == 0,
                 "no tank takes lava: one holds water, the other is locked to water");
         helper.succeed();
+    }
+
+    /** A duct beside the upper right leg draws its arm to the gantry once the gantry turns Import, and loses it in Storage. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void ductArmFollowsTheMode(GameTestHelper helper) {
+        FluidGantryBlockEntity gantry = gantry(helper);
+        BlockPos duct = RAIL.east(2).above();
+        GameTestSteps.duct(helper, duct, Line.FLUID);
+        helper.runAfterDelay(2, () -> {
+            helper.assertBlockProperty(duct, ConnectableBlock.WEST, false);
+            gantry.setMode(GantryMode.IMPORT);
+            helper.runAfterDelay(2, () -> {
+                helper.assertBlockProperty(duct, ConnectableBlock.WEST, true);
+                gantry.setMode(GantryMode.STORAGE);
+                helper.runAfterDelay(2, () -> {
+                    helper.assertBlockProperty(duct, ConnectableBlock.WEST, false);
+                    helper.succeed();
+                });
+            });
+        });
     }
 }

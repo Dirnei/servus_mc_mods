@@ -201,10 +201,15 @@ public class FluidGantryBlock extends BaseEntityBlock implements Wrenchable {
         }
     }
 
-    /** Tells pipes and other mods beside every part of the gantry to look at it again. */
+    /**
+     * Tells pipes and other mods beside every part of the gantry to look at it again: capability caches
+     * see the new handler, and the neighbour update lets ducts redraw their arms towards the parts.
+     */
     public static void invalidateCapabilities(Level level, BlockPos pos, BlockState state) {
         for (GantryLayout.Vec part : parts(railPos(pos, state), state.getValue(AXIS)).values()) {
-            level.invalidateCapabilities(pos(part));
+            BlockPos at = pos(part);
+            level.invalidateCapabilities(at);
+            level.updateNeighborsAt(at, state.getBlock());
         }
     }
 

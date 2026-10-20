@@ -15,15 +15,13 @@ import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 
 final class ServusShuttlesBlockLoot extends BlockLootSubProvider {
 
-    private static final List<Block> SELF_DROPPING = List.of(ServusShuttlesBlocks.ELEVATOR.get());
-
     /** Blocks that keep the wood of their recipe. */
     private static final List<Block> WOODEN = List.of(ServusShuttlesBlocks.WAREHOUSE_CONTROLLER.get(),
             ServusShuttlesBlocks.STORAGE_TERMINAL.get(), ServusShuttlesBlocks.INBOUND_STATION.get(), ServusShuttlesBlocks.PACKING_STATION.get(),
             ServusShuttlesBlocks.SHUTTLE_GARAGE.get(), ServusShuttlesBlocks.OUTBOUND_STATION.get(), ServusShuttlesBlocks.CRAFTING_STATION.get(),
             ServusShuttlesBlocks.CRAFTING_CPU.get(), ServusShuttlesBlocks.CPU_BUFFER.get(), ServusShuttlesBlocks.PRODUCTION_TERMINAL.get(),
             ServusShuttlesBlocks.FIELD_HEAD.get(), ServusShuttlesBlocks.RAIL.get(), ServusShuttlesBlocks.FARM_RAIL.get(),
-            ServusShuttlesBlocks.SHUTTLE_WORKSHOP.get());
+            ServusShuttlesBlocks.SHUTTLE_WORKSHOP.get(), ServusShuttlesBlocks.ELEVATOR.get());
 
     ServusShuttlesBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
@@ -31,7 +29,6 @@ final class ServusShuttlesBlockLoot extends BlockLootSubProvider {
 
     @Override
     protected void generate() {
-        SELF_DROPPING.forEach(this::dropSelf);
         for (Block block : WOODEN) {
             add(block, createSingleItemTable(block)
                     .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
@@ -50,8 +47,7 @@ final class ServusShuttlesBlockLoot extends BlockLootSubProvider {
 
     @Override
     protected Iterable<Block> getKnownBlocks() {
-        List<Block> known = new ArrayList<>(SELF_DROPPING);
-        known.addAll(WOODEN);
+        List<Block> known = new ArrayList<>(WOODEN);
         known.add(ServusShuttlesBlocks.HEAVY_RACK.get());
         known.add(ServusShuttlesBlocks.PATTERN_STORAGE.get());
         return known;

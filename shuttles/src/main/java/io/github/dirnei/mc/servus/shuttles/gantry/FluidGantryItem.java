@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.gantry;
 
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import java.util.Map;
@@ -28,8 +29,10 @@ import org.jspecify.annotations.Nullable;
 /**
  * The Fluid Gantry item. Used on a straight Warehouse Rail it builds the five
  * parts around it when they all have room and both legs stand on a solid
- * top, and hands the master what the item kept. Anywhere else, or when a
- * check fails, nothing is placed and the player is told why.
+ * top, and hands the master what the item kept. Used on the top of any other
+ * block it first lays its own rail there, running the way the player looks,
+ * which then belongs to the gantry. When a check fails, nothing is placed and
+ * the player is told why.
  */
 public class FluidGantryItem extends BlockItem {
 
@@ -40,16 +43,34 @@ public class FluidGantryItem extends BlockItem {
     @Override
     public InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
-        BlockPos rail = context.getClickedPos();
-        BlockState railState = level.getBlockState(rail);
+        BlockPos clicked = context.getClickedPos();
+        BlockState clickedState = level.getBlockState(clicked);
         Player player = context.getPlayer();
-        if (!railState.is(ServusShuttlesBlocks.RAIL.get())) {
+        Direction.Axis looking = context.getHorizontalDirection().getAxis();
+        if (clickedState.is(ServusShuttlesBlocks.RAIL.get())) {
+            Direction.Axis axis = runAxis(clickedState, looking);
+            if (axis == null) {
+                return refuse(level, player, "needs_straight_rail");
+            }
+            return placeAround(context, clicked, axis, false);
+        }
+        if (clickedState.getBlock() instanceof RailBlock || context.getClickedFace() != Direction.UP) {
             return refuse(level, player, "needs_rail");
         }
-        Direction.Axis axis = runAxis(railState, context.getHorizontalDirection().getAxis());
-        if (axis == null) {
-            return refuse(level, player, "needs_straight_rail");
+        BlockPos rail = clicked.above();
+        if (!level.isInsideBuildHeight(rail) || !level.getBlockState(rail).canBeReplaced(new BlockPlaceContext(context))) {
+            return refuse(level, player, "no_rail_room");
         }
+        if (!clickedState.isFaceSturdy(level, clicked, Direction.UP)) {
+            return refuse(level, player, "no_footing");
+        }
+        return placeAround(context, rail, looking, true);
+    }
+
+    /** Builds the gantry around the rail position, first laying the rail there when it brings its own. */
+    private InteractionResult placeAround(UseOnContext context, BlockPos rail, Direction.Axis axis, boolean layRail) {
+        Level level = context.getLevel();
+        Player player = context.getPlayer();
         Map<GantryLayout.Part, GantryLayout.Vec> parts = FluidGantryBlock.parts(rail, axis);
         BlockPlaceContext placing = new BlockPlaceContext(context);
         for (GantryLayout.Vec vec : parts.values()) {
@@ -68,7 +89,13 @@ public class FluidGantryItem extends BlockItem {
             return InteractionResult.SUCCESS;
         }
         ItemStack stack = context.getItemInHand();
+        if (layRail) {
+            level.setBlock(rail, Block.updateFromNeighbourShapes(ServusShuttlesBlocks.RAIL.get().defaultBlockState(), level, rail), Block.UPDATE_ALL);
+        }
         place(level, parts, axis, stack.getOrDefault(ServusShuttlesComponents.GANTRY_CONTENTS.get(), GantryContents.EMPTY));
+        if (layRail && level.getBlockEntity(FluidGantryBlock.pos(parts.get(GantryLayout.Part.LEFT_LOW))) instanceof FluidGantryBlockEntity gantry) {
+            gantry.markOwnRail();
+        }
         SoundType sound = getBlock().defaultBlockState().getSoundType();
         level.playSound(null, rail, sound.getPlaceSound(), SoundSource.BLOCKS, (sound.getVolume() + 1.0F) / 2.0F, sound.getPitch() * 0.8F);
         stack.consume(1, player);

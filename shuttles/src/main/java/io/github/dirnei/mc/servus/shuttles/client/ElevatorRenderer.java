@@ -23,6 +23,8 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
+import io.github.dirnei.mc.servus.foundation.wood.client.WoodTextures;
+import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
@@ -38,7 +40,7 @@ import net.minecraft.world.phys.AABB;
 public class ElevatorRenderer extends LiveBlockEntityRenderer<ElevatorBlockEntity> {
 
     private static final Identifier FRAME = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "block/elevator");
-    /** Rail textures: the Warehouse Rail's steel heads and oak sleepers. */
+    /** Rail textures: the Warehouse Rail's steel heads and oak sleepers, which each segment draws in its own wood. */
     private static final Identifier[] RAIL = {
             Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "block/rail_head"),
             Identifier.withDefaultNamespace("block/oak_planks")};
@@ -67,6 +69,13 @@ public class ElevatorRenderer extends LiveBlockEntityRenderer<ElevatorBlockEntit
 
         Brush lit(int newLight) {
             return new Brush(poseStack, buffer, frame, rail, newLight, overlay);
+        }
+
+        /** The same brush with the sleepers in that wood. */
+        Brush wood(Identifier wood) {
+            TextureAtlasSprite[] sprites = rail.clone();
+            sprites[1] = WoodTextures.spriteOf(wood);
+            return new Brush(poseStack, buffer, frame, sprites, light, overlay);
         }
     }
 
@@ -114,7 +123,7 @@ public class ElevatorRenderer extends LiveBlockEntityRenderer<ElevatorBlockEntit
             if (!hasRail(state)) {
                 continue;
             }
-            Brush lit = brush.lit(LevelRenderer.getLightCoords(level, bottom.above(floor)));
+            Brush lit = brush.lit(LevelRenderer.getLightCoords(level, bottom.above(floor))).wood(woodAt(level, bottom.above(floor)));
             float angle = (float) Flaps.angle(carY, floor);
             boolean ground = floor == 0;
             ModelPoses.translated(poseStack, 0, floor, 0, () -> {
@@ -127,9 +136,14 @@ public class ElevatorRenderer extends LiveBlockEntityRenderer<ElevatorBlockEntit
         }
 
         int nearest = (int) Math.round(carY);
-        Brush lit = brush.lit(LevelRenderer.getLightCoords(level, bottom.above(nearest)));
+        Brush lit = brush.lit(LevelRenderer.getLightCoords(level, bottom.above(nearest))).wood(woodAt(level, bottom.above(nearest)));
         ModelPoses.translated(poseStack, 0, (float) carY, 0, () -> car(lit, floors.get(nearest)));
         buffer.submit(collector, RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS));
+    }
+
+    /** The wood of the segment at that position, oak when it has none. */
+    private static Identifier woodAt(Level level, BlockPos pos) {
+        return level.getBlockEntity(pos) instanceof ElevatorBlockEntity segment ? segment.woodSlot().wood() : Wood.DEFAULT;
     }
 
     /** The segments of the shaft from this one up, as their block states; empty once this segment is gone. */
@@ -336,7 +350,7 @@ public class ElevatorRenderer extends LiveBlockEntityRenderer<ElevatorBlockEntit
     }
 
     /**
-     * One box of the track: a head in steel or a sleeper in oak. The top
+     * One box of the track: a head in steel or a sleeper in the segment's wood. The top
      * shows its texture mapped by position and turned with the piece like a
      * rotated block model, so boxes cut at the deck and car edges still line
      * up with each other.

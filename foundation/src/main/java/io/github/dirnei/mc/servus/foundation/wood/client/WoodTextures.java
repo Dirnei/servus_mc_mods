@@ -10,7 +10,7 @@ import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.model.quad.MutableQuad;
 
 /** Retextures the board quads of wood models onto a planks sprite, shared by the block and item wood models. */
-final class WoodTextures {
+public final class WoodTextures {
 
     private WoodTextures() {
     }
@@ -21,7 +21,7 @@ final class WoodTextures {
     }
 
     /** The particle sprite of the planks block's model. */
-    static TextureAtlasSprite spriteOf(Identifier wood) {
+    public static TextureAtlasSprite spriteOf(Identifier wood) {
         return Minecraft.getInstance().getModelManager().getBlockStateModelSet()
                 .getParticleMaterial(Wood.block(wood).defaultBlockState()).sprite();
     }

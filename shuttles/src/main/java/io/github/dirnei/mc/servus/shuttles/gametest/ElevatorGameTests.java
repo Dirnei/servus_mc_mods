@@ -18,6 +18,16 @@ import io.github.dirnei.mc.servus.shuttles.terminal.RequestRow;
 import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlockEntity;
 import java.util.ArrayList;
 import java.util.List;
+import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.shuttles.rail.RailBlockEntity;
+import net.minecraft.resources.Identifier;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -530,6 +540,206 @@ public final class ElevatorGameTests {
         ItemStack held = sneakElevator(helper, player, new BlockPos(3, 1, 3));
         helper.assertTrue(held.getCount() == 1, "the stack should keep its elevator");
         helper.assertBlockNotPresent(ServusShuttlesBlocks.ELEVATOR.get(), new BlockPos(4, 1, 3));
+        helper.succeed();
+    }
+
+    private static final BlockPos ON_RAIL = new BlockPos(4, 1, 3);
+    private static final Identifier SPRUCE = Identifier.withDefaultNamespace("spruce_planks");
+
+    /** Stone and a shaped east to west Warehouse Rail from x 2 to 6 along z 3, the middle rail in spruce. */
+    private static void railRun(GameTestHelper helper) {
+        WarehouseFixtures.railRow(helper, 2, 6, ON_RAIL.getZ());
+        for (int x = 2; x <= 6; x++) {
+            GantryFixtures.shape(helper, new BlockPos(x, 1, ON_RAIL.getZ()));
+        }
+        helper.getBlockEntity(ON_RAIL, RailBlockEntity.class).woodSlot().set(SPRUCE);
+    }
+
+    private static void useElevatorOnTop(GameTestHelper helper, BlockPos pos) {
+        ItemStack stack = new ItemStack(ServusShuttlesItems.ELEVATOR.get());
+        TestPlayers.useOnTop(helper, TestPlayers.holding(helper, stack), stack, pos);
+    }
+
+    /** Uses an elevator on the north face of the block at {@code pos}, as a click on the side of a shaft does. */
+    private static void useElevatorOnSide(GameTestHelper helper, BlockPos pos) {
+        ItemStack stack = new ItemStack(ServusShuttlesItems.ELEVATOR.get());
+        Player player = TestPlayers.holding(helper, stack);
+        BlockPos absolute = helper.absolutePos(pos);
+        stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
+                new BlockHitResult(Vec3.atCenterOf(absolute).relative(Direction.NORTH, 0.5), Direction.NORTH, absolute, false)));
+    }
+
+    private static boolean isSegment(GameTestHelper helper, BlockPos pos) {
+        return helper.getBlockState(pos).getBlock() instanceof ElevatorBlock;
+    }
+
+    private static boolean isWarehouseRail(GameTestHelper helper, BlockPos pos) {
+        return helper.getBlockState(pos).is(ServusShuttlesBlocks.RAIL.get());
+    }
+
+    /** An elevator used on a rail of a run stands in the rail's place, joined to the rails beside it. */
+    @ServusGameTest
+    public static void segmentPlacedOnRailTakesItsPlace(GameTestHelper helper) {
+        railRun(helper);
+        useElevatorOnTop(helper, ON_RAIL);
+        helper.assertTrue(isSegment(helper, ON_RAIL), "the segment stands where the rail was");
+        helper.assertTrue(helper.getBlockEntity(ON_RAIL, ElevatorBlockEntity.class).replacedRail(), "the segment remembers the rail");
+        helper.assertTrue(!isSegment(helper, ON_RAIL.above()), "nothing is placed above the rail");
+        helper.assertBlockProperty(ON_RAIL.west(), ConnectableBlock.EAST, true);
+        helper.assertBlockProperty(ON_RAIL.east(), ConnectableBlock.WEST, true);
+        helper.succeed();
+    }
+
+    /** Breaking that segment drops it and puts the rail back, joined to its neighbours. */
+    @ServusGameTest
+    public static void brokenSegmentGivesTheRailBack(GameTestHelper helper) {
+        railRun(helper);
+        useElevatorOnTop(helper, ON_RAIL);
+        helper.getLevel().destroyBlock(helper.absolutePos(ON_RAIL), true);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(isWarehouseRail(helper, ON_RAIL), "the rail is back");
+            helper.assertBlockProperty(ON_RAIL, ConnectableBlock.WEST, true);
+            helper.assertBlockProperty(ON_RAIL.west(), ConnectableBlock.EAST, true);
+            helper.assertItemEntityPresent(ServusShuttlesItems.ELEVATOR.get(), ON_RAIL, 2);
+        });
+    }
+
+    /** The rail comes back in the wood it had, also after the segment was saved and loaded. */
+    @ServusGameTest
+    public static void railComesBackWithItsWood(GameTestHelper helper) {
+        railRun(helper);
+        useElevatorOnTop(helper, ON_RAIL);
+        helper.getLevel().destroyBlock(helper.absolutePos(ON_RAIL), true);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(isWarehouseRail(helper, ON_RAIL), "the rail is back");
+            Identifier wood = helper.getBlockEntity(ON_RAIL, RailBlockEntity.class).woodSlot().wood();
+            helper.assertTrue(SPRUCE.equals(wood), "the rail keeps its spruce sleepers, got " + wood);
+        });
+    }
+
+    /** Breaking the lowest segment of a shaft on a rail drops the shaft and leaves the rail. */
+    @ServusGameTest
+    public static void fallingShaftLeavesTheRail(GameTestHelper helper) {
+        railRun(helper);
+        useElevatorOnTop(helper, ON_RAIL);
+        useElevatorOnSide(helper, ON_RAIL);
+        useElevatorOnSide(helper, ON_RAIL);
+        helper.assertTrue(isSegment(helper, ON_RAIL.above(2)), "the shaft is three segments high");
+        helper.getLevel().destroyBlock(helper.absolutePos(ON_RAIL), true);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(isWarehouseRail(helper, ON_RAIL), "the rail is back");
+            helper.assertTrue(!isSegment(helper, ON_RAIL.above()) && !isSegment(helper, ON_RAIL.above(2)), "the shaft above fell");
+        });
+    }
+
+    /** A segment placed on bare stone leaves nothing behind. */
+    @ServusGameTest
+    public static void bareGroundSegmentLeavesNothing(GameTestHelper helper) {
+        BlockPos stone = new BlockPos(4, 0, 6);
+        WarehouseFixtures.stone(helper, stone);
+        useElevatorOnTop(helper, stone);
+        BlockPos segment = stone.above();
+        helper.assertTrue(isSegment(helper, segment) && !helper.getBlockEntity(segment, ElevatorBlockEntity.class).replacedRail(),
+                "a segment on stone remembers no rail");
+        helper.getLevel().destroyBlock(helper.absolutePos(segment), true);
+        helper.runAfterDelay(5, () -> {
+            helper.assertTrue(helper.getBlockState(segment).isAir(), "nothing is left in its place");
+            helper.succeed();
+        });
+    }
+
+    /** A click on a segment that replaced a rail builds the shaft up. */
+    @ServusGameTest
+    public static void clickOnRailSegmentBuildsUp(GameTestHelper helper) {
+        railRun(helper);
+        useElevatorOnTop(helper, ON_RAIL);
+        useElevatorOnTop(helper, ON_RAIL);
+        helper.assertTrue(isSegment(helper, ON_RAIL) && isSegment(helper, ON_RAIL.above()), "the second segment goes on top");
+        helper.succeed();
+    }
+
+    /** A Farm Rail is not replaced. */
+    @ServusGameTest
+    public static void farmRailIsNotReplaced(GameTestHelper helper) {
+        BlockPos farm = new BlockPos(4, 1, 6);
+        WarehouseFixtures.stone(helper, farm.below());
+        helper.setBlock(farm, ServusShuttlesBlocks.FARM_RAIL.get().defaultBlockState());
+        useElevatorOnTop(helper, farm);
+        helper.assertTrue(helper.getBlockState(farm).is(ServusShuttlesBlocks.FARM_RAIL.get()), "the farm rail stays");
+        helper.succeed();
+    }
+
+    /** The remembered rail survives a save and load of the segment. */
+    @ServusGameTest
+    public static void rememberedRailSurvivesSave(GameTestHelper helper) {
+        railRun(helper);
+        useElevatorOnTop(helper, ON_RAIL);
+        ElevatorBlockEntity loaded = PersistGameTests.reload(helper, ON_RAIL);
+        helper.assertTrue(loaded.replacedRail(), "the loaded segment still remembers the rail");
+        helper.getLevel().destroyBlock(helper.absolutePos(ON_RAIL), true);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(isWarehouseRail(helper, ON_RAIL), "the rail is back after a reload");
+            Identifier wood = helper.getBlockEntity(ON_RAIL, RailBlockEntity.class).woodSlot().wood();
+            helper.assertTrue(SPRUCE.equals(wood), "with its spruce sleepers, got " + wood);
+        });
+    }
+
+    private static final Identifier BIRCH = Identifier.withDefaultNamespace("birch_planks");
+
+    private static Identifier segmentWood(GameTestHelper helper, BlockPos pos) {
+        return helper.getBlockEntity(pos, ElevatorBlockEntity.class).woodSlot().wood();
+    }
+
+    /** A segment placed on a spruce rail is a spruce segment. */
+    @ServusGameTest
+    public static void segmentOnRailTakesItsWood(GameTestHelper helper) {
+        railRun(helper);
+        useElevatorOnTop(helper, ON_RAIL);
+        helper.assertTrue(SPRUCE.equals(segmentWood(helper, ON_RAIL)), "the segment took the rail's spruce, got " + segmentWood(helper, ON_RAIL));
+        helper.succeed();
+    }
+
+    /** Elevators crafted from a birch rail carry birch. */
+    @ServusGameTest
+    public static void craftedElevatorCarriesTheRailWood(GameTestHelper helper) {
+        ItemStack iron = new ItemStack(Items.IRON_INGOT);
+        ItemStack rail = new ItemStack(ServusShuttlesItems.RAIL.get());
+        rail.set(WoodContent.WOOD.get(), BIRCH);
+        CraftingInput input = CraftingInput.of(3, 3, List.of(iron, iron, iron, iron, rail, iron, iron, iron, iron));
+        RecipeHolder<?> holder = helper.getLevel().recipeAccess()
+                .byKey(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "elevator"))).orElseThrow();
+        @SuppressWarnings("unchecked")
+        CraftingRecipe recipe = ((RecipeHolder<CraftingRecipe>) holder).value();
+        helper.assertTrue(recipe.matches(input, helper.getLevel()), "the elevator recipe takes a birch rail");
+        ItemStack result = recipe.assemble(input);
+        helper.assertTrue(result.is(ServusShuttlesItems.ELEVATOR.get()) && result.getCount() == 4, "four elevators, got " + result);
+        helper.assertTrue(BIRCH.equals(result.get(WoodContent.WOOD.get())), "they carry birch, got " + result.get(WoodContent.WOOD.get()));
+        helper.succeed();
+    }
+
+    /** A broken spruce segment drops a spruce elevator that does not stack with an oak one. */
+    @ServusGameTest
+    public static void brokenSegmentDropsItsWood(GameTestHelper helper) {
+        railRun(helper);
+        useElevatorOnTop(helper, ON_RAIL);
+        BlockPos absolute = helper.absolutePos(ON_RAIL);
+        List<ItemStack> drops = Block.getDrops(helper.getBlockState(ON_RAIL), helper.getLevel(), absolute, helper.getLevel().getBlockEntity(absolute));
+        helper.assertTrue(drops.size() == 1 && drops.get(0).is(ServusShuttlesItems.ELEVATOR.get()), "one elevator drops, got " + drops);
+        helper.assertTrue(SPRUCE.equals(drops.get(0).get(WoodContent.WOOD.get())), "it keeps spruce");
+        helper.assertTrue(!ItemStack.isSameItemSameComponents(drops.get(0), new ItemStack(ServusShuttlesItems.ELEVATOR.get())),
+                "a spruce elevator does not stack with an oak one");
+        helper.succeed();
+    }
+
+    /** Placing a birch elevator item makes a birch segment. */
+    @ServusGameTest
+    public static void placedItemGivesItsWood(GameTestHelper helper) {
+        BlockPos stone = new BlockPos(4, 0, 6);
+        WarehouseFixtures.stone(helper, stone);
+        ItemStack stack = new ItemStack(ServusShuttlesItems.ELEVATOR.get());
+        stack.set(WoodContent.WOOD.get(), BIRCH);
+        TestPlayers.useOnTop(helper, TestPlayers.holding(helper, stack), stack, stone);
+        helper.assertTrue(BIRCH.equals(segmentWood(helper, stone.above())), "the segment is birch, got " + segmentWood(helper, stone.above()));
         helper.succeed();
     }
 }

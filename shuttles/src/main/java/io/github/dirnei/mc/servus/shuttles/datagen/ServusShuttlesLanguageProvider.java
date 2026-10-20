@@ -494,6 +494,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("message.servus_shuttles.fluid_gantry.needs_straight_rail", "The Fluid Gantry needs a straight rail: no curve, crossing or dock across it");
         add("message.servus_shuttles.fluid_gantry.no_room", "No room: the gantry needs both sides of the rail and the space above, two blocks tall");
         add("message.servus_shuttles.fluid_gantry.no_footing", "Both legs of the gantry need solid ground");
+        add("message.servus_shuttles.fluid_gantry.no_rail_room", "No room for the gantry's rail: the space on top of the block is taken");
         add("tooltip.servus_shuttles.fluid_gantry.tank_0", "Left tank: %s");
         add("tooltip.servus_shuttles.fluid_gantry.tank_1", "Right tank: %s");
         add("tooltip.servus_shuttles.fluid_gantry.amount", "%s, %s mB");

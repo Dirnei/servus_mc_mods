@@ -1004,7 +1004,7 @@
       ]
     },
     "servus_shuttles:elevator": {
-      "type": "minecraft:crafting_shaped",
+      "type": "servus_foundation:wood_shaped",
       "pattern": ["III", "IRI", "III"],
       "key": {
         "I": {"item": "minecraft:iron_ingot"},

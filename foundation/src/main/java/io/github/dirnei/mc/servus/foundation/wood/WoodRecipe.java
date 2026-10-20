@@ -21,7 +21,8 @@ import net.minecraft.world.item.crafting.ShapedRecipePattern;
 
 /**
  * A shaped recipe that records the wood of the planks in the grid on its
- * result, picked by {@link WoodPick}. It reads and writes like a shaped
+ * result, picked by {@link WoodPick}; an ingredient that carries a wood
+ * itself (a rail) counts like planks of that wood. It reads and writes like a shaped
  * recipe, so recipe viewers show it as one.
  */
 public class WoodRecipe extends ShapedRecipe {
@@ -55,7 +56,10 @@ public class WoodRecipe extends ShapedRecipe {
         List<String> planks = new ArrayList<>();
         for (int i = 0; i < input.size(); i++) {
             ItemStack stack = input.getItem(i);
-            if (stack.is(ItemTags.PLANKS) && stack.getItem() instanceof BlockItem block) {
+            Identifier carried = stack.get(WoodContent.WOOD.get());
+            if (carried != null) {
+                planks.add(carried.toString());
+            } else if (stack.is(ItemTags.PLANKS) && stack.getItem() instanceof BlockItem block) {
                 planks.add(BuiltInRegistries.BLOCK.getKey(block.getBlock()).toString());
             }
         }

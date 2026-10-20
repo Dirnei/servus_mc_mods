@@ -5,11 +5,23 @@ The Fluid Gantry is the warehouse's block for fluids: a frame over a rail with t
 ## ADDED Requirements
 
 ### Requirement: Gantry placed over a rail
-The Fluid Gantry SHALL be one item that places a frame of five block spaces around a straight Warehouse Rail: a leg two blocks tall on each side of the rail, at right angles to its run, and a beam in the space above the rail. It SHALL be placed by using the item on a straight rail (a run without a curve, crossing or dock arm across the run) when all five spaces are free and the blocks under both legs have a solid top. Otherwise nothing SHALL be placed and the player SHALL be told why. Breaking any part SHALL remove the whole gantry and drop one gantry item that keeps the fluid of both tanks, the locks, the mode and the Capacity Upgrades; sneaking with the Configuration Carrot on any part SHALL dismantle it the same way. Placing such an item SHALL bring all of that back.
+The Fluid Gantry SHALL be one item that places a frame of five block spaces around a straight Warehouse Rail: a leg two blocks tall on each side of the rail, at right angles to its run, and a beam in the space above the rail. It SHALL be placed by using the item on a straight rail (a run without a curve, crossing or dock arm across the run) when all five spaces are free and the blocks under both legs have a solid top. The gantry SHALL bring its own rail: used on the top of a block that is not a rail, it SHALL lay a straight Warehouse Rail on that block, running the way the player looks, and stand over it, when the rail space and the five spaces are free and the blocks under the rail and both legs have a solid top. A rail the gantry laid SHALL belong to it and SHALL go away with it, without dropping; a rail that was there before SHALL stay when the gantry goes. Otherwise nothing SHALL be placed and the player SHALL be told why. Breaking any part SHALL remove the whole gantry and drop one gantry item that keeps the fluid of both tanks, the locks, the mode and the Capacity Upgrades; sneaking with the Configuration Carrot on any part SHALL dismantle it the same way. Placing such an item SHALL bring all of that back.
 
 #### Scenario: Placed on a rail
 - **WHEN** a player uses a Fluid Gantry on a straight rail running north to south with free space on both sides and above
 - **THEN** a leg stands east and west of the rail, two blocks tall each, and the beam fills the space above the rail
+
+#### Scenario: Placed on the floor
+- **WHEN** a player looking north uses a Fluid Gantry on the top of a stone floor with free space around
+- **THEN** a straight rail running north to south lies on the floor, and the gantry stands over it with a leg east and west
+
+#### Scenario: Own rail goes with it
+- **WHEN** a gantry that laid its own rail is broken
+- **THEN** the rail under its beam is gone and only the gantry item drops
+
+#### Scenario: Existing rail stays
+- **WHEN** a gantry placed on a rail that was already there is broken
+- **THEN** the rail stays where it was
 
 #### Scenario: Curve refused
 - **WHEN** a player uses a Fluid Gantry on a rail curve
