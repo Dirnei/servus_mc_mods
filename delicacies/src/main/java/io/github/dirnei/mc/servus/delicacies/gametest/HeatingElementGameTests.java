@@ -27,11 +27,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
  * A Tiled Stove with a Heating Element takes FE through its port only, preheats and cooks without fuel, cools and stops
- * without power, refuses fuel, and gives the element back by hand or when it is broken.
+ * without power, refuses fuel but lets automation take out what is left, and gives the element back by hand or when it is broken.
  */
 public final class HeatingElementGameTests {
 
@@ -146,6 +148,20 @@ public final class HeatingElementGameTests {
             helper.assertTrue(helper.getBlockEntity(above, HopperBlockEntity.class).getItem(0).getCount() == 2, "the hopper keeps it");
             helper.succeed();
         });
+    }
+
+    @ServusGameTest(timeoutTicks = 20)
+    public static void fuelComesOutWhileTheElementHeats(GameTestHelper helper) {
+        StoveTileBlockEntity master = KitchenTestSupport.fuelledStove(helper, 2, new ItemStack(Items.COAL, 3));
+        ResourceHandler<ItemResource> fuel =
+                helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(DOOR.east()), Direction.DOWN);
+        helper.assertTrue(fuel != null, "the tile offers its fuel slot");
+        helper.assertTrue(Transfer.extractItem(fuel, 0, 3, true).isEmpty(), "fuel stays in a wood fired stove");
+        helper.assertTrue(master.installElement(), "the element goes in");
+        ItemStack out = Transfer.extractItem(fuel, 0, 3, false);
+        helper.assertTrue(out.is(Items.COAL) && out.getCount() == 3, "the Coal comes out with the element in, got " + out);
+        helper.assertTrue(master.fuelStack().isEmpty(), "the slot is empty");
+        helper.succeed();
     }
 
     @ServusGameTest(timeoutTicks = 40)

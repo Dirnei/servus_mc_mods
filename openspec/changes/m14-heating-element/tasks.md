@@ -30,6 +30,7 @@
   - Craft a Heating Element; it does not go into a Speed Upgrade slot or the Sink's capacity slots.
   - Right click a formed Tiled Stove with it: the door shows dull coils, a brass thermometer appears above the door and a small iron port on the right end; a second element is refused; Coal is refused while it is in.
   - Run a power cable to the port: with a Pot cooking the needle climbs steadily, the coils turn warm orange, the Pot cooks without fuel; cut the power: the needle sinks slowly and the Pot stops once it is cold; no FE goes in on any other face.
+  - Put Coal in a stove, then the element: a hopper under a tile pulls the Coal out.
   - Sneak with an empty hand on a tile: the element comes out, gauge, port and coils disappear, the wood fire works as before. Break a tile with the element in: it drops.
   - The same on the Brewhouse: port on the kiln side's right end, gauge between the doors, coils on both doors, the kettle brews and the kiln dries on FE.
   - Look at the gauge, needle and port from several angles and while the needle moves: no flicker, the dial reads round, the port reads as a solid iron plate.

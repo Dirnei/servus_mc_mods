@@ -38,6 +38,10 @@ With a Heating Element installed, the firebox SHALL burn no fuel and SHALL refus
 - **WHEN** a hopper holding Coal points into a stove with an element
 - **THEN** the Coal stays in the hopper
 
+#### Scenario: Fuel left in the slot comes out
+- **WHEN** a stove still holds Coal in its fuel slot when the element goes in, and a hopper sits below a tile
+- **THEN** the hopper pulls the Coal out
+
 #### Scenario: Numbers from data
 - **WHEN** a datapack sets the stove's FE per tick to 50
 - **THEN** a heating stove draws 50 FE every tick
