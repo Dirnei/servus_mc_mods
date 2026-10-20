@@ -40,8 +40,8 @@ import net.minecraft.world.level.block.Block;
  * and turned a quarter for one running east to west. A leg block is the same
  * on both sides of the rail: the lower one has the steel plinth, the upper one
  * the steel cap and a lock plate on both faces along the rail; between them
- * blackened iron corner posts, an iron seam band where the blocks meet and
- * glass set in from the outer faces. The beam is a steel I-beam with an iron
+ * blackened iron corner posts and glass set in from the outer faces, running
+ * through both blocks as one tank. The beam is a steel I-beam with an iron
  * web, ending just short of the legs, with copper feed pipes, a steel spout
  * sleeve and a sign on both faces showing the mode and the two lamps. The
  * renderer draws the spout's iron inner pipe and copper nozzle, which lower
@@ -55,8 +55,6 @@ final class GantryModels {
     private static final Identifier COPPER = Identifier.withDefaultNamespace("block/copper_block");
     /** Beam parts end this far short of the legs. */
     private static final float BEAM_END = 0.05F;
-    private static final float BAND_INSET = 0.15F;
-    private static final float BAND_HALF = 0.5F;
     private static final Set<Direction> SIDES = EnumSet.of(Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST);
     private static final String[] LAMPS = {"off", "idle", "working", "blocked"};
 
@@ -81,10 +79,6 @@ final class GantryModels {
 
         Box(float x0, float y0, float z0, float x1, float y1, float z1, String front, float frontV) {
             this(x0, y0, z0, x1, y1, z1, "#steel", EnumSet.allOf(Direction.class), front, frontV);
-        }
-
-        Box shifted(float dx, float dy) {
-            return new Box(x0 + dx, y0 + dy, z0, x1 + dx, y1 + dy, z1, texture, faces, front, frontV);
         }
 
         /** The face that looks out along the rail: south for a box in the south half, north otherwise. */
@@ -124,22 +118,18 @@ final class GantryModels {
         item(provider, name, iron, plate);
     }
 
-    /** Plinth, posts, glass and the lower half of the seam band. */
+    /** Plinth, posts and glass. */
     private static List<Box> legLow() {
         List<Box> boxes = new ArrayList<>();
         boxes.add(new Box(0, 0, 0, 16, PLINTH_TOP, 16, "#steel"));
         posts(boxes, PLINTH_TOP, 16);
         boxes.add(new Box(GLASS_INSET, PLINTH_TOP, GLASS_INSET, 16 - GLASS_INSET, 16, 16 - GLASS_INSET, "#glass", SIDES));
-        boxes.add(new Box(BAND_INSET, 16 - BAND_HALF, BAND_INSET, 16 - BAND_INSET, 16, 16 - BAND_INSET, "#iron",
-                EnumSet.complementOf(EnumSet.of(Direction.UP))));
         return boxes;
     }
 
-    /** The upper half of the seam band, posts, glass, the cap and the two lock plates. */
+    /** Posts, glass, the cap and the two lock plates. */
     private static List<Box> legHigh() {
         List<Box> boxes = new ArrayList<>();
-        boxes.add(new Box(BAND_INSET, 0, BAND_INSET, 16 - BAND_INSET, BAND_HALF, 16 - BAND_INSET, "#iron",
-                EnumSet.complementOf(EnumSet.of(Direction.DOWN))));
         posts(boxes, 0, CAP_BOTTOM);
         boxes.add(new Box(GLASS_INSET, 0, GLASS_INSET, 16 - GLASS_INSET, CAP_BOTTOM, 16 - GLASS_INSET, "#glass", SIDES));
         boxes.add(new Box(0, CAP_BOTTOM, 0, 16, 16, 16, "#steel"));
@@ -223,21 +213,57 @@ final class GantryModels {
         }
     }
 
+    /**
+     * One element of a block's box moved by {@code dx} and {@code dy}, textured as it is in its own
+     * block. Without explicit UVs the game derives them from the moved position, outside the sprite.
+     */
+    private static void shiftedElement(BlockModelBuilder builder, Box box, float dx, float dy) {
+        ModelBuilder<BlockModelBuilder>.ElementBuilder element = builder.element()
+                .from(box.x0() + dx, box.y0() + dy, box.z0()).to(box.x1() + dx, box.y1() + dy, box.z1());
+        for (Direction direction : box.faces()) {
+            ModelBuilder<BlockModelBuilder>.ElementBuilder.FaceBuilder face = element.face(direction).texture(box.texture());
+            if (box.front() != null && direction == box.outward()) {
+                face.texture(box.front()).uvs(0, 0, 16, box.frontV());
+            } else {
+                float[] uv = defaultUv(box, direction);
+                face.uvs(uv[0], uv[1], uv[2], uv[3]);
+            }
+        }
+    }
+
+    /** The UVs the game derives for a face of a box inside one block, clamped to the sprite. */
+    private static float[] defaultUv(Box box, Direction direction) {
+        float x0 = clamp(box.x0());
+        float x1 = clamp(box.x1());
+        float y0 = clamp(box.y0());
+        float y1 = clamp(box.y1());
+        float z0 = clamp(box.z0());
+        float z1 = clamp(box.z1());
+        return switch (direction) {
+            case DOWN -> new float[] {x0, 16 - z1, x1, 16 - z0};
+            case UP -> new float[] {x0, z0, x1, z1};
+            case NORTH -> new float[] {16 - x1, 16 - y1, 16 - x0, 16 - y0};
+            case SOUTH -> new float[] {x0, 16 - y1, x1, 16 - y0};
+            case WEST -> new float[] {z0, 16 - y1, z1, 16 - y0};
+            case EAST -> new float[] {16 - z1, 16 - y1, 16 - z0, 16 - y0};
+        };
+    }
+
+    private static float clamp(float pixel) {
+        return Math.clamp(pixel, 0, 16);
+    }
+
     /** The whole gantry for the item: the legs beside the beam, all scaled down in the hand and the GUI. */
     private static void item(BlockStateProvider provider, String name, Identifier iron, Identifier plate) {
         BlockModelBuilder whole = base(provider, name + "_item", iron, plate)
                 .texture("sign", provider.modLoc("block/" + name + "_sign_storage_off"));
-        List<Box> boxes = new ArrayList<>();
         for (float dx : new float[] {-16, 16}) {
-            legLow().forEach(box -> boxes.add(box.shifted(dx, 0)));
-            legHigh().forEach(box -> boxes.add(box.shifted(dx, 16)));
+            legLow().forEach(box -> shiftedElement(whole, box, dx, 0));
+            legHigh().forEach(box -> shiftedElement(whole, box, dx, 16));
         }
-        beam().forEach(box -> boxes.add(box.shifted(0, 16)));
-        spout().forEach(box -> boxes.add(box.shifted(0, 16)));
-        signs().forEach(box -> boxes.add(box.shifted(0, 16)));
-        for (Box box : boxes) {
-            element(whole, box);
-        }
+        beam().forEach(box -> shiftedElement(whole, box, 0, 16));
+        spout().forEach(box -> shiftedElement(whole, box, 0, 16));
+        signs().forEach(box -> shiftedElement(whole, box, 0, 16));
         provider.itemModels().withExistingParent(name, provider.modLoc("block/" + name + "_item"))
                 .transforms()
                 .transform(ItemDisplayContext.GUI).rotation(30, 225, 0).translation(0, -1, 0).scale(0.3F).end()

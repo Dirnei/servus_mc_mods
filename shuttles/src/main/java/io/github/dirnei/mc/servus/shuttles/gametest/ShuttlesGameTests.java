@@ -53,6 +53,7 @@ public final class ShuttlesGameTests {
             TankerGameTests.class,
             TankerRunGameTests.class,
             TankerLampGameTests.class,
+            TankerRestockGameTests.class,
             TerminalCableGameTests.class,
             TerminalCraftGameTests.class,
             TerminalRequestGameTests.class,

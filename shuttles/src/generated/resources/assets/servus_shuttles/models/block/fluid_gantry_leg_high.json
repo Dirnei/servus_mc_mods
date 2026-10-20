@@ -3,35 +3,6 @@
   "elements": [
     {
       "faces": {
-        "east": {
-          "texture": "#iron"
-        },
-        "north": {
-          "texture": "#iron"
-        },
-        "south": {
-          "texture": "#iron"
-        },
-        "up": {
-          "texture": "#iron"
-        },
-        "west": {
-          "texture": "#iron"
-        }
-      },
-      "from": [
-        0.15,
-        0,
-        0.15
-      ],
-      "to": [
-        15.85,
-        0.5,
-        15.85
-      ]
-    },
-    {
-      "faces": {
         "down": {
           "texture": "#iron"
         },

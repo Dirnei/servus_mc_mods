@@ -6,19 +6,22 @@ import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlock;
 import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.gantry.GantryMode;
 import io.github.dirnei.mc.servus.shuttles.gantry.GantryPart;
+import io.github.dirnei.mc.servus.shuttles.menu.FluidGantryMenu;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
 
-/** Placing, refusing, breaking and placing back a Fluid Gantry. */
+/** Placing, refusing, breaking and placing back a Fluid Gantry, and its keep levels. */
 public final class FluidGantryGameTests {
 
     private static final BlockPos RAIL = new BlockPos(4, 1, 4);
@@ -119,6 +122,74 @@ public final class FluidGantryGameTests {
         helper.assertTrue(placed.capacity() == 48000, "two upgrades give 48000 mB, got " + placed.capacity());
         helper.assertTrue(helper.getBlockState(other.above()).getValue(FluidGantryBlock.MODE) == GantryMode.EXPORT,
                 "the beam shows the mode");
+        helper.succeed();
+    }
+
+    private static void press(FluidGantryMenu menu, Player player, int tank, int step, int times) {
+        for (int i = 0; i < times; i++) {
+            menu.clickMenuButton(player, FluidGantryMenu.keepButton(tank, step));
+        }
+    }
+
+    /** The keep buttons step a locked Export tank by 1 B and 10 B, between 0 and the tank's capacity. */
+    @ServusGameTest
+    public static void keepLevelSetAndClamped(GameTestHelper helper) {
+        GantryFixtures.railAlongZ(helper, RAIL.getX(), 2, 6);
+        FluidGantryBlockEntity gantry = GantryFixtures.place(helper, RAIL);
+        gantry.setMode(GantryMode.EXPORT);
+        gantry.setLock(0, Fluids.WATER);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        FluidGantryMenu menu = new FluidGantryMenu(1, player.getInventory(), gantry);
+        press(menu, player, 0, 3, 1);
+        press(menu, player, 0, 2, 2);
+        press(menu, player, 0, 1, 4);
+        helper.assertTrue(gantry.keep(0) == 8000 && gantry.keptLevel(0) == 8000, "the left tank keeps 8 B, got " + gantry.keep(0));
+        helper.assertTrue(menu.keep(0) == 8000 && menu.keepApplies(0), "the menu shows the keep level");
+        helper.assertTrue(gantry.keep(1) == 0, "the right tank keeps nothing");
+        press(menu, player, 0, 3, 3);
+        helper.assertTrue(gantry.keep(0) == gantry.capacity(), "the keep level stops at the capacity, got " + gantry.keep(0));
+        press(menu, player, 0, 0, 3);
+        helper.assertTrue(gantry.keep(0) == 0, "the keep level stops at 0, got " + gantry.keep(0));
+        helper.succeed();
+    }
+
+    /** The dropped item keeps the keep levels, and placing it brings them back. */
+    @ServusGameTest
+    public static void keepLevelRidesTheDroppedItem(GameTestHelper helper) {
+        GantryFixtures.railAlongZ(helper, RAIL.getX(), 2, 6);
+        BlockPos other = new BlockPos(8, 1, 4);
+        GantryFixtures.railAlongZ(helper, other.getX(), 2, 6);
+        FluidGantryBlockEntity gantry = GantryFixtures.place(helper, RAIL);
+        gantry.setMode(GantryMode.EXPORT);
+        gantry.setLock(1, Fluids.LAVA);
+        gantry.setKeep(1, 12000);
+        helper.getLevel().destroyBlock(helper.absolutePos(RAIL.above()), true);
+        List<ItemStack> drops = GantryFixtures.droppedGantries(helper, RAIL);
+        helper.assertTrue(drops.size() == 1, "one gantry item dropped, got " + drops.size());
+        GantryFixtures.use(helper, other, drops.getFirst().copy());
+        FluidGantryBlockEntity placed = GantryFixtures.master(helper, other);
+        helper.assertTrue(placed.keep(1) == 12000 && placed.keptLevel(1) == 12000, "the right tank keeps 12 B, got " + placed.keep(1));
+        helper.assertTrue(placed.keep(0) == 0, "the left tank keeps nothing");
+        helper.succeed();
+    }
+
+    /** A tank on Any and a gantry outside Export mode keep no level, and the buttons do nothing on Any. */
+    @ServusGameTest
+    public static void keepLevelIgnoredOnAny(GameTestHelper helper) {
+        GantryFixtures.railAlongZ(helper, RAIL.getX(), 2, 6);
+        FluidGantryBlockEntity gantry = GantryFixtures.place(helper, RAIL);
+        gantry.setMode(GantryMode.EXPORT);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        FluidGantryMenu menu = new FluidGantryMenu(1, player.getInventory(), gantry);
+        press(menu, player, 0, 3, 1);
+        helper.assertTrue(gantry.keep(0) == 0 && !menu.keepApplies(0), "a tank on Any takes no keep level");
+        gantry.setLock(0, Fluids.WATER);
+        press(menu, player, 0, 3, 1);
+        gantry.setLock(0, null);
+        helper.assertTrue(gantry.keep(0) == 10000 && gantry.keptLevel(0) == 0, "back on Any the keep level is kept but does not apply");
+        gantry.setLock(0, Fluids.WATER);
+        gantry.setMode(GantryMode.STORAGE);
+        helper.assertTrue(gantry.keptLevel(0) == 0 && !menu.showsKeep(), "a Storage gantry keeps no level");
         helper.succeed();
     }
 }

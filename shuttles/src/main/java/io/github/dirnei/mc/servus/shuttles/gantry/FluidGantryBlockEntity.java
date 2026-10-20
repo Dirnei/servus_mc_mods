@@ -45,8 +45,8 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The master of a Fluid Gantry, kept by its {@link GantryPart#LEFT_LOW} part:
- * the two tanks (0 left, 1 right) with their locks, the mode and the Capacity
- * Upgrades. Both tanks hold {@code tank_capacity} plus {@code
+ * the two tanks (0 left, 1 right) with their locks and keep levels, the mode
+ * and the Capacity Upgrades. Both tanks hold {@code tank_capacity} plus {@code
  * capacity_per_upgrade} per upgrade. When the block goes away the gantry
  * drops one item that keeps all of it, unless a creative player broke it.
  */
@@ -54,6 +54,7 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
 
     private static final String[] TANK_KEYS = {"Left", "Right"};
     private static final String[] LOCK_KEYS = {"LeftLock", "RightLock"};
+    private static final String[] KEEP_KEYS = {"LeftKeep", "RightKeep"};
     private static final String MODE = "Mode";
     private static final String UPGRADES = "Upgrades";
     private static final String[] SHOWN_FLUID_KEYS = {"ShownLeft", "ShownRight"};
@@ -66,6 +67,8 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
     private final Tank[] tanks = {new Tank(0), new Tank(1)};
     /** The locked fluid of each tank, null for Any. */
     private final Fluid[] locks = new Fluid[2];
+    /** The keep level of each tank in mB, kept in every mode but applied only to locked Export tanks. */
+    private final int[] keeps = new int[2];
     private GantryMode mode = GantryMode.STORAGE;
     private final CapacityUpgradeSlots upgrades =
             new CapacityUpgradeSlots(ShuttlesStatsManager.INSTANCE.gantryUpgradeSlots(), this::upgradesChanged);
@@ -81,6 +84,8 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
     private @Nullable Fluid noRoom;
     /** Server: whether an Import tank holds fluid that no Tanker shuttle comes for. */
     private boolean noTanker;
+    /** Server: the fluid a kept Export tank lacks that no Storage tank holds, null when none is missing. */
+    private @Nullable Fluid missing;
 
     /** What clients draw: each column's fluid and fill step out of {@code steps}, and the spout. */
     private record Shown(Fluid left, int leftStep, Fluid right, int rightStep, int steps, @Nullable Fluid leftLock,
@@ -165,14 +170,35 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
         return mode;
     }
 
+    /** The keep level of a tank in mB as set, whatever the mode and lock. */
+    public int keep(int tank) {
+        return keeps[tank];
+    }
+
+    /** The level tankers restock a tank to: its keep level while it is a locked Export tank, else 0. */
+    public int keptLevel(int tank) {
+        return mode == GantryMode.EXPORT && locks[tank] != null ? keeps[tank] : 0;
+    }
+
+    /** Sets a tank's keep level, limited to 0 and the tank's capacity. */
+    public void setKeep(int tank, int amount) {
+        int keep = Math.clamp(amount, 0, capacity());
+        if (keeps[tank] != keep) {
+            keeps[tank] = keep;
+            setChanged();
+        }
+    }
+
     /**
      * Sets what the gantry's activity lamp shows and why it is red: the fluid
-     * that no Storage tank has room for, or no Tanker shuttle at all. Set by
-     * the warehouse, never by the player.
+     * that no Storage tank has room for, no Tanker shuttle at all, or the
+     * fluid a kept Export tank lacks that no Storage tank holds. Set by the
+     * warehouse, never by the player.
      */
-    public void setActivity(StorageNodeBlocks.Activity activity, @Nullable Fluid noRoom, boolean noTanker) {
+    public void setActivity(StorageNodeBlocks.Activity activity, @Nullable Fluid noRoom, boolean noTanker, @Nullable Fluid missing) {
         this.noRoom = noRoom;
         this.noTanker = noTanker;
+        this.missing = missing;
         if (level == null || level.isClientSide()) {
             return;
         }
@@ -185,6 +211,11 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
     /** The fluid that waits because no Storage tank has room for it, null when none does. */
     public @Nullable Fluid noRoom() {
         return noRoom;
+    }
+
+    /** The fluid a kept Export tank lacks that no Storage tank holds, null when none is missing. */
+    public @Nullable Fluid missing() {
+        return missing;
     }
 
     /** Whether fluid waits because no Tanker shuttle comes for it. */
@@ -241,8 +272,9 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
 
     private void applyCapacity() {
         int capacity = capacity();
-        for (Tank tank : tanks) {
-            tank.setCapacity(capacity);
+        for (int tank = 0; tank < 2; tank++) {
+            tanks[tank].setCapacity(capacity);
+            keeps[tank] = Math.min(keeps[tank], capacity);
         }
     }
 
@@ -371,7 +403,8 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
 
     /** What the dropped item keeps. */
     public GantryContents contents() {
-        return new GantryContents(tanks[0].getFluid().copy(), tanks[1].getFluid().copy(), lockId(0), lockId(1), mode, upgrades.count());
+        return new GantryContents(tanks[0].getFluid().copy(), tanks[1].getFluid().copy(), lockId(0), lockId(1), mode, upgrades.count(),
+                keeps[0], keeps[1]);
     }
 
     private Optional<Identifier> lockId(int tank) {
@@ -388,6 +421,7 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
         for (int tank = 0; tank < 2; tank++) {
             locks[tank] = contents.lock(tank).flatMap(BuiltInRegistries.FLUID::getOptional).filter(fluid -> fluid != Fluids.EMPTY).orElse(null);
             tanks[tank].setFluid(contents.tank(tank).copy());
+            keeps[tank] = Math.clamp(contents.keep(tank), 0, capacity());
         }
         mode = contents.mode();
         contentsChanged();
@@ -425,6 +459,7 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
             tanks[tank].save(output, TANK_KEYS[tank]);
             String key = LOCK_KEYS[tank];
             lockId(tank).ifPresent(id -> output.putString(key, id.toString()));
+            output.putInt(KEEP_KEYS[tank], keeps[tank]);
         }
         output.store(MODE, GantryMode.CODEC, mode);
         upgrades.save(output, UPGRADES);
@@ -439,6 +474,7 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
             tanks[tank].load(input, TANK_KEYS[tank]);
             locks[tank] = input.getString(LOCK_KEYS[tank]).map(Identifier::tryParse).flatMap(BuiltInRegistries.FLUID::getOptional)
                     .filter(fluid -> fluid != Fluids.EMPTY).orElse(null);
+            keeps[tank] = Math.clamp(input.getIntOr(KEEP_KEYS[tank], 0), 0, capacity());
         }
         mode = input.read(MODE, GantryMode.CODEC).orElse(GantryMode.STORAGE);
         if (input.getString(SHOWN_FLUID_KEYS[0]).isPresent()) {

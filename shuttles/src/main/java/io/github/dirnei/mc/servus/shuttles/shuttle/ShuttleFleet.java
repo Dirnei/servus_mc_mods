@@ -577,6 +577,13 @@ public final class ShuttleFleet {
         return sumQueued(from) > 0 || sumRiding(from) > 0;
     }
 
+    /** Whether a tanker run is queued that brings fluid to that tank, or one under way is bound for it. */
+    public boolean hasFluidRunTo(TankRef target) {
+        boolean[] any = {false};
+        forIncoming(target, (key, amount) -> any[0] = true);
+        return any[0];
+    }
+
     /** Whether a tanker run is queued or under way that takes fluid out of that gantry or brings fluid to it. */
     public boolean hasFluidRunAt(BlockPos gantry) {
         if (sumQueued(job -> job instanceof FluidJob fluid && (fluid.source().equals(gantry) || fluid.target().equals(gantry)) ? 1 : 0) > 0) {
@@ -919,8 +926,8 @@ public final class ShuttleFleet {
         Load load = shuttle.loads.get(0);
         TankRef tank = shuttle.leg == Leg.TO_TARGET ? load.fluidTarget : job.sourceRef();
         GantryMode wanted = switch (shuttle.leg) {
-            case TO_SOURCE -> GantryMode.IMPORT;
-            case TO_TARGET -> GantryMode.STORAGE;
+            case TO_SOURCE -> job.sourceMode();
+            case TO_TARGET -> tank == null ? null : job.targetMode(tank);
             default -> null;
         };
         Optional<GantryMode> mode = tank == null ? Optional.empty() : host.gantryMode(tank.gantry());
@@ -1018,15 +1025,15 @@ public final class ShuttleFleet {
     /**
      * A tanker run at the end of a leg: at the source it takes what the tank
      * still holds up to the run's amount and what it carries, at a target it
-     * puts in what fits, back at the source it puts the rest back and loses
-     * what does not fit. Fluid left over drives on by {@link #deliverFluid}.
+     * puts in what fits, back at the source of a put-away it puts the rest
+     * back and loses what does not fit. Fluid left over drives on by {@link #deliverFluid}.
      */
     private void arriveFluid(Shuttle shuttle, FluidJob job) {
         endPumping(shuttle);
         Load load = shuttle.loads.get(0);
         switch (shuttle.leg) {
             case TO_SOURCE -> {
-                if (host.gantryMode(job.source()).orElse(null) == GantryMode.IMPORT) {
+                if (host.gantryMode(job.source()).orElse(null) == job.sourceMode()) {
                     load.fluid = host.drainGantry(job.source(), job.sourceTank(), job.key(), Math.min(job.amount(), shuttle.profile.fluidCapacity()));
                 }
                 deliverFluid(shuttle, load, job, job.source());
@@ -1034,7 +1041,7 @@ public final class ShuttleFleet {
             case TO_TARGET -> {
                 TankRef target = load.fluidTarget;
                 load.tried.add(target);
-                if (host.gantryMode(target.gantry()).orElse(null) == GantryMode.STORAGE) {
+                if (host.gantryMode(target.gantry()).orElse(null) == job.targetMode(target)) {
                     load.fluid = host.fillGantry(target.gantry(), target.tank(), load.fluid);
                 }
                 deliverFluid(shuttle, load, job, target.gantry());
@@ -1051,9 +1058,10 @@ public final class ShuttleFleet {
 
     /**
      * Sends a tanker with fluid on to the next tank it was not offered to:
-     * the run's target while it is a Storage gantry, then the target order
-     * from the gantry it stands at. With none left it drives back to the
-     * source; without a way there the fluid is lost. Empty, it goes home.
+     * the run's target while its gantry still serves the run, then the
+     * Storage target order from the gantry it stands at. With none left a
+     * put-away drives back to the source; without a way there, or on a
+     * restock, the fluid is lost. Empty, it goes home.
      */
     private void deliverFluid(Shuttle shuttle, Load load, FluidJob job, BlockPos at) {
         if (load.fluid.isEmpty()) {
@@ -1062,7 +1070,7 @@ public final class ShuttleFleet {
             return;
         }
         List<TankRef> order = new ArrayList<>();
-        if (load.fluidTarget != null && host.gantryMode(load.fluidTarget.gantry()).orElse(null) == GantryMode.STORAGE) {
+        if (load.fluidTarget != null && host.gantryMode(load.fluidTarget.gantry()).orElse(null) == job.targetMode(load.fluidTarget)) {
             order.add(load.fluidTarget);
         }
         order.addAll(host.fluidTargets(job.key(), at));
@@ -1073,7 +1081,7 @@ public final class ShuttleFleet {
             }
         }
         load.fluidTarget = null;
-        if (host.gantryMode(job.source()).isEmpty() || !go(shuttle, Leg.TO_STATION, host.dockRails(Conversions.toNodePos(job.source())))) {
+        if (!job.returnsToSource() || host.gantryMode(job.source()).isEmpty() || !go(shuttle, Leg.TO_STATION, host.dockRails(Conversions.toNodePos(job.source())))) {
             shuttle.loads.clear();
             goHome(shuttle);
         }

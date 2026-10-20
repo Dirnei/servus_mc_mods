@@ -517,6 +517,10 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.fluid_gantry.state.mismatch", "%s tank holds %s but is locked to %s: it takes no more");
         add("gui.servus_shuttles.fluid_gantry.state.upgrade_refused", "This upgrade cannot come out: the content would no longer fit");
         add("gui.servus_shuttles.fluid_gantry.state.no_room", "No Storage tank has room for %s: it waits here");
+        add("gui.servus_shuttles.fluid_gantry.state.missing", "No Storage tank holds %s: the kept tank is not restocked");
+        add("gui.servus_shuttles.fluid_gantry.keep", "Keep: %s B");
+        add("gui.servus_shuttles.fluid_gantry.keep.tooltip", "Tanker shuttles fill this tank from Storage gantries up to the keep level. Steps of 1 B and 10 B.");
+        add("gui.servus_shuttles.fluid_gantry.keep.needs_lock", "Lock this tank to a fluid to keep a level in it.");
         add("gui.servus_shuttles.fluid_gantry.state.no_tanker", "No Tanker shuttle reaches this gantry: the fluid waits here");
     }
 }

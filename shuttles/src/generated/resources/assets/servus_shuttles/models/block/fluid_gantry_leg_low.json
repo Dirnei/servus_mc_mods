@@ -187,35 +187,6 @@
         16,
         15.7
       ]
-    },
-    {
-      "faces": {
-        "down": {
-          "texture": "#iron"
-        },
-        "east": {
-          "texture": "#iron"
-        },
-        "north": {
-          "texture": "#iron"
-        },
-        "south": {
-          "texture": "#iron"
-        },
-        "west": {
-          "texture": "#iron"
-        }
-      },
-      "from": [
-        0.15,
-        15.5,
-        0.15
-      ],
-      "to": [
-        15.85,
-        16,
-        15.85
-      ]
     }
   ],
   "textures": {

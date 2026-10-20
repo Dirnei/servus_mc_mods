@@ -33,13 +33,17 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /**
  * The Fluid Gantry's GUI: both tanks with their locks, the mode, the Capacity
- * Upgrade slots and the player inventory. Tanks, locks, mode and whether an
- * upgrade may come out are synced as data slots, amounts in two 16 bit halves.
- * Button {@link #BUTTON_MODE} cycles the mode; locks come by {@link SetGantryLockPayload}.
+ * Upgrade slots and the player inventory. Tanks, locks, keep levels, mode and
+ * whether an upgrade may come out are synced as data slots, amounts in two 16
+ * bit halves. Button {@link #BUTTON_MODE} cycles the mode, {@link #keepButton}
+ * steps a keep level; locks come by {@link SetGantryLockPayload}.
  */
 public class FluidGantryMenu extends AbstractContainerMenu {
 
     public static final int BUTTON_MODE = 0;
+    /** The keep level steps in mB, in the order of the buttons under a gauge. */
+    public static final int[] KEEP_STEPS = {-10000, -1000, 1000, 10000};
+    private static final int BUTTON_KEEP = 1;
     public static final int WIDTH = 176;
     public static final int GAUGE_Y = 18;
     public static final int GAUGE_WIDTH = 18;
@@ -50,12 +54,15 @@ public class FluidGantryMenu extends AbstractContainerMenu {
     public static final int MODE_Y = 17;
     public static final int MODE_WIDTH = WIDTH - 2 * MODE_X;
     public static final int UPGRADES_Y = 52;
-    public static final int LOCK_Y = 74;
+    public static final int KEEP_Y = 74;
+    public static final int KEEP_BUTTONS_Y = KEEP_Y + 10;
+    public static final int KEEP_BUTTON_HEIGHT = 11;
+    public static final int LOCK_Y = KEEP_BUTTONS_Y + KEEP_BUTTON_HEIGHT + 3;
     public static final int LOCK_WIDTH = 78;
     public static final int LEFT_LOCK_X = 8;
     public static final int RIGHT_LOCK_X = WIDTH - 8 - LOCK_WIDTH;
-    public static final int STATE_Y = 96;
-    public static final int INVENTORY_Y = 126;
+    public static final int STATE_Y = LOCK_Y + 22;
+    public static final int INVENTORY_Y = STATE_Y + 30;
     public static final int IMAGE_HEIGHT = INVENTORY_Y + PlayerInventorySlots.HOTBAR_OFFSET + 18 + 6;
     /** Ticks the state line names a refused upgrade after the refusal. */
     private static final int REFUSED_TICKS = 100;
@@ -68,7 +75,10 @@ public class FluidGantryMenu extends AbstractContainerMenu {
     private static final int DATA_REMOVABLE = 11;
     /** 0 when nothing waits, {@link #WAITS_FOR_TANKER} without a Tanker, else the waiting fluid's id plus 2. */
     private static final int DATA_WAITING = 12;
-    private static final int DATA_COUNT = 13;
+    private static final int DATA_KEEP = 13;
+    /** 0 when nothing is missing, else the id plus 1 of the fluid a kept tank lacks that no Storage tank holds. */
+    private static final int DATA_MISSING = 17;
+    private static final int DATA_COUNT = 18;
     private static final int WAITS_FOR_TANKER = 1;
 
     private final ContainerLevelAccess access;
@@ -130,6 +140,13 @@ public class FluidGantryMenu extends AbstractContainerMenu {
                 if (index < DATA_MODE) {
                     Fluid lock = gantry.lock(index - DATA_LOCK);
                     return lock == null ? 0 : BuiltInRegistries.FLUID.getId(lock) + 1;
+                }
+                if (index == DATA_MISSING) {
+                    Fluid missing = gantry.missing();
+                    return missing == null ? 0 : BuiltInRegistries.FLUID.getId(missing) + 1;
+                }
+                if (index >= DATA_KEEP) {
+                    return half(gantry.keep((index - DATA_KEEP) / 2), (index - DATA_KEEP) % 2);
                 }
                 if (index == DATA_WAITING) {
                     Fluid noRoom = gantry.noRoom();
@@ -210,6 +227,26 @@ public class FluidGantryMenu extends AbstractContainerMenu {
         return GantryMode.byId(data.get(DATA_MODE));
     }
 
+    /** The keep level of a tank in mB, as synced. */
+    public int keep(int tank) {
+        return whole(DATA_KEEP + tank * 2);
+    }
+
+    /** Whether a tank shows keep levels: the gantry is in Export mode. */
+    public boolean showsKeep() {
+        return mode() == GantryMode.EXPORT;
+    }
+
+    /** Whether a tank's keep level applies and may be changed: Export mode and the tank locked. */
+    public boolean keepApplies(int tank) {
+        return showsKeep() && lock(tank) != null;
+    }
+
+    /** The button id that steps a tank's keep level by {@code KEEP_STEPS[step]}. */
+    public static int keepButton(int tank, int step) {
+        return BUTTON_KEEP + tank * KEEP_STEPS.length + step;
+    }
+
     public boolean canRemoveUpgrade() {
         return data.get(DATA_REMOVABLE) != 0;
     }
@@ -226,7 +263,8 @@ public class FluidGantryMenu extends AbstractContainerMenu {
     /**
      * The state line: the first thing that is wrong (a tank holding a fluid other
      * than its lock, an upgrade just refused, fluid that no Storage tank has
-     * room for or no Tanker shuttle comes for), else what the mode does.
+     * room for or no Tanker shuttle comes for, a kept fluid that no Storage
+     * tank holds), else what the mode does.
      */
     public Component stateLine() {
         int warning = GantryTanks.firstWarning(rules());
@@ -245,12 +283,17 @@ public class FluidGantryMenu extends AbstractContainerMenu {
             return Component.translatable("gui.servus_shuttles.fluid_gantry.state.no_room",
                     new FluidStack(BuiltInRegistries.FLUID.byId(waiting - 2), 1).getHoverName());
         }
+        int missing = data.get(DATA_MISSING);
+        if (missing > 0) {
+            return Component.translatable("gui.servus_shuttles.fluid_gantry.state.missing",
+                    new FluidStack(BuiltInRegistries.FLUID.byId(missing - 1), 1).getHoverName());
+        }
         return Component.translatable("gui.servus_shuttles.fluid_gantry.state." + mode().getSerializedName());
     }
 
     /** Whether the state line names something wrong rather than the mode. */
     public boolean stateWarns() {
-        return GantryTanks.firstWarning(rules()) >= 0 || upgradeJustRefused() || data.get(DATA_WAITING) != 0;
+        return GantryTanks.firstWarning(rules()) >= 0 || upgradeJustRefused() || data.get(DATA_WAITING) != 0 || data.get(DATA_MISSING) != 0;
     }
 
     private boolean upgradeJustRefused() {
@@ -264,11 +307,22 @@ public class FluidGantryMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        if (id == BUTTON_MODE && gantry != null) {
+        if (gantry == null) {
+            return false;
+        }
+        if (id == BUTTON_MODE) {
             gantry.setMode(gantry.mode().next());
             return true;
         }
-        return false;
+        int keepIndex = id - BUTTON_KEEP;
+        if (keepIndex < 0 || keepIndex >= 2 * KEEP_STEPS.length) {
+            return false;
+        }
+        int tank = keepIndex / KEEP_STEPS.length;
+        if (gantry.mode() == GantryMode.EXPORT && gantry.lock(tank) != null) {
+            gantry.setKeep(tank, gantry.keep(tank) + KEEP_STEPS[keepIndex % KEEP_STEPS.length]);
+        }
+        return true;
     }
 
     /** Server: sets a tank's lock as the payload says; Lock to content does nothing on an empty tank. */

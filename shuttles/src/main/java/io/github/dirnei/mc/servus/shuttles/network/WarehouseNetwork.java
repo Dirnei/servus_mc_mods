@@ -21,6 +21,7 @@ import io.github.dirnei.mc.servus.shuttles.field.SupplyPlan;
 import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork.FluidKey;
 import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.gantry.FluidPutAwayPlan;
+import io.github.dirnei.mc.servus.shuttles.gantry.FluidRestockPlan;
 import io.github.dirnei.mc.servus.shuttles.gantry.FluidRouting;
 import io.github.dirnei.mc.servus.shuttles.gantry.GantryMode;
 import io.github.dirnei.mc.servus.shuttles.gantry.GantryTanks;
@@ -77,6 +78,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
+import org.jspecify.annotations.Nullable;
 
 /**
  * One connected set of storage blocks. Keeps an index of everything its own
@@ -1224,9 +1226,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /**
      * Queues a tanker run for each Import gantry tank holding fluid that has
      * no run yet, holds the min load or is full, and has a Storage tank with
-     * room for it, when a Tanker shuttle reaches both gantries. Then sets
-     * every gantry's lamp: red for an Import gantry whose fluid has no room or
-     * no Tanker, orange while a run for it is queued or under way, else green.
+     * room for it, when a Tanker shuttle reaches both gantries. Then restocks
+     * kept Export tanks by {@link #restockFluids}. Last it sets every gantry's
+     * lamp: red for an Import gantry whose fluid has no room or no Tanker and
+     * for an Export gantry whose kept fluid no Storage tank holds, orange
+     * while a run for it is queued or under way, else green.
      */
     private void tickFluids() {
         if (status() != Status.ONLINE || gantries.isEmpty()) {
@@ -1259,7 +1263,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                         capacity, targets.getFirst().room());
                 if (amount > 0) {
                     TankRef target = targets.getFirst().id();
-                    fleet.requestFluid(new FluidJob(pos, view.ref().tank(), target.gantry(), target.tank(), key, amount));
+                    fleet.requestFluid(new FluidJob(pos, view.ref().tank(), target.gantry(), target.tank(), key, amount,
+                            FluidJob.Purpose.PUT_AWAY));
                 }
             }
             if (noRoom != null) {
@@ -1268,14 +1273,96 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 noTankers.add(pos);
             }
         }
+        Map<BlockPos, Fluid> missing = restockFluids(all, capacity, reach);
         for (BlockPos pos : all) {
             if (loaded(pos) instanceof FluidGantryBlockEntity gantry) {
-                boolean blocked = noRooms.containsKey(pos) || noTankers.contains(pos);
+                boolean blocked = noRooms.containsKey(pos) || noTankers.contains(pos) || missing.containsKey(pos);
                 StorageNodeBlocks.Activity activity = blocked ? StorageNodeBlocks.Activity.BLOCKED
                         : fleet.hasFluidRunAt(pos) ? StorageNodeBlocks.Activity.WORKING : StorageNodeBlocks.Activity.IDLE;
-                gantry.setActivity(activity, noRooms.get(pos), noTankers.contains(pos));
+                gantry.setActivity(activity, noRooms.get(pos), noTankers.contains(pos), missing.get(pos));
             }
         }
+    }
+
+    /** A Storage tank a restock run could take fluid from, with that fluid. */
+    private record RestockSource(TankRef ref, FluidKey key) {
+    }
+
+    /**
+     * Queues a restock run for each locked Export tank below its keep level
+     * with no run on its way, from the Storage tank a Tanker reaches with the
+     * most free fluid. Returns, per Export gantry, the first kept fluid that
+     * no reachable Storage tank holds.
+     */
+    private Map<BlockPos, Fluid> restockFluids(List<BlockPos> all, int capacity, Map<BlockPos, Boolean> reach) {
+        Map<BlockPos, Fluid> missing = new HashMap<>();
+        for (BlockPos pos : all) {
+            if (!(loaded(pos) instanceof FluidGantryBlockEntity gantry) || gantry.mode() != GantryMode.EXPORT) {
+                continue;
+            }
+            for (TankView view : tankViews(pos)) {
+                int keep = gantry.keptLevel(view.ref().tank());
+                Fluid lock = view.lock().orElse(null);
+                if (keep <= 0 || lock == null || !view.fluid().isEmpty() && view.fluid().getFluid() != lock || fleet.hasFluidRunTo(view.ref())) {
+                    continue;
+                }
+                int lacking = FluidRestockPlan.missing(keep, view.fluid().getAmount(), fleet.fluidIncomingTo(view.ref()));
+                if (lacking <= 0 || capacity <= 0 || !reach.computeIfAbsent(pos, fleet::tankerReaches)) {
+                    continue;
+                }
+                FluidKey wanted = view.fluid().isEmpty() ? null : FluidKey.of(view.fluid());
+                List<FluidRestockPlan.Source<RestockSource>> sources = restockSources(pos, lock, wanted, reach);
+                if (sources.isEmpty()) {
+                    missing.putIfAbsent(pos, lock);
+                    continue;
+                }
+                List<FluidRestockPlan.Source<RestockSource>> ranked = FluidRestockPlan.sources(sources);
+                if (ranked.isEmpty()) {
+                    continue;
+                }
+                FluidRestockPlan.Source<RestockSource> source = ranked.getFirst();
+                int amount = FluidRestockPlan.amount(lacking, tankerMinLoad(), capacity, source.free());
+                if (amount > 0) {
+                    TankRef from = source.id().ref();
+                    fleet.requestFluid(new FluidJob(from.gantry(), from.tank(), pos, view.ref().tank(), source.id().key(), amount,
+                            FluidJob.Purpose.RESTOCK));
+                }
+            }
+        }
+        return missing;
+    }
+
+    /**
+     * The Storage tanks a Tanker reaches by rail from the Export gantry at
+     * {@code to} that hold the fluid, with the same key as the kept tank's
+     * content when it holds any; their free fluid leaves out what runs already take.
+     */
+    private List<FluidRestockPlan.Source<RestockSource>> restockSources(BlockPos to, Fluid fluid, @Nullable FluidKey wanted,
+                                                                        Map<BlockPos, Boolean> reach) {
+        Set<NodePos> start = dockRails(Conversions.toNodePos(to));
+        List<FluidRestockPlan.Source<RestockSource>> sources = new ArrayList<>();
+        for (BlockPos pos : gantries()) {
+            List<TankView> views = tankViews(pos);
+            if (views.isEmpty() || views.getFirst().mode() != GantryMode.STORAGE || !reach.computeIfAbsent(pos, fleet::tankerReaches)) {
+                continue;
+            }
+            int distance = -1;
+            for (TankView view : views) {
+                FluidStack held = view.fluid();
+                if (held.isEmpty() || held.getFluid() != fluid || wanted != null && !FluidKey.of(held).equals(wanted)) {
+                    continue;
+                }
+                if (distance < 0) {
+                    distance = railDistance(start, dockRails(Conversions.toNodePos(pos)));
+                    if (distance < 0) {
+                        break;
+                    }
+                }
+                sources.add(new FluidRestockPlan.Source<>(new RestockSource(view.ref(), FluidKey.of(held)),
+                        held.getAmount() - fleet.fluidQueuedFrom(view.ref()), distance));
+            }
+        }
+        return sources;
     }
 
     /**
