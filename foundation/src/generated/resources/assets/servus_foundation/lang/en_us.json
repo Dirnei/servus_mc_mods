@@ -112,6 +112,8 @@
   "gui.servus_foundation.utility_duct.title": "Utility Duct, %s: %s",
   "item.servus_foundation.anchor_upgrade": "Anchor Upgrade",
   "item.servus_foundation.anchor_upgrade.tooltip": "Goes into an Ender Anchor to widen its area by a ring of chunks, or into a Warehouse Controller so the site can wake for transfers",
+  "item.servus_foundation.capacity_upgrade": "Capacity Upgrade",
+  "item.servus_foundation.capacity_upgrade.tooltip": "Gives a block more room in capacity upgrade slots",
   "item.servus_foundation.configuration_carrot": "Configuration Carrot",
   "item.servus_foundation.data_cable": "Data Cable",
   "item.servus_foundation.data_potato": "Data Potato",

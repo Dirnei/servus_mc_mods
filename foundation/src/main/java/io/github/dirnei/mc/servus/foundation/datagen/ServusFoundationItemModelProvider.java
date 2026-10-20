@@ -19,6 +19,7 @@ final class ServusFoundationItemModelProvider extends ItemModelProvider {
         basicItem(ServusFoundationItems.DATA_POTATO.get());
         basicItem(ServusFoundationItems.GOGGLES.get());
         basicItem(ServusFoundationItems.SPEED_UPGRADE.get());
+        basicItem(ServusFoundationItems.CAPACITY_UPGRADE.get());
         basicItem(MachineContent.ANCHOR_UPGRADE.get());
         LogisticsDataParts.itemModels(this);
     }

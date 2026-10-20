@@ -31,6 +31,7 @@ public final class ServusFoundationCreativeTabs {
                         output.accept(ServusFoundationItems.DATA_POTATO.get());
                         output.accept(ServusFoundationItems.GOGGLES.get());
                         output.accept(ServusFoundationItems.SPEED_UPGRADE.get());
+                        output.accept(ServusFoundationItems.CAPACITY_UPGRADE.get());
                     })
                     .build());
 

@@ -160,6 +160,18 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 - Outbound dock: delivery by teleport or by courier drone to a landing pad.
 - Explore shuttle portals between sites, overland cargo carts and a separate Servus: Transit mod for passenger travel.
 
+### Open: M13 Fluid logistics
+
+Shuttles carry fluids (decided 2026-10-20). Foundation's Capacity Upgrade gives blocks with capacity upgrade slots more room. Still open in M13:
+
+- `m13-fluid-gantry`: Fluid Gantry with built-in tanks that grow with Capacity Upgrades.
+- `m13-tanker-import`: Tanker shuttle import runs.
+- `m13-tanker-export`: Tanker shuttle export runs.
+- Fluids in the Storage Terminal.
+- Water runs to Field Heads.
+- Fluids in requests, stock rules and work orders.
+- A redstone tank sensor.
+
 ---
 
 ## 5. Open decisions

@@ -3,7 +3,9 @@ package io.github.dirnei.mc.servus.foundation.logistics.gametest;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
+import io.github.dirnei.mc.servus.foundation.upgrade.CapacityUpgradeSlots;
 import io.github.dirnei.mc.servus.foundation.upgrade.UpgradeSlots;
+import io.github.dirnei.mc.servus.foundation.upgrade.Upgrades;
 import io.github.dirnei.mc.servus.foundation.upgrade.UpgradesManager;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +16,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeType;
 
-/** The Speed Upgrade and upgrade slots. */
+/** The Speed Upgrade, the Capacity Upgrade and their slots. */
 public final class UpgradeGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -71,6 +73,47 @@ public final class UpgradeGameTests {
                 .orElse(ItemStack.EMPTY);
         helper.assertTrue(result.is(ServusFoundationItems.SPEED_UPGRADE.get()) && result.getCount() == 1,
                 "the recipe makes one Speed Upgrade, got " + result);
+        helper.succeed();
+    }
+
+    /** Capacity slots refuse a Speed Upgrade, take one Capacity Upgrade from a stack and count what they hold. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void capacitySlotTakesOnlyCapacityUpgrades(GameTestHelper helper) {
+        CapacityUpgradeSlots slots = new CapacityUpgradeSlots(2, null);
+        ItemStack speed = new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get());
+        helper.assertTrue(slots.insertItem(0, speed, false).getCount() == 1, "the Speed Upgrade is refused");
+        ItemStack left = slots.insertItem(0, new ItemStack(ServusFoundationItems.CAPACITY_UPGRADE.get(), 4), false);
+        helper.assertTrue(left.getCount() == 3, "one Capacity Upgrade per slot, left " + left.getCount());
+        helper.assertTrue(slots.count() == 1, "one upgrade counted, got " + slots.count());
+        slots.insertItem(1, left, false);
+        helper.assertTrue(slots.count() == 2, "two upgrades counted, got " + slots.count());
+        helper.succeed();
+    }
+
+    /** Speed upgrade slots refuse a Capacity Upgrade, and it changes no rate. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void speedSlotRefusesCapacityUpgrade(GameTestHelper helper) {
+        UpgradeSlots slots = new UpgradeSlots(1, null);
+        ItemStack capacity = new ItemStack(ServusFoundationItems.CAPACITY_UPGRADE.get());
+        helper.assertFalse(Upgrades.isUpgrade(capacity), "the Capacity Upgrade is not a speed upgrade");
+        helper.assertTrue(slots.insertItem(0, capacity, false).getCount() == 1, "the speed slot refuses it");
+        helper.assertTrue(Upgrades.multiplier(capacity) == 1, "it changes no rate");
+        helper.succeed();
+    }
+
+    /** Four iron ingots, four glass and a bucket in the middle craft one Capacity Upgrade. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void capacityUpgradeRecipe(GameTestHelper helper) {
+        List<ItemStack> grid = new ArrayList<>();
+        for (char c : "IGIGBGIGI".toCharArray()) {
+            grid.add(new ItemStack(c == 'I' ? Items.IRON_INGOT : c == 'G' ? Items.GLASS : Items.BUCKET));
+        }
+        CraftingInput input = CraftingInput.of(3, 3, grid);
+        ItemStack result = helper.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
+                .map(holder -> holder.value().assemble(input))
+                .orElse(ItemStack.EMPTY);
+        helper.assertTrue(result.is(ServusFoundationItems.CAPACITY_UPGRADE.get()) && result.getCount() == 1,
+                "the recipe makes one Capacity Upgrade, got " + result);
         helper.succeed();
     }
 }

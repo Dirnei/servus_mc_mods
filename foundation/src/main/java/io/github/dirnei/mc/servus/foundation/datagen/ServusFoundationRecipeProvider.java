@@ -70,6 +70,16 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_gold", has(Items.GOLD_INGOT))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusFoundationItems.CAPACITY_UPGRADE.get())
+                .pattern("IGI")
+                .pattern("GBG")
+                .pattern("IGI")
+                .define('I', Items.IRON_INGOT)
+                .define('G', Items.GLASS)
+                .define('B', Items.BUCKET)
+                .unlockedBy("has_bucket", has(Items.BUCKET))
+                .save(output);
+
         ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusFoundationItems.GOGGLES.get())
                 .pattern("LIL")
                 .pattern("G G")

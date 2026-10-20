@@ -639,6 +639,23 @@
         {"item": "servus_foundation:burner_pump", "count": 1}
       ]
     },
+    "servus_foundation:capacity_upgrade": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IGI", "GBG", "IGI"],
+      "key": {
+        "B": {"item": "minecraft:bucket"},
+        "G": {"item": "minecraft:glass"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:bucket", "count": 1},
+        {"item": "minecraft:glass", "count": 4},
+        {"item": "minecraft:iron_ingot", "count": 4}
+      ],
+      "outputs": [
+        {"item": "servus_foundation:capacity_upgrade", "count": 1}
+      ]
+    },
     "servus_foundation:chimney": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["B B", "B B", "B B"],
@@ -1570,6 +1587,9 @@
     },
     "servus_foundation:burner_pump": {
       "name": "Burner Pump"
+    },
+    "servus_foundation:capacity_upgrade": {
+      "name": "Capacity Upgrade"
     },
     "servus_foundation:chimney": {
       "name": "Chimney"

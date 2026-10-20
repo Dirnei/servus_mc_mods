@@ -30,6 +30,8 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
         add("gui.servus_foundation.machine_adapter.no_upkeep", "No upkeep");
         add(ServusFoundationItems.SPEED_UPGRADE.get(), "Speed Upgrade");
         add("tooltip.servus_foundation.upgrade.speed", "Speed x%s in upgrade slots");
+        add(ServusFoundationItems.CAPACITY_UPGRADE.get(), "Capacity Upgrade");
+        add("item.servus_foundation.capacity_upgrade.tooltip", "Gives a block more room in capacity upgrade slots");
         add("message.servus_foundation.data_cable.summary", "Data network: %s cables, %s producers, %s stock");
         add("message.servus_foundation.data_cable.summary_load", "Data network: %s cables, %s producers, %s stock; this duct %s of %s items/s");
         add("commands.servus_foundation.data.move.started", "Delivery %s started: %s %s");

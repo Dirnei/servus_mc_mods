@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.DataPotatoItem;
 import io.github.dirnei.mc.servus.foundation.item.GogglesItem;
+import io.github.dirnei.mc.servus.foundation.upgrade.CapacityUpgradeItem;
 import io.github.dirnei.mc.servus.foundation.upgrade.UpgradeItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -22,6 +23,8 @@ public final class ServusFoundationItems {
 
     public static final DeferredItem<UpgradeItem> SPEED_UPGRADE =
             ITEMS.registerItem("speed_upgrade", properties -> new UpgradeItem(2, properties), () -> new Item.Properties().stacksTo(16));
+    public static final DeferredItem<CapacityUpgradeItem> CAPACITY_UPGRADE =
+            ITEMS.registerItem("capacity_upgrade", CapacityUpgradeItem::new, () -> new Item.Properties().stacksTo(16));
 
     private ServusFoundationItems() {
     }
