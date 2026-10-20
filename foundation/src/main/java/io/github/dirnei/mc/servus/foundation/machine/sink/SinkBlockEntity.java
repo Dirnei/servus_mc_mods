@@ -58,6 +58,7 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
     private final SinkCapacity capacity;
     private final ItemBuffer items;
     private final FluidBuffer tanks;
+    private final SinkFill fill;
     private final CapacityUpgradeSlots upgrades;
     private final ResourceHandler<ItemResource> itemView;
     private final ResourceHandler<FluidResource> fluidView;
@@ -83,6 +84,7 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
         capacity = stats.capacity();
         items = new ItemBuffer(capacity.maxSlots());
         tanks = new FluidBuffer(capacity.maxRows(), stats.tankCapacity());
+        fill = new SinkFill(items.size(), capacity.slotsPerRow(), tanks.size());
         upgrades = new CapacityUpgradeSlots(stats.upgradeSlots(), this::upgradesChanged);
         itemView = new SinkHandlers.InsertOnly<>(items);
         fluidView = new SinkHandlers.InsertOnly<>(tanks);
@@ -152,27 +154,21 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
     /** Whether one Capacity Upgrade may come out: there is one, and the last open row and tank are empty. */
     public boolean canRemoveUpgrade() {
         int lastRow = openRows() - 1;
-        int rowStart = lastRow * capacity.slotsPerRow();
-        boolean rowEmpty = true;
-        for (int slot = rowStart; slot < rowStart + capacity.slotsPerRow(); slot++) {
-            rowEmpty &= items.getStackInSlot(slot).isEmpty();
-        }
-        return SinkCapacity.canRemoveUpgrade(upgrades.count(), rowEmpty, tanks.getAmountAsLong(lastRow) == 0);
+        return SinkCapacity.canRemoveUpgrade(upgrades.count(), fill.rowEmpty(lastRow), fill.tankEmpty(lastRow));
     }
 
     /** Whether any slot or tank holds something. */
     public boolean holdsAnything() {
+        return fill.any();
+    }
+
+    private void recountFill() {
         for (int slot = 0; slot < items.size(); slot++) {
-            if (!items.getStackInSlot(slot).isEmpty()) {
-                return true;
-            }
+            fill.slot(slot, !items.getStackInSlot(slot).isEmpty());
         }
         for (int tank = 0; tank < tanks.size(); tank++) {
-            if (tanks.getAmountAsLong(tank) > 0) {
-                return true;
-            }
+            fill.tank(tank, tanks.getAmountAsLong(tank) > 0);
         }
-        return false;
     }
 
     long grantEnergy(long requested, boolean simulate) {
@@ -233,13 +229,13 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
         BlockState state = getBlockState();
         boolean controller = SinkBlock.isFormed(state) && state.getValue(SinkBlock.PART) == SinkLayout.CONTROLLER;
         long now = gameTime();
-        if (controller && holdsAnything() && now - lastBatch >= SinkRates.BATCH_TICKS) {
+        if (controller && fill.any() && now - lastBatch >= SinkRates.BATCH_TICKS) {
             lastBatch = now;
             voidBatch();
             setChanged();
         }
         int activeLeft = activeTicksLeft();
-        if (controller && holdsAnything()) {
+        if (controller && fill.any()) {
             scheduleHeartbeat((int) Math.max(1, lastBatch + SinkRates.BATCH_TICKS - now));
         } else if (controller && activeLeft > 0) {
             // Capped at one batch, so items that arrive while active wait no longer than a batch.
@@ -443,6 +439,7 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
         items.load(input, ITEMS);
         tanks.load(input, TANKS);
         upgrades.load(input, UPGRADES);
+        recountFill();
         lastBatch = input.getLongOr(LAST_BATCH, Long.MIN_VALUE / 2);
         if (input.getInt("Height").isPresent()) {
             chimneyHeight = input.getIntOr("Height", 0);
@@ -497,6 +494,7 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
 
         @Override
         protected void onContentsChanged(int slot) {
+            fill.slot(slot, !getStackInSlot(slot).isEmpty());
             bufferChanged();
         }
     }
@@ -533,6 +531,7 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
 
         @Override
         protected void onContentsChanged(int index, FluidStack previousContents) {
+            fill.tank(index, getAmountAsLong(index) > 0);
             bufferChanged();
         }
 
