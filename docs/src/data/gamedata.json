@@ -903,6 +903,23 @@
         {"item": "servus_foundation:hand_crank", "count": 1}
       ]
     },
+    "servus_foundation:heating_element": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["CCC", "RIR", "CCC"],
+      "key": {
+        "C": {"item": "minecraft:copper_ingot"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 6},
+        {"item": "minecraft:iron_ingot", "count": 1},
+        {"item": "minecraft:redstone", "count": 2}
+      ],
+      "outputs": [
+        {"item": "servus_foundation:heating_element", "count": 1}
+      ]
+    },
     "servus_foundation:hollow_facade": {
       "type": "servus_foundation:hollow_facade",
       "special": true,
@@ -1747,6 +1764,9 @@
     },
     "servus_foundation:hand_crank": {
       "name": "Hand Crank"
+    },
+    "servus_foundation:heating_element": {
+      "name": "Heating Element"
     },
     "servus_foundation:item_pipe": {
       "name": "Item Pipe"

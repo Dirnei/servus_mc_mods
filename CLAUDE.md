@@ -58,6 +58,7 @@ openspec view                      # dashboard of specs and changes
 - After each task: `gradlew build` and `gradlew test` must pass.
 - Block, GUI and worldgen behavior: launch the client run config and check it in game. GameTests where practical.
 - Do not report a task as done without a green build.
+- When a change adds or changes items, blocks, recipes, tags or lang, run `gradlew :alchemy:runData` and commit `docs/src/data/gamedata.json` with it. CI fails when the file is out of date.
 
 ## Code style
 - Code explains itself through names and small methods. Extract a shared helper instead of copying logic.
