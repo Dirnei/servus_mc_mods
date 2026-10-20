@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BooleanSupplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -32,7 +33,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.fml.ModList;
 
 /**
  * Keeps a square of chunks loaded and ticking while powered, within the team
@@ -60,8 +60,8 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
     public static final int DATA_COUNT_ANCHOR = DATA_COUNT + 6;
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "ender_anchor");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
-    static final String FTB_CHUNKS = "ftbchunks";
 
+    private BooleanSupplier leavesToFtbChunks = ServusFoundationConfig::leavesChunkLoadingToFtbChunks;
     private UUID owner;
     private int status = STATUS_NO_POWER;
     private int offsetX;
@@ -88,6 +88,11 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
     public void setOwner(UUID owner) {
         this.owner = owner;
         setChanged();
+    }
+
+    /** Decides this anchor's FTB Chunks rule as if the option were {@code respects}, leaving the config alone; for GameTests. */
+    void respectFtbChunksAs(boolean respects) {
+        leavesToFtbChunks = () -> ServusFoundationConfig.leavesChunkLoadingToFtbChunks(respects);
     }
 
     public int status() {
@@ -168,7 +173,7 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
         }
         EnderAnchorData data = EnderAnchorData.get(server.getServer());
         String key = EnderAnchorData.key(server, worldPosition);
-        if (ServusFoundationConfig.enderAnchorRespectsFtbChunks() && ModList.get().isLoaded(FTB_CHUNKS)) {
+        if (leavesToFtbChunks.getAsBoolean()) {
             data.unregister(owner, key);
             return STATUS_FTB_CHUNKS;
         }

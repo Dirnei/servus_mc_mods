@@ -201,26 +201,21 @@ public final class AnchorGameTests {
 
     /**
      * With {@code enderAnchorRespectsFtbChunks} on, an anchor next to FTB Chunks stays inactive and loads nothing;
-     * without FTB Chunks the option changes nothing. Runs in its own batch, so no other test sees the option on.
+     * without FTB Chunks the option changes nothing. Only this anchor sees the option on; the config stays as it is.
      */
-    @ServusGameTest(timeoutTicks = 60, batch = "ftb_chunks_respected")
+    @ServusGameTest(timeoutTicks = 60)
     public static void anchorStaysInactiveForFtbChunks(GameTestHelper helper) {
         UUID team = UUID.randomUUID();
         EnderAnchorBlockEntity anchor = anchor(helper, ANCHOR, team, 1);
-        boolean before = ServusFoundationConfig.enderAnchorRespectsFtbChunks();
-        ServusFoundationConfig.setEnderAnchorRespectsFtbChunks(true);
+        anchor.respectFtbChunksAs(true);
         helper.runAfterDelay(5, () -> {
-            try {
-                if (ModList.get().isLoaded(EnderAnchorBlockEntity.FTB_CHUNKS)) {
-                    helper.assertTrue(anchor.status() == EnderAnchorBlockEntity.STATUS_FTB_CHUNKS, "use FTB Chunks, status " + anchor.status());
-                    helper.assertTrue(!anchor.ticketHeld(), "no chunk is loaded");
-                    helper.assertTrue(data(helper).load(team) == 0, "no team load, was " + data(helper).load(team));
-                } else {
-                    helper.assertTrue(anchor.status() == EnderAnchorBlockEntity.STATUS_ACTIVE, "active without FTB Chunks, status " + anchor.status());
-                    helper.assertTrue(anchor.heldChunks().size() == 9, "the square is held");
-                }
-            } finally {
-                ServusFoundationConfig.setEnderAnchorRespectsFtbChunks(before);
+            if (ModList.get().isLoaded(ServusFoundationConfig.FTB_CHUNKS)) {
+                helper.assertTrue(anchor.status() == EnderAnchorBlockEntity.STATUS_FTB_CHUNKS, "use FTB Chunks, status " + anchor.status());
+                helper.assertTrue(!anchor.ticketHeld(), "no chunk is loaded");
+                helper.assertTrue(data(helper).load(team) == 0, "no team load, was " + data(helper).load(team));
+            } else {
+                helper.assertTrue(anchor.status() == EnderAnchorBlockEntity.STATUS_ACTIVE, "active without FTB Chunks, status " + anchor.status());
+                helper.assertTrue(anchor.heldChunks().size() == 9, "the square is held");
             }
             helper.succeed();
         });

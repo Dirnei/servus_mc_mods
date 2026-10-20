@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.config;
 
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 /**
@@ -7,6 +8,9 @@ import net.neoforged.neoforge.common.ModConfigSpec;
  * Values are read when used, so edits apply without a restart.
  */
 public final class ServusFoundationConfig {
+
+    /** The mod id of FTB Chunks. */
+    public static final String FTB_CHUNKS = "ftbchunks";
 
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
@@ -60,8 +64,16 @@ public final class ServusFoundationConfig {
         return ENDER_ANCHOR_RESPECTS_FTB_CHUNKS.get();
     }
 
-    /** Sets {@link #enderAnchorRespectsFtbChunks()} in memory without writing the file; for GameTests. */
-    public static void setEnderAnchorRespectsFtbChunks(boolean respects) {
-        ENDER_ANCHOR_RESPECTS_FTB_CHUNKS.set(respects);
+    /**
+     * Whether Ender Anchors and warehouse site wakes stay off in favour of FTB Chunks: the config asks for it and FTB
+     * Chunks is installed.
+     */
+    public static boolean leavesChunkLoadingToFtbChunks() {
+        return leavesChunkLoadingToFtbChunks(enderAnchorRespectsFtbChunks());
+    }
+
+    /** {@link #leavesChunkLoadingToFtbChunks()} for the option value {@code respects} instead of the config's. */
+    public static boolean leavesChunkLoadingToFtbChunks(boolean respects) {
+        return respects && ModList.get().isLoaded(FTB_CHUNKS);
     }
 }

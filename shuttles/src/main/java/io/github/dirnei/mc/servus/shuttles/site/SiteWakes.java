@@ -21,7 +21,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.neoforged.fml.ModList;
 
 /**
  * The sites being woken right now. A wake loads every chunk of a site's
@@ -31,7 +30,6 @@ import net.neoforged.fml.ModList;
  */
 public final class SiteWakes {
 
-    private static final String FTB_CHUNKS = "ftbchunks";
     private static final Map<String, Wake> WAKES = new LinkedHashMap<>();
 
     /** One site being woken. */
@@ -170,9 +168,6 @@ public final class SiteWakes {
         }
     }
 
-    private static boolean ftbBlocks() {
-        return ServusFoundationConfig.enderAnchorRespectsFtbChunks() && ModList.get().isLoaded(FTB_CHUNKS);
-    }
 
     private static void step(MinecraftServer server, Wake wake) {
         ServerLevel level = server.getLevel(wake.dimension);
@@ -223,7 +218,8 @@ public final class SiteWakes {
         // A loaded controller tells its FE; a sleeping one is known by its record.
         long stored = controller(level, wake.pos).map(controller -> (long) controller.energyStored()).orElse((long) site.energy());
         long toStart = WakeCost.toStart(site.span().size(), ShuttlesStatsManager.INSTANCE.wakeFePerChunkPerTick());
-        return WakeAllowance.check(team != null, ftbBlocks(), site.capacityState(), registered, fits, stored, toStart);
+        return WakeAllowance.check(team != null, ServusFoundationConfig.leavesChunkLoadingToFtbChunks(), site.capacityState(),
+                registered, fits, stored, toStart);
     }
 
     /**

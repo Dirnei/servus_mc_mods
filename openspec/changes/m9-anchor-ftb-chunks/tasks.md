@@ -2,12 +2,12 @@
 
 ## 1. Config default
 
-- [x] 1.1 In `foundation/.../config/ServusFoundationConfig.java` set the default of `enderAnchorRespectsFtbChunks` to `false`, reword its comment (true keeps anchors inactive and sites asleep in favour of FTB Chunks) and add `setEnderAnchorRespectsFtbChunks(boolean)` (in memory, for GameTests). Update the config lang text in `foundation/.../datagen/MachineDataParts.java` and `foundation/src/generated/resources/assets/servus_foundation/lang/en_us.json`. Build.
+- [x] 1.1 In `foundation/.../config/ServusFoundationConfig.java` set the default of `enderAnchorRespectsFtbChunks` to `false`, reword its comment (true keeps anchors inactive and sites asleep in favour of FTB Chunks) and add `leavesChunkLoadingToFtbChunks()` with the `FTB_CHUNKS` mod id, used by the anchor and `SiteWakes`. Update the config lang text in `foundation/.../datagen/MachineDataParts.java` and `foundation/src/generated/resources/assets/servus_foundation/lang/en_us.json`. Build.
 
 ## 2. GameTest batches and the option test
 
 - [x] 2.1 Add `batch()` to `foundation/.../gametest/ServusGameTest.java` and register one environment per batch name in `ServusGameTests.java`. Build.
-- [x] 2.2 Add `AnchorGameTests.anchorStaysInactiveForFtbChunks` in batch `ftb_chunks_respected`: with FTB Chunks loaded and the option on, a powered anchor has status 3, holds no ticket and the team load is 0; without FTB Chunks it is active. Restore the option afterwards. Make the FTB Chunks mod id in `EnderAnchorBlockEntity` package visible. Run `:foundation:runGameTestServer` and `:alchemy:runGameTestServer`; every anchor test passes in both.
+- [x] 2.2 Add `AnchorGameTests.anchorStaysInactiveForFtbChunks`: with FTB Chunks loaded and the option on for this anchor only (`respectFtbChunksAs(true)`, the config stays untouched), a powered anchor has status 3, holds no ticket and the team load is 0; without FTB Chunks it is active. Run `:foundation:runGameTestServer` and `:alchemy:runGameTestServer`; every anchor test passes in both.
 
 ## 3. Docs and plan
 
