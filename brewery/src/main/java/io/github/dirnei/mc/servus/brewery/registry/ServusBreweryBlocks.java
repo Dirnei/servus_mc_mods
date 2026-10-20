@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.brewery.registry;
 
 import io.github.dirnei.mc.servus.brewery.ServusBreweryIds;
+import io.github.dirnei.mc.servus.brewery.brewhouse.BrewKettleBlock;
+import io.github.dirnei.mc.servus.brewery.brewhouse.BrewhouseBricksBlock;
 import io.github.dirnei.mc.servus.brewery.crop.BarleyBlock;
 import io.github.dirnei.mc.servus.brewery.crop.HopPoleBlock;
 import io.github.dirnei.mc.servus.brewery.malting.MaltingFloorBlock;
@@ -44,6 +46,25 @@ public final class ServusBreweryBlocks {
                     .mapColor(MapColor.PODZOL)
                     .strength(1.0F)
                     .sound(SoundType.WOOD)
+                    .noOcclusion());
+
+    /** The firebox bricks of the Brewhouse. */
+    public static final DeferredBlock<BrewhouseBricksBlock> BREWHOUSE_BRICKS = BLOCKS.registerBlock("brewhouse_bricks",
+            BrewhouseBricksBlock::new, () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_RED)
+                    .strength(2.0F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.STONE)
+                    .noOcclusion()
+                    .lightLevel(BrewhouseBricksBlock::lightLevel));
+
+    /** A copper block of the Brew Kettle. */
+    public static final DeferredBlock<BrewKettleBlock> BREW_KETTLE = BLOCKS.registerBlock("brew_kettle",
+            BrewKettleBlock::new, () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_ORANGE)
+                    .strength(3.0F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.COPPER)
                     .noOcclusion());
 
     private ServusBreweryBlocks() {

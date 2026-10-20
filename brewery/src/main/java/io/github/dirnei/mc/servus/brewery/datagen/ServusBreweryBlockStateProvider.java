@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.brewery.crop.HopPoleBlock;
 import io.github.dirnei.mc.servus.brewery.crop.HopStage;
 import io.github.dirnei.mc.servus.brewery.malting.FloorContent;
 import io.github.dirnei.mc.servus.brewery.malting.MaltingFloorBlock;
+import io.github.dirnei.mc.servus.brewery.registry.BreweryFluids;
 import io.github.dirnei.mc.servus.brewery.registry.ServusBreweryBlocks;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
@@ -18,7 +19,8 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.CropBlock;
 
 /**
- * Block states and models of the barley crop, the Hop Pole and the Malting Floor. The pole is a
+ * Block states and models of the barley crop, the Hop Pole, the Malting Floor, the Brewhouse ({@link BrewhouseModels})
+ * and the wort liquids. The pole is a
  * 2 px post; leaf planes sit 0.5 px off its faces and the cone planes further
  * out, so no two faces share a plane. The floor is a 2 px spruce base with a
  * 1 px rim; the grain is a single top face 0.2 px below the rim top.
@@ -48,6 +50,10 @@ final class ServusBreweryBlockStateProvider extends BlockStateProvider {
         barley();
         hopPole();
         maltingFloor();
+        new BrewhouseModels(this).register();
+        for (BreweryFluids.Wort wort : BreweryFluids.WORTS) {
+            simpleBlock(wort.block().get(), models().getBuilder(wort.id()).texture("particle", mcLoc("block/water_still")));
+        }
     }
 
     private void maltingFloor() {

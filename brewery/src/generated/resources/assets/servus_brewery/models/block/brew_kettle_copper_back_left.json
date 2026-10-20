@@ -1,0 +1,135 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "east": {
+          "texture": "#copper",
+          "uv": [
+            2,
+            2,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#copper",
+          "uv": [
+            0,
+            2,
+            14,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#copper",
+          "uv": [
+            0,
+            0,
+            14,
+            14
+          ]
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        14,
+        14,
+        14
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#copper",
+          "uv": [
+            6,
+            0,
+            16,
+            4
+          ]
+        },
+        "south": {
+          "texture": "#copper",
+          "uv": [
+            0,
+            0,
+            10,
+            4
+          ]
+        },
+        "up": {
+          "texture": "#copper",
+          "uv": [
+            0,
+            0,
+            10,
+            10
+          ]
+        }
+      },
+      "from": [
+        0,
+        14,
+        0
+      ],
+      "to": [
+        10,
+        18,
+        10
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#copper",
+          "uv": [
+            14,
+            0,
+            16,
+            14
+          ]
+        },
+        "south": {
+          "texture": "#copper",
+          "uv": [
+            0,
+            0,
+            2,
+            14
+          ]
+        },
+        "up": {
+          "texture": "#copper",
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ]
+        }
+      },
+      "from": [
+        0,
+        18,
+        0
+      ],
+      "to": [
+        2,
+        32,
+        2
+      ]
+    }
+  ],
+  "textures": {
+    "bricks": "minecraft:block/bricks",
+    "copper": "servus_brewery:block/brew_kettle_copper",
+    "grate": "servus_brewery:block/kiln_grate",
+    "iron": "servus_foundation:block/heavy_iron",
+    "particle": "servus_brewery:block/brew_kettle_copper"
+  }
+}

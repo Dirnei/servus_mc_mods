@@ -1,0 +1,8 @@
+{
+  "type": "servus_brewery:kilning",
+  "input": "servus_brewery:green_wheat_malt",
+  "result": {
+    "id": "servus_brewery:wheat_malt"
+  },
+  "time": 600
+}

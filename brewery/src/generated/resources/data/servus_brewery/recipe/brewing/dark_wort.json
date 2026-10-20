@@ -1,0 +1,22 @@
+{
+  "type": "servus_brewery:brewing",
+  "fluid": {
+    "amount": 1000,
+    "ingredient": "minecraft:water"
+  },
+  "ingredients": [
+    {
+      "count": 4,
+      "ingredient": "servus_brewery:dark_malt_grist"
+    },
+    {
+      "count": 1,
+      "ingredient": "servus_brewery:hops"
+    }
+  ],
+  "result": {
+    "amount": 1000,
+    "id": "servus_brewery:dark_wort"
+  },
+  "time": 400
+}

@@ -10,6 +10,10 @@ dependencies {
     compileOnly project(':delicacies')
     testImplementation project(':foundation')
     testImplementation project(':delicacies')
+
+    // JEI: API at compile time only (soft dependency); dev client runs get JEI from Alchemy.
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
 }
 
 // Resolved outside the neoForge block: inside it, project(':foundation') would be

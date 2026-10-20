@@ -8,7 +8,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 
-/** Barley is a crop that keeps its farmland; the Hop Pole keeps farmland too and is mined with an axe, as is the Malting Floor. */
+/** Barley is a crop that keeps its farmland; the Hop Pole keeps farmland too and is mined with an axe, as is the Malting Floor; the Brewhouse parts need a pickaxe. */
 final class ServusBreweryBlockTagsProvider extends BlockTagsProvider {
 
     ServusBreweryBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
@@ -20,5 +20,6 @@ final class ServusBreweryBlockTagsProvider extends BlockTagsProvider {
         tag(BlockTags.CROPS).add(ServusBreweryBlocks.BARLEY.get());
         tag(BlockTags.MAINTAINS_FARMLAND).add(ServusBreweryBlocks.BARLEY.get()).add(ServusBreweryBlocks.HOP_POLE.get());
         tag(BlockTags.MINEABLE_WITH_AXE).add(ServusBreweryBlocks.HOP_POLE.get()).add(ServusBreweryBlocks.MALTING_FLOOR.get());
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ServusBreweryBlocks.BREWHOUSE_BRICKS.get()).add(ServusBreweryBlocks.BREW_KETTLE.get());
     }
 }

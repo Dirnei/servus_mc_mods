@@ -1,0 +1,14 @@
+{
+  "type": "servus_brewery:kilning",
+  "dark": {
+    "result": {
+      "id": "servus_brewery:dark_malt"
+    },
+    "time": 600
+  },
+  "input": "servus_brewery:green_malt",
+  "result": {
+    "id": "servus_brewery:pale_malt"
+  },
+  "time": 600
+}

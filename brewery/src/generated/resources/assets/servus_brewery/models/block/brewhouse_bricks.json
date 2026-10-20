@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "servus_foundation:block/heavy_iron",
+    "east": "minecraft:block/bricks",
+    "north": "minecraft:block/bricks",
+    "particle": "minecraft:block/bricks",
+    "south": "minecraft:block/bricks",
+    "up": "servus_foundation:block/heavy_iron",
+    "west": "minecraft:block/bricks"
+  }
+}

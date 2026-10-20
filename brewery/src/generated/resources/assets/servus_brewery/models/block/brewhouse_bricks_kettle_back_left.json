@@ -1,0 +1,95 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#bricks",
+          "uv": [
+            0,
+            4,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#bricks",
+          "uv": [
+            0,
+            4,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#bricks",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        12,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#copper",
+          "uv": [
+            2,
+            0,
+            16,
+            4
+          ]
+        },
+        "south": {
+          "texture": "#copper",
+          "uv": [
+            0,
+            0,
+            14,
+            4
+          ]
+        }
+      },
+      "from": [
+        0,
+        12,
+        0
+      ],
+      "to": [
+        14,
+        16,
+        14
+      ]
+    }
+  ],
+  "textures": {
+    "bricks": "minecraft:block/bricks",
+    "copper": "servus_brewery:block/brew_kettle_copper",
+    "door": "servus_brewery:block/brewhouse_door",
+    "grate": "servus_brewery:block/kiln_grate",
+    "iron": "servus_foundation:block/heavy_iron",
+    "particle": "minecraft:block/bricks"
+  }
+}

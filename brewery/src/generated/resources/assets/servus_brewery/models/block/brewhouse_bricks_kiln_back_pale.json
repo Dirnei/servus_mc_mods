@@ -1,0 +1,164 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#bricks",
+          "uv": [
+            0,
+            4,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#bricks",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#bricks",
+          "uv": [
+            0,
+            4,
+            16,
+            16
+          ]
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        12,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#iron",
+          "uv": [
+            2,
+            1,
+            16,
+            4
+          ]
+        },
+        "south": {
+          "texture": "#iron",
+          "uv": [
+            1,
+            1,
+            15,
+            4
+          ]
+        },
+        "up": {
+          "texture": "#tray",
+          "uv": [
+            1,
+            0,
+            15,
+            14
+          ]
+        },
+        "west": {
+          "texture": "#iron",
+          "uv": [
+            0,
+            1,
+            14,
+            4
+          ]
+        }
+      },
+      "from": [
+        1,
+        12,
+        0
+      ],
+      "to": [
+        15,
+        15,
+        14
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#grate",
+          "uv": [
+            2,
+            0.5,
+            16,
+            1
+          ]
+        },
+        "south": {
+          "texture": "#grate",
+          "uv": [
+            1,
+            0.5,
+            15,
+            1
+          ]
+        },
+        "up": {
+          "texture": "#grate",
+          "uv": [
+            1,
+            0,
+            15,
+            14
+          ]
+        },
+        "west": {
+          "texture": "#grate",
+          "uv": [
+            0,
+            0.5,
+            14,
+            1
+          ]
+        }
+      },
+      "from": [
+        1,
+        15,
+        0
+      ],
+      "to": [
+        15,
+        15.5,
+        14
+      ]
+    }
+  ],
+  "textures": {
+    "bricks": "minecraft:block/bricks",
+    "copper": "servus_brewery:block/brew_kettle_copper",
+    "door": "servus_brewery:block/brewhouse_door",
+    "grate": "servus_brewery:block/kiln_grate",
+    "iron": "servus_foundation:block/heavy_iron",
+    "particle": "minecraft:block/bricks",
+    "tray": "servus_brewery:block/malt_floor"
+  }
+}

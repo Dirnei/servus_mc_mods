@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "B": "minecraft:bricks",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "BBB",
+    "BIB",
+    "BBB"
+  ],
+  "result": {
+    "count": 8,
+    "id": "servus_brewery:brewhouse_bricks"
+  }
+}

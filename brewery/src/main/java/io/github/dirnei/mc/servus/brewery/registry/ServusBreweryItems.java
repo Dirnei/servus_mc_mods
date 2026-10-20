@@ -62,11 +62,16 @@ public final class ServusBreweryItems {
     /** Wheat Malt from the Mill. */
     public static final DeferredItem<Item> WHEAT_MALT_GRIST = ITEMS.registerSimpleItem("wheat_malt_grist");
 
+    public static final DeferredItem<BlockItem> BREWHOUSE_BRICKS = ITEMS.registerSimpleBlockItem(ServusBreweryBlocks.BREWHOUSE_BRICKS);
+
+    public static final DeferredItem<BlockItem> BREW_KETTLE = ITEMS.registerSimpleBlockItem(ServusBreweryBlocks.BREW_KETTLE);
+
     /** Every Brewery item in the order the creative tab lists it. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(
             BEER_GLASS, BARLEY_SEEDS, BARLEY, HOP_RHIZOME, HOPS, HOP_POLE,
             MALTING_FLOOR, SOAKED_BARLEY, SOAKED_WHEAT, GREEN_MALT, GREEN_WHEAT_MALT, PALE_MALT, DARK_MALT, WHEAT_MALT,
-            PALE_MALT_GRIST, DARK_MALT_GRIST, WHEAT_MALT_GRIST);
+            PALE_MALT_GRIST, DARK_MALT_GRIST, WHEAT_MALT_GRIST, BREWHOUSE_BRICKS, BREW_KETTLE,
+            BreweryFluids.PALE_WORT.bucket(), BreweryFluids.DARK_WORT.bucket(), BreweryFluids.WHEAT_WORT.bucket());
 
     private ServusBreweryItems() {
     }

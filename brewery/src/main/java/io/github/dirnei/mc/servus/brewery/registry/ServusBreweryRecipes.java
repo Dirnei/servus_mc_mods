@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.brewery.registry;
 
 import io.github.dirnei.mc.servus.brewery.ServusBreweryIds;
+import io.github.dirnei.mc.servus.brewery.brewhouse.BrewingRecipe;
+import io.github.dirnei.mc.servus.brewery.brewhouse.KilningRecipe;
 import io.github.dirnei.mc.servus.brewery.malting.GerminatingRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import java.util.Optional;
@@ -29,7 +31,39 @@ public final class ServusBreweryRecipes {
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<GerminatingRecipe>> GERMINATING_SERIALIZER =
             RECIPE_SERIALIZERS.register("germinating", () -> GerminatingRecipe.SERIALIZER);
 
+    public static final Identifier BREWING_ID = Identifier.fromNamespaceAndPath(ServusBreweryIds.MOD_ID, "brewing");
+    public static final DeferredHolder<RecipeType<?>, RecipeType<BrewingRecipe>> BREWING =
+            RECIPE_TYPES.register("brewing", () -> RecipeType.simple(BREWING_ID));
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<BrewingRecipe>> BREWING_SERIALIZER =
+            RECIPE_SERIALIZERS.register("brewing", () -> BrewingRecipe.SERIALIZER);
+
+    public static final Identifier KILNING_ID = Identifier.fromNamespaceAndPath(ServusBreweryIds.MOD_ID, "kilning");
+    public static final DeferredHolder<RecipeType<?>, RecipeType<KilningRecipe>> KILNING =
+            RECIPE_TYPES.register("kilning", () -> RecipeType.simple(KILNING_ID));
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<KilningRecipe>> KILNING_SERIALIZER =
+            RECIPE_SERIALIZERS.register("kilning", () -> KilningRecipe.SERIALIZER);
+
     private ServusBreweryRecipes() {
+    }
+
+    /** Sends the Brewery recipes to clients, for JEI and the client's insertion checks. */
+    public static void syncToClients() {
+        ServusRecipes.syncToClients(GERMINATING);
+        ServusRecipes.syncToClients(BREWING);
+        ServusRecipes.syncToClients(KILNING);
+    }
+
+    /** The kilning recipe that takes {@code stack}, if any; works on both sides since the recipes are synced. */
+    public static Optional<KilningRecipe> kilning(Level level, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return Optional.empty();
+        }
+        return ServusRecipes.first(level, KILNING.get(), new SingleRecipeInput(stack)).map(RecipeHolder::value);
+    }
+
+    /** Whether some brewing recipe takes {@code stack}, regardless of count. */
+    public static boolean brews(Level level, ItemStack stack) {
+        return !stack.isEmpty() && ServusRecipes.all(level, BREWING.get()).stream().anyMatch(holder -> holder.value().accepts(stack));
     }
 
     /** The germinating recipe that takes {@code stack}, if any; works on both sides since the recipes are synced. */

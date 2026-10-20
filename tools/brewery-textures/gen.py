@@ -9,6 +9,7 @@ Written into brewery/src/main/resources/assets/servus_brewery/textures/item/ and
 Sprites are drawn from pixel masks on a 16x16 canvas. Block sprites use only fully
 opaque or fully clear pixels, so the game draws them in the cutout layer.
 """
+import json
 import math
 import os
 import random
@@ -401,6 +402,79 @@ def grain_floor(colors, seed, specks_seed):
     return img
 
 
+# ---------- brewhouse (ported from the mockup's sudhaus) ----------
+IRON = ramp('#15171a', '#24272c', '#33373e', '#454a52', '#5b616a')
+BRASS = ramp('#5e4514', '#9a7428', '#c89c44', '#e8c46a')
+COPPER = ramp('#5a2a14', '#8e4424', '#b8622e', '#d8844a', '#f0a870')
+GLOW = [hx('#ffe08a'), hx('#ffb030'), hx('#e0601a')]
+
+
+def kettle_copper():
+    """Copper sheet with two riveted bands and seam dots (the mockup's copper over noise instead of vanilla copper)."""
+    img = tex_noise(COPPER, 'copper', base=2)
+    for y in (2, 13):
+        for x in range(SIZE):
+            put(img, x, y, COPPER[4] if x % 4 else COPPER[3])
+            put(img, x, y + 1, COPPER[1])
+    for y in range(3, 13):
+        if y % 3 == 0:
+            put(img, 3, y, COPPER[0])
+            put(img, 12, y, COPPER[0])
+    return img
+
+
+def fire_door(lit, flicker=False):
+    """The iron fire door with a brass frame and two slits that glow while the fire burns (the mockup's herd_front)."""
+    img = tex_noise(IRON, 'hf', base=2)
+    for x in range(SIZE):
+        put(img, x, 0, BRASS[3])
+        put(img, x, 1, BRASS[1])
+        put(img, x, 15, IRON[0])
+    for y in range(2, 15):
+        put(img, 0, y, IRON[1])
+        put(img, 15, y, IRON[0])
+    door = rect(3, 4, 12, 11)
+    fill(img, door, IRON[3])
+    for (x, y) in boundary(door):
+        put(img, x, y, BRASS[2] if y == 4 or x == 3 else BRASS[1])
+    for y in (6, 8):
+        for x in range(5, 11):
+            if not lit:
+                put(img, x, y, IRON[0])
+            elif flicker:
+                put(img, x, y, [GLOW[1], GLOW[2], GLOW[0]][(x * 2 + y) % 3])
+            else:
+                put(img, x, y, GLOW[(x + y) % 3])
+    put(img, 11, 7, BRASS[3])
+    put(img, 11, 8, BRASS[2])
+    for x in range(5, 11):
+        put(img, x, 13, IRON[1])
+    put(img, 7, 13, BRASS[2])
+    put(img, 8, 13, BRASS[2])
+    for (x, y) in ((1, 2), (14, 2), (1, 14), (14, 14)):
+        put(img, x, y, IRON[4])
+    return img
+
+
+def kiln_grate():
+    """An iron lattice, clear between the bars (the mockup's grate)."""
+    img = canvas()
+    for y in range(SIZE):
+        for x in range(SIZE):
+            if x % 3 == 0 or y % 3 == 0:
+                put(img, x, y, IRON[3])
+    return img
+
+
+def strip(*frames):
+    """Animation frames stacked top to bottom into one texture."""
+    return [row for frame in frames for row in frame]
+
+
+# The door's flicker, as on the Tiled Stove: frame indices of the strip and ticks per frame.
+DOOR_FLICKER = {'animation': {'frames': [0, 1, 0, 0, 1, 1, 0, 1], 'frametime': 3}}
+
+
 ITEM_SPRITES = {
     'beer_glass': empty_glass(),
     'barley': barley(),
@@ -428,6 +502,16 @@ BLOCK_SPRITES = {
     'hop_cones': hop_cones(),
     'malt_floor': grain_floor(MALT, 'mf', 4),
     'soaked_grain_floor': grain_floor(SOAKED_BARLEY, 'sgf', 5),
+    'kiln_green_malt': grain_floor(GREEN_MALT, 'kgm', 6),
+    'kiln_dark_malt': grain_floor(DARK_MALT, 'kdm', 7),
+    'brew_kettle_copper': kettle_copper(),
+    'brewhouse_door': fire_door(False),
+    'brewhouse_door_lit': strip(fire_door(True), fire_door(True, flicker=True)),
+    'kiln_grate': kiln_grate(),
+}
+
+BLOCK_ANIMATIONS = {
+    'brewhouse_door_lit': DOOR_FLICKER,
 }
 
 
@@ -462,6 +546,9 @@ def main():
             if preview:
                 os.makedirs(os.path.join(preview, folder), exist_ok=True)
                 write(os.path.join(preview, folder, name + '.png'), scaled(img, 8))
+    for name, meta in BLOCK_ANIMATIONS.items():
+        with open(os.path.join(TEXTURES, 'block', name + '.png.mcmeta'), 'w', newline='\n') as f:
+            f.write(json.dumps(meta, indent=2) + '\n')
 
 
 if __name__ == '__main__':
