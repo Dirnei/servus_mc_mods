@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.foundation.logistics.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.foundation.client.BlockSubmit;
+import io.github.dirnei.mc.servus.foundation.client.FluidBox;
 import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlock;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlockEntity;
@@ -13,7 +13,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import net.minecraft.util.LightCoordsUtil;
@@ -50,7 +49,7 @@ public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlo
         @Nullable TextureAtlasSprite sprite;
         int color;
         int light;
-        @Nullable Box box;
+        @Nullable FluidBox box;
         /** Faces of the fluid box to draw, one bit per direction. */
         int faces;
     }
@@ -105,7 +104,7 @@ public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlo
         float y0 = down ? 0 : FLOOR + FLOOR_LIFT + FLUID_GAP;
         float yMax = up ? 1 : 1 - INSET;
         float y1 = y0 + (yMax - y0) * fill;
-        state.box = new Box(x0, y0, z0, x1, y1, z1);
+        state.box = new FluidBox(x0, y0, z0, x1, y1, z1);
         int faces = 0;
         for (Direction face : Direction.values()) {
             boolean skip = switch (face) {
@@ -129,7 +128,7 @@ public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlo
             BlockSubmit.block(poseStack, collector, state.floor, state.lightCoords);
             poseStack.popPose();
         }
-        Box box = state.box;
+        FluidBox box = state.box;
         TextureAtlasSprite sprite = state.sprite;
         if (box == null || sprite == null) {
             return;
@@ -138,78 +137,11 @@ public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlo
         int color = state.color;
         int light = state.light;
         // The translucent block sheet is drawn after solid buffers, so the floor below the fluid is never hidden by it.
-        collector.submitCustomGeometry(poseStack, Sheets.translucentBlockSheet(), (pose, consumer) -> {
-            for (Direction face : Direction.values()) {
-                if ((faces & (1 << face.ordinal())) != 0) {
-                    quad(consumer, pose, box, face, sprite, color, light);
-                }
-            }
-        });
+        collector.submitCustomGeometry(poseStack, Sheets.translucentBlockSheet(),
+                (pose, consumer) -> box.draw(consumer, pose, faces, sprite, color, light));
     }
 
     private static boolean joined(BlockState state, Direction side) {
         return state.getValue(FluidTankBlock.property(side));
-    }
-
-    private record Box(float x0, float y0, float z0, float x1, float y1, float z1) {
-    }
-
-    /** One face of the box, counter clockwise seen from outside, textured with the sprite scaled to the face size. */
-    private static void quad(VertexConsumer consumer, PoseStack.Pose pose, Box b, Direction face,
-                             TextureAtlasSprite sprite, int color, int light) {
-        switch (face) {
-            case UP -> {
-                float u0 = sprite.getU(b.x0()), u1 = sprite.getU(b.x1()), v0 = sprite.getV(b.z0()), v1 = sprite.getV(b.z1());
-                vertex(consumer, pose, b.x0(), b.y1(), b.z0(), u0, v0, color, light, face);
-                vertex(consumer, pose, b.x0(), b.y1(), b.z1(), u0, v1, color, light, face);
-                vertex(consumer, pose, b.x1(), b.y1(), b.z1(), u1, v1, color, light, face);
-                vertex(consumer, pose, b.x1(), b.y1(), b.z0(), u1, v0, color, light, face);
-            }
-            case DOWN -> {
-                float u0 = sprite.getU(b.x0()), u1 = sprite.getU(b.x1()), v0 = sprite.getV(b.z0()), v1 = sprite.getV(b.z1());
-                vertex(consumer, pose, b.x0(), b.y0(), b.z0(), u0, v0, color, light, face);
-                vertex(consumer, pose, b.x1(), b.y0(), b.z0(), u1, v0, color, light, face);
-                vertex(consumer, pose, b.x1(), b.y0(), b.z1(), u1, v1, color, light, face);
-                vertex(consumer, pose, b.x0(), b.y0(), b.z1(), u0, v1, color, light, face);
-            }
-            case NORTH -> {
-                float u0 = sprite.getU(b.x0()), u1 = sprite.getU(b.x1()), v0 = sprite.getV(1 - b.y1()), v1 = sprite.getV(1 - b.y0());
-                vertex(consumer, pose, b.x1(), b.y1(), b.z0(), u1, v0, color, light, face);
-                vertex(consumer, pose, b.x1(), b.y0(), b.z0(), u1, v1, color, light, face);
-                vertex(consumer, pose, b.x0(), b.y0(), b.z0(), u0, v1, color, light, face);
-                vertex(consumer, pose, b.x0(), b.y1(), b.z0(), u0, v0, color, light, face);
-            }
-            case SOUTH -> {
-                float u0 = sprite.getU(b.x0()), u1 = sprite.getU(b.x1()), v0 = sprite.getV(1 - b.y1()), v1 = sprite.getV(1 - b.y0());
-                vertex(consumer, pose, b.x0(), b.y1(), b.z1(), u0, v0, color, light, face);
-                vertex(consumer, pose, b.x0(), b.y0(), b.z1(), u0, v1, color, light, face);
-                vertex(consumer, pose, b.x1(), b.y0(), b.z1(), u1, v1, color, light, face);
-                vertex(consumer, pose, b.x1(), b.y1(), b.z1(), u1, v0, color, light, face);
-            }
-            case WEST -> {
-                float u0 = sprite.getU(b.z0()), u1 = sprite.getU(b.z1()), v0 = sprite.getV(1 - b.y1()), v1 = sprite.getV(1 - b.y0());
-                vertex(consumer, pose, b.x0(), b.y1(), b.z0(), u0, v0, color, light, face);
-                vertex(consumer, pose, b.x0(), b.y0(), b.z0(), u0, v1, color, light, face);
-                vertex(consumer, pose, b.x0(), b.y0(), b.z1(), u1, v1, color, light, face);
-                vertex(consumer, pose, b.x0(), b.y1(), b.z1(), u1, v0, color, light, face);
-            }
-            case EAST -> {
-                float u0 = sprite.getU(b.z0()), u1 = sprite.getU(b.z1()), v0 = sprite.getV(1 - b.y1()), v1 = sprite.getV(1 - b.y0());
-                vertex(consumer, pose, b.x1(), b.y1(), b.z1(), u1, v0, color, light, face);
-                vertex(consumer, pose, b.x1(), b.y0(), b.z1(), u1, v1, color, light, face);
-                vertex(consumer, pose, b.x1(), b.y0(), b.z0(), u0, v1, color, light, face);
-                vertex(consumer, pose, b.x1(), b.y1(), b.z0(), u0, v0, color, light, face);
-            }
-        }
-    }
-
-    private static void vertex(VertexConsumer consumer, PoseStack.Pose pose, float x, float y, float z, float u, float v,
-                               int color, int light, Direction face) {
-        consumer.addVertex(pose, x, y, z)
-                .setColor(color)
-                .setUv(u, v)
-                .setOverlay(OverlayTexture.NO_OVERLAY)
-                .setLight(light)
-                .setNormal(pose, face.getStepX(), face.getStepY(), face.getStepZ());
     }
 }

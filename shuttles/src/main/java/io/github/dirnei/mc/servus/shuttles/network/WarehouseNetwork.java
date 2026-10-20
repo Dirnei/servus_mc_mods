@@ -18,6 +18,10 @@ import io.github.dirnei.mc.servus.shuttles.field.FieldHeads;
 import io.github.dirnei.mc.servus.shuttles.field.FieldStatus;
 import io.github.dirnei.mc.servus.shuttles.field.SupplyBuffer;
 import io.github.dirnei.mc.servus.shuttles.field.SupplyPlan;
+import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork.FluidKey;
+import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.gantry.GantryMode;
+import io.github.dirnei.mc.servus.shuttles.gantry.TankRef;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.index.WarehouseIndex;
 import io.github.dirnei.mc.servus.shuttles.order.StockRules;
@@ -67,6 +71,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
  * One connected set of storage blocks. Keeps an index of everything its own
@@ -110,6 +116,14 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** Stations holding a stack that found no room; retried on zone and room changes and on a slow timer. */
     private final Set<BlockPos> blockedStations = new LinkedHashSet<>();
     private int blockedRetry;
+    /** Fluid Gantries, by their master's position. */
+    private final Set<BlockPos> gantries = new LinkedHashSet<>();
+    /** Gantries whose tanks changed; read again on the next tick. */
+    private final Set<BlockPos> pendingGantries = new LinkedHashSet<>();
+    /** The fluid stock: every tank of a Storage gantry. */
+    private final WarehouseIndex<TankRef, FluidKey> fluidIndex = new WarehouseIndex<>();
+    /** What every gantry's tanks hold, Storage or not, as last read. */
+    private final Map<BlockPos, List<TankView>> tankViews = new HashMap<>();
     /** Held loads per destination. */
     private final Map<BlockPos, List<HeldLoad>> held = new HashMap<>();
     private final WarehouseIndex<BlockPos, ItemKey> index = new WarehouseIndex<>();
@@ -169,6 +183,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         } else if (node instanceof ShuttleGarageBlockEntity garage) {
             garages.add(blockPos);
             fleet.adoptGarage(blockPos, garage.slots(), garage.isActive());
+        } else if (node.kind() == WarehouseConnectionRule.NodeKind.GANTRY) {
+            gantries.add(blockPos);
+            pendingGantries.add(blockPos);
         } else {
             connectors.add(blockPos);
             if (node.kind() == WarehouseConnectionRule.NodeKind.ELEVATOR) {
@@ -197,6 +214,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         dropSource(blockPos);
         if (garages.remove(blockPos)) {
             fleet.releaseGarage(blockPos);
+        }
+        if (gantries.remove(blockPos)) {
+            pendingGantries.remove(blockPos);
+            dropTanks(blockPos);
         }
         held.remove(blockPos);
         if (node instanceof WarehouseControllerBlockEntity) {
@@ -233,6 +254,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         stations.addAll(that.stations);
         pendingStations.addAll(that.stations);
         garages.addAll(that.garages);
+        gantries.addAll(that.gantries);
+        pendingGantries.addAll(that.gantries);
         that.held.forEach((pos, loads) -> held.computeIfAbsent(pos, p -> new ArrayList<>()).addAll(loads));
         zones.absorb(that.zones);
         that.sources.forEach(pos -> {
@@ -254,6 +277,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         shaftFloors = Map.of();
         stations.clear();
         garages.clear();
+        gantries.clear();
+        pendingGantries.clear();
+        tankViews.clear();
         held.clear();
         pendingStations.clear();
         blockedStations.clear();
@@ -396,6 +422,13 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 if (isTravelNode(front)) {
                     result.add(front);
                 }
+            }
+            return result;
+        }
+        if (loaded(pos) instanceof FluidGantryBlockEntity gantry) {
+            NodePos rail = Conversions.toNodePos(pos.relative(gantry.railSide()));
+            if (isTravelNode(rail)) {
+                result.add(rail);
             }
             return result;
         }
@@ -889,6 +922,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (stations.contains(intake.pos())) {
                 pendingStations.add(intake.pos());
             }
+        } else if (event instanceof WarehouseEvent.FluidChanged fluid) {
+            if (gantries.contains(fluid.pos())) {
+                pendingGantries.add(fluid.pos());
+            }
         } else if (event instanceof WarehouseEvent.LiftUpgradesChanged lift) {
             if (elevators.contains(Conversions.toNodePos(lift.pos()))) {
                 shaftsDirty = true;
@@ -899,6 +936,52 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 zonesDirty = true;
             }
         }
+    }
+
+    /** One tank of a gantry as last read: its lock (empty for Any), what it holds and its capacity. */
+    public record TankView(TankRef ref, GantryMode mode, Optional<Fluid> lock, FluidStack fluid, int capacity) {
+    }
+
+    /** Reads the tanks of every gantry that changed; only Storage gantries count as fluid stock. */
+    private void readGantries() {
+        for (BlockPos pos : List.copyOf(pendingGantries)) {
+            pendingGantries.remove(pos);
+            if (!(loaded(pos) instanceof FluidGantryBlockEntity gantry)) {
+                continue;
+            }
+            List<TankView> views = new ArrayList<>(2);
+            for (int tank = 0; tank < 2; tank++) {
+                TankRef ref = new TankRef(pos, tank);
+                FluidStack fluid = gantry.tank(tank).getFluid().copy();
+                views.add(new TankView(ref, gantry.mode(), Optional.ofNullable(gantry.lock(tank)), fluid, gantry.tank(tank).getCapacity()));
+                fluidIndex.update(ref, gantry.mode() == GantryMode.STORAGE && !fluid.isEmpty()
+                        ? Map.of(FluidKey.of(fluid), fluid.getAmount()) : Map.of());
+            }
+            tankViews.put(pos, List.copyOf(views));
+        }
+    }
+
+    private void dropTanks(BlockPos gantry) {
+        fluidIndex.remove(new TankRef(gantry, 0));
+        fluidIndex.remove(new TankRef(gantry, 1));
+        tankViews.remove(gantry);
+    }
+
+    /** The fluid stock: the tanks of the Storage gantries, per fluid. */
+    public WarehouseIndex<TankRef, FluidKey> fluidIndex() {
+        return fluidIndex;
+    }
+
+    /** The Fluid Gantries of this warehouse, by their master's position, in a stable order. */
+    public List<BlockPos> gantries() {
+        List<BlockPos> list = new ArrayList<>(gantries);
+        list.sort(Comparator.comparingLong(BlockPos::asLong));
+        return list;
+    }
+
+    /** The two tanks of a gantry as last read, empty before the first read. */
+    public List<TankView> tankViews(BlockPos gantry) {
+        return tankViews.getOrDefault(gantry, List.of());
     }
 
     private void markDirty(BlockPos pos) {
@@ -926,6 +1009,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         fleet.tick();
         tickStations();
+        if (!pendingGantries.isEmpty()) {
+            readGantries();
+        }
         if (++outboundTimer >= ShuttlesStatsManager.INSTANCE.outboundCheckInterval()) {
             outboundTimer = 0;
             tickOutbound();
@@ -1352,7 +1438,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             case MULTIPLE_CONTROLLERS -> "offline, more than one controller";
         };
         return Component.literal("Warehouse #" + id() + ": " + state + ", " + size() + " nodes, " + connectors.size() + " connectors, " + sources.size()
-                + " sources, " + stations.size() + " stations, " + garages.size() + " garages, " + index.typeCount() + " item types, " + index.totalItems() + " items, " + fleet.summary()
+                + " sources, " + stations.size() + " stations, " + garages.size() + " garages, " + gantries.size() + " gantries, " + index.typeCount() + " item types, " + index.totalItems() + " items, " + fleet.summary()
                 + (status() == Status.ONLINE && noPower() ? ", no power" : ""));
     }
 

@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.registry;
 
 import io.github.dirnei.mc.servus.shuttles.pattern.StoredPatterns;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
+import io.github.dirnei.mc.servus.shuttles.gantry.GantryContents;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleModules;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
 import com.mojang.serialization.Codec;
@@ -46,6 +47,12 @@ public final class ServusShuttlesComponents {
             COMPONENTS.registerComponentType("shuttle_name", builder -> builder
                     .persistent(Codec.STRING)
                     .networkSynchronized(ByteBufCodecs.STRING_UTF8));
+
+    /** The tanks, locks, mode and Capacity Upgrades a dropped Fluid Gantry keeps. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GantryContents>> GANTRY_CONTENTS =
+            COMPONENTS.registerComponentType("gantry_contents", builder -> builder
+                    .persistent(GantryContents.CODEC)
+                    .networkSynchronized(GantryContents.STREAM_CODEC));
 
     private ServusShuttlesComponents() {
     }

@@ -1,0 +1,374 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_leg_low"
+      },
+      "when": {
+        "axis": "z",
+        "part": "left_low|right_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_leg_high"
+      },
+      "when": {
+        "axis": "z",
+        "part": "left_high|right_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_beam"
+      },
+      "when": {
+        "axis": "z",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_spout"
+      },
+      "when": {
+        "axis": "z",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_storage_off"
+      },
+      "when": {
+        "axis": "z",
+        "mode": "storage",
+        "online": "false",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_storage_idle"
+      },
+      "when": {
+        "activity": "idle",
+        "axis": "z",
+        "mode": "storage",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_storage_working"
+      },
+      "when": {
+        "activity": "working",
+        "axis": "z",
+        "mode": "storage",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_storage_blocked"
+      },
+      "when": {
+        "activity": "blocked",
+        "axis": "z",
+        "mode": "storage",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_import_off"
+      },
+      "when": {
+        "axis": "z",
+        "mode": "import",
+        "online": "false",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_import_idle"
+      },
+      "when": {
+        "activity": "idle",
+        "axis": "z",
+        "mode": "import",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_import_working"
+      },
+      "when": {
+        "activity": "working",
+        "axis": "z",
+        "mode": "import",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_import_blocked"
+      },
+      "when": {
+        "activity": "blocked",
+        "axis": "z",
+        "mode": "import",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_export_off"
+      },
+      "when": {
+        "axis": "z",
+        "mode": "export",
+        "online": "false",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_export_idle"
+      },
+      "when": {
+        "activity": "idle",
+        "axis": "z",
+        "mode": "export",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_export_working"
+      },
+      "when": {
+        "activity": "working",
+        "axis": "z",
+        "mode": "export",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_export_blocked"
+      },
+      "when": {
+        "activity": "blocked",
+        "axis": "z",
+        "mode": "export",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_leg_low",
+        "y": 90
+      },
+      "when": {
+        "axis": "x",
+        "part": "left_low|right_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_leg_high",
+        "y": 90
+      },
+      "when": {
+        "axis": "x",
+        "part": "left_high|right_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_beam",
+        "y": 90
+      },
+      "when": {
+        "axis": "x",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_spout",
+        "y": 90
+      },
+      "when": {
+        "axis": "x",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_storage_off",
+        "y": 90
+      },
+      "when": {
+        "axis": "x",
+        "mode": "storage",
+        "online": "false",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_storage_idle",
+        "y": 90
+      },
+      "when": {
+        "activity": "idle",
+        "axis": "x",
+        "mode": "storage",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_storage_working",
+        "y": 90
+      },
+      "when": {
+        "activity": "working",
+        "axis": "x",
+        "mode": "storage",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_storage_blocked",
+        "y": 90
+      },
+      "when": {
+        "activity": "blocked",
+        "axis": "x",
+        "mode": "storage",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_import_off",
+        "y": 90
+      },
+      "when": {
+        "axis": "x",
+        "mode": "import",
+        "online": "false",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_import_idle",
+        "y": 90
+      },
+      "when": {
+        "activity": "idle",
+        "axis": "x",
+        "mode": "import",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_import_working",
+        "y": 90
+      },
+      "when": {
+        "activity": "working",
+        "axis": "x",
+        "mode": "import",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_import_blocked",
+        "y": 90
+      },
+      "when": {
+        "activity": "blocked",
+        "axis": "x",
+        "mode": "import",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_export_off",
+        "y": 90
+      },
+      "when": {
+        "axis": "x",
+        "mode": "export",
+        "online": "false",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_export_idle",
+        "y": 90
+      },
+      "when": {
+        "activity": "idle",
+        "axis": "x",
+        "mode": "export",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_export_working",
+        "y": 90
+      },
+      "when": {
+        "activity": "working",
+        "axis": "x",
+        "mode": "export",
+        "online": "true",
+        "part": "beam"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_gantry_sign_export_blocked",
+        "y": 90
+      },
+      "when": {
+        "activity": "blocked",
+        "axis": "x",
+        "mode": "export",
+        "online": "true",
+        "part": "beam"
+      }
+    }
+  ]
+}

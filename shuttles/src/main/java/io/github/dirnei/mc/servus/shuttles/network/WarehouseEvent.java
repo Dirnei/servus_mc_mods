@@ -21,6 +21,10 @@ public sealed interface WarehouseEvent {
     record OutputChanged(BlockPos pos) implements WarehouseEvent {
     }
 
+    /** The tanks, locks, mode or upgrades of the Fluid Gantry at {@code pos} changed; its fluid stock is read again. */
+    record FluidChanged(BlockPos pos) implements WarehouseEvent {
+    }
+
     /** The Speed upgrades of the elevator segment at {@code pos} changed; its car reads them again. */
     record LiftUpgradesChanged(BlockPos pos) implements WarehouseEvent {
     }

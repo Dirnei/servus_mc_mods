@@ -77,6 +77,10 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final int DEFAULT_FERTILIZER_BUFFER = 64;
     public static final int DEFAULT_HARVEST_LIMIT = 0;
     public static final int DEFAULT_FERTILIZE_BELOW = 0;
+    public static final int DEFAULT_GANTRY_TANK_CAPACITY = 16000;
+    public static final int DEFAULT_GANTRY_CAPACITY_PER_UPGRADE = 16000;
+    public static final int DEFAULT_GANTRY_UPGRADE_SLOTS = 4;
+    public static final int DEFAULT_GANTRY_LEVEL_STEPS = 32;
 
     private static final Identifier WAREHOUSE = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "warehouse");
     private static final Identifier RACK = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "rack");
@@ -87,6 +91,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private static final Identifier SHUTTLE = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "shuttle");
     private static final Identifier FIELD = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "field");
     private static final Identifier POWER = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "power");
+    private static final Identifier GANTRY = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "gantry");
 
     public static final ShuttlesStatsManager INSTANCE = new ShuttlesStatsManager();
 
@@ -148,6 +153,10 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private volatile int fertilizerBuffer = DEFAULT_FERTILIZER_BUFFER;
     private volatile int harvestLimit = DEFAULT_HARVEST_LIMIT;
     private volatile int fertilizeBelow = DEFAULT_FERTILIZE_BELOW;
+    private volatile int gantryTankCapacity = DEFAULT_GANTRY_TANK_CAPACITY;
+    private volatile int gantryCapacityPerUpgrade = DEFAULT_GANTRY_CAPACITY_PER_UPGRADE;
+    private volatile int gantryUpgradeSlots = DEFAULT_GANTRY_UPGRADE_SLOTS;
+    private volatile int gantryLevelSteps = DEFAULT_GANTRY_LEVEL_STEPS;
 
     private ShuttlesStatsManager() {
         super(ExtraCodecs.JSON, FileToIdConverter.json(DIRECTORY));
@@ -212,6 +221,10 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         fertilizerBuffer = countField(files.get(FIELD), "fertilizer_buffer", DEFAULT_FERTILIZER_BUFFER);
         harvestLimit = countField(files.get(FIELD), "harvest_limit", DEFAULT_HARVEST_LIMIT);
         fertilizeBelow = countField(files.get(FIELD), "fertilize_below", DEFAULT_FERTILIZE_BELOW);
+        gantryTankCapacity = intField(files.get(GANTRY), "tank_capacity", DEFAULT_GANTRY_TANK_CAPACITY);
+        gantryCapacityPerUpgrade = countField(files.get(GANTRY), "capacity_per_upgrade", DEFAULT_GANTRY_CAPACITY_PER_UPGRADE);
+        gantryUpgradeSlots = countField(files.get(GANTRY), "upgrade_slots", DEFAULT_GANTRY_UPGRADE_SLOTS);
+        gantryLevelSteps = intField(files.get(GANTRY), "level_steps", DEFAULT_GANTRY_LEVEL_STEPS);
         shuttleTiers = ShuttleStatsReader.read(files.get(SHUTTLE));
         ServusShuttles.LOGGER.info("Warehouse polls {} sources per tick", sourcesPerTick);
     }
@@ -575,4 +588,23 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         return shuttleTiers;
     }
 
+    /** mB a Fluid Gantry tank holds without Capacity Upgrades. */
+    public int gantryTankCapacity() {
+        return gantryTankCapacity;
+    }
+
+    /** mB each Capacity Upgrade adds to both tanks of a gantry. */
+    public int gantryCapacityPerUpgrade() {
+        return gantryCapacityPerUpgrade;
+    }
+
+    /** Capacity Upgrade slots of a gantry. */
+    public int gantryUpgradeSlots() {
+        return gantryUpgradeSlots;
+    }
+
+    /** Steps in which clients learn the fill of a gantry tank column. */
+    public int gantryLevelSteps() {
+        return gantryLevelSteps;
+    }
 }

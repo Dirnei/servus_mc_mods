@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.registry;
 
 import io.github.dirnei.mc.servus.shuttles.field.FarmRailBlock;
 import io.github.dirnei.mc.servus.shuttles.field.FieldHeadBlock;
+import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlock;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlock;
@@ -155,6 +156,15 @@ public final class ServusShuttlesBlocks {
                             .mapColor(MapColor.WOOD)
                             .strength(2.5F)
                             .sound(SoundType.WOOD));
+
+    public static final DeferredBlock<FluidGantryBlock> FLUID_GANTRY =
+            BLOCKS.registerBlock("fluid_gantry", FluidGantryBlock::new,
+                    () -> BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.METAL)
+                            .strength(2.5F)
+                            .sound(SoundType.METAL)
+                            .noOcclusion()
+                            .noLootTable());
 
     private ServusShuttlesBlocks() {
     }

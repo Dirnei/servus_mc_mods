@@ -1,0 +1,166 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#steel"
+        },
+        "east": {
+          "texture": "#steel"
+        },
+        "north": {
+          "texture": "#steel"
+        },
+        "south": {
+          "texture": "#sign",
+          "uv": [
+            0,
+            0,
+            16,
+            6
+          ]
+        },
+        "up": {
+          "texture": "#steel"
+        },
+        "west": {
+          "texture": "#steel"
+        }
+      },
+      "from": [
+        3.5,
+        10.65,
+        13.15
+      ],
+      "to": [
+        12.5,
+        13.85,
+        13.65
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#steel"
+        },
+        "east": {
+          "texture": "#steel"
+        },
+        "north": {
+          "texture": "#sign",
+          "uv": [
+            0,
+            0,
+            16,
+            6
+          ]
+        },
+        "south": {
+          "texture": "#steel"
+        },
+        "up": {
+          "texture": "#steel"
+        },
+        "west": {
+          "texture": "#steel"
+        }
+      },
+      "from": [
+        3.5,
+        10.65,
+        2.35
+      ],
+      "to": [
+        12.5,
+        13.85,
+        2.85
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#steel"
+        },
+        "east": {
+          "texture": "#steel"
+        },
+        "north": {
+          "texture": "#steel"
+        },
+        "south": {
+          "texture": "#sign",
+          "uv": [
+            0,
+            0,
+            16,
+            6
+          ]
+        },
+        "up": {
+          "texture": "#steel"
+        },
+        "west": {
+          "texture": "#steel"
+        }
+      },
+      "from": [
+        3.5,
+        10.65,
+        13.15
+      ],
+      "to": [
+        12.5,
+        13.85,
+        13.65
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#steel"
+        },
+        "east": {
+          "texture": "#steel"
+        },
+        "north": {
+          "texture": "#sign",
+          "uv": [
+            0,
+            0,
+            16,
+            6
+          ]
+        },
+        "south": {
+          "texture": "#steel"
+        },
+        "up": {
+          "texture": "#steel"
+        },
+        "west": {
+          "texture": "#steel"
+        }
+      },
+      "from": [
+        3.5,
+        10.65,
+        2.35
+      ],
+      "to": [
+        12.5,
+        13.85,
+        2.85
+      ]
+    }
+  ],
+  "textures": {
+    "copper": "minecraft:block/copper_block",
+    "glass": "servus_foundation:block/fluid_tank_glass",
+    "iron": "servus_shuttles:block/heavy_rack_iron",
+    "particle": "servus_foundation:block/electric_pump_steel",
+    "plate": "servus_shuttles:block/fluid_gantry_plate",
+    "sign": "servus_shuttles:block/fluid_gantry_sign_import_working",
+    "steel": "servus_foundation:block/electric_pump_steel"
+  }
+}

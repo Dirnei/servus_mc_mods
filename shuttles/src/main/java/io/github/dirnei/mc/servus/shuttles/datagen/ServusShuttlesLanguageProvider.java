@@ -483,5 +483,36 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.zone_label.items", "Items this zone takes");
         add("gui.servus_shuttles.zone_label.tags", "Tags");
         add("gui.servus_shuttles.zone_label.tags_hint", "tags, comma separated, for example c:ores");
+        fluidGantry();
+    }
+
+    private void fluidGantry() {
+        add(ServusShuttlesBlocks.FLUID_GANTRY.get(), "Fluid Gantry");
+        add("message.servus_shuttles.fluid_gantry.needs_rail", "The Fluid Gantry goes on a Warehouse Rail");
+        add("message.servus_shuttles.fluid_gantry.needs_straight_rail", "The Fluid Gantry needs a straight rail: no curve, crossing or dock across it");
+        add("message.servus_shuttles.fluid_gantry.no_room", "No room: the gantry needs both sides of the rail and the space above, two blocks tall");
+        add("message.servus_shuttles.fluid_gantry.no_footing", "Both legs of the gantry need solid ground");
+        add("tooltip.servus_shuttles.fluid_gantry.tank_0", "Left tank: %s");
+        add("tooltip.servus_shuttles.fluid_gantry.tank_1", "Right tank: %s");
+        add("tooltip.servus_shuttles.fluid_gantry.amount", "%s, %s mB");
+        add("tooltip.servus_shuttles.fluid_gantry.empty", "empty");
+        add("tooltip.servus_shuttles.fluid_gantry.mode", "Mode: %s");
+        add("gui.servus_shuttles.fluid_gantry.mode.storage", "Storage");
+        add("gui.servus_shuttles.fluid_gantry.mode.import", "Import");
+        add("gui.servus_shuttles.fluid_gantry.mode.export", "Export");
+        add("gui.servus_shuttles.fluid_gantry.mode_button", "Mode: %s");
+        add("gui.servus_shuttles.fluid_gantry.mode_button.tooltip", "Storage keeps fluid stock for the warehouse; Import and Export are docks for pipes. Click to switch.");
+        add("gui.servus_shuttles.fluid_gantry.tank_0", "Left");
+        add("gui.servus_shuttles.fluid_gantry.tank_1", "Right");
+        add("gui.servus_shuttles.fluid_gantry.lock_picker", "Lock this tank to");
+        add("gui.servus_shuttles.fluid_gantry.lock_any", "Any fluid");
+        add("gui.servus_shuttles.fluid_gantry.lock_content", "Lock to content");
+        add("gui.servus_shuttles.fluid_gantry.upgrades", "Capacity Upgrades");
+        add("gui.servus_shuttles.fluid_gantry.upgrades.tooltip", "Each Capacity Upgrade makes both tanks bigger. One comes out only while the tanks would still fit without it.");
+        add("gui.servus_shuttles.fluid_gantry.state.storage", "Storage: fluid stock of the warehouse, no pipes reach the tanks");
+        add("gui.servus_shuttles.fluid_gantry.state.import", "Import: pipes fill the tanks and get nothing back");
+        add("gui.servus_shuttles.fluid_gantry.state.export", "Export: pipes drain the tanks and put nothing in");
+        add("gui.servus_shuttles.fluid_gantry.state.mismatch", "%s tank holds %s but is locked to %s: it takes no more");
+        add("gui.servus_shuttles.fluid_gantry.state.upgrade_refused", "This upgrade cannot come out: the content would no longer fit");
     }
 }

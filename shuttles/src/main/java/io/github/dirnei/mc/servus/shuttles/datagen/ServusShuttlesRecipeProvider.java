@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.datagen;
 
+import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackRecipe;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import java.util.concurrent.CompletableFuture;
@@ -138,6 +139,18 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('I', Items.IRON_INGOT)
                 .define('R', ServusShuttlesItems.RAIL.get())
                 .unlockedBy("has_rail", has(ServusShuttlesItems.RAIL.get()))
+                .save(output);
+
+        // The Fluid Gantry: two Fluid Tanks for the legs, a copper ingot for the spout, the rail it stands over.
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.FLUID_GANTRY.get())
+                .pattern("ICI")
+                .pattern("T T")
+                .pattern("IRI")
+                .define('I', Items.IRON_INGOT)
+                .define('C', Items.COPPER_INGOT)
+                .define('T', ServusLogisticsItems.FLUID_TANK.get())
+                .define('R', ServusShuttlesItems.RAIL.get())
+                .unlockedBy("has_fluid_tank", has(ServusLogisticsItems.FLUID_TANK.get()))
                 .save(output);
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.HEAVY_RACK.get(), 3)

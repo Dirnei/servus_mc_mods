@@ -1054,6 +1054,25 @@
         {"item": "servus_shuttles:field_head", "count": 1}
       ]
     },
+    "servus_shuttles:fluid_gantry": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["ICI", "T T", "IRI"],
+      "key": {
+        "C": {"item": "minecraft:copper_ingot"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "R": {"item": "servus_shuttles:rail"},
+        "T": {"item": "servus_foundation:fluid_tank"}
+      },
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 4},
+        {"item": "servus_foundation:fluid_tank", "count": 2},
+        {"item": "servus_shuttles:rail", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_shuttles:fluid_gantry", "count": 1}
+      ]
+    },
     "servus_shuttles:handling_upgrade": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["CRC", "RPR", "CRC"],
@@ -1659,6 +1678,9 @@
     },
     "servus_shuttles:field_head": {
       "name": "Field Head"
+    },
+    "servus_shuttles:fluid_gantry": {
+      "name": "Fluid Gantry"
     },
     "servus_shuttles:handling_upgrade": {
       "name": "Handling Upgrade"

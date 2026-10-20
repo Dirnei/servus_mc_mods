@@ -90,6 +90,19 @@ class WarehouseConnectionRuleTest {
     }
 
     @Test
+    void gantryLinksOnlyToRails() {
+        assertTrue(WarehouseConnectionRule.railOnly(NodeKind.GANTRY));
+        for (Side side : Side.ALL) {
+            assertTrue(WarehouseConnectionRule.accepts(NodeKind.GANTRY, side, NodeKind.RAIL));
+            for (NodeKind other : NodeKind.values()) {
+                if (other != NodeKind.RAIL) {
+                    assertFalse(WarehouseConnectionRule.accepts(NodeKind.GANTRY, side, other), other + " " + side);
+                }
+            }
+        }
+    }
+
+    @Test
     void ruleIsSymmetric() {
         for (NodeKind a : NodeKind.values()) {
             for (NodeKind b : NodeKind.values()) {

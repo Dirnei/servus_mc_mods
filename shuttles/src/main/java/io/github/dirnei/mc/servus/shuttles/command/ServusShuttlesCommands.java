@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
+import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork.FluidKey;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuBuffer;
@@ -47,6 +48,7 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 /** {@code /servus_warehouse info|zones <pos>} and {@code take <pos> <item> <count>} for the network at a storage block. */
 @EventBusSubscriber(modid = ServusShuttlesIds.MOD_ID)
@@ -69,6 +71,9 @@ public final class ServusShuttlesCommands {
                                 .executes(ServusShuttlesCommands::wake)))
                 .then(Commands.literal("sites")
                         .executes(ServusShuttlesCommands::sites))
+                .then(Commands.literal("fluids")
+                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                .executes(ServusShuttlesCommands::fluids)))
                 .then(Commands.literal("zones")
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .executes(ServusShuttlesCommands::zones)))
@@ -501,6 +506,40 @@ public final class ServusShuttlesCommands {
                     + " chunks, " + (awake ? "awake" : "asleep") + ", " + site.stock().size() + " item types known");
         }
         return sites.size();
+    }
+
+    /** The warehouse's fluid stock per fluid, then every Fluid Gantry with its mode and both tanks. */
+    private static int fluids(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+        CommandSourceStack source = context.getSource();
+        Optional<WarehouseNetwork> network = networkAt(source, pos);
+        if (network.isEmpty()) {
+            return 0;
+        }
+        WarehouseNetwork warehouse = network.get();
+        List<Map.Entry<FluidKey, Long>> totals = warehouse.fluidIndex().entries();
+        say(source, totals.isEmpty() ? "No fluid stock" : "Fluid stock:");
+        for (Map.Entry<FluidKey, Long> entry : totals) {
+            say(source, "  - " + entry.getKey().stack(1).getHoverName().getString() + ": " + entry.getValue() + " mB in "
+                    + warehouse.fluidIndex().sourcesHolding(entry.getKey()).size() + " tanks");
+        }
+        List<BlockPos> gantries = warehouse.gantries();
+        say(source, gantries.isEmpty() ? "No Fluid Gantries" : "Fluid Gantries:");
+        for (BlockPos gantry : gantries) {
+            StringBuilder line = new StringBuilder("  - ").append(gantry.toShortString());
+            List<WarehouseNetwork.TankView> tanks = warehouse.tankViews(gantry);
+            if (!tanks.isEmpty()) {
+                line.append(", ").append(lower(tanks.getFirst().mode()));
+            }
+            for (WarehouseNetwork.TankView tank : tanks) {
+                line.append(tank.ref().tank() == 0 ? "; left " : "; right ")
+                        .append(tank.fluid().isEmpty() ? "empty" : tank.fluid().getHoverName().getString() + " " + tank.fluid().getAmount())
+                        .append(" / ").append(tank.capacity()).append(" mB, lock ")
+                        .append(tank.lock().map(fluid -> new FluidStack(fluid, 1).getHoverName().getString()).orElse("Any"));
+            }
+            say(source, line.toString());
+        }
+        return totals.size();
     }
 
     private static int info(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.terminal;
 
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
+import io.github.dirnei.mc.servus.shuttles.gantry.SetGantryLockPayload;
+import io.github.dirnei.mc.servus.shuttles.menu.FluidGantryMenu;
 import io.github.dirnei.mc.servus.shuttles.client.ClientFieldWorker;
 import io.github.dirnei.mc.servus.shuttles.client.ClientLifts;
 import io.github.dirnei.mc.servus.shuttles.client.ClientPackingStatus;
@@ -105,6 +107,8 @@ public final class ServusShuttlesPayloads {
                 (player, menu, payload) -> menu.setName(payload.name()));
         toMenu(registrar, SetLabelTagsPayload.TYPE, SetLabelTagsPayload.STREAM_CODEC, ZoneLabelMenu.class,
                 (player, menu, payload) -> menu.setTags(payload.line()));
+        toMenu(registrar, SetGantryLockPayload.TYPE, SetGantryLockPayload.STREAM_CODEC, FluidGantryMenu.class,
+                (player, menu, payload) -> menu.setLock(payload.tank(), payload.kind(), payload.fluid()));
         registerTerminalRequests(registrar);
     }
 

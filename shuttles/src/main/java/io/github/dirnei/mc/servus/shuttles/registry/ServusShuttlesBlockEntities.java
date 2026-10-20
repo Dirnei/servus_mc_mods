@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.registry;
 
 import io.github.dirnei.mc.servus.shuttles.field.FieldHeadBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
@@ -71,6 +72,9 @@ public final class ServusShuttlesBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShuttleWorkshopBlockEntity>> SHUTTLE_WORKSHOP =
             BLOCK_ENTITIES.register("shuttle_workshop", () -> new BlockEntityType<>(ShuttleWorkshopBlockEntity::new, ServusShuttlesBlocks.SHUTTLE_WORKSHOP.get()));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FluidGantryBlockEntity>> FLUID_GANTRY =
+            BLOCK_ENTITIES.register("fluid_gantry", () -> new BlockEntityType<>(FluidGantryBlockEntity::new, ServusShuttlesBlocks.FLUID_GANTRY.get()));
 
     private ServusShuttlesBlockEntities() {
     }
