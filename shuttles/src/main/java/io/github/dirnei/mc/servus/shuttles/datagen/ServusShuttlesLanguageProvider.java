@@ -162,6 +162,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.controller.map.tooltip", "The chunks of this site. The gold square holds the controller");
         add(ServusShuttlesItems.HARVESTER.get(), "Harvester");
         add(ServusShuttlesItems.SPREADER.get(), "Spreader");
+        add(ServusShuttlesItems.TANKER.get(), "Tanker");
         add(ServusShuttlesBlocks.SHUTTLE_WORKSHOP.get(), "Shuttle Workshop");
         add(ServusShuttlesBlocks.FARM_RAIL.get(), "Farm Rail");
         add(ServusShuttlesBlocks.FIELD_HEAD.get(), "Field Head");
@@ -311,6 +312,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("tooltip.servus_shuttles.module.tool", "Tool module for a shuttle");
         add("tooltip.servus_shuttles.module.harvester", "Harvests, tills and plants fields; field work only");
         add("tooltip.servus_shuttles.module.spreader", "Spreads fertilizer on growing crops; field work only");
+        add("tooltip.servus_shuttles.module.tanker", "Carries fluids between Fluid Gantries; tanker runs only");
         add(ServusShuttlesItems.ZONE_LABEL.get(), "Zone Label");
         add("gui.servus_shuttles.production.pattern_recipe", "%s %s from %s");
         add("message.servus_shuttles.pattern_storage.count", "%s of %s patterns");
@@ -514,5 +516,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.fluid_gantry.state.export", "Export: pipes drain the tanks and put nothing in");
         add("gui.servus_shuttles.fluid_gantry.state.mismatch", "%s tank holds %s but is locked to %s: it takes no more");
         add("gui.servus_shuttles.fluid_gantry.state.upgrade_refused", "This upgrade cannot come out: the content would no longer fit");
+        add("gui.servus_shuttles.fluid_gantry.state.no_room", "No Storage tank has room for %s: it waits here");
+        add("gui.servus_shuttles.fluid_gantry.state.no_tanker", "No Tanker shuttle reaches this gantry: the fluid waits here");
     }
 }

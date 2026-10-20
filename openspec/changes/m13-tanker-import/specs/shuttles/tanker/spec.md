@@ -42,7 +42,7 @@ The target of a fluid put-away SHALL be chosen among the Storage gantry tanks of
 - **THEN** the next water goes to another tank or waits
 
 ### Requirement: No room, no run
-When an Import gantry tank holds fluid and no Storage gantry tank of the warehouse has room for that fluid, the warehouse SHALL queue no run for it, the fluid SHALL stay in the Import gantry, and the pipes feeding it SHALL back up once it is full. The Import gantry's activity lamp SHALL be red and its GUI state line SHALL name the fluid that has no room. When room appears, runs SHALL start again by themselves.
+When an Import gantry tank holds fluid and no Storage gantry tank of the warehouse has room for that fluid, the warehouse SHALL queue no run for it, the fluid SHALL stay in the Import gantry, and the pipes feeding it SHALL back up once it is full. The Import gantry's activity lamp SHALL be red and its GUI state line SHALL name the fluid that has no room. When room appears, runs SHALL start again by themselves. An Import gantry holding fluid that no Tanker shuttle of the warehouse reaches SHALL show the red lamp as well, and its state line SHALL say that no Tanker shuttle reaches it.
 
 #### Scenario: Backed up import
 - **WHEN** every Storage tank is locked to water or full and an Import gantry holds lava

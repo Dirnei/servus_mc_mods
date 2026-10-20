@@ -1350,6 +1350,23 @@
         {"item": "servus_shuttles:storage_terminal", "count": 1}
       ]
     },
+    "servus_shuttles:tanker": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IBI", "ITI", "IBI"],
+      "key": {
+        "B": {"item": "minecraft:bucket"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "T": {"item": "servus_foundation:fluid_tank"}
+      },
+      "inputs": [
+        {"item": "minecraft:bucket", "count": 2},
+        {"item": "minecraft:iron_ingot", "count": 6},
+        {"item": "servus_foundation:fluid_tank", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_shuttles:tanker", "count": 1}
+      ]
+    },
     "servus_shuttles:warehouse_controller": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["III", "RCR", "PPP"],
@@ -1726,6 +1743,9 @@
     },
     "servus_shuttles:storage_terminal": {
       "name": "Storage Terminal"
+    },
+    "servus_shuttles:tanker": {
+      "name": "Tanker"
     },
     "servus_shuttles:warehouse_controller": {
       "name": "Warehouse Controller"

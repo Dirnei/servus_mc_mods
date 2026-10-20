@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * The shuttle stats from {@code storage/shuttle.json}: speed, stop times and
- * the tiers with their stacks, upgrade maxes and build sheets. Counts are
+ * the tiers with their stacks, upgrade maxes, Tanker capacity and build sheets. Counts are
  * always clamped to the tier's max. Pure Java.
  *
  * @param baseSpeed      blocks per tick without Speed upgrades
@@ -29,17 +29,24 @@ public record ShuttleTiers(double baseSpeed, double speedPerCount, double accel,
     /**
      * One tier.
      *
-     * @param build the supplies that make this tier from the one below; empty for Mk1
-     * @param steps the steps of a build by hand of this tier; a tier with a build and no steps gets {@link BuildStep#DEFAULTS}
+     * @param build          the supplies that make this tier from the one below; empty for Mk1
+     * @param steps          the steps of a build by hand of this tier; a tier with a build and no steps gets {@link BuildStep#DEFAULTS}
+     * @param tankerCapacity mB of one fluid a Tanker shuttle of this tier carries
      */
-    public record Tier(int stacks, int maxSpeed, int maxHandling, List<Supply> build, List<BuildStep> steps) {
+    public record Tier(int stacks, int maxSpeed, int maxHandling, List<Supply> build, List<BuildStep> steps, int tankerCapacity) {
 
         public Tier {
             stacks = Math.max(1, stacks);
+            tankerCapacity = Math.max(1, tankerCapacity);
             maxSpeed = Math.max(0, maxSpeed);
             maxHandling = Math.max(0, maxHandling);
             build = List.copyOf(build);
             steps = build.isEmpty() ? List.of() : steps.isEmpty() ? BuildStep.DEFAULTS : List.copyOf(steps);
+        }
+
+        /** A tier with the default Tanker capacity. */
+        public Tier(int stacks, int maxSpeed, int maxHandling, List<Supply> build, List<BuildStep> steps) {
+            this(stacks, maxSpeed, maxHandling, build, steps, DEFAULT_TANKER_CAPACITY);
         }
 
         /** A tier whose build by hand has the default steps. */
@@ -54,13 +61,15 @@ public record ShuttleTiers(double baseSpeed, double speedPerCount, double accel,
 
     public static final double DEFAULT_ACCEL = 0.01;
     public static final double DEFAULT_ACCEL_PER_COUNT = 0.0025;
+    /** mB a Tanker carries in a tier that does not name its capacity. */
+    public static final int DEFAULT_TANKER_CAPACITY = 4000;
 
     public static final ShuttleTiers DEFAULT = new ShuttleTiers(0.15, 0.04, 10, 4, 0.8, List.of(
-            new Tier(2, 2, 2, List.of()),
+            new Tier(2, 2, 2, List.of(), List.of(), 4000),
             new Tier(4, 4, 4, List.of(new Supply("minecraft:gold_ingot", 16), new Supply("minecraft:chest", 2),
-                    new Supply("minecraft:redstone", 16))),
+                    new Supply("minecraft:redstone", 16)), List.of(), 8000),
             new Tier(8, 8, 8, List.of(new Supply("minecraft:diamond", 8), new Supply("minecraft:gold_block", 2),
-                    new Supply("minecraft:ender_chest", 1)))));
+                    new Supply("minecraft:ender_chest", 1)), List.of(), 16000)));
 
     /** Stats with the default acceleration. */
     public ShuttleTiers(double baseSpeed, double speedPerCount, int stopTicks, int stackTicks, double handlingFactor, List<Tier> tiers) {

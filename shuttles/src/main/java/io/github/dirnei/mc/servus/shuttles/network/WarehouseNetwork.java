@@ -20,7 +20,10 @@ import io.github.dirnei.mc.servus.shuttles.field.SupplyBuffer;
 import io.github.dirnei.mc.servus.shuttles.field.SupplyPlan;
 import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork.FluidKey;
 import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.gantry.FluidPutAwayPlan;
+import io.github.dirnei.mc.servus.shuttles.gantry.FluidRouting;
 import io.github.dirnei.mc.servus.shuttles.gantry.GantryMode;
+import io.github.dirnei.mc.servus.shuttles.gantry.GantryTanks;
 import io.github.dirnei.mc.servus.shuttles.gantry.TankRef;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.index.WarehouseIndex;
@@ -33,6 +36,7 @@ import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.shuttle.FertilizeJob;
 import io.github.dirnei.mc.servus.shuttles.shuttle.FieldJob;
+import io.github.dirnei.mc.servus.shuttles.shuttle.FluidJob;
 import io.github.dirnei.mc.servus.shuttles.shuttle.SupplyJob;
 import io.github.dirnei.mc.servus.shuttles.shuttle.LiftCar;
 import io.github.dirnei.mc.servus.shuttles.shuttle.PickJob;
@@ -140,6 +144,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final StockRuleKeeper rules = new StockRuleKeeper(this);
     private int outboundTimer;
     private int fieldTimer;
+    private int fluidTimer;
+    /** The min load of tanker runs when a test set one for this warehouse, else -1 for the stats. */
+    private int tankerMinLoadForTests = -1;
     private final ShuttleFleet fleet = new ShuttleFleet(this);
     private boolean spanDirty = true;
     private int snapshotTimer;
@@ -1021,6 +1028,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             fieldTimer = 0;
             tickFields();
         }
+        if (++fluidTimer >= ShuttlesStatsManager.INSTANCE.fluidCheckInterval()) {
+            fluidTimer = 0;
+            tickFluids();
+        }
         if (!sources.isEmpty()) {
             pollSources();
         }
@@ -1208,6 +1219,159 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
         }
         return false;
+    }
+
+    /**
+     * Queues a tanker run for each Import gantry tank holding fluid that has
+     * no run yet, holds the min load or is full, and has a Storage tank with
+     * room for it, when a Tanker shuttle reaches both gantries. Then sets
+     * every gantry's lamp: red for an Import gantry whose fluid has no room or
+     * no Tanker, orange while a run for it is queued or under way, else green.
+     */
+    private void tickFluids() {
+        if (status() != Status.ONLINE || gantries.isEmpty()) {
+            return;
+        }
+        int capacity = fleet.tankerCapacity();
+        Map<BlockPos, Boolean> reach = new HashMap<>();
+        Map<BlockPos, Fluid> noRooms = new HashMap<>();
+        Set<BlockPos> noTankers = new HashSet<>();
+        List<BlockPos> all = gantries();
+        for (BlockPos pos : all) {
+            Fluid noRoom = null;
+            boolean noTanker = false;
+            for (TankView view : tankViews(pos)) {
+                if (view.mode() != GantryMode.IMPORT || view.fluid().isEmpty() || fleet.hasFluidRun(view.ref())) {
+                    continue;
+                }
+                if (capacity <= 0 || !reach.computeIfAbsent(pos, fleet::tankerReaches)) {
+                    noTanker = true;
+                    continue;
+                }
+                FluidKey key = FluidKey.of(view.fluid());
+                List<FluidRouting.Target<TankRef>> targets = routeFluid(key, pos, reach);
+                if (targets.isEmpty()) {
+                    noRoom = noRoom == null ? view.fluid().getFluid() : noRoom;
+                    continue;
+                }
+                int held = view.fluid().getAmount();
+                int amount = FluidPutAwayPlan.amount(held - fleet.fluidQueuedFrom(view.ref()), held >= view.capacity(), tankerMinLoad(),
+                        capacity, targets.getFirst().room());
+                if (amount > 0) {
+                    TankRef target = targets.getFirst().id();
+                    fleet.requestFluid(new FluidJob(pos, view.ref().tank(), target.gantry(), target.tank(), key, amount));
+                }
+            }
+            if (noRoom != null) {
+                noRooms.put(pos, noRoom);
+            } else if (noTanker) {
+                noTankers.add(pos);
+            }
+        }
+        for (BlockPos pos : all) {
+            if (loaded(pos) instanceof FluidGantryBlockEntity gantry) {
+                boolean blocked = noRooms.containsKey(pos) || noTankers.contains(pos);
+                StorageNodeBlocks.Activity activity = blocked ? StorageNodeBlocks.Activity.BLOCKED
+                        : fleet.hasFluidRunAt(pos) ? StorageNodeBlocks.Activity.WORKING : StorageNodeBlocks.Activity.IDLE;
+                gantry.setActivity(activity, noRooms.get(pos), noTankers.contains(pos));
+            }
+        }
+    }
+
+    /**
+     * The Storage gantry tanks with room for the fluid in the order a tanker
+     * from the gantry at {@code from} tries them; {@code reach} caches which
+     * gantries a Tanker shuttle reaches.
+     */
+    private List<FluidRouting.Target<TankRef>> routeFluid(FluidKey key, BlockPos from, Map<BlockPos, Boolean> reach) {
+        Set<NodePos> start = dockRails(Conversions.toNodePos(from));
+        Fluid fluid = key.stack(1).getFluid();
+        List<FluidRouting.Candidate<Fluid, TankRef>> candidates = new ArrayList<>();
+        for (BlockPos pos : gantries()) {
+            List<TankView> views = tankViews(pos);
+            if (views.isEmpty() || views.getFirst().mode() != GantryMode.STORAGE || !reach.computeIfAbsent(pos, fleet::tankerReaches)) {
+                continue;
+            }
+            int distance = railDistance(start, dockRails(Conversions.toNodePos(pos)));
+            if (distance < 0) {
+                continue;
+            }
+            for (TankView view : views) {
+                boolean empty = view.fluid().isEmpty();
+                if (!empty && view.fluid().getFluid() == fluid && !FluidKey.of(view.fluid()).equals(key)) {
+                    // The same fluid with other components: the tank keeps one of them and takes no other.
+                    continue;
+                }
+                GantryTanks.Tank<Fluid> tank = new GantryTanks.Tank<>(view.lock().orElse(null), empty ? null : view.fluid().getFluid(),
+                        view.fluid().getAmount(), view.capacity());
+                Fluid incoming = fleet.fluidIncomingKey(view.ref()).map(on -> on.stack(1).getFluid()).orElse(null);
+                candidates.add(new FluidRouting.Candidate<>(view.ref(), tank, fleet.fluidIncomingTo(view.ref()), incoming, distance));
+            }
+        }
+        return FluidRouting.targets(candidates, fluid);
+    }
+
+    /** Rail steps of the shortest way from any start to any goal, lifts allowed; -1 without a way. */
+    private int railDistance(Set<NodePos> start, Set<NodePos> goal) {
+        int best = -1;
+        for (NodePos node : start) {
+            List<NodePos> path = RailPaths.find(node, goal::contains, this::travelNeighbours);
+            if (!path.isEmpty() && (best < 0 || path.size() - 1 < best)) {
+                best = path.size() - 1;
+            }
+        }
+        return best;
+    }
+
+    private int tankerMinLoad() {
+        return tankerMinLoadForTests >= 0 ? tankerMinLoadForTests : ShuttlesStatsManager.INSTANCE.tankerMinLoad();
+    }
+
+    /** Sets the min load of this warehouse's tanker runs, for tests that must not change the stats of others. */
+    public void setTankerMinLoadForTests(int minLoad) {
+        tankerMinLoadForTests = minLoad;
+    }
+
+    @Override
+    public Optional<GantryMode> gantryMode(BlockPos gantry) {
+        return gantries.contains(gantry) && loaded(gantry) instanceof FluidGantryBlockEntity entity ? Optional.of(entity.mode()) : Optional.empty();
+    }
+
+    @Override
+    public FluidStack drainGantry(BlockPos gantry, int tank, FluidKey key, int max) {
+        if (!(loaded(gantry) instanceof FluidGantryBlockEntity entity)) {
+            return FluidStack.EMPTY;
+        }
+        FluidStack held = entity.tank(tank).getFluid();
+        if (held.isEmpty() || !FluidKey.of(held).equals(key)) {
+            return FluidStack.EMPTY;
+        }
+        return entity.tank(tank).drain(max, false);
+    }
+
+    @Override
+    public FluidStack fillGantry(BlockPos gantry, int tank, FluidStack stack) {
+        if (stack.isEmpty() || !(loaded(gantry) instanceof FluidGantryBlockEntity entity)) {
+            return stack;
+        }
+        int filled = entity.tank(tank).fill(stack, false);
+        return filled >= stack.getAmount() ? FluidStack.EMPTY : stack.copyWithAmount(stack.getAmount() - filled);
+    }
+
+    @Override
+    public List<TankRef> fluidTargets(FluidKey key, BlockPos from) {
+        List<TankRef> refs = new ArrayList<>();
+        for (FluidRouting.Target<TankRef> target : routeFluid(key, from, new HashMap<>())) {
+            refs.add(target.id());
+        }
+        return refs;
+    }
+
+    @Override
+    public void gantryPumping(BlockPos gantry, int tank, boolean intoGantry, FluidStack fluid, boolean on) {
+        if (loaded(gantry) instanceof FluidGantryBlockEntity entity) {
+            entity.setPumping(tank, intoGantry, fluid, on);
+        }
     }
 
     /** Whether a supply run for that head is queued or under way. */

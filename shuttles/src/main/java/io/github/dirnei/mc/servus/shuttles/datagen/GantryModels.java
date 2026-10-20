@@ -2,6 +2,13 @@ package io.github.dirnei.mc.servus.shuttles.datagen;
 
 import static io.github.dirnei.mc.servus.shuttles.gantry.GantryLook.CAP_BOTTOM;
 import static io.github.dirnei.mc.servus.shuttles.gantry.GantryLook.GLASS_INSET;
+import static io.github.dirnei.mc.servus.shuttles.gantry.GantryLook.NOZZLE_BOTTOM;
+import static io.github.dirnei.mc.servus.shuttles.gantry.GantryLook.NOZZLE_HEIGHT;
+import static io.github.dirnei.mc.servus.shuttles.gantry.GantryLook.NOZZLE_MAX;
+import static io.github.dirnei.mc.servus.shuttles.gantry.GantryLook.NOZZLE_MIN;
+import static io.github.dirnei.mc.servus.shuttles.gantry.GantryLook.PIPE_MAX;
+import static io.github.dirnei.mc.servus.shuttles.gantry.GantryLook.PIPE_MIN;
+import static io.github.dirnei.mc.servus.shuttles.gantry.GantryLook.PIPE_TOP;
 import static io.github.dirnei.mc.servus.shuttles.gantry.GantryLook.PLATE_IN;
 import static io.github.dirnei.mc.servus.shuttles.gantry.GantryLook.PLATE_OUT;
 import static io.github.dirnei.mc.servus.shuttles.gantry.GantryLook.PLATE_X0;
@@ -37,8 +44,9 @@ import net.minecraft.world.level.block.Block;
  * glass set in from the outer faces. The beam is a steel I-beam with an iron
  * web, ending just short of the legs, with copper feed pipes, a steel spout
  * sleeve and a sign on both faces showing the mode and the two lamps. The
- * spout's iron inner pipe and copper nozzle are a model of their own. The
- * renderer draws the fluid and the locked fluid on the plates.
+ * renderer draws the spout's iron inner pipe and copper nozzle, which lower
+ * onto a tanker, the fluid and the locked fluid on the plates; the item
+ * model shows the spout at rest.
  */
 final class GantryModels {
 
@@ -91,7 +99,6 @@ final class GantryModels {
         BlockModelBuilder legLow = model(provider, name + "_leg_low", iron, plate, legLow());
         BlockModelBuilder legHigh = model(provider, name + "_leg_high", iron, plate, legHigh());
         BlockModelBuilder beam = model(provider, name + "_beam", iron, plate, beam());
-        BlockModelBuilder spout = model(provider, name + "_spout", iron, plate, spout());
 
         MultiPartBlockStateBuilder builder = provider.getMultipartBuilder(block);
         for (Direction.Axis axis : new Direction.Axis[] {Direction.Axis.Z, Direction.Axis.X}) {
@@ -101,8 +108,6 @@ final class GantryModels {
             builder.part().modelFile(legHigh).rotationY(rotation).addModel()
                     .condition(FluidGantryBlock.PART, GantryPart.LEFT_HIGH, GantryPart.RIGHT_HIGH).condition(FluidGantryBlock.AXIS, axis);
             builder.part().modelFile(beam).rotationY(rotation).addModel()
-                    .condition(FluidGantryBlock.PART, GantryPart.BEAM).condition(FluidGantryBlock.AXIS, axis);
-            builder.part().modelFile(spout).rotationY(rotation).addModel()
                     .condition(FluidGantryBlock.PART, GantryPart.BEAM).condition(FluidGantryBlock.AXIS, axis);
             for (GantryMode mode : GantryMode.values()) {
                 for (String lamp : LAMPS) {
@@ -166,10 +171,11 @@ final class GantryModels {
         return boxes;
     }
 
-    /** The spout's inner pipe and nozzle, drawn up at rest. */
+    /** The spout's inner pipe and nozzle at rest, for the item; the renderer draws them on the block. */
     private static List<Box> spout() {
-        return List.of(new Box(6.75F, 3.5F, 6.75F, 9.25F, 4.4F, 9.25F, "#iron"),
-                new Box(6.4F, 2.5F, 6.4F, 9.6F, 3.5F, 9.6F, "#copper"));
+        float nozzleTop = NOZZLE_BOTTOM + NOZZLE_HEIGHT;
+        return List.of(new Box(PIPE_MIN, nozzleTop, PIPE_MIN, PIPE_MAX, PIPE_TOP, PIPE_MAX, "#iron"),
+                new Box(NOZZLE_MIN, NOZZLE_BOTTOM, NOZZLE_MIN, NOZZLE_MAX, nozzleTop, NOZZLE_MAX, "#copper"));
     }
 
     /** The sign plates on both faces of the beam, between its flanges. */

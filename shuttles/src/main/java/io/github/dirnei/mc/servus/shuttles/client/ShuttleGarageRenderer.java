@@ -11,7 +11,17 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleDrive;
 import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleView;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleItem;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleLook;
+import io.github.dirnei.mc.servus.foundation.client.FluidBox;
+import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
+import io.github.dirnei.mc.servus.shuttles.shuttle.module.TankerLook;
 import java.util.List;
+import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.Direction;
+import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
@@ -35,6 +45,8 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
     /** The shuttle is drawn a little below block scale. */
     private static final float SHUTTLE_SCALE = 0.8F;
     private static final double PARK_SPACING = 0.25 * SHUTTLE_SCALE;
+    /** Gap between a sight glass frame and the fluid drawn on it, in model pixels. */
+    private static final float GLASS_GAP = 0.02F;
 
     public ShuttleGarageRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -95,6 +107,7 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
             poseStack.translate(0.0, 0.5, 0.0);
             ItemStack cart = view.shuttle().isEmpty() ? plain : view.shuttle();
             RenderSubmit.item(poseStack, collector, cart, ItemDisplayContext.NONE, garage.getLevel(), 0, light);
+            view.glass().ifPresent(glass -> sightGlass(glass, garage.getLevel(), railPos, poseStack, collector, light));
             if (!view.cargo().isEmpty() && ShuttleLook.openHold(ShuttleItem.tier(cart))) {
                 poseStack.translate(0.0, CARGO_Y - 0.5, 0.0);
                 poseStack.scale(CARGO_SCALE, CARGO_SCALE, CARGO_SCALE);
@@ -102,6 +115,31 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
             }
             poseStack.popPose();
         }
+    }
+
+    /**
+     * The fluid in both sight glasses of a tanker, filled to its share, just
+     * outside the windows of the Tanker model; drawn in the item's model space.
+     */
+    private static void sightGlass(ShuttleView.SightGlass glass, Level level, BlockPos railPos, PoseStack poseStack,
+                                   SubmitNodeCollector collector, int light) {
+        FluidStack fluid = glass.fluid();
+        TextureAtlasSprite sprite = FluidSprites.still(fluid);
+        int color = level instanceof BlockAndTintGetter tinted ? FluidSprites.tint(tinted, railPos, fluid) : FluidSprites.tint(fluid);
+        int glow = Math.max(LightCoordsUtil.block(light), fluid.getFluidType().getLightLevel(fluid));
+        int lit = LightCoordsUtil.pack(glow, LightCoordsUtil.sky(light));
+        float px = 1 / 16F;
+        float top = TankerLook.GLASS_Y0 + (TankerLook.GLASS_Y1 - TankerLook.GLASS_Y0) * glass.share();
+        FluidBox window = new FluidBox((TankerLook.GLASS_LEFT - GLASS_GAP) * px, TankerLook.GLASS_Y0 * px, TankerLook.GLASS_Z0 * px,
+                (TankerLook.GLASS_RIGHT + GLASS_GAP) * px, top * px, TankerLook.GLASS_Z1 * px);
+        poseStack.pushPose();
+        // The item is drawn around its centre, so its model space starts half a block down and back.
+        poseStack.translate(-0.5, -0.5, -0.5);
+        collector.submitCustomGeometry(poseStack, Sheets.translucentBlockSheet(), (pose, consumer) -> {
+            window.quad(consumer, pose, Direction.WEST, sprite, color, lit);
+            window.quad(consumer, pose, Direction.EAST, sprite, color, lit);
+        });
+        poseStack.popPose();
     }
 
     /** Where on its path the shuttle is after driving the elapsed ticks since the sync: {segment, progress}. */

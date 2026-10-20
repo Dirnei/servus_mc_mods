@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.datagen;
 
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
+import io.github.dirnei.mc.servus.shuttles.shuttle.module.TankerLook;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
@@ -37,6 +38,7 @@ final class ShuttleModels {
         handling(provider);
         harvester(provider);
         spreader(provider);
+        tanker(provider);
         provider.itemModels().withExistingParent("shuttle", part(provider, "body_mk1"));
         provider.itemModels().withExistingParent("shuttle_mk2", part(provider, "body_mk2"));
         provider.itemModels().withExistingParent("shuttle_mk3", part(provider, "body_mk3"));
@@ -205,6 +207,33 @@ final class ShuttleModels {
         box(model, -2, 0.5F, -3.5F, 18, 1.5F, -1.5F, bone);
         box(model, -2, 1.5F, -3, -1, 3, -2, IRON);
         box(model, 17, 1.5F, -3, 18, 3, -2, IRON);
+    }
+
+    /**
+     * A steel tank lying along the body over the hold, rounded from three
+     * boxes that each end 0.05 shorter than the one before; two blackened iron
+     * bands stand 0.2 proud of it, their three boxes staggered the same way;
+     * two iron saddles carry it down to the chassis; a copper filler cap sits
+     * on top; a blackened iron sight glass frame on each side holds the window
+     * the renderer fills. Everything stays within x 4.2 to 11.8 and below
+     * {@link TankerLook#CAP_TOP}, inside the body and under the block top.
+     */
+    private static void tanker(BlockStateProvider provider) {
+        BlockModelBuilder model = model(provider, "tool_tanker", STEEL);
+        box(model, 4.5F, 11.25F, 2.6F, 11.5F, 14.75F, 13.4F, STEEL);
+        box(model, 5, 10.25F, 2.65F, 11, 15.75F, 13.35F, STEEL);
+        box(model, 6, 9.5F, 2.7F, 10, 16.5F, 13.3F, STEEL);
+        for (float z : new float[] {4, 11}) {
+            box(model, 4.3F, 11.05F, z, 11.7F, 14.95F, z + 1, DARK_IRON);
+            box(model, 4.8F, 10.05F, z + 0.05F, 11.2F, 15.95F, z + 0.95F, DARK_IRON);
+            box(model, 5.8F, 9.3F, z + 0.1F, 10.2F, 16.7F, z + 0.9F, DARK_IRON);
+        }
+        for (float z : new float[] {5.5F, 9.5F}) {
+            box(model, 5.25F, 4.05F, z, 10.75F, 10.3F, z + 1, DARK_IRON);
+        }
+        box(model, 7, 16.3F, 7, 9, TankerLook.CAP_TOP, 9, "minecraft:block/copper_block");
+        box(model, TankerLook.GLASS_LEFT, 11.75F, 6, 4.6F, 14.25F, 10, DARK_IRON);
+        box(model, 11.4F, 11.75F, 6, TankerLook.GLASS_RIGHT, 14.25F, 10, DARK_IRON);
     }
 
     private static Identifier part(BlockStateProvider provider, String name) {

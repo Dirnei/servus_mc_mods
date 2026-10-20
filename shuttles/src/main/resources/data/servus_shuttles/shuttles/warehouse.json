@@ -17,5 +17,7 @@
   "anchor_upgrade_slots": 4,
   "chunks_per_upgrade": 9,
   "wake_grace_seconds": 30,
-  "site_snapshot_interval": 100
+  "site_snapshot_interval": 100,
+  "fluid_check_interval": 40,
+  "tanker_min_load": 1000
 }

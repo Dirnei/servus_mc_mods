@@ -26,19 +26,26 @@ Paths: `S` = `shuttles/src/main/java/io/github/dirnei/mc/servus/shuttles`.
 
 - `gantry/FluidRouting<K, T>`: given target candidates (`T` id, lock, content key, amount, capacity, incoming, distance) and a key, returns the candidates with room in the order of the spec (locked match, Any holding, empty Any; then distance).
 - `gantry/FluidPutAwayPlan`: `amount(free, full, minLoad, shuttleCapacity, room)` returns 0 when the run should wait.
-`WarehouseNetwork.tickFluids()` (every `fluid_check_interval`) builds the candidates from the per tank views and the fleet sums, distances from `RailPaths` between the gantries' dock rails, and queues `FluidJob`s. It skips when the warehouse has no Tanker shuttle (`hasShuttles(JobNeeds.TANKER)`).
+`WarehouseNetwork.tickFluids()` (every `fluid_check_interval`) builds the candidates from the per tank views and the fleet sums, distances from `RailPaths` between the gantries' dock rails, and queues `FluidJob`s. It skips when the warehouse has no Tanker shuttle (`fleet.tankerCapacity()` is 0).
+
+Settled during apply:
+- A run is queued before a shuttle is chosen, so its amount uses the largest `tanker_capacity` among the warehouse's Tanker shuttles; the shuttle that takes it loads at most its own capacity, and the rest stays in the source for the next run. `ShuttleProfile` carries `fluidCapacity` (0 without a Tanker).
+- Runs on their way count against a tank's room with their fluid: an empty tank on Any that a lava run is bound for counts as holding lava (`FluidRouting.Candidate.incomingKey`). Fleet sums are `fluidQueuedFrom(TankRef)`, `fluidIncomingTo(TankRef)` and `fluidIncomingKey(TankRef)`; `hasFluidRun(TankRef)` keeps one run per Import tank.
+- The lock rules key by `Fluid`; a Storage tank holding the same fluid with other components is left out of the candidates, since `FluidSlot` keeps one fluid per tank.
+- Each load remembers its current target and the tanks it was offered to; leftovers try the run's target while it is still Storage, then `fluidTargets` from the gantry the tanker stands at, skipping tried tanks, then drive back to the source (`TO_STATION` leg). A stop under a gantry that no longer serves the leg (source not Import, target not Storage) is skipped.
+- `WarehouseNetwork.setTankerMinLoadForTests` sets the min load of one warehouse, so the full tank test does not change the stats of tests running beside it.
 
 ### D5. Lamps and state line
 
-`FluidGantryBlockEntity.setActivity`: WORKING while a run for one of its tanks is queued or under way, BLOCKED for an Import gantry holding fluid with no room (the network tells it the fluid name for the state line), IDLE otherwise. The network sets these in `tickFluids`, not per tick.
+`FluidGantryBlockEntity.setActivity`: WORKING while a run for one of its tanks is queued or under way, BLOCKED for an Import gantry holding fluid with no room (the network tells it the fluid name for the state line), IDLE otherwise. The network sets these in `tickFluids`, not per tick, after all runs of that check are queued. Red wins over orange. An Import gantry holding fluid that no Tanker shuttle reaches is red too, with its own state line ("No Tanker shuttle reaches this gantry"); the menu syncs the waiting fluid (or no Tanker) as one data slot.
 
 ### D6. Spout animation
 
-The static gantry model keeps only the spout sleeve; the inner pipe and nozzle move to `FluidGantryRenderer`. The fleet calls `gantryPumping` at the start and end of a stop; the master syncs `pumping` (tank, direction, fluid) in its update tag. The renderer eases the nozzle from its rest height down to the tanker's cap height (a constant of the tanker model) over a few ticks of client time and draws a thin column of the fluid's still sprite whose UV scrolls up or down by direction.
+The static gantry model keeps only the spout sleeve; the inner pipe and nozzle move to `FluidGantryRenderer`. The fleet calls `gantryPumping` at the start and end of a stop; the master syncs `pumping` (tank, direction, fluid) in its update tag. The renderer eases the nozzle from its rest height down to the tanker's cap height (a constant of the tanker model) over a few ticks of client time and draws a thin column of the fluid's still sprite whose UV scrolls up or down by direction. Settled during apply: the nozzle stops `GantryLook.STREAM_GAP` (1 px) above the cap so the stream shows; the spout geometry lives in `GantryLook` (shared by the item model and the renderer) and the cap height in a pure `shuttle/module/TankerLook`; the spout lowers in 8 ticks of client time, a render constant.
 
 ### D7. Tanker look
 
-`datagen/ShuttleModels`: `tool_tanker` with a steel tank of boxes lying along the body (an octagon of boxes or stacked boxes, inside the body width and below 16 px), two blackened iron bands inset into the tank surface by 0.05 px so no planes are shared, and a copper filler cap. The sight glass is drawn by the shuttle renderer from the load's fluid share (shuttles are drawn on the client from `ShuttleSyncPayload`; the payload gets the fluid id and share for loads that carry fluid).
+`datagen/ShuttleModels`: `tool_tanker` with a steel tank of boxes lying along the body (an octagon of boxes or stacked boxes, inside the body width and below 16 px), two blackened iron bands inset into the tank surface by 0.05 px so no planes are shared, and a copper filler cap. Built as: three tank boxes each ending 0.05 px shorter than the one before, bands standing 0.2 px proud of each box with the same stagger (so they read as bands from the side), two iron saddles down to the chassis and iron sight glass frames on both sides; shared numbers in pure `shuttle/module/TankerLook`. `ShuttleView` gets an optional `SightGlass(fluid, share)`, drawn by `ShuttleGarageRenderer` in the item's model space. The sight glass is drawn by the shuttle renderer from the load's fluid share (shuttles are drawn on the client from `ShuttleSyncPayload`; the payload gets the fluid id and share for loads that carry fluid).
 
 ### D8. Data
 

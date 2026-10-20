@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.gantry;
 
+import io.github.dirnei.mc.servus.shuttles.shuttle.module.TankerLook;
+
 /**
  * The look of a Fluid Gantry in pixels, shared by its block models and its
  * renderer, and the fill step of a tank column as clients learn it. Pure
@@ -32,8 +34,26 @@ public final class GantryLook {
     public static final int WINDOW_U1 = 13;
     public static final int WINDOW_V0 = 3;
     public static final int WINDOW_V1 = 10;
+    /** The spout on the beam: its iron inner pipe slides out of the steel sleeve and carries the copper nozzle. */
+    public static final float PIPE_MIN = 6.75F;
+    public static final float PIPE_MAX = 9.25F;
+    public static final float PIPE_TOP = 4.4F;
+    public static final float NOZZLE_MIN = 6.4F;
+    public static final float NOZZLE_MAX = 9.6F;
+    public static final float NOZZLE_BOTTOM = 2.5F;
+    public static final float NOZZLE_HEIGHT = 1;
+    /** Gap between the lowered nozzle and a tanker's filler cap, where the stream shows. */
+    public static final float STREAM_GAP = 1;
+    /** The fluid stream between nozzle and cap, centred. */
+    public static final float STREAM_MIN = 7.25F;
+    public static final float STREAM_MAX = 8.75F;
 
     private GantryLook() {
+    }
+
+    /** How far the nozzle lowers from its rest onto a tanker standing on the rail below the beam. */
+    public static float spoutDrop() {
+        return NOZZLE_BOTTOM - (TankerLook.capTopInBlock() - 16 + STREAM_GAP);
     }
 
     /**

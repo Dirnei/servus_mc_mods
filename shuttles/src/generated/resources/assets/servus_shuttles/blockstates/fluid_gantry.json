@@ -29,15 +29,6 @@
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_gantry_spout"
-      },
-      "when": {
-        "axis": "z",
-        "part": "beam"
-      }
-    },
-    {
-      "apply": {
         "model": "servus_shuttles:block/fluid_gantry_sign_storage_off"
       },
       "when": {
@@ -200,16 +191,6 @@
     {
       "apply": {
         "model": "servus_shuttles:block/fluid_gantry_beam",
-        "y": 90
-      },
-      "when": {
-        "axis": "x",
-        "part": "beam"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_shuttles:block/fluid_gantry_spout",
         "y": 90
       },
       "when": {

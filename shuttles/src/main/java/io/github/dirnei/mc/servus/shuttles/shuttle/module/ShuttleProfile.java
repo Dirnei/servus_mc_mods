@@ -14,8 +14,11 @@ import java.util.Set;
  * @param speed     blocks per tick between stops
  * @param accel     speed gained per tick while it speeds up, lost while it brakes
  * @param handling  the factor its Handling upgrades put on stop and work times
+ * @param liftless  whether its tool is too wide for a lift car
+ * @param fluidCapacity mB of fluid it carries, 0 without a Tanker
  */
-public record ShuttleProfile(Set<String> modules, boolean fieldOnly, int stacks, double speed, double accel, double handling, boolean liftless) {
+public record ShuttleProfile(Set<String> modules, boolean fieldOnly, int stacks, double speed, double accel, double handling, boolean liftless,
+                             int fluidCapacity) {
 
     public ShuttleProfile {
         modules = Set.copyOf(modules);
@@ -26,7 +29,9 @@ public record ShuttleProfile(Set<String> modules, boolean fieldOnly, int stacks,
         Set<String> ids = tool.map(spec -> Set.of(spec.id())).orElse(Set.of());
         boolean fieldOnly = tool.map(ModuleSpec::fieldOnly).orElse(false);
         boolean liftless = tool.map(ModuleSpec::wide).orElse(false);
-        return new ShuttleProfile(ids, fieldOnly, tiers.tier(tier).stacks(), tiers.speed(tier, speed), tiers.accel(tier, speed), tiers.factor(tier, handling), liftless);
+        int fluidCapacity = ids.contains(ModuleSpec.TANKER) ? tiers.tier(tier).tankerCapacity() : 0;
+        return new ShuttleProfile(ids, fieldOnly, tiers.tier(tier).stacks(), tiers.speed(tier, speed), tiers.accel(tier, speed), tiers.factor(tier, handling), liftless,
+                fluidCapacity);
     }
 
     /** A Mk1 shuttle without tool or upgrades by the default stats. */

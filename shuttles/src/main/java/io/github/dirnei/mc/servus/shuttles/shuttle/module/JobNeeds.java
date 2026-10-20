@@ -6,7 +6,7 @@ import java.util.Set;
  * What a job asks of the shuttle that takes it.
  *
  * @param modules ids of the modules the shuttle must have
- * @param field   whether the job is field work; other jobs never go to field only shuttles
+ * @param field   whether the job is field or tool work; other jobs never go to field only shuttles
  */
 public record JobNeeds(Set<String> modules, boolean field) {
 
@@ -18,6 +18,9 @@ public record JobNeeds(Set<String> modules, boolean field) {
 
     /** Fertilize runs: a shuttle with a Spreader. */
     public static final JobNeeds SPREADER = new JobNeeds(Set.of(ModuleSpec.SPREADER), true);
+
+    /** Tanker runs: a shuttle with a Tanker, which takes no other jobs. */
+    public static final JobNeeds TANKER = new JobNeeds(Set.of(ModuleSpec.TANKER), true);
 
     public JobNeeds {
         modules = Set.copyOf(modules);

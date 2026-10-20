@@ -87,13 +87,16 @@ public final class ServusShuttlesItems {
     public static final DeferredItem<ShuttleModuleItem> SPREADER = ITEMS.registerItem("spreader",
             properties -> new ShuttleModuleItem(new ModuleSpec(ModuleSpec.SPREADER, true, true), properties),
             () -> new Item.Properties().stacksTo(16));
+    public static final DeferredItem<ShuttleModuleItem> TANKER = ITEMS.registerItem("tanker",
+            properties -> new ShuttleModuleItem(new ModuleSpec(ModuleSpec.TANKER, true, false), properties),
+            () -> new Item.Properties().stacksTo(16));
     public static final DeferredItem<FluidGantryItem> FLUID_GANTRY = ITEMS.registerItem("fluid_gantry",
             properties -> new FluidGantryItem(ServusShuttlesBlocks.FLUID_GANTRY.get(), properties),
             () -> new Item.Properties().useBlockDescriptionPrefix().stacksTo(16));
     public static final DeferredItem<ZoneLabelItem> ZONE_LABEL = ITEMS.registerItem("zone_label", ZoneLabelItem::new, () -> new Item.Properties().stacksTo(1));
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(HEAVY_RACK, WAREHOUSE_CONTROLLER, WIRELESS_UPGRADE, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, FLUID_GANTRY, CRAFTING_STATION, CRAFTING_CPU, CPU_BUFFER, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE_WORKSHOP, SHUTTLE_MK1, SHUTTLE_MK2, SHUTTLE_MK3, HANDLING_UPGRADE, HARVESTER, SPREADER, FARM_RAIL, FIELD_HEAD, RANGE_UPGRADE, ZONE_LABEL);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(HEAVY_RACK, WAREHOUSE_CONTROLLER, WIRELESS_UPGRADE, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, FLUID_GANTRY, CRAFTING_STATION, CRAFTING_CPU, CPU_BUFFER, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE_WORKSHOP, SHUTTLE_MK1, SHUTTLE_MK2, SHUTTLE_MK3, HANDLING_UPGRADE, HARVESTER, SPREADER, TANKER, FARM_RAIL, FIELD_HEAD, RANGE_UPGRADE, ZONE_LABEL);
 
     private ServusShuttlesItems() {
     }

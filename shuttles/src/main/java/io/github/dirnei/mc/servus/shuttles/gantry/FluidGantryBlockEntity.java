@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 import io.github.dirnei.mc.servus.foundation.upgrade.CapacityUpgradeSlots;
 import io.github.dirnei.mc.servus.shuttles.menu.FluidGantryMenu;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
@@ -58,6 +59,9 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
     private static final String[] SHOWN_FLUID_KEYS = {"ShownLeft", "ShownRight"};
     private static final String[] SHOWN_STEP_KEYS = {"StepLeft", "StepRight"};
     private static final String STEPS = "Steps";
+    private static final String PUMP_TANK = "PumpTank";
+    private static final String PUMP_INTO = "PumpInto";
+    private static final String PUMP_FLUID = "PumpFluid";
 
     private final Tank[] tanks = {new Tank(0), new Tank(1)};
     /** The locked fluid of each tank, null for Any. */
@@ -73,13 +77,32 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
     private @Nullable Shown sent;
     /** Client: what the columns show, as the server last sent it. */
     private Shown shown = Shown.EMPTY;
+    /** Server: the fluid of an Import tank that no Storage tank has room for, null when none waits. */
+    private @Nullable Fluid noRoom;
+    /** Server: whether an Import tank holds fluid that no Tanker shuttle comes for. */
+    private boolean noTanker;
 
-    /** What clients draw: each column's fluid and fill step out of {@code steps}. */
+    /** What clients draw: each column's fluid and fill step out of {@code steps}, and the spout. */
     private record Shown(Fluid left, int leftStep, Fluid right, int rightStep, int steps, @Nullable Fluid leftLock,
-                         @Nullable Fluid rightLock) {
+                         @Nullable Fluid rightLock, @Nullable Pumping pumping) {
 
-        static final Shown EMPTY = new Shown(Fluids.EMPTY, 0, Fluids.EMPTY, 0, 1, null, null);
+        static final Shown EMPTY = new Shown(Fluids.EMPTY, 0, Fluids.EMPTY, 0, 1, null, null, null);
     }
+
+    /**
+     * A tanker stops under the gantry and its spout pumps.
+     *
+     * @param tank       the gantry tank the fluid comes from or goes to
+     * @param intoGantry whether it flows up into the gantry rather than down into the tanker
+     * @param fluid      the fluid of the stream
+     */
+    public record Pumping(int tank, boolean intoGantry, Fluid fluid) {
+    }
+
+    /** Server: the spout's stop, null while no tanker pumps here. */
+    private @Nullable Pumping pumping;
+    /** Client: game time the spout last started to lower or rise. */
+    private long pumpChangedAt = Long.MIN_VALUE / 2;
 
     public FluidGantryBlockEntity(BlockPos pos, BlockState state) {
         super(ServusShuttlesBlockEntities.FLUID_GANTRY.get(), pos, state);
@@ -140,6 +163,33 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
 
     public GantryMode mode() {
         return mode;
+    }
+
+    /**
+     * Sets what the gantry's activity lamp shows and why it is red: the fluid
+     * that no Storage tank has room for, or no Tanker shuttle at all. Set by
+     * the warehouse, never by the player.
+     */
+    public void setActivity(StorageNodeBlocks.Activity activity, @Nullable Fluid noRoom, boolean noTanker) {
+        this.noRoom = noRoom;
+        this.noTanker = noTanker;
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        BlockState state = getBlockState();
+        if (state.hasProperty(StorageNodeBlocks.ACTIVITY) && state.getValue(StorageNodeBlocks.ACTIVITY) != activity) {
+            level.setBlock(worldPosition, state.setValue(StorageNodeBlocks.ACTIVITY, activity), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /** The fluid that waits because no Storage tank has room for it, null when none does. */
+    public @Nullable Fluid noRoom() {
+        return noRoom;
+    }
+
+    /** Whether fluid waits because no Tanker shuttle comes for it. */
+    public boolean noTanker() {
+        return noTanker;
     }
 
     /** Switches the mode; the beam's sign follows and pipes beside the legs look again. */
@@ -206,18 +256,45 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
         setChanged();
         if (level != null && !level.isClientSide()) {
             network().ifPresent(network -> network.post(new WarehouseEvent.FluidChanged(worldPosition)));
-            Shown now = shownNow();
-            if (!now.equals(sent)) {
-                sent = now;
-                BlockState state = getBlockState();
-                level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
-            }
+            sendShown();
+        }
+    }
+
+    /** Sends the block to watching clients when what they draw changed. */
+    private void sendShown() {
+        Shown now = shownNow();
+        if (level != null && !now.equals(sent)) {
+            sent = now;
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
         }
     }
 
     private Shown shownNow() {
         int steps = ShuttlesStatsManager.INSTANCE.gantryLevelSteps();
-        return new Shown(tanks[0].getFluid().getFluid(), step(0, steps), tanks[1].getFluid().getFluid(), step(1, steps), steps, locks[0], locks[1]);
+        return new Shown(tanks[0].getFluid().getFluid(), step(0, steps), tanks[1].getFluid().getFluid(), step(1, steps), steps, locks[0], locks[1],
+                pumping);
+    }
+
+    /**
+     * Server: a tanker's stop under the gantry starts or ends. Clients learn
+     * only these two moments and lower or raise the spout on their own.
+     */
+    public void setPumping(int tank, boolean intoGantry, FluidStack fluid, boolean on) {
+        pumping = on && !fluid.isEmpty() ? new Pumping(tank, intoGantry, fluid.getFluid()) : null;
+        if (level != null && !level.isClientSide()) {
+            sendShown();
+        }
+    }
+
+    /** Client: the spout's stop as last sent, null while none runs. */
+    public @Nullable Pumping shownPumping() {
+        return shown.pumping();
+    }
+
+    /** Client: the game time the spout last started to lower or rise. */
+    public long pumpChangedAt() {
+        return pumpChangedAt;
     }
 
     private int step(int tank, int steps) {
@@ -250,6 +327,11 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
         }
         tag.putInt(STEPS, now.steps());
         tag.putString(MODE, mode.getSerializedName());
+        if (now.pumping() != null) {
+            tag.putInt(PUMP_TANK, now.pumping().tank());
+            tag.putBoolean(PUMP_INTO, now.pumping().intoGantry());
+            tag.putString(PUMP_FLUID, BuiltInRegistries.FLUID.getKey(now.pumping().fluid()).toString());
+        }
         return tag;
     }
 
@@ -360,8 +442,14 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
         }
         mode = input.read(MODE, GantryMode.CODEC).orElse(GantryMode.STORAGE);
         if (input.getString(SHOWN_FLUID_KEYS[0]).isPresent()) {
+            Pumping shownPump = input.getString(PUMP_FLUID).map(Identifier::tryParse).flatMap(BuiltInRegistries.FLUID::getOptional)
+                    .filter(fluid -> fluid != Fluids.EMPTY)
+                    .map(fluid -> new Pumping(input.getIntOr(PUMP_TANK, 0), input.getBooleanOr(PUMP_INTO, false), fluid)).orElse(null);
+            if ((shownPump == null) != (shown.pumping() == null) && level != null) {
+                pumpChangedAt = level.getGameTime();
+            }
             shown = new Shown(shownFluid(input, 0), input.getIntOr(SHOWN_STEP_KEYS[0], 0), shownFluid(input, 1),
-                    input.getIntOr(SHOWN_STEP_KEYS[1], 0), input.getIntOr(STEPS, 1), locks[0], locks[1]);
+                    input.getIntOr(SHOWN_STEP_KEYS[1], 0), input.getIntOr(STEPS, 1), locks[0], locks[1], shownPump);
         }
     }
 

@@ -95,4 +95,12 @@ class ShuttleTiersTest {
         assertEquals(0.015, TIERS.accel(1, 5), 1e-9);
         assertEquals(0.03, TIERS.accel(3, 8), 1e-9);
     }
+
+    @Test
+    void tankerCapacityPerTierWithDefault() {
+        assertEquals(4000, TIERS.tier(1).tankerCapacity());
+        assertEquals(8000, TIERS.tier(2).tankerCapacity());
+        assertEquals(16000, TIERS.tier(3).tankerCapacity());
+        assertEquals(ShuttleTiers.DEFAULT_TANKER_CAPACITY, new ShuttleTiers.Tier(2, 2, 2, List.of()).tankerCapacity());
+    }
 }

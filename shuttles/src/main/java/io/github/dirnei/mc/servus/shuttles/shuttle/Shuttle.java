@@ -1,11 +1,15 @@
 package io.github.dirnei.mc.servus.shuttles.shuttle;
 
 import io.github.dirnei.mc.servus.foundation.graph.NodePos;
+import io.github.dirnei.mc.servus.shuttles.gantry.TankRef;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleProfile;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
  * One shuttle of the fleet: the garage slot it lives in, what its modules let
@@ -54,6 +58,10 @@ final class Shuttle {
     /** The path whose segments up to paidThrough are paid for. */
     ShuttleMotion paidFor;
     int paidThrough = -1;
+    /** The gantry tank whose spout pumps into or out of the shuttle during its stop, else null. */
+    TankRef pumping;
+    /** Whether that spout pumps into the gantry rather than into the shuttle. */
+    boolean pumpingIntoGantry;
 
     Shuttle(Garage garage, int slot, ShuttleProfile profile) {
         this.garage = garage;
@@ -101,13 +109,32 @@ final class Shuttle {
         return ItemStack.EMPTY;
     }
 
+    /** The fluid the first load that holds some carries, empty when none does. */
+    FluidStack shownFluid() {
+        for (Load load : loads) {
+            if (!load.fluid.isEmpty()) {
+                return load.fluid;
+            }
+        }
+        return FluidStack.EMPTY;
+    }
+
     /** One job a shuttle carries out and what it holds for it. */
     static final class Load {
         final ShuttleJob job;
         ItemStack cargo = ItemStack.EMPTY;
+        /** The fluid a tanker run carries. */
+        FluidStack fluid = FluidStack.EMPTY;
+        /** The tank a tanker run's fluid goes to next; starts as the job's target. */
+        TankRef fluidTarget;
+        /** Tanks the fluid was offered to on this run. */
+        final Set<TankRef> tried = new HashSet<>();
 
         Load(ShuttleJob job) {
             this.job = job;
+            if (job instanceof FluidJob fluidJob) {
+                fluidTarget = fluidJob.targetRef();
+            }
         }
     }
 }

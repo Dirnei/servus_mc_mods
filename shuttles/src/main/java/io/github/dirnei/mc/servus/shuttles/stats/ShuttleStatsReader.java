@@ -41,7 +41,8 @@ final class ShuttleStatsReader {
                         integer(tier, "max_speed", base.maxSpeed()),
                         integer(tier, "max_handling", base.maxHandling()),
                         tier.has("build") ? supplies(tier.getAsJsonArray("build")) : (i == 0 ? List.of() : base.build()),
-                        tier.has("steps") && tier.get("steps").isJsonArray() ? steps(tier.getAsJsonArray("steps")) : base.steps()));
+                        tier.has("steps") && tier.get("steps").isJsonArray() ? steps(tier.getAsJsonArray("steps")) : base.steps(),
+                        integer(tier, "tanker_capacity", base.tankerCapacity())));
             }
             return new ShuttleTiers(
                     number(speed, "base", fallback.baseSpeed()),

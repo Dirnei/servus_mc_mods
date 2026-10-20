@@ -66,7 +66,10 @@ public class FluidGantryMenu extends AbstractContainerMenu {
     private static final int DATA_LOCK = 8;
     private static final int DATA_MODE = 10;
     private static final int DATA_REMOVABLE = 11;
-    private static final int DATA_COUNT = 12;
+    /** 0 when nothing waits, {@link #WAITS_FOR_TANKER} without a Tanker, else the waiting fluid's id plus 2. */
+    private static final int DATA_WAITING = 12;
+    private static final int DATA_COUNT = 13;
+    private static final int WAITS_FOR_TANKER = 1;
 
     private final ContainerLevelAccess access;
     private final Player player;
@@ -127,6 +130,10 @@ public class FluidGantryMenu extends AbstractContainerMenu {
                 if (index < DATA_MODE) {
                     Fluid lock = gantry.lock(index - DATA_LOCK);
                     return lock == null ? 0 : BuiltInRegistries.FLUID.getId(lock) + 1;
+                }
+                if (index == DATA_WAITING) {
+                    Fluid noRoom = gantry.noRoom();
+                    return noRoom != null ? BuiltInRegistries.FLUID.getId(noRoom) + 2 : gantry.noTanker() ? WAITS_FOR_TANKER : 0;
                 }
                 return index == DATA_MODE ? gantry.mode().ordinal() : gantry.canRemoveUpgrade() ? 1 : 0;
             }
@@ -218,7 +225,8 @@ public class FluidGantryMenu extends AbstractContainerMenu {
 
     /**
      * The state line: the first thing that is wrong (a tank holding a fluid other
-     * than its lock, an upgrade just refused), else what the mode does.
+     * than its lock, an upgrade just refused, fluid that no Storage tank has
+     * room for or no Tanker shuttle comes for), else what the mode does.
      */
     public Component stateLine() {
         int warning = GantryTanks.firstWarning(rules());
@@ -229,12 +237,20 @@ public class FluidGantryMenu extends AbstractContainerMenu {
         if (upgradeJustRefused()) {
             return Component.translatable("gui.servus_shuttles.fluid_gantry.state.upgrade_refused");
         }
+        int waiting = data.get(DATA_WAITING);
+        if (waiting == WAITS_FOR_TANKER) {
+            return Component.translatable("gui.servus_shuttles.fluid_gantry.state.no_tanker");
+        }
+        if (waiting > WAITS_FOR_TANKER) {
+            return Component.translatable("gui.servus_shuttles.fluid_gantry.state.no_room",
+                    new FluidStack(BuiltInRegistries.FLUID.byId(waiting - 2), 1).getHoverName());
+        }
         return Component.translatable("gui.servus_shuttles.fluid_gantry.state." + mode().getSerializedName());
     }
 
     /** Whether the state line names something wrong rather than the mode. */
     public boolean stateWarns() {
-        return GantryTanks.firstWarning(rules()) >= 0 || upgradeJustRefused();
+        return GantryTanks.firstWarning(rules()) >= 0 || upgradeJustRefused() || data.get(DATA_WAITING) != 0;
     }
 
     private boolean upgradeJustRefused() {

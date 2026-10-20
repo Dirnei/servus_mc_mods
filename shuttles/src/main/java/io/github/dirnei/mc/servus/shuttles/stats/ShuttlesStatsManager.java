@@ -81,6 +81,9 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final int DEFAULT_GANTRY_CAPACITY_PER_UPGRADE = 16000;
     public static final int DEFAULT_GANTRY_UPGRADE_SLOTS = 4;
     public static final int DEFAULT_GANTRY_LEVEL_STEPS = 32;
+    public static final int DEFAULT_GANTRY_PUMP_TICKS = 40;
+    public static final int DEFAULT_FLUID_CHECK_INTERVAL = 40;
+    public static final int DEFAULT_TANKER_MIN_LOAD = 1000;
 
     private static final Identifier WAREHOUSE = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "warehouse");
     private static final Identifier RACK = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "rack");
@@ -157,6 +160,9 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private volatile int gantryCapacityPerUpgrade = DEFAULT_GANTRY_CAPACITY_PER_UPGRADE;
     private volatile int gantryUpgradeSlots = DEFAULT_GANTRY_UPGRADE_SLOTS;
     private volatile int gantryLevelSteps = DEFAULT_GANTRY_LEVEL_STEPS;
+    private volatile int gantryPumpTicks = DEFAULT_GANTRY_PUMP_TICKS;
+    private volatile int fluidCheckInterval = DEFAULT_FLUID_CHECK_INTERVAL;
+    private volatile int tankerMinLoad = DEFAULT_TANKER_MIN_LOAD;
 
     private ShuttlesStatsManager() {
         super(ExtraCodecs.JSON, FileToIdConverter.json(DIRECTORY));
@@ -225,6 +231,9 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         gantryCapacityPerUpgrade = countField(files.get(GANTRY), "capacity_per_upgrade", DEFAULT_GANTRY_CAPACITY_PER_UPGRADE);
         gantryUpgradeSlots = countField(files.get(GANTRY), "upgrade_slots", DEFAULT_GANTRY_UPGRADE_SLOTS);
         gantryLevelSteps = intField(files.get(GANTRY), "level_steps", DEFAULT_GANTRY_LEVEL_STEPS);
+        gantryPumpTicks = intField(files.get(GANTRY), "pump_ticks", DEFAULT_GANTRY_PUMP_TICKS);
+        fluidCheckInterval = intField(files.get(WAREHOUSE), "fluid_check_interval", DEFAULT_FLUID_CHECK_INTERVAL);
+        tankerMinLoad = countField(files.get(WAREHOUSE), "tanker_min_load", DEFAULT_TANKER_MIN_LOAD);
         shuttleTiers = ShuttleStatsReader.read(files.get(SHUTTLE));
         ServusShuttles.LOGGER.info("Warehouse polls {} sources per tick", sourcesPerTick);
     }
@@ -606,5 +615,20 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     /** Steps in which clients learn the fill of a gantry tank column. */
     public int gantryLevelSteps() {
         return gantryLevelSteps;
+    }
+
+    /** Ticks a tanker stops under a gantry to take or put fluid, before Handling. */
+    public int gantryPumpTicks() {
+        return gantryPumpTicks;
+    }
+
+    /** Ticks between two looks of a warehouse at its Import gantries. */
+    public int fluidCheckInterval() {
+        return fluidCheckInterval;
+    }
+
+    /** mB an Import gantry tank holds before a tanker run starts for it, unless it is full. */
+    public int tankerMinLoad() {
+        return tankerMinLoad;
     }
 }
