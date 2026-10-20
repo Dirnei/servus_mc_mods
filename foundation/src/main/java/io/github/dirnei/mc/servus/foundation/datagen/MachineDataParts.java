@@ -76,7 +76,9 @@ final class MachineDataParts {
                 "Goes into an Ender Anchor to widen its area by a ring of chunks, or into a Warehouse Controller so the site can wake for transfers");
         provider.add("servus_foundation.configuration.enderAnchor", "Ender Anchor");
         provider.add("servus_foundation.configuration.maxLoadedChunksPerTeam", "Max loaded chunks per team");
-        provider.add("servus_foundation.configuration.enderAnchorRespectsFtbChunks", "Ender Anchor respects FTB Chunks");
+        provider.add("servus_foundation.configuration.enderAnchorRespectsFtbChunks", "Ender Anchor stays inactive with FTB Chunks");
+        provider.add("servus_foundation.configuration.enderAnchorRespectsFtbChunks.tooltip",
+                "On: while FTB Chunks is installed, Ender Anchors stay inactive and warehouse sites do not wake. Off (default): both work next to FTB Chunks");
         provider.add(MachineContent.SINK.get(), "Sink");
         provider.add(MachineContent.MILL.get(), "Mill");
         provider.add(MachineContent.HAND_CRANK.get(), "Hand Crank");

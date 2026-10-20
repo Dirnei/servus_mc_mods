@@ -60,7 +60,7 @@ public class EnderAnchorBlockEntity extends PoweredMachineBlockEntity implements
     public static final int DATA_COUNT_ANCHOR = DATA_COUNT + 6;
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "ender_anchor");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
-    private static final String FTB_CHUNKS = "ftbchunks";
+    static final String FTB_CHUNKS = "ftbchunks";
 
     private UUID owner;
     private int status = STATUS_NO_POWER;

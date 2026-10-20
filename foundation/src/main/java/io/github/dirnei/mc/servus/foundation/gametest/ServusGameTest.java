@@ -19,4 +19,11 @@ public @interface ServusGameTest {
 
     /** Ticks before the test fails. */
     int timeoutTicks() default 100;
+
+    /**
+     * The batch the test runs in, a path in the mod's namespace. Tests of one
+     * batch run side by side; batches run one after another, so a test that
+     * changes a global setting belongs in a batch of its own.
+     */
+    String batch() default ServusGameTests.DEFAULT_BATCH;
 }

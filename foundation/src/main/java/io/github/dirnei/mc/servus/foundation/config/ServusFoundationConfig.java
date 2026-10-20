@@ -29,8 +29,10 @@ public final class ServusFoundationConfig {
             .defineInRange("maxLoadedChunksPerTeam", 49, 1, 1024);
 
     private static final ModConfigSpec.BooleanValue ENDER_ANCHOR_RESPECTS_FTB_CHUNKS = BUILDER
-            .comment("When FTB Chunks is installed, Servus Ender Anchors stay inactive and point players to FTB Chunks.")
-            .define("enderAnchorRespectsFtbChunks", true);
+            .comment("Set to true to leave chunk loading to FTB Chunks: while FTB Chunks is installed, Servus Ender Anchors",
+                    "then stay inactive and point players to FTB Chunks, and warehouse sites do not wake.",
+                    "Off by default: anchors and site wakes work next to FTB Chunks.")
+            .define("enderAnchorRespectsFtbChunks", false);
 
     public static final ModConfigSpec SPEC;
 
@@ -56,5 +58,10 @@ public final class ServusFoundationConfig {
 
     public static boolean enderAnchorRespectsFtbChunks() {
         return ENDER_ANCHOR_RESPECTS_FTB_CHUNKS.get();
+    }
+
+    /** Sets {@link #enderAnchorRespectsFtbChunks()} in memory without writing the file; for GameTests. */
+    public static void setEnderAnchorRespectsFtbChunks(boolean respects) {
+        ENDER_ANCHOR_RESPECTS_FTB_CHUNKS.set(respects);
     }
 }

@@ -24,6 +24,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
+import net.neoforged.fml.ModList;
 
 /** The Ender Anchor's area: upgrades, offset, FE per chunk and the team cap in chunks. */
 public final class AnchorGameTests {
@@ -195,6 +196,33 @@ public final class AnchorGameTests {
                 helper.assertTrue(spent == 10 * perTick, "10 ticks cost " + 10 * perTick + " FE, spent " + spent);
                 helper.succeed();
             });
+        });
+    }
+
+    /**
+     * With {@code enderAnchorRespectsFtbChunks} on, an anchor next to FTB Chunks stays inactive and loads nothing;
+     * without FTB Chunks the option changes nothing. Runs in its own batch, so no other test sees the option on.
+     */
+    @ServusGameTest(timeoutTicks = 60, batch = "ftb_chunks_respected")
+    public static void anchorStaysInactiveForFtbChunks(GameTestHelper helper) {
+        UUID team = UUID.randomUUID();
+        EnderAnchorBlockEntity anchor = anchor(helper, ANCHOR, team, 1);
+        boolean before = ServusFoundationConfig.enderAnchorRespectsFtbChunks();
+        ServusFoundationConfig.setEnderAnchorRespectsFtbChunks(true);
+        helper.runAfterDelay(5, () -> {
+            try {
+                if (ModList.get().isLoaded(EnderAnchorBlockEntity.FTB_CHUNKS)) {
+                    helper.assertTrue(anchor.status() == EnderAnchorBlockEntity.STATUS_FTB_CHUNKS, "use FTB Chunks, status " + anchor.status());
+                    helper.assertTrue(!anchor.ticketHeld(), "no chunk is loaded");
+                    helper.assertTrue(data(helper).load(team) == 0, "no team load, was " + data(helper).load(team));
+                } else {
+                    helper.assertTrue(anchor.status() == EnderAnchorBlockEntity.STATUS_ACTIVE, "active without FTB Chunks, status " + anchor.status());
+                    helper.assertTrue(anchor.heldChunks().size() == 9, "the square is held");
+                }
+            } finally {
+                ServusFoundationConfig.setEnderAnchorRespectsFtbChunks(before);
+            }
+            helper.succeed();
         });
     }
 

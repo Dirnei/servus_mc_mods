@@ -200,6 +200,7 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - Deeper inspection with the Data Potato: throughput per channel, why items are stuck, machine and storage reports.
 - Power Cable with a tiered transfer rate.
 - Hand made patterns for Machine Adapters, if the play tests ask for them.
+- Ender Anchor respects FTB Chunks claims: with FTB Chunks installed it loads only chunks the owner's team has claimed (or unclaimed ones), never another team's (soft integration with the FTB Chunks API).
 
 ### Open: Shuttles
 

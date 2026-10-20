@@ -5,8 +5,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Consumer;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -23,13 +25,16 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 /**
  * Registers the {@link ServusGameTest} methods of a mod. Each method becomes a
  * test function in {@code minecraft:test_function} and a function test
- * instance with an empty default environment, named
+ * instance in the empty environment of its batch, named
  * {@code <mod>:<class>.<method>} in lower case.
  */
 public final class ServusGameTests {
 
     /** The shared 12 by 6 by 12 empty structure every Servus mod ships. */
     public static final String EMPTY = "empty_12x6x12";
+
+    /** The batch, and test environment, of every test that names no other. */
+    public static final String DEFAULT_BATCH = "default";
 
     private record Test(Identifier id, Method method, ServusGameTest settings) {
     }
@@ -46,9 +51,10 @@ public final class ServusGameTests {
         }
         functions.register(modBus);
         modBus.addListener(RegisterGameTestsEvent.class, event -> {
-            Holder<TestEnvironmentDefinition<?>> environment =
-                    event.registerEnvironment(Identifier.fromNamespaceAndPath(modId, "default"));
+            Map<String, Holder<TestEnvironmentDefinition<?>>> batches = new HashMap<>();
             for (Test test : tests) {
+                Holder<TestEnvironmentDefinition<?>> environment = batches.computeIfAbsent(test.settings().batch(),
+                        batch -> event.registerEnvironment(Identifier.fromNamespaceAndPath(modId, batch)));
                 TestData<Holder<TestEnvironmentDefinition<?>>> data = new TestData<>(environment,
                         Identifier.fromNamespaceAndPath(modId, test.settings().template()),
                         test.settings().timeoutTicks(), 0, true);
