@@ -30,16 +30,18 @@ public record ShuttleView(List<BlockPos> path, int segment, float progress, Driv
 
     /**
      * How the shuttle drives on from here: its speed now, its top speed (0
-     * while it waits, so it stands still) and the speed it gains per tick.
+     * while it waits, so it stands still), the speed it gains per tick and
+     * its corner speed (0 for no corner limit).
      */
-    public record Drive(float speed, float top, float accel) {
+    public record Drive(float speed, float top, float accel, float corner) {
 
-        public static final Drive STILL = new Drive(0, 0, 0);
+        public static final Drive STILL = new Drive(0, 0, 0, 0);
 
         public static final StreamCodec<RegistryFriendlyByteBuf, Drive> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.FLOAT, Drive::speed,
                 ByteBufCodecs.FLOAT, Drive::top,
                 ByteBufCodecs.FLOAT, Drive::accel,
+                ByteBufCodecs.FLOAT, Drive::corner,
                 Drive::new);
     }
 

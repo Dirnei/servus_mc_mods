@@ -296,7 +296,7 @@ final class ShuttleLifts {
     private void send(BlockPos bottom, LiftCar car) {
         Integer target = car.target();
         ShuttleView.Drive drive = car.moving()
-                ? new ShuttleView.Drive((float) car.velocity(), (float) speed(car), (float) accel(car))
+                ? new ShuttleView.Drive((float) car.velocity(), (float) speed(car), (float) accel(car), 0)
                 : ShuttleView.Drive.STILL;
         PacketDistributor.sendToPlayersTrackingChunk(host.level(), ChunkPos.containing(bottom), new LiftSyncPayload(bottom, car.topY(),
                 (float) car.y(), target == null ? (int) Math.round(car.y()) : target, drive, car.carrying()));

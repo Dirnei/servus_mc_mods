@@ -52,7 +52,9 @@ final class ShuttleStatsReader {
                     integer(stops, "stop_ticks", fallback.stopTicks()),
                     integer(stops, "stack_ticks", fallback.stackTicks()),
                     number(stops, "handling_factor", fallback.handlingFactor()),
-                    tiers);
+                    tiers,
+                    number(speed, "corner", fallback.corner()),
+                    number(speed, "corner_per_upgrade", fallback.cornerPerCount()));
         } catch (RuntimeException e) {
             ServusShuttles.LOGGER.warn("Shuttle stats: falling back to defaults, {}", e.getMessage());
             return fallback;

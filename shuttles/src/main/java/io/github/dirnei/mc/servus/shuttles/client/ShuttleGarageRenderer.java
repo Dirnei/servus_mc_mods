@@ -147,7 +147,17 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
         List<BlockPos> path = view.path();
         ShuttleView.Drive drive = view.drive();
         return ShuttleDrive.glide(path.size(), view.segment(), view.progress(), drive.speed(), drive.top(), drive.accel(), elapsed,
-                i -> !horizontal(path, i));
+                i -> !horizontal(path, i), i -> corner(path, i), drive.corner());
+    }
+
+    private static boolean corner(List<BlockPos> path, int i) {
+        if (i <= 0 || i >= path.size() - 1) {
+            return false;
+        }
+        BlockPos a = path.get(i - 1);
+        BlockPos b = path.get(i);
+        BlockPos c = path.get(i + 1);
+        return ShuttleDrive.corner(a.getX(), a.getY(), a.getZ(), b.getX(), b.getY(), b.getZ(), c.getX(), c.getY(), c.getZ());
     }
 
     private static double[] position(List<BlockPos> path, double[] at) {

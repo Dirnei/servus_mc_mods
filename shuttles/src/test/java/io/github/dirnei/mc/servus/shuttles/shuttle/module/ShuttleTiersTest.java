@@ -103,4 +103,23 @@ class ShuttleTiersTest {
         assertEquals(16000, TIERS.tier(3).tankerCapacity());
         assertEquals(ShuttleTiers.DEFAULT_TANKER_CAPACITY, new ShuttleTiers.Tier(2, 2, 2, List.of()).tankerCapacity());
     }
+
+    @Test
+    void cornerSpeedGrowsALittlePerUpgrade() {
+        assertEquals(0.1, TIERS.cornerSpeed(1, 0), 1e-9);
+        assertEquals(0.12, TIERS.cornerSpeed(2, 4), 1e-9);
+        assertEquals(0.14, TIERS.cornerSpeed(3, 8), 1e-9);
+    }
+
+    @Test
+    void cornerSpeedNeverAboveTop() {
+        ShuttleTiers slow = new ShuttleTiers(0.08, 0.04, 0.01, 0.0025, 10, 4, 0.8, TIERS.tiers(), 0.1, 0.005);
+        assertEquals(0.08, slow.cornerSpeed(1, 0), 1e-9);
+    }
+
+    @Test
+    void cornerSpeedAtLeastOneAccelStep() {
+        ShuttleTiers tight = new ShuttleTiers(0.15, 0.04, 0.05, 0, 10, 4, 0.8, TIERS.tiers(), 0.02, 0);
+        assertEquals(0.05, tight.cornerSpeed(1, 0), 1e-9);
+    }
 }

@@ -13,11 +13,12 @@ import java.util.Set;
  * @param stacks    how many stacks, and so how many jobs, it carries per trip
  * @param speed     blocks per tick between stops
  * @param accel     speed gained per tick while it speeds up, lost while it brakes
+ * @param cornerSpeed blocks per tick it may drive through a corner of its path
  * @param handling  the factor its Handling upgrades put on stop and work times
  * @param liftless  whether its tool is too wide for a lift car
  * @param fluidCapacity mB of fluid it carries, 0 without a Tanker
  */
-public record ShuttleProfile(Set<String> modules, boolean fieldOnly, int stacks, double speed, double accel, double handling, boolean liftless,
+public record ShuttleProfile(Set<String> modules, boolean fieldOnly, int stacks, double speed, double accel, double cornerSpeed, double handling, boolean liftless,
                              int fluidCapacity) {
 
     public ShuttleProfile {
@@ -30,7 +31,8 @@ public record ShuttleProfile(Set<String> modules, boolean fieldOnly, int stacks,
         boolean fieldOnly = tool.map(ModuleSpec::fieldOnly).orElse(false);
         boolean liftless = tool.map(ModuleSpec::wide).orElse(false);
         int fluidCapacity = ids.contains(ModuleSpec.TANKER) ? tiers.tier(tier).tankerCapacity() : 0;
-        return new ShuttleProfile(ids, fieldOnly, tiers.tier(tier).stacks(), tiers.speed(tier, speed), tiers.accel(tier, speed), tiers.factor(tier, handling), liftless,
+        return new ShuttleProfile(ids, fieldOnly, tiers.tier(tier).stacks(), tiers.speed(tier, speed), tiers.accel(tier, speed),
+                tiers.cornerSpeed(tier, speed), tiers.factor(tier, handling), liftless,
                 fluidCapacity);
     }
 

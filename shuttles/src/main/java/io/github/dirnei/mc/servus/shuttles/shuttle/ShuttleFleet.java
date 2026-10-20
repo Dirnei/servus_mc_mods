@@ -1263,8 +1263,8 @@ public final class ShuttleFleet {
 
     /**
      * The blocks the shuttle drives this tick: faster from tick to tick up to
-     * its top speed, braking for the end of its path and for the lift car. A
-     * new path starts from standing.
+     * its top speed, braking for the end of its path and for the lift car and
+     * slowing to its corner speed where the path turns. A new path starts from standing.
      */
     private double drive(Shuttle shuttle) {
         ShuttleMotion motion = shuttle.motion;
@@ -1274,9 +1274,21 @@ public final class ShuttleFleet {
         }
         List<NodePos> path = motion.path();
         double toStop = ShuttleDrive.toStop(path.size(), motion.segment(), motion.progress(), i -> vertical(path, i));
-        shuttle.speed = ShuttleDrive.next(shuttle.speed, shuttle.profile.speed(), shuttle.profile.accel(), toStop);
+        double limit = ShuttleDrive.cornerLimit(path.size(), motion.segment(), motion.progress(), i -> corner(path, i),
+                shuttle.profile.cornerSpeed(), shuttle.profile.accel());
+        shuttle.speed = ShuttleDrive.next(shuttle.speed, Math.min(shuttle.profile.speed(), limit), shuttle.profile.accel(), toStop);
         // Never zero, so a shuttle standing at the start of a ride still asks the gate, which hands it to the car.
         return Math.max(shuttle.speed, 1e-4);
+    }
+
+    private static boolean corner(List<NodePos> path, int i) {
+        if (i <= 0 || i >= path.size() - 1) {
+            return false;
+        }
+        NodePos a = path.get(i - 1);
+        NodePos b = path.get(i);
+        NodePos c = path.get(i + 1);
+        return ShuttleDrive.corner(a.x(), a.y(), a.z(), b.x(), b.y(), b.z(), c.x(), c.y(), c.z());
     }
 
     private static boolean vertical(List<NodePos> path, int i) {
@@ -1311,7 +1323,8 @@ public final class ShuttleFleet {
             }
             boolean still = shuttle.riding || motion.held() || shuttle.stop > 0 || shuttle.handover > 0 || motion != shuttle.speedFor;
             ShuttleView.Drive shown = still ? ShuttleView.Drive.STILL
-                    : new ShuttleView.Drive((float) shuttle.speed, (float) shuttle.profile.speed(), (float) shuttle.profile.accel());
+                    : new ShuttleView.Drive((float) shuttle.speed, (float) shuttle.profile.speed(), (float) shuttle.profile.accel(),
+                            (float) shuttle.profile.cornerSpeed());
             Optional<BlockPos> lift = shuttle.riding && shuttle.lift != null ? Optional.of(shuttle.lift) : Optional.empty();
             list.add(new ShuttleView(path, motion.segment(), (float) motion.progress(), shown, shuttle.shownCargo(), lift, shuttle.item.copy(),
                     sightGlass(shuttle)));

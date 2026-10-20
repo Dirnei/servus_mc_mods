@@ -16,8 +16,11 @@ import java.util.List;
  * @param stackTicks     ticks a stop takes per stack moved there
  * @param handlingFactor what each Handling upgrade multiplies stop and work times by
  * @param tiers          Mk1 first; at least one
+ * @param corner         blocks per tick a shuttle without Speed upgrades may drive through a corner
+ * @param cornerPerCount what each Speed upgrade adds to that
  */
-public record ShuttleTiers(double baseSpeed, double speedPerCount, double accel, double accelPerCount, int stopTicks, int stackTicks, double handlingFactor, List<Tier> tiers) {
+public record ShuttleTiers(double baseSpeed, double speedPerCount, double accel, double accelPerCount, int stopTicks, int stackTicks, double handlingFactor, List<Tier> tiers,
+                           double corner, double cornerPerCount) {
 
     /** The upgrades counted on a shuttle. */
     public enum Kind { SPEED, HANDLING }
@@ -61,6 +64,8 @@ public record ShuttleTiers(double baseSpeed, double speedPerCount, double accel,
 
     public static final double DEFAULT_ACCEL = 0.01;
     public static final double DEFAULT_ACCEL_PER_COUNT = 0.0025;
+    public static final double DEFAULT_CORNER = 0.1;
+    public static final double DEFAULT_CORNER_PER_COUNT = 0.005;
     /** mB a Tanker carries in a tier that does not name its capacity. */
     public static final int DEFAULT_TANKER_CAPACITY = 4000;
 
@@ -76,6 +81,12 @@ public record ShuttleTiers(double baseSpeed, double speedPerCount, double accel,
         this(baseSpeed, speedPerCount, DEFAULT_ACCEL, DEFAULT_ACCEL_PER_COUNT, stopTicks, stackTicks, handlingFactor, tiers);
     }
 
+    /** Stats with the default corner speed. */
+    public ShuttleTiers(double baseSpeed, double speedPerCount, double accel, double accelPerCount, int stopTicks, int stackTicks, double handlingFactor,
+                        List<Tier> tiers) {
+        this(baseSpeed, speedPerCount, accel, accelPerCount, stopTicks, stackTicks, handlingFactor, tiers, DEFAULT_CORNER, DEFAULT_CORNER_PER_COUNT);
+    }
+
     public ShuttleTiers {
         if (tiers.isEmpty()) {
             throw new IllegalArgumentException("at least one tier");
@@ -88,6 +99,8 @@ public record ShuttleTiers(double baseSpeed, double speedPerCount, double accel,
         stopTicks = Math.max(0, stopTicks);
         stackTicks = Math.max(0, stackTicks);
         handlingFactor = Math.max(0.01, Math.min(1, handlingFactor));
+        corner = Math.max(0.01, corner);
+        cornerPerCount = Math.max(0, cornerPerCount);
     }
 
     /** The highest tier there is. */
@@ -113,6 +126,15 @@ public record ShuttleTiers(double baseSpeed, double speedPerCount, double accel,
     /** Speed gained (and lost when braking) per tick by a shuttle of that tier with that many Speed upgrades. */
     public double accel(int tier, int count) {
         return accel + accelPerCount * clamp(tier, Kind.SPEED, count);
+    }
+
+    /**
+     * Blocks per tick a shuttle of that tier with that many Speed upgrades may drive through a corner:
+     * never above its top speed, and at least one acceleration step.
+     */
+    public double cornerSpeed(int tier, int count) {
+        double share = corner + cornerPerCount * clamp(tier, Kind.SPEED, count);
+        return Math.min(speed(tier, count), Math.max(accel(tier, count), share));
     }
 
     /** The factor that many Handling upgrades put on stop and work times. */

@@ -72,4 +72,82 @@ class ShuttleDriveTest {
         assertEquals(travelled, at[0] + at[1], 1e-9);
         assertEquals(v, at[2], 1e-9);
     }
+
+    /** An L path of 21 nodes turning at node 10. */
+    private static final int NODES = 21;
+    private static final int TURN = 10;
+    private static final double CORNER = 0.1;
+
+    @Test
+    void noCornerNoLimit() {
+        assertEquals(Double.POSITIVE_INFINITY, ShuttleDrive.cornerLimit(NODES, 0, 0, i -> false, CORNER, ACCEL));
+        assertEquals(Double.POSITIVE_INFINITY, ShuttleDrive.cornerLimit(NODES, 0, 0, i -> i == TURN, 0, ACCEL));
+    }
+
+    @Test
+    void insideCornerZoneIsCornerSpeed() {
+        assertEquals(CORNER, ShuttleDrive.cornerLimit(NODES, TURN - 1, 0.6, i -> i == TURN, CORNER, ACCEL), 1e-9);
+        assertEquals(CORNER, ShuttleDrive.cornerLimit(NODES, TURN, 0.4, i -> i == TURN, CORNER, ACCEL), 1e-9);
+        assertEquals(Double.POSITIVE_INFINITY, ShuttleDrive.cornerLimit(NODES, TURN, 0.6, i -> i == TURN, CORNER, ACCEL));
+    }
+
+    @Test
+    void limitRisesWithDistanceBeforeCorner() {
+        double near = ShuttleDrive.cornerLimit(NODES, TURN - 2, 0, i -> i == TURN, CORNER, ACCEL);
+        double far = ShuttleDrive.cornerLimit(NODES, TURN - 6, 0, i -> i == TURN, CORNER, ACCEL);
+        assertEquals(-ACCEL + Math.sqrt(ACCEL * ACCEL + CORNER * CORNER + 2 * ACCEL * 1.5), near, 1e-9);
+        assertTrue(far > near, "farther from the corner allows more speed");
+    }
+
+    @Test
+    void nearestCornerWins() {
+        double both = ShuttleDrive.cornerLimit(NODES, 0, 0, i -> i == 4 || i == TURN, CORNER, ACCEL);
+        double first = ShuttleDrive.cornerLimit(NODES, 0, 0, i -> i == 4, CORNER, ACCEL);
+        assertEquals(first, both, 1e-9);
+    }
+
+    @Test
+    void fastShuttleReachesCornerAtCornerSpeed() {
+        double[] at = {0, 0};
+        double v = TOP;
+        double highestInZone = 0;
+        for (int t = 0; t < 400 && at[0] < NODES - 1; t++) {
+            double[] next = ShuttleDrive.glide(NODES, (int) at[0], at[1], v, TOP, ACCEL, 1, i -> false, i -> i == TURN, CORNER);
+            at = new double[] {next[0], next[1]};
+            v = next[2];
+            double position = at[0] + at[1];
+            if (Math.abs(position - TURN) <= 0.5) {
+                highestInZone = Math.max(highestInZone, v);
+            }
+        }
+        assertTrue(highestInZone > 0, "the shuttle passed the corner");
+        assertTrue(highestInZone <= CORNER + 1e-9, "no faster than the corner speed in the corner, was " + highestInZone);
+    }
+
+    @Test
+    void speedsUpAfterCorner() {
+        double[] after = ShuttleDrive.glide(NODES, TURN, 0.5, CORNER, TOP, ACCEL, 6, i -> false, i -> i == TURN, CORNER);
+        assertTrue(after[2] > CORNER + 0.1, "it speeds up again after the corner, was " + after[2]);
+    }
+
+    @Test
+    void cornerIsATurnOnOneLevel() {
+        assertTrue(ShuttleDrive.corner(0, 0, 0, 1, 0, 0, 1, 0, 1), "east then south turns");
+        assertTrue(!ShuttleDrive.corner(0, 0, 0, 1, 0, 0, 2, 0, 0), "straight on is no corner");
+        assertTrue(!ShuttleDrive.corner(0, 0, 0, 1, 0, 0, 1, 1, 0), "a step up is the lift, not a corner");
+    }
+
+    @Test
+    void glideThroughCornerMatchesTickByTick() {
+        double v = 0;
+        double[] at = {TURN - 4, 0};
+        for (int t = 0; t < 30; t++) {
+            double[] next = ShuttleDrive.glide(NODES, (int) at[0], at[1], v, TOP, ACCEL, 1, i -> false, i -> i == TURN, CORNER);
+            at = new double[] {next[0], next[1]};
+            v = next[2];
+        }
+        double[] whole = ShuttleDrive.glide(NODES, TURN - 4, 0, 0, TOP, ACCEL, 30, i -> false, i -> i == TURN, CORNER);
+        assertEquals(at[0] + at[1], whole[0] + whole[1], 1e-9);
+        assertEquals(v, whole[2], 1e-9);
+    }
 }
