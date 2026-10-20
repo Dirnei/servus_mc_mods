@@ -3,7 +3,9 @@ package io.github.dirnei.mc.servus.delicacies.datagen;
 import io.github.dirnei.mc.servus.delicacies.ServusDelicaciesIds;
 import io.github.dirnei.mc.servus.delicacies.crop.CropKind;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesBlocks;
+import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesEffects;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesItems;
+import io.github.dirnei.mc.servus.delicacies.teller.MealKind;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
@@ -26,6 +28,17 @@ final class ServusDelicaciesLanguageProvider extends LanguageProvider {
         kitchen();
         meatDishes();
         sides();
+        teller();
+    }
+
+    /** The Plate, the plated meals and Properly Full. */
+    private void teller() {
+        add(ServusDelicaciesBlocks.PLATE.get(), "Plate");
+        add(ServusDelicaciesBlocks.meal(MealKind.ROAST_PORK_PLATE), "Roast Pork Plate");
+        add(ServusDelicaciesBlocks.meal(MealKind.SCHNITZEL_PLATE), "Schnitzel Plate");
+        add(ServusDelicaciesBlocks.meal(MealKind.WEISSWURST_BREAKFAST), "Weisswurst Breakfast");
+        add(ServusDelicaciesBlocks.meal(MealKind.WEISSWURST_BREAKFAST_WITH_WEISSBIER), "Weisswurst Breakfast with Weissbier");
+        add(ServusDelicaciesEffects.PROPERLY_FULL.get().getDescriptionId(), "Properly Full");
     }
 
     /** The Fermenting Crock, the sides, their messages and the JEI category. */

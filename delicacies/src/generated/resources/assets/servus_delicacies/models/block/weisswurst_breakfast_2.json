@@ -1,0 +1,253 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#plate_ceramic"
+        },
+        "east": {
+          "texture": "#plate_ceramic"
+        },
+        "north": {
+          "texture": "#plate_ceramic"
+        },
+        "south": {
+          "texture": "#plate_ceramic"
+        },
+        "up": {
+          "texture": "#plate"
+        },
+        "west": {
+          "texture": "#plate_ceramic"
+        }
+      },
+      "from": [
+        1,
+        0,
+        4
+      ],
+      "to": [
+        15,
+        1,
+        12
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#plate_ceramic"
+        },
+        "east": {
+          "texture": "#plate_ceramic"
+        },
+        "north": {
+          "texture": "#plate_ceramic"
+        },
+        "up": {
+          "texture": "#plate"
+        },
+        "west": {
+          "texture": "#plate_ceramic"
+        }
+      },
+      "from": [
+        2,
+        0,
+        2
+      ],
+      "to": [
+        14,
+        1,
+        4
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#plate_ceramic"
+        },
+        "east": {
+          "texture": "#plate_ceramic"
+        },
+        "south": {
+          "texture": "#plate_ceramic"
+        },
+        "up": {
+          "texture": "#plate"
+        },
+        "west": {
+          "texture": "#plate_ceramic"
+        }
+      },
+      "from": [
+        2,
+        0,
+        12
+      ],
+      "to": [
+        14,
+        1,
+        14
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#plate_ceramic"
+        },
+        "east": {
+          "texture": "#plate_ceramic"
+        },
+        "north": {
+          "texture": "#plate_ceramic"
+        },
+        "up": {
+          "texture": "#plate"
+        },
+        "west": {
+          "texture": "#plate_ceramic"
+        }
+      },
+      "from": [
+        4,
+        0,
+        1
+      ],
+      "to": [
+        12,
+        1,
+        2
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#plate_ceramic"
+        },
+        "east": {
+          "texture": "#plate_ceramic"
+        },
+        "south": {
+          "texture": "#plate_ceramic"
+        },
+        "up": {
+          "texture": "#plate"
+        },
+        "west": {
+          "texture": "#plate_ceramic"
+        }
+      },
+      "from": [
+        4,
+        0,
+        14
+      ],
+      "to": [
+        12,
+        1,
+        15
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#plate_mustard"
+        },
+        "north": {
+          "texture": "#plate_mustard"
+        },
+        "south": {
+          "texture": "#plate_mustard"
+        },
+        "up": {
+          "texture": "#plate_mustard"
+        },
+        "west": {
+          "texture": "#plate_mustard"
+        }
+      },
+      "from": [
+        10,
+        1,
+        10
+      ],
+      "to": [
+        13,
+        1.3,
+        13
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#plate_weisswurst"
+        },
+        "north": {
+          "texture": "#plate_weisswurst"
+        },
+        "south": {
+          "texture": "#plate_weisswurst"
+        },
+        "up": {
+          "texture": "#plate_weisswurst"
+        },
+        "west": {
+          "texture": "#plate_weisswurst"
+        }
+      },
+      "from": [
+        3,
+        1,
+        2.5
+      ],
+      "to": [
+        10,
+        3,
+        4.5
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#plate_pretzel"
+        },
+        "north": {
+          "texture": "#plate_pretzel"
+        },
+        "south": {
+          "texture": "#plate_pretzel"
+        },
+        "up": {
+          "texture": "#plate_pretzel"
+        },
+        "west": {
+          "texture": "#plate_pretzel"
+        }
+      },
+      "from": [
+        10.5,
+        1,
+        3
+      ],
+      "to": [
+        13.5,
+        3,
+        5
+      ]
+    }
+  ],
+  "textures": {
+    "particle": "servus_delicacies:block/plate",
+    "plate": "servus_delicacies:block/plate",
+    "plate_ceramic": "servus_delicacies:block/plate_ceramic",
+    "plate_mustard": "servus_delicacies:block/plate_mustard",
+    "plate_pretzel": "servus_delicacies:block/plate_pretzel",
+    "plate_weisswurst": "servus_delicacies:block/plate_weisswurst"
+  }
+}

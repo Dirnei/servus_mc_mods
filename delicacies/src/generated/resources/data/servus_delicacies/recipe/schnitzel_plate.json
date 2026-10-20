@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "servus_delicacies:plate",
+    "servus_delicacies:schnitzel",
+    "servus_delicacies:potato_salad"
+  ],
+  "result": {
+    "id": "servus_delicacies:schnitzel_plate"
+  }
+}

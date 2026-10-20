@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.delicacies.crop.CropKind;
 import io.github.dirnei.mc.servus.delicacies.crop.CropTags;
 import io.github.dirnei.mc.servus.delicacies.kitchen.KitchenTags;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesItems;
+import io.github.dirnei.mc.servus.delicacies.teller.TellerTags;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
@@ -49,6 +50,14 @@ final class ServusDelicaciesItemTagsProvider extends ItemTagsProvider {
         ServusDelicaciesItems.BOWL_FOODS.forEach(food -> tag(Tags.Items.FOODS_SOUP).add(food.get()));
         tag(KitchenTags.CHEESE).add(ServusDelicaciesItems.CHEESE.get());
         meatDishes();
+        teller();
+    }
+
+    /** The dumplings of the Roast Pork Plate and the beer of the Weisswurst breakfast, Brewery's Weissbier when installed. */
+    private void teller() {
+        tag(TellerTags.DUMPLINGS).add(ServusDelicaciesItems.BREAD_DUMPLING.get(), ServusDelicaciesItems.POTATO_DUMPLING.get());
+        tag(TellerTags.BREAKFAST_BEERS).add(TagEntry.optionalElement(
+                Identifier.fromNamespaceAndPath(ServusDelicaciesItems.BREWERY, "weissbier")));
     }
 
     /** Meat foods and dishes, mustard flour, and the cheese tag the Cordon Bleu asks for, declared even while empty. */

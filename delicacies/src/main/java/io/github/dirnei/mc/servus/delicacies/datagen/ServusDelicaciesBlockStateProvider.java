@@ -29,8 +29,9 @@ final class ServusDelicaciesBlockStateProvider extends BlockStateProvider {
         }
         KitchenModels.register(this);
         MeatModels.register(this);
+        TellerModels.register(this);
         for (DeferredItem<? extends Item> item : ServusDelicaciesItems.CREATIVE_TAB_ORDER) {
-            if (!ServusDelicaciesItems.BLOCK_MODEL_ITEMS.contains(item)) {
+            if (!ServusDelicaciesItems.BLOCK_MODEL_ITEMS.contains(item) && !ServusDelicaciesItems.TELLER_ITEMS.contains(item)) {
                 itemModels().basicItem(item.get());
             }
         }

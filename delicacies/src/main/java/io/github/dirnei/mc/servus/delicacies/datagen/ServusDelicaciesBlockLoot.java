@@ -7,6 +7,8 @@ import io.github.dirnei.mc.servus.delicacies.meat.LeberkaeseBlock;
 import io.github.dirnei.mc.servus.delicacies.meat.LoafSlices;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesBlocks;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesItems;
+import io.github.dirnei.mc.servus.delicacies.teller.MealBlock;
+import io.github.dirnei.mc.servus.delicacies.teller.MealPortions;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -49,6 +51,17 @@ final class ServusDelicaciesBlockLoot extends BlockLootSubProvider {
             dropSelf(block);
         }
         add(ServusDelicaciesBlocks.LEBERKAESE.get(), loafDrops(ServusDelicaciesBlocks.LEBERKAESE.get()));
+        dropSelf(ServusDelicaciesBlocks.PLATE.get());
+        ServusDelicaciesBlocks.MEALS.values().forEach(meal -> add(meal.get(), mealDrops(meal.get())));
+    }
+
+    /** A full meal drops itself, a started one only its Plate. */
+    private static LootTable.Builder mealDrops(MealBlock meal) {
+        LootItemCondition.Builder full = LootItemBlockStatePropertyCondition.hasBlockStateProperties(meal)
+                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(MealBlock.PORTIONS, MealPortions.FULL));
+        return LootTable.lootTable()
+                .withPool(LootPool.lootPool().when(full).add(LootItem.lootTableItem(meal)))
+                .withPool(LootPool.lootPool().when(full.invert()).add(LootItem.lootTableItem(ServusDelicaciesItems.PLATE.get())));
     }
 
     /** An uncut loaf drops itself, a cut one the slices still on it. */
@@ -94,6 +107,7 @@ final class ServusDelicaciesBlockLoot extends BlockLootSubProvider {
     @Override
     protected Iterable<Block> getKnownBlocks() {
         return Stream.of(Arrays.stream(CropKind.values()).<Block>map(ServusDelicaciesBlocks::crop), kitchenBlocks().stream(),
-                Stream.<Block>of(ServusDelicaciesBlocks.LEBERKAESE.get())).flatMap(blocks -> blocks).toList();
+                Stream.<Block>of(ServusDelicaciesBlocks.LEBERKAESE.get(), ServusDelicaciesBlocks.PLATE.get()),
+                ServusDelicaciesBlocks.MEALS.values().stream().<Block>map(meal -> meal.get())).flatMap(blocks -> blocks).toList();
     }
 }

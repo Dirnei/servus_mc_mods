@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.delicacies.registry;
 import io.github.dirnei.mc.servus.delicacies.ServusDelicaciesIds;
 import io.github.dirnei.mc.servus.delicacies.crop.CropKind;
 import io.github.dirnei.mc.servus.delicacies.food.DelicaciesFoodItem;
+import io.github.dirnei.mc.servus.delicacies.teller.MealKind;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -11,6 +12,7 @@ import java.util.Map;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -90,7 +92,7 @@ public final class ServusDelicaciesItems {
     public static final DeferredItem<DelicaciesFoodItem> ROAST_PORK = food("roast_pork");
     /** Eaten like a stew: the bowl comes back. */
     public static final DeferredItem<DelicaciesFoodItem> GRAVY = ITEMS.registerItem("gravy", DelicaciesFoodItem::new,
-            properties -> properties.usingConvertsTo(Items.BOWL).stacksTo(16));
+            properties -> properties.usingConvertsTo(Items.BOWL).craftRemainder(Items.BOWL).stacksTo(16));
     /** The meat dishes, in {@code c:foods/cooked_meat}. */
     public static final List<DeferredItem<DelicaciesFoodItem>> COOKED_MEATS =
             List.of(SCHNITZEL, CORDON_BLEU, HAM, WEISSWURST, LEBERKAESE_SLICE, LEBERKAESE_ROLL, ROAST_PORK);
@@ -101,6 +103,14 @@ public final class ServusDelicaciesItems {
     public static final List<DeferredItem<? extends Item>> MEAT_ITEMS = List.of(PORK_CUTLET, MINCED_PORK, MINCED_BEEF, BREADED_CUTLET,
             RAW_CORDON_BLEU, SAUSAGE_MEAT, MUSTARD_FLOUR, SWEET_MUSTARD, LEBERKAESE, SCHNITZEL, CORDON_BLEU, HAM, WEISSWURST,
             LEBERKAESE_SLICE, LEBERKAESE_ROLL, ROAST_PORK, GRAVY);
+
+    /** Mod id of Servus: Brewery, whose beer goes with the Weisswurst breakfast. */
+    public static final String BREWERY = "servus_brewery";
+    public static final DeferredItem<BlockItem> PLATE = ITEMS.registerSimpleBlockItem(ServusDelicaciesBlocks.PLATE);
+    /** The plated meals, stacking to 16. */
+    public static final Map<MealKind, DeferredItem<BlockItem>> MEALS = mealItems();
+    /** The Plate and the plated meals, whose item models are their block models. */
+    public static final List<DeferredItem<? extends Item>> TELLER_ITEMS = tellerItems();
 
     /** The item that plants each crop, a block item of its crop block named like an item. */
     public static final Map<CropKind, DeferredItem<BlockItem>> PLANTING = plantingItems();
@@ -128,9 +138,37 @@ public final class ServusDelicaciesItems {
         return ITEMS.registerItem(name, DelicaciesFoodItem::new);
     }
 
-    /** A food served in a bowl: it stacks to 16 and leaves the Bowl when eaten. */
+    /** A food served in a bowl: it stacks to 16 and leaves the Bowl when eaten or crafted. */
     private static DeferredItem<DelicaciesFoodItem> bowlFood(String name) {
-        return ITEMS.registerItem(name, DelicaciesFoodItem::new, properties -> properties.stacksTo(16).usingConvertsTo(Items.BOWL));
+        return ITEMS.registerItem(name, DelicaciesFoodItem::new,
+                properties -> properties.stacksTo(16).usingConvertsTo(Items.BOWL).craftRemainder(Items.BOWL));
+    }
+
+    /** The item of the plated {@code meal}. */
+    public static Item meal(MealKind meal) {
+        return MEALS.get(meal).get();
+    }
+
+    private static Map<MealKind, DeferredItem<BlockItem>> mealItems() {
+        Map<MealKind, DeferredItem<BlockItem>> items = new EnumMap<>(MealKind.class);
+        for (MealKind meal : MealKind.values()) {
+            items.put(meal, ITEMS.registerSimpleBlockItem(ServusDelicaciesBlocks.MEALS.get(meal), properties -> properties.stacksTo(16)));
+        }
+        return Collections.unmodifiableMap(items);
+    }
+
+    private static List<DeferredItem<? extends Item>> tellerItems() {
+        List<DeferredItem<? extends Item>> items = new ArrayList<>();
+        items.add(PLATE);
+        items.addAll(MEALS.values());
+        return List.copyOf(items);
+    }
+
+    /** The Teller items the creative tab shows: the Weissbier breakfast only when Servus: Brewery is installed. */
+    private static List<DeferredItem<? extends Item>> tellerTabItems() {
+        return TELLER_ITEMS.stream()
+                .filter(item -> item != MEALS.get(MealKind.WEISSWURST_BREAKFAST_WITH_WEISSBIER) || ModList.get().isLoaded(BREWERY))
+                .toList();
     }
 
     private static Map<CropKind, DeferredItem<BlockItem>> plantingItems() {
@@ -173,6 +211,7 @@ public final class ServusDelicaciesItems {
         order.addAll(SIDE_INGREDIENTS);
         order.addAll(SIDE_FOODS);
         order.addAll(MEAT_ITEMS);
+        order.addAll(tellerTabItems());
         order.addAll(HARVEST.values());
         for (CropKind crop : CropKind.values()) {
             if (!crop.selfPlanting()) {

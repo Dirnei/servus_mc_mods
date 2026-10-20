@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.delicacies.food;
 
 import io.github.dirnei.mc.servus.delicacies.ServusDelicaciesIds;
+import io.github.dirnei.mc.servus.delicacies.teller.Meal;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.food.FoodProperties;
@@ -25,6 +26,15 @@ public final class DelicaciesDataMaps {
             .synced(FoodProperties.DIRECT_CODEC, false)
             .build();
 
+    /**
+     * What a plated meal gives, from {@code data/<ns>/data_maps/item/meal.json}: the food of one {@code portion} and the
+     * {@code effects} after the last portion. Synced to clients.
+     */
+    public static final DataMapType<Item, Meal> MEAL = DataMapType
+            .builder(Identifier.fromNamespaceAndPath(ServusDelicaciesIds.MOD_ID, "meal"), Registries.ITEM, Meal.CODEC)
+            .synced(Meal.CODEC, false)
+            .build();
+
     private DelicaciesDataMaps() {
     }
 
@@ -33,8 +43,14 @@ public final class DelicaciesDataMaps {
         return stack.typeHolder().getData(FOOD);
     }
 
+    /** What the meal {@code item} gives, or null when the data gives it nothing. */
+    public static @Nullable Meal meal(Item item) {
+        return item.builtInRegistryHolder().getData(MEAL);
+    }
+
     @SubscribeEvent
     public static void onRegisterDataMaps(RegisterDataMapTypesEvent event) {
         event.register(FOOD);
+        event.register(MEAL);
     }
 }

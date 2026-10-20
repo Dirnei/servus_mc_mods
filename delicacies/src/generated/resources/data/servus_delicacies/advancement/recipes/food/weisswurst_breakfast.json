@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "servus_delicacies:weisswurst_breakfast"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_weisswurst": {
+      "conditions": {
+        "items": [
+          {
+            "items": "servus_delicacies:weisswurst"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_weisswurst"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "servus_delicacies:weisswurst_breakfast"
+    ]
+  }
+}

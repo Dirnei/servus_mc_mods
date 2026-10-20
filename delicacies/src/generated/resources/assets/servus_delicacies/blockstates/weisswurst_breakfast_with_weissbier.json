@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "facing=east,portions=1": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_1",
+      "y": 90
+    },
+    "facing=east,portions=2": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_2",
+      "y": 90
+    },
+    "facing=east,portions=3": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_3",
+      "y": 90
+    },
+    "facing=east,portions=4": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_4",
+      "y": 90
+    },
+    "facing=north,portions=1": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_1"
+    },
+    "facing=north,portions=2": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_2"
+    },
+    "facing=north,portions=3": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_3"
+    },
+    "facing=north,portions=4": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_4"
+    },
+    "facing=south,portions=1": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_1",
+      "y": 180
+    },
+    "facing=south,portions=2": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_2",
+      "y": 180
+    },
+    "facing=south,portions=3": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_3",
+      "y": 180
+    },
+    "facing=south,portions=4": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_4",
+      "y": 180
+    },
+    "facing=west,portions=1": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_1",
+      "y": 270
+    },
+    "facing=west,portions=2": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_2",
+      "y": 270
+    },
+    "facing=west,portions=3": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_3",
+      "y": 270
+    },
+    "facing=west,portions=4": {
+      "model": "servus_delicacies:block/weisswurst_breakfast_with_weissbier_4",
+      "y": 270
+    }
+  }
+}

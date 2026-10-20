@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.delicacies.gametest.DelicaciesGameTests;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesBlockEntities;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesBlocks;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesCreativeTabs;
+import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesEffects;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesItems;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesRecipes;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTests;
@@ -29,6 +30,7 @@ public final class ServusDelicacies {
         ServusDelicaciesRecipes.syncToClients();
         ServusDelicaciesItems.ITEMS.register(modEventBus);
         ServusDelicaciesCreativeTabs.TABS.register(modEventBus);
+        ServusDelicaciesEffects.EFFECTS.register(modEventBus);
         ServusGameTests.register(modEventBus, ServusDelicaciesIds.MOD_ID, DelicaciesGameTests.CLASSES);
         LOGGER.info("Servus: Delicacies loaded");
     }

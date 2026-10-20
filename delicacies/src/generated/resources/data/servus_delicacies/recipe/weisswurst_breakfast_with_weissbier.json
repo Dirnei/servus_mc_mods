@@ -1,0 +1,21 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "servus_brewery"
+    }
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "servus_delicacies:plate",
+    "servus_delicacies:weisswurst",
+    "servus_delicacies:weisswurst",
+    "servus_delicacies:pretzel",
+    "servus_delicacies:sweet_mustard",
+    "#servus_delicacies:breakfast_beers"
+  ],
+  "result": {
+    "id": "servus_delicacies:weisswurst_breakfast_with_weissbier"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "servus_delicacies:plate",
+    "servus_delicacies:roast_pork",
+    "#servus_delicacies:dumplings",
+    "#servus_delicacies:dumplings",
+    "servus_delicacies:braised_red_cabbage",
+    "servus_delicacies:gravy"
+  ],
+  "result": {
+    "id": "servus_delicacies:roast_pork_plate"
+  }
+}

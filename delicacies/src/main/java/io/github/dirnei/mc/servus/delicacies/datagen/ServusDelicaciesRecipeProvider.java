@@ -11,6 +11,8 @@ import io.github.dirnei.mc.servus.delicacies.crop.CropTags;
 import io.github.dirnei.mc.servus.delicacies.kitchen.KitchenTags;
 import io.github.dirnei.mc.servus.delicacies.meat.LoafSlices;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesItems;
+import io.github.dirnei.mc.servus.delicacies.teller.MealKind;
+import io.github.dirnei.mc.servus.delicacies.teller.TellerTags;
 import io.github.dirnei.mc.servus.foundation.machine.mill.MillingRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import java.util.List;
@@ -36,6 +38,7 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import net.neoforged.neoforge.fluids.crafting.FluidIngredient;
 import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
@@ -73,6 +76,44 @@ final class ServusDelicaciesRecipeProvider extends RecipeProvider {
         bakery();
         meatDishes();
         sides();
+        teller();
+    }
+
+    /** The Plate and the plated meals; the Weissbier breakfast only loads with Servus: Brewery. */
+    private void teller() {
+        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.MISC, ServusDelicaciesItems.PLATE.get(), 2)
+                .requires(Items.CLAY_BALL, 3)
+                .requires(Tags.Items.DYES_BLUE)
+                .unlockedBy("has_clay_ball", has(Items.CLAY_BALL))
+                .save(output);
+        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.FOOD, ServusDelicaciesItems.meal(MealKind.ROAST_PORK_PLATE))
+                .requires(ServusDelicaciesItems.PLATE.get())
+                .requires(ServusDelicaciesItems.ROAST_PORK.get())
+                .requires(TellerTags.DUMPLINGS)
+                .requires(TellerTags.DUMPLINGS)
+                .requires(ServusDelicaciesItems.BRAISED_RED_CABBAGE.get())
+                .requires(ServusDelicaciesItems.GRAVY.get())
+                .unlockedBy("has_roast_pork", has(ServusDelicaciesItems.ROAST_PORK.get()))
+                .save(output);
+        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.FOOD, ServusDelicaciesItems.meal(MealKind.SCHNITZEL_PLATE))
+                .requires(ServusDelicaciesItems.PLATE.get())
+                .requires(ServusDelicaciesItems.SCHNITZEL.get())
+                .requires(ServusDelicaciesItems.POTATO_SALAD.get())
+                .unlockedBy("has_schnitzel", has(ServusDelicaciesItems.SCHNITZEL.get()))
+                .save(output);
+        breakfast(MealKind.WEISSWURST_BREAKFAST).save(output);
+        breakfast(MealKind.WEISSWURST_BREAKFAST_WITH_WEISSBIER)
+                .requires(TellerTags.BREAKFAST_BEERS)
+                .save(output.withConditions(new ModLoadedCondition(ServusDelicaciesItems.BREWERY)));
+    }
+
+    private ShapelessRecipeBuilder breakfast(MealKind kind) {
+        return ShapelessRecipeBuilder.shapeless(items, RecipeCategory.FOOD, ServusDelicaciesItems.meal(kind))
+                .requires(ServusDelicaciesItems.PLATE.get())
+                .requires(ServusDelicaciesItems.WEISSWURST.get(), 2)
+                .requires(ServusDelicaciesItems.PRETZEL.get())
+                .requires(ServusDelicaciesItems.SWEET_MUSTARD.get())
+                .unlockedBy("has_weisswurst", has(ServusDelicaciesItems.WEISSWURST.get()));
     }
 
     /** The Fermenting Crock, sauerkraut and cheese, red cabbage, the dumplings and the bowl servings. */

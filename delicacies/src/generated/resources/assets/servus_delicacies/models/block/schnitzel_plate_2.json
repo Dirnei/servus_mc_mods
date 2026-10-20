@@ -1,0 +1,223 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#plate_ceramic"
+        },
+        "east": {
+          "texture": "#plate_ceramic"
+        },
+        "north": {
+          "texture": "#plate_ceramic"
+        },
+        "south": {
+          "texture": "#plate_ceramic"
+        },
+        "up": {
+          "texture": "#plate"
+        },
+        "west": {
+          "texture": "#plate_ceramic"
+        }
+      },
+      "from": [
+        1,
+        0,
+        4
+      ],
+      "to": [
+        15,
+        1,
+        12
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#plate_ceramic"
+        },
+        "east": {
+          "texture": "#plate_ceramic"
+        },
+        "north": {
+          "texture": "#plate_ceramic"
+        },
+        "up": {
+          "texture": "#plate"
+        },
+        "west": {
+          "texture": "#plate_ceramic"
+        }
+      },
+      "from": [
+        2,
+        0,
+        2
+      ],
+      "to": [
+        14,
+        1,
+        4
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#plate_ceramic"
+        },
+        "east": {
+          "texture": "#plate_ceramic"
+        },
+        "south": {
+          "texture": "#plate_ceramic"
+        },
+        "up": {
+          "texture": "#plate"
+        },
+        "west": {
+          "texture": "#plate_ceramic"
+        }
+      },
+      "from": [
+        2,
+        0,
+        12
+      ],
+      "to": [
+        14,
+        1,
+        14
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#plate_ceramic"
+        },
+        "east": {
+          "texture": "#plate_ceramic"
+        },
+        "north": {
+          "texture": "#plate_ceramic"
+        },
+        "up": {
+          "texture": "#plate"
+        },
+        "west": {
+          "texture": "#plate_ceramic"
+        }
+      },
+      "from": [
+        4,
+        0,
+        1
+      ],
+      "to": [
+        12,
+        1,
+        2
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#plate_ceramic"
+        },
+        "east": {
+          "texture": "#plate_ceramic"
+        },
+        "south": {
+          "texture": "#plate_ceramic"
+        },
+        "up": {
+          "texture": "#plate"
+        },
+        "west": {
+          "texture": "#plate_ceramic"
+        }
+      },
+      "from": [
+        4,
+        0,
+        14
+      ],
+      "to": [
+        12,
+        1,
+        15
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#plate_schnitzel"
+        },
+        "north": {
+          "texture": "#plate_schnitzel"
+        },
+        "south": {
+          "texture": "#plate_schnitzel"
+        },
+        "up": {
+          "texture": "#plate_schnitzel"
+        },
+        "west": {
+          "texture": "#plate_schnitzel"
+        }
+      },
+      "from": [
+        3,
+        1,
+        3
+      ],
+      "to": [
+        10,
+        2,
+        8
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#plate_potato_salad"
+        },
+        "north": {
+          "texture": "#plate_potato_salad"
+        },
+        "south": {
+          "texture": "#plate_potato_salad"
+        },
+        "up": {
+          "texture": "#plate_potato_salad"
+        },
+        "west": {
+          "texture": "#plate_potato_salad"
+        }
+      },
+      "from": [
+        9.5,
+        1,
+        9
+      ],
+      "to": [
+        13.5,
+        3,
+        13
+      ]
+    }
+  ],
+  "textures": {
+    "particle": "servus_delicacies:block/plate",
+    "plate": "servus_delicacies:block/plate",
+    "plate_ceramic": "servus_delicacies:block/plate_ceramic",
+    "plate_potato_salad": "servus_delicacies:block/plate_potato_salad",
+    "plate_schnitzel": "servus_delicacies:block/plate_schnitzel"
+  }
+}

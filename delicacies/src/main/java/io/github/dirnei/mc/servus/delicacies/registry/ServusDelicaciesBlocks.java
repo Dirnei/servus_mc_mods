@@ -10,6 +10,9 @@ import io.github.dirnei.mc.servus.delicacies.cooking.PotBlock;
 import io.github.dirnei.mc.servus.delicacies.crock.FermentingCrockBlock;
 import io.github.dirnei.mc.servus.delicacies.meat.LeberkaeseBlock;
 import io.github.dirnei.mc.servus.delicacies.stove.StoveTileBlock;
+import io.github.dirnei.mc.servus.delicacies.teller.MealBlock;
+import io.github.dirnei.mc.servus.delicacies.teller.MealKind;
+import io.github.dirnei.mc.servus.delicacies.teller.PlateBlock;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
@@ -87,7 +90,36 @@ public final class ServusDelicaciesBlocks {
                     .noOcclusion()
                     .pushReaction(PushReaction.DESTROY));
 
+    /** The Plate, empty or left behind by a finished meal. */
+    public static final DeferredBlock<PlateBlock> PLATE = BLOCKS.registerBlock("plate", PlateBlock::new, ServusDelicaciesBlocks::tableware);
+    /** One block per plated meal. */
+    public static final Map<MealKind, DeferredBlock<MealBlock>> MEALS = mealBlocks();
+
     private ServusDelicaciesBlocks() {
+    }
+
+    /** The block of the plated {@code meal}. */
+    public static MealBlock meal(MealKind meal) {
+        return MEALS.get(meal).get();
+    }
+
+    /** Ceramic on a table: breaks quickly, is pushed off by pistons. */
+    private static BlockBehaviour.Properties tableware() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.QUARTZ)
+                .strength(0.3F)
+                .sound(SoundType.DECORATED_POT)
+                .noOcclusion()
+                .pushReaction(PushReaction.DESTROY);
+    }
+
+    private static Map<MealKind, DeferredBlock<MealBlock>> mealBlocks() {
+        Map<MealKind, DeferredBlock<MealBlock>> blocks = new EnumMap<>(MealKind.class);
+        for (MealKind meal : MealKind.values()) {
+            blocks.put(meal, BLOCKS.registerBlock(meal.id(), properties -> new MealBlock(meal, properties),
+                    ServusDelicaciesBlocks::tableware));
+        }
+        return Collections.unmodifiableMap(blocks);
     }
 
     /** The crop block of {@code crop}. */

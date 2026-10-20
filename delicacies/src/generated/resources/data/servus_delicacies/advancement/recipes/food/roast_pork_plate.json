@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_roast_pork": {
+      "conditions": {
+        "items": [
+          {
+            "items": "servus_delicacies:roast_pork"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "servus_delicacies:roast_pork_plate"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_roast_pork"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "servus_delicacies:roast_pork_plate"
+    ]
+  }
+}

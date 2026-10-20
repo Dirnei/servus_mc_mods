@@ -2,7 +2,12 @@ package io.github.dirnei.mc.servus.delicacies.datagen;
 
 import io.github.dirnei.mc.servus.delicacies.crop.CropKind;
 import io.github.dirnei.mc.servus.delicacies.food.DelicaciesDataMaps;
+import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesEffects;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesItems;
+import io.github.dirnei.mc.servus.delicacies.teller.Meal;
+import io.github.dirnei.mc.servus.delicacies.teller.MealKind;
+import java.util.List;
+import net.minecraft.world.effect.MobEffectInstance;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
@@ -45,6 +50,23 @@ final class ServusDelicaciesDataMapProvider extends DataMapProvider {
         food.add(ServusDelicaciesItems.POTATO_DUMPLING, new FoodProperties(5, 6.0F, false), false);
         food.add(ServusDelicaciesItems.CHEESE, new FoodProperties(3, 3.6F, false), false);
         meatDishes(food);
+        meals(builder(DelicaciesDataMaps.MEAL));
+    }
+
+    /**
+     * The plated meals: four portions give a little more than their parts eaten alone, and the last one Properly Full
+     * (saturation is the nutrition times 1.6, as the meat dishes).
+     */
+    private static void meals(Builder<Meal, Item> meals) {
+        meals.add(ServusDelicaciesItems.MEALS.get(MealKind.ROAST_PORK_PLATE), meal(8, 1200), false);
+        meals.add(ServusDelicaciesItems.MEALS.get(MealKind.SCHNITZEL_PLATE), meal(5, 900), false);
+        meals.add(ServusDelicaciesItems.MEALS.get(MealKind.WEISSWURST_BREAKFAST), meal(6, 900), false);
+        meals.add(ServusDelicaciesItems.MEALS.get(MealKind.WEISSWURST_BREAKFAST_WITH_WEISSBIER), meal(6, 900), false);
+    }
+
+    private static Meal meal(int nutrition, int properlyFullTicks) {
+        return new Meal(new FoodProperties(nutrition, nutrition * 1.6F, false),
+                List.of(new MobEffectInstance(ServusDelicaciesEffects.PROPERLY_FULL, properlyFullTicks)));
     }
 
     /** The meat dishes; the finished ones restore more than a vanilla Cooked Porkchop (8 and 12.8). */

@@ -1,0 +1,47 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "block": "servus_delicacies:schnitzel_plate",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "portions": "4"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "servus_delicacies:schnitzel_plate"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:inverted",
+          "term": {
+            "block": "servus_delicacies:schnitzel_plate",
+            "condition": "minecraft:block_state_property",
+            "properties": {
+              "portions": "4"
+            }
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "servus_delicacies:plate"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "servus_delicacies:blocks/schnitzel_plate"
+}

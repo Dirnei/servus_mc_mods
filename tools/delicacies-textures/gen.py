@@ -1307,6 +1307,115 @@ SPRITES.update({
     'block/leberkaese_side': leberkaese_side().image(),
     'block/leberkaese_inside': leberkaese_inside().image(),
 })
+# ---------- teller: the Plate, the food boxes of the plated meals and the Properly Full icon ----------
+MEAT = R('#5c3020', '#9c6248', '#bd8466', '#d4a283')
+WEISS = R('#a5560c', '#d98622', '#eba845', '#f5c873')
+FOAM = R('#a8a294', '#d8d4c8', '#f0eee6', '#fdfcf8')
+PLATE_FAT = R('#8a6a1a', '#b8902a', '#d4ae44', '#f0d070')
+EFFECT = 18
+
+
+def plate_top():
+    """The mockup's plate seen from above: white well, a closed blue rim ring, filled to the corners of the stepped plate."""
+    s = Spr()
+    for y in range(S):
+        for x in range(S):
+            r = math.hypot(x + .5 - 8, y + .5 - 8)
+            c = CER[4] if r < 5.2 else CER[3]
+            if 5.9 < r < 7.0:
+                c = BLUE
+            s.set(x, y, c)
+    return s
+
+
+def plate_ceramic():
+    """The plate's edge: plain glazed ceramic."""
+    s = Spr()
+    for y in range(S):
+        for x in range(S):
+            s.set(x, y, CER[3])
+    return s
+
+
+def food_tex(ramp, seed, specks=()):
+    """The mockup's food box texture: ramp noise with optional specks of other colours."""
+    s = tex_noise(ramp, seed, base=len(ramp) - 2)
+    rng = random.Random(seed + 'x')
+    for c, p in specks:
+        for y in range(S):
+            for x in range(S):
+                if rng.random() < p:
+                    s.set(x, y, c)
+    return s
+
+
+def crackling_tex():
+    """Scored roast crackling in diagonal stripes."""
+    s = Spr()
+    for y in range(S):
+        for x in range(S):
+            s.set(x, y, CRACK[4] if (x * 2 + y) % 4 == 0 else CRACK[3] if (x + y) % 2 else CRACK[2])
+    return s
+
+
+def liquid(ramp, seed, foam=False):
+    """A liquid surface with light flecks; foam doubles them."""
+    s = tex_noise(ramp, seed, base=2)
+    rng = random.Random(seed)
+    for _ in range(14 if foam else 6):
+        x, y = rng.randint(1, 14), rng.randint(1, 14)
+        s.set(x, y, ramp[-1])
+        if foam:
+            s.set(x + 1, y, ramp[-1])
+    return s
+
+
+def weissbier_side():
+    """Hazy wheat beer behind glass; rows 7 and 8 are the top two pixels of the glass box (y 8 to 9), the foam head."""
+    s = liquid(WEISS, 'weissbier')
+    rng = rng_for('weissbier_bubbles')
+    for x in range(S):
+        for y in (7, 8):
+            s.set(x, y, FOAM[3] if (x + y) % 3 else FOAM[2])
+    for _ in range(8):
+        s.set(rng.randint(0, 15), rng.randint(10, 15), FOAM[3])
+    return s
+
+
+def properly_full_icon():
+    """The effect icon, 18 x 18: a plate with a blue rim and a brown roast heap."""
+    img = [[CLEAR] * EFFECT for _ in range(EFFECT)]
+    rng = rng_for('properly_full')
+    for y in range(EFFECT):
+        for x in range(EFFECT):
+            r = math.hypot(x + .5 - 9, (y + .5 - 10) * 1.4)
+            if r < 8.4:
+                img[y][x] = CER[1] if r > 7.6 else BLUE if r > 6.4 else CER[4]
+            heap = math.hypot(x + .5 - 9, (y + .5 - 8.2) * 1.3)
+            if heap < 4.2:
+                img[y][x] = CRACK[1] if heap > 3.5 else CRACK[3 + (rng.random() < .3)] if y < 8 else CRACK[2]
+    return img
+
+
+SPRITES.update({
+    'block/plate': plate_top().image(),
+    'block/plate_ceramic': plate_ceramic().image(),
+    'block/plate_gravy': food_tex(GRAVY, 'gr').image(),
+    'block/plate_crackling': crackling_tex().image(),
+    'block/plate_roast': food_tex(MEAT, 'meat').image(),
+    'block/plate_dumpling': food_tex(SKN, 'skn', ((SKN[1], .12), (GREEN_FLECK, .05))).image(),
+    'block/plate_red_cabbage': food_tex(REDK, 'redk', ((REDK[1], .2),)).image(),
+    'block/plate_schnitzel': food_tex(BREAD, 'sch', ((BREAD[1], .1), (BREAD[4], .08))).image(),
+    'block/plate_potato_salad': food_tex(KKN, 'sa', ((PARS[2], .08), (ONION[3], .06))).image(),
+    'block/plate_weisswurst': food_tex(WURST, 'wu', ((GREEN_FLECK, .05),)).image(),
+    'block/plate_pretzel': food_tex(SEMMEL, 'brez', ((SALT_WHITE, .06), (SEMMEL[1], .08))).image(),
+    'block/plate_mustard': liquid(PLATE_FAT, 'fat').image(),
+    'block/plate_weissbier_side': weissbier_side().image(),
+    'block/plate_weissbier_top': liquid(FOAM, 'foam', True).image(),
+    'mob_effect/properly_full': properly_full_icon(),
+})
+
+
 ANIMATIONS = {'block/stove_tile_door_lit': DOOR_FLICKER}
 
 

@@ -1,0 +1,56 @@
+{
+  "values": {
+    "servus_delicacies:roast_pork_plate": {
+      "effects": [
+        {
+          "duration": 1200,
+          "id": "servus_delicacies:properly_full",
+          "show_icon": true
+        }
+      ],
+      "portion": {
+        "nutrition": 8,
+        "saturation": 12.8
+      }
+    },
+    "servus_delicacies:schnitzel_plate": {
+      "effects": [
+        {
+          "duration": 900,
+          "id": "servus_delicacies:properly_full",
+          "show_icon": true
+        }
+      ],
+      "portion": {
+        "nutrition": 5,
+        "saturation": 8.0
+      }
+    },
+    "servus_delicacies:weisswurst_breakfast": {
+      "effects": [
+        {
+          "duration": 900,
+          "id": "servus_delicacies:properly_full",
+          "show_icon": true
+        }
+      ],
+      "portion": {
+        "nutrition": 6,
+        "saturation": 9.6
+      }
+    },
+    "servus_delicacies:weisswurst_breakfast_with_weissbier": {
+      "effects": [
+        {
+          "duration": 900,
+          "id": "servus_delicacies:properly_full",
+          "show_icon": true
+        }
+      ],
+      "portion": {
+        "nutrition": 6,
+        "saturation": 9.6
+      }
+    }
+  }
+}

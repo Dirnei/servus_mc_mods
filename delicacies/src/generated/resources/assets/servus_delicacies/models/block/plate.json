@@ -1,0 +1,163 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#plate_ceramic"
+        },
+        "east": {
+          "texture": "#plate_ceramic"
+        },
+        "north": {
+          "texture": "#plate_ceramic"
+        },
+        "south": {
+          "texture": "#plate_ceramic"
+        },
+        "up": {
+          "texture": "#plate"
+        },
+        "west": {
+          "texture": "#plate_ceramic"
+        }
+      },
+      "from": [
+        1,
+        0,
+        4
+      ],
+      "to": [
+        15,
+        1,
+        12
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#plate_ceramic"
+        },
+        "east": {
+          "texture": "#plate_ceramic"
+        },
+        "north": {
+          "texture": "#plate_ceramic"
+        },
+        "up": {
+          "texture": "#plate"
+        },
+        "west": {
+          "texture": "#plate_ceramic"
+        }
+      },
+      "from": [
+        2,
+        0,
+        2
+      ],
+      "to": [
+        14,
+        1,
+        4
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#plate_ceramic"
+        },
+        "east": {
+          "texture": "#plate_ceramic"
+        },
+        "south": {
+          "texture": "#plate_ceramic"
+        },
+        "up": {
+          "texture": "#plate"
+        },
+        "west": {
+          "texture": "#plate_ceramic"
+        }
+      },
+      "from": [
+        2,
+        0,
+        12
+      ],
+      "to": [
+        14,
+        1,
+        14
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#plate_ceramic"
+        },
+        "east": {
+          "texture": "#plate_ceramic"
+        },
+        "north": {
+          "texture": "#plate_ceramic"
+        },
+        "up": {
+          "texture": "#plate"
+        },
+        "west": {
+          "texture": "#plate_ceramic"
+        }
+      },
+      "from": [
+        4,
+        0,
+        1
+      ],
+      "to": [
+        12,
+        1,
+        2
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#plate_ceramic"
+        },
+        "east": {
+          "texture": "#plate_ceramic"
+        },
+        "south": {
+          "texture": "#plate_ceramic"
+        },
+        "up": {
+          "texture": "#plate"
+        },
+        "west": {
+          "texture": "#plate_ceramic"
+        }
+      },
+      "from": [
+        4,
+        0,
+        14
+      ],
+      "to": [
+        12,
+        1,
+        15
+      ]
+    }
+  ],
+  "textures": {
+    "particle": "servus_delicacies:block/plate",
+    "plate": "servus_delicacies:block/plate",
+    "plate_ceramic": "servus_delicacies:block/plate_ceramic"
+  }
+}
