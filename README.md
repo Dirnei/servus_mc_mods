@@ -10,6 +10,7 @@ NeoForge mods for Minecraft 26.1.2.
 | <img src="branding/alchemy.png" width="40"> | **Servus: Alchemy** | Alchemy after Paracelsus: Salt, Sulfur and Mercury, gnomes that grow ore veins, a salamander from the Nether. |
 | <img src="branding/shuttles.png" width="40"> | **Servus: Shuttles** | A warehouse run by shuttles on rails: storage, autocrafting, field farming and outposts. |
 | | **Servus: Delicacies** | An alcohol free Bavarian kitchen: Pretzels, dumplings, roast pork and a tiled stove. |
+| | **Servus: Brewery** | Bavarian beer from the field to the glass: barley, hops, a brewhouse and casks. Needs Delicacies. |
 
 ## Build
 

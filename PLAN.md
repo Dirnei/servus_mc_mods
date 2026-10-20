@@ -39,6 +39,7 @@ servus_mc_mods/
   alchemy/                  servus_alchemy
   shuttles/                 servus_shuttles
   delicacies/               servus_delicacies
+  brewery/                  servus_brewery
     gradle.properties       mod id and name
     build.gradle            dependencies and loaded mods
     src/main/java           mod code
@@ -48,7 +49,7 @@ servus_mc_mods/
     runs/                   game directories per run config, gitignored
 ```
 
-Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.servus`. Base package `io.github.dirnei.mc.servus`, with one subpackage per mod: `foundation`, `alchemy`, `shuttles`, `delicacies`, later `brewery`. Inside Foundation the API packages sit directly under `foundation` and the duct, tank and facade content under `foundation.logistics`. License: MIT.
+Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.servus`. Base package `io.github.dirnei.mc.servus`, with one subpackage per mod: `foundation`, `alchemy`, `shuttles`, `delicacies`, `brewery`. Inside Foundation the API packages sit directly under `foundation` and the duct, tank and facade content under `foundation.logistics`. License: MIT.
 
 ---
 

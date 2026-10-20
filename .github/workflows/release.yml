@@ -10,6 +10,7 @@ name: Release
 #   variable CURSEFORGE_ID_ALCHEMY       a mod without an id is released on GitHub only
 #   variable CURSEFORGE_ID_SHUTTLES
 #   variable CURSEFORGE_ID_DELICACIES
+#   variable CURSEFORGE_ID_BREWERY
 
 on:
   push:
@@ -18,6 +19,7 @@ on:
       - 'alchemy-v*'
       - 'shuttles-v*'
       - 'delicacies-v*'
+      - 'brewery-v*'
 
 permissions:
   contents: write
@@ -37,6 +39,7 @@ jobs:
           ID_ALCHEMY: ${{ vars.CURSEFORGE_ID_ALCHEMY }}
           ID_SHUTTLES: ${{ vars.CURSEFORGE_ID_SHUTTLES }}
           ID_DELICACIES: ${{ vars.CURSEFORGE_ID_DELICACIES }}
+          ID_BREWERY: ${{ vars.CURSEFORGE_ID_BREWERY }}
         run: |
           mod="${TAG%%-v*}"
           version="${TAG#*-v}"
@@ -50,6 +53,7 @@ jobs:
             alchemy) cf_id="$ID_ALCHEMY"; deps="servus_foundation(required){curseforge:$ID_FOUNDATION}" ;;
             shuttles) cf_id="$ID_SHUTTLES"; deps="servus_foundation(required){curseforge:$ID_FOUNDATION}" ;;
             delicacies) cf_id="$ID_DELICACIES"; deps="servus_foundation(required){curseforge:$ID_FOUNDATION}" ;;
+            brewery) cf_id="$ID_BREWERY"; deps="servus_foundation(required){curseforge:$ID_FOUNDATION}, servus_delicacies(required){curseforge:$ID_DELICACIES}" ;;
           esac
           name=$(sed -n 's/^mod_name=//p' "$mod/gradle.properties" | tr -d '\r')
           mc=$(sed -n 's/^minecraft_version=//p' gradle.properties | tr -d '\r')

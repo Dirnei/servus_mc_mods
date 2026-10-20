@@ -4,7 +4,7 @@ schema: spec-driven
 context: |
   Servus mod family for Minecraft 26.1.2 on NeoForge 26.1.2.x, Java 25, ModDevGradle, Mojang's official names.
   Multi project Gradle repo: foundation (servus_foundation), alchemy (servus_alchemy),
-  shuttles (servus_shuttles), delicacies (servus_delicacies), later brewery (servus_brewery).
+  shuttles (servus_shuttles), delicacies (servus_delicacies), brewery (servus_brewery).
   Roadmap, architecture principles and milestones live in PLAN.md at the repo root. Read it first.
   Project rules live in CLAUDE.md at the repo root.
 
