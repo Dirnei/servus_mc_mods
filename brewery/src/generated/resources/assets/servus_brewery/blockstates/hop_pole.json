@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "hop=0,rooted=false": {
+      "model": "servus_brewery:block/hop_pole"
+    },
+    "hop=0,rooted=true": {
+      "model": "servus_brewery:block/hop_pole"
+    },
+    "hop=1,rooted=false": {
+      "model": "servus_brewery:block/hop_pole_young"
+    },
+    "hop=1,rooted=true": {
+      "model": "servus_brewery:block/hop_pole_young"
+    },
+    "hop=2,rooted=false": {
+      "model": "servus_brewery:block/hop_pole_grown"
+    },
+    "hop=2,rooted=true": {
+      "model": "servus_brewery:block/hop_pole_grown"
+    },
+    "hop=3,rooted=false": {
+      "model": "servus_brewery:block/hop_pole_cones"
+    },
+    "hop=3,rooted=true": {
+      "model": "servus_brewery:block/hop_pole_cones"
+    }
+  }
+}

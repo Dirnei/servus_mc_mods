@@ -6,7 +6,8 @@ import java.util.List;
 public final class BreweryGameTests {
 
     public static final List<Class<?>> CLASSES = List.of(
-            BrewerySetupGameTests.class);
+            BrewerySetupGameTests.class,
+            BreweryCropGameTests.class);
 
     private BreweryGameTests() {
     }

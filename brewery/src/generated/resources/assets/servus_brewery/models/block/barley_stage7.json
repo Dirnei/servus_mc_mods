@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/crop",
+  "textures": {
+    "crop": "servus_brewery:block/barley_stage7"
+  }
+}

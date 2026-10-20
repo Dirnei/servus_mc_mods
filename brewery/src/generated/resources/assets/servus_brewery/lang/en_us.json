@@ -1,4 +1,10 @@
 {
+  "block.servus_brewery.barley": "Barley",
+  "block.servus_brewery.hop_pole": "Hop Pole",
+  "item.servus_brewery.barley": "Barley",
+  "item.servus_brewery.barley_seeds": "Barley Seeds",
   "item.servus_brewery.beer_glass": "Beer Glass",
+  "item.servus_brewery.hop_rhizome": "Hop Rhizome",
+  "item.servus_brewery.hops": "Hops",
   "itemGroup.servus_brewery": "Servus: Brewery"
 }

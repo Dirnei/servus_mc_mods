@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.brewery;
 
 import io.github.dirnei.mc.servus.brewery.gametest.BreweryGameTests;
+import io.github.dirnei.mc.servus.brewery.registry.ServusBreweryBlocks;
 import io.github.dirnei.mc.servus.brewery.registry.ServusBreweryCreativeTabs;
 import io.github.dirnei.mc.servus.brewery.registry.ServusBreweryItems;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTests;
@@ -17,6 +18,7 @@ public final class ServusBrewery {
     public static final Logger LOGGER = LoggerFactory.getLogger(ServusBrewery.class);
 
     public ServusBrewery(IEventBus modEventBus, ModContainer container) {
+        ServusBreweryBlocks.BLOCKS.register(modEventBus);
         ServusBreweryItems.ITEMS.register(modEventBus);
         ServusBreweryCreativeTabs.TABS.register(modEventBus);
         ServusGameTests.register(modEventBus, ServusBreweryIds.MOD_ID, BreweryGameTests.CLASSES);

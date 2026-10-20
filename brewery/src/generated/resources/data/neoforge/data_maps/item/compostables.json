@@ -1,0 +1,16 @@
+{
+  "values": {
+    "servus_brewery:barley": {
+      "chance": 0.65
+    },
+    "servus_brewery:barley_seeds": {
+      "chance": 0.3
+    },
+    "servus_brewery:hop_rhizome": {
+      "chance": 0.3
+    },
+    "servus_brewery:hops": {
+      "chance": 0.65
+    }
+  }
+}

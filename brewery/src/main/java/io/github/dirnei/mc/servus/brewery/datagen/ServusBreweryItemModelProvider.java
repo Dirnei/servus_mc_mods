@@ -13,6 +13,6 @@ final class ServusBreweryItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
-        basicItem(ServusBreweryItems.BEER_GLASS.get());
+        ServusBreweryItems.CREATIVE_TAB_ORDER.forEach(item -> basicItem(item.get()));
     }
 }
