@@ -10,4 +10,4 @@ Paths are relative to `shuttles/src/main/java/io/github/dirnei/mc/servus/shuttle
 ## 2. Verify
 
 - [x] 2.1 Full `gradlew build`, `gradlew test` and the Shuttles GameTests green; the game launches with all three mods.
-- [ ] 2.2 Play check by the user: a water bucket fills a Field Head, the window water rises, a lava bucket does nothing.
+- [x] 2.2 Play check by the user: a water bucket fills a Field Head, the window water rises, a lava bucket does nothing.
