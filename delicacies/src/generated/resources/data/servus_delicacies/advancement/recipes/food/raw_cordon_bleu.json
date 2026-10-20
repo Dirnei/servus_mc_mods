@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_ham": {
+      "conditions": {
+        "items": [
+          {
+            "items": "servus_delicacies:ham"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "servus_delicacies:raw_cordon_bleu"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_ham"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "servus_delicacies:raw_cordon_bleu"
+    ]
+  }
+}

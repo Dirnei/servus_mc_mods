@@ -24,6 +24,7 @@ final class ServusDelicaciesLanguageProvider extends LanguageProvider {
         crop(CropKind.HORSERADISH, "Horseradish", null, "Horseradish");
         crop(CropKind.MUSTARD, "Mustard Seeds", null, "Mustard");
         kitchen();
+        meatDishes();
     }
 
     /** The kitchen's blocks, items, messages and JEI categories. */
@@ -62,6 +63,30 @@ final class ServusDelicaciesLanguageProvider extends LanguageProvider {
         add(jei + "baking", "Baking Oven");
         add(jei + "cutting", "Cutting Board");
         add(jei + "hot_stove", "On a burning Tiled Stove");
+    }
+
+    /** The meat ingredients and dishes, and the loaf's JEI info page. */
+    private void meatDishes() {
+        add(ServusDelicaciesItems.PORK_CUTLET.get(), "Pork Cutlet");
+        add(ServusDelicaciesItems.MINCED_PORK.get(), "Minced Pork");
+        add(ServusDelicaciesItems.MINCED_BEEF.get(), "Minced Beef");
+        add(ServusDelicaciesItems.BREADED_CUTLET.get(), "Breaded Cutlet");
+        add(ServusDelicaciesItems.RAW_CORDON_BLEU.get(), "Raw Cordon Bleu");
+        add(ServusDelicaciesItems.SAUSAGE_MEAT.get(), "Sausage Meat");
+        add(ServusDelicaciesItems.MUSTARD_FLOUR.get(), "Mustard Flour");
+        add(ServusDelicaciesItems.SWEET_MUSTARD.get(), "Sweet Mustard");
+        add(ServusDelicaciesBlocks.LEBERKAESE.get(), "Leberkaese");
+        add(ServusDelicaciesItems.SCHNITZEL.get(), "Schnitzel");
+        add(ServusDelicaciesItems.CORDON_BLEU.get(), "Cordon Bleu");
+        add(ServusDelicaciesItems.HAM.get(), "Ham");
+        add(ServusDelicaciesItems.WEISSWURST.get(), "Weisswurst");
+        add(ServusDelicaciesItems.LEBERKAESE_SLICE.get(), "Leberkaese Slice");
+        add(ServusDelicaciesItems.LEBERKAESE_ROLL.get(), "Leberkaese Roll");
+        add(ServusDelicaciesItems.ROAST_PORK.get(), "Roast Pork");
+        add(ServusDelicaciesItems.GRAVY.get(), "Gravy");
+        add("gui." + ServusDelicaciesIds.MOD_ID + ".jei.leberkaese_info",
+                "Place the Leberkaese on a solid block and right click it with a Kitchen Knife: each cut gives one slice, four in all. "
+                        + "On the Cutting Board a knife cuts the whole loaf into slices.");
     }
 
     /** Names a crop's harvest, its seed item when it has its own, and its block. */

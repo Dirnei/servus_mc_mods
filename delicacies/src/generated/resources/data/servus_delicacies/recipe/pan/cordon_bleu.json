@@ -1,0 +1,13 @@
+{
+  "type": "servus_delicacies:pan",
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": "servus_delicacies:raw_cordon_bleu"
+    }
+  ],
+  "result": {
+    "id": "servus_delicacies:cordon_bleu"
+  },
+  "time": 200
+}

@@ -20,6 +20,10 @@ public final class KitchenTags {
     public static final TagKey<Item> WHEAT_FLOUR = common("flours/wheat");
     /** {@code c:foods/dough/wheat}: wheat dough. */
     public static final TagKey<Item> WHEAT_DOUGH = common("foods/dough/wheat");
+    /** {@code c:foods/cheese}: cheese of any mod, for the Cordon Bleu. */
+    public static final TagKey<Item> CHEESE = common("foods/cheese");
+    /** {@code c:flours/mustard}: ground mustard seed. */
+    public static final TagKey<Item> MUSTARD_FLOUR = common("flours/mustard");
 
     private KitchenTags() {
     }

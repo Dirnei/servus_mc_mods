@@ -1,0 +1,8 @@
+{
+  "type": "servus_delicacies:cutting",
+  "ingredient": "minecraft:porkchop",
+  "result": {
+    "id": "servus_delicacies:pork_cutlet"
+  },
+  "tool": "#c:tools/knife"
+}

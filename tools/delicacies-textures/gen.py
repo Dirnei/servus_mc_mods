@@ -778,6 +778,305 @@ def oven_door(lit):
     return s
 
 
+# ---------- meat dishes ----------
+WURST = R('#7d7465', '#bdb3a0', '#d9d1c0', '#ece6d8', '#f8f5ee')
+PINK = R('#6e3326', '#b86a58', '#d68b78', '#e8a593', '#f2c0b0')
+CRUST = R('#3f1d0c', '#6e3517', '#93501f', '#b06a2c')
+BREAD = R('#6b3d12', '#a8661e', '#c98a2e', '#e0aa45', '#f0c868')
+HAM = R('#8a3a3a', '#d77f80', '#eda3a3')
+CHEESE = R('#a07d12', '#e8c236', '#f7df6e')
+CRACK = R('#2e1408', '#5a2a10', '#8a4a1c', '#b56c32', '#d89048')
+GRAVY = R('#24110a', '#4a2414', '#6b3a20', '#8a5030')
+CER = R('#56606c', '#a9b2bd', '#d3dae2', '#eef2f6', '#fafcfe')
+BLUE = hx('#2f5fa8')
+BLUE2 = hx('#5b86c8')
+GLASS_EDGE = hx('#6f8e9a')
+GLASS = hx('#cfe6ee', 150)
+GLASS_HI = hx('#ffffff', 220)
+GREEN_FLECK = hx('#3f7a22')
+RAW_PORK = R('#7a3a34', '#d48a86', '#e8a8a2', '#f4c6c0')
+RAW_BEEF = R('#4a1414', '#8a2a26', '#a83a32', '#c45a4c', '#d87a6a')
+FAT = hx('#f6e6dc')
+BREADING = R('#7a6a3a', '#c8b070', '#dcc88a', '#ece0aa')
+MUSTARD_POWDER = R('#8a6a1a', '#d8b040', '#e8c860', '#f4dc8a')
+
+
+def blob(cx, cy, rx, ry, wobble, seed, n=48):
+    rng = random.Random(seed)
+    ph = [rng.uniform(0, 6.28) for _ in range(3)]
+    pts = []
+    for i in range(n):
+        a = 2 * math.pi * i / n
+        k = 1 + wobble * (0.6 * math.sin(3 * a + ph[0]) + 0.4 * math.sin(5 * a + ph[1]) + 0.25 * math.sin(7 * a + ph[2]))
+        pts.append((cx + math.cos(a) * rx * k, cy + math.sin(a) * ry * k))
+    return poly(pts)
+
+
+def flat(spr, mask, color):
+    for (x, y) in mask:
+        spr.set(x, y, color)
+
+
+def _cutlet(seed):
+    return blob(7.6, 8.6, 6.6, 5.0, .09, seed)
+
+
+def _seam(s, m, ham, cheese, edge):
+    """The ham and cheese layer showing along a diagonal cut of a filled cutlet."""
+    for (x, y) in m - boundary(m):
+        d = (x + .5 - 9.0) * .8 + (y + .5 - 8.5) * .6
+        if -2.4 < d < 2.4:
+            ad = abs(d)
+            s.set(x, y, cheese[2] if ad < .7 else cheese[1] if ad < 1.0 else ham[2] if ad < 1.6 else ham[1] if ad < 2.0 else edge)
+
+
+def pork_cutlet():
+    """A thin raw pork cutlet, pale pink with a few streaks of fat."""
+    s = Spr()
+    rng = rng_for('cutlet')
+    m = _cutlet(5)
+    paint(s, m, RAW_PORK, rng, noise=.08, k=.8, specks=((FAT, .05),))
+    for x in range(4, 11):
+        s.set(x, int(round(7.0 + math.sin(x * .8) * .8)), FAT)
+    return s
+
+
+def mince(ramp, seed):
+    """A heap of minced meat, coarse with flecks of fat."""
+    s = Spr()
+    rng = rng_for(seed)
+    m = ellipse(8, 11.0, 6.2, 3.6) | ellipse(8, 9.2, 4.0, 3.0)
+    paint(s, m, ramp, rng, noise=.4, k=1.2, specks=((FAT, .07), (ramp[1], .1)))
+    return s
+
+
+def breaded_cutlet():
+    """A raw cutlet in a pale coat of flour, egg and crumbs, before frying."""
+    s = Spr()
+    rng = rng_for('breaded')
+    m = _cutlet(3)
+    paint(s, m, BREADING, rng, noise=.3, k=1.4, specks=((BREADING[1], .08), (BREAD[3], .05)))
+    return s
+
+
+def raw_cordon_bleu():
+    """The breaded cutlet with its ham and cheese seam, still pale."""
+    s = Spr()
+    rng = rng_for('rawcb')
+    m = _cutlet(9)
+    paint(s, m, BREADING, rng, noise=.3, k=1.4, specks=((BREADING[1], .08), (BREAD[3], .05)))
+    _seam(s, m, HAM, CHEESE, BREADING[0])
+    return s
+
+
+def schnitzel():
+    """The mockup's Schnitzel: a golden breaded cutlet with parsley, without the lemon (the mod has none)."""
+    s = Spr()
+    rng = rng_for('schn')
+    m = _cutlet(3)
+    paint(s, m, BREAD, rng, noise=.35, k=1.6, specks=((BREAD[1], .06), (BREAD[4], .05)))
+    for (x, y) in ((4, 5), (5, 4), (5, 5), (3, 6)):
+        s.set(x, y, PARS[2] if (x + y) % 2 else PARS[1])
+    return s
+
+
+def cordon_bleu():
+    """The mockup's Cordon Bleu: golden, cut open, ham and melting cheese."""
+    s = Spr()
+    rng = rng_for('cb')
+    m = _cutlet(9)
+    paint(s, m, BREAD, rng, noise=.35, k=1.6, specks=((BREAD[1], .06), (BREAD[4], .05)))
+    _seam(s, m, HAM, CHEESE, BREAD[0])
+    for (x, y) in ((8, 14), (9, 14), (9, 15), (10, 14)):
+        s.set(x, y, CHEESE[1] if y == 14 else CHEESE[0])
+    return s
+
+
+def ham():
+    """Two folded slices of boiled ham with a pale rim of fat."""
+    s = Spr()
+    rng = rng_for('ham')
+    for (cx, cy) in ((6.4, 7.4), (9.6, 10.2)):
+        m = ellipse(cx, cy, 5.0, 4.2)
+        paint(s, m, HAM, rng, noise=.08, k=.8)
+        inner = m - boundary(m)
+        for (x, y) in boundary(inner):
+            s.set(x, y, FAT)
+    return s
+
+
+def sausage_meat():
+    """A pale heap of fine sausage meat with green flecks of parsley."""
+    s = Spr()
+    rng = rng_for('braet')
+    m = ellipse(8, 11.0, 6.2, 3.6) | ellipse(8, 9.0, 4.2, 3.2)
+    paint(s, m, WURST, rng, noise=.12, k=1.6, specks=((GREEN_FLECK, .08), (PINK[3], .05)))
+    return s
+
+
+def weisswurst():
+    """The mockup's pair of white sausages with parsley flecks."""
+    s = Spr()
+    rng = rng_for('ww')
+    for (a, b) in (((3.0, 9.6), (10.6, 2.8)), ((5.4, 13.4), (13.0, 6.6))):
+        m = capsule(a[0], a[1], b[0], b[1], 2.5)
+        paint(s, m, WURST, rng, noise=.05, k=2.8, specks=((GREEN_FLECK, .05),))
+        for (px, py) in (a, b):
+            s.set(int(px), int(py), WURST[1])
+    return s
+
+
+def mustard_flour():
+    """A soft heap of yellow ground mustard seed."""
+    s = Spr()
+    rng = rng_for('senfmehl')
+    m = ellipse(8, 11.4, 6.4, 3.4) | ellipse(8, 9.6, 4.0, 2.8)
+    paint(s, m, MUSTARD_POWDER, rng, noise=.14, k=1.0, specks=((SENF[2], .06), (MUSTARD_POWDER[3], .08)))
+    return s
+
+
+def senf():
+    """The mockup's Sweet Mustard: a glass jar of brown mustard with a red and white checked lid."""
+    s = Spr()
+    rng = rng_for('senf')
+    jar = rect(4, 6, 11, 14) - {(4, 14), (11, 14)}
+    flat(s, jar, GLASS)
+    paint(s, rect(5, 8, 10, 13), SENF, rng, noise=.15, outline=False, k=.6)
+    for (x, y) in boundary(jar):
+        s.set(x, y, GLASS_EDGE)
+    for y in range(7, 13):
+        s.set(5, y, GLASS_HI)
+    cap = ellipse(8, 4.2, 5.2, 2.6) | rect(4, 4, 11, 6)
+    for (x, y) in cap:
+        s.set(x, y, hx('#f4f1ea') if (x // 2 + y // 2) % 2 else hx('#c4302b'))
+    for (x, y) in boundary(cap):
+        s.set(x, y, hx('#6e1712'))
+    for x in range(4, 12):
+        s.set(x, 6, hx('#8a6a3a'))
+    return s
+
+
+def leberkas():
+    """The mockup's Leberkaese loaf: a brown crusted block with a pink cut face."""
+    s = Spr()
+    rng = rng_for('lk')
+    top = poly([(2, 5), (6, 2.5), (15, 2.5), (11, 5)])
+    front = rect(2, 5, 10, 13)
+    side = poly([(11, 5), (15, 2.5), (15, 10.5), (11, 13.99)])
+    paint(s, top, CRUST, rng, noise=.2, k=.4, bias=.3)
+    paint(s, side, CRUST, rng, noise=.2, k=.4, bias=-.25)
+    paint(s, front, PINK, rng, noise=.12, k=.8, specks=((PINK[4], .08),))
+    for x in range(2, 11):
+        s.set(x, 5, CRUST[1])
+    return s
+
+
+def leberkaese_slice():
+    """A thick pink slice of Leberkaese with its brown crust along the top."""
+    s = Spr()
+    rng = rng_for('lks_slice')
+    top = poly([(2, 6), (4, 4), (14, 4), (12, 6)])
+    front = rect(2, 6, 12, 11)
+    side = poly([(13, 6), (14, 4.5), (14, 9.5), (13, 11.99)])
+    paint(s, top, CRUST, rng, noise=.2, k=.4, bias=.3)
+    paint(s, side, PINK, rng, noise=.1, k=.4, bias=-.3)
+    paint(s, front, PINK, rng, noise=.12, k=.8, specks=((PINK[4], .08),))
+    for x in range(2, 13):
+        s.set(x, 6, CRUST[1])
+    return s
+
+
+def leberkassemmel():
+    """The mockup's Leberkaese Roll: a thick slice in a Bread Roll."""
+    s = Spr()
+    rng = rng_for('lks')
+    bottom = ellipse(8, 10.5, 6.4, 3.6) & {(x, y) for x in range(S) for y in range(11, 15)}
+    paint(s, bottom, SEMMEL, rng, noise=.08, bias=-.2)
+    paint(s, rect(1, 8, 14, 10), PINK, rng, noise=.1, k=1.0)
+    for x in range(2, 14):
+        s.set(x, 8, CRUST[2] if x % 3 else CRUST[1])
+    for x in (4, 5, 9, 10, 11):
+        s.set(x, 11, SENF[4])
+    s.set(10, 12, SENF[3])
+    top = ellipse(8, 8.2, 6.5, 5.4) & {(x, y) for x in range(S) for y in range(0, 8)}
+    paint(s, top, SEMMEL, rng, noise=.1, k=2.8)
+    for (x, y) in top:
+        if rng.random() < .05 and (x, y) not in boundary(top):
+            s.set(x, y, SALT_WHITE)
+    return s
+
+
+def schweinebraten():
+    """The mockup's Roast Pork: a slice with a crackling top and white fat line in a pool of gravy."""
+    s = Spr()
+    rng = rng_for('sb')
+    paint(s, ellipse(8, 11.8, 7.4, 3.4), GRAVY, rng, noise=.1, k=.3, specks=((GRAVY[3], .06),))
+    m = ellipse(8, 8.4, 6.0, 5.2)
+    meat = R('#5c3020', '#b07858', '#c99272', '#ddae8e')
+    paint(s, m, meat, rng, noise=.1, k=1.0, pattern=lambda x, y: .1 * math.sin(x * 1.7 + y * .5))
+
+    def crackling_line(x):
+        return 6.4 + abs(x + .5 - 8) * .22
+
+    edge = boundary(m)
+    for (x, y) in m:
+        yy = y + .5
+        if yy < crackling_line(x):
+            s.set(x, y, CRACK[0] if (x, y) in edge else CRACK[4] if (x + (y % 2)) % 3 == 0 else CRACK[3] if (x + y) % 2 else CRACK[2])
+        elif yy < crackling_line(x) + 1.1 and (x, y) not in edge:
+            s.set(x, y, hx('#f2e2c6'))
+    for (x, y) in ((4, 10), (5, 11), (11, 11), (12, 10)):
+        s.set(x, y, GRAVY[2])
+    return s
+
+
+def gravy_bowl():
+    """A blue banded stoneware bowl of dark brown gravy."""
+    s = Spr()
+    rng = rng_for('gravy')
+    surface = ellipse(7.5, 8.2, 6.0, 2.4) & {(x, y) for x in range(S) for y in range(0, 9)}
+    paint(s, surface, GRAVY, rng, noise=.12, k=.4, bias=.2, specks=((GRAVY[3], .1),))
+    body = ellipse(7.5, 7.6, 7.2, 6.8) & {(x, y) for x in range(S) for y in range(8, 15)}
+    paint(s, body, CER, rng, noise=.04, k=1.8)
+    for x in range(1, 15):
+        if (x, 8) in body:
+            s.set(x, 8, CER[4])
+    for (x, y) in body - boundary(body):
+        if y == 10:
+            s.set(x, y, BLUE if x % 2 else BLUE2)
+    return s
+
+
+def leberkaese_crust():
+    """The loaf's top: dark brown baked crust with lighter blisters."""
+    s = tex_noise(CRUST, 'lk_crust', base=2)
+    rng = rng_for('lk_crust_blisters')
+    for _ in range(14):
+        x, y = rng.randrange(S), rng.randrange(S)
+        s.set(x, y, CRUST[3])
+        s.set((x + 1) % S, y, CRUST[1])
+    return s
+
+
+def leberkaese_side():
+    """The loaf's sides: the crust a little darker, with a dark seam where it met the tin."""
+    s = tex_noise(CRUST, 'lk_side', base=1)
+    for x in range(S):
+        s.set(x, 15, CRUST[0])
+    return s
+
+
+def leberkaese_inside():
+    """The cut face: fine pink meat with light flecks."""
+    s = tex_noise(PINK, 'lk_inside', base=2)
+    rng = rng_for('lk_inside_flecks')
+    for y in range(S):
+        for x in range(S):
+            if rng.random() < .08:
+                s.set(x, y, PINK[4])
+    return s
+
+
 def stages(name, draw):
     return {'block/%s_stage%d' % (name, i): draw(i).image() for i in range(4)}
 
@@ -822,6 +1121,28 @@ SPRITES.update({
     'item/bread_crumbs': bread_crumbs().image(),
     'block/baking_oven_door': oven_door(False).image(),
     'block/baking_oven_door_lit': oven_door(True).image(),
+})
+SPRITES.update({
+    'item/pork_cutlet': pork_cutlet().image(),
+    'item/minced_pork': mince(RAW_PORK + [hx('#f8dad4')], 'mince_pork').image(),
+    'item/minced_beef': mince(RAW_BEEF, 'mince_beef').image(),
+    'item/breaded_cutlet': breaded_cutlet().image(),
+    'item/raw_cordon_bleu': raw_cordon_bleu().image(),
+    'item/schnitzel': schnitzel().image(),
+    'item/cordon_bleu': cordon_bleu().image(),
+    'item/ham': ham().image(),
+    'item/sausage_meat': sausage_meat().image(),
+    'item/weisswurst': weisswurst().image(),
+    'item/mustard_flour': mustard_flour().image(),
+    'item/sweet_mustard': senf().image(),
+    'item/leberkaese': leberkas().image(),
+    'item/leberkaese_slice': leberkaese_slice().image(),
+    'item/leberkaese_roll': leberkassemmel().image(),
+    'item/roast_pork': schweinebraten().image(),
+    'item/gravy': gravy_bowl().image(),
+    'block/leberkaese_crust': leberkaese_crust().image(),
+    'block/leberkaese_side': leberkaese_side().image(),
+    'block/leberkaese_inside': leberkaese_inside().image(),
 })
 ANIMATIONS = {'block/stove_tile_door_lit': DOOR_FLICKER}
 

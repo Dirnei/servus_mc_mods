@@ -1,0 +1,43 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#side"
+        },
+        "east": {
+          "texture": "#side"
+        },
+        "north": {
+          "texture": "#side"
+        },
+        "south": {
+          "texture": "#side"
+        },
+        "up": {
+          "texture": "#crust"
+        },
+        "west": {
+          "texture": "#end"
+        }
+      },
+      "from": [
+        3,
+        0,
+        5
+      ],
+      "to": [
+        13,
+        5,
+        11
+      ]
+    }
+  ],
+  "textures": {
+    "crust": "servus_delicacies:block/leberkaese_crust",
+    "end": "servus_delicacies:block/leberkaese_side",
+    "particle": "servus_delicacies:block/leberkaese_crust",
+    "side": "servus_delicacies:block/leberkaese_side"
+  }
+}

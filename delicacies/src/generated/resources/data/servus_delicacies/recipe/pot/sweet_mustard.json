@@ -1,0 +1,22 @@
+{
+  "type": "servus_delicacies:pot",
+  "fluid": {
+    "amount": 250,
+    "ingredient": "minecraft:water"
+  },
+  "ingredients": [
+    {
+      "count": 2,
+      "ingredient": "servus_delicacies:mustard_flour"
+    },
+    {
+      "count": 1,
+      "ingredient": "minecraft:sugar"
+    }
+  ],
+  "result": {
+    "count": 2,
+    "id": "servus_delicacies:sweet_mustard"
+  },
+  "time": 200
+}

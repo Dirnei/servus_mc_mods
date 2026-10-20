@@ -38,5 +38,18 @@ final class ServusDelicaciesDataMapProvider extends DataMapProvider {
         food.add(ServusDelicaciesItems.FRIED_EGG, new FoodProperties(4, 4.8F, false), false);
         food.add(ServusDelicaciesItems.FRIED_ONIONS, new FoodProperties(3, 3.6F, false), false);
         food.add(ServusDelicaciesItems.FRIED_POTATOES, new FoodProperties(8, 12.8F, false), false);
+        meatDishes(food);
+    }
+
+    /** The meat dishes; the finished ones restore more than a vanilla Cooked Porkchop (8 and 12.8). */
+    private static void meatDishes(Builder<FoodProperties, Item> food) {
+        food.add(ServusDelicaciesItems.SCHNITZEL, new FoodProperties(10, 16.0F, false), false);
+        food.add(ServusDelicaciesItems.CORDON_BLEU, new FoodProperties(12, 19.2F, false), false);
+        food.add(ServusDelicaciesItems.ROAST_PORK, new FoodProperties(10, 16.0F, false), false);
+        food.add(ServusDelicaciesItems.LEBERKAESE_ROLL, new FoodProperties(11, 17.6F, false), false);
+        food.add(ServusDelicaciesItems.WEISSWURST, new FoodProperties(7, 11.2F, false), false);
+        food.add(ServusDelicaciesItems.LEBERKAESE_SLICE, new FoodProperties(6, 9.6F, false), false);
+        food.add(ServusDelicaciesItems.HAM, new FoodProperties(4, 4.8F, false), false);
+        food.add(ServusDelicaciesItems.GRAVY, new FoodProperties(3, 3.6F, false), false);
     }
 }

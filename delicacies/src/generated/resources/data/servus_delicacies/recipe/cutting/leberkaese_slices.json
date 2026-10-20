@@ -1,0 +1,9 @@
+{
+  "type": "servus_delicacies:cutting",
+  "ingredient": "servus_delicacies:leberkaese",
+  "result": {
+    "count": 4,
+    "id": "servus_delicacies:leberkaese_slice"
+  },
+  "tool": "#c:tools/knife"
+}

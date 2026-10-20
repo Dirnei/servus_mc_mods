@@ -1,0 +1,22 @@
+{
+  "type": "servus_delicacies:baking",
+  "ingredients": [
+    {
+      "count": 2,
+      "ingredient": "minecraft:porkchop"
+    },
+    {
+      "count": 1,
+      "ingredient": "#c:crops/onion"
+    },
+    {
+      "count": 1,
+      "ingredient": "#c:dusts/salt"
+    }
+  ],
+  "result": {
+    "count": 2,
+    "id": "servus_delicacies:roast_pork"
+  },
+  "time": 400
+}

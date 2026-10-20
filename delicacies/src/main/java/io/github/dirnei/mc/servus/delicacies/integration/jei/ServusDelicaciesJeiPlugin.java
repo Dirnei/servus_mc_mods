@@ -16,11 +16,12 @@ import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
-/** Shows the pot, pan, baking and cutting recipes in JEI. Only loaded when JEI is present. */
+/** Shows the pot, pan, baking and cutting recipes and how to slice the placed loaf in JEI. Only loaded when JEI is present. */
 @JeiPlugin
 public final class ServusDelicaciesJeiPlugin implements IModPlugin {
 
@@ -57,6 +58,8 @@ public final class ServusDelicaciesJeiPlugin implements IModPlugin {
         registration.addRecipes(PAN, ServusRecipes.all(minecraft.level, ServusDelicaciesRecipes.PAN.get()));
         registration.addRecipes(BAKING, ServusRecipes.all(minecraft.level, ServusDelicaciesRecipes.BAKING.get()));
         registration.addRecipes(CUTTING, ServusRecipes.all(minecraft.level, ServusDelicaciesRecipes.CUTTING.get()));
+        registration.addIngredientInfo(ServusDelicaciesItems.LEBERKAESE.get(),
+                Component.translatable("gui." + ServusDelicaciesIds.MOD_ID + ".jei.leberkaese_info"));
     }
 
     @Override

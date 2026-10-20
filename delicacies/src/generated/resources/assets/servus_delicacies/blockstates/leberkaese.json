@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "cut=0,facing=east": {
+      "model": "servus_delicacies:block/leberkaese_cut0",
+      "y": 90
+    },
+    "cut=0,facing=north": {
+      "model": "servus_delicacies:block/leberkaese_cut0"
+    },
+    "cut=0,facing=south": {
+      "model": "servus_delicacies:block/leberkaese_cut0",
+      "y": 180
+    },
+    "cut=0,facing=west": {
+      "model": "servus_delicacies:block/leberkaese_cut0",
+      "y": 270
+    },
+    "cut=1,facing=east": {
+      "model": "servus_delicacies:block/leberkaese_cut1",
+      "y": 90
+    },
+    "cut=1,facing=north": {
+      "model": "servus_delicacies:block/leberkaese_cut1"
+    },
+    "cut=1,facing=south": {
+      "model": "servus_delicacies:block/leberkaese_cut1",
+      "y": 180
+    },
+    "cut=1,facing=west": {
+      "model": "servus_delicacies:block/leberkaese_cut1",
+      "y": 270
+    },
+    "cut=2,facing=east": {
+      "model": "servus_delicacies:block/leberkaese_cut2",
+      "y": 90
+    },
+    "cut=2,facing=north": {
+      "model": "servus_delicacies:block/leberkaese_cut2"
+    },
+    "cut=2,facing=south": {
+      "model": "servus_delicacies:block/leberkaese_cut2",
+      "y": 180
+    },
+    "cut=2,facing=west": {
+      "model": "servus_delicacies:block/leberkaese_cut2",
+      "y": 270
+    },
+    "cut=3,facing=east": {
+      "model": "servus_delicacies:block/leberkaese_cut3",
+      "y": 90
+    },
+    "cut=3,facing=north": {
+      "model": "servus_delicacies:block/leberkaese_cut3"
+    },
+    "cut=3,facing=south": {
+      "model": "servus_delicacies:block/leberkaese_cut3",
+      "y": 180
+    },
+    "cut=3,facing=west": {
+      "model": "servus_delicacies:block/leberkaese_cut3",
+      "y": 270
+    }
+  }
+}

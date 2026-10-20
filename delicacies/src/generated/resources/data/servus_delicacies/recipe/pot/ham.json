@@ -1,0 +1,22 @@
+{
+  "type": "servus_delicacies:pot",
+  "fluid": {
+    "amount": 250,
+    "ingredient": "minecraft:water"
+  },
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": "minecraft:porkchop"
+    },
+    {
+      "count": 1,
+      "ingredient": "#c:dusts/salt"
+    }
+  ],
+  "result": {
+    "count": 2,
+    "id": "servus_delicacies:ham"
+  },
+  "time": 300
+}

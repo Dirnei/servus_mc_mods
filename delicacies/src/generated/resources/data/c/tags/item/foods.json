@@ -5,6 +5,14 @@
     "servus_delicacies:boiled_potatoes",
     "servus_delicacies:fried_egg",
     "servus_delicacies:fried_onions",
-    "servus_delicacies:fried_potatoes"
+    "servus_delicacies:fried_potatoes",
+    "servus_delicacies:schnitzel",
+    "servus_delicacies:cordon_bleu",
+    "servus_delicacies:ham",
+    "servus_delicacies:weisswurst",
+    "servus_delicacies:leberkaese_slice",
+    "servus_delicacies:leberkaese_roll",
+    "servus_delicacies:roast_pork",
+    "servus_delicacies:gravy"
   ]
 }

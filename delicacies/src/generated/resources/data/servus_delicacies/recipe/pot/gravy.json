@@ -1,0 +1,25 @@
+{
+  "type": "servus_delicacies:pot",
+  "fluid": {
+    "amount": 250,
+    "ingredient": "minecraft:water"
+  },
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": "servus_delicacies:chopped_onion"
+    },
+    {
+      "count": 1,
+      "ingredient": "#c:flours/wheat"
+    },
+    {
+      "count": 1,
+      "ingredient": "minecraft:bowl"
+    }
+  ],
+  "result": {
+    "id": "servus_delicacies:gravy"
+  },
+  "time": 160
+}

@@ -8,6 +8,10 @@
       "nutrition": 4,
       "saturation": 4.8
     },
+    "servus_delicacies:cordon_bleu": {
+      "nutrition": 12,
+      "saturation": 19.2
+    },
     "servus_delicacies:fried_egg": {
       "nutrition": 4,
       "saturation": 4.8
@@ -20,9 +24,37 @@
       "nutrition": 8,
       "saturation": 12.8
     },
+    "servus_delicacies:gravy": {
+      "nutrition": 3,
+      "saturation": 3.6
+    },
+    "servus_delicacies:ham": {
+      "nutrition": 4,
+      "saturation": 4.8
+    },
+    "servus_delicacies:leberkaese_roll": {
+      "nutrition": 11,
+      "saturation": 17.6
+    },
+    "servus_delicacies:leberkaese_slice": {
+      "nutrition": 6,
+      "saturation": 9.6
+    },
     "servus_delicacies:pretzel": {
       "nutrition": 6,
       "saturation": 7.2
+    },
+    "servus_delicacies:roast_pork": {
+      "nutrition": 10,
+      "saturation": 16.0
+    },
+    "servus_delicacies:schnitzel": {
+      "nutrition": 10,
+      "saturation": 16.0
+    },
+    "servus_delicacies:weisswurst": {
+      "nutrition": 7,
+      "saturation": 11.2
     }
   }
 }

@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "servus_delicacies:pork_cutlet",
+    "#c:flours/wheat",
+    "#c:eggs",
+    "servus_delicacies:bread_crumbs"
+  ],
+  "result": {
+    "id": "servus_delicacies:breaded_cutlet"
+  }
+}

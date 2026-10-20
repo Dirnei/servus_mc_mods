@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -51,6 +52,37 @@ public final class ServusDelicaciesItems {
             List.of(PRETZEL, BREAD_ROLL, BOILED_POTATOES, FRIED_EGG, FRIED_ONIONS, FRIED_POTATOES);
     /** The baked goods, in {@code c:foods/bread}. */
     public static final List<DeferredItem<DelicaciesFoodItem>> BREADS = List.of(PRETZEL, BREAD_ROLL);
+
+    public static final DeferredItem<Item> PORK_CUTLET = ITEMS.registerSimpleItem("pork_cutlet");
+    public static final DeferredItem<Item> MINCED_PORK = ITEMS.registerSimpleItem("minced_pork");
+    public static final DeferredItem<Item> MINCED_BEEF = ITEMS.registerSimpleItem("minced_beef");
+    public static final DeferredItem<Item> BREADED_CUTLET = ITEMS.registerSimpleItem("breaded_cutlet");
+    public static final DeferredItem<Item> RAW_CORDON_BLEU = ITEMS.registerSimpleItem("raw_cordon_bleu");
+    public static final DeferredItem<Item> SAUSAGE_MEAT = ITEMS.registerSimpleItem("sausage_meat");
+    public static final DeferredItem<Item> MUSTARD_FLOUR = ITEMS.registerSimpleItem("mustard_flour");
+    public static final DeferredItem<Item> SWEET_MUSTARD = ITEMS.registerSimpleItem("sweet_mustard");
+    public static final DeferredItem<BlockItem> LEBERKAESE = ITEMS.registerSimpleBlockItem(ServusDelicaciesBlocks.LEBERKAESE,
+            properties -> properties.stacksTo(16));
+    public static final DeferredItem<DelicaciesFoodItem> SCHNITZEL = food("schnitzel");
+    public static final DeferredItem<DelicaciesFoodItem> CORDON_BLEU = food("cordon_bleu");
+    public static final DeferredItem<DelicaciesFoodItem> HAM = food("ham");
+    public static final DeferredItem<DelicaciesFoodItem> WEISSWURST = food("weisswurst");
+    public static final DeferredItem<DelicaciesFoodItem> LEBERKAESE_SLICE = food("leberkaese_slice");
+    public static final DeferredItem<DelicaciesFoodItem> LEBERKAESE_ROLL = food("leberkaese_roll");
+    public static final DeferredItem<DelicaciesFoodItem> ROAST_PORK = food("roast_pork");
+    /** Eaten like a stew: the bowl comes back. */
+    public static final DeferredItem<DelicaciesFoodItem> GRAVY = ITEMS.registerItem("gravy", DelicaciesFoodItem::new,
+            properties -> properties.usingConvertsTo(Items.BOWL).stacksTo(16));
+    /** The meat dishes, in {@code c:foods/cooked_meat}. */
+    public static final List<DeferredItem<DelicaciesFoodItem>> COOKED_MEATS =
+            List.of(SCHNITZEL, CORDON_BLEU, HAM, WEISSWURST, LEBERKAESE_SLICE, LEBERKAESE_ROLL, ROAST_PORK);
+    /** The meat foods whose values the food data map gives. */
+    public static final List<DeferredItem<DelicaciesFoodItem>> MEAT_FOODS =
+            List.of(SCHNITZEL, CORDON_BLEU, HAM, WEISSWURST, LEBERKAESE_SLICE, LEBERKAESE_ROLL, ROAST_PORK, GRAVY);
+    /** The meat ingredients and dishes in the order the creative tab lists them. */
+    public static final List<DeferredItem<? extends Item>> MEAT_ITEMS = List.of(PORK_CUTLET, MINCED_PORK, MINCED_BEEF, BREADED_CUTLET,
+            RAW_CORDON_BLEU, SAUSAGE_MEAT, MUSTARD_FLOUR, SWEET_MUSTARD, LEBERKAESE, SCHNITZEL, CORDON_BLEU, HAM, WEISSWURST,
+            LEBERKAESE_SLICE, LEBERKAESE_ROLL, ROAST_PORK, GRAVY);
 
     /** The item that plants each crop, a block item of its crop block named like an item. */
     public static final Map<CropKind, DeferredItem<BlockItem>> PLANTING = plantingItems();
@@ -114,6 +146,7 @@ public final class ServusDelicaciesItems {
         order.add(LYE);
         order.add(BREAD_CRUMBS);
         FOODS.stream().filter(food -> food != PRETZEL).forEach(order::add);
+        order.addAll(MEAT_ITEMS);
         order.addAll(HARVEST.values());
         for (CropKind crop : CropKind.values()) {
             if (!crop.selfPlanting()) {

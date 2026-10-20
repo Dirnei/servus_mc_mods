@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "servus_delicacies:leberkaese_slice",
+    "servus_delicacies:bread_roll"
+  ],
+  "result": {
+    "id": "servus_delicacies:leberkaese_roll"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "servus_foundation:milling",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:crops/mustard"
+  },
+  "result": {
+    "id": "servus_delicacies:mustard_flour"
+  },
+  "work": 100
+}

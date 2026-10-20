@@ -1,0 +1,13 @@
+{
+  "type": "servus_delicacies:pan",
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": "servus_delicacies:breaded_cutlet"
+    }
+  ],
+  "result": {
+    "id": "servus_delicacies:schnitzel"
+  },
+  "time": 160
+}

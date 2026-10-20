@@ -1,0 +1,9 @@
+{
+  "type": "servus_delicacies:cutting",
+  "ingredient": "servus_delicacies:pork_cutlet",
+  "result": {
+    "count": 2,
+    "id": "servus_delicacies:minced_pork"
+  },
+  "tool": "#c:tools/knife"
+}

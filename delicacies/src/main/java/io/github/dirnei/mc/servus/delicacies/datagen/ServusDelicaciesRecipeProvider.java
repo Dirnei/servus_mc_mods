@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.delicacies.cooking.PotRecipe;
 import io.github.dirnei.mc.servus.delicacies.crop.CropKind;
 import io.github.dirnei.mc.servus.delicacies.crop.CropTags;
 import io.github.dirnei.mc.servus.delicacies.kitchen.KitchenTags;
+import io.github.dirnei.mc.servus.delicacies.meat.LoafSlices;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesItems;
 import io.github.dirnei.mc.servus.foundation.machine.mill.MillingRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
@@ -67,6 +68,7 @@ final class ServusDelicaciesRecipeProvider extends RecipeProvider {
         cutting();
         cooking();
         bakery();
+        meatDishes();
     }
 
     private void crafting() {
@@ -162,6 +164,74 @@ final class ServusDelicaciesRecipeProvider extends RecipeProvider {
                 new ItemStackTemplate(ServusDelicaciesItems.PRETZEL.get(), 2), 240), null);
         output.accept(key("cutting/bread_crumbs"), new CuttingRecipe(Ingredient.of(ServusDelicaciesItems.BREAD_ROLL.get()),
                 tag(KitchenTags.KNIVES), new ItemStackTemplate(ServusDelicaciesItems.BREAD_CRUMBS.get(), 2)), null);
+    }
+
+    /** Cuts, breading, sausage meat, ham, Weisswurst, mustard, the Leberkaese loaf and roll, Roast Pork and Gravy. */
+    private void meatDishes() {
+        Ingredient knife = tag(KitchenTags.KNIVES);
+        output.accept(key("cutting/pork_cutlet"), new CuttingRecipe(Ingredient.of(Items.PORKCHOP), knife,
+                new ItemStackTemplate(ServusDelicaciesItems.PORK_CUTLET.get())), null);
+        output.accept(key("cutting/minced_pork"), new CuttingRecipe(Ingredient.of(ServusDelicaciesItems.PORK_CUTLET.get()), knife,
+                new ItemStackTemplate(ServusDelicaciesItems.MINCED_PORK.get(), 2)), null);
+        output.accept(key("cutting/minced_beef"), new CuttingRecipe(Ingredient.of(Items.BEEF), knife,
+                new ItemStackTemplate(ServusDelicaciesItems.MINCED_BEEF.get(), 2)), null);
+        output.accept(key("cutting/leberkaese_slices"), new CuttingRecipe(Ingredient.of(ServusDelicaciesItems.LEBERKAESE.get()), knife,
+                new ItemStackTemplate(ServusDelicaciesItems.LEBERKAESE_SLICE.get(), LoafSlices.SLICES)), null);
+
+        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.FOOD, ServusDelicaciesItems.BREADED_CUTLET.get())
+                .requires(ServusDelicaciesItems.PORK_CUTLET.get())
+                .requires(KitchenTags.WHEAT_FLOUR)
+                .requires(Tags.Items.EGGS)
+                .requires(ServusDelicaciesItems.BREAD_CRUMBS.get())
+                .unlockedBy("has_pork_cutlet", has(ServusDelicaciesItems.PORK_CUTLET.get()))
+                .save(output);
+        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.FOOD, ServusDelicaciesItems.RAW_CORDON_BLEU.get())
+                .requires(ServusDelicaciesItems.PORK_CUTLET.get())
+                .requires(ServusDelicaciesItems.HAM.get())
+                .requires(KitchenTags.CHEESE)
+                .requires(KitchenTags.WHEAT_FLOUR)
+                .requires(Tags.Items.EGGS)
+                .requires(ServusDelicaciesItems.BREAD_CRUMBS.get())
+                .unlockedBy("has_ham", has(ServusDelicaciesItems.HAM.get()))
+                .save(output);
+        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.FOOD, ServusDelicaciesItems.SAUSAGE_MEAT.get(), 2)
+                .requires(ServusDelicaciesItems.MINCED_PORK.get())
+                .requires(ServusDelicaciesItems.MINCED_BEEF.get())
+                .requires(CropTags.crop(CropKind.PARSLEY))
+                .requires(KitchenTags.SALT)
+                .unlockedBy("has_minced_pork", has(ServusDelicaciesItems.MINCED_PORK.get()))
+                .save(output);
+        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.FOOD, ServusDelicaciesItems.LEBERKAESE_ROLL.get())
+                .requires(ServusDelicaciesItems.LEBERKAESE_SLICE.get())
+                .requires(ServusDelicaciesItems.BREAD_ROLL.get())
+                .unlockedBy("has_leberkaese_slice", has(ServusDelicaciesItems.LEBERKAESE_SLICE.get()))
+                .save(output);
+
+        output.accept(key("pan/schnitzel"), new PanRecipe(List.of(sized(ServusDelicaciesItems.BREADED_CUTLET.get(), 1)),
+                new ItemStackTemplate(ServusDelicaciesItems.SCHNITZEL.get()), 160), null);
+        output.accept(key("pan/cordon_bleu"), new PanRecipe(List.of(sized(ServusDelicaciesItems.RAW_CORDON_BLEU.get(), 1)),
+                new ItemStackTemplate(ServusDelicaciesItems.CORDON_BLEU.get()), 200), null);
+
+        Optional<SizedFluidIngredient> water = Optional.of(SizedFluidIngredient.of(Fluids.WATER, 250));
+        output.accept(key("pot/ham"), new PotRecipe(List.of(sized(Items.PORKCHOP, 1), new SizedIngredient(tag(KitchenTags.SALT), 1)),
+                water, new ItemStackTemplate(ServusDelicaciesItems.HAM.get(), 2), 300), null);
+        output.accept(key("pot/weisswurst"), new PotRecipe(List.of(sized(ServusDelicaciesItems.SAUSAGE_MEAT.get(), 2)),
+                water, new ItemStackTemplate(ServusDelicaciesItems.WEISSWURST.get(), 2), 200), null);
+        output.accept(key("pot/sweet_mustard"), new PotRecipe(List.of(sized(ServusDelicaciesItems.MUSTARD_FLOUR.get(), 2),
+                sized(Items.SUGAR, 1)), water, new ItemStackTemplate(ServusDelicaciesItems.SWEET_MUSTARD.get(), 2), 200), null);
+        output.accept(key("pot/gravy"), new PotRecipe(List.of(sized(ServusDelicaciesItems.CHOPPED_ONION.get(), 1),
+                new SizedIngredient(tag(KitchenTags.WHEAT_FLOUR), 1), sized(Items.BOWL, 1)),
+                water, new ItemStackTemplate(ServusDelicaciesItems.GRAVY.get()), 160), null);
+
+        output.accept(key("baking/leberkaese"), new BakingRecipe(List.of(sized(ServusDelicaciesItems.MINCED_PORK.get(), 2),
+                sized(ServusDelicaciesItems.MINCED_BEEF.get(), 2), new SizedIngredient(tag(KitchenTags.SALT), 1)),
+                new ItemStackTemplate(ServusDelicaciesItems.LEBERKAESE.get()), 400), null);
+        output.accept(key("baking/roast_pork"), new BakingRecipe(List.of(sized(Items.PORKCHOP, 2),
+                new SizedIngredient(tag(CropTags.crop(CropKind.ONION)), 1), new SizedIngredient(tag(KitchenTags.SALT), 1)),
+                new ItemStackTemplate(ServusDelicaciesItems.ROAST_PORK.get(), 2), 400), null);
+
+        output.accept(key("milling/mustard_flour"), new MillingRecipe(new SizedIngredient(tag(CropTags.crop(CropKind.MUSTARD)), 1),
+                new ItemStackTemplate(ServusDelicaciesItems.MUSTARD_FLOUR.get()), 100), null);
     }
 
     private static SizedIngredient sized(ItemLike item, int count) {

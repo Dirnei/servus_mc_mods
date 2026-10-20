@@ -45,5 +45,16 @@ final class ServusDelicaciesItemTagsProvider extends ItemTagsProvider {
         tag(KitchenTags.ASH).add(ServusDelicaciesItems.WOOD_ASH.get())
                 .add(TagEntry.optionalElement(Identifier.fromNamespaceAndPath("servus_alchemy", "ash")));
         tag(Tags.Items.DUSTS).addTag(KitchenTags.SALT).addTag(KitchenTags.ASH);
+        meatDishes();
+    }
+
+    /** Meat foods and dishes, mustard flour, and the cheese tag the Cordon Bleu asks for, declared even while empty. */
+    private void meatDishes() {
+        ServusDelicaciesItems.MEAT_FOODS.forEach(food -> tag(Tags.Items.FOODS).add(food.get()));
+        ServusDelicaciesItems.COOKED_MEATS.forEach(meat -> tag(Tags.Items.FOODS_COOKED_MEAT).add(meat.get()));
+        tag(Tags.Items.FOODS_SOUP).add(ServusDelicaciesItems.GRAVY.get());
+        tag(KitchenTags.MUSTARD_FLOUR).add(ServusDelicaciesItems.MUSTARD_FLOUR.get());
+        tag(KitchenTags.FLOURS).addTag(KitchenTags.MUSTARD_FLOUR);
+        tag(KitchenTags.CHEESE);
     }
 }
