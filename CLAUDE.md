@@ -73,8 +73,9 @@ openspec view                      # dashboard of specs and changes
 - In the play check, look for flicker on every new part from several angles and while it moves.
 
 ## Git
-- Small commits with clear messages, subject line only.
-- Commit at the end of each task, or more often when it helps.
+- Logical commits, not one per task: a commit holds a coherent piece of work. Messages are a subject line only.
+- A finished worktree branch is rebased onto main and main is fast-forwarded to it. No merge commits.
+- A worktree that is merged or no longer needed is deleted, folder and branch.
 
 ## Writing style
 - No em dashes in docs, comments, specs or messages.
