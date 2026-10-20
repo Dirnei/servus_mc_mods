@@ -75,7 +75,9 @@ final class HeavyRackModels {
                     .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.RIGHT, true);
         }
 
-        BlockModelBuilder inventory = model(provider, name + "_inventory", iron, board);
+        // The block parent gives the item the turned block view; without it the GUI shows the back board face on.
+        BlockModelBuilder inventory = provider.models().withExistingParent(name + "_inventory", "minecraft:block/block")
+                .texture("particle", iron).texture("iron", iron).texture("board", board);
         core(inventory);
         post(inventory, 0);
         post(inventory, 14);
