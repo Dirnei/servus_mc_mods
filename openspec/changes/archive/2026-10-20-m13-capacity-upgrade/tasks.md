@@ -15,4 +15,4 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 ## 3. Verify
 
 - [x] 3.1 Full `gradlew build`, `gradlew test`, the Foundation and Shuttles GameTests green; the game launches with all three mods.
-- [ ] 3.2 Play check by the user: the Capacity Upgrade shows in the creative tab and JEI with its recipe and tooltip.
+- [x] 3.2 Play check by the user: the Capacity Upgrade shows in the creative tab and JEI with its recipe and tooltip.

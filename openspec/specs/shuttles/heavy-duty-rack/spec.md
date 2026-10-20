@@ -115,23 +115,23 @@ A rack SHALL show the item types it holds the most of, up to a display count (`d
 - **THEN** a small cobblestone cube and an upright ingot stand on the lower shelf between the posts, visible from the aisle and from the sides
 
 ### Requirement: Rack is obtainable and dismantled
-The rack SHALL be craftable from vanilla materials, SHALL spill its contents when broken, and SHALL keep them on the dropped item when dismantled by sneaking with the Configuration Carrot. The Configuration Carrot SHALL NOT turn a rack; its facing is set when it is placed. The crafted rack SHALL remember the wood of the planks it was made from: the planks that appear most often, or the middle one when all three differ.
+The rack SHALL be craftable from vanilla materials, one craft yielding several racks (example 3, set by the recipe), SHALL spill its contents when broken, and SHALL keep them on the dropped item when dismantled by sneaking with the Configuration Carrot. The Configuration Carrot SHALL NOT turn a rack; its facing is set when it is placed. Every crafted rack SHALL remember the wood of the planks it was made from: the planks that appear most often, or the middle one when all three differ.
 
 #### Scenario: Crafting
 - **WHEN** the player places iron ingots and planks in the rack pattern (for example ingots in the corners and planks across the middle)
-- **THEN** the result is one Heavy Duty Rack
+- **THEN** the result is three Heavy Duty Racks
 
 #### Scenario: Spruce rack
 - **WHEN** the player crafts the rack with three spruce planks
-- **THEN** the rack remembers spruce
+- **THEN** each of the crafted racks remembers spruce
 
 #### Scenario: Majority wins
 - **WHEN** the planks row is oak, spruce, oak
-- **THEN** the rack remembers oak
+- **THEN** the racks remember oak
 
 #### Scenario: Three different woods
 - **WHEN** the planks row is birch, spruce, oak
-- **THEN** the rack remembers spruce, the middle one
+- **THEN** the racks remember spruce, the middle one
 
 #### Scenario: Dismantle
 - **WHEN** a player sneak dismantles a rack with two stacks and places it again

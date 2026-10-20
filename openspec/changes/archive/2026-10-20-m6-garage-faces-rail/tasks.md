@@ -15,4 +15,4 @@ Paths are relative to `shuttles/src/main/java/io/github/dirnei/mc/servus/shuttle
 
 - [x] 3.1 Full `gradlew build`, `gradlew test` and the Shuttles GameTests green.
   Verified 2026-10-20: build and unit tests green, Shuttles GameTests 707 passed; the garage paragraph of `docs/src/content/docs/mods/shuttles.md` says how it turns, docs tests 50 passed.
-- [ ] 3.2 Play check by the user: place garages against and beside rails from several angles; the doorway meets the rail, and the carrot still turns it.
+- [x] 3.2 Play check by the user: place garages against and beside rails from several angles; the doorway meets the rail, and the carrot still turns it.

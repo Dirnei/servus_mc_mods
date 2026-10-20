@@ -15,7 +15,7 @@ Paths are relative to `shuttles/src/main/java/io/github/dirnei/mc/servus/shuttle
 
 - [x] 3.1 Full `gradlew build`, `gradlew test` and the Shuttles GameTests green; update the elevator paragraph in `docs/src/content/docs/mods/shuttles.md` and run the docs tests.
   Verified 2026-10-20: build and unit tests green, Shuttles GameTests 720 passed, docs tests 50 passed.
-- [ ] 3.2 Play check by the user: place an elevator into a laid rail run, build it up, break it and see the rail come back.
+- [x] 3.2 Play check by the user: place an elevator into a laid rail run, build it up, break it and see the rail come back.
 
 ## 4. Segment wood
 
@@ -23,4 +23,4 @@ Paths are relative to `shuttles/src/main/java/io/github/dirnei/mc/servus/shuttle
 - [x] 4.2 `rail/ElevatorBlockEntity.java` `WoodHolder` with a `WoodSlot`, sync and drop; `registry/ServusShuttlesItems.java` elevator as a wood item; D1 sets the rail's wood; `datagen/ElevatorModels.java` item sleepers on `Wood.BOARD` and the wood item model type; `datagen/ServusShuttlesRecipeProvider.java` elevator recipe as `wood_shaped`; `client/ElevatorRenderer.java` sleepers in the segment's wood (design.md D4). Run `gradlew :shuttles:runData`, `gradlew build`.
 - [x] 4.3 GameTests in `gametest/ElevatorGameTests.java`: `segmentOnRailTakesItsWood`, `craftedElevatorCarriesTheRailWood`, `brokenSegmentDropsItsWood`, `placedItemGivesItsWood`. Run the Shuttles GameTests.
   Verified 2026-10-20: GameTests Foundation 159 and Shuttles 725 passed; the elevator now drops through the wood loot list (the self-drop list went empty and was removed); `gamedata.json` regenerated, docs tests 50 passed.
-- [ ] 4.4 Play check by the user: a spruce rail run takes a spruce segment, a birch rail crafts birch elevators, the item shows its wood, a shaft of mixed woods draws each floor in its own wood.
+- [x] 4.4 Play check by the user: a spruce rail run takes a spruce segment, a birch rail crafts birch elevators, the item shows its wood, a shaft of mixed woods draws each floor in its own wood.

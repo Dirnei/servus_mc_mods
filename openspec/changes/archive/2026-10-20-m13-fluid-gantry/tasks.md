@@ -42,12 +42,12 @@ Paths are relative to `shuttles/src/main/java/io/github/dirnei/mc/servus/shuttle
 
 - [x] 8.1 Full `gradlew build`, `gradlew test`, the Foundation, Alchemy and Shuttles GameTests green; the game launches with all three mods.
   Verified 2026-10-20: build and unit tests green; GameTests Foundation 159 and Shuttles 668 passed (field tests `harvesterTillsInsideStripOnly` and `harvestResumesBelowTheLimit` failed once each in separate runs and passed on rerun); Alchemy GameTests pass apart from the 9 known Foundation anchor tests that FTB Chunks breaks in Alchemy runs. The all mods GameTest server loads all three mods (its only failures are the anchor and site wake chunk ticket tests); the client launch is part of the play check.
-- [ ] 8.2 Play check by the user: place a gantry on a rail, fill it by bucket, switch modes and pipe in and out, set locks, add upgrades, break and place it back, look for flicker on every part from several angles.
+- [x] 8.2 Play check by the user: place a gantry on a rail, fill it by bucket, switch modes and pipe in and out, set locks, add upgrades, break and place it back, look for flicker on every part from several angles.
 - [x] 8.3 Play check fixes: the item model took its UVs from its moved boxes and failed to load (missing texture), now each box keeps the UVs of its own block; the seam band read as a floor that split each leg into two tanks, now removed. Ran `gradlew :shuttles:runData`, `gradlew build`.
 
 ## 9. Own rail
 
 - [x] 9.1 `gantry/FluidGantryItem.java` (floor placement lays a rail along the facing axis, refusals), `gantry/FluidGantryBlockEntity.java` (`ownRail` saved, set by the item), `gantry/FluidGantryBlock.java` (removal takes an own rail away), lang for a refusal when the rail space is taken (design.md D1). Run `gradlew :shuttles:runData`, `gradlew build`.
 - [x] 9.2 GameTests in `gametest/FluidGantryGameTests.java`: `gantryPlacedOnFloorLaysRail`, `ownRailGoesWithGantry`, `existingRailStaysWhenGantryBreaks`, `floorPlacementRefusedWithoutFooting`, `ownRailJoinsTheWarehouse`. Run the Shuttles GameTests.
-- [ ] 9.3 Play check by the user: place a gantry on open floor and on an existing rail, connect rails to it, break both and see which rail stays.
+- [x] 9.3 Play check by the user: place a gantry on open floor and on an existing rail, connect rails to it, break both and see which rail stays.
 - [x] 9.4 Play check fix: a duct beside a gantry part kept no arm after the mode changed to Import, though fluid flowed, because only capabilities were invalidated; `FluidGantryBlock.invalidateCapabilities` now also sends a neighbour update from every part. GameTest `ductArmFollowsTheMode` in `gametest/GantryTankGameTests.java`. Ran `gradlew build` and the Shuttles GameTests (725 passed).

@@ -37,4 +37,4 @@ Paths are relative to `shuttles/src/main/java/io/github/dirnei/mc/servus/shuttle
 
 - [x] 7.1 Full `gradlew build`, `gradlew test`, the Foundation, Alchemy and Shuttles GameTests green; the game launches with all three mods.
   Verified 2026-10-20: build and unit tests green; GameTests Foundation 159 and Shuttles 686 passed; Alchemy GameTests pass apart from the 9 known Foundation anchor tests that FTB Chunks breaks in Alchemy runs. The client launch is part of the play check.
-- [ ] 7.2 Play check by the user: a Tanker shuttle collects from an Import gantry fed by a pump, unloads into Storage gantries by lock, waits when there is no room (red lamp), rides a lift; spout and stream look right, no flicker.
+- [x] 7.2 Play check by the user: a Tanker shuttle collects from an Import gantry fed by a pump, unloads into Storage gantries by lock, waits when there is no room (red lamp), rides a lift; spout and stream look right, no flicker.

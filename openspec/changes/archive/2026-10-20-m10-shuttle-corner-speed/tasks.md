@@ -19,4 +19,4 @@ Paths are relative to `shuttles/src/main/java/io/github/dirnei/mc/servus/shuttle
 
 - [x] 3.1 Full `gradlew build`, `gradlew test` and the Shuttles GameTests green; regenerate `docs/src/data/gamedata.json` with `gradlew :alchemy:runData` if the docs read `shuttle.json`, and run the docs tests.
   Verified 2026-10-20: build and unit tests green, Shuttles GameTests 707 passed. `gamedata.json` does not read `shuttle.json`; the Speed paragraph of `docs/src/content/docs/mods/shuttles.md` names the corner speed, docs tests 50 passed.
-- [ ] 3.2 Play check by the user: a Mk3 with eight Speed upgrades and a plain shuttle on a winding rail; both slow into corners, the fast one only a little faster there, no jumps in the drawn shuttle.
+- [x] 3.2 Play check by the user: a Mk3 with eight Speed upgrades and a plain shuttle on a winding rail; both slow into corners, the fast one only a little faster there, no jumps in the drawn shuttle.

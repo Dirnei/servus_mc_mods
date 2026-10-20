@@ -162,15 +162,13 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 
 ### Open: M13 Fluid logistics
 
-Shuttles carry fluids (decided 2026-10-20). Foundation's Capacity Upgrade gives blocks with capacity upgrade slots more room. Still open in M13:
+Shuttles carry fluids between Fluid Gantries (built 2026-10-20). Still open in M13:
 
-- `m13-fluid-gantry`: Fluid Gantry with built-in tanks that grow with Capacity Upgrades.
-- `m13-tanker-import`: Tanker shuttle import runs.
-- `m13-tanker-export`: Tanker shuttle export runs.
 - Fluids in the Storage Terminal.
 - Water runs to Field Heads.
 - Fluids in requests, stock rules and work orders.
 - A redstone tank sensor.
+- An Export gantry that no Tanker shuttle reaches shows no red lamp yet (Import gantries do).
 
 ---
 

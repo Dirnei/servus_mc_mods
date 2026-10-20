@@ -25,4 +25,4 @@ Paths are relative to `shuttles/src/main/java/io/github/dirnei/mc/servus/shuttle
 
 - [x] 5.1 Full `gradlew build`, `gradlew test`, the Foundation, Alchemy and Shuttles GameTests green; the game launches with all three mods.
   Verified 2026-10-20: build and unit tests green; GameTests Foundation 159 and Shuttles 697 passed; Alchemy GameTests pass apart from the 9 known Foundation anchor tests that FTB Chunks breaks in Alchemy runs. The client launch is part of the play check.
-- [ ] 5.2 Play check by the user: an Export gantry with a keep level is restocked by a tanker while a pipe drains it, shows red when storage has none of the fluid, and the keep buttons work.
+- [x] 5.2 Play check by the user: an Export gantry with a keep level is restocked by a tanker while a pipe drains it, shows red when storage has none of the fluid, and the keep buttons work.

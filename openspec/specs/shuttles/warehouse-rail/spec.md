@@ -222,7 +222,7 @@ The rail recipe SHALL take planks, and the crafted rails SHALL carry the wood of
 - **THEN** every rail of the run shows birch sleepers
 
 ### Requirement: Only rails join blocks to a warehouse
-Every block that shuttles serve SHALL join a warehouse only through a rail on one of the faces where it takes rails, and SHALL NOT join or pass on a warehouse by touching controllers, other storage blocks or each other. The faces are: a Heavy Duty Rack's front (and the bays of its own section), every side of an Inbound Station, Outbound Station and Packing Station, and the back of a Shuttle Garage. The Warehouse Controller SHALL link to touching rails on any side and to a touching controller; no other block SHALL join a warehouse by touching it.
+Every block that shuttles serve SHALL join a warehouse only through a rail on one of the faces where it takes rails, and SHALL NOT join or pass on a warehouse by touching controllers, other storage blocks or each other. The faces are: a Heavy Duty Rack's front (and the bays of its own section), every side of an Inbound Station, Outbound Station and Packing Station, the back of a Shuttle Garage, and the inner faces of a Fluid Gantry's legs toward the rail it stands over. The Warehouse Controller SHALL link to touching rails on any side and to a touching controller; no other block SHALL join a warehouse by touching it.
 
 #### Scenario: Station pressed against the controller
 - **WHEN** an Inbound Station touches the controller of an online warehouse and no rail touches the station
@@ -231,6 +231,10 @@ Every block that shuttles serve SHALL join a warehouse only through a rail on on
 #### Scenario: Chest touching the controller
 - **WHEN** a chest touches the controller
 - **THEN** the chest is not part of the warehouse and its items are not listed
+
+#### Scenario: Gantry over a rail
+- **WHEN** a Fluid Gantry stands over a rail of a warehouse and its outer leg face touches another warehouse's rail
+- **THEN** the gantry belongs only to the warehouse of the rail between its legs
 
 ### Requirement: Rails stand or hang
 The Warehouse Rail SHALL be a flat block in the bottom of its block space, one block wide, with a selection shape a few pixels high so players walk over it. A rail with a block with a solid top under it SHALL be standing. A rail without one SHALL be hung when one of its horizontal neighbours is an anchor and free otherwise. An anchor SHALL be the front side of a Heavy Duty Rack, any side of a Rail Elevator segment or a standing rail; controllers, terminals, stations and garages SHALL NOT be anchors. Standing and hung rails SHALL hold on their own. A rail SHALL be placeable on any block with a solid top, and in open air only when one of its horizontal neighbours is an anchor or another rail. Hung and free rails SHALL look the same as standing rails.
