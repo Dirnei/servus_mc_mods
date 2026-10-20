@@ -10,7 +10,8 @@ public final class BreweryGameTests {
             BreweryCropGameTests.class,
             MaltingGameTests.class,
             BrewhouseGameTests.class,
-            BeerGameTests.class);
+            BeerGameTests.class,
+            RauschGameTests.class);
 
     private BreweryGameTests() {
     }

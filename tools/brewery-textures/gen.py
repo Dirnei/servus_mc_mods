@@ -5,7 +5,7 @@ This script is the source of the files; edit the shapes here, not the PNGs.
     python tools/brewery-textures/gen.py                      writes the textures
     python tools/brewery-textures/gen.py --preview <folder>   also writes 8x previews
 
-Written into brewery/src/main/resources/assets/servus_brewery/textures/item/ and .../block/.
+Written into brewery/src/main/resources/assets/servus_brewery/textures/item/, .../block/ and .../mob_effect/.
 Sprites are drawn from pixel masks on a 16x16 canvas. Block sprites use only fully
 opaque or fully clear pixels, so the game draws them in the cutout layer.
 """
@@ -639,6 +639,94 @@ BLOCK_ANIMATIONS = {
 }
 
 
+# ---------- Rausch effect icons (16x16 drawings padded to the 18x18 effect sprite) ----------
+EFFECT_SIZE = 18
+FACE = hx('#5a3004')
+CLOUD = ramp('#4a4e58', '#6c717c', '#8e939c', '#b0b4bb', '#cdd0d5')
+BOLT = ramp('#b8860b', '#f2c94c', '#fff2a8')
+RAIN = hx('#7fb2d8')
+
+
+def half_glass():
+    """Tipsy: the half litre glass, half full under a thin head."""
+    img = empty_glass()
+    rng = random.Random('tipsy')
+    for (x, y) in rect(4, 9, 9, 13):
+        t = (y - 9) / 4
+        put(img, x, y, HELL[max(0, min(3, int((1 - t * .8 + rng.uniform(-.1, .1)) * 3 + .5)))])
+    for x in range(4, 10):
+        put(img, x, 8, FOAM[2 + x % 2])
+    for y in range(9, 13):
+        put(img, 4, y, GLASS_HI)
+    return img
+
+
+def merry_glass():
+    """Merry: a full glass that smiles."""
+    img = full_glass(HELL, 'helles')
+    for (x, y) in ((5, 8), (8, 8), (5, 10), (6, 11), (7, 11), (8, 10)):
+        put(img, x, y, FACE)
+    return img
+
+
+def drunk_glass():
+    """Drunk: a full glass with crooked eyes, a wavy mouth and foam running down over the rim."""
+    img = [[HELL[2] if px == BUBBLE else px for px in row] for row in full_glass(HELL, 'helles')]
+    for (x, y) in ((5, 8), (8, 7), (4, 11), (5, 10), (6, 11), (7, 10), (8, 11)):
+        put(img, x, y, FACE)
+    for (x, y) in ((3, 6), (3, 7), (3, 8), (2, 7), (10, 6), (10, 7)):
+        put(img, x, y, FOAM[2])
+    return img
+
+
+def plastered_glass():
+    """Plastered: the glass lying on its side, handle up, with the beer run out into a puddle."""
+    upright = full_glass(HELL, 'helles')
+    img = canvas()
+    for y in range(SIZE):
+        for x in range(SIZE):
+            px = upright[x][SIZE - 1 - y]
+            if px != CLEAR:
+                put(img, x, y + 1, px)
+    rng = random.Random('puddle')
+    puddle = ellipse(6, 14.5, 6, 1.3)
+    for (x, y) in puddle:
+        if img[y][x] == CLEAR:
+            put(img, x, y, HELL[rng.randint(1, 3)])
+    return img
+
+
+def hangover_cloud():
+    """Hangover: a grey cloud with a bolt and rain."""
+    img = canvas()
+    rng = random.Random('hangover')
+    cloud = ellipse(5, 7, 3.5, 3) | ellipse(9.5, 5.5, 4, 3.6) | ellipse(12, 8, 3, 2.5) | rect(3, 7, 13, 9)
+    paint(img, cloud, CLOUD, rng, noise=.08, k=1.2)
+    bolt = {(8, 10), (8, 11), (7, 11), (7, 12), (8, 12), (9, 12), (8, 13), (8, 14), (7, 15)}
+    fill(img, bolt, BOLT[1])
+    put(img, 8, 11, BOLT[2])
+    fill(img, {(4, 11), (4, 12), (12, 11), (12, 12), (11, 14)}, RAIN)
+    return img
+
+
+def padded(img):
+    """A 16x16 drawing centred on the 18x18 effect sprite."""
+    out = [[CLEAR] * EFFECT_SIZE for _ in range(EFFECT_SIZE)]
+    for y in range(SIZE):
+        for x in range(SIZE):
+            out[y + 1][x + 1] = img[y][x]
+    return out
+
+
+EFFECT_SPRITES = {
+    'tipsy': padded(half_glass()),
+    'merry': padded(merry_glass()),
+    'drunk': padded(drunk_glass()),
+    'plastered': padded(plastered_glass()),
+    'hangover': padded(hangover_cloud()),
+}
+
+
 def png_bytes(img):
     h = len(img)
     w = len(img[0])
@@ -662,7 +750,7 @@ def write(path, img):
 
 def main():
     preview = sys.argv[2] if len(sys.argv) == 3 and sys.argv[1] == '--preview' else None
-    for folder, sprites in (('item', ITEM_SPRITES), ('block', BLOCK_SPRITES)):
+    for folder, sprites in (('item', ITEM_SPRITES), ('block', BLOCK_SPRITES), ('mob_effect', EFFECT_SPRITES)):
         out = os.path.join(TEXTURES, folder)
         os.makedirs(out, exist_ok=True)
         for name, img in sprites.items():

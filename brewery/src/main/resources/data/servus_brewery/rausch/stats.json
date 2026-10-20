@@ -1,0 +1,15 @@
+{
+  "per_drink": 1,
+  "decay_ticks": 2400,
+  "max": 8,
+  "levels": {
+    "tipsy": {"from": 1, "luck": 1, "armor": 2},
+    "merry": {"from": 2, "luck": 2, "armor": 4},
+    "drunk": {"from": 4, "luck": 2, "armor": 6, "fall_damage": 0.5, "speed": -0.15, "knockback": 1.5, "wobble": true},
+    "plastered": {
+      "from": 5, "luck": 3, "armor": 8, "fall_damage": 0.0, "speed": -0.15, "knockback": 2.0, "wobble": true,
+      "stumble_chance": 0.25, "stumble_strength": 0.25
+    }
+  },
+  "hangover": {"from": 4, "duration": 6000, "mining_speed": -0.3, "exhaustion": 0.1, "hair_of_the_dog": 1}
+}

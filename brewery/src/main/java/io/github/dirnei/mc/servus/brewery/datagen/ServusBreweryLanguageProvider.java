@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.brewery.datagen;
 
 import io.github.dirnei.mc.servus.brewery.ServusBreweryIds;
+import io.github.dirnei.mc.servus.brewery.rausch.RauschEffects;
 import io.github.dirnei.mc.servus.brewery.registry.BreweryFluids;
 import io.github.dirnei.mc.servus.brewery.registry.ServusBreweryBlocks;
 import io.github.dirnei.mc.servus.brewery.registry.ServusBreweryItems;
@@ -77,6 +78,15 @@ final class ServusBreweryLanguageProvider extends LanguageProvider {
         add("gui.servus_brewery.jei.kilning", "Kilning");
         add("gui.servus_brewery.jei.hot_brewhouse", "over a burning Brewhouse");
         add("gui.servus_brewery.jei.dark", "Dark mode: %s, %s s more");
+        rausch();
+    }
+
+    private void rausch() {
+        addEffect(RauschEffects.TIPSY, "Tipsy");
+        addEffect(RauschEffects.MERRY, "Merry");
+        addEffect(RauschEffects.DRUNK, "Drunk");
+        addEffect(RauschEffects.PLASTERED, "Plastered");
+        addEffect(RauschEffects.HANGOVER, "Hangover");
     }
 
     private void fluid(BreweryFluids.BrewFluid fluid, String name) {
