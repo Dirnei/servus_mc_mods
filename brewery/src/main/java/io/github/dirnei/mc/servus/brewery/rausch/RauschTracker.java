@@ -58,6 +58,36 @@ public final class RauschTracker {
         return instance.is(MobEffects.NAUSEA) && instance.isAmbient() && !instance.showIcon();
     }
 
+    /**
+     * Called before {@code incoming} is added to the player. A foreign Nausea would merge into the Rausch's and keep its
+     * long duration, so the Rausch's Nausea steps aside; the next update brings it back once the foreign one is gone.
+     */
+    public static void makeWayFor(Player player, MobEffectInstance incoming) {
+        if (!incoming.is(MobEffects.NAUSEA) || isRauschNausea(incoming)) {
+            return;
+        }
+        MobEffectInstance current = player.getEffect(MobEffects.NAUSEA);
+        if (current != null && isRauschNausea(current)) {
+            player.removeEffect(MobEffects.NAUSEA);
+        }
+    }
+
+    /** Applies freshly loaded stats to the attribute modifiers of the player's Rausch and Hangover effects. */
+    public static void refresh(Player player) {
+        for (RauschLevel level : RauschLevel.values()) {
+            reapplyModifiers(player, RauschEffects.effect(level));
+        }
+        reapplyModifiers(player, RauschEffects.HANGOVER);
+        sync(player);
+    }
+
+    private static void reapplyModifiers(Player player, Holder<MobEffect> effect) {
+        MobEffectInstance instance = player.getEffect(effect);
+        if (instance != null) {
+            effect.value().addAttributeModifiers(player.getAttributes(), instance.getAmplifier());
+        }
+    }
+
     /** Brings the player's effects in line with their Rausch. */
     public static void sync(Player player) {
         RauschStats stats = stats();
@@ -68,7 +98,7 @@ public final class RauschTracker {
                 player.removeEffect(RauschEffects.effect(other));
             }
         }
-        int duration = rausch.ticksAtLevel(stats) + UPDATE_INTERVAL;
+        int duration = (int) Math.min(Integer.MAX_VALUE, (long) rausch.ticksAtLevel(stats) + UPDATE_INTERVAL);
         level.ifPresent(wanted -> show(player, RauschEffects.effect(wanted), duration, false, true));
         boolean wobble = level.map(wanted -> stats.level(wanted).wobble()).orElse(false);
         if (wobble) {

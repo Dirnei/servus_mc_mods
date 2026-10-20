@@ -13,11 +13,14 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 /**
- * The screen wobble switch: with {@link ServusBreweryClientConfig#screenWobble()} off, the Rausch's Nausea is dropped
- * from the local player on this client only, so nothing reads it for the wobble while the server keeps the rest.
+ * The screen wobble switch: with {@link ServusBreweryClientConfig#screenWobble()} off, the blend of the Rausch's Nausea
+ * on the local player is held at zero, so the wobble and its overlay stay away while the effect itself stays. Switched
+ * back on, the wobble fades in as for a new Nausea.
  */
 @EventBusSubscriber(modid = ServusBreweryIds.MOD_ID, value = Dist.CLIENT)
 public final class RauschClient {
+
+    private static final MobEffectInstance UNBLENDED = new MobEffectInstance(MobEffects.NAUSEA);
 
     private RauschClient() {
     }
@@ -30,7 +33,7 @@ public final class RauschClient {
         }
         MobEffectInstance nausea = player.getEffect(MobEffects.NAUSEA);
         if (nausea != null && RauschTracker.isRauschNausea(nausea)) {
-            player.removeEffectNoUpdate(MobEffects.NAUSEA);
+            nausea.copyBlendState(UNBLENDED);
         }
     }
 }

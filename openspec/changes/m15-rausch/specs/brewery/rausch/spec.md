@@ -87,6 +87,10 @@ Drunk and Plastered (by data) SHALL make the screen wobble as vanilla Nausea doe
 - **WHEN** a player becomes Drunk
 - **THEN** their screen wobbles and the only effect icon is Drunk
 
+#### Scenario: Pufferfish while Drunk
+- **WHEN** a Drunk player is poisoned by a pufferfish
+- **THEN** the pufferfish's Nausea lasts its own time, also after the player sobers up, and the Rausch's wobble comes back after it while they are still Drunk
+
 #### Scenario: Stumbling
 - **WHEN** a Plastered player stands on the ground for a while
 - **THEN** they are pushed sideways now and then
@@ -101,6 +105,10 @@ Servus: Brewery SHALL register a client config `config/servus_brewery-client.tom
 #### Scenario: Wobble switched off
 - **WHEN** `screenWobble` is false and the player becomes Drunk
 - **THEN** the screen does not wobble, and the player still has the Drunk effect, its armor and its knockback
+
+#### Scenario: Wobble switched back on
+- **WHEN** `screenWobble` is set back to true while the player is Drunk
+- **THEN** the screen wobbles again without another drink
 
 #### Scenario: Other nausea stays
 - **WHEN** `screenWobble` is false and a pufferfish poisons the player

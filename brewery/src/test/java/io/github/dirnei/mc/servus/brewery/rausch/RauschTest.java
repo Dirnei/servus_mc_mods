@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -107,5 +108,47 @@ class RauschTest {
         long end = NOW + STATS.hangover().duration();
         Rausch rausch = afterDrinks(4).morning(DAY + 1, NOW, STATS).drink(1, STATS, DAY + 1, end).drink(1, STATS, DAY + 1, end);
         assertEquals(2, rausch.points());
+    }
+    @Test
+    void clockSetBackKeepsTheHangoverDueFromTheNewDay() {
+        Rausch drunk = afterDrinks(4);
+        Rausch rewound = drunk.morning(0, NOW, STATS);
+        assertEquals(0, rewound.dueDay());
+        assertEquals(drunk.points(), rewound.points());
+        assertFalse(rewound.hungover(NOW));
+        assertEquals(rewound, rewound.morning(0, NOW + 100, STATS));
+        assertTrue(rewound.morning(1, NOW + 200, STATS).hungover(NOW + 200));
+    }
+
+    @Test
+    void hairOfTheDogAtTheThresholdKeepsTheHangoverDue() {
+        RauschStats stats = withHairOfTheDog(STATS.hangover().from());
+        Rausch hungover = Rausch.SOBER.drink(STATS.hangover().from(), stats, DAY, NOW).morning(DAY + 1, NOW, stats);
+        Rausch cured = hungover.drink(stats.perDrink(), stats, DAY + 1, NOW + 10);
+        assertFalse(cured.hungover(NOW + 10));
+        assertEquals(DAY + 1, cured.dueDay());
+        assertTrue(cured.morning(DAY + 2, NOW + 24000, stats).hungover(NOW + 24000));
+    }
+
+    @Test
+    void hairOfTheDogStaysWithinTheCap() {
+        RauschStats stats = withHairOfTheDog(STATS.max() + 5);
+        Rausch hungover = afterDrinks(4).morning(DAY + 1, NOW, stats);
+        assertEquals(STATS.max(), hungover.drink(1, stats, DAY + 1, NOW + 10).points());
+    }
+
+    @Test
+    void largeDataValuesDoNotOverflow() {
+        RauschStats stats = new RauschStats(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Map.of(), STATS.hangover());
+        Rausch rausch = Rausch.SOBER.drink(stats.perDrink(), stats, DAY, NOW).drink(stats.perDrink(), stats, DAY, NOW);
+        assertEquals(Integer.MAX_VALUE, rausch.points());
+        assertEquals(Integer.MAX_VALUE, rausch.ticksAtLevel(stats));
+        assertEquals(Integer.MAX_VALUE, afterDrinks(1).ticksAtLevel(stats));
+    }
+
+    private static RauschStats withHairOfTheDog(int hairOfTheDog) {
+        HangoverStats hangover = STATS.hangover();
+        return new RauschStats(STATS.perDrink(), STATS.decayTicks(), STATS.max(), STATS.levels(), new HangoverStats(
+                hangover.from(), hangover.duration(), hangover.miningSpeed(), hangover.exhaustion(), hairOfTheDog));
     }
 }

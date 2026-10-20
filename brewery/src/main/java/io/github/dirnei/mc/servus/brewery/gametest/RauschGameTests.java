@@ -25,6 +25,8 @@ import net.minecraft.world.phys.Vec3;
 /** The Rausch: drinking raises it, time lowers it, its effects, the knockback, the Hangover and the Hair of the Dog. */
 public final class RauschGameTests {
 
+    private static final int PUFFERFISH_NAUSEA = 300;
+
     private RauschGameTests() {
     }
 
@@ -137,7 +139,35 @@ public final class RauschGameTests {
         helper.succeed();
     }
 
-    // ---------- fixtures ----------
+    @ServusGameTest
+    public static void foreignNauseaKeepsItsOwnDuration(GameTestHelper helper) {
+        Player player = drinker(helper, 4);
+        player.addEffect(new MobEffectInstance(MobEffects.NAUSEA, PUFFERFISH_NAUSEA));
+        assertForeignNausea(helper, player, "after the pufferfish");
+        RauschTracker.advance(player, 0, RauschTracker.day(player));
+        assertForeignNausea(helper, player, "on the next update while Drunk");
+        RauschTracker.advance(player, stats().decayTicks() * 10, RauschTracker.day(player));
+        helper.assertTrue(RauschEffects.active(player).isEmpty(), "the Rausch should wear off");
+        assertForeignNausea(helper, player, "after sobering up");
+        helper.succeed();
+    }
+
+    @ServusGameTest
+    public static void rauschNauseaReturnsAfterForeignNausea(GameTestHelper helper) {
+        Player player = drinker(helper, 4);
+        player.addEffect(new MobEffectInstance(MobEffects.NAUSEA, PUFFERFISH_NAUSEA));
+        player.removeEffect(MobEffects.NAUSEA);
+        RauschTracker.advance(player, 0, RauschTracker.day(player));
+        MobEffectInstance nausea = player.getEffect(MobEffects.NAUSEA);
+        helper.assertTrue(nausea != null && RauschTracker.isRauschNausea(nausea), "the Rausch should wobble again, got " + nausea);
+        helper.succeed();
+    }
+
+    private static void assertForeignNausea(GameTestHelper helper, Player player, String when) {
+        MobEffectInstance nausea = player.getEffect(MobEffects.NAUSEA);
+        helper.assertTrue(nausea != null && !RauschTracker.isRauschNausea(nausea) && nausea.getDuration() == PUFFERFISH_NAUSEA,
+                "the pufferfish's Nausea should last its own " + PUFFERFISH_NAUSEA + " ticks " + when + ", got " + nausea);
+    }
 
     private static RauschStats stats() {
         return RauschStatsManager.INSTANCE.stats();

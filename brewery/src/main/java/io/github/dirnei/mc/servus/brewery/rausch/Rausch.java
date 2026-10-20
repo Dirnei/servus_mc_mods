@@ -16,13 +16,14 @@ public record Rausch(int points, int progress, long dueDay, long hangoverUntil) 
 
     /**
      * A beer of {@code amount} points. While hungover it is the Hair of the Dog: the Hangover ends and the points are
-     * set to the Hair of the Dog value.
+     * set to the Hair of the Dog value, which makes a new Hangover due only when it reaches the hangover threshold.
      */
     public Rausch drink(int amount, RauschStats stats, long day, long gameTime) {
         if (hungover(gameTime)) {
-            return new Rausch(stats.hangover().hairOfTheDog(), 0, -1, 0);
+            int hair = Math.min(stats.max(), stats.hangover().hairOfTheDog());
+            return new Rausch(hair, 0, hair >= stats.hangover().from() ? day : -1, 0);
         }
-        int raised = Math.min(stats.max(), points + Math.max(0, amount));
+        int raised = (int) Math.min(stats.max(), (long) points + Math.max(0, amount));
         long due = dueDay < 0 && raised >= stats.hangover().from() ? day : dueDay;
         return new Rausch(raised, progress, due, hangoverUntil);
     }
@@ -30,7 +31,7 @@ public record Rausch(int points, int progress, long dueDay, long hangoverUntil) 
     /** {@code ticks} spent in the game: one point wears off per decay period. */
     public Rausch pass(int ticks, RauschStats stats) {
         if (points == 0) {
-            return progress == 0 ? this : new Rausch(0, 0, dueDay, hangoverUntil);
+            return this;
         }
         long counted = (long) progress + Math.max(0, ticks);
         long worn = counted / stats.decayTicks();
@@ -39,10 +40,16 @@ public record Rausch(int points, int progress, long dueDay, long hangoverUntil) 
         return new Rausch(left, rest, dueDay, hangoverUntil);
     }
 
-    /** The day is {@code day} now: a Hangover due from an earlier day starts and clears the points. */
+    /**
+     * The day is {@code day} now: a Hangover due from an earlier day starts and clears the points. When the clock was
+     * set back before the due day, the Hangover is due from {@code day} instead.
+     */
     public Rausch morning(long day, long gameTime, RauschStats stats) {
-        if (dueDay < 0 || day <= dueDay) {
+        if (dueDay < 0 || day == dueDay) {
             return this;
+        }
+        if (day < dueDay) {
+            return new Rausch(points, progress, day, hangoverUntil);
         }
         return new Rausch(0, 0, -1, gameTime + stats.hangover().duration());
     }
@@ -52,11 +59,15 @@ public record Rausch(int points, int progress, long dueDay, long hangoverUntil) 
         return stats.levelAt(points);
     }
 
-    /** Ticks until the points fall below the current level's threshold without another drink; 0 when sober. */
+    /**
+     * Ticks until the points fall below the current level's threshold without another drink; 0 when sober and at most
+     * {@link Integer#MAX_VALUE}.
+     */
     public int ticksAtLevel(RauschStats stats) {
         return level(stats).map(level -> {
-            int from = Math.max(1, stats.level(level).from());
-            return (points - from) * stats.decayTicks() + stats.decayTicks() - progress;
+            long from = Math.max(1, stats.level(level).from());
+            long ticks = (points - from + 1) * stats.decayTicks() - progress;
+            return (int) Math.min(Integer.MAX_VALUE, ticks);
         }).orElse(0);
     }
 

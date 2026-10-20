@@ -29,7 +29,8 @@
   - Let a zombie hit you sober and Drunk: Drunk flies farther.
   - Drink milk while Drunk: the Drunk icon comes back within a second.
   - Wait without drinking: the level falls step by step until sober.
-  - Set `screenWobble = false` in `config/servus_brewery-client.toml` while Drunk: the wobble stops, the Drunk icon, armor and slowness stay; a pufferfish still wobbles.
+  - Set `screenWobble = false` in `config/servus_brewery-client.toml` while Drunk: the wobble stops, the Drunk icon, armor and slowness stay; a pufferfish still wobbles. Set it back to `true`: the wobble returns within a few seconds.
+  - Eat a pufferfish while Drunk: its Nausea icon shows for its own 15 seconds, also when sobering up meanwhile.
   - Get Drunk and sleep: wake up with the Hangover icon, mining is slower, hunger drops faster. Stay up instead: the Hangover comes at dawn. Only Merry: no Hangover.
   - Drink any beer while hungover: the Hangover ends at once, you are Tipsy.
   - Leave and rejoin while Merry: still Merry. Die while Drunk: sober after respawn.
