@@ -39,8 +39,10 @@ public final class SinkStatsManager extends SimpleJsonResourceReloadListener<Jso
                     .orElse(SinkStats.DEFAULTS);
         }
         stats = result;
-        ServusFoundation.LOGGER.info("Loaded sink stats: unlimited from chimney height {}, active for {} ticks",
-                result.rates().unlimitedHeight(), result.activeTicks());
+        ServusFoundation.LOGGER.info("Loaded sink stats: unlimited from chimney height {}, active for {} ticks, "
+                        + "{} slots per row, {} mB per tank, {} upgrade slots",
+                result.rates().unlimitedHeight(), result.activeTicks(), result.slotsPerRow(), result.tankCapacity(),
+                result.upgradeSlots());
     }
 
     public SinkStats stats() {

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.machine.sink;
 
+import io.github.dirnei.mc.servus.foundation.machine.menu.SinkMenu;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.LevelReader;
@@ -42,7 +43,9 @@ import net.neoforged.neoforge.transfer.fluid.FluidUtil;
  * clicks a side of the cube; that side becomes the front. The block states
  * alone describe a formed Sink: {@link #FORMED}, the front {@link #FACING} and
  * the block's {@link #PART} (see {@link SinkLayout}). Part 0, the controller,
- * carries {@link #ACTIVE} and owns the budgets. No ticker.
+ * carries {@link #ACTIVE} and owns the buffer. No ticker: the controller's
+ * scheduled tick is its heartbeat. Removing a block unforms the rest; the
+ * controller then drops its Capacity Upgrades and voids its buffer.
  */
 public class SinkBlock extends BaseEntityBlock implements Wrenchable {
 
@@ -175,6 +178,9 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
             BlockPos at = partPos(controller, front, part);
             BlockState state = level.getBlockState(at);
             if (isFormed(state) && state.getValue(FACING) == front && state.getValue(PART) == part) {
+                if (part == SinkLayout.CONTROLLER && level.getBlockEntity(at) instanceof SinkBlockEntity sink) {
+                    sink.dissolve();
+                }
                 level.setBlock(at, defaultBlockState(), Block.UPDATE_ALL);
                 level.invalidateCapabilities(at);
             }
@@ -187,16 +193,12 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
         return state.getValue(FORMED) ? PushReaction.BLOCK : null;
     }
 
-    /** Clears the active state once nothing was voided for the active time, or waits for the rest of it. */
+    /** The controller's heartbeat: voids a batch when one is due and keeps or clears the active state. */
     @Override
     protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (!state.getValue(ACTIVE)) {
-            return;
-        }
-        int left = level.getBlockEntity(pos) instanceof SinkBlockEntity sink && isFormed(state) ? sink.activeTicksLeft() : 0;
-        if (left > 0) {
-            level.scheduleTick(pos, this, left);
-        } else {
+        if (level.getBlockEntity(pos) instanceof SinkBlockEntity sink) {
+            sink.heartbeat();
+        } else if (state.getValue(ACTIVE)) {
             level.setBlock(pos, state.setValue(ACTIVE, false), Block.UPDATE_CLIENTS);
         }
     }
@@ -230,7 +232,7 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
         }
         SinkBlockEntity sink = controller(level, pos, state);
         if (sink != null && Transfer.isFluidContainer(stack)
-                && FluidUtil.interactWithFluidHandler(player, hand, pos, sink.manualFluidHandler(), null)) {
+                && FluidUtil.interactWithFluidHandler(player, hand, pos, sink.fluidInput(), null)) {
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -243,7 +245,7 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
         }
         SinkBlockEntity sink = controller(level, pos, state);
         if (sink != null) {
-            player.openMenu(sink, sink.getBlockPos());
+            player.openMenu(sink, buf -> SinkMenu.writeOpening(buf, sink));
         } else if (!state.getValue(FORMED)) {
             player.sendOverlayMessage(Component.translatable("message.servus_foundation.sink.casing"));
         }

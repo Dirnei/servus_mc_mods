@@ -11,22 +11,30 @@ class SinkRatesTest {
 
     private static final SinkRates RATES = new SinkRates(
             List.of(4, 8, 16, 32, 64),
-            List.of(50, 100, 200, 400, 800),
+            List.of(1000, 2000, 4000, 8000, 16000),
             List.of(100, 200, 400, 800, 1600));
 
     @Test
     void heightZeroUsesTheBaseRates() {
-        assertEquals(4 / 20.0, RATES.items(0), 1e-9);
-        assertEquals(50, RATES.fluid(0), 1e-9);
+        assertEquals(4, RATES.itemsPerBatch(0), 1e-9);
+        assertEquals(1000, RATES.fluidPerBatch(0), 1e-9);
         assertEquals(100, RATES.energy(0), 1e-9);
         assertEquals(4, RATES.itemsDisplay(0));
+        assertEquals(1000, RATES.fluidDisplay(0));
+    }
+
+    @Test
+    void oneBatchIsOneSecondOfRate() {
+        assertEquals(20, SinkRates.BATCH_TICKS);
+        assertEquals(16, RATES.itemsPerBatch(2), 1e-9);
+        assertEquals(4000, RATES.fluidPerBatch(2), 1e-9);
     }
 
     @Test
     void lastLimitedHeightUsesTheLastEntry() {
         assertFalse(RATES.isUnlimited(4));
-        assertEquals(64 / 20.0, RATES.items(4), 1e-9);
-        assertEquals(800, RATES.fluid(4), 1e-9);
+        assertEquals(64, RATES.itemsPerBatch(4), 1e-9);
+        assertEquals(16000, RATES.fluidPerBatch(4), 1e-9);
         assertEquals(1600, RATES.energy(4), 1e-9);
     }
 
@@ -34,8 +42,8 @@ class SinkRatesTest {
     void unlimitedHeightIsTheTableLength() {
         assertEquals(5, RATES.unlimitedHeight());
         assertTrue(RATES.isUnlimited(5));
-        assertEquals(SinkRates.UNLIMITED, RATES.items(5));
-        assertEquals(SinkRates.UNLIMITED, RATES.fluid(5));
+        assertEquals(SinkRates.UNLIMITED, RATES.itemsPerBatch(5));
+        assertEquals(SinkRates.UNLIMITED, RATES.fluidPerBatch(5));
         assertEquals(SinkRates.UNLIMITED, RATES.energy(5));
         assertEquals(SinkRates.UNLIMITED_DISPLAY, RATES.itemsDisplay(5));
         assertEquals(SinkRates.UNLIMITED_DISPLAY, RATES.fluidDisplay(5));
@@ -44,7 +52,7 @@ class SinkRatesTest {
 
     @Test
     void heightsAboveStayUnlimited() {
-        assertEquals(SinkRates.UNLIMITED, RATES.items(9));
+        assertEquals(SinkRates.UNLIMITED, RATES.itemsPerBatch(9));
         assertEquals(SinkRates.UNLIMITED, RATES.energy(32));
     }
 
@@ -52,8 +60,8 @@ class SinkRatesTest {
     void shortestTableSetsTheUnlimitedHeight() {
         SinkRates uneven = new SinkRates(List.of(1, 2, 3), List.of(10, 20), List.of(5, 6, 7, 8));
         assertEquals(2, uneven.unlimitedHeight());
-        assertEquals(2 / 20.0, uneven.items(1), 1e-9);
-        assertEquals(SinkRates.UNLIMITED, uneven.items(2));
+        assertEquals(2, uneven.itemsPerBatch(1), 1e-9);
+        assertEquals(SinkRates.UNLIMITED, uneven.itemsPerBatch(2));
         assertEquals(SinkRates.UNLIMITED, uneven.energy(2));
     }
 
@@ -61,6 +69,6 @@ class SinkRatesTest {
     void emptyTablesAreUnlimitedFromTheStart() {
         SinkRates none = new SinkRates(List.of(), List.of(1), List.of(1));
         assertEquals(0, none.unlimitedHeight());
-        assertEquals(SinkRates.UNLIMITED, none.fluid(0));
+        assertEquals(SinkRates.UNLIMITED, none.fluidPerBatch(0));
     }
 }

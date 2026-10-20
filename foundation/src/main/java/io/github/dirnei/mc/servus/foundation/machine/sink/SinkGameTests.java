@@ -6,15 +6,22 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.machine.menu.SinkMenu;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
+import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
@@ -24,15 +31,16 @@ import net.minecraft.world.level.block.HopperBlock;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import net.neoforged.neoforge.fluids.FluidStack;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
-/** The Sink: forming with the carrot, voiding through every outer face, chimney rates and the trash GUI. */
+/**
+ * The Sink: forming with the carrot, filling the buffer through every outer
+ * face, voiding it in batches at the chimney rate, Capacity Upgrades and the GUI.
+ */
 public final class SinkGameTests {
 
     /**
@@ -40,6 +48,11 @@ public final class SinkGameTests {
      * lower east block (east is the left of a player looking at the front), west is right and south is back.
      */
     private static final BlockPos SINK = new BlockPos(3, 0, 2);
+    /** Seven different items, one for each slot of a row. */
+    private static final List<Item> SEVEN = List.of(Items.STONE, Items.GRANITE, Items.DIORITE, Items.ANDESITE,
+            Items.SAND, Items.GRAVEL, Items.COBBLESTONE);
+    /** Long enough after filling for the first batch, short of the second. */
+    private static final int AFTER_FIRST_BATCH = SinkRates.BATCH_TICKS + 5;
 
     private SinkGameTests() {
     }
@@ -205,10 +218,32 @@ public final class SinkGameTests {
         return EnergyView.of(helper.getLevel().getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(pos), side));
     }
 
+    /** How many items the buffer holds in all. */
+    private static int itemsHeld(SinkBlockEntity sink) {
+        int count = 0;
+        for (int slot = 0; slot < sink.items().getSlots(); slot++) {
+            count += sink.items().getStackInSlot(slot).getCount();
+        }
+        return count;
+    }
+
+    /** Fills the seven slots of the first row with full stacks of seven different items. */
+    private static void fillFirstRow(GameTestHelper helper) {
+        ItemView side = sinkItems(helper, SINK, Direction.EAST);
+        for (Item item : SEVEN) {
+            ItemStack left = side.insertItem(new ItemStack(item, 64), false);
+            helper.assertTrue(left.isEmpty(), "a full stack of " + item + " should fit, left " + left);
+        }
+    }
+
+    private static ItemStack capacityUpgrade() {
+        return new ItemStack(ServusFoundationItems.CAPACITY_UPGRADE.get());
+    }
+
     /** Hoppers pointing into the side of the controller and into the back of another part empty; the items appear nowhere. */
     @ServusGameTest(timeoutTicks = 200)
     public static void hopperEmptiesIntoSink(GameTestHelper helper) {
-        sink(helper, 5);
+        SinkBlockEntity sink = sink(helper, 5);
         BlockPos east = new BlockPos(4, 0, 2);
         helper.setBlock(east, Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.WEST));
         HopperBlockEntity intoController = helper.getBlockEntity(east, HopperBlockEntity.class);
@@ -220,6 +255,7 @@ public final class SinkGameTests {
         helper.succeedWhen(() -> {
             helper.assertTrue(intoController.isEmpty(), "the hopper at the side should empty into the Sink");
             helper.assertTrue(intoBack.isEmpty(), "the hopper at the back should empty into the Sink");
+            helper.assertTrue(!sink.holdsAnything(), "the buffer should be voided");
             helper.assertItemEntityNotPresent(Items.COBBLESTONE);
         });
     }
@@ -243,24 +279,48 @@ public final class SinkGameTests {
         });
     }
 
-    /** Without a chimney the item rate of 4 per second takes 4 of a 64 stack; all faces share the budget. */
-    @ServusGameTest(timeoutTicks = 60)
-    public static void sinkBaseRateTakesFourItems(GameTestHelper helper) {
-        sink(helper, 0);
+    /**
+     * Without a chimney a full stack goes into the buffer at once and the item rate of 4 per second voids 4
+     * per batch from the first slot; all faces share the buffer.
+     */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void sinkBaseRateVoidsFourPerBatch(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 0);
         ItemView top = sinkItems(helper, new BlockPos(3, 1, 2), Direction.UP);
         helper.assertTrue(top != null, "the top takes items");
-        ItemStack simulated = top.insertItem(0, new ItemStack(Items.COBBLESTONE, 64), true);
-        helper.assertTrue(simulated.getCount() == 60, "a simulated insert should leave 60, left " + simulated);
-        ItemStack left = top.insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
-        helper.assertTrue(left.getCount() == 60, "the Sink should take 4 of 64, left " + left);
-        ItemStack again = sinkItems(helper, new BlockPos(2, 0, 3), Direction.WEST).insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
-        helper.assertTrue(again.getCount() == 64, "all blocks share one budget, the same tick takes nothing more, left " + again);
-        helper.assertTrue(top.getStackInSlot(0).isEmpty(), "the Sink holds nothing");
+        ItemStack simulated = top.insertItem(new ItemStack(Items.COBBLESTONE, 64), true);
+        helper.assertTrue(simulated.isEmpty() && itemsHeld(sink) == 0, "a simulated insert fits and changes nothing");
+        ItemStack left = top.insertItem(new ItemStack(Items.COBBLESTONE, 64), false);
+        helper.assertTrue(left.isEmpty(), "the Sink should take all 64 into its buffer, left " + left);
+        ItemStack more = sinkItems(helper, new BlockPos(2, 0, 3), Direction.WEST).insertItem(new ItemStack(Items.COBBLESTONE, 10), false);
+        helper.assertTrue(more.isEmpty() && sink.items().getStackInSlot(1).getCount() == 10,
+                "another face fills the same buffer, stacking after the first slot");
+        helper.runAfterDelay(AFTER_FIRST_BATCH, () -> {
+            helper.assertTrue(sink.items().getStackInSlot(0).getCount() == 60,
+                    "one batch voids 4 from the first slot, holds " + sink.items().getStackInSlot(0));
+            helper.assertTrue(sink.items().getStackInSlot(1).getCount() == 10, "the second slot waits");
+            helper.runAfterDelay(SinkRates.BATCH_TICKS, () -> {
+                helper.assertTrue(sink.items().getStackInSlot(0).getCount() == 56, "the next batch voids 4 more");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** With all seven open slots full of different items, dirt is refused. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void sinkFullBufferRefuses(GameTestHelper helper) {
+        sink(helper, 0);
+        fillFirstRow(helper);
+        ItemStack dirt = new ItemStack(Items.DIRT, 16);
+        ItemStack left = sinkItems(helper, SINK, Direction.EAST).insertItem(dirt, false);
+        helper.assertTrue(left.getCount() == 16, "the dirt should be refused, left " + left);
+        ItemStack stone = sinkItems(helper, SINK, Direction.EAST).insertItem(new ItemStack(Items.STONE, 1), false);
+        helper.assertTrue(stone.getCount() == 1, "a full stack of stone takes no more stone");
         helper.succeed();
     }
 
-    /** Five Chimney blocks void everything at once: energy on the back of one block, fluid on top of another. */
-    @ServusGameTest(timeoutTicks = 60)
+    /** Five Chimney blocks void the whole buffer in one batch; energy is accepted at once on the back of another block. */
+    @ServusGameTest(timeoutTicks = 100)
     public static void sinkWithFiveChimneysIsUnlimited(GameTestHelper helper) {
         SinkBlockEntity sink = sink(helper, 5);
         helper.assertTrue(sink.chimneyHeight() == 5, "five Chimney blocks, height " + sink.chimneyHeight());
@@ -269,39 +329,73 @@ public final class SinkGameTests {
         helper.assertTrue(energy.receiveEnergy(10_000, false) == 10_000, "again in the same tick");
         helper.assertTrue(energy.getEnergyStored() == 0, "the Sink reports no stored energy");
         FluidView fluid = sinkFluid(helper, new BlockPos(3, 1, 2), Direction.UP);
-        helper.assertTrue(fluid.fill(new FluidStack(Fluids.WATER, 1_000_000), false) == 1_000_000,
-                "all water should be accepted");
-        helper.assertTrue(fluid.getFluidInTank(0).isEmpty(), "the Sink reports no fluid");
-        ItemStack left = sinkItems(helper, SINK, Direction.EAST).insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
-        helper.assertTrue(left.isEmpty(), "the full stack should be accepted, left " + left);
-        helper.succeed();
+        int filled = fluid.fill(new FluidStack(Fluids.LAVA, 100_000), false);
+        helper.assertTrue(filled == 8_000, "one tank of 8,000 mB of lava should be accepted, got " + filled);
+        fillFirstRow(helper);
+        helper.runAfterDelay(AFTER_FIRST_BATCH, () -> {
+            helper.assertTrue(!sink.holdsAnything(), "one batch should void all of it");
+            helper.succeed();
+        });
     }
 
     /** Below the unlimited height energy and fluid follow the rate of the height, shared by all blocks. */
-    @ServusGameTest(timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 100)
     public static void sinkRateGrowsWithChimney(GameTestHelper helper) {
-        sink(helper, 2);
-        // Height 2: 400 FE and 200 mB per tick, one second of carry over in an idle Sink.
+        SinkBlockEntity sink = sink(helper, 2);
+        // Height 2: 400 FE per tick, one second of carry over in an idle Sink; 4,000 mB per batch.
         helper.assertTrue(sinkEnergy(helper, new BlockPos(2, 0, 3), Direction.SOUTH).receiveEnergy(100_000, false) == 8_000,
                 "one second of 400 FE per tick");
         helper.assertTrue(sinkEnergy(helper, SINK, Direction.EAST).receiveEnergy(100_000, false) == 0,
                 "another block of the same Sink gets nothing more this tick");
         helper.assertTrue(sinkFluid(helper, new BlockPos(2, 1, 3), Direction.UP)
-                        .fill(new FluidStack(Fluids.WATER, 100_000), false) == 4_000,
-                "one second of 200 mB per tick");
+                        .fill(new FluidStack(Fluids.WATER, 100_000), false) == 8_000,
+                "the tank takes 8,000 mB");
+        helper.runAfterDelay(AFTER_FIRST_BATCH, () -> {
+            int held = sink.tank(0).getAmount();
+            helper.assertTrue(held == 4_000, "one batch at height 2 voids 4,000 mB, holds " + held);
+            helper.succeed();
+        });
+    }
+
+    /** At height 0 one batch drains 1,000 mB from the first tank. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void sinkFluidBatch(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 0);
+        sinkFluid(helper, SINK, Direction.UP).fill(new FluidStack(Fluids.WATER, 8_000), false);
+        helper.runAfterDelay(AFTER_FIRST_BATCH, () -> {
+            int held = sink.tank(0).getAmount();
+            helper.assertTrue(held == 7_000, "one batch leaves 7,000 mB, holds " + held);
+            helper.succeed();
+        });
+    }
+
+    /** With one upgrade water and lava queue in two tanks; without it the lava is refused. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void sinkTwoFluidsInTwoTanks(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 0);
+        FluidView fluid = sinkFluid(helper, SINK, Direction.UP);
+        helper.assertTrue(fluid.fill(new FluidStack(Fluids.WATER, 2_000), false) == 2_000, "water goes in");
+        helper.assertTrue(fluid.fill(new FluidStack(Fluids.LAVA, 1_000), false) == 0, "lava has no free tank");
+        sink.upgrades().setStackInSlot(0, capacityUpgrade());
+        helper.assertTrue(sink.openRows() == 2, "one upgrade opens a second row and tank");
+        helper.assertTrue(fluid.fill(new FluidStack(Fluids.LAVA, 1_000), false) == 1_000, "now the lava goes in");
+        helper.assertTrue(fluid.fill(new FluidStack(Fluids.WATER, 500), false) == 500, "more water joins the water");
+        helper.assertTrue(sink.tank(0).getFluid() == Fluids.WATER && sink.tank(0).getAmount() == 2_500, "water in the first tank");
+        helper.assertTrue(sink.tank(1).getFluid() == Fluids.LAVA && sink.tank(1).getAmount() == 1_000, "lava in the second tank");
         helper.succeed();
     }
 
-    /** Nothing can be taken out of a Sink. */
+    /** Nothing can be taken out of a Sink by automation. */
     @ServusGameTest(timeoutTicks = 60)
     public static void sinkGivesNothing(GameTestHelper helper) {
-        sink(helper, 0);
+        SinkBlockEntity sink = sink(helper, 0);
         ItemView items = sinkItems(helper, SINK, Direction.DOWN);
-        items.insertItem(0, new ItemStack(Items.COBBLESTONE, 2), false);
+        items.insertItem(new ItemStack(Items.COBBLESTONE, 2), false);
+        sinkFluid(helper, SINK, Direction.DOWN).fill(new FluidStack(Fluids.WATER, 1_000), false);
         helper.assertTrue(items.extractItem(0, 64, false).isEmpty(), "nothing can be extracted");
-        helper.assertTrue(sinkFluid(helper, SINK, Direction.DOWN).drain(1000, false).isEmpty(),
-                "nothing can be drained");
+        helper.assertTrue(sinkFluid(helper, SINK, Direction.DOWN).drain(1000, false).isEmpty(), "nothing can be drained");
         helper.assertTrue(sinkEnergy(helper, SINK, Direction.DOWN).extractEnergy(1000, false) == 0, "no energy can be extracted");
+        helper.assertTrue(itemsHeld(sink) == 2 && sink.tank(0).getAmount() == 1_000, "the buffer keeps what it holds");
         helper.succeed();
     }
 
@@ -346,6 +440,26 @@ public final class SinkGameTests {
         });
     }
 
+    /** Items in the buffer turn the Sink active with their first batch; once empty, no further heartbeat runs. */
+    @ServusGameTest(timeoutTicks = 160)
+    public static void sinkEmptiesAndStops(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 0);
+        sinkItems(helper, SINK, Direction.EAST).insertItem(new ItemStack(Items.COBBLESTONE, 4), false);
+        BlockPos absolute = helper.absolutePos(SINK);
+        helper.assertTrue(helper.getLevel().getBlockTicks().hasScheduledTick(absolute, MachineContent.SINK.get()),
+                "an insert schedules the heartbeat");
+        helper.runAfterDelay(AFTER_FIRST_BATCH, () -> {
+            helper.assertTrue(!sink.holdsAnything(), "the first batch voids the 4 items");
+            helper.assertTrue(helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "voiding turns the Sink active");
+            helper.runAfterDelay(60, () -> {
+                helper.assertTrue(!helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "idle again");
+                helper.assertTrue(!helper.getLevel().getBlockTicks().hasScheduledTick(absolute, MachineContent.SINK.get()),
+                        "an empty idle Sink schedules nothing");
+                helper.succeed();
+            });
+        });
+    }
+
     private static void chimneyColumn(GameTestHelper helper, BlockPos topPart, int height) {
         for (int i = 1; i <= height; i++) {
             helper.setBlock(topPart.above(i), MachineContent.CHIMNEY.get().defaultBlockState());
@@ -375,8 +489,9 @@ public final class SinkGameTests {
         chimneyColumn(helper, new BlockPos(3, 1, 2), 5);
         helper.assertTrue(sink.chimneyHeight() == 5, "expected height 5, got " + sink.chimneyHeight());
         helper.assertTrue(sink.chimneyColumn() == 2, "the column stands on the front left top part, got " + sink.chimneyColumn());
-        ItemStack left = sinkItems(helper, SINK, Direction.EAST).insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
-        helper.assertTrue(left.isEmpty(), "an unlimited Sink takes the full stack, left " + left);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        SinkMenu menu = new SinkMenu(1, player.getInventory(), sink);
+        helper.assertTrue(menu.itemRate() == SinkRates.UNLIMITED_DISPLAY, "an unlimited Sink shows Unlimited");
         helper.succeed();
     }
 
@@ -431,49 +546,166 @@ public final class SinkGameTests {
         helper.succeed();
     }
 
-    /** A lava bucket used on any formed block is emptied whatever the rate; on a casing it stays full. */
+    /** Uses {@code bucket} on the top of the block at {@code pos} and returns what the player holds afterwards. */
+    private static ItemStack useBucket(GameTestHelper helper, Player player, ItemStack bucket, BlockPos pos) {
+        player.setItemInHand(InteractionHand.MAIN_HAND, bucket);
+        BlockPos absolute = helper.absolutePos(pos);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute).add(0, 0.5, 0), Direction.UP, absolute, false);
+        helper.getBlockState(pos).useItemOn(bucket, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        return player.getItemInHand(InteractionHand.MAIN_HAND);
+    }
+
+    /** A lava bucket used on any formed block fills a tank; on a casing it stays full. */
     @ServusGameTest(timeoutTicks = 60)
     public static void sinkEmptiesLavaBucket(GameTestHelper helper) {
-        sink(helper, 0);
-        // Use up the fluid budget first: the bucket must not depend on it.
-        sinkFluid(helper, SINK, Direction.UP).fill(new FluidStack(Fluids.WATER, 100_000), false);
+        SinkBlockEntity sink = sink(helper, 0);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack bucket = new ItemStack(Items.LAVA_BUCKET);
-        player.setItemInHand(InteractionHand.MAIN_HAND, bucket);
-        BlockPos part = new BlockPos(2, 1, 3);
-        BlockPos absolute = helper.absolutePos(part);
-        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute).add(0, 0.5, 0), Direction.UP, absolute, false);
-        helper.getBlockState(part).useItemOn(bucket, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
-        ItemStack held = player.getItemInHand(InteractionHand.MAIN_HAND);
+        ItemStack held = useBucket(helper, player, new ItemStack(Items.LAVA_BUCKET), new BlockPos(2, 1, 3));
         helper.assertTrue(held.is(Items.BUCKET) && held.getCount() == 1, "the player should hold an empty bucket, holds " + held);
+        helper.assertTrue(sink.tank(0).getFluid() == Fluids.LAVA && sink.tank(0).getAmount() == 1_000,
+                "the tank should hold 1,000 mB of lava, holds " + sink.tank(0).getAmount());
 
         BlockPos casing = new BlockPos(8, 0, 8);
         helper.setBlock(casing, MachineContent.SINK.get().defaultBlockState());
-        ItemStack full = new ItemStack(Items.LAVA_BUCKET);
-        player.setItemInHand(InteractionHand.MAIN_HAND, full);
-        BlockPos casingAbsolute = helper.absolutePos(casing);
-        helper.getBlockState(casing).useItemOn(full, helper.getLevel(), player, InteractionHand.MAIN_HAND,
-                new BlockHitResult(Vec3.atCenterOf(casingAbsolute).add(0, 0.5, 0), Direction.UP, casingAbsolute, false));
-        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.LAVA_BUCKET), "a casing takes no lava");
+        ItemStack kept = useBucket(helper, player, new ItemStack(Items.LAVA_BUCKET), casing);
+        helper.assertTrue(kept.is(Items.LAVA_BUCKET), "a casing takes no lava");
         helper.succeed();
     }
 
-    /** Shift clicking a stack into the trash slot voids all of it at once, even without a chimney; unforming closes the GUI. */
+    /** A lava bucket stays full when the only open tank holds water. */
     @ServusGameTest(timeoutTicks = 60)
-    public static void sinkTrashSlotVoidsStack(GameTestHelper helper) {
+    public static void sinkRefusesBucketWithoutRoom(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 0);
+        sinkFluid(helper, SINK, Direction.UP).fill(new FluidStack(Fluids.WATER, 1_000), false);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack held = useBucket(helper, player, new ItemStack(Items.LAVA_BUCKET), SINK);
+        helper.assertTrue(held.is(Items.LAVA_BUCKET), "the player should keep the full lava bucket, holds " + held);
+        helper.assertTrue(sink.tank(0).getFluid() == Fluids.WATER && sink.tank(0).getAmount() == 1_000, "the water is untouched");
+        helper.succeed();
+    }
+
+    /** An upgrade stays while the second row holds items and comes out once it is empty; the row locks again. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void sinkUpgradeRemovalRefusedThenAllowed(GameTestHelper helper) {
         SinkBlockEntity sink = sink(helper, 0);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setPos(Vec3.atCenterOf(helper.absolutePos(SINK.north())));
+        SinkMenu menu = new SinkMenu(1, player.getInventory(), sink);
+        int upgradeSlot = menu.bufferSlots();
+        menu.getSlot(upgradeSlot).set(capacityUpgrade());
+        helper.assertTrue(sink.openRows() == 2 && menu.openRows() == 2, "one upgrade opens the second row");
+        helper.assertTrue(menu.getSlot(7).isActive() && !menu.getSlot(14).isActive(), "the second row is open, the third closed");
+        fillFirstRow(helper);
+        ItemStack left = sinkItems(helper, SINK, Direction.EAST).insertItem(new ItemStack(Items.DIRT, 5), false);
+        helper.assertTrue(left.isEmpty() && sink.items().getStackInSlot(7).is(Items.DIRT), "the dirt goes into the second row");
+
+        menu.clicked(upgradeSlot, 0, ContainerInput.PICKUP, player);
+        helper.assertTrue(menu.getCarried().isEmpty() && menu.getSlot(upgradeSlot).hasItem(), "the upgrade must stay");
+        helper.assertTrue(menu.upgradeJustRefused(), "the GUI should say why");
+
+        menu.clicked(7, 0, ContainerInput.PICKUP, player);
+        helper.assertTrue(menu.getCarried().is(Items.DIRT), "the player takes the dirt back by hand");
+        player.getInventory().add(menu.getCarried());
+        menu.setCarried(ItemStack.EMPTY);
+        menu.clicked(upgradeSlot, 0, ContainerInput.PICKUP, player);
+        helper.assertTrue(menu.getCarried().is(ServusFoundationItems.CAPACITY_UPGRADE.get()), "now the upgrade comes out");
+        helper.assertTrue(sink.openRows() == 1 && !menu.getSlot(7).isActive(), "the second row locks again");
+        helper.succeed();
+    }
+
+    /** Shift clicking a stack from the inventory puts it into the buffer, and shift clicking takes it back. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void sinkShiftClickBothWays(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 0);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.getInventory().setItem(9, new ItemStack(Items.COBBLESTONE, 64));
+        player.getInventory().setItem(10, capacityUpgrade());
+        SinkMenu menu = new SinkMenu(1, player.getInventory(), sink);
+        int inventoryStart = menu.bufferSlots() + menu.upgradeSlots();
+        menu.quickMoveStack(player, inventoryStart);
+        helper.assertTrue(sink.items().getStackInSlot(0).getCount() == 64 && player.getInventory().getItem(9).isEmpty(),
+                "the cobblestone moves into the buffer");
+        menu.quickMoveStack(player, inventoryStart + 1);
+        helper.assertTrue(sink.upgrades().count() == 1 && itemsHeld(sink) == 64, "the upgrade goes to the upgrade slots only");
+        menu.quickMoveStack(player, 0);
+        helper.assertTrue(itemsHeld(sink) == 0 && player.getInventory().countItem(Items.COBBLESTONE) == 64,
+                "the cobblestone comes back");
+        helper.succeed();
+    }
+
+    /** Breaking one block of a Sink with two upgrades and 40 cobblestone drops the upgrades and no cobblestone. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void sinkBreakingDropsUpgradesNotItems(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 0);
+        sink.upgrades().setStackInSlot(0, capacityUpgrade());
+        sink.upgrades().setStackInSlot(1, capacityUpgrade());
+        sinkItems(helper, SINK, Direction.EAST).insertItem(new ItemStack(Items.COBBLESTONE, 40), false);
+        BlockPos broken = new BlockPos(2, 1, 3);
+        helper.getLevel().destroyBlock(helper.absolutePos(broken), true);
+        List<ItemEntity> drops = GameTestSteps.drops(helper, SINK, 3);
+        int upgrades = MachineTestSupport.count(drops, ServusFoundationItems.CAPACITY_UPGRADE.get());
+        helper.assertTrue(upgrades == 2, "two Capacity Upgrades should drop, dropped " + upgrades);
+        helper.assertTrue(MachineTestSupport.count(drops, Items.COBBLESTONE) == 0, "no cobblestone drops");
+        drops.forEach(ItemEntity::discard);
+        helper.setBlock(broken, MachineContent.SINK.get().defaultBlockState());
+        carrot(helper, SINK, Direction.NORTH, false);
+        SinkBlockEntity reformed = helper.getBlockEntity(SINK, SinkBlockEntity.class);
+        helper.assertTrue(!reformed.holdsAnything() && reformed.upgrades().count() == 0, "a reformed Sink starts empty");
+        helper.succeed();
+    }
+
+    /** Breaking the controller itself drops its upgrades too. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void sinkBreakingControllerDropsUpgrades(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 0);
+        sink.upgrades().setStackInSlot(2, capacityUpgrade());
+        sinkFluid(helper, SINK, Direction.UP).fill(new FluidStack(Fluids.WATER, 4_000), false);
+        helper.getLevel().destroyBlock(helper.absolutePos(SINK), true);
+        List<ItemEntity> drops = GameTestSteps.drops(helper, SINK, 2);
+        int upgrades = MachineTestSupport.count(drops, ServusFoundationItems.CAPACITY_UPGRADE.get());
+        helper.assertTrue(upgrades == 1, "the Capacity Upgrade should drop, dropped " + upgrades);
+        helper.succeed();
+    }
+
+    /** The buffer and the upgrades survive a save and load, and the loaded Sink goes on voiding. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void sinkKeepsBufferOnReload(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 0);
+        sink.upgrades().setStackInSlot(0, capacityUpgrade());
+        sinkItems(helper, SINK, Direction.EAST).insertItem(new ItemStack(Items.COBBLESTONE, 30), false);
+        sinkFluid(helper, SINK, Direction.UP).fill(new FluidStack(Fluids.LAVA, 3_000), false);
+        CompoundTag saved = sink.saveWithoutMetadata(helper.getLevel().registryAccess());
+        sink.dissolve();
+        helper.assertTrue(!sink.holdsAnything(), "cleared before loading");
+        drops(helper).forEach(ItemEntity::discard);
+        sink.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), saved));
+        helper.assertTrue(itemsHeld(sink) == 30, "the cobblestone is back, holds " + itemsHeld(sink));
+        helper.assertTrue(sink.tank(0).getAmount() == 3_000, "the lava is back");
+        helper.assertTrue(sink.upgrades().count() == 1, "the upgrade is back");
+        sink.onLoad();
+        helper.runAfterDelay(AFTER_FIRST_BATCH, () -> {
+            helper.assertTrue(itemsHeld(sink) == 26, "the loaded Sink voids in batches, holds " + itemsHeld(sink));
+            helper.succeed();
+        });
+    }
+
+    private static List<ItemEntity> drops(GameTestHelper helper) {
+        return GameTestSteps.drops(helper, SINK, 3);
+    }
+
+    /** The GUI of a formed Sink is valid until it unforms; a buffer of 4 rows of 7 with only the first open. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void sinkGuiShowsLockedRows(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 0);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setPos(Vec3.atCenterOf(helper.absolutePos(SINK.north())));
         SinkMenu menu = new SinkMenu(1, player.getInventory(), sink);
         helper.assertTrue(menu.stillValid(player), "the GUI of a formed Sink is valid");
-        // Slot 0 is the trash slot, slot 1 the first inventory slot (player inventory index 9).
-        menu.quickMoveStack(player, 1);
-        helper.assertTrue(player.getInventory().getItem(9).isEmpty(), "the stack should be gone");
-        helper.assertTrue(menu.getSlot(0).getItem().isEmpty(), "the trash slot stays empty");
-        helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 0, "no cobblestone anywhere in the inventory");
-        helper.assertTrue(helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "the trash slot turns the Sink active");
-        helper.assertTrue(menu.chimneyHeight() == 0 && menu.itemRate() == 4, "height 0 shows 4 items per second");
+        helper.assertTrue(menu.bufferSlots() == 28 && menu.maxRows() == 4 && menu.openRows() == 1, "one of four rows open");
+        helper.assertTrue(menu.getSlot(6).isActive() && !menu.getSlot(7).isActive(), "only the first row is open");
+        helper.assertTrue(menu.chimneyHeight() == 0 && menu.itemRate() == 4 && menu.fluidRate() == 1_000,
+                "height 0 shows 4 items and 1,000 mB per second");
+        helper.assertTrue(menu.tankCapacity() == 8_000, "tanks hold 8,000 mB");
         helper.destroyBlock(new BlockPos(2, 1, 3));
         helper.assertTrue(!menu.stillValid(player), "the GUI closes once the Sink is unformed");
         helper.succeed();
@@ -487,6 +719,21 @@ public final class SinkGameTests {
         SinkMenu menu = new SinkMenu(1, player.getInventory(), sink);
         helper.assertTrue(menu.chimneyHeight() == 5, "height 5, got " + menu.chimneyHeight());
         helper.assertTrue(menu.itemRate() == -1 && menu.fluidRate() == -1 && menu.energyRate() == -1, "all three Unlimited");
+        helper.succeed();
+    }
+
+    /** The next batch marks the slots it takes from: at 4 per second, 2 dirt and 64 gravel mark the first two slots. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void sinkMarksNextBatch(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 0);
+        sink.items().setStackInSlot(0, new ItemStack(Items.DIRT, 2));
+        sink.items().setStackInSlot(1, new ItemStack(Items.GRAVEL, 64));
+        sink.items().setStackInSlot(2, new ItemStack(Items.SAND, 64));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        SinkMenu menu = new SinkMenu(1, player.getInventory(), sink);
+        boolean[] marked = menu.nextBatchSlots();
+        helper.assertTrue(marked[0] && marked[1] && !marked[2], "the first two slots are marked");
+        helper.assertTrue(menu.ticksToBatch() >= 0, "a batch waits");
         helper.succeed();
     }
 }
