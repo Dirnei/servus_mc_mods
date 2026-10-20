@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.delicacies.ServusDelicaciesIds;
 import io.github.dirnei.mc.servus.delicacies.crop.CropKind;
 import io.github.dirnei.mc.servus.delicacies.crop.DelicaciesCropBlock;
 import io.github.dirnei.mc.servus.delicacies.board.CuttingBoardBlock;
+import io.github.dirnei.mc.servus.delicacies.cooking.BakingOvenBlock;
 import io.github.dirnei.mc.servus.delicacies.cooking.PanBlock;
 import io.github.dirnei.mc.servus.delicacies.cooking.PotBlock;
 import io.github.dirnei.mc.servus.delicacies.stove.StoveTileBlock;
@@ -49,6 +50,15 @@ public final class ServusDelicaciesBlocks {
                     .strength(2.0F, 6.0F)
                     .sound(SoundType.METAL)
                     .noOcclusion());
+
+    /** The Baking Oven, family steel with a window in its iron door. */
+    public static final DeferredBlock<BakingOvenBlock> BAKING_OVEN = BLOCKS.registerBlock("baking_oven", BakingOvenBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .strength(2.0F, 6.0F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion()
+                    .lightLevel(BakingOvenBlock::lightLevel));
 
     /** The Cutting Board. */
     public static final DeferredBlock<CuttingBoardBlock> CUTTING_BOARD = BLOCKS.registerBlock("cutting_board", CuttingBoardBlock::new,

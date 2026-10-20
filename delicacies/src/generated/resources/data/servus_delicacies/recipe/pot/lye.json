@@ -1,0 +1,17 @@
+{
+  "type": "servus_delicacies:pot",
+  "fluid": {
+    "amount": 250,
+    "ingredient": "minecraft:water"
+  },
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": "#c:dusts/ash"
+    }
+  ],
+  "result": {
+    "id": "servus_delicacies:lye"
+  },
+  "time": 100
+}

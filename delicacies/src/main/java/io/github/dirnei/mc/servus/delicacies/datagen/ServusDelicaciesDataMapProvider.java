@@ -32,6 +32,8 @@ final class ServusDelicaciesDataMapProvider extends DataMapProvider {
             }
         }
         Builder<FoodProperties, Item> food = builder(DelicaciesDataMaps.FOOD);
+        food.add(ServusDelicaciesItems.PRETZEL, new FoodProperties(6, 7.2F, false), false);
+        food.add(ServusDelicaciesItems.BREAD_ROLL, new FoodProperties(4, 4.8F, false), false);
         food.add(ServusDelicaciesItems.BOILED_POTATOES, new FoodProperties(5, 6.0F, false), false);
         food.add(ServusDelicaciesItems.FRIED_EGG, new FoodProperties(4, 4.8F, false), false);
         food.add(ServusDelicaciesItems.FRIED_ONIONS, new FoodProperties(3, 3.6F, false), false);

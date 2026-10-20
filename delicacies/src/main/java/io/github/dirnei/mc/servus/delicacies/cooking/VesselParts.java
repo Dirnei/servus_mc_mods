@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.delicacies.cooking;
 
 /**
- * The parts of the Pot, the Pan and the Cutting Board in pixels, built facing north, as {x1, y1, z1, x2, y2, z2}.
+ * The parts of the Pot, the Pan, the Baking Oven and the Cutting Board in pixels, built facing north, as {x1, y1, z1, x2, y2, z2}.
  * Shapes, models and renderers share them. Walls and rims stand on the bottom; the side walls end at the inner faces
  * of the front and back walls, so no two faces share a plane.
  */
@@ -33,6 +33,12 @@ public final class VesselParts {
     /** The inside of the Pan, where the items lie. */
     public static final float[] PAN_INSIDE = {2, 1, 3, 11, 2.5F, 13};
 
+    public static final float[] OVEN_BODY = {2, 0, 3, 14, 9, 14};
+    /** The door stands in front of the body and ends where the body starts. */
+    public static final float[] OVEN_DOOR = {3, 1, 2, 13, 8, 3};
+    /** The handle stands in front of the door and ends where the door starts. */
+    public static final float[] OVEN_HANDLE = {5, 6, 1.2F, 11, 6.8F, 2};
+
     public static final float[] BOARD = {2, 0, 3, 14, 1, 13};
 
     private VesselParts() {
@@ -41,6 +47,11 @@ public final class VesselParts {
     /** The parts that make the Pot's shape. */
     public static float[][] potShape() {
         return new float[][] {POT_BOTTOM, POT_NORTH, POT_SOUTH, POT_WEST, POT_EAST, POT_HANDLE_WEST, POT_HANDLE_EAST};
+    }
+
+    /** The parts that make the Baking Oven's shape. */
+    public static float[][] ovenShape() {
+        return new float[][] {OVEN_BODY, OVEN_DOOR, OVEN_HANDLE};
     }
 
     /** The parts that make the Pan's shape. */

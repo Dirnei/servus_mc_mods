@@ -31,10 +31,18 @@ final class ServusDelicaciesLanguageProvider extends LanguageProvider {
         add(ServusDelicaciesBlocks.STOVE_TILE.get(), "Stove Tile");
         add(ServusDelicaciesBlocks.POT.get(), "Pot");
         add(ServusDelicaciesBlocks.PAN.get(), "Pan");
+        add(ServusDelicaciesBlocks.BAKING_OVEN.get(), "Baking Oven");
         add(ServusDelicaciesBlocks.CUTTING_BOARD.get(), "Cutting Board");
         add(ServusDelicaciesItems.KITCHEN_KNIFE.get(), "Kitchen Knife");
         add(ServusDelicaciesItems.CHOPPED_ONION.get(), "Chopped Onion");
         add(ServusDelicaciesItems.SHREDDED_CABBAGE.get(), "Shredded Cabbage");
+        add(ServusDelicaciesItems.FLOUR.get(), "Flour");
+        add(ServusDelicaciesItems.DOUGH.get(), "Dough");
+        add(ServusDelicaciesItems.SALT.get(), "Salt");
+        add(ServusDelicaciesItems.WOOD_ASH.get(), "Wood Ash");
+        add(ServusDelicaciesItems.LYE.get(), "Lye");
+        add(ServusDelicaciesItems.BREAD_CRUMBS.get(), "Bread Crumbs");
+        add(ServusDelicaciesItems.BREAD_ROLL.get(), "Bread Roll");
         add(ServusDelicaciesItems.BOILED_POTATOES.get(), "Boiled Potatoes");
         add(ServusDelicaciesItems.FRIED_EGG.get(), "Fried Egg");
         add(ServusDelicaciesItems.FRIED_ONIONS.get(), "Fried Onions");
@@ -51,6 +59,7 @@ final class ServusDelicaciesLanguageProvider extends LanguageProvider {
         String jei = "gui." + ServusDelicaciesIds.MOD_ID + ".jei.";
         add(jei + "pot", "Pot");
         add(jei + "pan", "Pan");
+        add(jei + "baking", "Baking Oven");
         add(jei + "cutting", "Cutting Board");
         add(jei + "hot_stove", "On a burning Tiled Stove");
     }

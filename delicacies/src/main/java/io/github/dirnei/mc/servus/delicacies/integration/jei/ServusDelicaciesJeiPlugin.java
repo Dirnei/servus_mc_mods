@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.delicacies.integration.jei;
 
 import io.github.dirnei.mc.servus.delicacies.ServusDelicaciesIds;
 import io.github.dirnei.mc.servus.delicacies.board.CuttingRecipe;
+import io.github.dirnei.mc.servus.delicacies.cooking.BakingRecipe;
 import io.github.dirnei.mc.servus.delicacies.cooking.PanRecipe;
 import io.github.dirnei.mc.servus.delicacies.cooking.PotRecipe;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesItems;
@@ -19,7 +20,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
-/** Shows the pot, pan and cutting recipes in JEI. Only loaded when JEI is present. */
+/** Shows the pot, pan, baking and cutting recipes in JEI. Only loaded when JEI is present. */
 @JeiPlugin
 public final class ServusDelicaciesJeiPlugin implements IModPlugin {
 
@@ -27,6 +28,7 @@ public final class ServusDelicaciesJeiPlugin implements IModPlugin {
 
     public static final RecipeType<RecipeHolder<PotRecipe>> POT = RecipeType.createRecipeHolderType(ServusDelicaciesRecipes.POT_ID);
     public static final RecipeType<RecipeHolder<PanRecipe>> PAN = RecipeType.createRecipeHolderType(ServusDelicaciesRecipes.PAN_ID);
+    public static final RecipeType<RecipeHolder<BakingRecipe>> BAKING = RecipeType.createRecipeHolderType(ServusDelicaciesRecipes.BAKING_ID);
     public static final RecipeType<RecipeHolder<CuttingRecipe>> CUTTING =
             RecipeType.createRecipeHolderType(ServusDelicaciesRecipes.CUTTING_ID);
 
@@ -41,6 +43,7 @@ public final class ServusDelicaciesJeiPlugin implements IModPlugin {
         registration.addRecipeCategories(
                 new VesselRecipeCategory<>(gui, POT, "gui.servus_delicacies.jei.pot", ServusDelicaciesItems.POT.get(), true),
                 new VesselRecipeCategory<>(gui, PAN, "gui.servus_delicacies.jei.pan", ServusDelicaciesItems.PAN.get(), false),
+                new VesselRecipeCategory<>(gui, BAKING, "gui.servus_delicacies.jei.baking", ServusDelicaciesItems.BAKING_OVEN.get(), false),
                 new CuttingRecipeCategory(gui));
     }
 
@@ -52,6 +55,7 @@ public final class ServusDelicaciesJeiPlugin implements IModPlugin {
         }
         registration.addRecipes(POT, ServusRecipes.all(minecraft.level, ServusDelicaciesRecipes.POT.get()));
         registration.addRecipes(PAN, ServusRecipes.all(minecraft.level, ServusDelicaciesRecipes.PAN.get()));
+        registration.addRecipes(BAKING, ServusRecipes.all(minecraft.level, ServusDelicaciesRecipes.BAKING.get()));
         registration.addRecipes(CUTTING, ServusRecipes.all(minecraft.level, ServusDelicaciesRecipes.CUTTING.get()));
     }
 
@@ -59,7 +63,8 @@ public final class ServusDelicaciesJeiPlugin implements IModPlugin {
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(new ItemStack(ServusDelicaciesItems.POT.get()), POT);
         registration.addRecipeCatalyst(new ItemStack(ServusDelicaciesItems.PAN.get()), PAN);
-        registration.addRecipeCatalyst(new ItemStack(ServusDelicaciesItems.STOVE_TILE.get()), POT, PAN);
+        registration.addRecipeCatalyst(new ItemStack(ServusDelicaciesItems.BAKING_OVEN.get()), BAKING);
+        registration.addRecipeCatalyst(new ItemStack(ServusDelicaciesItems.STOVE_TILE.get()), POT, PAN, BAKING);
         registration.addRecipeCatalyst(new ItemStack(ServusDelicaciesItems.CUTTING_BOARD.get()), CUTTING);
         registration.addRecipeCatalyst(new ItemStack(ServusDelicaciesItems.KITCHEN_KNIFE.get()), CUTTING);
     }

@@ -26,7 +26,7 @@ final class ServusDelicaciesBlockTagsProvider extends BlockTagsProvider {
             tag(BlockTags.MAINTAINS_FARMLAND).add(ServusDelicaciesBlocks.crop(crop));
         }
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ServusDelicaciesBlocks.STOVE_TILE.get(), ServusDelicaciesBlocks.POT.get(),
-                ServusDelicaciesBlocks.PAN.get());
+                ServusDelicaciesBlocks.PAN.get(), ServusDelicaciesBlocks.BAKING_OVEN.get());
         tag(BlockTags.MINEABLE_WITH_AXE).add(ServusDelicaciesBlocks.CUTTING_BOARD.get());
     }
 }

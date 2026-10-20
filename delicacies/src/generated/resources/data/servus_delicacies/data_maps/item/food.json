@@ -4,6 +4,10 @@
       "nutrition": 5,
       "saturation": 6.0
     },
+    "servus_delicacies:bread_roll": {
+      "nutrition": 4,
+      "saturation": 4.8
+    },
     "servus_delicacies:fried_egg": {
       "nutrition": 4,
       "saturation": 4.8
@@ -15,6 +19,10 @@
     "servus_delicacies:fried_potatoes": {
       "nutrition": 8,
       "saturation": 12.8
+    },
+    "servus_delicacies:pretzel": {
+      "nutrition": 6,
+      "saturation": 7.2
     }
   }
 }

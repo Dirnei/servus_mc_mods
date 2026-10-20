@@ -33,6 +33,8 @@ public final class ServusDelicaciesEvents {
                 (pot, side) -> pot.fluidCapability());
         event.registerBlockEntity(Capabilities.Item.BLOCK, ServusDelicaciesBlockEntities.PAN.get(),
                 (pan, side) -> pan.itemCapability());
+        event.registerBlockEntity(Capabilities.Item.BLOCK, ServusDelicaciesBlockEntities.BAKING_OVEN.get(),
+                (oven, side) -> oven.itemCapability());
         event.registerBlockEntity(Capabilities.Item.BLOCK, ServusDelicaciesBlockEntities.CUTTING_BOARD.get(),
                 (board, side) -> board.itemCapability());
     }

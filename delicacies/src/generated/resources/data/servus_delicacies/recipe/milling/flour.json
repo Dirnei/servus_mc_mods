@@ -1,0 +1,11 @@
+{
+  "type": "servus_foundation:milling",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:crops/wheat"
+  },
+  "result": {
+    "id": "servus_delicacies:flour"
+  },
+  "work": 100
+}

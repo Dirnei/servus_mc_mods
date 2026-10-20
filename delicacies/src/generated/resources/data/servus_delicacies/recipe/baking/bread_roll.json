@@ -1,0 +1,13 @@
+{
+  "type": "servus_delicacies:baking",
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": "servus_delicacies:dough"
+    }
+  ],
+  "result": {
+    "id": "servus_delicacies:bread_roll"
+  },
+  "time": 200
+}

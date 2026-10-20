@@ -48,6 +48,12 @@ class SlotMatcherTest {
     }
 
     @Test
+    void noRequirementsMatchOnlyEmptySlots() {
+        assertArrayEquals(new int[0], match(List.of(), "", "", "", "").orElseThrow());
+        assertTrue(match(List.of(), "", "potato", "", "").isEmpty());
+    }
+
+    @Test
     void tooFewItemsFail() {
         assertTrue(match(List.of(startsWith("potato"), startsWith("onion")), "potato", "", "", "").isEmpty());
         assertTrue(match(List.of(startsWith("egg")), "", "", "", "").isEmpty());

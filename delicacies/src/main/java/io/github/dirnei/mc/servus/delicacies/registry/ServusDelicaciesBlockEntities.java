@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.delicacies.registry;
 
 import io.github.dirnei.mc.servus.delicacies.ServusDelicaciesIds;
 import io.github.dirnei.mc.servus.delicacies.board.CuttingBoardBlockEntity;
+import io.github.dirnei.mc.servus.delicacies.cooking.BakingOvenBlockEntity;
 import io.github.dirnei.mc.servus.delicacies.cooking.PanBlockEntity;
 import io.github.dirnei.mc.servus.delicacies.cooking.PotBlockEntity;
 import io.github.dirnei.mc.servus.delicacies.stove.StoveTileBlockEntity;
@@ -27,6 +28,9 @@ public final class ServusDelicaciesBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PanBlockEntity>> PAN =
             register("pan", PanBlockEntity::new, ServusDelicaciesBlocks.PAN);
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BakingOvenBlockEntity>> BAKING_OVEN =
+            register("baking_oven", BakingOvenBlockEntity::new, ServusDelicaciesBlocks.BAKING_OVEN);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CuttingBoardBlockEntity>> CUTTING_BOARD =
             register("cutting_board", CuttingBoardBlockEntity::new, ServusDelicaciesBlocks.CUTTING_BOARD);

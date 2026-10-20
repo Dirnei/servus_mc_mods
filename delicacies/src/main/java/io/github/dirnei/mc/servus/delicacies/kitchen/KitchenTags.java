@@ -9,8 +9,22 @@ import net.minecraft.world.item.Item;
 public final class KitchenTags {
 
     /** {@code c:tools/knife}: knives of any kitchen mod cut on the Cutting Board. */
-    public static final TagKey<Item> KNIVES = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "tools/knife"));
+    public static final TagKey<Item> KNIVES = common("tools/knife");
+    /** {@code c:dusts/salt}: table salt of any mod. */
+    public static final TagKey<Item> SALT = common("dusts/salt");
+    /** {@code c:dusts/ash}: ash of any mod, for lye. */
+    public static final TagKey<Item> ASH = common("dusts/ash");
+    /** {@code c:flours}: flour of any grain. */
+    public static final TagKey<Item> FLOURS = common("flours");
+    /** {@code c:flours/wheat}: wheat flour of any mod, kneaded into dough. */
+    public static final TagKey<Item> WHEAT_FLOUR = common("flours/wheat");
+    /** {@code c:foods/dough/wheat}: wheat dough. */
+    public static final TagKey<Item> WHEAT_DOUGH = common("foods/dough/wheat");
 
     private KitchenTags() {
+    }
+
+    private static TagKey<Item> common(String path) {
+        return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", path));
     }
 }

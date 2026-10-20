@@ -630,6 +630,154 @@ def kitchen_knife():
     return s
 
 
+# ---------- bakery ----------
+SEMMEL = R('#5a3412', '#9a5f24', '#c4863d', '#dba55a', '#ecc47e')
+SACK = R('#5e4e34', '#a8946e', '#ccbb96', '#e6dbbf', '#f4eedd')
+SACK_BAND = hx('#5b86c8')
+SALT_WHITE = hx('#f7f4ec')
+DOUGH_PALE = R('#8a7650', '#d2c29a', '#e4d7b4', '#f0e7cf', '#faf5e8')
+SALT_HEAP = R('#8e8a80', '#cfcbc0', '#e6e3da', '#f4f2ec', '#ffffff')
+ASH_GREY = R('#3a3836', '#666361', '#8a8784', '#aeaba7', '#cecbc6')
+CHAR = hx('#24201e')
+STONEWARE = R('#45454c', '#77777f', '#9d9da5', '#c3c3c9', '#e0e0e4')
+COBALT = hx('#2f5fa8')
+CORK = R('#5a3c1c', '#8e6a3c', '#b48e5a')
+CRUMB = R('#6b3d12', '#a8661e', '#c98a2e', '#e0aa45', '#f0c868')
+OVEN_GLOW = [hx('#ffe08a'), hx('#ffb030'), hx('#e0601a')]
+
+
+def semmel():
+    """A Bread Roll from the mockup: a round golden roll with the five cut star and a few salt grains."""
+    s = Spr()
+    rng = rng_for('semmel')
+    m = ellipse(8, 9.6, 6.6, 5.0) - {(x, y) for x in range(S) for y in range(13, S)}
+    m |= rect(3, 12, 12, 12)
+    paint(s, m, SEMMEL, rng, noise=.1, k=2.6)
+    edge = boundary(m)
+    c = (8, 7.6)
+    for a in (-90, -18, 54, 126, 198):
+        r = math.radians(a)
+        for t in (1.0, 2.0, 3.0, 3.8):
+            x, y = int(c[0] + math.cos(r) * t + math.sin(r) * t * .35), int(c[1] + math.sin(r) * t * .62 - math.cos(r) * t * .2)
+            if (x, y) in m and (x, y) not in edge:
+                s.set(x, y, SEMMEL[1])
+                if (x, y - 1) in m:
+                    s.set(x, y - 1, SEMMEL[4])
+    for (x, y) in m:
+        if rng.random() < .04 and (x, y) not in edge:
+            s.set(x, y, SALT_WHITE)
+    return s
+
+
+def mehl():
+    """Flour from the mockup: a linen sack tied at the neck with a blue band and a puff of flour above."""
+    s = Spr()
+    rng = rng_for('mehl')
+    body = ellipse(8, 10.4, 5.6, 4.8) | rect(3, 9, 12, 14)
+    neck = poly([(6, 6.5), (5.2, 2.5), (10.8, 2.5), (10, 6.5)])
+    paint(s, neck, SACK, rng, noise=.08, k=1.0)
+    paint(s, body, SACK, rng, noise=.06, k=1.6)
+    for x in range(6, 11):
+        s.set(x, 6, hx('#6e4a24'))
+    for x in range(5, 11):
+        s.set(x, 11, SACK_BAND)
+    for (x, y) in ((5, 1), (7, 0), (9, 1), (11, 0), (8, 1)):
+        s.set(x, y, hx('#fbfaf5', 200))
+    return s
+
+
+def dough():
+    """A pale kneaded ball of dough with a fold across its top and a dusting of flour."""
+    s = Spr()
+    rng = rng_for('dough')
+    m = ellipse(8, 9.8, 6.2, 4.6) | rect(3, 12, 12, 13)
+    paint(s, m, DOUGH_PALE, rng, noise=.05, k=1.4, specks=((SALT_WHITE, .05),))
+    for x in range(5, 11):
+        y = int(round(8.4 + math.sin((x - 5) * .55) * 1.1))
+        s.set(x, y, DOUGH_PALE[1])
+        s.set(x, y - 1, DOUGH_PALE[4])
+    return s
+
+
+def salt():
+    """A wooden bowl heaped with white salt crystals."""
+    s = Spr()
+    rng = rng_for('salt')
+    heap = ellipse(8, 9.2, 5.4, 3.6)
+    paint(s, heap, SALT_HEAP, rng, noise=.18, k=1.2, specks=((SALT_HEAP[4], .12), (SALT_HEAP[1], .06)))
+    bowl = ellipse(8, 10.2, 6.6, 4.4) - {(x, y) for x in range(S) for y in range(0, 10)}
+    paint(s, bowl, WOOD, rng, noise=.06, k=1.4)
+    for x in range(2, 14):
+        if (x, 10) in bowl:
+            s.set(x, 10, WOOD[3])
+    return s
+
+
+def wood_ash():
+    """A soft grey heap of wood ash with dark bits of charcoal."""
+    s = Spr()
+    rng = rng_for('ash')
+    m = ellipse(8, 11.0, 6.4, 3.8) | ellipse(8, 9.0, 4.2, 3.4)
+    paint(s, m, ASH_GREY, rng, noise=.16, k=1.1, specks=((CHAR, .08), (ASH_GREY[4], .06)))
+    return s
+
+
+def lye():
+    """A small grey stoneware jar with a cobalt band and a cork, holding the lye."""
+    s = Spr()
+    rng = rng_for('lye')
+    body = ellipse(8, 10.0, 5.0, 5.0) | rect(4, 9, 11, 14)
+    neck = rect(6, 3, 9, 5)
+    paint(s, body, STONEWARE, rng, noise=.05, k=1.6)
+    paint(s, neck, STONEWARE, rng, noise=.05, k=.8)
+    for x in range(4, 12):
+        for y in (9, 10):
+            if (x, y) in body and (x, y) not in boundary(body):
+                s.set(x, y, COBALT)
+    for (x, y) in rect(6, 1, 9, 2):
+        s.set(x, y, CORK[2] if y == 1 else CORK[1])
+    for (x, y) in ((6, 1), (9, 2)):
+        s.set(x, y, CORK[0])
+    return s
+
+
+def bread_crumbs():
+    """A small golden heap of bread crumbs with loose crumbs around it."""
+    s = Spr()
+    rng = rng_for('crumbs')
+    m = ellipse(8, 11.0, 5.8, 3.4) | ellipse(8, 9.4, 3.6, 2.8)
+    paint(s, m, CRUMB, rng, noise=.35, k=1.0, specks=((CRUMB[1], .14), (CRUMB[4], .1)))
+    for (x, y) in ((2, 13), (13, 12), (3, 10), (12, 14), (14, 10)):
+        s.set(x, y, CRUMB[rng.randint(2, 4)])
+    return s
+
+
+def oven_door(lit):
+    """The iron oven door: a light framed window low on the plate, dark when cold, a warm glow with a loaf when baking.
+
+    The door's front maps to u 3 to 13 and v 8 to 15 of this texture; the handle covers row 9.
+    """
+    s = tex_noise(IRON, 'oven', base=3)
+    door = rect(3, 8, 12, 14)
+    for (x, y) in boundary(door):
+        s.set(x, y, IRON[1])
+    frame = rect(4, 10, 11, 14)
+    for (x, y) in boundary(frame):
+        s.set(x, y, IRON[4])
+    window = rect(5, 11, 10, 13)
+    for (x, y) in window:
+        if lit:
+            s.set(x, y, OVEN_GLOW[(x + 2 * y) % 2] if y < 13 else OVEN_GLOW[2])
+        else:
+            s.set(x, y, IRON[0] if (x + y) % 3 else IRON[1])
+    if lit:
+        for (x, y) in ((6, 12), (7, 12), (8, 12), (9, 12), (7, 11), (8, 11)):
+            s.set(x, y, SEMMEL[1] if y == 12 else SEMMEL[2])
+    for (x, y) in ((4, 9), (11, 9), (3, 14), (12, 14)):
+        s.set(x, y, BRASS[2])
+    return s
+
+
 def stages(name, draw):
     return {'block/%s_stage%d' % (name, i): draw(i).image() for i in range(4)}
 
@@ -665,6 +813,15 @@ SPRITES.update({
     'item/chopped_onion': chopped_onion().image(),
     'item/shredded_cabbage': shredded_cabbage().image(),
     'item/kitchen_knife': kitchen_knife().image(),
+    'item/bread_roll': semmel().image(),
+    'item/flour': mehl().image(),
+    'item/dough': dough().image(),
+    'item/salt': salt().image(),
+    'item/wood_ash': wood_ash().image(),
+    'item/lye': lye().image(),
+    'item/bread_crumbs': bread_crumbs().image(),
+    'block/baking_oven_door': oven_door(False).image(),
+    'block/baking_oven_door_lit': oven_door(True).image(),
 })
 ANIMATIONS = {'block/stove_tile_door_lit': DOOR_FLICKER}
 
@@ -695,11 +852,11 @@ def main():
     preview = sys.argv[2] if len(sys.argv) == 3 and sys.argv[1] == '--preview' else None
     for name, img in SPRITES.items():
         write(os.path.join(TEXTURES, name + '.png'), img)
+        if preview:
+            write(os.path.join(preview, name.replace('/', '_') + '.png'), scaled(img, 8))
     for name, meta in ANIMATIONS.items():
         with open(os.path.join(TEXTURES, name + '.png.mcmeta'), 'w', newline='\n') as f:
             f.write(json.dumps(meta, indent=2) + '\n')
-        if preview:
-            write(os.path.join(preview, name.replace('/', '_') + '.png'), scaled(img, 8))
 
 
 if __name__ == '__main__':

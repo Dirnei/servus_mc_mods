@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.delicacies.datagen;
 
 import io.github.dirnei.mc.servus.delicacies.board.CuttingBoardBlock;
+import io.github.dirnei.mc.servus.delicacies.cooking.BakingOvenBlock;
 import io.github.dirnei.mc.servus.delicacies.cooking.VesselBlock;
 import io.github.dirnei.mc.servus.delicacies.cooking.VesselParts;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesBlocks;
@@ -18,7 +19,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 
 /**
  * The kitchen's block models: the Stove Tile loose and formed (cooking plate on top, firebox door on the front, cold
- * and lit), and the Pot, Pan and Cutting Board from {@link VesselParts}, built facing north. Box faces take their UVs
+ * and lit), and the Pot, Pan, Baking Oven and Cutting Board from {@link VesselParts}, built facing north. Box faces take their UVs
  * from their position, so a part shows the matching piece of its texture.
  */
 final class KitchenModels {
@@ -52,6 +53,8 @@ final class KitchenModels {
         box(pan, VesselParts.PAN_HANDLE, "#handle", Set.of(Direction.WEST));
         facing(provider, ServusDelicaciesBlocks.PAN.get(), VesselBlock.FACING, pan);
 
+        bakingOven(provider, steel);
+
         Identifier birch = provider.mcLoc("block/birch_planks");
         BlockModelBuilder board = model(provider, "cutting_board", birch).texture("wood", birch);
         box(board, VesselParts.BOARD, "#wood", Set.of());
@@ -82,6 +85,26 @@ final class KitchenModels {
                     .rotationY(ModelRotations.rotationY(state.getValue(StoveTileBlock.FACING))).build();
         });
         provider.simpleBlockItem(block, loose);
+    }
+
+    /** The oven cold and baking (the window glows), turned to its facing; door and handle stand on the front. */
+    private static void bakingOven(BlockStateProvider provider, Identifier steel) {
+        Identifier brass = Identifier.fromNamespaceAndPath("servus_foundation", "block/brass");
+        ModelFile[] models = new ModelFile[2];
+        for (int lit = 0; lit < 2; lit++) {
+            String suffix = lit == 1 ? "_lit" : "";
+            BlockModelBuilder oven = model(provider, "baking_oven" + suffix, steel).texture("body", steel)
+                    .texture("door", provider.modLoc("block/baking_oven_door" + suffix)).texture("handle", brass);
+            box(oven, VesselParts.OVEN_BODY, "#body", Set.of());
+            box(oven, VesselParts.OVEN_DOOR, "#door", Set.of(Direction.SOUTH));
+            box(oven, VesselParts.OVEN_HANDLE, "#handle", Set.of(Direction.SOUTH));
+            models[lit] = oven;
+        }
+        Block block = ServusDelicaciesBlocks.BAKING_OVEN.get();
+        provider.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(models[state.getValue(BakingOvenBlock.COOKING) ? 1 : 0])
+                .rotationY(ModelRotations.rotationY(state.getValue(BakingOvenBlock.FACING))).build());
+        provider.simpleBlockItem(block, models[0]);
     }
 
     private static BlockModelBuilder model(BlockStateProvider provider, String name, Identifier particle) {

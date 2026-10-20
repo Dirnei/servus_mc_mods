@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.delicacies.registry;
 
 import io.github.dirnei.mc.servus.delicacies.ServusDelicaciesIds;
 import io.github.dirnei.mc.servus.delicacies.board.CuttingRecipe;
+import io.github.dirnei.mc.servus.delicacies.cooking.BakingRecipe;
 import io.github.dirnei.mc.servus.delicacies.cooking.PanRecipe;
 import io.github.dirnei.mc.servus.delicacies.cooking.PotRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
@@ -12,7 +13,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-/** The recipe types of the kitchen: pot, pan and cutting. */
+/** The recipe types of the kitchen: pot, pan, baking and cutting. */
 public final class ServusDelicaciesRecipes {
 
     public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES =
@@ -32,6 +33,12 @@ public final class ServusDelicaciesRecipes {
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<PanRecipe>> PAN_SERIALIZER =
             RECIPE_SERIALIZERS.register("pan", () -> PanRecipe.SERIALIZER);
 
+    public static final Identifier BAKING_ID = Identifier.fromNamespaceAndPath(ServusDelicaciesIds.MOD_ID, "baking");
+    public static final DeferredHolder<RecipeType<?>, RecipeType<BakingRecipe>> BAKING =
+            RECIPE_TYPES.register("baking", () -> RecipeType.simple(BAKING_ID));
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<BakingRecipe>> BAKING_SERIALIZER =
+            RECIPE_SERIALIZERS.register("baking", () -> BakingRecipe.SERIALIZER);
+
     public static final Identifier CUTTING_ID = Identifier.fromNamespaceAndPath(ServusDelicaciesIds.MOD_ID, "cutting");
     public static final DeferredHolder<RecipeType<?>, RecipeType<CuttingRecipe>> CUTTING =
             RECIPE_TYPES.register("cutting", () -> RecipeType.simple(CUTTING_ID));
@@ -45,6 +52,7 @@ public final class ServusDelicaciesRecipes {
     public static void syncToClients() {
         ServusRecipes.syncToClients(POT);
         ServusRecipes.syncToClients(PAN);
+        ServusRecipes.syncToClients(BAKING);
         ServusRecipes.syncToClients(CUTTING);
     }
 }

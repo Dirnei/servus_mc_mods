@@ -1,0 +1,9 @@
+{
+  "type": "servus_delicacies:cutting",
+  "ingredient": "servus_delicacies:bread_roll",
+  "result": {
+    "count": 2,
+    "id": "servus_delicacies:bread_crumbs"
+  },
+  "tool": "#c:tools/knife"
+}

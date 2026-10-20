@@ -10,7 +10,8 @@ public final class DelicaciesGameTests {
             CropGameTests.class,
             StoveGameTests.class,
             CookingGameTests.class,
-            CuttingBoardGameTests.class);
+            CuttingBoardGameTests.class,
+            BakeryGameTests.class);
 
     private DelicaciesGameTests() {
     }

@@ -1,0 +1,12 @@
+{
+  "type": "servus_delicacies:pot",
+  "fluid": {
+    "amount": 1000,
+    "ingredient": "minecraft:water"
+  },
+  "ingredients": [],
+  "result": {
+    "id": "servus_delicacies:salt"
+  },
+  "time": 400
+}

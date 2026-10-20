@@ -8,11 +8,13 @@ import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesItems;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagEntry;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.ItemTagsProvider;
 
-/** Common crop, seed, knife and food tags, and the vanilla tags farmer villagers and chickens use. */
+/** Common crop, seed, knife, food and bakery tags, and the vanilla tags farmer villagers and chickens use. */
 final class ServusDelicaciesItemTagsProvider extends ItemTagsProvider {
 
     ServusDelicaciesItemTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
@@ -34,5 +36,14 @@ final class ServusDelicaciesItemTagsProvider extends ItemTagsProvider {
         tag(KitchenTags.KNIVES).add(ServusDelicaciesItems.KITCHEN_KNIFE.get());
         tag(Tags.Items.TOOLS).addTag(KitchenTags.KNIVES);
         ServusDelicaciesItems.FOODS.forEach(food -> tag(Tags.Items.FOODS).add(food.get()));
+        ServusDelicaciesItems.BREADS.forEach(bread -> tag(Tags.Items.FOODS_BREAD).add(bread.get()));
+        tag(KitchenTags.WHEAT_FLOUR).add(ServusDelicaciesItems.FLOUR.get());
+        tag(KitchenTags.FLOURS).addTag(KitchenTags.WHEAT_FLOUR);
+        tag(KitchenTags.WHEAT_DOUGH).add(ServusDelicaciesItems.DOUGH.get());
+        tag(Tags.Items.FOODS_DOUGH).addTag(KitchenTags.WHEAT_DOUGH);
+        tag(KitchenTags.SALT).add(ServusDelicaciesItems.SALT.get());
+        tag(KitchenTags.ASH).add(ServusDelicaciesItems.WOOD_ASH.get())
+                .add(TagEntry.optionalElement(Identifier.fromNamespaceAndPath("servus_alchemy", "ash")));
+        tag(Tags.Items.DUSTS).addTag(KitchenTags.SALT).addTag(KitchenTags.ASH);
     }
 }

@@ -17,4 +17,10 @@ public record VesselInput(List<ItemStack> items, FluidStack fluid) implements Re
     public int size() {
         return items.size();
     }
+
+    /** Empty only without items and without fluid; the recipe lookup skips empty inputs, so a fluid alone can still match. */
+    @Override
+    public boolean isEmpty() {
+        return fluid.isEmpty() && RecipeInput.super.isEmpty();
+    }
 }

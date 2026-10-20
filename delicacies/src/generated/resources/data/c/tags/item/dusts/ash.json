@@ -1,0 +1,9 @@
+{
+  "values": [
+    "servus_delicacies:wood_ash",
+    {
+      "id": "servus_alchemy:ash",
+      "required": false
+    }
+  ]
+}
