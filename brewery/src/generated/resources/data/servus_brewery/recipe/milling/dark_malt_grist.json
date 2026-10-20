@@ -1,0 +1,11 @@
+{
+  "type": "servus_foundation:milling",
+  "input": {
+    "count": 1,
+    "ingredient": "servus_brewery:dark_malt"
+  },
+  "result": {
+    "id": "servus_brewery:dark_malt_grist"
+  },
+  "work": 100
+}

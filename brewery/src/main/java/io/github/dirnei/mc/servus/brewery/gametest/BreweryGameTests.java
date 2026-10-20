@@ -7,7 +7,8 @@ public final class BreweryGameTests {
 
     public static final List<Class<?>> CLASSES = List.of(
             BrewerySetupGameTests.class,
-            BreweryCropGameTests.class);
+            BreweryCropGameTests.class,
+            MaltingGameTests.class);
 
     private BreweryGameTests() {
     }

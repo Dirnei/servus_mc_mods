@@ -3,6 +3,8 @@ package io.github.dirnei.mc.servus.brewery.datagen;
 import io.github.dirnei.mc.servus.brewery.ServusBreweryIds;
 import io.github.dirnei.mc.servus.brewery.crop.HopPoleBlock;
 import io.github.dirnei.mc.servus.brewery.crop.HopStage;
+import io.github.dirnei.mc.servus.brewery.malting.FloorContent;
+import io.github.dirnei.mc.servus.brewery.malting.MaltingFloorBlock;
 import io.github.dirnei.mc.servus.brewery.registry.ServusBreweryBlocks;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
@@ -10,14 +12,16 @@ import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Set;
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.CropBlock;
 
 /**
- * Block states and models of the barley crop and the Hop Pole. The pole is a
+ * Block states and models of the barley crop, the Hop Pole and the Malting Floor. The pole is a
  * 2 px post; leaf planes sit 0.5 px off its faces and the cone planes further
- * out, so no two faces share a plane.
+ * out, so no two faces share a plane. The floor is a 2 px spruce base with a
+ * 1 px rim; the grain is a single top face 0.2 px below the rim top.
  */
 final class ServusBreweryBlockStateProvider extends BlockStateProvider {
 
@@ -31,6 +35,9 @@ final class ServusBreweryBlockStateProvider extends BlockStateProvider {
     private static final float CONE_OUT = 11.5F;
     private static final float CONE_FROM = 3;
     private static final float CONE_TO = 13;
+    private static final float FLOOR_BASE = 2;
+    private static final float GRAIN_TOP = 2.8F;
+    private static final String SPRUCE = "#spruce";
 
     ServusBreweryBlockStateProvider(PackOutput output) {
         super(output, ServusBreweryIds.MOD_ID);
@@ -40,6 +47,50 @@ final class ServusBreweryBlockStateProvider extends BlockStateProvider {
     protected void registerStatesAndModels() {
         barley();
         hopPole();
+        maltingFloor();
+    }
+
+    private void maltingFloor() {
+        Map<FloorContent, ModelFile> models = new EnumMap<>(FloorContent.class);
+        models.put(FloorContent.EMPTY, floorFrame("malting_floor"));
+        models.put(FloorContent.SOAKED, grain(floorFrame("malting_floor_soaked"), "soaked_grain_floor"));
+        models.put(FloorContent.GREEN, grain(floorFrame("malting_floor_green"), "malt_floor"));
+        MaltingFloorBlock floor = ServusBreweryBlocks.MALTING_FLOOR.get();
+        getVariantBuilder(floor).forAllStates(state ->
+                ConfiguredModel.builder().modelFile(models.get(state.getValue(MaltingFloorBlock.CONTENT))).build());
+        simpleBlockItem(floor, models.get(FloorContent.EMPTY));
+    }
+
+    /**
+     * The spruce base and the rim boards. The rim draws no bottom faces (they lie on the base top), and the east
+     * and west boards draw no end faces (they touch the north and south boards).
+     */
+    private BlockModelBuilder floorFrame(String name) {
+        float rimTop = MaltingFloorBlock.HEIGHT;
+        BlockModelBuilder model = models().withExistingParent(name, mcLoc("block/block"))
+                .texture("spruce", mcLoc("block/spruce_planks"))
+                .texture("particle", mcLoc("block/spruce_planks"))
+                .element().from(0, 0, 0).to(16, FLOOR_BASE, 16)
+                .allFaces((direction, face) -> face.texture(SPRUCE).cullface(direction == Direction.UP ? null : direction))
+                .end();
+        model.element().from(0, FLOOR_BASE, 0).to(16, rimTop, 1)
+                .allFacesExcept((direction, face) -> face.texture(SPRUCE), Set.of(Direction.DOWN)).end();
+        model.element().from(0, FLOOR_BASE, 15).to(16, rimTop, 16)
+                .allFacesExcept((direction, face) -> face.texture(SPRUCE), Set.of(Direction.DOWN)).end();
+        model.element().from(0, FLOOR_BASE, 1).to(1, rimTop, 15)
+                .allFacesExcept((direction, face) -> face.texture(SPRUCE), Set.of(Direction.DOWN, Direction.NORTH, Direction.SOUTH)).end();
+        model.element().from(15, FLOOR_BASE, 1).to(16, rimTop, 15)
+                .allFacesExcept((direction, face) -> face.texture(SPRUCE), Set.of(Direction.DOWN, Direction.NORTH, Direction.SOUTH)).end();
+        return model;
+    }
+
+    /** The spread grain: one top face inside the rim. */
+    private BlockModelBuilder grain(BlockModelBuilder model, String texture) {
+        model.texture("grain", modLoc("block/" + texture));
+        model.element().from(1, FLOOR_BASE, 1).to(15, GRAIN_TOP, 15)
+                .face(Direction.UP).texture("#grain").uvs(1, 1, 15, 15).end()
+                .end();
+        return model;
     }
 
     private void barley() {

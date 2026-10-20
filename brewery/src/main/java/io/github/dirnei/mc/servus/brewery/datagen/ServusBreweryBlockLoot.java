@@ -18,7 +18,7 @@ import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 
-/** Barley drops by age like wheat; a Hop Pole drops itself, its rhizome at the foot and Hops from cones. */
+/** Barley drops by age like wheat; a Hop Pole drops itself, its rhizome at the foot and Hops from cones; the Malting Floor drops itself. */
 final class ServusBreweryBlockLoot extends BlockLootSubProvider {
 
     ServusBreweryBlockLoot(HolderLookup.Provider registries) {
@@ -44,10 +44,12 @@ final class ServusBreweryBlockLoot extends BlockLootSubProvider {
                                         .hasProperty(HopPoleBlock.HOP, HopStage.CONES.ordinal())))
                         .add(LootItem.lootTableItem(ServusBreweryItems.HOPS.get())
                                 .apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 2.0F))))));
+
+        dropSelf(ServusBreweryBlocks.MALTING_FLOOR.get());
     }
 
     @Override
     protected Iterable<Block> getKnownBlocks() {
-        return List.of(ServusBreweryBlocks.BARLEY.get(), ServusBreweryBlocks.HOP_POLE.get());
+        return List.of(ServusBreweryBlocks.BARLEY.get(), ServusBreweryBlocks.HOP_POLE.get(), ServusBreweryBlocks.MALTING_FLOOR.get());
     }
 }

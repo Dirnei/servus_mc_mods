@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.brewery.registry;
 import io.github.dirnei.mc.servus.brewery.ServusBreweryIds;
 import io.github.dirnei.mc.servus.brewery.crop.BarleyBlock;
 import io.github.dirnei.mc.servus.brewery.crop.HopPoleBlock;
+import io.github.dirnei.mc.servus.brewery.malting.MaltingFloorBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -36,6 +37,14 @@ public final class ServusBreweryBlocks {
                     .forceSolidOff()
                     .randomTicks()
                     .pushReaction(PushReaction.DESTROY));
+
+    /** The low spruce floor on which soaked grain sprouts. */
+    public static final DeferredBlock<MaltingFloorBlock> MALTING_FLOOR = BLOCKS.registerBlock("malting_floor", MaltingFloorBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.PODZOL)
+                    .strength(1.0F)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion());
 
     private ServusBreweryBlocks() {
     }

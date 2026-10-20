@@ -1,0 +1,10 @@
+{
+  "type": "servus_brewery:germinating",
+  "input": "servus_brewery:soaked_wheat",
+  "result": {
+    "id": "servus_brewery:green_wheat_malt"
+  },
+  "time": 24000,
+  "turn_bonus": 2400,
+  "turn_cooldown": 1200
+}

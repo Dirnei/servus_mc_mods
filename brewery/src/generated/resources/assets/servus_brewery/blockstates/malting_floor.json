@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "content=empty": {
+      "model": "servus_brewery:block/malting_floor"
+    },
+    "content=green": {
+      "model": "servus_brewery:block/malting_floor_green"
+    },
+    "content=soaked": {
+      "model": "servus_brewery:block/malting_floor_soaked"
+    }
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#spruce"
+        },
+        "east": {
+          "cullface": "east",
+          "texture": "#spruce"
+        },
+        "north": {
+          "cullface": "north",
+          "texture": "#spruce"
+        },
+        "south": {
+          "cullface": "south",
+          "texture": "#spruce"
+        },
+        "up": {
+          "texture": "#spruce"
+        },
+        "west": {
+          "cullface": "west",
+          "texture": "#spruce"
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        2,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#spruce"
+        },
+        "north": {
+          "texture": "#spruce"
+        },
+        "south": {
+          "texture": "#spruce"
+        },
+        "up": {
+          "texture": "#spruce"
+        },
+        "west": {
+          "texture": "#spruce"
+        }
+      },
+      "from": [
+        0,
+        2,
+        0
+      ],
+      "to": [
+        16,
+        3,
+        1
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#spruce"
+        },
+        "north": {
+          "texture": "#spruce"
+        },
+        "south": {
+          "texture": "#spruce"
+        },
+        "up": {
+          "texture": "#spruce"
+        },
+        "west": {
+          "texture": "#spruce"
+        }
+      },
+      "from": [
+        0,
+        2,
+        15
+      ],
+      "to": [
+        16,
+        3,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#spruce"
+        },
+        "up": {
+          "texture": "#spruce"
+        },
+        "west": {
+          "texture": "#spruce"
+        }
+      },
+      "from": [
+        0,
+        2,
+        1
+      ],
+      "to": [
+        1,
+        3,
+        15
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#spruce"
+        },
+        "up": {
+          "texture": "#spruce"
+        },
+        "west": {
+          "texture": "#spruce"
+        }
+      },
+      "from": [
+        15,
+        2,
+        1
+      ],
+      "to": [
+        16,
+        3,
+        15
+      ]
+    }
+  ],
+  "textures": {
+    "particle": "minecraft:block/spruce_planks",
+    "spruce": "minecraft:block/spruce_planks"
+  }
+}

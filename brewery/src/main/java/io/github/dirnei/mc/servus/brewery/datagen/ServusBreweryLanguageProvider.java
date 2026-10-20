@@ -22,5 +22,16 @@ final class ServusBreweryLanguageProvider extends LanguageProvider {
         add(ServusBreweryItems.HOPS.get(), "Hops");
         add(ServusBreweryItems.HOP_RHIZOME.get(), "Hop Rhizome");
         add(ServusBreweryBlocks.HOP_POLE.get(), "Hop Pole");
+        add(ServusBreweryBlocks.MALTING_FLOOR.get(), "Malting Floor");
+        add(ServusBreweryItems.SOAKED_BARLEY.get(), "Soaked Barley");
+        add(ServusBreweryItems.SOAKED_WHEAT.get(), "Soaked Wheat");
+        add(ServusBreweryItems.GREEN_MALT.get(), "Green Malt");
+        add(ServusBreweryItems.GREEN_WHEAT_MALT.get(), "Green Wheat Malt");
+        add(ServusBreweryItems.PALE_MALT.get(), "Pale Malt");
+        add(ServusBreweryItems.DARK_MALT.get(), "Dark Malt");
+        add(ServusBreweryItems.WHEAT_MALT.get(), "Wheat Malt");
+        add(ServusBreweryItems.PALE_MALT_GRIST.get(), "Pale Malt Grist");
+        add(ServusBreweryItems.DARK_MALT_GRIST.get(), "Dark Malt Grist");
+        add(ServusBreweryItems.WHEAT_MALT_GRIST.get(), "Wheat Malt Grist");
     }
 }

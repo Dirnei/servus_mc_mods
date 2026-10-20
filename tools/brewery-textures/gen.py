@@ -46,6 +46,15 @@ STALK_RIPE = hx('#b39a48')
 STALK_RIPE_DARK = hx('#8f7a34')
 EAR_GREEN = ramp('#4d6a1e', '#7d9c38', '#a3c25a', '#c4da84')
 STEM = hx('#4a6b22')
+MALT = ramp('#4a2a0e', '#7e4c1c', '#a86a2a', '#c98c44', '#e0ad66')
+DARK_MALT = ramp('#1e0c04', '#3e1c0c', '#5e3016', '#7e4822', '#9a5e30')
+WHEAT_MALT = ramp('#6b4a1a', '#a8762e', '#cf9a48', '#e6bb6a', '#f2d692')
+GREEN_MALT = ramp('#5e5a26', '#8f8a42', '#b8b064', '#d6cf8c', '#ebe6b6')
+GREEN_WHEAT = ramp('#6a5a24', '#a08a40', '#c8b062', '#e0cc8a', '#f0e3b4')
+SOAKED_BARLEY = ramp('#5a4a22', '#8a7638', '#ad9852', '#c8b672', '#dccd98')
+SOAKED_WHEAT = ramp('#5e4620', '#927034', '#b8924c', '#d2ae6a', '#e4c992')
+ROOTLET = hx('#f4f0de')
+WATER = hx('#7fb2d8')
 
 
 # ---------- masks ----------
@@ -221,6 +230,60 @@ def hop_pole_item():
     return img
 
 
+def heap(colors, seed, specks=26):
+    """A heap of grain with paired grain specks (the mockup's malz)."""
+    img = canvas()
+    rng = random.Random(seed)
+    m = ellipse(8, 11.4, 7.2, 4.4)
+    paint(img, m, colors, rng, noise=.1, k=1.2)
+    for _ in range(specks):
+        x = rng.randint(2, 13)
+        y = rng.randint(8, 14)
+        if (x, y) in m and (x + 1, y) in m:
+            put(img, x, y, colors[rng.randint(2, 4)])
+            put(img, x + 1, y, colors[1])
+    return img
+
+
+def sprouted(colors, seed):
+    """A pale grain heap with white rootlets curling out of the top."""
+    img = heap(colors, seed, specks=18)
+    rng = random.Random(seed + '_roots')
+    m = ellipse(8, 11.4, 7.2, 4.4)
+    edge = sorted(p for p in boundary(m) if p[1] <= 10)
+    for (x, y) in rng.sample(edge, 6):
+        put(img, x, y - 1, ROOTLET)
+        put(img, x + (1 if x < 8 else -1), y - 2, ROOTLET)
+    for _ in range(5):
+        x, y = rng.randint(4, 11), rng.randint(9, 13)
+        if (x, y) in m:
+            put(img, x, y, ROOTLET)
+    return img
+
+
+def soaked(colors, seed):
+    """A damp grain heap with blue water glints."""
+    img = heap(colors, seed, specks=22)
+    rng = random.Random(seed + '_water')
+    m = ellipse(8, 11.4, 7.2, 4.4)
+    inside = m - boundary(m)
+    for (x, y) in rng.sample(sorted(inside), 7):
+        put(img, x, y, WATER)
+    return img
+
+
+def grist(colors, seed):
+    """A low heap of coarse ground malt: per pixel noise instead of whole grains."""
+    img = canvas()
+    rng = random.Random(seed)
+    m = ellipse(8, 12, 6.8, 3.4) | ellipse(8, 10.6, 4.2, 2.6)
+    paint(img, m, colors, rng, noise=.25, k=1.0)
+    for (x, y) in m - boundary(m):
+        if rng.random() < .22:
+            put(img, x, y, colors[rng.randint(1, 4)])
+    return img
+
+
 # ---------- blocks ----------
 STALKS = (2, 6, 10, 14)
 STALK_HEIGHT = (3, 5, 7, 9, 9, 9, 10, 10)
@@ -316,6 +379,28 @@ def hop_cones():
     return img
 
 
+def tex_noise(colors, seed, base=2, spread=1):
+    """A full tile of the ramp's base colour with some pixels one step darker or lighter."""
+    rng = random.Random(seed)
+    img = canvas()
+    for y in range(SIZE):
+        for x in range(SIZE):
+            step = rng.randint(-spread, spread) * (1 if rng.random() < .35 else 0)
+            img[y][x] = colors[max(0, min(len(colors) - 1, base + step))]
+    return img
+
+
+def grain_floor(colors, seed, specks_seed):
+    """Grain spread on the floor: noise with 40 paired grain specks (the mockup's malt_floor)."""
+    img = tex_noise(colors, seed, base=2)
+    rng = random.Random(specks_seed)
+    for _ in range(40):
+        x, y = rng.randint(0, 14), rng.randint(0, 15)
+        put(img, x, y, colors[4])
+        put(img, x + 1, y, colors[1])
+    return img
+
+
 ITEM_SPRITES = {
     'beer_glass': empty_glass(),
     'barley': barley(),
@@ -323,6 +408,16 @@ ITEM_SPRITES = {
     'hops': hops(),
     'hop_rhizome': hop_rhizome(),
     'hop_pole': hop_pole_item(),
+    'soaked_barley': soaked(SOAKED_BARLEY, 'soaked_barley'),
+    'soaked_wheat': soaked(SOAKED_WHEAT, 'soaked_wheat'),
+    'green_malt': sprouted(GREEN_MALT, 'green_malt'),
+    'green_wheat_malt': sprouted(GREEN_WHEAT, 'green_wheat_malt'),
+    'pale_malt': heap(MALT, 'malz'),
+    'dark_malt': heap(DARK_MALT, 'dark_malt'),
+    'wheat_malt': heap(WHEAT_MALT, 'wheat_malt'),
+    'pale_malt_grist': grist(MALT, 'pale_malt_grist'),
+    'dark_malt_grist': grist(DARK_MALT, 'dark_malt_grist'),
+    'wheat_malt_grist': grist(WHEAT_MALT, 'wheat_malt_grist'),
 }
 
 BLOCK_SPRITES = {
@@ -331,6 +426,8 @@ BLOCK_SPRITES = {
     'hop_vine_young': hop_vine_young(),
     'hop_vine': hop_vine(),
     'hop_cones': hop_cones(),
+    'malt_floor': grain_floor(MALT, 'mf', 4),
+    'soaked_grain_floor': grain_floor(SOAKED_BARLEY, 'sgf', 5),
 }
 
 

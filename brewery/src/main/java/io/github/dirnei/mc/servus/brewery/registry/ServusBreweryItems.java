@@ -30,9 +30,43 @@ public final class ServusBreweryItems {
 
     public static final DeferredItem<BlockItem> HOP_POLE = ITEMS.registerSimpleBlockItem(ServusBreweryBlocks.HOP_POLE);
 
+    public static final DeferredItem<BlockItem> MALTING_FLOOR = ITEMS.registerSimpleBlockItem(ServusBreweryBlocks.MALTING_FLOOR);
+
+    /** Barley soaked in water, ready to spread on a Malting Floor. */
+    public static final DeferredItem<Item> SOAKED_BARLEY = ITEMS.registerSimpleItem("soaked_barley");
+
+    /** Wheat soaked in water, ready to spread on a Malting Floor. */
+    public static final DeferredItem<Item> SOAKED_WHEAT = ITEMS.registerSimpleItem("soaked_wheat");
+
+    /** Sprouted barley from the Malting Floor, before the kiln. */
+    public static final DeferredItem<Item> GREEN_MALT = ITEMS.registerSimpleItem("green_malt");
+
+    /** Sprouted wheat from the Malting Floor, before the kiln. */
+    public static final DeferredItem<Item> GREEN_WHEAT_MALT = ITEMS.registerSimpleItem("green_wheat_malt");
+
+    /** Lightly kilned barley malt, for Helles. */
+    public static final DeferredItem<Item> PALE_MALT = ITEMS.registerSimpleItem("pale_malt");
+
+    /** Darkly kilned barley malt, for Dunkles. */
+    public static final DeferredItem<Item> DARK_MALT = ITEMS.registerSimpleItem("dark_malt");
+
+    /** Kilned wheat malt, for Weissbier. */
+    public static final DeferredItem<Item> WHEAT_MALT = ITEMS.registerSimpleItem("wheat_malt");
+
+    /** Pale Malt from the Mill. */
+    public static final DeferredItem<Item> PALE_MALT_GRIST = ITEMS.registerSimpleItem("pale_malt_grist");
+
+    /** Dark Malt from the Mill. */
+    public static final DeferredItem<Item> DARK_MALT_GRIST = ITEMS.registerSimpleItem("dark_malt_grist");
+
+    /** Wheat Malt from the Mill. */
+    public static final DeferredItem<Item> WHEAT_MALT_GRIST = ITEMS.registerSimpleItem("wheat_malt_grist");
+
     /** Every Brewery item in the order the creative tab lists it. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(
-            BEER_GLASS, BARLEY_SEEDS, BARLEY, HOP_RHIZOME, HOPS, HOP_POLE);
+            BEER_GLASS, BARLEY_SEEDS, BARLEY, HOP_RHIZOME, HOPS, HOP_POLE,
+            MALTING_FLOOR, SOAKED_BARLEY, SOAKED_WHEAT, GREEN_MALT, GREEN_WHEAT_MALT, PALE_MALT, DARK_MALT, WHEAT_MALT,
+            PALE_MALT_GRIST, DARK_MALT_GRIST, WHEAT_MALT_GRIST);
 
     private ServusBreweryItems() {
     }

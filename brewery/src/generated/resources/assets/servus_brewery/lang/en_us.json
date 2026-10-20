@@ -1,10 +1,21 @@
 {
   "block.servus_brewery.barley": "Barley",
   "block.servus_brewery.hop_pole": "Hop Pole",
+  "block.servus_brewery.malting_floor": "Malting Floor",
   "item.servus_brewery.barley": "Barley",
   "item.servus_brewery.barley_seeds": "Barley Seeds",
   "item.servus_brewery.beer_glass": "Beer Glass",
+  "item.servus_brewery.dark_malt": "Dark Malt",
+  "item.servus_brewery.dark_malt_grist": "Dark Malt Grist",
+  "item.servus_brewery.green_malt": "Green Malt",
+  "item.servus_brewery.green_wheat_malt": "Green Wheat Malt",
   "item.servus_brewery.hop_rhizome": "Hop Rhizome",
   "item.servus_brewery.hops": "Hops",
+  "item.servus_brewery.pale_malt": "Pale Malt",
+  "item.servus_brewery.pale_malt_grist": "Pale Malt Grist",
+  "item.servus_brewery.soaked_barley": "Soaked Barley",
+  "item.servus_brewery.soaked_wheat": "Soaked Wheat",
+  "item.servus_brewery.wheat_malt": "Wheat Malt",
+  "item.servus_brewery.wheat_malt_grist": "Wheat Malt Grist",
   "itemGroup.servus_brewery": "Servus: Brewery"
 }
