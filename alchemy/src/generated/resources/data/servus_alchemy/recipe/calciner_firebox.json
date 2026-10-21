@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "B": "minecraft:bricks",
+    "B": "minecraft:polished_deepslate",
     "F": "minecraft:furnace",
     "I": "minecraft:iron_bars"
   },

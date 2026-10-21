@@ -60,12 +60,13 @@ public final class LogisticsDataParts {
 
     public static void recipes(RecipeOutput output, HolderGetter<Item> items, Function<ItemLike, Criterion<InventoryChangeTrigger.TriggerInstance>> has) {
         ShapedRecipeBuilder.shaped(items, RecipeCategory.REDSTONE, ServusLogisticsItems.ITEM_PIPE.get(), 8)
-                .pattern("III")
-                .pattern("GCG")
-                .pattern("III")
+                .pattern("CIC")
+                .pattern("GHG")
+                .pattern("CIC")
+                .define('C', Items.COPPER_INGOT)
                 .define('I', Items.IRON_INGOT)
                 .define('G', Items.GLASS)
-                .define('C', Items.CHEST)
+                .define('H', Items.CHEST)
                 .unlockedBy("has_iron", has.apply(Items.IRON_INGOT))
                 .save(output);
 
@@ -80,9 +81,10 @@ public final class LogisticsDataParts {
                 .save(output);
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.REDSTONE, ServusLogisticsItems.FLUID_PIPE.get(), 8)
-                .pattern("III")
+                .pattern("CIC")
                 .pattern("GBG")
-                .pattern("III")
+                .pattern("CIC")
+                .define('C', Items.COPPER_INGOT)
                 .define('I', Items.IRON_INGOT)
                 .define('G', Items.GLASS)
                 .define('B', Items.BUCKET)

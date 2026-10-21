@@ -12,9 +12,9 @@ Foundation loads on its own, and each content mod loads with only Foundation ins
 - **Configuration Carrot**: the wrench of the family. A carrot with a metal bar and a red tip instead of leaves. Use it on a face to cycle that side's mode, sneak use it to dismantle a block and keep its configuration. On blocks with a facing and no own handling it rotates the block.
 - **Engineer Goggles**: worn in the head slot like a helmet without armor. While worn, or while a Configuration Carrot is held, hidden things show up, such as side mode markers and ducts behind facades.
 - Every line has its own colour on the duct and on its item: Item Pipe orange, Power Cable red, Fluid Pipe blue, and the data line white, gray or black by tier.
-- **Item Pipe**: places a duct with an item line, or adds the item line to a duct that lacks it. Eight from iron ingots, glass and a chest.
+- **Item Pipe**: places a duct with an item line, or adds the item line to a duct that lacks it. Eight from four copper ingots, two iron ingots, two glass and a chest.
 - **Power Cable**: places a duct with an energy line, or adds it to a duct. Eight from copper ingots, redstone and glass.
-- **Fluid Pipe**: places a duct with a fluid line, or adds it to a duct. Eight from iron ingots, glass and a bucket.
+- **Fluid Pipe**: places a duct with a fluid line, or adds it to a duct. Eight from four copper ingots, two iron ingots, two glass and a bucket.
 - **Data Cable**: places a duct with the data line, or adds it to a duct. Four from two copper ingots and a redstone dust. 32 items per second, shared by both directions (simplex).
 - **Duplex Data Cable**: the data line with 32 items per second in each direction at the same time. Two from two Data Cables and a quartz.
 - **Fast Data Cable**: the data line with 128 items per second in each direction. Two from two Duplex Data Cables, a quartz and two gold ingots.

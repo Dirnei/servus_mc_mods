@@ -298,6 +298,40 @@ public final class ServusLogisticsGameTests {
         helper.succeed();
     }
 
+    /** Copper in the corners, iron top and bottom, glass at the sides craft eight pipes around a chest or a bucket; six iron no longer do. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void pipeRecipes(GameTestHelper helper) {
+        ItemStack itemPipes = crafted(helper, "CIC", "GHG", "CIC");
+        helper.assertTrue(itemPipes.is(ServusLogisticsItems.ITEM_PIPE.get()) && itemPipes.getCount() == 8,
+                "eight Item Pipes expected, got " + itemPipes);
+        ItemStack fluidPipes = crafted(helper, "CIC", "GBG", "CIC");
+        helper.assertTrue(fluidPipes.is(ServusLogisticsItems.FLUID_PIPE.get()) && fluidPipes.getCount() == 8,
+                "eight Fluid Pipes expected, got " + fluidPipes);
+        helper.assertTrue(crafted(helper, "III", "GHG", "III").isEmpty(), "six iron around a chest make nothing");
+        helper.assertTrue(crafted(helper, "III", "GBG", "III").isEmpty(), "six iron around a bucket make nothing");
+        helper.succeed();
+    }
+
+    /** What a 3 by 3 grid of C copper, I iron, G glass, H chest and B bucket crafts. */
+    private static ItemStack crafted(GameTestHelper helper, String... rows) {
+        List<ItemStack> grid = new ArrayList<>();
+        for (String row : rows) {
+            for (char c : row.toCharArray()) {
+                grid.add(new ItemStack(switch (c) {
+                    case 'C' -> Items.COPPER_INGOT;
+                    case 'I' -> Items.IRON_INGOT;
+                    case 'G' -> Items.GLASS;
+                    case 'H' -> Items.CHEST;
+                    default -> Items.BUCKET;
+                }));
+            }
+        }
+        CraftingInput input = CraftingInput.of(3, 3, grid);
+        return helper.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
+                .map(holder -> holder.value().assemble(input))
+                .orElse(ItemStack.EMPTY);
+    }
+
     /** Uses a facade stack on a face of the duct at {@code pos} as a survival player; returns what is left. */
     private static ItemStack usePanel(GameTestHelper helper, BlockPos pos, Direction face, ItemStack stack) {
         GameTestSteps.useOn(helper, helper.makeMockPlayer(GameType.SURVIVAL), stack, pos, face);

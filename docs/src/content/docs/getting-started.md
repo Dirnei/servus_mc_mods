@@ -27,7 +27,7 @@ The Coal Generator from Servus: Foundation burns furnace fuel and makes 40 FE pe
 
 ## Calcine
 
-Craft a Calciner from bricks, iron ingots, a furnace and a cauldron, power it and put cobblestone, logs, dirt or other common matter into it. It burns each item into Salt, Sulfur and Mercury. Put a Fluid Tank against its side, or run Fluid Pipes from it.
+Craft a Calciner from Stone Bricks and iron bars around a cauldron, its Firebox from Polished Deepslate and its Ash Pan from Deepslate Tiles, build it and put cobblestone, logs, dirt or other common matter into it. It burns each item into Salt, Sulfur and Mercury. Put a Fluid Tank against its side, or run Fluid Pipes from it.
 
 ## Coagulate
 

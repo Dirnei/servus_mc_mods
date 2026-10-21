@@ -3,13 +3,14 @@
   "category": "redstone",
   "key": {
     "B": "minecraft:bucket",
+    "C": "minecraft:copper_ingot",
     "G": "minecraft:glass",
     "I": "minecraft:iron_ingot"
   },
   "pattern": [
-    "III",
+    "CIC",
     "GBG",
-    "III"
+    "CIC"
   ],
   "result": {
     "count": 8,

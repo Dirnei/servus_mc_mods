@@ -367,14 +367,14 @@
       "type": "minecraft:crafting_shaped",
       "pattern": ["BIB", "BCB"],
       "key": {
-        "B": {"item": "minecraft:bricks"},
+        "B": {"item": "minecraft:stone_bricks"},
         "C": {"item": "minecraft:cauldron"},
         "I": {"item": "minecraft:iron_bars"}
       },
       "inputs": [
-        {"item": "minecraft:bricks", "count": 4},
         {"item": "minecraft:cauldron", "count": 1},
-        {"item": "minecraft:iron_bars", "count": 1}
+        {"item": "minecraft:iron_bars", "count": 1},
+        {"item": "minecraft:stone_bricks", "count": 4}
       ],
       "outputs": [
         {"item": "servus_alchemy:calciner", "count": 1}
@@ -384,11 +384,11 @@
       "type": "minecraft:crafting_shaped",
       "pattern": ["B B", "BIB"],
       "key": {
-        "B": {"item": "minecraft:bricks"},
+        "B": {"item": "minecraft:deepslate_tiles"},
         "I": {"item": "minecraft:iron_ingot"}
       },
       "inputs": [
-        {"item": "minecraft:bricks", "count": 4},
+        {"item": "minecraft:deepslate_tiles", "count": 4},
         {"item": "minecraft:iron_ingot", "count": 1}
       ],
       "outputs": [
@@ -399,14 +399,14 @@
       "type": "minecraft:crafting_shaped",
       "pattern": ["BIB", "BFB"],
       "key": {
-        "B": {"item": "minecraft:bricks"},
+        "B": {"item": "minecraft:polished_deepslate"},
         "F": {"item": "minecraft:furnace"},
         "I": {"item": "minecraft:iron_bars"}
       },
       "inputs": [
-        {"item": "minecraft:bricks", "count": 4},
         {"item": "minecraft:furnace", "count": 1},
-        {"item": "minecraft:iron_bars", "count": 1}
+        {"item": "minecraft:iron_bars", "count": 1},
+        {"item": "minecraft:polished_deepslate", "count": 4}
       ],
       "outputs": [
         {"item": "servus_alchemy:calciner_firebox", "count": 1}
@@ -867,16 +867,18 @@
     },
     "servus_foundation:fluid_pipe": {
       "type": "minecraft:crafting_shaped",
-      "pattern": ["III", "GBG", "III"],
+      "pattern": ["CIC", "GBG", "CIC"],
       "key": {
         "B": {"item": "minecraft:bucket"},
+        "C": {"item": "minecraft:copper_ingot"},
         "G": {"item": "minecraft:glass"},
         "I": {"item": "minecraft:iron_ingot"}
       },
       "inputs": [
         {"item": "minecraft:bucket", "count": 1},
+        {"item": "minecraft:copper_ingot", "count": 4},
         {"item": "minecraft:glass", "count": 2},
-        {"item": "minecraft:iron_ingot", "count": 6}
+        {"item": "minecraft:iron_ingot", "count": 2}
       ],
       "outputs": [
         {"item": "servus_foundation:fluid_pipe", "count": 8}
@@ -928,16 +930,18 @@
     },
     "servus_foundation:item_pipe": {
       "type": "minecraft:crafting_shaped",
-      "pattern": ["III", "GCG", "III"],
+      "pattern": ["CIC", "GHG", "CIC"],
       "key": {
-        "C": {"item": "minecraft:chest"},
+        "C": {"item": "minecraft:copper_ingot"},
         "G": {"item": "minecraft:glass"},
+        "H": {"item": "minecraft:chest"},
         "I": {"item": "minecraft:iron_ingot"}
       },
       "inputs": [
         {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:copper_ingot", "count": 4},
         {"item": "minecraft:glass", "count": 2},
-        {"item": "minecraft:iron_ingot", "count": 6}
+        {"item": "minecraft:iron_ingot", "count": 2}
       ],
       "outputs": [
         {"item": "servus_foundation:item_pipe", "count": 8}
@@ -1570,6 +1574,9 @@
     "minecraft:deepslate_bricks": {
       "name": "Deepslate Bricks"
     },
+    "minecraft:deepslate_tiles": {
+      "name": "Deepslate Tiles"
+    },
     "minecraft:dispenser": {
       "name": "Dispenser"
     },
@@ -1644,6 +1651,9 @@
     },
     "minecraft:stick": {
       "name": "Stick"
+    },
+    "minecraft:stone_bricks": {
+      "name": "Stone Bricks"
     },
     "minecraft:stripped_dark_oak_log": {
       "name": "Stripped Dark Oak Log"

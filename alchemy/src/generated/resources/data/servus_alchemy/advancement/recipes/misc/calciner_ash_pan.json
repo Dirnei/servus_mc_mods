@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_bricks": {
+    "has_deepslate_tiles": {
       "conditions": {
         "items": [
           {
-            "items": "minecraft:bricks"
+            "items": "minecraft:deepslate_tiles"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_bricks"
+      "has_deepslate_tiles"
     ]
   ],
   "rewards": {
