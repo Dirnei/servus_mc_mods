@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.machine.RestartGate;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import net.minecraft.core.BlockPos;
@@ -25,7 +26,8 @@ import net.minecraft.world.level.block.state.BlockState;
 /**
  * Burns furnace fuel into FE. Works like a burner machine whose work cycle is
  * one tick that adds {@code energyPerTick} to the buffer, then pushes energy
- * to its neighbours.
+ * to its neighbours. Once the buffer is full it waits until the buffer drops
+ * below its restart threshold.
  */
 public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
 
@@ -34,6 +36,7 @@ public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     private final MachineEnergyStorage energy;
+    private final RestartGate restart = new RestartGate();
     private EnergyNeighbors neighbors;
     private boolean capacityApplied;
 
@@ -65,7 +68,8 @@ public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
 
     @Override
     protected boolean canWork() {
-        return !energy.isFull();
+        return restart.allows(energy.isFull(), energy.getEnergyStored(), energy.getMaxEnergyStored(),
+                stats().restartBelow());
     }
 
     @Override
@@ -119,12 +123,14 @@ public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         output.putInt("Energy", energy.getEnergyStored());
+        output.putBoolean("RestartWaiting", restart.waiting());
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         energy.setEnergy(input.getIntOr("Energy", 0));
+        restart.setWaiting(input.getBooleanOr("RestartWaiting", false));
     }
 
     @Override

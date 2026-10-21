@@ -4,5 +4,6 @@
   "energy_capacity": 8000,
   "fluid_per_cycle": 500,
   "fluid_capacity": 4000,
-  "min_source_neighbours": 2
+  "min_source_neighbours": 2,
+  "restart_below": 0.5
 }

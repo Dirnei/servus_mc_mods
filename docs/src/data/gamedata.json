@@ -16,7 +16,8 @@
       "fluid_capacity": 4000,
       "min_source_neighbours": 0,
       "item_capacity": 0,
-      "upkeep_level": 0
+      "upkeep_level": 0,
+      "restart_below": 1.0
     },
     "servus_alchemy:calciner": {
       "kind": "burner",
@@ -32,7 +33,8 @@
       "fluid_capacity": 0,
       "min_source_neighbours": 0,
       "item_capacity": 64,
-      "upkeep_level": 16
+      "upkeep_level": 16,
+      "restart_below": 1.0
     },
     "servus_alchemy:coagulator": {
       "kind": "crafter",
@@ -48,7 +50,8 @@
       "fluid_capacity": 4000,
       "min_source_neighbours": 0,
       "item_capacity": 0,
-      "upkeep_level": 0
+      "upkeep_level": 0,
+      "restart_below": 1.0
     },
     "servus_alchemy:gnome_hollow": {
       "kind": "crafter",
@@ -64,7 +67,8 @@
       "fluid_capacity": 4000,
       "min_source_neighbours": 0,
       "item_capacity": 64,
-      "upkeep_level": 0
+      "upkeep_level": 0,
+      "restart_below": 1.0
     },
     "servus_alchemy:prelum": {
       "kind": "crafter",
@@ -80,7 +84,8 @@
       "fluid_capacity": 0,
       "min_source_neighbours": 0,
       "item_capacity": 0,
-      "upkeep_level": 0
+      "upkeep_level": 0,
+      "restart_below": 1.0
     },
     "servus_alchemy:principle_dropper": {
       "kind": "crafter",
@@ -96,7 +101,8 @@
       "fluid_capacity": 3000,
       "min_source_neighbours": 0,
       "item_capacity": 0,
-      "upkeep_level": 0
+      "upkeep_level": 0,
+      "restart_below": 1.0
     },
     "servus_alchemy:purifier": {
       "kind": "crafter",
@@ -112,7 +118,8 @@
       "fluid_capacity": 4000,
       "min_source_neighbours": 0,
       "item_capacity": 0,
-      "upkeep_level": 0
+      "upkeep_level": 0,
+      "restart_below": 1.0
     },
     "servus_alchemy:receptaculum": {
       "kind": "crafter",
@@ -128,7 +135,8 @@
       "fluid_capacity": 0,
       "min_source_neighbours": 0,
       "item_capacity": 0,
-      "upkeep_level": 0
+      "upkeep_level": 0,
+      "restart_below": 1.0
     },
     "servus_alchemy:salamander_forge": {
       "kind": "crafter",
@@ -144,7 +152,8 @@
       "fluid_capacity": 0,
       "min_source_neighbours": 0,
       "item_capacity": 0,
-      "upkeep_level": 0
+      "upkeep_level": 0,
+      "restart_below": 1.0
     },
     "servus_foundation:burner_pump": {
       "kind": "burner",
@@ -160,7 +169,8 @@
       "fluid_capacity": 4000,
       "min_source_neighbours": 2,
       "item_capacity": 0,
-      "upkeep_level": 16
+      "upkeep_level": 16,
+      "restart_below": 0.5
     },
     "servus_foundation:coal_generator": {
       "kind": "generator",
@@ -176,7 +186,8 @@
       "fluid_capacity": 0,
       "min_source_neighbours": 0,
       "item_capacity": 0,
-      "upkeep_level": 16
+      "upkeep_level": 16,
+      "restart_below": 0.5
     },
     "servus_foundation:electric_motor": {
       "kind": "powered",
@@ -192,7 +203,8 @@
       "fluid_capacity": 0,
       "min_source_neighbours": 0,
       "item_capacity": 0,
-      "upkeep_level": 0
+      "upkeep_level": 0,
+      "restart_below": 1.0
     },
     "servus_foundation:electric_pump": {
       "kind": "powered",
@@ -208,7 +220,8 @@
       "fluid_capacity": 4000,
       "min_source_neighbours": 2,
       "item_capacity": 0,
-      "upkeep_level": 0
+      "upkeep_level": 0,
+      "restart_below": 0.5
     },
     "servus_foundation:ender_anchor": {
       "kind": "powered",
@@ -224,7 +237,8 @@
       "fluid_capacity": 0,
       "min_source_neighbours": 0,
       "item_capacity": 0,
-      "upkeep_level": 0
+      "upkeep_level": 0,
+      "restart_below": 1.0
     }
   },
   "recipes": {},

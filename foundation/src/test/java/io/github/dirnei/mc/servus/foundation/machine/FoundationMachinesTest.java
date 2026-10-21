@@ -46,4 +46,20 @@ class FoundationMachinesTest {
         assertTrue(!electric.hasUpkeep(), "the Electric Pump needs no upkeep");
         assertEquals(0, MachineDefaults.stats("servus_foundation:coal_generator").fluidCapacity());
     }
+
+    @Test
+    void generatorAndPumpsRestartBelowHalf() {
+        for (String id : new String[] {"coal_generator", "burner_pump", "electric_pump"}) {
+            assertEquals(0.5, MachineDefaults.stats("servus_foundation:" + id).restartBelow(), id);
+        }
+        assertEquals(MachineStats.NO_RESTART_THRESHOLD, MachineStats.burner(20).restartBelow());
+        assertEquals(MachineStats.NO_RESTART_THRESHOLD, MachineStats.powered(40, 20, 8000).restartBelow());
+    }
+
+    @Test
+    void restartBelowFromDataIsClampedToAFraction() {
+        assertEquals(0.9, MachineStats.restartFraction(0.9));
+        assertEquals(1.0, MachineStats.restartFraction(3.0));
+        assertEquals(0.0, MachineStats.restartFraction(-1.0));
+    }
 }

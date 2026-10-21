@@ -19,9 +19,10 @@ import org.junit.jupiter.api.Test;
 class GameDataJsonTest {
 
     private static GameData sample(boolean reversed) {
-        Map<String, Integer> stats = new LinkedHashMap<>();
+        Map<String, Number> stats = new LinkedHashMap<>();
         stats.put("work_ticks", 80);
         stats.put("energy_per_tick", 0);
+        stats.put("restart_below", 0.5);
         List<Machine> machines = List.of(
                 new Machine("servus_alchemy:burner_smelter", "burner", List.of("minecraft:smelting"), stats),
                 new Machine("servus_alchemy:burner_extractor", "burner", List.of("servus:extraction"), stats));
@@ -86,6 +87,7 @@ class GameDataJsonTest {
         String json = GameDataJson.write(sample(false));
 
         assertTrue(json.indexOf("\"work_ticks\": 80") < json.indexOf("\"energy_per_tick\": 0"));
+        assertTrue(json.contains("\"restart_below\": 0.5"));
         assertTrue(json.contains("{\"tag\": \"c:wires\", \"count\": 2}"));
         assertTrue(json.contains("{\"item\": \"minecraft:raw_iron\", \"count\": 1}"));
         assertTrue(json.contains("\"Coal \\\"black\\\"\""));

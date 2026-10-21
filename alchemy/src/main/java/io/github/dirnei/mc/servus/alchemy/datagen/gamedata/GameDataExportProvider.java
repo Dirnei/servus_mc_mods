@@ -136,7 +136,7 @@ public final class GameDataExportProvider implements DataProvider {
                     stats = decode(MachineStats.Partial.CODEC, readJson(file), file).over(stats);
                 }
             }
-            Map<String, Integer> values = new LinkedHashMap<>();
+            Map<String, Number> values = new LinkedHashMap<>();
             values.put("work_ticks", stats.workTicks());
             values.put("energy_per_tick", stats.energyPerTick());
             values.put("energy_capacity", stats.energyCapacity());
@@ -149,6 +149,7 @@ public final class GameDataExportProvider implements DataProvider {
             values.put("min_source_neighbours", stats.minSourceNeighbours());
             values.put("item_capacity", stats.itemCapacity());
             values.put("upkeep_level", stats.hasUpkeep() ? stats.upkeepLevel() : 0);
+            values.put("restart_below", stats.restartBelow());
             machines.add(new Machine(info.id(), info.kind(), info.recipeTypes(), values));
         }
         return machines;

@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.foundation.machine.pump;
 
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
+import io.github.dirnei.mc.servus.foundation.machine.RestartGate;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
@@ -28,7 +29,8 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 /**
  * Shared by both pumps: the infinite water check below the pump, the water
  * buffer, the drain only handler offered to neighbours and the push into
- * touching fluid handlers. Only used on the server thread.
+ * touching fluid handlers, and the restart threshold of the buffer. Only used
+ * on the server thread.
  */
 public final class PumpLogic {
 
@@ -37,6 +39,7 @@ public final class PumpLogic {
 
     private final FluidSlot tank;
     private final ResourceHandler<FluidResource> drainOnly;
+    private final RestartGate restart = new RestartGate();
     private boolean sourceValid;
     private boolean checkRequested = true;
     private int ticksSinceCheck;
@@ -84,7 +87,8 @@ public final class PumpLogic {
     /**
      * Whether the pump can run this tick. Called once per tick by the machine. The source is read
      * again only at the start of a cycle (progress 0), at most once per work period, or when a
-     * check was requested.
+     * check was requested. Once the buffer cannot take a full cycle the pump waits until it drops below the
+     * restart threshold.
      */
     public boolean canWork(Level level, BlockPos pos, int progress, MachineStats stats) {
         tank.setCapacity(stats.fluidCapacity());
@@ -95,7 +99,9 @@ public final class PumpLogic {
             ticksSinceCheck = 0;
             sourceValid = valid;
         }
-        return sourceValid && tank.getSpace() >= stats.fluidPerCycle();
+        boolean bufferRoom = restart.allows(tank.getSpace() < stats.fluidPerCycle(), tank.getFluidAmount(),
+                stats.fluidCapacity(), stats.restartBelow());
+        return sourceValid && bufferRoom;
     }
 
     /** One finished cycle: water into the buffer. */
@@ -172,11 +178,13 @@ public final class PumpLogic {
     public void save(ValueOutput output) {
         tank.save(output, "Water");
         output.putBoolean("SourceValid", sourceValid);
+        output.putBoolean("RestartWaiting", restart.waiting());
     }
 
     public void load(ValueInput input) {
         tank.load(input, "Water");
         sourceValid = input.getBooleanOr("SourceValid", false);
+        restart.setWaiting(input.getBooleanOr("RestartWaiting", false));
         checkRequested = true;
     }
 

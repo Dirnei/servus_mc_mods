@@ -32,6 +32,7 @@ Every field is optional. A field the file leaves out, or a missing file, falls b
 | `min_source_neighbours` | int | 0 | How many of the four horizontal neighbours of the water source below a pump must be water sources too. |
 | `upkeep_item` | item id | per machine | The item a machine keeps stocked in its fuel slot from the data line. `minecraft:coal` for the Burner Pump, the Coal Generator and the Calciner, empty for the others. |
 | `upkeep_level` | int | per machine | How many of the upkeep item the fuel slot is kept at. 16 for the Burner Pump and the Coal Generator, 0 for the others. 0 switches upkeep off. |
+| `restart_below` | number | per machine | Restart threshold of the Coal Generator and the pumps, as a fraction of their buffer. Once the buffer is full the machine stays off until the buffer holds less than this share of its capacity, then runs until it is full again. 0.5 for the Coal Generator and both pumps; 1 restarts as soon as there is room. Values outside 0 to 1 are clamped. Other machines ignore it. |
 
 ## Example
 
@@ -42,7 +43,8 @@ The shipped `data/servus_foundation/machine/coal_generator.json`:
   "work_ticks": 1,
   "energy_per_tick": 40,
   "energy_capacity": 16000,
-  "fuel_divisor": 4
+  "fuel_divisor": 4,
+  "restart_below": 0.5
 }
 ```
 
@@ -73,7 +75,7 @@ These are the defaults built into the code, used for any field a file leaves out
 | `servus_foundation:electric_pump` | powered | water | 20 | 20 | 8000 | 1 | 4000 |
 | `servus_foundation:electric_motor` | powered | drives the block its shaft faces | 1 | 20 | 8000 | 1 | 0 |
 
-`items_per_tick` is 0 for every machine. `item_capacity` is 64 for the Calciner and the Gnome Hollow and 0 for the others. The pumps add `fluid_per_cycle` 250 (Burner Pump) and 500 (Electric Pump) and `min_source_neighbours` 2, and the Principle Dropper `fluid_per_cycle` 25; these are 0 for every other machine. `upkeep_item` is `minecraft:coal` and `upkeep_level` 16 for the Burner Pump, the Coal Generator and the Calciner; every other machine keeps no upkeep.
+`items_per_tick` is 0 for every machine. `item_capacity` is 64 for the Calciner and the Gnome Hollow and 0 for the others. The pumps add `fluid_per_cycle` 250 (Burner Pump) and 500 (Electric Pump) and `min_source_neighbours` 2, and the Principle Dropper `fluid_per_cycle` 25; these are 0 for every other machine. `upkeep_item` is `minecraft:coal` and `upkeep_level` 16 for the Burner Pump, the Coal Generator and the Calciner; every other machine keeps no upkeep. `restart_below` is 0.5 for the Coal Generator and both pumps and 1 for every other machine.
 
 The shipped stats files repeat these defaults.
 
@@ -92,8 +94,8 @@ Which number decides how long a cycle takes depends on the machine:
 
 Fuel and energy:
 
-- **Burner machines** burn fuel only while they have work. One fuel item lasts its furnace burn time divided by `fuel_divisor`. Coal burns 1600 ticks, so with the default divisor of 1 one coal runs a burner machine for 1600 ticks, 20 cycles at 80 ticks.
-- **Generators** use the same rule: with `fuel_divisor` 4, one coal burns 400 ticks (20 seconds) at 40 FE per tick, 16000 FE in total.
+- **Burner machines** burn fuel only while they have work. A burn counts down only on ticks the machine works: without work the fire is banked, keeps its remaining time and shows as not lit. One fuel item lasts its furnace burn time divided by `fuel_divisor`. Coal burns 1600 ticks, so with the default divisor of 1 one coal runs a burner machine for 1600 ticks, 20 cycles at 80 ticks.
+- **Generators** use the same rule: with `fuel_divisor` 4, one coal burns 400 ticks (20 seconds) at 40 FE per tick, 16000 FE in total. A full buffer banks the fire, and the generator waits until its buffer drops below `restart_below`.
 - **Powered machines** draw `energy_per_tick` only on ticks they work. With less than that in the buffer, progress pauses and is kept. A cycle costs `energy_per_tick` times the cycle time, for example 20 FE x 80 ticks = 1600 FE to calcine one cobblestone.
 - **Ender Anchor** spends `energy_per_tick` for every chunk of its square every tick while it is active (1, 9 or 25 chunks with 0, 1 or 2 Anchor Upgrades) and releases its whole square when the buffer runs dry.
 

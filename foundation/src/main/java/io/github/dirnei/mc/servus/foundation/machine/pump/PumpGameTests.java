@@ -161,6 +161,29 @@ public final class PumpGameTests {
         });
     }
 
+    /** A full tank banks the Burner Pump's fire: the burn keeps its time and the pump goes dark. */
+    @ServusGameTest(timeoutTicks = 120)
+    public static void fullTankKeepsTheBurn(GameTestHelper helper) {
+        pool(helper, 4);
+        burnerPump(helper, 2);
+        BurnerPumpBlockEntity pump = helper.getBlockEntity(PUMP, BurnerPumpBlockEntity.class);
+        helper.runAfterDelay(10, () -> {
+            helper.assertTrue(pump.isBurning(), "the pump burns its coal");
+            pump.pump().tank().fill(new FluidStack(Fluids.WATER, 4000), false);
+            helper.runAfterDelay(30, () -> {
+                int banked = pump.burnTime();
+                helper.assertTrue(banked > 0, "a burn is banked");
+                helper.runAfterDelay(40, () -> {
+                    helper.assertTrue(pump.burnTime() == banked, "the banked burn keeps its time, " + banked + " then " + pump.burnTime());
+                    helper.assertFalse(pump.isBurning(), "a banked fire is not lit");
+                    helper.assertFalse(helper.getBlockState(PUMP).getValue(MachineBlock.LIT), "the pump is dark");
+                    helper.assertTrue(pump.inventory().getStackInSlot(BurnerPumpBlockEntity.SLOT_FUEL).getCount() == 1, "no new coal is lit");
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
     /** Removing the neighbouring sources stops the pump at the start of its next cycle. */
     @ServusGameTest(timeoutTicks = 200)
     public static void pumpStopsWhenSourceIsDrained(GameTestHelper helper) {

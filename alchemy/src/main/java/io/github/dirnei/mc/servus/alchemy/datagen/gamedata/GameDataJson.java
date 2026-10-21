@@ -27,7 +27,7 @@ public final class GameDataJson {
     }
 
     /** {@code stats} keeps its iteration order, so callers pass a fixed order. */
-    public record Machine(String id, String kind, List<String> recipeTypes, Map<String, Integer> stats) {
+    public record Machine(String id, String kind, List<String> recipeTypes, Map<String, Number> stats) {
     }
 
     public record Recipe(String id, String type, List<Stack> inputs, List<Stack> outputs, int time) {
@@ -103,7 +103,7 @@ public final class GameDataJson {
         next();
         key("recipe_types");
         strings(machine.recipeTypes());
-        for (Map.Entry<String, Integer> stat : machine.stats().entrySet()) {
+        for (Map.Entry<String, Number> stat : machine.stats().entrySet()) {
             next();
             key(stat.getKey()).append(stat.getValue());
         }

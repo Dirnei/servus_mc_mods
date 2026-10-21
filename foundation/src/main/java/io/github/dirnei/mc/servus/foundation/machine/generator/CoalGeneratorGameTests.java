@@ -242,4 +242,58 @@ public final class CoalGeneratorGameTests {
         helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK, pos, Direction.EAST) != null, "items on a free side");
         helper.succeed();
     }
+
+    private static CoalGeneratorBlockEntity burningGenerator(GameTestHelper helper) {
+        place(helper, GEN, Direction.NORTH);
+        CoalGeneratorBlockEntity generator = helper.getBlockEntity(GEN, CoalGeneratorBlockEntity.class);
+        generator.inventory().setStackInSlot(CoalGeneratorBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 2));
+        return generator;
+    }
+
+    /** A full buffer banks the fire: the burn keeps its time, no coal is taken and the generator goes dark. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void fullBufferKeepsTheBurn(GameTestHelper helper) {
+        CoalGeneratorBlockEntity generator = burningGenerator(helper);
+        helper.runAfterDelay(10, () -> {
+            helper.assertTrue(generator.isBurning(), "the generator burns its coal");
+            generator.energyStorage().setEnergy(generator.energyStorage().getMaxEnergyStored());
+            helper.runAfterDelay(5, () -> {
+                int banked = generator.burnTime();
+                helper.assertTrue(banked > 0, "a burn is banked");
+                helper.runAfterDelay(40, () -> {
+                    helper.assertTrue(generator.burnTime() == banked, "the banked burn keeps its time, " + banked + " then " + generator.burnTime());
+                    helper.assertFalse(generator.isBurning(), "a banked fire is not lit");
+                    helper.assertFalse(helper.getBlockState(GEN).getValue(MachineBlock.LIT), "the cube is dark");
+                    helper.assertFalse(helper.getBlockState(GEN.above()).getValue(MachineBlock.LIT), "the chimney is dark");
+                    helper.assertTrue(generator.inventory().getStackInSlot(CoalGeneratorBlockEntity.SLOT_FUEL).getCount() == 1, "no new coal is lit");
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    /** A generator that filled up stays off at 60 percent and runs again once its buffer drops below half. */
+    @ServusGameTest(timeoutTicks = 120)
+    public static void restartsOnlyBelowHalf(GameTestHelper helper) {
+        CoalGeneratorBlockEntity generator = burningGenerator(helper);
+        helper.runAfterDelay(10, () -> {
+            int capacity = generator.energyStorage().getMaxEnergyStored();
+            generator.energyStorage().setEnergy(capacity);
+            helper.runAfterDelay(5, () -> {
+                int sixty = capacity * 6 / 10;
+                generator.energyStorage().setEnergy(sixty);
+                helper.runAfterDelay(20, () -> {
+                    helper.assertTrue(generator.energyStorage().getEnergyStored() == sixty, "the generator waits at 60 percent");
+                    helper.assertFalse(helper.getBlockState(GEN).getValue(MachineBlock.LIT), "a waiting generator is dark");
+                    int belowHalf = capacity / 2 - 100;
+                    generator.energyStorage().setEnergy(belowHalf);
+                    helper.runAfterDelay(10, () -> {
+                        helper.assertTrue(generator.energyStorage().getEnergyStored() > belowHalf, "the generator runs again below half");
+                        helper.assertTrue(helper.getBlockState(GEN).getValue(MachineBlock.LIT), "a running generator is lit");
+                        helper.succeed();
+                    });
+                });
+            });
+        });
+    }
 }

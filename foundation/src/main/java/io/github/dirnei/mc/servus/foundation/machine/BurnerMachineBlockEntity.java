@@ -14,12 +14,14 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * A machine that burns furnace fuel. Fuel is consumed only when work is
- * available; once lit it burns down like a furnace.
+ * available, and a burn counts down only on ticks the machine works: without
+ * work the fire is banked, keeping its remaining time, and shows as not lit.
  */
 public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
 
     protected int burnTime;
     protected int burnDuration;
+    private boolean lit;
 
     private String upkeepId = "";
     private ItemStack upkeepStack = ItemStack.EMPTY;
@@ -75,8 +77,14 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
         return slot == fuelSlot();
     }
 
+    /** Whether the fire burns right now; a banked burn is not lit. */
     public boolean isBurning() {
-        return burnTime > 0;
+        return lit;
+    }
+
+    /** Ticks left of the current burn, also while it is banked. */
+    public int burnTime() {
+        return burnTime;
     }
 
     /**
@@ -89,12 +97,13 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
 
     @Override
     protected boolean tick() {
-        boolean hasWork = canWork();
+        lit = burn(canWork());
+        return lit;
+    }
+
+    private boolean burn(boolean hasWork) {
         if (eternalFire()) {
             return workOverEternalFire(hasWork);
-        }
-        if (burnTime > 0) {
-            burnTime--;
         }
         if (!hasWork) {
             resetProgress();
@@ -106,6 +115,8 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
         if (burnTime <= 0) {
             return false;
         }
+        burnTime--;
+        setChanged();
         if (stepProgress()) {
             finishWork();
         }
@@ -141,14 +152,14 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
         inventory.setStackInSlot(fuelSlot(), fuel.isEmpty() ? remainder : fuel);
     }
 
-    /** An eternal fire shows as a full burn. */
+    /** An eternal fire shows as a full burn, a banked fire as none. */
     @Override
     protected int getData(int index) {
         if (eternalFire() && (index == DATA_BURN_TIME || index == DATA_BURN_DURATION)) {
             return 1;
         }
         return switch (index) {
-            case DATA_BURN_TIME -> burnTime;
+            case DATA_BURN_TIME -> lit ? burnTime : 0;
             case DATA_BURN_DURATION -> burnDuration;
             default -> super.getData(index);
         };
