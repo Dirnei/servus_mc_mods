@@ -65,7 +65,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final int DEFAULT_FIELD_CHECK_INTERVAL = 40;
     public static final int DEFAULT_FIELD_RADIUS = 2;
     public static final int DEFAULT_FIELD_MAX_RADIUS = 4;
-    public static final int DEFAULT_FIELD_CORROSION_WATER = 6000;
+    public static final int DEFAULT_FIELD_CORROSION_WATER = 9000;
     public static final int DEFAULT_AXE_DAMAGE_PER_RAIL = 2;
     public static final int DEFAULT_FIELD_ANTI_CORROSION_LEVEL = 8;
     public static final int DEFAULT_FERTILIZE_INTERVAL = 600;
