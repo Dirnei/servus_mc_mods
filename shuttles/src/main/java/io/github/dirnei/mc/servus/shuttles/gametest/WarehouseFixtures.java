@@ -16,6 +16,8 @@ import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -34,6 +36,22 @@ public final class WarehouseFixtures {
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(pos, WarehouseControllerBlockEntity.class);
         PowerFixtures.fill(controller);
+        return controller;
+    }
+
+    /**
+     * Places a controller item as a player would: the block, then the item's
+     * block entity data, then its components, then {@code setPlacedBy}.
+     */
+    public static WarehouseControllerBlockEntity placeController(GameTestHelper helper, BlockPos pos, Player player, ItemStack item) {
+        helper.setBlock(pos, ServusShuttlesBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        BlockPos absolute = helper.absolutePos(pos);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(pos, WarehouseControllerBlockEntity.class);
+        BlockItem.updateCustomBlockEntityTag(helper.getLevel(), player, absolute, item);
+        controller.applyComponentsFromItemStack(item);
+        BlockState state = helper.getBlockState(pos);
+        state.getBlock().setPlacedBy(helper.getLevel(), absolute, state, player, item);
         return controller;
     }
 

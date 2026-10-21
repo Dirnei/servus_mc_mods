@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.controller;
 
 import io.github.dirnei.mc.servus.shuttles.power.PowerBudget;
+import java.util.Locale;
 import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
 
 /**
@@ -25,6 +26,11 @@ public class ControllerEnergy extends SimpleEnergyHandler {
         if (onChanged != null) {
             onChanged.run();
         }
+    }
+
+    /** An FE amount with thousands separators, as the GUI and the item tooltip show it. */
+    public static String format(long fe) {
+        return String.format(Locale.ROOT, "%,d", fe);
     }
 
     /** FE stored. */

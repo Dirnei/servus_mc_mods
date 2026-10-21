@@ -54,6 +54,18 @@ public final class ServusShuttlesComponents {
                     .persistent(GantryContents.CODEC)
                     .networkSynchronized(GantryContents.STREAM_CODEC));
 
+    /** The site name a dropped Warehouse Controller keeps; missing means unnamed. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> SITE_NAME =
+            COMPONENTS.registerComponentType("site_name", builder -> builder
+                    .persistent(Codec.STRING)
+                    .networkSynchronized(ByteBufCodecs.STRING_UTF8));
+
+    /** The FE a dropped Warehouse Controller keeps; missing means none. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> CONTROLLER_ENERGY =
+            COMPONENTS.registerComponentType("controller_energy", builder -> builder
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT));
+
     private ServusShuttlesComponents() {
     }
 }

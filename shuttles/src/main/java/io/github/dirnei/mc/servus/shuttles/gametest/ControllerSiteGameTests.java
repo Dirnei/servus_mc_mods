@@ -6,12 +6,14 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.shuttles.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerItem;
 import io.github.dirnei.mc.servus.shuttles.menu.WarehouseControllerMenu;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.shuttles.order.StockRule;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.site.SiteCapacity;
 import io.github.dirnei.mc.servus.shuttles.site.SiteChunks;
@@ -21,9 +23,9 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -137,6 +139,55 @@ public final class ControllerSiteGameTests {
         });
     }
 
+    /** A mined controller drops an item with its name and FE; placed again, both are back. */
+    @ServusGameTest(template = WIDE, timeoutTicks = 60)
+    public static void minedControllerKeepsNameAndEnergy(GameTestHelper helper) {
+        BlockPos at = new BlockPos(2, 1, ROW_Z);
+        BlockPos again = new BlockPos(28, 1, ROW_Z);
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, at);
+        controller.setSiteName("North Mine");
+        controller.setEnergy(12000);
+        helper.getLevel().destroyBlock(helper.absolutePos(at), true);
+        helper.assertBlockNotPresent(ServusShuttlesBlocks.WAREHOUSE_CONTROLLER.get(), at);
+        ItemStack item = controllerDrop(helper, at);
+        helper.assertTrue(item.getCount() == 1, "one controller item drops, got " + item.getCount());
+        List<String> lines = WarehouseControllerItem.carriedLines(item).stream()
+                .map(line -> line.getContents() instanceof TranslatableContents text
+                        ? text.getKey() + List.of(text.getArgs()) : line.getString())
+                .toList();
+        helper.assertTrue(lines.equals(List.of("tooltip.servus_shuttles.warehouse_controller.site[North Mine]",
+                "tooltip.servus_shuttles.warehouse_controller.energy[12,000]")), "the tooltip names the site and the FE: " + lines);
+
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        WarehouseControllerBlockEntity placed = WarehouseFixtures.placeController(helper, again, player, item);
+        helper.assertTrue(placed.siteName().equals("North Mine"), "the name travels, was '" + placed.siteName() + "'");
+        helper.assertTrue(placed.energyStored() == 12000, "the FE travels, has " + placed.energyStored());
+        helper.succeed();
+    }
+
+    /** An item carrying more FE than the capacity fills the placed controller only up to it; a fresh item brings none. */
+    @ServusGameTest(template = WIDE, timeoutTicks = 40)
+    public static void placedEnergyIsCappedAtCapacity(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack fresh = new ItemStack(ServusShuttlesItems.WAREHOUSE_CONTROLLER.get());
+        helper.assertTrue(WarehouseControllerItem.carriedLines(fresh).isEmpty(), "a fresh item shows no site and no FE");
+        WarehouseControllerBlockEntity empty = WarehouseFixtures.placeController(helper, new BlockPos(2, 1, ROW_Z), player, fresh);
+        helper.assertTrue(empty.energyStored() == 0, "a fresh controller holds no FE, has " + empty.energyStored());
+
+        ItemStack over = new ItemStack(ServusShuttlesItems.WAREHOUSE_CONTROLLER.get());
+        int capacity = ShuttlesStatsManager.INSTANCE.controllerEnergyCapacity();
+        over.set(ServusShuttlesComponents.CONTROLLER_ENERGY.get(), capacity + 50000);
+        WarehouseControllerBlockEntity full = WarehouseFixtures.placeController(helper, new BlockPos(28, 1, ROW_Z), player, over);
+        helper.assertTrue(full.energyStored() == capacity, "capped at " + capacity + ", has " + full.energyStored());
+        helper.succeed();
+    }
+
+    private static ItemStack controllerDrop(GameTestHelper helper, BlockPos at) {
+        return helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(at)).inflate(1)).stream()
+                .map(ItemEntity::getItem).filter(stack -> stack.is(ServusShuttlesItems.WAREHOUSE_CONTROLLER.get()))
+                .findFirst().orElseThrow();
+    }
+
     /** Name and rules ride the dismantled item, upgrades drop, the span starts over at the new place. */
     @ServusGameTest(template = WIDE, timeoutTicks = 60)
     public static void nameSavedAndCarriedByCarrot(GameTestHelper helper) {
@@ -144,6 +195,7 @@ public final class ControllerSiteGameTests {
         BlockPos again = new BlockPos(28, 1, ROW_Z);
         WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, at);
         controller.setSiteName("  North Mine ");
+        controller.setEnergy(12000);
         controller.rules().set(new StockRule(ItemKey.of(new ItemStack(Items.STICK)), 8, 16));
         controller.upgrades().insertItem(0, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
         controller.setSpan(Set.of(controller.homeChunk(), SiteChunks.key(9999, 9999)));
@@ -159,10 +211,9 @@ public final class ControllerSiteGameTests {
                 .mapToInt(ItemStack::getCount).sum();
         helper.assertTrue(upgrades == 1, "the upgrade drops on its own, got " + upgrades);
 
-        WarehouseControllerBlockEntity placed = WarehouseFixtures.controller(helper, again);
-        BlockItem.updateCustomBlockEntityTag(helper.getLevel(), player, helper.absolutePos(again), item);
-        helper.getBlockState(again).getBlock().setPlacedBy(helper.getLevel(), helper.absolutePos(again), helper.getBlockState(again), player, item);
+        WarehouseControllerBlockEntity placed = WarehouseFixtures.placeController(helper, again, player, item);
         helper.assertTrue(placed.siteName().equals("North Mine"), "the name travels, was '" + placed.siteName() + "'");
+        helper.assertTrue(placed.energyStored() == 12000, "the FE travels, has " + placed.energyStored());
         helper.assertTrue(placed.displayName().equals("North Mine"), "the display name is the name");
         helper.assertTrue(placed.rules().get(ItemKey.of(new ItemStack(Items.STICK))) != null, "the rules travel");
         helper.assertTrue(placed.upgrades().count() == 0, "the item carries no upgrades");

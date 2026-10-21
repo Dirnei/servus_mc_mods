@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.order.StockRules;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.site.SiteCapacity;
 import io.github.dirnei.mc.servus.shuttles.site.SiteChunks;
@@ -316,13 +317,6 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
                 ShuttlesStatsManager.INSTANCE.wirelessFePerItem());
     }
 
-    /** A dismantled or newly placed controller carries no FE in its item. */
-    public void clearEnergyForItem() {
-        energy.load(0);
-        wasCapable = capable();
-        wasPowered = poweredForWireless();
-    }
-
     private void energyChanged() {
         setChanged();
         wirelessStateChanged();
@@ -490,12 +484,26 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         woodSlot.apply(input.get(WoodContent.WOOD.get()));
+        String name = input.get(ServusShuttlesComponents.SITE_NAME.get());
+        if (name != null) {
+            setSiteName(name);
+        }
+        Integer carried = input.get(ServusShuttlesComponents.CONTROLLER_ENERGY.get());
+        if (carried != null) {
+            energy.setStored(carried);
+        }
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
         woodSlot.collect(builder);
+        if (!siteName.isEmpty()) {
+            builder.set(ServusShuttlesComponents.SITE_NAME.get(), siteName);
+        }
+        if (energy.stored() > 0) {
+            builder.set(ServusShuttlesComponents.CONTROLLER_ENERGY.get(), energy.stored());
+        }
     }
 
     @Override
@@ -503,6 +511,8 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
         WoodSlot.removeFromTag(output);
+        output.discard("SiteName");
+        output.discard("Energy");
     }
 
     @Override

@@ -42,7 +42,6 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -232,7 +231,7 @@ public final class ControllerWirelessGameTests {
         helper.succeed();
     }
 
-    /** Dismantling drops the Wireless Upgrade; the controller item carries no FE and no upgrade. */
+    /** Dismantling drops the Wireless Upgrade; the controller item carries its FE but no upgrade. */
     @ServusGameTest(timeoutTicks = 40)
     public static void upgradeDropsWhenDismantled(GameTestHelper helper) {
         BlockPos at = new BlockPos(2, 1, 2);
@@ -251,10 +250,8 @@ public final class ControllerWirelessGameTests {
         helper.assertTrue(upgrades == 1, "the Wireless Upgrade drops on its own, got " + upgrades);
         ItemStack item = drops.stream().map(ItemEntity::getItem)
                 .filter(stack -> stack.is(ServusShuttlesItems.WAREHOUSE_CONTROLLER.get())).findFirst().orElseThrow();
-        WarehouseControllerBlockEntity placed = controller(helper, again, UUID.randomUUID());
-        BlockItem.updateCustomBlockEntityTag(helper.getLevel(), player, helper.absolutePos(again), item);
-        helper.getBlockState(again).getBlock().setPlacedBy(helper.getLevel(), helper.absolutePos(again), helper.getBlockState(again), player, item);
-        helper.assertTrue(placed.energyStored() == 0, "the item carries no FE, has " + placed.energyStored());
+        WarehouseControllerBlockEntity placed = WarehouseFixtures.placeController(helper, again, player, item);
+        helper.assertTrue(placed.energyStored() == 12000, "the item carries the FE, has " + placed.energyStored());
         helper.assertTrue(!placed.hasWirelessUpgrade(), "the item carries no Wireless Upgrade");
         helper.succeed();
     }

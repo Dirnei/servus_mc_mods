@@ -89,14 +89,13 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
         super.setPlacedBy(level, pos, state, placer, stack);
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
             controller.resetSpan();
-            controller.clearEnergyForItem();
             if (placer instanceof ServerPlayer player) {
                 controller.setTeam(Teams.teamOf(player));
             }
         }
     }
 
-    /** The carrot turns the block; sneaking dismantles it, the item keeping the name and the rules. */
+    /** The carrot turns the block; sneaking dismantles it, the item keeping the name, the FE and the rules. */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         Level level = context.getLevel();
@@ -108,7 +107,6 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
                 ItemStack drop = new ItemStack(this);
                 if (level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
                     controller.dropUpgrades(level, pos);
-                    controller.clearEnergyForItem();
                     BlockEntityItems.saveToItem(controller, drop, level.registryAccess());
                 }
                 Block.popResource(level, pos, drop);

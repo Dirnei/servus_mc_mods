@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.registry;
 
 import io.github.dirnei.mc.servus.foundation.wood.WoodBlockItem;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
+import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerItem;
 import io.github.dirnei.mc.servus.shuttles.controller.WirelessUpgradeItem;
 import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryItem;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackItem;
@@ -24,8 +25,8 @@ public final class ServusShuttlesItems {
     public static final DeferredItem<HeavyRackItem> HEAVY_RACK = ITEMS.registerItem("heavy_rack",
             properties -> new HeavyRackItem(ServusShuttlesBlocks.HEAVY_RACK.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
-    public static final DeferredItem<WoodBlockItem> WAREHOUSE_CONTROLLER = ITEMS.registerItem("warehouse_controller",
-            properties -> new WoodBlockItem(ServusShuttlesBlocks.WAREHOUSE_CONTROLLER.get(), properties),
+    public static final DeferredItem<WarehouseControllerItem> WAREHOUSE_CONTROLLER = ITEMS.registerItem("warehouse_controller",
+            properties -> new WarehouseControllerItem(ServusShuttlesBlocks.WAREHOUSE_CONTROLLER.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
     public static final DeferredItem<WoodBlockItem> STORAGE_TERMINAL = ITEMS.registerItem("storage_terminal",
             properties -> new WoodBlockItem(ServusShuttlesBlocks.STORAGE_TERMINAL.get(), properties),

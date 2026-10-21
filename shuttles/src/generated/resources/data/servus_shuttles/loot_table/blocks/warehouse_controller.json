@@ -4,7 +4,9 @@
     {
       "function": "minecraft:copy_components",
       "include": [
-        "servus_foundation:wood"
+        "servus_foundation:wood",
+        "servus_shuttles:site_name",
+        "servus_shuttles:controller_energy"
       ],
       "source": "block_entity"
     }

@@ -207,6 +207,7 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - `m10-lumber`: a Lumber module for tree fields; later field kinds beyond crops.
 - SEND and KEEP rules between sites in the controller GUI (the local min/max stock rules join the same list) and an In transit view.
 - Wireless Terminal with range tiers.
+- Stock rules in a mined Warehouse Controller item, if the play tests ask for them (today only the carrot dismantle keeps them; name and FE travel both ways).
 - Outbound dock: delivery by teleport or by courier drone to a landing pad.
 - Explore shuttle portals between sites, overland cargo carts and a separate Servus: Transit mod for passenger travel.
 

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
+import io.github.dirnei.mc.servus.shuttles.controller.ControllerEnergy;
 import io.github.dirnei.mc.servus.shuttles.controller.RenameSitePayload;
 import io.github.dirnei.mc.servus.shuttles.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.shuttles.menu.WarehouseControllerMenu;
@@ -321,18 +322,14 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         }
         energyLineY = y;
         boolean energyOk = !status.noPower() && (status.capable() || status.hint() != SiteStatusPayload.HINT_NO_POWER);
-        y = lines(graphics, Component.translatable("gui.servus_shuttles.controller.energy_use", thousands(status.energy()),
-                thousands(status.energyCapacity()), thousands(status.used())), y, energyOk ? COLOUR_TEXT : COLOUR_BAD);
+        y = lines(graphics, Component.translatable("gui.servus_shuttles.controller.energy_use", ControllerEnergy.format(status.energy()),
+                ControllerEnergy.format(status.energyCapacity()), ControllerEnergy.format(status.used())), y, energyOk ? COLOUR_TEXT : COLOUR_BAD);
         if (status.noPower()) {
             y = lines(graphics, Component.translatable("gui.servus_shuttles.controller.no_power"), y, COLOUR_BAD);
         }
         if (!status.wake().getString().isEmpty()) {
             lines(graphics, status.wake(), y, status.wakeAlert() ? COLOUR_BAD : COLOUR_TEXT);
         }
-    }
-
-    private static String thousands(long value) {
-        return String.format(Locale.ROOT, "%,d", value);
     }
 
     /** Draws a wrapped text at the status column above the upgrade label; returns the y below it. */

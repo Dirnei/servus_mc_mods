@@ -494,5 +494,7 @@
   "tooltip.servus_shuttles.shuttle.handling": "Handling upgrades: %s",
   "tooltip.servus_shuttles.shuttle.plain": "No upgrades",
   "tooltip.servus_shuttles.shuttle.speed": "Speed upgrades: %s",
-  "tooltip.servus_shuttles.shuttle.tool": "Tool: %s"
+  "tooltip.servus_shuttles.shuttle.tool": "Tool: %s",
+  "tooltip.servus_shuttles.warehouse_controller.energy": "%s FE stored",
+  "tooltip.servus_shuttles.warehouse_controller.site": "Site: %s"
 }
