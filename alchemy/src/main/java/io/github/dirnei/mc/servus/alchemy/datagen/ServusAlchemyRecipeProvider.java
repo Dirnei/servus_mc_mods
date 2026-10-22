@@ -226,7 +226,7 @@ final class ServusAlchemyRecipeProvider extends RecipeProvider {
                 .pattern("BCB")
                 .pattern("BFB")
                 .pattern("BBB")
-                .define('B', Items.BRICKS)
+                .define('B', Items.STONE_BRICKS)
                 .define('C', Items.CAULDRON)
                 .define('F', Items.BLAST_FURNACE)
                 .unlockedBy("has_blast_furnace", has(Items.BLAST_FURNACE))
@@ -239,10 +239,10 @@ final class ServusAlchemyRecipeProvider extends RecipeProvider {
                 .save(output, key("journal"));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusAlchemyItems.COAGULATOR.get())
-                .pattern("IGI")
+                .pattern("SGS")
                 .pattern("GCG")
-                .pattern("IRI")
-                .define('I', Items.IRON_INGOT)
+                .pattern("SRS")
+                .define('S', Items.COBBLESTONE)
                 .define('G', Items.GLASS)
                 .define('C', Items.CAULDRON)
                 .define('R', Items.REDSTONE)

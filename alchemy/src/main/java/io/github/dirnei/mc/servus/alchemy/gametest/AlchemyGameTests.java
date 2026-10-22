@@ -41,6 +41,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.advancements.AdvancementHolder;
@@ -944,6 +945,17 @@ public final class AlchemyGameTests {
             helper.assertTrue(helper.getLevel().getServer().getResourceManager().getResource(file).isPresent(),
                     "the Workshop should have the entry " + entry);
         }
+        helper.succeed();
+    }
+
+    /** The Athanor crafts from Stone Bricks; vanilla Bricks in its pattern make nothing. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void athanorRecipe(GameTestHelper helper) {
+        String[] rows = {"BCB", "BFB", "BBB"};
+        CraftingGrids.assertCrafts(helper, CraftingGrids.crafted(helper,
+                Map.of('B', Items.STONE_BRICKS, 'C', Items.CAULDRON, 'F', Items.BLAST_FURNACE), rows), ServusAlchemyItems.ATHANOR.get());
+        helper.assertTrue(CraftingGrids.crafted(helper,
+                Map.of('B', Items.BRICKS, 'C', Items.CAULDRON, 'F', Items.BLAST_FURNACE), rows).isEmpty(), "bricks make no Athanor");
         helper.succeed();
     }
 }

@@ -262,14 +262,14 @@
       "type": "minecraft:crafting_shaped",
       "pattern": ["BCB", "BFB", "BBB"],
       "key": {
-        "B": {"item": "minecraft:bricks"},
+        "B": {"item": "minecraft:stone_bricks"},
         "C": {"item": "minecraft:cauldron"},
         "F": {"item": "minecraft:blast_furnace"}
       },
       "inputs": [
         {"item": "minecraft:blast_furnace", "count": 1},
-        {"item": "minecraft:bricks", "count": 7},
-        {"item": "minecraft:cauldron", "count": 1}
+        {"item": "minecraft:cauldron", "count": 1},
+        {"item": "minecraft:stone_bricks", "count": 7}
       ],
       "outputs": [
         {"item": "servus_alchemy:athanor", "count": 1}
@@ -443,17 +443,17 @@
     },
     "servus_alchemy:coagulator": {
       "type": "minecraft:crafting_shaped",
-      "pattern": ["IGI", "GCG", "IRI"],
+      "pattern": ["SGS", "GCG", "SRS"],
       "key": {
         "C": {"item": "minecraft:cauldron"},
         "G": {"item": "minecraft:glass"},
-        "I": {"item": "minecraft:iron_ingot"},
-        "R": {"item": "minecraft:redstone"}
+        "R": {"item": "minecraft:redstone"},
+        "S": {"item": "minecraft:cobblestone"}
       },
       "inputs": [
         {"item": "minecraft:cauldron", "count": 1},
+        {"item": "minecraft:cobblestone", "count": 4},
         {"item": "minecraft:glass", "count": 3},
-        {"item": "minecraft:iron_ingot", "count": 4},
         {"item": "minecraft:redstone", "count": 1}
       ],
       "outputs": [

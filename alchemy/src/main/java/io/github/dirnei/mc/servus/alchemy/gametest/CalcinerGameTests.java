@@ -25,8 +25,7 @@ import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -38,8 +37,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.item.crafting.CraftingInput;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HopperBlock;
@@ -693,9 +690,9 @@ public final class CalcinerGameTests {
     /** The Firebox, Ash Pan and Calciner craft from the stone they are drawn in. */
     @ServusGameTest(timeoutTicks = 20)
     public static void calcinerPartRecipes(GameTestHelper helper) {
-        assertCrafts(helper, crafted(helper, Items.POLISHED_DEEPSLATE, Items.IRON_BARS, Items.FURNACE, "BIB", "BFB"), ServusAlchemyItems.FIREBOX.get());
-        assertCrafts(helper, crafted(helper, Items.DEEPSLATE_TILES, Items.IRON_INGOT, Items.AIR, "B B", "BIB"), ServusAlchemyItems.ASH_PAN.get());
-        assertCrafts(helper, crafted(helper, Items.STONE_BRICKS, Items.IRON_BARS, Items.CAULDRON, "BIB", "BFB"), ServusAlchemyItems.CALCINER.get());
+        CraftingGrids.assertCrafts(helper, crafted(helper, Items.POLISHED_DEEPSLATE, Items.IRON_BARS, Items.FURNACE, "BIB", "BFB"), ServusAlchemyItems.FIREBOX.get());
+        CraftingGrids.assertCrafts(helper, crafted(helper, Items.DEEPSLATE_TILES, Items.IRON_INGOT, Items.AIR, "B B", "BIB"), ServusAlchemyItems.ASH_PAN.get());
+        CraftingGrids.assertCrafts(helper, crafted(helper, Items.STONE_BRICKS, Items.IRON_BARS, Items.CAULDRON, "BIB", "BFB"), ServusAlchemyItems.CALCINER.get());
         helper.succeed();
     }
 
@@ -708,26 +705,8 @@ public final class CalcinerGameTests {
         helper.succeed();
     }
 
-    private static void assertCrafts(GameTestHelper helper, ItemStack result, Item expected) {
-        helper.assertTrue(result.is(expected) && result.getCount() == 1, "one " + expected + " expected, got " + result);
-    }
-
     /** What a grid of {@code rows} crafts, with B {@code stone}, I {@code iron}, F {@code middle} and blanks empty. */
     private static ItemStack crafted(GameTestHelper helper, Item stone, Item iron, Item middle, String... rows) {
-        List<ItemStack> grid = new ArrayList<>();
-        for (String row : rows) {
-            for (char c : row.toCharArray()) {
-                grid.add(switch (c) {
-                    case 'B' -> new ItemStack(stone);
-                    case 'F' -> new ItemStack(middle);
-                    case 'I' -> new ItemStack(iron);
-                    default -> ItemStack.EMPTY;
-                });
-            }
-        }
-        CraftingInput input = CraftingInput.of(3, rows.length, grid);
-        return helper.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
-                .map(holder -> holder.value().assemble(input))
-                .orElse(ItemStack.EMPTY);
+        return CraftingGrids.crafted(helper, Map.of('B', stone, 'I', iron, 'F', middle), rows);
     }
 }

@@ -24,6 +24,7 @@ import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -244,6 +245,19 @@ public final class CoagulatorGameTests {
         helper.assertTrue(schematic.validate(helper.getLevel(), helper.absolutePos(COAGULATOR)) != null, "the schematic accepts the build");
         helper.setBlock(vat(COAGULATOR, 0), Blocks.AIR);
         helper.assertTrue(schematic.validate(helper.getLevel(), helper.absolutePos(COAGULATOR)) == null, "and refuses it without a Vat");
+        helper.succeed();
+    }
+
+    /** The Coagulator crafts with cobblestone in the corners; iron ingots there make nothing. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void coagulatorRecipe(GameTestHelper helper) {
+        String[] rows = {"SGS", "GCG", "SRS"};
+        CraftingGrids.assertCrafts(helper, CraftingGrids.crafted(helper,
+                Map.of('S', Items.COBBLESTONE, 'G', Items.GLASS, 'C', Items.CAULDRON, 'R', Items.REDSTONE), rows),
+                ServusAlchemyItems.COAGULATOR.get());
+        helper.assertTrue(CraftingGrids.crafted(helper,
+                Map.of('S', Items.IRON_INGOT, 'G', Items.GLASS, 'C', Items.CAULDRON, 'R', Items.REDSTONE), rows).isEmpty(),
+                "iron makes no Coagulator");
         helper.succeed();
     }
 }

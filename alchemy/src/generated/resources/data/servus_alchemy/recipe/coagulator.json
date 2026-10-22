@@ -4,13 +4,13 @@
   "key": {
     "C": "minecraft:cauldron",
     "G": "minecraft:glass",
-    "I": "minecraft:iron_ingot",
-    "R": "minecraft:redstone"
+    "R": "minecraft:redstone",
+    "S": "minecraft:cobblestone"
   },
   "pattern": [
-    "IGI",
+    "SGS",
     "GCG",
-    "IRI"
+    "SRS"
   ],
   "result": {
     "id": "servus_alchemy:coagulator"

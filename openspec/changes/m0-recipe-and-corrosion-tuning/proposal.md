@@ -7,6 +7,7 @@ Three small tuning points from play: the Calciner parts are drawn in Stone Brick
 ## What Changes
 
 - Calciner recipes keep their patterns but take the stone they are drawn in: the Firebox (`BIB/BFB`) uses Polished Deepslate, the Ash Pan (`B B/BIB`) Deepslate Tiles and the Calciner block (`BIB/BCB`) Stone Bricks instead of Bricks.
+- The Athanor (`BCB/BFB/BBB`) takes Stone Bricks instead of Bricks; its hearth stays vanilla Bricks. The Coagulator becomes `SGS/GCG/SRS` with cobblestone in the corners instead of iron ingots.
 - Item Pipe becomes `CIC/GHG/CIC` (copper ingot, iron ingot, glass, chest in the middle) and Fluid Pipe `CIC/GBG/CIC` (bucket in the middle), still eight each: four copper and two iron instead of six iron.
 - Farm rail corrosion is 50% slower: `corrosion_water` in `shuttles/field.json` goes from 6000 to 9000 mB, and the code default follows.
 - Docs follow the new materials and the new watering time.
@@ -21,6 +22,8 @@ None.
 
 - `alchemy/calciner`: the Calciner crafting scenario names Stone Bricks instead of bricks.
 - `alchemy/calciner-structure`: the parts requirement gains Firebox and Ash Pan recipe scenarios with their stone.
+- `alchemy/athanor`: the Athanor is crafted from Stone Bricks.
+- `alchemy/coagulator`: the Coagulator is crafted with cobblestone instead of iron.
 - `foundation/utility-duct`: Item and Fluid Pipes are crafted from copper ingots, iron ingots, glass and a chest or bucket.
 - `shuttles/rail-corrosion`: the `corrosion_water` example becomes 9000.
 
@@ -34,5 +37,6 @@ None.
 ## Non-goals
 
 - No change to the Calciner layout, its model or the stone blocks around it.
+- No change to the Athanor hearth, which stays 13 vanilla Bricks.
 - No change to Power Cable, Data Cable or other duct line recipes.
 - No change to the anti-corrosion item use or any other field number.

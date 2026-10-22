@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "B": "minecraft:bricks",
+    "B": "minecraft:stone_bricks",
     "C": "minecraft:cauldron",
     "F": "minecraft:blast_furnace"
   },
