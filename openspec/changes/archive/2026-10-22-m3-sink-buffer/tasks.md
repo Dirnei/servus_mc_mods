@@ -82,7 +82,7 @@
   - show the rates line and the red refusal message.
 
   Update the lang strings in `MachineDataParts`: remove `trash` and `hint`, and add the rate units per second, the refusal message and the tooltips. Then run datagen. Verify with `gradlew :foundation:runData` and `gradlew :foundation:build`.
-- [ ] 5.3 Play check by the user once the change is merged to main; the client is launched from the main checkout, never from a worktree:
+- [x] 5.3 Play check by the user once the change is merged to main; the client is launched from the main checkout, never from a worktree:
   - fill the Sink with a hopper and with pipes;
   - watch the batches at chimney heights 0, 2 and 5;
   - add and remove upgrades, including the refusal;
@@ -97,7 +97,7 @@
 
 ## 7. Integration
 
-- [ ] 7.1 Full `gradlew build` and `gradlew test` green, GameTests green, and the game launches with all mods.
+- [x] 7.1 Full `gradlew build` and `gradlew test` green, GameTests green, and the game launches with all mods.
 
 ## Workflow follow-up
 
