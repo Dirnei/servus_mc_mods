@@ -17,4 +17,4 @@
 
 ## 4. Play check
 
-- [ ] 4.1 The user checks in game that an Ender Anchor works with FTB Chunks installed.
+- [x] 4.1 The user checks in game that an Ender Anchor works with FTB Chunks installed.

@@ -44,11 +44,19 @@ A team's load SHALL be the number of distinct chunks held by its active anchors 
 - **THEN** its new area of 25 chunks is checked against a load of 36, does not fit, and the anchor releases its area with "team limit reached"
 
 ### Requirement: FTB Chunks respected
-When FTB Chunks is installed and `enderAnchorRespectsFtbChunks` is true (default), Ender Anchors SHALL stay inactive and show a status pointing to FTB Chunks.
+Ender Anchors SHALL work normally when FTB Chunks is installed, since the server config `enderAnchorRespectsFtbChunks` is false by default. When FTB Chunks is installed and `enderAnchorRespectsFtbChunks` is true, Ender Anchors SHALL stay inactive, load no chunk and show a status pointing to FTB Chunks.
 
 #### Scenario: FTB Chunks present
-- **WHEN** FTB Chunks is installed with the default config
-- **THEN** a placed Ender Anchor is inactive and its GUI says to use FTB Chunks
+- **WHEN** FTB Chunks is installed with the default config and a powered, owned Ender Anchor is placed
+- **THEN** the anchor is active and loads its square
+
+#### Scenario: Option on
+- **WHEN** FTB Chunks is installed, `enderAnchorRespectsFtbChunks` is true and a powered, owned Ender Anchor is placed
+- **THEN** the anchor is inactive, loads no chunk and its GUI says to use FTB Chunks
+
+#### Scenario: Option on without FTB Chunks
+- **WHEN** FTB Chunks is not installed and `enderAnchorRespectsFtbChunks` is true
+- **THEN** a powered, owned Ender Anchor is active as usual
 
 ### Requirement: Tickets survive and are cleaned up
 Chunk tickets SHALL survive a restart while the anchor stays active, and SHALL be released for every chunk of its area when the anchor is broken or dismantled, or when its area changes and a chunk is no longer part of it.
