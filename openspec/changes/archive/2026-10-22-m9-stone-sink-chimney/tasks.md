@@ -80,7 +80,7 @@ Apply after `m0-material-kinds` (applied on the same branch, not archived yet, a
 ## 7. Integration
 
 - [x] 7.1 Full `gradlew build` and `gradlew test` green, `:foundation:runGameTestServer` and `:shuttles:runGameTestServer` green (or failures shown to be pre-existing on main), `openspec validate m9-stone-sink-chimney --strict` passes, and the game launches with all mods (the GameTest servers loaded every mod; the client launch is part of the play check 7.2, from the main checkout).
-- [ ] 7.2 Play check by the user from the main checkout:
+- [x] 7.2 Play check by the user from the main checkout:
   - craft Sink and Chimney blocks from several stones and check that the tooltips name the stone;
   - build a cube of one stone and form it; try a mixed cube and read the refusal;
   - check the casing and formed faces in the stone, with the iron frame, grate and fan unchanged;

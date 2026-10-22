@@ -30,4 +30,4 @@
 ## 6. Integration
 
 - [x] 6.1 Full `gradlew build` and `gradlew test` green, Foundation and Shuttles GameTests green, `openspec validate m0-material-kinds --strict` passes, and the game launches with all mods (the GameTest servers loaded every mod; the client launch is part of the play check 6.2, from the main checkout).
-- [ ] 6.2 Play check by the user from the main checkout: craft a few wood blocks (Storage Terminal, Shuttle Garage, Warehouse Rail, Machine Adapter, Heavy Duty Rack) from different planks; they look, drop (mined and dismantled) and name their wood in the tooltip as before; JEI shows the recipes cycling any planks.
+- [x] 6.2 Play check by the user from the main checkout: craft a few wood blocks (Storage Terminal, Shuttle Garage, Warehouse Rail, Machine Adapter, Heavy Duty Rack) from different planks; they look, drop (mined and dismantled) and name their wood in the tooltip as before; JEI shows the recipes cycling any planks.
