@@ -12,7 +12,7 @@ A burner machine SHALL count its burn down only on ticks it works. While it has 
 - **THEN** it works on the paused burn and takes the next fuel item only when that burn has ended
 
 ### Requirement: Restart threshold
-A machine with a buffer it fills (an FE buffer or a water tank) MAY have a restart threshold `restart_below` in its machine stats, a fraction of the buffer's capacity between 0 and 1. Once its buffer is full, such a machine SHALL stay off until the buffer holds less than `restart_below` times its capacity, and SHALL then run until the buffer is full again. With `restart_below` 1, or without the field on a machine that has no threshold of its own, the machine SHALL run again as soon as the buffer has room. The waiting state SHALL be kept when the world is saved and loaded.
+A machine with a buffer it fills (an FE buffer or a water tank) MAY have a restart threshold `restart_below` in its machine stats, a fraction of the buffer's capacity between 0 and 1. Once its buffer is full, which means it has no room left for one more work cycle (one tick of FE, one `fluid_per_cycle` of water), such a machine SHALL stay off until the buffer holds less than `restart_below` times its capacity, and SHALL then run until the buffer is full again. With `restart_below` 1, or without the field on a machine that has no threshold of its own, the machine SHALL run again as soon as the buffer has room. The waiting state SHALL be kept when the world is saved and loaded.
 
 #### Scenario: Waits after full
 - **WHEN** a machine with `restart_below` 0.5 fills its buffer and a consumer then takes a little

@@ -68,7 +68,8 @@ public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
 
     @Override
     protected boolean canWork() {
-        return restart.allows(energy.isFull(), energy.getEnergyStored(), energy.getMaxEnergyStored(),
+        boolean noRoomForATick = energy.getMaxEnergyStored() - energy.getEnergyStored() < stats().energyPerTick();
+        return restart.allows(noRoomForATick, energy.getEnergyStored(), energy.getMaxEnergyStored(),
                 stats().restartBelow());
     }
 

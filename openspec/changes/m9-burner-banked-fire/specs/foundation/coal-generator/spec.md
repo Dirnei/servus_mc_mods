@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Generates FE from furnace fuel
-The generator SHALL burn any furnace fuel and produce a fixed amount of FE per tick while burning. One burn SHALL last the item's furnace burn time divided by the generator's fuel divisor, counted only on ticks the generator produces. Once its buffer is full the generator SHALL stop, keep its burn, and stay off until the buffer holds less than its `restart_below` fraction of the capacity (example 0.5), then run until the buffer is full again.
+The generator SHALL burn any furnace fuel and produce a fixed amount of FE per tick while burning. One burn SHALL last the item's furnace burn time divided by the generator's fuel divisor, counted only on ticks the generator produces. Once its buffer is full, which means it has no room left for one more tick of energy, the generator SHALL stop, keep its burn, and stay off until the buffer holds less than its `restart_below` fraction of the capacity (example 0.5), then run until the buffer is full again.
 
 #### Scenario: Coal
 - **WHEN** one coal is in the fuel slot and the buffer has room

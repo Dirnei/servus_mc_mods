@@ -30,7 +30,7 @@ A new `double restartBelow` in `MachineStats` and an optional `restart_below` in
 `io.github.dirnei.mc.servus.foundation.machine.RestartGate`, no Minecraft imports:
 `boolean allows(boolean full, long stored, long capacity, double restartBelow)` returns false and starts waiting when `full`; while waiting it returns false until `stored < capacity * restartBelow`, then stops waiting and returns true. `waiting()` and `setWaiting(boolean)` let the owner save the state. With `restartBelow` 1.0 it returns true whenever the buffer is not full, which is today's behaviour.
 
-- Coal Generator: `canWork()` is `gate.allows(energy.isFull(), stored, capacity, stats().restartBelow())`, saved as `RestartWaiting`.
+- Coal Generator: `canWork()` is `gate.allows(full, stored, capacity, stats().restartBelow())` with `full` meaning the buffer has less room than `energy_per_tick`, saved as `RestartWaiting`. Exactly full would never be seen under any load: the push after the cycle drains the buffer before the next check, so the gate would never close, and the FE above the cap would be lost every tick.
 - Pumps: `PumpLogic` owns the gate, so the Burner Pump and the Electric Pump share it at no extra cost. `full` is `tank.getSpace() < fluidPerCycle`; `stored` and `capacity` are the tank amount and `fluid_capacity`. The gate is asked every tick, also while the source is invalid, so its state follows the tank alone. `PumpLogic.save/load` keeps `RestartWaiting`. The Electric Pump spends energy only while it works, so the threshold also stops its lit state, beam and sparks from flickering with a slow drain; it saves no fuel there, only block updates.
 
 ### Lit changes only at start and stop
@@ -57,7 +57,7 @@ None new. `Codec.DOUBLE` and `optionalFieldOf` from DataFixerUpper, `ValueOutput
 
 ### Pure and Minecraft parts
 - Pure, JUnit: `RestartGate` (full stops, waits above threshold, restarts below, 1.0 means no hysteresis, state round trip, `level` rounding), `MachineStats.restartFraction` clamps and the defaults of `restart_below`, `MachineStatus.of` and `byOrdinal`.
-- Minecraft, GameTest: generator with a full buffer keeps its burn time and is unlit; generator restarts only below 50 percent and reports `WAITING` with the restart level, then `RUNNING`, through its menu data; a generator without fuel reports `OUT_OF_FUEL`; Burner Pump with a full tank keeps its burn time and reports `WAITING` with level 2000.
+- Minecraft, GameTest: generator with a full buffer keeps its burn time and is unlit; a generator drained by a small load every tick still goes to `WAITING`; generator restarts only below 50 percent and reports `WAITING` with the restart level, then `RUNNING`, through its menu data; a generator without fuel reports `OUT_OF_FUEL`; Burner Pump with a full tank keeps its burn time and reports `WAITING` with level 2000.
 - Manual play check: lamp, fire window, smoke and beam no longer flicker with a small load; the status lines and the marks read right.
 
 ### PLAN.md

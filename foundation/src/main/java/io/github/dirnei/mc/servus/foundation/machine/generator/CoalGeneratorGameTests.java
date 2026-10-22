@@ -318,4 +318,26 @@ public final class CoalGeneratorGameTests {
             });
         });
     }
+
+    /** A small load that drains a little every tick still lets the gate close once a tick's energy no longer fits. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void smallLoadStillWaits(GameTestHelper helper) {
+        CoalGeneratorBlockEntity generator = burningGenerator(helper);
+        helper.onEachTick(() -> {
+            if (helper.getTick() > 10) {
+                generator.energyStorage().extractEnergy(5, false);
+            }
+        });
+        helper.runAfterDelay(10, () -> {
+            int capacity = generator.energyStorage().getMaxEnergyStored();
+            generator.energyStorage().setEnergy(capacity - 5);
+            helper.runAfterDelay(20, () -> {
+                helper.assertTrue(generator.energyStorage().getEnergyStored() < capacity - 40,
+                        "a waiting generator adds nothing while the load drains it");
+                helper.assertFalse(helper.getBlockState(GEN).getValue(MachineBlock.LIT), "a waiting generator is dark");
+                assertMenuStatus(helper, generator, MachineStatus.WAITING);
+                helper.succeed();
+            });
+        });
+    }
 }
