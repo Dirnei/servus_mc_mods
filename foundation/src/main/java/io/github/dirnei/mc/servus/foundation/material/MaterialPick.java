@@ -1,29 +1,29 @@
-package io.github.dirnei.mc.servus.foundation.wood;
+package io.github.dirnei.mc.servus.foundation.material;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Picks the wood a block remembers from the planks in its recipe grid. The
- * id that appears most often wins; on a tie the middle entry decides. Pure,
- * no Minecraft imports.
+ * Picks the material a block remembers from the material ids in its recipe
+ * grid, the same for every kind. The id that appears most often wins; on a
+ * tie the middle entry decides. Pure, no Minecraft imports.
  */
-public final class WoodPick {
+public final class MaterialPick {
 
-    private WoodPick() {
+    private MaterialPick() {
     }
 
     /**
-     * @param planks planks ids in grid reading order
+     * @param ids material ids in grid reading order
      * @return the chosen id, or null when the list is empty
      */
-    public static String pick(List<String> planks) {
-        if (planks.isEmpty()) {
+    public static String pick(List<String> ids) {
+        if (ids.isEmpty()) {
             return null;
         }
         Map<String, Integer> counts = new LinkedHashMap<>();
-        for (String id : planks) {
+        for (String id : ids) {
             counts.merge(id, 1, Integer::sum);
         }
         String best = null;
@@ -38,6 +38,6 @@ public final class WoodPick {
                 tie = true;
             }
         }
-        return tie ? planks.get(planks.size() / 2) : best;
+        return tie ? ids.get(ids.size() / 2) : best;
     }
 }

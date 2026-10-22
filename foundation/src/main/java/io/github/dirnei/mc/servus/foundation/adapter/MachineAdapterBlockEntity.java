@@ -36,9 +36,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
+import io.github.dirnei.mc.servus.foundation.material.MaterialSlot;
 import net.minecraft.core.component.DataComponentMap;
 import net.neoforged.neoforge.model.data.ModelData;
 
@@ -47,9 +47,9 @@ import net.neoforged.neoforge.model.data.ModelData;
  * forwards ingredients and upkeep into the machine, offers its output, and
  * exposes the upkeep side's upkeep, which the data network keeps stocked.
  */
-public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder, MenuProvider {
+public class MachineAdapterBlockEntity extends BlockEntity implements MaterialHolder, MenuProvider {
 
-    private final WoodSlot woodSlot = new WoodSlot(this);
+    private final MaterialSlot materialSlot = new MaterialSlot(this);
 
     /** Ticks after which an unanswered upkeep request is given up. */
     public static final int REQUEST_TIMEOUT = DataNetwork.UPKEEP_TIMEOUT;
@@ -298,7 +298,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        woodSlot.save(output);
+        materialSlot.save(output);
         if (!upkeepItem.isEmpty()) {
             output.store("upkeep", ItemStack.CODEC, upkeepItem);
         }
@@ -309,7 +309,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        woodSlot.load(input);
+        materialSlot.load(input);
         upkeepItem = input.read("upkeep", ItemStack.CODEC).orElse(ItemStack.EMPTY);
         upkeepLevel = input.getIntOr("level", MachineProfile.DEFAULT_LEVEL);
         upkeepSet = input.getBooleanOr("set", false);
@@ -344,31 +344,31 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
     }
 
     @Override
-    public WoodSlot woodSlot() {
-        return woodSlot;
+    public MaterialSlot materialSlot() {
+        return materialSlot;
     }
 
     @Override
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
-        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+        materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
-        woodSlot.collect(builder);
+        materialSlot.collect(builder);
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
-        WoodSlot.removeFromTag(output);
+        MaterialSlot.removeFromTag(output);
     }
 
     @Override
     public ModelData getModelData() {
-        return woodSlot.modelData();
+        return materialSlot.modelData();
     }
 }

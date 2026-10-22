@@ -1,6 +1,7 @@
 {
   "model": {
-    "type": "servus_foundation:wood",
+    "type": "servus_foundation:material",
+    "kind": "wood",
     "model": "servus_shuttles:item/outbound_station"
   }
 }

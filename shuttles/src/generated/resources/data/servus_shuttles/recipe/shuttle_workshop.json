@@ -1,11 +1,12 @@
 {
-  "type": "servus_foundation:wood_shaped",
+  "type": "servus_foundation:material_shaped",
   "category": "misc",
   "key": {
     "C": "minecraft:crafting_table",
     "I": "minecraft:iron_ingot",
     "P": "#minecraft:planks"
   },
+  "kind": "wood",
   "pattern": [
     "III",
     "PCP",

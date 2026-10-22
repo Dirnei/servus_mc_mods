@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.registry;
 
-import io.github.dirnei.mc.servus.foundation.wood.WoodBlockItem;
+import io.github.dirnei.mc.servus.foundation.material.MaterialBlockItem;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerItem;
 import io.github.dirnei.mc.servus.shuttles.controller.WirelessUpgradeItem;
@@ -28,14 +28,14 @@ public final class ServusShuttlesItems {
     public static final DeferredItem<WarehouseControllerItem> WAREHOUSE_CONTROLLER = ITEMS.registerItem("warehouse_controller",
             properties -> new WarehouseControllerItem(ServusShuttlesBlocks.WAREHOUSE_CONTROLLER.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
-    public static final DeferredItem<WoodBlockItem> STORAGE_TERMINAL = ITEMS.registerItem("storage_terminal",
-            properties -> new WoodBlockItem(ServusShuttlesBlocks.STORAGE_TERMINAL.get(), properties),
+    public static final DeferredItem<MaterialBlockItem> STORAGE_TERMINAL = ITEMS.registerItem("storage_terminal",
+            properties -> new MaterialBlockItem(ServusShuttlesBlocks.STORAGE_TERMINAL.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
-    public static final DeferredItem<WoodBlockItem> PRODUCTION_TERMINAL = ITEMS.registerItem("production_terminal",
-            properties -> new WoodBlockItem(ServusShuttlesBlocks.PRODUCTION_TERMINAL.get(), properties),
+    public static final DeferredItem<MaterialBlockItem> PRODUCTION_TERMINAL = ITEMS.registerItem("production_terminal",
+            properties -> new MaterialBlockItem(ServusShuttlesBlocks.PRODUCTION_TERMINAL.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
-    public static final DeferredItem<WoodBlockItem> PATTERN_STORAGE = ITEMS.registerItem("pattern_storage",
-            properties -> new WoodBlockItem(ServusShuttlesBlocks.PATTERN_STORAGE.get(), properties),
+    public static final DeferredItem<MaterialBlockItem> PATTERN_STORAGE = ITEMS.registerItem("pattern_storage",
+            properties -> new MaterialBlockItem(ServusShuttlesBlocks.PATTERN_STORAGE.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
     public static final DeferredItem<RailItem> RAIL = ITEMS.registerItem("rail",
             properties -> new RailItem(ServusShuttlesBlocks.RAIL.get(), properties),
@@ -43,32 +43,32 @@ public final class ServusShuttlesItems {
     public static final DeferredItem<RailItem> FARM_RAIL = ITEMS.registerItem("farm_rail",
             properties -> new RailItem(ServusShuttlesBlocks.FARM_RAIL.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
-    public static final DeferredItem<WoodBlockItem> FIELD_HEAD = ITEMS.registerItem("field_head",
-            properties -> new WoodBlockItem(ServusShuttlesBlocks.FIELD_HEAD.get(), properties),
+    public static final DeferredItem<MaterialBlockItem> FIELD_HEAD = ITEMS.registerItem("field_head",
+            properties -> new MaterialBlockItem(ServusShuttlesBlocks.FIELD_HEAD.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
     public static final DeferredItem<ElevatorItem> ELEVATOR = ITEMS.registerItem("elevator",
             properties -> new ElevatorItem(ServusShuttlesBlocks.ELEVATOR.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
-    public static final DeferredItem<WoodBlockItem> INBOUND_STATION = ITEMS.registerItem("inbound_station",
-            properties -> new WoodBlockItem(ServusShuttlesBlocks.INBOUND_STATION.get(), properties),
+    public static final DeferredItem<MaterialBlockItem> INBOUND_STATION = ITEMS.registerItem("inbound_station",
+            properties -> new MaterialBlockItem(ServusShuttlesBlocks.INBOUND_STATION.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
-    public static final DeferredItem<WoodBlockItem> PACKING_STATION = ITEMS.registerItem("packing_station",
-            properties -> new WoodBlockItem(ServusShuttlesBlocks.PACKING_STATION.get(), properties),
+    public static final DeferredItem<MaterialBlockItem> PACKING_STATION = ITEMS.registerItem("packing_station",
+            properties -> new MaterialBlockItem(ServusShuttlesBlocks.PACKING_STATION.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
-    public static final DeferredItem<WoodBlockItem> SHUTTLE_GARAGE = ITEMS.registerItem("shuttle_garage",
-            properties -> new WoodBlockItem(ServusShuttlesBlocks.SHUTTLE_GARAGE.get(), properties),
+    public static final DeferredItem<MaterialBlockItem> SHUTTLE_GARAGE = ITEMS.registerItem("shuttle_garage",
+            properties -> new MaterialBlockItem(ServusShuttlesBlocks.SHUTTLE_GARAGE.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
-    public static final DeferredItem<WoodBlockItem> OUTBOUND_STATION = ITEMS.registerItem("outbound_station",
-            properties -> new WoodBlockItem(ServusShuttlesBlocks.OUTBOUND_STATION.get(), properties),
+    public static final DeferredItem<MaterialBlockItem> OUTBOUND_STATION = ITEMS.registerItem("outbound_station",
+            properties -> new MaterialBlockItem(ServusShuttlesBlocks.OUTBOUND_STATION.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
-    public static final DeferredItem<WoodBlockItem> CRAFTING_STATION = ITEMS.registerItem("crafting_station",
-            properties -> new WoodBlockItem(ServusShuttlesBlocks.CRAFTING_STATION.get(), properties),
+    public static final DeferredItem<MaterialBlockItem> CRAFTING_STATION = ITEMS.registerItem("crafting_station",
+            properties -> new MaterialBlockItem(ServusShuttlesBlocks.CRAFTING_STATION.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
-    public static final DeferredItem<WoodBlockItem> CRAFTING_CPU = ITEMS.registerItem("crafting_cpu",
-            properties -> new WoodBlockItem(ServusShuttlesBlocks.CRAFTING_CPU.get(), properties),
+    public static final DeferredItem<MaterialBlockItem> CRAFTING_CPU = ITEMS.registerItem("crafting_cpu",
+            properties -> new MaterialBlockItem(ServusShuttlesBlocks.CRAFTING_CPU.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
-    public static final DeferredItem<WoodBlockItem> CPU_BUFFER = ITEMS.registerItem("crafting_cpu_buffer",
-            properties -> new WoodBlockItem(ServusShuttlesBlocks.CPU_BUFFER.get(), properties),
+    public static final DeferredItem<MaterialBlockItem> CPU_BUFFER = ITEMS.registerItem("crafting_cpu_buffer",
+            properties -> new MaterialBlockItem(ServusShuttlesBlocks.CPU_BUFFER.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
     public static final DeferredItem<BlockItem> SHUTTLE_WORKSHOP = ITEMS.registerSimpleBlockItem(ServusShuttlesBlocks.SHUTTLE_WORKSHOP);
     public static final DeferredItem<ShuttleItem> SHUTTLE_MK1 = ITEMS.registerItem("shuttle",

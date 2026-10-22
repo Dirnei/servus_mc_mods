@@ -1,7 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.datagen;
 
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
+import io.github.dirnei.mc.servus.foundation.material.Material;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
 import io.github.dirnei.mc.servus.shuttles.rail.RailLook;
 import io.github.dirnei.mc.servus.shuttles.rail.RailLook.Box;
@@ -24,7 +25,7 @@ import io.github.dirnei.mc.servus.foundation.datagen.model.MultiPartBlockStateBu
  * Datagen for the track rails: one model per {@link RailLook} piece (single,
  * end, straight, curve, cross) picked by the sides that carry rail, a dock
  * beam per dock side and the track up to the beam when the rail runs straight
- * into it. Sleepers use the wood board texture so {@code WoodModel} shows the
+ * into it. Sleepers use the wood board texture so {@code MaterialModel} shows the
  * rail's wood; heads use one texture per rail type.
  */
 final class RailModels {
@@ -72,7 +73,7 @@ final class RailModels {
     private static BlockModelBuilder model(BlockStateProvider provider, String model, Identifier head, Identifier dock,
                                            List<Box> boxes) {
         BlockModelBuilder builder = provider.models().withExistingParent(model, "minecraft:block/block")
-                .texture("particle", head).texture("head", head).texture("wood", Wood.BOARD).texture("dock", dock);
+                .texture("particle", head).texture("head", head).texture("wood", MaterialKind.WOOD.placeholder()).texture("dock", dock);
         for (Box box : boxes) {
             String texture = switch (box.part()) {
                 case SLEEPER -> "#wood";

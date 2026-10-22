@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.foundation.wood.client;
+package io.github.dirnei.mc.servus.foundation.material.client;
 
 import com.mojang.serialization.MapCodec;
 import java.util.ArrayList;
@@ -28,21 +28,21 @@ import org.joml.Vector3fc;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The item model of a wood block item: the block model's quads with the
- * boards retextured onto the planks of the stack's wood. Item model
- * definitions of wood blocks name the skin's item model type, such as
- * {@code servus_foundation:wood}.
+ * The item model of a material block item: the block model's quads with the
+ * placeholder retextured onto the sprite of the stack's material. Item model
+ * definitions of material blocks name the skin's item model type, such as
+ * {@code servus_foundation:material}.
  */
-public final class WoodItemModel implements ItemModel {
+public final class MaterialItemModel implements ItemModel {
 
     private final QuadCollection quads;
     private final ModelRenderProperties properties;
     private final Matrix4fc transformation;
     private final Vector3fc[] extents;
-    private final Map<Identifier, List<BakedQuad>> byWood = new ConcurrentHashMap<>();
-    private final WoodSkin skin;
+    private final Map<Identifier, List<BakedQuad>> byMaterial = new ConcurrentHashMap<>();
+    private final MaterialSkin skin;
 
-    private WoodItemModel(QuadCollection quads, ModelRenderProperties properties, Matrix4fc transformation, WoodSkin skin) {
+    private MaterialItemModel(QuadCollection quads, ModelRenderProperties properties, Matrix4fc transformation, MaterialSkin skin) {
         this.quads = quads;
         this.properties = properties;
         this.transformation = transformation;
@@ -50,12 +50,12 @@ public final class WoodItemModel implements ItemModel {
         this.extents = CuboidItemModelWrapper.computeExtents(quads.getAll());
     }
 
-    private List<BakedQuad> quadsFor(Identifier wood) {
-        return byWood.computeIfAbsent(wood, key -> {
-            TextureAtlasSprite planks = WoodTextures.spriteOf(key);
+    private List<BakedQuad> quadsFor(Identifier material) {
+        return byMaterial.computeIfAbsent(material, key -> {
+            TextureAtlasSprite sprite = MaterialTextures.spriteOf(key);
             List<BakedQuad> result = new ArrayList<>();
             for (BakedQuad quad : quads.getAll()) {
-                result.add(WoodTextures.apply(quad, skin.board(), planks, Map.of()));
+                result.add(MaterialTextures.apply(quad, skin.placeholder(), sprite, Map.of()));
             }
             return List.copyOf(result);
         });
@@ -64,18 +64,18 @@ public final class WoodItemModel implements ItemModel {
     @Override
     public void update(ItemStackRenderState output, ItemStack item, ItemModelResolver resolver, ItemDisplayContext displayContext,
                        @Nullable ClientLevel level, @Nullable ItemOwner owner, int seed) {
-        Identifier wood = skin.itemWood(item);
+        Identifier material = skin.itemMaterial(item);
         output.appendModelIdentityElement(this);
-        output.appendModelIdentityElement(wood);
+        output.appendModelIdentityElement(material);
         ItemStackRenderState.LayerRenderState layer = output.newLayer();
         layer.setExtents(() -> extents);
         layer.setLocalTransform(transformation);
         properties.applyToLayer(layer, displayContext);
-        layer.prepareQuadList().addAll(quadsFor(wood));
+        layer.prepareQuadList().addAll(quadsFor(material));
     }
 
-    /** {@code {"type": "<skin item model type>", "model": "<model>"}}. */
-    public record Unbaked(Identifier model, WoodSkin skin) implements ItemModel.Unbaked {
+    /** Read by the skin's item codec, see {@link MaterialSkin#itemCodec()}. */
+    public record Unbaked(Identifier model, MaterialSkin skin) implements ItemModel.Unbaked {
 
         @Override
         public void resolveDependencies(ResolvableModel.Resolver resolver) {
@@ -89,7 +89,7 @@ public final class WoodItemModel implements ItemModel {
             TextureSlots slots = resolved.getTopTextureSlots();
             QuadCollection quads = resolved.bakeTopGeometry(slots, baker, BlockModelRotation.IDENTITY);
             ModelRenderProperties properties = ModelRenderProperties.fromResolvedModel(baker, resolved, slots);
-            return new WoodItemModel(quads, properties, transformation, skin);
+            return new MaterialItemModel(quads, properties, transformation, skin);
         }
 
         @Override

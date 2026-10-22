@@ -270,12 +270,12 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
     @SuppressWarnings("deprecation")
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
-        output.discard("Wood");
+        output.discard("Material");
     }
 
     private void writeWood(CompoundTag tag) {
         if (wood != null) {
-            tag.putString("Wood", wood.toString());
+            tag.putString("Material", wood.toString());
         }
     }
 
@@ -308,7 +308,7 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
             }
             displayed = List.copyOf(list);
         }
-        Identifier loaded = tag.contains("Wood") ? Identifier.tryParse(input.getStringOr("Wood", "")) : null;
+        Identifier loaded = tag.contains("Material") ? Identifier.tryParse(input.getStringOr("Material", "")) : null;
         boolean woodChanged = !Objects.equals(loaded, wood);
         wood = loaded;
         if (woodChanged && level != null && level.isClientSide()) {

@@ -962,7 +962,7 @@
       ]
     },
     "servus_foundation:machine_adapter": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["CHC", "RDR", "PPP"],
       "key": {
         "C": {"item": "minecraft:copper_ingot"},
@@ -1055,7 +1055,7 @@
       ]
     },
     "servus_shuttles:crafting_cpu": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["IRI", "RCR", "PPP"],
       "key": {
         "C": {"item": "minecraft:crafting_table"},
@@ -1074,7 +1074,7 @@
       ]
     },
     "servus_shuttles:crafting_cpu_buffer": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["IRI", "RCR", "PPP"],
       "key": {
         "C": {"item": "minecraft:chest"},
@@ -1093,7 +1093,7 @@
       ]
     },
     "servus_shuttles:crafting_station": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["ITI", "ICI", "PPP"],
       "key": {
         "C": {"item": "minecraft:chest"},
@@ -1112,7 +1112,7 @@
       ]
     },
     "servus_shuttles:elevator": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["III", "IRI", "III"],
       "key": {
         "I": {"item": "minecraft:iron_ingot"},
@@ -1127,7 +1127,7 @@
       ]
     },
     "servus_shuttles:farm_rail": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["C C", "CPC", "C C"],
       "key": {
         "C": {"item": "minecraft:copper_ingot"},
@@ -1142,7 +1142,7 @@
       ]
     },
     "servus_shuttles:field_head": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["IBI", "PCP", "PRP"],
       "key": {
         "B": {"item": "servus_foundation:fluid_tank"},
@@ -1233,7 +1233,7 @@
       ]
     },
     "servus_shuttles:inbound_station": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["III", "ICI", "PHP"],
       "key": {
         "C": {"item": "minecraft:chest"},
@@ -1252,7 +1252,7 @@
       ]
     },
     "servus_shuttles:outbound_station": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["ICI", "IDI", "PHP"],
       "key": {
         "C": {"item": "minecraft:chest"},
@@ -1273,7 +1273,7 @@
       ]
     },
     "servus_shuttles:packing_station": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["IRI", "OCO", "PPP"],
       "key": {
         "C": {"item": "minecraft:chest"},
@@ -1294,7 +1294,7 @@
       ]
     },
     "servus_shuttles:pattern_storage": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["IAI", "RCR", "PPP"],
       "key": {
         "A": {"item": "minecraft:paper"},
@@ -1315,7 +1315,7 @@
       ]
     },
     "servus_shuttles:production_terminal": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["GGG", "CMC", "PRP"],
       "key": {
         "C": {"item": "minecraft:copper_ingot"},
@@ -1336,7 +1336,7 @@
       ]
     },
     "servus_shuttles:rail": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["I I", "IPI", "I I"],
       "key": {
         "I": {"item": "minecraft:iron_ingot"},
@@ -1387,7 +1387,7 @@
       ]
     },
     "servus_shuttles:shuttle_garage": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["IRI", "PPP"],
       "key": {
         "I": {"item": "minecraft:iron_ingot"},
@@ -1404,7 +1404,7 @@
       ]
     },
     "servus_shuttles:shuttle_workshop": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["III", "PCP", "PPP"],
       "key": {
         "C": {"item": "minecraft:crafting_table"},
@@ -1440,7 +1440,7 @@
       ]
     },
     "servus_shuttles:storage_terminal": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["GGG", "ICI", "PPP"],
       "key": {
         "C": {"item": "minecraft:chest"},
@@ -1476,7 +1476,7 @@
       ]
     },
     "servus_shuttles:warehouse_controller": {
-      "type": "servus_foundation:wood_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["III", "RCR", "PPP"],
       "key": {
         "C": {"item": "minecraft:chest"},

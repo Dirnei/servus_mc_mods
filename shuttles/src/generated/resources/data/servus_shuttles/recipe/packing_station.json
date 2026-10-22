@@ -1,5 +1,5 @@
 {
-  "type": "servus_foundation:wood_shaped",
+  "type": "servus_foundation:material_shaped",
   "category": "misc",
   "key": {
     "C": "minecraft:chest",
@@ -8,6 +8,7 @@
     "P": "#minecraft:planks",
     "R": "minecraft:redstone"
   },
+  "kind": "wood",
   "pattern": [
     "IRI",
     "OCO",

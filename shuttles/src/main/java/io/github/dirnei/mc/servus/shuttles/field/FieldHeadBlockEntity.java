@@ -8,9 +8,9 @@ import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.core.component.DataComponentGetter;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
+import io.github.dirnei.mc.servus.foundation.material.MaterialSlot;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlockEntity;
@@ -76,14 +76,14 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
  * The block shows the wood of its recipe, the ripe share bar ({@link FieldHeadBlock#RIPE}),
  * the water level in steps and the crop; see {@link FieldHeadLook}.
  */
-public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, WoodHolder {
+public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, MaterialHolder {
 
     /** Items that hold a field's copper stage for one aging step. */
     public static final TagKey<Item> ANTI_CORROSION = ItemTags.create(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "anti_corrosion"));
     /** Items a Spreader doses fields with, each one bone meal application. */
     public static final TagKey<Item> FERTILIZER = ItemTags.create(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "fertilizer"));
 
-    private final WoodSlot woodSlot = new WoodSlot(this);
+    private final MaterialSlot materialSlot = new MaterialSlot(this);
 
     private final FluidSlot tank = new FluidSlot(ShuttlesStatsManager.INSTANCE.fieldCapacity(), stack -> stack.is(FluidTags.WATER)) {
         @Override
@@ -1336,7 +1336,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         super.saveAdditional(output);
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
-        woodSlot.save(output);
+        materialSlot.save(output);
         tag.put("Water", tank.writeToNBT(registries, new CompoundTag()));
         tag.put("Crop", crop.serializeNBT(registries));
         output.putBoolean("HarvestOnly", harvestOnly);
@@ -1392,7 +1392,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
-        woodSlot.load(input);
+        materialSlot.load(input);
         tank.readFromNBT(registries, tag.getCompoundOrEmpty("Water"));
         if (tag.contains("Crop")) {
             crop.deserializeNBT(registries, tag.getCompoundOrEmpty("Crop"));
@@ -1443,14 +1443,14 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     }
 
     @Override
-    public WoodSlot woodSlot() {
-        return woodSlot;
+    public MaterialSlot materialSlot() {
+        return materialSlot;
     }
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        woodSlot.save(tag);
+        materialSlot.save(tag);
         tag.put("Crop", crop.serializeNBT(registries));
         tag.putBoolean("HarvestOnly", harvestOnly);
         if (fertilizer != null) {
@@ -1470,25 +1470,25 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     @Override
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
-        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+        materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
-        woodSlot.collect(builder);
+        materialSlot.collect(builder);
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
-        WoodSlot.removeFromTag(output);
+        MaterialSlot.removeFromTag(output);
     }
 
     @Override
     public ModelData getModelData() {
-        return woodSlot.modelData();
+        return materialSlot.modelData();
     }
 
     /** Fills the tank with water; never drains. */

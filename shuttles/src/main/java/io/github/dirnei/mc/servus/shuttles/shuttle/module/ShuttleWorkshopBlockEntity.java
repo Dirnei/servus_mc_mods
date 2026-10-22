@@ -26,9 +26,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
+import io.github.dirnei.mc.servus.foundation.material.MaterialSlot;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
@@ -46,12 +46,12 @@ import net.neoforged.neoforge.model.data.ModelData;
  * a tier build uses the supplies and swaps the shuttle for the next tier's
  * item. While a build by hand runs, the shuttle and the supplies are locked.
  */
-public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolder, MenuProvider {
+public class ShuttleWorkshopBlockEntity extends BlockEntity implements MaterialHolder, MenuProvider {
 
     public static final int SUPPLY_SLOTS = 6;
     private static final Component TITLE = Component.translatable("container.servus_shuttles.shuttle_workshop");
 
-    private final WoodSlot woodSlot = new WoodSlot(this);
+    private final MaterialSlot materialSlot = new MaterialSlot(this);
 
     private final ItemSlots shuttle = new ItemSlots(1) {
         @Override
@@ -302,7 +302,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
         output.putBoolean("HandBuild", handBuild);
         output.putInt("BuildStep", buildStep);
         output.store(tag);
-        woodSlot.save(output);
+        materialSlot.save(output);
     }
 
     @Override
@@ -318,18 +318,18 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
         }
         handBuild = input.getBooleanOr("HandBuild", false);
         buildStep = Math.max(0, input.getIntOr("BuildStep", 0));
-        woodSlot.load(input);
+        materialSlot.load(input);
     }
 
     @Override
-    public WoodSlot woodSlot() {
-        return woodSlot;
+    public MaterialSlot materialSlot() {
+        return materialSlot;
     }
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        woodSlot.save(tag);
+        materialSlot.save(tag);
         return tag;
     }
 
@@ -341,7 +341,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
     @Override
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
-        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+        materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
         ItemContainerContents container = input.get(DataComponents.CONTAINER);
         if (container != null) {
             NonNullList<ItemStack> list = NonNullList.withSize(1 + SUPPLY_SLOTS, ItemStack.EMPTY);
@@ -356,7 +356,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
-        woodSlot.collect(builder);
+        materialSlot.collect(builder);
         List<ItemStack> contents = contents();
         if (contents.stream().anyMatch(stack -> !stack.isEmpty())) {
             builder.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(contents));
@@ -367,14 +367,14 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
     @SuppressWarnings("deprecation")
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
-        WoodSlot.removeFromTag(output);
+        MaterialSlot.removeFromTag(output);
         output.discard("Shuttle");
         output.discard("Supplies");
     }
 
     @Override
     public ModelData getModelData() {
-        return woodSlot.modelData();
+        return materialSlot.modelData();
     }
 
     /** Drops the contents on the server when the block is removed. */

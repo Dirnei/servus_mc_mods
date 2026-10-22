@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
@@ -134,7 +134,7 @@ public final class PatternResultGameTests {
         PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(1, birchStorage());
         ItemStack expected = patterns.pattern(1).orElseThrow().result();
-        helper.assertTrue(Identifier.withDefaultNamespace("birch_planks").equals(expected.get(WoodContent.WOOD.get())),
+        helper.assertTrue(Identifier.withDefaultNamespace("birch_planks").equals(expected.get(MaterialContent.MATERIAL.get())),
                 "the pattern result should carry birch wood, got " + expected.getComponents());
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         Waits.when(helper, () -> stocked(helper, player, Items.BIRCH_PLANKS) && stocked(helper, player, Items.CHEST)

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -23,8 +24,8 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
-import io.github.dirnei.mc.servus.foundation.wood.client.WoodTextures;
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
+import io.github.dirnei.mc.servus.foundation.material.client.MaterialTextures;
+import io.github.dirnei.mc.servus.foundation.material.Material;
 import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
@@ -74,7 +75,7 @@ public class ElevatorRenderer extends LiveBlockEntityRenderer<ElevatorBlockEntit
         /** The same brush with the sleepers in that wood. */
         Brush wood(Identifier wood) {
             TextureAtlasSprite[] sprites = rail.clone();
-            sprites[1] = WoodTextures.spriteOf(wood);
+            sprites[1] = MaterialTextures.spriteOf(wood);
             return new Brush(poseStack, buffer, frame, sprites, light, overlay);
         }
     }
@@ -143,7 +144,7 @@ public class ElevatorRenderer extends LiveBlockEntityRenderer<ElevatorBlockEntit
 
     /** The wood of the segment at that position, oak when it has none. */
     private static Identifier woodAt(Level level, BlockPos pos) {
-        return level.getBlockEntity(pos) instanceof ElevatorBlockEntity segment ? segment.woodSlot().wood() : Wood.DEFAULT;
+        return level.getBlockEntity(pos) instanceof ElevatorBlockEntity segment ? segment.materialSlot().material() : MaterialKind.WOOD.defaultBlock();
     }
 
     /** The segments of the shaft from this one up, as their block states; empty once this segment is gone. */

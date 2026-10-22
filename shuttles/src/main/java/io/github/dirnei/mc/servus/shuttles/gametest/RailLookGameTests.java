@@ -3,8 +3,8 @@ package io.github.dirnei.mc.servus.shuttles.gametest;
 import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
@@ -43,12 +43,12 @@ public final class RailLookGameTests {
 
     private static ItemStack woodRail(Item item, Identifier wood) {
         ItemStack stack = new ItemStack(item, 8);
-        stack.set(WoodContent.WOOD.get(), wood);
+        stack.set(MaterialContent.MATERIAL.get(), wood);
         return stack;
     }
 
     private static Identifier woodAt(GameTestHelper helper, BlockPos pos) {
-        return helper.getLevel().getBlockEntity(helper.absolutePos(pos)) instanceof WoodHolder holder ? holder.woodSlot().raw() : null;
+        return helper.getLevel().getBlockEntity(helper.absolutePos(pos)) instanceof MaterialHolder holder ? holder.materialSlot().raw() : null;
     }
 
     private static CraftingRecipe recipe(GameTestHelper helper, String id) {
@@ -78,7 +78,7 @@ public final class RailLookGameTests {
             helper.assertTrue(SPRUCE.equals(woodAt(helper, AT)), "the placed rail is spruce, got " + woodAt(helper, AT));
             List<ItemStack> drops = Block.getDrops(helper.getBlockState(AT), helper.getLevel(), pos, helper.getLevel().getBlockEntity(pos),
                     null, new ItemStack(Items.IRON_PICKAXE));
-            helper.assertTrue(drops.size() == 1 && drops.get(0).is(item) && SPRUCE.equals(drops.get(0).get(WoodContent.WOOD.get())),
+            helper.assertTrue(drops.size() == 1 && drops.get(0).is(item) && SPRUCE.equals(drops.get(0).get(MaterialContent.MATERIAL.get())),
                     "the drop keeps spruce, got " + drops);
         }
         helper.succeed();
@@ -99,8 +99,8 @@ public final class RailLookGameTests {
             helper.assertBlockPresent(Blocks.AIR, AT);
             List<ItemEntity> items = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(absolute).inflate(2));
             helper.assertTrue(items.size() == 1 && items.get(0).getItem().is(ServusShuttlesItems.RAIL.get())
-                    && BIRCH.equals(items.get(0).getItem().get(WoodContent.WOOD.get())), "a birch rail should drop, got "
-                    + items.stream().map(item -> item.getItem() + " " + item.getItem().get(WoodContent.WOOD.get())).toList());
+                    && BIRCH.equals(items.get(0).getItem().get(MaterialContent.MATERIAL.get())), "a birch rail should drop, got "
+                    + items.stream().map(item -> item.getItem() + " " + item.getItem().get(MaterialContent.MATERIAL.get())).toList());
             helper.succeed();
         });
     }
@@ -116,7 +116,7 @@ public final class RailLookGameTests {
         helper.assertTrue(recipe.matches(input, helper.getLevel()), "the rail recipe should take birch planks");
         ItemStack result = recipe.assemble(input);
         helper.assertTrue(result.is(ServusShuttlesItems.RAIL.get()) && result.getCount() == 16
-                && BIRCH.equals(result.get(WoodContent.WOOD.get())), "sixteen birch rails, got " + result + " " + result.get(WoodContent.WOOD.get()));
+                && BIRCH.equals(result.get(MaterialContent.MATERIAL.get())), "sixteen birch rails, got " + result + " " + result.get(MaterialContent.MATERIAL.get()));
         helper.succeed();
     }
 
@@ -131,7 +131,7 @@ public final class RailLookGameTests {
         helper.assertTrue(recipe.matches(copper, helper.getLevel()), "the farm rail recipe should take copper and planks");
         ItemStack result = recipe.assemble(copper);
         helper.assertTrue(result.is(ServusShuttlesItems.FARM_RAIL.get()) && result.getCount() == 16
-                && SPRUCE.equals(result.get(WoodContent.WOOD.get())), "sixteen spruce farm rails, got " + result);
+                && SPRUCE.equals(result.get(MaterialContent.MATERIAL.get())), "sixteen spruce farm rails, got " + result);
         CraftingInput iron = grid(
                 Items.IRON_INGOT, Items.AIR, Items.IRON_INGOT,
                 Items.IRON_INGOT, Items.SPRUCE_PLANKS, Items.IRON_INGOT,

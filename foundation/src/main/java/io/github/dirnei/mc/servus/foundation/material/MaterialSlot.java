@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.foundation.wood;
+package io.github.dirnei.mc.servus.foundation.material;
 
 import java.util.Objects;
 import net.minecraft.core.component.DataComponentMap;
@@ -13,44 +13,44 @@ import net.neoforged.neoforge.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The wood of one block entity. The owner forwards its component, NBT,
+ * The material of one block entity. The owner forwards its component, NBT,
  * update tag and model data calls here.
  */
-public final class WoodSlot {
+public final class MaterialSlot {
 
-    private static final String KEY = "Wood";
+    private static final String KEY = "Material";
 
     private final BlockEntity owner;
-    private @Nullable Identifier wood;
+    private @Nullable Identifier material;
 
-    public WoodSlot(BlockEntity owner) {
+    public MaterialSlot(BlockEntity owner) {
         this.owner = owner;
     }
 
-    /** The wood shown, oak when none is set. */
-    public Identifier wood() {
-        return Wood.or(wood);
+    /** The material shown, the default of the owner block's kind when none is set. */
+    public Identifier material() {
+        return Material.or(material, Material.kindOf(owner.getBlockState().getBlock()));
     }
 
-    /** The wood as set, null when none. */
+    /** The material as set, null when none. */
     public @Nullable Identifier raw() {
-        return wood;
+        return material;
     }
 
     public void set(@Nullable Identifier id) {
-        wood = id;
+        material = id;
         owner.setChanged();
     }
 
-    /** From {@code applyImplicitComponents}, with {@code input.get(WoodContent.WOOD.get())}: the placed item's wood. */
+    /** From {@code applyImplicitComponents}, with {@code input.get(MaterialContent.MATERIAL.get())}: the placed item's material. */
     public void apply(@Nullable Identifier id) {
-        wood = id;
+        material = id;
     }
 
-    /** From {@code collectImplicitComponents}: the wood goes with drops. */
+    /** From {@code collectImplicitComponents}: the material goes with drops. */
     public void collect(DataComponentMap.Builder builder) {
-        if (wood != null) {
-            builder.set(WoodContent.WOOD.get(), wood);
+        if (material != null) {
+            builder.set(MaterialContent.MATERIAL.get(), material);
         }
     }
 
@@ -61,23 +61,23 @@ public final class WoodSlot {
 
     /** From {@code saveAdditional} and {@code getUpdateTag}. */
     public void save(ValueOutput output) {
-        if (wood != null) {
-            output.putString(KEY, wood.toString());
+        if (material != null) {
+            output.putString(KEY, material.toString());
         }
     }
 
     /** For update tags built by hand; read back by {@link #load}. */
     public void save(CompoundTag tag) {
-        if (wood != null) {
-            tag.putString(KEY, wood.toString());
+        if (material != null) {
+            tag.putString(KEY, material.toString());
         }
     }
 
-    /** From {@code loadAdditional}; a changed wood redraws the block on the client. */
+    /** From {@code loadAdditional}; a changed material redraws the block on the client. */
     public void load(ValueInput input) {
         Identifier loaded = input.getString(KEY).map(Identifier::tryParse).orElse(null);
-        boolean changed = !Objects.equals(loaded, wood);
-        wood = loaded;
+        boolean changed = !Objects.equals(loaded, material);
+        material = loaded;
         Level level = owner.getLevel();
         if (changed && level != null && level.isClientSide()) {
             owner.requestModelDataUpdate();
@@ -87,6 +87,6 @@ public final class WoodSlot {
 
     /** From {@code getModelData}. */
     public ModelData modelData() {
-        return ModelData.builder().with(Wood.PROPERTY, wood()).build();
+        return ModelData.builder().with(Material.PROPERTY, material()).build();
     }
 }

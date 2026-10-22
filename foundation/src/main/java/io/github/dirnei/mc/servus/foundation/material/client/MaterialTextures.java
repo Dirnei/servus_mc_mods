@@ -1,18 +1,18 @@
-package io.github.dirnei.mc.servus.foundation.wood.client;
+package io.github.dirnei.mc.servus.foundation.material.client;
 
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.model.quad.MutableQuad;
 
-/** Retextures the board quads of wood models onto a planks sprite, shared by the block and item wood models. */
-public final class WoodTextures {
+/** Retextures the placeholder quads of material models onto a material sprite, shared by the block and item material models. */
+public final class MaterialTextures {
 
-    private WoodTextures() {
+    private MaterialTextures() {
     }
 
     /** A texture of the block atlas. */
@@ -20,17 +20,17 @@ public final class WoodTextures {
         return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(texture);
     }
 
-    /** The particle sprite of the planks block's model. */
-    public static TextureAtlasSprite spriteOf(Identifier wood) {
+    /** The particle sprite of the material block's model; {@code material} names a block. */
+    public static TextureAtlasSprite spriteOf(Identifier material) {
         return Minecraft.getInstance().getModelManager().getBlockStateModelSet()
-                .getParticleMaterial(Wood.block(wood).defaultBlockState()).sprite();
+                .getParticleMaterial(BuiltInRegistries.BLOCK.getValue(material).defaultBlockState()).sprite();
     }
 
-    /** The quad on the wood's planks sprite when it shows a board, on a swap's sprite when one applies, else itself. */
-    static BakedQuad apply(BakedQuad quad, Identifier board, TextureAtlasSprite planks, Map<Identifier, Identifier> swaps) {
+    /** The quad on the material sprite when it shows the placeholder, on a swap's sprite when one applies, else itself. */
+    static BakedQuad apply(BakedQuad quad, Identifier placeholder, TextureAtlasSprite sprite, Map<Identifier, Identifier> swaps) {
         Identifier name = quad.materialInfo().sprite().contents().name();
-        if (name.equals(board)) {
-            return retexture(quad, planks);
+        if (name.equals(placeholder)) {
+            return retexture(quad, sprite);
         }
         Identifier swap = swaps.get(name);
         return swap == null ? quad : retexture(quad, atlasSprite(swap));

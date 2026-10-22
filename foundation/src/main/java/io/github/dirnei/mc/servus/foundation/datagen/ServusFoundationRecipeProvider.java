@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.logistics.datagen.LogisticsDataParts;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
@@ -112,6 +113,6 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
                 .define('D', ServusLogisticsItems.DATA_CABLE.get())
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_data_cable", has(ServusLogisticsItems.DATA_CABLE.get()))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
     }
 }

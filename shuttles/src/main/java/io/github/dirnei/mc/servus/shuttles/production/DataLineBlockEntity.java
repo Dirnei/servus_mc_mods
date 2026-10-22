@@ -1,9 +1,9 @@
 package io.github.dirnei.mc.servus.shuttles.production;
 
 import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
+import io.github.dirnei.mc.servus.foundation.material.MaterialSlot;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -26,12 +26,12 @@ import net.neoforged.neoforge.model.data.ModelData;
  * A wooden block on the data line: shows the planks it was crafted from and
  * carries the data network to touching data nodes like a piece of cable.
  */
-public abstract class DataLineBlockEntity extends BlockEntity implements WoodHolder {
+public abstract class DataLineBlockEntity extends BlockEntity implements MaterialHolder {
 
     private static final int LAMP_TICKS = 20;
 
     private final DataCarrier carrier = new DataCarrier(this);
-    private final WoodSlot woodSlot = new WoodSlot(this);
+    private final MaterialSlot materialSlot = new MaterialSlot(this);
     private int lampTimer;
 
     protected DataLineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -65,26 +65,26 @@ public abstract class DataLineBlockEntity extends BlockEntity implements WoodHol
     }
 
     @Override
-    public WoodSlot woodSlot() {
-        return woodSlot;
+    public MaterialSlot materialSlot() {
+        return materialSlot;
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        woodSlot.save(output);
+        materialSlot.save(output);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        woodSlot.load(input);
+        materialSlot.load(input);
     }
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        woodSlot.save(tag);
+        materialSlot.save(tag);
         return tag;
     }
 
@@ -96,25 +96,25 @@ public abstract class DataLineBlockEntity extends BlockEntity implements WoodHol
     @Override
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
-        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+        materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
-        woodSlot.collect(builder);
+        materialSlot.collect(builder);
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
-        WoodSlot.removeFromTag(output);
+        MaterialSlot.removeFromTag(output);
     }
 
     @Override
     public ModelData getModelData() {
-        return woodSlot.modelData();
+        return materialSlot.modelData();
     }
 
     @Override

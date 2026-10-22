@@ -24,7 +24,8 @@ import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationComponents;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialGameTests;
 import java.util.List;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -47,13 +48,13 @@ public final class ServusFoundation {
         ServusLogisticsContent.register(modEventBus);
         AdapterContent.register(modEventBus);
         MachineContent.register(modEventBus);
-        WoodContent.register(modEventBus);
+        MaterialContent.register(modEventBus);
         container.registerConfig(ModConfig.Type.COMMON, ServusFoundationConfig.SPEC);
         ServusGameTests.register(modEventBus, ServusFoundationIds.MOD_ID, List.of(
                 AdapterGameTests.class, DataCableTierGameTests.class, DataPotatoGameTests.class, FluidTankGameTests.class,
                 ServusLogisticsGameTests.class, UpgradeGameTests.class, MachineBaseGameTests.class,
                 MachineGameTests.class, AnchorGameTests.class, PumpGameTests.class, SinkGameTests.class, CoalGeneratorGameTests.class,
-                MillGameTests.class));
+                MillGameTests.class, MaterialGameTests.class));
         ServusRecipes.syncToClients(MachineContent.MILLING);
         LOGGER.info("Servus: Foundation loaded");
     }

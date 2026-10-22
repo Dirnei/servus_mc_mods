@@ -1,5 +1,5 @@
 {
-  "type": "servus_foundation:wood_shaped",
+  "type": "servus_foundation:material_shaped",
   "category": "misc",
   "key": {
     "B": "servus_foundation:fluid_tank",
@@ -8,6 +8,7 @@
     "P": "#minecraft:planks",
     "R": "servus_shuttles:farm_rail"
   },
+  "kind": "wood",
   "pattern": [
     "IBI",
     "PCP",

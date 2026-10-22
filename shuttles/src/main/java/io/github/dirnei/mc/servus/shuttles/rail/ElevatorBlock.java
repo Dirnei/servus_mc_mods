@@ -118,7 +118,7 @@ public class ElevatorBlock extends ConnectableBlock {
         }
         level.setBlock(pos, Block.updateFromNeighbourShapes(ServusShuttlesBlocks.RAIL.get().defaultBlockState(), level, pos), Block.UPDATE_ALL);
         if (wood != null && level.getBlockEntity(pos) instanceof RailBlockEntity rail) {
-            rail.woodSlot().set(wood);
+            rail.materialSlot().set(wood);
         }
     }
 

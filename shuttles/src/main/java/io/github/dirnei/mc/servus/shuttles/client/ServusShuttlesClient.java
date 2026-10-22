@@ -8,8 +8,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
 import io.github.dirnei.mc.servus.foundation.client.SideMarkerRenderer;
 import java.util.Map;
-import io.github.dirnei.mc.servus.foundation.wood.client.WoodModel;
-import io.github.dirnei.mc.servus.foundation.wood.client.WoodSkin;
+import io.github.dirnei.mc.servus.foundation.material.client.MaterialModel;
+import io.github.dirnei.mc.servus.foundation.material.client.MaterialSkin;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
@@ -65,7 +65,7 @@ public final class ServusShuttlesClient {
     }
 
     /** The rack shows the wood it remembers, on placed blocks and on items. */
-    public static final WoodSkin RACK_SKIN = new WoodSkin(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "rack_wood"),
+    public static final MaterialSkin RACK_SKIN = new MaterialSkin(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "rack_wood"),
             Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "block/heavy_rack_board"), HeavyRackBlockEntity.WOOD,
             HeavyRackBlockEntity.DEFAULT_WOOD, HeavyRackBlockEntity::woodOf, false);
 
@@ -81,8 +81,8 @@ public final class ServusShuttlesClient {
     public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
         Map<BlockState, BlockStateModel> models = event.getBakingResult().blockStateModels();
         for (Map.Entry<BlockState, BlockStateModel> entry : models.entrySet()) {
-            if (entry.getKey().is(ServusShuttlesBlocks.HEAVY_RACK.get()) && !(entry.getValue() instanceof WoodModel)) {
-                entry.setValue(new WoodModel(entry.getValue(), RACK_SKIN));
+            if (entry.getKey().is(ServusShuttlesBlocks.HEAVY_RACK.get()) && !(entry.getValue() instanceof MaterialModel)) {
+                entry.setValue(new MaterialModel(entry.getValue(), RACK_SKIN));
             }
         }
     }

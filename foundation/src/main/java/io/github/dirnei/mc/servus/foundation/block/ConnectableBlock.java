@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.foundation.block;
 
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
+import io.github.dirnei.mc.servus.foundation.material.Material;
 import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
@@ -141,7 +141,7 @@ public abstract class ConnectableBlock extends BaseEntityBlock implements Wrench
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         if (!level.isClientSide()) {
-            Block.popResource(level, pos, Wood.stamp(new ItemStack(this), level.getBlockEntity(pos)));
+            Block.popResource(level, pos, Material.stamp(new ItemStack(this), level.getBlockEntity(pos)));
             level.removeBlock(pos, false);
         }
         return InteractionResult.SUCCESS;

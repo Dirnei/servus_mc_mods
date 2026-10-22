@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.cpu;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
+import io.github.dirnei.mc.servus.foundation.material.Material;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -329,7 +329,7 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
             return InteractionResult.SUCCESS;
         }
         if (sneaking) {
-            Block.popResource(level, pos, Wood.stamp(new ItemStack(this), level.getBlockEntity(pos)));
+            Block.popResource(level, pos, Material.stamp(new ItemStack(this), level.getBlockEntity(pos)));
             level.removeBlock(pos, false);
             return InteractionResult.SUCCESS;
         }

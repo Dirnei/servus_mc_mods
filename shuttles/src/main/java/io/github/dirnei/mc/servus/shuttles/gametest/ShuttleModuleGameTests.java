@@ -4,8 +4,8 @@ import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.menu.ShuttleGarageMenu;
@@ -239,7 +239,7 @@ public final class ShuttleModuleGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         workshop(helper, player);
         ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
-        ((WoodHolder) workshop).woodSlot().set(SPRUCE);
+        ((MaterialHolder) workshop).materialSlot().set(SPRUCE);
         workshop.shuttle().setStackInSlot(0, shuttle(ServusShuttlesItems.SHUTTLE_MK2.get(), 1, 0, Optional.empty()));
         workshop.supplies().setStackInSlot(0, new ItemStack(Items.IRON_INGOT, 8));
         carrot(helper, player, WS_POS, true);
@@ -248,7 +248,7 @@ public final class ShuttleModuleGameTests {
         helper.assertTrue(drops.size() == 1 && drops.get(0).getItem().is(ServusShuttlesItems.SHUTTLE_WORKSHOP.get()),
                 "exactly one workshop item drops, got " + drops.stream().map(ItemEntity::getItem).toList());
         ItemStack item = drops.get(0).getItem();
-        helper.assertTrue(SPRUCE.equals(item.get(WoodContent.WOOD.get())), "the item is spruce, got " + item.get(WoodContent.WOOD.get()));
+        helper.assertTrue(SPRUCE.equals(item.get(MaterialContent.MATERIAL.get())), "the item is spruce, got " + item.get(MaterialContent.MATERIAL.get()));
         drops.get(0).discard();
 
         ShuttleWorkshopBlockEntity placed = placeAgain(helper, player, item, WS_AGAIN);
@@ -257,7 +257,7 @@ public final class ShuttleModuleGameTests {
                 "the Mk2 with Speed 1 is back, got " + held);
         helper.assertTrue(Integer.valueOf(8).equals(placed.supplyCounts().get("minecraft:iron_ingot")),
                 "the 8 iron ingots are back, got " + placed.supplyCounts());
-        helper.assertTrue(SPRUCE.equals(placed.woodSlot().wood()), "the placed workshop is spruce, got " + placed.woodSlot().wood());
+        helper.assertTrue(SPRUCE.equals(placed.materialSlot().material()), "the placed workshop is spruce, got " + placed.materialSlot().material());
         helper.succeed();
     }
 

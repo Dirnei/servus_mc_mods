@@ -3,9 +3,9 @@ package io.github.dirnei.mc.servus.shuttles.controller;
 import io.github.dirnei.mc.servus.foundation.production.StockProvider;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.upgrade.AnchorUpgradeSlots;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
+import io.github.dirnei.mc.servus.foundation.material.MaterialSlot;
 import io.github.dirnei.mc.servus.shuttles.menu.WarehouseControllerMenu;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
@@ -53,9 +53,9 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.model.data.ModelData;
 
 /** Exactly one per network makes the warehouse online. Shuttles live in garages. */
-public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity implements WoodHolder, MenuProvider {
+public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity implements MaterialHolder, MenuProvider {
 
-    private final WoodSlot woodSlot = new WoodSlot(this);
+    private final MaterialSlot materialSlot = new MaterialSlot(this);
 
     /** Shuttles an older save kept in the controller; dropped as items on load. */
     private int legacyShuttles;
@@ -422,7 +422,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         super.saveAdditional(output);
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
-        woodSlot.save(output);
+        materialSlot.save(output);
         tag.put("StockRules", rules.save(registries));
         output.putString("SiteName", siteName);
         if (team != null) {
@@ -440,7 +440,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
-        woodSlot.load(input);
+        materialSlot.load(input);
         legacyShuttles = input.getIntOr("Shuttles", 0);
         if (tag.contains("StockRules")) {
             rules.load(tag.getCompoundOrEmpty("StockRules"), registries);
@@ -464,14 +464,14 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     }
 
     @Override
-    public WoodSlot woodSlot() {
-        return woodSlot;
+    public MaterialSlot materialSlot() {
+        return materialSlot;
     }
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        woodSlot.save(tag);
+        materialSlot.save(tag);
         return tag;
     }
 
@@ -483,7 +483,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     @Override
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
-        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+        materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
         String name = input.get(ServusShuttlesComponents.SITE_NAME.get());
         if (name != null) {
             setSiteName(name);
@@ -497,7 +497,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
-        woodSlot.collect(builder);
+        materialSlot.collect(builder);
         if (!siteName.isEmpty()) {
             builder.set(ServusShuttlesComponents.SITE_NAME.get(), siteName);
         }
@@ -510,14 +510,14 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     @SuppressWarnings("deprecation")
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
-        WoodSlot.removeFromTag(output);
+        MaterialSlot.removeFromTag(output);
         output.discard("SiteName");
         output.discard("Energy");
     }
 
     @Override
     public ModelData getModelData() {
-        return woodSlot.modelData();
+        return materialSlot.modelData();
     }
 
     @Override

@@ -1,9 +1,10 @@
 package io.github.dirnei.mc.servus.shuttles;
 
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTests;
 import io.github.dirnei.mc.servus.foundation.network.NetworkTypes;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
+import io.github.dirnei.mc.servus.foundation.material.Material;
 import io.github.dirnei.mc.servus.shuttles.gametest.ShuttlesGameTests;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
@@ -39,7 +40,7 @@ public final class ServusShuttles {
                 ServusShuttlesBlocks.PRODUCTION_TERMINAL, ServusShuttlesBlocks.PATTERN_STORAGE, ServusShuttlesBlocks.CRAFTING_STATION,
                 ServusShuttlesBlocks.WAREHOUSE_CONTROLLER, ServusShuttlesBlocks.SHUTTLE_GARAGE, ServusShuttlesBlocks.FIELD_HEAD,
                 ServusShuttlesBlocks.RAIL, ServusShuttlesBlocks.FARM_RAIL, ServusShuttlesBlocks.SHUTTLE_WORKSHOP, ServusShuttlesBlocks.ELEVATOR)) {
-            Wood.register(block.getId());
+            Material.register(block.getId(), MaterialKind.WOOD);
         }
         // The pattern editor matches crafting grids on the client too.
         ServusRecipes.syncToClients(() -> RecipeType.CRAFTING);

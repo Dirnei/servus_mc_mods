@@ -24,7 +24,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
+import io.github.dirnei.mc.servus.foundation.material.Material;
 
 /**
  * The Packing Station: a station on the rails that is also a link member of the
@@ -81,7 +81,7 @@ public class PackingStationBlock extends InboundStationBlock implements TooltipB
             if (level.getBlockEntity(pos) instanceof PackingStationBlockEntity point) {
                 point.dropContents(level, pos);
             }
-            Block.popResource(level, pos, Wood.stamp(new ItemStack(this), level.getBlockEntity(pos)));
+            Block.popResource(level, pos, Material.stamp(new ItemStack(this), level.getBlockEntity(pos)));
             level.removeBlock(pos, false);
         }
         return InteractionResult.SUCCESS;

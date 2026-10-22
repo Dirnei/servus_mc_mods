@@ -2,7 +2,8 @@ package io.github.dirnei.mc.servus.foundation.datagen.model;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
+import io.github.dirnei.mc.servus.foundation.material.Material;
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,6 +28,8 @@ import org.jspecify.annotations.Nullable;
  * @param <T> the builder type
  */
 public class ModelProvider<T extends ModelBuilder<T>> {
+
+    private static final String MATERIAL_TYPE = "servus_foundation:material";
 
     protected final String modid;
     protected final String folder;
@@ -146,6 +149,10 @@ public class ModelProvider<T extends ModelBuilder<T>> {
         JsonObject inner = new JsonObject();
         inner.addProperty("type", itemModelTypeOf(itemId));
         inner.addProperty("model", model.toString());
+        MaterialKind kind = itemTypes.containsKey(itemId) ? null : Material.kindOf(itemId);
+        if (kind != null) {
+            inner.addProperty("kind", kind.getSerializedName());
+        }
         if (itemTints.containsKey(itemId)) {
             inner.add("tints", itemTints.get(itemId));
         }
@@ -161,7 +168,7 @@ public class ModelProvider<T extends ModelBuilder<T>> {
         if (itemTypes.containsKey(itemId)) {
             return itemTypes.get(itemId);
         }
-        return Wood.isWoodBlock(itemId) ? "servus_foundation:wood" : "minecraft:model";
+        return Material.kindOf(itemId) != null ? MATERIAL_TYPE : "minecraft:model";
     }
 
     /** Item model folder with the {@code basicItem} helper. */

@@ -5,7 +5,7 @@
       "function": "minecraft:copy_components",
       "include": [
         "servus_shuttles:patterns",
-        "servus_foundation:wood"
+        "servus_foundation:material"
       ],
       "source": "block_entity"
     }

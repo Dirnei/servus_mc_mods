@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.datagen;
 
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackRecipe;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
@@ -25,7 +26,7 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.conditions.ICondition;
-import io.github.dirnei.mc.servus.foundation.datagen.WoodRecipes;
+import io.github.dirnei.mc.servus.foundation.datagen.MaterialRecipes;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 
 final class ServusShuttlesRecipeProvider extends RecipeProvider {
@@ -63,7 +64,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('C', Items.CHEST)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_redstone", has(Items.REDSTONE))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.STORAGE_TERMINAL.get())
                 .pattern("GGG")
@@ -74,7 +75,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('C', Items.CHEST)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_glass", has(Items.GLASS))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.PRODUCTION_TERMINAL.get())
                 .pattern("GGG")
@@ -86,7 +87,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('R', Items.REDSTONE)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_comparator", has(Items.COMPARATOR))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.PATTERN_STORAGE.get())
                 .pattern("IAI")
@@ -98,7 +99,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('C', Items.CHEST)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_paper", has(Items.PAPER))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.CRAFTING_CPU.get(), 4)
                 .pattern("IRI")
@@ -109,7 +110,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('C', Items.CRAFTING_TABLE)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_redstone", has(Items.REDSTONE))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.CPU_BUFFER.get(), 4)
                 .pattern("IRI")
@@ -120,7 +121,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('C', Items.CHEST)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_redstone", has(Items.REDSTONE))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         // Steel heads on sleepers in the wood of the planks.
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.RAIL.get(), 16)
@@ -130,7 +131,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('I', Items.IRON_INGOT)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_iron_ingot", has(Items.IRON_INGOT))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.ELEVATOR.get(), 4)
                 .pattern("III")
@@ -139,7 +140,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('I', Items.IRON_INGOT)
                 .define('R', ServusShuttlesItems.RAIL.get())
                 .unlockedBy("has_rail", has(ServusShuttlesItems.RAIL.get()))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         // The Fluid Gantry: two Fluid Tanks for the legs, a copper ingot for the spout, the rail it stands over.
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.FLUID_GANTRY.get())
@@ -171,7 +172,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('C', Items.CHEST)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_crafting_table", has(Items.CRAFTING_TABLE))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.OUTBOUND_STATION.get())
                 .pattern("ICI")
@@ -183,7 +184,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('H', Items.HOPPER)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_hopper", has(Items.HOPPER))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.SHUTTLE_GARAGE.get())
                 .pattern("IRI")
@@ -192,7 +193,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('R', ServusShuttlesItems.RAIL.get())
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_rail", has(ServusShuttlesItems.RAIL.get()))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.INBOUND_STATION.get())
                 .pattern("III")
@@ -203,7 +204,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('H', Items.HOPPER)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_hopper", has(Items.HOPPER))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.PACKING_STATION.get())
                 .pattern("IRI")
@@ -215,7 +216,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('C', Items.CHEST)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_chest", has(Items.CHEST))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         ShapelessRecipeBuilder.shapeless(items, RecipeCategory.TOOLS, ServusShuttlesItems.ZONE_LABEL.get())
                 .requires(Items.PAPER)
@@ -241,7 +242,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('C', Items.CRAFTING_TABLE)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_shuttle", has(ServusShuttlesItems.SHUTTLE_MK1.get()))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         // Copper heads on sleepers in the wood of the planks.
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.FARM_RAIL.get(), 16)
@@ -251,7 +252,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('C', Items.COPPER_INGOT)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_copper_ingot", has(Items.COPPER_INGOT))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.FIELD_HEAD.get())
                 .pattern("IBI")
@@ -263,7 +264,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('P', ItemTags.PLANKS)
                 .define('R', ServusShuttlesItems.FARM_RAIL.get())
                 .unlockedBy("has_farm_rail", has(ServusShuttlesItems.FARM_RAIL.get()))
-                .save(WoodRecipes.output(output, registries));
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusShuttlesItems.HANDLING_UPGRADE.get())
                 .pattern("CRC")

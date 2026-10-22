@@ -1,16 +1,16 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 
 /**
- * Datagen helper for wood blocks: a full cube of board panels ({@link Wood#BOARD},
+ * Datagen helper for wood blocks: a full cube of board panels (the wood kind's {@link MaterialKind#placeholder()},
  * shown in the block's wood) under a full cube of cutout overlay textures per
  * face (iron frame, lamps, screens). The two layers are coplanar, like the
  * vanilla grass overlay; the overlay is drawn after the boards.
@@ -38,7 +38,7 @@ public final class LayeredModels {
         BlockModelBuilder builder = provider.models().getBuilder(name)
                 .parent(new ModelFile.UncheckedModelFile("minecraft:block/block"))
                 .texture("particle", faces.get(Direction.NORTH))
-                .texture("board", Wood.BOARD);
+                .texture("board", MaterialKind.WOOD.placeholder());
         for (Direction direction : Direction.values()) {
             builder.texture(direction.getSerializedName(), faces.get(direction));
         }

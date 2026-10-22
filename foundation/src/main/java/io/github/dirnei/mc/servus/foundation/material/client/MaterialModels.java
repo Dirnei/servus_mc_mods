@@ -1,7 +1,8 @@
-package io.github.dirnei.mc.servus.foundation.wood.client;
+package io.github.dirnei.mc.servus.foundation.material.client;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
+import io.github.dirnei.mc.servus.foundation.material.Material;
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import java.util.Map;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -13,28 +14,29 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterItemModelsEvent;
 
-/** Wraps the block state and item models of every registered wood block in a {@link WoodModel}. */
+/** Wraps the block state models of every registered material block in a {@link MaterialModel} and registers the item model type. */
 @EventBusSubscriber(modid = ServusFoundationIds.MOD_ID, value = Dist.CLIENT)
-public final class WoodModels {
+public final class MaterialModels {
 
-    private WoodModels() {
+    private MaterialModels() {
     }
 
-    /** Wraps the block state models of every registered wood block. */
+    /** Wraps the block state models of every registered material block with the skin of its kind. */
     @SubscribeEvent
     public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
         Map<BlockState, BlockStateModel> models = event.getBakingResult().blockStateModels();
         for (Map.Entry<BlockState, BlockStateModel> entry : models.entrySet()) {
             Identifier blockId = BuiltInRegistries.BLOCK.getKey(entry.getKey().getBlock());
-            if (Wood.isWoodBlock(blockId) && !(entry.getValue() instanceof WoodModel)) {
-                entry.setValue(new WoodModel(entry.getValue()));
+            MaterialKind kind = Material.kindOf(blockId);
+            if (kind != null && !(entry.getValue() instanceof MaterialModel)) {
+                entry.setValue(new MaterialModel(entry.getValue(), kind));
             }
         }
     }
 
-    /** The item model type wood block items name in their item model definitions. */
+    /** The item model type material block items name in their item model definitions. */
     @SubscribeEvent
     public static void onRegisterItemModels(RegisterItemModelsEvent event) {
-        event.register(WoodSkin.WOOD.itemModelType(), WoodSkin.WOOD.itemCodec());
+        event.register(MaterialSkin.ITEM_MODEL_TYPE, MaterialSkin.KIND_ITEM_CODEC);
     }
 }

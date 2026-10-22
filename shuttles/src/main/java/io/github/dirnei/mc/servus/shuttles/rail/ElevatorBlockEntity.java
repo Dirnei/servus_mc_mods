@@ -13,9 +13,9 @@ import java.util.OptionalInt;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentGetter;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialSlot;
+import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.TickTask;
@@ -45,7 +45,7 @@ import net.minecraft.world.level.storage.ValueOutput;
  * The lowest segment also keeps the shaft's Speed upgrades; every segment has
  * the slots, but the others stay empty.
  */
-public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuProvider, WoodHolder {
+public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuProvider, MaterialHolder {
 
     private static final String LIFT_Y = "LiftY";
     private static final String UPGRADES = "Upgrades";
@@ -54,7 +54,7 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
 
     private float liftY = Float.NaN;
     private boolean loading;
-    private final WoodSlot woodSlot = new WoodSlot(this);
+    private final MaterialSlot materialSlot = new MaterialSlot(this);
     /** The segment took the place of a Warehouse Rail, which comes back when the segment goes. */
     private boolean replacedRail;
     private @Nullable Identifier railWood;
@@ -118,7 +118,7 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        woodSlot.save(tag);
+        materialSlot.save(tag);
         if (!Float.isNaN(liftY)) {
             tag.putFloat(LIFT_Y, liftY);
         }
@@ -142,27 +142,27 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
     }
 
     @Override
-    public WoodSlot woodSlot() {
-        return woodSlot;
+    public MaterialSlot materialSlot() {
+        return materialSlot;
     }
 
     @Override
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
-        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+        materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
-        woodSlot.collect(builder);
+        materialSlot.collect(builder);
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
-        WoodSlot.removeFromTag(output);
+        MaterialSlot.removeFromTag(output);
     }
 
     @Override
@@ -171,7 +171,7 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
         tag.put(UPGRADES, upgrades.serializeNBT(registries));
-        woodSlot.save(tag);
+        materialSlot.save(tag);
         if (replacedRail) {
             tag.putBoolean(REPLACED_RAIL, true);
             if (railWood != null) {
@@ -186,7 +186,7 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
-        woodSlot.load(input);
+        materialSlot.load(input);
         replacedRail = tag.getBooleanOr(REPLACED_RAIL, false);
         railWood = tag.getString(RAIL_WOOD).map(Identifier::tryParse).orElse(null);
         if (tag.contains(LIFT_Y)) {

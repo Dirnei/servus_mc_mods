@@ -183,6 +183,7 @@
   "tooltip.servus_foundation.fluid_tank.empty": "Empty",
   "tooltip.servus_foundation.fluid_tank.floor": "Floor: %s",
   "tooltip.servus_foundation.fluid_tank.fluid": "%s: %s mB",
+  "tooltip.servus_foundation.stone": "Stone: %s",
   "tooltip.servus_foundation.upgrade.speed": "Speed x%s in upgrade slots",
   "tooltip.servus_foundation.wood": "Wood: %s"
 }

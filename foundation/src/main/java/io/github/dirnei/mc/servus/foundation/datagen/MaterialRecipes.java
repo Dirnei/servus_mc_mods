@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
-import io.github.dirnei.mc.servus.foundation.wood.WoodRecipe;
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
+import io.github.dirnei.mc.servus.foundation.material.MaterialRecipe;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.HolderLookup;
@@ -15,19 +16,19 @@ import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import org.jspecify.annotations.Nullable;
 
-/** Datagen helper: saves shaped recipes as {@link WoodRecipe}s, so the result remembers the wood of its planks. */
-public final class WoodRecipes {
+/** Datagen helper: saves shaped recipes as {@link MaterialRecipe}s, so the result remembers the material of its grid. */
+public final class MaterialRecipes {
 
-    private WoodRecipes() {
+    private MaterialRecipes() {
     }
 
-    /** Wraps {@code output} so every shaped recipe saved to it is written as a {@link WoodRecipe}. */
-    public static RecipeOutput output(RecipeOutput output, HolderLookup.Provider registries) {
+    /** Wraps {@code output} so every shaped recipe saved to it is written as a {@link MaterialRecipe} of {@code kind}. */
+    public static RecipeOutput output(RecipeOutput output, HolderLookup.Provider registries, MaterialKind kind) {
         return new RecipeOutput() {
             @Override
             public void accept(ResourceKey<Recipe<?>> id, Recipe<?> recipe, @Nullable AdvancementHolder advancement,
                                ICondition... conditions) {
-                output.accept(id, toWood((ShapedRecipe) recipe), advancement, conditions);
+                output.accept(id, toMaterial((ShapedRecipe) recipe, kind), advancement, conditions);
             }
 
             @Override
@@ -42,11 +43,11 @@ public final class WoodRecipes {
         };
     }
 
-    /** The same recipe as a wood recipe, built from the shaped recipe's public data. */
-    private static WoodRecipe toWood(ShapedRecipe recipe) {
+    /** The same recipe as a material recipe, built from the shaped recipe's public data. */
+    private static MaterialRecipe toMaterial(ShapedRecipe recipe, MaterialKind kind) {
         ShapedCraftingRecipeDisplay display = (ShapedCraftingRecipeDisplay) recipe.display().getFirst();
         ItemStackTemplate result = ((SlotDisplay.ItemStackSlotDisplay) display.result()).stack();
-        return new WoodRecipe(new Recipe.CommonInfo(recipe.showNotification()),
-                new CraftingRecipe.CraftingBookInfo(recipe.category(), recipe.group()), recipe.pattern, result);
+        return new MaterialRecipe(new Recipe.CommonInfo(recipe.showNotification()),
+                new CraftingRecipe.CraftingBookInfo(recipe.category(), recipe.group()), recipe.pattern, result, kind);
     }
 }

@@ -4,10 +4,10 @@ import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.core.component.DataComponentGetter;
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import io.github.dirnei.mc.servus.foundation.material.Material;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
+import io.github.dirnei.mc.servus.foundation.material.MaterialSlot;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
@@ -31,12 +31,12 @@ import net.neoforged.neoforge.model.data.ModelData;
  * wood of its sleepers and, on a farm rail, the corrosion stage of its field
  * (see {@link FieldCorrosion}); the stage is never on the item.
  */
-public class RailBlockEntity extends StorageNodeBlockEntity implements WoodHolder {
+public class RailBlockEntity extends StorageNodeBlockEntity implements MaterialHolder {
 
     private static final String CORROSION = "Corrosion";
     private static final Identifier FRESH_HEAD = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "block/farm_rail_head");
 
-    private final WoodSlot woodSlot = new WoodSlot(this);
+    private final MaterialSlot materialSlot = new MaterialSlot(this);
     /** The corrosion stage of a farm rail, {@link FieldCorrosion#LOOSE} until it joins a field. */
     private int corrosion = FieldCorrosion.LOOSE;
 
@@ -52,7 +52,7 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements WoodHolde
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        woodSlot.save(output);
+        materialSlot.save(output);
         output.putInt(CORROSION, corrosion);
     }
 
@@ -60,7 +60,7 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements WoodHolde
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
-        woodSlot.load(input);
+        materialSlot.load(input);
         int loaded = tag.contains(CORROSION) ? Math.max(FieldCorrosion.LOOSE, Math.min(FieldCorrosion.CORRODED, input.getIntOr(CORROSION, 0)))
                 : FieldCorrosion.LOOSE;
         boolean changed = loaded != corrosion;
@@ -89,14 +89,14 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements WoodHolde
     }
 
     @Override
-    public WoodSlot woodSlot() {
-        return woodSlot;
+    public MaterialSlot materialSlot() {
+        return materialSlot;
     }
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        woodSlot.save(tag);
+        materialSlot.save(tag);
         tag.putInt(CORROSION, corrosion);
         return tag;
     }
@@ -109,29 +109,29 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements WoodHolde
     @Override
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
-        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+        materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
-        woodSlot.collect(builder);
+        materialSlot.collect(builder);
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
-        WoodSlot.removeFromTag(output);
+        MaterialSlot.removeFromTag(output);
     }
 
     /** The wood, and from exposed on the head texture of the stage in place of the fresh copper. */
     @Override
     public ModelData getModelData() {
         if (corrosion <= FieldCorrosion.COPPER) {
-            return woodSlot.modelData();
+            return materialSlot.modelData();
         }
         Identifier stageHead = FRESH_HEAD.withSuffix("_" + FieldCorrosion.name(corrosion));
-        return ModelData.builder().with(Wood.PROPERTY, woodSlot.wood()).with(Wood.SWAPS, Map.of(FRESH_HEAD, stageHead)).build();
+        return ModelData.builder().with(Material.PROPERTY, materialSlot.material()).with(Material.SWAPS, Map.of(FRESH_HEAD, stageHead)).build();
     }
 }

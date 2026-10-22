@@ -2,14 +2,15 @@ package io.github.dirnei.mc.servus.shuttles.rail;
 
 import io.github.dirnei.mc.servus.foundation.placement.AssistedBlockItem;
 import java.util.OptionalInt;
-import javax.annotation.Nullable;
 import net.minecraft.ChatFormatting;
+import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.ItemStack;
 import java.util.function.Consumer;
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
+import io.github.dirnei.mc.servus.foundation.material.Material;
+import io.github.dirnei.mc.servus.foundation.material.MaterialBlockItem;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.item.context.UseOnContext;
@@ -50,11 +51,11 @@ public class ElevatorItem extends AssistedBlockItem {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        Identifier wood = level.getBlockEntity(pos) instanceof RailBlockEntity rail ? rail.woodSlot().raw() : null;
+        Identifier wood = level.getBlockEntity(pos) instanceof RailBlockEntity rail ? rail.materialSlot().raw() : null;
         level.setBlock(pos, segment, Block.UPDATE_ALL);
         if (level.getBlockEntity(pos) instanceof ElevatorBlockEntity elevator) {
             elevator.rememberRail(wood);
-            elevator.woodSlot().set(wood);
+            elevator.materialSlot().set(wood);
         }
         SoundType sound = segment.getSoundType();
         level.playSound(null, pos, sound.getPlaceSound(), SoundSource.BLOCKS, (sound.getVolume() + 1.0F) / 2.0F, sound.getPitch() * 0.8F);
@@ -65,8 +66,7 @@ public class ElevatorItem extends AssistedBlockItem {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.translatable("tooltip.servus_foundation.wood", Wood.block(Wood.of(stack)).getName())
-                .withStyle(ChatFormatting.GRAY));
+        tooltip.accept(MaterialBlockItem.line(stack, Material.kindOf(stack)));
     }
 
     @Nullable

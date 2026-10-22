@@ -5,9 +5,9 @@ import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
+import io.github.dirnei.mc.servus.foundation.material.MaterialSlot;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
@@ -39,11 +39,11 @@ import net.neoforged.neoforge.model.data.ModelData;
  * to its facing, an activity lamp and the wood of its recipe. The front is
  * never an item side. The buffer drops when the block is removed.
  */
-public abstract class StationBlockEntity extends StorageNodeBlockEntity implements WoodHolder, MenuProvider, SidedBlockEntity {
+public abstract class StationBlockEntity extends StorageNodeBlockEntity implements MaterialHolder, MenuProvider, SidedBlockEntity {
 
     private static final String SIDES = "Sides";
 
-    private final WoodSlot woodSlot = new WoodSlot(this);
+    private final MaterialSlot materialSlot = new MaterialSlot(this);
     private final SideConfig sides;
 
     protected StationBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, SideConfig sides) {
@@ -133,13 +133,13 @@ public abstract class StationBlockEntity extends StorageNodeBlockEntity implemen
 
     /** Saves the wood and the sides; subclasses add their slots to the tag. */
     protected void saveStation(ValueOutput output, CompoundTag tag) {
-        woodSlot.save(output);
+        materialSlot.save(output);
         tag.putByteArray(SIDES, sides.toBytes());
     }
 
     /** Loads the wood and the sides saved by {@link #saveStation}. */
     protected void loadStation(ValueInput input, CompoundTag tag) {
-        woodSlot.load(input);
+        materialSlot.load(input);
         if (tag.contains(SIDES)) {
             sides.fromBytes(tag.getByteArray(SIDES).orElse(new byte[0]));
         }
@@ -153,7 +153,7 @@ public abstract class StationBlockEntity extends StorageNodeBlockEntity implemen
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        woodSlot.save(tag);
+        materialSlot.save(tag);
         tag.putByteArray(SIDES, sides.toBytes());
         return tag;
     }
@@ -164,32 +164,32 @@ public abstract class StationBlockEntity extends StorageNodeBlockEntity implemen
     }
 
     @Override
-    public WoodSlot woodSlot() {
-        return woodSlot;
+    public MaterialSlot materialSlot() {
+        return materialSlot;
     }
 
     @Override
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
-        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+        materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
-        woodSlot.collect(builder);
+        materialSlot.collect(builder);
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
-        WoodSlot.removeFromTag(output);
+        MaterialSlot.removeFromTag(output);
     }
 
     @Override
     public ModelData getModelData() {
-        return woodSlot.modelData();
+        return materialSlot.modelData();
     }
 
     /** Drops the buffer on the server when the block is removed. */

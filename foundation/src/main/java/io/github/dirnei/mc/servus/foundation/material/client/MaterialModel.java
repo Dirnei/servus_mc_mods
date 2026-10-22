@@ -1,6 +1,7 @@
-package io.github.dirnei.mc.servus.foundation.wood.client;
+package io.github.dirnei.mc.servus.foundation.material.client;
 
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
+import io.github.dirnei.mc.servus.foundation.material.Material;
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,6 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.SimpleModelWrapper;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.resources.model.geometry.QuadCollection;
-import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
@@ -22,37 +22,38 @@ import net.neoforged.neoforge.client.model.DynamicBlockStateModel;
 import net.neoforged.neoforge.model.data.ModelData;
 
 /**
- * The block state model of a wood block: board quads ({@link Wood#BOARD}) are
- * retextured onto the planks sprite of the block's wood, every other quad
- * passes through, unless the block's swaps name another texture for it. The
- * block reads the wood from its model data; items use {@link WoodItemModel}.
+ * The block state model of a material block: quads on the skin's placeholder
+ * texture are retextured onto the sprite of the block's material, every other
+ * quad passes through, unless the block's swaps name another texture for it.
+ * The block reads the material from its model data; items use
+ * {@link MaterialItemModel}.
  * A resource reload builds new wrappers, which drops every cache.
  */
-public final class WoodModel implements DynamicBlockStateModel {
+public final class MaterialModel implements DynamicBlockStateModel {
 
-    private record PartKey(BlockStateModelPart part, Identifier wood, Map<Identifier, Identifier> swaps) {
+    private record PartKey(BlockStateModelPart part, Identifier material, Map<Identifier, Identifier> swaps) {
     }
 
     private final BlockStateModel base;
-    private final WoodSkin skin;
+    private final MaterialSkin skin;
     private final Map<PartKey, BlockStateModelPart> parts = new ConcurrentHashMap<>();
 
-    public WoodModel(BlockStateModel base) {
-        this(base, WoodSkin.WOOD);
+    public MaterialModel(BlockStateModel base, MaterialKind kind) {
+        this(base, MaterialSkin.of(kind));
     }
 
-    public WoodModel(BlockStateModel base, WoodSkin skin) {
+    public MaterialModel(BlockStateModel base, MaterialSkin skin) {
         this.base = base;
         this.skin = skin;
     }
 
-    private Identifier woodOf(ModelData data) {
-        Identifier wood = data.get(skin.property());
-        return wood != null ? wood : skin.fallback();
+    private Identifier materialOf(ModelData data) {
+        Identifier material = data.get(skin.property());
+        return material != null ? material : skin.fallback();
     }
 
     private Map<Identifier, Identifier> swapsOf(ModelData data) {
-        Map<Identifier, Identifier> swaps = skin.swaps() ? data.get(Wood.SWAPS) : null;
+        Map<Identifier, Identifier> swaps = skin.swaps() ? data.get(Material.SWAPS) : null;
         return swaps != null ? swaps : Map.of();
     }
 
@@ -60,37 +61,37 @@ public final class WoodModel implements DynamicBlockStateModel {
     public void collectParts(BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random,
                              List<BlockStateModelPart> output) {
         ModelData data = level.getModelData(pos);
-        Identifier wood = woodOf(data);
+        Identifier material = materialOf(data);
         Map<Identifier, Identifier> swaps = swapsOf(data);
         List<BlockStateModelPart> baseParts = new ArrayList<>();
         base.collectParts(level, pos, state, random, baseParts);
         for (BlockStateModelPart part : baseParts) {
-            output.add(parts.computeIfAbsent(new PartKey(part, wood, swaps), key -> retexture(part, wood, swaps)));
+            output.add(parts.computeIfAbsent(new PartKey(part, material, swaps), key -> retexture(part, material, swaps)));
         }
     }
 
-    private BlockStateModelPart retexture(BlockStateModelPart part, Identifier wood, Map<Identifier, Identifier> swaps) {
-        TextureAtlasSprite planks = WoodTextures.spriteOf(wood);
+    private BlockStateModelPart retexture(BlockStateModelPart part, Identifier material, Map<Identifier, Identifier> swaps) {
+        TextureAtlasSprite sprite = MaterialTextures.spriteOf(material);
         QuadCollection.Builder builder = new QuadCollection.Builder();
         for (BakedQuad quad : part.getQuads(null)) {
-            builder.addUnculledFace(WoodTextures.apply(quad, skin.board(), planks, swaps));
+            builder.addUnculledFace(MaterialTextures.apply(quad, skin.placeholder(), sprite, swaps));
         }
         for (Direction direction : Direction.values()) {
             for (BakedQuad quad : part.getQuads(direction)) {
-                builder.addCulledFace(direction, WoodTextures.apply(quad, skin.board(), planks, swaps));
+                builder.addCulledFace(direction, MaterialTextures.apply(quad, skin.placeholder(), sprite, swaps));
             }
         }
         return new SimpleModelWrapper(builder.build(), part.useAmbientOcclusion(), part.particleMaterial());
     }
 
     @Override
-    public Material.Baked particleMaterial(BlockAndTintGetter level, BlockPos pos, BlockState state) {
-        Identifier wood = woodOf(level.getModelData(pos));
-        return new Material.Baked(WoodTextures.spriteOf(wood), false);
+    public net.minecraft.client.resources.model.sprite.Material.Baked particleMaterial(BlockAndTintGetter level, BlockPos pos, BlockState state) {
+        Identifier material = materialOf(level.getModelData(pos));
+        return new net.minecraft.client.resources.model.sprite.Material.Baked(MaterialTextures.spriteOf(material), false);
     }
 
     @Override
-    public Material.Baked particleMaterial() {
+    public net.minecraft.client.resources.model.sprite.Material.Baked particleMaterial() {
         return base.particleMaterial();
     }
 

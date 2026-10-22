@@ -22,7 +22,7 @@ import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlockEntity;
 import net.minecraft.resources.Identifier;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
@@ -552,7 +552,7 @@ public final class ElevatorGameTests {
         for (int x = 2; x <= 6; x++) {
             GantryFixtures.shape(helper, new BlockPos(x, 1, ON_RAIL.getZ()));
         }
-        helper.getBlockEntity(ON_RAIL, RailBlockEntity.class).woodSlot().set(SPRUCE);
+        helper.getBlockEntity(ON_RAIL, RailBlockEntity.class).materialSlot().set(SPRUCE);
     }
 
     private static void useElevatorOnTop(GameTestHelper helper, BlockPos pos) {
@@ -612,7 +612,7 @@ public final class ElevatorGameTests {
         helper.getLevel().destroyBlock(helper.absolutePos(ON_RAIL), true);
         helper.succeedWhen(() -> {
             helper.assertTrue(isWarehouseRail(helper, ON_RAIL), "the rail is back");
-            Identifier wood = helper.getBlockEntity(ON_RAIL, RailBlockEntity.class).woodSlot().wood();
+            Identifier wood = helper.getBlockEntity(ON_RAIL, RailBlockEntity.class).materialSlot().material();
             helper.assertTrue(SPRUCE.equals(wood), "the rail keeps its spruce sleepers, got " + wood);
         });
     }
@@ -679,7 +679,7 @@ public final class ElevatorGameTests {
         helper.getLevel().destroyBlock(helper.absolutePos(ON_RAIL), true);
         helper.succeedWhen(() -> {
             helper.assertTrue(isWarehouseRail(helper, ON_RAIL), "the rail is back after a reload");
-            Identifier wood = helper.getBlockEntity(ON_RAIL, RailBlockEntity.class).woodSlot().wood();
+            Identifier wood = helper.getBlockEntity(ON_RAIL, RailBlockEntity.class).materialSlot().material();
             helper.assertTrue(SPRUCE.equals(wood), "with its spruce sleepers, got " + wood);
         });
     }
@@ -687,7 +687,7 @@ public final class ElevatorGameTests {
     private static final Identifier BIRCH = Identifier.withDefaultNamespace("birch_planks");
 
     private static Identifier segmentWood(GameTestHelper helper, BlockPos pos) {
-        return helper.getBlockEntity(pos, ElevatorBlockEntity.class).woodSlot().wood();
+        return helper.getBlockEntity(pos, ElevatorBlockEntity.class).materialSlot().material();
     }
 
     /** A segment placed on a spruce rail is a spruce segment. */
@@ -704,7 +704,7 @@ public final class ElevatorGameTests {
     public static void craftedElevatorCarriesTheRailWood(GameTestHelper helper) {
         ItemStack iron = new ItemStack(Items.IRON_INGOT);
         ItemStack rail = new ItemStack(ServusShuttlesItems.RAIL.get());
-        rail.set(WoodContent.WOOD.get(), BIRCH);
+        rail.set(MaterialContent.MATERIAL.get(), BIRCH);
         CraftingInput input = CraftingInput.of(3, 3, List.of(iron, iron, iron, iron, rail, iron, iron, iron, iron));
         RecipeHolder<?> holder = helper.getLevel().recipeAccess()
                 .byKey(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "elevator"))).orElseThrow();
@@ -713,7 +713,7 @@ public final class ElevatorGameTests {
         helper.assertTrue(recipe.matches(input, helper.getLevel()), "the elevator recipe takes a birch rail");
         ItemStack result = recipe.assemble(input);
         helper.assertTrue(result.is(ServusShuttlesItems.ELEVATOR.get()) && result.getCount() == 4, "four elevators, got " + result);
-        helper.assertTrue(BIRCH.equals(result.get(WoodContent.WOOD.get())), "they carry birch, got " + result.get(WoodContent.WOOD.get()));
+        helper.assertTrue(BIRCH.equals(result.get(MaterialContent.MATERIAL.get())), "they carry birch, got " + result.get(MaterialContent.MATERIAL.get()));
         helper.succeed();
     }
 
@@ -725,7 +725,7 @@ public final class ElevatorGameTests {
         BlockPos absolute = helper.absolutePos(ON_RAIL);
         List<ItemStack> drops = Block.getDrops(helper.getBlockState(ON_RAIL), helper.getLevel(), absolute, helper.getLevel().getBlockEntity(absolute));
         helper.assertTrue(drops.size() == 1 && drops.get(0).is(ServusShuttlesItems.ELEVATOR.get()), "one elevator drops, got " + drops);
-        helper.assertTrue(SPRUCE.equals(drops.get(0).get(WoodContent.WOOD.get())), "it keeps spruce");
+        helper.assertTrue(SPRUCE.equals(drops.get(0).get(MaterialContent.MATERIAL.get())), "it keeps spruce");
         helper.assertTrue(!ItemStack.isSameItemSameComponents(drops.get(0), new ItemStack(ServusShuttlesItems.ELEVATOR.get())),
                 "a spruce elevator does not stack with an oak one");
         helper.succeed();
@@ -737,7 +737,7 @@ public final class ElevatorGameTests {
         BlockPos stone = new BlockPos(4, 0, 6);
         WarehouseFixtures.stone(helper, stone);
         ItemStack stack = new ItemStack(ServusShuttlesItems.ELEVATOR.get());
-        stack.set(WoodContent.WOOD.get(), BIRCH);
+        stack.set(MaterialContent.MATERIAL.get(), BIRCH);
         TestPlayers.useOnTop(helper, TestPlayers.holding(helper, stack), stack, stone);
         helper.assertTrue(BIRCH.equals(segmentWood(helper, stone.above())), "the segment is birch, got " + segmentWood(helper, stone.above()));
         helper.succeed();

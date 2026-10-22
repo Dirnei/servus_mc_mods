@@ -16,6 +16,7 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
     @Override
     protected void addTranslations() {
         add("tooltip.servus_foundation.wood", "Wood: %s");
+        add("tooltip.servus_foundation.stone", "Stone: %s");
         add(ServusFoundationItems.CONFIGURATION_CARROT.get(), "Configuration Carrot");
         add(ServusFoundationItems.DATA_POTATO.get(), "Data Potato");
         add("tooltip.servus_foundation.data_potato", "Hold to see data cable load; use on a duct or tank for a report");

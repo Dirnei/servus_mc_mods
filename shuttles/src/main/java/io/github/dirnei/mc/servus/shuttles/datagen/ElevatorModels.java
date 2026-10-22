@@ -1,7 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.datagen;
 
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
+import io.github.dirnei.mc.servus.foundation.material.Material;
 import io.github.dirnei.mc.servus.shuttles.rail.RailLook;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
@@ -40,7 +41,7 @@ final class ElevatorModels {
         // The item shows a whole one segment shaft: posts, head and the rail on its floor.
         BlockModelBuilder item = provider.models().withExistingParent(name + "_item", "minecraft:block/block")
                 .texture("particle", texture).texture("skin", texture).texture("head", headTexture)
-                .texture("rail_head", provider.modLoc("block/rail_head")).texture("sleeper", Wood.BOARD);
+                .texture("rail_head", provider.modLoc("block/rail_head")).texture("sleeper", MaterialKind.WOOD.placeholder());
         posts(item);
         head(item);
         rail(item);

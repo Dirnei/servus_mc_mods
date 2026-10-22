@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.controller;
 
-import io.github.dirnei.mc.servus.foundation.wood.WoodBlockItem;
+import io.github.dirnei.mc.servus.foundation.material.MaterialBlockItem;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.block.Block;
 
 /** The Warehouse Controller item; its tooltip names the site and the FE it carries. */
-public class WarehouseControllerItem extends WoodBlockItem {
+public class WarehouseControllerItem extends MaterialBlockItem {
 
     public WarehouseControllerItem(Block block, Properties properties) {
         super(block, properties);

@@ -5,8 +5,8 @@ import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsI
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.field.FieldHeadBlock;
 import io.github.dirnei.mc.servus.shuttles.field.FieldHeadBlockEntity;
@@ -94,16 +94,16 @@ public final class FieldLookGameTests {
     public static void woodSurvivesPlaceAndBreak(GameTestHelper helper) {
         helper.setBlock(AT.below(), Blocks.STONE.defaultBlockState());
         ItemStack stack = new ItemStack(ServusShuttlesItems.FIELD_HEAD.get());
-        stack.set(WoodContent.WOOD.get(), BIRCH);
+        stack.set(MaterialContent.MATERIAL.get(), BIRCH);
         TestPlayers.useOnTop(helper, TestPlayers.holding(helper, stack), stack, AT.below());
         helper.assertBlockPresent(ServusShuttlesBlocks.FIELD_HEAD.get(), AT);
         BlockPos pos = helper.absolutePos(AT);
-        WoodHolder placed = (WoodHolder) helper.getLevel().getBlockEntity(pos);
-        helper.assertTrue(BIRCH.equals(placed.woodSlot().wood()), "the placed head is birch, got " + placed.woodSlot().wood());
+        MaterialHolder placed = (MaterialHolder) helper.getLevel().getBlockEntity(pos);
+        helper.assertTrue(BIRCH.equals(placed.materialSlot().material()), "the placed head is birch, got " + placed.materialSlot().material());
         List<ItemStack> drops = Block.getDrops(helper.getBlockState(AT), helper.getLevel(), pos, helper.getLevel().getBlockEntity(pos),
                 null, new ItemStack(Items.IRON_PICKAXE));
         helper.assertTrue(drops.size() == 1 && drops.get(0).is(ServusShuttlesItems.FIELD_HEAD.get())
-                && BIRCH.equals(drops.get(0).get(WoodContent.WOOD.get())), "the drop keeps birch, got " + drops);
+                && BIRCH.equals(drops.get(0).get(MaterialContent.MATERIAL.get())), "the drop keeps birch, got " + drops);
         helper.succeed();
     }
 
@@ -124,8 +124,8 @@ public final class FieldLookGameTests {
         CraftingInput input = CraftingInput.of(3, 3, grid);
         helper.assertTrue(recipe.matches(input, helper.getLevel()), "the recipe should take birch planks");
         ItemStack result = recipe.assemble(input);
-        helper.assertTrue(result.is(ServusShuttlesItems.FIELD_HEAD.get()) && BIRCH.equals(result.get(WoodContent.WOOD.get())),
-                "a birch Field Head, got " + result + " " + result.get(WoodContent.WOOD.get()));
+        helper.assertTrue(result.is(ServusShuttlesItems.FIELD_HEAD.get()) && BIRCH.equals(result.get(MaterialContent.MATERIAL.get())),
+                "a birch Field Head, got " + result + " " + result.get(MaterialContent.MATERIAL.get()));
         helper.succeed();
     }
 

@@ -4,9 +4,9 @@ import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
-import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
-import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
+import io.github.dirnei.mc.servus.foundation.material.MaterialSlot;
 import io.github.dirnei.mc.servus.shuttles.menu.ShuttleGarageMenu;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseConnectionRule.NodeKind;
@@ -41,9 +41,9 @@ import net.neoforged.neoforge.model.data.ModelData;
  * back onto the rail. The live shuttles are data on the network's fleet;
  * this only holds the items and tells the network what each slot's shuttle can do.
  */
-public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements WoodHolder, MenuProvider {
+public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements MaterialHolder, MenuProvider {
 
-    private final WoodSlot woodSlot = new WoodSlot(this);
+    private final MaterialSlot materialSlot = new MaterialSlot(this);
 
     private final ItemSlots shuttles = new ItemSlots(ShuttlesStatsManager.INSTANCE.garageCapacity()) {
         @Override
@@ -185,7 +185,7 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
         super.saveAdditional(output);
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
-        woodSlot.save(output);
+        materialSlot.save(output);
         tag.put("ShuttleItems", shuttles.serializeNBT(registries));
         output.putBoolean("Active", active);
         output.store(tag);
@@ -196,7 +196,7 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
-        woodSlot.load(input);
+        materialSlot.load(input);
         active = !tag.contains("Active") || input.getBooleanOr("Active", false);
         if (tag.contains("ShuttleItems")) {
             shuttles.fillFrom(registries, tag.getCompoundOrEmpty("ShuttleItems"));
@@ -210,14 +210,14 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
     }
 
     @Override
-    public WoodSlot woodSlot() {
-        return woodSlot;
+    public MaterialSlot materialSlot() {
+        return materialSlot;
     }
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        woodSlot.save(tag);
+        materialSlot.save(tag);
         return tag;
     }
 
@@ -229,25 +229,25 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
     @Override
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
-        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+        materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
-        woodSlot.collect(builder);
+        materialSlot.collect(builder);
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
-        WoodSlot.removeFromTag(output);
+        MaterialSlot.removeFromTag(output);
     }
 
     @Override
     public ModelData getModelData() {
-        return woodSlot.modelData();
+        return materialSlot.modelData();
     }
 
     /** Drops the shuttle items on the server when the block is removed. */

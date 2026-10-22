@@ -11,7 +11,7 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
 
 final class ServusShuttlesBlockLoot extends BlockLootSubProvider {
 
@@ -32,12 +32,12 @@ final class ServusShuttlesBlockLoot extends BlockLootSubProvider {
         for (Block block : WOODEN) {
             add(block, createSingleItemTable(block)
                     .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
-                            .include(WoodContent.WOOD.get())));
+                            .include(MaterialContent.MATERIAL.get())));
         }
         // The controller keeps its site name and FE.
         add(ServusShuttlesBlocks.WAREHOUSE_CONTROLLER.get(), createSingleItemTable(ServusShuttlesBlocks.WAREHOUSE_CONTROLLER.get())
                 .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
-                        .include(WoodContent.WOOD.get())
+                        .include(MaterialContent.MATERIAL.get())
                         .include(ServusShuttlesComponents.SITE_NAME.get())
                         .include(ServusShuttlesComponents.CONTROLLER_ENERGY.get())));
         // The rack keeps the wood it was crafted from.
@@ -48,7 +48,7 @@ final class ServusShuttlesBlockLoot extends BlockLootSubProvider {
         add(ServusShuttlesBlocks.PATTERN_STORAGE.get(), createSingleItemTable(ServusShuttlesBlocks.PATTERN_STORAGE.get())
                 .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
                         .include(ServusShuttlesComponents.PATTERNS.get())
-                        .include(WoodContent.WOOD.get())));
+                        .include(MaterialContent.MATERIAL.get())));
     }
 
     @Override
