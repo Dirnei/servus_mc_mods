@@ -17,7 +17,7 @@
 ## 4. Verification
 
 - [x] 4.1 Full `gradlew build` and `gradlew test` green, `:shuttles:runGameTestServer` green apart from failures that also fail on main.
-- [ ] 4.2 User play check: mine and carrot dismantle a named controller with FE, check the tooltip, place it elsewhere, name and FE are back, game launches with all mods.
+- [x] 4.2 User play check: mine and carrot dismantle a named controller with FE, check the tooltip, place it elsewhere, name and FE are back, game launches with all mods.
 
 ## Workflow follow-up
 

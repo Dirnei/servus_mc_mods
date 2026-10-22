@@ -36,7 +36,7 @@ A crafted farm rail SHALL be fresh copper and the stage SHALL NOT be stored on t
 - **THEN** all rails of the joined field show exposed
 
 ### Requirement: Aging by water used
-A Field Head serving a field SHALL count the water it uses to hydrate the field. Every `corrosion_water` mB of that water (from `data/<ns>/shuttles/field.json`, example 64000) one aging step SHALL be due. When an aging step is due and the head holds an anti-corrosion item, the head SHALL use one of them and the stage SHALL stay; otherwise the field SHALL go one stage further. The counted water SHALL be kept when the world is saved. Aging SHALL happen only when water is used, never by a timer or a scan.
+A Field Head serving a field SHALL count the water it uses to hydrate the field. Every `corrosion_water` mB of that water (from `data/<ns>/shuttles/field.json`, example 9000) one aging step SHALL be due. When an aging step is due and the head holds an anti-corrosion item, the head SHALL use one of them and the stage SHALL stay; otherwise the field SHALL go one stage further. The counted water SHALL be kept when the world is saved. Aging SHALL happen only when water is used, never by a timer or a scan.
 
 #### Scenario: Step without upkeep
 - **WHEN** a copper field's head has used `corrosion_water` mB and holds no anti-corrosion item

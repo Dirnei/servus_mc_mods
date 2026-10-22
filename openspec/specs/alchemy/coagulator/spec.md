@@ -57,8 +57,12 @@ The Coagulator GUI SHALL show the ingredient and output slots, progress, the thr
 The Coagulator SHALL be crafted at a crafting table from vanilla materials without research.
 
 #### Scenario: Recipe
-- **WHEN** the player crafts the Coagulator pattern of iron ingots, glass, a cauldron and redstone
+- **WHEN** the player crafts the Coagulator pattern of cobblestone, glass, a cauldron and redstone
 - **THEN** one Coagulator is produced
+
+#### Scenario: Iron crafts nothing
+- **WHEN** the player lays iron ingots in the corners of the Coagulator pattern
+- **THEN** nothing is produced
 
 ### Requirement: First alchemical materials
 Alchemy SHALL add the items Salt Crystal, Sulfur and Quicksilver, made only in the Coagulator, as the first materials later alchemy builds on.

@@ -27,4 +27,4 @@
 ## 6. Verification
 
 - [x] 6.1 Full `gradlew build` and `gradlew test` green, GameTest servers of foundation, alchemy and shuttles pass (pre-existing failures noted)
-- [ ] 6.2 User play check: the game launches with all mods, the three Calciner parts, the Athanor, the Coagulator and both pipes craft from the new grids in JEI and at a table, and a watered copper field ages more slowly
+- [x] 6.2 User play check: the game launches with all mods, the three Calciner parts, the Athanor, the Coagulator and both pipes craft from the new grids in JEI and at a table, and a watered copper field ages more slowly

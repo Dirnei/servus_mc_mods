@@ -25,22 +25,30 @@ A pump SHALL only work while the block directly below it is a water source block
 - **THEN** the pond's blocks are unchanged
 
 ### Requirement: Pumps water into a buffer
-A working pump SHALL add `fluid_per_cycle` mB of water to its internal buffer of `fluid_capacity` mB once per `work_ticks`, and SHALL pause without spending fuel or energy while the buffer cannot take a full cycle.
+A working pump SHALL add `fluid_per_cycle` mB of water to its internal buffer of `fluid_capacity` mB once per `work_ticks`, and SHALL pause without spending fuel or energy while the buffer cannot take a full cycle. Once its buffer cannot take a full cycle, the pump SHALL stay off until the buffer holds less than its `restart_below` fraction of `fluid_capacity` (example 0.5), then run until the buffer is full again.
 
 #### Scenario: Buffer fills
 - **WHEN** a pump with nothing attached runs on a pond
 - **THEN** its buffer fills up to `fluid_capacity` and the pump then pauses
 
 #### Scenario: Room again
-- **WHEN** a pipe drains the full buffer
+- **WHEN** a pipe drains the full buffer to below half
 - **THEN** the pump resumes
 
+#### Scenario: Small draw
+- **WHEN** a pipe takes a little water from the full buffer, so that it holds more than half
+- **THEN** the pump stays off and unlit
+
 ### Requirement: Burner Pump burns fuel
-The Burner Pump SHALL burn any item vanilla furnaces accept as fuel, consuming one item when the previous burn ends and work is available, like a furnace.
+The Burner Pump SHALL burn any item vanilla furnaces accept as fuel, consuming one item when the previous burn has ended and work is available, like a furnace. Its burn SHALL count down only on ticks it pumps; while it pauses, a burn in progress SHALL keep its remaining time.
 
 #### Scenario: Coal
 - **WHEN** a Burner Pump on a pond has one coal and an empty buffer
-- **THEN** it pumps for the coal's furnace burn time unless its buffer fills first
+- **THEN** it pumps for the coal's furnace burn time, counted over the ticks it pumps, even when a full buffer pauses it in between
+
+#### Scenario: Full buffer keeps the burn
+- **WHEN** the buffer of a burning Burner Pump is full
+- **THEN** the remaining burn time stays the same until the pump runs again
 
 #### Scenario: No fuel
 - **WHEN** the fuel slot is empty and the burn has ended
@@ -132,11 +140,19 @@ A pump SHALL show a short pipe stub from its body to the block edge on every fac
 - **THEN** the stub on that face disappears
 
 ### Requirement: Pump GUI
-A pump's GUI SHALL show, without a side panel, its buffer as a fluid gauge with the amount and capacity on hover, its progress, and the fuel slot and burn indicator (Burner Pump) or the energy bar (Electric Pump), plus a line telling whether the water source below is valid.
+A pump's GUI SHALL show, without a side panel, its buffer as a fluid gauge with the amount and capacity on hover, its progress, and the fuel slot and burn indicator (Burner Pump) or the energy bar (Electric Pump), plus a status line in place of the inventory label. The status line SHALL say that the pump needs an infinite water source below while the source is not valid; otherwise, while the restart threshold holds the pump off, it SHALL read "Waiting: restarts below N mB" with N the amount the buffer must drop below; otherwise "Out of fuel" for a Burner Pump with room but no fuel, or "No power" for an Electric Pump with room but too little energy; otherwise that the water source below is valid. While the restart threshold is below 1, the fluid gauge SHALL show a small mark at the restart level.
 
 #### Scenario: No source shown
 - **WHEN** a player opens the GUI of a pump that stands on dirt
 - **THEN** the GUI says the pump needs an infinite water source below
+
+#### Scenario: Waiting shown
+- **WHEN** a player opens the GUI of a pump on a pond whose full buffer was drained to 3000 of 4000 mB
+- **THEN** the status line reads "Waiting: restarts below 2000 mB" and the gauge shows a mark at half its height
+
+#### Scenario: Out of fuel shown
+- **WHEN** a player opens the GUI of a Burner Pump on a pond with room in its buffer and no fuel
+- **THEN** the status line reads "Out of fuel"
 
 ### Requirement: Crafting
 The Burner Pump and the Electric Pump SHALL both be crafted at a crafting table from vanilla materials and SHALL need no research. The Burner Pump takes iron ingots, cobblestone, a bucket and a furnace; the Electric Pump takes a Burner Pump with iron ingots, copper ingots and redstone.
@@ -230,7 +246,7 @@ While the Burner Pump is lit, its beam SHALL rock about its pivot with a steady 
 
 #### Scenario: Buffer full
 - **WHEN** the buffer is full and the pump pauses
-- **THEN** once the burn ends and the pump goes unlit, the beam stops, the smoke stops and no more splashes rise
+- **THEN** the pump goes unlit right away with its burn kept: the beam stops, the smoke stops and no more splashes rise
 
 #### Scenario: No source
 - **WHEN** a Burner Pump with coal stands on dirt

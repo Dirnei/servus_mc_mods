@@ -113,11 +113,15 @@ Alchemy SHALL add a Salt Crystal Block. It SHALL be grown only on the Athanor, f
 - **THEN** no Salt Crystal Block is offered
 
 ### Requirement: Athanor crafting
-The Athanor SHALL be crafted at a crafting table from bricks, a blast furnace and a cauldron without research.
+The Athanor SHALL be crafted at a crafting table from Stone Bricks, a blast furnace and a cauldron without research. Its hearth stays vanilla Bricks.
 
 #### Scenario: Recipe
-- **WHEN** the player crafts the Athanor pattern
+- **WHEN** the player crafts the Athanor pattern of Stone Bricks around a cauldron and a blast furnace
 - **THEN** one Athanor is produced
+
+#### Scenario: Bricks craft nothing
+- **WHEN** the player lays vanilla Bricks in the Athanor pattern
+- **THEN** nothing is produced
 
 ### Requirement: Athanor hearth
 The Athanor SHALL stand on a hearth of 13 vanilla Bricks in a diamond directly below it, centred under it and reaching two blocks out, with three Foundation Fluid Tanks two blocks from it on its own level, standing on the tips of the diamond: behind it, to its left and to its right, seen from its front. Each tank SHALL be joined by two Copper Ducts one block above the Athanor's level: one right beside the Athanor and one over the tank; when the tank is stacked that high, the block over it is a Fluid Tank and the second duct is left out. Right clicking the Athanor with Paracelsus' Journal SHALL check the hearth, the tanks and the ducts and form the Athanor when they are complete, making the player its owner, and SHALL NOT open the book; when a brick, a tank or a duct is missing it SHALL name it. A Copper Duct formed into a Calciner SHALL NOT count. Breaking the brick right under a formed Athanor or one of its ducts SHALL unform it at once; a missing tank SHALL unform it at the next check.
