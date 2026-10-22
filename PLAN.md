@@ -176,11 +176,10 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 
 Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 
-- `m14-mill` (Foundation): the **Mill**, a steel block that grinds only while it is driven, with the data driven recipe type `servus_foundation:milling` (Foundation ships gravel to sand; Delicacies adds wheat to flour, Brewery malt to grist). It brings the two drives: the **Hand Crank** (on the side of a block that takes drive, hold right click, slow, costs a little food exhaustion) and the **Electric Motor** (FE in at the back, shaft on the front, draws FE only while the driven block has work, takes the Speed Upgrade). A crank or motor drives only the block it touches; no shaft network.
 - `m14-crops`: cabbage, red cabbage, onion, parsley, horseradish, mustard seed.
 - `m14-tiled-stove`: the Tiled Stove multiblock with its firebox, the Pot and the Pan, the Cutting Board, and the small firebox interface ("am I hot") the cooking spots ask.
 - `m14-heating-element` (Foundation, after the Tiled Stove): the **Heating Element** upgrade lets a firebox take FE through a small iron power port instead of burning fuel, with coils over the door and a brass thermometer that climbs while it preheats; FE is the shared interface, no heat API. The Alchemy Calciner never takes it.
-- `m14-bakery` (needs the Mill): flour, Pretzel (with lye from wood ash, decided there), Bread Roll, bread crumbs.
+- `m14-bakery`: flour, Pretzel (with lye from wood ash, decided there), Bread Roll, bread crumbs.
 - `m14-meat-dishes`: Weisswurst with Sweet Mustard, Leberkaese, Schnitzel, Cordon Bleu, Roast Pork; Cheese from the Fermenting Crock.
 - `m14-sides`: Sauerkraut, Red Cabbage, Bread Dumpling, Potato Dumpling, potato salad.
 - `m14-teller`: plated meals with portions and a meal buff (Roast Pork with two dumplings and red cabbage, Schnitzel with potato salad, the Weisswurst breakfast; its Weissbier only when Brewery is installed).

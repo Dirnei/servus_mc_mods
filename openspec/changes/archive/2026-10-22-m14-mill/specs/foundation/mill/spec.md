@@ -1,3 +1,7 @@
+## Purpose
+
+The Mill is a Foundation machine that grinds items only while a driver drives it. It covers the block, its slots, sides, screen and look, the data driven `servus_foundation:milling` recipe type with the shipped gravel recipe, and the JEI category.
+
 ## ADDED Requirements
 
 ### Requirement: Milling recipes

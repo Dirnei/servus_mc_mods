@@ -44,7 +44,7 @@
 ## 9. Verification
 
 - [x] 9.1 Full `gradlew build test`, `:foundation:runGameTestServer` green.
-- [ ] 9.2 User play check in game:
+- [x] 9.2 User play check in game:
   - The Mill looks like the family steel mockup: heavy iron base, steel housing, iron grinding wheel with brass hub, steel hopper with a brass rim, steel chute; no flicker from any angle, also while the wheel turns. The item shows the whole mill.
   - The Hand Crank goes only onto the back or sides of a Mill; holding right click turns the arm and the Mill's wheel smoothly and continuously, Gravel becomes Sand in about six seconds, the hunger bar drops slowly; let go, arm and wheel slow down and stop in about a second and the progress arrow stops; breaking the Mill drops the crank.
   - The Electric Motor looks like the Electric Pump's motor; powered from the back it grinds Gravel to Sand in about two seconds, the coupling and fan turn and sparks show; it stops and spends nothing when the Mill is empty; a Speed Upgrade halves the time and doubles the FE per tick.

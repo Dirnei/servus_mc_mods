@@ -1,3 +1,7 @@
+## Purpose
+
+The drive link lets a driver hand work to the one block it touches, without a shaft network. It covers the Hand Crank, the Electric Motor with its Speed Upgrade, their balance data and their look.
+
 ## ADDED Requirements
 
 ### Requirement: Drive link
