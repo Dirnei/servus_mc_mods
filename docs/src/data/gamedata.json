@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "mod_version": "0.1.0",
+  "mod_version": "0.2.0-alpha",
   "machines": {
     "servus_alchemy:athanor": {
       "kind": "crafter",

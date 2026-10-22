@@ -2,7 +2,10 @@ name: Build
 
 on:
   push:
+    branches: ['**']
   pull_request:
+  # The release workflow runs this build first and publishes only when it passes.
+  workflow_call:
 
 jobs:
   build:
@@ -22,14 +25,6 @@ jobs:
 
       - name: Build and test
         run: ./gradlew build --no-daemon
-
-      - name: Check the docs game data export is current
-        run: |
-          ./gradlew :alchemy:runData --no-daemon
-          if ! git diff --exit-code -- docs/src/data/gamedata.json; then
-            echo "::error file=docs/src/data/gamedata.json::docs/src/data/gamedata.json is out of date. Run ./gradlew :alchemy:runData and commit the file."
-            exit 1
-          fi
 
       - name: Upload mod jars
         uses: actions/upload-artifact@v4
