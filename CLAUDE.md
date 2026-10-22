@@ -31,6 +31,7 @@ Lifecycle of a change:
 2. **Propose** (`/opsx:propose`) to create the change and generate proposal, delta specs, design and tasks. Stop after the artifacts and wait for review. Never start implementing in the same response.
 3. **Apply** (`/opsx:apply`) to work through `tasks.md`. Check off tasks as they are done. After each task: build, run the unit tests, and launch the game when block or GUI behavior changed.
 4. **Archive** (`/opsx:archive`) once every task is checked and the build is green. Archiving merges the delta specs into `openspec/specs/`. Use `/opsx:sync` only when main specs need to be updated before the change is complete. Then groom `PLAN.md` in the same commit: remove what the change built (open points, "later" notes, history), keep only what is still open, and add any new open point the change decided.
+   Also in that commit, add a short line for players under the `## Unreleased` section of the `CHANGELOG.md` of every mod the change touched (Added, Changed, Fixed). A release renames that section to its version.
 5. **Update** (`/opsx:update`) when a decision made during apply changes the plan. Keep proposal, specs, design and tasks consistent with each other.
 
 Scoping changes:

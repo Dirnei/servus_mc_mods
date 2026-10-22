@@ -2,7 +2,8 @@ name: Release
 
 # Releases one mod per tag: <mod>-v<version>, for example shuttles-v0.2.0 or foundation-v0.3.0-beta.
 # The jar gets the tag's version; mod_version in gradle.properties only names dev builds. A version containing "alpha" or
-# "beta" is published as that type, anything else as release.
+# "beta" is published as that type, anything else as release. The changelog is the "## <version>" section of
+# <mod>/CHANGELOG.md; the release fails when that section is missing.
 #
 # Repository settings:
 #   secret   CURSEFORGE_TOKEN            CurseForge API token (curseforge.com, account, API tokens)
@@ -57,7 +58,15 @@ jobs:
           esac
           name=$(sed -n 's/^mod_name=//p' "$mod/gradle.properties" | tr -d '\r')
           mc=$(sed -n 's/^minecraft_version=//p' gradle.properties | tr -d '\r')
-          git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
+          changelog=$(awk -v heading="## $version" '
+            $0 == heading { found = 1; next }
+            found && /^## / { exit }
+            found { print }
+          ' "$mod/CHANGELOG.md")
+          if [ -z "$(echo "$changelog" | tr -d '[:space:]')" ]; then
+            echo "::error::$mod/CHANGELOG.md has no '## $version' section"
+            exit 1
+          fi
           {
             echo "mod=$mod"
             echo "version=$version"
@@ -67,15 +76,15 @@ jobs:
             echo "name=$name $version"
             echo "mc=$mc"
             echo "changelog<<EOF"
-            git tag -l --format='%(contents)' "$TAG"
+            echo "$changelog"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: 25
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
