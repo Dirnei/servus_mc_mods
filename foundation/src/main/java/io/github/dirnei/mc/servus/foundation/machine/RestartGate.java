@@ -22,11 +22,16 @@ public final class RestartGate {
             waiting = true;
             return false;
         }
-        if (waiting && stored >= capacity * restartBelow) {
+        if (waiting && stored >= level(capacity, restartBelow)) {
             return false;
         }
         waiting = false;
         return true;
+    }
+
+    /** The amount a waiting buffer must drop below before the machine runs again. */
+    public static long level(long capacity, double restartBelow) {
+        return (long) Math.ceil(capacity * restartBelow);
     }
 
     /** Whether the machine waits for its buffer to drop below the threshold. */

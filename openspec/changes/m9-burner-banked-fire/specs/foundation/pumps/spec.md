@@ -44,3 +44,18 @@ While the Burner Pump is lit, its beam SHALL rock about its pivot with a steady 
 #### Scenario: No source
 - **WHEN** a Burner Pump with coal stands on dirt
 - **THEN** the beam does not move, no smoke rises and nothing splashes
+
+### Requirement: Pump GUI
+A pump's GUI SHALL show, without a side panel, its buffer as a fluid gauge with the amount and capacity on hover, its progress, and the fuel slot and burn indicator (Burner Pump) or the energy bar (Electric Pump), plus a status line in place of the inventory label. The status line SHALL say that the pump needs an infinite water source below while the source is not valid; otherwise, while the restart threshold holds the pump off, it SHALL read "Waiting: restarts below N mB" with N the amount the buffer must drop below; otherwise "Out of fuel" for a Burner Pump with room but no fuel, or "No power" for an Electric Pump with room but too little energy; otherwise that the water source below is valid. While the restart threshold is below 1, the fluid gauge SHALL show a small mark at the restart level.
+
+#### Scenario: No source shown
+- **WHEN** a player opens the GUI of a pump that stands on dirt
+- **THEN** the GUI says the pump needs an infinite water source below
+
+#### Scenario: Waiting shown
+- **WHEN** a player opens the GUI of a pump on a pond whose full buffer was drained to 3000 of 4000 mB
+- **THEN** the status line reads "Waiting: restarts below 2000 mB" and the gauge shows a mark at half its height
+
+#### Scenario: Out of fuel shown
+- **WHEN** a player opens the GUI of a Burner Pump on a pond with room in its buffer and no fuel
+- **THEN** the status line reads "Out of fuel"

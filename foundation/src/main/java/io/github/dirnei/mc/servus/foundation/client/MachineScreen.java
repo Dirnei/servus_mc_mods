@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.client;
 
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
+import io.github.dirnei.mc.servus.foundation.machine.MachineStatus;
 import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
 import io.github.dirnei.mc.servus.foundation.side.SideLayer;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -14,10 +15,19 @@ import net.minecraft.world.entity.player.Inventory;
 /** Screen shared by all machines. The layout says which indicators to draw and on which background. */
 public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
-    /** Which indicators a machine screen shows, whether it has the side panel, and its background texture. */
-    public record Layout(boolean flame, boolean arrow, boolean energy, boolean fluid, boolean sidePanel, Identifier texture) {
+    /**
+     * Which indicators a machine screen shows, whether it has the side panel, its background texture, and whether a
+     * status line takes the place of the inventory label.
+     */
+    public record Layout(boolean flame, boolean arrow, boolean energy, boolean fluid, boolean sidePanel, boolean statusLine,
+                         Identifier texture) {
 
-        /** A layout without fluid gauge, with the side panel. */
+        /** A layout whose status line shows exactly when it has a fluid gauge. */
+        public Layout(boolean flame, boolean arrow, boolean energy, boolean fluid, boolean sidePanel, Identifier texture) {
+            this(flame, arrow, energy, fluid, sidePanel, fluid, texture);
+        }
+
+        /** A layout without fluid gauge or status line, with the side panel. */
         public Layout(boolean flame, boolean arrow, boolean energy, Identifier texture) {
             this(flame, arrow, energy, false, true, texture);
         }
@@ -43,6 +53,9 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     protected static final int FLUID_HEIGHT = 52;
     private static final int STATUS_OK = 0xFF3F7F3F;
     private static final int STATUS_MISSING = 0xFFA03030;
+    private static final int STATUS_WAITING = 0xFF404040;
+    private static final int RESTART_MARK = 0xFFB0B0B0;
+    private static final int RESTART_MARK_LENGTH = 3;
 
     private final FluidGauge fluidGauge = new FluidGauge(FLUID_WIDTH, FLUID_HEIGHT);
 
@@ -119,18 +132,63 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         }
     }
 
-    /** Pumps show their source status where other machines show the inventory label. */
+    /** Machines with a status line show it where other machines show the inventory label. */
     @Override
     protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
-        if (!layout.fluid()) {
+        if (!layout.statusLine()) {
             super.extractLabels(guiGraphics, mouseX, mouseY);
             return;
         }
         guiGraphics.text(font, title, titleLabelX, titleLabelY, 0xFF404040, false);
-        Component status = Component.translatable(menu.sourceValid()
-                ? "gui.servus_foundation.pump.source_ok" : "gui.servus_foundation.pump.source_missing");
-        textFitted(guiGraphics, status, inventoryLabelX, inventoryLabelY, imageWidth - 2 * inventoryLabelX,
-                menu.sourceValid() ? STATUS_OK : STATUS_MISSING);
+        StatusLine line = statusLine();
+        if (line != null) {
+            textFitted(guiGraphics, line.text(), inventoryLabelX, inventoryLabelY, imageWidth - 2 * inventoryLabelX, line.color());
+        }
+    }
+
+    private record StatusLine(Component text, int color) {
+    }
+
+    /**
+     * Why the machine is dark, or that it runs; null when there is nothing to say. A pump names a missing water source
+     * first, since without one it cannot run at all.
+     */
+    private StatusLine statusLine() {
+        if (layout.fluid() && !menu.sourceValid()) {
+            return new StatusLine(Component.translatable("gui.servus_foundation.pump.source_missing"), STATUS_MISSING);
+        }
+        MachineStatus status = menu.machineStatus();
+        return switch (status) {
+            case WAITING -> new StatusLine(Component.translatable(layout.fluid()
+                    ? "gui.servus_foundation.machine.waiting.fluid" : "gui.servus_foundation.machine.waiting.energy",
+                    menu.restartLevel()), STATUS_WAITING);
+            case OUT_OF_FUEL -> new StatusLine(Component.translatable("gui.servus_foundation.machine.out_of_fuel"), STATUS_MISSING);
+            case NO_POWER -> new StatusLine(Component.translatable("gui.servus_foundation.machine.no_power"), STATUS_MISSING);
+            case RUNNING, IDLE -> runningLine(status);
+        };
+    }
+
+    /** A pump that can run names its source; any other machine says it runs, and nothing while idle. */
+    private StatusLine runningLine(MachineStatus status) {
+        if (layout.fluid()) {
+            return new StatusLine(Component.translatable("gui.servus_foundation.pump.source_ok"), STATUS_OK);
+        }
+        return status == MachineStatus.RUNNING
+                ? new StatusLine(Component.translatable("gui.servus_foundation.machine.running"), STATUS_OK) : null;
+    }
+
+    /**
+     * A short notch on both edges of a bar at the restart level, while the level lies inside the bar. The coordinates are
+     * the bar's inside on screen.
+     */
+    private void extractRestartMark(GuiGraphicsExtractor guiGraphics, int x, int y, int width, int height, int capacity) {
+        int level = menu.restartLevel();
+        if (!layout.statusLine() || capacity <= 0 || level <= 0 || level >= capacity) {
+            return;
+        }
+        int markY = y + height - (int) ((long) level * height / capacity);
+        guiGraphics.fill(x, markY, x + RESTART_MARK_LENGTH, markY + 1, RESTART_MARK);
+        guiGraphics.fill(x + width - RESTART_MARK_LENGTH, markY, x + width, markY + 1, RESTART_MARK);
     }
 
     /** Draws one line of text, scaled down about its middle when it is wider than {@code available}. */
@@ -171,6 +229,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         }
         if (layout.fluid()) {
             fluidGauge.render(guiGraphics, menu.fluid(), menu.fluidCapacity());
+            extractRestartMark(guiGraphics, leftPos + FLUID_X, topPos + FLUID_Y, FLUID_WIDTH, FLUID_HEIGHT, menu.fluidCapacity());
         }
         if (layout.energy()) {
             extractEnergyBar(guiGraphics);
@@ -186,6 +245,9 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         int filled = menu.energyScaled(ENERGY_HEIGHT);
         if (filled > 0) {
             guiGraphics.fill(x, y + ENERGY_HEIGHT - filled, x + ENERGY_WIDTH, y + ENERGY_HEIGHT, 0xFFD03030);
+        }
+        if (!layout.fluid()) {
+            extractRestartMark(guiGraphics, x, y, ENERGY_WIDTH, ENERGY_HEIGHT, menu.energyCapacity());
         }
     }
 }

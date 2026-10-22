@@ -42,7 +42,14 @@ public abstract class PoweredMachineBlockEntity extends MachineBlockEntity {
             energy.setCapacity(stats().energyCapacity());
             capacityApplied = true;
         }
-        if (!canWork()) {
+        boolean hasWork = canWork();
+        boolean working = work(hasWork);
+        setStatus(MachineStatus.of(working, restartWaiting(), hasWork, MachineStatus.NO_POWER));
+        return working;
+    }
+
+    private boolean work(boolean hasWork) {
+        if (!hasWork) {
             resetProgress();
             return false;
         }

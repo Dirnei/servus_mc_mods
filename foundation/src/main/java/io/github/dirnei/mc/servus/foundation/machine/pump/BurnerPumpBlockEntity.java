@@ -70,6 +70,11 @@ public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements P
     }
 
     @Override
+    protected boolean restartWaiting() {
+        return pump.restartWaiting();
+    }
+
+    @Override
     protected void finishWork() {
         pump.finishWork(stats());
     }

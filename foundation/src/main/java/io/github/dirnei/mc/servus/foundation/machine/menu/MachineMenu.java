@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.MachineStatus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -139,6 +140,16 @@ public abstract class MachineMenu extends AbstractContainerMenu {
 
     public boolean sourceValid() {
         return dataOrZero(MachineBlockEntity.DATA_SOURCE_VALID) != 0;
+    }
+
+    /** What the machine's status line shows. */
+    public MachineStatus machineStatus() {
+        return MachineStatus.byOrdinal(data.get(MachineBlockEntity.DATA_STATUS));
+    }
+
+    /** The amount the buffer must drop below before a waiting machine runs again; 0 for machines without a threshold. */
+    public int restartLevel() {
+        return dataOrZero(MachineBlockEntity.DATA_RESTART_LEVEL);
     }
 
     /** Button ids from this value on cycle the relative side with that offset. */

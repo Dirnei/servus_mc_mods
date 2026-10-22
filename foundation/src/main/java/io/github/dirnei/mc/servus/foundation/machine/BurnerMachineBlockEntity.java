@@ -97,7 +97,9 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
 
     @Override
     protected boolean tick() {
-        lit = burn(canWork());
+        boolean hasWork = canWork();
+        lit = burn(hasWork);
+        setStatus(MachineStatus.of(lit, restartWaiting(), hasWork, MachineStatus.OUT_OF_FUEL));
         return lit;
     }
 

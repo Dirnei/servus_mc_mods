@@ -64,6 +64,11 @@ public class ElectricPumpBlockEntity extends PoweredMachineBlockEntity implement
     }
 
     @Override
+    protected boolean restartWaiting() {
+        return pump.restartWaiting();
+    }
+
+    @Override
     protected void finishWork() {
         pump.finishWork(stats());
     }

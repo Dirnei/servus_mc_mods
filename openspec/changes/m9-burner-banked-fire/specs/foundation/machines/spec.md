@@ -22,6 +22,10 @@ A machine with a buffer it fills (an FE buffer or a water tank) MAY have a resta
 - **WHEN** the buffer of that machine drops below half
 - **THEN** the machine runs again and keeps running until the buffer is full
 
+#### Scenario: Waiting is visible
+- **WHEN** a machine with a restart threshold waits with its buffer above the threshold
+- **THEN** it is not lit, and its GUI tells that it waits and below which amount it restarts
+
 #### Scenario: Retuned threshold
 - **WHEN** a datapack sets `restart_below` of `servus_foundation:coal_generator` to 0.9 and the server reloads
 - **THEN** the generator restarts once its buffer drops below 90 percent

@@ -79,6 +79,11 @@ public final class PumpLogic {
         return sourceValid;
     }
 
+    /** Whether the pump waits for its buffer to drop below the restart threshold. */
+    public boolean restartWaiting() {
+        return restart.waiting();
+    }
+
     /** Checks the source again on the next tick, for example because a neighbour changed. */
     public void requestCheck() {
         checkRequested = true;
@@ -171,6 +176,7 @@ public final class PumpLogic {
             case MachineBlockEntity.DATA_FLUID_CAPACITY -> stats.fluidCapacity();
             case MachineBlockEntity.DATA_FLUID_ID -> fluidId();
             case MachineBlockEntity.DATA_SOURCE_VALID -> sourceValid ? 1 : 0;
+            case MachineBlockEntity.DATA_RESTART_LEVEL -> (int) RestartGate.level(stats.fluidCapacity(), stats.restartBelow());
             default -> fallback.applyAsInt(index);
         };
     }

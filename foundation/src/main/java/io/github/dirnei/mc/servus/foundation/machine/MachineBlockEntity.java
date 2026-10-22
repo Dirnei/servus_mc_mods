@@ -52,18 +52,25 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     public static final int DATA_BURN_DURATION = 3;
     public static final int DATA_ENERGY = 4;
     public static final int DATA_ENERGY_CAPACITY = 5;
-    /** Index 6 is free for machine specific data. */
+    /** The machine's {@link MachineStatus} ordinal for its GUI status line, or a status of its own (the Ender Anchor). */
+    public static final int DATA_STATUS = 6;
     public static final int DATA_SIDE_FIRST = 7;
     /** The six Fluids layer values; 0 for machines without a Fluids layer. */
     public static final int DATA_FLUID_SIDE_FIRST = DATA_SIDE_FIRST + 6;
     public static final int DATA_COUNT = DATA_FLUID_SIDE_FIRST + 6;
-    /** Extra data of machines with a fluid buffer, after the common entries. */
-    public static final int DATA_FLUID_AMOUNT = DATA_COUNT;
-    public static final int DATA_FLUID_CAPACITY = DATA_COUNT + 1;
-    public static final int DATA_FLUID_ID = DATA_COUNT + 2;
+    /**
+     * Extra data of machines with a restart threshold, after the common entries: the amount their buffer must drop
+     * below before they run again.
+     */
+    public static final int DATA_RESTART_LEVEL = DATA_COUNT;
+    public static final int DATA_COUNT_RESTART = DATA_COUNT + 1;
+    /** Extra data of machines with a fluid buffer, after the restart level. */
+    public static final int DATA_FLUID_AMOUNT = DATA_COUNT_RESTART;
+    public static final int DATA_FLUID_CAPACITY = DATA_COUNT_RESTART + 1;
+    public static final int DATA_FLUID_ID = DATA_COUNT_RESTART + 2;
     /** 1 while the machine's source (the water below a pump) is valid. */
-    public static final int DATA_SOURCE_VALID = DATA_COUNT + 3;
-    public static final int DATA_COUNT_FLUID = DATA_COUNT + 4;
+    public static final int DATA_SOURCE_VALID = DATA_COUNT_RESTART + 3;
+    public static final int DATA_COUNT_FLUID = DATA_COUNT_RESTART + 4;
 
     private static final int PUSH_INTERVAL = 8;
 
@@ -90,6 +97,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     };
 
     protected int progress;
+    private MachineStatus status = MachineStatus.IDLE;
     private MachineStats stats;
     private int pushCooldown;
 
@@ -150,6 +158,20 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         boolean working = machine.tick();
         machine.pushOutputs();
         machine.updateLit(working);
+    }
+
+    /** What the GUI status line shows; set by the machine's tick. */
+    public MachineStatus machineStatus() {
+        return status;
+    }
+
+    protected void setStatus(MachineStatus status) {
+        this.status = status;
+    }
+
+    /** Whether a restart threshold holds the machine off; machines without one never wait. */
+    protected boolean restartWaiting() {
+        return false;
     }
 
     /** Resets the progress of an idle machine. */
@@ -303,6 +325,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         return switch (index) {
             case DATA_PROGRESS -> progress;
             case DATA_WORK_TICKS -> workTicks();
+            case DATA_STATUS -> status.ordinal();
             default -> 0;
         };
     }

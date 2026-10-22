@@ -18,3 +18,22 @@ The generator SHALL burn any furnace fuel and produce a fixed amount of FE per t
 #### Scenario: Restart below half
 - **WHEN** the buffer of a generator that filled up is drained to 60 percent
 - **THEN** the generator stays off; once the buffer drops below 50 percent it runs again
+
+### Requirement: GUI and crafting
+The generator SHALL have a GUI with the fuel slot, a flame while burning, an energy bar and a status line in place of the inventory label, and SHALL be craftable from vanilla materials. The status line SHALL read "Running" while it burns, "Waiting: restarts below N FE" while its restart threshold holds it off, with N the energy the buffer must drop below, and "Out of fuel" while its buffer has room but it has no fuel. While the restart threshold is below 1, the energy bar SHALL show a small mark at the restart level.
+
+#### Scenario: Open GUI
+- **WHEN** the player right clicks the generator
+- **THEN** the GUI shows the fuel slot, the burn flame, the stored energy and the status line
+
+#### Scenario: Waiting shown
+- **WHEN** the player opens the GUI of a generator whose full buffer dropped to 60 percent
+- **THEN** the status line reads "Waiting: restarts below 8000 FE" with the default stats, no flame shows, and the energy bar has a mark at half its height
+
+#### Scenario: Out of fuel shown
+- **WHEN** the player opens the GUI of a generator with room in its buffer and an empty fuel slot
+- **THEN** the status line reads "Out of fuel"
+
+#### Scenario: Recipe
+- **WHEN** the player crafts with iron ingots, copper ingots and a furnace in the generator pattern
+- **THEN** the result is one Coal Generator

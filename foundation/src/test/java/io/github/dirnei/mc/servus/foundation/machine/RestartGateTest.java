@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.machine;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -48,6 +49,24 @@ class RestartGateTest {
         gate.allows(true, CAPACITY, CAPACITY, 1.0);
 
         assertTrue(gate.allows(false, 15995, CAPACITY, 1.0));
+    }
+
+    @Test
+    void levelIsTheShareOfTheCapacityRoundedUp() {
+        assertEquals(8000, RestartGate.level(CAPACITY, 0.5));
+        assertEquals(2000, RestartGate.level(4000, 0.5));
+        assertEquals(1334, RestartGate.level(4000, 1.0 / 3.0));
+        assertEquals(CAPACITY, RestartGate.level(CAPACITY, 1.0));
+        assertEquals(0, RestartGate.level(CAPACITY, 0.0));
+    }
+
+    @Test
+    void restartsExactlyBelowTheLevel() {
+        RestartGate gate = new RestartGate();
+        gate.allows(true, 4000, 4000, 1.0 / 3.0);
+
+        assertFalse(gate.allows(false, 1334, 4000, 1.0 / 3.0));
+        assertTrue(gate.allows(false, 1333, 4000, 1.0 / 3.0));
     }
 
     @Test

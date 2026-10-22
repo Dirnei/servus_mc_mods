@@ -17,7 +17,8 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 @EventBusSubscriber(modid = ServusFoundationIds.MOD_ID, value = Dist.CLIENT)
 public final class MachineClient {
 
-    public static final Layout GENERATOR = new Layout(true, false, true, gui("coal_generator"));
+    /** The Coal Generator: fuel, flame and energy bar with the side panel, and a status line. */
+    public static final Layout GENERATOR = new Layout(true, false, true, false, true, true, gui("coal_generator"));
     public static final Layout ANCHOR = new Layout(false, false, true, gui("ender_anchor"));
     /** Pumps: a fluid gauge and the water source status line, no side panel. */
     public static final Layout BURNER_PUMP = new Layout(true, true, false, true, false, gui("burner_pump"));

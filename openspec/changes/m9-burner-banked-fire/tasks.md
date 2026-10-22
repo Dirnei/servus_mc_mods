@@ -20,10 +20,17 @@
 - [x] 4.1 Export `restart_below` for every machine: `GameDataJson.Machine.stats` as `Map<String, Number>`, `GameDataExportProvider.machines`. Run `gradlew :alchemy:runData` and keep the regenerated `docs/src/data/gamedata.json`. Run the docs tests (`npx vitest run` in `docs/`).
 - [x] 4.2 Document `restart_below` and the banked fire in `docs/src/content/docs/reference/datapack/machines.md` and the Coal Generator and pump lines of `docs/src/content/docs/mods/foundation.md`. Verify the page by reading it back.
 
-## 5. Verification
+## 5. Why a dark machine is dark
 
-- [x] 5.1 Full `gradlew build` and `gradlew test` green, `:foundation:runGameTestServer` and `:alchemy:runGameTestServer` green (or failures shown to be pre-existing on main), `openspec validate m9-burner-banked-fire` passes.
-- [ ] 5.2 User play check from main: game launches with all mods; a Coal Generator feeding a small load (for example an Electric Pump with a full tank, or a single Power Cable consumer) no longer flickers its lamp, fire window or smoke, stays dark while its buffer is above half and runs lit until full; a Burner Pump with a full tank goes dark at once and keeps its burn; a Calciner whose input runs out goes dark and keeps its burn.
+- [x] 5.1 Add the pure `MachineStatus` enum (`foundation/.../machine/MachineStatus.java`) with `MachineStatusTest` (working runs, waiting beats missing fuel, work without working is what is missing, no work is idle, ordinal round trip), and `RestartGate.level` with tests for its rounding and that the gate restarts exactly below it. Verify with `gradlew :foundation:test`.
+- [x] 5.2 Set the status at the end of the tick in `BurnerMachineBlockEntity` and `PoweredMachineBlockEntity` (`restartWaiting()` hook in `MachineBlockEntity`, overridden by `CoalGeneratorBlockEntity`, `BurnerPumpBlockEntity`, `ElectricPumpBlockEntity` through `PumpLogic`); sync it at `DATA_STATUS` (index 6) and the restart level at the new `DATA_RESTART_LEVEL`, with the pump fluid entries moved up behind it; `MachineMenu.machineStatus()` and `restartLevel()`; `CoalGeneratorMenu` syncs `DATA_COUNT_RESTART`. Verify with `gradlew build`.
+- [x] 5.3 Status line and restart mark in `client/MachineScreen` (new `Layout.statusLine`, on for the generator in `MachineClient`, kept equal to `fluid` for the 6 argument constructor), lang keys in `datagen/MachineDataParts.lang`; run `gradlew :foundation:runData` and `gradlew :alchemy:runData` (no change to `docs/src/data/gamedata.json`). Verify with `gradlew build`.
+- [x] 5.4 GameTests: `CoalGeneratorGameTests.restartsOnlyBelowHalf` checks `WAITING` and the restart level in the menu data, then `RUNNING`; new `CoalGeneratorGameTests.reportsOutOfFuel`; `PumpGameTests.fullTankKeepsTheBurn` checks `WAITING` and level 2000. Verify with `gradlew :foundation:runGameTestServer` and `gradlew :alchemy:runGameTestServer`.
+
+## 6. Verification
+
+- [x] 6.1 Full `gradlew build` and `gradlew test` green, `:foundation:runGameTestServer` and `:alchemy:runGameTestServer` green (or failures shown to be pre-existing on main), `openspec validate m9-burner-banked-fire` passes.
+- [ ] 6.2 User play check from main: game launches with all mods; a Coal Generator feeding a small load (for example an Electric Pump with a full tank, or a single Power Cable consumer) no longer flickers its lamp, fire window or smoke, stays dark while its buffer is above half and runs lit until full; a Burner Pump with a full tank goes dark at once and keeps its burn; a Calciner whose input runs out goes dark and keeps its burn. In the GUIs: the generator reads "Running", "Waiting: restarts below 8000 FE" while it waits and "Out of fuel" without coal; the pumps read "Waiting: restarts below 2000 mB" while they wait, "Out of fuel" (Burner Pump) or "No power" (Electric Pump), and the source lines as before; the energy bar and the fluid gauge show a small, subtle mark at half height.
 
 ## Workflow follow-up
 

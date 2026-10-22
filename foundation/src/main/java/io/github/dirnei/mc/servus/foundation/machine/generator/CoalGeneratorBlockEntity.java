@@ -73,6 +73,11 @@ public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
     }
 
     @Override
+    protected boolean restartWaiting() {
+        return restart.waiting();
+    }
+
+    @Override
     protected void finishWork() {
         energy.add(stats().energyPerTick());
     }
@@ -111,10 +116,16 @@ public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
     }
 
     @Override
+    protected int dataCount() {
+        return DATA_COUNT_RESTART;
+    }
+
+    @Override
     protected int getData(int index) {
         return switch (index) {
             case DATA_ENERGY -> energy.getEnergyStored();
             case DATA_ENERGY_CAPACITY -> energy.getMaxEnergyStored();
+            case DATA_RESTART_LEVEL -> (int) RestartGate.level(energy.getMaxEnergyStored(), stats().restartBelow());
             default -> super.getData(index);
         };
     }

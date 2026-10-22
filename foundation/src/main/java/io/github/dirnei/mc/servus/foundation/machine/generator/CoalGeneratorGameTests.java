@@ -5,7 +5,9 @@ import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.machine.MachineStatus;
 import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport;
 import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.menu.CoalGeneratorMenu;
@@ -243,6 +245,22 @@ public final class CoalGeneratorGameTests {
         helper.succeed();
     }
 
+    private static void assertMenuStatus(GameTestHelper helper, CoalGeneratorBlockEntity generator, MachineStatus expected) {
+        MachineStatus status = MachineStatus.byOrdinal(generator.containerData().get(MachineBlockEntity.DATA_STATUS));
+        helper.assertTrue(status == expected, "the menu should show " + expected + ", got " + status);
+    }
+
+    /** A generator with room in its buffer and no fuel tells its menu it is out of fuel. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void reportsOutOfFuel(GameTestHelper helper) {
+        place(helper, GEN, Direction.NORTH);
+        CoalGeneratorBlockEntity generator = helper.getBlockEntity(GEN, CoalGeneratorBlockEntity.class);
+        helper.runAfterDelay(2, () -> {
+            assertMenuStatus(helper, generator, MachineStatus.OUT_OF_FUEL);
+            helper.succeed();
+        });
+    }
+
     private static CoalGeneratorBlockEntity burningGenerator(GameTestHelper helper) {
         place(helper, GEN, Direction.NORTH);
         CoalGeneratorBlockEntity generator = helper.getBlockEntity(GEN, CoalGeneratorBlockEntity.class);
@@ -285,11 +303,15 @@ public final class CoalGeneratorGameTests {
                 helper.runAfterDelay(20, () -> {
                     helper.assertTrue(generator.energyStorage().getEnergyStored() == sixty, "the generator waits at 60 percent");
                     helper.assertFalse(helper.getBlockState(GEN).getValue(MachineBlock.LIT), "a waiting generator is dark");
+                    assertMenuStatus(helper, generator, MachineStatus.WAITING);
+                    int level = generator.containerData().get(MachineBlockEntity.DATA_RESTART_LEVEL);
+                    helper.assertTrue(level == capacity / 2, "the menu gets the restart level, got " + level);
                     int belowHalf = capacity / 2 - 100;
                     generator.energyStorage().setEnergy(belowHalf);
                     helper.runAfterDelay(10, () -> {
                         helper.assertTrue(generator.energyStorage().getEnergyStored() > belowHalf, "the generator runs again below half");
                         helper.assertTrue(helper.getBlockState(GEN).getValue(MachineBlock.LIT), "a running generator is lit");
+                        assertMenuStatus(helper, generator, MachineStatus.RUNNING);
                         helper.succeed();
                     });
                 });

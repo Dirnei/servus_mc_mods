@@ -19,7 +19,8 @@ public class CoalGeneratorMenu extends MachineMenu {
     }
 
     public static CoalGeneratorMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        return new CoalGeneratorMenu(containerId, playerInventory, readMachine(playerInventory, buf), clientData());
+        return new CoalGeneratorMenu(containerId, playerInventory, readMachine(playerInventory, buf),
+                clientData(MachineBlockEntity.DATA_COUNT_RESTART));
     }
 
     @Override

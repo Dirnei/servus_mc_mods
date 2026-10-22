@@ -14,6 +14,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEnti
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.machine.MachineStatus;
 import io.github.dirnei.mc.servus.foundation.machine.MachineTestSupport.MenuRecorder;
 import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
@@ -178,6 +179,10 @@ public final class PumpGameTests {
                     helper.assertFalse(pump.isBurning(), "a banked fire is not lit");
                     helper.assertFalse(helper.getBlockState(PUMP).getValue(MachineBlock.LIT), "the pump is dark");
                     helper.assertTrue(pump.inventory().getStackInSlot(BurnerPumpBlockEntity.SLOT_FUEL).getCount() == 1, "no new coal is lit");
+                    helper.assertTrue(pump.containerData().get(MachineBlockEntity.DATA_STATUS) == MachineStatus.WAITING.ordinal(),
+                            "the menu shows the pump waiting");
+                    helper.assertTrue(pump.containerData().get(MachineBlockEntity.DATA_RESTART_LEVEL) == 2000,
+                            "the pump restarts below 2000 mB");
                     helper.succeed();
                 });
             });

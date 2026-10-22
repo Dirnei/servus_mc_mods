@@ -56,6 +56,11 @@ final class MachineDataParts {
         provider.add(MachineContent.ELECTRIC_PUMP.get(), "Electric Pump");
         provider.add("gui.servus_foundation.pump.source_ok", "Infinite water source below");
         provider.add("gui.servus_foundation.pump.source_missing", "Needs an infinite water source below");
+        provider.add("gui.servus_foundation.machine.running", "Running");
+        provider.add("gui.servus_foundation.machine.waiting.energy", "Waiting: restarts below %s FE");
+        provider.add("gui.servus_foundation.machine.waiting.fluid", "Waiting: restarts below %s mB");
+        provider.add("gui.servus_foundation.machine.out_of_fuel", "Out of fuel");
+        provider.add("gui.servus_foundation.machine.no_power", "No power");
         provider.add(MachineContent.ENDER_ANCHOR.get(), "Ender Anchor");
         provider.add("gui.servus_foundation.ender_anchor.no_power", "Inactive: no power");
         provider.add("gui.servus_foundation.ender_anchor.team_limit", "Inactive: team limit reached");

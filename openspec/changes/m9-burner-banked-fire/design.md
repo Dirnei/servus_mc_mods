@@ -36,6 +36,19 @@ A new `double restartBelow` in `MachineStats` and an optional `restart_below` in
 ### Lit changes only at start and stop
 With the gate the machine's `tick()` result is stable across ticks, so `updateLit` writes `LIT` only when the machine starts or stops. No change to `MachineBlockEntity.updateLit` is needed.
 
+### Status line and restart mark
+A dark machine has to say why it is dark. A pure enum `MachineStatus` (`IDLE`, `RUNNING`, `WAITING`, `OUT_OF_FUEL`, `NO_POWER`) with `of(working, waiting, hasWork, starved)` decides it after each tick: working is `RUNNING`, a held off machine is `WAITING`, work without working is what the machine lacks (`OUT_OF_FUEL` for burners, `NO_POWER` for powered machines), else `IDLE`. `MachineBlockEntity` keeps the status and a `restartWaiting()` hook (false by default; the generator and the pumps return their gate's state); `BurnerMachineBlockEntity` and `PoweredMachineBlockEntity` set the status at the end of their tick.
+
+Sync goes through the existing `ContainerData`:
+- The status ordinal sits at index 6 (`DATA_STATUS`), which was free for machine specific data; the Ender Anchor already keeps its own status there and overrides it.
+- The restart level (`RestartGate.level`: capacity times `restart_below`, rounded up, the same number the gate compares against) is a new entry `DATA_RESTART_LEVEL` right after the common entries. The generator syncs `DATA_COUNT_RESTART` entries; the pump's fluid entries move up by one behind it. The level is sent instead of the fraction because stats live on the server only.
+
+`MachineScreen.Layout` gains `statusLine`. The 6 argument constructor keeps today's rule (status line exactly when there is a fluid gauge), so other screens are unchanged; the generator layout turns it on. The line takes the place of the inventory label, like the pumps' source line today, and the pumps' messages fold into it: a missing source first (red), then "Waiting: restarts below N mB" (grey, like the title), "Out of fuel" or "No power" (red), else the existing source ok line (green). The generator shows "Running" (green), "Waiting: restarts below N FE" or "Out of fuel"; nothing while idle. N is printed as a plain number like the bar tooltips.
+
+The mark is a 1 pixel line, 3 pixels long, on both inner edges of the energy bar (generator) or fluid gauge (pumps) at the restart level, in a light grey, drawn only while 0 < level < capacity, which is the case exactly when `restart_below` is between 0 and 1. The Electric Pump's energy bar gets no mark; its threshold is on water.
+
+Lang goes through `MachineDataParts.lang` (datagen): `gui.servus_foundation.machine.running`, `.waiting.energy`, `.waiting.fluid`, `.out_of_fuel`, `.no_power`.
+
 ### Export and docs
 `GameDataJson.Machine.stats` becomes `Map<String, Number>`; the int map writer is generalised to numbers. `restart_below` is exported for every machine. The docs schema (`docs/src/lib/gamedata.ts`) is a non strict zod object and ignores the new key, so the docs tests need no change. `docs/src/content/docs/reference/datapack/machines.md` documents the field.
 
@@ -43,9 +56,9 @@ With the gate the machine's `tick()` result is stable across ticks, so `updateLi
 None new. `Codec.DOUBLE` and `optionalFieldOf` from DataFixerUpper, `ValueOutput.putBoolean` / `ValueInput.getBooleanOr` (already used by `PumpLogic.save/load`).
 
 ### Pure and Minecraft parts
-- Pure, JUnit: `RestartGate` (full stops, waits above threshold, restarts below, 1.0 means no hysteresis, 0 never restarts before empty, state round trip), `MachineStats.Partial.over` clamps and defaults `restart_below`.
-- Minecraft, GameTest: generator with a full buffer keeps its burn time and is unlit; generator restarts only below 50 percent; Burner Pump with a full tank keeps its burn time.
-- Manual play check: lamp, fire window, smoke and beam no longer flicker with a small load.
+- Pure, JUnit: `RestartGate` (full stops, waits above threshold, restarts below, 1.0 means no hysteresis, state round trip, `level` rounding), `MachineStats.restartFraction` clamps and the defaults of `restart_below`, `MachineStatus.of` and `byOrdinal`.
+- Minecraft, GameTest: generator with a full buffer keeps its burn time and is unlit; generator restarts only below 50 percent and reports `WAITING` with the restart level, then `RUNNING`, through its menu data; a generator without fuel reports `OUT_OF_FUEL`; Burner Pump with a full tank keeps its burn time and reports `WAITING` with level 2000.
+- Manual play check: lamp, fire window, smoke and beam no longer flicker with a small load; the status lines and the marks read right.
 
 ### PLAN.md
 This change settles no open decision of `PLAN.md`; it fixes behaviour found in play. Nothing in `PLAN.md` describes the old count down, so it needs no edit.
