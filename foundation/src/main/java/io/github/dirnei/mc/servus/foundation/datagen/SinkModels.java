@@ -20,18 +20,25 @@ import net.minecraft.resources.Identifier;
 /** Models of the Sink, its Chimney and the fan its block entity renderer draws. */
 final class SinkModels {
 
+    /** How far the casing's stone cube sits inside its iron frame, in pixels. */
+    private static final float INSET = 0.05F;
+    /** The flue on the cap's top: three of the sixteen texture pixels of the 12 pixel cap form the rim on each side. */
+    private static final float FLUE_FROM = 2 + 3 * 0.75F;
+    private static final float FLUE_TO = 14 - 3 * 0.75F;
+
     private SinkModels() {
     }
 
     /**
-     * The Sink: an unformed casing (bricks in an iron frame) and, once formed, one
+     * The Sink: an unformed casing (stone in an iron frame) and, once formed, one
      * model per part in the north facing frame, turned by the facing. Parts show
-     * bricks on the outer faces of the cube only. The four front parts share one
+     * bricks on the outer faces of the cube only; every bricks face shows the
+     * block's stone. The four front parts share one
      * recess three pixels deep behind a quartered grate, framed by brick bars on
      * the outer edges of the 2x2 front; the fan is drawn by the block entity renderer.
      */
     static void sink(BlockStateProvider provider) {
-        ModelFile casing = provider.models().cubeAll("sink_casing", provider.modLoc("block/sink_casing"));
+        ModelFile casing = casing(provider);
         ModelFile[] parts = new ModelFile[SinkLayout.PARTS];
         for (int part = 0; part < SinkLayout.PARTS; part++) {
             parts[part] = sinkPart(provider, part);
@@ -47,6 +54,23 @@ final class SinkModels {
                     .build();
         });
         provider.simpleBlockItem(MachineContent.SINK.get(), casing);
+    }
+
+    /**
+     * The unformed casing: a stone cube inset by {@link #INSET} so its faces never
+     * share a plane with the full cube of the cutout iron frame drawn over it.
+     */
+    private static ModelFile casing(BlockStateProvider provider) {
+        Identifier bricks = provider.mcLoc("block/bricks");
+        BlockModelBuilder model = blockModel(provider, "sink_casing")
+                .texture("particle", bricks)
+                .texture("bricks", bricks)
+                .texture("frame", provider.modLoc("block/sink_casing_frame"));
+        model.element().from(INSET, INSET, INSET).to(16 - INSET, 16 - INSET, 16 - INSET)
+                .allFaces((direction, face) -> face.texture("#bricks").uvs(0, 0, 16, 16).cullface(direction)).end();
+        model.element().from(0, 0, 0).to(16, 16, 16)
+                .allFaces((direction, face) -> face.texture("#frame").cullface(direction)).end();
+        return model;
     }
 
     /**
@@ -112,7 +136,11 @@ final class SinkModels {
         return model;
     }
 
-    /** A brick shaft ten pixels wide; the top block ends in a cap twelve pixels wide with an open flue. */
+    /**
+     * A stone shaft ten pixels wide; the top block ends in a cap twelve pixels wide
+     * with an open flue. The cap's top is a rim in bricks, which shows the block's
+     * stone, around the dark flue; the five faces lie on one plane without overlapping.
+     */
     static void chimney(BlockStateProvider provider) {
         Identifier bricks = provider.mcLoc("block/bricks");
         BlockModelBuilder column = blockModel(provider, "chimney")
@@ -129,7 +157,7 @@ final class SinkModels {
         BlockModelBuilder top = blockModel(provider, "chimney_top")
                 .texture("particle", bricks)
                 .texture("bricks", bricks)
-                .texture("top", provider.modLoc("block/chimney_top"));
+                .texture("flue", provider.modLoc("block/chimney_flue"));
         top.element().from(3, 0, 3).to(13, 13, 13)
                 .face(Direction.NORTH).texture("#bricks").uvs(3, 3, 13, 16).end()
                 .face(Direction.SOUTH).texture("#bricks").uvs(3, 3, 13, 16).end()
@@ -138,17 +166,29 @@ final class SinkModels {
                 .face(Direction.DOWN).texture("#bricks").uvs(3, 3, 13, 13).cullface(Direction.DOWN).end()
                 .end();
         top.element().from(2, 13, 2).to(14, 16, 14)
-                .face(Direction.UP).texture("#top").uvs(0, 0, 16, 16).cullface(Direction.UP).end()
                 .face(Direction.DOWN).texture("#bricks").uvs(2, 2, 14, 14).end()
                 .face(Direction.NORTH).texture("#bricks").uvs(2, 0, 14, 3).end()
                 .face(Direction.SOUTH).texture("#bricks").uvs(2, 0, 14, 3).end()
                 .face(Direction.EAST).texture("#bricks").uvs(2, 0, 14, 3).end()
                 .face(Direction.WEST).texture("#bricks").uvs(2, 0, 14, 3).end()
                 .end();
+        capTop(top, 2, 2, 14, FLUE_FROM, "#bricks", 2, 2, 14, FLUE_FROM);
+        capTop(top, 2, FLUE_TO, 14, 14, "#bricks", 2, FLUE_TO, 14, 14);
+        capTop(top, 2, FLUE_FROM, FLUE_FROM, FLUE_TO, "#bricks", 2, FLUE_FROM, FLUE_FROM, FLUE_TO);
+        capTop(top, FLUE_TO, FLUE_FROM, 14, FLUE_TO, "#bricks", FLUE_TO, FLUE_FROM, 14, FLUE_TO);
+        capTop(top, FLUE_FROM, FLUE_FROM, FLUE_TO, FLUE_TO, "#flue", 3, 3, 13, 13);
         provider.getVariantBuilder(MachineContent.CHIMNEY.get()).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(state.getValue(ChimneyBlock.TOP) ? top : column)
                 .build());
         provider.simpleBlockItem(MachineContent.CHIMNEY.get(), top);
+    }
+
+    /** One flat face on top of the cap at y 16, from x0, z0 to x1, z1, with the given UVs. */
+    private static void capTop(BlockModelBuilder model, float x0, float z0, float x1, float z1, String texture,
+                               float u0, float v0, float u1, float v1) {
+        model.element().from(x0, 16, z0).to(x1, 16, z1)
+                .face(Direction.UP).texture(texture).uvs(u0, v0, u1, v1).cullface(Direction.UP).end()
+                .end();
     }
 
     /**

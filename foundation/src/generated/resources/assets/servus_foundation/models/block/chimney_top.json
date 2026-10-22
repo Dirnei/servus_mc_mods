@@ -99,16 +99,6 @@
             3
           ]
         },
-        "up": {
-          "cullface": "up",
-          "texture": "#top",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
         "west": {
           "texture": "#bricks",
           "uv": [
@@ -129,11 +119,131 @@
         16,
         14
       ]
+    },
+    {
+      "faces": {
+        "up": {
+          "cullface": "up",
+          "texture": "#bricks",
+          "uv": [
+            2,
+            2,
+            14,
+            4.25
+          ]
+        }
+      },
+      "from": [
+        2,
+        16,
+        2
+      ],
+      "to": [
+        14,
+        16,
+        4.25
+      ]
+    },
+    {
+      "faces": {
+        "up": {
+          "cullface": "up",
+          "texture": "#bricks",
+          "uv": [
+            2,
+            11.75,
+            14,
+            14
+          ]
+        }
+      },
+      "from": [
+        2,
+        16,
+        11.75
+      ],
+      "to": [
+        14,
+        16,
+        14
+      ]
+    },
+    {
+      "faces": {
+        "up": {
+          "cullface": "up",
+          "texture": "#bricks",
+          "uv": [
+            2,
+            4.25,
+            4.25,
+            11.75
+          ]
+        }
+      },
+      "from": [
+        2,
+        16,
+        4.25
+      ],
+      "to": [
+        4.25,
+        16,
+        11.75
+      ]
+    },
+    {
+      "faces": {
+        "up": {
+          "cullface": "up",
+          "texture": "#bricks",
+          "uv": [
+            11.75,
+            4.25,
+            14,
+            11.75
+          ]
+        }
+      },
+      "from": [
+        11.75,
+        16,
+        4.25
+      ],
+      "to": [
+        14,
+        16,
+        11.75
+      ]
+    },
+    {
+      "faces": {
+        "up": {
+          "cullface": "up",
+          "texture": "#flue",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
+        }
+      },
+      "from": [
+        4.25,
+        16,
+        4.25
+      ],
+      "to": [
+        11.75,
+        16,
+        11.75
+      ]
     }
   ],
   "textures": {
     "bricks": "minecraft:block/bricks",
-    "particle": "minecraft:block/bricks",
-    "top": "servus_foundation:block/chimney_top"
+    "flue": "servus_foundation:block/chimney_flue",
+    "particle": "minecraft:block/bricks"
   }
 }

@@ -2,6 +2,9 @@ package io.github.dirnei.mc.servus.foundation.machine.sink;
 
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.menu.SinkMenu;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
+import io.github.dirnei.mc.servus.foundation.material.MaterialSlot;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.upgrade.CapacityUpgradeSlots;
 import java.util.Optional;
@@ -9,6 +12,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -26,6 +31,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.model.data.ModelData;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
@@ -41,9 +47,10 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
  * rate of the tallest Chimney column on top, and destroys energy at once. The
  * other parts route their capabilities to it. Has no ticker: one scheduled
  * block tick on the controller, the heartbeat, runs while the buffer holds
- * something or the Sink is active.
+ * something or the Sink is active. Every part keeps the stone it was
+ * crafted from.
  */
-public class SinkBlockEntity extends BlockEntity implements MenuProvider {
+public class SinkBlockEntity extends BlockEntity implements MenuProvider, MaterialHolder {
 
     /** How far up the column is walked, and down from a Chimney to its Sink. */
     public static final int MAX_COLUMN = 32;
@@ -55,6 +62,7 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
     private static final String UPGRADES = "Upgrades";
     private static final String LAST_BATCH = "LastBatch";
 
+    private final MaterialSlot materialSlot = new MaterialSlot(this);
     private final SinkCapacity capacity;
     private final ItemBuffer items;
     private final FluidBuffer tanks;
@@ -430,6 +438,7 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
         tanks.save(output, TANKS);
         upgrades.save(output, UPGRADES);
         output.putLong(LAST_BATCH, lastBatch);
+        materialSlot.save(output);
     }
 
     /** The chimney is recounted on load, so only the client update tag carries it. */
@@ -441,6 +450,7 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
         upgrades.load(input, UPGRADES);
         recountFill();
         lastBatch = input.getLongOr(LAST_BATCH, Long.MIN_VALUE / 2);
+        materialSlot.load(input);
         if (input.getInt("Height").isPresent()) {
             chimneyHeight = input.getIntOr("Height", 0);
             chimneyColumn = input.getIntOr("Column", 0);
@@ -452,7 +462,37 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
         CompoundTag tag = super.getUpdateTag(registries);
         tag.putInt("Height", chimneyHeight);
         tag.putInt("Column", chimneyColumn);
+        materialSlot.save(tag);
         return tag;
+    }
+
+    @Override
+    public MaterialSlot materialSlot() {
+        return materialSlot;
+    }
+
+    @Override
+    protected void applyImplicitComponents(DataComponentGetter input) {
+        super.applyImplicitComponents(input);
+        materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        materialSlot.collect(builder);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        MaterialSlot.removeFromTag(output);
+    }
+
+    @Override
+    public ModelData getModelData() {
+        return materialSlot.modelData();
     }
 
     @Override

@@ -1,16 +1,17 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "servus_foundation:material_shaped",
   "category": "misc",
   "key": {
-    "B": "minecraft:brick"
+    "B": "#servus_foundation:stones"
   },
+  "kind": "stone",
   "pattern": [
     "B B",
     "B B",
     "B B"
   ],
   "result": {
-    "count": 2,
+    "count": 6,
     "id": "servus_foundation:chimney"
   }
 }

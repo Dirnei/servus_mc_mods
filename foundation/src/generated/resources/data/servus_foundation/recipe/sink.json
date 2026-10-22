@@ -1,10 +1,11 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "servus_foundation:material_shaped",
   "category": "misc",
   "key": {
-    "B": "minecraft:bricks",
+    "B": "#servus_foundation:stones",
     "R": "minecraft:iron_bars"
   },
+  "kind": "stone",
   "pattern": [
     "BBB",
     "BRB",

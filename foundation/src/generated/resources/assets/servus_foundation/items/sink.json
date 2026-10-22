@@ -1,6 +1,7 @@
 {
   "model": {
-    "type": "minecraft:model",
+    "type": "servus_foundation:material",
+    "kind": "stone",
     "model": "servus_foundation:item/sink"
   }
 }

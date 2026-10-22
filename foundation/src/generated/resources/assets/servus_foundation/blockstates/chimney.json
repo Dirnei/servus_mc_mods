@@ -1,9 +1,291 @@
 {
   "variants": {
-    "top=false": {
+    "on_sink=false,powered=false,redstone=always,smoke=cosy,top=false": {
       "model": "servus_foundation:block/chimney"
     },
-    "top=true": {
+    "on_sink=false,powered=false,redstone=always,smoke=cosy,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=false,redstone=always,smoke=off,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=false,redstone=always,smoke=off,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=false,redstone=always,smoke=signal,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=false,redstone=always,smoke=signal,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=false,redstone=always,smoke=thin,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=false,redstone=always,smoke=thin,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=false,redstone=powered,smoke=cosy,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=false,redstone=powered,smoke=cosy,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=false,redstone=powered,smoke=off,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=false,redstone=powered,smoke=off,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=false,redstone=powered,smoke=signal,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=false,redstone=powered,smoke=signal,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=false,redstone=powered,smoke=thin,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=false,redstone=powered,smoke=thin,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=false,redstone=unpowered,smoke=cosy,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=false,redstone=unpowered,smoke=cosy,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=false,redstone=unpowered,smoke=off,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=false,redstone=unpowered,smoke=off,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=false,redstone=unpowered,smoke=signal,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=false,redstone=unpowered,smoke=signal,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=false,redstone=unpowered,smoke=thin,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=false,redstone=unpowered,smoke=thin,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=true,redstone=always,smoke=cosy,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=true,redstone=always,smoke=cosy,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=true,redstone=always,smoke=off,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=true,redstone=always,smoke=off,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=true,redstone=always,smoke=signal,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=true,redstone=always,smoke=signal,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=true,redstone=always,smoke=thin,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=true,redstone=always,smoke=thin,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=true,redstone=powered,smoke=cosy,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=true,redstone=powered,smoke=cosy,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=true,redstone=powered,smoke=off,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=true,redstone=powered,smoke=off,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=true,redstone=powered,smoke=signal,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=true,redstone=powered,smoke=signal,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=true,redstone=powered,smoke=thin,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=true,redstone=powered,smoke=thin,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=true,redstone=unpowered,smoke=cosy,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=true,redstone=unpowered,smoke=cosy,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=true,redstone=unpowered,smoke=off,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=true,redstone=unpowered,smoke=off,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=true,redstone=unpowered,smoke=signal,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=true,redstone=unpowered,smoke=signal,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=false,powered=true,redstone=unpowered,smoke=thin,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=false,powered=true,redstone=unpowered,smoke=thin,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=false,redstone=always,smoke=cosy,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=false,redstone=always,smoke=cosy,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=false,redstone=always,smoke=off,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=false,redstone=always,smoke=off,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=false,redstone=always,smoke=signal,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=false,redstone=always,smoke=signal,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=false,redstone=always,smoke=thin,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=false,redstone=always,smoke=thin,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=false,redstone=powered,smoke=cosy,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=false,redstone=powered,smoke=cosy,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=false,redstone=powered,smoke=off,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=false,redstone=powered,smoke=off,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=false,redstone=powered,smoke=signal,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=false,redstone=powered,smoke=signal,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=false,redstone=powered,smoke=thin,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=false,redstone=powered,smoke=thin,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=false,redstone=unpowered,smoke=cosy,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=false,redstone=unpowered,smoke=cosy,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=false,redstone=unpowered,smoke=off,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=false,redstone=unpowered,smoke=off,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=false,redstone=unpowered,smoke=signal,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=false,redstone=unpowered,smoke=signal,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=false,redstone=unpowered,smoke=thin,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=false,redstone=unpowered,smoke=thin,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=true,redstone=always,smoke=cosy,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=true,redstone=always,smoke=cosy,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=true,redstone=always,smoke=off,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=true,redstone=always,smoke=off,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=true,redstone=always,smoke=signal,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=true,redstone=always,smoke=signal,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=true,redstone=always,smoke=thin,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=true,redstone=always,smoke=thin,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=true,redstone=powered,smoke=cosy,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=true,redstone=powered,smoke=cosy,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=true,redstone=powered,smoke=off,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=true,redstone=powered,smoke=off,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=true,redstone=powered,smoke=signal,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=true,redstone=powered,smoke=signal,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=true,redstone=powered,smoke=thin,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=true,redstone=powered,smoke=thin,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=true,redstone=unpowered,smoke=cosy,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=true,redstone=unpowered,smoke=cosy,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=true,redstone=unpowered,smoke=off,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=true,redstone=unpowered,smoke=off,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=true,redstone=unpowered,smoke=signal,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=true,redstone=unpowered,smoke=signal,top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    },
+    "on_sink=true,powered=true,redstone=unpowered,smoke=thin,top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "on_sink=true,powered=true,redstone=unpowered,smoke=thin,top=true": {
       "model": "servus_foundation:block/chimney_top"
     }
   }

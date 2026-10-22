@@ -1,11 +1,17 @@
-"""Generates the Sink GUI texture.
+"""Generates the Sink GUI texture and the Sink and Chimney block overlays.
 
-This script is the source of the file; edit the patterns here, not the PNG.
+This script is the source of the files; edit the patterns here, not the PNGs.
 
     python tools/sink-textures/gen.py
 
-Writes foundation/src/main/resources/assets/servus_foundation/textures/gui/sink.png,
-a 256 by 256 sheet. The positions below must match SinkMenu and SinkScreen.
+Writes, under foundation/src/main/resources/assets/servus_foundation/textures:
+
+- block/sink_casing_frame.png: the iron frame of the unformed Sink casing, 16 by
+  16, transparent where the casing shows its stone.
+- block/chimney_flue.png: the dark open flue of the chimney cap, 16 by 16; the
+  cap draws its inner ten by ten pixels (3 to 13), the rim around it is stone.
+- gui/sink.png, a 256 by 256 sheet. The positions below must match SinkMenu and
+  SinkScreen.
 
 - Panel at 0,0, 176 by 200: soot and brick, the buffer slot wells (4 rows of 7
   at 7,17), a tank well beside each row (30 by 18 at 137,17), the batch bar well
@@ -24,7 +30,8 @@ import struct
 import zlib
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
-OUT = os.path.join(ROOT, "foundation", "src", "main", "resources", "assets", "servus_foundation", "textures", "gui", "sink.png")
+TEXTURES = os.path.join(ROOT, "foundation", "src", "main", "resources", "assets", "servus_foundation", "textures")
+OUT = os.path.join(TEXTURES, "gui", "sink.png")
 
 SIZE = 256
 PANEL_W, PANEL_H = 176, 200
@@ -202,13 +209,74 @@ def bar(img, x0, y0):
         img[y0 + 1][x0 + x] = colour
 
 
+CASING_FRAME = [
+    "abbbbbbbbbbbbbbb",
+    "acccbcccccccccbd",
+    "acefb......cefbd",
+    "acfdb......cfdbd",
+    "abbbb......bbbbd",
+    "ac............bd",
+    "ac............bd",
+    "ac............bd",
+    "ac............bd",
+    "ac............bd",
+    "ac............bd",
+    "acccb......cccbd",
+    "acefb......cefbd",
+    "acfdb......cfdbd",
+    "abbbbbbbbbbbbbbd",
+    "addddddddddddddd",
+]
+CASING_FRAME_COLOURS = {"a": "#b2b2b4", "b": "#626268", "c": "#d8d8d8", "d": "#404046", "e": "#e8e8e4", "f": "#8c8c90"}
+
+FLUE = [
+    "aabacdecaf",
+    "bgghijkjlm",
+    "cjnopqrokf",
+    "bhstuvvowx",
+    "bgryzAunhx",
+    "egBtAACDEe",
+    "akFGvHvrkx",
+    "eErrDnBFjI",
+    "eJggjjlhka",
+    "acIImdfdII",
+]
+FLUE_COLOURS = {"a": "#33302f", "b": "#363332", "c": "#312e2d", "d": "#2e2b2a", "e": "#322f2e", "f": "#302d2c", "g": "#282524",
+                "h": "#2d2a29", "i": "#252221", "j": "#262322", "k": "#292625", "l": "#272423", "m": "#343130", "n": "#242120",
+                "o": "#1e1b1a", "p": "#221f1e", "q": "#211e1d", "r": "#23201f", "s": "#1c1918", "t": "#161312", "u": "#141110",
+                "v": "#13100f", "w": "#2a2726", "x": "#2f2c2b", "y": "#171413", "z": "#0a0706", "A": "#110e0d", "B": "#1f1c1b",
+                "C": "#191615", "D": "#1d1a19", "E": "#2c2928", "F": "#201d1c", "G": "#151211", "H": "#1a1716", "I": "#353231",
+                "J": "#2b2827"}
+
+
+def pattern(img, x0, y0, rows, colours):
+    """Paints a pattern of one character per pixel; '.' stays transparent."""
+    for y, row in enumerate(rows):
+        for x, key in enumerate(row):
+            if key != ".":
+                img[y0 + y][x0 + x] = hexc(colours[key])
+
+
+def casing_frame():
+    img = [[CLEAR for _ in range(16)] for _ in range(16)]
+    pattern(img, 0, 0, CASING_FRAME, CASING_FRAME_COLOURS)
+    return img
+
+
+def flue():
+    """The flue at 3,3 inside a border of its edge colour, which the cap never shows."""
+    img = [[hexc(FLUE_COLOURS["a"]) for _ in range(16)] for _ in range(16)]
+    pattern(img, 3, 3, FLUE, FLUE_COLOURS)
+    return img
+
+
 def png_bytes(img):
     def chunk(kind, data):
         c = kind + data
         return struct.pack(">I", len(data)) + c + struct.pack(">I", zlib.crc32(c) & 0xFFFFFFFF)
 
     raw = b"".join(b"\x00" + b"".join(bytes(px) for px in row) for row in img)
-    return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", SIZE, SIZE, 8, 6, 0, 0, 0))
+    return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", len(img[0]), len(img), 8, 6, 0, 0, 0))
             + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
 
 
@@ -224,8 +292,14 @@ def main():
     fan(img, 80, 200, 0)
     fan(img, 94, 200, 36)
     bar(img, 0, 220)
-    os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    with open(OUT, "wb") as f:
+    write(OUT, img)
+    write(os.path.join(TEXTURES, "block", "sink_casing_frame.png"), casing_frame())
+    write(os.path.join(TEXTURES, "block", "chimney_flue.png"), flue())
+
+
+def write(path, img):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as f:
         f.write(png_bytes(img))
 
 

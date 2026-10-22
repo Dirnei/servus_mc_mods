@@ -1,6 +1,122 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#bricks",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "cullface": "east",
+          "texture": "#bricks",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "north": {
+          "cullface": "north",
+          "texture": "#bricks",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "cullface": "south",
+          "texture": "#bricks",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "cullface": "up",
+          "texture": "#bricks",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "west": {
+          "cullface": "west",
+          "texture": "#bricks",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        }
+      },
+      "from": [
+        0.05,
+        0.05,
+        0.05
+      ],
+      "to": [
+        15.95,
+        15.95,
+        15.95
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#frame"
+        },
+        "east": {
+          "cullface": "east",
+          "texture": "#frame"
+        },
+        "north": {
+          "cullface": "north",
+          "texture": "#frame"
+        },
+        "south": {
+          "cullface": "south",
+          "texture": "#frame"
+        },
+        "up": {
+          "cullface": "up",
+          "texture": "#frame"
+        },
+        "west": {
+          "cullface": "west",
+          "texture": "#frame"
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ]
+    }
+  ],
   "textures": {
-    "all": "servus_foundation:block/sink_casing"
+    "bricks": "minecraft:block/bricks",
+    "frame": "servus_foundation:block/sink_casing_frame",
+    "particle": "minecraft:block/bricks"
   }
 }

@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_brick": {
+    "has_cobblestone": {
       "conditions": {
         "items": [
           {
-            "items": "minecraft:brick"
+            "items": "minecraft:cobblestone"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_brick"
+      "has_cobblestone"
     ]
   ],
   "rewards": {

@@ -7,11 +7,16 @@ import net.minecraft.world.level.LevelReader;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
+import io.github.dirnei.mc.servus.foundation.material.Material;
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
+import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -37,10 +42,11 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
+import org.jspecify.annotations.Nullable;
 
 /**
- * A Sink block. Eight of them in a 2x2x2 cube form the Sink when the carrot
- * clicks a side of the cube; that side becomes the front. The block states
+ * A Sink block. Eight of them of one stone in a 2x2x2 cube form the Sink when
+ * the carrot clicks a side of the cube; that side becomes the front. The block states
  * alone describe a formed Sink: {@link #FORMED}, the front {@link #FACING} and
  * the block's {@link #PART} (see {@link SinkLayout}). Part 0, the controller,
  * carries {@link #ACTIVE} and owns the buffer. No ticker: the controller's
@@ -119,20 +125,55 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
 
     /**
      * Forms a Sink from the cube whose front contains {@code pos}, clicked on {@code front}.
-     * Returns false when no cube of eight unformed Sink blocks lies behind that face.
+     * Returns null when it formed, else the action bar message why not: a top or bottom
+     * face, no cube of eight unformed Sink blocks behind that face, or a cube of mixed stones.
      */
-    public boolean tryForm(Level level, BlockPos pos, Direction front) {
+    public @Nullable Component tryForm(Level level, BlockPos pos, Direction front) {
         if (front.getAxis() == Direction.Axis.Y) {
-            return false;
+            return Component.translatable("message.servus_foundation.sink.side_face");
         }
+        List<String> mixed = null;
         for (SinkLayout.Vec candidate : SinkLayout.candidates(pos.getX(), pos.getY(), pos.getZ(), front.getStepX(), front.getStepZ())) {
             BlockPos controller = new BlockPos(candidate.x(), candidate.y(), candidate.z());
-            if (allUnformed(level, controller, front)) {
+            if (!allUnformed(level, controller, front)) {
+                continue;
+            }
+            List<String> stones = SinkStones.distinct(stonesOf(level, controller, front));
+            if (stones.size() == 1) {
                 form(level, controller, front);
-                return true;
+                return null;
+            }
+            if (mixed == null) {
+                mixed = stones;
             }
         }
-        return false;
+        if (mixed == null) {
+            return Component.translatable("message.servus_foundation.sink.incomplete");
+        }
+        return Component.translatable("message.servus_foundation.sink.mixed_stone", stoneNames(mixed));
+    }
+
+    /** The stone of every part of the cube, in part order; Bricks for a part without one. */
+    private static List<String> stonesOf(Level level, BlockPos controller, Direction front) {
+        List<String> stones = new ArrayList<>();
+        for (int part = 0; part < SinkLayout.PARTS; part++) {
+            Identifier stone = level.getBlockEntity(partPos(controller, front, part)) instanceof SinkBlockEntity sink
+                    ? sink.materialSlot().material() : MaterialKind.STONE.defaultBlock();
+            stones.add(stone.toString());
+        }
+        return stones;
+    }
+
+    /** The block names of stone ids, joined by commas. */
+    private static Component stoneNames(List<String> stones) {
+        MutableComponent names = Component.empty();
+        for (int i = 0; i < stones.size(); i++) {
+            if (i > 0) {
+                names.append(", ");
+            }
+            names.append(Material.block(Identifier.parse(stones.get(i)), MaterialKind.STONE).getName());
+        }
+        return names;
     }
 
     private boolean allUnformed(Level level, BlockPos controller, Direction front) {
@@ -266,14 +307,13 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
             return InteractionResult.SUCCESS;
         }
         if (sneaking) {
-            Block.popResource(level, pos, new ItemStack(this));
+            Block.popResource(level, pos, Material.stamp(new ItemStack(this), level.getBlockEntity(pos)));
             level.removeBlock(pos, false);
             return InteractionResult.SUCCESS;
         }
-        Direction face = context.getClickedFace();
-        if (!tryForm(level, pos, face) && player != null) {
-            String key = face.getAxis() == Direction.Axis.Y ? "side_face" : "incomplete";
-            player.sendOverlayMessage(Component.translatable("message.servus_foundation.sink." + key));
+        Component refusal = tryForm(level, pos, context.getClickedFace());
+        if (refusal != null && player != null) {
+            player.sendOverlayMessage(refusal);
         }
         return InteractionResult.SUCCESS;
     }

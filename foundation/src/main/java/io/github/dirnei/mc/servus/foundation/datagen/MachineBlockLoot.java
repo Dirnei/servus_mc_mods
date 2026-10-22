@@ -1,12 +1,16 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
 import io.github.dirnei.mc.servus.foundation.machine.TwoHalves;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
 import java.util.Set;
+import java.util.stream.Stream;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
 /**
  * Foundation's machines drop themselves; their contents drop from the block
@@ -27,10 +31,15 @@ final class MachineBlockLoot extends BlockLootSubProvider {
                 dropSelf(block);
             }
         }
+        for (Block block : MachineDataParts.stoneDropping()) {
+            add(block, createSingleItemTable(block)
+                    .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
+                            .include(MaterialContent.MATERIAL.get())));
+        }
     }
 
     @Override
     protected Iterable<Block> getKnownBlocks() {
-        return MachineDataParts.selfDropping();
+        return Stream.concat(MachineDataParts.selfDropping().stream(), MachineDataParts.stoneDropping().stream()).toList();
     }
 }

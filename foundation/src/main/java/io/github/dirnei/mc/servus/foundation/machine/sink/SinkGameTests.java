@@ -9,13 +9,20 @@ import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
+import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -26,8 +33,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HopperBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
@@ -58,7 +67,7 @@ public final class SinkGameTests {
     }
 
     /** Places eight unformed Sink blocks in the box from {@code min} to {@code min + (1, 1, 1)}, except {@code skip}. */
-    private static void sinkBox(GameTestHelper helper, BlockPos min, BlockPos skip) {
+    static void sinkBox(GameTestHelper helper, BlockPos min, BlockPos skip) {
         for (BlockPos pos : BlockPos.betweenClosed(min, min.offset(1, 1, 1))) {
             if (!pos.equals(skip)) {
                 helper.setBlock(pos, MachineContent.SINK.get().defaultBlockState());
@@ -67,21 +76,21 @@ public final class SinkGameTests {
     }
 
     /** Uses an item on the {@code face} side of the block at relative {@code pos}. */
-    private static void useOn(GameTestHelper helper, Player player, ItemStack stack, BlockPos pos, Direction face) {
+    static void useOn(GameTestHelper helper, Player player, ItemStack stack, BlockPos pos, Direction face) {
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
         BlockPos absolute = helper.absolutePos(pos);
         Vec3 hit = Vec3.atCenterOf(absolute).add(face.getStepX() * 0.5, face.getStepY() * 0.5, face.getStepZ() * 0.5);
         stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, new BlockHitResult(hit, face, absolute, false)));
     }
 
-    private static void carrot(GameTestHelper helper, BlockPos pos, Direction face, boolean sneaking) {
+    static void carrot(GameTestHelper helper, BlockPos pos, Direction face, boolean sneaking) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(sneaking);
         useOn(helper, player, new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get()), pos, face);
     }
 
     /** Builds the standard cube, forms it from the controller's front and stacks a column on the back right top block. */
-    private static SinkBlockEntity sink(GameTestHelper helper, int chimneys) {
+    static SinkBlockEntity sink(GameTestHelper helper, int chimneys) {
         sinkBox(helper, new BlockPos(2, 0, 2), null);
         carrot(helper, SINK, Direction.NORTH, false);
         BlockPos column = new BlockPos(2, 1, 3);
@@ -91,7 +100,7 @@ public final class SinkGameTests {
         return helper.getBlockEntity(SINK, SinkBlockEntity.class);
     }
 
-    private static boolean formed(GameTestHelper helper, BlockPos pos) {
+    static boolean formed(GameTestHelper helper, BlockPos pos) {
         return SinkBlock.isFormed(helper.getBlockState(pos));
     }
 
@@ -460,7 +469,7 @@ public final class SinkGameTests {
         });
     }
 
-    private static void chimneyColumn(GameTestHelper helper, BlockPos topPart, int height) {
+    static void chimneyColumn(GameTestHelper helper, BlockPos topPart, int height) {
         for (int i = 1; i <= height; i++) {
             helper.setBlock(topPart.above(i), MachineContent.CHIMNEY.get().defaultBlockState());
         }
@@ -719,6 +728,104 @@ public final class SinkGameTests {
         SinkMenu menu = new SinkMenu(1, player.getInventory(), sink);
         helper.assertTrue(menu.chimneyHeight() == 5, "height 5, got " + menu.chimneyHeight());
         helper.assertTrue(menu.itemRate() == -1 && menu.fluidRate() == -1 && menu.energyRate() == -1, "all three Unlimited");
+        helper.succeed();
+    }
+
+    /** Sets the stone of the material block at {@code pos}. */
+    static void stone(GameTestHelper helper, BlockPos pos, Block stone) {
+        ((MaterialHolder) helper.getBlockEntity(pos, BlockEntity.class)).materialSlot().set(BuiltInRegistries.BLOCK.getKey(stone));
+    }
+
+    /** The eight blocks of the cube at {@code min}, in reading order of {@link BlockPos#betweenClosed}. */
+    private static List<BlockPos> cube(BlockPos min) {
+        List<BlockPos> cube = new ArrayList<>();
+        BlockPos.betweenClosed(min, min.offset(1, 1, 1)).forEach(pos -> cube.add(pos.immutable()));
+        return cube;
+    }
+
+    /** Six Stone Bricks blocks and two Deepslate Bricks blocks stay unformed; the refusal names both stones. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void mixedStonesRefuseForming(GameTestHelper helper) {
+        BlockPos min = new BlockPos(2, 0, 2);
+        sinkBox(helper, min, null);
+        List<BlockPos> cube = cube(min);
+        for (int i = 0; i < cube.size(); i++) {
+            stone(helper, cube.get(i), i < 2 ? Blocks.DEEPSLATE_BRICKS : Blocks.STONE_BRICKS);
+        }
+        Component refusal = MachineContent.SINK.get().tryForm(helper.getLevel(), helper.absolutePos(SINK), Direction.NORTH);
+        for (BlockPos pos : cube) {
+            helper.assertTrue(!formed(helper, pos), "a cube of mixed stones does not form");
+        }
+        helper.assertTrue(refusal != null && refusal.getContents() instanceof TranslatableContents contents
+                        && contents.getKey().equals("message.servus_foundation.sink.mixed_stone"),
+                "the refusal says the stones differ, got " + refusal);
+        String names = refusal.toString();
+        helper.assertTrue(names.contains("block.minecraft.stone_bricks") && names.contains("block.minecraft.deepslate_bricks"),
+                "the refusal names both stones, got " + names);
+        helper.succeed();
+    }
+
+    /** Eight Polished Deepslate blocks form and keep their stone. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void oneStoneForms(GameTestHelper helper) {
+        BlockPos min = new BlockPos(2, 0, 2);
+        sinkBox(helper, min, null);
+        cube(min).forEach(pos -> stone(helper, pos, Blocks.POLISHED_DEEPSLATE));
+        carrot(helper, SINK, Direction.NORTH, false);
+        assertFormedCube(helper, min, Direction.NORTH, SINK);
+        Identifier kept = helper.getBlockEntity(new BlockPos(2, 1, 3), SinkBlockEntity.class).materialSlot().material();
+        helper.assertTrue(BuiltInRegistries.BLOCK.getKey(Blocks.POLISHED_DEEPSLATE).equals(kept),
+                "the formed blocks keep polished deepslate, got " + kept);
+        helper.succeed();
+    }
+
+    /** Seven Bricks blocks and one block without a stone form: a missing stone counts as Bricks. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void missingStoneCountsAsBricks(GameTestHelper helper) {
+        BlockPos min = new BlockPos(2, 0, 2);
+        sinkBox(helper, min, null);
+        List<BlockPos> cube = cube(min);
+        for (int i = 1; i < cube.size(); i++) {
+            stone(helper, cube.get(i), Blocks.BRICKS);
+        }
+        carrot(helper, SINK, Direction.NORTH, false);
+        assertFormedCube(helper, min, Direction.NORTH, SINK);
+        helper.succeed();
+    }
+
+    /** A Sandstone Sink block dismantled with the sneak carrot drops a Sink block that carries Sandstone. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void sinkDropKeepsStone(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(2, 0, 2);
+        helper.setBlock(pos, MachineContent.SINK.get().defaultBlockState());
+        stone(helper, pos, Blocks.SANDSTONE);
+        carrot(helper, pos, Direction.NORTH, true);
+        helper.assertBlockNotPresent(MachineContent.SINK.get(), pos);
+        List<ItemEntity> drops = GameTestSteps.drops(helper, pos, 2);
+        Identifier sandstone = BuiltInRegistries.BLOCK.getKey(Blocks.SANDSTONE);
+        helper.assertTrue(drops.stream().anyMatch(entity -> entity.getItem().is(MachineContent.SINK_ITEM.get())
+                        && sandstone.equals(entity.getItem().get(MaterialContent.MATERIAL.get()))),
+                "the dropped Sink block carries sandstone, got " + drops);
+        helper.succeed();
+    }
+
+    /** A Bricks Sink and a Quartz Sink with two Chimney blocks each take the same energy rate. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void stoneDoesNotChangeRates(GameTestHelper helper) {
+        SinkBlockEntity bricks = sink(helper, 2);
+        BlockPos min = new BlockPos(6, 0, 2);
+        sinkBox(helper, min, null);
+        cube(min).forEach(pos -> stone(helper, pos, Blocks.QUARTZ_BLOCK));
+        BlockPos quartzController = new BlockPos(7, 0, 2);
+        carrot(helper, quartzController, Direction.NORTH, false);
+        chimneyColumn(helper, new BlockPos(6, 1, 3), 2);
+        SinkBlockEntity quartz = helper.getBlockEntity(quartzController, SinkBlockEntity.class);
+        helper.assertTrue(bricks.chimneyHeight() == 2 && quartz.chimneyHeight() == 2,
+                "both report height 2, got " + bricks.chimneyHeight() + " and " + quartz.chimneyHeight());
+        int bricksEnergy = sinkEnergy(helper, SINK, Direction.EAST).receiveEnergy(100_000, false);
+        int quartzEnergy = sinkEnergy(helper, quartzController, Direction.EAST).receiveEnergy(100_000, false);
+        helper.assertTrue(bricksEnergy == 8_000 && quartzEnergy == 8_000,
+                "both take one second of 400 FE per tick, got " + bricksEnergy + " and " + quartzEnergy);
         helper.succeed();
     }
 

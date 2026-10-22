@@ -687,16 +687,16 @@
       ]
     },
     "servus_foundation:chimney": {
-      "type": "minecraft:crafting_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["B B", "B B", "B B"],
       "key": {
-        "B": {"item": "minecraft:brick"}
+        "B": {"tag": "servus_foundation:stones"}
       },
       "inputs": [
-        {"item": "minecraft:brick", "count": 6}
+        {"tag": "servus_foundation:stones", "count": 6}
       ],
       "outputs": [
-        {"item": "servus_foundation:chimney", "count": 2}
+        {"item": "servus_foundation:chimney", "count": 6}
       ]
     },
     "servus_foundation:coal_generator": {
@@ -1023,14 +1023,14 @@
       ]
     },
     "servus_foundation:sink": {
-      "type": "minecraft:crafting_shaped",
+      "type": "servus_foundation:material_shaped",
       "pattern": ["BBB", "BRB", "BBB"],
       "key": {
-        "B": {"item": "minecraft:bricks"},
+        "B": {"tag": "servus_foundation:stones"},
         "R": {"item": "minecraft:iron_bars"}
       },
       "inputs": [
-        {"item": "minecraft:bricks", "count": 8},
+        {"tag": "servus_foundation:stones", "count": 8},
         {"item": "minecraft:iron_bars", "count": 1}
       ],
       "outputs": [

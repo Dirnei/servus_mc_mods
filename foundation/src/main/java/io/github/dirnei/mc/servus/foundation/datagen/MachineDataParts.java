@@ -5,12 +5,14 @@ import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.mill.MillingRecipe;
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import java.util.List;
 import java.util.function.Function;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.criterion.InventoryChangeTrigger;
 import net.minecraft.core.HolderGetter;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
@@ -46,8 +48,13 @@ final class MachineDataParts {
     /** Blocks that drop themselves and are mined with a pickaxe. */
     static List<Block> selfDropping() {
         return List.of(MachineContent.COAL_GENERATOR.get(), MachineContent.BURNER_PUMP.get(), MachineContent.ELECTRIC_PUMP.get(),
-                MachineContent.SINK.get(), MachineContent.CHIMNEY.get(), MachineContent.ENDER_ANCHOR.get(), MachineContent.MILL.get(),
+                MachineContent.ENDER_ANCHOR.get(), MachineContent.MILL.get(),
                 MachineContent.HAND_CRANK.get(), MachineContent.ELECTRIC_MOTOR.get());
+    }
+
+    /** Blocks that drop themselves with the stone they were crafted from. */
+    static List<Block> stoneDropping() {
+        return List.of(MachineContent.SINK.get(), MachineContent.CHIMNEY.get());
     }
 
     static void lang(LanguageProvider provider) {
@@ -116,9 +123,21 @@ final class MachineDataParts {
                 "Build a 2x2x2 cube of Sink blocks and click its front with the Configuration Carrot");
         provider.add("message.servus_foundation.sink.incomplete", "A Sink needs a full 2x2x2 cube of Sink blocks behind this face");
         provider.add("message.servus_foundation.sink.side_face", "Click a side of the cube: that side becomes the front");
+        provider.add("message.servus_foundation.sink.mixed_stone", "All eight Sink blocks need the same stone; found %s");
+        provider.add("message.servus_foundation.chimney.sink", "The Sink controls this chimney's smoke");
+        provider.add("message.servus_foundation.chimney.smoke", "Chimney: %s");
+        provider.add("message.servus_foundation.chimney.smoke.off", "Off");
+        provider.add("message.servus_foundation.chimney.smoke.thin", "Thin smoke");
+        provider.add("message.servus_foundation.chimney.smoke.cosy", "Cosy smoke");
+        provider.add("message.servus_foundation.chimney.smoke.signal", "Signal smoke");
+        provider.add("message.servus_foundation.chimney.redstone", "Chimney smokes: %s");
+        provider.add("message.servus_foundation.chimney.redstone.always", "Always");
+        provider.add("message.servus_foundation.chimney.redstone.powered", "While powered");
+        provider.add("message.servus_foundation.chimney.redstone.unpowered", "While unpowered");
     }
 
-    static void recipes(RecipeOutput output, HolderGetter<Item> items, Function<ItemLike, Criterion<InventoryChangeTrigger.TriggerInstance>> has) {
+    static void recipes(RecipeOutput output, HolderLookup.Provider registries, HolderGetter<Item> items,
+                        Function<ItemLike, Criterion<InventoryChangeTrigger.TriggerInstance>> has) {
         ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.COAL_GENERATOR_ITEM.get())
                 .pattern("ICI")
                 .pattern("CFC")
@@ -178,18 +197,18 @@ final class MachineDataParts {
                 .pattern("BBB")
                 .pattern("BRB")
                 .pattern("BBB")
-                .define('B', Items.BRICKS)
+                .define('B', MaterialKind.STONES)
                 .define('R', Items.IRON_BARS)
-                .unlockedBy("has_bricks", has.apply(Items.BRICKS))
-                .save(output);
+                .unlockedBy("has_iron_bars", has.apply(Items.IRON_BARS))
+                .save(MaterialRecipes.output(output, registries, MaterialKind.STONE));
 
-        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.CHIMNEY_ITEM.get(), 2)
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.CHIMNEY_ITEM.get(), 6)
                 .pattern("B B")
                 .pattern("B B")
                 .pattern("B B")
-                .define('B', Items.BRICK)
-                .unlockedBy("has_brick", has.apply(Items.BRICK))
-                .save(output);
+                .define('B', MaterialKind.STONES)
+                .unlockedBy("has_cobblestone", has.apply(Items.COBBLESTONE))
+                .save(MaterialRecipes.output(output, registries, MaterialKind.STONE));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.MILL_ITEM.get())
                 .pattern(" H ")

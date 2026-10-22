@@ -15,6 +15,9 @@ import io.github.dirnei.mc.servus.foundation.machine.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.ElectricPumpMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.EnderAnchorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.SinkMenu;
+import io.github.dirnei.mc.servus.foundation.material.Material;
+import io.github.dirnei.mc.servus.foundation.material.MaterialBlockItem;
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import io.github.dirnei.mc.servus.foundation.machine.mill.MillBlock;
 import io.github.dirnei.mc.servus.foundation.machine.mill.MillBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.mill.MillMenu;
@@ -25,6 +28,7 @@ import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpItem;
 import io.github.dirnei.mc.servus.foundation.machine.sink.ChimneyBlock;
+import io.github.dirnei.mc.servus.foundation.machine.sink.ChimneyBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.sink.SinkBlock;
 import io.github.dirnei.mc.servus.foundation.machine.sink.SinkBlockEntity;
 import io.github.dirnei.mc.servus.foundation.upgrade.AnchorUpgradeItem;
@@ -93,12 +97,14 @@ public final class MachineContent {
             menu("electric_pump", ElectricPumpMenu::fromNetwork);
 
     public static final DeferredBlock<SinkBlock> SINK = BLOCKS.registerBlock("sink", SinkBlock::new, () -> brick().noOcclusion());
-    public static final DeferredItem<BlockItem> SINK_ITEM = ITEMS.registerSimpleBlockItem(SINK);
+    public static final DeferredItem<MaterialBlockItem> SINK_ITEM = materialItem("sink", SINK);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SinkBlockEntity>> SINK_ENTITY =
             blockEntity("sink", SinkBlockEntity::new, SINK);
     public static final DeferredHolder<MenuType<?>, MenuType<SinkMenu>> SINK_MENU = menu("sink", SinkMenu::fromNetwork);
     public static final DeferredBlock<ChimneyBlock> CHIMNEY = BLOCKS.registerBlock("chimney", ChimneyBlock::new, () -> brick().noOcclusion());
-    public static final DeferredItem<BlockItem> CHIMNEY_ITEM = ITEMS.registerSimpleBlockItem(CHIMNEY);
+    public static final DeferredItem<MaterialBlockItem> CHIMNEY_ITEM = materialItem("chimney", CHIMNEY);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ChimneyBlockEntity>> CHIMNEY_ENTITY =
+            blockEntity("chimney", ChimneyBlockEntity::new, CHIMNEY);
 
     public static final DeferredBlock<EnderAnchorBlock> ENDER_ANCHOR =
             BLOCKS.registerBlock("ender_anchor", EnderAnchorBlock::new, () -> machine());
@@ -147,6 +153,10 @@ public final class MachineContent {
         return BLOCK_ENTITIES.register(name, () -> new BlockEntityType<>(factory, block.get()));
     }
 
+    private static DeferredItem<MaterialBlockItem> materialItem(String name, DeferredBlock<? extends Block> block) {
+        return ITEMS.registerItem(name, properties -> new MaterialBlockItem(block.get(), properties), Item.Properties::useBlockDescriptionPrefix);
+    }
+
     private static <M extends AbstractContainerMenu> DeferredHolder<MenuType<?>, MenuType<M>> menu(
             String name, IContainerFactory<M> factory) {
         return MENUS.register(name, () -> IMenuTypeExtension.create(factory));
@@ -162,7 +172,7 @@ public final class MachineContent {
                 MILL_ITEM, HAND_CRANK_ITEM, ELECTRIC_MOTOR_ITEM);
     }
 
-    /** Brick blocks of the Sink family: like vanilla bricks. */
+    /** Stone blocks of the Sink family: like vanilla bricks. */
     private static BlockBehaviour.Properties brick() {
         return BlockBehaviour.Properties.of()
                 .mapColor(MapColor.COLOR_RED)
@@ -188,6 +198,8 @@ public final class MachineContent {
 
     public static void register(IEventBus modEventBus) {
         FoundationMachines.registerDefaults();
+        Material.register(SINK.getId(), MaterialKind.STONE);
+        Material.register(CHIMNEY.getId(), MaterialKind.STONE);
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         BLOCK_ENTITIES.register(modEventBus);

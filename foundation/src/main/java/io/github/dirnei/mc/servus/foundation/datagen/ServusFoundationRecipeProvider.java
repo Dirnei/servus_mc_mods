@@ -101,7 +101,7 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
                 .save(output);
 
         LogisticsDataParts.recipes(output, items, this::has);
-        MachineDataParts.recipes(output, items, this::has);
+        MachineDataParts.recipes(output, registries, items, this::has);
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.REDSTONE, AdapterContent.ITEM.get())
                 .pattern("CHC")
