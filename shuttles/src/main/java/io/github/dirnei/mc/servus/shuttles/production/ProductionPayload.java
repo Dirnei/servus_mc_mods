@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.DuctRow;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.MachineRow;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.PackingRow;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.PatternsView;
+import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.StorageRow;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -27,15 +28,16 @@ import net.minecraft.resources.Identifier;
  * @param patterns the patterns of the line and their capacity
  * @param packing  every Packing Station of the line with its rate use
  * @param busiest  the busiest data duct of the line, empty when the line is idle
+ * @param storage  how full each warehouse on the line is
  */
 public record ProductionPayload(BlockPos terminal, boolean online, String reason, List<CpuRow> cpus, List<JobRow> jobs, List<MachineRow> machines,
-                                PatternsView patterns, List<PackingRow> packing, List<DuctRow> busiest)
+                                PatternsView patterns, List<PackingRow> packing, List<DuctRow> busiest, List<StorageRow> storage)
         implements CustomPacketPayload {
 
-    /** A view without Packing Stations and line load. */
+    /** A view without Packing Stations, line load and storage. */
     public ProductionPayload(BlockPos terminal, boolean online, String reason, List<CpuRow> cpus, List<JobRow> jobs,
                              List<MachineRow> machines, PatternsView patterns) {
-        this(terminal, online, reason, cpus, jobs, machines, patterns, List.of(), List.of());
+        this(terminal, online, reason, cpus, jobs, machines, patterns, List.of(), List.of(), List.of());
     }
 
     public static final Type<ProductionPayload> TYPE =
@@ -52,13 +54,15 @@ public record ProductionPayload(BlockPos terminal, boolean online, String reason
                 PatternsView.STREAM_CODEC.encode(buf, payload.patterns());
                 PackingRow.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, payload.packing());
                 DuctRow.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, payload.busiest());
+                StorageRow.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, payload.storage());
             },
             buf -> new ProductionPayload(BlockPos.STREAM_CODEC.decode(buf), ByteBufCodecs.BOOL.decode(buf),
                     ByteBufCodecs.STRING_UTF8.decode(buf), CpuRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf),
                     JobRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf),
                     MachineRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf), PatternsView.STREAM_CODEC.decode(buf),
                     PackingRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf),
-                    DuctRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf)));
+                    DuctRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf),
+                    StorageRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf)));
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

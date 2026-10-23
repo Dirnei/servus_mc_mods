@@ -27,6 +27,11 @@ final class WarehouseZones {
         }
     }
 
+    /** The zone stamped on a block, or null when it has none. */
+    ZoneDefinition zoneOf(BlockPos pos) {
+        return zoneOf.get(pos);
+    }
+
     void remove(BlockPos pos) {
         zoneOf.remove(pos);
     }

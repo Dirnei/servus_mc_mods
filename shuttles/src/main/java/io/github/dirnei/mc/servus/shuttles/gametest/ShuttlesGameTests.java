@@ -59,6 +59,7 @@ public final class ShuttlesGameTests {
             StationGameTests.class,
             StationHandsGameTests.class,
             StationRailGameTests.class,
+            StorageFillGameTests.class,
             StorageTerminalRowsGameTests.class,
             TankerGameTests.class,
             TankerRunGameTests.class,

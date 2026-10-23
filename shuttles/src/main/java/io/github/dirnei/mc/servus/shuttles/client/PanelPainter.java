@@ -70,6 +70,13 @@ final class PanelPainter {
         graphics.fill(x + w - 1, y, x + w, y + h, LIGHT);
     }
 
+    /** A bar with a one pixel frame in {@code background}, filled from the left by value of max; absolute. */
+    static void bar(GuiGraphicsExtractor graphics, int x, int y, int w, int h, long value, long max, int colour, int background) {
+        graphics.fill(x, y, x + w, y + h, background);
+        int filled = max <= 0 ? 0 : (int) Math.min(w - 2, Math.max(0, value) * (w - 2) / max);
+        graphics.fill(x + 1, y + 1, x + 1 + filled, y + h - 1, colour);
+    }
+
     /** A filled box with a one pixel border around it; {@code x, y, w, h} is the inside, absolute. */
     static void bordered(GuiGraphicsExtractor graphics, int x, int y, int w, int h, int border, int face) {
         PopupPanel.bordered(graphics, x, y, w, h, border, face);

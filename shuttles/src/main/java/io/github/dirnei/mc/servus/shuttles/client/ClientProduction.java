@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.JobRow;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.MachineRow;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.PackingRow;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.PatternsView;
+import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.StorageRow;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -85,6 +86,10 @@ public final class ClientProduction {
 
     public static List<DuctRow> busiest() {
         return shown == null ? List.of() : shown.busiest();
+    }
+
+    public static List<StorageRow> storage() {
+        return shown == null ? List.of() : shown.storage();
     }
 
     public static PatternsView patterns() {

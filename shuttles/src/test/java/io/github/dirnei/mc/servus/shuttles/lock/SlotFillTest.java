@@ -83,4 +83,11 @@ class SlotFillTest {
         assertEquals(0, SlotFill.sharedAvailable(10, 20));
         assertEquals(10, SlotFill.sharedAvailable(10, 0));
     }
+
+    @Test
+    void inUseCountsHoldingAndLockedSlots() {
+        List<Slot<String>> slots = List.of(empty(), holding("stone", 3), locked(null, 0), locked("dirt", 5), empty());
+        assertEquals(3, SlotFill.inUse(slots));
+        assertEquals(0, SlotFill.inUse(List.of(empty(), empty())));
+    }
 }

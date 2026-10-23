@@ -8,6 +8,7 @@
 - Shuttles follow each other with a gap, take turns at merges and leave a garage one after another.
 - A one-off order grid in the Storage Terminal replaces the crafting popup and can save its pattern.
 - The Shuttle Garage has a real doorway with a roll-up shutter that opens for its shuttles.
+- The Warehouse Controller and a new Storage tab in the Production Terminal show how full the storage is, per warehouse and zone.
 
 ### Changed
 - Put-aways pick the rack by zone, then bays already holding the item, then the most room, weighed by travel time.

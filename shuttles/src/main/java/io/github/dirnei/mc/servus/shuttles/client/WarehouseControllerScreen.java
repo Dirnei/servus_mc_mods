@@ -1,16 +1,20 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
+import io.github.dirnei.mc.servus.foundation.picker.PickerStock;
 import io.github.dirnei.mc.servus.shuttles.controller.ControllerEnergy;
 import io.github.dirnei.mc.servus.shuttles.controller.RenameSitePayload;
 import io.github.dirnei.mc.servus.shuttles.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.shuttles.menu.WarehouseControllerMenu;
+import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.StorageRow;
 import io.github.dirnei.mc.servus.shuttles.site.ChunkMapLayout;
 import io.github.dirnei.mc.servus.shuttles.site.SiteCapacity;
 import io.github.dirnei.mc.servus.shuttles.site.SiteName;
 import io.github.dirnei.mc.servus.shuttles.terminal.SiteRow;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout.Rect;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
@@ -23,7 +27,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
-/** The site GUI of a Warehouse Controller: name, status, FE, chunk map, Anchor Upgrades, Wireless Upgrade and other sites. */
+/** The site GUI of a Warehouse Controller: name, status, FE, chunk map, storage fill, Anchor Upgrades, Wireless Upgrade and other sites. */
 public class WarehouseControllerScreen extends AbstractContainerScreen<WarehouseControllerMenu> {
 
     private static final int COLOUR_TEXT = 0xFF404040;
@@ -35,6 +39,9 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
     private static final int CELL_OVER = 0xFFC0392B;
     private static final int CELL_HOME = 0xFFE0B040;
     private static final int MAP_BACKGROUND = 0xFF2A2D33;
+    private static final int BAR_ITEMS = 0xFF2E8B7A;
+    private static final int BAR_FLUIDS = 0xFF3A6EC0;
+    private static final int STORAGE_WIDTH = WarehouseControllerMenu.WIDTH - 16;
     private static final int STATUS_WIDTH = WarehouseControllerMenu.WIDTH - WarehouseControllerMenu.STATUS_X - 6;
     private static final int UPGRADES_LABEL_Y = WarehouseControllerMenu.UPGRADES_Y - 12;
     /** The side panel with the team's other sites, right of the GUI. */
@@ -152,6 +159,11 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
             List<Component> lines = List.of(Component.literal(site.name()),
                     Component.translatable("gui.servus_shuttles.site.state." + site.remoteState().name().toLowerCase(Locale.ROOT)));
             graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
+        } else if (!status.storage().equals(StorageRow.EMPTY) && overStorageLine(0, x, y)) {
+            graphics.setComponentTooltipForNextFrame(font, itemsTooltip(status.storage()), mouseX, mouseY);
+        } else if (!status.storage().equals(StorageRow.EMPTY) && overStorageLine(1, x, y)) {
+            graphics.setComponentTooltipForNextFrame(font, List.of(Component.translatable("gui.servus_shuttles.storage.gantries",
+                    status.storage().gantries())), mouseX, mouseY);
         } else if (overStatusLine(onlineLineY, x, y) && !status.summary().getString().isEmpty()) {
             graphics.setTooltipForNextFrame(font, font.split(status.summary(), 200), mouseX, mouseY);
         }
@@ -159,6 +171,23 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
 
     private void wrappedTooltip(GuiGraphicsExtractor graphics, String key, int mouseX, int mouseY) {
         graphics.setTooltipForNextFrame(font, font.split(Component.translatable(key), 180), mouseX, mouseY);
+    }
+
+    /** Whether a point is on storage line {@code index} (0 Items, 1 Fluids) with its bar. */
+    private static boolean overStorageLine(int index, int x, int y) {
+        int top = WarehouseControllerMenu.STORAGE_Y + index * WarehouseControllerMenu.STORAGE_LINE;
+        return x >= 8 && x < 8 + STORAGE_WIDTH && y >= top && y < top + WarehouseControllerMenu.STORAGE_LINE;
+    }
+
+    /** The rack bays that count and the full zones. */
+    private static List<Component> itemsTooltip(StorageRow storage) {
+        List<Component> lines = new ArrayList<>();
+        lines.add(Component.translatable("gui.servus_shuttles.storage.bays", storage.bays()));
+        List<String> full = storage.fullZones();
+        if (!full.isEmpty()) {
+            lines.add(Component.translatable("gui.servus_shuttles.storage.full_zones", String.join(", ", full)).withStyle(ChatFormatting.RED));
+        }
+        return lines;
     }
 
     /** Whether a point is on a status line drawn at {@code lineY}; -1 means the line was not drawn. */
@@ -299,6 +328,33 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         if (status != SiteStatusPayload.EMPTY) {
             renderStatus(graphics, status);
         }
+        if (!status.storage().equals(StorageRow.EMPTY)) {
+            renderStorage(graphics, status.storage());
+        }
+    }
+
+    /** The Items and Fluids lines below the map, each with a bar under its text. */
+    private void renderStorage(GuiGraphicsExtractor graphics, StorageRow storage) {
+        int y = WarehouseControllerMenu.STORAGE_Y;
+        if (storage.total() > 0) {
+            storageLine(graphics, Component.translatable("gui.servus_shuttles.storage.items", PickerStock.shortCount(storage.used()),
+                    PickerStock.shortCount(storage.total())), y, storage.used(), storage.total(), storage.full() ? COLOUR_BAD : BAR_ITEMS);
+        } else {
+            graphics.text(font, Component.translatable("gui.servus_shuttles.storage.no_racks"), 8, y, COLOUR_DIM, false);
+        }
+        y += WarehouseControllerMenu.STORAGE_LINE;
+        if (storage.fluidCapacity() > 0) {
+            storageLine(graphics, Component.translatable("gui.servus_shuttles.storage.fluids", PickerStock.shortCount(storage.fluid()),
+                    PickerStock.shortCount(storage.fluidCapacity())), y, storage.fluid(), storage.fluidCapacity(),
+                    storage.fluidFull() ? COLOUR_BAD : BAR_FLUIDS);
+        } else {
+            graphics.text(font, Component.translatable("gui.servus_shuttles.storage.no_gantry"), 8, y, COLOUR_DIM, false);
+        }
+    }
+
+    private void storageLine(GuiGraphicsExtractor graphics, Component text, int y, long value, long max, int colour) {
+        graphics.text(font, font.plainSubstrByWidth(text.getString(), STORAGE_WIDTH), 8, y, COLOUR_TEXT, false);
+        PanelPainter.bar(graphics, 8, y + 10, STORAGE_WIDTH, 4, value, max, colour, PanelPainter.DARK);
     }
 
     /** The status column right of the map, each line wrapped; the empty upgrade slots speak for a missing upgrade. */
@@ -335,7 +391,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
     /** Draws a wrapped text at the status column above the upgrade label; returns the y below it. */
     private int lines(GuiGraphicsExtractor graphics, Component text, int y, int colour) {
         for (FormattedCharSequence line : font.split(text, STATUS_WIDTH)) {
-            if (y > WarehouseControllerMenu.UPGRADES_Y - 22) {
+            if (y > WarehouseControllerMenu.STORAGE_Y - 10) {
                 break;
             }
             graphics.text(font, line, WarehouseControllerMenu.STATUS_X, y, colour, false);

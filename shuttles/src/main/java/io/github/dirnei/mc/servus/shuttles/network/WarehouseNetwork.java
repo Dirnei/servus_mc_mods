@@ -63,9 +63,11 @@ import io.github.dirnei.mc.servus.shuttles.site.SiteChunks;
 import io.github.dirnei.mc.servus.shuttles.site.SiteRegistry;
 import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
+import io.github.dirnei.mc.servus.shuttles.storage.StorageFill;
 import io.github.dirnei.mc.servus.shuttles.terminal.RuleRow;
 import io.github.dirnei.mc.servus.shuttles.zone.PutAwayPlan;
 import io.github.dirnei.mc.servus.shuttles.zone.PutAwayRank;
+import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -155,6 +157,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** Held loads per destination. */
     private final Map<BlockPos, List<HeldLoad>> held = new HashMap<>();
     private final WarehouseIndex<BlockPos, ItemKey> index = new WarehouseIndex<>();
+    /** Slots in use and all slots of each rack bay, as its last stock poll read them. */
+    private final Map<BlockPos, RackFill> rackFill = new HashMap<>();
     /** Items picks have locked in the racks, per rack. */
     private final ReservationTally<BlockPos, ItemKey> reservedOut = new ReservationTally<>();
     private final ArrayDeque<BlockPos> dirtyQueue = new ArrayDeque<>();
@@ -320,6 +324,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             sources.add(pos);
             index.update(pos, that.index.snapshot(pos));
         });
+        rackFill.putAll(that.rackFill);
         reservedOut.absorb(that.reservedOut);
         pollOrderStale = true;
         joinOrder = null;
@@ -333,6 +338,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     protected void onDisposed() {
         sources.clear();
         reservedOut.clear();
+        rackFill.clear();
         connectors.clear();
         elevators.clear();
         shaftFloors = Map.of();
@@ -555,6 +561,42 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** The lockable slots of a rack of this warehouse whose chunk is loaded, else null. */
     private LockedSlots rackSlots(BlockPos pos) {
         return sources.contains(pos) && loaded(pos) instanceof HeavyRackBlockEntity rack ? rack.items() : null;
+    }
+
+    /** Slots in use and all slots of one rack bay. */
+    private record RackFill(int used, int total) {
+    }
+
+    /**
+     * How full the warehouse is: rack slots in use per zone as the stock poll
+     * last read them, and the fluid in its Storage gantries' tanks.
+     */
+    public StorageFill.Report storageFill() {
+        List<StorageFill.Bay> bays = new ArrayList<>(rackFill.size());
+        rackFill.forEach((pos, fill) -> {
+            ZoneDefinition zone = zones.zoneOf(pos);
+            bays.add(zone == null ? new StorageFill.Bay(StorageFill.NO_ZONE, "", fill.used(), fill.total())
+                    : new StorageFill.Bay(zone.key(), zone.name(), fill.used(), fill.total()));
+        });
+        List<StorageFill.Tank> tanks = new ArrayList<>();
+        for (BlockPos gantry : storageGantries()) {
+            for (TankView view : tankViews(gantry)) {
+                tanks.add(new StorageFill.Tank(view.fluid().getAmount(), view.capacity()));
+            }
+        }
+        return StorageFill.of(bays, tanks);
+    }
+
+    /** The Storage gantries of this warehouse, as their tanks were last read. */
+    public List<BlockPos> storageGantries() {
+        List<BlockPos> list = new ArrayList<>();
+        for (BlockPos pos : gantries()) {
+            List<TankView> views = tankViews(pos);
+            if (!views.isEmpty() && views.get(0).mode() == GantryMode.STORAGE) {
+                list.add(pos);
+            }
+        }
+        return list;
     }
 
     /** Stock blocks per zone key, sorted by key. */
@@ -1291,6 +1333,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     private void dropSource(BlockPos pos) {
         reservedOut.remove(pos);
+        rackFill.remove(pos);
         if (sources.remove(pos)) {
             index.remove(pos);
             dirtySet.remove(pos);
@@ -2124,7 +2167,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         long before = total(index.snapshot(pos));
         if (handler == null) {
             index.remove(pos);
+            rackFill.remove(pos);
             return;
+        }
+        if (loaded(pos) instanceof HeavyRackBlockEntity rack) {
+            rackFill.put(pos, new RackFill(SlotFill.inUse(rack.items().states()), rack.items().getSlots()));
         }
         Map<ItemKey, Integer> snapshot = new HashMap<>();
         for (int slot = 0; slot < handler.getSlots(); slot++) {

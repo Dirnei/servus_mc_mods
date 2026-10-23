@@ -134,6 +134,17 @@ public final class SlotFill {
         return free;
     }
 
+    /** Slots in use: holding items or locked by a job, so room a job reserved counts as taken. */
+    public static <K> int inUse(List<Slot<K>> slots) {
+        int used = 0;
+        for (Slot<K> slot : slots) {
+            if (slot.locked() || !slot.empty()) {
+                used++;
+            }
+        }
+        return used;
+    }
+
     /** Whether an unlocked slot holds a partial stack of the key. */
     public static <K> boolean partial(List<Slot<K>> slots, K key, int max) {
         for (Slot<K> slot : slots) {

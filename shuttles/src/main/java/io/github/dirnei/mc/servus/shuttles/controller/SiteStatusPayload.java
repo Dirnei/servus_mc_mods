@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.controller;
 
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
+import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.StorageRow;
 import io.github.dirnei.mc.servus.shuttles.site.SiteCapacity;
 import io.github.dirnei.mc.servus.shuttles.terminal.SiteRow;
 import java.util.ArrayList;
@@ -34,11 +35,12 @@ import net.minecraft.resources.Identifier;
  * @param used     FE the warehouse drew during the last second
  * @param noPower  whether the warehouse is in the no power state
  * @param sites    the other sites in the dimension, empty while the controller is not wireless capable
+ * @param storage  how full the warehouse is, {@link StorageRow#EMPTY} while it is not online
  */
 public record SiteStatusPayload(String name, String title, int online, Component summary, List<Long> chunks, long home,
                                 int upgrades, int capacity, int state, Component wake, boolean wakeAlert,
                                 int energy, int energyCapacity, boolean capable, int hint, long needs, long used, boolean noPower,
-                                List<SiteRow> sites) implements CustomPacketPayload {
+                                List<SiteRow> sites, StorageRow storage) implements CustomPacketPayload {
 
     public static final int HINT_NONE = 0;
     public static final int HINT_NO_UPGRADE = 1;
@@ -52,7 +54,7 @@ public record SiteStatusPayload(String name, String title, int online, Component
 
     public static final SiteStatusPayload EMPTY =
             new SiteStatusPayload("", "", 1, Component.empty(), List.of(), 0L, 0, 0, 0, Component.empty(), false, 0, 0, false, HINT_NONE, 0L, 0L, false,
-                    List.of());
+                    List.of(), StorageRow.EMPTY);
 
     public SiteCapacity.State capacityState() {
         SiteCapacity.State[] states = SiteCapacity.State.values();
@@ -82,6 +84,7 @@ public record SiteStatusPayload(String name, String title, int online, Component
         List<SiteRow> sent = sites.subList(0, Math.min(sites.size(), 256));
         buf.writeVarInt(sent.size());
         sent.forEach(row -> SiteRow.STREAM_CODEC.encode(buf, row));
+        StorageRow.STREAM_CODEC.encode(buf, storage);
     }
 
     private static SiteStatusPayload read(RegistryFriendlyByteBuf buf) {
@@ -112,8 +115,9 @@ public record SiteStatusPayload(String name, String title, int online, Component
         for (int i = 0; i < siteCount; i++) {
             sites.add(SiteRow.STREAM_CODEC.decode(buf));
         }
+        StorageRow storage = StorageRow.STREAM_CODEC.decode(buf);
         return new SiteStatusPayload(name, title, online, summary, chunks, home, upgrades, capacity, state, wake, wakeAlert,
-                energy, energyCapacity, capable, hint, needs, used, noPower, sites);
+                energy, energyCapacity, capable, hint, needs, used, noPower, sites, storage);
     }
 
     @Override

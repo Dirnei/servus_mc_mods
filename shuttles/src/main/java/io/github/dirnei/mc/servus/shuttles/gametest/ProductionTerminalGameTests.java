@@ -19,6 +19,7 @@ import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.MachineRow;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionTerminalBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionView;
+import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -322,6 +323,22 @@ public final class ProductionTerminalGameTests {
         Waits.when(helper, () -> WarehouseFixtures.lit(helper, TERMINAL), 60, () -> "the warehouse should light the lamp", () -> {
             ProductionPayload view = view(helper, TERMINAL);
             helper.assertTrue(view.online() && view.cpus().isEmpty(), "online without CPU rows, got " + view.cpus());
+            helper.succeed();
+        });
+    }
+
+    /** The Storage tab's content lists the line's warehouse by site name with both racks and the cobblestone's slot. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void storageListsTheWarehouse(GameTestHelper helper) {
+        setup(helper, false);
+        WarehouseFixtures.stock(helper, RACK, new ItemStack(Items.COBBLESTONE, 64));
+        int slots = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class).items().getSlots();
+        Waits.when(helper, () -> view(helper, TERMINAL).storage().size() == 1 && view(helper, TERMINAL).storage().get(0).used() == 1, 60,
+                () -> "one warehouse with one slot in use, got " + view(helper, TERMINAL).storage(), () -> {
+            ProductionRows.StorageRow row = view(helper, TERMINAL).storage().get(0);
+            helper.assertTrue(row.bays() == 2 && row.total() == 2L * slots, "two racks of " + slots + " slots, got " + row);
+            helper.assertTrue(!row.name().isEmpty(), "named after its site, got " + row);
+            helper.assertTrue(row.zones().size() == 1 && row.zones().get(0).unzoned(), "one unzoned row, got " + row.zones());
             helper.succeed();
         });
     }

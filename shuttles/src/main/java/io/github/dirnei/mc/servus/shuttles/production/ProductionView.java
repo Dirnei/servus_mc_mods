@@ -13,12 +13,14 @@ import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabili
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.production.TransferGate;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
+import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuBuffer;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuShape;
 import io.github.dirnei.mc.servus.shuttles.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
+import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.order.OrderStep;
 import io.github.dirnei.mc.servus.shuttles.order.WorkOrder;
 import io.github.dirnei.mc.servus.shuttles.packing.PackingStationBlockEntity;
@@ -33,6 +35,7 @@ import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.MachineRow;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.PackingRow;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.PatternRow;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.PatternsView;
+import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.StorageRow;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalWarehouses;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -94,9 +97,21 @@ public final class ProductionView {
         jobs.sort(Comparator.comparing((JobRow job) -> job.open() ? 0 : 1)
                 .thenComparingLong(job -> job.cpu().asLong()).thenComparingInt(JobRow::id));
         List<MachineRow> machines = machines(level, line.get(), blocked);
-        boolean online = !cpus.isEmpty() || !TerminalWarehouses.reachable(level, pos).isEmpty();
+        List<WarehouseNetwork> warehouses = TerminalWarehouses.reachable(level, pos);
+        boolean online = !cpus.isEmpty() || !warehouses.isEmpty();
         return new ProductionPayload(pos, online, online ? "" : "nothing", cpus, jobs, machines, patterns(level, line.get()),
-                packing(level, line.get()), busiest(level, line.get()));
+                packing(level, line.get()), busiest(level, line.get()), storage(warehouses));
+    }
+
+    /** How full each warehouse is, named after its site. */
+    public static List<StorageRow> storage(List<WarehouseNetwork> warehouses) {
+        return warehouses.stream().map(ProductionView::storage).toList();
+    }
+
+    /** How full a warehouse is, named after its site; empty name without a controller. */
+    public static StorageRow storage(WarehouseNetwork warehouse) {
+        String name = warehouse.controller().map(WarehouseControllerBlockEntity::displayName).orElse("");
+        return StorageRow.of(name, warehouse.storageFill(), warehouse.storageGantries().size());
     }
 
     /** Every loaded Packing Station of the line with its rate use per direction, by position. */

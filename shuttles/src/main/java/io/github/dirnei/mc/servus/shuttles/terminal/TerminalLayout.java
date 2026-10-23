@@ -188,8 +188,6 @@ public final class TerminalLayout {
     public static final class Production {
         public static final int WIDTH = 240;
         public static final int HEIGHT = 222;
-        /** Four tabs fit the 224 wide tab row: 4 x 54 + 3 x 2 = 222. */
-        public static final int TAB_WIDTH = 54;
         public static final int TAB_GAP = 2;
 
         public static final Rect TITLE = new Rect(8, 6, 224, 9);
@@ -213,9 +211,52 @@ public final class TerminalLayout {
                     new Area("inventory", INVENTORY), new Area("hotbar", HOTBAR));
         }
 
-        /** Left edge of a tab, tabs left aligned on the tab row. */
-        public static int tabX(int index) {
-            return TABS.x() + index * (TAB_WIDTH + TAB_GAP);
+        /**
+         * The tabs on the tab row, left to right: each as wide as its label
+         * plus an even share of the row's spare width, the remainder to the
+         * first tabs. Labels wider than the row get no padding and are cut by
+         * the caller; the tabs then still end inside the row.
+         */
+        public static List<Rect> tabs(int[] labelWidths) {
+            int count = labelWidths.length;
+            if (count == 0) {
+                return List.of();
+            }
+            int row = TABS.w() - (count - 1) * TAB_GAP;
+            int labels = 0;
+            for (int width : labelWidths) {
+                labels += width;
+            }
+            int spare = row - labels;
+            List<Rect> rects = new ArrayList<>(count);
+            int x = TABS.x();
+            for (int i = 0; i < count; i++) {
+                int width = spare >= 0 ? labelWidths[i] + share(spare, i, count) : share(row, i, count);
+                rects.add(new Rect(x, TABS.y(), width, TABS.h()));
+                x += width + TAB_GAP;
+            }
+            return rects;
+        }
+
+        /** Part {@code index} of {@code total} split evenly into {@code count}, the remainder to the first parts. */
+        private static int share(int total, int index, int count) {
+            return total / count + (index < total % count ? 1 : 0);
+        }
+
+        /** A warehouse header of the Storage tab; parts below are relative to the row's top left corner on the list. */
+        public static final int STORAGE_HEADER_HEIGHT = 14;
+        /** A zone or fluid row of the Storage tab. */
+        public static final int STORAGE_ROW_HEIGHT = 11;
+        public static final Rect STORAGE_NAME = new Rect(2, 2, 110, 9);
+        public static final Rect STORAGE_NUMBERS = new Rect(114, 2, 60, 9);
+        public static final Rect STORAGE_BAR = new Rect(178, 3, 42, 6);
+        /** Zone and fluid rows indent their name under the warehouse header. */
+        public static final int STORAGE_INDENT = 8;
+
+        /** The parts of a Storage tab row. */
+        public static List<Area> storageAreas() {
+            return List.of(new Area("storage name", STORAGE_NAME), new Area("storage numbers", STORAGE_NUMBERS),
+                    new Area("storage bar", STORAGE_BAR));
         }
 
         /** The Crafting tab's one line CPU header. Row parts below are relative to the row's top left corner on the list. */

@@ -108,7 +108,7 @@ class TerminalLayoutTest {
     void productionAreasDoNotOverlap() {
         assertDisjoint(Production.areas());
         assertDisjoint(Production.editorAreas());
-        assertTrue(Production.tabX(3) + Production.TAB_WIDTH <= Production.TABS.right(), "four tabs fit the tab row");
+        assertTabsFit(Production.tabs(new int[] {40, 41, 43, 23, 37}), 4);
     }
 
     @Test
@@ -161,5 +161,40 @@ class TerminalLayoutTest {
         assertTrue(Production.cpuItemsShown(fit) == fit, "all fit");
         assertTrue(Production.cpuItemsShown(fit + 5) == fit - 1, "one slot left for the rest count");
         assertTrue(Production.cpuItemsShown(0) == 0, "none");
+    }
+
+    /** Tabs stay on the row, in order, without overlap, each with at least {@code padding} beside its label. */
+    private static void assertTabsFit(List<Rect> tabs, int padding) {
+        for (int i = 0; i < tabs.size(); i++) {
+            Rect tab = tabs.get(i);
+            assertTrue(tab.x() >= Production.TABS.x() && tab.right() <= Production.TABS.right(), "tab " + i + " leaves the row");
+            assertTrue(tab.y() == Production.TABS.y() && tab.h() == Production.TABS.h(), "tab " + i + " off the row");
+            if (i > 0) {
+                assertTrue(tabs.get(i - 1).right() <= tab.x(), "tabs " + (i - 1) + " and " + i + " overlap");
+            }
+        }
+        int[] labels = {40, 41, 43, 23, 37};
+        for (int i = 0; i < tabs.size() && padding > 0; i++) {
+            assertTrue(tabs.get(i).w() - labels[i] >= padding, "tab " + i + " has too little padding");
+        }
+    }
+
+    @Test
+    void fiveTabsFitTheRow() {
+        assertTabsFit(Production.tabs(new int[] {40, 41, 43, 23, 37}), 4);
+        List<Rect> tabs = Production.tabs(new int[] {40, 41, 43, 23, 37});
+        assertEquals(5, tabs.size());
+    }
+
+    @Test
+    void tooWideLabelsStillStayOnTheRow() {
+        assertTabsFit(Production.tabs(new int[] {90, 90, 90, 90, 90}), 0);
+    }
+
+    @Test
+    void storageRowPartsDoNotOverlap() {
+        assertDisjoint(Production.storageAreas());
+        assertInside(Production.storageAreas(), Production.LIST.w(), Production.STORAGE_HEADER_HEIGHT);
+        assertInside(Production.storageAreas(), Production.LIST.w(), Production.STORAGE_ROW_HEIGHT);
     }
 }

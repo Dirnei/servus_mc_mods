@@ -137,6 +137,21 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.controller.wireless.tooltip",
                 "A Wireless Upgrade makes this controller the site's antenna. With power it trades with other sites; Packing Stations pack and unpack");
         add("gui.servus_shuttles.controller.energy", "%s / %s FE");
+        add("gui.servus_shuttles.storage.items", "Items: %s / %s slots");
+        add("gui.servus_shuttles.storage.fluids", "Fluids: %s / %s mB");
+        add("gui.servus_shuttles.storage.no_racks", "Items: no racks");
+        add("gui.servus_shuttles.storage.no_gantry", "Fluids: no Storage gantry");
+        add("gui.servus_shuttles.storage.bays", "%s rack bays");
+        add("gui.servus_shuttles.storage.gantries", "%s Storage gantries");
+        add("gui.servus_shuttles.storage.full_zones", "Full: %s");
+        add("gui.servus_shuttles.storage.no_zone", "(no zone)");
+        add("gui.servus_shuttles.storage.slots", "%s / %s");
+        add("gui.servus_shuttles.storage.fluid_row", "Fluids");
+        add("gui.servus_shuttles.storage.mb", "%s / %s mB");
+        add("gui.servus_shuttles.storage.racks_none", "No racks");
+        add("gui.servus_shuttles.storage.warehouse", "Warehouse");
+        add("gui.servus_shuttles.production.tab.storage", "Storage");
+        add("gui.servus_shuttles.production.no_warehouse", "No warehouse on this data line");
         add("gui.servus_shuttles.controller.energy_use", "%s / %s FE, using %s FE/s");
         add("gui.servus_shuttles.controller.no_power", "No power: the warehouse's automation waits");
         add("gui.servus_shuttles.controller.energy.tooltip",

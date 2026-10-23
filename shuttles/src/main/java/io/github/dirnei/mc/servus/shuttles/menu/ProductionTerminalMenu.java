@@ -390,6 +390,9 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
             hash = hash * 31 + duct.pos().hashCode() + duct.name().hashCode();
             hash = hash * 31 + duct.load() * 7 + duct.bandwidth();
         }
+        for (ProductionRows.StorageRow row : payload.storage()) {
+            hash = hash * 31 + row.hashCode();
+        }
         PatternsView patterns = payload.patterns();
         hash = hash * 31 + patterns.used() * 7 + patterns.total();
         for (PatternRow row : patterns.rows()) {

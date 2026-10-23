@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.production;
 
+import io.github.dirnei.mc.servus.shuttles.storage.StorageFill;
 import io.netty.buffer.ByteBuf;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -276,5 +277,82 @@ public final class ProductionRows {
                 ByteBufCodecs.VAR_INT, DuctRow::load,
                 ByteBufCodecs.VAR_INT, DuctRow::bandwidth,
                 DuctRow::new);
+    }
+
+    /**
+     * One zone of a warehouse with its rack slots in use.
+     *
+     * @param name  the zone's name, empty for the racks without a zone
+     * @param used  slots in use
+     * @param total all slots of the zone's racks
+     */
+    public record ZoneRow(String name, long used, long total) {
+        public static final StreamCodec<ByteBuf, ZoneRow> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.STRING_UTF8, ZoneRow::name,
+                ByteBufCodecs.VAR_LONG, ZoneRow::used,
+                ByteBufCodecs.VAR_LONG, ZoneRow::total,
+                ZoneRow::new);
+
+        public boolean full() {
+            return total > 0 && used >= total;
+        }
+
+        public boolean unzoned() {
+            return name.isEmpty();
+        }
+    }
+
+    /**
+     * How full one warehouse is.
+     *
+     * @param name          the site name
+     * @param bays          rack bays that count
+     * @param used          rack slots in use
+     * @param total         all rack slots
+     * @param zones         one row per zone and one for unzoned racks, full first, then the fullest
+     * @param gantries      Storage gantries that count
+     * @param fluid         mB in their tanks
+     * @param fluidCapacity mB their tanks hold at most
+     */
+    public record StorageRow(String name, int bays, long used, long total, List<ZoneRow> zones, int gantries, long fluid,
+                             long fluidCapacity) {
+
+        public static final StorageRow EMPTY = new StorageRow("", 0, 0, 0, List.of(), 0, 0, 0);
+
+        public static final StreamCodec<ByteBuf, StorageRow> STREAM_CODEC = StreamCodec.of(
+                (buf, row) -> {
+                    ByteBufCodecs.STRING_UTF8.encode(buf, row.name());
+                    ByteBufCodecs.VAR_INT.encode(buf, row.bays());
+                    ByteBufCodecs.VAR_LONG.encode(buf, row.used());
+                    ByteBufCodecs.VAR_LONG.encode(buf, row.total());
+                    ZoneRow.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, row.zones());
+                    ByteBufCodecs.VAR_INT.encode(buf, row.gantries());
+                    ByteBufCodecs.VAR_LONG.encode(buf, row.fluid());
+                    ByteBufCodecs.VAR_LONG.encode(buf, row.fluidCapacity());
+                },
+                buf -> new StorageRow(ByteBufCodecs.STRING_UTF8.decode(buf), ByteBufCodecs.VAR_INT.decode(buf),
+                        ByteBufCodecs.VAR_LONG.decode(buf), ByteBufCodecs.VAR_LONG.decode(buf),
+                        ZoneRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf), ByteBufCodecs.VAR_INT.decode(buf),
+                        ByteBufCodecs.VAR_LONG.decode(buf), ByteBufCodecs.VAR_LONG.decode(buf)));
+
+        /** The row of a warehouse named {@code name} with this fill and this many Storage gantries. */
+        public static StorageRow of(String name, StorageFill.Report report, int gantries) {
+            List<ZoneRow> zones = report.zones().stream().map(zone -> new ZoneRow(zone.name(), zone.used(), zone.total())).toList();
+            return new StorageRow(name, report.bays(), report.items().used(), report.items().total(), zones, gantries, report.fluid(),
+                    report.fluidCapacity());
+        }
+
+        public boolean full() {
+            return total > 0 && used >= total;
+        }
+
+        public boolean fluidFull() {
+            return fluidCapacity > 0 && fluid >= fluidCapacity;
+        }
+
+        /** The zones that are full, by name. */
+        public List<String> fullZones() {
+            return zones.stream().filter(zone -> zone.full() && !zone.unzoned()).map(ZoneRow::name).toList();
+        }
     }
 }

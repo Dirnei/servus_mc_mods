@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.client;
 import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.foundation.client.RecipeEditorPopup;
+import io.github.dirnei.mc.servus.foundation.picker.PickerStock;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.shuttles.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.shuttles.pattern.CraftingGrid;
@@ -18,6 +19,8 @@ import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.MachineRow;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.PackingRow;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.PatternRow;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.PatternsView;
+import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.StorageRow;
+import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.ZoneRow;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout.Production;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout.Rect;
@@ -37,7 +40,7 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Title, a tab row (Crafting, Patterns, Machines, CPUs) and a scrollable list
+ * Title, a tab row (Crafting, Patterns, Machines, CPUs, Storage) and a scrollable list
  * below. Each tab turns the last synced rows into lines; a line can draw
  * itself, show a tooltip and react to a click. The Patterns tab opens the
  * shared recipe editor popup over the panel, with the player inventory below
@@ -50,7 +53,6 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private static final int MARGIN = Production.LIST.x();
     private static final int TAB_Y = Production.TABS.y();
     private static final int TAB_HEIGHT = Production.TABS.h();
-    private static final int TAB_WIDTH = Production.TAB_WIDTH;
     private static final int LIST_Y = Production.LIST.y();
     private static final int LIST_BOTTOM = Production.LIST.bottom();
     private static final int PATTERN_ROW = 18;
@@ -66,6 +68,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private static final int COLOUR_BUFFER = 0xFF8A5A00;
     private static final int COLOUR_TEAL = 0xFF2E8B7A;
     private static final int COLOUR_AMBER = 0xFFE0A030;
+    private static final int COLOUR_FLUID = 0xFF3A6EC0;
     private static final int HOVER_SHADE = 0x20000000;
     private static final int PATTERN_HOVER_SHADE = 0x30000000;
 
@@ -96,7 +99,8 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             new Tab("crafting", this::craftingLines),
             new Tab("patterns", this::patternLines),
             new Tab("machines", this::machineLines),
-            new Tab("cpus", this::cpuLines));
+            new Tab("cpus", this::cpuLines),
+            new Tab("storage", this::storageLines));
     private final int[] scrolls = new int[tabs.size()];
     private final List<Line> lines = new ArrayList<>();
     private final RecipeEditorPopup popup = new RecipeEditorPopup(ProductionTerminalMenu.POPUP_X, ProductionTerminalMenu.POPUP_Y, WIDTH, HEIGHT);
@@ -216,14 +220,28 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         graphics.disableScissor();
     }
 
+    private static Component tabLabel(Tab tab) {
+        return Component.translatable("gui.servus_shuttles.production.tab." + tab.key());
+    }
+
+    /** The tabs on the tab row, each sized to its label. */
+    private List<Rect> tabRects() {
+        int[] widths = new int[tabs.size()];
+        for (int i = 0; i < widths.length; i++) {
+            widths[i] = font.width(tabLabel(tabs.get(i)));
+        }
+        return Production.tabs(widths);
+    }
+
     private void renderTabs(GuiGraphicsExtractor graphics) {
+        List<Rect> rects = tabRects();
         for (int i = 0; i < tabs.size(); i++) {
-            int x = Production.tabX(i);
+            Rect tab = rects.get(i);
             boolean active = i == selected;
-            graphics.fill(x, TAB_Y, x + TAB_WIDTH, TAB_Y + TAB_HEIGHT, active ? PanelPainter.SLOT : PanelPainter.FACE);
-            graphics.outline(x, TAB_Y, TAB_WIDTH, TAB_HEIGHT, PanelPainter.DARK);
-            Component label = Component.translatable("gui.servus_shuttles.production.tab." + tabs.get(i).key());
-            graphics.text(font, label, x + (TAB_WIDTH - font.width(label)) / 2, TAB_Y + 2, active ? 0xFFFFFFFF : COLOUR_TEXT, false);
+            graphics.fill(tab.x(), TAB_Y, tab.right(), TAB_Y + TAB_HEIGHT, active ? PanelPainter.SLOT : PanelPainter.FACE);
+            graphics.outline(tab.x(), TAB_Y, tab.w(), TAB_HEIGHT, PanelPainter.DARK);
+            String label = font.plainSubstrByWidth(tabLabel(tabs.get(i)).getString(), tab.w() - 2);
+            graphics.text(font, label, tab.x() + (tab.w() - font.width(label)) / 2, TAB_Y + 2, active ? 0xFFFFFFFF : COLOUR_TEXT, false);
         }
     }
 
@@ -265,15 +283,9 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         }
     }
 
-    /** A bar with a one pixel frame in {@code background}, filled from the left by value of max. */
-    private static void bar(GuiGraphicsExtractor graphics, int x, int y, int w, int h, int value, int max, int colour, int background) {
-        graphics.fill(x, y, x + w, y + h, background);
-        int filled = max <= 0 ? 0 : Math.min(w - 2, value * (w - 2) / max);
-        graphics.fill(x + 1, y + 1, x + 1 + filled, y + h - 1, colour);
-    }
-
-    private static void bar(GuiGraphicsExtractor graphics, Rect part, int lineY, int value, int max, int colour) {
-        bar(graphics, MARGIN + part.x(), lineY + part.y(), part.w(), part.h(), value, max, colour, PanelPainter.DARK);
+    /** A bar on a part of a line, the part relative to the line's left edge on the list and its top. */
+    private static void bar(GuiGraphicsExtractor graphics, Rect part, int lineY, long value, long max, int colour) {
+        PanelPainter.bar(graphics, MARGIN + part.x(), lineY + part.y(), part.w(), part.h(), value, max, colour, PanelPainter.DARK);
     }
 
     private Line text(Component text, int colour) {
@@ -415,7 +427,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             }
             clipped(graphics, job.amount() + " " + job.item().getHoverName().getString(), Production.JOB_TITLE, y, alpha(COLOUR_TEXT, visible));
             Rect barPart = Production.JOB_BAR;
-            bar(graphics, MARGIN + barPart.x(), y + barPart.y(), barPart.w(), barPart.h(), job.crafted(), job.amount(),
+            PanelPainter.bar(graphics, MARGIN + barPart.x(), y + barPart.y(), barPart.w(), barPart.h(), job.crafted(), job.amount(),
                     alpha(jobBarColour(job), visible), alpha(0x373737, visible));
             clipped(graphics, status(job).getString(), Production.JOB_STATUS, y, alpha(jobStatusColour(job), visible));
             if (job.open()) {
@@ -549,6 +561,77 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         return list;
     }
 
+    private List<Line> storageLines() {
+        List<Line> result = new ArrayList<>();
+        List<StorageRow> warehouses = ClientProduction.storage();
+        if (warehouses.isEmpty()) {
+            result.add(text(Component.translatable("gui.servus_shuttles.production.no_warehouse"), COLOUR_DIM));
+            return result;
+        }
+        for (StorageRow warehouse : warehouses) {
+            result.add(storageHeader(warehouse));
+            if (warehouse.total() <= 0) {
+                result.add(storageLine(Component.translatable("gui.servus_shuttles.storage.racks_none").getString(), "", 0, 0,
+                        COLOUR_DIM, COLOUR_TEAL));
+            }
+            for (ZoneRow zone : warehouse.zones()) {
+                String name = zone.unzoned() ? Component.translatable("gui.servus_shuttles.storage.no_zone").getString() : zone.name();
+                result.add(storageLine(name, slots(zone.used(), zone.total()), zone.used(), zone.total(),
+                        zone.full() ? COLOUR_ALERT : COLOUR_TEXT, zone.full() ? COLOUR_ALERT : COLOUR_TEAL));
+            }
+            if (warehouse.fluidCapacity() > 0) {
+                result.add(storageLine(Component.translatable("gui.servus_shuttles.storage.fluid_row").getString(),
+                        Component.translatable("gui.servus_shuttles.storage.mb", PickerStock.shortCount(warehouse.fluid()),
+                                PickerStock.shortCount(warehouse.fluidCapacity())).getString(), warehouse.fluid(), warehouse.fluidCapacity(),
+                        warehouse.fluidFull() ? COLOUR_ALERT : COLOUR_TEXT, warehouse.fluidFull() ? COLOUR_ALERT : COLOUR_FLUID));
+            }
+        }
+        return result;
+    }
+
+    private static String slots(long used, long total) {
+        return Component.translatable("gui.servus_shuttles.storage.slots", PickerStock.shortCount(used), PickerStock.shortCount(total)).getString();
+    }
+
+    /** A warehouse: its name, its slots and a bar; the tooltip counts its rack bays and Storage gantries. */
+    private Line storageHeader(StorageRow warehouse) {
+        String name = warehouse.name().isEmpty() ? Component.translatable("gui.servus_shuttles.storage.warehouse").getString() : warehouse.name();
+        String numbers = warehouse.total() > 0 ? slots(warehouse.used(), warehouse.total()) : "";
+        int colour = warehouse.full() ? COLOUR_ALERT : COLOUR_TEAL;
+        Painter painter = (graphics, y, hovered) -> {
+            shade(graphics, y, Production.STORAGE_HEADER_HEIGHT, hovered);
+            clipped(graphics, name, Production.STORAGE_NAME, y + 2, COLOUR_HEAD);
+            numbers(graphics, numbers, y + 2, warehouse.full() ? COLOUR_ALERT : COLOUR_HEAD);
+            if (warehouse.total() > 0) {
+                bar(graphics, Production.STORAGE_BAR, y + 2, warehouse.used(), warehouse.total(), colour);
+            }
+        };
+        return new Line(Production.STORAGE_HEADER_HEIGHT, painter, () -> List.of(Component.literal(name),
+                Component.translatable("gui.servus_shuttles.storage.bays", warehouse.bays()),
+                Component.translatable("gui.servus_shuttles.storage.gantries", warehouse.gantries())), null);
+    }
+
+    /** A zone or the fluids of a warehouse, indented under its header, with numbers and a bar when there is a total. */
+    private Line storageLine(String name, String numbers, long used, long total, int textColour, int barColour) {
+        Rect namePart = new Rect(Production.STORAGE_NAME.x() + Production.STORAGE_INDENT, Production.STORAGE_NAME.y(),
+                Production.STORAGE_NAME.w() - Production.STORAGE_INDENT, Production.STORAGE_NAME.h());
+        Painter painter = (graphics, y, hovered) -> {
+            clipped(graphics, name, namePart, y, textColour);
+            numbers(graphics, numbers, y, textColour);
+            if (total > 0) {
+                bar(graphics, Production.STORAGE_BAR, y, used, total, barColour);
+            }
+        };
+        return new Line(Production.STORAGE_ROW_HEIGHT, painter, null, null);
+    }
+
+    /** Numbers right aligned in the numbers part of a storage row. */
+    private void numbers(GuiGraphicsExtractor graphics, String numbers, int lineY, int colour) {
+        Rect part = Production.STORAGE_NUMBERS;
+        String shown = font.plainSubstrByWidth(numbers, part.w());
+        graphics.text(font, shown, MARGIN + part.right() - font.width(shown), lineY + part.y(), colour, false);
+    }
+
     private List<Line> patternLines() {
         List<Line> result = new ArrayList<>();
         PatternsView patterns = ClientProduction.patterns();
@@ -559,7 +642,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         Component capacity = Component.translatable("gui.servus_shuttles.production.patterns_capacity", patterns.used(), patterns.total());
         result.add(new Line(14, (graphics, y, hovered) -> {
             graphics.text(font, capacity, MARGIN, y + 3, COLOUR_HEAD, false);
-            bar(graphics, WIDTH - MARGIN - CAPACITY_BAR_WIDTH - 2, y + 3, CAPACITY_BAR_WIDTH, 7, patterns.used(), patterns.total(),
+            PanelPainter.bar(graphics, WIDTH - MARGIN - CAPACITY_BAR_WIDTH - 2, y + 3, CAPACITY_BAR_WIDTH, 7, patterns.used(), patterns.total(),
                     patterns.used() >= patterns.total() ? COLOUR_ALERT : COLOUR_TEAL, PanelPainter.DARK);
         }, null, null));
         Component add = Component.translatable("gui.servus_shuttles.production.new_pattern");
@@ -759,8 +842,9 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         int x = (int) mouseX - leftPos;
         int y = (int) mouseY - topPos;
         if (y >= TAB_Y && y < TAB_Y + TAB_HEIGHT) {
+            List<Rect> rects = tabRects();
             for (int i = 0; i < tabs.size(); i++) {
-                if (x >= Production.tabX(i) && x < Production.tabX(i) + TAB_WIDTH) {
+                if (x >= rects.get(i).x() && x < rects.get(i).right()) {
                     selected = i;
                     return true;
                 }

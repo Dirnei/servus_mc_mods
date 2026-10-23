@@ -9,6 +9,8 @@ import io.github.dirnei.mc.servus.shuttles.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.controller.WirelessUpgradeSlots;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.StorageRow;
+import io.github.dirnei.mc.servus.shuttles.production.ProductionView;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
@@ -46,10 +48,13 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
     public static final int MAP_Y = 36;
     public static final int MAP_SIZE = 60;
     public static final int STATUS_X = 74;
-    public static final int UPGRADES_Y = 112;
+    /** The Items and Fluids lines below the map, each a text line with a bar under it. */
+    public static final int STORAGE_Y = 100;
+    public static final int STORAGE_LINE = 15;
+    public static final int UPGRADES_Y = 142;
     /** The Wireless Upgrade slot, right of the Anchor Upgrade row, in line with the last inventory column. */
     public static final int WIRELESS_X = 152;
-    public static final int INVENTORY_Y = 144;
+    public static final int INVENTORY_Y = 174;
     public static final int IMAGE_HEIGHT = INVENTORY_Y + PlayerInventorySlots.HOTBAR_OFFSET + 18 + 6;
 
     private final WarehouseControllerBlockEntity controller;
@@ -178,7 +183,8 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
                 new ArrayList<>(controller.span()), controller.homeChunk(), controller.upgrades().count(), controller.capacity(),
                 controller.siteState().ordinal(), controller.wakeLine(), controller.wakeAlert(), controller.energyStored(),
                 controller.energy().capacity(), capable, hint, needs, controller.usedLastSecond(),
-                online == 0 && controller.noPower(), capable ? sites(controller) : List.of());
+                online == 0 && controller.noPower(), capable ? sites(controller) : List.of(),
+                online == 0 ? network.map(ProductionView::storage).orElse(StorageRow.EMPTY) : StorageRow.EMPTY);
     }
 
     /** The other sites of the controller's owner in its dimension, by name. */
