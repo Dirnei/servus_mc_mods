@@ -81,4 +81,28 @@ class FieldCargoTest {
         assertEquals(2, cargo.unload(null, 64).size());
         assertTrue(cargo.isEmpty());
     }
+
+    @Test
+    void stowKeepsWhatFits() {
+        FieldCargo<String> cargo = new FieldCargo<>(1);
+        assertEquals(List.of(), cargo.stow(entry("seeds", 40), left -> 0));
+        assertEquals(40, cargo.count("seeds"));
+    }
+
+    @Test
+    void stowPutsTheOverflowBack() {
+        FieldCargo<String> cargo = new FieldCargo<>(1);
+        cargo.add(List.of(entry("seeds", 50)));
+        assertEquals(List.of(), cargo.stow(entry("seeds", 30), left -> left.count()));
+        assertEquals(64, cargo.count("seeds"));
+    }
+
+    @Test
+    void stowReturnsWhatTheSourceRefused() {
+        FieldCargo<String> cargo = new FieldCargo<>(1);
+        cargo.add(List.of(entry("wheat", 64)));
+        assertEquals(List.of(entry("seeds", 30)), cargo.stow(entry("seeds", 30), left -> 0));
+        assertEquals(List.of(entry("seeds", 18)), cargo.stow(entry("seeds", 30), left -> 12));
+        assertEquals(0, cargo.count("seeds"));
+    }
 }

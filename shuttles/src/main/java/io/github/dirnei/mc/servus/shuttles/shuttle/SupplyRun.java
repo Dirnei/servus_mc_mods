@@ -1,41 +1,26 @@
 package io.github.dirnei.mc.servus.shuttles.shuttle;
 
-import io.github.dirnei.mc.servus.shuttles.field.SupplyBuffer;
-import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 
 /**
- * The state of one supply run beyond what every field run has: what it still
- * picks for each part of the head's buffer and the sources it tried. The
- * amounts are pure ({@code SupplyPlan}).
+ * The state of one supply run beyond what every field run has: the racks it
+ * locked items in and still drives to, in order, and where the stop at the
+ * head stands. The amounts are pure ({@code SupplyPlan}).
  */
 final class SupplyRun extends FieldRun {
 
-    /** The item picked for each planned part. */
-    final Map<SupplyBuffer.Part, ItemKey> keys = new EnumMap<>(SupplyBuffer.Part.class);
-    /** Items still to pick for each planned part. */
-    final Map<SupplyBuffer.Part, Integer> remaining = new EnumMap<>(SupplyBuffer.Part.class);
-    /** The reserve of each part's item the run keeps in storage, fixed when it planned. */
-    final Map<SupplyBuffer.Part, Integer> reserves = new EnumMap<>(SupplyBuffer.Part.class);
+    /** The racks the run locked items in and has not taken them from yet, in the order it visits them. */
+    final List<BlockPos> sources = new ArrayList<>();
     /** The picking is over, whatever it brought. */
     boolean fetched;
     /** The stop at the head is over. */
     boolean unloaded;
-    /** Storage blocks the run already took from or drove to. */
-    final Set<BlockPos> sourcesTried = new HashSet<>();
-    /** The storage block the shuttle drives to. */
+    /** The rack the shuttle drives to. */
     BlockPos source;
 
     SupplyRun(BlockPos head, int slots) {
         super(head, slots);
-    }
-
-    /** The reserve storage keeps of the part's item. */
-    int reserveOf(SupplyBuffer.Part part) {
-        return reserves.getOrDefault(part, 0);
     }
 }

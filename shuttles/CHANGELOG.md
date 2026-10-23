@@ -10,6 +10,7 @@
 ### Changed
 - Put-aways pick the rack by zone, then bays already holding the item, then the most room, weighed by travel time.
 - A shuttle whose cargo has nowhere to go parks in its garage with a red lamp instead of dropping it.
+- The Field Head buffer and field runs reserve their slots; with a full warehouse a Harvester parks in its garage instead of dropping crops on the field.
 
 ### Fixed
 - Shuttle jobs, their cargo and station claims survive a reload or an unloaded warehouse; nothing drops mid-trip.

@@ -154,6 +154,20 @@ public final class SlotFill {
         return false;
     }
 
+    /**
+     * Room in a counted slot for anyone but the jobs that reserved it: the
+     * limit less what the slot holds and less the room other jobs' IN locks
+     * reserve, never below 0.
+     */
+    public static int sharedRoom(long limit, int count, int reservedIn) {
+        return (int) Math.max(0, Math.min(Integer.MAX_VALUE, limit - Math.max(0, count) - Math.max(0, reservedIn)));
+    }
+
+    /** Items of a counted slot that other jobs' OUT locks do not reserve, never below 0. */
+    public static int sharedAvailable(int count, int reservedOut) {
+        return Math.max(0, count - Math.max(0, reservedOut));
+    }
+
     /** The sum of the parts' counts. */
     public static int total(List<Part> parts) {
         int sum = 0;

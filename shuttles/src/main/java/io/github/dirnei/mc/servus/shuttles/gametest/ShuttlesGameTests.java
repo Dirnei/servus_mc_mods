@@ -53,6 +53,7 @@ public final class ShuttlesGameTests {
             SlotLockGameTests.class,
             SpreaderGameTests.class,
             FieldSupplyGameTests.class,
+            FieldLockGameTests.class,
             FieldLevelGameTests.class,
             StationGameTests.class,
             StationHandsGameTests.class,

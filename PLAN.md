@@ -203,10 +203,7 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 
 ### Open: Shuttles
 
-Shuttle job series (decided 2026-10-23 after items spilled at an Inbound Station; built in this order):
-
 - Shuttles meeting head on pass through each other; passing places or one way aisles if play tests ask for them.
-- `m10-field-head-locks`: the Field Head buffer takes part in slot locks like the station buffers, and field runs lock the rack room and stock they store into or fetch from.
 - A way to unload a shuttle parked with cargo by hand; today only Recall empties it, dropping the cargo at the garage.
 
 - `m10-lumber`: a Lumber module for tree fields; later field kinds beyond crops.

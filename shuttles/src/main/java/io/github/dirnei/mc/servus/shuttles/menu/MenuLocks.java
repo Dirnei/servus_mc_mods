@@ -48,6 +48,15 @@ public final class MenuLocks {
         return locks;
     }
 
+    /** Every slot of a lockable inventory a screen shows without menu slots, as virtual menu slots 0 to size - 1. */
+    public static MenuLocks ofInventory(LockedSlots inventory) {
+        MenuLocks locks = new MenuLocks();
+        for (int i = 0; i < inventory.getSlots(); i++) {
+            locks.targets.add(new Target(i, inventory, i));
+        }
+        return locks;
+    }
+
     /** Server side, from {@code broadcastChanges}: sends the locks when they changed. */
     public void tick(Player player, int containerId, Supplier<Optional<WarehouseNetwork>> network) {
         if (sync == null) {

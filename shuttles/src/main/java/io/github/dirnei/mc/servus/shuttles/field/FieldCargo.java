@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.field;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.ToIntFunction;
 
 /**
  * What a harvester carries on a field run: a fixed number of stacks, each of
@@ -75,6 +76,22 @@ public final class FieldCargo<K> {
             }
         }
         return overflow;
+    }
+
+    /**
+     * Adds the entry as far as it fits and offers what does not to
+     * {@code putBack}, which returns how many it took. Returns what neither
+     * took, so the caller can keep it elsewhere instead of losing it.
+     */
+    public List<Entry<K>> stow(Entry<K> entry, ToIntFunction<Entry<K>> putBack) {
+        List<Entry<K>> left = new ArrayList<>();
+        for (Entry<K> overflow : add(List.of(entry))) {
+            int taken = Math.max(0, Math.min(overflow.count(), putBack.applyAsInt(overflow)));
+            if (taken < overflow.count()) {
+                left.add(new Entry<>(overflow.key(), overflow.count() - taken, overflow.max()));
+            }
+        }
+        return left;
     }
 
     /** How many of the key are carried. */

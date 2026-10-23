@@ -17,6 +17,7 @@ import io.github.dirnei.mc.servus.shuttles.field.FieldThreshold;
 import io.github.dirnei.mc.servus.shuttles.field.FieldWork;
 import io.github.dirnei.mc.servus.shuttles.field.SetFieldAmountPayload;
 import io.github.dirnei.mc.servus.shuttles.field.SupplyBuffer;
+import io.github.dirnei.mc.servus.shuttles.lock.SlotLocksPayload;
 import io.github.dirnei.mc.servus.shuttles.menu.FieldHeadMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.FieldHeadMenu.Page;
 import io.github.dirnei.mc.servus.foundation.picker.PickerList;
@@ -629,6 +630,9 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             lines.add(Component.translatable(key, menu.supplyCount(part), menu.supplyLevel(part)));
         }
         lines.add(Component.translatable("gui.servus_shuttles.field_head.buffer.filled_by"));
+        for (SlotLocksPayload.Entry lock : menu.locksOf(part)) {
+            lines.add(LockOverlay.line(lock));
+        }
         return lines;
     }
 
@@ -794,6 +798,11 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             if (column.part == null) {
                 cell(graphics, "-", column, HEAD_Y, COLOUR_HINT);
                 continue;
+            }
+            List<SlotLocksPayload.Entry> locks = menu.locksOf(column.part);
+            if (!locks.isEmpty()) {
+                int x = columnX(column);
+                graphics.fill(x, HEAD_Y - 2, x + COLUMN_W, HEAD_Y - 2 + ROW_H, LockOverlay.wash(locks.get(0).in()));
             }
             int level = menu.supplyLevel(column.part);
             int held = menu.supplyCount(column.part);

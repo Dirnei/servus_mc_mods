@@ -71,11 +71,19 @@ public final class ShuttleFleet {
          */
         Set<NodePos> dockRails(NodePos storage);
 
-        /** Positions of storage blocks holding the key right now. */
-        List<BlockPos> sourcesHolding(ItemKey key);
+        /**
+         * Locks up to {@code amount} of the key for the job in the racks
+         * holding it, cheapest first as seen from {@code from} over
+         * {@code ways}, reachable racks only; returns each rack with what it
+         * locked there, cheapest first.
+         */
+        Map<BlockPos, Integer> lockStock(int jobId, ItemKey key, int amount, Set<NodePos> from, Function<NodePos, Set<NodePos>> ways);
 
-        /** Takes up to amount of the key out of exactly that source, from slots no job locked. */
-        ItemStack extractFrom(BlockPos source, ItemKey key, int amount);
+        /** Takes what the job locked in that rack, a stack per item, and releases those locks. */
+        List<ItemStack> takeLocked(BlockPos source, int jobId);
+
+        /** Puts the stacks into the slots of that rack locked for the job and releases them; returns what did not fit, a stack per stack given. */
+        List<ItemStack> unloadAllInto(BlockPos target, int jobId, List<ItemStack> stacks);
 
         /** Inserts into exactly that storage block, into slots no job locked; returns what did not fit. */
         ItemStack insertAt(BlockPos target, ItemStack stack);
@@ -131,9 +139,6 @@ public final class ShuttleFleet {
 
         /** The shaft the node is a segment of, or null when it is not an elevator segment. */
         Shaft shaftOf(NodePos node);
-
-        /** The block the put-away routing picks for the stack among those allowed; empty when nothing allowed has room. */
-        Optional<BlockPos> putAwayTarget(ItemStack stack, Predicate<BlockPos> allowed);
 
         /** How many of the key the warehouse holds. */
         long available(ItemKey key);
@@ -1423,7 +1428,7 @@ public final class ShuttleFleet {
     }
 
     /** No rack takes the cargo: the shuttle drives into its garage and parks there with it. */
-    private void strand(Shuttle shuttle) {
+    void strand(Shuttle shuttle) {
         shuttle.strandReason = anyRoom(shuttle) ? StrandReason.NO_WAY : StrandReason.NO_ROOM;
         if (shuttle.leg == Leg.STRANDED && shuttle.motion.arrived()) {
             return;
@@ -1443,6 +1448,14 @@ public final class ShuttleFleet {
                 return true;
             }
         }
+        FieldRun fieldRun = shuttle.fieldRun();
+        if (fieldRun != null) {
+            for (ItemStack stack : fieldRun.store) {
+                if (!stack.isEmpty() && host.anyRoomFor(stack)) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -1455,7 +1468,11 @@ public final class ShuttleFleet {
     private void retryStranded() {
         for (Shuttle shuttle : shuttles()) {
             if (shuttle.leg == Leg.STRANDED && shuttle.motion != null && shuttle.motion.arrived() && shuttle.restoring == null) {
-                continueStores(shuttle);
+                if (shuttle.fieldRun() != null) {
+                    fieldRuns.continueStore(shuttle);
+                } else {
+                    continueStores(shuttle);
+                }
             }
         }
     }
@@ -1620,6 +1637,7 @@ public final class ShuttleFleet {
         if (fieldRun == null) {
             return false;
         }
+        fieldRuns.release(shuttle);
         for (ItemStack stack : fieldRun.everything()) {
             Block.popResource(host.level(), shuttle.garage.pos, stack);
         }

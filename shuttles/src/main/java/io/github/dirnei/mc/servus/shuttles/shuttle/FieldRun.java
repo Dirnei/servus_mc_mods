@@ -9,6 +9,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,9 +23,6 @@ import net.minecraft.world.item.ItemStack;
  */
 abstract class FieldRun {
 
-    /** Ticks between two tries to put away a cargo nothing had room for. */
-    static final int STORE_RETRY_TICKS = 20;
-
     final BlockPos head;
     final FieldCargo<ItemKey> cargo;
     /** Plots worked from each rail of the field, nearest first; rebuilt when the field's rails change. */
@@ -36,10 +34,12 @@ abstract class FieldRun {
     /** Plots of the rail the shuttle works now. */
     final ArrayDeque<BlockPos> queue = new ArrayDeque<>();
     int countdown;
-    /** Stacks on their way into storage, and the block the shuttle drives to with them. */
+    /** Stacks on their way into storage. */
     final List<ItemStack> store = new ArrayList<>();
-    BlockPos storeTarget;
-    int waitTimer;
+    /** Racks with room locked for the stacks on their way into storage, in the order the shuttle visits them. */
+    final List<BlockPos> stops = new ArrayList<>();
+    /** Every block where the run placed a lock, so its locks can be released when it ends. */
+    final Set<BlockPos> locked = new LinkedHashSet<>();
 
     FieldRun(BlockPos head, int slots) {
         this.head = head;

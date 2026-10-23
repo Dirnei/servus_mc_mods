@@ -621,12 +621,12 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return result;
     }
 
-    @Override
+    /** Positions of storage blocks holding the key right now. */
     public List<BlockPos> sourcesHolding(ItemKey key) {
         return index.sourcesHolding(key);
     }
 
-    @Override
+    /** Takes up to amount of the key out of exactly that source, from slots no job locked. */
     public ItemStack extractFrom(BlockPos pos, ItemKey key, int amount) {
         ItemView handler = handlerOf(pos);
         if (handler == null) {
@@ -1118,6 +1118,55 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     @Override
+    public Map<BlockPos, Integer> lockStock(int jobId, ItemKey key, int amount, Set<NodePos> from, Function<NodePos, Set<NodePos>> ways) {
+        Map<BlockPos, Integer> locked = new LinkedHashMap<>();
+        if (amount <= 0 || from.isEmpty()) {
+            return locked;
+        }
+        RailCosts.Search<NodePos> costs = fleet.costsFrom(from, ways);
+        List<RequestPlan.Stock<BlockPos>> stock = new ArrayList<>();
+        for (BlockPos pos : stockAt(key).keySet()) {
+            LockedSlots slots = rackSlots(pos);
+            int count = slots == null ? 0 : slots.available(key);
+            if (count > 0) {
+                double cost = costs.costToAny(dockRails(Conversions.toNodePos(pos)));
+                stock.add(new RequestPlan.Stock<>(pos, count, !Double.isInfinite(cost), cost));
+            }
+        }
+        for (RequestPlan.Job<BlockPos> job : RequestPlan.plan(amount, Integer.MAX_VALUE, true, stock).jobs()) {
+            int got = rackSlots(job.source()).lockOut(jobId, key, job.count());
+            if (got > 0) {
+                locked.merge(job.source(), got, Integer::sum);
+            }
+        }
+        return locked;
+    }
+
+    @Override
+    public List<ItemStack> takeLocked(BlockPos source, int jobId) {
+        LockedSlots slots = rackSlots(source);
+        if (slots == null) {
+            return List.of();
+        }
+        List<ItemStack> taken = slots.extractAllAs(jobId);
+        if (!taken.isEmpty()) {
+            markDirty(source);
+        }
+        return taken;
+    }
+
+    @Override
+    public List<ItemStack> unloadAllInto(BlockPos target, int jobId, List<ItemStack> stacks) {
+        LockedSlots slots = rackSlots(target);
+        if (slots == null || stacks.isEmpty()) {
+            return stacks;
+        }
+        List<ItemStack> left = slots.insertAllAs(jobId, stacks);
+        markDirty(target);
+        return left;
+    }
+
+    @Override
     public boolean anyRoomFor(ItemStack cargo) {
         return !rankTargets(cargo, tiers(ItemKey.of(cargo)), null, candidate -> true).isEmpty();
     }
@@ -1487,10 +1536,13 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
-    /** Stations and sources, the members whose slots take locks. */
+    /** Stations, sources and served Field Heads, the blocks whose slots take locks. */
     private List<BlockPos> lockHolders() {
         List<BlockPos> holders = new ArrayList<>(stations);
         holders.addAll(sources);
+        for (FieldHeadBlockEntity head : servedHeads()) {
+            holders.add(head.getBlockPos());
+        }
         return holders;
     }
 
@@ -1606,7 +1658,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return false;
     }
 
-    @Override
+    /** The rack the put-away rule ranks first for the stack among those allowed, ignoring travel; empty when nothing allowed has room. */
     public Optional<BlockPos> putAwayTarget(ItemStack stack, Predicate<BlockPos> allowed) {
         return rankTargets(stack, tiers(ItemKey.of(stack)), null, allowed).stream().findFirst();
     }
@@ -1624,11 +1676,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         boolean harvesters = fleet.hasFieldShuttles(JobNeeds.HARVESTER);
         boolean spreaders = fleet.hasFieldShuttles(JobNeeds.SPREADER);
         boolean suppliers = fleet.hasShuttles();
-        for (FieldHeadBlockEntity head : FieldHeads.heads(level)) {
-            if (head.status() != FieldStatus.SERVING || head.rails().isEmpty()
-                    || !members().contains(Conversions.toNodePos(head.rails().iterator().next()))) {
-                continue;
-            }
+        for (FieldHeadBlockEntity head : servedHeads()) {
             head.readProduceStock(this);
             BlockPos pos = head.getBlockPos();
             if (suppliers && !fleet.hasSupplyJob(pos) && supplyDue(head)) {
@@ -1648,6 +1696,18 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 }
             }
         }
+    }
+
+    /** The loaded Field Heads that serve a field on this warehouse's rails. */
+    private List<FieldHeadBlockEntity> servedHeads() {
+        List<FieldHeadBlockEntity> heads = new ArrayList<>();
+        for (FieldHeadBlockEntity head : FieldHeads.heads(level)) {
+            if (head.status() == FieldStatus.SERVING && !head.rails().isEmpty()
+                    && members().contains(Conversions.toNodePos(head.rails().iterator().next()))) {
+                heads.add(head);
+            }
+        }
+        return heads;
     }
 
     /** Whether a part of the head's buffer is low while this warehouse holds more of its item than the head keeps in stock. */

@@ -21,15 +21,27 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
  * on it is the one acting ({@link #insertAs}, {@link #extractAs}). Only
  * {@link #setStackInSlot} writes past a lock; callers that move items must not
  * use it on locked slots.
+ *
+ * <p>Counted slots (a Field Head buffer part) reserve instead of closing: a
+ * slot holds IN and OUT locks of several jobs side by side, and everyone but
+ * a job acting through its own lock sees the slot's room and items less what
+ * the other jobs reserved.
  */
 public class LockedSlots extends ItemSlots {
 
     private final List<List<SlotLock>> locks = new ArrayList<>();
     /** The job allowed through its own locks right now, 0 for none. */
     private int acting;
+    private final boolean counted;
 
     public LockedSlots(int size) {
+        this(size, false);
+    }
+
+    /** @param counted whether locks only reserve room and items instead of closing their slot */
+    public LockedSlots(int size, boolean counted) {
         super(size);
+        this.counted = counted;
     }
 
     /** Called after a lock was placed or released. */
@@ -80,7 +92,7 @@ public class LockedSlots extends ItemSlots {
             return;
         }
         List<SlotLock> slotLocks = at(slot);
-        if (lock.kind() == SlotLock.Kind.IN || slotLocks.stream().anyMatch(other -> other.kind() == SlotLock.Kind.IN)) {
+        if (!counted && (lock.kind() == SlotLock.Kind.IN || slotLocks.stream().anyMatch(other -> other.kind() == SlotLock.Kind.IN))) {
             slotLocks.clear();
         }
         slotLocks.add(lock);
@@ -92,6 +104,19 @@ public class LockedSlots extends ItemSlots {
         if (inRange(slot) && at(slot).removeIf(lock -> lock.jobId() == jobId)) {
             onLocksChanged();
         }
+    }
+
+    /** How many items the slot's locks of that kind reserve for jobs other than {@code exceptJob}. */
+    public int reserved(int slot, SlotLock.Kind kind, int exceptJob) {
+        int sum = 0;
+        if (inRange(slot)) {
+            for (SlotLock lock : at(slot)) {
+                if (lock.kind() == kind && lock.jobId() != exceptJob) {
+                    sum += lock.amount();
+                }
+            }
+        }
+        return sum;
     }
 
     /** Releases every lock of the job; true when it held one here. */
@@ -250,6 +275,86 @@ public class LockedSlots extends ItemSlots {
         }
     }
 
+    /**
+     * Takes what the job's OUT locks reserve, one stack per item, and
+     * releases them; for jobs that reserved several items here.
+     */
+    public List<ItemStack> extractAllAs(int jobId) {
+        List<ItemStack> taken = asJob(jobId, () -> {
+            List<ItemStack> stacks = new ArrayList<>();
+            for (Locked entry : locked()) {
+                SlotLock lock = entry.lock();
+                if (lock.jobId() != jobId || lock.kind() != SlotLock.Kind.OUT || !lock.key().matches(getStackInSlot(entry.slot()))) {
+                    continue;
+                }
+                merge(stacks, extractItem(entry.slot(), lock.amount(), false));
+            }
+            return stacks;
+        });
+        release(jobId, SlotLock.Kind.OUT);
+        return taken;
+    }
+
+    private static void merge(List<ItemStack> stacks, ItemStack part) {
+        if (part.isEmpty()) {
+            return;
+        }
+        for (ItemStack stack : stacks) {
+            if (ItemStack.isSameItemSameComponents(stack, part)) {
+                stack.grow(part.getCount());
+                return;
+            }
+        }
+        stacks.add(part);
+    }
+
+    /**
+     * Puts each stack into the job's IN locked slots of its own item and
+     * releases the job's IN locks once all went in; returns what did not fit,
+     * one entry per stack given.
+     */
+    public List<ItemStack> insertAllAs(int jobId, List<ItemStack> stacks) {
+        List<ItemStack> left = asJob(jobId, () -> {
+            List<ItemStack> rests = new ArrayList<>(stacks.size());
+            for (ItemStack stack : stacks) {
+                ItemStack rest = stack;
+                for (Locked entry : locked()) {
+                    if (rest.isEmpty()) {
+                        break;
+                    }
+                    SlotLock lock = entry.lock();
+                    if (lock.jobId() == jobId && lock.kind() == SlotLock.Kind.IN && lock.key().matches(rest)) {
+                        rest = insertItem(entry.slot(), rest, false);
+                    }
+                }
+                rests.add(rest);
+            }
+            return rests;
+        });
+        release(jobId, SlotLock.Kind.IN);
+        return left;
+    }
+
+    /** Puts the stack into one slot as the job and releases the job's IN lock there; returns what did not fit. */
+    public ItemStack insertAs(int jobId, int slot, ItemStack stack) {
+        ItemStack left = asJob(jobId, () -> insertItem(slot, stack, false));
+        release(slot, jobId, SlotLock.Kind.IN);
+        return left;
+    }
+
+    /** Takes up to {@code amount} out of one slot as the job and releases the job's OUT lock there. */
+    public ItemStack extractAs(int jobId, int slot, int amount) {
+        ItemStack taken = asJob(jobId, () -> extractItem(slot, amount, false));
+        release(slot, jobId, SlotLock.Kind.OUT);
+        return taken;
+    }
+
+    private void release(int slot, int jobId, SlotLock.Kind kind) {
+        if (inRange(slot) && at(slot).removeIf(lock -> lock.jobId() == jobId && lock.kind() == kind)) {
+            onLocksChanged();
+        }
+    }
+
     /** Takes what the job's OUT locks reserve and releases them. */
     public ItemStack extractAs(int jobId) {
         ItemStack result = asJob(jobId, () -> {
@@ -292,17 +397,27 @@ public class LockedSlots extends ItemSlots {
 
     @Override
     public int insert(int index, ItemResource resource, int amount, TransactionContext transaction) {
+        if (counted) {
+            int room = inRange(index) ? SlotFill.sharedRoom(getCapacity(index, resource), getStackInSlot(index).getCount(),
+                    reserved(index, SlotLock.Kind.IN, acting)) : 0;
+            return room <= 0 ? 0 : super.insert(index, resource, Math.min(amount, room), transaction);
+        }
         return blocked(index) ? 0 : super.insert(index, resource, amount, transaction);
     }
 
     @Override
     public int extract(int index, ItemResource resource, int amount, TransactionContext transaction) {
+        if (counted) {
+            int available = inRange(index) ? SlotFill.sharedAvailable(getStackInSlot(index).getCount(),
+                    reserved(index, SlotLock.Kind.OUT, acting)) : 0;
+            return available <= 0 ? 0 : super.extract(index, resource, Math.min(amount, available), transaction);
+        }
         return blocked(index) ? 0 : super.extract(index, resource, amount, transaction);
     }
 
     @Override
     public boolean isValid(int index, ItemResource resource) {
-        return !blocked(index) && super.isValid(index, resource);
+        return (counted || !blocked(index)) && super.isValid(index, resource);
     }
 
     /** The locks as a list tag; empty when nothing is locked. */

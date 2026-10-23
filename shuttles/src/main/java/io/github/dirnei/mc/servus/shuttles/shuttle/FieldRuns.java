@@ -18,6 +18,7 @@ import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleTiers;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.BoneMealItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LevelEvent;
 
 /**
@@ -132,19 +132,8 @@ final class FieldRuns {
         }
         switch (shuttle.leg) {
             case TO_STORE -> {
-                if (fieldRun.storeTarget != null) {
-                    insertAll(fieldRun, fieldRun.storeTarget, storable(shuttle, shuttle.at()));
-                    fieldRun.storeTarget = null;
-                }
+                unloadAtStop(shuttle, fieldRun);
                 continueStore(shuttle);
-            }
-            case WAIT_STORE -> {
-                if (--fieldRun.waitTimer <= 0) {
-                    fieldRun.waitTimer = FieldRun.STORE_RETRY_TICKS;
-                    if (anyStorable(shuttle)) {
-                        continueStore(shuttle);
-                    }
-                }
             }
             default -> {
                 if (shuttle.supply != null) {
@@ -181,6 +170,31 @@ final class FieldRuns {
     private void lose(Shuttle shuttle) {
         fleet.park(shuttle);
         fleet.markSync();
+    }
+
+    /** The id of the field job the shuttle is out on; its locks carry it. */
+    private static int jobId(Shuttle shuttle) {
+        ShuttleJob lead = shuttle.lead();
+        return lead == null ? 0 : lead.id();
+    }
+
+    /** Releases every lock the shuttle's field run still holds. */
+    void release(Shuttle shuttle) {
+        FieldRun run = shuttle.fieldRun();
+        if (run != null && !run.locked.isEmpty()) {
+            host.releaseLocks(jobId(shuttle), List.copyOf(run.locked));
+            run.locked.clear();
+        }
+    }
+
+    /** Ends the field run: its locks are released and the shuttle goes home. */
+    private void endRun(Shuttle shuttle) {
+        release(shuttle);
+        shuttle.loads.clear();
+        shuttle.run = null;
+        shuttle.spread = null;
+        shuttle.supply = null;
+        fleet.goHome(shuttle);
     }
 
     /**
@@ -228,18 +242,18 @@ final class FieldRuns {
         return dock.isEmpty() ? List.of() : fleet.path(shuttle, shuttle.at(), dock::contains);
     }
 
-    /** Whether a source the shuttle cannot drive to hands its items over at once: never a rack, never by lift for a liftless shuttle. */
-    private boolean handsOverAtOnce(Shuttle shuttle, BlockPos source, Set<NodePos> dock) {
-        return !host.isRack(source) && (dock.isEmpty() || !shuttle.profile.liftless());
-    }
-
-    /** Adds what was taken from the source to the cargo; what does not fit goes back. */
-    private void stow(FieldRun run, BlockPos source, ItemKey key, ItemStack taken, int max) {
+    /**
+     * Adds what was taken from the source to the cargo; what does not fit goes
+     * back into the source, and what the source refuses rides along to be put away.
+     */
+    private void stow(FieldRun run, BlockPos source, ItemStack taken) {
         if (taken.isEmpty()) {
             return;
         }
-        for (FieldCargo.Entry<ItemKey> left : run.cargo.add(List.of(new FieldCargo.Entry<>(key, taken.getCount(), max)))) {
-            host.insertAt(source, left.key().stack(left.count()));
+        FieldCargo.Entry<ItemKey> entry = new FieldCargo.Entry<>(ItemKey.of(taken), taken.getCount(), taken.getMaxStackSize());
+        for (FieldCargo.Entry<ItemKey> left : run.cargo.stow(entry,
+                overflow -> overflow.count() - host.insertAt(source, overflow.key().stack(overflow.count())).getCount())) {
+            run.store.add(left.key().stack(left.count()));
         }
     }
 
@@ -308,7 +322,7 @@ final class FieldRuns {
             int max = crop.stack(1).getMaxStackSize();
             int cargoRoom = run.cargo.room(crop, max);
             wanted = SeedPlan.toFetch(run.harvest ? head.ripeCount() : 0, head.plantableCount() + head.tillableCount(), run.cargo.count(crop),
-                    head.supplyCount(SupplyBuffer.Part.SEEDS), Integer.MAX_VALUE, max);
+                    head.supplyAvailable(SupplyBuffer.Part.SEEDS), Integer.MAX_VALUE, max);
             room = cargoRoom > 0;
             run.seedAmount = Math.min(wanted, cargoRoom);
             if (!room && run.cargo.count(crop) == run.cargoCount()) {
@@ -332,9 +346,7 @@ final class FieldRuns {
                 if (head != null && !run.tally.isEmpty()) {
                     head.learnProduce(run.tally);
                 }
-                shuttle.loads.clear();
-                shuttle.run = null;
-                fleet.goHome(shuttle);
+                endRun(shuttle);
             }
         }
     }
@@ -414,7 +426,7 @@ final class FieldRuns {
                     return;
                 }
                 if (head != null) {
-                    loadSeeds(run, head);
+                    loadSeeds(shuttle, head);
                 }
                 turn(shuttle);
             }
@@ -469,6 +481,12 @@ final class FieldRuns {
                 return;
             }
             head.recheck(plot);
+            if (!run.store.isEmpty()) {
+                run.cargoFull = true;
+                run.queue.clear();
+                turn(shuttle);
+                return;
+            }
             if (result == PlotResult.CHANGED) {
                 run.worked = true;
                 run.countdown = workTicks(shuttle);
@@ -537,7 +555,7 @@ final class FieldRuns {
             HarvesterWork.breakCrop(level, plot);
             changed = true;
             tally(run, drops, seedInHand ? crop : null);
-            addOrDrop(run, drops, plot);
+            addOrStore(run, drops);
         }
         if (action.till()) {
             changed |= HarvesterWork.till(level, plot);
@@ -547,7 +565,7 @@ final class FieldRuns {
                 if (HarvesterWork.plant(level, plot, crop.stack(1))) {
                     changed = true;
                 } else {
-                    addOrDrop(run, List.of(new FieldCargo.Entry<>(crop, 1, crop.stack(1).getMaxStackSize())), plot);
+                    addOrStore(run, List.of(new FieldCargo.Entry<>(crop, 1, crop.stack(1).getMaxStackSize())));
                 }
             } else if (run.cargo.count(crop) > 0 && HarvesterWork.plant(level, plot, crop.stack(1))) {
                 run.cargo.take(crop, 1);
@@ -567,10 +585,10 @@ final class FieldRuns {
         }
     }
 
-    /** Adds the entries to the cargo and pops what does not fit at the plot. */
-    private void addOrDrop(HarvestRun run, List<FieldCargo.Entry<ItemKey>> entries, BlockPos plot) {
+    /** Adds the entries to the cargo; what does not fit rides along to be put away. */
+    private static void addOrStore(HarvestRun run, List<FieldCargo.Entry<ItemKey>> entries) {
         for (FieldCargo.Entry<ItemKey> left : run.cargo.add(entries)) {
-            Block.popResource(host.level(), plot, left.key().stack(left.count()));
+            run.store.add(left.key().stack(left.count()));
         }
     }
 
@@ -590,66 +608,82 @@ final class FieldRuns {
         return false;
     }
 
-    /** Drives to the farm rail beside the head for seeds from its buffer; standing there it takes them at once. */
+    /**
+     * Locks the seeds the run wants in the head's buffer and drives to the
+     * farm rail beside the head for them; standing there it takes them at once.
+     */
     private void fetchSeeds(Shuttle shuttle, FieldHeadBlockEntity head) {
         HarvestRun run = shuttle.run;
         run.fetchTried = true;
+        run.seedAmount = lockFromHead(shuttle, head, SupplyBuffer.Part.SEEDS, run.seedAmount);
         if (atHead(shuttle, head)) {
-            loadSeeds(run, head);
-        } else if (goToHead(shuttle, head)) {
+            loadSeeds(shuttle, head);
+        } else if (run.seedAmount > 0 && goToHead(shuttle, head)) {
             return;
+        } else {
+            head.releaseSupply(jobId(shuttle));
         }
         turn(shuttle);
     }
 
-    /** Takes the seeds the run wants out of the head's buffer, as far as the cargo has room. */
-    private static void loadSeeds(HarvestRun run, FieldHeadBlockEntity head) {
-        ItemKey crop = cropKey(head);
-        if (crop == null || run.seedAmount <= 0) {
-            return;
+    /** Locks up to amount of the part's item in the head's buffer for the shuttle's job; returns how many it locked. */
+    private static int lockFromHead(Shuttle shuttle, FieldHeadBlockEntity head, SupplyBuffer.Part part, int amount) {
+        int locked = amount <= 0 ? 0 : head.lockSupplyOut(jobId(shuttle), part, amount);
+        if (locked > 0) {
+            shuttle.fieldRun().locked.add(head.getBlockPos());
         }
-        int max = crop.stack(1).getMaxStackSize();
-        int taken = head.takeSupply(SupplyBuffer.Part.SEEDS, Math.min(run.seedAmount, run.cargo.room(crop, max)));
-        run.seedAmount = 0;
-        run.cargo.add(List.of(new FieldCargo.Entry<>(crop, taken, max)));
+        return locked;
     }
 
-    /** Puts the stacks on their way into storage one target after another, then decides again. */
-    private void continueStore(Shuttle shuttle) {
+    /** Takes the seeds the run locked out of the head's buffer, as far as the cargo has room. */
+    private static void loadSeeds(Shuttle shuttle, FieldHeadBlockEntity head) {
+        HarvestRun run = shuttle.run;
+        ItemKey crop = cropKey(head);
+        if (crop != null && run.seedAmount > 0) {
+            int max = crop.stack(1).getMaxStackSize();
+            int taken = head.takeSupplyAs(jobId(shuttle), SupplyBuffer.Part.SEEDS, Math.min(run.seedAmount, run.cargo.room(crop, max)));
+            run.cargo.add(List.of(new FieldCargo.Entry<>(crop, taken, max)));
+        }
+        run.seedAmount = 0;
+        head.releaseSupply(jobId(shuttle));
+    }
+
+    /**
+     * Puts the stacks on their way into storage: plans racks for them by the
+     * put-away rule from where the shuttle stands, locking their room, and
+     * drives to the first; with no rack for some, the shuttle parks in its
+     * garage with them. Once all are stored, the run decides again.
+     */
+    void continueStore(Shuttle shuttle) {
         FieldRun run = shuttle.fieldRun();
+        int jobId = jobId(shuttle);
         run.store.removeIf(ItemStack::isEmpty);
-        Predicate<BlockPos> reachable = storable(shuttle, shuttle.at());
         int guard = run.store.size() * 2 + 4;
         while (!run.store.isEmpty() && guard-- > 0) {
-            BlockPos target = null;
-            int index = 0;
-            for (; index < run.store.size(); index++) {
-                Optional<BlockPos> found = host.putAwayTarget(run.store.get(index), reachable);
-                if (found.isPresent()) {
-                    target = found.get();
+            if (run.stops.isEmpty()) {
+                planStore(shuttle, run, jobId);
+                if (run.stops.isEmpty()) {
                     break;
                 }
             }
-            if (target == null) {
-                waitStore(shuttle);
-                return;
-            }
-            List<NodePos> path = pathTo(shuttle, host.dockRails(Conversions.toNodePos(target)));
+            BlockPos stop = run.stops.get(0);
+            List<NodePos> path = pathTo(shuttle, host.dockRails(Conversions.toNodePos(stop)));
             if (!path.isEmpty()) {
-                run.storeTarget = target;
+                shuttle.strandReason = null;
                 shuttle.leg = Leg.TO_STORE;
                 shuttle.motion = new ShuttleMotion(path);
                 fleet.markSync();
                 return;
             }
-            // No rail reaches the target: it takes its part at once.
-            run.store.set(index, host.insertAt(target, run.store.get(index)));
-            run.store.removeIf(ItemStack::isEmpty);
+            run.stops.remove(0);
+            host.releaseLocks(jobId, List.of(stop));
         }
         if (!run.store.isEmpty()) {
-            waitStore(shuttle);
+            fleet.strand(shuttle);
+            fleet.markSync();
             return;
         }
+        shuttle.strandReason = null;
         if (shuttle.supply != null) {
             supplyTurn(shuttle);
         } else if (shuttle.spread != null) {
@@ -659,61 +693,31 @@ final class FieldRuns {
         }
     }
 
-    /** Inserts every stack on its way into storage whose put-away routing picks this target, so zones keep applying. */
-    private void insertAll(FieldRun run, BlockPos target, Predicate<BlockPos> reachable) {
-        for (int i = 0; i < run.store.size(); i++) {
-            ItemStack stack = run.store.get(i);
-            if (host.putAwayTarget(stack, reachable).filter(target::equals).isPresent()) {
-                run.store.set(i, host.insertAt(target, stack));
+    /** Locks room for every stack on its way into storage in the racks the put-away rule ranks first from here. */
+    private void planStore(Shuttle shuttle, FieldRun run, int jobId) {
+        Set<NodePos> here = Set.of(shuttle.at());
+        for (ItemStack stack : run.store) {
+            for (BlockPos stop : host.storeTargets(jobId, stack, here, fleet.ways(shuttle))) {
+                if (!run.stops.contains(stop)) {
+                    run.stops.add(stop);
+                }
+                run.locked.add(stop);
             }
         }
+    }
+
+    /** At a store stop: the stacks go into the slots the rack holds locked for the run; what does not fit stays aboard. */
+    private void unloadAtStop(Shuttle shuttle, FieldRun run) {
+        if (run.stops.isEmpty()) {
+            return;
+        }
+        BlockPos stop = run.stops.remove(0);
+        int jobId = jobId(shuttle);
+        List<ItemStack> left = new ArrayList<>(host.unloadAllInto(stop, jobId, List.copyOf(run.store)));
+        run.store.clear();
+        run.store.addAll(left);
         run.store.removeIf(ItemStack::isEmpty);
-    }
-
-    /**
-     * Storage the shuttle standing there may put away into: a block it can
-     * drive to, or one no rail reaches, which takes its part at once. Racks
-     * need a way; a shuttle too wide for lifts skips what it reaches only by lift.
-     */
-    private Predicate<BlockPos> storable(Shuttle shuttle, NodePos from) {
-        return target -> {
-            Set<NodePos> dock = host.dockRails(Conversions.toNodePos(target));
-            if (dock.isEmpty()) {
-                return !host.isRack(target);
-            }
-            if (!RailPaths.find(from, dock::contains, fleet.ways(shuttle)).isEmpty()) {
-                return true;
-            }
-            return !host.isRack(target) && !shuttle.profile.liftless();
-        };
-    }
-
-    private boolean anyStorable(Shuttle shuttle) {
-        Predicate<BlockPos> reachable = storable(shuttle, shuttle.at());
-        for (ItemStack stack : shuttle.fieldRun().store) {
-            if (host.putAwayTarget(stack, reachable).isPresent()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /** Nothing has room for the cargo: drive home with it and try again now and then. */
-    private void waitStore(Shuttle shuttle) {
-        FieldRun run = shuttle.fieldRun();
-        run.waitTimer = FieldRun.STORE_RETRY_TICKS;
-        NodePos home = shuttle.garage.home;
-        if (shuttle.leg == Leg.WAIT_STORE && shuttle.motion.arrived()) {
-            return;
-        }
-        List<NodePos> path = home == null ? List.of() : fleet.path(shuttle, shuttle.at(), home::equals);
-        if (path.isEmpty()) {
-            lose(shuttle);
-            return;
-        }
-        shuttle.leg = Leg.WAIT_STORE;
-        shuttle.motion = new ShuttleMotion(path);
-        fleet.markSync();
+        host.releaseLocks(jobId, List.of(stop));
     }
 
     /** Starts a Spreader on a fertilize run with the head's fertilizer; a head without one ends the run at once. */
@@ -754,14 +758,16 @@ final class FieldRuns {
         if (head != null && !run.fetched) {
             if (run.toFetch < 0) {
                 int max = run.fertilizer.stack(1).getMaxStackSize();
-                run.toFetch = FertilizePlan.toFetch(head.fertilizeTargetCount(), run.doses, head.supplyCount(SupplyBuffer.Part.FERTILIZER),
-                        0, run.cargo.room(run.fertilizer, max));
+                run.toFetch = lockFromHead(shuttle, head, SupplyBuffer.Part.FERTILIZER, FertilizePlan.toFetch(head.fertilizeTargetCount(),
+                        run.doses, head.supplyAvailable(SupplyBuffer.Part.FERTILIZER), 0, run.cargo.room(run.fertilizer, max)));
             }
             if (run.toFetch > 0) {
                 if (atHead(shuttle, head)) {
-                    loadFertilizer(run, head);
+                    loadFertilizer(shuttle, head);
                 } else if (goToHead(shuttle, head)) {
                     return;
+                } else {
+                    head.releaseSupply(jobId(shuttle));
                 }
             }
             run.fetched = true;
@@ -777,17 +783,17 @@ final class FieldRuns {
             continueStore(shuttle);
             return;
         }
-        shuttle.loads.clear();
-        shuttle.spread = null;
-        fleet.goHome(shuttle);
+        endRun(shuttle);
     }
 
-    /** Takes the fertilizer still to fetch out of the head's buffer, as far as the cargo has room. */
-    private static void loadFertilizer(SpreadRun run, FieldHeadBlockEntity head) {
+    /** Takes the fertilizer the run locked out of the head's buffer, as far as the cargo has room. */
+    private static void loadFertilizer(Shuttle shuttle, FieldHeadBlockEntity head) {
+        SpreadRun run = shuttle.spread;
         int max = run.fertilizer.stack(1).getMaxStackSize();
-        int taken = head.takeSupply(SupplyBuffer.Part.FERTILIZER, Math.min(run.toFetch, run.cargo.room(run.fertilizer, max)));
+        int taken = head.takeSupplyAs(jobId(shuttle), SupplyBuffer.Part.FERTILIZER, Math.min(run.toFetch, run.cargo.room(run.fertilizer, max)));
         run.toFetch = 0;
         run.cargo.add(List.of(new FieldCargo.Entry<>(run.fertilizer, taken, max)));
+        head.releaseSupply(jobId(shuttle));
     }
 
     private void arriveSpread(Shuttle shuttle) {
@@ -800,7 +806,7 @@ final class FieldRuns {
                     return;
                 }
                 if (head != null && !run.fetched) {
-                    loadFertilizer(run, head);
+                    loadFertilizer(shuttle, head);
                     run.fetched = true;
                 }
                 spreadTurn(shuttle);
@@ -926,44 +932,56 @@ final class FieldRuns {
             return;
         }
         SupplyRun run = new SupplyRun(job.head(), shuttle.profile.stacks());
-        planSupply(run, head);
         shuttle.supply = run;
+        planSupply(shuttle, run, head);
         supplyTurn(shuttle);
     }
 
     /**
      * Plans what the run picks for each part of the buffer: what it is short
-     * of its level, low parts first, as far as the cargo has room.
+     * of its level, low parts first, as far as the cargo has room. Locks it
+     * in the cheapest racks holding it, as seen from the head's rail, and the
+     * room for what it found in the head's buffer.
      */
-    private void planSupply(SupplyRun run, FieldHeadBlockEntity head) {
-        for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {
-            run.reserves.put(part, head.supplyReserve(part));
-        }
+    private void planSupply(Shuttle shuttle, SupplyRun run, FieldHeadBlockEntity head) {
+        int jobId = jobId(shuttle);
+        Set<NodePos> from = headRails(run.head);
         FieldCargo<ItemKey> planned = new FieldCargo<>(run.cargo.slots());
+        Set<SupplyBuffer.Part> done = EnumSet.noneOf(SupplyBuffer.Part.class);
         for (boolean lowPass : new boolean[] {true, false}) {
             for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {
                 Item item = head.supplyItem(part);
                 int held = head.supplyCount(part);
                 int level = head.supplyLevel(part);
-                if (item == null || run.keys.containsKey(part) || SupplyPlan.low(held, level) != lowPass) {
+                if (item == null || done.contains(part) || SupplyPlan.low(held, level) != lowPass) {
                     continue;
                 }
                 ItemKey key = ItemKey.of(new ItemStack(item));
                 int max = key.stack(1).getMaxStackSize();
-                int amount = SupplyPlan.toBring(held, level, host.available(key), run.reserveOf(part), planned.room(key, max));
-                if (amount > 0) {
-                    planned.add(List.of(new FieldCargo.Entry<>(key, amount, max)));
-                    run.keys.put(part, key);
-                    run.remaining.put(part, amount);
+                int amount = SupplyPlan.toBring(held, level, host.available(key), head.supplyReserve(part), planned.room(key, max));
+                Map<BlockPos, Integer> locked = host.lockStock(jobId, key, amount, from, fleet.ways(shuttle));
+                int found = locked.values().stream().mapToInt(Integer::intValue).sum();
+                if (found <= 0) {
+                    continue;
+                }
+                head.lockSupplyIn(jobId, part, found);
+                run.locked.add(run.head);
+                planned.add(List.of(new FieldCargo.Entry<>(key, found, max)));
+                done.add(part);
+                for (BlockPos rack : locked.keySet()) {
+                    if (!run.sources.contains(rack)) {
+                        run.sources.add(rack);
+                    }
+                    run.locked.add(rack);
                 }
             }
         }
     }
 
     /**
-     * Decides what a supply run does next: pick the planned items, stop at
-     * the head's rail to fill the buffer and load stale items, then put what
-     * it carries away and go home.
+     * Decides what a supply run does next: take the locked items from their
+     * racks, stop at the head's rail to fill the buffer and load stale items,
+     * then put what it carries away and go home.
      */
     private void supplyTurn(Shuttle shuttle) {
         SupplyRun run = shuttle.supply;
@@ -981,92 +999,72 @@ final class FieldRuns {
         }
         if (head != null && !run.unloaded && (!run.cargo.isEmpty() || head.holdsStale())) {
             if (atHead(shuttle, head)) {
-                unloadAtHead(run, head);
+                unloadAtHead(run, head, jobId(shuttle));
             } else if (goToHead(shuttle, head)) {
                 return;
             }
         }
-        run.unloaded = true;
+        if (!run.unloaded) {
+            run.unloaded = true;
+            release(shuttle);
+        }
         if (!run.cargo.isEmpty() || !run.store.isEmpty()) {
             unloadToStore(run, null, 0);
             continueStore(shuttle);
             return;
         }
-        shuttle.loads.clear();
-        shuttle.supply = null;
-        fleet.goHome(shuttle);
+        endRun(shuttle);
     }
 
-    /** Drives to the next storage block holding a planned item; blocks no rail reaches give their part at once. False when none is left. */
+    /** Drives to the next rack the run locked items in; a rack it cannot reach loses the run's locks. False when none is left. */
     private boolean fetchSupply(Shuttle shuttle) {
         SupplyRun run = shuttle.supply;
-        for (Map.Entry<SupplyBuffer.Part, ItemKey> planned : run.keys.entrySet()) {
-            if (run.remaining.getOrDefault(planned.getKey(), 0) <= 0) {
-                continue;
+        while (!run.sources.isEmpty()) {
+            BlockPos source = run.sources.get(0);
+            List<NodePos> path = pathTo(shuttle, host.dockRails(Conversions.toNodePos(source)));
+            if (!path.isEmpty()) {
+                run.source = source;
+                shuttle.leg = Leg.TO_SUPPLY;
+                shuttle.motion = new ShuttleMotion(path);
+                return true;
             }
-            for (BlockPos source : host.sourcesHolding(planned.getValue())) {
-                if (!run.sourcesTried.add(source)) {
-                    continue;
-                }
-                Set<NodePos> dock = host.dockRails(Conversions.toNodePos(source));
-                List<NodePos> path = pathTo(shuttle, dock);
-                if (!path.isEmpty()) {
-                    run.source = source;
-                    shuttle.leg = Leg.TO_SUPPLY;
-                    shuttle.motion = new ShuttleMotion(path);
-                    return true;
-                }
-                if (handsOverAtOnce(shuttle, source, dock)) {
-                    loadSupply(run, source);
-                }
-            }
+            run.sources.remove(0);
+            host.releaseLocks(jobId(shuttle), List.of(source));
         }
         return false;
     }
 
-    /** Takes what the run still picks of every planned item from the source, never the stock at or below the reserve. */
-    private void loadSupply(SupplyRun run, BlockPos source) {
-        for (Map.Entry<SupplyBuffer.Part, ItemKey> planned : run.keys.entrySet()) {
-            SupplyBuffer.Part part = planned.getKey();
-            ItemKey key = planned.getValue();
-            int left = run.remaining.getOrDefault(part, 0);
-            int max = key.stack(1).getMaxStackSize();
-            int amount = SupplyPlan.toBring(0, left, host.available(key), run.reserveOf(part), run.cargo.room(key, max));
-            if (amount <= 0) {
-                continue;
-            }
-            ItemStack taken = host.extractFrom(source, key, amount);
-            run.remaining.put(part, left - taken.getCount());
-            stow(run, source, key, taken, max);
-        }
-    }
-
     private void arriveSupply(Shuttle shuttle) {
         SupplyRun run = shuttle.supply;
-        if (shuttle.leg == Leg.TO_SUPPLY && run.source != null && servingHead(run.head) != null) {
-            loadSupply(run, run.source);
+        if (shuttle.leg == Leg.TO_SUPPLY && run.source != null) {
+            run.sources.remove(run.source);
+            if (servingHead(run.head) != null) {
+                for (ItemStack taken : host.takeLocked(run.source, jobId(shuttle))) {
+                    stow(run, run.source, taken);
+                }
+            }
         }
         run.source = null;
         supplyTurn(shuttle);
     }
 
-    /** At the head's rail: stale items come aboard to be put away, then the cargo fills the buffer as far as it takes it. */
-    private static void unloadAtHead(FieldRun run, FieldHeadBlockEntity head) {
+    /** At the head's rail: stale items come aboard to be put away, then the cargo fills the buffer as the run's job. */
+    private static void unloadAtHead(FieldRun run, FieldHeadBlockEntity head, int jobId) {
         run.store.addAll(head.takeStale());
         for (FieldCargo.Entry<ItemKey> entry : run.cargo.entries()) {
             for (SupplyBuffer.Part part : SupplyBuffer.Part.VALUES) {
-                fillFromCargo(run, head, part, entry.key());
+                fillFromCargo(run, head, part, entry.key(), jobId);
             }
         }
     }
 
     /** Moves as much of the key from the cargo into the part as it takes; returns how many moved. */
-    private static int fillFromCargo(FieldRun run, FieldHeadBlockEntity head, SupplyBuffer.Part part, ItemKey key) {
+    private static int fillFromCargo(FieldRun run, FieldHeadBlockEntity head, SupplyBuffer.Part part, ItemKey key, int jobId) {
         int carried = run.cargo.count(key);
         if (carried <= 0 || !key.components().isEmpty()) {
             return 0;
         }
-        int moved = head.fillSupply(part, key.item(), carried);
+        int moved = head.fillSupplyAs(jobId, part, key.item(), carried);
         run.cargo.take(key, moved);
         return moved;
     }

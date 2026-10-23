@@ -66,6 +66,8 @@ import net.neoforged.neoforge.common.ticket.AABBTicket;
 import net.neoforged.neoforge.fluids.FluidStack;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import io.github.dirnei.mc.servus.shuttles.lock.LockHolder;
+import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 
 /**
  * Serves the field of the farm rail beside it: buffers water from a pipe,
@@ -76,7 +78,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
  * The block shows the wood of its recipe, the ripe share bar ({@link FieldHeadBlock#RIPE}),
  * the water level in steps and the crop; see {@link FieldHeadLook}.
  */
-public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, MaterialHolder {
+public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, MaterialHolder, LockHolder {
 
     /** Items that hold a field's copper stage for one aging step. */
     public static final TagKey<Item> ANTI_CORROSION = ItemTags.create(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "anti_corrosion"));
@@ -533,6 +535,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         return buffer;
     }
 
+    /** The buffer parts, whose locks reserve room and items for shuttle jobs. */
+    @Override
+    public List<LockedSlots> lockedSlots() {
+        return List.of(buffer.slots());
+    }
+
     private void bufferChanged() {
         setChanged();
     }
@@ -596,13 +604,19 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         return item != null && buffer.item(part) == item ? buffer.count(part) : 0;
     }
 
-    /** How many more of the part's item the part takes; none while it holds a stale item. */
-    public int supplyRoom(SupplyBuffer.Part part) {
-        Item item = supplyItem(part);
-        return item != null && buffer.accepts(part, item) ? Math.max(0, supplyLevel(part) - buffer.count(part)) : 0;
+    /** How many of the part's item the buffer holds that no shuttle job reserved; stale items count as none. */
+    public int supplyAvailable(SupplyBuffer.Part part) {
+        return supplyCount(part) > 0 ? buffer.available(part) : 0;
     }
 
-    /** Puts up to count of the item into the part, up to its level and only the part's item; returns how many went in. */
+    /** How many more of the part's item the part takes, less the room shuttle jobs reserved; none while it holds a stale item. */
+    public int supplyRoom(SupplyBuffer.Part part) {
+        Item item = supplyItem(part);
+        return item != null && buffer.accepts(part, item)
+                ? Math.max(0, supplyLevel(part) - buffer.count(part) - buffer.reservedIn(part, 0)) : 0;
+    }
+
+    /** Puts up to count of the item into the part, up to its level less reserved room and only the part's item; returns how many went in. */
     public int fillSupply(SupplyBuffer.Part part, Item item, int count) {
         if (item == null || item != supplyItem(part)) {
             return 0;
@@ -610,9 +624,37 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         return buffer.insert(part, item, count, supplyLevel(part));
     }
 
-    /** Takes up to amount of the part's item out of the buffer, for a field shuttle; returns how many came out. */
+    /** As {@link #fillSupply} for the job that reserved room in the part; releases its reservation there. */
+    public int fillSupplyAs(int jobId, SupplyBuffer.Part part, Item item, int count) {
+        if (item == null || item != supplyItem(part)) {
+            return 0;
+        }
+        return buffer.insertAs(jobId, part, item, count, supplyLevel(part));
+    }
+
+    /** Takes up to amount of the part's items no job reserved, for a field shuttle; returns how many came out. */
     public int takeSupply(SupplyBuffer.Part part, int amount) {
         return supplyCount(part) > 0 ? buffer.take(part, amount) : 0;
+    }
+
+    /** Takes up to amount of the part's item for the job that reserved it, releasing its reservation; returns how many came out. */
+    public int takeSupplyAs(int jobId, SupplyBuffer.Part part, int amount) {
+        return supplyCount(part) > 0 ? buffer.takeAs(jobId, part, amount) : 0;
+    }
+
+    /** Reserves room for {@code amount} of the part's item for a supply run. */
+    public void lockSupplyIn(int jobId, SupplyBuffer.Part part, int amount) {
+        buffer.lockIn(jobId, part, supplyItem(part), amount);
+    }
+
+    /** Reserves up to {@code amount} of the part's item for a field shuttle; returns how many it reserved. */
+    public int lockSupplyOut(int jobId, SupplyBuffer.Part part, int amount) {
+        return supplyCount(part) > 0 ? buffer.lockOut(jobId, part, amount) : 0;
+    }
+
+    /** Releases every reservation of the job on the buffer. */
+    public void releaseSupply(int jobId) {
+        buffer.release(jobId);
     }
 
     /** Whether a part holds an item that is no longer the part's item. */
@@ -1222,6 +1264,11 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
                 plantMode(), hydrated, tillableCount(), plantableCount(), plantedCount(), seeds).whilePaused(harvestPaused());
     }
 
+    /** The warehouse the field's rails belong to, empty while the head serves no field. Server side. */
+    public Optional<WarehouseNetwork> warehouse() {
+        return servesRails() && level != null ? network() : Optional.empty();
+    }
+
     /** The warehouse the field's rails belong to; call only while the head serves a field. */
     private Optional<WarehouseNetwork> network() {
         return level.getBlockEntity(rails.iterator().next()) instanceof StorageNodeBlockEntity node ? node.network() : Optional.empty();
@@ -1344,7 +1391,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         if (harvestPercent > 0) {
             output.putInt("HarvestPercent", harvestPercent);
         }
-        tag.put("Buffer", buffer.save());
+        tag.put("Buffer", buffer.save(registries));
         if (stageKnown) {
             output.putInt("Corrosion", stage);
         }
@@ -1403,7 +1450,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         }
         harvestPercent = tag.contains("HarvestPercent") ? FieldThreshold.clamp(input.getIntOr("HarvestPercent", 0)) : 0;
         if (tag.contains("Buffer")) {
-            buffer.load(tag.getCompoundOrEmpty("Buffer"));
+            buffer.load(registries, tag.getCompoundOrEmpty("Buffer"));
         }
         antiCorrosion = readItem(tag, "AntiCorrosion");
         antiCorrosionChosen = tag.contains("AntiCorrosion") && (antiCorrosion == null || isAntiCorrosion(new ItemStack(antiCorrosion)));

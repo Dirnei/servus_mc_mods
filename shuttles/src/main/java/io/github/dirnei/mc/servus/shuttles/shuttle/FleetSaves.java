@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.shuttles.gantry.TankRef;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.shuttle.Shuttle.Load;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
@@ -164,10 +165,8 @@ public final class FleetSaves {
      * shuttle; false when the tag cannot be read, and then nothing changed.
      */
     static boolean restoreShuttle(Shuttle shuttle, CompoundTag tag, HolderLookup.Provider registries) {
-        Leg leg;
-        try {
-            leg = Leg.valueOf(tag.getStringOr("Leg", ""));
-        } catch (IllegalArgumentException unknown) {
+        Leg leg = legOf(tag.getStringOr("Leg", ""));
+        if (leg == null) {
             return false;
         }
         long[] longs = tag.getLongArray("Path").orElse(new long[0]);
@@ -203,6 +202,19 @@ public final class FleetSaves {
         shuttle.spread = run instanceof SpreadRun spread ? spread : null;
         shuttle.supply = run instanceof SupplyRun supply ? supply : null;
         return true;
+    }
+
+    /** The leg of that name; a field shuttle saved waiting at home with cargo reads as stranded. Null when unknown. */
+    private static Leg legOf(String name) {
+        if ("WAIT_STORE".equals(name)) {
+            return Leg.STRANDED;
+        }
+        for (Leg leg : Leg.values()) {
+            if (leg.name().equals(name)) {
+                return leg;
+            }
+        }
+        return null;
     }
 
     private static StrandReason strandReason(String name) {
@@ -288,6 +300,8 @@ public final class FleetSaves {
             }
         }
         tag.put("Store", store);
+        tag.putLongArray("Stops", longs(run.stops));
+        tag.putLongArray("Locked", longs(run.locked));
         switch (run) {
             case HarvestRun harvest -> {
                 tag.putString("Kind", "harvest");
@@ -306,6 +320,7 @@ public final class FleetSaves {
                 tag.putString("Kind", "supply");
                 tag.putBoolean("Fetched", supply.fetched);
                 tag.putBoolean("Unloaded", supply.unloaded);
+                tag.putLongArray("Sources", longs(supply.sources));
             }
             default -> throw new IllegalStateException("Unknown field run " + run);
         }
@@ -341,6 +356,7 @@ public final class FleetSaves {
                 SupplyRun supply = new SupplyRun(head, slots);
                 supply.fetched = tag.getBooleanOr("Fetched", true);
                 supply.unloaded = tag.getBooleanOr("Unloaded", false);
+                supply.sources.addAll(positions(tag, "Sources"));
                 yield supply;
             }
             default -> null;
@@ -368,7 +384,22 @@ public final class FleetSaves {
                 run.store.add(stack);
             }
         }
+        run.stops.addAll(positions(tag, "Stops"));
+        run.locked.addAll(positions(tag, "Locked"));
         return run;
+    }
+
+    private static long[] longs(Collection<BlockPos> positions) {
+        return positions.stream().mapToLong(BlockPos::asLong).toArray();
+    }
+
+    /** The positions of a long array tag, empty when it is missing. */
+    private static List<BlockPos> positions(CompoundTag tag, String key) {
+        List<BlockPos> positions = new ArrayList<>();
+        for (long packed : tag.getLongArray(key).orElse(new long[0])) {
+            positions.add(BlockPos.of(packed));
+        }
+        return positions;
     }
 
     private static CompoundTag saveKey(ItemKey key, HolderLookup.Provider registries) {

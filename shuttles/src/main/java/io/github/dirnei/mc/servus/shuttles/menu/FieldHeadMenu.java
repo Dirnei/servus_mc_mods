@@ -14,10 +14,12 @@ import io.github.dirnei.mc.servus.shuttles.field.FieldStatus;
 import io.github.dirnei.mc.servus.shuttles.field.FieldWork;
 import io.github.dirnei.mc.servus.shuttles.field.FieldWorkerPayload;
 import io.github.dirnei.mc.servus.shuttles.field.SupplyBuffer;
+import io.github.dirnei.mc.servus.shuttles.lock.SlotLocksPayload;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
 import io.github.dirnei.mc.servus.foundation.picker.PickerStock;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -49,7 +51,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
  * {@link #setAmount(Player, BlockPos, FieldAmount, long)}, the
  * rest through menu buttons.
  */
-public class FieldHeadMenu extends AbstractContainerMenu {
+public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu {
 
     public static final int PICKER_X = 8;
     public static final int PICKER_Y = 17;
@@ -124,6 +126,8 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     /** Client side: the stock by item id as last received, null while there is no warehouse. */
     private Map<Identifier, Long> stock;
     private Map<Identifier, Long> supplyStock;
+    /** The locks on the buffer parts, as virtual menu slots in {@link SupplyBuffer.Part} order. */
+    private final MenuLocks locks;
     /** The worker names last sent to the player; null before the first send. */
     private String sentWorker;
     /** Ticks until the next stock look; zero sends on the first broadcast. */
@@ -159,6 +163,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
             addDataSlot(supplyCounts[i]);
             addDataSlot(supplyLevels[i]);
         }
+        locks = MenuLocks.ofInventory(head.buffer().slots());
         update();
     }
 
@@ -234,6 +239,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         update();
         super.broadcastChanges();
         if (player instanceof ServerPlayer server) {
+            locks.tick(server, containerId, head::warehouse);
             String worker = head.workerName().orElse("");
             String spreader = head.spreaderName().orElse("");
             String workers = worker + "\n" + spreader;
@@ -554,6 +560,16 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     /** The anti-corrosion Keep in stock reserve. */
     public int antiCorrosionReserve() {
         return antiCorrosionReserve.get();
+    }
+
+    @Override
+    public MenuLocks locks() {
+        return locks;
+    }
+
+    /** The locks shown on a buffer part. */
+    public List<SlotLocksPayload.Entry> locksOf(SupplyBuffer.Part part) {
+        return locks.shownAt(part.ordinal());
     }
 
     /** How many of the part's item the head's buffer holds. */

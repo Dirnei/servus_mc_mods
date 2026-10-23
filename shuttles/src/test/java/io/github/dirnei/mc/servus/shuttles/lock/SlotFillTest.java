@@ -73,4 +73,14 @@ class SlotFillTest {
         assertEquals(36, SlotFill.available(slots, "stone"));
         assertEquals(0, SlotFill.room(slots, "stone", 64));
     }
+
+    @Test
+    void countedSlotsLeaveOutWhatOtherJobsReserved() {
+        assertEquals(20, SlotFill.sharedRoom(64, 20, 24));
+        assertEquals(0, SlotFill.sharedRoom(64, 20, 50));
+        assertEquals(Integer.MAX_VALUE - 5, SlotFill.sharedRoom(Integer.MAX_VALUE, 5, 0));
+        assertEquals(10, SlotFill.sharedAvailable(30, 20));
+        assertEquals(0, SlotFill.sharedAvailable(10, 20));
+        assertEquals(10, SlotFill.sharedAvailable(10, 0));
+    }
 }

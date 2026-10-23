@@ -25,6 +25,11 @@ public final class LockOverlay {
     private LockOverlay() {
     }
 
+    /** The wash over a slot whose first lock is IN, else OUT. */
+    public static int wash(boolean in) {
+        return in ? WASH_IN : WASH_OUT;
+    }
+
     /** Draws the washes and ghosts; call from {@code extractSlots} after the slots, in menu coordinates. */
     public static void draw(GuiGraphicsExtractor graphics, AbstractContainerMenu menu, MenuLocks locks) {
         for (Slot slot : menu.slots) {
@@ -63,7 +68,7 @@ public final class LockOverlay {
     }
 
     /** "Reserved: Shuttle #12 brings 64 Cobblestone", or that it waits for a shuttle. */
-    static Component line(SlotLocksPayload.Entry entry) {
+    public static Component line(SlotLocksPayload.Entry entry) {
         String direction = entry.in() ? "in" : "out";
         Component item = entry.item().getHoverName();
         return entry.shuttle()
