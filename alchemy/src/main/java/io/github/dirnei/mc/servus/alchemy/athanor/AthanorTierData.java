@@ -32,9 +32,10 @@ public final class AthanorTierData extends SimpleJsonResourceReloadListener<Json
 
     public static final String DIRECTORY = "servus_alchemy/athanor_tier";
 
-    /** The block state properties a block must have, by name; optional in JSON. */
-    private static final MapCodec<Map<String, String>> PROPERTIES =
-            Codec.unboundedMap(Codec.STRING, Codec.STRING).optionalFieldOf("properties", Map.of());
+    /** The block state properties a block must have, by name, each one value or a list of accepted values; optional in JSON. */
+    private static final MapCodec<Map<String, List<String>>> PROPERTIES = Codec.unboundedMap(Codec.STRING,
+            ExtraCodecs.compactListCodec(Codec.STRING, ExtraCodecs.nonEmptyList(Codec.STRING.listOf())))
+            .optionalFieldOf("properties", Map.of());
 
     /** A block id and its properties, at offset 0: {@code {"block": ..., "properties": {...}}}. */
     public static final Codec<BlockAt> STATE_CODEC = RecordCodecBuilder.create(instance -> instance.group(

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitual;
 import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitual.Phases;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitual.Sounds;
 import io.github.dirnei.mc.servus.alchemy.athanor.ritual.CrystalCluster;
 import io.github.dirnei.mc.servus.alchemy.athanor.ritual.RitualTimeline;
 import java.util.List;
@@ -14,7 +15,7 @@ import org.junit.jupiter.api.Test;
 class RitualTimelineTest {
 
     private static final RitualTimeline TIMELINE = new RitualTimeline(new AthanorRitual("citrinitas", "minecraft:amethyst_block", 1,
-            0xB070FF, 0xFFB000, 160, new Phases(36, 60, 80, 150), List.of()));
+            0xB070FF, 0xFFB000, 160, new Phases(36, 60, 80, 150), Sounds.NONE, List.of()));
 
     @Test
     void offeringHoversUntilItBursts() {
@@ -48,6 +49,29 @@ class RitualTimelineTest {
         }
         assertTrue(TIMELINE.flash(149) < 0);
         assertEquals(1, TIMELINE.flash(160));
+    }
+
+    private static final RitualTimeline RUBEDO = new RitualTimeline(new AthanorRitual("rubedo", "minecraft:ghast_tear", 2,
+            0xFF2A2A, 0xE04020, 160, new Phases(36, 60, 80, 144), Sounds.NONE, List.of()));
+
+    @Test
+    void obelisksCrackThenRiseBeforeTheFlash() {
+        for (int index = 0; index < 4; index++) {
+            assertEquals(0, RUBEDO.cracks(60, index), "the cracks wait for the drop");
+            assertEquals(1, RUBEDO.cracks(80 + RitualTimeline.delay(index), index), "cracked before it rises");
+            assertEquals(0, RUBEDO.rise(80, index));
+            assertEquals(1, RUBEDO.rise(143, index), "risen before the flash");
+        }
+    }
+
+    @Test
+    void grownCrystalTurnsItsColourBeforeTheFlash() {
+        assertEquals(0, RUBEDO.recolor(60));
+        assertTrue(RUBEDO.recolor(100) > 0 && RUBEDO.recolor(100) < 1);
+        assertEquals(1, RUBEDO.recolor(143));
+        assertEquals(0, RUBEDO.answer(0), "the crystal answers only once the offering rises");
+        assertTrue(RUBEDO.answer(14) > 0.5F);
+        assertEquals(0, RUBEDO.answer(60));
     }
 
     @Test

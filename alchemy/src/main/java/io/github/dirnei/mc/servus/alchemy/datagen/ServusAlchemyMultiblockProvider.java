@@ -37,6 +37,8 @@ public final class ServusAlchemyMultiblockProvider extends MultiblockProvider {
     /** The id of the Coagulator schematic. */
     public static final Identifier COAGULATOR = Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "coagulator");
 
+    private static final String AIR = "minecraft:air";
+
     /** The Calciner in the schematic; {@code 0}, the anchor, is the Ash Pan on the ground. */
     private static final char CALCINER_SYMBOL = 'C';
 
@@ -100,7 +102,7 @@ public final class ServusAlchemyMultiblockProvider extends MultiblockProvider {
 
     /**
      * The Athanor on its hearth, then each shipped tier with every tier below it. A block a shipped ritual grows shows as the
-     * block the player places for it.
+     * block the player places for it; a block a ritual grows out of air is left out.
      */
     private void athanors() {
         athanor("nigredo", List.of());
@@ -109,7 +111,7 @@ public final class ServusAlchemyMultiblockProvider extends MultiblockProvider {
         List<AthanorTiers.BlockAt> blocks = new ArrayList<>();
         for (AthanorTiers.TierDef tier : AthanorTierData.SHIPPED.stream().map(AthanorTierData::readShipped)
                 .sorted(Comparator.comparingInt(AthanorTiers.TierDef::number)).toList()) {
-            tier.blocks().forEach(block -> blocks.add(placedFor(block, turns)));
+            tier.blocks().stream().map(block -> placedFor(block, turns)).filter(block -> !block.block().equals(AIR)).forEach(blocks::add);
             athanor(tier.name(), List.copyOf(blocks));
         }
     }

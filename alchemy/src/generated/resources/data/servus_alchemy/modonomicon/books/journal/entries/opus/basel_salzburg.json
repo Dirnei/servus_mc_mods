@@ -12,7 +12,7 @@
   },
   "description": "book.servus_alchemy.journal.opus.basel_salzburg.description",
   "icon": {
-    "id": "minecraft:crying_obsidian"
+    "id": "minecraft:ghast_tear"
   },
   "id": "servus_alchemy:opus/basel_salzburg",
   "marker_condition": {

@@ -34,8 +34,8 @@ public final class PlacedBlocks {
     }
 
     /**
-     * The state {@code target} names: {@code current} with the named properties set when it is already that block, else the
-     * block's default state with them. Empty for an unknown block.
+     * The state {@code target} names: {@code current} with the named properties set to their first accepted value when it
+     * is already that block, else the block's default state with them. Empty for an unknown block.
      */
     public static Optional<BlockState> state(BlockAt target, BlockState current) {
         Optional<Block> block = BuiltInRegistries.BLOCK.getOptional(Identifier.parse(target.block()));
@@ -43,7 +43,7 @@ public final class PlacedBlocks {
             return Optional.empty();
         }
         BlockState state = current.is(block.get()) ? current : block.get().defaultBlockState();
-        for (Map.Entry<String, String> entry : target.properties().entrySet()) {
+        for (Map.Entry<String, String> entry : target.state().entrySet()) {
             Property<?> property = state.getBlock().getStateDefinition().getProperty(entry.getKey());
             if (property != null) {
                 state = withValue(state, property, entry.getValue());

@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.alchemy.CoagulatorBlock;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlock;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorCrownBlock;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.RubedoObeliskBlock;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerShellBlock;
@@ -84,6 +85,11 @@ public final class ServusAlchemyBlocks {
     public static final DeferredBlock<AthanorCrownBlock> ATHANOR_CROWN = BLOCKS.registerBlock("athanor_crown", AthanorCrownBlock::new,
             () -> BlockBehaviour.Properties.of().mapColor(MapColor.NONE).strength(2.0F, 6.0F).sound(SoundType.STONE).noOcclusion().noLootTable()
                     .pushReaction(PushReaction.BLOCK));
+
+    /** The obelisk the Rubedo ritual grows out of Obsidian; no item. */
+    public static final DeferredBlock<RubedoObeliskBlock> RUBEDO_OBELISK = BLOCKS.registerBlock("rubedo_obelisk", RubedoObeliskBlock::new,
+            () -> BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(5.0F, 1200.0F).requiresCorrectToolForDrops()
+                    .sound(SoundType.AMETHYST).noOcclusion().lightLevel(state -> RubedoObeliskBlock.LIGHT).pushReaction(PushReaction.BLOCK));
 
     public static final DeferredBlock<GnomeHollowBlock> GNOME_HOLLOW = BLOCKS.registerBlock("gnome_hollow", GnomeHollowBlock::new,
             () -> BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(1.5F, 6.0F).requiresCorrectToolForDrops().sound(SoundType.STONE));

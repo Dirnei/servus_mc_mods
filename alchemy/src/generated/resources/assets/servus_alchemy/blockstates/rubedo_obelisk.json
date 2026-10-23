@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "half=lower": {
+      "model": "servus_alchemy:block/rubedo_obelisk_lower"
+    },
+    "half=upper": {
+      "model": "servus_alchemy:block/rubedo_obelisk_upper"
+    }
+  }
+}

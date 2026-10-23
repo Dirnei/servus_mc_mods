@@ -21,6 +21,10 @@
 
 - [x] 4.1 Citrinitas entry: schematic with empty vats, text naming the Amethyst Block offering (`datagen/book/WorkshopCategory.java`, `ServusAlchemyMultiblockProvider`, lang). Run `gradlew :alchemy:runData` and `gradlew :alchemy:runGameTestServer`.
 
+## 6. Play check fix: falling back
+
+- [x] 6.1 Falling back as far as needed (spec "Falling back"): when the tier drops, undo every ritual whose tier is above the new one, highest first, turning its `to` blocks back into the first accepted `from` state (obelisk halves to Obsidian and air, orange vats to citrine, citrine vats to empty) without drops; unformed counts as below every ritual tier. A broken ritual-grown block (grown vat, either obelisk half) makes the nearby Athanor of its build re-check at once; other blocks fall back at the slow check. Pure undo planning in `athanor/ritual/` with JUnit (`undoGoesHighestFirst`, `undoUsesTheFirstFromState`, `nothingUndoneWhenTheTierHolds`); GameTests `vatBrokenAtCitrinitasEmptiesTheOthers`, `obeliskBrokenAtRubedoFallsToCitrinitas`, `orangeVatBrokenFallsToAlbedo`, `saltBrokenFallsToNigredo`, `hearthBrokenUndoesEverything`; update tests that expected the other grown blocks to stay (`rubedoRitualCastsAgainAfterABrokenObelisk` regrows all four). Run `gradlew build`, `gradlew test`, `gradlew :alchemy:runGameTestServer`.
+
 ## 5. Integration
 
 - [x] 5.1 Full `gradlew build`, `gradlew test` and `gradlew :alchemy:runGameTestServer` green; launch the game with all mods and play the ritual: watch it from several angles, walk up halfway through, break a grown vat, check for flicker on the cluster.

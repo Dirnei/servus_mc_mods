@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.alchemy.Principle;
 import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlock;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.RubedoObeliskBlock;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
@@ -15,6 +16,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import java.util.Set;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 final class ServusAlchemyBlockStateProvider extends BlockStateProvider {
 
@@ -31,6 +33,7 @@ final class ServusAlchemyBlockStateProvider extends BlockStateProvider {
         simpleBlockWithItem(ServusAlchemyBlocks.SALT_CRYSTAL_BLOCK.get(), cubeAll(ServusAlchemyBlocks.SALT_CRYSTAL_BLOCK.get()));
         athanor();
         athanorCrown();
+        rubedoObelisk();
         gnomeHollow();
         ancientHollow();
         for (Principle principle : Principle.values()) {
@@ -67,6 +70,21 @@ final class ServusAlchemyBlockStateProvider extends BlockStateProvider {
     private void athanorCrown() {
         simpleBlock(ServusAlchemyBlocks.ATHANOR_CROWN.get(),
                 models().getBuilder("athanor_crown").texture("particle", mcLoc("block/stone_bricks")));
+    }
+
+    /**
+     * The Rubedo Obelisk: the lower half is a plinth of the Obsidian it grew out of, the crystal is drawn by its renderer;
+     * the upper half has no faces. Both break with the shell's particles.
+     */
+    private void rubedoObelisk() {
+        Identifier shell = modLoc("block/rubedo_obelisk");
+        BlockModelBuilder lower = models().withExistingParent("rubedo_obelisk_lower", mcLoc("block/block"))
+                .texture("obsidian", mcLoc("block/obsidian")).texture("particle", shell);
+        AlchemyModels.uvBox(lower, 0, 0, 0, 16, RubedoObeliskBlock.PLINTH, 16, "#obsidian");
+        ModelFile upper = models().getBuilder("rubedo_obelisk_upper").texture("particle", shell);
+        getVariantBuilder(ServusAlchemyBlocks.RUBEDO_OBELISK.get()).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(RubedoObeliskBlock.HALF) == DoubleBlockHalf.LOWER ? lower : upper)
+                .build());
     }
 
     /**

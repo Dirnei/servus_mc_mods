@@ -1,7 +1,9 @@
 package io.github.dirnei.mc.servus.alchemy.athanor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers.BlockAt;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers.Placed;
@@ -44,7 +46,7 @@ class AthanorTiersTest {
     private static Function<BlockAt, Placed> at(Map<String, BlockAt> world) {
         return block -> {
             BlockAt there = world.get(block.dx() + "," + block.dy() + "," + block.dz());
-            return there == null ? null : Placed.of(there.block(), there.properties());
+            return there == null ? null : Placed.of(there.block(), there.state());
         };
     }
 
@@ -52,7 +54,7 @@ class AthanorTiersTest {
         return AthanorTiers.tierOf(tiers, Facing.NORTH, at(world));
     }
 
-    private static final String CRYING = "minecraft:crying_obsidian";
+    private static final String OBSIDIAN = "minecraft:obsidian";
 
     @Test
     void nothingAroundIsNigredo() {
@@ -94,11 +96,11 @@ class AthanorTiersTest {
 
     @Test
     void offsetsTurnWithTheFront() {
-        BlockAt leftBehind = new BlockAt(1, -1, 2, CRYING);
+        BlockAt leftBehind = new BlockAt(1, -1, 2, OBSIDIAN);
         assertEquals(leftBehind, AthanorTiers.turn(leftBehind, Facing.NORTH));
-        assertEquals(new BlockAt(-2, -1, 1, CRYING), AthanorTiers.turn(leftBehind, Facing.EAST), "left is south, behind is west");
-        assertEquals(new BlockAt(-1, -1, -2, CRYING), AthanorTiers.turn(leftBehind, Facing.SOUTH));
-        assertEquals(new BlockAt(2, -1, -1, CRYING), AthanorTiers.turn(leftBehind, Facing.WEST));
+        assertEquals(new BlockAt(-2, -1, 1, OBSIDIAN), AthanorTiers.turn(leftBehind, Facing.EAST), "left is south, behind is west");
+        assertEquals(new BlockAt(-1, -1, -2, OBSIDIAN), AthanorTiers.turn(leftBehind, Facing.SOUTH));
+        assertEquals(new BlockAt(2, -1, -1, OBSIDIAN), AthanorTiers.turn(leftBehind, Facing.WEST));
     }
 
     @Test
@@ -117,7 +119,7 @@ class AthanorTiersTest {
         placed.addAll(AthanorLayoutTest.vats());
         assertEquals(2, tier(STAGES, world(placed)));
         placed.removeIf(block -> block.dz() == 3 && block.dy() == -1);
-        placed.add(new BlockAt(0, -1, 3, "servus_alchemy:principle_vat", Map.of("crystal", "none")));
+        placed.add(BlockAt.of(0, -1, 3, "servus_alchemy:principle_vat", Map.of("crystal", "none")));
         assertEquals(1, tier(STAGES, world(placed)), "a plain vat is Albedo");
     }
 
@@ -127,8 +129,23 @@ class AthanorTiersTest {
         placed.addAll(AthanorLayoutTest.vats());
         placed.addAll(AthanorLayoutTest.pillars());
         assertEquals(3, tier(STAGES, world(placed)));
-        placed.remove(new BlockAt(2, 0, 1, CRYING));
+        placed.removeIf(block -> block.dx() == 2 && block.dy() == 0 && block.dz() == 1);
         assertEquals(2, tier(STAGES, world(placed)));
+    }
+
+    @Test
+    void acceptedValueListsMatch() {
+        String vat = "servus_alchemy:principle_vat";
+        BlockAt grown = new BlockAt(0, -1, 3, vat, Map.of("crystal", List.of("citrine", "rubedo")));
+        assertTrue(grown.matches(Placed.of(vat, Map.of("crystal", "citrine"))));
+        assertTrue(grown.matches(Placed.of(vat, Map.of("crystal", "rubedo"))));
+        assertFalse(grown.matches(Placed.of(vat, Map.of("crystal", "none"))), "a value outside the list does not match");
+        assertEquals(Map.of("crystal", "citrine"), grown.state(), "the first value is the one placed");
+
+        List<BlockAt> placed = new ArrayList<>(AthanorLayoutTest.saltRing());
+        AthanorLayoutTest.vats().forEach(each -> placed.add(BlockAt.of(each.dx(), each.dy(), each.dz(), vat, Map.of("crystal", "rubedo"))));
+        assertEquals(2, tier(STAGES, world(placed)), "orange vats keep Citrinitas");
+        assertThrows(IllegalArgumentException.class, () -> new BlockAt(0, 0, 0, vat, Map.of("crystal", List.of())));
     }
 
     @Test

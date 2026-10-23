@@ -156,7 +156,7 @@ The Athanor entry SHALL show the Athanor on its hearth with its step, its three 
 
 #### Scenario: Rubedo page
 - **WHEN** a player opens the Crying Obsidian entry and presses Visualize
-- **THEN** a ghost of the whole build with the salt ring, the vats beside the tanks and the four Crying Obsidian pillars stands on the clicked ground
+- **THEN** a ghost of the whole build with the salt ring, the vats beside the tanks and Obsidian on the four pillar cells stands on the clicked ground, and the entry tells the player to use a Ghast Tear on the Athanor
 
 ### Requirement: Forming shows itself
 When Paracelsus' Journal forms an alchemy build (Calciner, Purifier, Coagulator, Athanor), a sound SHALL play at the build's controller and particles SHALL rise from every block of the build. A failed attempt SHALL show no effect, only the message naming the missing block.

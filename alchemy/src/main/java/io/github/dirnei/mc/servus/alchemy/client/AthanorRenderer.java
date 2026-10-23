@@ -55,7 +55,7 @@ public class AthanorRenderer extends BufferedBlockEntityRenderer<AthanorBlockEnt
     private static final float FLAME_ALPHA = 0.85F;
     /** How high the streams arc over the burst point, in blocks. */
     private static final double ARC = 1.6;
-    /** Where a stream ends above its block's floor, in blocks. */
+    /** Where a stream ends above its block's floor, in blocks, for a block without a look of its own. */
     private static final double LANDING = 0.75;
 
     public AthanorRenderer(BlockEntityRendererProvider.Context context) {
@@ -78,7 +78,7 @@ public class AthanorRenderer extends BufferedBlockEntityRenderer<AthanorBlockEnt
         AthanorRitual ritual = athanor.ritual();
         if (ritual != null && athanor.formed()) {
             float t = level.getGameTime() - athanor.ritualStart() + partialTick;
-            drawRitual(athanor, level, new RitualTimeline(ritual), t, poseStack, buffers);
+            drawRitual(athanor, level, new RitualTimeline(ritual), t, partialTick, poseStack, buffers);
         }
     }
 
@@ -102,22 +102,28 @@ public class AthanorRenderer extends BufferedBlockEntityRenderer<AthanorBlockEnt
         poseStack.popPose();
     }
 
-    private static void drawRitual(AthanorBlockEntity athanor, Level level, RitualTimeline timeline, float t, PoseStack poseStack,
-                                   SubmitBuffers buffers) {
+    private static void drawRitual(AthanorBlockEntity athanor, Level level, RitualTimeline timeline, float t, float partialTick,
+                                   PoseStack poseStack, SubmitBuffers buffers) {
         if (timeline.offeringShown(t)) {
             drawOffering(timeline, level, t, poseStack, buffers);
         }
         drawFlame(athanor, timeline, t, poseStack, buffers);
         List<Turn> turns = athanor.ritualTurns();
+        float time = level.getGameTime() + partialTick;
         for (int i = 0; i < turns.size(); i++) {
             Turn turn = turns.get(i);
-            drawStream(timeline, turn, i, t, poseStack, buffers);
-            BlockPos pos = athanor.getBlockPos().offset(turn.to().dx(), turn.to().dy(), turn.to().dz());
             RitualLooks.Look look = RitualLooks.of(turn.to().block());
-            if (look != null && turn.from().matches(PlacedBlocks.placed(level.getBlockState(pos)))) {
+            BlockPos pos = athanor.getBlockPos().offset(turn.to().dx(), turn.to().dy(), turn.to().dz());
+            if (!turn.from().matches(PlacedBlocks.placed(level.getBlockState(pos)))) {
+                continue;
+            }
+            if (turn.stream()) {
+                drawStream(timeline, turn, i, t, look == null ? LANDING : look.landing(), poseStack, buffers);
+            }
+            if (look != null) {
                 poseStack.pushPose();
                 poseStack.translate(turn.to().dx(), turn.to().dy(), turn.to().dz());
-                look.draw(poseStack, buffers, pos, turn.to(), timeline.fill(t, i), timeline.growth(t, i, turns.size()));
+                look.draw(poseStack, buffers, level, pos, turn.to(), new RitualLooks.Moment(timeline, t, i, turns.size(), time));
                 poseStack.popPose();
             }
         }
@@ -176,10 +182,11 @@ public class AthanorRenderer extends BufferedBlockEntityRenderer<AthanorBlockEnt
     }
 
     /** The lights of one stream along its arc from the burst over the tank into its block, turning to the result's colour. */
-    private static void drawStream(RitualTimeline timeline, Turn turn, int index, float t, PoseStack poseStack, SubmitBuffers buffers) {
+    private static void drawStream(RitualTimeline timeline, Turn turn, int index, float t, double landing, PoseStack poseStack,
+                                   SubmitBuffers buffers) {
         AthanorRitual ritual = timeline.ritual();
         Vec3 from = new Vec3(0.5, AthanorBlockEntity.OFFERING_Y + AthanorBlockEntity.OFFERING_RISE, 0.5);
-        Vec3 to = new Vec3(turn.to().dx() + 0.5, turn.to().dy() + LANDING, turn.to().dz() + 0.5);
+        Vec3 to = new Vec3(turn.to().dx() + 0.5, turn.to().dy() + landing, turn.to().dz() + 0.5);
         Vec3 mid = from.lerp(to, 0.5);
         mid = new Vec3(mid.x, from.y + ARC, mid.z);
         int start = RitualTimeline.mix(ritual.color(), 0xFFFFFF, 0.35F);

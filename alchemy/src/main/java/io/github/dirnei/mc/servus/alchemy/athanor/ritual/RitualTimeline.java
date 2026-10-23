@@ -75,6 +75,31 @@ public final class RitualTimeline {
         return clamp01((t - phases().grow() - delay(index)) / Math.max(1, span));
     }
 
+    /** How far the cracks have run through turned block {@code index}, 0 to 1: they open as its stream lands. */
+    public float cracks(float t, int index) {
+        return clamp01((t - phases().fill() - delay(index)) / ((phases().grow() - phases().fill()) * 0.8F));
+    }
+
+    /**
+     * How far turned block {@code index} has risen out of its block, 0 to 1, for blocks that rise rather than grow from
+     * a liquid; it ends well before the flash.
+     */
+    public float rise(float t, int index) {
+        return clamp01((t - phases().grow() - delay(index)) / ((phases().settle() - phases().grow()) * 0.6F));
+    }
+
+    /** How far a block that is already grown has turned into its new colour, 0 to 1: from the landing to before the flash. */
+    public float recolor(float t) {
+        return clamp01((t - phases().fill()) / ((phases().settle() - phases().fill()) * 0.85F));
+    }
+
+    /** How strongly grown crystal answers the rising offering with a pulse, 0 to 1. */
+    public float answer(float t) {
+        float start = phases().burst() * 0.22F;
+        float end = phases().burst() * 1.22F;
+        return t < start || t > end ? 0 : Math.max(0, (float) Math.sin((t - start) * 0.3F));
+    }
+
     /** How far the final flash is, 0 to 1, or outside while it does not shine. */
     public float flash(float t) {
         return (t - phases().settle()) / (ritual.duration() - phases().settle());

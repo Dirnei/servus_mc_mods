@@ -171,6 +171,9 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
   - Story texts for the storyteller: every line starting with "[storyteller]" (Wandering years, Basel and Salzburg, the homunculus' whispers and secret, the old gnome's greeting) and the knocker folklore of The Old Gnome; historical claims are checked when the text is written.
   - The open story and play questions in `alchemy_plan.md`, "Open".
 - Better upgrade items from Alchemy through the Foundation upgrade API.
+- Breaking the Athanor block itself keeps the grown vats and obelisks, so a new Athanor gets the old stage back once formed; decide whether that should turn them back like an unform.
+- Principle Vats can no longer be pushed by pistons, since a vat may carry a grown crystal (block entity); allow it for plain vats if play tests ask.
+- The Basel and Salzburg story text still speaks of "Obsidian that weeps"; Rubedo is now cast with a Ghast Tear on plain Obsidian (storyteller).
 
 ### Open: M14 Delicacies
 

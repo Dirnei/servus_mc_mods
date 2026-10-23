@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.alchemy.datagen;
 
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.RubedoObeliskBlock;
 import io.github.dirnei.mc.servus.alchemy.coagulator.VatBlock;
 import io.github.dirnei.mc.servus.alchemy.coagulator.VatCrystal;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
@@ -15,6 +16,7 @@ import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -60,6 +62,7 @@ final class ServusAlchemyBlockLoot extends BlockLootSubProvider {
         add(ServusAlchemyBlocks.GNOME_HOLLOW.get(), gnomeHollow());
         add(ServusAlchemyBlocks.VAT.get(), vat());
         add(ServusAlchemyBlocks.ANCIENT_HOLLOW.get(), ancientHollow());
+        add(ServusAlchemyBlocks.RUBEDO_OBELISK.get(), rubedoObelisk());
     }
 
     /** The vat itself, and from a grown vat a few Amethyst Shards of its crystal. */
@@ -73,6 +76,16 @@ final class ServusAlchemyBlockLoot extends BlockLootSubProvider {
                 .when(grown)
                 .add(applyExplosionDecay(vat, LootItem.lootTableItem(Items.AMETHYST_SHARD)
                         .apply(SetItemCountFunction.setCount(UniformGenerator.between(2, 4))))));
+    }
+
+    /** The Obsidian the obelisk grew out of, from its lower half only. */
+    private LootTable.Builder rubedoObelisk() {
+        Block obelisk = ServusAlchemyBlocks.RUBEDO_OBELISK.get();
+        return LootTable.lootTable().withPool(applyExplosionCondition(obelisk, LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1.0F))
+                .when(LootItemBlockStatePropertyCondition.hasBlockStateProperties(obelisk)
+                        .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(RubedoObeliskBlock.HALF, DoubleBlockHalf.LOWER)))
+                .add(LootItem.lootTableItem(Items.OBSIDIAN))));
     }
 
     /** What Deepslate drops: itself with Silk Touch, else Cobbled Deepslate. */
@@ -98,6 +111,6 @@ final class ServusAlchemyBlockLoot extends BlockLootSubProvider {
     protected Iterable<Block> getKnownBlocks() {
         return Stream.concat(SELF_DROPPING.stream(), Stream.of(ServusAlchemyBlocks.VAT.get(), ServusAlchemyBlocks.CALCINER_STONE_BRICKS.get(),
                 ServusAlchemyBlocks.CALCINER_DEEPSLATE_TILES.get(), ServusAlchemyBlocks.GNOME_HOLLOW.get(),
-                ServusAlchemyBlocks.ANCIENT_HOLLOW.get())).toList();
+                ServusAlchemyBlocks.ANCIENT_HOLLOW.get(), ServusAlchemyBlocks.RUBEDO_OBELISK.get())).toList();
     }
 }

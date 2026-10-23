@@ -8,7 +8,10 @@ import io.github.dirnei.mc.servus.foundation.client.SubmitBuffers;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.world.phys.AABB;
 
-/** Draws a grown vat's full liquid and its crystal cluster, which stands up to three blocks tall. */
+/**
+ * Draws a grown vat's full liquid and its crystal cluster, which stands up to three blocks tall, in the colours of its
+ * crystal, or in those a running ritual gives it while it turns the crystal into another.
+ */
 public class GrownVatRenderer extends BufferedBlockEntityRenderer<GrownVatBlockEntity> {
 
     public GrownVatRenderer(BlockEntityRendererProvider.Context context) {
@@ -25,7 +28,8 @@ public class GrownVatRenderer extends BufferedBlockEntityRenderer<GrownVatBlockE
         if (!crystal.grown()) {
             return;
         }
-        CrystalDrawing.liquid(poseStack, buffers, 1, crystal.color());
-        CrystalDrawing.cluster(poseStack, buffers, vat.getBlockPos(), 1, crystal.body());
+        VatTints.Tint tint = vat.getLevel() == null ? null : VatTints.at(vat.getBlockPos(), vat.getLevel().getGameTime() + partialTick);
+        CrystalDrawing.liquid(poseStack, buffers, 1, tint == null ? crystal.color() : tint.color());
+        CrystalDrawing.cluster(poseStack, buffers, vat.getBlockPos(), 1, tint == null ? crystal.body() : tint.body());
     }
 }

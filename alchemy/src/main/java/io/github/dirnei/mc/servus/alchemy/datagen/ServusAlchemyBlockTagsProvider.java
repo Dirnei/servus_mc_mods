@@ -40,7 +40,9 @@ final class ServusAlchemyBlockTagsProvider extends BlockTagsProvider {
                 .add(ServusAlchemyBlocks.SALAMANDER_FORGE.get())
                 .add(ServusAlchemyBlocks.RECEPTACULUM.get())
                 .add(ServusAlchemyBlocks.PRELUM.get())
-                .add(ServusAlchemyBlocks.ANCIENT_HOLLOW.get());
+                .add(ServusAlchemyBlocks.ANCIENT_HOLLOW.get())
+                .add(ServusAlchemyBlocks.RUBEDO_OBELISK.get());
+        tag(BlockTags.NEEDS_DIAMOND_TOOL).add(ServusAlchemyBlocks.RUBEDO_OBELISK.get());
         tag(OldGnome.WAKES).add(Blocks.DEEPSLATE);
         tag(Salamander.HOME).addTag(BlockTags.CRIMSON_STEMS).addTag(BlockTags.WARPED_STEMS)
                 .add(Blocks.NETHER_WART_BLOCK).add(Blocks.WARPED_WART_BLOCK).add(Blocks.NETHER_WART);

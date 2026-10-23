@@ -33,7 +33,7 @@ final class JournalAdvancements implements AdvancementSubProvider {
             new Chapter("villach", ServusAlchemyItems.CALCINER.get()),
             new Chapter("schwaz", Items.IRON_PICKAXE),
             new Chapter("wandering_years", Items.RAW_GOLD),
-            new Chapter("basel_salzburg", Items.CRYING_OBSIDIAN));
+            new Chapter("basel_salzburg", Items.GHAST_TEAR));
 
     /** A side chapter: path, icon and the main chapter it hangs from. No main chapter waits for it. */
     record SideChapter(String path, ItemLike icon, String parent) {

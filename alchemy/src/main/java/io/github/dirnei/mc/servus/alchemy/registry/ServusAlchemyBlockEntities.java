@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlockEntity;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.RubedoObeliskBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.coagulator.GrownVatBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.forge.SalamanderForgeBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.prelum.PrelumBlockEntity;
@@ -62,6 +63,10 @@ public final class ServusAlchemyBlockEntities {
     /** Only grown vats have one; plain Principle Vats get none. */
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GrownVatBlockEntity>> GROWN_VAT =
             register("grown_vat", GrownVatBlockEntity::new, ServusAlchemyBlocks.VAT);
+
+    /** The lower half of a Rubedo Obelisk, which draws the whole obelisk. */
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RubedoObeliskBlockEntity>> RUBEDO_OBELISK =
+            register("rubedo_obelisk", RubedoObeliskBlockEntity::new, ServusAlchemyBlocks.RUBEDO_OBELISK);
 
     private ServusAlchemyBlockEntities() {
     }

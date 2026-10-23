@@ -5,6 +5,12 @@
   "result_color": "#FFB000",
   "duration": 160,
   "phases": { "burst": 36, "fill": 60, "grow": 80, "settle": 150 },
+  "sounds": {
+    "offering": { "id": "minecraft:block.amethyst_block.resonate", "volume": 1.5 },
+    "burst": { "id": "minecraft:block.amethyst_block.break", "volume": 1.5 },
+    "grow": { "id": "minecraft:block.amethyst_cluster.place" },
+    "end": { "id": "minecraft:block.beacon.power_select" }
+  },
   "turns": [
     {
       "offset": [0, -1, 3],

@@ -26,7 +26,7 @@
     },
     "F": {
       "type": "modonomicon:block",
-      "block": "minecraft:crying_obsidian"
+      "block": "minecraft:obsidian"
     },
     "R": {
       "type": "modonomicon:blockstateproperty",
@@ -53,11 +53,11 @@
     ],
     [
       "______",
-      "__TF__",
-      "__D_F_",
+      "__T___",
+      "__D___",
       "__ADT_",
-      "__D_F_",
-      "__TF__",
+      "__D___",
+      "__T___",
       "______"
     ],
     [

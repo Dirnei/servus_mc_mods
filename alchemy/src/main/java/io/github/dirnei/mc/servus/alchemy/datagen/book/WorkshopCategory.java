@@ -203,7 +203,7 @@ final class WorkshopCategory extends CategoryProvider {
                             + "take it with an empty hand, or sneak to take the item back. Hoppers and pipes may do both.\n\n"
                             + "Alone its flame is black: Nigredo. A ring of Salt Crystal Blocks under its hearth turns the flame white: Albedo. "
                             + "An Amethyst Block offered to it grows citrine in Principle Vats beside its tanks and turns it yellow: Citrinitas. "
-                            + "Pillars of Crying Obsidian beside the back tank and behind the side tanks turn it red: Rubedo. "
+                            + "A Ghast Tear offered to it grows dark red obelisks out of Obsidian beside its tanks and turns it red: Rubedo. "
                             + "Some works need a higher fire.");
             e.list("works", "Its Works", AlchemyRecipeTable.athanor().stream()
                     .map(craft -> PrincipleText.line(craft.resultLabel() + " from " + craft.inputLabel(), craft.principles())
@@ -312,15 +312,19 @@ final class WorkshopCategory extends CategoryProvider {
 
     private WorkshopEntry redCrown() {
         return new WorkshopEntry(this, "crying_obsidian", "The Red Crown", "Rubedo: the red fire",
-                Items.CRYING_OBSIDIAN, e -> {
-            e.spotlight("block", Items.CRYING_OBSIDIAN, "Crying Obsidian",
-                    "Obsidian that weeps. A ruined portal holds a little, the Piglins of the Nether trade it for gold, "
-                            + "and the chests of their bastions keep more.");
+                Items.GHAST_TEAR, e -> {
+            e.spotlight("block", Items.GHAST_TEAR, "Ghast Tear",
+                    "A ghast weeps it as it dies, far over the lava seas of the Nether. Catch it before it falls into the fire. "
+                            + "In the yellow fire one tear is enough to wake the Obsidian.");
             e.text("build", "Building It",
-                    "Stand four pillars of two Crying Obsidian on the white ring, from the hearth level up: one on each side of the "
-                            + "tank behind the Athanor and one behind each side tank, eight blocks in all. Then the flame turns red: Rubedo.");
+                    "On the white ring, on the hearth level, set Obsidian on each side of the tank behind the Athanor and behind each "
+                            + "side tank, with nothing above it. Then use a Ghast Tear on the yellow Athanor: the tear splits into four "
+                            + "drops, the Obsidian cracks, and a dark red obelisk rises out of each block while the citrine turns orange. "
+                            + "The flame turns red.\n\n"
+                            + "Break an obelisk and it falls back to Obsidian; the fire is yellow again until the ritual is cast anew.");
             e.multiblock("crown", ServusAlchemyMultiblockProvider.athanor("rubedo"), "The Red Crown",
-                    "Four pillars of Crying Obsidian beside the back tank and behind the side tanks. Press Visualize, then click the ground.");
+                    "Obsidian on the four pillar cells of the yellow Athanor, with air above; then offer it a Ghast Tear. "
+                            + "Press Visualize, then click the ground.");
         });
     }
 

@@ -19,6 +19,8 @@ import io.github.dirnei.mc.servus.alchemy.athanor.AthanorLayout;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTierData;
 import io.github.dirnei.mc.servus.alchemy.athanor.PlacedBlocks;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitual;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitualData;
 import io.github.dirnei.mc.servus.alchemy.datagen.ServusAlchemyMultiblockProvider;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.journal.JournalBookItem;
@@ -516,9 +518,10 @@ public final class AlchemyGameTests {
         helper.assertTrue(citrinitas.validate(helper.getLevel(), ring) == null, "the Citrinitas schematic wants the vats");
         citrinitasVats(helper);
         helper.assertTrue(citrinitas.validate(helper.getLevel(), ring) != null, "the Citrinitas schematic accepts the vats, misses " + misses(helper, citrinitas, ring));
-        helper.assertTrue(rubedo.validate(helper.getLevel(), ring) == null, "the Rubedo schematic wants the pillars");
-        rubedoPillars(helper);
-        helper.assertTrue(rubedo.validate(helper.getLevel(), ring) != null, "the Rubedo schematic accepts the pillars, misses " + misses(helper, rubedo, ring));
+        helper.assertTrue(rubedo.validate(helper.getLevel(), ring) == null, "the Rubedo schematic wants the Obsidian");
+        AthanorRitualData.readShipped("rubedo").turns(Facing.NORTH).stream().map(AthanorRitual.Turn::from)
+                .filter(from -> from.block().equals("minecraft:obsidian")).forEach(from -> place(helper, from, Facing.NORTH));
+        helper.assertTrue(rubedo.validate(helper.getLevel(), ring) != null, "the Rubedo schematic accepts the Obsidian, misses " + misses(helper, rubedo, ring));
         helper.succeed();
     }
 
@@ -567,7 +570,7 @@ public final class AlchemyGameTests {
         stage(helper, "citrinitas", Facing.NORTH);
     }
 
-    /** The interim Rubedo: four Crying Obsidian pillars, two high, beside the back tank and behind the side tanks. */
+    /** Rubedo as the ritual leaves it: orange vats and four obelisks beside the back tank and behind the side tanks. */
     static void rubedoPillars(GameTestHelper helper) {
         stage(helper, "rubedo", Facing.NORTH);
     }
@@ -645,7 +648,7 @@ public final class AlchemyGameTests {
         helper.succeed();
     }
 
-    /** Crying Obsidian pillars beside the back tank and behind the side tanks make Rubedo; a short pillar falls back to Citrinitas. */
+    /** Obelisks beside the back tank and behind the side tanks make Rubedo; a broken obelisk falls back to Citrinitas. */
     @ServusGameTest(timeoutTicks = 20)
     public static void rubedoPillarsMakeTierThree(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
@@ -658,11 +661,11 @@ public final class AlchemyGameTests {
         helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, true);
         helper.setBlock(ATHANOR.offset(-2, 0, 1), Blocks.AIR);
         athanor.checkTier();
-        helper.assertTrue(athanor.tier() == 2, "a short pillar is Citrinitas, got " + athanor.tier());
+        helper.assertTrue(athanor.tier() == 2, "a broken obelisk is Citrinitas, got " + athanor.tier());
         helper.succeed();
     }
 
-    /** An Athanor facing east forms on its turned hearth and reaches Rubedo with the ring, vats and pillars turned with it. */
+    /** An Athanor facing east forms on its turned hearth and reaches Rubedo with the ring, vats and obelisks turned with it. */
     @ServusGameTest(timeoutTicks = 20)
     public static void turnedAthanorReachesRubedo(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper, Facing.EAST);
@@ -672,7 +675,7 @@ public final class AlchemyGameTests {
         helper.assertTrue(athanor.tier() == 2, "the turned vats make Citrinitas, got " + athanor.tier());
         stage(helper, "rubedo", Facing.EAST);
         athanor.checkTier();
-        helper.assertTrue(athanor.tier() == 3, "the turned pillars make Rubedo, got " + athanor.tier());
+        helper.assertTrue(athanor.tier() == 3, "the turned obelisks make Rubedo, got " + athanor.tier());
         helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, true);
         helper.succeed();
     }

@@ -27,7 +27,8 @@ public record RitualPlan(Outcome outcome, Turn missing, List<Turn> turns) {
 
     /**
      * Checks {@code ritual} on an Athanor of tier {@code tier} facing {@code facing}; {@code blockAt} reads what stands at
-     * an offset already turned with the front.
+     * an offset already turned with the front. A block the ritual already turned counts as in place, so a ritual can be cast
+     * again after one of its blocks was broken and put back.
      */
     public static RitualPlan check(AthanorRitual ritual, int tier, Facing facing, Function<BlockAt, Placed> blockAt) {
         if (tier < ritual.tier()) {
@@ -38,7 +39,8 @@ public record RitualPlan(Outcome outcome, Turn missing, List<Turn> turns) {
         }
         List<Turn> turns = ritual.turns(facing);
         for (Turn turn : turns) {
-            if (!turn.from().matches(blockAt.apply(turn.from()))) {
+            Placed placed = blockAt.apply(turn.from());
+            if (!turn.from().matches(placed) && !turn.to().matches(placed)) {
                 return new RitualPlan(Outcome.MISSING, turn, List.of());
             }
         }

@@ -11,6 +11,8 @@ import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTierData;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers.BlockAt;
 import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitual.Phases;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitual.Sound;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitual.Sounds;
 import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitual.Turn;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -38,7 +40,7 @@ public final class AthanorRitualData extends SimpleJsonResourceReloadListener<Js
     public static final String DIRECTORY = "servus_alchemy/athanor_ritual";
 
     /** The rituals Alchemy ships, by file name. */
-    public static final List<String> SHIPPED = List.of("citrinitas");
+    public static final List<String> SHIPPED = List.of("citrinitas", "rubedo");
 
     private static final Codec<Integer> COLOR = Codec.STRING.xmap(color -> HexColor.parse(color).orElse(0xFFFFFF), HexColor::format);
 
@@ -49,11 +51,26 @@ public final class AthanorRitualData extends SimpleJsonResourceReloadListener<Js
             Codec.INT.fieldOf("settle").forGetter(Phases::settle)
     ).apply(instance, Phases::new));
 
+    private static final Codec<Sound> SOUND = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.STRING.fieldOf("id").forGetter(Sound::id),
+            Codec.FLOAT.optionalFieldOf("volume", 1F).forGetter(Sound::volume),
+            Codec.FLOAT.optionalFieldOf("pitch", 1F).forGetter(Sound::pitch)
+    ).apply(instance, Sound::new));
+
+    private static final Codec<Sounds> SOUNDS = RecordCodecBuilder.create(instance -> instance.group(
+            SOUND.optionalFieldOf("offering").forGetter(Sounds::offering),
+            SOUND.optionalFieldOf("burst").forGetter(Sounds::burst),
+            SOUND.optionalFieldOf("land").forGetter(Sounds::land),
+            SOUND.optionalFieldOf("grow").forGetter(Sounds::grow),
+            SOUND.optionalFieldOf("end").forGetter(Sounds::end)
+    ).apply(instance, Sounds::new));
+
     private static final Codec<Turn> TURN = RecordCodecBuilder.create(instance -> instance.group(
             AthanorTierData.OFFSET.forGetter(turn -> List.of(turn.from().dx(), turn.from().dy(), turn.from().dz())),
             AthanorTierData.STATE_CODEC.fieldOf("from").forGetter(Turn::from),
-            AthanorTierData.STATE_CODEC.fieldOf("to").forGetter(Turn::to)
-    ).apply(instance, (offset, from, to) -> new Turn(at(from, offset), at(to, offset))));
+            AthanorTierData.STATE_CODEC.fieldOf("to").forGetter(Turn::to),
+            Codec.BOOL.optionalFieldOf("stream", true).forGetter(Turn::stream)
+    ).apply(instance, (offset, from, to, stream) -> new Turn(at(from, offset), at(to, offset), stream)));
 
     /** A ritual as written in JSON; the name comes from the file and is only written when a ritual is saved or synced. */
     public static final Codec<AthanorRitual> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -64,6 +81,7 @@ public final class AthanorRitualData extends SimpleJsonResourceReloadListener<Js
             COLOR.fieldOf("result_color").forGetter(AthanorRitual::resultColor),
             Codec.intRange(1, 1200).fieldOf("duration").forGetter(AthanorRitual::duration),
             PHASES.fieldOf("phases").forGetter(AthanorRitual::phases),
+            SOUNDS.optionalFieldOf("sounds", Sounds.NONE).forGetter(AthanorRitual::sounds),
             TURN.listOf().fieldOf("turns").forGetter(AthanorRitual::turns)
     ).apply(instance, AthanorRitual::new));
 
@@ -95,7 +113,7 @@ public final class AthanorRitualData extends SimpleJsonResourceReloadListener<Js
 
     private static AthanorRitual named(AthanorRitual ritual, String name) {
         return new AthanorRitual(name, ritual.offering(), ritual.tier(), ritual.color(), ritual.resultColor(), ritual.duration(),
-                ritual.phases(), ritual.turns());
+                ritual.phases(), ritual.sounds(), ritual.turns());
     }
 
     @Override

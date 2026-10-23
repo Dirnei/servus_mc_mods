@@ -362,7 +362,7 @@ final class JournalEntries {
                             + "Red. The Work ends in red. Obsidian that weeps, from beyond the burning gate, more than any broken portal gives. "
                             + "The fire wants a crown. Four pillars. Two stones high. I counted them twice.");
             text("tasks", "The Way",
-                    "Stand two Crying Obsidian on each corner of the yellow ring and the Athanor burns red: Rubedo.");
+                    "Set Obsidian beside the tanks of the yellow Athanor and offer it a Ghast Tear: obelisks rise and it burns red: Rubedo.");
             text("unlocks", "What Follows",
                     "Here the notes break off. The pages after this one are still blank.");
         }
@@ -379,7 +379,7 @@ final class JournalEntries {
 
         @Override
         ItemLike icon() {
-            return Items.CRYING_OBSIDIAN;
+            return Items.GHAST_TEAR;
         }
 
         @Override

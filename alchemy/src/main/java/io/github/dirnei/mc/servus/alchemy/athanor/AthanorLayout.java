@@ -32,6 +32,15 @@ public final class AthanorLayout {
         LEFT, BACK, RIGHT
     }
 
+    /** Where a block stands next to its tank, seen from the Athanor's front: on the tank's outer side, or to one side of it. */
+    public enum Relation {
+        OUTSIDE, LEFT, RIGHT, BEHIND, IN_FRONT
+    }
+
+    /** A block's place next to the tank {@code tank}. */
+    public record Place(TankSide tank, Relation relation) {
+    }
+
     /** A tank column, standing from {@link #TANK_BOTTOM} to {@link #TANK_TOP}. */
     public record Tank(TankSide side, int dx, int dz) {
     }
@@ -94,6 +103,28 @@ public final class AthanorLayout {
             }
         }
         return nearest;
+    }
+
+    /**
+     * Where the block at the horizontal offset {@code dx, dz} stands next to its nearest tank, for messages that name a
+     * place: a block straight out from the Athanor past the tank is on its outer side, any other by the side it is on.
+     */
+    public static Place place(Facing facing, int dx, int dz) {
+        Tank tank = nearestTank(facing, dx, dz);
+        int x = dx - tank.dx();
+        int z = dz - tank.dz();
+        int right = x * facing.rightX() + z * facing.rightZ();
+        int back = x * facing.rightZ() - z * facing.rightX();
+        int outward = (x * tank.dx() + z * tank.dz()) / 2;
+        Relation relation;
+        if (outward > 0 && x * tank.dz() - z * tank.dx() == 0) {
+            relation = Relation.OUTSIDE;
+        } else if (Math.abs(back) >= Math.abs(right)) {
+            relation = back > 0 ? Relation.BEHIND : Relation.IN_FRONT;
+        } else {
+            relation = right > 0 ? Relation.RIGHT : Relation.LEFT;
+        }
+        return new Place(tank.side(), relation);
     }
 
     /** Every Fluid Tank block of the three tank columns. */

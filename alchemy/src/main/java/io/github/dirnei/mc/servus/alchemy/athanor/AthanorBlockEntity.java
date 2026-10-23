@@ -14,6 +14,7 @@ import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitual.Turn;
 import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitualData;
 import io.github.dirnei.mc.servus.alchemy.athanor.ritual.RitualPlan;
 import io.github.dirnei.mc.servus.alchemy.athanor.ritual.RitualTimeline;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.RitualUndo;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
@@ -47,8 +48,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -59,6 +58,7 @@ import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -78,6 +78,8 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
     /** Ticks between tier checks while nothing else asks for one. */
     private static final int TIER_INTERVAL = 100;
+    /** A ritual turn from this block needs the space free. */
+    private static final String AIR = "minecraft:air";
     /** Where the offering hovers at the start of a ritual, above the Athanor's block: on the tower's plate. */
     public static final double OFFERING_Y = 23.5 / 16.0 + 0.25;
     /** How far the offering rises before it bursts. */
@@ -86,6 +88,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
     private final TeamOwnership ownership = new TeamOwnership(this);
     private int tier;
     private int tierCooldown;
+    private boolean tierCheckWanted;
     private ItemStack shownInput = ItemStack.EMPTY;
     private ItemStack shownOutput = ItemStack.EMPTY;
     private @Nullable AthanorRitual ritual;
@@ -276,18 +279,25 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         return Component.translatable("gui.servus_alchemy.athanor.stage." + AthanorTiers.nameOf(AthanorTierData.INSTANCE.tiers(), number));
     }
 
+    /** Names the block a turn is missing and where it belongs; for a turn of air, the block whose space above must be free. */
     private Component missingTurnMessage(Turn turn) {
+        AthanorLayout.Place place = AthanorLayout.place(buildFacing(), turn.from().dx(), turn.from().dz());
+        Component where = Component.translatable("message.servus_alchemy.athanor.place." + place.relation().name().toLowerCase(Locale.ROOT),
+                sideName(place.tank()));
+        if (turn.from().block().equals(AIR)) {
+            Block below = level.getBlockState(turnPos(turn).below()).getBlock();
+            return Component.translatable("message.servus_alchemy.athanor.ritual.blocked", below.getName(), where);
+        }
         Component block = BuiltInRegistries.BLOCK.getOptional(Identifier.parse(turn.from().block()))
                 .map(Block::getName).orElse(Component.literal(turn.from().block()));
-        Tank tank = AthanorLayout.nearestTank(buildFacing(), turn.from().dx(), turn.from().dz());
-        return Component.translatable("message.servus_alchemy.athanor.ritual.missing", block, sideName(tank.side()));
+        return Component.translatable("message.servus_alchemy.athanor.ritual.missing", block, where);
     }
 
     private void startRitual(AthanorRitual chosen, Player player, ItemStack stack) {
         stack.consume(1, player);
         ritual = chosen;
         ritualStart = level.getGameTime();
-        playAt(worldPosition, SoundEvents.AMETHYST_BLOCK_RESONATE, 1.5F);
+        play(worldPosition, chosen.sounds().offering());
         syncRitual();
     }
 
@@ -296,8 +306,9 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
     }
 
-    private void playAt(BlockPos pos, SoundEvent sound, float volume) {
-        level.playSound(null, pos, sound, SoundSource.BLOCKS, volume, 1.0F);
+    private void play(BlockPos pos, Optional<AthanorRitual.Sound> sound) {
+        sound.ifPresent(each -> Optional.ofNullable(Identifier.tryParse(each.id())).flatMap(BuiltInRegistries.SOUND_EVENT::getOptional)
+                .ifPresent(event -> level.playSound(null, pos, event, SoundSource.BLOCKS, each.volume(), each.pitch())));
     }
 
     /** One tick of the running ritual: its sounds and particles at their times, and the turn at its end. */
@@ -317,11 +328,18 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
             double y = worldPosition.getY() + OFFERING_Y + OFFERING_RISE;
             server.sendParticles(new DustParticleOptions(ritual.color(), 1.2F), worldPosition.getX() + 0.5, y, worldPosition.getZ() + 0.5,
                     40, 0.3, 0.3, 0.3, 0.05);
-            playAt(worldPosition, SoundEvents.AMETHYST_BLOCK_BREAK, 1.5F);
+            play(worldPosition, ritual.sounds().burst());
         }
         for (int i = 0; i < turns.size(); i++) {
+            Turn turn = turns.get(i);
+            if (!turn.stream() || !stillToTurn(turn)) {
+                continue;
+            }
+            if (elapsed == Math.round(phases.fill() + RitualTimeline.delay(i))) {
+                play(turnPos(turn), ritual.sounds().land());
+            }
             if (elapsed == Math.round(phases.grow() + RitualTimeline.delay(i))) {
-                playAt(turnPos(turns.get(i)), SoundEvents.AMETHYST_CLUSTER_PLACE, 1.0F);
+                play(turnPos(turn), ritual.sounds().grow());
             }
         }
         if (elapsed == phases.settle()) {
@@ -330,6 +348,11 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         if (elapsed >= ritual.duration()) {
             finishRitual(turns);
         }
+    }
+
+    /** Whether the block of {@code turn} still stands untouched, neither broken nor turned before. */
+    private boolean stillToTurn(Turn turn) {
+        return turn.from().matches(PlacedBlocks.placed(level.getBlockState(turnPos(turn))));
     }
 
     private BlockPos turnPos(Turn turn) {
@@ -347,17 +370,28 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         }
     }
 
-    /** Turns every block of the ritual that is still in place, ends the ritual and checks the tier. */
+    /**
+     * Turns every block of the ritual that is still in place, ends the ritual and checks the tier. A turned block that
+     * cannot stand without a neighbour that did not turn, such as half an obelisk, breaks.
+     */
     private void finishRitual(List<Turn> turns) {
+        List<BlockPos> turned = new ArrayList<>();
         for (Turn turn : turns) {
             BlockPos pos = turnPos(turn);
             BlockState current = level.getBlockState(pos);
-            if (turn.from().matches(PlacedBlocks.placed(current))) {
-                PlacedBlocks.state(turn.to(), current).ifPresent(next -> level.setBlock(pos, next, Block.UPDATE_ALL));
+            if (stillToTurn(turn)) {
+                PlacedBlocks.state(turn.to(), current).ifPresent(next -> {
+                    level.setBlock(pos, next, Block.UPDATE_ALL);
+                    turned.add(pos);
+                });
             }
         }
+        for (BlockPos pos : turned) {
+            BlockState state = level.getBlockState(pos);
+            Block.updateOrDestroy(state, Block.updateFromNeighbourShapes(state, level, pos), level, pos, Block.UPDATE_ALL);
+        }
+        play(worldPosition, ritual.sounds().end());
         ritual = null;
-        playAt(worldPosition, SoundEvents.BEACON_POWER_SELECT, 1.0F);
         checkTier();
         syncRitual();
     }
@@ -367,9 +401,14 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         if (level == null || level.isClientSide()) {
             return;
         }
-        int found = AthanorTiers.tierOf(AthanorTierData.INSTANCE.tiers(), buildFacing(), this::placedAt);
         tierCooldown = 0;
+        tierCheckWanted = false;
         checkHearth();
+        int found = AthanorTiers.tierOf(AthanorTierData.INSTANCE.tiers(), buildFacing(), this::placedAt);
+        if (formed() && found < tier) {
+            fallBack(found);
+            found = AthanorTiers.tierOf(AthanorTierData.INSTANCE.tiers(), buildFacing(), this::placedAt);
+        }
         if (found != tier) {
             tier = found;
             setChanged();
@@ -382,7 +421,63 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
 
     /** What stands at {@code block}'s offset from the Athanor. */
     private AthanorTiers.Placed placedAt(BlockAt block) {
-        return PlacedBlocks.placed(level.getBlockState(worldPosition.offset(block.dx(), block.dy(), block.dz())));
+        return PlacedBlocks.placed(level.getBlockState(offsetPos(block)));
+    }
+
+    private BlockPos offsetPos(BlockAt block) {
+        return worldPosition.offset(block.dx(), block.dy(), block.dz());
+    }
+
+    /** Makes the Athanor check its tier on its next tick. */
+    public void requestTierCheck() {
+        tierCheckWanted = true;
+    }
+
+    /**
+     * A block a ritual grew, such as a grown vat or half an obelisk, left {@code pos}: the Athanor whose ritual made it
+     * checks its tier on its next tick and falls back.
+     */
+    public static void grownBlockBroken(ServerLevel level, BlockPos pos, BlockState state) {
+        for (RitualUndo.AthanorAt at : RitualUndo.athanorsOf(AthanorRitualData.INSTANCE.rituals(), PlacedBlocks.placed(state))) {
+            BlockPos athanorPos = pos.offset(at.dx(), at.dy(), at.dz());
+            if (level.isLoaded(athanorPos) && level.getBlockEntity(athanorPos) instanceof AthanorBlockEntity athanor
+                    && athanor.buildFacing() == at.facing()) {
+                athanor.requestTierCheck();
+            }
+        }
+    }
+
+    /**
+     * Turns back every block a ritual grew for a tier above {@code to}, highest ritual first, without drops. The blocks are
+     * set without shape updates, so half an obelisk does not break off its other half, and their neighbours hear of them
+     * once all are turned.
+     */
+    private void fallBack(int to) {
+        List<BlockPos> changed = new ArrayList<>();
+        for (RitualUndo.Step step : RitualUndo.plan(AthanorRitualData.INSTANCE.rituals(), to, buildFacing(), this::placedAt)) {
+            BlockPos pos = offsetPos(step.grown());
+            BlockState current = level.getBlockState(pos);
+            if (!step.grown().matches(PlacedBlocks.placed(current))) {
+                continue;
+            }
+            PlacedBlocks.state(step.back(), current).ifPresent(next -> {
+                level.setBlock(pos, next, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+                dropStaleBlockEntity(pos, next);
+                changed.add(pos);
+            });
+        }
+        for (BlockPos pos : changed) {
+            BlockState state = level.getBlockState(pos);
+            level.updateNeighborsAt(pos, state.getBlock());
+            state.updateNeighbourShapes(level, pos, Block.UPDATE_ALL);
+        }
+    }
+
+    /** A block that keeps its block entity across a state change, such as a vat losing its crystal, loses one it no longer has. */
+    private void dropStaleBlockEntity(BlockPos pos, BlockState state) {
+        if (state.getBlock() instanceof EntityBlock block && level.getBlockEntity(pos) != null && block.newBlockEntity(pos, state) == null) {
+            level.removeBlockEntity(pos);
+        }
     }
 
     /** Whether the Athanor stands formed on its hearth with its tanks. */
@@ -479,6 +574,9 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
             level.setBlock(worldPosition, state.setValue(AthanorBlock.FORMED, formed), Block.UPDATE_ALL);
             setDucts(level, worldPosition, state.getValue(MachineBlock.FACING), formed);
             setCrown(level, worldPosition, formed);
+            if (!formed) {
+                fallBack(RitualUndo.UNFORMED);
+            }
         }
     }
 
@@ -519,7 +617,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
             tickRitual();
             return true;
         }
-        if (++tierCooldown >= TIER_INTERVAL) {
+        if (tierCheckWanted || ++tierCooldown >= TIER_INTERVAL) {
             checkTier();
         }
         Optional<AthanorRecipe> recipe = currentRecipe();

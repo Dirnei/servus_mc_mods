@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.alchemy.coagulator;
 
 import io.github.dirnei.mc.servus.alchemy.PrincipleBuckets;
+import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import net.minecraft.core.BlockPos;
@@ -84,6 +85,9 @@ public class VatBlock extends Block implements Wrenchable, EntityBlock {
     @Override
     protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
         CoagulatorStructure.broken(level, state, pos);
+        if (state.getValue(CRYSTAL).grown()) {
+            AthanorBlockEntity.grownBlockBroken(level, pos, state);
+        }
         super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 

@@ -38,12 +38,27 @@ Every player near the Athanor SHALL see the ritual play in step with the server:
 - **THEN** that player sees the clusters growing out of the vats, not the start
 
 ### Requirement: Grown vats
-A Principle Vat with grown citrine SHALL show a citrine cluster as tall as the tanks, give light, and send up a few glints of particles now and then. It SHALL NOT count as a Principle Vat of a Coagulator. Breaking it SHALL drop a Principle Vat and a few Amethyst Shards (example 2 to 4), so the Athanor falls back a stage at its next check and the ritual must be cast again. Grown vats SHALL be placed only by the ritual; the grown vat SHALL have no item.
+A Principle Vat with grown citrine SHALL show a citrine cluster as tall as the tanks, give light, and send up a few glints of particles now and then. It SHALL NOT count as a Principle Vat of a Coagulator. Breaking it SHALL drop a Principle Vat and a few Amethyst Shards (example 2 to 4), and the Athanor SHALL fall back as described in Falling back; the ritual must be cast again. Grown vats SHALL be placed only by the ritual; the grown vat SHALL have no item.
 
 #### Scenario: Broken crystal
 - **WHEN** a player breaks one grown vat of a Citrinitas Athanor
-- **THEN** a Principle Vat and some Amethyst Shards drop and the Athanor is Albedo at its next check
+- **THEN** a Principle Vat and some Amethyst Shards drop, the other two vats lose their citrine and stand empty, and the Athanor is Albedo
 
 #### Scenario: Grown vat in a Coagulator
 - **WHEN** a grown vat stands in a Coagulator's vat row and the player right clicks the Coagulator with the Journal
 - **THEN** nothing forms and the player is told a Principle Vat is needed there
+
+### Requirement: Falling back
+When a block of the Athanor's build is gone, the Athanor SHALL fall back to the highest tier whose blocks, and those of every lower tier, are still in place, or unform when the hearth, a tank or a duct is gone. Every block a ritual grew for a tier above the one it falls back to SHALL turn back into what that ritual started from, highest tier first, without dropping anything; only the broken block drops its items. A broken ritual-grown block SHALL make the Athanor fall back at once; another missing block SHALL make it fall back at its next check.
+
+#### Scenario: Vat broken at Citrinitas
+- **WHEN** a player breaks one grown vat of a Citrinitas Athanor
+- **THEN** the other two vats turn back into empty Principle Vats at once and the Athanor is Albedo
+
+#### Scenario: Salt broken at Citrinitas
+- **WHEN** a Salt Crystal Block of the ring under a Citrinitas Athanor is broken
+- **THEN** at the Athanor's next check the three vats turn back into empty Principle Vats and the Athanor is Nigredo
+
+#### Scenario: Hearth broken
+- **WHEN** a hearth slab of a Citrinitas Athanor is broken
+- **THEN** at the Athanor's next check it unforms and the three vats turn back into empty Principle Vats

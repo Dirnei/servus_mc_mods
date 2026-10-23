@@ -15,6 +15,10 @@ And once:
 - alchemy .../textures/block/ritual_crystal.png: one face of a crystal prism, pale so the renderer tints it in the
   crystal's colour. u runs across the face, v from the tip (row 0) to the root; a bright sheen runs down the middle of the
   face, its edges are darker, and a few glints cross it.
+- alchemy .../textures/block/rubedo_obelisk.png: one face of the Rubedo Obelisk's shell, drawn as it is. Dark red with
+  darker facet edges, a seam of glowing red down the middle and a few hot specks. v runs from the top of the face down.
+- alchemy .../textures/block/rubedo_veins.png: glowing cracks on transparent ground, laid over the Obsidian while the
+  Rubedo ritual cracks it and over the obelisk's plinth. The cracks start at the top edge (row 0) and run down.
 """
 import math
 import os
@@ -68,13 +72,14 @@ def frame(base, n, rng):
 
 
 def png(rows):
+    alpha = len(rows[0][0]) == 4
     raw = b"".join(b"\x00" + bytes(v for px in row for v in px) for row in rows)
 
     def chunk(kind, data):
         body = kind + data
         return struct.pack(">I", len(data)) + body + struct.pack(">I", zlib.crc32(body) & 0xFFFFFFFF)
 
-    header = struct.pack(">IIBBBBB", len(rows[0]), len(rows), 8, 2, 0, 0, 0)
+    header = struct.pack(">IIBBBBB", len(rows[0]), len(rows), 8, 6 if alpha else 2, 0, 0, 0)
     return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header) + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b"")
 
 
@@ -98,9 +103,67 @@ def crystal():
     return rows
 
 
+SHELL = (0x16, 0x03, 0x03)
+GLOW = (0x9A, 0x10, 0x10)
+HOT = (0xE0, 0x40, 0x20)
+
+
+def obelisk():
+    rng = random.Random(31)
+    specks = {(rng.randrange(2, 14), rng.randrange(0, 16)) for _ in range(4)}
+    rows = []
+    for y in range(16):
+        row = []
+        for x in range(16):
+            across = abs(x - 7.5) / 7.5
+            lift = 1.25 - 0.35 * across + 0.15 * math.sin(y * 0.9 + x * 0.4)
+            color = scale(mix(SHELL, (0x3A, 0x08, 0x08), 0.5), lift)
+            if x in (0, 15):
+                color = scale(SHELL, 0.8)
+            seam = abs(x - 7.5 - 1.2 * math.sin(y * 0.55)) < 0.8
+            if seam:
+                color = mix(GLOW, HOT, 0.25 if y % 5 == 2 else 0.0)
+            elif (x, y) in specks:
+                color = mix(GLOW, HOT, 0.5)
+            row.append(color)
+        rows.append(row)
+    return rows
+
+
+def veins():
+    rng = random.Random(5)
+    lit = {}
+    for start in (2, 6, 11, 14):
+        x = start + rng.uniform(-0.5, 0.5)
+        for y in range(16):
+            if y > 7 + rng.randrange(0, 9):
+                break
+            lit[(int(round(x)) % 16, y)] = 1.0
+            if rng.random() < 0.35:
+                lit.setdefault((int(round(x + rng.choice((-1, 1)))) % 16, y), 0.6)
+            x += rng.uniform(-0.9, 0.9)
+    rows = []
+    for y in range(16):
+        row = []
+        for x in range(16):
+            core = lit.get((x, y), 0.0)
+            if core >= 1.0:
+                row.append(HOT + (255,))
+            elif core > 0:
+                row.append(GLOW + (230,))
+            else:
+                row.append((0, 0, 0, 0))
+        rows.append(row)
+    return rows
+
+
 def main():
     with open(os.path.join(OUT, "ritual_crystal.png"), "wb") as out:
         out.write(png(crystal()))
+    with open(os.path.join(OUT, "rubedo_obelisk.png"), "wb") as out:
+        out.write(png(obelisk()))
+    with open(os.path.join(OUT, "rubedo_veins.png"), "wb") as out:
+        out.write(png(veins()))
     preview = sys.argv[2] if len(sys.argv) > 2 and sys.argv[1] == "--preview" else None
     strips = []
     for tier, color in enumerate(STAGES):

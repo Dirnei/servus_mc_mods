@@ -16,7 +16,7 @@ class BlockAtPropertiesTest {
 
     @Test
     void propertiesMustMatch() {
-        BlockAt grown = new BlockAt(0, -1, 3, VAT, Map.of("crystal", "citrine"));
+        BlockAt grown = BlockAt.of(0, -1, 3, VAT, Map.of("crystal", "citrine"));
         assertTrue(grown.matches(Placed.of(VAT, Map.of("crystal", "citrine", "facing", "east"))), "other properties may hold anything");
         assertFalse(grown.matches(Placed.of(VAT, Map.of("crystal", "none"))), "a plain vat is not grown");
         assertFalse(grown.matches(Placed.of(VAT, Map.of())), "a block without the property does not match");
@@ -35,7 +35,7 @@ class BlockAtPropertiesTest {
 
     @Test
     void turningKeepsTheProperties() {
-        BlockAt grown = new BlockAt(0, -1, 3, VAT, Map.of("crystal", "citrine"));
-        assertEquals(new BlockAt(-3, -1, 0, VAT, Map.of("crystal", "citrine")), AthanorTiers.turn(grown, Facing.EAST));
+        BlockAt grown = BlockAt.of(0, -1, 3, VAT, Map.of("crystal", "citrine"));
+        assertEquals(BlockAt.of(-3, -1, 0, VAT, Map.of("crystal", "citrine")), AthanorTiers.turn(grown, Facing.EAST));
     }
 }

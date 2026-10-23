@@ -56,6 +56,7 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("message.servus_alchemy.coagulator.formed", "The Coagulator is ready.");
         add("message.servus_alchemy.athanor.formed", "The Athanor is ready.");
         add(ServusAlchemyBlocks.ATHANOR_CROWN.get(), "Athanor");
+        add(ServusAlchemyBlocks.RUBEDO_OBELISK.get(), "Rubedo Obelisk");
         add("message.servus_alchemy.athanor.missing_tank",
                 "The Athanor is not complete: a Fluid Tank is needed %s, two blocks out and three high from the hearth up. The Athanor page of Paracelsus' Journal shows the build.");
         add("message.servus_alchemy.athanor.missing_duct",
@@ -63,8 +64,13 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("message.servus_alchemy.athanor.tank.left", "left of it");
         add("message.servus_alchemy.athanor.tank.back", "behind it");
         add("message.servus_alchemy.athanor.tank.right", "right of it");
-        add("message.servus_alchemy.athanor.ritual.missing",
-                "The ritual cannot begin: %s is needed beside the tank %s, on its outer side.");
+        add("message.servus_alchemy.athanor.ritual.missing", "The ritual cannot begin: %s is needed %s.");
+        add("message.servus_alchemy.athanor.ritual.blocked", "The ritual cannot begin: the space above the %s %s must be free.");
+        add("message.servus_alchemy.athanor.place.outside", "beside the tank %s, on its outer side");
+        add("message.servus_alchemy.athanor.place.left", "left of the tank %s");
+        add("message.servus_alchemy.athanor.place.right", "right of the tank %s");
+        add("message.servus_alchemy.athanor.place.behind", "behind the tank %s");
+        add("message.servus_alchemy.athanor.place.in_front", "in front of the tank %s");
         add("message.servus_alchemy.athanor.ritual.tier_low", "The Athanor must reach %s first.");
         add("message.servus_alchemy.athanor.ritual.tier_high", "The Athanor is past %s; this ritual has nothing left to do.");
         add("message.servus_alchemy.athanor.ritual.busy", "The Athanor is at work; wait until its work is done.");

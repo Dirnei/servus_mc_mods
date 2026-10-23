@@ -2,13 +2,16 @@
   "tier": 3,
   "color": "#B3261E",
   "blocks": [
-    { "offset": [-1, -1, 2], "block": "minecraft:crying_obsidian" },
-    { "offset": [1, -1, 2], "block": "minecraft:crying_obsidian" },
-    { "offset": [-2, -1, 1], "block": "minecraft:crying_obsidian" },
-    { "offset": [2, -1, 1], "block": "minecraft:crying_obsidian" },
-    { "offset": [-1, 0, 2], "block": "minecraft:crying_obsidian" },
-    { "offset": [1, 0, 2], "block": "minecraft:crying_obsidian" },
-    { "offset": [-2, 0, 1], "block": "minecraft:crying_obsidian" },
-    { "offset": [2, 0, 1], "block": "minecraft:crying_obsidian" }
+    { "offset": [0, -1, 3], "block": "servus_alchemy:principle_vat", "properties": { "crystal": "rubedo" } },
+    { "offset": [-3, -1, 0], "block": "servus_alchemy:principle_vat", "properties": { "crystal": "rubedo" } },
+    { "offset": [3, -1, 0], "block": "servus_alchemy:principle_vat", "properties": { "crystal": "rubedo" } },
+    { "offset": [1, -1, 2], "block": "servus_alchemy:rubedo_obelisk", "properties": { "half": "lower" } },
+    { "offset": [-1, -1, 2], "block": "servus_alchemy:rubedo_obelisk", "properties": { "half": "lower" } },
+    { "offset": [2, -1, 1], "block": "servus_alchemy:rubedo_obelisk", "properties": { "half": "lower" } },
+    { "offset": [-2, -1, 1], "block": "servus_alchemy:rubedo_obelisk", "properties": { "half": "lower" } },
+    { "offset": [1, 0, 2], "block": "servus_alchemy:rubedo_obelisk", "properties": { "half": "upper" } },
+    { "offset": [-1, 0, 2], "block": "servus_alchemy:rubedo_obelisk", "properties": { "half": "upper" } },
+    { "offset": [2, 0, 1], "block": "servus_alchemy:rubedo_obelisk", "properties": { "half": "upper" } },
+    { "offset": [-2, 0, 1], "block": "servus_alchemy:rubedo_obelisk", "properties": { "half": "upper" } }
   ]
 }

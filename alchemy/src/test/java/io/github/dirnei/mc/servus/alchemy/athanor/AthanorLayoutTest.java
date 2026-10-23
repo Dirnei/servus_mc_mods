@@ -17,7 +17,7 @@ class AthanorLayoutTest {
 
     private static final String SALT = "servus_alchemy:salt_crystal_block";
     private static final String VAT = "servus_alchemy:principle_vat";
-    private static final String CRYING = "minecraft:crying_obsidian";
+    private static final String OBELISK = "servus_alchemy:rubedo_obelisk";
 
     /** The sixteen cells of the 5 by 5 ring one layer under the hearth. */
     static List<BlockAt> saltRing() {
@@ -32,20 +32,21 @@ class AthanorLayoutTest {
         return ring;
     }
 
-    /** The three vats with grown citrine beside the tanks. */
+    /** The three vats with grown crystal, citrine or orange, beside the tanks. */
     static List<BlockAt> vats() {
         List<BlockAt> vats = new ArrayList<>();
         for (int[] cell : new int[][] {{0, 3}, {-3, 0}, {3, 0}}) {
-            vats.add(new BlockAt(cell[0], -1, cell[1], VAT, Map.of("crystal", "citrine")));
+            vats.add(new BlockAt(cell[0], -1, cell[1], VAT, Map.of("crystal", List.of("citrine", "rubedo"))));
         }
         return vats;
     }
 
+    /** The four Rubedo Obelisks, lower and upper half, beside the back tank and behind the side tanks. */
     static List<BlockAt> pillars() {
         List<BlockAt> pillars = new ArrayList<>();
         for (int dy = -1; dy <= 0; dy++) {
             for (int[] cell : new int[][] {{-1, 2}, {1, 2}, {-2, 1}, {2, 1}}) {
-                pillars.add(new BlockAt(cell[0], dy, cell[1], CRYING));
+                pillars.add(BlockAt.of(cell[0], dy, cell[1], OBELISK, Map.of("half", dy < 0 ? "lower" : "upper")));
             }
         }
         return pillars;
@@ -147,6 +148,19 @@ class AthanorLayoutTest {
     }
 
     @Test
+    void placeNamesTheSideOfTheTank() {
+        assertEquals(new AthanorLayout.Place(TankSide.BACK, AthanorLayout.Relation.OUTSIDE), AthanorLayout.place(Facing.NORTH, 0, 3));
+        assertEquals(new AthanorLayout.Place(TankSide.LEFT, AthanorLayout.Relation.OUTSIDE), AthanorLayout.place(Facing.NORTH, 3, 0));
+        assertEquals(new AthanorLayout.Place(TankSide.BACK, AthanorLayout.Relation.LEFT), AthanorLayout.place(Facing.NORTH, 1, 2));
+        assertEquals(new AthanorLayout.Place(TankSide.BACK, AthanorLayout.Relation.RIGHT), AthanorLayout.place(Facing.NORTH, -1, 2));
+        assertEquals(new AthanorLayout.Place(TankSide.LEFT, AthanorLayout.Relation.BEHIND), AthanorLayout.place(Facing.NORTH, 2, 1));
+        assertEquals(new AthanorLayout.Place(TankSide.RIGHT, AthanorLayout.Relation.BEHIND), AthanorLayout.place(Facing.NORTH, -2, 1));
+        BlockAt turned = AthanorTiers.turn(new BlockAt(2, -1, 1, VAT), Facing.EAST);
+        assertEquals(new AthanorLayout.Place(TankSide.LEFT, AthanorLayout.Relation.BEHIND), AthanorLayout.place(Facing.EAST, turned.dx(), turned.dz()),
+                "turned with the front");
+    }
+
+    @Test
     void albedoSchematicHasTheRingBelow() {
         AthanorLayout.Schematic schematic = AthanorLayout.schematic(saltRing());
         assertEquals(4, schematic.layers().size());
@@ -169,6 +183,6 @@ class AthanorLayoutTest {
                 List.of("______", "CCCCC_", "C___C_", "C_0_C_", "C___C_", "CCCCC_", "______")),
                 schematic.layers());
         assertEquals(VAT, schematic.mapping().get('E'));
-        assertEquals(CRYING, schematic.mapping().get('F'));
+        assertEquals(OBELISK, schematic.mapping().get('F'));
     }
 }

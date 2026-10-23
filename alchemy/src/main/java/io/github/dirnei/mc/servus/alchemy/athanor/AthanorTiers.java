@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /** Which stage of the Great Work an Athanor's structure stands for. Pure Java. */
 public final class AthanorTiers {
@@ -16,12 +17,17 @@ public final class AthanorTiers {
      * A block a tier needs, relative to the Athanor.
      *
      * @param block      block id, such as {@code servus_alchemy:salt_crystal_block}
-     * @param properties block state properties it must have, by name; any other property may hold any value
+     * @param properties block state properties it must have, by name, each with the values it accepts; the first value is
+     *                   the one a ritual sets. Any other property may hold any value
      */
-    public record BlockAt(int dx, int dy, int dz, String block, Map<String, String> properties) {
+    public record BlockAt(int dx, int dy, int dz, String block, Map<String, List<String>> properties) {
 
         public BlockAt {
-            properties = Map.copyOf(properties);
+            properties = properties.entrySet().stream().collect(Collectors.toUnmodifiableMap(
+                    Map.Entry::getKey, entry -> List.copyOf(entry.getValue())));
+            if (properties.values().stream().anyMatch(List::isEmpty)) {
+                throw new IllegalArgumentException("A property needs at least one value: " + block);
+            }
         }
 
         /** A block in any state. */
@@ -29,10 +35,26 @@ public final class AthanorTiers {
             this(dx, dy, dz, block, Map.of());
         }
 
-        /** Whether {@code placed} is this block with every named property. */
+        /** A block whose named properties must hold one value each. */
+        public static BlockAt of(int dx, int dy, int dz, String block, Map<String, String> properties) {
+            return new BlockAt(dx, dy, dz, block, properties.entrySet().stream().collect(Collectors.toMap(
+                    Map.Entry::getKey, entry -> List.of(entry.getValue()))));
+        }
+
+        /** Whether {@code placed} is this block with an accepted value of every named property. */
         public boolean matches(Placed placed) {
             return placed != null && block.equals(placed.block())
-                    && properties.entrySet().stream().allMatch(entry -> entry.getValue().equals(placed.property(entry.getKey())));
+                    && properties.entrySet().stream().allMatch(entry -> accepts(entry.getValue(), placed.property(entry.getKey())));
+        }
+
+        private static boolean accepts(List<String> values, String value) {
+            return value != null && values.contains(value);
+        }
+
+        /** The value each named property takes when this block is placed: its first accepted value. */
+        public Map<String, String> state() {
+            return properties.entrySet().stream().collect(Collectors.toUnmodifiableMap(
+                    Map.Entry::getKey, entry -> entry.getValue().getFirst()));
         }
 
         /** The same block at another offset. */

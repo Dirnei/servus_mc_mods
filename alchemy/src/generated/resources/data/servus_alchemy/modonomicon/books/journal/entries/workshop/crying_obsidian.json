@@ -12,7 +12,7 @@
   },
   "description": "book.servus_alchemy.journal.workshop.crying_obsidian.description",
   "icon": {
-    "id": "minecraft:crying_obsidian"
+    "id": "minecraft:ghast_tear"
   },
   "id": "servus_alchemy:workshop/crying_obsidian",
   "marker_condition": {

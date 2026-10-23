@@ -11,7 +11,7 @@
     },
     "frame": "goal",
     "icon": {
-      "id": "minecraft:crying_obsidian"
+      "id": "minecraft:ghast_tear"
     },
     "title": {
       "translate": "journal.servus_alchemy.basel_salzburg"
