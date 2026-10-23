@@ -17,6 +17,7 @@
 
 ### Fixed
 - Shuttle jobs, their cargo and station claims survive a reload or an unloaded warehouse; nothing drops mid-trip.
+- A Warehouse Controller placed against the side of an elevator shaft joins the warehouse.
 
 ## 0.3.0
 

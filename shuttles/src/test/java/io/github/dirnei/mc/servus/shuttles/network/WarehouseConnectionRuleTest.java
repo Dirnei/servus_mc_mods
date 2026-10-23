@@ -20,8 +20,16 @@ class WarehouseConnectionRuleTest {
     }
 
     @Test
-    void controllerNeverLinksStraightToAnElevator() {
-        for (Side side : Side.ALL) {
+    void controllerLinksToAnElevatorSideways() {
+        for (Side side : new Side[] {Side.NORTH, Side.SOUTH, Side.EAST, Side.WEST}) {
+            assertTrue(WarehouseConnectionRule.accepts(NodeKind.STOCK, side, NodeKind.ELEVATOR));
+            assertTrue(WarehouseConnectionRule.accepts(NodeKind.ELEVATOR, side, NodeKind.STOCK));
+        }
+    }
+
+    @Test
+    void controllerNeverLinksToAnElevatorVertically() {
+        for (Side side : new Side[] {Side.UP, Side.DOWN}) {
             assertFalse(WarehouseConnectionRule.accepts(NodeKind.STOCK, side, NodeKind.ELEVATOR));
             assertFalse(WarehouseConnectionRule.accepts(NodeKind.ELEVATOR, side, NodeKind.STOCK));
         }
@@ -144,7 +152,7 @@ class WarehouseConnectionRuleTest {
     @Test
     void controllerNeverLinksToShuttleServedBlocks() {
         for (Side side : Side.ALL) {
-            for (NodeKind kind : new NodeKind[] {NodeKind.RACK, NodeKind.STATION, NodeKind.GARAGE, NodeKind.ELEVATOR}) {
+            for (NodeKind kind : new NodeKind[] {NodeKind.RACK, NodeKind.STATION, NodeKind.GARAGE, NodeKind.GANTRY}) {
                 assertFalse(WarehouseConnectionRule.accepts(NodeKind.STOCK, side, kind), "controller to " + kind);
                 assertFalse(WarehouseConnectionRule.accepts(kind, side, NodeKind.STOCK), kind + " to controller");
             }

@@ -57,6 +57,7 @@ public final class ElevatorGameTests {
     private static final BlockPos LIFT_MIDDLE = new BlockPos(4, 2, 3);
     private static final BlockPos LIFT_TOP = new BlockPos(4, 3, 3);
     private static final BlockPos LIFT_RAIL_HIGH = new BlockPos(5, 3, 3);
+    private static final BlockPos SHAFT_STATION = new BlockPos(6, 3, 3);
     private static final BlockPos LIFT_CONTROLLER = new BlockPos(6, 3, 3);
     private static final BlockPos LIFT_TERMINAL = new BlockPos(7, 3, 3);
     private static final BlockPos LIFT_CHEST = new BlockPos(4, 2, 4);
@@ -117,6 +118,40 @@ public final class ElevatorGameTests {
                 helper.succeed();
             });
         });
+    }
+
+    /** A controller touching only the side of a shaft brings a station two floors up online. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void controllerBesideShaftJoins(GameTestHelper helper) {
+        shaftToStation(helper);
+        helper.setBlock(LIFT_RAIL_LOW.below(), Blocks.STONE.defaultBlockState());
+        WarehouseFixtures.controller(helper, LIFT_RAIL_LOW);
+        helper.runAfterDelay(10, () -> {
+            helper.assertTrue(WarehouseFixtures.lit(helper, SHAFT_STATION), "the station should be online through the shaft beside the controller");
+            helper.succeed();
+        });
+    }
+
+    /** A controller sitting on top of a shaft does not join it. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void controllerOnShaftTopStaysApart(GameTestHelper helper) {
+        shaftToStation(helper);
+        WarehouseFixtures.controller(helper, LIFT_TOP.above());
+        helper.runAfterDelay(10, () -> {
+            helper.assertFalse(WarehouseFixtures.lit(helper, SHAFT_STATION), "a controller on the shaft top must not bring the station online");
+            helper.succeed();
+        });
+    }
+
+    /** A three segment shaft with a rail and an Inbound Station on its top floor. */
+    private static void shaftToStation(GameTestHelper helper) {
+        helper.setBlock(LIFT_BOTTOM.below(), Blocks.STONE.defaultBlockState());
+        helper.setBlock(LIFT_BOTTOM, ServusShuttlesBlocks.ELEVATOR.get().defaultBlockState());
+        helper.setBlock(LIFT_MIDDLE, ServusShuttlesBlocks.ELEVATOR.get().defaultBlockState());
+        helper.setBlock(LIFT_TOP, ServusShuttlesBlocks.ELEVATOR.get().defaultBlockState());
+        WarehouseFixtures.railOnStone(helper, LIFT_RAIL_HIGH);
+        WarehouseFixtures.stone(helper, SHAFT_STATION.below());
+        WarehouseFixtures.inbound(helper, SHAFT_STATION, Direction.EAST);
     }
 
     /** An entity above a segment stands on its top plate; one that descends or is inside passes. */

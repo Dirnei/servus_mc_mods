@@ -210,7 +210,7 @@ The elevator item SHALL use the placement assist for sneak clicks: a sneak click
 - **THEN** a segment is placed on the stone as with any block
 
 ### Requirement: Floors join through a shaft
-Every elevator segment SHALL be a node of the warehouse network. Segments SHALL link to the segments directly above and below them and to rails beside them, so rails on different floors linked by a shaft form one warehouse. A storage block touching a segment SHALL NOT join the warehouse through that segment; only rails carry membership.
+Every elevator segment SHALL be a node of the warehouse network. Segments SHALL link to the segments directly above and below them, to rails beside them and to a Warehouse Controller beside them, so rails on different floors linked by a shaft form one warehouse and a controller touching a shaft from the side belongs to it. A segment SHALL NOT link to a controller directly above or below it. A storage block, station, garage or Fluid Gantry touching a segment SHALL NOT join the warehouse through that segment; only rails carry their membership. A controller beside a segment SHALL NOT change how the segment looks, and shuttles SHALL NOT drive into the controller.
 
 #### Scenario: Two floors one controller
 - **WHEN** a rack faces a rail on the ground floor, the rail meets a shaft, and three segments up another rail leads to a controller, and a terminal reaches the warehouse over the data line
@@ -223,6 +223,14 @@ Every elevator segment SHALL be a node of the warehouse network. Segments SHALL 
 #### Scenario: Rack against the shaft
 - **WHEN** a rack touches a segment of an online warehouse and no rail stands in front of it
 - **THEN** the rack is not part of the warehouse and its items are not listed
+
+#### Scenario: Controller against the shaft
+- **WHEN** a controller touches the side of a segment, no rail touches the controller, and a rack faces a rail that meets the same shaft on another floor
+- **THEN** the warehouse is online and the rack's items are indexed
+
+#### Scenario: Controller on top of the shaft
+- **WHEN** a controller sits directly on the top segment of a shaft and touches nothing else
+- **THEN** the controller is not part of the shaft's network
 
 ### Requirement: Segment placed on a rail
 Using an elevator item on a Warehouse Rail, sneaking or not, SHALL put a segment in that rail's place when the segment can stand there. The segment SHALL remember the rail it replaced, with its wood, also when the world is saved. When that segment is removed for any reason (broken, dismantled with the Configuration Carrot, or dropped for lack of support), the remembered rail SHALL be put back in its place, unless another block already fills the space. A segment placed anywhere else SHALL remember no rail. Farm Rails SHALL NOT be replaced this way.
