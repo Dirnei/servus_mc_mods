@@ -33,6 +33,7 @@ public final class ShuttlesGameTests {
             LeftoverGameTests.class,
             MiniWarehouseGameTests.class,
             OrderGridGameTests.class,
+            PotatoStorageGameTests.class,
             PacketInletGameTests.class,
             PackingStationGameTests.class,
             PutAwayRankGameTests.class,

@@ -190,7 +190,7 @@
   "tooltip.servus_foundation.carrot_layer_hint": "Use on the air to switch the layer",
   "tooltip.servus_foundation.data_cable.duplex": "%s items/s in each direction",
   "tooltip.servus_foundation.data_cable.simplex": "%s items/s, shared by both directions",
-  "tooltip.servus_foundation.data_potato": "Hold to see data cable load; use on a duct or tank for a report",
+  "tooltip.servus_foundation.data_potato": "Hold to see data cable load; use on a duct, tank or storage block for a report",
   "tooltip.servus_foundation.fluid_tank.empty": "Empty",
   "tooltip.servus_foundation.fluid_tank.floor": "Floor: %s",
   "tooltip.servus_foundation.fluid_tank.fluid": "%s: %s mB",

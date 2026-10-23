@@ -9,6 +9,7 @@
 - A one-off order grid in the Storage Terminal replaces the crafting popup and can save its pattern.
 - The Shuttle Garage has a real doorway with a roll-up shutter that opens for its shuttles.
 - The Warehouse Controller and a new Storage tab in the Production Terminal show how full the storage is, per warehouse and zone.
+- The Data Potato reports a rack section's used and free slots and a Fluid Gantry's tanks in chat.
 
 ### Changed
 - Put-aways pick the rack by zone, then bays already holding the item, then the most room, weighed by travel time.

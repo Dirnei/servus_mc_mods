@@ -2,13 +2,17 @@ package io.github.dirnei.mc.servus.shuttles.gantry;
 
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.foundation.item.DataPotatoItem;
+import io.github.dirnei.mc.servus.foundation.item.PotatoInspectable;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.shuttles.menu.FluidGantryMenu;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
+import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -31,6 +35,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -48,7 +53,7 @@ import org.jspecify.annotations.Nullable;
  * {@link StorageNodeBlocks#ACTIVITY} are the master's, copied onto the beam
  * for its sign.
  */
-public class FluidGantryBlock extends BaseEntityBlock implements Wrenchable {
+public class FluidGantryBlock extends BaseEntityBlock implements Wrenchable, PotatoInspectable {
 
     public static final MapCodec<FluidGantryBlock> CODEC = simpleCodec(FluidGantryBlock::new);
     public static final EnumProperty<GantryPart> PART = EnumProperty.create("part", GantryPart.class);
@@ -230,7 +235,7 @@ public class FluidGantryBlock extends BaseEntityBlock implements Wrenchable {
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                           InteractionHand hand, BlockHitResult hitResult) {
-        if (stack.getItem() instanceof ConfigurationCarrotItem) {
+        if (stack.getItem() instanceof ConfigurationCarrotItem || stack.getItem() instanceof DataPotatoItem) {
             return InteractionResult.PASS;
         }
         if (Transfer.isFluidContainer(stack)) {
@@ -242,6 +247,12 @@ public class FluidGantryBlock extends BaseEntityBlock implements Wrenchable {
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+
+    @Override
+    public List<Component> potatoReport(Level level, BlockPos pos, BlockState state, Vec3 hit) {
+        FluidGantryBlockEntity master = master(level, pos);
+        return master == null ? List.of() : GantryReport.of(master);
     }
 
     /** The empty hand, or any item that is no fluid container, opens the master's GUI. */

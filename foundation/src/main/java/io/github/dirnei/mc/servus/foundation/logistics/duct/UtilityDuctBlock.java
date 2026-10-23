@@ -5,12 +5,15 @@ import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataSummary;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.DataPotatoItem;
+import io.github.dirnei.mc.servus.foundation.item.PotatoInspectable;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -37,9 +40,14 @@ import org.jspecify.annotations.Nullable;
  * Utility duct block. The six connection flags are the union of the per line
  * arms the block entity computes from its lines, side modes and neighbours.
  */
-public class UtilityDuctBlock extends ConnectableBlock {
+public class UtilityDuctBlock extends ConnectableBlock implements PotatoInspectable {
 
     public static final MapCodec<UtilityDuctBlock> CODEC = simpleCodec(UtilityDuctBlock::new);
+
+    @Override
+    public List<Component> potatoReport(Level level, BlockPos pos, BlockState state, Vec3 hit) {
+        return level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct ? DuctReport.at(duct, hit) : List.of();
+    }
 
     /** Cached shapes by lines, per line arms, panels, height and faces packed into a long. */
     private static final Map<Long, VoxelShape> SHAPES = new ConcurrentHashMap<>();

@@ -555,5 +555,14 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.fluid_gantry.keep.tooltip", "Tanker shuttles fill this tank from Storage gantries up to the keep level. Steps of 1 B and 10 B.");
         add("gui.servus_shuttles.fluid_gantry.keep.needs_lock", "Lock this tank to a fluid to keep a level in it.");
         add("gui.servus_shuttles.fluid_gantry.state.no_tanker", "No Tanker shuttle reaches this gantry: the fluid waits here");
+        add("message.servus_shuttles.potato.rack_zone", "Rack section, zone: %s");
+        add("message.servus_shuttles.potato.rack_no_zone", "Rack section, no zone");
+        add("message.servus_shuttles.potato.rack_slots", "%s bays: %s / %s slots used");
+        add("message.servus_shuttles.potato.rack_slots_full", "%s bays: %s / %s slots used, full");
+        add("message.servus_shuttles.potato.rack_empty", "Empty");
+        add("message.servus_shuttles.potato.rack_item", "%s: %s");
+        add("message.servus_shuttles.potato.gantry_mode", "Fluid Gantry, %s");
+        add("message.servus_shuttles.potato.gantry_tank", "%s tank: %s, lock: %s");
+        add("message.servus_shuttles.potato.gantry_any", "Any");
     }
 }

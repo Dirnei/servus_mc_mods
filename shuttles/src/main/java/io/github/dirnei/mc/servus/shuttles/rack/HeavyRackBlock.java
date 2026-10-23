@@ -3,6 +3,8 @@ package io.github.dirnei.mc.servus.shuttles.rack;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.block.BlockEntityItems;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.foundation.item.DataPotatoItem;
+import io.github.dirnei.mc.servus.foundation.item.PotatoInspectable;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import io.github.dirnei.mc.servus.shuttles.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
@@ -14,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -40,6 +43,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -48,7 +52,7 @@ import org.jspecify.annotations.Nullable;
  * it is placed and that section has room, and the join never moves after
  * that. A section shares one GUI; every bay still stores its own slots.
  */
-public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
+public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, PotatoInspectable {
 
     public static final MapCodec<HeavyRackBlock> CODEC = simpleCodec(HeavyRackBlock::new);
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
@@ -248,11 +252,16 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.getItem() instanceof ConfigurationCarrotItem || stack.getItem() instanceof ZoneLabelItem
-                || hitResult.getDirection() != state.getValue(FACING)) {
+                || stack.getItem() instanceof DataPotatoItem || hitResult.getDirection() != state.getValue(FACING)) {
             // Only the front opens the rack; elsewhere the held item acts, which places blocks.
             return InteractionResult.PASS;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+
+    @Override
+    public List<Component> potatoReport(Level level, BlockPos pos, BlockState state, Vec3 hit) {
+        return RackReport.of(level, pos);
     }
 
     @Override

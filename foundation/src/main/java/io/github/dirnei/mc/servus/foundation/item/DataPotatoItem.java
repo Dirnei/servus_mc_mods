@@ -1,12 +1,9 @@
 package io.github.dirnei.mc.servus.foundation.item;
 
-import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctReport;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlockEntity;
-import io.github.dirnei.mc.servus.foundation.logistics.tank.TankReport;
 import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -16,12 +13,12 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * The Data Potato, Servus' investigation tool. Held, it shows analysis views
- * such as the data duct load; used on a duct or a Fluid Tank it prints a
- * report into chat.
+ * such as the data duct load; used on a {@link PotatoInspectable} block it
+ * prints that block's report into chat.
  * It never configures or dismantles anything, also when sneaking.
  */
 public class DataPotatoItem extends Item {
@@ -33,15 +30,14 @@ public class DataPotatoItem extends Item {
     @Override
     public InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
-        BlockEntity target = level.getBlockEntity(context.getClickedPos());
-        if (!(target instanceof UtilityDuctBlockEntity) && !(target instanceof FluidTankBlockEntity)) {
+        BlockPos pos = context.getClickedPos();
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof PotatoInspectable inspectable)) {
             return InteractionResult.PASS;
         }
         Player player = context.getPlayer();
         if (!level.isClientSide() && player != null) {
-            List<Component> report = target instanceof UtilityDuctBlockEntity duct
-                    ? DuctReport.at(duct, context.getClickLocation())
-                    : TankReport.of((FluidTankBlockEntity) target);
+            List<Component> report = inspectable.potatoReport(level, pos, state, context.getClickLocation());
             report.forEach(player::sendSystemMessage);
         }
         return InteractionResult.SUCCESS;

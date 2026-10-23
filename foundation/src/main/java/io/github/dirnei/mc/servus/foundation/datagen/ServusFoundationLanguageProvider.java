@@ -19,7 +19,7 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
         add("tooltip.servus_foundation.stone", "Stone: %s");
         add(ServusFoundationItems.CONFIGURATION_CARROT.get(), "Configuration Carrot");
         add(ServusFoundationItems.DATA_POTATO.get(), "Data Potato");
-        add("tooltip.servus_foundation.data_potato", "Hold to see data cable load; use on a duct or tank for a report");
+        add("tooltip.servus_foundation.data_potato", "Hold to see data cable load; use on a duct, tank or storage block for a report");
         add(ServusFoundationItems.GOGGLES.get(), "Engineer Goggles");
         add(AdapterContent.BLOCK.get(), "Machine Adapter");
         MachineDataParts.lang(this);

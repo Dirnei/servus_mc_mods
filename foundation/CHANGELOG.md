@@ -1,5 +1,10 @@
 # Servus: Foundation changelog
 
+## Unreleased
+
+### Added
+- The Data Potato reports on Servus storage blocks too, without opening them.
+
 ## 0.3.0
 
 ### Added

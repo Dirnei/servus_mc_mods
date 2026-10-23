@@ -1,7 +1,9 @@
 package io.github.dirnei.mc.servus.foundation.logistics.tank;
 
 import com.mojang.serialization.MapCodec;
+import io.github.dirnei.mc.servus.foundation.item.PotatoInspectable;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -21,6 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.access.ItemAccess;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
@@ -31,9 +34,14 @@ import net.neoforged.neoforge.transfer.fluid.FluidUtil;
  * sets them, and the multipart model hides glass and frame toward joined
  * sides.
  */
-public class FluidTankBlock extends BaseEntityBlock {
+public class FluidTankBlock extends BaseEntityBlock implements PotatoInspectable {
 
     public static final MapCodec<FluidTankBlock> CODEC = simpleCodec(FluidTankBlock::new);
+
+    @Override
+    public List<Component> potatoReport(Level level, BlockPos pos, BlockState state, Vec3 hit) {
+        return level.getBlockEntity(pos) instanceof FluidTankBlockEntity tank ? TankReport.of(tank) : List.of();
+    }
 
     private static final Map<Direction, BooleanProperty> PROPERTIES = PipeBlock.PROPERTY_BY_DIRECTION;
 
