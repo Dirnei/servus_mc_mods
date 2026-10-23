@@ -73,6 +73,29 @@ class ShuttleDriveTest {
         assertEquals(v, at[2], 1e-9);
     }
 
+    @Test
+    void glideStopsAtAStandingLead() {
+        double[] at = ShuttleDrive.glide(21, 0, 0, TOP, TOP, ACCEL, 300, i -> false, i -> false, 0, 6.5, 0);
+        assertEquals(6.5, at[0] + at[1], 1e-6);
+        assertEquals(0, at[2], 1e-9);
+    }
+
+    @Test
+    void glideBehindAMovingLeadTakesItsSpeedAndNeverPassesIt() {
+        double leadSpeed = TOP / 2;
+        double v = TOP;
+        double[] at = {0, 0};
+        for (int t = 1; t <= 150; t++) {
+            double[] next = ShuttleDrive.glide(80, (int) at[0], at[1], v, TOP, ACCEL, 1, i -> false, i -> false, 0, 2 + leadSpeed * (t - 1), leadSpeed);
+            at = next;
+            v = next[2];
+            assertTrue(at[0] + at[1] <= 2 + leadSpeed * t + 1e-9, "never past the lead at tick " + t);
+        }
+        assertEquals(leadSpeed, v, 1e-3);
+        double[] whole = ShuttleDrive.glide(80, 0, 0, TOP, TOP, ACCEL, 150, i -> false, i -> false, 0, 2, leadSpeed);
+        assertEquals(at[0] + at[1], whole[0] + whole[1], 1e-9);
+    }
+
     /** An L path of 21 nodes turning at node 10. */
     private static final int NODES = 21;
     private static final int TURN = 10;

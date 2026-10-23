@@ -5,6 +5,7 @@
 ### Added
 - Shuttles get a number per world, shown in their tooltip and in the garage.
 - Slots a shuttle job fills or empties are locked and shown with a colour wash, a ghost item and the shuttle's label.
+- Shuttles follow each other with a gap, take turns at merges and leave a garage one after another.
 
 ### Changed
 - Put-aways pick the rack by zone, then bays already holding the item, then the most room, weighed by travel time.

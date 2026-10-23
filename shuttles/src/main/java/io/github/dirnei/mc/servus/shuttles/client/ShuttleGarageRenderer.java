@@ -44,7 +44,6 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
     private static final double FLOOR = 2.0 / 16.0;
     /** The shuttle is drawn a little below block scale. */
     private static final float SHUTTLE_SCALE = 0.8F;
-    private static final double PARK_SPACING = 0.25 * SHUTTLE_SCALE;
     /** Gap between a sight glass frame and the fluid drawn on it, in model pixels. */
     private static final float GLASS_GAP = 0.02F;
 
@@ -77,7 +76,6 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
         double elapsed = (now - fleet.receivedTick()) + partialTick;
         ItemStack plain = new ItemStack(ServusShuttlesItems.SHUTTLE_MK1.get());
         BlockPos origin = garage.getBlockPos();
-        int parked = 0;
 
         for (ShuttleView view : fleet.views()) {
             double[] at = glide(view, elapsed);
@@ -90,17 +88,12 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
                 }
             }
             double yaw = heading(view.path(), at);
-            double offset = 0;
-            if (!view.moving()) {
-                offset = parked * PARK_SPACING;
-                parked++;
-            }
             BlockPos railPos = BlockPos.containing(pos[0], pos[1], pos[2]);
             int light = LevelRenderer.getLightCoords(garage.getLevel(), railPos.above());
 
             poseStack.pushPose();
             // The model's bottom stands on the floor; NONE draws it around its centre.
-            poseStack.translate(pos[0] - origin.getX() + 0.5 + offset, pos[1] - origin.getY() + FLOOR,
+            poseStack.translate(pos[0] - origin.getX() + 0.5, pos[1] - origin.getY() + FLOOR,
                     pos[2] - origin.getZ() + 0.5);
             poseStack.mulPose(Axis.YP.rotationDegrees((float) yaw));
             poseStack.scale(SHUTTLE_SCALE, SHUTTLE_SCALE, SHUTTLE_SCALE);
@@ -146,8 +139,10 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
     private static double[] glide(ShuttleView view, double elapsed) {
         List<BlockPos> path = view.path();
         ShuttleView.Drive drive = view.drive();
+        double leadAt = view.lead().map(lead -> (double) lead.at()).orElse(Double.POSITIVE_INFINITY);
+        double leadSpeed = view.lead().map(lead -> (double) lead.speed()).orElse(0.0);
         return ShuttleDrive.glide(path.size(), view.segment(), view.progress(), drive.speed(), drive.top(), drive.accel(), elapsed,
-                i -> !horizontal(path, i), i -> corner(path, i), drive.corner());
+                i -> !horizontal(path, i), i -> corner(path, i), drive.corner(), leadAt, leadSpeed);
     }
 
     private static boolean corner(List<BlockPos> path, int i) {

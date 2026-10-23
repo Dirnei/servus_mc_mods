@@ -87,6 +87,8 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final int DEFAULT_TANKER_MIN_LOAD = 1000;
 
     private static final double DEFAULT_FREE_SLOT_BUCKET = 0.25;
+    private static final double DEFAULT_FOLLOW_GAP = 1.0;
+    private static final double DEFAULT_TRAFFIC_PER_SHUTTLE = 4;
     private static final Identifier WAREHOUSE = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "warehouse");
     private static final Identifier RACK = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "rack");
     private static final Identifier CRAFTING_STATION = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "crafting_station");
@@ -167,6 +169,8 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private volatile int tankerMinLoad = DEFAULT_TANKER_MIN_LOAD;
     private volatile TravelWeights travelWeights = TravelWeights.DEFAULT;
     private volatile double freeSlotBucket = DEFAULT_FREE_SLOT_BUCKET;
+    private volatile double followGap = DEFAULT_FOLLOW_GAP;
+    private volatile double trafficPerShuttle = DEFAULT_TRAFFIC_PER_SHUTTLE;
 
     private ShuttlesStatsManager() {
         super(ExtraCodecs.JSON, FileToIdConverter.json(DIRECTORY));
@@ -240,6 +244,9 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         tankerMinLoad = countField(files.get(WAREHOUSE), "tanker_min_load", DEFAULT_TANKER_MIN_LOAD);
         travelWeights = travelWeights(files.get(WAREHOUSE));
         freeSlotBucket = Math.min(1.0, doubleField(files.get(WAREHOUSE), "free_slot_bucket", DEFAULT_FREE_SLOT_BUCKET));
+        followGap = doubleField(files.get(WAREHOUSE), "follow_gap", DEFAULT_FOLLOW_GAP);
+        JsonElement costs = files.get(WAREHOUSE) instanceof JsonObject warehouse ? warehouse.get("travel_costs") : null;
+        trafficPerShuttle = costField(costs, "traffic_per_shuttle", DEFAULT_TRAFFIC_PER_SHUTTLE);
         shuttleTiers = ShuttleStatsReader.read(files.get(SHUTTLE));
         ServusShuttles.LOGGER.info("Warehouse polls {} sources per tick", sourcesPerTick);
     }
@@ -655,5 +662,15 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     /** The share of a bay's slots one free slot bucket of the put-away rule spans. */
     public double freeSlotBucket() {
         return freeSlotBucket;
+    }
+
+    /** Blocks from centre to centre a shuttle keeps behind the one ahead in its lane, {@code follow_gap} in {@code warehouse.json}. */
+    public double followGap() {
+        return followGap;
+    }
+
+    /** Ticks a shuttle on a step adds to the travel cost of that step, {@code travel_costs.traffic_per_shuttle}. */
+    public double trafficPerShuttle() {
+        return trafficPerShuttle;
     }
 }

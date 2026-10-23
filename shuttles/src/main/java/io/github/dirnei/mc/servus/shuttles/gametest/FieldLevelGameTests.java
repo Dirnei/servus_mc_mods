@@ -56,6 +56,28 @@ public final class FieldLevelGameTests {
         return state.getBlock() instanceof CropBlock crop ? crop.getAge(state) : -1;
     }
 
+    /**
+     * Every ripe plot holds wheat again that is not ripe: harvested and
+     * replanted. Random ticks may already have grown the new wheat a stage.
+     */
+    private static boolean allReplanted(GameTestHelper helper) {
+        for (BlockPos plot : RIPE) {
+            int age = age(helper, plot);
+            if (!helper.getBlockState(plot).is(Blocks.WHEAT) || age >= 7) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static String ages(GameTestHelper helper) {
+        StringBuilder ages = new StringBuilder();
+        for (BlockPos plot : RIPE) {
+            ages.append(ages.isEmpty() ? "" : ", ").append(age(helper, plot));
+        }
+        return ages.toString();
+    }
+
     private static void ripeWheat(GameTestHelper helper) {
         for (BlockPos plot : RIPE) {
             FieldFixtures.crop(helper, plot, Blocks.WHEAT, 7);
@@ -102,8 +124,8 @@ public final class FieldLevelGameTests {
             FieldFixtures.water(head);
             head.setCrop(new ItemStack(Items.WHEAT_SEEDS));
             helper.assertTrue(head.produce().isEmpty() && !head.produceKnown(), "a new head knows no produce");
-            Waits.when(helper, () -> allAged(helper, 0) && out(helper) == 0 && head.produceKnown(), 550,
-                    () -> "the harvest should teach the head its produce, produce " + head.produce() + ", out " + out(helper), () -> {
+            Waits.when(helper, () -> allReplanted(helper) && out(helper) == 0 && head.produceKnown(), 550,
+                    () -> "the harvest should teach the head its produce, produce " + head.produce() + ", out " + out(helper) + ", ages " + ages(helper), () -> {
                 helper.assertTrue(head.produce().is(Items.WHEAT), "the produce is wheat, got " + head.produce());
                 helper.succeed();
             });
@@ -146,8 +168,9 @@ public final class FieldLevelGameTests {
             helper.runAfterDelay(60, () -> {
                 helper.assertTrue(allAged(helper, 7) && out(helper) == 0, "the harvest waits while 20 wheat are in stock");
                 takeOut(farm.rack(), Items.WHEAT, 15);
-                Waits.when(helper, () -> allAged(helper, 0) && out(helper) == 0, 550,
-                        () -> "the field should be harvested once 5 wheat are left, rack holds " + WarehouseFixtures.count(farm.rack(), Items.WHEAT),
+                Waits.when(helper, () -> allReplanted(helper) && out(helper) == 0, 550,
+                        () -> "the field should be harvested once 5 wheat are left, rack holds " + WarehouseFixtures.count(farm.rack(), Items.WHEAT)
+                                + ", ages " + ages(helper),
                         () -> {
                     helper.assertTrue(WarehouseFixtures.count(farm.rack(), Items.WHEAT) == 5 + RIPE.length, "the harvest reached the rack");
                     helper.succeed();

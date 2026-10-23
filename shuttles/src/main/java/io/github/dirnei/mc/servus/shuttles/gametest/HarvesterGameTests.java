@@ -72,9 +72,13 @@ public final class HarvesterGameTests {
         return state.is(block) && !((CropBlock) block).isMaxAge(state);
     }
 
-    private static boolean young(GameTestHelper helper, BlockPos pos, Block block) {
-        BlockState state = helper.getBlockState(pos);
-        return state.is(block) && ((CropBlock) block).getAge(state) == 0;
+    private static String ages(GameTestHelper helper, BlockPos... plots) {
+        StringBuilder ages = new StringBuilder();
+        for (BlockPos plot : plots) {
+            BlockState state = helper.getBlockState(plot);
+            ages.append(ages.isEmpty() ? "" : ", ").append(state.getBlock() instanceof CropBlock crop ? crop.getAge(state) : -1);
+        }
+        return ages.toString();
     }
 
     /** The Harvester goes into a shuttle in the workshop through the install slot. */
@@ -112,13 +116,13 @@ public final class HarvesterGameTests {
             farm.head().setCrop(new ItemStack(Items.WHEAT_SEEDS));
             Waits.when(helper, () -> {
                 for (BlockPos plot : plots) {
-                    if (!young(helper, plot, Blocks.WHEAT)) {
+                    if (!planted(helper, plot, Blocks.WHEAT)) {
                         return false;
                     }
                 }
                 return WarehouseFixtures.count(farm.rack(), Items.WHEAT) == plots.length && out(helper) == 0;
             }, 550, () -> "the four wheat should be in the rack and replanted, rack holds " + WarehouseFixtures.count(farm.rack(), Items.WHEAT)
-                    + " wheat, harvester out " + out(helper), () -> {
+                    + " wheat, harvester out " + out(helper) + ", ages " + ages(helper, plots), () -> {
                 helper.assertTrue(noItemsLying(helper), "nothing should drop on the ground");
                 helper.assertTrue(farm.head().ripeCount() == 0 && farm.head().plantedCount() == plots.length,
                         "the head should see four young crops, got " + farm.head().plantedCount() + " planted " + farm.head().ripeCount() + " ripe");
@@ -202,8 +206,8 @@ public final class HarvesterGameTests {
         helper.runAfterDelay(2, () -> {
             FieldFixtures.water(farm.head());
             farm.head().setCrop(new ItemStack(Items.WHEAT_SEEDS));
-            Waits.when(helper, () -> young(helper, dirt, Blocks.WHEAT) && young(helper, grass, Blocks.WHEAT) && out(helper) == 0,
-                    550, () -> "the dirt and grass plots should be tilled and planted", () -> {
+            Waits.when(helper, () -> planted(helper, dirt, Blocks.WHEAT) && planted(helper, grass, Blocks.WHEAT) && out(helper) == 0,
+                    550, () -> "the dirt and grass plots should be tilled and planted, ages " + ages(helper, dirt, grass), () -> {
                 helper.assertBlockPresent(Blocks.FARMLAND, dirt.below());
                 helper.assertBlockPresent(Blocks.FARMLAND, grass.below());
                 helper.assertBlockPresent(Blocks.STONE, stone.below());

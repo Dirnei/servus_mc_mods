@@ -12,6 +12,7 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.Shuttle.Load;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.CargoBatch;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.JobNeeds;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleModules;
+import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleItem;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleProfile;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleTiers;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.ObjIntConsumer;
@@ -183,6 +185,12 @@ public final class ShuttleFleet {
     static final int STRAND_RETRY_TICKS = 100;
     /** Ticks a restored shuttle waits once its path's chunks are loaded, and the queue waits after a restore. */
     static final int RESTORE_SETTLE_TICKS = 20;
+    /** Room below this many blocks holds a shuttle where it is, so it never creeps into the gap. */
+    private static final double MIN_STEP = 1e-4;
+    /** The farthest a shuttle looks ahead for shuttles in its lane, in blocks. */
+    private static final double MAX_WINDOW = 32;
+    /** Order key offset for shuttles without a number, so numbered ones go first on a tie. */
+    private static final long UNNUMBERED = 1L << 32;
     /** Garage slots the out mask can tell apart; container data travels as a short. */
     public static final int MASK_SLOTS = 15;
 
@@ -399,6 +407,7 @@ public final class ShuttleFleet {
         dropCargo(shuttle);
         shuttle.leg = Leg.HOME;
         shuttle.motion = shuttle.garage.home == null ? null : ShuttleMotion.parked(shuttle.garage.home);
+        shuttle.inGarage = true;
         syncPending = true;
     }
 
@@ -804,6 +813,7 @@ public final class ShuttleFleet {
         }
         updateStrandedLamps();
         boolean moving = lifts.tick();
+        traffic();
         for (Garage garage : garages.values()) {
             boolean out = false;
             for (Shuttle shuttle : garage.shuttles) {
@@ -871,11 +881,17 @@ public final class ShuttleFleet {
             }
             return false;
         }
+        if (shuttle.room < MIN_STEP && !shuttle.inRing()) {
+            shuttle.speedFor = shuttle.motion;
+            shuttle.speed = 0;
+            return false;
+        }
         boolean wasHeld = shuttle.motion.held();
         boolean done = shuttle.motion.advance(drive(shuttle), segment -> pay(shuttle, segment) && lifts.mayStart(shuttle, segment));
         if (shuttle.motion.held()) {
             shuttle.speed = 0;
         }
+        noteMove(shuttle);
         lifts.observe(shuttle, shuttle.motion.currentNode());
         if (wasHeld != shuttle.motion.held()) {
             syncPending = true;
@@ -945,7 +961,7 @@ public final class ShuttleFleet {
         double bestCost = Double.POSITIVE_INFINITY;
         for (Shuttle shuttle : free) {
             NodePos from = shuttle.motion.currentNode();
-            RailCosts.Search<NodePos> search = costsFrom(List.of(from), ways(shuttle), goals::contains);
+            RailCosts.Search<NodePos> search = costsFrom(List.of(from), ways(shuttle), goals::contains, shuttle);
             Optional<NodePos> goal = search.cheapest(goals::contains);
             if (goal.isPresent() && search.costTo(goal.get()) < bestCost) {
                 bestCost = search.costTo(goal.get());
@@ -967,9 +983,35 @@ public final class ShuttleFleet {
 
     /** Travel costs from the starts over these ways, stopping at the first node passing {@code stopAt}. */
     RailCosts.Search<NodePos> costsFrom(Collection<NodePos> starts, Function<NodePos, ? extends Collection<NodePos>> ways, Predicate<NodePos> stopAt) {
+        return costsFrom(starts, ways, stopAt, null);
+    }
+
+    /**
+     * Travel costs from the starts over these ways, stopping at the first
+     * node passing {@code stopAt}, with the traffic of every shuttle but
+     * {@code planned} on the rails.
+     */
+    private RailCosts.Search<NodePos> costsFrom(Collection<NodePos> starts, Function<NodePos, ? extends Collection<NodePos>> ways,
+                                                Predicate<NodePos> stopAt, Shuttle planned) {
         TravelWeights weights = ShuttlesStatsManager.INSTANCE.travelWeights();
         TravelWeights.Lifts lifts = liftLoads(weights);
-        return RailCosts.search(starts, ways, (previous, from, to) -> weights.step(previous, from, to, lifts), stopAt);
+        Map<ShuttleTraffic.Step, Double> traffic = trafficLoads(planned);
+        if (traffic.isEmpty()) {
+            return RailCosts.search(starts, ways, (previous, from, to) -> weights.step(previous, from, to, lifts), stopAt);
+        }
+        return RailCosts.search(starts, ways, (previous, from, to) -> weights.step(previous, from, to, lifts)
+                + traffic.getOrDefault(new ShuttleTraffic.Step(from, to), 0.0), stopAt);
+    }
+
+    /** The traffic on each step as one search sees it: every shuttle out on the rails but the planned one. */
+    private Map<ShuttleTraffic.Step, Double> trafficLoads(Shuttle planned) {
+        List<ShuttleTraffic.Car> cars = new ArrayList<>();
+        for (Shuttle shuttle : shuttles()) {
+            if (shuttle != planned && onRails(shuttle)) {
+                cars.add(car(shuttle));
+            }
+        }
+        return ShuttleTraffic.stepLoads(cars, ShuttlesStatsManager.INSTANCE.trafficPerShuttle());
     }
 
     /** The cheapest way for the shuttle from a node to the cheapest goal, start first; empty without a way. */
@@ -977,7 +1019,7 @@ public final class ShuttleFleet {
         if (goal.test(from)) {
             return List.of(from);
         }
-        return costsFrom(List.of(from), ways(shuttle), goal).pathToCheapest(goal);
+        return costsFrom(List.of(from), ways(shuttle), goal, shuttle).pathToCheapest(goal);
     }
 
     /**
@@ -1102,6 +1144,7 @@ public final class ShuttleFleet {
 
     private void arrive(Shuttle shuttle) {
         if (shuttle.leg == Leg.STRANDED) {
+            shuttle.inGarage = true;
             return;
         }
         if (!shuttle.busy()) {
@@ -1390,6 +1433,7 @@ public final class ShuttleFleet {
         shuttle.leg = Leg.STRANDED;
         shuttle.motion = homePath.isEmpty() ? (home == null ? ShuttleMotion.parked(shuttle.motion.end()) : ShuttleMotion.parked(home))
                 : new ShuttleMotion(homePath);
+        shuttle.inGarage = homePath.isEmpty() && home != null;
         syncPending = true;
     }
 
@@ -1567,6 +1611,7 @@ public final class ShuttleFleet {
         shuttle.loads.clear();
         shuttle.leg = Leg.HOME;
         shuttle.motion = shuttle.garage.home == null ? null : ShuttleMotion.parked(shuttle.garage.home);
+        shuttle.inGarage = true;
     }
 
     /** Pops a field run's cargo at the garage and ends the run; false when the shuttle is on none. */
@@ -1669,6 +1714,7 @@ public final class ShuttleFleet {
         shuttle.leg = Leg.STRANDED;
         NodePos home = shuttle.garage.home;
         shuttle.motion = ShuttleMotion.parked(home == null ? shuttle.motion.currentNode() : home);
+        shuttle.inGarage = home != null;
         syncPending = true;
     }
 
@@ -1842,6 +1888,7 @@ public final class ShuttleFleet {
             shuttle.paidFor = null;
             shuttle.paidThrough = -1;
             shuttle.pumping = null;
+            shuttle.inGarage = false;
             shuttle.restoring = new Settle(RESTORE_SETTLE_TICKS);
             Set<Integer> carried = new HashSet<>();
             for (Load load : shuttle.loads) {
@@ -1882,6 +1929,23 @@ public final class ShuttleFleet {
     public void refreshShafts(List<Shaft> shafts) {
         lifts.refresh(shafts);
         syncPending = true;
+    }
+
+    /**
+     * Sends an idle shuttle of that garage along the path without a job, as
+     * if on its way home; it parks in its garage when it arrives. False when
+     * the slot holds no idle shuttle. For GameTests.
+     */
+    public boolean sendAlong(BlockPos garagePos, int slot, List<NodePos> path) {
+        Garage garage = garages.get(garagePos);
+        Shuttle shuttle = garage == null ? null : garage.inSlot(slot);
+        if (shuttle == null || shuttle.busy() || path.isEmpty()) {
+            return false;
+        }
+        shuttle.leg = Leg.HOME;
+        shuttle.motion = new ShuttleMotion(path);
+        syncPending = true;
+        return true;
     }
 
     /** The car of the shaft at that bottom, or null. For tests and the network. */
@@ -1964,13 +2028,165 @@ public final class ShuttleFleet {
             shuttle.speedFor = motion;
             shuttle.speed = 0;
         }
+        shuttle.speed = shuttle.inRing() ? Math.min(shuttle.ringSpeed, nextSpeed(shuttle, Double.POSITIVE_INFINITY))
+                : nextSpeed(shuttle, shuttle.room);
+        // Never zero, so a shuttle standing at the start of a ride still asks the gate, which hands it to the car.
+        return Math.max(shuttle.speed, MIN_STEP);
+    }
+
+    /** The speed the shuttle drives next tick when it may drive at most {@code room} blocks before it must stand. */
+    private static double nextSpeed(Shuttle shuttle, double room) {
+        ShuttleMotion motion = shuttle.motion;
+        double speed = motion == shuttle.speedFor ? shuttle.speed : 0;
         List<NodePos> path = motion.path();
-        double toStop = ShuttleDrive.toStop(path.size(), motion.segment(), motion.progress(), i -> vertical(path, i));
+        double toStop = Math.min(room, ShuttleDrive.toStop(path.size(), motion.segment(), motion.progress(), i -> vertical(path, i)));
         double limit = ShuttleDrive.cornerLimit(path.size(), motion.segment(), motion.progress(), i -> corner(path, i),
                 shuttle.profile.cornerSpeed(), shuttle.profile.accel());
-        shuttle.speed = ShuttleDrive.next(shuttle.speed, Math.min(shuttle.profile.speed(), limit), shuttle.profile.accel(), toStop);
-        // Never zero, so a shuttle standing at the start of a ride still asks the gate, which hands it to the car.
-        return Math.max(shuttle.speed, 1e-4);
+        return ShuttleDrive.next(speed, Math.min(shuttle.profile.speed(), limit), shuttle.profile.accel(), toStop);
+    }
+
+    /** After a move: the shuttle has left its garage once it is past its first node, and keeps the heading it drove. */
+    private static void noteMove(Shuttle shuttle) {
+        ShuttleMotion motion = shuttle.motion;
+        if (motion.segment() == 0 && motion.progress() == 0) {
+            return;
+        }
+        shuttle.inGarage = false;
+        List<NodePos> path = motion.path();
+        int to = motion.segment() > 0 ? motion.segment() : 1;
+        if (to < path.size()) {
+            shuttle.lastHeading = ShuttleTraffic.direction(path.get(to - 1), path.get(to));
+        }
+    }
+
+    /**
+     * Works out who follows whom before any shuttle moves this tick: each
+     * shuttle's room behind its leader, the rings of followers and the
+     * shuttles that leave a lift car without waiting; syncs a shuttle whose
+     * following changed.
+     */
+    private void traffic() {
+        List<Shuttle> onRails = new ArrayList<>();
+        List<ShuttleTraffic.Car> cars = new ArrayList<>();
+        double gap = ShuttlesStatsManager.INSTANCE.followGap();
+        double window = gap + 1;
+        for (Shuttle shuttle : shuttles()) {
+            shuttle.room = Double.POSITIVE_INFINITY;
+            shuttle.leader = -1;
+            shuttle.leaderSpeed = 0;
+            shuttle.ringSpeed = Double.NaN;
+            if (onRails(shuttle)) {
+                onRails.add(shuttle);
+                cars.add(car(shuttle));
+                double top = shuttle.profile.speed();
+                window = Math.max(window, top * top / (2 * Math.max(shuttle.profile.accel(), MIN_STEP)) + top + gap + 1);
+            }
+        }
+        if (cars.size() > 1) {
+            follow(onRails, ShuttleTraffic.limits(cars, gap, Math.min(window, MAX_WINDOW)));
+        }
+        for (Shuttle shuttle : onRails) {
+            long shown = followKey(shuttle);
+            if (shown != shuttle.followShown) {
+                shuttle.followShown = shown;
+                syncPending = true;
+            }
+        }
+    }
+
+    /** Applies the limits to the shuttles that drive this tick: rooms, rings, and the lift exit that must not wait. */
+    private void follow(List<Shuttle> onRails, Map<Integer, ShuttleTraffic.Limit> limits) {
+        Map<Integer, Shuttle> byId = new HashMap<>();
+        Map<Integer, Integer> leaderOf = new LinkedHashMap<>();
+        Map<Integer, Double> free = new HashMap<>();
+        for (Shuttle shuttle : onRails) {
+            byId.put(shuttle.id, shuttle);
+            ShuttleTraffic.Limit limit = limits.get(shuttle.id);
+            if (limit == null || !limit.led() || !drives(shuttle) || boardsCar(shuttle)) {
+                continue;
+            }
+            shuttle.room = limit.room();
+            shuttle.leader = limit.leader();
+            shuttle.leaderSpeed = limit.leaderSpeed();
+            double freeSpeed = nextSpeed(shuttle, Double.POSITIVE_INFINITY);
+            if (shuttle.room < MIN_STEP || nextSpeed(shuttle, shuttle.room) < freeSpeed - 1e-9) {
+                leaderOf.put(shuttle.id, limit.leader());
+                free.put(shuttle.id, freeSpeed);
+            }
+        }
+        for (Integer id : new ArrayList<>(leaderOf.keySet())) {
+            Shuttle shuttle = byId.get(id);
+            if (onCar(shuttle) && ShuttleTraffic.chainReaches(leaderOf, id, other -> callsCar(byId.get(other), shuttle.lift))) {
+                shuttle.room = Double.POSITIVE_INFINITY;
+                leaderOf.remove(id);
+            }
+        }
+        for (List<Integer> ring : ShuttleTraffic.rings(leaderOf)) {
+            double speed = Double.POSITIVE_INFINITY;
+            for (int id : ring) {
+                speed = Math.min(speed, free.get(id));
+            }
+            for (int id : ring) {
+                byId.get(id).ringSpeed = speed;
+            }
+        }
+    }
+
+    /** Whether the shuttle is out on the rails or about to leave its garage, so traffic counts it. */
+    private static boolean onRails(Shuttle shuttle) {
+        ShuttleMotion motion = shuttle.motion;
+        if (motion == null || shuttle.leg == Leg.STRANDED && motion.arrived()) {
+            return false;
+        }
+        return shuttle.busy() || !motion.arrived();
+    }
+
+    /** Whether the shuttle drives this tick, unless the shuttle ahead holds it. */
+    private boolean drives(Shuttle shuttle) {
+        ShuttleMotion motion = shuttle.motion;
+        return shuttle.restoring == null && shuttle.stop == 0 && shuttle.handover == 0 && !shuttle.riding && !motion.arrived()
+                && nextLoaded(motion);
+    }
+
+    /** Whether the shuttle stands on a lift car in its shaft. */
+    private static boolean onCar(Shuttle shuttle) {
+        return shuttle.lift != null && shuttle.inside && !shuttle.crossing;
+    }
+
+    /** Whether the shuttle stands on the car and its next block goes up or down: the car carries it, not its wheels. */
+    private static boolean boardsCar(Shuttle shuttle) {
+        ShuttleMotion motion = shuttle.motion;
+        return onCar(shuttle) && !motion.arrived() && vertical(motion.path(), motion.segment());
+    }
+
+    /** Whether the shuttle waits beside a shaft for that shaft's car. */
+    private static boolean callsCar(Shuttle shuttle, BlockPos bottom) {
+        return shuttle != null && bottom != null && bottom.equals(shuttle.lift) && !shuttle.inside && !shuttle.crossing;
+    }
+
+    /** The shuttle as traffic sees it. */
+    private ShuttleTraffic.Car car(Shuttle shuttle) {
+        ShuttleMotion motion = shuttle.motion;
+        double speed = motion == shuttle.speedFor ? shuttle.speed : 0;
+        boolean moving = drives(shuttle) && speed > 0;
+        boolean obstacle = !shuttle.riding && !boardsCar(shuttle);
+        return new ShuttleTraffic.Car(shuttle.id, order(shuttle), motion.path(), motion.segment(), motion.progress(), shuttle.lastHeading,
+                shuttle.insideGarage(), obstacle, moving, speed, shuttle.profile.accel(), shuttle.stop);
+    }
+
+    /** Who goes first on a tie: the lower shuttle number, then shuttles without a number in the order they joined. */
+    private static long order(Shuttle shuttle) {
+        OptionalInt number = ShuttleItem.number(shuttle.item);
+        return number.isPresent() ? number.getAsInt() : UNNUMBERED + shuttle.id;
+    }
+
+    /** What clients know of a shuttle's following: its leader, whether it is held and whether the leader stands. */
+    private static long followKey(Shuttle shuttle) {
+        if (shuttle.inRing()) {
+            return -2;
+        }
+        boolean held = shuttle.room < Double.POSITIVE_INFINITY;
+        return ((long) shuttle.leader << 2) | (held ? 2 : 0) | (shuttle.leaderSpeed == 0 ? 1 : 0);
     }
 
     private static boolean corner(List<NodePos> path, int i) {
@@ -2006,7 +2222,7 @@ public final class ShuttleFleet {
         }
         for (Shuttle shuttle : garage.shuttles) {
             ShuttleMotion motion = shuttle.motion;
-            if (motion == null || (!shuttle.busy() || shuttle.leg == Leg.STRANDED) && motion.arrived()) {
+            if (motion == null || (!shuttle.busy() || shuttle.leg == Leg.STRANDED) && motion.arrived() || shuttle.insideGarage()) {
                 continue;
             }
             List<BlockPos> path = new ArrayList<>();
@@ -2014,14 +2230,24 @@ public final class ShuttleFleet {
                 path.add(Conversions.toBlockPos(node));
             }
             boolean still = shuttle.riding || motion.held() || shuttle.stop > 0 || shuttle.handover > 0 || motion != shuttle.speedFor;
+            double top = shuttle.inRing() ? shuttle.ringSpeed : shuttle.profile.speed();
             ShuttleView.Drive shown = still ? ShuttleView.Drive.STILL
-                    : new ShuttleView.Drive((float) shuttle.speed, (float) shuttle.profile.speed(), (float) shuttle.profile.accel(),
+                    : new ShuttleView.Drive((float) shuttle.speed, (float) top, (float) shuttle.profile.accel(),
                             (float) shuttle.profile.cornerSpeed());
             Optional<BlockPos> lift = shuttle.riding && shuttle.lift != null ? Optional.of(shuttle.lift) : Optional.empty();
             list.add(new ShuttleView(path, motion.segment(), (float) motion.progress(), shown, shuttle.shownCargo(), lift, shuttle.item.copy(),
-                    sightGlass(shuttle)));
+                    sightGlass(shuttle), still ? Optional.empty() : lead(shuttle)));
         }
         return list;
+    }
+
+    /** The point a following shuttle must stay behind, as of now, and how fast it moves on; empty when nothing is ahead or in a ring. */
+    private static Optional<ShuttleView.Lead> lead(Shuttle shuttle) {
+        if (shuttle.inRing() || shuttle.room == Double.POSITIVE_INFINITY) {
+            return Optional.empty();
+        }
+        ShuttleMotion motion = shuttle.motion;
+        return Optional.of(new ShuttleView.Lead((float) (motion.segment() + motion.progress() + shuttle.room), (float) shuttle.leaderSpeed));
     }
 
     /** What a tanker's sight glass shows: the fluid it carries and its share of what it may carry. */

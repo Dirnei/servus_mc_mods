@@ -461,6 +461,17 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return fleet.views(garage);
     }
 
+    /** Sends an idle shuttle of the garage along the rails at those positions without a job. For GameTests. */
+    public boolean sendShuttleAlong(BlockPos garage, int slot, List<BlockPos> path) {
+        return fleet.sendAlong(garage, slot, path.stream().map(Conversions::toNodePos).toList());
+    }
+
+    /** The cheapest way between two rails as the warehouse would plan it now, traffic included; empty without one. For GameTests. */
+    public List<BlockPos> plannedWay(BlockPos from, BlockPos to) {
+        return fleet.costsFrom(List.of(Conversions.toNodePos(from))).pathTo(Conversions.toNodePos(to)).stream()
+                .map(Conversions::toBlockPos).toList();
+    }
+
     /** Whether the source is a Heavy Duty Rack, which only shuttles serve. */
     @Override
     public boolean isRack(BlockPos pos) {

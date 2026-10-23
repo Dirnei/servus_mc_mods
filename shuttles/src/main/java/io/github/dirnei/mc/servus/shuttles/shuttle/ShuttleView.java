@@ -15,9 +15,23 @@ import net.neoforged.neoforge.fluids.FluidStack;
  * path. While the shuttle rides a lift car, lift holds that shaft's lowest
  * segment and the shuttle is drawn on the car. The shuttle item tells its
  * tier, upgrades and tool; a tanker carrying fluid shows it in its sight glass.
+ * A shuttle behind another in its lane carries the point it must stay behind.
  */
 public record ShuttleView(List<BlockPos> path, int segment, float progress, Drive drive, ItemStack cargo, Optional<BlockPos> lift,
-                          ItemStack shuttle, Optional<SightGlass> glass) {
+                          ItemStack shuttle, Optional<SightGlass> glass, Optional<Lead> lead) {
+
+    /**
+     * The point a following shuttle must not pass: its path position
+     * (segment plus progress) at the sync and how many blocks per tick it
+     * moves on, the speed of the shuttle ahead.
+     */
+    public record Lead(float at, float speed) {
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, Lead> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.FLOAT, Lead::at,
+                ByteBufCodecs.FLOAT, Lead::speed,
+                Lead::new);
+    }
 
     /** The fluid a tanker carries and how full it is, from 0 to 1. */
     public record SightGlass(FluidStack fluid, float share) {
@@ -54,6 +68,7 @@ public record ShuttleView(List<BlockPos> path, int segment, float progress, Driv
             ByteBufCodecs.optional(BlockPos.STREAM_CODEC), ShuttleView::lift,
             ItemStack.OPTIONAL_STREAM_CODEC, ShuttleView::shuttle,
             ByteBufCodecs.optional(SightGlass.STREAM_CODEC), ShuttleView::glass,
+            ByteBufCodecs.optional(Lead.STREAM_CODEC), ShuttleView::lead,
             ShuttleView::new);
 
     public boolean moving() {

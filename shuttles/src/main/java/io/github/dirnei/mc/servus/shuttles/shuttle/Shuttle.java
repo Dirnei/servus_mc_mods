@@ -66,6 +66,19 @@ final class Shuttle {
     Settle restoring;
     /** Why a shuttle parked in its garage with cargo found no rack, or null while it is not parked so. */
     StrandReason strandReason;
+    /** The direction of the last block the shuttle drove, {@link ShuttleTraffic#NONE} before its first. */
+    int lastHeading = ShuttleTraffic.NONE;
+    /** Whether the shuttle stands inside its garage; it leaves when it first moves on its path. */
+    boolean inGarage = true;
+    /** Blocks the shuttle may drive this tick before it is the follow gap behind its leader. */
+    double room = Double.POSITIVE_INFINITY;
+    /** The id of the shuttle it follows this tick, or -1, and how fast that one drove last tick. */
+    int leader = -1;
+    double leaderSpeed;
+    /** The speed of the ring of followers it moves in this tick, NaN when it is in none. */
+    double ringSpeed = Double.NaN;
+    /** Its following as clients last got it, to sync when it changes. */
+    long followShown;
 
     Shuttle(Garage garage, int slot, ShuttleProfile profile) {
         this.garage = garage;
@@ -80,6 +93,16 @@ final class Shuttle {
     /** Out of the garage: on a job or still driving home. */
     boolean out() {
         return busy() || (motion != null && !motion.arrived());
+    }
+
+    /** Whether the shuttle is inside its garage: parked there, or given a job and not moved yet. */
+    boolean insideGarage() {
+        return inGarage && motion != null && motion.segment() == 0 && motion.progress() == 0;
+    }
+
+    /** Whether the shuttle drives in a ring of followers this tick. */
+    boolean inRing() {
+        return !Double.isNaN(ringSpeed);
     }
 
     ShuttleJob lead() {

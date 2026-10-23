@@ -92,25 +92,37 @@ public final class ShuttleDrive {
     /** Where a shuttle is after driving the given ticks: {segment, progress, speed}. Fractions of a tick move part of a step. */
     public static double[] glide(int nodes, int segment, double progress, double speed, double top, double accel, double ticks,
                                  IntPredicate vertical, IntPredicate corner, double cornerTop) {
+        return glide(nodes, segment, progress, speed, top, accel, ticks, vertical, corner, cornerTop, Double.POSITIVE_INFINITY, 0);
+    }
+
+    /**
+     * Where a shuttle is after driving the given ticks behind a point it must
+     * not pass: {segment, progress, speed}. The point starts at path position
+     * {@code leadAt} (segment plus progress) and moves on by {@code leadSpeed}
+     * blocks per tick, as the gap behind a leader does.
+     */
+    public static double[] glide(int nodes, int segment, double progress, double speed, double top, double accel, double ticks,
+                                 IntPredicate vertical, IntPredicate corner, double cornerTop, double leadAt, double leadSpeed) {
         double v = speed;
         int whole = (int) Math.min(Math.floor(ticks), 400);
         double[] at = {segment, progress};
         for (int t = 0; t < whole; t++) {
-            v = step(nodes, at, v, top, accel, vertical, corner, cornerTop);
+            v = step(nodes, at, v, top, accel, vertical, corner, cornerTop, leadAt + leadSpeed * t);
             move(at, v, nodes);
         }
         double part = ticks - Math.floor(ticks);
         if (part > 0) {
-            double step = step(nodes, at, v, top, accel, vertical, corner, cornerTop);
+            double step = step(nodes, at, v, top, accel, vertical, corner, cornerTop, leadAt + leadSpeed * whole);
             move(at, step * part, nodes);
         }
         return new double[] {at[0], at[1], v};
     }
 
     private static double step(int nodes, double[] at, double v, double top, double accel, IntPredicate vertical, IntPredicate corner,
-                               double cornerTop) {
+                               double cornerTop, double lead) {
         double limit = Math.min(top, cornerLimit(nodes, (int) at[0], at[1], corner, cornerTop, accel));
-        return next(v, limit, accel, toStop(nodes, (int) at[0], at[1], vertical));
+        double toStop = Math.min(toStop(nodes, (int) at[0], at[1], vertical), lead - (at[0] + at[1]));
+        return next(v, limit, accel, toStop);
     }
 
     private static void move(double[] at, double blocks, int nodes) {
