@@ -63,6 +63,12 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("message.servus_alchemy.athanor.tank.left", "left of it");
         add("message.servus_alchemy.athanor.tank.back", "behind it");
         add("message.servus_alchemy.athanor.tank.right", "right of it");
+        add("message.servus_alchemy.athanor.ritual.missing",
+                "The ritual cannot begin: %s is needed beside the tank %s, on its outer side.");
+        add("message.servus_alchemy.athanor.ritual.tier_low", "The Athanor must reach %s first.");
+        add("message.servus_alchemy.athanor.ritual.tier_high", "The Athanor is past %s; this ritual has nothing left to do.");
+        add("message.servus_alchemy.athanor.ritual.busy", "The Athanor is at work; wait until its work is done.");
+        add("message.servus_alchemy.athanor.ritual.running", "A ritual is already under way.");
         add("message.servus_alchemy.athanor.missing",
                 "The Athanor needs a hearth: Bricks are needed in the hearth, right below it and in front of it. The Athanor page of Paracelsus' Journal shows it.");
         add("message.servus_alchemy.athanor.missing_slab",

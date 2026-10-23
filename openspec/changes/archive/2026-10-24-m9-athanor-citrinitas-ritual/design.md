@@ -1,0 +1,45 @@
+# Design
+
+## Context
+
+After `m9-athanor-compact-hearth` the tiers are turned `BlockAt` lists matched by block id, and Citrinitas is a Principle Vat with an Amethyst Block beside each tank. `AthanorBlockEntity` (a `MachineBlockEntity`) ticks on the server, syncs through its update tag, and `AthanorRenderer` (a Foundation `BufferedBlockEntityRenderer`) draws the item on the plate with `RenderSubmit`. `VatBlock` is a plain block with `FACING`, `FORMED` and `PIECE`, no block entity. The animation to build is the "Citrinitas ritual" tab of `temp/athanor-stages.html`, which the user approved.
+
+## Goals / Non-Goals
+
+**Goals:**
+- A ritual mechanism Rubedo can reuse with only data and its own looks.
+- The Citrinitas ritual as mocked, in step for every player near it.
+
+**Non-Goals:**
+- The Rubedo ritual, the obelisk and the orange citrine (`m9-athanor-rubedo-ritual`).
+
+## Decisions
+
+- **Ritual data.** `AthanorRitual(String name, String offering, int tier, int color, int resultColor, int duration, Phases phases, List<Turn> turns)` with `Turn(BlockAt from, BlockAt to)` and `Phases(burst, fill, grow, settle)` in pure Java; `AthanorRitualData`, a `SimpleJsonResourceReloadListener` like `AthanorTierData`, reads `athanor_ritual/*.json`. `color` is the offering's glow, the flame and the streams as they leave; `result_color` what the streams turn into. `RitualPlan.check(ritual, tier, facing, blockAt)` returns the outcome (ready, tier too low, tier too high, missing) with the first missing turn or the turned turns; `RitualPlan.choose` picks among rituals sharing an offering the one of the Athanor's tier, else the nearest above, else below. `RitualTimeline` (pure) turns ticks since the offering into the offering's rise, the stream positions, fill and growth per turned block, staggered 3.6 ticks per block. JUnit covers them. Duration and the phase times live in the ritual JSON (160 ticks: burst 36, fill 60, grow 80, settle 150) so the animation and the server agree. A turn's `from` names `formed=false` too, so a vat of a formed Coagulator never turns.
+- **Block states in tiers and rituals.** `BlockAt` gains an optional `properties` map (`{"crystal": "citrine"}`); the matcher compares the id and only the named properties. JSON stays readable and old files without properties keep working.
+- **Vat crystal state.** `VatBlock.CRYSTAL` (`none`, `citrine`; `m9-athanor-rubedo-ritual` adds `rubedo`). Light level by state. `CoagulatorStructure` expects `crystal=none`. Loot: a grown vat drops the vat item and 2 to 4 Amethyst Shards (loot table datagen with a block state condition).
+- **The cluster needs a renderer.** The cluster reaches as high as the tanks, about 2.7 blocks above the vat's floor, beyond the 32 px a block model may reach. `VatBlock` implements `EntityBlock` and returns a `GrownVatBlockEntity` only for grown states; its renderer (a Foundation `BufferedBlockEntityRenderer`, `getRenderBoundingBox` three blocks tall) draws the cluster. The prisms are drawn as quads, not from a baked JSON model: block model elements are boxes turned on one axis by fixed steps, while the mock's prisms are six sided, tilted in any direction and grow one by one. `CrystalCluster` (pure) holds the spike table of the mock, scaled so the tallest reaches the tank tops, and the growth curve with overshoot; `CrystalDrawing` draws the liquid and the prisms (body, tip, root cap; no faces between body and tip) with the pale `ritual_crystal` texture from `tools/athanor-textures/gen.py`, tinted by `VatCrystal.body()`. Plain vats keep their block model. Every vat is now an `EntityBlock`, so pistons no longer push vats. Alternative: an invisible crown block above the vat holding the upper half; rejected, it blocks the space, needs its own break rules and still cannot animate the growth.
+- **Ritual state on the Athanor.** `AthanorBlockEntity` stores the running ritual's name and its start game time, saved and in the update tag. The server tick ends it at start + duration, turns the blocks still in place, plays the end sound and re-checks the tier. Clients compute the phase from `gameTime - start`, so a player arriving late sees it from the current point. Crafts do not start while a ritual runs.
+- **Animation pieces, as in the mock.** `AthanorRenderer`: the offering rising, spinning and pulsing on the plate, the flame colour shift (the white `athanor_fire_1` texture tinted in the ritual colour on a quad a twentieth of a pixel before the window's flame, turning to the result colour after the flash), and one arc of ten glowing motes per turned block (a quadratic curve from the burst point over the tank to the vat). The looks of turned blocks are registered by target block id in `client/RitualLooks`, so `m9-athanor-rubedo-ritual` adds its obelisk as one more look; the vat look draws the liquid surface rising in the vat, then the cluster prisms growing with an overshoot, staggered per prism. `GrownVatRenderer` draws the same at full size. The burst and the final flash are `DustParticleOptions` in the ritual's and the result's colour (plus End Rod sparks) sent by the server at the phase times, the idle glints dust in `animateTick` on the grown vat. The render state follows the renderer API already used by `AthanorRenderer` (`BufferedBlockEntityRenderer`, `RenderSubmit`, Minecraft 26.1 submit pipeline).
+- **Sounds.** Vanilla `SoundEvents.AMETHYST_BLOCK_RESONATE` (offering), `AMETHYST_BLOCK_BREAK` (burst), `AMETHYST_CLUSTER_PLACE` (growth, per vat), `BEACON_POWER_SELECT` (end), played by the server at the phase times.
+- **During the ritual the vats are not yet grown.** Until the end, the client draws the growth from the Athanor's ritual state onto the plain vats (the Athanor renderer draws over its turned positions, only while the plain block still stands there); clients have no ritual data of their own, so the running ritual travels whole in the Athanor's update tag and save; at the end the server sets `crystal=citrine` and the vat's own renderer takes over at full size. Alternative: set the state at the start; rejected, a ritual cut short would leave grown vats.
+- **PLAN.md decisions settled:** Citrinitas is cast with an Amethyst Block; the breaking rule (stage drops, cast again) as the user decided.
+
+## Testing
+
+- JUnit: `AthanorRitualTest` (`turnsAreTurnedWithTheFront`, `firstMissingTurnIsNamed`, `wrongTierRefuses`), `BlockAtPropertiesTest` (`propertiesMustMatch`, `idOnlyMatchesAnyState`).
+- GameTests: `ritualGrowsCitrine` (cast, wait, three grown vats, tier 2), `ritualKeepsTheOfferingWhenAVatIsMissing`, `ritualOnNigredoRefuses`, `brokenGrownVatDropsShardsAndTheStage`, `grownVatDoesNotFormACoagulator`, `vatTakenDuringTheRitualStaysPlain`.
+- Manual: the ritual from several angles and a late arrival, flicker on the cluster prisms and the liquid surface, idle glints.
+
+## Overlap check
+
+- Prisms of one cluster: every prism leans on its own axis (tilt 0.05 to 0.65 rad, each its own direction), so no side, tip or root cap face of one lies in a plane of another; they cross at angles. Body and tip of one prism share a ring of corners, not a face (neither has a cap there).
+- Prisms and the vat: no prism stands upright, so no side is parallel to the vat's walls; root caps are tilted, never level with the floor (1 px) or the liquid.
+- Liquid: one level quad from 3.05 to 12.95 px, 0.05 px inside the walls at 3 and 13; it starts at 1.05 px, above the floor's top at 1 px, and stops at 10 px, below the rim at 12 px.
+- Flame tint: at z 0.7 px, between the window's lips (0.45 to 0.6 px) and the flame face (0.75 px), only over the window opening (x 6 to 10, y 7 to 10.5 px).
+- Hand-over: the Athanor stops drawing a vat's growth when its ritual ends, the same tick the vat's own renderer starts; at most one frame shows both.
+
+## Risks / Trade-offs
+
+- [Render cost of many grown vats] → Static clusters are one baked model per vat; only running rituals animate.
+- [Ritual state lost on unload mid-ritual] → Start time is saved; on load past the end the server finishes it at its first tick.

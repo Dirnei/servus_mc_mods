@@ -15,6 +15,42 @@
         }
       ],
       "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:inverted",
+          "term": {
+            "block": "servus_alchemy:principle_vat",
+            "condition": "minecraft:block_state_property",
+            "properties": {
+              "crystal": "none"
+            }
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 4.0,
+                "min": 2.0
+              },
+              "function": "minecraft:set_count"
+            },
+            {
+              "function": "minecraft:explosion_decay"
+            }
+          ],
+          "name": "minecraft:amethyst_shard"
+        }
+      ],
+      "rolls": 1.0
     }
   ],
   "random_sequence": "servus_alchemy:blocks/principle_vat"

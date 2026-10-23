@@ -48,7 +48,7 @@ public final class CoagulatorStructure {
         if (!state.is(expected(cell.role()))) {
             return false;
         }
-        return cell.role() != Role.VAT || !state.getValue(VatBlock.FORMED);
+        return cell.role() != Role.VAT || !state.getValue(VatBlock.FORMED) && !state.getValue(VatBlock.CRYSTAL).grown();
     }
 
     /** Checks every facing, the Coagulator's own first, and returns a complete one or the one that matched most. */

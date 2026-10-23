@@ -120,6 +120,10 @@ public class AthanorBlock extends MachineBlock {
             }
             return InteractionResult.SUCCESS;
         }
+        if (!level.isClientSide() && athanor.formed() && AthanorBlockEntity.isOffering(stack)) {
+            athanor.castRitual(player, stack);
+            return InteractionResult.SUCCESS;
+        }
         if (!level.isClientSide()) {
             athanor.checkTier();
         }

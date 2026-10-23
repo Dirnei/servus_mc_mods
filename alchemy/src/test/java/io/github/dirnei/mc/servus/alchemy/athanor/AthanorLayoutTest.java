@@ -10,13 +10,13 @@ import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers.BlockAt;
 import io.github.dirnei.mc.servus.alchemy.structure.Facing;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AthanorLayoutTest {
 
     private static final String SALT = "servus_alchemy:salt_crystal_block";
     private static final String VAT = "servus_alchemy:principle_vat";
-    private static final String AMETHYST = "minecraft:amethyst_block";
     private static final String CRYING = "minecraft:crying_obsidian";
 
     /** The sixteen cells of the 5 by 5 ring one layer under the hearth. */
@@ -32,11 +32,11 @@ class AthanorLayoutTest {
         return ring;
     }
 
+    /** The three vats with grown citrine beside the tanks. */
     static List<BlockAt> vats() {
         List<BlockAt> vats = new ArrayList<>();
         for (int[] cell : new int[][] {{0, 3}, {-3, 0}, {3, 0}}) {
-            vats.add(new BlockAt(cell[0], -1, cell[1], VAT));
-            vats.add(new BlockAt(cell[0], 0, cell[1], AMETHYST));
+            vats.add(new BlockAt(cell[0], -1, cell[1], VAT, Map.of("crystal", "citrine")));
         }
         return vats;
     }
@@ -138,6 +138,15 @@ class AthanorLayoutTest {
     }
 
     @Test
+    void eachVatBelongsToItsTank() {
+        assertEquals(TankSide.BACK, AthanorLayout.nearestTank(Facing.NORTH, 0, 3).side());
+        assertEquals(TankSide.LEFT, AthanorLayout.nearestTank(Facing.NORTH, 3, 0).side());
+        assertEquals(TankSide.RIGHT, AthanorLayout.nearestTank(Facing.NORTH, -3, 0).side());
+        BlockAt behind = AthanorTiers.turn(new BlockAt(0, -1, 3, VAT), Facing.EAST);
+        assertEquals(TankSide.BACK, AthanorLayout.nearestTank(Facing.EAST, behind.dx(), behind.dz()).side(), "turned with the front");
+    }
+
+    @Test
     void albedoSchematicHasTheRingBelow() {
         AthanorLayout.Schematic schematic = AthanorLayout.schematic(saltRing());
         assertEquals(4, schematic.layers().size());
@@ -155,12 +164,11 @@ class AthanorLayoutTest {
         AthanorLayout.Schematic schematic = AthanorLayout.schematic(extra);
         assertEquals(List.of(
                 List.of("______", "__T___", "______", "____T_", "______", "__T___", "______"),
-                List.of("__F___", "__TG__", "__D_G_", "__ADTF", "__D_G_", "__TG__", "__F___"),
-                List.of("__E___", "__TG__", "_SSSG_", "RBBSTE", "_SSSG_", "__TG__", "__E___"),
+                List.of("______", "__TF__", "__D_F_", "__ADT_", "__D_F_", "__TF__", "______"),
+                List.of("__E___", "__TF__", "_SSSF_", "RBBSTE", "_SSSF_", "__TF__", "__E___"),
                 List.of("______", "CCCCC_", "C___C_", "C_0_C_", "C___C_", "CCCCC_", "______")),
                 schematic.layers());
         assertEquals(VAT, schematic.mapping().get('E'));
-        assertEquals(AMETHYST, schematic.mapping().get('F'));
-        assertEquals(CRYING, schematic.mapping().get('G'));
+        assertEquals(CRYING, schematic.mapping().get('F'));
     }
 }

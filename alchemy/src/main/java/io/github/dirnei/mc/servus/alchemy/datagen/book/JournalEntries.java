@@ -318,7 +318,8 @@ final class JournalEntries {
                             + "The gnomes of Schwaz laughed at my iron. Iron is for nails, they said. Feed us better and we dig the sun "
                             + "out of the rock. The sun! Yellow fire, yellow stone. Or bile. The same thing, the same thing.");
             text("tasks", "The Way",
-                    "Set an Amethyst Block on each Salt Crystal Block of the white ring and the Athanor burns yellow: Citrinitas. "
+                    "Set a Principle Vat beside each tank of the white Athanor and offer it an Amethyst Block: citrine grows in the vats "
+                            + "and the Athanor burns yellow: Citrinitas. "
                             + "Its fire makes nobler seeds, of gold and of redstone, and a ripe vein of gold proves them.");
             text("unlocks", "What Follows",
                     "Finishing the Wandering years opens the next chapter of the journal: Basel and Salzburg, and the red fire.");

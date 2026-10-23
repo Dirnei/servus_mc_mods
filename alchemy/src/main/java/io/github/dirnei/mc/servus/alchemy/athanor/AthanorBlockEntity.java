@@ -9,6 +9,11 @@ import io.github.dirnei.mc.servus.alchemy.TeamOwnership;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorLayout.Duct;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorLayout.Tank;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers.BlockAt;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitual;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitual.Turn;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitualData;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.RitualPlan;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.RitualTimeline;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
@@ -35,11 +40,16 @@ import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -54,6 +64,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The alchemist's furnace: burns principles for the craft of the item lying on it, as far as its
@@ -67,12 +78,18 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
     /** Ticks between tier checks while nothing else asks for one. */
     private static final int TIER_INTERVAL = 100;
+    /** Where the offering hovers at the start of a ritual, above the Athanor's block: on the tower's plate. */
+    public static final double OFFERING_Y = 23.5 / 16.0 + 0.25;
+    /** How far the offering rises before it bursts. */
+    public static final double OFFERING_RISE = 0.6;
 
     private final TeamOwnership ownership = new TeamOwnership(this);
     private int tier;
     private int tierCooldown;
     private ItemStack shownInput = ItemStack.EMPTY;
     private ItemStack shownOutput = ItemStack.EMPTY;
+    private @Nullable AthanorRitual ritual;
+    private long ritualStart;
 
     public AthanorBlockEntity(BlockPos pos, BlockState state) {
         super(ServusAlchemyBlockEntities.ATHANOR.get(), pos, state, 2);
@@ -199,15 +216,158 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         return ownership;
     }
 
+    /** The ritual under way, or null. */
+    public @Nullable AthanorRitual ritual() {
+        return ritual;
+    }
+
+    /** The game time the running ritual was cast at. */
+    public long ritualStart() {
+        return ritualStart;
+    }
+
+    /** The turns of the running ritual, turned with the front; none while no ritual runs. */
+    public List<Turn> ritualTurns() {
+        return ritual == null ? List.of() : ritual.turns(buildFacing());
+    }
+
+    /** Whether {@code stack} is the offering of a loaded ritual. Server side only; the rituals are not sent to clients. */
+    public static boolean isOffering(ItemStack stack) {
+        return !stack.isEmpty() && !AthanorRitualData.INSTANCE.forOffering(itemId(stack)).isEmpty();
+    }
+
+    private static String itemId(ItemStack stack) {
+        return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+    }
+
+    /**
+     * A player uses a ritual's offering on the formed Athanor: starts the ritual and takes the offering, else tells the
+     * player why not and leaves it in the hand.
+     */
+    public void castRitual(Player player, ItemStack stack) {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        checkTier();
+        if (ritual != null) {
+            player.sendSystemMessage(Component.translatable("message.servus_alchemy.athanor.ritual.running"));
+            return;
+        }
+        if (progress > 0) {
+            player.sendSystemMessage(Component.translatable("message.servus_alchemy.athanor.ritual.busy"));
+            return;
+        }
+        AthanorRitual chosen = RitualPlan.choose(AthanorRitualData.INSTANCE.forOffering(itemId(stack)), tier);
+        if (chosen == null) {
+            return;
+        }
+        RitualPlan plan = RitualPlan.check(chosen, tier, buildFacing(), this::placedAt);
+        switch (plan.outcome()) {
+            case TIER_TOO_LOW -> player.sendSystemMessage(Component.translatable("message.servus_alchemy.athanor.ritual.tier_low",
+                    stageName(chosen.tier())));
+            case TIER_TOO_HIGH -> player.sendSystemMessage(Component.translatable("message.servus_alchemy.athanor.ritual.tier_high",
+                    stageName(chosen.tier())));
+            case MISSING -> player.sendSystemMessage(missingTurnMessage(plan.missing()));
+            case READY -> startRitual(chosen, player, stack);
+        }
+    }
+
+    private Component stageName(int number) {
+        return Component.translatable("gui.servus_alchemy.athanor.stage." + AthanorTiers.nameOf(AthanorTierData.INSTANCE.tiers(), number));
+    }
+
+    private Component missingTurnMessage(Turn turn) {
+        Component block = BuiltInRegistries.BLOCK.getOptional(Identifier.parse(turn.from().block()))
+                .map(Block::getName).orElse(Component.literal(turn.from().block()));
+        Tank tank = AthanorLayout.nearestTank(buildFacing(), turn.from().dx(), turn.from().dz());
+        return Component.translatable("message.servus_alchemy.athanor.ritual.missing", block, sideName(tank.side()));
+    }
+
+    private void startRitual(AthanorRitual chosen, Player player, ItemStack stack) {
+        stack.consume(1, player);
+        ritual = chosen;
+        ritualStart = level.getGameTime();
+        playAt(worldPosition, SoundEvents.AMETHYST_BLOCK_RESONATE, 1.5F);
+        syncRitual();
+    }
+
+    private void syncRitual() {
+        setChanged();
+        level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+    }
+
+    private void playAt(BlockPos pos, SoundEvent sound, float volume) {
+        level.playSound(null, pos, sound, SoundSource.BLOCKS, volume, 1.0F);
+    }
+
+    /** One tick of the running ritual: its sounds and particles at their times, and the turn at its end. */
+    private void tickRitual() {
+        if (!(level instanceof ServerLevel server)) {
+            return;
+        }
+        if (!formed()) {
+            ritual = null;
+            syncRitual();
+            return;
+        }
+        long elapsed = level.getGameTime() - ritualStart;
+        AthanorRitual.Phases phases = ritual.phases();
+        List<Turn> turns = ritualTurns();
+        if (elapsed == phases.burst()) {
+            double y = worldPosition.getY() + OFFERING_Y + OFFERING_RISE;
+            server.sendParticles(new DustParticleOptions(ritual.color(), 1.2F), worldPosition.getX() + 0.5, y, worldPosition.getZ() + 0.5,
+                    40, 0.3, 0.3, 0.3, 0.05);
+            playAt(worldPosition, SoundEvents.AMETHYST_BLOCK_BREAK, 1.5F);
+        }
+        for (int i = 0; i < turns.size(); i++) {
+            if (elapsed == Math.round(phases.grow() + RitualTimeline.delay(i))) {
+                playAt(turnPos(turns.get(i)), SoundEvents.AMETHYST_CLUSTER_PLACE, 1.0F);
+            }
+        }
+        if (elapsed == phases.settle()) {
+            flash(server, turns);
+        }
+        if (elapsed >= ritual.duration()) {
+            finishRitual(turns);
+        }
+    }
+
+    private BlockPos turnPos(Turn turn) {
+        return worldPosition.offset(turn.from().dx(), turn.from().dy(), turn.from().dz());
+    }
+
+    private void flash(ServerLevel server, List<Turn> turns) {
+        DustParticleOptions glow = new DustParticleOptions(ritual.resultColor(), 1.5F);
+        server.sendParticles(glow, worldPosition.getX() + 0.5, worldPosition.getY() + 1.5, worldPosition.getZ() + 0.5, 60, 0.8, 0.6, 0.8, 0.1);
+        server.sendParticles(ParticleTypes.END_ROD, worldPosition.getX() + 0.5, worldPosition.getY() + 1.5, worldPosition.getZ() + 0.5,
+                20, 0.4, 0.4, 0.4, 0.08);
+        for (Turn turn : turns) {
+            BlockPos pos = turnPos(turn);
+            server.sendParticles(glow, pos.getX() + 0.5, pos.getY() + 1.5, pos.getZ() + 0.5, 20, 0.3, 0.8, 0.3, 0.05);
+        }
+    }
+
+    /** Turns every block of the ritual that is still in place, ends the ritual and checks the tier. */
+    private void finishRitual(List<Turn> turns) {
+        for (Turn turn : turns) {
+            BlockPos pos = turnPos(turn);
+            BlockState current = level.getBlockState(pos);
+            if (turn.from().matches(PlacedBlocks.placed(current))) {
+                PlacedBlocks.state(turn.to(), current).ifPresent(next -> level.setBlock(pos, next, Block.UPDATE_ALL));
+            }
+        }
+        ritual = null;
+        playAt(worldPosition, SoundEvents.BEACON_POWER_SELECT, 1.0F);
+        checkTier();
+        syncRitual();
+    }
+
     /** Reads the structure around the Athanor and stores the tier in the block state. A handful of block reads. */
     public void checkTier() {
         if (level == null || level.isClientSide()) {
             return;
         }
-        int found = AthanorTiers.tierOf(AthanorTierData.INSTANCE.tiers(), buildFacing(), block -> {
-            BlockState around = level.getBlockState(worldPosition.offset(block.dx(), block.dy(), block.dz()));
-            return BuiltInRegistries.BLOCK.getKey(around.getBlock()).toString();
-        });
+        int found = AthanorTiers.tierOf(AthanorTierData.INSTANCE.tiers(), buildFacing(), this::placedAt);
         tierCooldown = 0;
         checkHearth();
         if (found != tier) {
@@ -218,6 +378,11 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         if (state.hasProperty(AthanorBlock.TIER) && state.getValue(AthanorBlock.TIER) != Math.min(found, 3)) {
             level.setBlock(worldPosition, state.setValue(AthanorBlock.TIER, Math.min(found, 3)), Block.UPDATE_CLIENTS);
         }
+    }
+
+    /** What stands at {@code block}'s offset from the Athanor. */
+    private AthanorTiers.Placed placedAt(BlockAt block) {
+        return PlacedBlocks.placed(level.getBlockState(worldPosition.offset(block.dx(), block.dy(), block.dz())));
     }
 
     /** Whether the Athanor stands formed on its hearth with its tanks. */
@@ -350,6 +515,10 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
     @Override
     protected boolean tick() {
         syncInputIfChanged();
+        if (ritual != null) {
+            tickRitual();
+            return true;
+        }
         if (++tierCooldown >= TIER_INTERVAL) {
             checkTier();
         }
@@ -463,6 +632,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         CompoundTag tag = new CompoundTag();
         output.putInt("Tier", tier);
         ownership.save(tag);
+        putRitual(tag);
         output.store(tag);
     }
 
@@ -472,13 +642,24 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         CompoundTag tag = ValueIo.whole(input);
         tier = input.getIntOr("Tier", 0);
         ownership.load(tag);
+        ritual = tag.get("Ritual") == null ? null : AthanorRitualData.fromTag(tag.get("Ritual")).orElse(null);
+        ritualStart = tag.getLongOr("RitualStart", 0);
     }
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
         tag.put("Inventory", inventory.serializeNBT(registries));
+        putRitual(tag);
         return tag;
+    }
+
+    /** The running ritual with its start, for the save and for the clients, who have no ritual data of their own. */
+    private void putRitual(CompoundTag tag) {
+        if (ritual != null) {
+            tag.put("Ritual", AthanorRitualData.toTag(ritual));
+            tag.putLong("RitualStart", ritualStart);
+        }
     }
 
     /** The Athanor has no GUI. */

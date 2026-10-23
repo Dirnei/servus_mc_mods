@@ -26,10 +26,6 @@
     },
     "F": {
       "type": "modonomicon:block",
-      "block": "minecraft:amethyst_block"
-    },
-    "G": {
-      "type": "modonomicon:block",
       "block": "minecraft:crying_obsidian"
     },
     "R": {
@@ -56,21 +52,21 @@
       "______"
     ],
     [
-      "__F___",
-      "__TG__",
-      "__D_G_",
-      "__ADTF",
-      "__D_G_",
-      "__TG__",
-      "__F___"
+      "______",
+      "__TF__",
+      "__D_F_",
+      "__ADT_",
+      "__D_F_",
+      "__TF__",
+      "______"
     ],
     [
       "__E___",
-      "__TG__",
-      "_SSSG_",
+      "__TF__",
+      "_SSSF_",
       "RBBSTE",
-      "_SSSG_",
-      "__TG__",
+      "_SSSF_",
+      "__TF__",
       "__E___"
     ],
     [

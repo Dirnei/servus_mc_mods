@@ -202,7 +202,7 @@ final class WorkshopCategory extends CategoryProvider {
                     "Use an item on it to lay it on top. It burns what its tanks hold, and the work lies on top when it is done: "
                             + "take it with an empty hand, or sneak to take the item back. Hoppers and pipes may do both.\n\n"
                             + "Alone its flame is black: Nigredo. A ring of Salt Crystal Blocks under its hearth turns the flame white: Albedo. "
-                            + "Principle Vats with Amethyst Blocks beside its tanks turn it yellow: Citrinitas. "
+                            + "An Amethyst Block offered to it grows citrine in Principle Vats beside its tanks and turns it yellow: Citrinitas. "
                             + "Pillars of Crying Obsidian beside the back tank and behind the side tanks turn it red: Rubedo. "
                             + "Some works need a higher fire.");
             e.list("works", "Its Works", AlchemyRecipeTable.athanor().stream()
@@ -295,12 +295,15 @@ final class WorkshopCategory extends CategoryProvider {
                 Items.AMETHYST_BLOCK, e -> {
             e.spotlight("block", Items.AMETHYST_BLOCK, "Amethyst Block",
                     "Four shards of the violet crystal that grows in the hollow stones of the deep make a block. "
-                            + "Three of them on Principle Vats beside the tanks turn the Athanor's flame yellow.");
+                            + "Heated in the white fire, amethyst turns into yellow citrine, the stone Citrinitas is named after.");
             e.text("build", "Building It",
-                    "Beside each tank, on its outer side three blocks from the Athanor, set a Principle Vat on the hearth level "
-                            + "and an Amethyst Block on it. Without the white ring the amethyst counts for nothing.");
+                    "Beside each tank, on its outer side three blocks from the Athanor, set an empty Principle Vat on the hearth level. "
+                            + "Then use an Amethyst Block on the white Athanor: it rises, bursts into three streams of light, and a cluster "
+                            + "of citrine grows out of each vat. The flame turns yellow.\n\n"
+                            + "Break a grown vat and the citrine falls to shards; the fire is white again until the ritual is cast anew.");
             e.multiblock("ring", ServusAlchemyMultiblockProvider.athanor("citrinitas"), "The Yellow Ring",
-                    "Three Principle Vats with an Amethyst Block on each, beside the tanks. Press Visualize, then click the ground.");
+                    "Three empty Principle Vats beside the tanks of the white Athanor; then offer it an Amethyst Block. "
+                            + "Press Visualize, then click the ground.");
             e.text("veins", "Noble Veins",
                     "The yellow fire makes nobler seeds: " + seedText(2) + ". Only the red fire makes " + seedText(3) + ".\n\n"
                             + "Noble veins drink more Salt and Mercury, the diamond Sulfur as well, and the gnomes dig them slower.");

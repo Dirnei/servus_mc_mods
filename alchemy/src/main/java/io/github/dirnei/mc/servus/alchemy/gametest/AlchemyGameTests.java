@@ -17,6 +17,7 @@ import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlock;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorLayout;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTierData;
+import io.github.dirnei.mc.servus.alchemy.athanor.PlacedBlocks;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers;
 import io.github.dirnei.mc.servus.alchemy.datagen.ServusAlchemyMultiblockProvider;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
@@ -375,9 +376,9 @@ public final class AlchemyGameTests {
         };
     }
 
-    /** Places {@code block} at its offset from the Athanor; a stair rises toward an Athanor facing {@code facing}. */
+    /** Places {@code block} at its offset from the Athanor with its properties; a stair rises toward an Athanor facing {@code facing}. */
     static void place(GameTestHelper helper, AthanorTiers.BlockAt block, Facing facing) {
-        BlockState state = BuiltInRegistries.BLOCK.getValue(Identifier.parse(block.block())).defaultBlockState();
+        BlockState state = PlacedBlocks.state(block, Blocks.AIR.defaultBlockState()).orElseThrow();
         if (state.getBlock() instanceof StairBlock) {
             state = state.setValue(StairBlock.FACING, direction(facing).getOpposite());
         }
@@ -561,7 +562,7 @@ public final class AlchemyGameTests {
         stage(helper, "albedo", Facing.NORTH);
     }
 
-    /** The interim Citrinitas: a Principle Vat with an Amethyst Block on it beside each tank. */
+    /** Citrinitas as the ritual leaves it: a Principle Vat with grown citrine beside each tank. */
     static void citrinitasVats(GameTestHelper helper) {
         stage(helper, "citrinitas", Facing.NORTH);
     }
@@ -626,7 +627,7 @@ public final class AlchemyGameTests {
         });
     }
 
-    /** Vats with amethyst beside the tanks make Citrinitas on the salt ring; without the ring they count for nothing, and a missing amethyst falls back to Albedo. */
+    /** Grown vats beside the tanks make Citrinitas on the salt ring; without the ring they count for nothing, and a plain vat falls back to Albedo. */
     @ServusGameTest(timeoutTicks = 20)
     public static void citrinitasVatsMakeTierTwo(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
@@ -638,9 +639,9 @@ public final class AlchemyGameTests {
         helper.assertTrue(athanor.tier() == 2 && helper.getBlockState(ATHANOR).getValue(AthanorBlock.TIER) == 2,
                 "the vats make Citrinitas, got " + athanor.tier());
         helper.assertTrue(athanor.tierName().equals("citrinitas"), "the stage is Citrinitas, got " + athanor.tierName());
-        helper.setBlock(ATHANOR.offset(0, 0, 3), Blocks.AIR);
+        helper.setBlock(ATHANOR.offset(0, -1, 3), ServusAlchemyBlocks.VAT.get().defaultBlockState());
         athanor.checkTier();
-        helper.assertTrue(athanor.tier() == 1, "a vat without its amethyst is Albedo, got " + athanor.tier());
+        helper.assertTrue(athanor.tier() == 1, "a plain vat is Albedo, got " + athanor.tier());
         helper.succeed();
     }
 

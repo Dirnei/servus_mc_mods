@@ -53,6 +53,7 @@ public final class ServusAlchemyClient {
         event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.VAS_HERMETICUM.get(), VasRenderer::new);
         event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.PRELUM.get(), PrelumRenderer::new);
         event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.PRINCIPLE_DROPPER.get(), PrincipleDropperRenderer::new);
+        event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.GROWN_VAT.get(), GrownVatRenderer::new);
         event.registerEntityRenderer(ServusAlchemyEntities.SALAMANDER.get(), SalamanderRenderer::new);
         event.registerEntityRenderer(ServusAlchemyEntities.GNOME.get(), GnomeRenderer::new);
     }

@@ -12,6 +12,7 @@ import io.github.dirnei.mc.servus.alchemy.gametest.HomunculusGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.HollowGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.PrelumGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.PurifierGameTests;
+import io.github.dirnei.mc.servus.alchemy.gametest.RitualGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.SalamanderGameTests;
 import io.github.dirnei.mc.servus.alchemy.hint.HintSounds;
 import io.github.dirnei.mc.servus.alchemy.journal.JournalTasksPage;
@@ -56,7 +57,7 @@ public final class ServusAlchemy {
         ServusGameTests.register(modEventBus, ServusAlchemyIds.MOD_ID, List.of(
                 AlchemyGameTests.class, CalcinerGameTests.class, PurifierGameTests.class, CoagulatorGameTests.class, HollowGameTests.class,
                 DropperGameTests.class, SalamanderGameTests.class, ForgeGameTests.class,
-                HomunculusGameTests.class, PrelumGameTests.class, HintGameTests.class, GnomeGameTests.class));
+                HomunculusGameTests.class, PrelumGameTests.class, HintGameTests.class, GnomeGameTests.class, RitualGameTests.class));
         ServusRecipes.syncToClients(ServusAlchemyRecipes.CALCINATION);
         ServusRecipes.syncToClients(ServusAlchemyRecipes.COAGULATION);
         ServusRecipes.syncToClients(ServusAlchemyRecipes.ATHANOR);

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Citrinitas ritual: place three Principle Vats beside the Athanor's tanks and offer an Amethyst Block; yellow citrine grows out of the vats.
+
 ### Changed
 - The Athanor has a new compact build: a 3 by 3 brick hearth with a stair in front, tanks three high and one Copper Duct each; existing Athanors must be rebuilt. Albedo is a Salt Crystal ring under the hearth.
 - The formed Athanor is a brick tower with a black iron fire door whose window and dome vents glow in the stage colour.

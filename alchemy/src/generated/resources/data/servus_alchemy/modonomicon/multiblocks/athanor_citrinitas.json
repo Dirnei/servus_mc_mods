@@ -24,10 +24,6 @@
       "type": "modonomicon:block",
       "block": "servus_alchemy:principle_vat"
     },
-    "F": {
-      "type": "modonomicon:block",
-      "block": "minecraft:amethyst_block"
-    },
     "R": {
       "type": "modonomicon:blockstateproperty",
       "block": "minecraft:brick_stairs[facing=south]"
@@ -52,13 +48,13 @@
       "______"
     ],
     [
-      "__F___",
+      "______",
       "__T___",
       "__D___",
-      "__ADTF",
+      "__ADT_",
       "__D___",
       "__T___",
-      "__F___"
+      "______"
     ],
     [
       "__E___",

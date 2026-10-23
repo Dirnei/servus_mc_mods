@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.dirnei.mc.servus.alchemy.HexColor;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemy;
@@ -31,10 +32,24 @@ public final class AthanorTierData extends SimpleJsonResourceReloadListener<Json
 
     public static final String DIRECTORY = "servus_alchemy/athanor_tier";
 
+    /** The block state properties a block must have, by name; optional in JSON. */
+    private static final MapCodec<Map<String, String>> PROPERTIES =
+            Codec.unboundedMap(Codec.STRING, Codec.STRING).optionalFieldOf("properties", Map.of());
+
+    /** A block id and its properties, at offset 0: {@code {"block": ..., "properties": {...}}}. */
+    public static final Codec<BlockAt> STATE_CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.STRING.fieldOf("block").forGetter(BlockAt::block),
+            PROPERTIES.forGetter(BlockAt::properties)
+    ).apply(instance, (block, properties) -> new BlockAt(0, 0, 0, block, properties)));
+
+    /** The three numbers of an offset from the Athanor. */
+    public static final MapCodec<List<Integer>> OFFSET = Codec.INT.listOf(3, 3).fieldOf("offset");
+
     private static final Codec<BlockAt> BLOCK_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.INT.listOf(3, 3).fieldOf("offset").forGetter(block -> List.of(block.dx(), block.dy(), block.dz())),
-            Codec.STRING.fieldOf("block").forGetter(BlockAt::block)
-    ).apply(instance, (offset, block) -> new BlockAt(offset.get(0), offset.get(1), offset.get(2), block)));
+            OFFSET.forGetter(block -> List.of(block.dx(), block.dy(), block.dz())),
+            Codec.STRING.fieldOf("block").forGetter(BlockAt::block),
+            PROPERTIES.forGetter(BlockAt::properties)
+    ).apply(instance, (offset, block, properties) -> new BlockAt(offset.get(0), offset.get(1), offset.get(2), block, properties)));
 
     /** A tier as written in JSON; the name comes from the file. */
     private record TierJson(int tier, String color, List<BlockAt> blocks) {
@@ -85,7 +100,7 @@ public final class AthanorTierData extends SimpleJsonResourceReloadListener<Json
         ServusAlchemy.LOGGER.info("Loaded {} Athanor tiers", loaded.size());
     }
 
-    private static int parseColor(String color) {
+    static int parseColor(String color) {
         return HexColor.parse(color).orElse(0xFFFFFF);
     }
 

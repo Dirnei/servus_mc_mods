@@ -1,92 +1,182 @@
 {
   "variants": {
-    "facing=east,formed=false,piece=0": {
+    "crystal=citrine,facing=east,formed=false,piece=0": {
       "model": "servus_alchemy:block/principle_vat",
       "y": 90
     },
-    "facing=east,formed=false,piece=1": {
+    "crystal=citrine,facing=east,formed=false,piece=1": {
       "model": "servus_alchemy:block/principle_vat",
       "y": 90
     },
-    "facing=east,formed=false,piece=2": {
+    "crystal=citrine,facing=east,formed=false,piece=2": {
       "model": "servus_alchemy:block/principle_vat",
       "y": 90
     },
-    "facing=east,formed=true,piece=0": {
+    "crystal=citrine,facing=east,formed=true,piece=0": {
       "model": "servus_alchemy:block/principle_vat_left",
       "y": 90
     },
-    "facing=east,formed=true,piece=1": {
+    "crystal=citrine,facing=east,formed=true,piece=1": {
       "model": "servus_alchemy:block/principle_vat_middle",
       "y": 90
     },
-    "facing=east,formed=true,piece=2": {
+    "crystal=citrine,facing=east,formed=true,piece=2": {
       "model": "servus_alchemy:block/principle_vat_right",
       "y": 90
     },
-    "facing=north,formed=false,piece=0": {
+    "crystal=citrine,facing=north,formed=false,piece=0": {
       "model": "servus_alchemy:block/principle_vat"
     },
-    "facing=north,formed=false,piece=1": {
+    "crystal=citrine,facing=north,formed=false,piece=1": {
       "model": "servus_alchemy:block/principle_vat"
     },
-    "facing=north,formed=false,piece=2": {
+    "crystal=citrine,facing=north,formed=false,piece=2": {
       "model": "servus_alchemy:block/principle_vat"
     },
-    "facing=north,formed=true,piece=0": {
+    "crystal=citrine,facing=north,formed=true,piece=0": {
       "model": "servus_alchemy:block/principle_vat_left"
     },
-    "facing=north,formed=true,piece=1": {
+    "crystal=citrine,facing=north,formed=true,piece=1": {
       "model": "servus_alchemy:block/principle_vat_middle"
     },
-    "facing=north,formed=true,piece=2": {
+    "crystal=citrine,facing=north,formed=true,piece=2": {
       "model": "servus_alchemy:block/principle_vat_right"
     },
-    "facing=south,formed=false,piece=0": {
+    "crystal=citrine,facing=south,formed=false,piece=0": {
       "model": "servus_alchemy:block/principle_vat",
       "y": 180
     },
-    "facing=south,formed=false,piece=1": {
+    "crystal=citrine,facing=south,formed=false,piece=1": {
       "model": "servus_alchemy:block/principle_vat",
       "y": 180
     },
-    "facing=south,formed=false,piece=2": {
+    "crystal=citrine,facing=south,formed=false,piece=2": {
       "model": "servus_alchemy:block/principle_vat",
       "y": 180
     },
-    "facing=south,formed=true,piece=0": {
+    "crystal=citrine,facing=south,formed=true,piece=0": {
       "model": "servus_alchemy:block/principle_vat_left",
       "y": 180
     },
-    "facing=south,formed=true,piece=1": {
+    "crystal=citrine,facing=south,formed=true,piece=1": {
       "model": "servus_alchemy:block/principle_vat_middle",
       "y": 180
     },
-    "facing=south,formed=true,piece=2": {
+    "crystal=citrine,facing=south,formed=true,piece=2": {
       "model": "servus_alchemy:block/principle_vat_right",
       "y": 180
     },
-    "facing=west,formed=false,piece=0": {
+    "crystal=citrine,facing=west,formed=false,piece=0": {
       "model": "servus_alchemy:block/principle_vat",
       "y": 270
     },
-    "facing=west,formed=false,piece=1": {
+    "crystal=citrine,facing=west,formed=false,piece=1": {
       "model": "servus_alchemy:block/principle_vat",
       "y": 270
     },
-    "facing=west,formed=false,piece=2": {
+    "crystal=citrine,facing=west,formed=false,piece=2": {
       "model": "servus_alchemy:block/principle_vat",
       "y": 270
     },
-    "facing=west,formed=true,piece=0": {
+    "crystal=citrine,facing=west,formed=true,piece=0": {
       "model": "servus_alchemy:block/principle_vat_left",
       "y": 270
     },
-    "facing=west,formed=true,piece=1": {
+    "crystal=citrine,facing=west,formed=true,piece=1": {
       "model": "servus_alchemy:block/principle_vat_middle",
       "y": 270
     },
-    "facing=west,formed=true,piece=2": {
+    "crystal=citrine,facing=west,formed=true,piece=2": {
+      "model": "servus_alchemy:block/principle_vat_right",
+      "y": 270
+    },
+    "crystal=none,facing=east,formed=false,piece=0": {
+      "model": "servus_alchemy:block/principle_vat",
+      "y": 90
+    },
+    "crystal=none,facing=east,formed=false,piece=1": {
+      "model": "servus_alchemy:block/principle_vat",
+      "y": 90
+    },
+    "crystal=none,facing=east,formed=false,piece=2": {
+      "model": "servus_alchemy:block/principle_vat",
+      "y": 90
+    },
+    "crystal=none,facing=east,formed=true,piece=0": {
+      "model": "servus_alchemy:block/principle_vat_left",
+      "y": 90
+    },
+    "crystal=none,facing=east,formed=true,piece=1": {
+      "model": "servus_alchemy:block/principle_vat_middle",
+      "y": 90
+    },
+    "crystal=none,facing=east,formed=true,piece=2": {
+      "model": "servus_alchemy:block/principle_vat_right",
+      "y": 90
+    },
+    "crystal=none,facing=north,formed=false,piece=0": {
+      "model": "servus_alchemy:block/principle_vat"
+    },
+    "crystal=none,facing=north,formed=false,piece=1": {
+      "model": "servus_alchemy:block/principle_vat"
+    },
+    "crystal=none,facing=north,formed=false,piece=2": {
+      "model": "servus_alchemy:block/principle_vat"
+    },
+    "crystal=none,facing=north,formed=true,piece=0": {
+      "model": "servus_alchemy:block/principle_vat_left"
+    },
+    "crystal=none,facing=north,formed=true,piece=1": {
+      "model": "servus_alchemy:block/principle_vat_middle"
+    },
+    "crystal=none,facing=north,formed=true,piece=2": {
+      "model": "servus_alchemy:block/principle_vat_right"
+    },
+    "crystal=none,facing=south,formed=false,piece=0": {
+      "model": "servus_alchemy:block/principle_vat",
+      "y": 180
+    },
+    "crystal=none,facing=south,formed=false,piece=1": {
+      "model": "servus_alchemy:block/principle_vat",
+      "y": 180
+    },
+    "crystal=none,facing=south,formed=false,piece=2": {
+      "model": "servus_alchemy:block/principle_vat",
+      "y": 180
+    },
+    "crystal=none,facing=south,formed=true,piece=0": {
+      "model": "servus_alchemy:block/principle_vat_left",
+      "y": 180
+    },
+    "crystal=none,facing=south,formed=true,piece=1": {
+      "model": "servus_alchemy:block/principle_vat_middle",
+      "y": 180
+    },
+    "crystal=none,facing=south,formed=true,piece=2": {
+      "model": "servus_alchemy:block/principle_vat_right",
+      "y": 180
+    },
+    "crystal=none,facing=west,formed=false,piece=0": {
+      "model": "servus_alchemy:block/principle_vat",
+      "y": 270
+    },
+    "crystal=none,facing=west,formed=false,piece=1": {
+      "model": "servus_alchemy:block/principle_vat",
+      "y": 270
+    },
+    "crystal=none,facing=west,formed=false,piece=2": {
+      "model": "servus_alchemy:block/principle_vat",
+      "y": 270
+    },
+    "crystal=none,facing=west,formed=true,piece=0": {
+      "model": "servus_alchemy:block/principle_vat_left",
+      "y": 270
+    },
+    "crystal=none,facing=west,formed=true,piece=1": {
+      "model": "servus_alchemy:block/principle_vat_middle",
+      "y": 270
+    },
+    "crystal=none,facing=west,formed=true,piece=2": {
       "model": "servus_alchemy:block/principle_vat_right",
       "y": 270
     }

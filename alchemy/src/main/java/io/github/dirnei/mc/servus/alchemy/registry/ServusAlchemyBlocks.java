@@ -68,7 +68,8 @@ public final class ServusAlchemyBlocks {
             () -> BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_ORANGE).strength(1.25F, 4.2F).sound(SoundType.STONE).noOcclusion());
 
     /** A Principle Vat of the Coagulator build. */
-    public static final DeferredBlock<VatBlock> VAT = BLOCKS.registerBlock("principle_vat", VatBlock::new, () -> copper());
+    public static final DeferredBlock<VatBlock> VAT = BLOCKS.registerBlock("principle_vat", VatBlock::new,
+            () -> copper().lightLevel(VatBlock::light));
 
     public static final DeferredBlock<CoagulatorBlock> COAGULATOR =
             BLOCKS.registerBlock("coagulator", CoagulatorBlock::new, () -> MachineContent.machine());

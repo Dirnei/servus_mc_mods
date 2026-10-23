@@ -82,6 +82,20 @@ public final class AthanorLayout {
                 new Tank(TankSide.RIGHT, 2 * rx, 2 * rz));
     }
 
+    /** The tank whose side of the Athanor the horizontal offset {@code dx, dz} points to most. */
+    public static Tank nearestTank(Facing facing, int dx, int dz) {
+        Tank nearest = null;
+        long best = Long.MIN_VALUE;
+        for (Tank tank : tanks(facing)) {
+            long toward = (long) tank.dx() * dx + (long) tank.dz() * dz;
+            if (toward > best) {
+                best = toward;
+                nearest = tank;
+            }
+        }
+        return nearest;
+    }
+
     /** Every Fluid Tank block of the three tank columns. */
     public static List<BlockAt> tankBlocks(Facing facing) {
         List<BlockAt> blocks = new ArrayList<>();

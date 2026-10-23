@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlockEntity;
+import io.github.dirnei.mc.servus.alchemy.coagulator.GrownVatBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.forge.SalamanderForgeBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.prelum.PrelumBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.homunculus.ReceptaculumBlockEntity;
@@ -57,6 +58,10 @@ public final class ServusAlchemyBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AncientHollowBlockEntity>> ANCIENT_HOLLOW =
             register("ancient_hollow", AncientHollowBlockEntity::new, ServusAlchemyBlocks.ANCIENT_HOLLOW);
+
+    /** Only grown vats have one; plain Principle Vats get none. */
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GrownVatBlockEntity>> GROWN_VAT =
+            register("grown_vat", GrownVatBlockEntity::new, ServusAlchemyBlocks.VAT);
 
     private ServusAlchemyBlockEntities() {
     }

@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "build_2",
+  "show_title_separator": true,
+  "sort_number": 2,
+  "text": "book.servus_alchemy.journal.workshop.amethyst_ring.build_2.text",
+  "title": ""
+}

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers.BlockAt;
+import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers.Placed;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers.TierDef;
 import io.github.dirnei.mc.servus.alchemy.structure.Facing;
 import java.util.ArrayList;
@@ -34,21 +35,23 @@ class AthanorTiersTest {
     private static final TierDef CITRINITAS = new TierDef("citrinitas", 2, 0xFFDD00,
             List.of(new BlockAt(2, 0, 2, SULFUR), new BlockAt(-2, 0, -2, SULFUR)));
 
-    private static Map<String, String> world(List<BlockAt> placed) {
-        Map<String, String> world = new HashMap<>();
-        placed.forEach(block -> world.put(block.dx() + "," + block.dy() + "," + block.dz(), block.block()));
+    private static Map<String, BlockAt> world(List<BlockAt> placed) {
+        Map<String, BlockAt> world = new HashMap<>();
+        placed.forEach(block -> world.put(block.dx() + "," + block.dy() + "," + block.dz(), block));
         return world;
     }
 
-    private static Function<BlockAt, String> at(Map<String, String> world) {
-        return block -> world.get(block.dx() + "," + block.dy() + "," + block.dz());
+    private static Function<BlockAt, Placed> at(Map<String, BlockAt> world) {
+        return block -> {
+            BlockAt there = world.get(block.dx() + "," + block.dy() + "," + block.dz());
+            return there == null ? null : Placed.of(there.block(), there.properties());
+        };
     }
 
-    private static int tier(List<TierDef> tiers, Map<String, String> world) {
+    private static int tier(List<TierDef> tiers, Map<String, BlockAt> world) {
         return AthanorTiers.tierOf(tiers, Facing.NORTH, at(world));
     }
 
-    private static final String AMETHYST = "minecraft:amethyst_block";
     private static final String CRYING = "minecraft:crying_obsidian";
 
     @Test
@@ -113,8 +116,9 @@ class AthanorTiersTest {
         List<BlockAt> placed = new ArrayList<>(AthanorLayoutTest.saltRing());
         placed.addAll(AthanorLayoutTest.vats());
         assertEquals(2, tier(STAGES, world(placed)));
-        placed.removeIf(block -> block.block().equals(AMETHYST) && block.dz() == 3);
-        assertEquals(1, tier(STAGES, world(placed)), "a vat without its amethyst is Albedo");
+        placed.removeIf(block -> block.dz() == 3 && block.dy() == -1);
+        placed.add(new BlockAt(0, -1, 3, "servus_alchemy:principle_vat", Map.of("crystal", "none")));
+        assertEquals(1, tier(STAGES, world(placed)), "a plain vat is Albedo");
     }
 
     @Test

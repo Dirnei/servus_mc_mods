@@ -5,6 +5,8 @@ import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorLayout;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTierData;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitual;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitualData;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerLayout;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerStructure;
@@ -96,15 +98,29 @@ public final class ServusAlchemyMultiblockProvider extends MultiblockProvider {
         add(PURIFIER, purifier.build(false, 1));
     }
 
-    /** The Athanor on its hearth, then each shipped tier with every tier below it. */
+    /**
+     * The Athanor on its hearth, then each shipped tier with every tier below it. A block a shipped ritual grows shows as the
+     * block the player places for it.
+     */
     private void athanors() {
         athanor("nigredo", List.of());
+        List<AthanorRitual.Turn> turns = AthanorRitualData.SHIPPED.stream().map(AthanorRitualData::readShipped)
+                .flatMap(ritual -> ritual.turns().stream()).toList();
         List<AthanorTiers.BlockAt> blocks = new ArrayList<>();
         for (AthanorTiers.TierDef tier : AthanorTierData.SHIPPED.stream().map(AthanorTierData::readShipped)
                 .sorted(Comparator.comparingInt(AthanorTiers.TierDef::number)).toList()) {
-            blocks.addAll(tier.blocks());
+            tier.blocks().forEach(block -> blocks.add(placedFor(block, turns)));
             athanor(tier.name(), List.copyOf(blocks));
         }
+    }
+
+    /** What the player places for {@code block}: the block a ritual turns into it there, else the block itself. */
+    private static AthanorTiers.BlockAt placedFor(AthanorTiers.BlockAt block, List<AthanorRitual.Turn> turns) {
+        return turns.stream()
+                .filter(turn -> turn.to().equals(block))
+                .map(AthanorRitual.Turn::from)
+                .findFirst()
+                .orElse(block);
     }
 
     /** The id of the schematic of the Athanor at {@code stage}, such as {@code nigredo} or {@code albedo}. */

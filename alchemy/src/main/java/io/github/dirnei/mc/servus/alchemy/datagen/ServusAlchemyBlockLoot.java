@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.alchemy.datagen;
 
+import io.github.dirnei.mc.servus.alchemy.coagulator.VatBlock;
+import io.github.dirnei.mc.servus.alchemy.coagulator.VatCrystal;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import java.util.List;
@@ -7,6 +9,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 import net.minecraft.advancements.criterion.EntityPredicate;
 import net.minecraft.advancements.criterion.MobEffectsPredicate;
+import net.minecraft.advancements.criterion.StatePropertiesPredicate;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
@@ -16,9 +19,12 @@ import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
+import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemEntityPropertyCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 
 final class ServusAlchemyBlockLoot extends BlockLootSubProvider {
 
@@ -33,7 +39,6 @@ final class ServusAlchemyBlockLoot extends BlockLootSubProvider {
             ServusAlchemyBlocks.PURIFIER.get(),
             ServusAlchemyBlocks.CATCH_BASIN.get(),
             ServusAlchemyBlocks.RESIDUE_CROCK.get(),
-            ServusAlchemyBlocks.VAT.get(),
             ServusAlchemyBlocks.COAGULATOR.get(),
             ServusAlchemyBlocks.SALT_CRYSTAL_BLOCK.get(),
             ServusAlchemyBlocks.ATHANOR.get(),
@@ -53,7 +58,21 @@ final class ServusAlchemyBlockLoot extends BlockLootSubProvider {
         dropOther(ServusAlchemyBlocks.CALCINER_STONE_BRICKS.get(), Items.STONE_BRICKS);
         dropOther(ServusAlchemyBlocks.CALCINER_DEEPSLATE_TILES.get(), Items.DEEPSLATE_TILES);
         add(ServusAlchemyBlocks.GNOME_HOLLOW.get(), gnomeHollow());
+        add(ServusAlchemyBlocks.VAT.get(), vat());
         add(ServusAlchemyBlocks.ANCIENT_HOLLOW.get(), ancientHollow());
+    }
+
+    /** The vat itself, and from a grown vat a few Amethyst Shards of its crystal. */
+    private LootTable.Builder vat() {
+        Block vat = ServusAlchemyBlocks.VAT.get();
+        LootItemCondition.Builder grown = LootItemBlockStatePropertyCondition.hasBlockStateProperties(vat)
+                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(VatBlock.CRYSTAL, VatCrystal.NONE))
+                .invert();
+        return createSingleItemTable(vat).withPool(LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1.0F))
+                .when(grown)
+                .add(applyExplosionDecay(vat, LootItem.lootTableItem(Items.AMETHYST_SHARD)
+                        .apply(SetItemCountFunction.setCount(UniformGenerator.between(2, 4))))));
     }
 
     /** What Deepslate drops: itself with Silk Touch, else Cobbled Deepslate. */
@@ -77,7 +96,7 @@ final class ServusAlchemyBlockLoot extends BlockLootSubProvider {
 
     @Override
     protected Iterable<Block> getKnownBlocks() {
-        return Stream.concat(SELF_DROPPING.stream(), Stream.of(ServusAlchemyBlocks.CALCINER_STONE_BRICKS.get(),
+        return Stream.concat(SELF_DROPPING.stream(), Stream.of(ServusAlchemyBlocks.VAT.get(), ServusAlchemyBlocks.CALCINER_STONE_BRICKS.get(),
                 ServusAlchemyBlocks.CALCINER_DEEPSLATE_TILES.get(), ServusAlchemyBlocks.GNOME_HOLLOW.get(),
                 ServusAlchemyBlocks.ANCIENT_HOLLOW.get())).toList();
     }

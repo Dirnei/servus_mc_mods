@@ -1,0 +1,25 @@
+{
+  "offering": "minecraft:amethyst_block",
+  "tier": 1,
+  "color": "#B070FF",
+  "result_color": "#FFB000",
+  "duration": 160,
+  "phases": { "burst": 36, "fill": 60, "grow": 80, "settle": 150 },
+  "turns": [
+    {
+      "offset": [0, -1, 3],
+      "from": { "block": "servus_alchemy:principle_vat", "properties": { "crystal": "none", "formed": "false" } },
+      "to": { "block": "servus_alchemy:principle_vat", "properties": { "crystal": "citrine" } }
+    },
+    {
+      "offset": [-3, -1, 0],
+      "from": { "block": "servus_alchemy:principle_vat", "properties": { "crystal": "none", "formed": "false" } },
+      "to": { "block": "servus_alchemy:principle_vat", "properties": { "crystal": "citrine" } }
+    },
+    {
+      "offset": [3, -1, 0],
+      "from": { "block": "servus_alchemy:principle_vat", "properties": { "crystal": "none", "formed": "false" } },
+      "to": { "block": "servus_alchemy:principle_vat", "properties": { "crystal": "citrine" } }
+    }
+  ]
+}
