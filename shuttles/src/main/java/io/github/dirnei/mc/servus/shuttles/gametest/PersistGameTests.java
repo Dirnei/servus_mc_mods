@@ -31,13 +31,17 @@ public final class PersistGameTests {
     private PersistGameTests() {
     }
 
-    /** Saves the block entity at {@code pos}, puts a fresh one loaded from that tag in its place and returns it. */
+    /**
+     * Saves the block entity at {@code pos}, unloads it as its chunk would and
+     * puts a fresh one loaded from that tag in its place; returns the fresh one.
+     */
     @SuppressWarnings("unchecked")
     static <T extends BlockEntity> T reload(GameTestHelper helper, BlockPos pos) {
         ServerLevel level = helper.getLevel();
         BlockPos absolute = helper.absolutePos(pos);
         BlockEntity old = level.getBlockEntity(absolute);
         CompoundTag tag = old.saveWithFullMetadata(level.registryAccess());
+        old.onChunkUnloaded();
         BlockEntity fresh = BlockEntity.loadStatic(absolute, level.getBlockState(absolute), tag, level.registryAccess());
         level.setBlockEntity(fresh);
         level.invalidateCapabilities(absolute);

@@ -8,7 +8,7 @@ import io.github.dirnei.mc.servus.shuttles.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
-import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleNumberData;
+import io.github.dirnei.mc.servus.shuttles.shuttle.CounterData;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleItem;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleWorkshopBlockEntity;
 import java.util.Arrays;
@@ -46,7 +46,7 @@ public final class ShuttleNumberGameTests {
     }
 
     private static int last(GameTestHelper helper) {
-        return ShuttleNumberData.get(helper.getLevel().getServer()).last();
+        return CounterData.get(helper.getLevel().getServer(), CounterData.Kind.SHUTTLE_NUMBERS).last();
     }
 
     private static OptionalInt numberIn(ShuttleGarageBlockEntity garage, int slot) {

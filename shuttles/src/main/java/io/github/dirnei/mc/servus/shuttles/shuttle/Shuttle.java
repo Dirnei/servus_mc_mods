@@ -62,6 +62,8 @@ final class Shuttle {
     TankRef pumping;
     /** Whether that spout pumps into the gantry rather than into the shuttle. */
     boolean pumpingIntoGantry;
+    /** The wait of a shuttle restored from a save until its path's chunks have loaded; null once it goes on. */
+    Settle restoring;
 
     Shuttle(Garage garage, int slot, ShuttleProfile profile) {
         this.garage = garage;

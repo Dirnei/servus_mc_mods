@@ -11,6 +11,7 @@ import net.minecraft.core.BlockPos;
  * Fluid that does not fit there goes on to the next Storage tank with room; a
  * put-away brings what is still left back to its source, a restock loses it.
  *
+ * @param id         the job's id, unique in the world
  * @param source     the master of the gantry the fluid comes from
  * @param sourceTank its tank, 0 left and 1 right
  * @param target     the master of the gantry the fluid goes to first
@@ -19,7 +20,7 @@ import net.minecraft.core.BlockPos;
  * @param amount     how much at most; a shuttle that carries less takes less
  * @param purpose    whether it empties an Import tank or fills a kept Export tank
  */
-public record FluidJob(BlockPos source, int sourceTank, BlockPos target, int targetTank, FluidKey key, int amount,
+public record FluidJob(int id, BlockPos source, int sourceTank, BlockPos target, int targetTank, FluidKey key, int amount,
                        Purpose purpose) implements ShuttleJob {
 
     /** What a tanker run is for. */

@@ -7,7 +7,8 @@ import net.minecraft.core.BlockPos;
  * position is short of in its buffer from storage, riding lifts like a pick,
  * unload it at the head's rail and take stale items back.
  *
+ * @param id   the job's id, unique in the world
  * @param head the Field Head whose buffer is refilled
  */
-public record SupplyJob(BlockPos head) implements ShuttleJob {
+public record SupplyJob(int id, BlockPos head) implements ShuttleJob {
 }

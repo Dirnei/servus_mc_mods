@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.network.NetworkType;
 import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
 import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
@@ -35,7 +36,9 @@ import io.github.dirnei.mc.servus.shuttles.packing.PackingStationChoice;
 import io.github.dirnei.mc.servus.shuttles.packing.WirelessIncoming;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.shuttle.CounterData;
 import io.github.dirnei.mc.servus.shuttles.shuttle.FertilizeJob;
+import io.github.dirnei.mc.servus.shuttles.shuttle.FleetSaves;
 import io.github.dirnei.mc.servus.shuttles.shuttle.FieldJob;
 import io.github.dirnei.mc.servus.shuttles.shuttle.FluidJob;
 import io.github.dirnei.mc.servus.shuttles.shuttle.SupplyJob;
@@ -47,6 +50,7 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.RequestPlan;
 import io.github.dirnei.mc.servus.shuttles.shuttle.Shafts;
 import io.github.dirnei.mc.servus.shuttles.shuttle.Shafts.Shaft;
 import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleFleet;
+import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleJob;
 import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleView;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.JobNeeds;
 import io.github.dirnei.mc.servus.shuttles.site.SiteChunks;
@@ -68,6 +72,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
@@ -98,9 +105,15 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     public enum Status { ONLINE, NO_CONTROLLER, MULTIPLE_CONTROLLERS }
 
     private static final int BLOCKED_RETRY_TICKS = 20;
+    /** Ticks between two sweeps for station claims whose job is gone. */
+    private static final int CLAIM_SWEEP_TICKS = 100;
 
     /** A load that did not fit into its destination's delivery buffer yet. */
     private record HeldLoad(PickJob job, ItemStack stack) {
+    }
+
+    /** One claimed slot of an Inbound Station and the job that claimed it. */
+    private record StationClaim(BlockPos station, int slot, int jobId) {
     }
 
     /** Indexed members, read through {@link StorageNodeBlockEntity#stock()}. */
@@ -150,6 +163,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** The min load of tanker runs when a test set one for this warehouse, else -1 for the stats. */
     private int tankerMinLoadForTests = -1;
     private final ShuttleFleet fleet = new ShuttleFleet(this);
+    private final OrphanSweep<StationClaim> claimSweep = new OrphanSweep<>();
+    private int claimTimer;
     private boolean spanDirty = true;
     private int snapshotTimer;
     private long snapshotVersion = -1;
@@ -207,11 +222,16 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             controllerPos = blockPos;
         }
         membershipChanged(node);
+        restoreState(node, blockPos);
     }
 
     @Override
     protected void onNodeRemoved(NodePos pos, StorageNodeBlockEntity node) {
         BlockPos blockPos = Conversions.toBlockPos(pos);
+        boolean forGood = node.leavingForGood();
+        if (!forGood) {
+            node.stashWarehouseState(saveState(node));
+        }
         connectors.remove(blockPos);
         if (elevators.remove(pos)) {
             shaftsDirty = true;
@@ -222,14 +242,22 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         zones.remove(blockPos);
         dropSource(blockPos);
         if (garages.remove(blockPos)) {
-            fleet.releaseGarage(blockPos);
+            fleet.releaseGarage(blockPos, forGood);
         }
         if (gantries.remove(blockPos)) {
             pendingGantries.remove(blockPos);
             dropTanks(blockPos);
         }
-        held.remove(blockPos);
+        List<HeldLoad> heldHere = held.remove(blockPos);
+        if (forGood && heldHere != null && level != null) {
+            for (HeldLoad load : heldHere) {
+                Block.popResource(level, blockPos, load.stack());
+            }
+        }
         if (node instanceof WarehouseControllerBlockEntity) {
+            if (!forGood) {
+                fleet.clearQueue();
+            }
             controllers--;
             if (blockPos.equals(controllerPos)) {
                 controllerPos = null;
@@ -297,6 +325,79 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         dirtySet.clear();
         pollOrder.clear();
         controllers = 0;
+    }
+
+    /**
+     * What this network keeps for the node, as the node saves it: a garage's
+     * shuttles that are out, a controller's job queue, the loads held for a
+     * destination. Empty when there is nothing.
+     */
+    public CompoundTag saveState(StorageNodeBlockEntity node) {
+        CompoundTag tag = new CompoundTag();
+        if (node.getLevel() == null) {
+            return tag;
+        }
+        HolderLookup.Provider registries = node.getLevel().registryAccess();
+        BlockPos pos = node.getBlockPos();
+        if (node instanceof ShuttleGarageBlockEntity) {
+            CompoundTag garage = fleet.saveGarage(pos, registries);
+            if (!garage.isEmpty()) {
+                tag.put("Garage", garage);
+            }
+        }
+        if (node instanceof WarehouseControllerBlockEntity && fleet.queued() > 0) {
+            tag.put("Queue", fleet.saveQueue(registries));
+        }
+        List<HeldLoad> loads = held.getOrDefault(pos, List.of());
+        if (!loads.isEmpty()) {
+            ListTag list = new ListTag();
+            for (HeldLoad load : loads) {
+                CompoundTag entry = new CompoundTag();
+                entry.put("Job", FleetSaves.saveJob(load.job(), registries));
+                entry.put("Stack", ValueIo.saveStack(registries, load.stack()));
+                list.add(entry);
+            }
+            tag.put("Held", list);
+        }
+        return tag;
+    }
+
+    /** Takes back what the node kept while it was in no network. */
+    private void restoreState(StorageNodeBlockEntity node, BlockPos pos) {
+        CompoundTag tag = node.takeWarehouseState();
+        if (tag.isEmpty() || node.getLevel() == null) {
+            return;
+        }
+        HolderLookup.Provider registries = node.getLevel().registryAccess();
+        if (tag.contains("Garage") && garages.contains(pos)) {
+            fleet.restoreGarage(pos, tag.getCompoundOrEmpty("Garage"), registries);
+        }
+        if (tag.contains("Queue")) {
+            fleet.restoreQueue(tag.getListOrEmpty("Queue"), registries);
+        }
+        ListTag loads = tag.getListOrEmpty("Held");
+        for (int i = 0; i < loads.size(); i++) {
+            CompoundTag entry = loads.getCompoundOrEmpty(i);
+            ItemStack stack = ValueIo.parseStack(registries, entry.getCompoundOrEmpty("Stack"));
+            Optional<ShuttleJob> job = FleetSaves.loadJob(entry.getCompoundOrEmpty("Job"), registries);
+            if (!stack.isEmpty() && job.isPresent() && job.get() instanceof PickJob pick) {
+                held.computeIfAbsent(pos, p -> new ArrayList<>()).add(new HeldLoad(pick, stack));
+            }
+        }
+    }
+
+    @Override
+    public void stateChanged(BlockPos pos) {
+        if (level != null) {
+            level.blockEntityChanged(pos);
+        }
+    }
+
+    @Override
+    public void queueChanged() {
+        if (controllerPos != null) {
+            stateChanged(controllerPos);
+        }
     }
 
     /** A garage's shuttles or pause state changed. */
@@ -829,10 +930,15 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return fleet.hasShuttles() && !destinationReachable ? "no_rail" : "needs_shuttle";
     }
 
+    /** The next job id of the world. */
+    private int nextJobId() {
+        return CounterData.get(level.getServer(), CounterData.Kind.JOB_IDS).take();
+    }
+
     /** Queues one shuttle pick per planned job. */
     private void startJobs(RequestPlan.Plan<BlockPos> plan, int requestId, ItemKey key, BlockPos destination) {
         for (RequestPlan.Job<BlockPos> job : plan.jobs()) {
-            fleet.requestPick(new PickJob(requestId, key, job.count(), job.source(), destination));
+            fleet.requestPick(new PickJob(nextJobId(), requestId, key, job.count(), job.source(), destination));
         }
     }
 
@@ -852,7 +958,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     @Override
     public ItemStack deliverTo(PickJob job, ItemStack stack) {
-        if (stack.isEmpty()) {
+        if (stack.isEmpty() || level == null || !level.isLoaded(job.terminal())) {
             return stack;
         }
         if (!(loaded(job.terminal()) instanceof DeliveryTarget target)) {
@@ -867,6 +973,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         ItemStack left = deliverTo(job, stack);
         if (!left.isEmpty()) {
             held.computeIfAbsent(job.terminal(), pos -> new ArrayList<>()).add(new HeldLoad(job, left));
+            stateChanged(job.terminal());
         }
     }
 
@@ -888,6 +995,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         } else {
             held.put(terminalPos, remaining);
         }
+        stateChanged(terminalPos);
     }
 
     private void addSource(BlockPos pos) {
@@ -1017,6 +1125,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             fleet.refreshShafts(shafts);
         }
         fleet.tick();
+        if (++claimTimer >= CLAIM_SWEEP_TICKS) {
+            claimTimer = 0;
+            sweepClaims();
+        }
         tickStations();
         if (!pendingGantries.isEmpty()) {
             readGantries();
@@ -1107,6 +1219,47 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
+    /**
+     * Releases station claims whose job the fleet has not known at two sweeps
+     * in a row. Sweeps only while online and while every chunk of the site is
+     * loaded, so a job in a garage that is not loaded yet keeps its claim.
+     */
+    private void sweepClaims() {
+        if (status() != Status.ONLINE || !siteLoaded()) {
+            return;
+        }
+        List<StationClaim> claims = new ArrayList<>();
+        for (BlockPos pos : stations) {
+            if (loaded(pos) instanceof InboundStationBlockEntity station) {
+                for (int slot = 0; slot < station.buffer().getSlots(); slot++) {
+                    if (station.isClaimed(slot)) {
+                        claims.add(new StationClaim(pos, slot, station.claimedBy(slot)));
+                    }
+                }
+            }
+        }
+        for (StationClaim orphan : claimSweep.sweep(claims, claim -> fleet.knows(claim.jobId()))) {
+            if (loaded(orphan.station()) instanceof InboundStationBlockEntity station && station.claimedBy(orphan.slot()) == orphan.jobId()) {
+                station.release(orphan.slot());
+                pendingStations.add(orphan.station());
+            }
+        }
+    }
+
+    /** Whether every chunk of the controller's site span is loaded; false without a loaded controller. */
+    private boolean siteLoaded() {
+        Optional<WarehouseControllerBlockEntity> controller = controller();
+        if (controller.isEmpty()) {
+            return false;
+        }
+        for (long key : controller.get().span()) {
+            if (!level.getChunkSource().hasChunk(SiteChunks.x(key), SiteChunks.z(key))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** Moves up to {@code put_away_per_tick} unclaimed stacks out of the station's buffer. */
     private void drain(BlockPos pos, InboundStationBlockEntity station) {
         int budget = ShuttlesStatsManager.INSTANCE.putAwayPerTick();
@@ -1136,8 +1289,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 continue;
             }
             budget--;
-            station.claim(slot);
-            fleet.requestPutAway(new PutAwayJob(pos, slot, key, stack.getCount(), target.get()));
+            PutAwayJob job = new PutAwayJob(nextJobId(), pos, slot, key, stack.getCount(), target.get());
+            station.claim(slot, job.id());
+            fleet.requestPutAway(job);
         }
         if (more) {
             pendingStations.add(pos);
@@ -1190,18 +1344,18 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             head.readProduceStock(this);
             BlockPos pos = head.getBlockPos();
             if (suppliers && !fleet.hasSupplyJob(pos) && supplyDue(head)) {
-                fleet.requestSupply(new SupplyJob(pos));
+                fleet.requestSupply(new SupplyJob(nextJobId(), pos));
             }
             if (harvesters && !fleet.hasFieldJob(pos) && fleet.fieldReachable(pos, JobNeeds.HARVESTER)) {
                 boolean seeds = head.supplyCount(SupplyBuffer.Part.SEEDS) > 0;
                 if (FieldDue.due(head.harvestCalled(), head.plantMode(), head.hydrated(), head.tillableCount(), head.plantableCount(), seeds)) {
-                    fleet.requestField(new FieldJob(pos));
+                    fleet.requestField(new FieldJob(nextJobId(), pos));
                 }
             }
             if (spreaders && head.fertilizing() && !fleet.hasFertilizeJob(pos) && fleet.fieldReachable(pos, JobNeeds.SPREADER)) {
                 long now = level.getGameTime();
                 if (head.fertilizeDue(now)) {
-                    fleet.requestFertilize(new FertilizeJob(pos));
+                    fleet.requestFertilize(new FertilizeJob(nextJobId(), pos));
                     head.fertilizeCalled(now);
                 }
             }
@@ -1263,7 +1417,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                         capacity, targets.getFirst().room());
                 if (amount > 0) {
                     TankRef target = targets.getFirst().id();
-                    fleet.requestFluid(new FluidJob(pos, view.ref().tank(), target.gantry(), target.tank(), key, amount,
+                    fleet.requestFluid(new FluidJob(nextJobId(), pos, view.ref().tank(), target.gantry(), target.tank(), key, amount,
                             FluidJob.Purpose.PUT_AWAY));
                 }
             }
@@ -1324,7 +1478,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 int amount = FluidRestockPlan.amount(lacking, tankerMinLoad(), capacity, source.free());
                 if (amount > 0) {
                     TankRef from = source.id().ref();
-                    fleet.requestFluid(new FluidJob(from.gantry(), from.tank(), pos, view.ref().tank(), source.id().key(), amount,
+                    fleet.requestFluid(new FluidJob(nextJobId(), from.gantry(), from.tank(), pos, view.ref().tank(), source.id().key(), amount,
                             FluidJob.Purpose.RESTOCK));
                 }
             }
@@ -1415,6 +1569,22 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /** Sets the min load of this warehouse's tanker runs, for tests that must not change the stats of others. */
+    /** Items held for a destination until its delivery buffer has room. */
+    public int heldCount(BlockPos destination) {
+        int count = 0;
+        for (HeldLoad load : held.getOrDefault(destination, List.of())) {
+            count += load.stack().getCount();
+        }
+        return count;
+    }
+
+    /** Holds a stack for a destination as an instant pick that did not fit would; for tests. */
+    public void holdForTests(BlockPos destination, ItemStack stack) {
+        PickJob job = new PickJob(nextJobId(), 0, ItemKey.of(stack), stack.getCount(), destination, destination);
+        held.computeIfAbsent(destination, pos -> new ArrayList<>()).add(new HeldLoad(job, stack.copy()));
+        stateChanged(destination);
+    }
+
     public void setTankerMinLoadForTests(int minLoad) {
         tankerMinLoadForTests = minLoad;
     }
@@ -1595,15 +1765,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
      * stock it had as a whole.
      */
     private void snapshotStock() {
-        if (index.version() == snapshotVersion) {
+        if (index.version() == snapshotVersion || !siteLoaded()) {
             return;
         }
         controller().ifPresent(controller -> {
-            for (long key : controller.span()) {
-                if (!level.getChunkSource().hasChunk(SiteChunks.x(key), SiteChunks.z(key))) {
-                    return;
-                }
-            }
             snapshotVersion = index.version();
             SiteRegistry.of(level).updateStock(controller, index.entries(), level.getGameTime());
         });

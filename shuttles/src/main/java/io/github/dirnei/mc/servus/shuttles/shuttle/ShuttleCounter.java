@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.shuttle;
 
-/** Hands out shuttle numbers counting up from 1; never gives a number twice. */
+/** Hands out numbers counting up from 1, such as shuttle numbers and job ids; never gives a number twice. */
 public final class ShuttleCounter {
 
     private int last;

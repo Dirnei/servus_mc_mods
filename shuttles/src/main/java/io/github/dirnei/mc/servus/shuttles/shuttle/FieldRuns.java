@@ -158,6 +158,25 @@ final class FieldRuns {
         }
     }
 
+    /**
+     * A field shuttle restored from a save goes on from the node it stands
+     * on: stacks on their way into storage first, then its run decides again.
+     */
+    void resume(Shuttle shuttle) {
+        FieldRun run = shuttle.fieldRun();
+        if (!host.isTravelNode(shuttle.at())) {
+            lose(shuttle);
+        } else if (!run.store.isEmpty()) {
+            continueStore(shuttle);
+        } else if (shuttle.supply != null) {
+            supplyTurn(shuttle);
+        } else if (shuttle.spread != null) {
+            spreadTurn(shuttle);
+        } else {
+            turn(shuttle);
+        }
+    }
+
     /** The field shuttle lost its way: it is back in its garage and its cargo drops there. */
     private void lose(Shuttle shuttle) {
         fleet.park(shuttle);

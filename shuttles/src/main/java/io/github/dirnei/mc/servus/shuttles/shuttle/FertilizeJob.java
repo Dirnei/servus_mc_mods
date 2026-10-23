@@ -8,9 +8,10 @@ import net.minecraft.core.BlockPos;
  * field's reserve, dose the plots of the field the Field Head at that
  * position serves, and put the rest away.
  *
+ * @param id   the job's id, unique in the world
  * @param head the Field Head of the field
  */
-public record FertilizeJob(BlockPos head) implements ShuttleJob {
+public record FertilizeJob(int id, BlockPos head) implements ShuttleJob {
 
     @Override
     public JobNeeds needs() {

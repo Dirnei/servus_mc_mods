@@ -21,6 +21,7 @@ public final class ShuttlesGameTests {
             DataPacketGameTests.class,
             ElevatorGameTests.class,
             FieldGameTests.class,
+            FleetPersistenceGameTests.class,
             FieldLookGameTests.class,
             FluidGantryGameTests.class,
             GantryTankGameTests.class,

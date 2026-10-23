@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleLabelForm;
-import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleNumberData;
+import io.github.dirnei.mc.servus.shuttles.shuttle.CounterData;
 import java.util.Optional;
 import java.util.OptionalInt;
 import net.minecraft.server.level.ServerLevel;
@@ -74,7 +74,7 @@ public class ShuttleItem extends Item {
         if (!isShuttle(stack) || number(stack).isPresent()) {
             return false;
         }
-        stack.set(ServusShuttlesComponents.SHUTTLE_NUMBER.get(), ShuttleNumberData.get(level.getServer()).take());
+        stack.set(ServusShuttlesComponents.SHUTTLE_NUMBER.get(), CounterData.get(level.getServer(), CounterData.Kind.SHUTTLE_NUMBERS).take());
         return true;
     }
 

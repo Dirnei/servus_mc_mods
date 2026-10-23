@@ -29,6 +29,22 @@ public final class ShuttleMotion {
         return new ShuttleMotion(List.of(at));
     }
 
+    /**
+     * A motion as it was saved: on that segment, that far along it. A segment
+     * past the path's end counts as arrived; progress outside 0 to 1 is clamped.
+     */
+    public static ShuttleMotion restored(List<NodePos> path, int segment, double progress) {
+        ShuttleMotion motion = new ShuttleMotion(path);
+        motion.segment = Math.clamp(segment, 0, path.size() - 1);
+        motion.progress = motion.arrived() ? 0 : Math.clamp(progress, 0.0, 0.999);
+        return motion;
+    }
+
+    /** The nodes still ahead: the one the shuttle is on or last passed and every one after it. */
+    public List<NodePos> remaining() {
+        return path.subList(Math.min(segment, path.size() - 1), path.size());
+    }
+
     public List<NodePos> path() {
         return path;
     }

@@ -31,6 +31,9 @@ import java.util.function.ObjIntConsumer;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
@@ -132,6 +135,14 @@ public final class ShuttleFleet {
         default boolean noPower() {
             return false;
         }
+
+        /** The saved state of the node at that position changed, so its chunk must be saved again. */
+        default void stateChanged(BlockPos pos) {
+        }
+
+        /** The queue changed or holds jobs, so the controller's chunk must be saved again. */
+        default void queueChanged() {
+        }
     }
 
     /** A free shuttle and its path to a job's first goal. */
@@ -139,6 +150,8 @@ public final class ShuttleFleet {
     }
 
     private static final int SYNC_INTERVAL = 5;
+    /** Ticks a restored shuttle waits once its path's chunks are loaded, and the queue waits after a restore. */
+    static final int RESTORE_SETTLE_TICKS = 20;
     /** Garage slots the out mask can tell apart; container data travels as a short. */
     public static final int MASK_SLOTS = 15;
 
@@ -150,6 +163,9 @@ public final class ShuttleFleet {
     private boolean syncPending;
     private boolean wasMoving;
     private int syncTimer;
+    /** Ticks job assignment still waits after a restore. */
+    private int assignWait;
+    private int lastQueueSize;
 
     public ShuttleFleet(Host host) {
         this.host = host;
@@ -261,15 +277,24 @@ public final class ShuttleFleet {
         syncPending = true;
     }
 
-    /** Called when a garage leaves: cargo drops there, jobs go back to the queue, the shuttles are forgotten. */
-    public void releaseGarage(BlockPos pos) {
+    /**
+     * Called when a garage leaves. One that leaves for good drops its
+     * shuttles' cargo there and their jobs go back to the queue; any other
+     * leave keeps nothing here because the garage took its shuttles' state
+     * along ({@link #saveGarage}). The shuttles are forgotten either way.
+     */
+    public void releaseGarage(BlockPos pos, boolean forGood) {
         Garage garage = garages.remove(pos);
         if (garage == null) {
             return;
         }
         for (Shuttle shuttle : garage.shuttles) {
             lifts.release(shuttle);
-            dropCargo(shuttle);
+            if (forGood) {
+                dropCargo(shuttle);
+            } else {
+                endPumping(shuttle);
+            }
         }
         garage.shuttles.clear();
         syncPending = true;
@@ -298,6 +323,9 @@ public final class ShuttleFleet {
         NodePos previous = garage.home;
         Set<NodePos> neighbours = host.travelNeighbours(Conversions.toNodePos(garage.pos));
         garage.home = neighbours.isEmpty() ? null : neighbours.iterator().next();
+        if (garage.home == null && previous != null && !loaded(previous)) {
+            garage.home = previous;
+        }
         if (garage.home == previous) {
             return;
         }
@@ -330,6 +358,7 @@ public final class ShuttleFleet {
 
     private void recallShuttle(Shuttle shuttle) {
         lifts.release(shuttle);
+        shuttle.restoring = null;
         dropCargo(shuttle);
         shuttle.leg = Leg.HOME;
         shuttle.motion = shuttle.garage.home == null ? null : ShuttleMotion.parked(shuttle.garage.home);
@@ -432,6 +461,11 @@ public final class ShuttleFleet {
 
     public int queued() {
         return jobs.size();
+    }
+
+    /** Whether a job with that id is queued or a shuttle carries it. */
+    public boolean knows(int jobId) {
+        return sumQueued(job -> job.id() == jobId ? 1 : 0) > 0 || sumRiding(job -> job.id() == jobId ? 1 : 0) > 0;
     }
 
     /** Jobs shuttles are carrying out right now, counting every load of a Cargo Hold. */
@@ -645,14 +679,25 @@ public final class ShuttleFleet {
     }
 
     public void tick() {
-        if (!host.noPower()) {
+        if (assignWait > 0) {
+            assignWait--;
+        } else if (!host.noPower()) {
             assignJobs();
         }
         boolean moving = lifts.tick();
         for (Garage garage : garages.values()) {
+            boolean out = false;
             for (Shuttle shuttle : garage.shuttles) {
                 moving |= tickShuttle(shuttle);
+                out |= shuttle.out();
             }
+            if (out) {
+                host.stateChanged(garage.pos);
+            }
+        }
+        if (!jobs.isEmpty() || jobs.size() != lastQueueSize) {
+            lastQueueSize = jobs.size();
+            host.queueChanged();
         }
         if (moving || wasMoving || syncPending) {
             if (++syncTimer >= SYNC_INTERVAL || syncPending) {
@@ -666,6 +711,13 @@ public final class ShuttleFleet {
 
     /** One tick of one shuttle; true while it drives, rides or hands over to a lift. */
     private boolean tickShuttle(Shuttle shuttle) {
+        if (shuttle.restoring != null) {
+            tickRestore(shuttle);
+            return false;
+        }
+        if (shuttle.motion != null && !shuttle.riding && !nextLoaded(shuttle.motion)) {
+            return false;
+        }
         if (shuttle.leg == Leg.WAITING_ROOM && shuttle.busy()) {
             deliverLoads(shuttle);
             if (!shuttle.busy()) {
@@ -849,7 +901,8 @@ public final class ShuttleFleet {
                 continue;
             }
             for (Shuttle shuttle : garage.shuttles) {
-                if (!shuttle.busy() && shuttle.motion != null && shuttle.lift == null && needs.fits(shuttle.profile)) {
+                if (!shuttle.busy() && shuttle.motion != null && shuttle.lift == null && shuttle.restoring == null
+                        && needs.fits(shuttle.profile)) {
                     free.add(shuttle);
                 }
             }
@@ -991,7 +1044,7 @@ public final class ShuttleFleet {
                     shuttle.motion = ShuttleMotion.parked(shuttle.motion.end());
                 }
             }
-            case HOME -> park(shuttle);
+            case HOME -> recallShuttle(shuttle);
             default -> goHome(shuttle);
         }
     }
@@ -1018,7 +1071,7 @@ public final class ShuttleFleet {
                 returnLoads(shuttle, lead);
                 goHome(shuttle);
             }
-            case HOME -> park(shuttle);
+            case HOME -> recallShuttle(shuttle);
         }
     }
 
@@ -1051,7 +1104,7 @@ public final class ShuttleFleet {
                 shuttle.loads.clear();
                 goHome(shuttle);
             }
-            case HOME -> park(shuttle);
+            case HOME -> recallShuttle(shuttle);
             default -> goHome(shuttle);
         }
     }
@@ -1130,6 +1183,7 @@ public final class ShuttleFleet {
     /** Puts the shuttle back into its garage at once; a field run's cargo drops there. */
     void park(Shuttle shuttle) {
         lifts.release(shuttle);
+        shuttle.restoring = null;
         endPumping(shuttle);
         dropFieldRun(shuttle);
         shuttle.loads.clear();
@@ -1184,6 +1238,188 @@ public final class ShuttleFleet {
             jobs.addFirst(requeue.get(i));
         }
         shuttle.loads.clear();
+    }
+
+    /** Whether the chunk of the node is loaded. */
+    private boolean loaded(NodePos node) {
+        return host.level().isLoaded(Conversions.toBlockPos(node));
+    }
+
+    /** Whether the node the motion is on and the one it drives to next lie in loaded chunks. */
+    private boolean nextLoaded(ShuttleMotion motion) {
+        if (!loaded(motion.currentNode())) {
+            return false;
+        }
+        return motion.arrived() || loaded(motion.path().get(motion.segment() + 1));
+    }
+
+    /** Whether every node the motion still has ahead lies in a loaded chunk. */
+    private boolean aheadLoaded(ShuttleMotion motion) {
+        for (NodePos node : motion.remaining()) {
+            if (!loaded(node)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** A restored shuttle waits until the chunks ahead of it have been loaded for a while, then goes on. */
+    private void tickRestore(Shuttle shuttle) {
+        boolean ready = shuttle.fieldRun() != null ? loaded(shuttle.motion.currentNode()) : aheadLoaded(shuttle.motion);
+        if (shuttle.restoring.tick(ready)) {
+            shuttle.restoring = null;
+            resume(shuttle);
+            syncPending = true;
+        }
+    }
+
+    /**
+     * A restored shuttle goes on: a field run decides again from the node it
+     * stands on; any other shuttle drives on while its path is whole, else
+     * looks for a new way to its leg's goal, else home, else is recalled with its cargo.
+     */
+    private void resume(Shuttle shuttle) {
+        if (shuttle.fieldRun() != null) {
+            shuttle.motion = ShuttleMotion.parked(shuttle.motion.currentNode());
+            fieldRuns.resume(shuttle);
+            return;
+        }
+        if (shuttle.leg == Leg.WAITING_ROOM || pathWhole(shuttle.motion)) {
+            return;
+        }
+        NodePos at = shuttle.motion.currentNode();
+        if (!host.isTravelNode(at)) {
+            recallShuttle(shuttle);
+            return;
+        }
+        Set<NodePos> goals = legGoals(shuttle);
+        List<NodePos> path = goals.isEmpty() ? List.of() : RailPaths.find(at, goals::contains, ways(shuttle));
+        if (!path.isEmpty()) {
+            shuttle.motion = new ShuttleMotion(path);
+            return;
+        }
+        NodePos home = shuttle.garage.home;
+        List<NodePos> homePath = home == null ? List.of() : RailPaths.find(at, home::equals, ways(shuttle));
+        if (homePath.isEmpty()) {
+            recallShuttle(shuttle);
+            return;
+        }
+        shuttle.leg = Leg.HOME;
+        shuttle.motion = new ShuttleMotion(homePath);
+    }
+
+    /** Whether every node the motion still has ahead is a rail or segment of this warehouse. */
+    private boolean pathWhole(ShuttleMotion motion) {
+        for (NodePos node : motion.remaining()) {
+            if (!host.isTravelNode(node)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** The rails the shuttle's leg ends on: where its lead job goes next, or its home. */
+    private Set<NodePos> legGoals(Shuttle shuttle) {
+        ShuttleJob lead = shuttle.lead();
+        if (shuttle.leg == Leg.HOME || lead == null) {
+            return shuttle.garage.home == null ? Set.of() : Set.of(shuttle.garage.home);
+        }
+        if (shuttle.leg == Leg.TO_SOURCE) {
+            return firstGoals(lead);
+        }
+        BlockPos goal = switch (shuttle.leg) {
+            case TO_TERMINAL -> lead instanceof PickJob pick ? pick.terminal() : null;
+            case TO_TARGET -> lead instanceof PutAwayJob putAway ? putAway.target() : fluidTargetOf(shuttle);
+            case TO_STATION -> lead instanceof PutAwayJob putAway ? putAway.station()
+                    : lead instanceof FluidJob fluid ? fluid.source() : null;
+            default -> null;
+        };
+        return goal == null ? Set.of() : host.dockRails(Conversions.toNodePos(goal));
+    }
+
+    private static BlockPos fluidTargetOf(Shuttle shuttle) {
+        TankRef target = shuttle.loads.get(0).fluidTarget;
+        return target == null ? null : target.gantry();
+    }
+
+    /** The shuttles of a garage that are out, as a tag the garage keeps; empty when none is out. */
+    public CompoundTag saveGarage(BlockPos pos, HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        Garage garage = garages.get(pos);
+        if (garage == null) {
+            return tag;
+        }
+        ListTag saved = new ListTag();
+        for (Shuttle shuttle : garage.shuttles) {
+            if (shuttle.motion != null && shuttle.out()) {
+                saved.add(FleetSaves.saveShuttle(shuttle, registries));
+            }
+        }
+        if (!saved.isEmpty()) {
+            tag.put("Shuttles", saved);
+        }
+        return tag;
+    }
+
+    /**
+     * Sends the saved shuttles of a garage that just joined back out: each
+     * slot that holds a shuttle and is inside takes its saved state and waits
+     * for its path's chunks before it goes on. Their jobs leave the queue.
+     */
+    public void restoreGarage(BlockPos pos, CompoundTag tag, HolderLookup.Provider registries) {
+        Garage garage = garages.get(pos);
+        ListTag saved = tag.getListOrEmpty("Shuttles");
+        if (garage == null || saved.isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < saved.size(); i++) {
+            CompoundTag entry = saved.getCompoundOrEmpty(i);
+            Shuttle shuttle = garage.inSlot(FleetSaves.slotOf(entry));
+            if (shuttle == null || shuttle.out() || !FleetSaves.restoreShuttle(shuttle, entry, registries)) {
+                continue;
+            }
+            lifts.release(shuttle);
+            shuttle.stop = 0;
+            shuttle.stopAt = null;
+            shuttle.speed = 0;
+            shuttle.speedFor = null;
+            shuttle.paidFor = null;
+            shuttle.paidThrough = -1;
+            shuttle.pumping = null;
+            shuttle.restoring = new Settle(RESTORE_SETTLE_TICKS);
+            Set<Integer> carried = new HashSet<>();
+            for (Load load : shuttle.loads) {
+                carried.add(load.job.id());
+            }
+            jobs.removeIf(job -> carried.contains(job.id()));
+        }
+        assignWait = RESTORE_SETTLE_TICKS;
+        syncPending = true;
+    }
+
+    /** The queued jobs in their order, as a tag the controller keeps. */
+    public ListTag saveQueue(HolderLookup.Provider registries) {
+        return FleetSaves.saveJobs(jobs, registries);
+    }
+
+    /** Queues saved jobs again behind those queued now, skipping any whose id is already queued or carried. */
+    public void restoreQueue(ListTag saved, HolderLookup.Provider registries) {
+        List<ShuttleJob> restored = FleetSaves.loadJobs(saved, registries);
+        if (restored.isEmpty()) {
+            return;
+        }
+        for (ShuttleJob job : restored) {
+            if (!knows(job.id())) {
+                jobs.add(job);
+            }
+        }
+        assignWait = RESTORE_SETTLE_TICKS;
+        syncPending = true;
+    }
+
+    /** Forgets every queued job; the controller took them along when it left. */
+    public void clearQueue() {
+        jobs.clear();
     }
 
     /** The network's shafts changed: keep, resize, drop and create cars to match. */

@@ -5,6 +5,9 @@
 ### Added
 - Shuttles get a number per world, shown in their tooltip and in the garage.
 
+### Fixed
+- Shuttle jobs, their cargo and station claims survive a reload or an unloaded warehouse; nothing drops mid-trip.
+
 ## 0.3.0
 
 Needs Servus: Foundation 0.3.0 or later.

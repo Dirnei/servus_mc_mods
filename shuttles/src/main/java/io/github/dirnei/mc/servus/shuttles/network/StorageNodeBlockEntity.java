@@ -28,6 +28,9 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
 
     /** The zone copied onto this block by a Zone Label, or null when unzoned. */
     private ZoneDefinition zone;
+    /** What the warehouse keeps of this node while the node is in no network: shuttles, queue or held loads. */
+    private CompoundTag warehouseState = new CompoundTag();
+    private boolean leavingForGood;
 
     protected StorageNodeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -93,6 +96,10 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
         writeZone(tag, registries);
+        CompoundTag state = isInNetwork() ? network().map(network -> network.saveState(this)).orElse(warehouseState) : warehouseState;
+        if (!state.isEmpty()) {
+            tag.put("Warehouse", state);
+        }
         output.store(tag);
     }
 
@@ -102,6 +109,37 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
         zone = tag.contains("Zone") ? ZoneDefinition.load(tag.getCompoundOrEmpty("Zone"), registries) : null;
+        warehouseState = tag.getCompoundOrEmpty("Warehouse");
+    }
+
+    /** Marks the node as leaving for good before it leaves its network: broken or replaced, not unloaded. */
+    @Override
+    public void setRemoved() {
+        leavingForGood = true;
+        super.setRemoved();
+    }
+
+    @Override
+    public void clearRemoved() {
+        leavingForGood = false;
+        super.clearRemoved();
+    }
+
+    /** Whether the node leaves its network because the block is gone; a chunk unload, split or link change is no such leave. */
+    public boolean leavingForGood() {
+        return leavingForGood;
+    }
+
+    /** Keeps what the warehouse held for this node while it is in no network; saved with the block. */
+    public void stashWarehouseState(CompoundTag state) {
+        warehouseState = state;
+    }
+
+    /** Hands the kept warehouse state to the network the node joins, and forgets it here. */
+    public CompoundTag takeWarehouseState() {
+        CompoundTag state = warehouseState;
+        warehouseState = new CompoundTag();
+        return state;
     }
 
     @Override

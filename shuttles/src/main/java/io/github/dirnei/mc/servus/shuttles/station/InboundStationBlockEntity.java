@@ -41,7 +41,7 @@ public class InboundStationBlockEntity extends StationBlockEntity {
         @Override
         protected void onContentsChanged(int slot) {
             if (getStackInSlot(slot).isEmpty()) {
-                claimed[slot] = false;
+                claimedBy[slot] = 0;
             }
             setChanged();
             postIntake();
@@ -82,7 +82,8 @@ public class InboundStationBlockEntity extends StationBlockEntity {
     };
 
     /** Slots a shuttle is on its way to pick up. */
-    private final boolean[] claimed = new boolean[ShuttlesStatsManager.INSTANCE.inboundBufferSlots()];
+    /** The id of the put-away job that claimed each buffer slot, 0 for a free slot. */
+    private final int[] claimedBy = new int[ShuttlesStatsManager.INSTANCE.inboundBufferSlots()];
     private int pullTimer;
     private PutAwayPlan.Reason blockedReason;
     private ItemStack blockedStack = ItemStack.EMPTY;
@@ -151,18 +152,26 @@ public class InboundStationBlockEntity extends StationBlockEntity {
     }
 
     public boolean isClaimed(int slot) {
-        return slot >= 0 && slot < claimed.length && claimed[slot];
+        return claimedBy(slot) != 0;
     }
 
-    public void claim(int slot) {
-        if (slot >= 0 && slot < claimed.length) {
-            claimed[slot] = true;
+    /** The id of the job that claimed the slot, 0 when it is free. */
+    public int claimedBy(int slot) {
+        return slot >= 0 && slot < claimedBy.length ? claimedBy[slot] : 0;
+    }
+
+    /** Claims the slot for the put-away job with that id. */
+    public void claim(int slot, int jobId) {
+        if (slot >= 0 && slot < claimedBy.length) {
+            claimedBy[slot] = jobId;
+            setChanged();
         }
     }
 
     public void release(int slot) {
-        if (slot >= 0 && slot < claimed.length) {
-            claimed[slot] = false;
+        if (slot >= 0 && slot < claimedBy.length && claimedBy[slot] != 0) {
+            claimedBy[slot] = 0;
+            setChanged();
         }
     }
 
@@ -209,6 +218,7 @@ public class InboundStationBlockEntity extends StationBlockEntity {
         CompoundTag tag = new CompoundTag();
         saveStation(output, tag);
         tag.put("Items", buffer.serializeNBT(ValueIo.registries(this)));
+        tag.putIntArray("Claims", claimedBy.clone());
         output.store(tag);
     }
 
@@ -218,9 +228,11 @@ public class InboundStationBlockEntity extends StationBlockEntity {
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
         loadStation(input, tag);
-        Arrays.fill(claimed, false);
         if (tag.contains("Items")) {
             buffer.fillFrom(registries, tag.getCompoundOrEmpty("Items"));
         }
+        Arrays.fill(claimedBy, 0);
+        int[] claims = tag.getIntArray("Claims").orElse(new int[0]);
+        System.arraycopy(claims, 0, claimedBy, 0, Math.min(claims.length, claimedBy.length));
     }
 }

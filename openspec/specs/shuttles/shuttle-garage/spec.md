@@ -49,7 +49,7 @@ The garage SHALL be a member of the warehouse network only through the rail on i
 - **THEN** the garage does not belong to that warehouse, its lamp is dark and its shuttles serve nothing
 
 ### Requirement: Home rail per garage
-The rail behind a garage SHALL be the home of its shuttles: idle shuttles sit inside the garage, a shuttle leaves onto the home rail for a job and returns through it. A garage with no rail behind it SHALL keep its shuttles inside and they SHALL NOT serve jobs. When a garage loses its home rail while shuttles are out, those shuttles SHALL be recalled as the Recall button does. Shuttles out on a job SHALL keep moving and finish their legs whether or not any garage has a home rail. The shuttles of several garages SHALL serve one shared queue; the free shuttle with the shortest way to the job SHALL take it.
+The rail behind a garage SHALL be the home of its shuttles: idle shuttles sit inside the garage, a shuttle leaves onto the home rail for a job and returns through it. A garage with no rail behind it SHALL keep its shuttles inside and they SHALL NOT serve jobs. When a garage loses its home rail while shuttles are out, those shuttles SHALL be recalled as the Recall button does; a home rail that only unloads with its chunk SHALL NOT recall them, the garage keeps it as home until the chunk loads again. Shuttles out on a job SHALL keep moving and finish their legs whether or not any garage has a home rail. The shuttles of several garages SHALL serve one shared queue; the free shuttle with the shortest way to the job SHALL take it.
 
 #### Scenario: Two garages
 - **WHEN** a warehouse has garage A on the west aisle and garage B on the east aisle, each with one shuttle, and a pick is made on the east aisle
@@ -62,6 +62,10 @@ The rail behind a garage SHALL be the home of its shuttles: idle shuttles sit in
 #### Scenario: Rail removed while out
 - **WHEN** the rail behind a garage is broken while its shuttle carries cobblestone to a rack
 - **THEN** the cobblestone drops at the garage, the shuttle is inside and the GUI says none are out
+
+#### Scenario: Home rail unloads while out
+- **WHEN** the home rail of a garage lies in the next chunk, which unloads while the garage's shuttle carries cobblestone to a rack
+- **THEN** nothing drops, the shuttle is still out, and it drives home once the chunk loads again
 
 ### Requirement: Garage is protected while it holds shuttles
 A garage with at least one shuttle, inside or out, SHALL NOT be broken by a player and SHALL NOT be dismantled with the Configuration Carrot; the player SHALL be told to take the shuttles out first. An empty garage breaks and dismantles normally. When a garage is destroyed anyway, for example by an explosion, its shuttles SHALL drop as items at the garage, shuttles out on a job SHALL drop their cargo there and their jobs SHALL go back to the queue.

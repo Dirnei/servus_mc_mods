@@ -150,6 +150,10 @@ public final class MiniWarehouse {
         return helper.getBlockEntity(rackPos(), HeavyRackBlockEntity.class);
     }
 
+    public ShuttleGarageBlockEntity garage() {
+        return helper.getBlockEntity(garagePos(), ShuttleGarageBlockEntity.class);
+    }
+
     public StorageTerminalBlockEntity terminal() {
         return TerminalWiring.at(helper, packingPos());
     }

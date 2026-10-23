@@ -5,6 +5,9 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.module.JobNeeds;
 /** Something a shuttle does: fetch a pull, carry a put-away, work a field, supply a Field Head or carry fluid. All share one queue. */
 public sealed interface ShuttleJob permits PickJob, PutAwayJob, FieldJob, FertilizeJob, SupplyJob, FluidJob {
 
+    /** The job's id, counted up per world and never given twice; it stays the same across reloads. */
+    int id();
+
     /** The modules a shuttle needs for this job; warehouse jobs need none and refuse field only shuttles. */
     default JobNeeds needs() {
         return JobNeeds.WAREHOUSE;
