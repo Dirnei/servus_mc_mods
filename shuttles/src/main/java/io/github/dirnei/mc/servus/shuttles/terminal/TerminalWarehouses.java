@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.shuttles.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.index.ReservationTally;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
  */
 public final class TerminalWarehouses {
 
-    /** The last merged stock per set of warehouses, with the index versions it was built from. */
+    /** The last merged stock per set of warehouses, with the index and lock versions it was built from. */
     private record Merged(long[] versions, List<Map.Entry<ItemKey, Long>> stock) {
     }
 
@@ -70,33 +71,39 @@ public final class TerminalWarehouses {
         return list;
     }
 
-    /** The stock of all warehouses added up, largest first; the same list while no index changed. */
+    /**
+     * What can still be requested from all warehouses added up: the indexed
+     * stock less what picks have locked, items with nothing left dropped,
+     * largest first; the same list while no index or lock changed.
+     */
     public static List<Map.Entry<ItemKey, Long>> stock(List<WarehouseNetwork> warehouses) {
-        long[] versions = new long[warehouses.size()];
-        for (int i = 0; i < versions.length; i++) {
-            versions[i] = warehouses.get(i).index().version();
+        long[] versions = new long[warehouses.size() * 2];
+        for (int i = 0; i < warehouses.size(); i++) {
+            versions[i * 2] = warehouses.get(i).index().version();
+            versions[i * 2 + 1] = warehouses.get(i).reservationVersion();
         }
         List<WarehouseNetwork> key = List.copyOf(warehouses);
         Merged merged = MERGED.get(key);
         if (merged != null && Arrays.equals(merged.versions(), versions)) {
             return merged.stock();
         }
-        if (warehouses.size() == 1) {
-            List<Map.Entry<ItemKey, Long>> single = warehouses.get(0).index().entries();
-            MERGED.put(key, new Merged(versions, single));
-            return single;
-        }
+        List<Map.Entry<ItemKey, Long>> stock = warehouses.size() == 1
+                ? ReservationTally.requestable(warehouses.get(0).index().entries(), warehouses.get(0).reservedOut())
+                : merge(warehouses);
+        MERGED.put(key, new Merged(versions, stock));
+        return stock;
+    }
+
+    private static List<Map.Entry<ItemKey, Long>> merge(List<WarehouseNetwork> warehouses) {
         Map<ItemKey, Long> totals = new LinkedHashMap<>();
         for (WarehouseNetwork warehouse : warehouses) {
-            for (Map.Entry<ItemKey, Long> entry : warehouse.index().entries()) {
+            for (Map.Entry<ItemKey, Long> entry : ReservationTally.requestable(warehouse.index().entries(), warehouse.reservedOut())) {
                 totals.merge(entry.getKey(), entry.getValue(), Long::sum);
             }
         }
         List<Map.Entry<ItemKey, Long>> list = new ArrayList<>(totals.size());
         totals.forEach((item, total) -> list.add(Map.entry(item, total)));
         list.sort((a, b) -> Long.compare(b.getValue(), a.getValue()));
-        List<Map.Entry<ItemKey, Long>> stock = Collections.unmodifiableList(list);
-        MERGED.put(key, new Merged(versions, stock));
-        return stock;
+        return Collections.unmodifiableList(list);
     }
 }

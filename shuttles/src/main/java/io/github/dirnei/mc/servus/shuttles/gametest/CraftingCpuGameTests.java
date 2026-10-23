@@ -426,9 +426,9 @@ public final class CraftingCpuGameTests {
         });
     }
 
-    /** Without a CPU on the line the shortfall stays missing while the rest is delivered. */
+    /** Without a CPU on the line a request above the stock is only for what is there, and nothing waits as missing. */
     @ServusGameTest(timeoutTicks = 400)
-    public static void noCpuLeavesShortfallMissing(GameTestHelper helper) {
+    public static void noCpuCapsRequestAtStock(GameTestHelper helper) {
         setup(helper, false);
         stock(helper, RACK_B, Items.STICK, 3);
         stock(helper, RACK_A, Items.OAK_PLANKS, 10);
@@ -438,13 +438,11 @@ public final class CraftingCpuGameTests {
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(STICK, 8);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request for the three sticks in stock is accepted: " + menu.stock().message());
-            Waits.when(helper, () -> terminal.outputCount(Items.STICK) == 3
-                            && menu.stock().requests().size() == 1 && menu.stock().requests().get(0).state().equals("MISSING"), 300,
-                    () -> "three sticks delivered and the rest missing, had " + terminal.outputCount(Items.STICK) + " " + menu.stock().requests(),
-                    () -> {
-                        helper.assertTrue(menu.stock().requests().get(0).missing() == 5, "five sticks are missing");
-                        helper.succeed();
-                    });
+            helper.assertTrue(menu.stock().requests().size() == 1 && menu.stock().requests().get(0).requested() == 3,
+                    "the request is capped at three, got " + menu.stock().requests());
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) == 3 && menu.stock().requests().isEmpty(), 300,
+                    () -> "three sticks delivered and the request done, had " + terminal.outputCount(Items.STICK) + " " + menu.stock().requests(),
+                    helper::succeed);
         });
     }
 

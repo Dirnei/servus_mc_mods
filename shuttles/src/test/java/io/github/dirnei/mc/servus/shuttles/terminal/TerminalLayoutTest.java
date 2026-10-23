@@ -17,8 +17,8 @@ class TerminalLayoutTest {
     private static Rect framed(Area area) {
         Rect rect = area.rect();
         boolean slots = area.name().equals("inventory") || area.name().equals("hotbar") || area.name().equals("output")
-                || area.name().equals("input") || area.name().equals("grid") || area.name().equals("craft grid")
-                || area.name().equals("craft result");
+                || area.name().equals("input") || area.name().equals("grid") || area.name().equals("order grid")
+                || area.name().equals("order result");
         return slots ? new Rect(rect.x() - 1, rect.y() - 1, rect.w() + 2, rect.h() + 2) : rect;
     }
 
@@ -70,10 +70,9 @@ class TerminalLayoutTest {
                 assertTrue(dialog.y() >= layout.top() && dialog.bottom() <= Storage.OUTPUT.bottom(), at + "the dialog leaves its area");
                 assertFalse(dialog.overlaps(Storage.INVENTORY_LABEL), at + "the dialog covers the inventory label");
                 assertTrue(layout.height() <= screen - 4, at + "the panel does not fit the screen");
-                Rect grid = layout.grid();
-                Rect popup = Storage.POPUP;
-                assertTrue(popup.x() >= grid.x() && popup.right() <= layout.scrollbar().right() && popup.y() >= grid.y()
-                        && popup.bottom() <= grid.bottom(), at + "the crafting popup leaves the item grid");
+                Rect order = Storage.ORDER;
+                assertTrue(order.x() >= dialog.x() && order.right() <= dialog.right() && order.y() >= dialog.y()
+                        && order.bottom() <= dialog.bottom(), at + "the order grid leaves the dialog area");
             }
         }
         assertTrue(Storage.outputX(Storage.ROW_SLOTS - 1) + TerminalLayout.CELL <= Storage.OUTPUT.right(), "nine output slots fit");
@@ -82,16 +81,17 @@ class TerminalLayoutTest {
     }
 
     @Test
-    void popupPartsApartAndInsidePopup() {
-        assertDisjoint(Storage.popupAreas());
-        Rect popup = Storage.POPUP;
-        for (Area area : Storage.popupAreas()) {
+    void orderPartsApartAndInsideTheOrderArea() {
+        assertDisjoint(Storage.orderAreas());
+        Rect order = Storage.ORDER;
+        for (Area area : Storage.orderAreas()) {
             Rect rect = framed(area);
-            assertTrue(rect.x() >= popup.x() && rect.right() <= popup.right() && rect.y() >= popup.y() && rect.bottom() <= popup.bottom(),
-                    area.name() + " leaves the popup");
+            assertTrue(rect.x() >= order.x() && rect.right() <= order.right() && rect.y() >= order.y() && rect.bottom() <= order.bottom(),
+                    area.name() + " leaves the order area");
         }
-        assertTrue(Storage.craftX(8) + TerminalLayout.CELL <= Storage.CRAFT_GRID.right()
-                && Storage.craftY(8) + TerminalLayout.CELL <= Storage.CRAFT_GRID.bottom(), "nine grid slots fit");
+        assertFalse(order.overlaps(Storage.INVENTORY_LABEL) || order.overlaps(Storage.INVENTORY), "the order grid covers the inventory");
+        assertTrue(Storage.orderX(8) + TerminalLayout.CELL <= Storage.ORDER_GRID.right()
+                && Storage.orderY(8) + TerminalLayout.CELL <= Storage.ORDER_GRID.bottom(), "nine order cells fit");
     }
 
     @Test

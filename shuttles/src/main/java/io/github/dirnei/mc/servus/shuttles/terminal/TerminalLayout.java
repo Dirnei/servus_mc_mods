@@ -81,12 +81,21 @@ public final class TerminalLayout {
         public static final Rect INVENTORY = new Rect(8, 159, 9 * CELL, 3 * CELL);
         public static final Rect HOTBAR = new Rect(8, 217, 9 * CELL, CELL);
 
-        /** The crafting popup over the grid's base rows, and its parts. */
-        public static final Rect POPUP = new Rect(8, 18, 174, BASE_ROWS * CELL);
-        public static final Rect CRAFT_GRID = new Rect(18, 27, 3 * CELL, 3 * CELL);
-        public static final Rect CRAFT_ARROW = new Rect(80, 49, 16, 10);
-        public static final Rect CRAFT_RESULT = new Rect(102, 45, CELL, CELL);
-        public static final Rect CLEAR = new Rect(128, 48, 12, 12);
+        /**
+         * The order grid's area: the dialog area of the base rows. Its parts
+         * stay at these offsets on every height, since the ghost cells are
+         * menu slots that cannot move.
+         */
+        public static final Rect ORDER = new Rect(8, 18, 174, OUTPUT.bottom() - 18);
+        public static final Rect ORDER_GRID = new Rect(13, 23, 3 * CELL, 3 * CELL);
+        public static final Rect ORDER_ARROW = new Rect(72, 45, 16, 10);
+        public static final Rect ORDER_RESULT = new Rect(93, 41, CELL, CELL);
+        public static final Rect ORDER_AMOUNT_LABEL = new Rect(116, 23, 62, 9);
+        public static final Rect ORDER_AMOUNT = new Rect(116, 33, 62, 12);
+        public static final Rect ORDER_STATUS = new Rect(116, 48, 62, 30);
+        public static final Rect ORDER_STEPS = new Rect(12, 82, 166, 14);
+        public static final Rect ORDER_PREVIEW = new Rect(12, 98, 166, 28);
+        public static final Rect ORDER_BUTTONS = new Rect(12, 128, 166, 14);
 
         private Storage() {
         }
@@ -100,7 +109,7 @@ public final class TerminalLayout {
                 return BASE_HEIGHT - top;
             }
 
-            /** Everything but the crafting popup, which lies over the grid on purpose. */
+            /** Everything but the dialogs and the order grid, which lie over the grid on purpose. */
             public List<Area> areas() {
                 List<Area> areas = new ArrayList<>(List.of(new Area("title", title), new Area("craft button", craft),
                         new Area("search", search), new Area("grid", grid), new Area("scrollbar", scrollbar),
@@ -114,10 +123,13 @@ public final class TerminalLayout {
             }
         }
 
-        /** The parts of the crafting popup. */
-        public static List<Area> popupAreas() {
-            return List.of(new Area("craft grid", CRAFT_GRID), new Area("craft arrow", CRAFT_ARROW),
-                    new Area("craft result", CRAFT_RESULT), new Area("clear", CLEAR));
+        /** The parts of the order grid. */
+        public static List<Area> orderAreas() {
+            return List.of(new Area("order grid", ORDER_GRID), new Area("order arrow", ORDER_ARROW),
+                    new Area("order result", ORDER_RESULT), new Area("order amount label", ORDER_AMOUNT_LABEL),
+                    new Area("order amount", ORDER_AMOUNT), new Area("order status", ORDER_STATUS),
+                    new Area("order steps", ORDER_STEPS), new Area("order preview", ORDER_PREVIEW),
+                    new Area("order buttons", ORDER_BUTTONS));
         }
 
         /** The layout for a number of grid rows, at least {@link #BASE_ROWS}. */
@@ -144,13 +156,13 @@ public final class TerminalLayout {
             return Math.max(BASE_ROWS, Math.min(height.rows(), fit));
         }
 
-        /** Item origin of a crafting grid slot. */
-        public static int craftX(int slot) {
-            return CRAFT_GRID.x() + (slot % 3) * CELL;
+        /** Item origin of an order grid cell. */
+        public static int orderX(int cell) {
+            return ORDER_GRID.x() + (cell % 3) * CELL;
         }
 
-        public static int craftY(int slot) {
-            return CRAFT_GRID.y() + (slot / 3) * CELL;
+        public static int orderY(int cell) {
+            return ORDER_GRID.y() + (cell / 3) * CELL;
         }
 
         /** Item origin of an Input row slot. */

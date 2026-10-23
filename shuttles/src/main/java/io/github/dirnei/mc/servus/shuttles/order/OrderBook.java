@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.order;
 import io.github.dirnei.mc.servus.foundation.production.OrderPlanner;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
+import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -19,6 +20,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * The work orders of one Crafting CPU: plans them with the Foundation planner
@@ -34,7 +36,12 @@ public final class OrderBook {
         /** The producers on the data line. */
         List<Producer> producers();
 
-        /** Every item the warehouses of the line hold, with its count. */
+        /** The producers with one more pattern every Crafting Station of the line can run, for a one-off order. */
+        default List<Producer> producersWith(EncodedPattern extra) {
+            return producers();
+        }
+
+        /** Every item the warehouses of the line hold that no pick has locked, with its count. */
         Map<ItemKey, Long> stock();
 
         /** Stock reserved by the other CPUs of the line, per key. */
@@ -216,8 +223,16 @@ public final class OrderBook {
      *         {@code in_stock} when the stock already covers it
      */
     public Created create(ItemKey key, int amount, int requestId) {
+        return create(key, amount, requestId, null);
+    }
+
+    /**
+     * Plans and creates an order whose item is made only by {@code oneOff}
+     * when given: a pattern the order keeps, saved on the line or not.
+     */
+    public Created create(ItemKey key, int amount, int requestId, EncodedPattern oneOff) {
         Map<StepKey, ProductionRecipe> byKey = new HashMap<>();
-        OrderPlanner.Plan<ItemKey> plan = plan(key, amount, byKey);
+        OrderPlanner.Plan<ItemKey> plan = plan(key, amount, byKey, oneOff);
         if (plan.steps().isEmpty()) {
             return new Created(null, plan.missing().containsKey(key) ? "no_producer" : "in_stock");
         }
@@ -227,6 +242,7 @@ public final class OrderBook {
             steps.add(new OrderStep(stepKey.producer(), byKey.get(stepKey), step.batches()));
         }
         WorkOrder order = new WorkOrder(nextId++, key, amount, requestId, steps, plan.reserved(), plan.missing());
+        order.setOneOff(oneOff);
         assignRefs(order);
         if (openCount() >= host.slots()) {
             order.setState(WorkOrder.State.WAITING, WAITING_REASON);
@@ -245,7 +261,12 @@ public final class OrderBook {
      * @return the preview; its refusal is {@code no_producer} when nothing makes the item
      */
     public Preview preview(ItemKey key, int amount) {
-        OrderPlanner.Plan<ItemKey> plan = plan(key, amount, new HashMap<>());
+        return preview(key, amount, null);
+    }
+
+    /** What an order made only by {@code oneOff}, when given, would do. */
+    public Preview preview(ItemKey key, int amount, EncodedPattern oneOff) {
+        OrderPlanner.Plan<ItemKey> plan = plan(key, amount, new HashMap<>(), oneOff);
         if (plan.steps().isEmpty() && plan.missing().containsKey(key)) {
             return Preview.refused("no_producer");
         }
@@ -257,8 +278,8 @@ public final class OrderBook {
     }
 
     /** Plans the amount from the line's stock minus every reservation; stock of the item itself does not count. */
-    private OrderPlanner.Plan<ItemKey> plan(ItemKey key, int amount, Map<StepKey, ProductionRecipe> byKey) {
-        List<OrderPlanner.Recipe<ItemKey>> recipes = recipes(byKey);
+    private OrderPlanner.Plan<ItemKey> plan(ItemKey key, int amount, Map<StepKey, ProductionRecipe> byKey, EncodedPattern oneOff) {
+        List<OrderPlanner.Recipe<ItemKey>> recipes = recipes(byKey, oneOff, key);
         Map<ItemKey, Long> available = new HashMap<>(host.stock());
         reservedTotal().forEach((k, reserved) -> available.merge(k, (long) -reserved, Long::sum));
         host.reservedElsewhere().forEach((k, reserved) -> available.merge(k, (long) -reserved, Long::sum));
@@ -266,15 +287,19 @@ public final class OrderBook {
         return OrderPlanner.plan(key, amount, available, recipes, MAX_DEPTH);
     }
 
-    /** The producers' recipes as the planner sees them: producers without planned or running steps first, then idle ones, then by time. */
-    private List<OrderPlanner.Recipe<ItemKey>> recipes(Map<StepKey, ProductionRecipe> byKey) {
-        List<Producer> producers = new ArrayList<>(host.producers());
+    /**
+     * The producers' recipes as the planner sees them: producers without
+     * planned or running steps first, then idle ones, then by time. With a
+     * one-off pattern only that pattern makes {@code target}.
+     */
+    private List<OrderPlanner.Recipe<ItemKey>> recipes(Map<StepKey, ProductionRecipe> byKey, EncodedPattern oneOff, ItemKey target) {
+        List<Producer> producers = new ArrayList<>(producersFor(oneOff));
         producers.sort(Comparator.comparing((Producer producer) -> plannedOn(producer.pos()) || host.busyElsewhere(producer.pos()))
                 .thenComparing(producer -> producer.active().isPresent()));
         List<OrderPlanner.Recipe<ItemKey>> list = new ArrayList<>();
         for (Producer producer : producers) {
             for (ProductionRecipe recipe : producer.recipes()) {
-                if (recipe.outputs().isEmpty()) {
+                if (recipe.outputs().isEmpty() || oneOff != null && makes(recipe, target) && !runs(recipe, oneOff)) {
                     continue;
                 }
                 StepKey stepKey = new StepKey(producer.pos(), recipe.id());
@@ -285,6 +310,24 @@ public final class OrderBook {
         // Stable sort keeps idle producers first among equal times.
         list.sort(Comparator.comparingInt(OrderPlanner.Recipe::ticks));
         return list;
+    }
+
+    private List<Producer> producersFor(EncodedPattern oneOff) {
+        return oneOff == null ? host.producers() : host.producersWith(oneOff);
+    }
+
+    private static boolean makes(ProductionRecipe recipe, ItemKey key) {
+        for (ItemStack output : recipe.outputs()) {
+            if (key.matches(output)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether the recipe is the pattern's work: the same recipe with the same inputs. */
+    private static boolean runs(ProductionRecipe recipe, EncodedPattern pattern) {
+        return recipe.id().equals(pattern.recipe()) && ItemKey.counts(recipe.inputs()).equals(pattern.required());
     }
 
     /** Whether an open order of this book has a step on the producer that is not done yet. */
@@ -417,7 +460,7 @@ public final class OrderBook {
     /** Moves the step to a free producer when needed and starts feeding it once its producer takes the job. */
     private String start(WorkOrder order, OrderStep step, String blocked) {
         if (producerBusy(step.producer(), step)) {
-            relocate(step);
+            relocate(order, step);
         }
         if (producerBusy(step.producer(), step)) {
             step.setReason("producer busy");
@@ -485,8 +528,8 @@ public final class OrderBook {
      * Moves a waiting step to the first free producer of the line that offers
      * the same recipe with the same inputs, so chains spread over producers.
      */
-    private void relocate(OrderStep step) {
-        for (Producer producer : host.producers()) {
+    private void relocate(WorkOrder order, OrderStep step) {
+        for (Producer producer : producersFor(order.oneOff())) {
             if (producer.pos().equals(step.producer()) || producerBusy(producer.pos(), step)) {
                 continue;
             }

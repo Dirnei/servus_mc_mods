@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.order;
 
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
+import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 
 /** Make this many of an item: the steps, the stock reserved for them and how it is going. */
@@ -32,6 +34,8 @@ public final class WorkOrder {
     private BlockPos deliverTo;
     /** How many of the order's item were sent straight to {@link #deliverTo}. */
     private int directSent;
+    /** The pattern that makes the order's item when the order was started from a grid, null otherwise. */
+    private EncodedPattern oneOff;
     /** Intermediates later steps still needed that went to storage because the CPU's buffer was full, per key. */
     private final Map<ItemKey, Integer> overflowed = new LinkedHashMap<>();
 
@@ -69,6 +73,15 @@ public final class WorkOrder {
 
     public void deliverTo(BlockPos terminal) {
         this.deliverTo = terminal;
+    }
+
+    /** The pattern this order runs whether or not the line keeps it, or null. */
+    public EncodedPattern oneOff() {
+        return oneOff;
+    }
+
+    public void setOneOff(EncodedPattern pattern) {
+        this.oneOff = pattern;
     }
 
     public int directSent() {
@@ -173,6 +186,10 @@ public final class WorkOrder {
         if (!overflowed.isEmpty()) {
             tag.put("Overflowed", Saving.counts(overflowed, registries));
         }
+        if (oneOff != null) {
+            EncodedPattern.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), oneOff)
+                    .result().ifPresent(saved -> tag.put("OneOff", saved));
+        }
         ListTag list = new ListTag();
         for (OrderStep step : steps) {
             list.add(step.save(registries));
@@ -202,6 +219,10 @@ public final class WorkOrder {
         }
         order.directSent = tag.getIntOr("Direct", 0);
         order.overflowed.putAll(Saving.counts(tag.getListOrEmpty("Overflowed"), registries));
+        if (tag.contains("OneOff")) {
+            order.oneOff = EncodedPattern.CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE), tag.get("OneOff"))
+                    .result().orElse(null);
+        }
         return order;
     }
 }

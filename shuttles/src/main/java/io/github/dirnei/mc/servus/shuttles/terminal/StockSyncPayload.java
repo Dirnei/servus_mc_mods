@@ -26,15 +26,16 @@ import net.minecraft.resources.Identifier;
  * @param view     the key of the site shown, empty for this site
  * @param viewState the {@code RemoteSite.State} ordinal of the site shown, -1 for this site
  * @param noPower  whether a warehouse the terminal reaches is in the no power state
+ * @param orderGrid whether a formed Crafting CPU and a Crafting Station are on the terminal's data line
  */
 public record StockSyncPayload(BlockPos terminal, boolean online, String reason, List<StockEntry> entries, List<RequestRow> requests,
                                String message, List<RuleRow> rules, List<ItemStack> craftables, List<SiteRow> sites, String view,
-                               int viewState, boolean noPower) implements CustomPacketPayload {
+                               int viewState, boolean noPower, boolean orderGrid) implements CustomPacketPayload {
 
     /** The content of this site only. */
     public StockSyncPayload(BlockPos terminal, boolean online, String reason, List<StockEntry> entries, List<RequestRow> requests,
                             String message, List<RuleRow> rules, List<ItemStack> craftables) {
-        this(terminal, online, reason, entries, requests, message, rules, craftables, List.of(), "", -1, false);
+        this(terminal, online, reason, entries, requests, message, rules, craftables, List.of(), "", -1, false, false);
     }
 
     public static final Type<StockSyncPayload> TYPE =
@@ -46,7 +47,7 @@ public record StockSyncPayload(BlockPos terminal, boolean online, String reason,
     private static final StreamCodec<RegistryFriendlyByteBuf, List<ItemStack>> STACKS = ItemStack.STREAM_CODEC.apply(ByteBufCodecs.list());
     private static final StreamCodec<io.netty.buffer.ByteBuf, List<SiteRow>> SITES = SiteRow.STREAM_CODEC.apply(ByteBufCodecs.list());
 
-    /** Twelve fields, more than {@code StreamCodec.composite} takes. */
+    /** Thirteen fields, more than {@code StreamCodec.composite} takes. */
     public static final StreamCodec<RegistryFriendlyByteBuf, StockSyncPayload> STREAM_CODEC = StreamCodec.of(
             (buf, payload) -> {
                 BlockPos.STREAM_CODEC.encode(buf, payload.terminal());
@@ -61,10 +62,12 @@ public record StockSyncPayload(BlockPos terminal, boolean online, String reason,
                 ByteBufCodecs.STRING_UTF8.encode(buf, payload.view());
                 ByteBufCodecs.VAR_INT.encode(buf, payload.viewState());
                 ByteBufCodecs.BOOL.encode(buf, payload.noPower());
+                ByteBufCodecs.BOOL.encode(buf, payload.orderGrid());
             },
             buf -> new StockSyncPayload(BlockPos.STREAM_CODEC.decode(buf), ByteBufCodecs.BOOL.decode(buf), ByteBufCodecs.STRING_UTF8.decode(buf), ENTRIES.decode(buf),
                     REQUESTS.decode(buf), ByteBufCodecs.STRING_UTF8.decode(buf), RULES.decode(buf), STACKS.decode(buf), SITES.decode(buf),
-                    ByteBufCodecs.STRING_UTF8.decode(buf), ByteBufCodecs.VAR_INT.decode(buf), ByteBufCodecs.BOOL.decode(buf)));
+                    ByteBufCodecs.STRING_UTF8.decode(buf), ByteBufCodecs.VAR_INT.decode(buf), ByteBufCodecs.BOOL.decode(buf),
+                    ByteBufCodecs.BOOL.decode(buf)));
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

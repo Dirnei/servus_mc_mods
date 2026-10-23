@@ -150,14 +150,16 @@ public final class ServusShuttlesPayloads {
         });
     }
 
-    /** What the Storage Terminal screen sends: requests, crafts, rules, sites and the crafting grid. */
+    /** What the Storage Terminal screen sends: requests, crafts, rules, sites and the order grid. */
     private static void registerTerminalRequests(PayloadRegistrar registrar) {
         toMenu(registrar, RequestItemPayload.TYPE, RequestItemPayload.STREAM_CODEC, StorageTerminalMenu.class,
                 (player, menu, payload) -> menu.request(ItemKey.of(payload.item()), payload.amount()));
         toMenu(registrar, CraftPreviewRequestPayload.TYPE, CraftPreviewRequestPayload.STREAM_CODEC, StorageTerminalMenu.class,
-                (player, menu, payload) -> PacketDistributor.sendToPlayer(player, menu.preview(ItemKey.of(payload.item()), payload.amount())));
+                (player, menu, payload) -> PacketDistributor.sendToPlayer(player, menu.preview(payload.item(), payload.amount(), payload.mode())));
         toMenu(registrar, CraftStartPayload.TYPE, CraftStartPayload.STREAM_CODEC, StorageTerminalMenu.class,
                 (player, menu, payload) -> menu.craft(ItemKey.of(payload.item()), payload.amount()));
+        toMenu(registrar, OrderStartPayload.TYPE, OrderStartPayload.STREAM_CODEC, StorageTerminalMenu.class,
+                (player, menu, payload) -> menu.startOrder(payload.amount(), payload.save()));
         toMenu(registrar, SetStockRulePayload.TYPE, SetStockRulePayload.STREAM_CODEC, StorageTerminalMenu.class,
                 (player, menu, payload) -> menu.setRule(ItemKey.of(payload.item()), payload.min(), payload.max()));
         toMenu(registrar, SelectSitePayload.TYPE, SelectSitePayload.STREAM_CODEC, StorageTerminalMenu.class,
@@ -166,9 +168,7 @@ public final class ServusShuttlesPayloads {
                 (player, menu, payload) -> menu.cancel(payload.id()));
         toMenu(registrar, PushCarriedPayload.TYPE, PushCarriedPayload.STREAM_CODEC, StorageTerminalMenu.class,
                 (player, menu, payload) -> menu.pushCarried());
-        toMenu(registrar, GridClearPayload.TYPE, GridClearPayload.STREAM_CODEC, StorageTerminalMenu.class,
-                (player, menu, payload) -> menu.clearGrid());
         toMenu(registrar, GridFillPayload.TYPE, GridFillPayload.STREAM_CODEC, StorageTerminalMenu.class,
-                (player, menu, payload) -> menu.fillGrid(payload.slots(), payload.max()));
+                (player, menu, payload) -> menu.fillGhosts(payload.slots()));
     }
 }

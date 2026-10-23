@@ -13,7 +13,7 @@ A Pattern Storage touching a data line SHALL be a member of that line with the l
 - **THEN** the line has 3 patterns and a capacity of 18
 
 ### Requirement: Encoding from the terminal
-Saving a new pattern in the Production Terminal's editor SHALL match the 3x3 ghost grid to a vanilla crafting recipe and store a pattern with the recipe id, the grid items and the result in the first Pattern Storage of the terminal's line with a free place. It SHALL refuse with an action bar message and keep the editor open when the grid is empty or matches nothing, when the line already has a pattern for the same recipe with the same items, when the line has no Pattern Storage, or when no Pattern Storage has room. Saving an existing pattern SHALL rewrite it in place. Deleting a pattern SHALL remove it.
+Saving a new pattern in the Production Terminal's editor, or choosing "Save as pattern" in the Storage Terminal's order grid, SHALL match the 3x3 ghost grid to a vanilla crafting recipe and store a pattern with the recipe id, the grid items and the result in the first Pattern Storage of the terminal's line with a free place. It SHALL refuse with a message and keep the grid when the grid is empty or matches nothing, when the line already has a pattern for the same recipe with the same items, when the line has no Pattern Storage, or when no Pattern Storage has room; the Production Terminal says so in the action bar and the Storage Terminal on its message line. Saving an existing pattern SHALL rewrite it in place. Deleting a pattern SHALL remove it.
 
 #### Scenario: New pattern
 - **WHEN** the player opens the editor with plus, puts a plank above a plank and presses Save
@@ -34,6 +34,10 @@ Saving a new pattern in the Production Terminal's editor SHALL match the 3x3 gho
 #### Scenario: Delete
 - **WHEN** the player clicks the sticks pattern in the Patterns tab and presses Delete
 - **THEN** the pattern is gone from its Pattern Storage and the player gets nothing
+
+#### Scenario: Saved from the Storage Terminal
+- **WHEN** the Storage Terminal's order grid holds four oak planks in a square and the player chooses "Save as pattern"
+- **THEN** a crafting table pattern is in the first Pattern Storage of the line with room and the Production Terminal's Patterns tab lists it
 
 ### Requirement: CPU plans with patterns
 A Crafting CPU SHALL plan with the patterns of its data line in addition to the recipes producers report. A pattern SHALL be usable when a producer on the line can execute it; every Crafting Station on the line can execute every crafting pattern. A pattern step SHALL run on such a producer like any step, with the pattern's items as inputs and its result as output, stations that are not busy preferred.

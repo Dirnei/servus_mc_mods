@@ -4,7 +4,9 @@ import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -160,6 +162,17 @@ public class LockedSlots extends ItemSlots {
 
     /** A locked slot and one of its locks. */
     public record Locked(int slot, SlotLock lock) {
+    }
+
+    /** How many items OUT locks reserve here, per item. */
+    public Map<ItemKey, Integer> outLocked() {
+        Map<ItemKey, Integer> amounts = new HashMap<>();
+        for (Locked entry : locked()) {
+            if (entry.lock().kind() == SlotLock.Kind.OUT) {
+                amounts.merge(entry.lock().key(), entry.lock().amount(), Integer::sum);
+            }
+        }
+        return amounts;
     }
 
     /** The slots as the planner sees them. */

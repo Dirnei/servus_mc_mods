@@ -78,7 +78,8 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
     public static final class Request {
         public final int id;
         public final ItemKey key;
-        public final int requested;
+        /** What the request is for; shrinks to what could be shipped when stock and crafting fall short. */
+        public int requested;
         public int delivered;
         public int missing;
         /** Open shipments for this request. */

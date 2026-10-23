@@ -10,17 +10,16 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Client to server (JEI transfer): fill the crafting grid. Entry i lists the
- * stacks grid slot i accepts, empty for a slot that stays empty.
+ * Client to server (JEI transfer): set the order grid's ghost cells. Entry i
+ * lists the stacks cell i accepts, empty for a cell that stays empty.
  */
-public record GridFillPayload(List<List<ItemStack>> slots, boolean max) implements CustomPacketPayload {
+public record GridFillPayload(List<List<ItemStack>> slots) implements CustomPacketPayload {
 
     public static final Type<GridFillPayload> TYPE =
             new Type<>(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "grid_fill"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, GridFillPayload> STREAM_CODEC = StreamCodec.composite(
             ItemStack.OPTIONAL_LIST_STREAM_CODEC.apply(ByteBufCodecs.list(9)), GridFillPayload::slots,
-            ByteBufCodecs.BOOL, GridFillPayload::max,
             GridFillPayload::new);
 
     @Override

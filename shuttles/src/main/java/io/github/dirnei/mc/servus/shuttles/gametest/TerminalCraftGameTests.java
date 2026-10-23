@@ -6,7 +6,9 @@ import io.github.dirnei.mc.servus.shuttles.menu.PackingStationMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.packing.PackingStationBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewPayload;
+import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewRequestPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.StockEntry;
 import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlockEntity;
 import java.util.List;
@@ -120,6 +122,28 @@ public final class TerminalCraftGameTests {
             helper.assertTrue(terminal.requests().size() == 1, "one request should be listed");
             Waits.when(helper, () -> terminal.outputCount(Items.STICK) >= 8, 1200,
                     () -> "8 sticks should land in the output slots, got " + terminal.outputCount(Items.STICK), helper::succeed);
+        });
+    }
+
+    /** A request above the stock with a sticks pattern ships what is there and crafts the rest on the same request. */
+    @ServusGameTest(timeoutTicks = 1400)
+    public static void requestBeyondStockCraftsRest(GameTestHelper helper) {
+        HeavyRackBlockEntity rack = StationHandsGameTests.setup(helper, 16);
+        WarehouseFixtures.put(rack, new ItemStack(Items.STICK, 2));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Waits.when(helper, () -> stocked(helper, player) && TerminalWiring.stockOf(menu(helper, player), Items.STICK) == 2, 160,
+                () -> "stations and CPU should join the line", () -> {
+            StorageTerminalMenu menu = menu(helper, player);
+            CraftPreviewPayload preview = menu.preview(new ItemStack(Items.STICK), 10, CraftPreviewRequestPayload.Mode.REQUEST);
+            helper.assertTrue(preview.inStock() == 2 && count(preview.toCraft(), Items.STICK) == 8 && preview.requestable(),
+                    "2 from stock and 8 crafted, got " + preview);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            menu.request(STICK, 10);
+            helper.assertTrue(menu.stock().message().isEmpty() && terminal.requests().size() == 1, "one request, message " + menu.stock().message());
+            helper.assertTrue(terminal.requests().get(0).requested == 10 && terminal.requests().get(0).orderCpu != null,
+                    "the request is for 10 with a work order");
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) >= 10, 1200,
+                    () -> "10 sticks should land in the output slots, got " + terminal.outputCount(Items.STICK), helper::succeed);
         });
     }
 

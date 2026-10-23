@@ -85,16 +85,15 @@ public final class ShuttleGameTests {
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.stock().online(), "warehouse should be online");
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 64);
+            List<RequestRow> asked = menu.stock().requests();
+            helper.assertTrue(asked.size() == 1 && asked.get(0).requested() == 40, "the request is capped at the 40 in stock, got " + asked);
             helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 0, "cobblestone must not arrive at once");
             helper.runAfterDelay(20, () -> helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 0,
                     "shuttle is still on its way after 20 ticks"));
-            Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 40
-                            && menu.stock().requests().size() == 1 && menu.stock().requests().get(0).state().equals("MISSING"), 360,
-                    () -> "40 cobblestone should arrive, had " + terminal.outputCount(Items.COBBLESTONE) + ", rows " + menu.stock().requests(), () -> {
+            Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 40 && menu.stock().requests().isEmpty(), 360,
+                    () -> "40 cobblestone should arrive and the capped request settle, had " + terminal.outputCount(Items.COBBLESTONE)
+                            + ", rows " + menu.stock().requests(), () -> {
                 helper.assertTrue(far.isEmpty(), "far rack should be empty");
-                List<RequestRow> rows = menu.stock().requests();
-                helper.assertTrue(rows.size() == 1 && rows.get(0).missing() == 24 && rows.get(0).state().equals("MISSING"),
-                        "the cobblestone request shows 24 missing, got " + rows);
                 helper.succeed();
             });
         });

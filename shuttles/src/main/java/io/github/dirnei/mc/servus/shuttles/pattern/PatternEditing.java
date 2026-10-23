@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.level.Level;
 
 /**
  * Saves and deletes patterns of a data line from a 3 by 3 grid, for the
@@ -30,26 +31,14 @@ public final class PatternEditing {
      */
     public static String save(ServerLevel level, DataNetwork network, Player player, List<ItemStack> grid,
                               PatternLibrary.Free editing) {
-        List<ItemStack> cells = new ArrayList<>();
-        boolean any = false;
-        for (int i = 0; i < EncodedPattern.GRID; i++) {
-            ItemStack cell = i < grid.size() ? grid.get(i) : ItemStack.EMPTY;
-            cells.add(cell.isEmpty() ? ItemStack.EMPTY : cell.copyWithCount(1));
-            any |= !cell.isEmpty();
-        }
-        if (!any) {
+        if (grid.stream().allMatch(ItemStack::isEmpty)) {
             return "empty";
         }
-        Optional<RecipeHolder<CraftingRecipe>> match = CraftingGrid.match(level, cells);
-        if (match.isEmpty()) {
+        Optional<EncodedPattern> encoded = encode(level, grid);
+        if (encoded.isEmpty()) {
             return "no_match";
         }
-        ItemStack result = EncodedPattern.assembledResult(level, match.get().id().identifier(), cells,
-                ServusRecipes.displayResult(level, match.get().value()));
-        if (result.isEmpty()) {
-            return "no_match";
-        }
-        EncodedPattern pattern = new EncodedPattern(match.get().id().identifier(), cells, result);
+        EncodedPattern pattern = encoded.get();
         if (PatternLibrary.contains(level, network, pattern, editing)) {
             return "duplicate";
         }
@@ -70,6 +59,26 @@ public final class PatternEditing {
         }
         storage.get().set(target.slot(), pattern);
         return "";
+    }
+
+    /**
+     * The pattern a 3 by 3 grid makes: the matching vanilla crafting recipe,
+     * one item per used cell and the result the recipe assembles from them.
+     * Empty when the grid is empty or matches nothing.
+     */
+    public static Optional<EncodedPattern> encode(Level level, List<ItemStack> grid) {
+        List<ItemStack> cells = new ArrayList<>();
+        for (int i = 0; i < EncodedPattern.GRID; i++) {
+            ItemStack cell = i < grid.size() ? grid.get(i) : ItemStack.EMPTY;
+            cells.add(cell.isEmpty() ? ItemStack.EMPTY : cell.copyWithCount(1));
+        }
+        Optional<RecipeHolder<CraftingRecipe>> match = CraftingGrid.match(level, cells);
+        if (match.isEmpty()) {
+            return Optional.empty();
+        }
+        ItemStack result = EncodedPattern.assembledResult(level, match.get().id().identifier(), cells,
+                ServusRecipes.displayResult(level, match.get().value()));
+        return result.isEmpty() ? Optional.empty() : Optional.of(new EncodedPattern(match.get().id().identifier(), cells, result));
     }
 
     /** Removes a pattern of the line. */

@@ -6,6 +6,8 @@ import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.shuttles.order.OrderBook;
 import io.github.dirnei.mc.servus.shuttles.order.ProductionLedger;
+import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
+import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.shuttles.site.SiteRegistry;
 import io.github.dirnei.mc.servus.shuttles.site.SiteWakes;
 import io.github.dirnei.mc.servus.shuttles.site.WakeAllowance;
@@ -49,7 +51,9 @@ public final class TerminalRequests {
     }
 
     /**
-     * Makes a request for {@code amount} of {@code key}.
+     * Makes a request for {@code amount} of {@code key}: what is requestable
+     * is shipped, the rest is crafted when a CPU of the line can make it with
+     * nothing missing, else the request is only for what can be shipped.
      *
      * @return an empty string when the request was made, else the refusal key:
      *         {@code offline}, {@code no_packing_station}, {@code needs_shuttle}, {@code no_rail} or {@code out_of_stock}
@@ -59,21 +63,40 @@ public final class TerminalRequests {
         if (warehouses.isEmpty()) {
             return "offline";
         }
-        Request request = terminal.newRequest(level, key, amount);
+        long available = available(warehouses, key);
+        boolean restCraftable = amount > available
+                && TerminalCraftables.preview(level, terminal.getBlockPos(), key, (int) (amount - available)).startable();
+        RequestSplit split = RequestSplit.of(amount, available, restCraftable);
+        if (split.total() <= 0) {
+            return "out_of_stock";
+        }
+        Request request = terminal.newRequest(level, key, split.total());
         String[] refusal = {""};
-        int remaining = ship(terminal, request, warehouses, amount, refusal);
-        request.missing = remaining;
-        if (remaining > 0) {
+        int remaining = ship(terminal, request, warehouses, split.fromStock(), refusal) + split.toCraft();
+        if (remaining > 0 && restCraftable) {
             CpuOrders.Placed placed = CpuOrders.create(level, terminal.getBlockPos(), key, remaining, request.id);
             if (placed.made()) {
                 request.orderCpu = placed.cpu();
+                request.missing = remaining;
                 placed.created().order().deliverTo(terminal.getBlockPos());
-            } else if (request.shipments.isEmpty()) {
-                terminal.removeRequest(request.id);
-                return refusal[0].isEmpty() ? "out_of_stock" : refusal[0];
+                return "";
             }
         }
+        if (request.shipments.isEmpty()) {
+            terminal.removeRequest(request.id);
+            return refusal[0].isEmpty() ? "out_of_stock" : refusal[0];
+        }
+        request.requested -= remaining;
         return "";
+    }
+
+    /** How many of the key the warehouses hold that no pick has locked. */
+    private static long available(List<WarehouseNetwork> warehouses, ItemKey key) {
+        long sum = 0;
+        for (WarehouseNetwork warehouse : warehouses) {
+            sum += warehouse.available(key);
+        }
+        return sum;
     }
 
     /**
@@ -98,6 +121,42 @@ public final class TerminalRequests {
         Request request = terminal.newRequest(level, key, amount);
         request.missing = amount;
         CpuOrders.Placed placed = CpuOrders.create(level, terminal.getBlockPos(), key, amount, request.id);
+        if (!placed.made()) {
+            terminal.removeRequest(request.id);
+            return placed.refusal();
+        }
+        request.orderCpu = placed.cpu();
+        placed.created().order().deliverTo(terminal.getBlockPos());
+        return "";
+    }
+
+    /**
+     * Crafts {@code amount} of the pattern's result on a CPU of the line with
+     * that pattern only, saved on the line or not, for a new request whose
+     * results land in the output slots.
+     *
+     * @return an empty string when the order was made, else the refusal key:
+     *         {@code offline}, {@code no_cpu}, {@code no_station}, {@code no_producer} or {@code missing}
+     */
+    public static String craftOneOff(ServerLevel level, StorageTerminalBlockEntity terminal, EncodedPattern pattern, int amount) {
+        if (TerminalWarehouses.reachable(level, terminal.getBlockPos()).isEmpty()) {
+            return "offline";
+        }
+        String refusal = TerminalCraftables.orderRefusal(level, terminal.getBlockPos());
+        if (!refusal.isEmpty()) {
+            return refusal;
+        }
+        OrderBook.Preview preview = TerminalCraftables.previewOneOff(level, terminal.getBlockPos(), pattern, amount);
+        if (!preview.refusal().isEmpty()) {
+            return preview.refusal();
+        }
+        if (!preview.missing().isEmpty()) {
+            return "missing";
+        }
+        DataNetwork line = TerminalCraftables.line(level, terminal.getBlockPos()).orElseThrow();
+        Request request = terminal.newRequest(level, ItemKey.of(pattern.result()), amount);
+        request.missing = amount;
+        CpuOrders.Placed placed = CpuOrders.createOneOff(level, line, pattern, amount, request.id);
         if (!placed.made()) {
             terminal.removeRequest(request.id);
             return placed.refusal();

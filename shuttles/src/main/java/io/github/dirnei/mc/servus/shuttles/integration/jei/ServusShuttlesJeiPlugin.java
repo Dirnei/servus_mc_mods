@@ -35,7 +35,7 @@ public final class ServusShuttlesJeiPlugin implements IModPlugin {
     @Override
     public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
         registration.addRecipeTransferHandler(new ProductionTerminalRecipeTransferHandler(), RecipeTypes.CRAFTING);
-        registration.addRecipeTransferHandler(new StorageTerminalRecipeTransferHandler(), RecipeTypes.CRAFTING);
+        registration.addRecipeTransferHandler(new StorageTerminalRecipeTransferHandler(registration.getTransferHelper()), RecipeTypes.CRAFTING);
     }
 
     @Override

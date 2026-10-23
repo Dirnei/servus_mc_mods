@@ -1,6 +1,10 @@
 package io.github.dirnei.mc.servus.shuttles.terminal;
 
+import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
+import io.github.dirnei.mc.servus.foundation.data.DataRole;
+import io.github.dirnei.mc.servus.shuttles.crafting.CraftingStationBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
@@ -102,6 +106,31 @@ public final class TerminalCraftables {
             key.add(hash);
         }
         return key;
+    }
+
+    /** Whether the terminal's line can take an order from the order grid: a formed CPU and a Crafting Station. */
+    public static boolean canOrder(ServerLevel level, BlockPos terminal) {
+        return orderRefusal(level, terminal).isEmpty();
+    }
+
+    /** Why the order grid cannot order: {@code no_cpu} or {@code no_station}, empty when it can. */
+    public static String orderRefusal(ServerLevel level, BlockPos terminal) {
+        Optional<DataNetwork> line = line(level, terminal);
+        if (line.isEmpty() || CpuOrders.cpus(level, line.get()).isEmpty()) {
+            return "no_cpu";
+        }
+        for (DataMember member : line.get().dataMembers(DataRole.PRODUCER)) {
+            if (level.isLoaded(member.pos()) && level.getBlockEntity(member.pos()) instanceof CraftingStationBlockEntity) {
+                return "";
+            }
+        }
+        return "no_station";
+    }
+
+    /** What crafting the amount with the pattern only would take, craft and miss. */
+    public static OrderBook.Preview previewOneOff(ServerLevel level, BlockPos terminal, EncodedPattern pattern, int amount) {
+        return line(level, terminal).map(network -> CpuOrders.previewOneOff(level, network, pattern, amount))
+                .orElse(OrderBook.Preview.refused("no_cpu"));
     }
 
     /** What crafting the amount would take, craft and miss. */

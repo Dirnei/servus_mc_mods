@@ -69,6 +69,7 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
         @Override
         protected void onLocksChanged() {
             setChanged();
+            network().ifPresent(network -> network.rackLocksChanged(worldPosition, this));
         }
     };
     private List<ItemStack> displayed = List.of();

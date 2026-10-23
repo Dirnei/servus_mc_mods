@@ -41,19 +41,16 @@ public final class TerminalRequestGameTests {
                     "stock should list 50 cobblestone");
 
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 64);
-            Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 50
-                            && menu.stock().requests().size() == 1 && menu.stock().requests().get(0).state().equals("MISSING"), 300,
-                    () -> "50 cobblestone should arrive as packets, had " + terminal.outputCount(Items.COBBLESTONE) + ", rows " + menu.stock().requests(), () -> {
+            List<RequestRow> asked = menu.stock().requests();
+            helper.assertTrue(asked.size() == 1 && asked.get(0).requested() == 50 && asked.get(0).missing() == 0,
+                    "a request above the stock is capped at the 50 there are, got " + asked);
+            Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 50 && menu.stock().requests().isEmpty(), 300,
+                    () -> "50 cobblestone should arrive as packets and the request settle, had " + terminal.outputCount(Items.COBBLESTONE)
+                            + ", rows " + menu.stock().requests(), () -> {
             helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 0, "nothing goes into the inventory by itself");
-            List<RequestRow> rows = menu.stock().requests();
-            helper.assertTrue(rows.size() == 1 && rows.get(0).delivered() == 50 && rows.get(0).missing() == 14 && rows.get(0).state().equals("MISSING"),
-                    "the request should show 50 delivered and 14 missing, got " + rows);
             menu.quickMoveStack(player, 0);
             helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 50, "shift click should collect the delivery");
             helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 0, "the output slot should be empty");
-
-            menu.cancel(rows.get(0).id());
-            helper.assertTrue(menu.stock().requests().isEmpty(), "the cancelled request leaves the list");
 
             int slot = player.getInventory().findSlotMatchingItem(new ItemStack(Items.COBBLESTONE));
             player.getInventory().setItem(slot, new ItemStack(Items.COBBLESTONE, 20));
@@ -68,6 +65,29 @@ public final class TerminalRequestGameTests {
                 helper.succeed();
             });
             });
+        });
+    }
+
+    /** A request lowers the grid count at once; the last of an item leaves the grid and a second request for it is refused. */
+    @ServusGameTest(timeoutTicks = 500)
+    public static void requestLowersRequestableStock(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = requestSetup(helper, player, 50);
+        WarehouseFixtures.stock(helper, RQ_RACK, new ItemStack(Items.COMPASS));
+        ItemKey compass = ItemKey.of(new ItemStack(Items.COMPASS));
+        Waits.when(helper, () -> TerminalWiring.stockOf(menu, Items.COMPASS) == 1, 100, () -> "the compass should be indexed", () -> {
+            menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 20);
+            helper.assertTrue(TerminalWiring.stockOf(menu, Items.COBBLESTONE) == 30,
+                    "the grid shows 30 requestable cobblestone, got " + TerminalWiring.stockOf(menu, Items.COBBLESTONE));
+            menu.request(compass, 1);
+            helper.assertTrue(menu.stock().message().isEmpty(), "the first compass request goes through");
+            helper.assertTrue(menu.stock().entries().stream().noneMatch(entry -> entry.stack().is(Items.COMPASS)),
+                    "the reserved compass leaves the stock entries");
+            menu.request(compass, 1);
+            helper.assertTrue(menu.stock().message().equals("out_of_stock"), "a second request is refused, got " + menu.stock().message());
+            helper.assertTrue(menu.stock().requests().size() == 2, "only the first compass request is listed");
+            Waits.when(helper, () -> menu.terminal().outputCount(Items.COMPASS) == 1, 360,
+                    () -> "the one compass should arrive", helper::succeed);
         });
     }
 

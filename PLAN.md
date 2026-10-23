@@ -156,7 +156,7 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 | M5 Logistics | Utility Duct with item, power and fluid lines, modes, named team channels, filters with search and JEI, priorities, facades, goggles, Data Potato, Fluid Tank |
 | M6 Warehouse automation | rails, elevators with lift cars, simulated shuttles, garages, Inbound Station, Zone Labels, placement assist |
 | M7 Autocrafting integration | production API, work orders, stock rules, Outbound Station, Crafting Station |
-| M8 On-demand autocrafting | Servus: Foundation merge, data cable with tiers, Packing Station, Storage Terminal, Crafting CPU, Production Terminal, Pattern Storage, Machine Adapter |
+| M8 On-demand autocrafting | Servus: Foundation merge, data cable with tiers, Packing Station, Storage Terminal, Crafting CPU, Production Terminal, Pattern Storage, Machine Adapter, shuttle jobs that survive a reload, slot locks, following traffic, shuttle numbers, terminal requests within stock |
 | M9 Alchemy, Nigredo and Albedo | Tria Prima, Calciner, Purifier, Coagulator and Athanor builds, journal, Elixir of Sight, Gnome Hollow, facade panels, beam engine pumps, Ender Anchor area |
 | M10 Field work | Shuttle Workshop, Mk1 to Mk3 shuttles with Speed and Handling, shuttle looks, hand build minigame, Farm Rail and Field Head with range, corrosion and tabs, Harvester and Spreader, lift upgrades |
 | M11 Wireless and scale | controllers as sites, Anchor Upgrade wakes, wireless between controllers, warehouse power, pipe access rules |
@@ -205,7 +205,7 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 
 - Shuttles meeting head on pass through each other; passing places or one way aisles if play tests ask for them.
 - A way to unload a shuttle parked with cargo by hand; today only Recall empties it, dropping the cargo at the garage.
-
+- Stock reserved by open work orders in the terminal's requestable count, if play tests ask for it (today only locked picks lower it).
 - `m10-lumber`: a Lumber module for tree fields; later field kinds beyond crops.
 - SEND and KEEP rules between sites in the controller GUI (the local min/max stock rules join the same list) and an In transit view.
 - Wireless Terminal with range tiers.

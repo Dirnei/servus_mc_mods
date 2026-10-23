@@ -81,6 +81,11 @@ public final class ClientStock {
         return shown != null && shown.online();
     }
 
+    /** Whether the open terminal's data line has a formed Crafting CPU and a Crafting Station for the order grid. */
+    public static boolean orderGrid() {
+        return shown != null && shown.orderGrid();
+    }
+
     /** Whether a warehouse the open terminal reaches has no power. */
     public static boolean noPower() {
         return shown != null && shown.noPower();

@@ -30,6 +30,7 @@ import io.github.dirnei.mc.servus.shuttles.gantry.TankRef;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.index.WarehouseIndex;
 import io.github.dirnei.mc.servus.shuttles.lock.LockHolder;
+import io.github.dirnei.mc.servus.shuttles.index.ReservationTally;
 import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotFill;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
@@ -154,6 +155,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** Held loads per destination. */
     private final Map<BlockPos, List<HeldLoad>> held = new HashMap<>();
     private final WarehouseIndex<BlockPos, ItemKey> index = new WarehouseIndex<>();
+    /** Items picks have locked in the racks, per rack. */
+    private final ReservationTally<BlockPos, ItemKey> reservedOut = new ReservationTally<>();
     private final ArrayDeque<BlockPos> dirtyQueue = new ArrayDeque<>();
     private final Set<BlockPos> dirtySet = new HashSet<>();
     private final List<BlockPos> pollOrder = new ArrayList<>();
@@ -210,6 +213,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (node.holdsStock()) {
             if (node.stock() != null) {
                 addSource(blockPos);
+            }
+            if (node instanceof HeavyRackBlockEntity rack) {
+                reservedOut.set(blockPos, rack.items().outLocked());
             }
             zones.set(blockPos, node.zoneDefinition());
             zonesDirty = true;
@@ -314,6 +320,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             sources.add(pos);
             index.update(pos, that.index.snapshot(pos));
         });
+        reservedOut.absorb(that.reservedOut);
         pollOrderStale = true;
         joinOrder = null;
         lampsDirty = true;
@@ -325,6 +332,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     @Override
     protected void onDisposed() {
         sources.clear();
+        reservedOut.clear();
         connectors.clear();
         elevators.clear();
         shaftFloors = Map.of();
@@ -1282,6 +1290,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     private void dropSource(BlockPos pos) {
+        reservedOut.remove(pos);
         if (sources.remove(pos)) {
             index.remove(pos);
             dirtySet.remove(pos);
@@ -2145,6 +2154,23 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     public WarehouseIndex<BlockPos, ItemKey> index() {
         return index;
+    }
+
+    /** A rack's locks changed: its OUT locked items are read again. */
+    public void rackLocksChanged(BlockPos rack, LockedSlots slots) {
+        if (sources.contains(rack)) {
+            reservedOut.set(rack, slots.outLocked());
+        }
+    }
+
+    /** Items of every key that picks have locked in the racks. */
+    public Map<ItemKey, Long> reservedOut() {
+        return reservedOut.totals();
+    }
+
+    /** Moves whenever {@link #reservedOut()} changes. */
+    public long reservationVersion() {
+        return reservedOut.version();
     }
 
     public int sourceCount() {

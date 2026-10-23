@@ -20,6 +20,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -146,21 +147,25 @@ public final class StorageTerminalRowsGameTests {
         });
     }
 
-    /** The popup's slots only take part while it is open; crafting works through them. */
+    /** The order grid's cells only take part while it is open; a click sets a ghost copy and the cursor keeps its items. */
     @ServusGameTest(timeoutTicks = 60)
-    public static void popupCrafts(GameTestHelper helper) {
+    public static void orderCellsAreGhosts(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             StorageTerminalMenu menu = fixture.menu();
-            menu.setCraftOpen(false);
-            helper.assertTrue(!menu.getSlot(menu.gridStart()).isActive() && !menu.getSlot(menu.resultIndex()).isActive(),
-                    "closed popup slots are inactive");
-            menu.setCraftOpen(true);
-            helper.assertTrue(menu.getSlot(menu.gridStart()).isActive(), "open popup slots are active");
-            menu.craftSlots().setItem(1, new ItemStack(Items.OAK_PLANKS));
-            menu.craftSlots().setItem(4, new ItemStack(Items.OAK_PLANKS));
-            ItemStack result = menu.getSlot(menu.resultIndex()).getItem();
-            helper.assertTrue(result.is(Items.STICK) && result.getCount() == 4, "the popup grid should make four sticks, got " + result);
-            menu.clearGrid();
+            menu.setOrderOpen(false);
+            helper.assertTrue(!menu.getSlot(menu.gridStart()).isActive(), "closed order grid cells are inactive");
+            menu.setOrderOpen(true);
+            helper.assertTrue(menu.getSlot(menu.gridStart()).isActive(), "open order grid cells are active");
+            menu.setCarried(new ItemStack(Items.OAK_PLANKS, 10));
+            menu.clicked(menu.gridStart() + 1, 0, ContainerInput.PICKUP, fixture.player());
+            menu.clicked(menu.gridStart() + 4, 0, ContainerInput.PICKUP, fixture.player());
+            helper.assertTrue(menu.gridCells().get(1).is(Items.OAK_PLANKS) && menu.gridCells().get(1).getCount() == 1,
+                    "a click sets one ghost plank, got " + menu.gridCells().get(1));
+            helper.assertTrue(menu.getCarried().getCount() == 10, "the cursor keeps its planks, has " + menu.getCarried());
+            menu.setCarried(ItemStack.EMPTY);
+            menu.clicked(menu.gridStart() + 4, 0, ContainerInput.PICKUP, fixture.player());
+            helper.assertTrue(menu.gridCells().get(4).isEmpty(), "an empty click clears the cell");
+            helper.assertTrue(menu.quickMoveStack(fixture.player(), menu.gridStart() + 1).isEmpty(), "a ghost cell hands nothing out");
             helper.succeed();
         });
     }

@@ -464,12 +464,15 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
         }
 
         @Override
+        public List<OrderBook.Producer> producersWith(EncodedPattern extra) {
+            return dataNetwork().map(network -> CpuOrders.producers(serverLevel(), network, extra)).orElse(List.of());
+        }
+
+        @Override
         public Map<ItemKey, Long> stock() {
             Map<ItemKey, Long> stock = new HashMap<>();
-            for (WarehouseNetwork warehouse : warehouses()) {
-                for (Map.Entry<ItemKey, Long> entry : warehouse.index().entries()) {
-                    stock.merge(entry.getKey(), entry.getValue(), Long::sum);
-                }
+            for (Map.Entry<ItemKey, Long> entry : TerminalWarehouses.stock(warehouses())) {
+                stock.put(entry.getKey(), entry.getValue());
             }
             return stock;
         }
@@ -651,16 +654,24 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
     /** The pattern of the CPU's data line that the step was planned from: same recipe id, same inputs per batch. */
     private Optional<EncodedPattern> patternFor(ServerLevel level, OrderStep step) {
         Optional<DataNetwork> network = dataNetwork();
+        WorkOrder order = step.ref() == null ? null : book.order(step.ref().order());
+        if (order != null && order.oneOff() != null && runs(step, order.oneOff())) {
+            return Optional.of(order.oneOff());
+        }
         if (network.isEmpty()) {
             return Optional.empty();
         }
         for (PatternLibrary.Entry entry : PatternLibrary.entries(level, network.get())) {
             EncodedPattern pattern = entry.pattern();
-            if (pattern.recipe().equals(step.recipe().id()) && pattern.required().equals(step.inputs())) {
+            if (runs(step, pattern)) {
                 return Optional.of(pattern);
             }
         }
         return Optional.empty();
+    }
+
+    private static boolean runs(OrderStep step, EncodedPattern pattern) {
+        return pattern.recipe().equals(step.recipe().id()) && pattern.required().equals(step.inputs());
     }
 
     /** The Packing Station of the line that takes collected outputs: the lowest position whose line reaches the producer. */

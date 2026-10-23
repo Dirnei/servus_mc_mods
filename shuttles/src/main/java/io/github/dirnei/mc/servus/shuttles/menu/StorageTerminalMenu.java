@@ -1,14 +1,19 @@
 package io.github.dirnei.mc.servus.shuttles.menu;
 
+import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
-import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.order.OrderBook;
+import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
+import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
+import io.github.dirnei.mc.servus.shuttles.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
 import io.github.dirnei.mc.servus.shuttles.site.SiteRegistry;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewPayload;
+import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewRequestPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.RemoteTransfers;
 import io.github.dirnei.mc.servus.shuttles.terminal.RequestRow;
 import io.github.dirnei.mc.servus.shuttles.terminal.RuleRow;
@@ -21,37 +26,29 @@ import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout.Storage;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalRequests;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalWarehouses;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.CraftingContainer;
-import net.minecraft.world.inventory.ResultContainer;
-import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingInput;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /**
- * The terminal's output and input slots, the player inventory, a 3x3
- * crafting grid with its result and the warehouses the terminal reaches over
- * its data line. Slot order: outputs, inputs, player inventory, grid, result.
- * The grid and result only take part while the crafting popup is open on the
- * client; the server always keeps them.
+ * The terminal's output and input slots, the player inventory, the order
+ * grid's nine ghost cells and the warehouses the terminal reaches over its
+ * data line. Slot order: outputs, inputs, player inventory, ghost cells. The
+ * ghost cells only take part while the order grid is open on the client; the
+ * server always keeps them, and they vanish with the menu.
  */
 public class StorageTerminalMenu extends AbstractContainerMenu {
 
@@ -64,16 +61,14 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     private final int inputStart;
     private final int inventoryStart;
     private final int gridStart;
-    private final int resultIndex;
-    private final CraftingContainer craftSlots = new TransientCraftingContainer(this, 3, 3);
-    private final ResultContainer resultSlots = new ResultContainer();
+    private final ItemSlots grid = new ItemSlots(EncodedPattern.GRID);
     private final PayloadSync<StockSyncPayload> sync = new PayloadSync<>(10, false, this::stock, StorageTerminalMenu::signature);
     private String message = "";
     /** The key of the other site the grid shows, empty for this site. */
     private String view = "";
     private long firstSyncTick = -1;
-    /** Whether the crafting popup shows; only the client screen changes it. */
-    private boolean craftOpen = true;
+    /** Whether the order grid shows; only the client screen changes it. */
+    private boolean orderOpen = true;
 
     public StorageTerminalMenu(int containerId, Inventory playerInventory, StorageTerminalBlockEntity terminal) {
         super(ServusShuttlesMenus.STORAGE_TERMINAL.get(), containerId);
@@ -109,16 +104,14 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             addSlot(new Slot(playerInventory, column, Storage.HOTBAR.x() + column * 18, Storage.HOTBAR.y()));
         }
         gridStart = slots.size();
-        for (int slot = 0; slot < 9; slot++) {
-            addSlot(new Slot(craftSlots, slot, Storage.craftX(slot), Storage.craftY(slot)) {
+        for (int cell = 0; cell < EncodedPattern.GRID; cell++) {
+            addSlot(new GhostSlot(() -> grid, cell, Storage.orderX(cell), Storage.orderY(cell)) {
                 @Override
                 public boolean isActive() {
-                    return craftOpen;
+                    return orderOpen;
                 }
             });
         }
-        resultIndex = slots.size();
-        addSlot(new GridResultSlot(player, craftSlots, resultSlots, Storage.CRAFT_RESULT.x(), Storage.CRAFT_RESULT.y()));
     }
 
     public static StorageTerminalMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -143,9 +136,9 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         return inputStart;
     }
 
-    /** Shows or hides the crafting popup's slots; the client screen calls this. */
-    public void setCraftOpen(boolean open) {
-        craftOpen = open;
+    /** Shows or hides the order grid's ghost cells; the client screen calls this. */
+    public void setOrderOpen(boolean open) {
+        orderOpen = open;
     }
 
     /** Index of the first player inventory slot. */
@@ -153,53 +146,39 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         return inventoryStart;
     }
 
-    /** Index of the first crafting grid slot. */
+    /** Index of the first ghost cell of the order grid. */
     public int gridStart() {
         return gridStart;
     }
 
-    /** Index of the crafting result slot. */
-    public int resultIndex() {
-        return resultIndex;
+    public boolean isGridSlot(int slotId) {
+        return slotId >= gridStart && slotId < gridStart + EncodedPattern.GRID;
     }
 
-    public CraftingContainer craftSlots() {
-        return craftSlots;
-    }
-
-    /** The grid changed: work out the result like a crafting table does. */
-    @Override
-    public void slotsChanged(Container container) {
-        if (container == craftSlots) {
-            access.execute((level, pos) -> updateResult(level));
+    /** The ghost cells, for the result, the preview and the order. */
+    public List<ItemStack> gridCells() {
+        List<ItemStack> cells = new ArrayList<>(EncodedPattern.GRID);
+        for (int cell = 0; cell < EncodedPattern.GRID; cell++) {
+            cells.add(grid.getStackInSlot(cell));
         }
+        return cells;
     }
 
-    /** Vanilla CraftingMenu.slotChangedCraftingGrid, written out for this menu's result slot index. */
-    private void updateResult(Level level) {
-        if (level.isClientSide()) {
+    /** Puts a single copy of the stack into a ghost cell, or clears it for an empty stack. */
+    public void setGhost(int cell, ItemStack stack) {
+        grid.setStackInSlot(cell, stack.isEmpty() ? ItemStack.EMPTY : stack.copyWithCount(1));
+    }
+
+    /** Ghost cells take a copy of the cursor and never hand anything out. */
+    @Override
+    public void clicked(int slotId, int button, ContainerInput clickType, Player player) {
+        if (isGridSlot(slotId)) {
+            if (!player.level().isClientSide()) {
+                setGhost(slotId - gridStart, getCarried());
+            }
             return;
         }
-        CraftingInput input = craftSlots.asCraftInput();
-        ItemStack result = ItemStack.EMPTY;
-        Optional<RecipeHolder<CraftingRecipe>> recipe = ServusRecipes.craftingFor(level, input);
-        // Players that are not ServerPlayers (GameTest mock players) skip the limited crafting check.
-        if (recipe.isPresent() && (!(player instanceof ServerPlayer serverPlayer) || resultSlots.setRecipeUsed(serverPlayer, recipe.get()))) {
-            ItemStack assembled = recipe.get().value().assemble(input);
-            if (assembled.isItemEnabled(level.enabledFeatures())) {
-                result = assembled;
-            }
-        }
-        resultSlots.setItem(0, result);
-        setRemoteSlot(resultIndex, result);
-        if (player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.connection.send(new ClientboundContainerSetSlotPacket(containerId, incrementStateId(), resultIndex, result));
-        }
-    }
-
-    /** Hands a stack to the input row, which stores it through a Packing Station; returns what did not fit. */
-    private ItemStack store(ItemStack stack) {
-        return inputOpen() ? terminal.queueInput(stack) : stack;
+        super.clicked(slotId, button, clickType, player);
     }
 
     /** Whether the Input row takes items: only while this site is shown, since what is handed in is stored here. */
@@ -214,88 +193,59 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         }
     }
 
-    /** Moves every grid stack into the warehouse; the rest goes to the player. */
-    public void clearGrid() {
-        if (player.level().isClientSide()) {
+    /**
+     * Recipe viewer transfer: sets each ghost cell to the accepted item the
+     * warehouse can give the most of, else to the first one. Takes nothing.
+     */
+    public void fillGhosts(List<List<ItemStack>> options) {
+        if (!(terminal.getLevel() instanceof ServerLevel server)) {
             return;
         }
-        for (int slot = 0; slot < craftSlots.getContainerSize(); slot++) {
-            ItemStack stack = craftSlots.removeItemNoUpdate(slot);
-            if (stack.isEmpty()) {
+        Map<ItemKey, Long> stock = new HashMap<>();
+        for (Map.Entry<ItemKey, Long> entry : TerminalWarehouses.stock(TerminalWarehouses.reachable(server, terminal.getBlockPos()))) {
+            stock.put(entry.getKey(), entry.getValue());
+        }
+        for (int cell = 0; cell < EncodedPattern.GRID; cell++) {
+            setGhost(cell, cell < options.size() ? mostStocked(options.get(cell), stock) : ItemStack.EMPTY);
+        }
+        sync.force();
+    }
+
+    private static ItemStack mostStocked(List<ItemStack> options, Map<ItemKey, Long> stock) {
+        ItemStack best = ItemStack.EMPTY;
+        long bestCount = -1;
+        for (ItemStack option : options) {
+            if (option.isEmpty()) {
                 continue;
             }
-            ItemStack rest = store(stack);
-            if (!rest.isEmpty()) {
-                player.getInventory().placeItemBackInInventory(rest);
+            long count = stock.getOrDefault(ItemKey.of(option), 0L);
+            if (count > bestCount) {
+                best = option;
+                bestCount = count;
             }
         }
-        slotsChanged(craftSlots);
-        sync.force();
+        return best;
     }
 
     /**
-     * Recipe viewer transfer: clears the grid, then fills each slot with the
-     * first acceptable stack found in the player inventory, never from the
-     * warehouse. With max, a slot takes up to a stack instead of one item.
+     * Orders this many results of the order grid on a CPU of the line, and
+     * saves the grid as a pattern of the line once the order is made when
+     * {@code save} is set; a refused save is told on the message line.
      */
-    public void fillGrid(List<List<ItemStack>> options, boolean max) {
-        if (player.level().isClientSide()) {
-            return;
-        }
-        clearGrid();
-        for (int slot = 0; slot < Math.min(options.size(), craftSlots.getContainerSize()); slot++) {
-            for (ItemStack option : options.get(slot)) {
-                if (option.isEmpty()) {
-                    continue;
-                }
-                int count = max ? option.getMaxStackSize() : 1;
-                ItemStack got = takeFromInventory(option, count);
-                if (!got.isEmpty()) {
-                    craftSlots.setItem(slot, got);
-                    break;
-                }
+    public void startOrder(int amount, boolean save) {
+        if (!(terminal.getLevel() instanceof ServerLevel server)) {
+            message = "offline";
+        } else {
+            List<ItemStack> cells = gridCells();
+            Optional<EncodedPattern> pattern = PatternEditing.encode(server, cells);
+            message = pattern.isEmpty() ? "no_match" : TerminalRequests.craftOneOff(server, terminal, pattern.get(), Math.max(1, amount));
+            if (message.isEmpty() && save) {
+                String saved = TerminalCraftables.line(server, terminal.getBlockPos())
+                        .map(line -> PatternEditing.save(server, line, player, cells, null)).orElse("no_storage");
+                message = saved.equals("no_storage") || saved.equals("full") ? "pattern_" + saved : "";
             }
         }
-        slotsChanged(craftSlots);
         sync.force();
-    }
-
-    private ItemStack takeFromInventory(ItemStack like, int count) {
-        Inventory inventory = player.getInventory();
-        ItemStack result = ItemStack.EMPTY;
-        for (int i = 0; i < inventory.getNonEquipmentItems().size() && result.getCount() < count; i++) {
-            ItemStack stack = inventory.getNonEquipmentItems().get(i);
-            if (!ItemStack.isSameItemSameComponents(stack, like)) {
-                continue;
-            }
-            ItemStack taken = stack.split(count - result.getCount());
-            if (result.isEmpty()) {
-                result = taken;
-            } else {
-                result.grow(taken.getCount());
-            }
-        }
-        return result;
-    }
-
-    /** Closing the terminal empties the grid into the warehouse, the rest into the player inventory. */
-    @Override
-    public void removed(Player player) {
-        super.removed(player);
-        clearGrid();
-    }
-
-    /** Takes the crafted result like a crafting table; the grid is not refilled from the warehouse. */
-    private final class GridResultSlot extends ResultSlot {
-
-        GridResultSlot(Player player, CraftingContainer grid, Container result, int x, int y) {
-            super(player, grid, result, 0, x, y);
-        }
-
-        @Override
-        public boolean isActive() {
-            return craftOpen;
-        }
     }
 
     /** The first reachable warehouse, for rules and pushes. */
@@ -330,13 +280,56 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
 
     /** What crafting this many of the key would take, craft and miss, as the craft dialog shows it. */
     public CraftPreviewPayload preview(ItemKey key, int amount) {
+        return preview(key.stack(1), amount, CraftPreviewRequestPayload.Mode.CRAFT);
+    }
+
+    /**
+     * The preview a dialog asks for: crafting the amount, a request that
+     * ships what is requestable and crafts the rest, or an order of the
+     * order grid's recipe.
+     */
+    public CraftPreviewPayload preview(ItemStack item, int amount, CraftPreviewRequestPayload.Mode mode) {
         int wanted = Math.max(1, amount);
         if (!(terminal.getLevel() instanceof ServerLevel server)) {
-            return new CraftPreviewPayload(key.stack(1), wanted, List.of(), List.of(), List.of(), "offline");
+            return new CraftPreviewPayload(item, wanted, List.of(), List.of(), List.of(), "offline");
         }
-        OrderBook.Preview preview = TerminalCraftables.preview(server, terminal.getBlockPos(), key, wanted);
-        return new CraftPreviewPayload(key.stack(1), wanted, rows(preview.fromStock()), rows(preview.toCraft()),
-                rows(preview.missing()), preview.refusal());
+        return switch (mode) {
+            case CRAFT -> payload(item, wanted, TerminalCraftables.preview(server, terminal.getBlockPos(), ItemKey.of(item), wanted), 0, false);
+            case REQUEST -> requestPreview(server, ItemKey.of(item), wanted);
+            case ORDER -> orderPreview(server, wanted);
+        };
+    }
+
+    private CraftPreviewPayload requestPreview(ServerLevel server, ItemKey key, int amount) {
+        long available = 0;
+        for (WarehouseNetwork warehouse : TerminalWarehouses.reachable(server, terminal.getBlockPos())) {
+            available += warehouse.available(key);
+        }
+        if (available >= amount) {
+            return new CraftPreviewPayload(key.stack(1), amount, List.of(), List.of(), List.of(), "", amount, false);
+        }
+        OrderBook.Preview rest = TerminalCraftables.preview(server, terminal.getBlockPos(), key, (int) (amount - available));
+        return payload(key.stack(1), amount, rest, (int) available, false);
+    }
+
+    private CraftPreviewPayload orderPreview(ServerLevel server, int amount) {
+        Optional<EncodedPattern> pattern = PatternEditing.encode(server, gridCells());
+        if (pattern.isEmpty()) {
+            return new CraftPreviewPayload(ItemStack.EMPTY, amount, List.of(), List.of(), List.of(), "no_match");
+        }
+        ItemStack result = pattern.get().result();
+        String refusal = TerminalCraftables.orderRefusal(server, terminal.getBlockPos());
+        if (!refusal.isEmpty()) {
+            return new CraftPreviewPayload(result, amount, List.of(), List.of(), List.of(), refusal);
+        }
+        Optional<DataNetwork> line = TerminalCraftables.line(server, terminal.getBlockPos());
+        boolean saved = line.map(network -> PatternLibrary.contains(server, network, pattern.get(), null)).orElse(false);
+        return payload(result, amount, TerminalCraftables.previewOneOff(server, terminal.getBlockPos(), pattern.get(), amount), 0, saved);
+    }
+
+    private static CraftPreviewPayload payload(ItemStack item, int amount, OrderBook.Preview preview, int inStock, boolean saved) {
+        return new CraftPreviewPayload(item.copyWithCount(1), amount, rows(preview.fromStock()), rows(preview.toCraft()),
+                rows(preview.missing()), preview.refusal(), inStock, saved);
     }
 
     private static List<StockEntry> rows(Map<ItemKey, Integer> counts) {
@@ -392,21 +385,10 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             return ItemStack.EMPTY;
         }
         ItemStack original = stack.copy();
-        if (index == resultIndex) {
-            access.execute((level, pos) -> stack.getItem().onCraftedBy(stack, player));
-            if (!moveItemStackTo(stack, inventoryStart, gridStart, true)) {
-                return ItemStack.EMPTY;
-            }
-            slot.onQuickCraft(stack, original);
-            QuickMoves.settle(slot, stack);
-            if (stack.getCount() == original.getCount()) {
-                return ItemStack.EMPTY;
-            }
-            slot.onTake(player, stack);
-            player.drop(stack, false);
-            return original;
+        if (isGridSlot(index)) {
+            return ItemStack.EMPTY;
         }
-        if (index >= gridStart || index < inventoryStart) {
+        if (index < inventoryStart) {
             if (!moveItemStackTo(stack, inventoryStart, gridStart, index < inventoryStart)) {
                 return ItemStack.EMPTY;
             }
@@ -478,12 +460,13 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             if (site.isPresent() && sites.stream().anyMatch(row -> row.key().equals(view))) {
                 int state = RemoteTransfers.state(server, site.get()).ordinal();
                 return new StockSyncPayload(terminal.getBlockPos(), true, "", entries(RemoteTransfers.stock(server, site.get())), requests,
-                        shown, List.of(), List.of(), sites, view, state, noPower);
+                        shown, List.of(), List.of(), sites, view, state, noPower, false);
             }
             view = "";
         }
         return new StockSyncPayload(terminal.getBlockPos(), true, "", entries(TerminalWarehouses.stock(warehouses)), requests, shown,
-                warehouses.get(0).ruleRows(), TerminalCraftables.of(server, terminal.getBlockPos(), MAX_ENTRIES), sites, "", -1, noPower);
+                warehouses.get(0).ruleRows(), TerminalCraftables.of(server, terminal.getBlockPos(), MAX_ENTRIES), sites, "", -1, noPower,
+                TerminalCraftables.canOrder(server, terminal.getBlockPos()));
     }
 
     private static List<StockEntry> entries(List<Map.Entry<ItemKey, Long>> stock) {
@@ -502,6 +485,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         hash = hash * 31 + payload.view().hashCode();
         hash = hash * 31 + payload.viewState();
         hash = hash * 31 + (payload.noPower() ? 1 : 0);
+        hash = hash * 31 + (payload.orderGrid() ? 1 : 0);
         hash = hash * 31 + payload.sites().hashCode();
         hash = hash * 31 + payload.reason().hashCode();
         hash = hash * 31 + payload.message().hashCode();

@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.shuttles.order.OrderBook;
 import io.github.dirnei.mc.servus.shuttles.order.OrderStep;
 import io.github.dirnei.mc.servus.shuttles.order.StepRef;
 import io.github.dirnei.mc.servus.shuttles.order.WorkOrder;
+import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternRunners;
 import java.util.ArrayList;
@@ -100,8 +101,16 @@ public final class CpuOrders {
 
     /** The producers of the line with their reported recipes plus the patterns they can run, lowest position first. */
     public static List<OrderBook.Producer> producers(ServerLevel level, DataNetwork network) {
+        return producers(level, network, null);
+    }
+
+    /** The producers of the line with {@code extra}, when given, as one more pattern of the line. */
+    public static List<OrderBook.Producer> producers(ServerLevel level, DataNetwork network, EncodedPattern extra) {
         List<OrderBook.Producer> list = new ArrayList<>();
-        List<PatternLibrary.Entry> patterns = PatternLibrary.entries(level, network);
+        List<PatternLibrary.Entry> patterns = new ArrayList<>(PatternLibrary.entries(level, network));
+        if (extra != null) {
+            patterns.add(new PatternLibrary.Entry(null, -1, extra));
+        }
         for (DataMember member : network.dataMembers(DataRole.PRODUCER)) {
             if (!level.isLoaded(member.pos())) {
                 continue;
@@ -119,6 +128,19 @@ public final class CpuOrders {
     /** What an order for the amount would take from stock, craft and miss, on the CPU {@link CpuChoice} would pick. */
     public static OrderBook.Preview preview(ServerLevel level, DataNetwork network, ItemKey key, int amount) {
         return choose(level, network).map(cpu -> cpu.book().preview(key, amount)).orElseGet(() -> OrderBook.Preview.refused("no_cpu"));
+    }
+
+    /** What an order crafting the pattern's result with that pattern only would take from stock, craft and miss. */
+    public static OrderBook.Preview previewOneOff(ServerLevel level, DataNetwork network, EncodedPattern pattern, int amount) {
+        return choose(level, network).map(cpu -> cpu.book().preview(ItemKey.of(pattern.result()), amount, pattern))
+                .orElseGet(() -> OrderBook.Preview.refused("no_cpu"));
+    }
+
+    /** Makes an order crafting the pattern's result with that pattern only, saved on the line or not. */
+    public static Placed createOneOff(ServerLevel level, DataNetwork network, EncodedPattern pattern, int amount, int requestId) {
+        return choose(level, network)
+                .map(cpu -> new Placed(cpu.book().create(ItemKey.of(pattern.result()), amount, requestId, pattern), cpu.getBlockPos()))
+                .orElseGet(CpuOrders::noCpu);
     }
 
     /** The CPU of the line that {@link CpuChoice} picks for a new order. */
