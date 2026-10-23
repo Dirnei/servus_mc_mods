@@ -205,9 +205,9 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 
 Shuttle job series (decided 2026-10-23 after items spilled at an Inbound Station; built in this order):
 
-- `m8-slot-locks`: locks are keyed by job id and saved like station claims; a job locks the exact slots it fills or empties at planning time (rack bays, station and Field Head buffers), locked for hands, pipes and other mods, shown with a colour wash, ghost item and shuttle label; put-away targets by zone tier, then bays holding the item, then most free room; travel time cost by weighted Dijkstra; leftovers re-route or park at the garage in an error state.
-- `m8-shuttle-following`: shuttles with the same heading follow with a gap, opposite headings pass, loading blocks followers, merges go first come then by shuttle number, waiting shuttles stand inside the garage.
-- `m10-field-head-locks`: the Field Head buffer takes part in slot locks like the station buffers.
+- `m8-shuttle-following`: shuttles with the same heading follow with a gap, opposite headings pass, loading blocks followers, merges go first come then by shuttle number, waiting shuttles stand inside the garage; aisle traffic joins the travel cost.
+- `m10-field-head-locks`: the Field Head buffer takes part in slot locks like the station buffers, and field runs lock the rack room and stock they store into or fetch from.
+- A way to unload a shuttle parked with cargo by hand; today only Recall empties it, dropping the cargo at the garage.
 
 - `m10-lumber`: a Lumber module for tree fields; later field kinds beyond crops.
 - SEND and KEEP rules between sites in the controller GUI (the local min/max stock rules join the same list) and an In transit view.

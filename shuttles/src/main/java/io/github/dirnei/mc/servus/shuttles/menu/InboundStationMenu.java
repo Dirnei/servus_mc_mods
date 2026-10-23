@@ -21,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /** The station's buffer and the player inventory; the state line comes along as a payload. */
-public class InboundStationMenu extends AbstractContainerMenu {
+public class InboundStationMenu extends AbstractContainerMenu implements LockedMenu {
 
     public static final int BUFFER_Y = 18;
     public static final int STATUS_Y = 40;
@@ -33,6 +33,7 @@ public class InboundStationMenu extends AbstractContainerMenu {
     private final Player player;
     private final int bufferSlots;
     private final int inventoryStart;
+    private final MenuLocks locks;
     private final PayloadSync<StationStatePayload> sync = new PayloadSync<>(5, false, this::state);
 
     public InboundStationMenu(int containerId, Inventory playerInventory, InboundStationBlockEntity station) {
@@ -47,6 +48,7 @@ public class InboundStationMenu extends AbstractContainerMenu {
         inventoryStart = slots.size();
         PlayerInventorySlots.add(this::addSlot, playerInventory, 8, INVENTORY_Y);
         addDataSlots(new SideConfigData(station.sideConfig()));
+        locks = MenuLocks.of(slots);
     }
 
     public static InboundStationMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -110,6 +112,12 @@ public class InboundStationMenu extends AbstractContainerMenu {
     public void broadcastChanges() {
         super.broadcastChanges();
         sync.tick(player);
+        locks.tick(player, containerId, station::network);
+    }
+
+    @Override
+    public MenuLocks locks() {
+        return locks;
     }
 
     /** The station's state as the client should see it. */

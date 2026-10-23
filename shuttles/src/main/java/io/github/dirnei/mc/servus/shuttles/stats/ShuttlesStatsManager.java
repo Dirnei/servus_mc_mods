@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.stats;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttles;
+import io.github.dirnei.mc.servus.shuttles.shuttle.TravelWeights;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleTiers;
 import java.util.Map;
@@ -85,6 +86,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final int DEFAULT_FLUID_CHECK_INTERVAL = 40;
     public static final int DEFAULT_TANKER_MIN_LOAD = 1000;
 
+    private static final double DEFAULT_FREE_SLOT_BUCKET = 0.25;
     private static final Identifier WAREHOUSE = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "warehouse");
     private static final Identifier RACK = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "rack");
     private static final Identifier CRAFTING_STATION = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "crafting_station");
@@ -163,6 +165,8 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private volatile int gantryPumpTicks = DEFAULT_GANTRY_PUMP_TICKS;
     private volatile int fluidCheckInterval = DEFAULT_FLUID_CHECK_INTERVAL;
     private volatile int tankerMinLoad = DEFAULT_TANKER_MIN_LOAD;
+    private volatile TravelWeights travelWeights = TravelWeights.DEFAULT;
+    private volatile double freeSlotBucket = DEFAULT_FREE_SLOT_BUCKET;
 
     private ShuttlesStatsManager() {
         super(ExtraCodecs.JSON, FileToIdConverter.json(DIRECTORY));
@@ -234,8 +238,19 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         gantryPumpTicks = intField(files.get(GANTRY), "pump_ticks", DEFAULT_GANTRY_PUMP_TICKS);
         fluidCheckInterval = intField(files.get(WAREHOUSE), "fluid_check_interval", DEFAULT_FLUID_CHECK_INTERVAL);
         tankerMinLoad = countField(files.get(WAREHOUSE), "tanker_min_load", DEFAULT_TANKER_MIN_LOAD);
+        travelWeights = travelWeights(files.get(WAREHOUSE));
+        freeSlotBucket = Math.min(1.0, doubleField(files.get(WAREHOUSE), "free_slot_bucket", DEFAULT_FREE_SLOT_BUCKET));
         shuttleTiers = ShuttleStatsReader.read(files.get(SHUTTLE));
         ServusShuttles.LOGGER.info("Warehouse polls {} sources per tick", sourcesPerTick);
+    }
+
+    /** The travel cost weights from the {@code travel_costs} object; missing fields keep their defaults. */
+    private static TravelWeights travelWeights(JsonElement warehouse) {
+        JsonElement costs = warehouse instanceof JsonObject object ? object.get("travel_costs") : null;
+        TravelWeights base = TravelWeights.DEFAULT;
+        return new TravelWeights(costField(costs, "rail_block", base.railBlock()), costField(costs, "corner", base.corner()),
+                costField(costs, "lift_block", base.liftBlock()), costField(costs, "lift_handover", base.handover()),
+                costField(costs, "stop", base.stop()), costField(costs, "lift_wait_per_job", base.liftWaitPerJob()));
     }
 
     private static double doubleField(JsonElement element, String field, double fallback) {
@@ -630,5 +645,15 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     /** mB an Import gantry tank holds before a tanker run starts for it, unless it is full. */
     public int tankerMinLoad() {
         return tankerMinLoad;
+    }
+
+    /** Travel time weights of rail paths, from {@code travel_costs} in {@code warehouse.json}. */
+    public TravelWeights travelWeights() {
+        return travelWeights;
+    }
+
+    /** The share of a bay's slots one free slot bucket of the put-away rule spans. */
+    public double freeSlotBucket() {
+        return freeSlotBucket;
     }
 }

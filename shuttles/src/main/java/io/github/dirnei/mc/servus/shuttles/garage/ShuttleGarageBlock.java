@@ -42,7 +42,8 @@ public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
 
     public ShuttleGarageBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(StorageNodeBlocks.ONLINE, false));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(StorageNodeBlocks.ONLINE, false)
+                .setValue(StorageNodeBlocks.ACTIVITY, StorageNodeBlocks.Activity.IDLE));
     }
 
     @Override
@@ -52,7 +53,7 @@ public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, StorageNodeBlocks.ONLINE);
+        builder.add(FACING, StorageNodeBlocks.ONLINE, StorageNodeBlocks.ACTIVITY);
     }
 
     @Override

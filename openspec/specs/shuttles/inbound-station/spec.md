@@ -7,7 +7,7 @@ The Inbound Station is the warehouse's inbound dock: items arrive in its buffer 
 ## Requirements
 
 ### Requirement: Station block and buffer
-The Inbound Station SHALL be a block with a horizontal facing and an intake buffer of `inbound_buffer_slots` slots (example 9, from `data/<ns>/shuttles/warehouse.json`). Every relative side but the front SHALL be in one of three modes of the Lib side configuration, Input, Pull or Off, all Input by default; the front is fixed to Off. On Input and Pull sides the buffer SHALL be exposed as an item handler that accepts inserts and refuses extraction, so hoppers, item pipes and machines feed it but never take from it, and item pipes show an item arm toward those sides. On Pull sides the station SHALL additionally take stacks out of the neighbour's item handler every `push_interval` ticks while the buffer has room. Off sides SHALL expose nothing. The Configuration Carrot used on a face SHALL cycle that face's mode and the GUI SHALL show the Lib side panel. Breaking the station SHALL drop the buffer contents.
+The Inbound Station SHALL be a block with a horizontal facing and an intake buffer of `inbound_buffer_slots` slots (example 9, from `data/<ns>/shuttles/warehouse.json`). Every relative side but the front SHALL be in one of three modes of the Lib side configuration, Input, Pull or Off, all Input by default; the front is fixed to Off. On Input and Pull sides the buffer SHALL be exposed as an item handler that accepts inserts and refuses extraction, so hoppers, item pipes and machines feed it but never take from it, and item pipes show an item arm toward those sides. On Pull sides the station SHALL additionally take stacks out of the neighbour's item handler every `push_interval` ticks while the buffer has room, taking only what its unlocked slots accept and never losing an item between the neighbour and the buffer. Off sides SHALL expose nothing. Slots locked by a job SHALL take nothing from any side. The Configuration Carrot used on a face SHALL cycle that face's mode and the GUI SHALL show the Lib side panel. Breaking the station SHALL drop the buffer contents.
 
 #### Scenario: Hopper feeds the station
 - **WHEN** a hopper above the station holds 20 cobblestone
@@ -29,6 +29,10 @@ The Inbound Station SHALL be a block with a horizontal facing and an intake buff
 - **WHEN** the player sets the back side to Pull and a chest behind the station holds 30 bread
 - **THEN** the bread moves into the buffer and on into the warehouse without a hopper
 
+#### Scenario: Pull into a nearly full buffer
+- **WHEN** a Pull side offers 64 cobblestone while the unlocked slots take only 10
+- **THEN** 10 cobblestone move into the buffer and 54 stay in the neighbour
+
 #### Scenario: Front closed
 - **WHEN** a machine pushes against the station's front
 - **THEN** nothing goes in and the carrot on the front only reports Off
@@ -38,7 +42,7 @@ The Inbound Station SHALL be a block with a horizontal facing and an intake buff
 - **THEN** 10 bread drop at its position
 
 ### Requirement: Put-away by shuttle
-A buffer stack SHALL be put away only by shuttle. When the warehouse is online, has shuttles and a home rail, and both the station and the chosen rack touch rails the home rail reaches, a buffer stack SHALL become a put-away job. A free shuttle SHALL drive to the station's rail, take the stack, drive to the rack's rail, insert it, and return home. The stack SHALL stay in the buffer until the shuttle loads it and SHALL NOT be offered to a second shuttle meanwhile. What the rack no longer accepts on arrival SHALL ride back and return to the buffer. Without a shuttle that can do this, the stack SHALL wait and the station SHALL report that it needs a shuttle. The buffer SHALL stay untouched while the warehouse is offline.
+A buffer stack SHALL be put away only by shuttle. When the warehouse is online, has shuttles and a home rail, and both the station and the chosen rack touch rails the home rail reaches, a buffer stack SHALL become a put-away job: its slot is OUT locked and the room for it in the target rack is IN locked (see `shuttles/slot-locks`). A free shuttle SHALL drive to the station's rail, take the locked amount, drive to the rack's rail, unload into the locked slots, and return home. The stack SHALL stay in the buffer until the shuttle loads it; nobody else SHALL take it out or add to it meanwhile, and it SHALL NOT be offered to a second shuttle. Cargo SHALL never return to the station and never drop: what a rack does not take on arrival SHALL be routed again by the put-away routing, and with no room anywhere the shuttle SHALL park it in its garage (see `shuttles/shuttle-garage`). Without a shuttle that can do this, the stack SHALL wait and the station SHALL report that it needs a shuttle. The buffer SHALL stay untouched while the warehouse is offline.
 
 #### Scenario: Shuttle put-away
 - **WHEN** a station beside a rail receives 40 cobblestone and the only rack with room stands beside a rail eight blocks further
@@ -49,12 +53,16 @@ A buffer stack SHALL be put away only by shuttle. When the warehouse is online, 
 - **THEN** the stacks leave the buffer one at a time as the shuttle comes back for each
 
 #### Scenario: Taken out before loading
-- **WHEN** the player removes the stack from the buffer GUI before the shuttle arrives
-- **THEN** the shuttle returns home empty and nothing is stored
+- **WHEN** the player tries to take the stack out of the buffer GUI before the shuttle arrives
+- **THEN** the stack stays in its slot and the shuttle takes it
 
 #### Scenario: Target filled meanwhile
-- **WHEN** the target rack is filled by hand while the shuttle is on its way
-- **THEN** the shuttle brings the stack back and it is in the buffer again
+- **WHEN** a player tries to fill the target rack by hand while the shuttle is on its way
+- **THEN** the slots locked for the shuttle stay free and the cobblestone lands there
+
+#### Scenario: Station pulling fast
+- **WHEN** a chest and a backpack on Pull sides keep the buffer full while shuttles put away into a nearly full rack
+- **THEN** every item ends in a rack or waits in the buffer, and nothing drops at the station or the rack
 
 #### Scenario: No garage
 - **WHEN** a station receives bread, a rack has room and the warehouse has no garage

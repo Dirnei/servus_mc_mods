@@ -3,6 +3,8 @@ package io.github.dirnei.mc.servus.shuttles.gametest;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
+import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.shuttle.CounterData;
@@ -157,14 +159,14 @@ public final class FleetPersistenceGameTests {
         return helper.getBlockEntity(warehouse.inboundPos(), InboundStationBlockEntity.class);
     }
 
-    /** A slot claimed by a job nobody knows is released after two sweeps and its stack is put away. */
+    /** A slot locked by a job nobody knows is released after two sweeps and its stack is put away. */
     @ServusGameTest(timeoutTicks = 700)
     public static void orphanClaimIsReleased(GameTestHelper helper) {
         MiniWarehouse warehouse = MiniWarehouse.build(helper, ORIGIN);
         InboundStationBlockEntity station = warehouse.withInbound();
         helper.runAfterDelay(10, () -> {
-            station.claim(0, Integer.MAX_VALUE);
             insert(station, new ItemStack(Items.COBBLESTONE, 40));
+            station.buffer().lock(0, new SlotLock(SlotLock.Kind.OUT, ItemKey.of(new ItemStack(Items.COBBLESTONE)), 40, Integer.MAX_VALUE));
             helper.runAfterDelay(20, () -> helper.assertTrue(station.claimedBy(0) == Integer.MAX_VALUE && warehouse.network().queuedJobs() == 0
                     && warehouse.network().ridingJobs() == 0, "the claimed stack waits"));
             Waits.when(helper, () -> warehouse.rackCount(Items.COBBLESTONE) == 40, 650,
@@ -240,8 +242,11 @@ public final class FleetPersistenceGameTests {
         });
     }
 
-    /** A shuttle restored after its target's rail was broken goes home and drops its cargo at the garage. */
-    @ServusGameTest(timeoutTicks = 400)
+    /**
+     * A shuttle restored after its target's rail was broken parks its cargo in
+     * its garage, nothing drops, and it delivers once the rail is back.
+     */
+    @ServusGameTest(timeoutTicks = 800)
     public static void strandedCargoEndsAtGarage(GameTestHelper helper) {
         MiniWarehouse warehouse = MiniWarehouse.build(helper, ORIGIN);
         InboundStationBlockEntity station = warehouse.withInbound();
@@ -251,10 +256,13 @@ public final class FleetPersistenceGameTests {
                     () -> "the shuttle should load the cobblestone", () -> {
                         reload(helper, warehouse.garagePos(), tag -> { },
                                 () -> helper.setBlock(warehouse.railPos(0), Blocks.AIR.defaultBlockState()));
-                        Waits.when(helper, () -> dropped(helper, Items.COBBLESTONE) == 40, MiniWarehouse.TRIP_TICKS * 2,
-                                () -> "the cobblestone should drop at the garage, dropped " + dropped(helper, Items.COBBLESTONE), () -> {
-                                    helper.assertTrue(warehouse.rackCount(Items.COBBLESTONE) == 0, "the rack gets nothing");
-                                    helper.succeed();
+                        Waits.when(helper, () -> !warehouse.network().stranded(helper.absolutePos(warehouse.garagePos())).isEmpty(),
+                                MiniWarehouse.TRIP_TICKS * 2, () -> "the shuttle should park with its cargo", () -> {
+                                    helper.assertTrue(dropped(helper, Items.COBBLESTONE) == 0, "nothing drops");
+                                    WarehouseFixtures.railOnStone(helper, warehouse.railPos(0));
+                                    Waits.when(helper, () -> warehouse.rackCount(Items.COBBLESTONE) == 40, MiniWarehouse.TRIP_TICKS * 4,
+                                            () -> "the parked cobblestone should reach the rack once the rail is back, rack has "
+                                                    + warehouse.rackCount(Items.COBBLESTONE), helper::succeed);
                                 });
                     });
         });

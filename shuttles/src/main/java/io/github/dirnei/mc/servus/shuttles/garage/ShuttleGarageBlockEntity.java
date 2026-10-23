@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
 import io.github.dirnei.mc.servus.foundation.material.MaterialSlot;
 import io.github.dirnei.mc.servus.shuttles.menu.ShuttleGarageMenu;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
@@ -17,6 +18,7 @@ import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
@@ -279,6 +281,18 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
         super.preRemoveSideEffects(pos, state);
         if (level != null) {
             dropShuttles(level, pos);
+        }
+    }
+
+    /** Turns the front lamp red while a shuttle of this garage parks with cargo that has nowhere to go. Server side. */
+    public void setStranded(boolean stranded) {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        BlockState state = getBlockState();
+        StorageNodeBlocks.Activity activity = stranded ? StorageNodeBlocks.Activity.BLOCKED : StorageNodeBlocks.Activity.IDLE;
+        if (state.hasProperty(StorageNodeBlocks.ACTIVITY) && state.getValue(StorageNodeBlocks.ACTIVITY) != activity) {
+            level.setBlock(worldPosition, state.setValue(StorageNodeBlocks.ACTIVITY, activity), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
         }
     }
 }

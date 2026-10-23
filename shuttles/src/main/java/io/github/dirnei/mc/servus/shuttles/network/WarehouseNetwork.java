@@ -29,6 +29,10 @@ import io.github.dirnei.mc.servus.shuttles.gantry.GantryTanks;
 import io.github.dirnei.mc.servus.shuttles.gantry.TankRef;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.index.WarehouseIndex;
+import io.github.dirnei.mc.servus.shuttles.lock.LockHolder;
+import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
+import io.github.dirnei.mc.servus.shuttles.lock.SlotFill;
+import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
 import io.github.dirnei.mc.servus.shuttles.order.StockRules;
 import io.github.dirnei.mc.servus.shuttles.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.packing.PackingStationBlockEntity;
@@ -45,6 +49,7 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.SupplyJob;
 import io.github.dirnei.mc.servus.shuttles.shuttle.LiftCar;
 import io.github.dirnei.mc.servus.shuttles.shuttle.PickJob;
 import io.github.dirnei.mc.servus.shuttles.shuttle.PutAwayJob;
+import io.github.dirnei.mc.servus.shuttles.shuttle.RailCosts;
 import io.github.dirnei.mc.servus.shuttles.shuttle.RailPaths;
 import io.github.dirnei.mc.servus.shuttles.shuttle.RequestPlan;
 import io.github.dirnei.mc.servus.shuttles.shuttle.Shafts;
@@ -59,8 +64,10 @@ import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.terminal.RuleRow;
 import io.github.dirnei.mc.servus.shuttles.zone.PutAwayPlan;
+import io.github.dirnei.mc.servus.shuttles.zone.PutAwayRank;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -70,6 +77,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -112,8 +120,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private record HeldLoad(PickJob job, ItemStack stack) {
     }
 
-    /** One claimed slot of an Inbound Station and the job that claimed it. */
-    private record StationClaim(BlockPos station, int slot, int jobId) {
+    /** One locked slot of a block: which of its lockable inventories, which slot and the job holding it. */
+    private record LockKey(BlockPos pos, int inventory, int slot, int jobId) {
     }
 
     /** Indexed members, read through {@link StorageNodeBlockEntity#stock()}. */
@@ -163,8 +171,12 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** The min load of tanker runs when a test set one for this warehouse, else -1 for the stats. */
     private int tankerMinLoadForTests = -1;
     private final ShuttleFleet fleet = new ShuttleFleet(this);
-    private final OrphanSweep<StationClaim> claimSweep = new OrphanSweep<>();
+    private final OrphanSweep<LockKey> lockSweep = new OrphanSweep<>();
     private int claimTimer;
+    /** Racks that left for good; picks planned from them are planned again on the next tick. */
+    private final Set<BlockPos> brokenSources = new LinkedHashSet<>();
+    /** The order in which sources joined, rebuilt after membership changes. */
+    private Map<BlockPos, Integer> joinOrder;
     private boolean spanDirty = true;
     private int snapshotTimer;
     private long snapshotVersion = -1;
@@ -241,6 +253,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         blockedStations.remove(blockPos);
         zones.remove(blockPos);
         dropSource(blockPos);
+        if (forGood && node instanceof HeavyRackBlockEntity) {
+            brokenSources.add(blockPos);
+        }
         if (garages.remove(blockPos)) {
             fleet.releaseGarage(blockPos, forGood);
         }
@@ -300,6 +315,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             index.update(pos, that.index.snapshot(pos));
         });
         pollOrderStale = true;
+        joinOrder = null;
         lampsDirty = true;
         spanDirty = true;
         wirelessDirty = true;
@@ -467,16 +483,59 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return zones.targets(tiers, sources, holders);
     }
 
-    /** The first target in tier order that passes the test. */
-    private Optional<BlockPos> firstTarget(ItemKey key, PutAwayPlan.Tiers<BlockPos> tiers, Predicate<BlockPos> test) {
-        for (List<BlockPos> tier : targetTiers(key, tiers)) {
-            for (BlockPos pos : tier) {
-                if (test.test(pos)) {
-                    return Optional.of(pos);
+    /**
+     * The racks a stack may be put away into, best first by the put-away rule:
+     * zone tier, racks holding the item (a partial stack first, then the
+     * cheapest), then the others by free slot bucket and cost, join order last.
+     * Only unlocked room counts. With {@code costs} a rack must be reachable
+     * from its starts and is ranked by its cost; without, every rack costs the same.
+     */
+    private List<BlockPos> rankTargets(ItemStack stack, PutAwayPlan.Tiers<BlockPos> tiers, RailCosts.Search<NodePos> costs,
+                                       Predicate<BlockPos> allowed) {
+        ItemKey key = ItemKey.of(stack);
+        int max = stack.getMaxStackSize();
+        List<List<BlockPos>> tierLists = targetTiers(key, tiers);
+        List<PutAwayRank.Bay<BlockPos>> bays = new ArrayList<>();
+        for (int tier = 0; tier < tierLists.size(); tier++) {
+            for (BlockPos pos : tierLists.get(tier)) {
+                LockedSlots slots = rackSlots(pos);
+                if (slots == null || !allowed.test(pos)) {
+                    continue;
                 }
+                List<SlotFill.Slot<ItemKey>> states = slots.states();
+                int room = SlotFill.room(states, key, max);
+                if (room <= 0) {
+                    continue;
+                }
+                double cost = costs == null ? 0 : costs.costToAny(dockRails(Conversions.toNodePos(pos)));
+                if (Double.isInfinite(cost)) {
+                    continue;
+                }
+                bays.add(new PutAwayRank.Bay<>(pos, tier, SlotFill.holds(states, key), SlotFill.partial(states, key, max),
+                        SlotFill.freeSlots(states), slots.getSlots(), room, cost, joinOrder(pos)));
             }
         }
-        return Optional.empty();
+        List<BlockPos> ranked = new ArrayList<>();
+        for (PutAwayRank.Bay<BlockPos> bay : PutAwayRank.order(bays, ShuttlesStatsManager.INSTANCE.freeSlotBucket())) {
+            ranked.add(bay.id());
+        }
+        return ranked;
+    }
+
+    /** The position of a source in the order sources joined. */
+    private int joinOrder(BlockPos pos) {
+        if (joinOrder == null) {
+            joinOrder = new HashMap<>();
+            for (BlockPos source : sources) {
+                joinOrder.put(source, joinOrder.size());
+            }
+        }
+        return joinOrder.getOrDefault(pos, Integer.MAX_VALUE);
+    }
+
+    /** The lockable slots of a rack of this warehouse whose chunk is loaded, else null. */
+    private LockedSlots rackSlots(BlockPos pos) {
+        return sources.contains(pos) && loaded(pos) instanceof HeavyRackBlockEntity rack ? rack.items() : null;
     }
 
     /** Stock blocks per zone key, sorted by key. */
@@ -701,7 +760,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         BlockPos destination = chosen.get().getBlockPos();
         boolean reachable = fleet.canReach(destination);
-        RequestPlan.Plan<BlockPos> plan = plan(key, amount, reachable);
+        RequestPlan.Plan<BlockPos> plan = plan(key, amount, destination, reachable);
         if (plan.jobs().isEmpty()) {
             return new Shipping(refusal(plan, reachable), Optional.empty(), destination);
         }
@@ -711,28 +770,28 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return new Shipping("", Optional.of(shipment), destination);
     }
 
-    /** Rail steps from the nearest rack to the Packing Station, 0 without racks, unreachable without a path. */
+    /** The travel cost from the cheapest rack to the Packing Station, 0 without racks, unreachable without a way. */
     private int trip(List<BlockPos> racks, BlockPos packingStation) {
         if (racks.isEmpty()) {
             return 0;
         }
-        Set<NodePos> goal = dockRails(Conversions.toNodePos(packingStation));
-        int best = PackingStationChoice.UNREACHABLE;
+        RailCosts.Search<NodePos> costs = fleet.costsFrom(dockRails(Conversions.toNodePos(packingStation)));
+        double best = Double.POSITIVE_INFINITY;
         for (BlockPos rack : racks) {
-            for (NodePos start : dockRails(Conversions.toNodePos(rack))) {
-                List<NodePos> path = RailPaths.find(start, goal::contains, this::travelNeighbours);
-                if (!path.isEmpty()) {
-                    best = Math.min(best, path.size() - 1);
-                }
-            }
+            best = Math.min(best, costs.costToAny(dockRails(Conversions.toNodePos(rack))));
         }
-        return best;
+        return Double.isInfinite(best) ? PackingStationChoice.UNREACHABLE : (int) Math.round(best);
     }
 
-    /** How many of an item the sources hold right now. */
+    /** How many of an item the sources hold that no job reserved; a rack whose chunk is not loaded counts as last indexed. */
     @Override
     public long available(ItemKey key) {
-        return stockCount(key);
+        long sum = 0;
+        for (Map.Entry<BlockPos, Integer> entry : stockAt(key).entrySet()) {
+            LockedSlots slots = rackSlots(entry.getKey());
+            sum += slots != null ? slots.available(key) : entry.getValue();
+        }
+        return sum;
     }
 
     /** How many of an item the sources hold, cheap enough for a GUI that refreshes every second. */
@@ -756,9 +815,18 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return stock;
     }
 
-    private List<RequestPlan.Stock<BlockPos>> stockOf(ItemKey key) {
+    /** The unlocked stock of the key per rack, with the travel cost between each rack and the destination. */
+    private List<RequestPlan.Stock<BlockPos>> stockOf(ItemKey key, BlockPos destination) {
+        RailCosts.Search<NodePos> costs = fleet.costsFrom(dockRails(Conversions.toNodePos(destination)));
         List<RequestPlan.Stock<BlockPos>> stock = new ArrayList<>();
-        stockAt(key).forEach((pos, count) -> stock.add(new RequestPlan.Stock<>(pos, count, fleet.canReach(pos))));
+        for (BlockPos pos : stockAt(key).keySet()) {
+            LockedSlots slots = rackSlots(pos);
+            int count = slots == null ? 0 : slots.available(key);
+            if (count > 0) {
+                double cost = costs.costToAny(dockRails(Conversions.toNodePos(pos)));
+                stock.add(new RequestPlan.Stock<>(pos, count, !Double.isInfinite(cost), cost));
+            }
+        }
         return stock;
     }
 
@@ -848,7 +916,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (have >= wanted.getCount()) {
                 continue;
             }
-            int missing = wanted.getCount() - have;
+            int missing = Math.min(wanted.getCount() - have, station.buffer().freeSlots() * key.stack(1).getMaxStackSize());
+            if (missing <= 0) {
+                pending = true;
+                continue;
+            }
             Started started = planAndStart(pos, key, missing, 0);
             pending |= started.planned() > 0;
             if (started.planned() < missing && shortStack.isEmpty()) {
@@ -910,7 +982,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             return new Started("offline", 0);
         }
         boolean reachable = fleet.canReach(destination);
-        RequestPlan.Plan<BlockPos> plan = plan(key, amount, reachable);
+        RequestPlan.Plan<BlockPos> plan = plan(key, amount, destination, reachable);
         if (plan.jobs().isEmpty()) {
             return new Started(refusal(plan, reachable), 0);
         }
@@ -918,8 +990,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return new Started("", plan.planned());
     }
 
-    private RequestPlan.Plan<BlockPos> plan(ItemKey key, int amount, boolean destinationReachable) {
-        return RequestPlan.plan(amount, key.stack(1).getMaxStackSize(), destinationReachable, stockOf(key));
+    private RequestPlan.Plan<BlockPos> plan(ItemKey key, int amount, BlockPos destination, boolean destinationReachable) {
+        return RequestPlan.plan(amount, key.stack(1).getMaxStackSize(), destinationReachable, stockOf(key, destination));
     }
 
     /** Why a plan without jobs failed: {@code no_rail}, {@code needs_shuttle} or {@code out_of_stock}. */
@@ -935,10 +1007,154 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return CounterData.get(level.getServer(), CounterData.Kind.JOB_IDS).take();
     }
 
-    /** Queues one shuttle pick per planned job. */
+    /**
+     * Queues one shuttle pick per planned job: it locks the slots it takes
+     * from at once, and its destination slot now when one is free, else
+     * before a shuttle is sent for it.
+     */
     private void startJobs(RequestPlan.Plan<BlockPos> plan, int requestId, ItemKey key, BlockPos destination) {
         for (RequestPlan.Job<BlockPos> job : plan.jobs()) {
-            fleet.requestPick(new PickJob(nextJobId(), requestId, key, job.count(), job.source(), destination));
+            LockedSlots slots = rackSlots(job.source());
+            int id = nextJobId();
+            int locked = slots == null ? 0 : slots.lockOut(id, key, job.count());
+            if (locked <= 0) {
+                continue;
+            }
+            PickJob pick = new PickJob(id, requestId, key, locked, job.source(), destination);
+            readyToSend(pick);
+            fleet.requestPick(pick);
+        }
+    }
+
+    @Override
+    public boolean readyToSend(PickJob job) {
+        if (level == null || !level.isLoaded(job.terminal())) {
+            return false;
+        }
+        if (!(loaded(job.terminal()) instanceof DeliveryTarget target)) {
+            return true;
+        }
+        LockedSlots slots = target.deliveries();
+        if (slots.holds(job.id())) {
+            return true;
+        }
+        int locked = slots.lockIn(job.id(), job.key(), job.amount(), true);
+        if (locked >= job.amount()) {
+            return true;
+        }
+        if (locked > 0) {
+            slots.release(job.id());
+        }
+        return false;
+    }
+
+    @Override
+    public boolean destinationGone(PickJob job) {
+        return level != null && level.isLoaded(job.terminal()) && !(loaded(job.terminal()) instanceof DeliveryTarget);
+    }
+
+    @Override
+    public ItemStack loadPutAway(PutAwayJob job) {
+        return loaded(job.station()) instanceof InboundStationBlockEntity station ? station.buffer().extractAs(job.id()) : ItemStack.EMPTY;
+    }
+
+    @Override
+    public ItemStack loadPick(PickJob job) {
+        LockedSlots slots = rackSlots(job.source());
+        if (slots == null) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack taken = slots.extractAs(job.id());
+        if (!taken.isEmpty()) {
+            markDirty(job.source());
+        }
+        return taken;
+    }
+
+    @Override
+    public ItemStack unloadInto(BlockPos target, int jobId, ItemStack cargo) {
+        LockedSlots slots = rackSlots(target);
+        if (slots == null || cargo.isEmpty()) {
+            return cargo;
+        }
+        ItemStack left = slots.insertAs(jobId, cargo);
+        if (left.getCount() != cargo.getCount()) {
+            markDirty(target);
+        }
+        return left;
+    }
+
+    @Override
+    public List<BlockPos> storeTargets(int jobId, ItemStack cargo, Set<NodePos> from, Function<NodePos, Set<NodePos>> ways) {
+        List<BlockPos> stops = new ArrayList<>();
+        if (cargo.isEmpty()) {
+            return stops;
+        }
+        ItemKey key = ItemKey.of(cargo);
+        RailCosts.Search<NodePos> costs = fleet.costsFrom(from, ways);
+        int left = cargo.getCount();
+        for (BlockPos pos : rankTargets(cargo, tiers(key), costs, candidate -> true)) {
+            if (left <= 0) {
+                break;
+            }
+            int locked = rackSlots(pos).lockIn(jobId, key, left, false);
+            if (locked > 0) {
+                stops.add(pos);
+                left -= locked;
+            }
+        }
+        return stops;
+    }
+
+    @Override
+    public boolean anyRoomFor(ItemStack cargo) {
+        return !rankTargets(cargo, tiers(ItemKey.of(cargo)), null, candidate -> true).isEmpty();
+    }
+
+    @Override
+    public void releaseLocks(int jobId, Collection<BlockPos> at) {
+        boolean any = false;
+        for (BlockPos pos : at) {
+            if (loaded(pos) instanceof LockHolder holder) {
+                for (LockedSlots slots : holder.lockedSlots()) {
+                    any |= slots.release(jobId);
+                }
+            }
+        }
+        if (any) {
+            fleet.roomChanged();
+        }
+    }
+
+    @Override
+    public void strandedChanged(BlockPos garage, boolean stranded) {
+        if (loaded(garage) instanceof ShuttleGarageBlockEntity entity) {
+            entity.setStranded(stranded);
+        }
+    }
+
+    /** The shuttles of a garage parked with cargo that has nowhere to go. */
+    public List<ShuttleFleet.Stranded> stranded(BlockPos garage) {
+        return fleet.stranded(garage);
+    }
+
+    /** The item of the shuttle on that job, or empty while the job waits for one. */
+    public Optional<ItemStack> shuttleOnJob(int jobId) {
+        return fleet.shuttleOnJob(jobId);
+    }
+
+    /** Plans the picks of racks that left for good again from other racks; what cannot be planned counts as missing. */
+    private void replanBrokenSources() {
+        List<BlockPos> broken = List.copyOf(brokenSources);
+        brokenSources.clear();
+        for (BlockPos source : broken) {
+            for (PickJob job : fleet.dropPicksFrom(source)) {
+                releaseLocks(job.id(), List.of(job.terminal()));
+                Started started = planAndStart(job.terminal(), job.key(), job.amount(), job.requestId());
+                if (started.planned() < job.amount()) {
+                    pickLoaded(job, started.planned());
+                }
+            }
         }
     }
 
@@ -956,16 +1172,15 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
+    /** Puts a pick's cargo into the destination slot locked for it, the rest into free slots; returns what did not fit. */
     @Override
     public ItemStack deliverTo(PickJob job, ItemStack stack) {
-        if (stack.isEmpty() || level == null || !level.isLoaded(job.terminal())) {
+        if (stack.isEmpty() || level == null || !level.isLoaded(job.terminal())
+                || !(loaded(job.terminal()) instanceof DeliveryTarget target)) {
             return stack;
         }
-        if (!(loaded(job.terminal()) instanceof DeliveryTarget target)) {
-            Block.popResource(level, job.terminal(), stack);
-            return ItemStack.EMPTY;
-        }
-        return target.deliveries().insertItem(stack, false);
+        ItemStack left = target.deliveries().insertAs(job.id(), stack);
+        return target.deliveries().insertItem(left, false);
     }
 
     @Override
@@ -1001,6 +1216,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private void addSource(BlockPos pos) {
         if (sources.add(pos)) {
             pollOrderStale = true;
+            joinOrder = null;
         }
         markDirty(pos);
     }
@@ -1010,6 +1226,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             index.remove(pos);
             dirtySet.remove(pos);
             pollOrderStale = true;
+            joinOrder = null;
         }
     }
 
@@ -1127,7 +1344,13 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         fleet.tick();
         if (++claimTimer >= CLAIM_SWEEP_TICKS) {
             claimTimer = 0;
-            sweepClaims();
+            sweepLocks();
+        }
+        if (!brokenSources.isEmpty() && status() == Status.ONLINE) {
+            replanBrokenSources();
+        }
+        if (zonesDirty) {
+            fleet.roomChanged();
         }
         tickStations();
         if (!pendingGantries.isEmpty()) {
@@ -1220,30 +1443,44 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /**
-     * Releases station claims whose job the fleet has not known at two sweeps
-     * in a row. Sweeps only while online and while every chunk of the site is
-     * loaded, so a job in a garage that is not loaded yet keeps its claim.
+     * Releases locks whose job the fleet has not known at two sweeps in a
+     * row. Sweeps only while online and while every chunk of the site is
+     * loaded, so a job in a garage that is not loaded yet keeps its locks.
      */
-    private void sweepClaims() {
+    private void sweepLocks() {
         if (status() != Status.ONLINE || !siteLoaded()) {
             return;
         }
-        List<StationClaim> claims = new ArrayList<>();
-        for (BlockPos pos : stations) {
-            if (loaded(pos) instanceof InboundStationBlockEntity station) {
-                for (int slot = 0; slot < station.buffer().getSlots(); slot++) {
-                    if (station.isClaimed(slot)) {
-                        claims.add(new StationClaim(pos, slot, station.claimedBy(slot)));
+        List<LockKey> locks = new ArrayList<>();
+        for (BlockPos pos : lockHolders()) {
+            if (loaded(pos) instanceof LockHolder holder) {
+                List<LockedSlots> inventories = holder.lockedSlots();
+                for (int inventory = 0; inventory < inventories.size(); inventory++) {
+                    for (LockedSlots.Locked locked : inventories.get(inventory).locked()) {
+                        locks.add(new LockKey(pos, inventory, locked.slot(), locked.lock().jobId()));
                     }
                 }
             }
         }
-        for (StationClaim orphan : claimSweep.sweep(claims, claim -> fleet.knows(claim.jobId()))) {
-            if (loaded(orphan.station()) instanceof InboundStationBlockEntity station && station.claimedBy(orphan.slot()) == orphan.jobId()) {
-                station.release(orphan.slot());
-                pendingStations.add(orphan.station());
+        for (LockKey orphan : lockSweep.sweep(locks, lock -> fleet.knows(lock.jobId()))) {
+            if (loaded(orphan.pos()) instanceof LockHolder holder && orphan.inventory() < holder.lockedSlots().size()) {
+                LockedSlots slots = holder.lockedSlots().get(orphan.inventory());
+                if (slots.locksOf(orphan.slot()).stream().anyMatch(lock -> lock.jobId() == orphan.jobId())) {
+                    slots.release(orphan.slot(), orphan.jobId());
+                    if (stations.contains(orphan.pos())) {
+                        pendingStations.add(orphan.pos());
+                    }
+                    fleet.roomChanged();
+                }
             }
         }
+    }
+
+    /** Stations and sources, the members whose slots take locks. */
+    private List<BlockPos> lockHolders() {
+        List<BlockPos> holders = new ArrayList<>(stations);
+        holders.addAll(sources);
+        return holders;
     }
 
     /** Whether every chunk of the controller's site span is loaded; false without a loaded controller. */
@@ -1260,16 +1497,23 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return true;
     }
 
-    /** Moves up to {@code put_away_per_tick} unclaimed stacks out of the station's buffer. */
+    /**
+     * Plans up to {@code put_away_per_tick} unlocked stacks of the station's
+     * buffer: each goes to the best rack by the put-away rule as seen from the
+     * station, locking its room there and its station slot for the amount
+     * that rack takes.
+     */
     private void drain(BlockPos pos, InboundStationBlockEntity station) {
         int budget = ShuttlesStatsManager.INSTANCE.putAwayPerTick();
         ItemKey blockedKey = null;
         String blockedZone = null;
         boolean blockedByRack = false;
         boolean more = false;
+        boolean stationReached = fleet.canReach(pos);
+        RailCosts.Search<NodePos> costs = null;
         for (int slot = 0; slot < station.buffer().getSlots(); slot++) {
             ItemStack stack = station.buffer().getStackInSlot(slot);
-            if (stack.isEmpty() || station.isClaimed(slot)) {
+            if (stack.isEmpty() || station.buffer().isLocked(slot)) {
                 continue;
             }
             if (budget <= 0) {
@@ -1277,21 +1521,29 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 break;
             }
             ItemKey key = ItemKey.of(stack);
+            if (joinOpenPutAway(pos, station, slot, stack)) {
+                budget--;
+                continue;
+            }
             PutAwayPlan.Tiers<BlockPos> tiers = tiers(key);
-            Optional<BlockPos> target = firstTarget(key, tiers,
-                    candidate -> (!isRack(candidate) || fleet.canCarry(pos, candidate)) && hasRoom(candidate, stack));
-            if (target.isEmpty()) {
+            if (costs == null && stationReached) {
+                costs = fleet.costsFrom(dockRails(Conversions.toNodePos(pos)));
+            }
+            List<BlockPos> ranked = stationReached ? rankTargets(stack, tiers, costs, candidate -> true) : List.of();
+            if (ranked.isEmpty()) {
                 if (blockedKey == null) {
                     blockedKey = key;
                     blockedZone = zones.matchedZone(tiers);
-                    blockedByRack = firstTarget(key, tiers, rack -> isRack(rack) && hasRoom(rack, stack)).isPresent();
+                    blockedByRack = !rankTargets(stack, tiers, null, candidate -> true).isEmpty();
                 }
                 continue;
             }
             budget--;
-            PutAwayJob job = new PutAwayJob(nextJobId(), pos, slot, key, stack.getCount(), target.get());
-            station.claim(slot, job.id());
-            fleet.requestPutAway(job);
+            BlockPos target = ranked.get(0);
+            int id = nextJobId();
+            int amount = rackSlots(target).lockIn(id, key, stack.getCount(), false);
+            station.buffer().lock(slot, new SlotLock(SlotLock.Kind.OUT, key, amount, id));
+            fleet.requestPutAway(new PutAwayJob(id, pos, slot, key, amount, target));
         }
         if (more) {
             pendingStations.add(pos);
@@ -1307,20 +1559,45 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
-    /** Whether any source the key could go to has an inventory at all; the controller alone has none. */
-    private boolean hasStorage(ItemKey key) {
-        return firstTarget(key, tiers(key), pos -> handlerOf(pos) != null).isPresent();
+    /**
+     * Lets a buffer stack join a put-away of the same item from this station
+     * that no shuttle has loaded yet, up to a stack per job and as far as its
+     * rack has room, so a buffer filling item by item makes one trip, not many.
+     */
+    private boolean joinOpenPutAway(BlockPos pos, InboundStationBlockEntity station, int slot, ItemStack stack) {
+        ItemKey key = ItemKey.of(stack);
+        Optional<PutAwayJob> open = fleet.openPutAway(pos, key);
+        if (open.isEmpty()) {
+            return false;
+        }
+        LockedSlots target = rackSlots(open.get().target());
+        int room = stack.getMaxStackSize() - station.buffer().lockedAmount(open.get().id(), SlotLock.Kind.OUT);
+        if (target == null || room <= 0) {
+            return false;
+        }
+        int joined = target.extendIn(open.get().id(), key, Math.min(room, stack.getCount()));
+        if (joined <= 0) {
+            return false;
+        }
+        station.buffer().lock(slot, new SlotLock(SlotLock.Kind.OUT, key, joined, open.get().id()));
+        return true;
     }
 
-    private boolean hasRoom(BlockPos pos, ItemStack stack) {
-        ItemView handler = handlerOf(pos);
-        return handler != null && handler.insertItem(stack, true).getCount() < stack.getCount();
+    /** Whether any source the key could go to has an inventory at all; the controller alone has none. */
+    private boolean hasStorage(ItemKey key) {
+        for (List<BlockPos> tier : targetTiers(key, tiers(key))) {
+            for (BlockPos pos : tier) {
+                if (handlerOf(pos) != null) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
     public Optional<BlockPos> putAwayTarget(ItemStack stack, Predicate<BlockPos> allowed) {
-        ItemKey key = ItemKey.of(stack);
-        return firstTarget(key, tiers(key), pos -> allowed.test(pos) && hasRoom(pos, stack));
+        return rankTargets(stack, tiers(ItemKey.of(stack)), null, allowed).stream().findFirst();
     }
 
     /**
@@ -1698,50 +1975,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return left;
     }
 
-    /** Puts a stack back into a station's buffer, dropping what does not fit there. */
-    @Override
-    public void returnToStation(BlockPos pos, ItemStack stack) {
-        if (stack.isEmpty()) {
-            return;
-        }
-        ItemStack left = stack;
-        if (loaded(pos) instanceof InboundStationBlockEntity station) {
-            left = station.buffer().insertItem(stack, false);
-        }
-        if (!left.isEmpty()) {
-            Block.popResource(level, pos, left);
-        }
-    }
-
-    @Override
-    public void releaseClaim(BlockPos station, int slot) {
-        if (loaded(station) instanceof InboundStationBlockEntity be) {
-            be.release(slot);
-            pendingStations.add(station);
-        }
-    }
-
-    /** Takes up to amount of the key out of a station's buffer and frees the slot's claim. */
-    @Override
-    public ItemStack takeFromStation(BlockPos pos, int slot, ItemKey key, int amount) {
-        if (!(loaded(pos) instanceof InboundStationBlockEntity station)) {
-            return ItemStack.EMPTY;
-        }
-        station.release(slot);
-        ItemStack result = ItemStack.EMPTY;
-        int wanted = amount;
-        for (int i = 0; i < station.buffer().getSlots() && wanted > 0; i++) {
-            ItemStack inSlot = station.buffer().getStackInSlot(i);
-            if (!key.matches(inSlot) || (i != slot && station.isClaimed(i))) {
-                continue;
-            }
-            ItemStack taken = station.buffer().extractItem(i, wanted, false);
-            result = combine(result, taken);
-            wanted -= taken.getCount();
-        }
-        return result;
-    }
-
     /**
      * Hands the controller the chunks its site spans: every member of this
      * network, merged with the known chunks that are not loaded. Looks at no block.
@@ -1819,7 +2052,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
         }
         index.update(pos, snapshot);
-        if (!blockedStations.isEmpty() && total(snapshot) < before) {
+        if (total(snapshot) < before) {
             zonesDirty = true;
         }
     }

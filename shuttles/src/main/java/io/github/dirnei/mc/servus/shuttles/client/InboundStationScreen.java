@@ -85,4 +85,17 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
         super.removed();
         ClientStationState.clear();
     }
+
+    @Override
+    protected void extractSlots(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractSlots(graphics, mouseX, mouseY);
+        LockOverlay.draw(graphics, menu, menu.locks());
+    }
+
+    @Override
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        if (!LockOverlay.tooltip(graphics, font, hoveredSlot, menu.locks(), mouseX, mouseY)) {
+            super.extractTooltip(graphics, mouseX, mouseY);
+        }
+    }
 }

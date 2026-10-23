@@ -18,6 +18,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /**
@@ -25,7 +26,7 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
  * after bay from left to right, in rows of nine above the player inventory.
  * Each bay keeps storing its own slots.
  */
-public class HeavyRackMenu extends AbstractContainerMenu {
+public class HeavyRackMenu extends AbstractContainerMenu implements LockedMenu {
 
     private static final int COLUMNS = 9;
 
@@ -37,6 +38,8 @@ public class HeavyRackMenu extends AbstractContainerMenu {
     /** The block entity of each bay when the menu opened; entries may be null on the client. */
     private final List<HeavyRackBlockEntity> racks;
     private final int rackSlots;
+    private final Player player;
+    private final MenuLocks locks;
 
     private HeavyRackMenu(int containerId, Inventory playerInventory, BlockPos clicked, List<BlockPos> bays,
                           List<HeavyRackBlockEntity> racks, List<ItemSlots> handlers) {
@@ -53,7 +56,9 @@ public class HeavyRackMenu extends AbstractContainerMenu {
             }
         }
         this.rackSlots = index;
+        this.player = playerInventory.player;
         PlayerInventorySlots.add(this::addSlot, playerInventory, 8, 18 + rows() * 18 + 14);
+        this.locks = MenuLocks.of(slots);
     }
 
     /** Server side: the menu of the section the clicked bay belongs to. */
@@ -128,10 +133,24 @@ public class HeavyRackMenu extends AbstractContainerMenu {
                 handlers.add(rack.items());
             } else {
                 racks.add(null);
-                handlers.add(new ItemSlots(size));
+                handlers.add(new LockedSlots(size));
             }
         }
         return new HeavyRackMenu(containerId, playerInventory, clicked, bays, racks, handlers);
+    }
+
+    @Override
+    public MenuLocks locks() {
+        return locks;
+    }
+
+    @Override
+    public void broadcastChanges() {
+        super.broadcastChanges();
+        HeavyRackBlockEntity first = racks.isEmpty() ? null : racks.get(0);
+        if (first != null) {
+            locks.tick(player, containerId, first::network);
+        }
     }
 
     /** The section's bays from left to right as the menu shows them. */

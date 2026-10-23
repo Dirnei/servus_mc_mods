@@ -148,6 +148,9 @@ public final class FleetSaves {
         if (run != null) {
             tag.put("Run", saveRun(run, registries));
         }
+        if (shuttle.strandReason != null) {
+            tag.putString("Strand", shuttle.strandReason.name());
+        }
         return tag;
     }
 
@@ -192,6 +195,7 @@ public final class FleetSaves {
             }
         }
         shuttle.leg = leg;
+        shuttle.strandReason = strandReason(tag.getStringOr("Strand", ""));
         shuttle.motion = ShuttleMotion.restored(path, tag.getIntOr("Segment", 0), tag.getDoubleOr("Progress", 0));
         shuttle.loads.clear();
         shuttle.loads.addAll(loads);
@@ -199,6 +203,15 @@ public final class FleetSaves {
         shuttle.spread = run instanceof SpreadRun spread ? spread : null;
         shuttle.supply = run instanceof SupplyRun supply ? supply : null;
         return true;
+    }
+
+    private static StrandReason strandReason(String name) {
+        for (StrandReason reason : StrandReason.values()) {
+            if (reason.name().equals(name)) {
+                return reason;
+            }
+        }
+        return null;
     }
 
     private static CompoundTag saveLoad(Load load, HolderLookup.Provider registries) {
@@ -218,6 +231,14 @@ public final class FleetSaves {
             tried.add(saveTank(tank));
         }
         tag.put("Tried", tried);
+        long[] stops = new long[load.stops.size()];
+        for (int i = 0; i < stops.length; i++) {
+            stops[i] = load.stops.get(i).asLong();
+        }
+        tag.putLongArray("Stops", stops);
+        if (load.storing) {
+            tag.putBoolean("Storing", true);
+        }
         return tag;
     }
 
@@ -238,6 +259,13 @@ public final class FleetSaves {
         for (int i = 0; i < tried.size(); i++) {
             load.tried.add(loadTank(tried.getCompoundOrEmpty(i)));
         }
+        if (tag.contains("Stops")) {
+            load.stops.clear();
+            for (long stop : tag.getLongArray("Stops").orElse(new long[0])) {
+                load.stops.add(BlockPos.of(stop));
+            }
+        }
+        load.storing = tag.getBooleanOr("Storing", false);
         return Optional.of(load);
     }
 

@@ -1,32 +1,92 @@
 {
   "variants": {
-    "facing=east,online=false": {
+    "activity=blocked,facing=east,online=false": {
       "model": "servus_shuttles:block/shuttle_garage",
       "y": 90
     },
-    "facing=east,online=true": {
-      "model": "servus_shuttles:block/shuttle_garage_online",
+    "activity=blocked,facing=east,online=true": {
+      "model": "servus_shuttles:block/shuttle_garage_blocked",
       "y": 90
     },
-    "facing=north,online=false": {
+    "activity=blocked,facing=north,online=false": {
       "model": "servus_shuttles:block/shuttle_garage"
     },
-    "facing=north,online=true": {
-      "model": "servus_shuttles:block/shuttle_garage_online"
+    "activity=blocked,facing=north,online=true": {
+      "model": "servus_shuttles:block/shuttle_garage_blocked"
     },
-    "facing=south,online=false": {
+    "activity=blocked,facing=south,online=false": {
       "model": "servus_shuttles:block/shuttle_garage",
       "y": 180
     },
-    "facing=south,online=true": {
-      "model": "servus_shuttles:block/shuttle_garage_online",
+    "activity=blocked,facing=south,online=true": {
+      "model": "servus_shuttles:block/shuttle_garage_blocked",
       "y": 180
     },
-    "facing=west,online=false": {
+    "activity=blocked,facing=west,online=false": {
       "model": "servus_shuttles:block/shuttle_garage",
       "y": 270
     },
-    "facing=west,online=true": {
+    "activity=blocked,facing=west,online=true": {
+      "model": "servus_shuttles:block/shuttle_garage_blocked",
+      "y": 270
+    },
+    "activity=idle,facing=east,online=false": {
+      "model": "servus_shuttles:block/shuttle_garage",
+      "y": 90
+    },
+    "activity=idle,facing=east,online=true": {
+      "model": "servus_shuttles:block/shuttle_garage_online",
+      "y": 90
+    },
+    "activity=idle,facing=north,online=false": {
+      "model": "servus_shuttles:block/shuttle_garage"
+    },
+    "activity=idle,facing=north,online=true": {
+      "model": "servus_shuttles:block/shuttle_garage_online"
+    },
+    "activity=idle,facing=south,online=false": {
+      "model": "servus_shuttles:block/shuttle_garage",
+      "y": 180
+    },
+    "activity=idle,facing=south,online=true": {
+      "model": "servus_shuttles:block/shuttle_garage_online",
+      "y": 180
+    },
+    "activity=idle,facing=west,online=false": {
+      "model": "servus_shuttles:block/shuttle_garage",
+      "y": 270
+    },
+    "activity=idle,facing=west,online=true": {
+      "model": "servus_shuttles:block/shuttle_garage_online",
+      "y": 270
+    },
+    "activity=working,facing=east,online=false": {
+      "model": "servus_shuttles:block/shuttle_garage",
+      "y": 90
+    },
+    "activity=working,facing=east,online=true": {
+      "model": "servus_shuttles:block/shuttle_garage_online",
+      "y": 90
+    },
+    "activity=working,facing=north,online=false": {
+      "model": "servus_shuttles:block/shuttle_garage"
+    },
+    "activity=working,facing=north,online=true": {
+      "model": "servus_shuttles:block/shuttle_garage_online"
+    },
+    "activity=working,facing=south,online=false": {
+      "model": "servus_shuttles:block/shuttle_garage",
+      "y": 180
+    },
+    "activity=working,facing=south,online=true": {
+      "model": "servus_shuttles:block/shuttle_garage_online",
+      "y": 180
+    },
+    "activity=working,facing=west,online=false": {
+      "model": "servus_shuttles:block/shuttle_garage",
+      "y": 270
+    },
+    "activity=working,facing=west,online=true": {
       "model": "servus_shuttles:block/shuttle_garage_online",
       "y": 270
     }

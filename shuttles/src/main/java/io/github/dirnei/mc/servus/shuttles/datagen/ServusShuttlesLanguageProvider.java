@@ -119,6 +119,12 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.garage.recall", "Recall");
         add("gui.servus_shuttles.garage.active", "Active");
         add("gui.servus_shuttles.garage.paused", "Paused");
+        add("gui.servus_shuttles.garage.stranded.no_room", "%s holds %s %s: no room");
+        add("gui.servus_shuttles.garage.stranded.no_way", "%s holds %s %s: no way to a rack with room");
+        add("gui.servus_shuttles.lock.in", "Reserved: %s brings %s %s");
+        add("gui.servus_shuttles.lock.out", "Reserved: %s takes %s %s");
+        add("gui.servus_shuttles.lock.in_waiting", "Reserved: brings %s %s, waiting for a shuttle");
+        add("gui.servus_shuttles.lock.out_waiting", "Reserved: takes %s %s, waiting for a shuttle");
         add(ServusShuttlesItems.SHUTTLE_MK1.get(), "Shuttle Mk1");
         add(ServusShuttlesItems.SHUTTLE_MK2.get(), "Shuttle Mk2");
         add(ServusShuttlesItems.SHUTTLE_MK3.get(), "Shuttle Mk3");

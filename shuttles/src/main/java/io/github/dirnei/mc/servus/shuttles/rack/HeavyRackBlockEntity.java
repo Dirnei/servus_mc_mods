@@ -3,8 +3,9 @@ package io.github.dirnei.mc.servus.shuttles.rack;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.shuttles.lock.LockHolder;
+import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import io.github.dirnei.mc.servus.shuttles.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
@@ -49,7 +50,7 @@ import net.neoforged.neoforge.model.data.ModelProperty;
  * Chest sized inventory of a rack bay. Clients only receive the sample: the
  * item types the rack holds the most of, computed on the server.
  */
-public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements MenuProvider {
+public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements MenuProvider, LockHolder {
 
     private static final int SYNC_INTERVAL = 10;
 
@@ -59,10 +60,15 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
     /** Boards of a rack that remembers no wood. */
     public static final Identifier DEFAULT_WOOD = BuiltInRegistries.BLOCK.getKey(Blocks.OAK_PLANKS);
 
-    private final ItemSlots items = new ItemSlots(ShuttlesStatsManager.INSTANCE.rackSlots()) {
+    private final LockedSlots items = new LockedSlots(ShuttlesStatsManager.INSTANCE.rackSlots()) {
         @Override
         protected void onContentsChanged(int slot) {
             changed();
+        }
+
+        @Override
+        protected void onLocksChanged() {
+            setChanged();
         }
     };
     private List<ItemStack> displayed = List.of();
@@ -180,8 +186,13 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
         return ModelData.builder().with(WOOD, wood()).build();
     }
 
-    public ItemSlots items() {
+    public LockedSlots items() {
         return items;
+    }
+
+    @Override
+    public List<LockedSlots> lockedSlots() {
+        return List.of(items);
     }
 
     public boolean isEmpty() {
@@ -285,6 +296,7 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
         tag.put("Items", items.serializeNBT(registries));
+        tag.put("Locks", items.saveLocks(registries));
         writeWood(tag);
         output.store(tag);
     }
@@ -296,6 +308,7 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
         HolderLookup.Provider registries = input.lookup();
         if (tag.contains("Items")) {
             items.fillFrom(registries, tag.getCompoundOrEmpty("Items"));
+            items.loadLocks(registries, tag.getListOrEmpty("Locks"));
             displayed = sample();
         }
         if (tag.contains("Display")) {

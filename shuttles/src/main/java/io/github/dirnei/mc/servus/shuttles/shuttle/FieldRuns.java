@@ -197,14 +197,14 @@ final class FieldRuns {
         if (head.rails().contains(Conversions.toBlockPos(from))) {
             stop = FieldRoute.next(from, node -> fieldNeighbours(head, node), hasWork);
         } else {
-            List<NodePos> path = RailPaths.find(from, hasWork, fleet.ways(shuttle));
+            List<NodePos> path = fleet.path(shuttle, from, hasWork);
             stop = path.isEmpty() ? Optional.empty() : Optional.of(path.get(path.size() - 1));
         }
         if (stop.isEmpty()) {
             return false;
         }
         NodePos goal = stop.get();
-        List<NodePos> path = RailPaths.find(from, goal::equals, fleet.ways(shuttle));
+        List<NodePos> path = fleet.path(shuttle, from, goal::equals);
         if (path.isEmpty()) {
             return false;
         }
@@ -225,7 +225,7 @@ final class FieldRuns {
 
     /** The path from the shuttle to a dock rail of the target, or empty. */
     private List<NodePos> pathTo(Shuttle shuttle, Set<NodePos> dock) {
-        return dock.isEmpty() ? List.of() : RailPaths.find(shuttle.at(), dock::contains, fleet.ways(shuttle));
+        return dock.isEmpty() ? List.of() : fleet.path(shuttle, shuttle.at(), dock::contains);
     }
 
     /** Whether a source the shuttle cannot drive to hands its items over at once: never a rack, never by lift for a liftless shuttle. */
@@ -706,7 +706,7 @@ final class FieldRuns {
         if (shuttle.leg == Leg.WAIT_STORE && shuttle.motion.arrived()) {
             return;
         }
-        List<NodePos> path = home == null ? List.of() : RailPaths.find(shuttle.at(), home::equals, fleet.ways(shuttle));
+        List<NodePos> path = home == null ? List.of() : fleet.path(shuttle, shuttle.at(), home::equals);
         if (path.isEmpty()) {
             lose(shuttle);
             return;

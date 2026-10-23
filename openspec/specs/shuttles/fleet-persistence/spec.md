@@ -50,22 +50,22 @@ Cargo a shuttle could not unload into a full destination and that the warehouse 
 - **THEN** the 20 planks drop at its position
 
 ### Requirement: Station claims survive a reload
-An Inbound Station buffer slot claimed by a put-away job SHALL stay claimed by that job across a reload, so the stack is not planned a second time. While the warehouse is online and every chunk of its site is loaded, a claim whose job is neither queued nor on a shuttle at two checks in a row SHALL be released and its stack planned again. Checks run every few seconds.
+An Inbound Station buffer slot taken by a put-away job SHALL stay locked for that job across a reload (see `shuttles/slot-locks`), so the stack is not planned a second time. While the warehouse is online and every chunk of its site is loaded, a lock whose job is neither queued nor on a shuttle at two checks in a row SHALL be released and its stack planned again. Checks run every few seconds.
 
 #### Scenario: Claim kept
 - **WHEN** a put-away job for a station slot is queued and the station and controller reload
-- **THEN** the slot stays claimed, no second job is made for it, and the queued job puts the stack away
+- **THEN** the slot stays locked, no second job is made for it, and the queued job puts the stack away
 
 #### Scenario: Claim without a job
-- **WHEN** a station loads with a slot claimed by a job that no longer exists
-- **THEN** after a few seconds the claim is released and the stack is put away by a new job
+- **WHEN** a station loads with a slot locked by a job that no longer exists
+- **THEN** after a few seconds the lock is released and the stack is put away by a new job
 
 ### Requirement: A restore that cannot go on ends in the garage
-A restored shuttle whose path is no longer whole SHALL look for a new way from where it stands to the goal of its leg, else drive home. Without a way home, or off the rails, it SHALL be put back into its garage as a recall does: its cargo drops at the garage, jobs not loaded yet are queued again and a loaded pick counts as missing. Field shuttles end their run the same way. No cargo SHALL vanish.
+A restored shuttle whose path is no longer whole SHALL look for a new way from where it stands to the goal of its leg, else drive home. Cargo whose goal is gone SHALL be routed again like a leftover. Without a way home, or off the rails, the shuttle SHALL be put back into its garage and park its cargo there as a shuttle with cargo that has nowhere to go (see `shuttles/shuttle-garage`); jobs not loaded yet are queued again. Field shuttles end their run as before, their cargo dropping at the garage. No cargo SHALL vanish.
 
 #### Scenario: Rack gone
 - **WHEN** a shuttle carrying cobblestone to a rack is saved, the rack's rail is broken while the chunk is unloaded and the garage loads again
-- **THEN** the shuttle finds another way or goes home, and without either the cobblestone drops at its garage
+- **THEN** the shuttle routes the cobblestone to another rack or parks it in its garage, and nothing drops
 
 ### Requirement: Shuttles stop at the edge of loaded chunks
 A shuttle SHALL NOT drive into, arrive in or deliver to a chunk that is not loaded; it SHALL wait where it is until the chunk loads. A restored shuttle SHALL wait until every chunk of the rest of its path is loaded and then a second more before it moves. Cargo held for a destination whose chunk is not loaded SHALL wait for it.

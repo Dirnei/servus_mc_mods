@@ -5,5 +5,7 @@ package io.github.dirnei.mc.servus.shuttles.shuttle;
  * WORKING, fetch a supply run's items TO_SUPPLY, stop at the
  * Field Head's rail TO_HEAD for its buffer, put the cargo away
  * TO_STORE and wait at home in WAIT_STORE while nothing has room for it.
+ * A warehouse shuttle whose cargo no rack takes is STRANDED: it drives home
+ * and parks there with the cargo. WAITING_ROOM is only read from old saves.
  */
-enum Leg { TO_SOURCE, TO_TARGET, TO_STATION, TO_TERMINAL, WAITING_ROOM, HOME, TO_FIELD, WORKING, TO_SUPPLY, TO_HEAD, TO_STORE, WAIT_STORE }
+enum Leg { TO_SOURCE, TO_TARGET, TO_STATION, TO_TERMINAL, WAITING_ROOM, HOME, TO_FIELD, WORKING, TO_SUPPLY, TO_HEAD, TO_STORE, WAIT_STORE, STRANDED }

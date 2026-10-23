@@ -3,10 +3,12 @@ package io.github.dirnei.mc.servus.shuttles.client;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.menu.ShuttleGarageMenu;
+import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -20,6 +22,10 @@ public class ShuttleGarageScreen extends AbstractContainerScreen<ShuttleGarageMe
     private static final int BUTTONS_Y = 64;
     private static final int COLOUR_TEXT = 0xFF404040;
     private static final int COLOUR_LOCKED = 0x80FF9A2E;
+    private static final int COLOUR_ALERT = 0xFFB03030;
+    private static final int COLOUR_STRANDED = 0x80B03030;
+    private static final int STRANDED_Y = 18;
+    private static final int LINE_WIDTH = 160;
 
     private Button toggle;
 
@@ -54,12 +60,39 @@ public class ShuttleGarageScreen extends AbstractContainerScreen<ShuttleGarageMe
     }
 
     @Override
+    protected void extractSlots(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractSlots(graphics, mouseX, mouseY);
+        for (int slot = 0; slot < menu.capacity(); slot++) {
+            if (menu.stranded(slot)) {
+                int x = menu.slotX(slot);
+                graphics.fill(x, ShuttleGarageMenu.SLOTS_Y, x + 16, ShuttleGarageMenu.SLOTS_Y + 16, COLOUR_STRANDED);
+            }
+        }
+    }
+
+    @Override
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        List<Component> stranded = menu.strandedLines();
+        int x = mouseX - leftPos;
+        int y = mouseY - topPos;
+        if (!stranded.isEmpty() && x >= 8 && x < 8 + LINE_WIDTH && y >= STRANDED_Y && y < STRANDED_Y + 9) {
+            graphics.setComponentTooltipForNextFrame(font, stranded, mouseX, mouseY);
+            return;
+        }
+        super.extractTooltip(graphics, mouseX, mouseY);
+    }
+
+    @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.extractLabels(graphics, mouseX, mouseY);
         int count = menu.garage().shuttleCount();
         Component line = Component.translatable(menu.isActive() ? "gui.servus_shuttles.garage.status" : "gui.servus_shuttles.garage.status_paused",
                 count, menu.capacity(), menu.out());
         graphics.text(font, line, 8, STATUS_Y, COLOUR_TEXT, false);
+        List<Component> stranded = menu.strandedLines();
+        if (!stranded.isEmpty()) {
+            graphics.text(font, Language.getInstance().getVisualOrder(font.substrByWidth(stranded.get(0), LINE_WIDTH)), 8, STRANDED_Y, COLOUR_ALERT, false);
+        }
         for (int slot = 0; slot < menu.capacity(); slot++) {
             if (menu.locked(slot)) {
                 int x = menu.slotX(slot);

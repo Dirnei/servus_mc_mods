@@ -1,8 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.terminal;
 
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
-import io.github.dirnei.mc.servus.shuttles.gantry.SetGantryLockPayload;
-import io.github.dirnei.mc.servus.shuttles.menu.FluidGantryMenu;
 import io.github.dirnei.mc.servus.shuttles.client.ClientFieldWorker;
 import io.github.dirnei.mc.servus.shuttles.client.ClientLifts;
 import io.github.dirnei.mc.servus.shuttles.client.ClientPackingStatus;
@@ -19,11 +17,17 @@ import io.github.dirnei.mc.servus.shuttles.field.ChooseFieldCropPayload;
 import io.github.dirnei.mc.servus.shuttles.field.FieldAmount;
 import io.github.dirnei.mc.servus.shuttles.field.FieldCropStockPayload;
 import io.github.dirnei.mc.servus.shuttles.field.FieldSupplyStockPayload;
-import io.github.dirnei.mc.servus.shuttles.field.SetFieldAmountPayload;
 import io.github.dirnei.mc.servus.shuttles.field.FieldWorkerPayload;
+import io.github.dirnei.mc.servus.shuttles.field.SetFieldAmountPayload;
+import io.github.dirnei.mc.servus.shuttles.gantry.SetGantryLockPayload;
+import io.github.dirnei.mc.servus.shuttles.garage.GarageStrandedPayload;
+import io.github.dirnei.mc.servus.shuttles.lock.SlotLocksPayload;
 import io.github.dirnei.mc.servus.shuttles.menu.FieldHeadMenu;
+import io.github.dirnei.mc.servus.shuttles.menu.FluidGantryMenu;
+import io.github.dirnei.mc.servus.shuttles.menu.LockedMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.ProductionTerminalMenu;
+import io.github.dirnei.mc.servus.shuttles.menu.ShuttleGarageMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.WarehouseControllerMenu;
@@ -134,6 +138,16 @@ public final class ServusShuttlesPayloads {
         });
         registrar.playToClient(SiteStatusPayload.TYPE, SiteStatusPayload.STREAM_CODEC, (payload, context) -> ClientSiteStatus.update(payload));
         registrar.playToClient(CraftPreviewPayload.TYPE, CraftPreviewPayload.STREAM_CODEC, (payload, context) -> ClientStock.preview(payload));
+        registrar.playToClient(SlotLocksPayload.TYPE, SlotLocksPayload.STREAM_CODEC, (payload, context) -> {
+            if (context.player().containerMenu instanceof LockedMenu menu && context.player().containerMenu.containerId == payload.containerId()) {
+                menu.locks().accept(payload.entries());
+            }
+        });
+        registrar.playToClient(GarageStrandedPayload.TYPE, GarageStrandedPayload.STREAM_CODEC, (payload, context) -> {
+            if (context.player().containerMenu instanceof ShuttleGarageMenu menu && menu.containerId == payload.containerId()) {
+                menu.acceptStranded(payload);
+            }
+        });
     }
 
     /** What the Storage Terminal screen sends: requests, crafts, rules, sites and the crafting grid. */

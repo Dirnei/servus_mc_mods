@@ -7,11 +7,11 @@ import io.github.dirnei.mc.servus.foundation.data.packet.RateBudget;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.foundation.production.TransferGate;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.foundation.upgrade.UpgradeSlots;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import io.github.dirnei.mc.servus.shuttles.menu.PackingStationMenu;
 import io.github.dirnei.mc.servus.shuttles.network.DeliveryTarget;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
@@ -172,11 +172,16 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     private static final int SENDING_TICKS = 20;
     private static final String STATUS = "gui.servus_shuttles.packing_station.status.";
 
-    private final ItemSlots outgoing = new ItemSlots(ShuttlesStatsManager.INSTANCE.inboundBufferSlots()) {
+    private final LockedSlots outgoing = new LockedSlots(ShuttlesStatsManager.INSTANCE.inboundBufferSlots()) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
             network().ifPresent(network -> network.post(new WarehouseEvent.OutputChanged(worldPosition)));
+        }
+
+        @Override
+        protected void onLocksChanged() {
+            setChanged();
         }
     };
 
@@ -205,12 +210,17 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     }
 
     @Override
-    public ItemSlots deliveries() {
+    public LockedSlots deliveries() {
         return outgoing;
     }
 
-    public ItemSlots outgoing() {
+    public LockedSlots outgoing() {
         return outgoing;
+    }
+
+    @Override
+    public List<LockedSlots> lockedSlots() {
+        return List.of(buffer(), outgoing);
     }
 
     @Override
@@ -676,9 +686,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         ItemStack taken = takeOutgoing(shipment.key, moved);
         ItemStack left = relayed ? to.outgoing.insertItemStacked(taken, false) : Transfer.insertItemStacked(to.intake(), taken, false);
         int arrived = taken.getCount() - left.getCount();
-        if (!left.isEmpty()) {
-            outgoing.insertItemStacked(left, false);
-        }
+        keep(left);
         if (arrived > 0) {
             there.spendEnergy(WirelessCost.cost(arrived, perItem));
             consume(Flow.OUT, arrived);
@@ -691,6 +699,15 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             showSending(true);
         }
         return true;
+    }
+
+    /** Puts a stack that could not leave back into To network, else into To storage; only what neither takes drops here. */
+    private void keep(ItemStack stack) {
+        ItemStack left = outgoing.insertItemStacked(stack, false);
+        left = buffer().insertItemStacked(left, false);
+        if (!left.isEmpty() && level != null) {
+            Block.popResource(level, worldPosition, left);
+        }
     }
 
     private ItemStack takeOutgoing(ItemKey key, int count) {
@@ -748,7 +765,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     protected void returnOrphans() {
         for (int slot = 0; slot < outgoing.getSlots(); slot++) {
             ItemStack stack = outgoing.getStackInSlot(slot);
-            if (stack.isEmpty() || wanted(ItemKey.of(stack))) {
+            if (stack.isEmpty() || outgoing.isLocked(slot) || wanted(ItemKey.of(stack))) {
                 continue;
             }
             ItemStack left = buffer().insertItemStacked(stack.copy(), false);
@@ -839,6 +856,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
         tag.put("Outgoing", outgoing.serializeNBT(registries));
+        tag.put("OutgoingLocks", outgoing.saveLocks(registries));
         tag.put("Upgrades", upgrades.serializeNBT(registries));
         ListTag list = new ListTag();
         for (Shipment shipment : shipments) {
@@ -861,6 +879,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         HolderLookup.Provider registries = input.lookup();
         if (tag.contains("Outgoing")) {
             outgoing.fillFrom(registries, tag.getCompoundOrEmpty("Outgoing"));
+            outgoing.loadLocks(registries, tag.getListOrEmpty("OutgoingLocks"));
         }
         if (tag.contains("Upgrades")) {
             upgrades.fillFrom(registries, tag.getCompoundOrEmpty("Upgrades"));

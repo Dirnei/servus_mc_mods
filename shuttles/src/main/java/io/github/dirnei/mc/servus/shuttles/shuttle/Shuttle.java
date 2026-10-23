@@ -64,6 +64,8 @@ final class Shuttle {
     boolean pumpingIntoGantry;
     /** The wait of a shuttle restored from a save until its path's chunks have loaded; null once it goes on. */
     Settle restoring;
+    /** Why a shuttle parked in its garage with cargo found no rack, or null while it is not parked so. */
+    StrandReason strandReason;
 
     Shuttle(Garage garage, int slot, ShuttleProfile profile) {
         this.garage = garage;
@@ -131,11 +133,18 @@ final class Shuttle {
         TankRef fluidTarget;
         /** Tanks the fluid was offered to on this run. */
         final Set<TankRef> tried = new HashSet<>();
+        /** The racks whose slots are locked for this load's cargo, in the order the shuttle visits them. */
+        final List<BlockPos> stops = new ArrayList<>();
+        /** Whether the cargo goes into storage: a loaded put-away, or a pick whose destination did not take it. */
+        boolean storing;
 
         Load(ShuttleJob job) {
             this.job = job;
             if (job instanceof FluidJob fluidJob) {
                 fluidTarget = fluidJob.targetRef();
+            }
+            if (job instanceof PutAwayJob putAway) {
+                stops.add(putAway.target());
             }
         }
     }

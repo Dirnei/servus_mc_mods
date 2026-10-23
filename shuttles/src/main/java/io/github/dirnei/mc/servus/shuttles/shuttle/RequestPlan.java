@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.shuttle;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -18,8 +19,14 @@ public final class RequestPlan {
      * @param source    the source
      * @param count     how many it holds
      * @param reachable whether a shuttle can drive to a rail in front of it
+     * @param cost      the travel cost between it and the destination; cheaper sources are picked first
      */
-    public record Stock<S>(S source, int count, boolean reachable) {
+    public record Stock<S>(S source, int count, boolean reachable, double cost) {
+
+        /** Stock without a cost, picked in the order given. */
+        public Stock(S source, int count, boolean reachable) {
+            this(source, count, reachable, 0);
+        }
     }
 
     /** One shuttle pick: up to a stack from one source. */
@@ -45,13 +52,15 @@ public final class RequestPlan {
      * @param amount     how many the player asked for
      * @param maxStack   the item's stack size, the most one job carries
      * @param hasShuttle whether the warehouse has a shuttle that can serve the destination
-     * @param stock      where the item is, in index order
+     * @param stock      where the item is, in index order; the cheapest is picked first, index order on equal costs
      */
     public static <S> Plan<S> plan(int amount, int maxStack, boolean hasShuttle, List<Stock<S>> stock) {
+        List<Stock<S>> sorted = new ArrayList<>(stock);
+        sorted.sort(Comparator.comparingDouble(Stock::cost));
         List<Job<S>> jobs = new ArrayList<>();
         int wanted = Math.max(0, amount);
         boolean needsShuttle = false;
-        for (Stock<S> entry : stock) {
+        for (Stock<S> entry : sorted) {
             if (wanted <= 0) {
                 break;
             }

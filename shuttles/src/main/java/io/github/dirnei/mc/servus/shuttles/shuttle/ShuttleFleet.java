@@ -17,13 +17,16 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleTiers;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -69,20 +72,42 @@ public final class ShuttleFleet {
         /** Positions of storage blocks holding the key right now. */
         List<BlockPos> sourcesHolding(ItemKey key);
 
-        /** Takes up to amount of the key out of exactly that source. */
+        /** Takes up to amount of the key out of exactly that source, from slots no job locked. */
         ItemStack extractFrom(BlockPos source, ItemKey key, int amount);
 
-        /** Takes up to amount of the key out of a station's buffer and frees the slot's claim. */
-        ItemStack takeFromStation(BlockPos station, int slot, ItemKey key, int amount);
-
-        /** Inserts into exactly that storage block; returns what did not fit. */
+        /** Inserts into exactly that storage block, into slots no job locked; returns what did not fit. */
         ItemStack insertAt(BlockPos target, ItemStack stack);
 
-        /** Puts a stack back into a station's buffer, dropping what does not fit there. */
-        void returnToStation(BlockPos station, ItemStack stack);
+        /** Takes what the put-away's lock on its station slot reserves and releases that lock. */
+        ItemStack loadPutAway(PutAwayJob job);
 
-        /** Frees a station slot a job no longer waits for. */
-        void releaseClaim(BlockPos station, int slot);
+        /** Takes what the pick's locks on its source reserve and releases them. */
+        ItemStack loadPick(PickJob job);
+
+        /** Puts cargo into the slots of that rack locked for the job and releases them; returns what did not fit. */
+        ItemStack unloadInto(BlockPos target, int jobId, ItemStack cargo);
+
+        /**
+         * Whether the pick may be sent: its destination slot is locked, or was
+         * just locked now, or its destination is gone, so its cargo will be stored.
+         */
+        boolean readyToSend(PickJob job);
+
+        /** Whether the pick's destination is loaded and no longer takes deliveries. */
+        boolean destinationGone(PickJob job);
+
+        /**
+         * Locks room for cargo of the job in the racks the put-away rule picks
+         * as seen from {@code from} over {@code ways}, as many racks as it takes;
+         * returns them best first, empty when none has room.
+         */
+        List<BlockPos> storeTargets(int jobId, ItemStack cargo, Set<NodePos> from, Function<NodePos, Set<NodePos>> ways);
+
+        /** Whether some rack the put-away rule allows has room for the cargo at all, reachable or not. */
+        boolean anyRoomFor(ItemStack cargo);
+
+        /** Releases every lock of the job on those blocks. */
+        void releaseLocks(int jobId, Collection<BlockPos> at);
 
         /** Whether the source is a Heavy Duty Rack, which only shuttles serve. */
         boolean isRack(BlockPos source);
@@ -143,6 +168,10 @@ public final class ShuttleFleet {
         /** The queue changed or holds jobs, so the controller's chunk must be saved again. */
         default void queueChanged() {
         }
+
+        /** Whether a shuttle of that garage parks with cargo that has nowhere to go changed. */
+        default void strandedChanged(BlockPos garage, boolean stranded) {
+        }
     }
 
     /** A free shuttle and its path to a job's first goal. */
@@ -150,6 +179,8 @@ public final class ShuttleFleet {
     }
 
     private static final int SYNC_INTERVAL = 5;
+    /** Ticks between two tries of shuttles parked with cargo that has nowhere to go. */
+    static final int STRAND_RETRY_TICKS = 100;
     /** Ticks a restored shuttle waits once its path's chunks are loaded, and the queue waits after a restore. */
     static final int RESTORE_SETTLE_TICKS = 20;
     /** Garage slots the out mask can tell apart; container data travels as a short. */
@@ -165,6 +196,11 @@ public final class ShuttleFleet {
     private int syncTimer;
     /** Ticks job assignment still waits after a restore. */
     private int assignWait;
+    private int strandTimer;
+    /** Set when room may have appeared; parked shuttles with cargo try again on the next tick. */
+    private boolean roomChanged;
+    /** Garages whose lamp shows a shuttle parked with cargo, as last told to the host. */
+    private final Set<BlockPos> strandedGarages = new HashSet<>();
     private int lastQueueSize;
 
     public ShuttleFleet(Host host) {
@@ -326,7 +362,7 @@ public final class ShuttleFleet {
         if (garage.home == null && previous != null && !loaded(previous)) {
             garage.home = previous;
         }
-        if (garage.home == previous) {
+        if (Objects.equals(garage.home, previous)) {
             return;
         }
         if (garage.home == null) {
@@ -359,6 +395,7 @@ public final class ShuttleFleet {
     private void recallShuttle(Shuttle shuttle) {
         lifts.release(shuttle);
         shuttle.restoring = null;
+        shuttle.strandReason = null;
         dropCargo(shuttle);
         shuttle.leg = Leg.HOME;
         shuttle.motion = shuttle.garage.home == null ? null : ShuttleMotion.parked(shuttle.garage.home);
@@ -378,11 +415,6 @@ public final class ShuttleFleet {
             }
         }
         return false;
-    }
-
-    /** Whether a put-away from the station to the target rides a shuttle. */
-    public boolean canCarry(BlockPos station, BlockPos target) {
-        return canReach(station) && canReach(target);
     }
 
     /**
@@ -449,9 +481,90 @@ public final class ShuttleFleet {
         return sumRiding(job -> amountFor(job, destination, key));
     }
 
-    /** Drops the queued picks of a request; loads already on a shuttle still arrive. */
+    /** Drops the queued picks of a request and their locks; loads already on a shuttle still arrive. */
     public void removeQueued(int requestId) {
-        jobs.removeIf(job -> job instanceof PickJob pick && pick.requestId() == requestId);
+        jobs.removeIf(job -> {
+            if (job instanceof PickJob pick && pick.requestId() == requestId) {
+                host.releaseLocks(pick.id(), blocksOf(pick));
+                return true;
+            }
+            return false;
+        });
+    }
+
+    /**
+     * Drops the picks from that source that are queued or on their way to it
+     * and not loaded yet; their shuttles go home when nothing else is aboard.
+     * Their locks stay for the caller to release.
+     */
+    public List<PickJob> dropPicksFrom(BlockPos source) {
+        List<PickJob> dropped = new ArrayList<>();
+        jobs.removeIf(job -> {
+            if (job instanceof PickJob pick && pick.source().equals(source)) {
+                dropped.add(pick);
+                return true;
+            }
+            return false;
+        });
+        for (Shuttle shuttle : shuttles()) {
+            if (shuttle.leg != Leg.TO_SOURCE) {
+                continue;
+            }
+            boolean any = shuttle.loads.removeIf(load -> {
+                if (load.job instanceof PickJob pick && pick.source().equals(source) && load.cargo.isEmpty()) {
+                    dropped.add(pick);
+                    return true;
+                }
+                return false;
+            });
+            if (any && !shuttle.busy()) {
+                goHome(shuttle);
+            }
+        }
+        syncPending |= !dropped.isEmpty();
+        return dropped;
+    }
+
+    /** The blocks a job names: a pick's source and destination, a put-away's station and target. */
+    static List<BlockPos> blocksOf(ShuttleJob job) {
+        return switch (job) {
+            case PickJob pick -> List.of(pick.source(), pick.terminal());
+            case PutAwayJob putAway -> List.of(putAway.station(), putAway.target());
+            default -> List.of();
+        };
+    }
+
+    /** Releases every lock of a load: on the blocks its job names and on its stops. */
+    private void releaseLoad(Load load) {
+        List<BlockPos> at = new ArrayList<>(blocksOf(load.job));
+        at.addAll(load.stops);
+        if (!at.isEmpty()) {
+            host.releaseLocks(load.job.id(), at);
+        }
+    }
+
+    /**
+     * A put-away of the item from that station that no shuttle has loaded
+     * yet, so more of the item may join it; empty when there is none.
+     */
+    public Optional<PutAwayJob> openPutAway(BlockPos station, ItemKey key) {
+        for (ShuttleJob job : jobs) {
+            if (job instanceof PutAwayJob putAway && putAway.station().equals(station) && putAway.key().equals(key)) {
+                return Optional.of(putAway);
+            }
+        }
+        for (Shuttle shuttle : shuttles()) {
+            if (shuttle.leg != Leg.TO_SOURCE) {
+                continue;
+            }
+            for (Load load : shuttle.loads) {
+                if (load.job instanceof PutAwayJob putAway && putAway.station().equals(station) && putAway.key().equals(key)
+                        && load.cargo.isEmpty()) {
+                    return Optional.of(putAway);
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     /** Queued jobs that are put-aways. */
@@ -684,6 +797,12 @@ public final class ShuttleFleet {
         } else if (!host.noPower()) {
             assignJobs();
         }
+        if (++strandTimer >= STRAND_RETRY_TICKS || roomChanged) {
+            strandTimer = 0;
+            roomChanged = false;
+            retryStranded();
+        }
+        updateStrandedLamps();
         boolean moving = lifts.tick();
         for (Garage garage : garages.values()) {
             boolean out = false;
@@ -716,14 +835,6 @@ public final class ShuttleFleet {
             return false;
         }
         if (shuttle.motion != null && !shuttle.riding && !nextLoaded(shuttle.motion)) {
-            return false;
-        }
-        if (shuttle.leg == Leg.WAITING_ROOM && shuttle.busy()) {
-            deliverLoads(shuttle);
-            if (!shuttle.busy()) {
-                goHome(shuttle);
-                syncPending = true;
-            }
             return false;
         }
         if (shuttle.motion == null) {
@@ -793,7 +904,7 @@ public final class ShuttleFleet {
         Set<JobNeeds> waiting = new HashSet<>();
         for (int index = 0; index < queue.size(); index++) {
             ShuttleJob job = queue.get(index);
-            if (taken.contains(job) || waiting.contains(job.needs())) {
+            if (taken.contains(job) || waiting.contains(job.needs()) || !ready(job)) {
                 continue;
             }
             List<Shuttle> free = freeShuttles(job.needs());
@@ -820,19 +931,87 @@ public final class ShuttleFleet {
         }
     }
 
-    /** The free shuttle with the shortest path to one of the goals, or null when none has a way. */
+    /** Whether a job may go out now: a pick only once its destination slot is locked. */
+    private boolean ready(ShuttleJob job) {
+        return !(job instanceof PickJob pick) || host.readyToSend(pick);
+    }
+
+    /** The free shuttle with the cheapest way to one of the goals, or null when none has a way. */
     private Route nearest(List<Shuttle> free, Set<NodePos> goals) {
         if (goals.isEmpty()) {
             return null;
         }
         Route best = null;
+        double bestCost = Double.POSITIVE_INFINITY;
         for (Shuttle shuttle : free) {
-            List<NodePos> path = RailPaths.find(shuttle.motion.currentNode(), goals::contains, ways(shuttle));
-            if (!path.isEmpty() && (best == null || path.size() < best.path().size())) {
-                best = new Route(shuttle, path);
+            NodePos from = shuttle.motion.currentNode();
+            RailCosts.Search<NodePos> search = costsFrom(List.of(from), ways(shuttle), goals::contains);
+            Optional<NodePos> goal = search.cheapest(goals::contains);
+            if (goal.isPresent() && search.costTo(goal.get()) < bestCost) {
+                bestCost = search.costTo(goal.get());
+                best = new Route(shuttle, search.pathTo(goal.get()));
             }
         }
         return best;
+    }
+
+    /** Travel costs from the starts over every rail and shaft, for the warehouse's choices. */
+    public RailCosts.Search<NodePos> costsFrom(Collection<NodePos> starts) {
+        return costsFrom(starts, host::travelNeighbours, node -> false);
+    }
+
+    /** Travel costs from the starts over these ways. */
+    public RailCosts.Search<NodePos> costsFrom(Collection<NodePos> starts, Function<NodePos, ? extends Collection<NodePos>> ways) {
+        return costsFrom(starts, ways, node -> false);
+    }
+
+    /** Travel costs from the starts over these ways, stopping at the first node passing {@code stopAt}. */
+    RailCosts.Search<NodePos> costsFrom(Collection<NodePos> starts, Function<NodePos, ? extends Collection<NodePos>> ways, Predicate<NodePos> stopAt) {
+        TravelWeights weights = ShuttlesStatsManager.INSTANCE.travelWeights();
+        TravelWeights.Lifts lifts = liftLoads(weights);
+        return RailCosts.search(starts, ways, (previous, from, to) -> weights.step(previous, from, to, lifts), stopAt);
+    }
+
+    /** The cheapest way for the shuttle from a node to the cheapest goal, start first; empty without a way. */
+    List<NodePos> path(Shuttle shuttle, NodePos from, Predicate<NodePos> goal) {
+        if (goal.test(from)) {
+            return List.of(from);
+        }
+        return costsFrom(List.of(from), ways(shuttle), goal).pathToCheapest(goal);
+    }
+
+    /**
+     * The lifts as one search sees them: per shaft the car's height and the
+     * calls queued at it plus the busy shuttles whose way still passes the shaft.
+     */
+    private TravelWeights.Lifts liftLoads(TravelWeights weights) {
+        Map<Shaft, Integer> planned = new HashMap<>();
+        for (Shuttle shuttle : shuttles()) {
+            if (!shuttle.busy() || shuttle.motion == null) {
+                continue;
+            }
+            Set<Shaft> passed = new HashSet<>();
+            for (NodePos node : shuttle.motion.remaining()) {
+                Shaft shaft = host.shaftOf(node);
+                if (shaft != null && passed.add(shaft)) {
+                    planned.merge(shaft, 1, Integer::sum);
+                }
+            }
+        }
+        return new TravelWeights.Lifts() {
+            @Override
+            public Shaft shaftOf(NodePos node) {
+                return host.shaftOf(node);
+            }
+
+            @Override
+            public double waitAt(Shaft shaft, int floorY) {
+                LiftCar car = lifts.car(Conversions.toBlockPos(shaft.bottom()));
+                double carY = car == null ? floorY : car.y();
+                int calls = car == null ? 0 : car.calls().size();
+                return weights.liftWait(carY, floorY, calls + planned.getOrDefault(shaft, 0));
+            }
+        };
     }
 
     /** Sends the shuttle of the route on the job, with later queued jobs it can take along. */
@@ -874,7 +1053,7 @@ public final class ShuttleFleet {
         if (room <= 0 || lead == null) {
             return batch;
         }
-        for (int index : CargoBatch.take(queue, job -> lead.sameWay(job) && job.needs().fits(shuttle.profile), room)) {
+        for (int index : CargoBatch.take(queue, job -> lead.sameWay(job) && job.needs().fits(shuttle.profile) && ready(job), room)) {
             batch.add(queue.get(index));
         }
         return batch;
@@ -910,16 +1089,21 @@ public final class ShuttleFleet {
         return free;
     }
 
-    /** A job no shuttle can take: a pick ends as a shortfall, a put-away releases its station slot. */
+    /** A job no shuttle can take: a pick ends as a shortfall; either kind releases its locks. */
     private void refuse(ShuttleJob job) {
         if (job instanceof PickJob pick) {
             host.pickLoaded(pick, 0);
-        } else if (job instanceof PutAwayJob putAway) {
-            host.releaseClaim(putAway.station(), putAway.slot());
+        }
+        List<BlockPos> blocks = blocksOf(job);
+        if (!blocks.isEmpty()) {
+            host.releaseLocks(job.id(), blocks);
         }
     }
 
     private void arrive(Shuttle shuttle) {
+        if (shuttle.leg == Leg.STRANDED) {
+            return;
+        }
         if (!shuttle.busy()) {
             park(shuttle);
             syncPending = true;
@@ -950,7 +1134,7 @@ public final class ShuttleFleet {
         boolean stopLeg = switch (shuttle.leg) {
             case TO_SOURCE -> shuttle.lead() instanceof PickJob || shuttle.lead() instanceof PutAwayJob || shuttle.lead() instanceof FluidJob;
             case TO_TERMINAL -> shuttle.lead() instanceof PickJob;
-            case TO_TARGET -> shuttle.lead() instanceof PutAwayJob || shuttle.lead() instanceof FluidJob;
+            case TO_TARGET -> shuttle.lead() instanceof PutAwayJob || shuttle.lead() instanceof PickJob || shuttle.lead() instanceof FluidJob;
             case TO_STATION -> shuttle.lead() instanceof FluidJob;
             default -> false;
         };
@@ -1005,47 +1189,68 @@ public final class ShuttleFleet {
         }
     }
 
-    /** Hands each pick load to its destination; loads that went in completely are done. */
-    private void deliverLoads(Shuttle shuttle) {
-        for (Load load : shuttle.loads) {
-            if (load.job instanceof PickJob pick) {
-                load.cargo = host.deliverTo(pick, load.cargo);
-            }
-        }
-        shuttle.loads.removeIf(load -> load.cargo.isEmpty());
-    }
-
     private void arrivePick(Shuttle shuttle, PickJob lead) {
         switch (shuttle.leg) {
             case TO_SOURCE -> {
                 topUp(shuttle);
                 for (Load load : shuttle.loads) {
                     PickJob job = (PickJob) load.job;
-                    load.cargo = host.extractFrom(job.source(), job.key(), job.amount());
+                    load.cargo = host.loadPick(job);
                     host.pickLoaded(job, load.cargo.getCount());
                 }
-                shuttle.loads.removeIf(load -> load.cargo.isEmpty());
+                dropEmptyLoads(shuttle);
                 if (!shuttle.busy()) {
                     goHome(shuttle);
                 } else if (!go(shuttle, Leg.TO_TERMINAL, host.dockRails(Conversions.toNodePos(lead.terminal())))) {
                     for (Load load : shuttle.loads) {
-                        host.deliverInstant((PickJob) load.job, load.cargo);
+                        handOverAtOnce(load, (PickJob) load.job);
                     }
-                    shuttle.loads.clear();
-                    goHome(shuttle);
+                    continueStores(shuttle);
                 }
             }
-            case TO_TERMINAL -> {
-                deliverLoads(shuttle);
-                if (!shuttle.busy()) {
-                    goHome(shuttle);
-                } else {
-                    shuttle.leg = Leg.WAITING_ROOM;
-                    shuttle.motion = ShuttleMotion.parked(shuttle.motion.end());
+            case TO_TERMINAL, WAITING_ROOM -> {
+                for (Load load : shuttle.loads) {
+                    if (load.job instanceof PickJob pick && load.stops.isEmpty()) {
+                        deliver(load, pick);
+                    }
                 }
+                continueStores(shuttle);
             }
-            case HOME -> recallShuttle(shuttle);
+            case TO_TARGET -> unloadHere(shuttle);
+            case HOME -> parkWithCargo(shuttle);
             default -> goHome(shuttle);
+        }
+    }
+
+    /**
+     * Hands a pick load its shuttle cannot drive to the destination over at
+     * once, as an instant delivery held until it fits; when the destination is
+     * gone the cargo counts as missing and is stored instead.
+     */
+    private void handOverAtOnce(Load load, PickJob pick) {
+        if (host.destinationGone(pick)) {
+            host.pickDropped(pick, load.cargo.getCount());
+            host.releaseLocks(pick.id(), List.of(pick.terminal()));
+            load.storing = true;
+            return;
+        }
+        host.deliverInstant(pick, load.cargo);
+        load.cargo = ItemStack.EMPTY;
+    }
+
+    /**
+     * Hands a pick load to its destination's locked slot. Cargo the
+     * destination does not take, because it is gone or lost its lock, counts
+     * as missing and is stored like a leftover.
+     */
+    private void deliver(Load load, PickJob pick) {
+        if (!host.destinationGone(pick)) {
+            load.cargo = host.deliverTo(pick, load.cargo);
+        }
+        if (!load.cargo.isEmpty()) {
+            host.pickDropped(pick, load.cargo.getCount());
+            host.releaseLocks(pick.id(), List.of(pick.terminal()));
+            load.storing = true;
         }
     }
 
@@ -1054,25 +1259,216 @@ public final class ShuttleFleet {
             case TO_SOURCE -> {
                 topUp(shuttle);
                 for (Load load : shuttle.loads) {
-                    PutAwayJob job = (PutAwayJob) load.job;
-                    load.cargo = host.takeFromStation(job.station(), job.slot(), job.key(), job.amount());
+                    load.cargo = host.loadPutAway((PutAwayJob) load.job);
+                    load.storing = true;
                 }
-                shuttle.loads.removeIf(load -> load.cargo.isEmpty());
-                goOnOrHome(shuttle, lead, Leg.TO_TARGET, lead.target());
+                continueStores(shuttle);
             }
-            case TO_TARGET -> {
-                for (Load load : shuttle.loads) {
-                    load.cargo = host.insertAt(lead.target(), load.cargo);
-                }
-                shuttle.loads.removeIf(load -> load.cargo.isEmpty());
-                goOnOrHome(shuttle, lead, Leg.TO_STATION, lead.station());
-            }
-            case TO_STATION -> {
-                returnLoads(shuttle, lead);
-                goHome(shuttle);
-            }
-            case HOME -> recallShuttle(shuttle);
+            case TO_TARGET -> unloadHere(shuttle);
+            case HOME -> parkWithCargo(shuttle);
+            default -> continueStores(shuttle);
         }
+    }
+
+    /** Loads that ended without cargo leave the shuttle and release their locks. */
+    private void dropEmptyLoads(Shuttle shuttle) {
+        shuttle.loads.removeIf(load -> {
+            if (load.cargo.isEmpty()) {
+                releaseLoad(load);
+                return true;
+            }
+            return false;
+        });
+    }
+
+    /** The stop the shuttle stands at: the first stop of its loads whose dock rails hold the shuttle's node. */
+    private BlockPos stopHere(Shuttle shuttle) {
+        NodePos at = shuttle.motion.end();
+        for (Load load : shuttle.loads) {
+            for (BlockPos stop : load.stops) {
+                if (host.dockRails(Conversions.toNodePos(stop)).contains(at)) {
+                    return stop;
+                }
+            }
+        }
+        return null;
+    }
+
+    /** At a rack: every load with this rack as a stop unloads into its locked slots, then the shuttle goes on. */
+    private void unloadHere(Shuttle shuttle) {
+        BlockPos stop = stopHere(shuttle);
+        for (Load load : shuttle.loads) {
+            if (stop != null && load.stops.remove(stop)) {
+                load.cargo = host.unloadInto(stop, load.job.id(), load.cargo);
+            }
+        }
+        continueStores(shuttle);
+    }
+
+    /**
+     * Sends a shuttle with cargo to be stored on to its next stop. Cargo
+     * without a stop is routed again by the put-away rule from where the
+     * shuttle stands, with new locks; cargo no rack takes parks the shuttle
+     * in its garage. Empty, the shuttle goes home.
+     */
+    void continueStores(Shuttle shuttle) {
+        dropEmptyLoads(shuttle);
+        if (!shuttle.busy()) {
+            shuttle.strandReason = null;
+            goHome(shuttle);
+            return;
+        }
+        for (Load load : shuttle.loads) {
+            if (!load.storing && load.job instanceof PickJob pick) {
+                if (go(shuttle, Leg.TO_TERMINAL, host.dockRails(Conversions.toNodePos(pick.terminal())))) {
+                    return;
+                }
+                handOverAtOnce(load, pick);
+            }
+        }
+        dropEmptyLoads(shuttle);
+        if (!shuttle.busy()) {
+            goHome(shuttle);
+            return;
+        }
+        NodePos at = shuttle.motion.end();
+        int guard = 16;
+        while (guard-- > 0) {
+            for (Load load : shuttle.loads) {
+                if (load.storing && load.stops.isEmpty()) {
+                    load.stops.addAll(host.storeTargets(load.job.id(), load.cargo, Set.of(at), ways(shuttle)));
+                }
+            }
+            Load next = firstWithStop(shuttle);
+            if (next == null) {
+                break;
+            }
+            BlockPos stop = next.stops.get(0);
+            if (go(shuttle, Leg.TO_TARGET, host.dockRails(Conversions.toNodePos(stop)))) {
+                shuttle.strandReason = null;
+                return;
+            }
+            for (Load load : shuttle.loads) {
+                if (load.stops.remove(stop)) {
+                    host.releaseLocks(load.job.id(), List.of(stop));
+                }
+            }
+        }
+        if (anyStoring(shuttle)) {
+            strand(shuttle);
+        } else {
+            goHome(shuttle);
+        }
+    }
+
+    private static Load firstWithStop(Shuttle shuttle) {
+        for (Load load : shuttle.loads) {
+            if (!load.stops.isEmpty()) {
+                return load;
+            }
+        }
+        return null;
+    }
+
+    private static boolean anyStoring(Shuttle shuttle) {
+        for (Load load : shuttle.loads) {
+            if (load.storing && !load.cargo.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** No rack takes the cargo: the shuttle drives into its garage and parks there with it. */
+    private void strand(Shuttle shuttle) {
+        shuttle.strandReason = anyRoom(shuttle) ? StrandReason.NO_WAY : StrandReason.NO_ROOM;
+        if (shuttle.leg == Leg.STRANDED && shuttle.motion.arrived()) {
+            return;
+        }
+        NodePos home = shuttle.garage.home;
+        List<NodePos> homePath = home == null ? List.of() : path(shuttle, shuttle.motion.end(), home::equals);
+        shuttle.leg = Leg.STRANDED;
+        shuttle.motion = homePath.isEmpty() ? (home == null ? ShuttleMotion.parked(shuttle.motion.end()) : ShuttleMotion.parked(home))
+                : new ShuttleMotion(homePath);
+        syncPending = true;
+    }
+
+    private boolean anyRoom(Shuttle shuttle) {
+        for (Load load : shuttle.loads) {
+            if (load.storing && !load.cargo.isEmpty() && host.anyRoomFor(load.cargo)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Room may have appeared: parked shuttles with cargo try again on the next tick. */
+    public void roomChanged() {
+        roomChanged = true;
+    }
+
+    /** Shuttles parked at home with cargo look for a rack again. */
+    private void retryStranded() {
+        for (Shuttle shuttle : shuttles()) {
+            if (shuttle.leg == Leg.STRANDED && shuttle.motion != null && shuttle.motion.arrived() && shuttle.restoring == null) {
+                continueStores(shuttle);
+            }
+        }
+    }
+
+    /** Tells the host which garages have a shuttle parked with cargo, when that changed. */
+    private void updateStrandedLamps() {
+        for (Garage garage : garages.values()) {
+            boolean stranded = !strandedOf(garage).isEmpty();
+            if (stranded != strandedGarages.contains(garage.pos)) {
+                if (stranded) {
+                    strandedGarages.add(garage.pos);
+                } else {
+                    strandedGarages.remove(garage.pos);
+                }
+                host.strandedChanged(garage.pos, stranded);
+            }
+        }
+        strandedGarages.removeIf(pos -> !garages.containsKey(pos));
+    }
+
+    private static List<Shuttle> strandedOf(Garage garage) {
+        List<Shuttle> list = new ArrayList<>();
+        for (Shuttle shuttle : garage.shuttles) {
+            if (shuttle.leg == Leg.STRANDED && shuttle.strandReason != null && shuttle.busy()) {
+                list.add(shuttle);
+            }
+        }
+        return list;
+    }
+
+    /** One shuttle of a garage parked with cargo: its item, what it holds and why it waits. */
+    public record Stranded(int slot, ItemStack shuttle, ItemStack cargo, StrandReason reason) {
+    }
+
+    /** The shuttles of a garage parked with cargo that has nowhere to go. */
+    public List<Stranded> stranded(BlockPos pos) {
+        Garage garage = garages.get(pos);
+        List<Stranded> list = new ArrayList<>();
+        if (garage == null) {
+            return list;
+        }
+        for (Shuttle shuttle : strandedOf(garage)) {
+            list.add(new Stranded(shuttle.slot, shuttle.item.copy(), shuttle.shownCargo(), shuttle.strandReason));
+        }
+        return list;
+    }
+
+    /** The item of the shuttle carrying out the job, or empty while it waits for one. */
+    public Optional<ItemStack> shuttleOnJob(int jobId) {
+        for (Shuttle shuttle : shuttles()) {
+            for (Load load : shuttle.loads) {
+                if (load.job.id() == jobId) {
+                    return Optional.of(shuttle.item.copy());
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     /**
@@ -1140,30 +1536,12 @@ public final class ShuttleFleet {
         }
     }
 
-    /** A put-away with loads left drives on to the block; without a way there the loads go back to the station. */
-    private void goOnOrHome(Shuttle shuttle, PutAwayJob lead, Leg leg, BlockPos next) {
-        if (!shuttle.busy()) {
-            goHome(shuttle);
-        } else if (!go(shuttle, leg, host.dockRails(Conversions.toNodePos(next)))) {
-            returnLoads(shuttle, lead);
-            goHome(shuttle);
-        }
-    }
-
-    /** Every put-away load goes back into its station's buffer. */
-    private void returnLoads(Shuttle shuttle, PutAwayJob lead) {
-        for (Load load : shuttle.loads) {
-            host.returnToStation(lead.station(), load.cargo);
-        }
-        shuttle.loads.clear();
-    }
-
     /** Sends the shuttle towards any of the goal rails; false when no path exists. */
     private boolean go(Shuttle shuttle, Leg leg, Set<NodePos> goals) {
         if (goals.isEmpty()) {
             return false;
         }
-        List<NodePos> path = RailPaths.find(shuttle.motion.end(), goals::contains, ways(shuttle));
+        List<NodePos> path = path(shuttle, shuttle.motion.end(), goals::contains);
         if (path.isEmpty()) {
             return false;
         }
@@ -1176,7 +1554,7 @@ public final class ShuttleFleet {
     void goHome(Shuttle shuttle) {
         shuttle.leg = Leg.HOME;
         NodePos home = shuttle.garage.home;
-        List<NodePos> homePath = home == null ? List.of() : RailPaths.find(shuttle.motion.end(), home::equals, ways(shuttle));
+        List<NodePos> homePath = home == null ? List.of() : path(shuttle, shuttle.motion.end(), home::equals);
         shuttle.motion = homePath.isEmpty() ? shuttle.motion.reverse() : new ShuttleMotion(homePath);
     }
 
@@ -1208,20 +1586,23 @@ public final class ShuttleFleet {
 
     /**
      * Cargo pops at the shuttle's garage. A job that was not loaded yet goes
-     * back to the front of the queue, in its old order; a loaded pick counts
-     * as missing; a field run is not queued again; a tanker run loses its
-     * fluid and is not queued again.
+     * back to the front of the queue, in its old order, with its locks; a
+     * loaded job releases its locks and a loaded pick counts as missing; a
+     * field run is not queued again; a tanker run loses its fluid and is not
+     * queued again.
      */
     private void dropCargo(Shuttle shuttle) {
         endPumping(shuttle);
+        shuttle.strandReason = null;
         if (dropFieldRun(shuttle)) {
             shuttle.loads.clear();
             return;
         }
         List<ShuttleJob> requeue = new ArrayList<>();
         for (Load load : shuttle.loads) {
-            if (!load.cargo.isEmpty()) {
-                if (load.job instanceof PickJob pick) {
+            boolean loaded = !load.cargo.isEmpty();
+            if (loaded) {
+                if (load.job instanceof PickJob pick && !load.storing) {
                     host.pickDropped(pick, load.cargo.getCount());
                 }
                 Block.popResource(host.level(), shuttle.garage.pos, load.cargo);
@@ -1230,14 +1611,65 @@ public final class ShuttleFleet {
             if (load.job instanceof FluidJob) {
                 continue;
             }
-            if (!(load.job instanceof PickJob) || shuttle.leg == Leg.TO_SOURCE) {
+            if (!loaded && shuttle.leg == Leg.TO_SOURCE) {
                 requeue.add(load.job);
+            } else {
+                releaseLoad(load);
             }
         }
+        requeueFirst(requeue);
+        shuttle.loads.clear();
+    }
+
+    private void requeueFirst(List<ShuttleJob> requeue) {
         for (int i = requeue.size() - 1; i >= 0; i--) {
             jobs.addFirst(requeue.get(i));
         }
-        shuttle.loads.clear();
+    }
+
+    /**
+     * Puts a shuttle that cannot drive on back into its garage without
+     * dropping anything: jobs not loaded yet go back to the queue with their
+     * locks, picks hand their cargo to their destination as instant
+     * deliveries, and cargo to be stored stays aboard, parked as cargo with
+     * nowhere to go. A field run ends as a recall does.
+     */
+    private void parkWithCargo(Shuttle shuttle) {
+        if (shuttle.fieldRun() != null) {
+            recallShuttle(shuttle);
+            return;
+        }
+        lifts.release(shuttle);
+        endPumping(shuttle);
+        shuttle.restoring = null;
+        List<ShuttleJob> requeue = new ArrayList<>();
+        boolean waiting = shuttle.leg == Leg.TO_SOURCE;
+        shuttle.loads.removeIf(load -> {
+            if (load.cargo.isEmpty()) {
+                if (waiting && !(load.job instanceof FluidJob)) {
+                    requeue.add(load.job);
+                } else {
+                    releaseLoad(load);
+                }
+                return true;
+            }
+            if (load.job instanceof PickJob pick && !load.storing) {
+                handOverAtOnce(load, pick);
+                return load.cargo.isEmpty();
+            }
+            load.storing = true;
+            return false;
+        });
+        requeueFirst(requeue);
+        if (!shuttle.busy()) {
+            park(shuttle);
+            return;
+        }
+        shuttle.strandReason = anyRoom(shuttle) ? StrandReason.NO_WAY : StrandReason.NO_ROOM;
+        shuttle.leg = Leg.STRANDED;
+        NodePos home = shuttle.garage.home;
+        shuttle.motion = ShuttleMotion.parked(home == null ? shuttle.motion.currentNode() : home);
+        syncPending = true;
     }
 
     /** Whether the chunk of the node is loaded. */
@@ -1284,28 +1716,47 @@ public final class ShuttleFleet {
             fieldRuns.resume(shuttle);
             return;
         }
-        if (shuttle.leg == Leg.WAITING_ROOM || pathWhole(shuttle.motion)) {
+        if (shuttle.leg == Leg.WAITING_ROOM) {
+            shuttle.leg = Leg.TO_TERMINAL;
+        }
+        if (shuttle.leg == Leg.STRANDED && shuttle.motion.arrived() || pathWhole(shuttle.motion)) {
             return;
         }
         NodePos at = shuttle.motion.currentNode();
         if (!host.isTravelNode(at)) {
-            recallShuttle(shuttle);
+            parkWithCargo(shuttle);
             return;
         }
         Set<NodePos> goals = legGoals(shuttle);
-        List<NodePos> path = goals.isEmpty() ? List.of() : RailPaths.find(at, goals::contains, ways(shuttle));
+        List<NodePos> path = goals.isEmpty() ? List.of() : path(shuttle, at, goals::contains);
         if (!path.isEmpty()) {
             shuttle.motion = new ShuttleMotion(path);
             return;
         }
-        NodePos home = shuttle.garage.home;
-        List<NodePos> homePath = home == null ? List.of() : RailPaths.find(at, home::equals, ways(shuttle));
-        if (homePath.isEmpty()) {
-            recallShuttle(shuttle);
+        if (shuttle.leg == Leg.TO_TARGET && !(shuttle.lead() instanceof FluidJob)) {
+            shuttle.motion = ShuttleMotion.parked(at);
+            for (Load load : shuttle.loads) {
+                releaseStops(load);
+            }
+            continueStores(shuttle);
             return;
         }
-        shuttle.leg = Leg.HOME;
+        NodePos home = shuttle.garage.home;
+        List<NodePos> homePath = home == null ? List.of() : path(shuttle, at, home::equals);
+        if (homePath.isEmpty()) {
+            parkWithCargo(shuttle);
+            return;
+        }
+        shuttle.leg = shuttle.leg == Leg.STRANDED ? Leg.STRANDED : Leg.HOME;
         shuttle.motion = new ShuttleMotion(homePath);
+    }
+
+    /** Releases the locks of a load's stops and forgets them, so its cargo is routed again. */
+    private void releaseStops(Load load) {
+        if (!load.stops.isEmpty()) {
+            host.releaseLocks(load.job.id(), load.stops);
+            load.stops.clear();
+        }
     }
 
     /** Whether every node the motion still has ahead is a rail or segment of this warehouse. */
@@ -1321,7 +1772,7 @@ public final class ShuttleFleet {
     /** The rails the shuttle's leg ends on: where its lead job goes next, or its home. */
     private Set<NodePos> legGoals(Shuttle shuttle) {
         ShuttleJob lead = shuttle.lead();
-        if (shuttle.leg == Leg.HOME || lead == null) {
+        if (shuttle.leg == Leg.HOME || shuttle.leg == Leg.STRANDED || lead == null) {
             return shuttle.garage.home == null ? Set.of() : Set.of(shuttle.garage.home);
         }
         if (shuttle.leg == Leg.TO_SOURCE) {
@@ -1329,12 +1780,17 @@ public final class ShuttleFleet {
         }
         BlockPos goal = switch (shuttle.leg) {
             case TO_TERMINAL -> lead instanceof PickJob pick ? pick.terminal() : null;
-            case TO_TARGET -> lead instanceof PutAwayJob putAway ? putAway.target() : fluidTargetOf(shuttle);
+            case TO_TARGET -> lead instanceof FluidJob ? fluidTargetOf(shuttle) : firstStop(shuttle);
             case TO_STATION -> lead instanceof PutAwayJob putAway ? putAway.station()
                     : lead instanceof FluidJob fluid ? fluid.source() : null;
             default -> null;
         };
         return goal == null ? Set.of() : host.dockRails(Conversions.toNodePos(goal));
+    }
+
+    private static BlockPos firstStop(Shuttle shuttle) {
+        Load load = firstWithStop(shuttle);
+        return load == null ? null : load.stops.get(0);
     }
 
     private static BlockPos fluidTargetOf(Shuttle shuttle) {
@@ -1449,7 +1905,7 @@ public final class ShuttleFleet {
                 NodePos home = garage.home;
                 NodePos at = shuttle.motion == null ? null : shuttle.motion.currentNode();
                 List<NodePos> path = home == null || at == null || !host.isTravelNode(at) ? List.of()
-                        : RailPaths.find(at, home::equals, ways(shuttle));
+                        : path(shuttle, at, home::equals);
                 if (path.isEmpty()) {
                     park(shuttle);
                 } else {
@@ -1550,7 +2006,7 @@ public final class ShuttleFleet {
         }
         for (Shuttle shuttle : garage.shuttles) {
             ShuttleMotion motion = shuttle.motion;
-            if (motion == null || (!shuttle.busy() && motion.arrived())) {
+            if (motion == null || (!shuttle.busy() || shuttle.leg == Leg.STRANDED) && motion.arrived()) {
                 continue;
             }
             List<BlockPos> path = new ArrayList<>();

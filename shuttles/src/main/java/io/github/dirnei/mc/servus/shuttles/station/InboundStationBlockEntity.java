@@ -3,9 +3,12 @@ package io.github.dirnei.mc.servus.shuttles.station;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import io.github.dirnei.mc.servus.shuttles.lock.LockHolder;
+import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
+import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
 import io.github.dirnei.mc.servus.shuttles.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
@@ -13,7 +16,7 @@ import io.github.dirnei.mc.servus.shuttles.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.zone.PutAwayPlan;
-import java.util.Arrays;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -30,19 +33,23 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 /**
  * The inbound dock: an intake buffer that hoppers, ducts and players fill and
  * the warehouse drains into storage by its zone rules. Never indexed.
  */
-public class InboundStationBlockEntity extends StationBlockEntity {
+public class InboundStationBlockEntity extends StationBlockEntity implements LockHolder {
 
-    private final ItemSlots buffer = new ItemSlots(ShuttlesStatsManager.INSTANCE.inboundBufferSlots()) {
+    private final LockedSlots buffer = new LockedSlots(ShuttlesStatsManager.INSTANCE.inboundBufferSlots()) {
         @Override
         protected void onContentsChanged(int slot) {
-            if (getStackInSlot(slot).isEmpty()) {
-                claimedBy[slot] = 0;
-            }
+            setChanged();
+            postIntake();
+        }
+
+        @Override
+        protected void onLocksChanged() {
             setChanged();
             postIntake();
         }
@@ -81,9 +88,6 @@ public class InboundStationBlockEntity extends StationBlockEntity {
         }
     };
 
-    /** Slots a shuttle is on its way to pick up. */
-    /** The id of the put-away job that claimed each buffer slot, 0 for a free slot. */
-    private final int[] claimedBy = new int[ShuttlesStatsManager.INSTANCE.inboundBufferSlots()];
     private int pullTimer;
     private PutAwayPlan.Reason blockedReason;
     private ItemStack blockedStack = ItemStack.EMPTY;
@@ -98,8 +102,13 @@ public class InboundStationBlockEntity extends StationBlockEntity {
     }
 
     @Override
-    public ItemSlots buffer() {
+    public LockedSlots buffer() {
         return buffer;
+    }
+
+    @Override
+    public List<LockedSlots> lockedSlots() {
+        return List.of(buffer);
     }
 
     /** The insert only handler exposed as the item capability. */
@@ -132,7 +141,11 @@ public class InboundStationBlockEntity extends StationBlockEntity {
         }
     }
 
-    /** Takes as much of the first stack the neighbour offers as fits. */
+    /**
+     * Takes as much of the first stack the neighbour offers as the unlocked
+     * slots take. Taking and storing happen in one transaction, so an item
+     * the buffer does not take stays with the neighbour.
+     */
     private void pullOneStack(ItemView neighbour) {
         for (int from = 0; from < neighbour.getSlots(); from++) {
             ItemStack offered = neighbour.extractItem(from, 64, true);
@@ -143,36 +156,25 @@ public class InboundStationBlockEntity extends StationBlockEntity {
             if (room <= 0) {
                 continue;
             }
-            ItemStack taken = neighbour.extractItem(from, room, false);
-            if (!taken.isEmpty()) {
-                buffer.insertItem(taken, false);
-                return;
+            try (Transaction transaction = Transfer.open()) {
+                ItemStack taken = neighbour.extractItem(from, room, false);
+                if (!taken.isEmpty() && buffer.insertItem(taken, false).isEmpty()) {
+                    transaction.commit();
+                    return;
+                }
             }
         }
     }
 
+    /** Whether a put-away job holds the slot. */
     public boolean isClaimed(int slot) {
-        return claimedBy(slot) != 0;
+        return buffer.isLocked(slot);
     }
 
-    /** The id of the job that claimed the slot, 0 when it is free. */
+    /** The id of the job whose lock holds the slot, 0 when it is free. */
     public int claimedBy(int slot) {
-        return slot >= 0 && slot < claimedBy.length ? claimedBy[slot] : 0;
-    }
-
-    /** Claims the slot for the put-away job with that id. */
-    public void claim(int slot, int jobId) {
-        if (slot >= 0 && slot < claimedBy.length) {
-            claimedBy[slot] = jobId;
-            setChanged();
-        }
-    }
-
-    public void release(int slot) {
-        if (slot >= 0 && slot < claimedBy.length && claimedBy[slot] != 0) {
-            claimedBy[slot] = 0;
-            setChanged();
-        }
+        SlotLock lock = buffer.lockOf(slot);
+        return lock == null ? 0 : lock.jobId();
     }
 
     public PutAwayPlan.Reason blockedReason() {
@@ -218,7 +220,7 @@ public class InboundStationBlockEntity extends StationBlockEntity {
         CompoundTag tag = new CompoundTag();
         saveStation(output, tag);
         tag.put("Items", buffer.serializeNBT(ValueIo.registries(this)));
-        tag.putIntArray("Claims", claimedBy.clone());
+        tag.put("Locks", buffer.saveLocks(ValueIo.registries(this)));
         output.store(tag);
     }
 
@@ -230,9 +232,7 @@ public class InboundStationBlockEntity extends StationBlockEntity {
         loadStation(input, tag);
         if (tag.contains("Items")) {
             buffer.fillFrom(registries, tag.getCompoundOrEmpty("Items"));
+            buffer.loadLocks(registries, tag.getListOrEmpty("Locks"));
         }
-        Arrays.fill(claimedBy, 0);
-        int[] claims = tag.getIntArray("Claims").orElse(new int[0]);
-        System.arraycopy(claims, 0, claimedBy, 0, Math.min(claims.length, claimedBy.length));
     }
 }

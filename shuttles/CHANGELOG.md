@@ -4,6 +4,11 @@
 
 ### Added
 - Shuttles get a number per world, shown in their tooltip and in the garage.
+- Slots a shuttle job fills or empties are locked and shown with a colour wash, a ghost item and the shuttle's label.
+
+### Changed
+- Put-aways pick the rack by zone, then bays already holding the item, then the most room, weighed by travel time.
+- A shuttle whose cargo has nowhere to go parks in its garage with a red lamp instead of dropping it.
 
 ### Fixed
 - Shuttle jobs, their cargo and station claims survive a reload or an unloaded warehouse; nothing drops mid-trip.

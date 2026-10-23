@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.upgrade.UpgradeSlots;
 import io.github.dirnei.mc.servus.foundation.upgrade.Upgrades;
+import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import io.github.dirnei.mc.servus.shuttles.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.packing.PackingStatusPayload;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
@@ -24,7 +25,7 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
  * rows, then a row of upgrade slots, the only slots players can change, and
  * the player inventory. The status line and the rate come along as a payload.
  */
-public class PackingStationMenu extends AbstractContainerMenu {
+public class PackingStationMenu extends AbstractContainerMenu implements LockedMenu {
 
     public static final int COLUMNS = 9;
     public static final int FIRST_LABEL_Y = 18;
@@ -62,6 +63,7 @@ public class PackingStationMenu extends AbstractContainerMenu {
     private final int inventoryY;
     private final int imageHeight;
     private final PayloadSync<PackingStatusPayload> sync = new PayloadSync<>(5, false, this::status);
+    private final MenuLocks locks;
 
     /** Server side: the station's own buffers. */
     public PackingStationMenu(int containerId, Inventory playerInventory, PackingStationBlockEntity point) {
@@ -91,6 +93,7 @@ public class PackingStationMenu extends AbstractContainerMenu {
             addSlot(new ResourceHandlerSlot(upgrades, upgrades::set, slot, 8 + slot * 18, upgradesY));
         }
         PlayerInventorySlots.add(this::addSlot, playerInventory, 8, inventoryY);
+        locks = MenuLocks.of(slots);
     }
 
     private void addRow(ItemSlots handler, int y) {
@@ -111,7 +114,7 @@ public class PackingStationMenu extends AbstractContainerMenu {
         int upgrades = buf.readVarInt();
         PackingStationBlockEntity point = playerInventory.player.level().getBlockEntity(pos) instanceof PackingStationBlockEntity found
                 ? found : null;
-        return new PackingStationMenu(containerId, playerInventory, point, new ItemSlots(toStorage), new ItemSlots(toNetwork),
+        return new PackingStationMenu(containerId, playerInventory, point, new LockedSlots(toStorage), new LockedSlots(toNetwork),
                 new UpgradeSlots(upgrades, null));
     }
 
@@ -217,7 +220,13 @@ public class PackingStationMenu extends AbstractContainerMenu {
         super.broadcastChanges();
         if (point != null) {
             sync.tick(player);
+            locks.tick(player, containerId, point::network);
         }
+    }
+
+    @Override
+    public MenuLocks locks() {
+        return locks;
     }
 
     private PackingStatusPayload status() {

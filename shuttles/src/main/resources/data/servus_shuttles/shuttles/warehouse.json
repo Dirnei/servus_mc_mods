@@ -19,5 +19,7 @@
   "wake_grace_seconds": 30,
   "site_snapshot_interval": 100,
   "fluid_check_interval": 40,
-  "tanker_min_load": 1000
+  "tanker_min_load": 1000,
+  "free_slot_bucket": 0.25,
+  "travel_costs": { "rail_block": 7, "corner": 5, "lift_block": 10, "lift_handover": 20, "stop": 14, "lift_wait_per_job": 50 }
 }

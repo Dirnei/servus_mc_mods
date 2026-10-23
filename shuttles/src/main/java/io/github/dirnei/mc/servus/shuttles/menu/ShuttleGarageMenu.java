@@ -2,13 +2,18 @@ package io.github.dirnei.mc.servus.shuttles.menu;
 
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
+import io.github.dirnei.mc.servus.shuttles.garage.GarageStrandedPayload;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
 import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleFleet;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleItem;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -38,6 +43,10 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
     private final DataSlot out = DataSlot.standalone();
     private final DataSlot active = DataSlot.standalone();
     private final DataSlot outSlots = DataSlot.standalone();
+    private final PayloadSync<GarageStrandedPayload> strandedSync = new PayloadSync<>(5, true, this::stranded,
+            payload -> payload.lines().stream().map(Component::getString).toList().hashCode() * 31L + payload.slots().hashCode());
+    private List<Component> strandedLines = List.of();
+    private List<Integer> strandedSlots = List.of();
 
     public ShuttleGarageMenu(int containerId, Inventory playerInventory, ShuttleGarageBlockEntity garage) {
         super(ServusShuttlesMenus.SHUTTLE_GARAGE.get(), containerId);
@@ -130,6 +139,37 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
             update();
         }
         super.broadcastChanges();
+        strandedSync.tick(player);
+    }
+
+    /** The garage's shuttles parked with cargo that has nowhere to go, as lines for the GUI. Server side. */
+    private GarageStrandedPayload stranded() {
+        List<Component> lines = new ArrayList<>();
+        List<Integer> slotIndexes = new ArrayList<>();
+        garage.network().ifPresent(network -> {
+            for (ShuttleFleet.Stranded stranded : network.stranded(garage.getBlockPos())) {
+                lines.add(Component.translatable("gui.servus_shuttles.garage.stranded." + stranded.reason().name().toLowerCase(Locale.ROOT),
+                        ShuttleItem.label(stranded.shuttle()), stranded.cargo().getCount(), stranded.cargo().getHoverName()));
+                slotIndexes.add(stranded.slot());
+            }
+        });
+        return new GarageStrandedPayload(containerId, lines, slotIndexes);
+    }
+
+    /** Client side: the lines the server sent. */
+    public void acceptStranded(GarageStrandedPayload payload) {
+        strandedLines = List.copyOf(payload.lines());
+        strandedSlots = List.copyOf(payload.slots());
+    }
+
+    /** One line per shuttle parked with cargo that has nowhere to go, as last synced. */
+    public List<Component> strandedLines() {
+        return strandedLines;
+    }
+
+    /** Whether the slot's shuttle parks with cargo that has nowhere to go, as last synced. */
+    public boolean stranded(int slot) {
+        return strandedSlots.contains(slot);
     }
 
     /** Shift click: a Shuttle item in the inventory goes into a free place, a garage slot goes back to the inventory. */

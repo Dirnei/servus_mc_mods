@@ -22,7 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /** Keep row (ghost slots with amounts), buffer row and the player inventory; the state line comes along as a payload. */
-public class OutboundStationMenu extends AbstractContainerMenu {
+public class OutboundStationMenu extends AbstractContainerMenu implements LockedMenu {
 
     public static final int KEEP_Y = 18;
     public static final int BUFFER_Y = 44;
@@ -33,6 +33,7 @@ public class OutboundStationMenu extends AbstractContainerMenu {
     private final OutboundStationBlockEntity station;
     private final ContainerLevelAccess access;
     private final Player player;
+    private final MenuLocks locks;
     private final int keepSlots;
     private final int bufferStart;
     private final int inventoryStart;
@@ -53,6 +54,7 @@ public class OutboundStationMenu extends AbstractContainerMenu {
         }
         inventoryStart = slots.size();
         PlayerInventorySlots.add(this::addSlot, playerInventory, 8, INVENTORY_Y);
+        locks = MenuLocks.of(slots);
         addDataSlots(new SideConfigData(station.sideConfig()));
     }
 
@@ -139,8 +141,14 @@ public class OutboundStationMenu extends AbstractContainerMenu {
     }
 
     @Override
+    public MenuLocks locks() {
+        return locks;
+    }
+
+    @Override
     public void broadcastChanges() {
         super.broadcastChanges();
+        locks.tick(player, containerId, station::network);
         sync.tick(player);
     }
 

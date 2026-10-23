@@ -68,4 +68,11 @@ class RequestPlanTest {
         assertTrue(plan.jobs().isEmpty());
         assertEquals(0, plan.unservable());
     }
+
+    @Test
+    void cheapestSourceFirstThenInputOrder() {
+        Plan<String> plan = RequestPlan.plan(80, 64, true, List.of(new Stock<>("far", 64, true, 90), new Stock<>("near", 40, true, 20),
+                new Stock<>("alsoNear", 64, true, 20)));
+        assertEquals(List.of(new Job<>("near", 40), new Job<>("alsoNear", 40)), plan.jobs());
+    }
 }

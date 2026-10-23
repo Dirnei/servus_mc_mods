@@ -7,6 +7,8 @@ import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
+import io.github.dirnei.mc.servus.shuttles.lock.LockHolder;
+import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import io.github.dirnei.mc.servus.shuttles.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.shuttles.network.DeliveryTarget;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
@@ -15,6 +17,7 @@ import io.github.dirnei.mc.servus.shuttles.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
 import io.github.dirnei.mc.servus.shuttles.station.StationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -37,15 +40,20 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
  * neighbours take from it. The machine it serves stands behind it. Deliveries
  * for work orders land here as well. Keep slots are configuration and never drop.
  */
-public class OutboundStationBlockEntity extends StationBlockEntity implements DeliveryTarget {
+public class OutboundStationBlockEntity extends StationBlockEntity implements DeliveryTarget, LockHolder {
 
     public static final int KEEP_LIMIT = 4096;
 
-    private final ItemSlots buffer = new ItemSlots(ShuttlesStatsManager.INSTANCE.inboundBufferSlots()) {
+    private final LockedSlots buffer = new LockedSlots(ShuttlesStatsManager.INSTANCE.inboundBufferSlots()) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
             network().ifPresent(network -> network.post(new WarehouseEvent.OutputChanged(worldPosition)));
+        }
+
+        @Override
+        protected void onLocksChanged() {
+            setChanged();
         }
     };
 
@@ -110,8 +118,13 @@ public class OutboundStationBlockEntity extends StationBlockEntity implements De
     }
 
     @Override
-    public ItemSlots buffer() {
+    public LockedSlots buffer() {
         return buffer;
+    }
+
+    @Override
+    public List<LockedSlots> lockedSlots() {
+        return List.of(buffer);
     }
 
     public ItemSlots keep() {
@@ -119,7 +132,7 @@ public class OutboundStationBlockEntity extends StationBlockEntity implements De
     }
 
     @Override
-    public ItemSlots deliveries() {
+    public LockedSlots deliveries() {
         return buffer;
     }
 
@@ -187,7 +200,7 @@ public class OutboundStationBlockEntity extends StationBlockEntity implements De
     private void pushInto(ItemView neighbour) {
         for (int i = 0; i < buffer.getSlots(); i++) {
             ItemStack stack = buffer.getStackInSlot(i);
-            if (stack.isEmpty()) {
+            if (stack.isEmpty() || buffer.isLocked(i)) {
                 continue;
             }
             ItemStack left = neighbour.insertItem(stack.copy(), false);
@@ -210,6 +223,7 @@ public class OutboundStationBlockEntity extends StationBlockEntity implements De
         saveStation(output, tag);
         tag.put("Items", buffer.serializeNBT(registries));
         tag.put("Keep", keep.serializeNBT(registries));
+        tag.put("Locks", buffer.saveLocks(registries));
         output.store(tag);
     }
 
@@ -221,6 +235,7 @@ public class OutboundStationBlockEntity extends StationBlockEntity implements De
         loadStation(input, tag);
         if (tag.contains("Items")) {
             buffer.fillFrom(registries, tag.getCompoundOrEmpty("Items"), keepSized());
+            buffer.loadLocks(registries, tag.getListOrEmpty("Locks"));
         }
         if (tag.contains("Keep")) {
             keep.fillFrom(registries, tag.getCompoundOrEmpty("Keep"), keepSized());

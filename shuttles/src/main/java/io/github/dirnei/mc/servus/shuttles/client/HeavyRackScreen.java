@@ -38,4 +38,17 @@ public class HeavyRackScreen extends AbstractContainerScreen<HeavyRackMenu> {
         }
         graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos + TOP_HEIGHT + rows * ROW_HEIGHT, 0, BOTTOM_V, imageWidth, BOTTOM_HEIGHT, 256, 256);
     }
+
+    @Override
+    protected void extractSlots(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractSlots(graphics, mouseX, mouseY);
+        LockOverlay.draw(graphics, menu, menu.locks());
+    }
+
+    @Override
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        if (!LockOverlay.tooltip(graphics, font, hoveredSlot, menu.locks(), mouseX, mouseY)) {
+            super.extractTooltip(graphics, mouseX, mouseY);
+        }
+    }
 }
