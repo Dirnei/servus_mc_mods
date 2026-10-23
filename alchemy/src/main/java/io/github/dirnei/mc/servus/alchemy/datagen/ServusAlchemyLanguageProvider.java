@@ -57,14 +57,18 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("message.servus_alchemy.athanor.formed", "The Athanor is ready.");
         add(ServusAlchemyBlocks.ATHANOR_CROWN.get(), "Athanor");
         add("message.servus_alchemy.athanor.missing_tank",
-                "The Athanor is not complete: a Fluid Tank is needed %s, two blocks out. The Athanor page of Paracelsus' Journal shows the build.");
+                "The Athanor is not complete: a Fluid Tank is needed %s, two blocks out and three high from the hearth up. The Athanor page of Paracelsus' Journal shows the build.");
         add("message.servus_alchemy.athanor.missing_duct",
-                "The Athanor is not complete: two Copper Ducts are needed one block up toward the tank %s. The Athanor page of Paracelsus' Journal shows the build.");
+                "The Athanor is not complete: a Copper Duct is needed %s, between it and the tank. The Athanor page of Paracelsus' Journal shows the build.");
         add("message.servus_alchemy.athanor.tank.left", "left of it");
         add("message.servus_alchemy.athanor.tank.back", "behind it");
         add("message.servus_alchemy.athanor.tank.right", "right of it");
         add("message.servus_alchemy.athanor.missing",
-                "The Athanor needs a hearth: a diamond of 13 Bricks right below it. The Athanor page of Paracelsus' Journal shows it.");
+                "The Athanor needs a hearth: Bricks are needed in the hearth, right below it and in front of it. The Athanor page of Paracelsus' Journal shows it.");
+        add("message.servus_alchemy.athanor.missing_slab",
+                "The Athanor's hearth is not complete: Brick Slabs are needed in the hearth, on the cells around the Bricks below it. The Athanor page of Paracelsus' Journal shows it.");
+        add("message.servus_alchemy.athanor.missing_step",
+                "The Athanor's hearth is not complete: a Brick Stair is needed in front of the hearth. The Athanor page of Paracelsus' Journal shows it.");
         add("message.servus_alchemy.coagulator.missing",
                 "The Coagulator is not complete: %s needed %s. The Coagulator page of Paracelsus' Journal shows the build.");
         add("message.servus_alchemy.coagulator.at.left_of_the_coagulator", "left of the Coagulator");

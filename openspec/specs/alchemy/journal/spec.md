@@ -144,15 +144,15 @@ The Calciner entry SHALL show the Calciner structure as a multiblock page: a tur
 - **THEN** they find the recipes of the Calciner, Firebox, Ash Pan, Alembic, Receiver, Sulfur Hood and Copper Duct
 
 ### Requirement: Athanor schematics
-The Athanor entry SHALL show the Athanor on its hearth with its three Fluid Tanks and six Copper Ducts as a multiblock page with Visualize and SHALL tell the player to form it with the Journal. Every shipped tier SHALL have its own multiblock page, on the entry of its stage (Albedo on the Salt Crystal Block entry, Citrinitas on the Amethyst ring entry, Rubedo on the Crying Obsidian entry), showing the hearth, the Athanor, its tanks, its Copper Ducts and the blocks of that tier and the tiers below. The schematics SHALL stand on the clicked ground.
+The Athanor entry SHALL show the Athanor on its hearth with its step, its three Fluid Tanks three high and its three Copper Ducts as a multiblock page with Visualize and SHALL tell the player to form it with the Journal. Every shipped tier SHALL have its own multiblock page, on the entry of its stage (Albedo on the Salt Crystal Block entry, Citrinitas on the Amethyst ring entry, Rubedo on the Crying Obsidian entry), showing the hearth, the Athanor, its tanks, its Copper Ducts and the blocks of that tier and the tiers below. The schematics SHALL stand on the clicked ground.
 
 #### Scenario: Albedo page
 - **WHEN** a player opens the Salt Crystal Block entry and presses Visualize
-- **THEN** a ghost of the diamond hearth with the twelve Salt Crystal Blocks around it, the Athanor and its tanks stands on the clicked ground
+- **THEN** a ghost of the salt ring with the hearth, the Athanor, its tanks and its ducts on it stands on the clicked ground
 
 #### Scenario: Rubedo page
 - **WHEN** a player opens the Crying Obsidian entry and presses Visualize
-- **THEN** a ghost of the whole build with the salt ring, the Amethyst ring and the four Crying Obsidian pillars stands on the clicked ground
+- **THEN** a ghost of the whole build with the salt ring, the vats with Amethyst Blocks beside the tanks and the four Crying Obsidian pillars stands on the clicked ground
 
 ### Requirement: Forming shows itself
 When Paracelsus' Journal forms an alchemy build (Calciner, Purifier, Coagulator, Athanor), a sound SHALL play at the build's controller and particles SHALL rise from every block of the build. A failed attempt SHALL show no effect, only the message naming the missing block.

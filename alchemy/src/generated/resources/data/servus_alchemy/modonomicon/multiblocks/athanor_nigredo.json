@@ -17,6 +17,14 @@
       "type": "modonomicon:block",
       "block": "servus_alchemy:copper_duct"
     },
+    "R": {
+      "type": "modonomicon:blockstateproperty",
+      "block": "minecraft:brick_stairs[facing=south]"
+    },
+    "S": {
+      "type": "modonomicon:blockstateproperty",
+      "block": "minecraft:brick_slab[type=bottom]"
+    },
     "T": {
       "type": "modonomicon:block",
       "block": "servus_foundation:fluid_tank"
@@ -24,25 +32,25 @@
   },
   "pattern": [
     [
+      "__T__",
       "_____",
-      "_____",
-      "DD_DD",
-      "__D__",
-      "__D__"
-    ],
-    [
-      "_____",
-      "_____",
-      "T_A_T",
+      "____T",
       "_____",
       "__T__"
     ],
     [
-      "__B__",
-      "_BBB_",
-      "BB0BB",
-      "_BBB_",
-      "__B__"
+      "__T__",
+      "__D__",
+      "__ADT",
+      "__D__",
+      "__T__"
+    ],
+    [
+      "__T__",
+      "_SSS_",
+      "RB0ST",
+      "_SSS_",
+      "__T__"
     ]
   ]
 }

@@ -81,8 +81,9 @@ public class AthanorBlock extends MachineBlock {
     }
 
     /** A formed Athanor stands as its tower: a player walks from a duct's pipe onto its plate. */
-    private static final VoxelShape TOWER = Shapes.or(Block.box(0, 0, 0, 16, 2, 16), Block.box(1, 2, 1, 15, 16, 15),
-            Block.box(1.5, 16, 1.5, 14.5, 20, 14.5), Block.box(2, 20, 2, 14, 23, 14));
+    private static final VoxelShape TOWER = Shapes.or(Block.box(0, 0, 0, 16, 3, 16), Block.box(1, 3, 1, 15, 17, 15),
+            Block.box(2.5, 17, 2.5, 13.5, 19, 13.5), Block.box(4, 19, 4, 12, 21, 12), Block.box(5.5, 21, 5.5, 10.5, 22.5, 10.5),
+            Block.box(3.5, 22.5, 3.5, 12.5, 23.5, 12.5));
 
     /** Formed, it is looked at two blocks tall, its own block and the space above where the item lies (see {@link AthanorCrownBlock}). */
     private static final VoxelShape OUTLINE = Block.box(0, 0, 0, 16, 32, 16);

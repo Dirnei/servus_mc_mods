@@ -19,6 +19,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
 /**
@@ -111,13 +112,27 @@ public final class ServusAlchemyMultiblockProvider extends MultiblockProvider {
         return Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "athanor_" + stage);
     }
 
+    /**
+     * The anchor {@code 0} is the middle of the bottom layer, so the build stands on the clicked ground: the hearth
+     * centre for Nigredo, the open middle of the salt ring from Albedo on, which takes any block.
+     */
     private void athanor(String stage, List<AthanorTiers.BlockAt> extra) {
         AthanorLayout.Schematic schematic = AthanorLayout.schematic(extra);
         DenseMultiblockBuilder builder = new DenseMultiblockBuilder();
         for (List<String> layer : schematic.layers()) {
             builder.layer(layer.toArray(String[]::new));
         }
-        schematic.mapping().forEach((symbol, id) -> builder.block(symbol, () -> BuiltInRegistries.BLOCK.getValue(Identifier.parse(id))));
+        schematic.mapping().forEach((symbol, entry) -> {
+            int properties = entry.indexOf('[');
+            if (entry.equals(AthanorLayout.ANY)) {
+                builder.any(symbol);
+            } else if (properties >= 0) {
+                Block block = BuiltInRegistries.BLOCK.getValue(Identifier.parse(entry.substring(0, properties)));
+                builder.blockstateproperty(symbol, () -> block, entry.substring(properties));
+            } else {
+                builder.block(symbol, () -> BuiltInRegistries.BLOCK.getValue(Identifier.parse(entry)));
+            }
+        });
         add(athanor(stage), builder.build(false, 1));
     }
 }

@@ -321,7 +321,7 @@ public final class HomunculusGameTests {
     public static void sealedFlaskNeedsRubedo(GameTestHelper helper) {
         AthanorBlockEntity athanor = AlchemyGameTests.athanor(helper);
         AlchemyGameTests.saltRing(helper);
-        AlchemyGameTests.amethystRing(helper);
+        AlchemyGameTests.citrinitasVats(helper);
         athanor.checkTier();
         helper.assertTrue(athanor.tier() == 2, "the amethyst ring makes Citrinitas, got " + athanor.tier());
         athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.CRYING_OBSIDIAN));

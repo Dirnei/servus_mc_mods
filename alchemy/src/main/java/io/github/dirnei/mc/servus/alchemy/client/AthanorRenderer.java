@@ -20,7 +20,7 @@ import net.minecraft.world.phys.AABB;
 public class AthanorRenderer extends BufferedBlockEntityRenderer<AthanorBlockEntity> {
 
     /** Where the item rests: on the tower's iron plate when formed, on the block's top when not. */
-    private static final double PLATE = 23 / 16.0 + 0.02;
+    private static final double PLATE = 23.5 / 16.0 + 0.02;
 
     public AthanorRenderer(BlockEntityRendererProvider.Context context) {
     }

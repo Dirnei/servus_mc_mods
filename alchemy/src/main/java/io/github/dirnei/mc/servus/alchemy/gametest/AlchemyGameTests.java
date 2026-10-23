@@ -5,6 +5,7 @@ import com.klikli_dev.modonomicon.api.multiblock.Multiblock;
 import com.klikli_dev.modonomicon.book.Book;
 import com.klikli_dev.modonomicon.data.BookDataManager;
 import com.klikli_dev.modonomicon.research.ResearchServices;
+import com.mojang.authlib.GameProfile;
 import io.github.dirnei.mc.servus.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.alchemy.CoagulatorBlockEntity;
@@ -15,7 +16,9 @@ import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlock;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorLayout;
+import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTierData;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers;
+import io.github.dirnei.mc.servus.alchemy.datagen.ServusAlchemyMultiblockProvider;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.journal.JournalBookItem;
 import io.github.dirnei.mc.servus.alchemy.journal.JournalChapters;
@@ -40,6 +43,7 @@ import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,8 +53,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.locale.Language;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -65,7 +71,11 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.BlockHitResult;
@@ -324,40 +334,66 @@ public final class AlchemyGameTests {
         helper.succeed();
     }
 
-    /** An Athanor on its hearth at {@link #MACHINE}, formed with the Journal. */
+    /** Where the Athanor stands in its tests: room for the salt ring below it and the vats beside its tanks. */
+    static final BlockPos ATHANOR = new BlockPos(5, 2, 5);
+
+    /** An Athanor facing north on its hearth at {@link #ATHANOR}, formed with the Journal. */
     static AthanorBlockEntity athanor(GameTestHelper helper) {
-        AthanorBlockEntity athanor = unformedAthanor(helper);
-        CalcinerGameTests.use(helper, CalcinerGameTests.player(helper, new ItemStack(ServusAlchemyItems.PARACELSUS_JOURNAL.get())), MACHINE);
-        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, true);
+        return athanor(helper, Facing.NORTH);
+    }
+
+    /** An Athanor facing {@code facing} on its hearth at {@link #ATHANOR}, formed with the Journal. */
+    static AthanorBlockEntity athanor(GameTestHelper helper, Facing facing) {
+        AthanorBlockEntity athanor = unformedAthanor(helper, facing);
+        CalcinerGameTests.use(helper, CalcinerGameTests.player(helper, new ItemStack(ServusAlchemyItems.PARACELSUS_JOURNAL.get())), ATHANOR);
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, true);
         return athanor;
     }
 
-    /** An Athanor facing north on a complete hearth with its three tanks that nobody formed. */
+    /** An Athanor facing north on a complete hearth with its step, three tanks and three ducts that nobody formed. */
     static AthanorBlockEntity unformedAthanor(GameTestHelper helper) {
-        for (AthanorTiers.BlockAt brick : AthanorLayout.hearth()) {
-            helper.setBlock(MACHINE.offset(brick.dx(), brick.dy(), brick.dz()), Blocks.BRICKS);
-        }
-        helper.setBlock(MACHINE, ServusAlchemyBlocks.ATHANOR.get().defaultBlockState().setValue(MachineBlock.FACING, Direction.NORTH));
-        for (AthanorLayout.Tank tank : AthanorLayout.tanks(Facing.NORTH)) {
-            helper.setBlock(athanorTank(tank.side()), ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
-        }
-        for (AthanorLayout.Duct duct : AthanorLayout.ducts(Facing.NORTH)) {
-            helper.setBlock(athanorDuct(duct.side(), duct.overTank()), ServusAlchemyBlocks.COPPER_DUCT.get().defaultBlockState());
-        }
-        return helper.getBlockEntity(MACHINE, AthanorBlockEntity.class);
+        return unformedAthanor(helper, Facing.NORTH);
     }
 
-    /** Where the Athanor's duct toward the tank on {@code side} stands in the test: beside the Athanor or over the tank. */
-    static BlockPos athanorDuct(AthanorLayout.TankSide side, boolean overTank) {
-        AthanorLayout.Duct duct = AthanorLayout.ducts(Facing.NORTH).stream()
-                .filter(each -> each.side() == side && each.overTank() == overTank).findFirst().orElseThrow();
-        return MACHINE.offset(duct.dx(), 1, duct.dz());
+    static AthanorBlockEntity unformedAthanor(GameTestHelper helper, Facing facing) {
+        AthanorLayout.hearth(facing).forEach(block -> place(helper, block, facing));
+        place(helper, AthanorLayout.step(facing), facing);
+        helper.setBlock(ATHANOR, ServusAlchemyBlocks.ATHANOR.get().defaultBlockState().setValue(MachineBlock.FACING, direction(facing)));
+        AthanorLayout.tankBlocks(facing).forEach(block -> place(helper, block, facing));
+        for (AthanorLayout.Duct duct : AthanorLayout.ducts(facing)) {
+            helper.setBlock(ATHANOR.offset(duct.dx(), 0, duct.dz()), ServusAlchemyBlocks.COPPER_DUCT.get().defaultBlockState());
+        }
+        return helper.getBlockEntity(ATHANOR, AthanorBlockEntity.class);
     }
 
-    /** Where the Athanor's tank on {@code side} stands in the test. */
+    private static Direction direction(Facing facing) {
+        return switch (facing) {
+            case EAST -> Direction.EAST;
+            case SOUTH -> Direction.SOUTH;
+            case WEST -> Direction.WEST;
+            default -> Direction.NORTH;
+        };
+    }
+
+    /** Places {@code block} at its offset from the Athanor; a stair rises toward an Athanor facing {@code facing}. */
+    static void place(GameTestHelper helper, AthanorTiers.BlockAt block, Facing facing) {
+        BlockState state = BuiltInRegistries.BLOCK.getValue(Identifier.parse(block.block())).defaultBlockState();
+        if (state.getBlock() instanceof StairBlock) {
+            state = state.setValue(StairBlock.FACING, direction(facing).getOpposite());
+        }
+        helper.setBlock(ATHANOR.offset(block.dx(), block.dy(), block.dz()), state);
+    }
+
+    /** Where the Athanor's duct toward the tank on {@code side} stands in the test. */
+    static BlockPos athanorDuct(AthanorLayout.TankSide side) {
+        AthanorLayout.Duct duct = AthanorLayout.ducts(Facing.NORTH).stream().filter(each -> each.side() == side).findFirst().orElseThrow();
+        return ATHANOR.offset(duct.dx(), 0, duct.dz());
+    }
+
+    /** Where the Athanor's tank on {@code side} stands on the Athanor's level in the test. */
     static BlockPos athanorTank(AthanorLayout.TankSide side) {
         AthanorLayout.Tank tank = AthanorLayout.tanks(Facing.NORTH).stream().filter(each -> each.side() == side).findFirst().orElseThrow();
-        return MACHINE.offset(tank.dx(), 0, tank.dz());
+        return ATHANOR.offset(tank.dx(), 0, tank.dz());
     }
 
     static FluidView athanorTankHandler(GameTestHelper helper, AthanorLayout.TankSide side) {
@@ -377,59 +413,129 @@ public final class AlchemyGameTests {
         }
     }
 
-    /** Without its hearth the Journal forms nothing; on a complete one it does, and a missing corner brick unforms it at the next check. */
+    /** A mock player holding the Journal that keeps the translation keys of the messages it gets, with the keys of their arguments. */
+    static Player listeningPlayer(GameTestHelper helper, List<String> messages) {
+        Player player = new Player(helper.getLevel(), new GameProfile(UUID.randomUUID(), "test-mock-player")) {
+            @Override
+            public GameType gameMode() {
+                return GameType.SURVIVAL;
+            }
+
+            @Override
+            public boolean isClientAuthoritative() {
+                return false;
+            }
+
+            @Override
+            public void sendSystemMessage(Component message) {
+                messages.add(keys(message));
+            }
+        };
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ServusAlchemyItems.PARACELSUS_JOURNAL.get()));
+        return player;
+    }
+
+    private static String keys(Component message) {
+        if (!(message.getContents() instanceof TranslatableContents translatable)) {
+            return message.getString();
+        }
+        StringBuilder keys = new StringBuilder(translatable.getKey());
+        for (Object arg : translatable.getArgs()) {
+            if (arg instanceof Component component) {
+                keys.append(' ').append(keys(component));
+            }
+        }
+        return keys.toString();
+    }
+
+    /** Without a slab the Journal names the slabs and forms nothing; on a complete hearth it forms, and a missing front brick unforms it at the next check. */
     @ServusGameTest(timeoutTicks = 20)
     public static void athanorFormsOnItsHearth(GameTestHelper helper) {
         unformedAthanor(helper);
-        helper.setBlock(MACHINE.offset(1, -1, 1), Blocks.STONE);
-        Player player = CalcinerGameTests.player(helper, new ItemStack(ServusAlchemyItems.PARACELSUS_JOURNAL.get()));
-        CalcinerGameTests.use(helper, player, MACHINE);
-        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
-        helper.setBlock(MACHINE.offset(1, -1, 1), Blocks.BRICKS);
-        CalcinerGameTests.use(helper, player, MACHINE);
-        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, true);
-        AthanorBlockEntity athanor = helper.getBlockEntity(MACHINE, AthanorBlockEntity.class);
+        helper.setBlock(ATHANOR.offset(1, -1, 1), Blocks.STONE);
+        List<String> messages = new ArrayList<>();
+        Player player = listeningPlayer(helper, messages);
+        CalcinerGameTests.use(helper, player, ATHANOR);
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, false);
+        helper.assertTrue(messages.equals(List.of("message.servus_alchemy.athanor.missing_slab")), "the slabs are named, got " + messages);
+        helper.setBlock(ATHANOR.offset(1, -1, 1), Blocks.BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP));
+        CalcinerGameTests.use(helper, player, ATHANOR);
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, true);
+        AthanorBlockEntity athanor = helper.getBlockEntity(ATHANOR, AthanorBlockEntity.class);
         helper.assertTrue(athanor.owner().filter(player.getUUID()::equals).isPresent(), "the forming player owns the Athanor");
-        helper.setBlock(MACHINE.offset(-1, -1, -1), Blocks.AIR);
+        helper.setBlock(ATHANOR.offset(0, -1, -1), Blocks.AIR);
         athanor.checkTier();
-        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, false);
+        messages.clear();
+        CalcinerGameTests.use(helper, player, ATHANOR);
+        helper.assertTrue(messages.equals(List.of("message.servus_alchemy.athanor.missing")), "the bricks are named, got " + messages);
         helper.succeed();
     }
 
-    /** The journal's Athanor schematics accept the hearth and the Albedo ring, anchored on the hearth centre. */
+    /** Without the Brick Stair in front the Journal names the step and forms nothing. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void athanorNamesTheMissingStep(GameTestHelper helper) {
+        unformedAthanor(helper);
+        helper.setBlock(ATHANOR.offset(0, -1, -2), Blocks.BRICK_SLAB);
+        List<String> messages = new ArrayList<>();
+        CalcinerGameTests.use(helper, listeningPlayer(helper, messages), ATHANOR);
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, false);
+        helper.assertTrue(messages.equals(List.of("message.servus_alchemy.athanor.missing_step")), "the step is named, got " + messages);
+        helper.succeed();
+    }
+
+    /** A left tank only two high is no tank: the Journal names the tank on the left and forms nothing. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void athanorNamesAShortTank(GameTestHelper helper) {
+        unformedAthanor(helper);
+        helper.setBlock(athanorTank(AthanorLayout.TankSide.LEFT).above(), Blocks.AIR);
+        List<String> messages = new ArrayList<>();
+        CalcinerGameTests.use(helper, listeningPlayer(helper, messages), ATHANOR);
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, false);
+        helper.assertTrue(messages.equals(List.of("message.servus_alchemy.athanor.missing_tank message.servus_alchemy.athanor.tank.left")),
+                "the left tank is named, got " + messages);
+        helper.succeed();
+    }
+
+    /** The journal's Athanor schematics accept the builds: Nigredo anchored on the hearth centre, the stages on the open middle of the salt ring. */
     @ServusGameTest(timeoutTicks = 20)
     public static void athanorSchematicsMatchTheBuilds(GameTestHelper helper) {
-        Multiblock nigredo = ModonomiconAPI.get()
-                .getMultiblock(Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "athanor_nigredo"));
-        Multiblock albedo = ModonomiconAPI.get()
-                .getMultiblock(Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "athanor_albedo"));
-        helper.assertTrue(nigredo != null && albedo != null, "both Athanor schematics should be loaded");
+        Multiblock nigredo = ModonomiconAPI.get().getMultiblock(ServusAlchemyMultiblockProvider.athanor("nigredo"));
+        Multiblock albedo = ModonomiconAPI.get().getMultiblock(ServusAlchemyMultiblockProvider.athanor("albedo"));
+        Multiblock citrinitas = ModonomiconAPI.get().getMultiblock(ServusAlchemyMultiblockProvider.athanor("citrinitas"));
+        Multiblock rubedo = ModonomiconAPI.get().getMultiblock(ServusAlchemyMultiblockProvider.athanor("rubedo"));
+        helper.assertTrue(nigredo != null && albedo != null && citrinitas != null && rubedo != null, "all four Athanor schematics should be loaded");
         unformedAthanor(helper);
-        BlockPos anchor = helper.absolutePos(MACHINE.below());
-        helper.assertTrue(nigredo.validate(helper.getLevel(), anchor) != null, "the hearth schematic accepts the build");
-        helper.assertTrue(albedo.validate(helper.getLevel(), anchor) == null, "the Albedo schematic wants the ring");
+        BlockPos hearth = helper.absolutePos(ATHANOR.below());
+        BlockPos ring = helper.absolutePos(ATHANOR.below(2));
+        helper.assertTrue(nigredo.validate(helper.getLevel(), hearth) != null, "the hearth schematic accepts the build, misses " + misses(helper, nigredo, hearth));
+        helper.assertTrue(albedo.validate(helper.getLevel(), ring) == null, "the Albedo schematic wants the ring");
         saltRing(helper);
-        helper.assertTrue(albedo.validate(helper.getLevel(), anchor) != null, "the Albedo schematic accepts the ring");
-        Multiblock citrinitas = ModonomiconAPI.get()
-                .getMultiblock(Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "athanor_citrinitas"));
-        Multiblock rubedo = ModonomiconAPI.get()
-                .getMultiblock(Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "athanor_rubedo"));
-        helper.assertTrue(citrinitas != null && rubedo != null, "the Citrinitas and Rubedo schematics should be loaded");
-        helper.assertTrue(citrinitas.validate(helper.getLevel(), anchor) == null, "the Citrinitas schematic wants the amethyst");
-        amethystRing(helper);
-        helper.assertTrue(citrinitas.validate(helper.getLevel(), anchor) != null, "the Citrinitas schematic accepts the amethyst");
-        helper.assertTrue(rubedo.validate(helper.getLevel(), anchor) == null, "the Rubedo schematic wants the pillars");
+        helper.assertTrue(albedo.validate(helper.getLevel(), ring) != null, "the Albedo schematic accepts the ring, misses " + misses(helper, albedo, ring));
+        helper.assertTrue(citrinitas.validate(helper.getLevel(), ring) == null, "the Citrinitas schematic wants the vats");
+        citrinitasVats(helper);
+        helper.assertTrue(citrinitas.validate(helper.getLevel(), ring) != null, "the Citrinitas schematic accepts the vats, misses " + misses(helper, citrinitas, ring));
+        helper.assertTrue(rubedo.validate(helper.getLevel(), ring) == null, "the Rubedo schematic wants the pillars");
         rubedoPillars(helper);
-        helper.assertTrue(rubedo.validate(helper.getLevel(), anchor) != null, "the Rubedo schematic accepts the pillars");
+        helper.assertTrue(rubedo.validate(helper.getLevel(), ring) != null, "the Rubedo schematic accepts the pillars, misses " + misses(helper, rubedo, ring));
         helper.succeed();
+    }
+
+    /** The cells of {@code multiblock} anchored at {@code anchor}, unturned, that the world does not match. */
+    private static List<String> misses(GameTestHelper helper, Multiblock multiblock, BlockPos anchor) {
+        return multiblock.simulate(helper.getLevel(), anchor, Rotation.NONE, false, false).getSecond().stream()
+                .filter(result -> !result.test(helper.getLevel(), Rotation.NONE))
+                .map(result -> result.character() + " at " + helper.relativePos(result.worldPosition()) + " is "
+                        + helper.getLevel().getBlockState(result.worldPosition()))
+                .toList();
     }
 
     /** Breaking the brick right under a formed Athanor unforms it at once. */
     @ServusGameTest(timeoutTicks = 20)
     public static void athanorUnformsWithoutTheBrickBelow(GameTestHelper helper) {
         athanor(helper);
-        helper.getLevel().destroyBlock(helper.absolutePos(MACHINE.below()), true);
-        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
+        helper.getLevel().destroyBlock(helper.absolutePos(ATHANOR.below()), true);
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, false);
         helper.succeed();
     }
 
@@ -445,37 +551,24 @@ public final class AlchemyGameTests {
         });
     }
 
-    /** The Albedo ring: twelve Salt Crystal Blocks filling the hearth layer out to a 5 by 5 square. */
+    /** Places the shipped blocks of the tier {@code name} around an Athanor facing {@code facing}. */
+    static void stage(GameTestHelper helper, String name, Facing facing) {
+        AthanorTierData.readShipped(name).blocks().forEach(block -> place(helper, AthanorTiers.turn(block, facing), facing));
+    }
+
+    /** The Albedo ring: sixteen Salt Crystal Blocks one layer under the hearth of a north facing Athanor. */
     static void saltRing(GameTestHelper helper) {
-        for (int dx = -2; dx <= 2; dx++) {
-            for (int dz = -2; dz <= 2; dz++) {
-                if (Math.abs(dx) + Math.abs(dz) > 2) {
-                    helper.setBlock(MACHINE.offset(dx, -1, dz), ServusAlchemyBlocks.SALT_CRYSTAL_BLOCK.get().defaultBlockState());
-                }
-            }
-        }
+        stage(helper, "albedo", Facing.NORTH);
     }
 
-    /** The Citrinitas ring: twelve Amethyst Blocks standing on the twelve cells of the salt ring. */
-    static void amethystRing(GameTestHelper helper) {
-        for (int dx = -2; dx <= 2; dx++) {
-            for (int dz = -2; dz <= 2; dz++) {
-                if (Math.abs(dx) + Math.abs(dz) > 2) {
-                    helper.setBlock(MACHINE.offset(dx, 0, dz), Blocks.AMETHYST_BLOCK);
-                }
-            }
-        }
+    /** The interim Citrinitas: a Principle Vat with an Amethyst Block on it beside each tank. */
+    static void citrinitasVats(GameTestHelper helper) {
+        stage(helper, "citrinitas", Facing.NORTH);
     }
 
-    /** The Rubedo pillars: two Crying Obsidian on each corner of the amethyst ring. */
+    /** The interim Rubedo: four Crying Obsidian pillars, two high, beside the back tank and behind the side tanks. */
     static void rubedoPillars(GameTestHelper helper) {
-        for (int dy = 1; dy <= 2; dy++) {
-            for (int dx = -2; dx <= 2; dx += 4) {
-                for (int dz = -2; dz <= 2; dz += 4) {
-                    helper.setBlock(MACHINE.offset(dx, dy, dz), Blocks.CRYING_OBSIDIAN);
-                }
-            }
-        }
+        stage(helper, "rubedo", Facing.NORTH);
     }
 
     /** A Salt Crystal and Salt grow into a Salt Crystal Block on the Athanor; no crafting table recipe makes or splits one. */
@@ -521,11 +614,11 @@ public final class AlchemyGameTests {
             helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).isEmpty(), "no Albedo craft at Nigredo");
             saltRing(helper);
             athanor.checkTier();
-            helper.assertTrue(athanor.tier() == 1 && helper.getBlockState(MACHINE).getValue(AthanorBlock.TIER) == 1, "the ring makes Albedo");
+            helper.assertTrue(athanor.tier() == 1 && helper.getBlockState(ATHANOR).getValue(AthanorBlock.TIER) == 1, "the ring makes Albedo");
             helper.runAfterDelay(120, () -> {
                 helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).is(Items.EXPERIENCE_BOTTLE),
                         "the Albedo craft should run");
-                helper.setBlock(MACHINE.offset(2, -1, 1), Blocks.AIR.defaultBlockState());
+                helper.setBlock(ATHANOR.offset(2, -2, 1), Blocks.AIR.defaultBlockState());
                 athanor.checkTier();
                 helper.assertTrue(athanor.tier() == 0, "a gap in the ring is Nigredo again");
                 helper.succeed();
@@ -533,38 +626,53 @@ public final class AlchemyGameTests {
         });
     }
 
-    /** Amethyst on the salt ring makes Citrinitas; without the salt ring it counts for nothing, and a gap falls back to Albedo. */
+    /** Vats with amethyst beside the tanks make Citrinitas on the salt ring; without the ring they count for nothing, and a missing amethyst falls back to Albedo. */
     @ServusGameTest(timeoutTicks = 20)
-    public static void citrinitasRingMakesTierTwo(GameTestHelper helper) {
+    public static void citrinitasVatsMakeTierTwo(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
-        amethystRing(helper);
+        citrinitasVats(helper);
         athanor.checkTier();
-        helper.assertTrue(athanor.tier() == 0, "amethyst without the salt ring is Nigredo, got " + athanor.tier());
+        helper.assertTrue(athanor.tier() == 0, "vats without the salt ring are Nigredo, got " + athanor.tier());
         saltRing(helper);
         athanor.checkTier();
-        helper.assertTrue(athanor.tier() == 2 && helper.getBlockState(MACHINE).getValue(AthanorBlock.TIER) == 2,
-                "the amethyst ring makes Citrinitas, got " + athanor.tier());
+        helper.assertTrue(athanor.tier() == 2 && helper.getBlockState(ATHANOR).getValue(AthanorBlock.TIER) == 2,
+                "the vats make Citrinitas, got " + athanor.tier());
         helper.assertTrue(athanor.tierName().equals("citrinitas"), "the stage is Citrinitas, got " + athanor.tierName());
-        helper.setBlock(MACHINE.offset(2, 0, 2), Blocks.AIR);
+        helper.setBlock(ATHANOR.offset(0, 0, 3), Blocks.AIR);
         athanor.checkTier();
-        helper.assertTrue(athanor.tier() == 1, "a gap in the amethyst is Albedo, got " + athanor.tier());
+        helper.assertTrue(athanor.tier() == 1, "a vat without its amethyst is Albedo, got " + athanor.tier());
         helper.succeed();
     }
 
-    /** Crying Obsidian pillars on the amethyst corners make Rubedo; a short pillar falls back to Citrinitas. */
+    /** Crying Obsidian pillars beside the back tank and behind the side tanks make Rubedo; a short pillar falls back to Citrinitas. */
     @ServusGameTest(timeoutTicks = 20)
     public static void rubedoPillarsMakeTierThree(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
         saltRing(helper);
-        amethystRing(helper);
+        citrinitasVats(helper);
         rubedoPillars(helper);
         athanor.checkTier();
-        helper.assertTrue(athanor.tier() == 3 && helper.getBlockState(MACHINE).getValue(AthanorBlock.TIER) == 3,
+        helper.assertTrue(athanor.tier() == 3 && helper.getBlockState(ATHANOR).getValue(AthanorBlock.TIER) == 3,
                 "the pillars make Rubedo, got " + athanor.tier());
-        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, true);
-        helper.setBlock(MACHINE.offset(-2, 2, -2), Blocks.AIR);
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, true);
+        helper.setBlock(ATHANOR.offset(-2, 0, 1), Blocks.AIR);
         athanor.checkTier();
         helper.assertTrue(athanor.tier() == 2, "a short pillar is Citrinitas, got " + athanor.tier());
+        helper.succeed();
+    }
+
+    /** An Athanor facing east forms on its turned hearth and reaches Rubedo with the ring, vats and pillars turned with it. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void turnedAthanorReachesRubedo(GameTestHelper helper) {
+        AthanorBlockEntity athanor = athanor(helper, Facing.EAST);
+        stage(helper, "albedo", Facing.EAST);
+        stage(helper, "citrinitas", Facing.EAST);
+        athanor.checkTier();
+        helper.assertTrue(athanor.tier() == 2, "the turned vats make Citrinitas, got " + athanor.tier());
+        stage(helper, "rubedo", Facing.EAST);
+        athanor.checkTier();
+        helper.assertTrue(athanor.tier() == 3, "the turned pillars make Rubedo, got " + athanor.tier());
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, true);
         helper.succeed();
     }
 
@@ -577,7 +685,7 @@ public final class AlchemyGameTests {
                     athanorTankHandler(helper, AthanorLayout.TankSide.LEFT).handler());
             helper.assertTrue(result.is(Items.BUCKET), "the bucket should be emptied");
             helper.assertTrue(athanor.principles().get(Principle.SULFUR) == 1000, "the Athanor should see 1000 mB Sulfur");
-            helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(MACHINE), Direction.NORTH)) == null,
+            helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(ATHANOR), Direction.NORTH)) == null,
                     "the Athanor itself takes no fluid");
             helper.succeed();
         });
@@ -588,14 +696,14 @@ public final class AlchemyGameTests {
     public static void athanorByHand(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
         Player player = CalcinerGameTests.player(helper, new ItemStack(Items.GLASS_BOTTLE, 3));
-        CalcinerGameTests.use(helper, player, MACHINE);
+        CalcinerGameTests.use(helper, player, ATHANOR);
         helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT).getCount() == 3, "the bottles lie on top");
         athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_OUTPUT, new ItemStack(Items.EXPERIENCE_BOTTLE, 2));
-        CalcinerGameTests.use(helper, player, MACHINE);
+        CalcinerGameTests.use(helper, player, ATHANOR);
         helper.assertTrue(player.getInventory().countItem(Items.EXPERIENCE_BOTTLE) == 2, "an empty hand takes the result");
         helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT).getCount() == 3, "the bottles stay");
         player.setShiftKeyDown(true);
-        CalcinerGameTests.use(helper, player, MACHINE);
+        CalcinerGameTests.use(helper, player, ATHANOR);
         helper.assertTrue(player.getInventory().countItem(Items.GLASS_BOTTLE) == 3, "sneaking takes the bottles back");
         helper.assertTrue(player.containerMenu == player.inventoryMenu, "no GUI opens");
         helper.succeed();
@@ -617,63 +725,67 @@ public final class AlchemyGameTests {
         });
     }
 
-    /** Without its left tank the Journal forms nothing; a formed Athanor that loses a tank unforms at the next check. */
+    /** Without its left tank the Journal forms nothing; a formed Athanor that loses the bottom of a tank unforms at the next check. */
     @ServusGameTest(timeoutTicks = 20)
     public static void athanorNeedsItsTanks(GameTestHelper helper) {
         unformedAthanor(helper);
         helper.setBlock(athanorTank(AthanorLayout.TankSide.LEFT), Blocks.AIR);
         Player player = CalcinerGameTests.player(helper, new ItemStack(ServusAlchemyItems.PARACELSUS_JOURNAL.get()));
-        CalcinerGameTests.use(helper, player, MACHINE);
-        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
+        CalcinerGameTests.use(helper, player, ATHANOR);
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, false);
         helper.setBlock(athanorTank(AthanorLayout.TankSide.LEFT), ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
-        CalcinerGameTests.use(helper, player, MACHINE);
-        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, true);
-        helper.setBlock(athanorTank(AthanorLayout.TankSide.BACK), Blocks.AIR);
-        AthanorBlockEntity athanor = helper.getBlockEntity(MACHINE, AthanorBlockEntity.class);
+        CalcinerGameTests.use(helper, player, ATHANOR);
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, true);
+        helper.setBlock(athanorTank(AthanorLayout.TankSide.BACK).below(), Blocks.AIR);
+        AthanorBlockEntity athanor = helper.getBlockEntity(ATHANOR, AthanorBlockEntity.class);
         athanor.checkTier();
-        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, false);
         helper.succeed();
     }
 
-    /** Forming turns the six ducts into the Athanor's pipes; breaking one unforms it at once and gives the others their straight look back. */
+    /** Forming turns the three ducts into the Athanor's pipes; breaking one unforms it at once and gives the others their straight look back. */
     @ServusGameTest(timeoutTicks = 20)
     public static void athanorFormsItsDucts(GameTestHelper helper) {
         athanor(helper);
         for (AthanorLayout.Duct duct : AthanorLayout.ducts(Facing.NORTH)) {
-            BlockState state = helper.getBlockState(athanorDuct(duct.side(), duct.overTank()));
-            helper.assertTrue(CopperDuctBlock.athanorPiece(state), "every duct is formed into the Athanor");
-            helper.assertTrue(state.getValue(CopperDuctBlock.PIECE) == (duct.overTank() ? CopperDuctBlock.ATHANOR_OVER : CopperDuctBlock.ATHANOR_NEAR),
-                    "the duct over the tank turns down, the one beside runs straight");
+            BlockState state = helper.getBlockState(athanorDuct(duct.side()));
+            helper.assertTrue(CopperDuctBlock.athanorPiece(state) && state.getValue(CopperDuctBlock.PIECE) == CopperDuctBlock.ATHANOR,
+                    "every duct is formed into the Athanor's pipe");
         }
-        helper.getLevel().destroyBlock(helper.absolutePos(athanorDuct(AthanorLayout.TankSide.BACK, true)), true);
-        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
-        helper.assertBlockProperty(athanorDuct(AthanorLayout.TankSide.LEFT, false), CopperDuctBlock.FORMED, false);
+        helper.getLevel().destroyBlock(helper.absolutePos(athanorDuct(AthanorLayout.TankSide.BACK)), true);
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, false);
+        helper.assertBlockProperty(athanorDuct(AthanorLayout.TankSide.LEFT), CopperDuctBlock.FORMED, false);
         helper.succeed();
     }
 
-    /** Without the duct over the tank behind it the Journal forms nothing; a tank stacked there takes the duct's place. */
+    /** Without the duct to the tank behind it the Journal names it and forms nothing; with it the Athanor forms. */
     @ServusGameTest(timeoutTicks = 20)
     public static void athanorNeedsItsDucts(GameTestHelper helper) {
         unformedAthanor(helper);
-        helper.setBlock(athanorDuct(AthanorLayout.TankSide.BACK, true), Blocks.AIR);
-        Player player = CalcinerGameTests.player(helper, new ItemStack(ServusAlchemyItems.PARACELSUS_JOURNAL.get()));
-        CalcinerGameTests.use(helper, player, MACHINE);
-        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
-        helper.setBlock(athanorDuct(AthanorLayout.TankSide.BACK, true), ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
-        CalcinerGameTests.use(helper, player, MACHINE);
-        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, true);
+        helper.setBlock(athanorDuct(AthanorLayout.TankSide.BACK), Blocks.AIR);
+        List<String> messages = new ArrayList<>();
+        Player player = listeningPlayer(helper, messages);
+        CalcinerGameTests.use(helper, player, ATHANOR);
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, false);
+        helper.assertTrue(messages.equals(List.of("message.servus_alchemy.athanor.missing_duct message.servus_alchemy.athanor.tank.back")),
+                "the duct behind is named, got " + messages);
+        helper.setBlock(athanorDuct(AthanorLayout.TankSide.BACK), ServusAlchemyBlocks.COPPER_DUCT.get().defaultBlockState());
+        CalcinerGameTests.use(helper, player, ATHANOR);
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, true);
         helper.succeed();
     }
 
-    /** A formed Athanor stands as its tower, up to its plate; a duct's pipe is low enough to jump onto. */
+    /** A formed Athanor stands as its tower up to its plate; a pipe is within a jump of the hearth slab and the plate within a jump of the pipe. */
     @ServusGameTest(timeoutTicks = 20)
     public static void athanorCanBeStoodOn(GameTestHelper helper) {
         athanor(helper);
-        double top = helper.getBlockState(MACHINE).getCollisionShape(helper.getLevel(), helper.absolutePos(MACHINE)).max(Direction.Axis.Y);
-        helper.assertTrue(Math.abs(top - 23 / 16.0) < 1e-6, "the plate is the top of the tower, not " + top);
-        BlockPos duct = athanorDuct(AthanorLayout.TankSide.LEFT, false);
+        double top = helper.getBlockState(ATHANOR).getCollisionShape(helper.getLevel(), helper.absolutePos(ATHANOR)).max(Direction.Axis.Y);
+        helper.assertTrue(Math.abs(top - 23.5 / 16.0) < 1e-6, "the plate is the top of the tower, not " + top);
+        BlockPos duct = athanorDuct(AthanorLayout.TankSide.LEFT);
         double pipe = helper.getBlockState(duct).getCollisionShape(helper.getLevel(), helper.absolutePos(duct)).max(Direction.Axis.Y);
-        helper.assertTrue(1 + pipe <= 1.25, "the pipe can be jumped onto, its top is " + (1 + pipe));
+        double slab = helper.getBlockState(duct.below()).getCollisionShape(helper.getLevel(), helper.absolutePos(duct.below())).max(Direction.Axis.Y) - 1;
+        helper.assertTrue(pipe - slab <= 1.25, "the pipe can be jumped onto from the slab, " + (pipe - slab) + " up");
+        helper.assertTrue(top - pipe <= 1.25, "the plate can be jumped onto from the pipe, " + (top - pipe) + " up");
         helper.succeed();
     }
 
@@ -681,14 +793,14 @@ public final class AlchemyGameTests {
     @ServusGameTest(timeoutTicks = 20)
     public static void athanorCrownTakesTheLook(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
-        helper.assertBlockPresent(ServusAlchemyBlocks.ATHANOR_CROWN.get(), MACHINE.above());
+        helper.assertBlockPresent(ServusAlchemyBlocks.ATHANOR_CROWN.get(), ATHANOR.above());
         Player player = CalcinerGameTests.player(helper, new ItemStack(Items.GUNPOWDER));
-        CalcinerGameTests.use(helper, player, MACHINE.above());
+        CalcinerGameTests.use(helper, player, ATHANOR.above());
         helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT).is(Items.GUNPOWDER), "the crown hands the item to the Athanor");
         helper.setBlock(athanorTank(AthanorLayout.TankSide.RIGHT), Blocks.AIR);
         athanor.checkTier();
-        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
-        helper.assertBlockNotPresent(ServusAlchemyBlocks.ATHANOR_CROWN.get(), MACHINE.above());
+        helper.assertBlockProperty(ATHANOR, AthanorBlock.FORMED, false);
+        helper.assertBlockNotPresent(ServusAlchemyBlocks.ATHANOR_CROWN.get(), ATHANOR.above());
         helper.succeed();
     }
 
@@ -696,13 +808,13 @@ public final class AlchemyGameTests {
     @ServusGameTest(timeoutTicks = 20)
     public static void athanorCrownByPlayerClick(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
-        ServerPlayer player = PlayerClicks.player(helper, MACHINE, new ItemStack(Items.GUNPOWDER, 2));
-        PlayerClicks.use(helper, player, MACHINE.above());
+        ServerPlayer player = PlayerClicks.player(helper, ATHANOR, new ItemStack(Items.GUNPOWDER, 2));
+        PlayerClicks.use(helper, player, ATHANOR.above());
         helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT).getCount() == 2,
                 "a click on the crown lays the item on the Athanor");
         helper.assertTrue(player.getMainHandItem().isEmpty(), "the item left the hand");
         athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_OUTPUT, new ItemStack(Items.BLAZE_POWDER));
-        PlayerClicks.use(helper, player, MACHINE.above());
+        PlayerClicks.use(helper, player, ATHANOR.above());
         helper.assertTrue(player.getInventory().countItem(Items.BLAZE_POWDER) == 1, "an empty hand on the crown takes the result");
         helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).isEmpty(), "the result is gone");
         helper.succeed();
@@ -712,10 +824,10 @@ public final class AlchemyGameTests {
     @ServusGameTest(timeoutTicks = 20)
     public static void athanorCrownByLook(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
-        BlockPos crown = helper.absolutePos(MACHINE.above());
+        BlockPos crown = helper.absolutePos(ATHANOR.above());
         for (GameType gameType : new GameType[] {GameType.SURVIVAL, GameType.CREATIVE}) {
             athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, ItemStack.EMPTY);
-            ServerPlayer player = PlayerClicks.player(helper, MACHINE, new ItemStack(Items.GUNPOWDER, 2), gameType);
+            ServerPlayer player = PlayerClicks.player(helper, ATHANOR, new ItemStack(Items.GUNPOWDER, 2), gameType);
             BlockHitResult hit = PlayerClicks.lookAndUse(helper, player, Vec3.atCenterOf(crown));
             helper.assertTrue(hit.getBlockPos().equals(crown), gameType + ": the look picks the crown, not " + hit.getBlockPos() + " " + hit.getType());
             helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT).is(Items.GUNPOWDER),
@@ -731,7 +843,7 @@ public final class AlchemyGameTests {
     /** The Villach chapter advancement unlocks the journal's Villach research node, which opens Schwaz and the Albedo entries. */
     @ServusGameTest(timeoutTicks = 20)
     public static void villachAdvancementUnlocksTheResearchNode(GameTestHelper helper) {
-        ServerPlayer player = PlayerClicks.player(helper, MACHINE, ItemStack.EMPTY);
+        ServerPlayer player = PlayerClicks.player(helper, ATHANOR, ItemStack.EMPTY);
         Identifier node = Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "journal/villach");
         var research = ResearchServices.state();
         helper.assertFalse(research.isNodeUnlocked(player, node), "the Villach node starts locked");
@@ -745,7 +857,7 @@ public final class AlchemyGameTests {
     /** The new chapters have advancements, and the Schwaz and Wandering years advancements unlock their research nodes. */
     @ServusGameTest(timeoutTicks = 20)
     public static void newChapterAdvancementsUnlockTheirNodes(GameTestHelper helper) {
-        ServerPlayer player = PlayerClicks.player(helper, MACHINE, ItemStack.EMPTY);
+        ServerPlayer player = PlayerClicks.player(helper, ATHANOR, ItemStack.EMPTY);
         var research = ResearchServices.state();
         for (String chapter : List.of("schwaz", "wandering_years")) {
             Identifier node = Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "journal/" + chapter);
@@ -766,10 +878,10 @@ public final class AlchemyGameTests {
     public static void breakingTheCrownBreaksTheAthanor(GameTestHelper helper) {
         athanor(helper);
         Player player = CalcinerGameTests.player(helper, ItemStack.EMPTY);
-        BlockPos crown = helper.absolutePos(MACHINE.above());
+        BlockPos crown = helper.absolutePos(ATHANOR.above());
         helper.getLevel().getBlockState(crown).getBlock().playerWillDestroy(helper.getLevel(), crown, helper.getLevel().getBlockState(crown), player);
-        helper.assertBlockNotPresent(ServusAlchemyBlocks.ATHANOR.get(), MACHINE);
-        helper.assertBlockNotPresent(ServusAlchemyBlocks.ATHANOR_CROWN.get(), MACHINE.above());
+        helper.assertBlockNotPresent(ServusAlchemyBlocks.ATHANOR.get(), ATHANOR);
+        helper.assertBlockNotPresent(ServusAlchemyBlocks.ATHANOR_CROWN.get(), ATHANOR.above());
         helper.succeed();
     }
 
@@ -812,7 +924,7 @@ public final class AlchemyGameTests {
         AthanorBlockEntity athanor = athanor(helper);
         athanor.setTeam(team);
         saltRing(helper);
-        amethystRing(helper);
+        citrinitasVats(helper);
         helper.runAfterDelay(2, () -> pour(helper, new Principles(0, 200, 0)));
         athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GUNPOWDER));
         helper.succeedWhen(() -> helper.assertTrue(
@@ -905,7 +1017,7 @@ public final class AlchemyGameTests {
     @ServusGameTest(timeoutTicks = 20)
     public static void athanorProductionFollowsTheTier(GameTestHelper helper) {
         athanor(helper);
-        ProductionProvider production = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION, helper.absolutePos(MACHINE), Direction.UP);
+        ProductionProvider production = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION, helper.absolutePos(ATHANOR), Direction.UP);
         helper.assertTrue(production != null, "the Athanor should be a producer");
         helper.assertTrue(production.recipes().stream().anyMatch(recipe -> recipe.outputs().get(0).is(Items.BLAZE_POWDER)), "Blaze Powder at Nigredo");
         helper.assertTrue(production.recipes().stream().noneMatch(recipe -> recipe.outputs().get(0).is(Items.EXPERIENCE_BOTTLE)),

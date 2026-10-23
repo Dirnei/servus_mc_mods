@@ -469,7 +469,7 @@ final class AlchemyModels {
     private void duct() {
         ModelFile straight = ductModel("copper_duct", -1);
         ModelFile[] pieces = {ductModel("copper_duct_elbow", 0), ductModel("copper_duct_down", 1),
-                ductModel("copper_duct_athanor", CopperDuctBlock.ATHANOR_NEAR), ductModel("copper_duct_athanor_over", CopperDuctBlock.ATHANOR_OVER)};
+                ductModel("copper_duct_athanor", CopperDuctBlock.ATHANOR)};
         Block block = ServusAlchemyBlocks.COPPER_DUCT.get();
         states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(state.getValue(CopperDuctBlock.FORMED) ? pieces[state.getValue(CopperDuctBlock.PIECE)] : straight)
@@ -481,9 +481,8 @@ final class AlchemyModels {
     /**
      * One piece of the duct. The Hood lies toward -x (the player's right), the Stone Bricks below
      * the last piece. Piece 0 runs across from the Hood's pipe and turns down, 1 drops into the
-     * copper collar of the Stone Bricks. For the Athanor (toward -x) the pipe lies at the bottom:
-     * the near piece runs from the tower's socket and ends in a flange (the side of a stacked tank),
-     * the over piece ends over the tank and goes down into its top.
+     * copper collar of the Stone Bricks. The Athanor piece runs straight from the tower's flange (toward -x)
+     * into the side of the tank, with a collar where it enters the tank.
      */
     private ModelFile ductModel(String name, int piece) {
         BlockModelBuilder model = builder(name)
@@ -500,14 +499,12 @@ final class AlchemyModels {
                 model.ao(false);
                 uvBox(model, 6, -3, 6, 10, 16, 10, "#copper");
             }
-            case CopperDuctBlock.ATHANOR_NEAR -> {
-                box(model, 0, 0, 6, 16, 4, 10, "#copper");
-                box(model, 14, 0, 5, 16, 5, 11, "#cut");
-            }
-            case CopperDuctBlock.ATHANOR_OVER -> {
-                box(model, 0, 0, 6, 10, 4, 10, "#copper");
-                box(model, 5, 0, 5, 11, 5, 11, "#cut");
-                box(model, 4, 0, 4, 12, 1, 12, "#cut");
+            case CopperDuctBlock.ATHANOR -> {
+                // No end faces: they lie on the flange and on the side of the tank.
+                model.element().from(0, 6, 6).to(16, 10, 10)
+                        .allFacesExcept((direction, face) -> face.texture("#copper"), Set.of(Direction.EAST, Direction.WEST)).end();
+                model.element().from(14.5F, 5.5F, 5.5F).to(16, 10.5F, 10.5F)
+                        .allFacesExcept((direction, face) -> face.texture("#cut"), Set.of(Direction.EAST)).end();
             }
             default -> {
                 box(model, 0, 6, 6, 16, 10, 10, "#copper");

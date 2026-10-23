@@ -157,7 +157,7 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 | M6 Warehouse automation | rails, elevators with lift cars, simulated shuttles, garages with a roll-up door, Inbound Station, Zone Labels, placement assist |
 | M7 Autocrafting integration | production API, work orders, stock rules, Outbound Station, Crafting Station |
 | M8 On-demand autocrafting | Servus: Foundation merge, data cable with tiers, Packing Station, Storage Terminal, Crafting CPU, Production Terminal, Pattern Storage, Machine Adapter, shuttle jobs that survive a reload, slot locks, following traffic, shuttle numbers, terminal requests within stock |
-| M9 Alchemy, Nigredo and Albedo | Tria Prima, Calciner, Purifier, Coagulator and Athanor builds, journal, Elixir of Sight, Gnome Hollow, facade panels, beam engine pumps, Ender Anchor area |
+| M9 Alchemy, Nigredo and Albedo | Tria Prima, Calciner, Purifier, Coagulator and Athanor builds (compact hearth, salt ring under it, Citrinitas and Rubedo rituals), journal, Elixir of Sight, Gnome Hollow, facade panels, beam engine pumps, Ender Anchor area |
 | M10 Field work | Shuttle Workshop, Mk1 to Mk3 shuttles with Speed and Handling, shuttle looks, hand build minigame, Farm Rail and Field Head with range, corrosion and tabs, Harvester and Spreader, lift upgrades |
 | M11 Wireless and scale | controllers as sites, Anchor Upgrade wakes, wireless between controllers, warehouse power, pipe access rules |
 

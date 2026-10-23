@@ -2,8 +2,7 @@
   "type": "modonomicon:dense",
   "mapping": {
     "0": {
-      "type": "modonomicon:block",
-      "block": "minecraft:bricks"
+      "type": "modonomicon:any"
     },
     "A": {
       "type": "modonomicon:block",
@@ -23,7 +22,19 @@
     },
     "E": {
       "type": "modonomicon:block",
+      "block": "servus_alchemy:principle_vat"
+    },
+    "F": {
+      "type": "modonomicon:block",
       "block": "minecraft:amethyst_block"
+    },
+    "R": {
+      "type": "modonomicon:blockstateproperty",
+      "block": "minecraft:brick_stairs[facing=south]"
+    },
+    "S": {
+      "type": "modonomicon:blockstateproperty",
+      "block": "minecraft:brick_slab[type=bottom]"
     },
     "T": {
       "type": "modonomicon:block",
@@ -32,25 +43,40 @@
   },
   "pattern": [
     [
-      "_____",
-      "_____",
-      "DD_DD",
-      "__D__",
-      "__D__"
+      "______",
+      "__T___",
+      "______",
+      "____T_",
+      "______",
+      "__T___",
+      "______"
     ],
     [
-      "EE_EE",
-      "E___E",
-      "T_A_T",
-      "E___E",
-      "EETEE"
+      "__F___",
+      "__T___",
+      "__D___",
+      "__ADTF",
+      "__D___",
+      "__T___",
+      "__F___"
     ],
     [
-      "CCBCC",
-      "CBBBC",
-      "BB0BB",
-      "CBBBC",
-      "CCBCC"
+      "__E___",
+      "__T___",
+      "_SSS__",
+      "RBBSTE",
+      "_SSS__",
+      "__T___",
+      "__E___"
+    ],
+    [
+      "______",
+      "CCCCC_",
+      "C___C_",
+      "C_0_C_",
+      "C___C_",
+      "CCCCC_",
+      "______"
     ]
   ]
 }

@@ -2,8 +2,7 @@
   "type": "modonomicon:dense",
   "mapping": {
     "0": {
-      "type": "modonomicon:block",
-      "block": "minecraft:bricks"
+      "type": "modonomicon:any"
     },
     "A": {
       "type": "modonomicon:block",
@@ -21,6 +20,14 @@
       "type": "modonomicon:block",
       "block": "servus_alchemy:copper_duct"
     },
+    "R": {
+      "type": "modonomicon:blockstateproperty",
+      "block": "minecraft:brick_stairs[facing=south]"
+    },
+    "S": {
+      "type": "modonomicon:blockstateproperty",
+      "block": "minecraft:brick_slab[type=bottom]"
+    },
     "T": {
       "type": "modonomicon:block",
       "block": "servus_foundation:fluid_tank"
@@ -28,25 +35,32 @@
   },
   "pattern": [
     [
+      "__T__",
       "_____",
-      "_____",
-      "DD_DD",
-      "__D__",
-      "__D__"
-    ],
-    [
-      "_____",
-      "_____",
-      "T_A_T",
+      "____T",
       "_____",
       "__T__"
     ],
     [
-      "CCBCC",
-      "CBBBC",
-      "BB0BB",
-      "CBBBC",
-      "CCBCC"
+      "__T__",
+      "__D__",
+      "__ADT",
+      "__D__",
+      "__T__"
+    ],
+    [
+      "__T__",
+      "_SSS_",
+      "RBBST",
+      "_SSS_",
+      "__T__"
+    ],
+    [
+      "CCCCC",
+      "C___C",
+      "C_0_C",
+      "C___C",
+      "CCCCC"
     ]
   ]
 }

@@ -184,26 +184,27 @@ final class WorkshopCategory extends CategoryProvider {
             e.spotlight("machine", ServusAlchemyItems.ATHANOR.get(), "The Athanor",
                     "Lay an item on it, feed it principles, and it burns them into something new.");
             e.multiblock("build", ServusAlchemyMultiblockProvider.athanor("nigredo"), "The Athanor on its Hearth",
-                    "Set it on a diamond of 13 Bricks, stand three Fluid Tanks on its tips to its left, behind it and to its right, "
-                            + "lay two Copper Ducts one block up from the Athanor to each tank, and use this journal on it. "
+                    "Set it on a hearth of Bricks and Brick Slabs with a Brick Stair in front, stand three Fluid Tanks three high "
+                            + "to its left, behind it and to its right, lay a Copper Duct from the Athanor to each tank, and use this journal on it. "
                             + "Press Visualize, then click the ground.");
-            e.crafting("recipe", ServusAlchemyIds.MOD_ID + ":athanor", "Bricks, a cauldron and a blast furnace.");
+            e.crafting("recipe", ServusAlchemyIds.MOD_ID + ":athanor", "Stone Bricks, a cauldron and a blast furnace.");
             e.text("hearth", "Its Hearth",
-                    "The Athanor burns only on a hearth: 13 Bricks in a diamond right below it, reaching two blocks out, with its three tanks on the tips. "
-                            + "Two Copper Ducts lead to each tank, one block up: one beside the Athanor, one over the tank. "
-                            + "When all is laid, use this journal on the Athanor: it rises into a stone brick tower and the ducts become pipes into its tanks. "
-                            + "Take a brick, a tank or a duct away and its fire goes out.");
+                    "The Athanor burns only on a hearth of 3 by 3 right below it: Bricks under it and in front of it, a bottom Brick Slab "
+                            + "on each of the other seven cells, and a Brick Stair in front as the step. "
+                            + "Three Fluid Tanks stand two blocks out, each three high from the hearth up, and a Copper Duct beside the Athanor "
+                            + "leads to each. When all is laid, use this journal on the Athanor: it rises into a brick tower with a fire door "
+                            + "and the ducts become pipes into its tanks. Take a brick, a slab, a tank or a duct away and its fire goes out.");
             e.text("tanks", "Its Tanks",
                     "The Athanor keeps no principles of its own. It drinks them from its three Fluid Tanks, two blocks out to its left, "
                             + "behind it and to its right, so they never touch and never run together.\n\n"
-                            + "Any tank may hold any principle. Lead pipes to them or pour buckets in. To make one bigger, stack tanks on it "
-                            + "where the duct over it lay; the other duct then runs into the tank's side.");
+                            + "Any tank may hold any principle. Lead pipes to them or pour buckets in. Each tank of three is one big tank.");
             e.text("fire", "Its Fire",
                     "Use an item on it to lay it on top. It burns what its tanks hold, and the work lies on top when it is done: "
                             + "take it with an empty hand, or sneak to take the item back. Hoppers and pipes may do both.\n\n"
-                            + "Alone its flame is black: Nigredo. Twelve Salt Crystal Blocks around its hearth, filling it out to a square, "
-                            + "turn the flame white: Albedo. Amethyst Blocks on that ring turn it yellow: Citrinitas. "
-                            + "Pillars of Crying Obsidian on the amethyst corners turn it red: Rubedo. Some works need a higher fire.");
+                            + "Alone its flame is black: Nigredo. A ring of Salt Crystal Blocks under its hearth turns the flame white: Albedo. "
+                            + "Principle Vats with Amethyst Blocks beside its tanks turn it yellow: Citrinitas. "
+                            + "Pillars of Crying Obsidian beside the back tank and behind the side tanks turn it red: Rubedo. "
+                            + "Some works need a higher fire.");
             e.list("works", "Its Works", AlchemyRecipeTable.athanor().stream()
                     .map(craft -> PrincipleText.line(craft.resultLabel() + " from " + craft.inputLabel(), craft.principles())
                             + (craft.tier() > 0 ? " (" + AlchemyRecipeTable.stageName(craft.tier()) + ")" : ""))
@@ -230,13 +231,14 @@ final class WorkshopCategory extends CategoryProvider {
         return new WorkshopEntry(this, "salt_crystal_block", "Salt Crystal Block", "Albedo: the white ring",
                 ServusAlchemyItems.SALT_CRYSTAL_BLOCK.get(), e -> {
             e.spotlight("block", ServusAlchemyItems.SALT_CRYSTAL_BLOCK.get(), "Salt Crystal Block",
-                    "A Salt Crystal grown whole on the Athanor. Twelve of them around its hearth make its flame white.");
+                    "A Salt Crystal grown whole on the Athanor. Sixteen of them in a ring under its hearth make its flame white.");
             e.text("grow", "Growing It",
                     "No hand can press Salt into a block. Lay a Salt Crystal from the Coagulator on the Athanor and give its tanks "
                             + PrincipleText.amounts(AlchemyRecipeTable.athanor().getFirst().principles())
                             + ": the fire grows the crystal into a block.");
             e.multiblock("ring", ServusAlchemyMultiblockProvider.athanor("albedo"), "The White Ring",
-                    "Twelve Salt Crystal Blocks in the hearth layer, filling the diamond out to a 5 by 5 square. Press Visualize, then click the ground.");
+                    "Sixteen Salt Crystal Blocks in a 5 by 5 ring one layer under the hearth, so the tanks and the edge of the hearth "
+                            + "stand on it. Press Visualize, then click the ground.");
         });
     }
 
@@ -293,12 +295,12 @@ final class WorkshopCategory extends CategoryProvider {
                 Items.AMETHYST_BLOCK, e -> {
             e.spotlight("block", Items.AMETHYST_BLOCK, "Amethyst Block",
                     "Four shards of the violet crystal that grows in the hollow stones of the deep make a block. "
-                            + "Twelve of them on the white ring turn the Athanor's flame yellow.");
+                            + "Three of them on Principle Vats beside the tanks turn the Athanor's flame yellow.");
             e.text("build", "Building It",
-                    "Set an Amethyst Block on each of the twelve Salt Crystal Blocks of the white ring, on the Athanor's own level. "
-                            + "The front stays open. Without the salt below it the amethyst counts for nothing.");
+                    "Beside each tank, on its outer side three blocks from the Athanor, set a Principle Vat on the hearth level "
+                            + "and an Amethyst Block on it. Without the white ring the amethyst counts for nothing.");
             e.multiblock("ring", ServusAlchemyMultiblockProvider.athanor("citrinitas"), "The Yellow Ring",
-                    "Twelve Amethyst Blocks on the twelve Salt Crystal Blocks. Press Visualize, then click the ground.");
+                    "Three Principle Vats with an Amethyst Block on each, beside the tanks. Press Visualize, then click the ground.");
             e.text("veins", "Noble Veins",
                     "The yellow fire makes nobler seeds: " + seedText(2) + ". Only the red fire makes " + seedText(3) + ".\n\n"
                             + "Noble veins drink more Salt and Mercury, the diamond Sulfur as well, and the gnomes dig them slower.");
@@ -312,10 +314,10 @@ final class WorkshopCategory extends CategoryProvider {
                     "Obsidian that weeps. A ruined portal holds a little, the Piglins of the Nether trade it for gold, "
                             + "and the chests of their bastions keep more.");
             e.text("build", "Building It",
-                    "Stand a pillar of two Crying Obsidian on each corner Amethyst Block of the yellow ring, eight in all. "
-                            + "Then the flame turns red: Rubedo.");
+                    "Stand four pillars of two Crying Obsidian on the white ring, from the hearth level up: one on each side of the "
+                            + "tank behind the Athanor and one behind each side tank, eight blocks in all. Then the flame turns red: Rubedo.");
             e.multiblock("crown", ServusAlchemyMultiblockProvider.athanor("rubedo"), "The Red Crown",
-                    "Four pillars of Crying Obsidian on the amethyst corners. Press Visualize, then click the ground.");
+                    "Four pillars of Crying Obsidian beside the back tank and behind the side tanks. Press Visualize, then click the ground.");
         });
     }
 

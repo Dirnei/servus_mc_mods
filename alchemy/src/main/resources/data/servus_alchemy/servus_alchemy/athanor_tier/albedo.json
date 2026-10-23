@@ -2,101 +2,21 @@
   "tier": 1,
   "color": "#F2F0EA",
   "blocks": [
-    {
-      "offset": [
-        -2,
-        -1,
-        -2
-      ],
-      "block": "servus_alchemy:salt_crystal_block"
-    },
-    {
-      "offset": [
-        -2,
-        -1,
-        -1
-      ],
-      "block": "servus_alchemy:salt_crystal_block"
-    },
-    {
-      "offset": [
-        -2,
-        -1,
-        1
-      ],
-      "block": "servus_alchemy:salt_crystal_block"
-    },
-    {
-      "offset": [
-        -2,
-        -1,
-        2
-      ],
-      "block": "servus_alchemy:salt_crystal_block"
-    },
-    {
-      "offset": [
-        -1,
-        -1,
-        -2
-      ],
-      "block": "servus_alchemy:salt_crystal_block"
-    },
-    {
-      "offset": [
-        -1,
-        -1,
-        2
-      ],
-      "block": "servus_alchemy:salt_crystal_block"
-    },
-    {
-      "offset": [
-        1,
-        -1,
-        -2
-      ],
-      "block": "servus_alchemy:salt_crystal_block"
-    },
-    {
-      "offset": [
-        1,
-        -1,
-        2
-      ],
-      "block": "servus_alchemy:salt_crystal_block"
-    },
-    {
-      "offset": [
-        2,
-        -1,
-        -2
-      ],
-      "block": "servus_alchemy:salt_crystal_block"
-    },
-    {
-      "offset": [
-        2,
-        -1,
-        -1
-      ],
-      "block": "servus_alchemy:salt_crystal_block"
-    },
-    {
-      "offset": [
-        2,
-        -1,
-        1
-      ],
-      "block": "servus_alchemy:salt_crystal_block"
-    },
-    {
-      "offset": [
-        2,
-        -1,
-        2
-      ],
-      "block": "servus_alchemy:salt_crystal_block"
-    }
+    { "offset": [-2, -2, -2], "block": "servus_alchemy:salt_crystal_block" },
+    { "offset": [-1, -2, -2], "block": "servus_alchemy:salt_crystal_block" },
+    { "offset": [0, -2, -2], "block": "servus_alchemy:salt_crystal_block" },
+    { "offset": [1, -2, -2], "block": "servus_alchemy:salt_crystal_block" },
+    { "offset": [2, -2, -2], "block": "servus_alchemy:salt_crystal_block" },
+    { "offset": [-2, -2, -1], "block": "servus_alchemy:salt_crystal_block" },
+    { "offset": [2, -2, -1], "block": "servus_alchemy:salt_crystal_block" },
+    { "offset": [-2, -2, 0], "block": "servus_alchemy:salt_crystal_block" },
+    { "offset": [2, -2, 0], "block": "servus_alchemy:salt_crystal_block" },
+    { "offset": [-2, -2, 1], "block": "servus_alchemy:salt_crystal_block" },
+    { "offset": [2, -2, 1], "block": "servus_alchemy:salt_crystal_block" },
+    { "offset": [-2, -2, 2], "block": "servus_alchemy:salt_crystal_block" },
+    { "offset": [-1, -2, 2], "block": "servus_alchemy:salt_crystal_block" },
+    { "offset": [0, -2, 2], "block": "servus_alchemy:salt_crystal_block" },
+    { "offset": [1, -2, 2], "block": "servus_alchemy:salt_crystal_block" },
+    { "offset": [2, -2, 2], "block": "servus_alchemy:salt_crystal_block" }
   ]
 }

@@ -5,10 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers.BlockAt;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers.TierDef;
+import io.github.dirnei.mc.servus.alchemy.structure.Facing;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 
 class AthanorTiersTest {
@@ -38,9 +40,16 @@ class AthanorTiersTest {
         return world;
     }
 
-    private static int tier(List<TierDef> tiers, Map<String, String> world) {
-        return AthanorTiers.tierOf(tiers, block -> world.get(block.dx() + "," + block.dy() + "," + block.dz()));
+    private static Function<BlockAt, String> at(Map<String, String> world) {
+        return block -> world.get(block.dx() + "," + block.dy() + "," + block.dz());
     }
+
+    private static int tier(List<TierDef> tiers, Map<String, String> world) {
+        return AthanorTiers.tierOf(tiers, Facing.NORTH, at(world));
+    }
+
+    private static final String AMETHYST = "minecraft:amethyst_block";
+    private static final String CRYING = "minecraft:crying_obsidian";
 
     @Test
     void nothingAroundIsNigredo() {
@@ -71,64 +80,50 @@ class AthanorTiersTest {
         assertEquals(0, tier(List.of(ALBEDO), world(placed)));
     }
 
-    private static final String AMETHYST = "minecraft:amethyst_block";
-    private static final String CRYING = "minecraft:crying_obsidian";
-
-    /** The twelve cells of the 5 by 5 square outside the diamond hearth, at height {@code dy}. */
-    private static List<BlockAt> squareCorners(int dy, String block) {
-        List<BlockAt> cells = new ArrayList<>();
-        for (int dx = -2; dx <= 2; dx++) {
-            for (int dz = -2; dz <= 2; dz++) {
-                if (Math.abs(dx) + Math.abs(dz) > 2) {
-                    cells.add(new BlockAt(dx, dy, dz, block));
-                }
-            }
-        }
-        return cells;
-    }
-
-    private static List<BlockAt> pillars() {
-        List<BlockAt> pillars = new ArrayList<>();
-        for (int dy = 1; dy <= 2; dy++) {
-            for (int dx = -2; dx <= 2; dx += 4) {
-                for (int dz = -2; dz <= 2; dz += 4) {
-                    pillars.add(new BlockAt(dx, dy, dz, CRYING));
-                }
-            }
-        }
-        return pillars;
-    }
-
     private static final List<TierDef> STAGES = List.of(
-            new TierDef("albedo", 1, 0xF2F0EA, squareCorners(-1, SALT)),
-            new TierDef("citrinitas", 2, 0xF2C531, squareCorners(0, AMETHYST)),
-            new TierDef("rubedo", 3, 0xB3261E, pillars()));
+            new TierDef("albedo", 1, 0xF2F0EA, AthanorLayoutTest.saltRing()),
+            new TierDef("citrinitas", 2, 0xF2C531, AthanorLayoutTest.vats()),
+            new TierDef("rubedo", 3, 0xB3261E, AthanorLayoutTest.pillars()));
 
-    @Test
-    void citrinitasNeedsAlbedo() {
-        assertEquals(0, tier(STAGES, world(squareCorners(0, AMETHYST))), "amethyst without the salt ring is Nigredo");
-        List<BlockAt> placed = new ArrayList<>(squareCorners(-1, SALT));
-        placed.addAll(squareCorners(0, AMETHYST));
-        assertEquals(2, tier(STAGES, world(placed)));
-        assertEquals("citrinitas", AthanorTiers.nameOf(STAGES, 2));
-        placed.remove(placed.size() - 1);
-        assertEquals(1, tier(STAGES, world(placed)), "a missing amethyst is Albedo");
+    private static List<BlockAt> turned(List<BlockAt> blocks, Facing facing) {
+        return blocks.stream().map(block -> AthanorTiers.turn(block, facing)).toList();
     }
 
     @Test
-    void rubedoOnTopOfCitrinitas() {
-        List<BlockAt> placed = new ArrayList<>(squareCorners(-1, SALT));
-        placed.addAll(squareCorners(0, AMETHYST));
-        placed.addAll(pillars());
-        assertEquals(3, tier(STAGES, world(placed)));
+    void offsetsTurnWithTheFront() {
+        BlockAt leftBehind = new BlockAt(1, -1, 2, CRYING);
+        assertEquals(leftBehind, AthanorTiers.turn(leftBehind, Facing.NORTH));
+        assertEquals(new BlockAt(-2, -1, 1, CRYING), AthanorTiers.turn(leftBehind, Facing.EAST), "left is south, behind is west");
+        assertEquals(new BlockAt(-1, -1, -2, CRYING), AthanorTiers.turn(leftBehind, Facing.SOUTH));
+        assertEquals(new BlockAt(2, -1, -1, CRYING), AthanorTiers.turn(leftBehind, Facing.WEST));
+    }
+
+    @Test
+    void eastFacingReachesRubedo() {
+        List<BlockAt> placed = new ArrayList<>();
+        STAGES.forEach(stage -> placed.addAll(turned(stage.blocks(), Facing.EAST)));
+        assertEquals(3, AthanorTiers.tierOf(STAGES, Facing.EAST, at(world(placed))));
+        assertEquals(1, AthanorTiers.tierOf(STAGES, Facing.NORTH, at(world(placed))), "the symmetric ring alone fits a north front");
         assertEquals("rubedo", AthanorTiers.nameOf(STAGES, 3));
     }
 
     @Test
-    void shortPillarIsCitrinitas() {
-        List<BlockAt> placed = new ArrayList<>(squareCorners(-1, SALT));
-        placed.addAll(squareCorners(0, AMETHYST));
-        placed.addAll(pillars().stream().filter(block -> !(block.dy() == 2 && block.dx() == 2 && block.dz() == 2)).toList());
+    void vatsWithoutSaltStayNigredo() {
+        assertEquals(0, tier(STAGES, world(AthanorLayoutTest.vats())), "vats without the salt ring are Nigredo");
+        List<BlockAt> placed = new ArrayList<>(AthanorLayoutTest.saltRing());
+        placed.addAll(AthanorLayoutTest.vats());
+        assertEquals(2, tier(STAGES, world(placed)));
+        placed.removeIf(block -> block.block().equals(AMETHYST) && block.dz() == 3);
+        assertEquals(1, tier(STAGES, world(placed)), "a vat without its amethyst is Albedo");
+    }
+
+    @Test
+    void shortPillarDropsToCitrinitas() {
+        List<BlockAt> placed = new ArrayList<>(AthanorLayoutTest.saltRing());
+        placed.addAll(AthanorLayoutTest.vats());
+        placed.addAll(AthanorLayoutTest.pillars());
+        assertEquals(3, tier(STAGES, world(placed)));
+        placed.remove(new BlockAt(2, 0, 1, CRYING));
         assertEquals(2, tier(STAGES, world(placed)));
     }
 

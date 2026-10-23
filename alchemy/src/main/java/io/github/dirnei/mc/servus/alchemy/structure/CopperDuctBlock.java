@@ -29,25 +29,23 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The Copper Duct, a part of two builds. The Calciner takes two, an elbow from the Hood and a drop
- * into the left Stone Bricks; the Athanor takes two per tank, one block up, beside it and over the tank.
- * While formed, {@link #PIECE} says which piece it is: 0 (elbow) and 1 (drop) for the Calciner, {@link #ATHANOR_NEAR}
- * and {@link #ATHANOR_OVER} for the Athanor. The build lies to the model's -x, so a formed duct's
- * build is {@code FACING.getCounterClockWise()} from it.
+ * into the left Stone Bricks; the Athanor takes one per tank on its own level, between it and the tank.
+ * While formed, {@link #PIECE} says which piece it is: 0 (elbow) and 1 (drop) for the Calciner, {@link #ATHANOR}
+ * for the Athanor. The build lies to the model's -x, so a formed duct's build is
+ * {@code FACING.getCounterClockWise()} from it.
  */
 public class CopperDuctBlock extends Block implements Wrenchable {
 
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty FORMED = CalcinerPartBlock.FORMED;
-    /** The Athanor's duct right beside it. */
-    public static final int ATHANOR_NEAR = 2;
-    /** The Athanor's duct over its tank, turning down into it. */
-    public static final int ATHANOR_OVER = 3;
-    /** The duct cell of {@link CalcinerLayout} counted from {@link CalcinerLayout#FIRST_DUCT}, or an Athanor piece. */
-    public static final IntegerProperty PIECE = IntegerProperty.create("piece", 0, ATHANOR_OVER);
+    /** The Athanor's duct, a straight pipe from the tower's flange into the side of its tank. */
+    public static final int ATHANOR = 2;
+    /** The duct cell of {@link CalcinerLayout} counted from {@link CalcinerLayout#FIRST_DUCT}, or the Athanor piece. */
+    public static final IntegerProperty PIECE = IntegerProperty.create("piece", 0, ATHANOR);
 
-    /** The pipe of an Athanor duct, low in the block so it can be jumped onto, along x or along z. */
-    private static final VoxelShape PIPE_X = Block.box(0, 0, 6, 16, 4, 10);
-    private static final VoxelShape PIPE_Z = Block.box(6, 0, 0, 10, 4, 16);
+    /** The pipe of an Athanor duct at the height of the tower's flange, along x or along z; its top can be jumped onto from the hearth. */
+    private static final VoxelShape PIPE_X = Block.box(0, 6, 6, 16, 10, 10);
+    private static final VoxelShape PIPE_Z = Block.box(6, 6, 0, 10, 10, 16);
 
     public CopperDuctBlock(Properties properties) {
         super(properties);
@@ -66,12 +64,12 @@ public class CopperDuctBlock extends Block implements Wrenchable {
 
     /** Whether {@code state} is a duct formed into a Calciner. */
     public static boolean calcinerPiece(BlockState state) {
-        return state.getBlock() instanceof CopperDuctBlock && state.getValue(FORMED) && state.getValue(PIECE) < ATHANOR_NEAR;
+        return state.getBlock() instanceof CopperDuctBlock && state.getValue(FORMED) && state.getValue(PIECE) < ATHANOR;
     }
 
     /** Whether {@code state} is a duct formed into an Athanor. */
     public static boolean athanorPiece(BlockState state) {
-        return state.getBlock() instanceof CopperDuctBlock && state.getValue(FORMED) && state.getValue(PIECE) >= ATHANOR_NEAR;
+        return state.getBlock() instanceof CopperDuctBlock && state.getValue(FORMED) && state.getValue(PIECE) == ATHANOR;
     }
 
     /** The cell of {@link CalcinerLayout} a duct formed into a Calciner stands in. */
@@ -79,15 +77,14 @@ public class CopperDuctBlock extends Block implements Wrenchable {
         return CalcinerLayout.cell(CalcinerLayout.FIRST_DUCT + state.getValue(PIECE));
     }
 
-    /** A duct of the Athanor's build, formed as {@code piece} with the Athanor toward {@code toAthanor}. */
-    public static BlockState athanorState(BlockState state, int piece, Direction toAthanor) {
-        return state.setValue(FORMED, true).setValue(PIECE, piece).setValue(FACING, toAthanor.getClockWise());
+    /** A duct of the Athanor's build, formed with the Athanor toward {@code toAthanor}. */
+    public static BlockState athanorState(BlockState state, Direction toAthanor) {
+        return state.setValue(FORMED, true).setValue(PIECE, ATHANOR).setValue(FACING, toAthanor.getClockWise());
     }
 
-    /** Where the Athanor of a duct formed into one stands: one block down and one or two back along the run. */
+    /** Where the Athanor of a duct formed into one stands: right beside it, toward the model's -x. */
     private static BlockPos athanorPos(BlockState state, BlockPos pos) {
-        Direction toAthanor = state.getValue(FACING).getCounterClockWise();
-        return pos.below().relative(toAthanor, state.getValue(PIECE) == ATHANOR_OVER ? 2 : 1);
+        return pos.relative(state.getValue(FACING).getCounterClockWise());
     }
 
     @Override

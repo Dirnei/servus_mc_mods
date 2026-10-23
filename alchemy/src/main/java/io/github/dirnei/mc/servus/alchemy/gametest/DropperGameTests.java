@@ -162,7 +162,7 @@ public final class DropperGameTests {
         helper.runAfterDelay(2, () -> AlchemyGameTests.pour(helper, new Principles(250, 250, 250)));
         helper.runAfterDelay(250, () -> {
             helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).isEmpty(), "no Dropper at Albedo");
-            AlchemyGameTests.amethystRing(helper);
+            AlchemyGameTests.citrinitasVats(helper);
             athanor.checkTier();
             helper.assertTrue(athanor.tier() == 2, "the amethyst ring makes Citrinitas, got " + athanor.tier());
             helper.succeedWhen(() -> {

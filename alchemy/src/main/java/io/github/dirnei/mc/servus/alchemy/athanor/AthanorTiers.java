@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.alchemy.athanor;
 
+import io.github.dirnei.mc.servus.alchemy.structure.Facing;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
@@ -39,11 +40,27 @@ public final class AthanorTiers {
     private AthanorTiers() {
     }
 
-    /** The highest tier whose blocks, and those of every lower tier, all match; 0 when none does. */
-    public static int tierOf(List<TierDef> tiers, Function<BlockAt, String> blockAt) {
+    /**
+     * The block {@code block}, written for an Athanor whose front faces north, turned for one facing {@code facing}:
+     * it keeps its place left or right and in front or behind, seen from the Athanor's front.
+     */
+    public static BlockAt turn(BlockAt block, Facing facing) {
+        int right = -block.dx();
+        int back = block.dz();
+        int rx = facing.rightX();
+        int rz = facing.rightZ();
+        return new BlockAt(right * rx + back * rz, block.dy(), right * rz - back * rx, block.block());
+    }
+
+    /**
+     * The highest tier whose blocks, and those of every lower tier, all match around an Athanor facing {@code facing};
+     * 0 when none does. {@code blockAt} gets each block already turned with the front.
+     */
+    public static int tierOf(List<TierDef> tiers, Facing facing, Function<BlockAt, String> blockAt) {
         int reached = 0;
         for (TierDef tier : tiers.stream().sorted(Comparator.comparingInt(TierDef::number)).toList()) {
-            boolean complete = tier.blocks().stream().allMatch(block -> block.block().equals(blockAt.apply(block)));
+            boolean complete = tier.blocks().stream().map(block -> turn(block, facing))
+                    .allMatch(block -> block.block().equals(blockAt.apply(block)));
             if (!complete) {
                 break;
             }

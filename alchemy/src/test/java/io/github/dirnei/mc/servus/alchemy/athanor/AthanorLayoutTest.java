@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.alchemy.athanor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.dirnei.mc.servus.alchemy.athanor.AthanorLayout.Duct;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorLayout.Tank;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorLayout.TankSide;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers.BlockAt;
@@ -14,81 +15,61 @@ import org.junit.jupiter.api.Test;
 class AthanorLayoutTest {
 
     private static final String SALT = "servus_alchemy:salt_crystal_block";
+    private static final String VAT = "servus_alchemy:principle_vat";
+    private static final String AMETHYST = "minecraft:amethyst_block";
+    private static final String CRYING = "minecraft:crying_obsidian";
 
-    @Test
-    void hearthIsADiamondOfThirteenBricksBelow() {
-        assertEquals(13, AthanorLayout.hearth().size());
-        assertTrue(AthanorLayout.hearth().stream().allMatch(block -> Math.abs(block.dx()) + Math.abs(block.dz()) <= 2));
-        assertTrue(AthanorLayout.hearth().stream().allMatch(block -> block.dy() == -1 && block.block().equals(AthanorLayout.BRICKS)));
-        assertTrue(AthanorLayout.hearth().contains(new BlockAt(0, -1, 0, AthanorLayout.BRICKS)));
-    }
-
-    @Test
-    void nigredoSchematic() {
-        AthanorLayout.Schematic schematic = AthanorLayout.schematic(List.of());
-        assertEquals(3, schematic.layers().size());
-        assertEquals(List.of("__B__", "_BBB_", "BB0BB", "_BBB_", "__B__"), schematic.layers().get(2));
-        assertEquals(AthanorLayout.COPPER_DUCT, schematic.mapping().get('D'));
-        assertEquals(AthanorLayout.BRICKS, schematic.mapping().get('0'));
-        assertEquals(AthanorLayout.ATHANOR, schematic.mapping().get('A'));
-        assertEquals(AthanorLayout.FLUID_TANK, schematic.mapping().get('T'));
-    }
-
-    @Test
-    void nigredoSchematicUpperLayersArePaddedToTheHearth() {
-        AthanorLayout.Schematic schematic = AthanorLayout.schematic(List.of());
-        assertEquals(List.of("_____", "_____", "DD_DD", "__D__", "__D__"), schematic.layers().get(0));
-        assertEquals(List.of("_____", "_____", "T_A_T", "_____", "__T__"), schematic.layers().get(1));
-    }
-
-    @Test
-    void albedoRingAroundTheHearth() {
+    /** The sixteen cells of the 5 by 5 ring one layer under the hearth. */
+    static List<BlockAt> saltRing() {
         List<BlockAt> ring = new ArrayList<>();
         for (int dz = -2; dz <= 2; dz++) {
             for (int dx = -2; dx <= 2; dx++) {
-                if (Math.abs(dx) + Math.abs(dz) > 2) {
-                    ring.add(new BlockAt(dx, -1, dz, SALT));
+                if (Math.max(Math.abs(dx), Math.abs(dz)) == 2) {
+                    ring.add(new BlockAt(dx, -2, dz, SALT));
                 }
             }
         }
-        AthanorLayout.Schematic schematic = AthanorLayout.schematic(ring);
-        assertEquals(List.of(List.of("_____", "_____", "DD_DD", "__D__", "__D__"), List.of("_____", "_____", "T_A_T", "_____", "__T__"),
-                List.of("CCBCC", "CBBBC", "BB0BB", "CBBBC", "CCBCC")), schematic.layers());
-        assertEquals(SALT, schematic.mapping().get('C'));
+        return ring;
+    }
+
+    static List<BlockAt> vats() {
+        List<BlockAt> vats = new ArrayList<>();
+        for (int[] cell : new int[][] {{0, 3}, {-3, 0}, {3, 0}}) {
+            vats.add(new BlockAt(cell[0], -1, cell[1], VAT));
+            vats.add(new BlockAt(cell[0], 0, cell[1], AMETHYST));
+        }
+        return vats;
+    }
+
+    static List<BlockAt> pillars() {
+        List<BlockAt> pillars = new ArrayList<>();
+        for (int dy = -1; dy <= 0; dy++) {
+            for (int[] cell : new int[][] {{-1, 2}, {1, 2}, {-2, 1}, {2, 1}}) {
+                pillars.add(new BlockAt(cell[0], dy, cell[1], CRYING));
+            }
+        }
+        return pillars;
     }
 
     @Test
-    void rubedoSchematicHasFourLayers() {
-        List<BlockAt> extra = new ArrayList<>();
-        for (int dz = -2; dz <= 2; dz++) {
-            for (int dx = -2; dx <= 2; dx++) {
-                if (Math.abs(dx) + Math.abs(dz) > 2) {
-                    extra.add(new BlockAt(dx, -1, dz, SALT));
-                }
-            }
+    void hearthRolesTurnWithTheFront() {
+        List<BlockAt> north = AthanorLayout.hearth(Facing.NORTH);
+        assertEquals(9, north.size());
+        assertTrue(north.contains(new BlockAt(0, -1, 0, AthanorLayout.BRICKS)), "Bricks under the Athanor");
+        assertTrue(north.contains(new BlockAt(0, -1, -1, AthanorLayout.BRICKS)), "Bricks in front");
+        assertEquals(7, north.stream().filter(block -> block.block().equals(AthanorLayout.BRICK_SLAB)).count());
+        assertTrue(north.contains(new BlockAt(0, -1, 1, AthanorLayout.BRICK_SLAB)), "a slab behind");
+        assertEquals(new BlockAt(0, -1, -2, AthanorLayout.BRICK_STAIRS), AthanorLayout.step(Facing.NORTH));
+
+        List<BlockAt> east = AthanorLayout.hearth(Facing.EAST);
+        assertTrue(east.contains(new BlockAt(1, -1, 0, AthanorLayout.BRICKS)), "Bricks in front of an east facing Athanor");
+        assertTrue(east.contains(new BlockAt(-1, -1, 0, AthanorLayout.BRICK_SLAB)), "a slab behind it");
+        assertEquals(new BlockAt(2, -1, 0, AthanorLayout.BRICK_STAIRS), AthanorLayout.step(Facing.EAST));
+        assertEquals(new BlockAt(0, -1, 2, AthanorLayout.BRICK_STAIRS), AthanorLayout.step(Facing.SOUTH));
+        for (Facing facing : Facing.values()) {
+            assertTrue(AthanorLayout.hearth(facing).stream().allMatch(block -> Math.abs(block.dx()) <= 1 && Math.abs(block.dz()) <= 1),
+                    facing + ": the hearth is 3 by 3 under the Athanor");
         }
-        for (int dz = -2; dz <= 2; dz++) {
-            for (int dx = -2; dx <= 2; dx++) {
-                if (Math.abs(dx) + Math.abs(dz) > 2) {
-                    extra.add(new BlockAt(dx, 0, dz, "minecraft:amethyst_block"));
-                }
-            }
-        }
-        for (int dy = 1; dy <= 2; dy++) {
-            for (int dx = -2; dx <= 2; dx += 4) {
-                for (int dz = -2; dz <= 2; dz += 4) {
-                    extra.add(new BlockAt(dx, dy, dz, "minecraft:crying_obsidian"));
-                }
-            }
-        }
-        AthanorLayout.Schematic schematic = AthanorLayout.schematic(extra);
-        assertEquals(List.of(
-                List.of("F___F", "_____", "_____", "_____", "F___F"),
-                List.of("F___F", "_____", "DD_DD", "__D__", "F_D_F"),
-                List.of("EE_EE", "E___E", "T_A_T", "E___E", "EETEE"),
-                List.of("CCBCC", "CBBBC", "BB0BB", "CBBBC", "CCBCC")), schematic.layers());
-        assertEquals("minecraft:amethyst_block", schematic.mapping().get('E'));
-        assertEquals("minecraft:crying_obsidian", schematic.mapping().get('F'));
     }
 
     @Test
@@ -104,22 +85,23 @@ class AthanorLayoutTest {
     }
 
     @Test
-    void tanksStandOnTheHearth() {
-        for (Facing facing : Facing.values()) {
-            for (Tank tank : AthanorLayout.tanks(facing)) {
-                assertTrue(AthanorLayout.hearth().contains(new BlockAt(tank.dx(), -1, tank.dz(), AthanorLayout.BRICKS)), facing + " " + tank);
+    void tanksAreThreeHigh() {
+        List<BlockAt> blocks = AthanorLayout.tankBlocks(Facing.NORTH);
+        assertEquals(9, blocks.size());
+        for (Tank tank : AthanorLayout.tanks(Facing.NORTH)) {
+            for (int dy = -1; dy <= 1; dy++) {
+                assertTrue(blocks.contains(new BlockAt(tank.dx(), dy, tank.dz(), AthanorLayout.FLUID_TANK)), tank + " at " + dy);
             }
         }
     }
 
     @Test
-    void twoDuctsPerTankTheFarOneOverIt() {
+    void oneDuctPerTankOnTheAthanorLevel() {
         for (Facing facing : Facing.values()) {
-            List<AthanorLayout.Duct> ducts = AthanorLayout.ducts(facing);
-            assertEquals(6, ducts.size());
+            List<Duct> ducts = AthanorLayout.ducts(facing);
+            assertEquals(3, ducts.size());
             for (Tank tank : AthanorLayout.tanks(facing)) {
-                assertTrue(ducts.contains(new AthanorLayout.Duct(tank.side(), true, tank.dx(), tank.dz())), facing + " " + tank);
-                assertTrue(ducts.contains(new AthanorLayout.Duct(tank.side(), false, tank.dx() / 2, tank.dz() / 2)), facing + " " + tank);
+                assertTrue(ducts.contains(new Duct(tank.side(), tank.dx() / 2, tank.dz() / 2)), facing + " " + tank);
             }
         }
     }
@@ -136,5 +118,49 @@ class AthanorLayoutTest {
                 }
             }
         }
+    }
+
+    /** Rows run along x from west to east, each row along z from the front to the back, as Modonomicon reads them. */
+    @Test
+    void nigredoSchematicLayers() {
+        AthanorLayout.Schematic schematic = AthanorLayout.schematic(List.of());
+        assertEquals(List.of(
+                List.of("__T__", "_____", "____T", "_____", "__T__"),
+                List.of("__T__", "__D__", "__ADT", "__D__", "__T__"),
+                List.of("__T__", "_SSS_", "RB0ST", "_SSS_", "__T__")), schematic.layers());
+        assertEquals(AthanorLayout.BRICKS, schematic.mapping().get('0'));
+        assertEquals(AthanorLayout.BRICKS, schematic.mapping().get('B'));
+        assertEquals("minecraft:brick_slab[type=bottom]", schematic.mapping().get('S'));
+        assertEquals("minecraft:brick_stairs[facing=south]", schematic.mapping().get('R'));
+        assertEquals(AthanorLayout.ATHANOR, schematic.mapping().get('A'));
+        assertEquals(AthanorLayout.FLUID_TANK, schematic.mapping().get('T'));
+        assertEquals(AthanorLayout.COPPER_DUCT, schematic.mapping().get('D'));
+    }
+
+    @Test
+    void albedoSchematicHasTheRingBelow() {
+        AthanorLayout.Schematic schematic = AthanorLayout.schematic(saltRing());
+        assertEquals(4, schematic.layers().size());
+        assertEquals(List.of("CCCCC", "C___C", "C_0_C", "C___C", "CCCCC"), schematic.layers().get(3));
+        assertEquals(List.of("__T__", "_SSS_", "RBBST", "_SSS_", "__T__"), schematic.layers().get(2));
+        assertEquals(SALT, schematic.mapping().get('C'));
+        assertEquals(AthanorLayout.ANY, schematic.mapping().get('0'), "the ring is hollow, so the anchor takes any block");
+    }
+
+    @Test
+    void rubedoSchematicHoldsVatsAndPillars() {
+        List<BlockAt> extra = new ArrayList<>(saltRing());
+        extra.addAll(vats());
+        extra.addAll(pillars());
+        AthanorLayout.Schematic schematic = AthanorLayout.schematic(extra);
+        assertEquals(List.of(
+                List.of("______", "__T___", "______", "____T_", "______", "__T___", "______"),
+                List.of("__F___", "__TG__", "__D_G_", "__ADTF", "__D_G_", "__TG__", "__F___"),
+                List.of("__E___", "__TG__", "_SSSG_", "RBBSTE", "_SSSG_", "__TG__", "__E___"),
+                List.of("______", "CCCCC_", "C___C_", "C_0_C_", "C___C_", "CCCCC_", "______")),
+                schematic.layers());
+        assertEquals(VAT, schematic.mapping().get('E'));
+        assertEquals(AMETHYST, schematic.mapping().get('F'));
+        assertEquals(CRYING, schematic.mapping().get('G'));
     }
 }

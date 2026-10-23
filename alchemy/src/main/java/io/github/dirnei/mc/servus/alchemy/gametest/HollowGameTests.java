@@ -411,7 +411,7 @@ public final class HollowGameTests {
      */
     private static void seedMadeFromTier(GameTestHelper helper, ItemStack input, Principles principles, String vein, int tier) {
         AthanorBlockEntity athanor = AlchemyGameTests.athanor(helper);
-        List<Consumer<GameTestHelper>> rings = List.of(AlchemyGameTests::saltRing, AlchemyGameTests::amethystRing,
+        List<Consumer<GameTestHelper>> rings = List.of(AlchemyGameTests::saltRing, AlchemyGameTests::citrinitasVats,
                 AlchemyGameTests::rubedoPillars);
         rings.subList(0, tier - 1).forEach(ring -> ring.accept(helper));
         athanor.checkTier();

@@ -8,11 +8,13 @@ import io.github.dirnei.mc.servus.alchemy.TeamOwned;
 import io.github.dirnei.mc.servus.alchemy.TeamOwnership;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorLayout.Duct;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorLayout.Tank;
+import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers.BlockAt;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyRecipes;
 import io.github.dirnei.mc.servus.alchemy.structure.CopperDuctBlock;
+import io.github.dirnei.mc.servus.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.alchemy.structure.FormingEffect;
 import io.github.dirnei.mc.servus.alchemy.structure.Structures;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlock;
@@ -84,40 +86,42 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         return AthanorTiers.nameOf(AthanorTierData.INSTANCE.tiers(), tier);
     }
 
-    /** Where the tank on {@code tank}'s side stands, by the Athanor's front. */
+    private Facing buildFacing() {
+        return Structures.facing(getBlockState().getValue(MachineBlock.FACING));
+    }
+
+    /** Where the tank on {@code tank}'s side stands on the Athanor's level, by the Athanor's front. */
     public BlockPos tankPos(Tank tank) {
         return worldPosition.offset(tank.dx(), 0, tank.dz());
     }
 
     public List<Tank> tankLayout() {
-        return AthanorLayout.tanks(Structures.facing(getBlockState().getValue(MachineBlock.FACING)));
+        return AthanorLayout.tanks(buildFacing());
     }
 
-    /** The first tank position without a Fluid Tank, or null when all three stand. Three block reads. */
+    /** The first tank whose column is not three Fluid Tanks high, or null when all three stand. Nine block reads. */
     private Tank missingTank() {
         for (Tank tank : tankLayout()) {
-            if (!(level.getBlockState(tankPos(tank)).getBlock() instanceof FluidTankBlock)) {
-                return tank;
+            for (int dy = AthanorLayout.TANK_BOTTOM; dy <= AthanorLayout.TANK_TOP; dy++) {
+                if (!(level.getBlockState(tankPos(tank).above(dy)).getBlock() instanceof FluidTankBlock)) {
+                    return tank;
+                }
             }
         }
         return null;
     }
 
-    /** Where a duct of the build stands, one block above the Athanor's level. */
+    /** Where a duct of the build stands, on the Athanor's level. */
     public BlockPos ductPos(Duct duct) {
-        return worldPosition.offset(duct.dx(), 1, duct.dz());
+        return worldPosition.offset(duct.dx(), 0, duct.dz());
     }
 
-    /**
-     * The first duct position without a Copper Duct, or null when all stand. A duct counts when it
-     * is free or already this build's; over a tank stacked that high the tank takes its place. Six block reads.
-     */
+    /** The first duct position without a Copper Duct that is free or already this build's, or null when all three stand. */
     private Duct missingDuct() {
-        for (Duct duct : AthanorLayout.ducts(Structures.facing(getBlockState().getValue(MachineBlock.FACING)))) {
+        for (Duct duct : AthanorLayout.ducts(buildFacing())) {
             BlockState state = level.getBlockState(ductPos(duct));
             boolean free = state.getBlock() instanceof CopperDuctBlock && (!state.getValue(CopperDuctBlock.FORMED) || CopperDuctBlock.athanorPiece(state));
-            boolean stacked = duct.overTank() && state.getBlock() instanceof FluidTankBlock;
-            if (!free && !stacked) {
+            if (!free) {
                 return duct;
             }
         }
@@ -127,15 +131,14 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
     /** Forms the ducts of an Athanor at {@code pos} facing {@code front} into its pipes, or gives them back their straight look. */
     public static void setDucts(Level level, BlockPos pos, Direction front, boolean formed) {
         for (Duct duct : AthanorLayout.ducts(Structures.facing(front))) {
-            BlockPos at = pos.offset(duct.dx(), 1, duct.dz());
+            BlockPos at = pos.offset(duct.dx(), 0, duct.dz());
             BlockState state = level.getBlockState(at);
             if (!(state.getBlock() instanceof CopperDuctBlock)) {
                 continue;
             }
             BlockState next = state;
             if (formed && !state.getValue(CopperDuctBlock.FORMED)) {
-                Direction toAthanor = Direction.getApproximateNearest(-duct.dx(), 0, -duct.dz());
-                next = CopperDuctBlock.athanorState(state, duct.overTank() ? CopperDuctBlock.ATHANOR_OVER : CopperDuctBlock.ATHANOR_NEAR, toAthanor);
+                next = CopperDuctBlock.athanorState(state, Direction.getApproximateNearest(-duct.dx(), 0, -duct.dz()));
             } else if (!formed && CopperDuctBlock.athanorPiece(state)) {
                 next = state.setValue(CopperDuctBlock.FORMED, false).setValue(CopperDuctBlock.PIECE, 0);
             }
@@ -201,7 +204,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         if (level == null || level.isClientSide()) {
             return;
         }
-        int found = AthanorTiers.tierOf(AthanorTierData.INSTANCE.tiers(), block -> {
+        int found = AthanorTiers.tierOf(AthanorTierData.INSTANCE.tiers(), buildFacing(), block -> {
             BlockState around = level.getBlockState(worldPosition.offset(block.dx(), block.dy(), block.dz()));
             return BuiltInRegistries.BLOCK.getKey(around.getBlock()).toString();
         });
@@ -223,15 +226,33 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         return state.getBlock() instanceof AthanorBlock && state.getValue(AthanorBlock.FORMED);
     }
 
-    /** The first hearth position that is not Bricks, or null when the hearth is complete. 13 block reads. */
-    private BlockPos missingHearthBrick() {
-        for (AthanorTiers.BlockAt brick : AthanorLayout.hearth()) {
-            BlockPos at = worldPosition.offset(brick.dx(), brick.dy(), brick.dz());
-            if (!level.getBlockState(at).is(Blocks.BRICKS)) {
-                return at;
+    /** The hearth cells and the step in front, in the order they are checked. */
+    private List<BlockAt> hearthBlocks() {
+        List<BlockAt> blocks = new ArrayList<>(AthanorLayout.hearth(buildFacing()));
+        blocks.add(AthanorLayout.step(buildFacing()));
+        return blocks;
+    }
+
+    /**
+     * The first hearth cell or step whose block is wrong, or null when the hearth is complete. A slab of
+     * either half and a stair of any facing count. Ten block reads.
+     */
+    private BlockAt missingHearthBlock() {
+        for (BlockAt block : hearthBlocks()) {
+            BlockState state = level.getBlockState(worldPosition.offset(block.dx(), block.dy(), block.dz()));
+            if (!BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString().equals(block.block())) {
+                return block;
             }
         }
         return null;
+    }
+
+    private static String missingHearthMessage(BlockAt block) {
+        return switch (block.block()) {
+            case AthanorLayout.BRICK_SLAB -> "message.servus_alchemy.athanor.missing_slab";
+            case AthanorLayout.BRICK_STAIRS -> "message.servus_alchemy.athanor.missing_step";
+            default -> "message.servus_alchemy.athanor.missing";
+        };
     }
 
     /** The Journal's click: forms the Athanor on a complete hearth with its tanks and makes the player its owner, else says what is missing. */
@@ -243,8 +264,9 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
             player.sendOverlayMessage(Component.translatable("message.servus_alchemy.athanor.formed"));
             return;
         }
-        if (missingHearthBrick() != null) {
-            player.sendSystemMessage(Component.translatable("message.servus_alchemy.athanor.missing"));
+        BlockAt hearth = missingHearthBlock();
+        if (hearth != null) {
+            player.sendSystemMessage(Component.translatable(missingHearthMessage(hearth)));
             return;
         }
         Tank tank = missingTank();
@@ -259,9 +281,9 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         }
         setFormed(true);
         List<BlockPos> cells = new ArrayList<>(List.of(worldPosition));
-        AthanorLayout.hearth().forEach(brick -> cells.add(worldPosition.offset(brick.dx(), brick.dy(), brick.dz())));
-        tankLayout().forEach(each -> cells.add(tankPos(each)));
-        AthanorLayout.ducts(Structures.facing(getBlockState().getValue(MachineBlock.FACING))).forEach(each -> cells.add(ductPos(each)));
+        hearthBlocks().forEach(block -> cells.add(worldPosition.offset(block.dx(), block.dy(), block.dz())));
+        AthanorLayout.tankBlocks(buildFacing()).forEach(block -> cells.add(worldPosition.offset(block.dx(), block.dy(), block.dz())));
+        AthanorLayout.ducts(buildFacing()).forEach(each -> cells.add(ductPos(each)));
         FormingEffect.play(level, worldPosition, cells);
         setOwner(player.getUUID());
         checkTier();
@@ -272,9 +294,9 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
         return Component.translatable("message.servus_alchemy.athanor.tank." + side.name().toLowerCase(Locale.ROOT));
     }
 
-    /** Unforms a formed Athanor whose hearth lost a brick or that lost a tank or a duct. */
+    /** Unforms a formed Athanor whose hearth lost a block or that lost a tank or a duct. */
     public void checkHearth() {
-        if (level != null && !level.isClientSide() && formed() && (missingHearthBrick() != null || missingTank() != null || missingDuct() != null)) {
+        if (level != null && !level.isClientSide() && formed() && (missingHearthBlock() != null|| missingTank() != null || missingDuct() != null)) {
             setFormed(false);
         }
     }
