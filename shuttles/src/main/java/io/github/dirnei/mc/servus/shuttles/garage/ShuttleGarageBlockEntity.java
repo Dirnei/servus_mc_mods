@@ -25,6 +25,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -58,6 +59,9 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
 
         @Override
         protected void onContentsChanged(int slot) {
+            if (level instanceof ServerLevel server) {
+                ShuttleItem.numberIfMissing(server, getStackInSlot(slot));
+            }
             setChanged();
             network().ifPresent(network -> network.garageChanged(ShuttleGarageBlockEntity.this));
         }
@@ -98,6 +102,25 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
     @Override
     public boolean showsDock() {
         return false;
+    }
+
+    /** Numbers shuttles saved before they had numbers, in slot order, before the garage joins its warehouse. */
+    @Override
+    public void onLoad() {
+        if (level instanceof ServerLevel server) {
+            numberShuttles(server);
+        }
+        super.onLoad();
+    }
+
+    private void numberShuttles(ServerLevel server) {
+        boolean numbered = false;
+        for (int i = 0; i < shuttles.getSlots(); i++) {
+            numbered |= ShuttleItem.numberIfMissing(server, shuttles.getStackInSlot(i));
+        }
+        if (numbered) {
+            setChanged();
+        }
     }
 
     /** The shuttle items, one slot per place. */

@@ -48,6 +48,12 @@ public final class ServusShuttlesComponents {
                     .persistent(Codec.STRING)
                     .networkSynchronized(ByteBufCodecs.STRING_UTF8));
 
+    /** The world's number of a shuttle, given in its first garage; missing means not numbered yet. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> SHUTTLE_NUMBER =
+            COMPONENTS.registerComponentType("shuttle_number", builder -> builder
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT));
+
     /** The tanks, locks, mode and Capacity Upgrades a dropped Fluid Gantry keeps. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<GantryContents>> GANTRY_CONTENTS =
             COMPONENTS.registerComponentType("gantry_contents", builder -> builder

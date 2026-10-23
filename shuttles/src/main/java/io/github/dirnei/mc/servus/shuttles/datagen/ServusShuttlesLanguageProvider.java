@@ -305,6 +305,8 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.workshop.engrave", "Engrave");
         add("gui.servus_shuttles.workshop.plate", "Plate: %s");
         add("item.servus_shuttles.shuttle.named", "%s (%s)");
+        add("shuttle.servus_shuttles.label", "Shuttle #%s");
+        add("shuttle.servus_shuttles.label.named", "%s (#%s)");
         add("tooltip.servus_shuttles.shuttle.plain", "No upgrades");
         add("tooltip.servus_shuttles.shuttle.tool", "Tool: %s");
         add("tooltip.servus_shuttles.shuttle.speed", "Speed upgrades: %s");

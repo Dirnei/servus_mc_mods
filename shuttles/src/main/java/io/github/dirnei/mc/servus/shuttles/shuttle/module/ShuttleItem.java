@@ -4,7 +4,11 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import java.util.function.Consumer;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
+import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleLabelForm;
+import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleNumberData;
 import java.util.Optional;
+import java.util.OptionalInt;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -59,16 +63,50 @@ public class ShuttleItem extends Item {
         }
     }
 
-    /** A shuttle with a plate is named after it, as "Berta (Shuttle Mk2)"; an anvil name still wins in the hover name. */
+    /** The world's number of the shuttle, empty until it was first put into a garage. */
+    public static OptionalInt number(ItemStack stack) {
+        Integer number = stack.get(ServusShuttlesComponents.SHUTTLE_NUMBER.get());
+        return number == null ? OptionalInt.empty() : OptionalInt.of(number);
+    }
+
+    /** Gives a shuttle without a number the world's next one. @return whether it got one */
+    public static boolean numberIfMissing(ServerLevel level, ItemStack stack) {
+        if (!isShuttle(stack) || number(stack).isPresent()) {
+            return false;
+        }
+        stack.set(ServusShuttlesComponents.SHUTTLE_NUMBER.get(), ShuttleNumberData.get(level.getServer()).take());
+        return true;
+    }
+
+    /**
+     * The name of one shuttle for players: "Shuttle #12", "Berta (#12)" with a plate,
+     * and without a number "Berta (Shuttle Mk2)" or "Shuttle Mk1". Resolved by the client,
+     * so server built messages can carry it too.
+     */
+    public static Component label(ItemStack stack) {
+        Optional<String> plate = plate(stack);
+        OptionalInt number = number(stack);
+        Component tierName = Component.translatable(stack.getItem().getDescriptionId());
+        return switch (ShuttleLabelForm.of(plate.isPresent(), number.isPresent())) {
+            case NUMBERED_NAMED -> Component.translatable("shuttle.servus_shuttles.label.named", plate.get(), number.getAsInt());
+            case NUMBERED -> Component.translatable("shuttle.servus_shuttles.label", number.getAsInt());
+            case NAMED -> Component.translatable("item.servus_shuttles.shuttle.named", plate.get(), tierName);
+            case PLAIN -> tierName;
+        };
+    }
+
+    /** A shuttle is named by its {@link #label}; an anvil name still wins in the hover name. */
     @Override
     public Component getName(ItemStack stack) {
-        Component base = super.getName(stack);
-        return plate(stack).<Component>map(name -> Component.translatable("item.servus_shuttles.shuttle.named", name, base)).orElse(base);
+        return label(stack);
     }
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
+        if (number(stack).isPresent()) {
+            tooltip.accept(Component.translatable(getDescriptionId()).withStyle(ChatFormatting.GRAY));
+        }
         ShuttleModules modules = ShuttleModules.of(stack);
         if (modules.isEmpty()) {
             tooltip.accept(Component.translatable("tooltip.servus_shuttles.shuttle.plain").withStyle(ChatFormatting.GRAY));

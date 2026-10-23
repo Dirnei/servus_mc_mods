@@ -477,6 +477,8 @@
   "message.servus_shuttles.zone_label.cleared": "Zone cleared",
   "message.servus_shuttles.zone_label.stamped": "Zone: %s",
   "message.servus_shuttles.zone_label.unnamed": "Give the label a name first: right click the air with it",
+  "shuttle.servus_shuttles.label": "Shuttle #%s",
+  "shuttle.servus_shuttles.label.named": "%s (#%s)",
   "tag.item.servus_shuttles.anti_corrosion": "Anti-corrosion",
   "tag.item.servus_shuttles.fertilizer": "Fertilizer",
   "tooltip.servus_shuttles.fluid_gantry.amount": "%s, %s mB",

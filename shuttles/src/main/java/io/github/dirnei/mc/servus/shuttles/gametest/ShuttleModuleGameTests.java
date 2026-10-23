@@ -302,7 +302,7 @@ public final class ShuttleModuleGameTests {
     }
 
     /** Fills the supply slots with exactly the sheet that builds the tier. */
-    private static void supplyFor(ShuttleWorkshopBlockEntity workshop, int tier) {
+    static void supplyFor(ShuttleWorkshopBlockEntity workshop, int tier) {
         int slot = 0;
         for (ShuttleTiers.Supply supply : ShuttlesStatsManager.INSTANCE.shuttleTiers().tier(tier).build()) {
             Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(supply.id()));

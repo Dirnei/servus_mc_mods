@@ -1,5 +1,10 @@
 # Servus: Shuttles changelog
 
+## Unreleased
+
+### Added
+- Shuttles get a number per world, shown in their tooltip and in the garage.
+
 ## 0.3.0
 
 Needs Servus: Foundation 0.3.0 or later.
