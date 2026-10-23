@@ -266,9 +266,10 @@ public final class ElevatorGameTests {
 
     /**
      * A ride is paid per block of height when the car takes
-     * the shuttle, together with the block into the shaft. Out: one block into
-     * the shaft, two up, one out to the rack; back: one in, two down, one out,
-     * one on to the Packing Station; home: one. Ten blocks in all.
+     * the shuttle, together with the block into the shaft. Out: one through
+     * the doorway, one into the shaft, two up, one out to the rack; back: one
+     * in, two down, one out, one on to the Packing Station; home: one and one
+     * through the doorway. Twelve blocks in all.
      */
     @ServusGameTest(timeoutTicks = 500)
     public static void liftRideCostsPerBlockOfHeight(GameTestHelper helper) {
@@ -294,7 +295,7 @@ public final class ElevatorGameTests {
                             && liftNetwork(helper).garageOut(helper.absolutePos(LC_GARAGE)) == 0, 450,
                     () -> "the bread arrives and the shuttle parks, output " + terminal.outputCount(Items.BREAD), () -> {
                 long paid = controller.energy().capacity() - controller.energyStored();
-                helper.assertTrue(paid == 10 * perBlock, "ten blocks cost " + 10 * perBlock + " FE, paid " + paid);
+                helper.assertTrue(paid == 12 * perBlock, "twelve blocks cost " + 12 * perBlock + " FE, paid " + paid);
                 helper.assertTrue(biggest[0] == 3 * perBlock, "the block into the shaft and the ride of two are paid at once, biggest tick "
                         + biggest[0]);
                 helper.succeed();
@@ -314,9 +315,7 @@ public final class ElevatorGameTests {
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 10);
             menu.request(ItemKey.of(new ItemStack(Items.APPLE)), 10);
-            // Two lift handover pauses and the shuttle speeding up and braking come before the top rack's load.
-            helper.runAfterDelay(100, () -> {
-                helper.assertTrue(top.isEmpty(), "the first caller rode up first and loaded the top rack");
+            Waits.when(helper, top::isEmpty, 200, () -> "the first caller rides up and loads the top rack", () -> {
                 helper.assertTrue(!middle.isEmpty(), "the second caller is still waiting for the car, although its floor is nearer");
                 // The car speeds up and brakes on each of its trips.
                 helper.runAfterDelay(420, () -> {

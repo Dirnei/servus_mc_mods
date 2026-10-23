@@ -108,7 +108,7 @@ public final class ShuttleCornerGameTests {
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
         helper.onEachTick(() -> controller.network().ifPresent(network -> {
             for (ShuttleView view : network.shuttleViews(helper.absolutePos(GARAGE))) {
-                record(view, highest);
+                record(view, helper.absolutePos(GARAGE), highest);
             }
         }));
 
@@ -124,8 +124,12 @@ public final class ShuttleCornerGameTests {
         });
     }
 
-    /** Puts the view's speed into the highest seen within half a block of a corner, or elsewhere. */
-    private static void record(ShuttleView view, double[] highest) {
+    /**
+     * Puts the view's speed into the highest seen within half a block of a
+     * corner of the rail, or elsewhere; the turn through the garage's doorway
+     * onto the home rail counts as elsewhere.
+     */
+    private static void record(ShuttleView view, BlockPos garage, double[] highest) {
         if (!view.moving()) {
             return;
         }
@@ -137,7 +141,8 @@ public final class ShuttleCornerGameTests {
             BlockPos a = path.get(i - 1);
             BlockPos b = path.get(i);
             BlockPos c = path.get(i + 1);
-            if (ShuttleDrive.corner(a.getX(), a.getY(), a.getZ(), b.getX(), b.getY(), b.getZ(), c.getX(), c.getY(), c.getZ())
+            if (!a.equals(garage) && !c.equals(garage)
+                    && ShuttleDrive.corner(a.getX(), a.getY(), a.getZ(), b.getX(), b.getY(), b.getZ(), c.getX(), c.getY(), c.getZ())
                     && Math.abs(at - i) <= 0.5) {
                 nearCorner = true;
             }

@@ -8,6 +8,8 @@ import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.shuttles.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
@@ -20,6 +22,7 @@ import io.github.dirnei.mc.servus.shuttles.production.ProductionRows;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionView;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
+import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleView;
 import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlock;
 import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlockEntity;
 import java.util.List;
@@ -300,11 +303,18 @@ public final class PackingStationGameTests {
         });
     }
 
-    /** Items into storage and items out of storage each move at the full rate. */
-    @ServusGameTest(timeoutTicks = 200)
+    /**
+     * Items into storage and items out of storage each move at the full rate.
+     * A first cobblestone calls the shuttle out of its garage; the transfers
+     * start once it is through the doorway, so it reaches the station before
+     * the To storage buffer fills up.
+     */
+    @ServusGameTest(timeoutTicks = 300)
     public static void bothDirectionsAtOnce(GameTestHelper helper) {
         setup(helper, 0, true, false);
-        helper.runAfterDelay(10, () -> {
+        helper.runAfterDelay(10, () -> Transfer.insertItem(helper.getBlockEntity(FAR, PackingStationBlockEntity.class).intake(),
+                new ItemStack(Items.COBBLESTONE), false));
+        Waits.when(helper, () -> throughDoorway(helper), 100, () -> "the shuttle comes for the first cobblestone", () -> {
             preload(helper, FAR, 64);
             Delivery in = DataPackets.send(helper.getLevel(),
                     helper.absolutePos(STATION), helper.absolutePos(FAR), new ItemStack(Items.COBBLESTONE, 64))
@@ -318,6 +328,16 @@ public final class PackingStationGameTests {
                 helper.succeed();
             });
         });
+    }
+
+    /** Whether the garage's shuttle is out of its garage, on its way to the station. */
+    private static boolean throughDoorway(GameTestHelper helper) {
+        WarehouseNetwork network = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class).network().orElse(null);
+        if (network == null) {
+            return false;
+        }
+        List<ShuttleView> views = network.shuttleViews(helper.absolutePos(GARAGE));
+        return !views.isEmpty() && views.get(0).segment() > 0;
     }
 
     /** Neither row of the Packing Station GUI gives items out or takes items in. */

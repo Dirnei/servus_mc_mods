@@ -137,7 +137,7 @@ public final class WarehousePowerGameTests {
         });
     }
 
-    /** Six rails out to the rack and six back to the Packing Station: twelve blocks paid. */
+    /** Six rails out to the rack and six back to the Packing Station, and the doorway out and in: fourteen blocks paid. */
     @ServusGameTest(timeoutTicks = 400)
     public static void shuttleTripCostsPerBlock(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = longLine(helper, 16);
@@ -149,7 +149,7 @@ public final class WarehousePowerGameTests {
             Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 16 && out(helper, controller, L_GARAGE) == 0, 360,
                     () -> "the cobblestone should arrive and the shuttle park, output " + terminal.outputCount(Items.COBBLESTONE), () -> {
                 long paid = capacity(controller) - controller.energyStored();
-                helper.assertTrue(paid == 12 * perBlock(), "twelve blocks cost " + 12 * perBlock() + " FE, paid " + paid);
+                helper.assertTrue(paid == 14 * perBlock(), "fourteen blocks cost " + 14 * perBlock() + " FE, paid " + paid);
                 helper.succeed();
             });
         });

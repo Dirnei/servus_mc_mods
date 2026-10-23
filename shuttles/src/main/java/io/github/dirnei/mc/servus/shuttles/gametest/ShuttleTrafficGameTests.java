@@ -103,6 +103,14 @@ public final class ShuttleTrafficGameTests {
         return path;
     }
 
+    /** The rail path with the garage's own cell in front, so the shuttle leaves through the doorway as for a job. */
+    private static List<BlockPos> outOf(GameTestHelper helper, BlockPos garage, List<BlockPos> rails) {
+        List<BlockPos> path = new ArrayList<>();
+        path.add(helper.absolutePos(garage));
+        path.addAll(rails);
+        return path;
+    }
+
     private static void send(GameTestHelper helper, BlockPos garage, int slot, List<BlockPos> path) {
         helper.assertTrue(network(helper).sendShuttleAlong(helper.absolutePos(garage), slot, path), "the shuttle in slot " + slot + " leaves");
     }
@@ -262,7 +270,7 @@ public final class ShuttleTrafficGameTests {
         helper.runAfterDelay(10, () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, terminalPos);
             new StorageTerminalMenu(1, player.getInventory(), terminal).request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 16);
-            send(helper, follower, 0, alongX(helper, 1, 11, Z));
+            send(helper, follower, 0, outOf(helper, follower, alongX(helper, 1, 11, Z)));
             watch.active = true;
             watch.each = () -> {
                 List<ShuttleView> picking = watch.now.getOrDefault(picker, List.of());

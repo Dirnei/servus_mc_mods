@@ -105,7 +105,7 @@ public final class TerminalRequestGameTests {
     }
 
     /** A request over a stack splits into two loads and shows its progress until both arrived. */
-    @ServusGameTest(timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 500)
     public static void requestSplitsAndDelivers(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         StorageTerminalMenu menu = requestSetup(helper, player, 200);
@@ -118,7 +118,7 @@ public final class TerminalRequestGameTests {
                 helper.assertTrue(rows.size() == 1 && rows.get(0).requested() == 100 && rows.get(0).delivered() == 0, "one open request for 100, got " + rows);
                 helper.assertTrue(rows.get(0).state().equals("PICKING") || rows.get(0).state().equals("SENDING"), "state should be picking or sending, was " + rows.get(0).state());
             });
-            Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 100 && menu.stock().requests().isEmpty(), 360,
+            Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 100 && menu.stock().requests().isEmpty(), 460,
                     () -> "100 cobblestone should arrive and the request settle, had " + terminal.outputCount(Items.COBBLESTONE)
                             + ", rows " + menu.stock().requests(), helper::succeed);
         });

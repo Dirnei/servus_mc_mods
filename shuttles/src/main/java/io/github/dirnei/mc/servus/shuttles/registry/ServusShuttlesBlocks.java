@@ -117,7 +117,8 @@ public final class ServusShuttlesBlocks {
                             .mapColor(MapColor.METAL)
                             .strength(3.0F)
                             .requiresCorrectToolForDrops()
-                            .sound(SoundType.METAL));
+                            .sound(SoundType.METAL)
+                            .noOcclusion());
 
     public static final DeferredBlock<OutboundStationBlock> OUTBOUND_STATION =
             BLOCKS.registerBlock("outbound_station", OutboundStationBlock::new,

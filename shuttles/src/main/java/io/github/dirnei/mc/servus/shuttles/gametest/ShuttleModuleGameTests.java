@@ -529,16 +529,16 @@ public final class ShuttleModuleGameTests {
     }
 
     /**
-     * Seven rails out and back with a stop at each end. Without Speed the
-     * trip takes about 94 ticks of driving and 28 of stops, with two Speed
-     * upgrades about 62 and 28, so at 106 ticks only the fast one is done.
+     * The door time, the doorway and seven rails out and back with a stop at
+     * each end. The fast shuttle with two Speed upgrades is done by the check,
+     * the plain one is not.
      */
     private static void timedTrip(GameTestHelper helper, int speed, boolean doneByCheck) {
         fleetSetup(helper, shuttle(ServusShuttlesItems.SHUTTLE_MK1.get(), speed, 0, Optional.empty()), 0, 30);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = requestCobblestone(helper, 30);
             // Shuttles speed up and brake on every leg, so the check comes a little later than travel alone.
-            helper.runAfterDelay(130, () -> {
+            helper.runAfterDelay(148, () -> {
                 int riding = network.ridingJobs();
                 helper.assertTrue(doneByCheck ? riding == 0 : riding == 1,
                         (doneByCheck ? "the fast shuttle should have delivered" : "the slow shuttle should still carry the pick") + ", riding " + riding);

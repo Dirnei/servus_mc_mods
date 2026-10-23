@@ -7,6 +7,7 @@
 - Slots a shuttle job fills or empties are locked and shown with a colour wash, a ghost item and the shuttle's label.
 - Shuttles follow each other with a gap, take turns at merges and leave a garage one after another.
 - A one-off order grid in the Storage Terminal replaces the crafting popup and can save its pattern.
+- The Shuttle Garage has a real doorway with a roll-up shutter that opens for its shuttles.
 
 ### Changed
 - Put-aways pick the rack by zone, then bays already holding the item, then the most room, weighed by travel time.
@@ -18,6 +19,7 @@
 ### Fixed
 - Shuttle jobs, their cargo and station claims survive a reload or an unloaded warehouse; nothing drops mid-trip.
 - A Warehouse Controller placed against the side of an elevator shaft joins the warehouse.
+- Shuttles roll out of and into their garage smoothly instead of appearing and vanishing on the rail in front of it.
 
 ## 0.3.0
 

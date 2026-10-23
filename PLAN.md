@@ -154,7 +154,7 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 | M2, M3 Factorio style factory | superseded by M9; what lived on: pumps, Sink, Ender Anchor, side config, JEI, the docs site and Balance lab |
 | M4 Warehouse first slice | Heavy Duty Rack with sections, Warehouse Controller, terminal |
 | M5 Logistics | Utility Duct with item, power and fluid lines, modes, named team channels, filters with search and JEI, priorities, facades, goggles, Data Potato, Fluid Tank |
-| M6 Warehouse automation | rails, elevators with lift cars, simulated shuttles, garages, Inbound Station, Zone Labels, placement assist |
+| M6 Warehouse automation | rails, elevators with lift cars, simulated shuttles, garages with a roll-up door, Inbound Station, Zone Labels, placement assist |
 | M7 Autocrafting integration | production API, work orders, stock rules, Outbound Station, Crafting Station |
 | M8 On-demand autocrafting | Servus: Foundation merge, data cable with tiers, Packing Station, Storage Terminal, Crafting CPU, Production Terminal, Pattern Storage, Machine Adapter, shuttle jobs that survive a reload, slot locks, following traffic, shuttle numbers, terminal requests within stock |
 | M9 Alchemy, Nigredo and Albedo | Tria Prima, Calciner, Purifier, Coagulator and Athanor builds, journal, Elixir of Sight, Gnome Hollow, facade panels, beam engine pumps, Ender Anchor area |

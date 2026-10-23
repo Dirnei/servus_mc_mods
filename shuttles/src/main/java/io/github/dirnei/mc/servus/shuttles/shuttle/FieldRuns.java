@@ -153,7 +153,7 @@ final class FieldRuns {
      */
     void resume(Shuttle shuttle) {
         FieldRun run = shuttle.fieldRun();
-        if (!host.isTravelNode(shuttle.at())) {
+        if (!fleet.onWay(shuttle, shuttle.at())) {
             lose(shuttle);
         } else if (!run.store.isEmpty()) {
             continueStore(shuttle);
@@ -306,7 +306,7 @@ final class FieldRuns {
     private void turn(Shuttle shuttle) {
         HarvestRun run = shuttle.run;
         fleet.markSync();
-        if (!host.isTravelNode(shuttle.at())) {
+        if (!fleet.onWay(shuttle, shuttle.at())) {
             lose(shuttle);
             return;
         }
@@ -455,7 +455,7 @@ final class FieldRuns {
     /** One tick at a rail: wait out the work time, then work the next plot that needs something. */
     private void work(Shuttle shuttle) {
         HarvestRun run = shuttle.run;
-        if (!host.isTravelNode(shuttle.at())) {
+        if (!fleet.onWay(shuttle, shuttle.at())) {
             lose(shuttle);
             return;
         }
@@ -750,7 +750,7 @@ final class FieldRuns {
     private void spreadTurn(Shuttle shuttle) {
         SpreadRun run = shuttle.spread;
         fleet.markSync();
-        if (!host.isTravelNode(shuttle.at())) {
+        if (!fleet.onWay(shuttle, shuttle.at())) {
             lose(shuttle);
             return;
         }
@@ -859,7 +859,7 @@ final class FieldRuns {
     /** One tick at a rail: wait out the work time, then dose the next plot that still needs it. */
     private void dose(Shuttle shuttle) {
         SpreadRun run = shuttle.spread;
-        if (!host.isTravelNode(shuttle.at())) {
+        if (!fleet.onWay(shuttle, shuttle.at())) {
             lose(shuttle);
             return;
         }
@@ -986,7 +986,7 @@ final class FieldRuns {
     private void supplyTurn(Shuttle shuttle) {
         SupplyRun run = shuttle.supply;
         fleet.markSync();
-        if (!host.isTravelNode(shuttle.at())) {
+        if (!fleet.onWay(shuttle, shuttle.at())) {
             lose(shuttle);
             return;
         }

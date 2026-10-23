@@ -2,6 +2,7 @@
   "sources_per_tick": 4,
   "lift_speed": 0.1,
   "lift_handover_ticks": 10,
+  "door_ticks": 10,
   "lift_accel": 0.005,
   "lift_upgrade_slots": 4,
   "lift_speed_per_upgrade": 0.05,

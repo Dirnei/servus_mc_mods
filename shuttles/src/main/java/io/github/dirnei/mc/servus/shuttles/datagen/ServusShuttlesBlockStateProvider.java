@@ -215,33 +215,20 @@ final class ServusShuttlesBlockStateProvider extends BlockStateProvider {
     }
 
     /**
-     * The garage: the lamp on the front, the doorway with the rail on the back,
-     * the side texture left and right, the top texture above and below, a lit
-     * lamp while online and a red one while a shuttle parks with cargo that has nowhere to go.
+     * The garage (see {@link GarageModels}): the lamp on the front, the open
+     * doorway with the rail running in on the back, a lit lamp while online
+     * and a red one while a shuttle parks with cargo that has nowhere to go.
      */
     private void garage(Block block, String name) {
-        ModelFile dark = garageModel(name, name + "_front");
-        ModelFile lit = garageModel(name + "_online", name + "_front_online");
-        ModelFile blocked = garageModel(name + "_blocked", name + "_front_blocked");
+        ModelFile dark = GarageModels.garage(this, name, name + "_front");
+        ModelFile lit = GarageModels.garage(this, name + "_online", name + "_front_online");
+        ModelFile blocked = GarageModels.garage(this, name + "_blocked", name + "_front_blocked");
         getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(!state.getValue(StorageNodeBlocks.ONLINE) ? dark
                         : state.getValue(StorageNodeBlocks.ACTIVITY) == StorageNodeBlocks.Activity.BLOCKED ? blocked : lit)
                 .rotationY(rotationY(state))
                 .build());
         simpleBlockItem(block, dark);
-    }
-
-    private ModelFile garageModel(String model, String front) {
-        Identifier side = modLoc("block/shuttle_garage_side");
-        Identifier top = modLoc("block/shuttle_garage_top");
-        Map<Direction, Identifier> faces = new EnumMap<>(Direction.class);
-        faces.put(Direction.DOWN, top);
-        faces.put(Direction.UP, top);
-        faces.put(Direction.NORTH, modLoc("block/" + front));
-        faces.put(Direction.SOUTH, modLoc("block/shuttle_garage_back"));
-        faces.put(Direction.EAST, side);
-        faces.put(Direction.WEST, side);
-        return LayeredModels.cube(this, model, faces);
     }
 
     /** A wood block: board panels under the iron overlay textures named after the block, with a lit front while online. */

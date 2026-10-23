@@ -1960,6 +1960,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (held.isEmpty() || !FluidKey.of(held).equals(key)) {
             return FluidStack.EMPTY;
         }
+        pendingGantries.add(gantry);
         return entity.tank(tank).drain(max, false);
     }
 
@@ -1969,6 +1970,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             return stack;
         }
         int filled = entity.tank(tank).fill(stack, false);
+        pendingGantries.add(gantry);
         return filled >= stack.getAmount() ? FluidStack.EMPTY : stack.copyWithAmount(stack.getAmount() - filled);
     }
 

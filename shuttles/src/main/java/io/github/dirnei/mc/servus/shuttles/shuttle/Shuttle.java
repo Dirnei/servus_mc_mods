@@ -51,6 +51,10 @@ final class Shuttle {
     /** Blocks driven last tick on the path speedFor; a new path starts from standing. */
     double speed;
     ShuttleMotion speedFor;
+    /** Ticks left of the wait inside the garage while its door opens. */
+    int door;
+    /** The path whose door wait has started; its shuttle is shown waiting inside. */
+    ShuttleMotion doorFor;
     /** Ticks left of the pause at a lift handover. */
     int handover;
     /** Whether that pause is over, so the waiting step may go on. */
@@ -98,6 +102,16 @@ final class Shuttle {
     /** Whether the shuttle is inside its garage: parked there, or given a job and not moved yet. */
     boolean insideGarage() {
         return inGarage && motion != null && motion.segment() == 0 && motion.progress() == 0;
+    }
+
+    /** Whether the shuttle stands inside its garage at the start of a path out through the doorway. */
+    boolean leavingGarage() {
+        return insideGarage() && !motion.arrived() && motion.start().equals(garage.inside);
+    }
+
+    /** Whether the door wait of the shuttle's path has started, so it is shown inside facing out. */
+    boolean atOpenDoor() {
+        return doorFor == motion && leavingGarage();
     }
 
     /** Whether the shuttle drives in a ring of followers this tick. */

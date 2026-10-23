@@ -5,9 +5,15 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import io.github.dirnei.mc.servus.foundation.client.LiveBlockEntityRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import net.minecraft.resources.Identifier;
+import net.minecraft.data.AtlasIds;
+import net.minecraft.client.Minecraft;
+import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlock;
+import io.github.dirnei.mc.servus.shuttles.garage.GarageShutter;
+import io.github.dirnei.mc.servus.shuttles.garage.GarageDoorLook;
+import io.github.dirnei.mc.servus.foundation.client.ModelPoses;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
-import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleDrive;
 import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleView;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleItem;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleLook;
@@ -33,7 +39,10 @@ import net.minecraft.world.phys.AABB;
  * Draws every shuttle of this garage: its own item, whose model shows the
  * shuttle's parts, at full block scale on the rail at the position
  * extrapolated from the last sync, with its cargo in the crate when the hold
- * is open. A shuttle riding a lift car is drawn at the car's height.
+ * is open. A shuttle riding a lift car is drawn at the car's height. A
+ * shuttle that drove in stays drawn inside until the doorway's roll-up
+ * shutter is down; the shutter opens while a shuttle waits inside to leave
+ * or comes close on its way in.
  */
 public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarageBlockEntity> {
 
@@ -46,6 +55,10 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
     private static final float SHUTTLE_SCALE = 0.8F;
     /** Gap between a sight glass frame and the fluid drawn on it, in model pixels. */
     private static final float GLASS_GAP = 0.02F;
+    private static final Identifier STEEL = Identifier.fromNamespaceAndPath("servus_foundation", "block/electric_pump_steel");
+    private static final int ALL_FACES = (1 << Direction.values().length) - 1;
+    /** The most ticks the shutter moves between two frames, so a garage seen again does not run through a whole cycle at once. */
+    private static final double MAX_SHUTTER_STEP = 20;
 
     public ShuttleGarageRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -68,46 +81,104 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
     @Override
     protected void render(ShuttleGarageBlockEntity garage, float partialTick, PoseStack poseStack, SubmitNodeCollector collector,
                           int packedLight) {
-        ClientShuttles.Fleet fleet = ClientShuttles.fleet(garage.getBlockPos());
-        if (fleet == null || fleet.views().isEmpty() || garage.getLevel() == null) {
+        Level level = garage.getLevel();
+        if (level == null) {
             return;
         }
-        long now = garage.getLevel().getGameTime();
-        double elapsed = (now - fleet.receivedTick()) + partialTick;
-        ItemStack plain = new ItemStack(ServusShuttlesItems.SHUTTLE_MK1.get());
+        double now = level.getGameTime() + partialTick;
+        ClientShuttles.Fleet fleet = ClientShuttles.fleet(garage.getBlockPos());
+        double openness = 0;
+        if (fleet != null) {
+            boolean open = false;
+            for (ShuttleView view : fleet.views()) {
+                open |= drawShuttle(garage, view, now - fleet.receivedTick(), now, poseStack, collector);
+            }
+            for (ClientShuttles.Parked parked : fleet.parked()) {
+                open |= drawShuttle(garage, parked.view(), now - parked.receivedTick(), now, poseStack, collector);
+            }
+            double ticks = Double.isNaN(fleet.shutterTime) ? 0 : Math.clamp(now - fleet.shutterTime, 0, MAX_SHUTTER_STEP);
+            fleet.shutterTime = now;
+            fleet.openness = GarageShutter.step(fleet.openness, open, ticks);
+            if (!open && fleet.openness == 0) {
+                fleet.parked().clear();
+            }
+            openness = fleet.openness;
+        }
+        drawShutter(garage, openness, poseStack, collector);
+    }
+
+    /**
+     * Draws one shuttle where it is after driving the elapsed ticks since its
+     * view arrived; true when it wants the shutter open.
+     */
+    private static boolean drawShuttle(ShuttleGarageBlockEntity garage, ShuttleView view, double elapsed, double now, PoseStack poseStack,
+                                       SubmitNodeCollector collector) {
+        Level level = garage.getLevel();
         BlockPos origin = garage.getBlockPos();
-
-        for (ShuttleView view : fleet.views()) {
-            double[] at = glide(view, elapsed);
-            double[] pos = position(view.path(), at);
-            if (view.lift().isPresent()) {
-                // Riding: the car carries the shuttle, so its height comes from the car.
-                ClientLifts.Lift lift = ClientLifts.lift(view.lift().get());
-                if (lift != null) {
-                    pos[1] = lift.yAt(now + partialTick);
-                }
+        double[] at = ShuttleGlide.at(view, elapsed);
+        double[] pos = position(view.path(), at);
+        if (view.lift().isPresent()) {
+            // Riding: the car carries the shuttle, so its height comes from the car.
+            ClientLifts.Lift lift = ClientLifts.lift(view.lift().get());
+            if (lift != null) {
+                pos[1] = lift.yAt(now);
             }
-            double yaw = heading(view.path(), at);
-            BlockPos railPos = BlockPos.containing(pos[0], pos[1], pos[2]);
-            int light = LevelRenderer.getLightCoords(garage.getLevel(), railPos.above());
+        }
+        double yaw = heading(view.path(), at);
+        BlockPos railPos = BlockPos.containing(pos[0], pos[1], pos[2]);
+        int light = LevelRenderer.getLightCoords(level, railPos.above());
 
+        poseStack.pushPose();
+        // The model's bottom stands on the floor; NONE draws it around its centre.
+        poseStack.translate(pos[0] - origin.getX() + 0.5, pos[1] - origin.getY() + FLOOR,
+                pos[2] - origin.getZ() + 0.5);
+        poseStack.mulPose(Axis.YP.rotationDegrees((float) yaw));
+        poseStack.scale(SHUTTLE_SCALE, SHUTTLE_SCALE, SHUTTLE_SCALE);
+        poseStack.translate(0.0, 0.5, 0.0);
+        ItemStack cart = view.shuttle().isEmpty() ? new ItemStack(ServusShuttlesItems.SHUTTLE_MK1.get()) : view.shuttle();
+        RenderSubmit.item(poseStack, collector, cart, ItemDisplayContext.NONE, level, 0, light);
+        view.glass().ifPresent(glass -> sightGlass(glass, level, railPos, poseStack, collector, light));
+        if (!view.cargo().isEmpty() && ShuttleLook.openHold(ShuttleItem.tier(cart))) {
+            poseStack.translate(0.0, CARGO_Y - 0.5, 0.0);
+            poseStack.scale(CARGO_SCALE, CARGO_SCALE, CARGO_SCALE);
+            RenderSubmit.item(poseStack, collector, view.cargo(), ItemDisplayContext.FIXED, level, 1, light);
+        }
+        poseStack.popPose();
+        List<BlockPos> path = view.path();
+        return GarageShutter.wantsOpen(path.getFirst().equals(origin), path.size() > 1 && path.getLast().equals(origin), path.size(),
+                at[0] + at[1], view.drive().top());
+    }
+
+    /**
+     * The roll-up shutter: the steel slats that still hang in the doorway,
+     * each drawn at its own height so its texture rolls up with it. Drawn in
+     * the garage's north built space, back to the south.
+     */
+    private static void drawShutter(ShuttleGarageBlockEntity garage, double openness, PoseStack poseStack, SubmitNodeCollector collector) {
+        float[] bottoms = GarageDoorLook.slatBottoms(openness);
+        if (Float.isNaN(bottoms[0])) {
+            return;
+        }
+        Direction facing = garage.getBlockState().getValue(ShuttleGarageBlock.FACING);
+        int light = LevelRenderer.getLightCoords(garage.getLevel(), garage.getBlockPos().relative(facing.getOpposite()));
+        TextureAtlasSprite steel = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(STEEL);
+        float px = 1 / 16F;
+        FluidBox slat = new FluidBox((GarageDoorLook.DOOR_X0 + GarageDoorLook.SLAT_INSET) * px, 0, GarageDoorLook.SLAT_Z0 * px,
+                (GarageDoorLook.DOOR_X1 - GarageDoorLook.SLAT_INSET) * px, (GarageDoorLook.SLAT_HEIGHT - GarageDoorLook.SLAT_GAP) * px,
+                GarageDoorLook.SLAT_Z1 * px);
+        poseStack.pushPose();
+        ModelPoses.faceFromNorth(poseStack, facing);
+        for (float bottom : bottoms) {
+            if (Float.isNaN(bottom)) {
+                continue;
+            }
             poseStack.pushPose();
-            // The model's bottom stands on the floor; NONE draws it around its centre.
-            poseStack.translate(pos[0] - origin.getX() + 0.5, pos[1] - origin.getY() + FLOOR,
-                    pos[2] - origin.getZ() + 0.5);
-            poseStack.mulPose(Axis.YP.rotationDegrees((float) yaw));
-            poseStack.scale(SHUTTLE_SCALE, SHUTTLE_SCALE, SHUTTLE_SCALE);
-            poseStack.translate(0.0, 0.5, 0.0);
-            ItemStack cart = view.shuttle().isEmpty() ? plain : view.shuttle();
-            RenderSubmit.item(poseStack, collector, cart, ItemDisplayContext.NONE, garage.getLevel(), 0, light);
-            view.glass().ifPresent(glass -> sightGlass(glass, garage.getLevel(), railPos, poseStack, collector, light));
-            if (!view.cargo().isEmpty() && ShuttleLook.openHold(ShuttleItem.tier(cart))) {
-                poseStack.translate(0.0, CARGO_Y - 0.5, 0.0);
-                poseStack.scale(CARGO_SCALE, CARGO_SCALE, CARGO_SCALE);
-                RenderSubmit.item(poseStack, collector, view.cargo(), ItemDisplayContext.FIXED, garage.getLevel(), 1, light);
-            }
+            poseStack.translate(0, bottom * px, 0);
+            collector.submitCustomGeometry(poseStack, Sheets.cutoutBlockSheet(),
+                    (pose, consumer) -> slat.draw(consumer, pose, ALL_FACES, steel, 0xFFFFFFFF, light));
             poseStack.popPose();
         }
+        poseStack.popPose();
     }
 
     /**
@@ -133,26 +204,6 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
             window.quad(consumer, pose, Direction.EAST, sprite, color, lit);
         });
         poseStack.popPose();
-    }
-
-    /** Where on its path the shuttle is after driving the elapsed ticks since the sync: {segment, progress}. */
-    private static double[] glide(ShuttleView view, double elapsed) {
-        List<BlockPos> path = view.path();
-        ShuttleView.Drive drive = view.drive();
-        double leadAt = view.lead().map(lead -> (double) lead.at()).orElse(Double.POSITIVE_INFINITY);
-        double leadSpeed = view.lead().map(lead -> (double) lead.speed()).orElse(0.0);
-        return ShuttleDrive.glide(path.size(), view.segment(), view.progress(), drive.speed(), drive.top(), drive.accel(), elapsed,
-                i -> !horizontal(path, i), i -> corner(path, i), drive.corner(), leadAt, leadSpeed);
-    }
-
-    private static boolean corner(List<BlockPos> path, int i) {
-        if (i <= 0 || i >= path.size() - 1) {
-            return false;
-        }
-        BlockPos a = path.get(i - 1);
-        BlockPos b = path.get(i);
-        BlockPos c = path.get(i + 1);
-        return ShuttleDrive.corner(a.getX(), a.getY(), a.getZ(), b.getX(), b.getY(), b.getZ(), c.getX(), c.getY(), c.getZ());
     }
 
     private static double[] position(List<BlockPos> path, double[] at) {
@@ -181,22 +232,16 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
         }
         int current = Math.min((int) at[0], path.size() - 2);
         for (int i = current; i >= 0; i--) {
-            if (horizontal(path, i)) {
+            if (ShuttleGlide.horizontal(path, i)) {
                 return yaw(path, i);
             }
         }
         for (int i = current + 1; i < path.size() - 1; i++) {
-            if (horizontal(path, i)) {
+            if (ShuttleGlide.horizontal(path, i)) {
                 return yaw(path, i);
             }
         }
         return 0;
-    }
-
-    private static boolean horizontal(List<BlockPos> path, int segment) {
-        BlockPos from = path.get(segment);
-        BlockPos to = path.get(segment + 1);
-        return from.getX() != to.getX() || from.getZ() != to.getZ();
     }
 
     private static double yaw(List<BlockPos> path, int segment) {

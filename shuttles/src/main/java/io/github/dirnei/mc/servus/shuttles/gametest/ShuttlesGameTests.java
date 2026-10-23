@@ -26,6 +26,7 @@ public final class ShuttlesGameTests {
             GantryTankGameTests.class,
             GantryNetworkGameTests.class,
             GantryMenuGameTests.class,
+            GarageDoorwayGameTests.class,
             GaragePlacementGameTests.class,
             HarvesterGameTests.class,
             HeavyRackGameTests.class,

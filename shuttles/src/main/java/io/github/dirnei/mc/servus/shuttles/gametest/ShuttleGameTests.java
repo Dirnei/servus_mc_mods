@@ -114,12 +114,12 @@ public final class ShuttleGameTests {
         helper.runAfterDelay(10, () -> {
             Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 40), false);
             helper.runAfterDelay(2, () -> helper.assertTrue(!station.isEmpty(), "the stack waits in the buffer until the shuttle arrives"));
-            // The shuttle speeds up and brakes before it loads.
-            helper.runAfterDelay(45, () -> {
+            // The shuttle waits for the garage door, speeds up and brakes before it loads.
+            helper.runAfterDelay(70, () -> {
                 helper.assertTrue(station.isEmpty(), "the shuttle should have loaded the stack by now");
                 helper.assertTrue(crate.isEmpty(), "the rack must still be empty while the shuttle travels");
             });
-            helper.runAfterDelay(140, () -> {
+            helper.runAfterDelay(180, () -> {
                 helper.assertTrue(WarehouseFixtures.count(crate, Items.COBBLESTONE) == 40, "the shuttle should have delivered 40 cobblestone, rack has "
                         + WarehouseFixtures.count(crate, Items.COBBLESTONE));
                 helper.assertTrue(station.isEmpty(), "nothing should ride back");

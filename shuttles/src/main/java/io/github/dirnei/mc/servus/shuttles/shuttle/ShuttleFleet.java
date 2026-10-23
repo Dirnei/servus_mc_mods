@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwo
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.shuttles.gantry.GantryMode;
 import io.github.dirnei.mc.servus.shuttles.gantry.TankRef;
+import io.github.dirnei.mc.servus.shuttles.garage.GarageShutter;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.power.StepPower;
 import io.github.dirnei.mc.servus.shuttles.shuttle.Shafts.Shaft;
@@ -48,8 +49,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The shuttles of one warehouse, kept per garage and per garage slot: each
- * parks on its garage's rail, all serve one queue of jobs as far as their
- * modules fit, and clients draw them per garage. Everything here is data;
+ * parks inside its garage and drives out through the doorway onto the
+ * garage's rail, all serve one queue of jobs as far as their modules fit,
+ * and clients draw them per garage. Everything here is data;
  * nothing scans blocks.
  */
 public final class ShuttleFleet {
@@ -318,7 +320,7 @@ public final class ShuttleFleet {
             if (!stack.isEmpty() && garage.inSlot(slot) == null) {
                 Shuttle shuttle = new Shuttle(garage, slot, ShuttleModules.profile(stack, tiers));
                 shuttle.item = stack.copyWithCount(1);
-                shuttle.motion = garage.home == null ? null : ShuttleMotion.parked(garage.home);
+                shuttle.motion = garage.parked();
                 garage.shuttles.add(shuttle);
             }
         }
@@ -385,7 +387,8 @@ public final class ShuttleFleet {
         for (Shuttle shuttle : garage.shuttles) {
             if (!shuttle.busy()) {
                 lifts.release(shuttle);
-                shuttle.motion = ShuttleMotion.parked(garage.home);
+                shuttle.motion = garage.parked();
+                shuttle.inGarage = true;
             }
         }
         syncPending = true;
@@ -411,7 +414,7 @@ public final class ShuttleFleet {
         shuttle.strandReason = null;
         dropCargo(shuttle);
         shuttle.leg = Leg.HOME;
-        shuttle.motion = shuttle.garage.home == null ? null : ShuttleMotion.parked(shuttle.garage.home);
+        shuttle.motion = shuttle.garage.parked();
         shuttle.inGarage = true;
         syncPending = true;
     }
@@ -433,13 +436,26 @@ public final class ShuttleFleet {
 
     /**
      * The steps the shuttle may take from a node: every travel neighbour, or
-     * for a shuttle too wide for lifts those that do not go up or down a shaft.
+     * for a shuttle too wide for lifts those that do not go up or down a
+     * shaft, and the doorway step between its own garage and the garage's home rail.
      */
     Function<NodePos, Set<NodePos>> ways(Shuttle shuttle) {
-        if (shuttle.profile.liftless()) {
-            return node -> LiftlessSteps.filter(node, host.travelNeighbours(node));
-        }
-        return host::travelNeighbours;
+        Function<NodePos, Set<NodePos>> rails = shuttle.profile.liftless()
+                ? node -> LiftlessSteps.filter(node, host.travelNeighbours(node))
+                : host::travelNeighbours;
+        Garage garage = shuttle.garage;
+        return garage.home == null ? rails : GarageDoorway.through(rails, garage.inside, garage.home);
+    }
+
+    /** Whether the shuttle may stand on the node: a rail or shaft of this warehouse, or the inside of its own garage. */
+    boolean onWay(Shuttle shuttle, NodePos node) {
+        return host.isTravelNode(node) || shuttle.garage.home != null && node.equals(shuttle.garage.inside);
+    }
+
+    /** The way from the node into the shuttle's garage, empty without one. */
+    private List<NodePos> homePath(Shuttle shuttle, NodePos from) {
+        Garage garage = shuttle.garage;
+        return garage.home == null ? List.of() : path(shuttle, from, garage.inside::equals);
     }
 
     public void requestPick(PickJob job) {
@@ -886,6 +902,9 @@ public final class ShuttleFleet {
             }
             return false;
         }
+        if (waitForDoor(shuttle)) {
+            return false;
+        }
         if (shuttle.room < MIN_STEP && !shuttle.inRing()) {
             shuttle.speedFor = shuttle.motion;
             shuttle.speed = 0;
@@ -904,6 +923,28 @@ public final class ShuttleFleet {
         if (done) {
             arrive(shuttle);
         }
+        return true;
+    }
+
+    /**
+     * A shuttle about to drive out of its garage first waits the door time
+     * inside, once per path, and clients learn of it at once so the door
+     * opens. True while it waits.
+     */
+    private boolean waitForDoor(Shuttle shuttle) {
+        if (shuttle.doorFor != shuttle.motion) {
+            shuttle.door = 0;
+            if (!shuttle.leavingGarage()) {
+                return false;
+            }
+            shuttle.doorFor = shuttle.motion;
+            shuttle.door = ShuttlesStatsManager.INSTANCE.doorTicks();
+            syncPending = true;
+        }
+        if (shuttle.door == 0) {
+            return false;
+        }
+        shuttle.door--;
         return true;
     }
 
@@ -1128,12 +1169,24 @@ public final class ShuttleFleet {
             }
             for (Shuttle shuttle : garage.shuttles) {
                 if (!shuttle.busy() && shuttle.motion != null && shuttle.lift == null && shuttle.restoring == null
-                        && needs.fits(shuttle.profile)) {
+                        && !pullingIn(shuttle) && needs.fits(shuttle.profile)) {
                     free.add(shuttle);
                 }
             }
         }
         return free;
+    }
+
+    /** Whether the shuttle drives into its garage and is close enough that clients open the shutter for it. */
+    private static boolean pullingIn(Shuttle shuttle) {
+        ShuttleMotion motion = shuttle.motion;
+        return shuttle.garage.home != null && !motion.arrived() && motion.end().equals(shuttle.garage.inside)
+                && GarageShutter.pullingIn(motion.path().size(), motion.segment() + motion.progress(), topSpeed(shuttle));
+    }
+
+    /** The speed the shuttle drives at most right now: its ring's speed while in a ring of followers, else its own. */
+    private static double topSpeed(Shuttle shuttle) {
+        return shuttle.inRing() ? shuttle.ringSpeed : shuttle.profile.speed();
     }
 
     /** A job no shuttle can take: a pick ends as a shortfall; either kind releases its locks. */
@@ -1150,6 +1203,7 @@ public final class ShuttleFleet {
     private void arrive(Shuttle shuttle) {
         if (shuttle.leg == Leg.STRANDED) {
             shuttle.inGarage = true;
+            syncPending = true;
             return;
         }
         if (!shuttle.busy()) {
@@ -1433,12 +1487,12 @@ public final class ShuttleFleet {
         if (shuttle.leg == Leg.STRANDED && shuttle.motion.arrived()) {
             return;
         }
-        NodePos home = shuttle.garage.home;
-        List<NodePos> homePath = home == null ? List.of() : path(shuttle, shuttle.motion.end(), home::equals);
+        Garage garage = shuttle.garage;
+        List<NodePos> homePath = homePath(shuttle, shuttle.motion.end());
         shuttle.leg = Leg.STRANDED;
-        shuttle.motion = homePath.isEmpty() ? (home == null ? ShuttleMotion.parked(shuttle.motion.end()) : ShuttleMotion.parked(home))
+        shuttle.motion = homePath.isEmpty() ? (garage.home == null ? ShuttleMotion.parked(shuttle.motion.end()) : garage.parked())
                 : new ShuttleMotion(homePath);
-        shuttle.inGarage = homePath.isEmpty() && home != null;
+        shuttle.inGarage = homePath.size() < 2 && garage.home != null;
         syncPending = true;
     }
 
@@ -1614,8 +1668,7 @@ public final class ShuttleFleet {
     /** Sends the shuttle home, or back the way it came when no path leads home. */
     void goHome(Shuttle shuttle) {
         shuttle.leg = Leg.HOME;
-        NodePos home = shuttle.garage.home;
-        List<NodePos> homePath = home == null ? List.of() : path(shuttle, shuttle.motion.end(), home::equals);
+        List<NodePos> homePath = homePath(shuttle, shuttle.motion.end());
         shuttle.motion = homePath.isEmpty() ? shuttle.motion.reverse() : new ShuttleMotion(homePath);
     }
 
@@ -1627,7 +1680,7 @@ public final class ShuttleFleet {
         dropFieldRun(shuttle);
         shuttle.loads.clear();
         shuttle.leg = Leg.HOME;
-        shuttle.motion = shuttle.garage.home == null ? null : ShuttleMotion.parked(shuttle.garage.home);
+        shuttle.motion = shuttle.garage.parked();
         shuttle.inGarage = true;
     }
 
@@ -1730,9 +1783,9 @@ public final class ShuttleFleet {
         }
         shuttle.strandReason = anyRoom(shuttle) ? StrandReason.NO_WAY : StrandReason.NO_ROOM;
         shuttle.leg = Leg.STRANDED;
-        NodePos home = shuttle.garage.home;
-        shuttle.motion = ShuttleMotion.parked(home == null ? shuttle.motion.currentNode() : home);
-        shuttle.inGarage = home != null;
+        Garage garage = shuttle.garage;
+        shuttle.motion = garage.home == null ? ShuttleMotion.parked(shuttle.motion.currentNode()) : garage.parked();
+        shuttle.inGarage = garage.home != null;
         syncPending = true;
     }
 
@@ -1783,11 +1836,11 @@ public final class ShuttleFleet {
         if (shuttle.leg == Leg.WAITING_ROOM) {
             shuttle.leg = Leg.TO_TERMINAL;
         }
-        if (shuttle.leg == Leg.STRANDED && shuttle.motion.arrived() || pathWhole(shuttle.motion)) {
+        if (shuttle.leg == Leg.STRANDED && shuttle.motion.arrived() || pathWhole(shuttle)) {
             return;
         }
         NodePos at = shuttle.motion.currentNode();
-        if (!host.isTravelNode(at)) {
+        if (!onWay(shuttle, at)) {
             parkWithCargo(shuttle);
             return;
         }
@@ -1805,8 +1858,7 @@ public final class ShuttleFleet {
             continueStores(shuttle);
             return;
         }
-        NodePos home = shuttle.garage.home;
-        List<NodePos> homePath = home == null ? List.of() : path(shuttle, at, home::equals);
+        List<NodePos> homePath = homePath(shuttle, at);
         if (homePath.isEmpty()) {
             parkWithCargo(shuttle);
             return;
@@ -1823,10 +1875,10 @@ public final class ShuttleFleet {
         }
     }
 
-    /** Whether every node the motion still has ahead is a rail or segment of this warehouse. */
-    private boolean pathWhole(ShuttleMotion motion) {
-        for (NodePos node : motion.remaining()) {
-            if (!host.isTravelNode(node)) {
+    /** Whether every node the shuttle's motion still has ahead is one it may stand on. */
+    private boolean pathWhole(Shuttle shuttle) {
+        for (NodePos node : shuttle.motion.remaining()) {
+            if (!onWay(shuttle, node)) {
                 return false;
             }
         }
@@ -1837,7 +1889,7 @@ public final class ShuttleFleet {
     private Set<NodePos> legGoals(Shuttle shuttle) {
         ShuttleJob lead = shuttle.lead();
         if (shuttle.leg == Leg.HOME || shuttle.leg == Leg.STRANDED || lead == null) {
-            return shuttle.garage.home == null ? Set.of() : Set.of(shuttle.garage.home);
+            return shuttle.garage.home == null ? Set.of() : Set.of(shuttle.garage.inside);
         }
         if (shuttle.leg == Leg.TO_SOURCE) {
             return firstGoals(lead);
@@ -1906,7 +1958,11 @@ public final class ShuttleFleet {
             shuttle.paidFor = null;
             shuttle.paidThrough = -1;
             shuttle.pumping = null;
-            shuttle.inGarage = false;
+            if (shuttle.leg == Leg.STRANDED && shuttle.motion.arrived() && garage.home != null) {
+                shuttle.motion = garage.parked();
+            }
+            shuttle.inGarage = shuttle.motion.segment() == 0 && shuttle.motion.progress() == 0
+                    && shuttle.motion.start().equals(garage.inside);
             shuttle.restoring = new Settle(RESTORE_SETTLE_TICKS);
             Set<Integer> carried = new HashSet<>();
             for (Load load : shuttle.loads) {
@@ -1984,10 +2040,8 @@ public final class ShuttleFleet {
                 lifts.release(shuttle);
                 dropCargo(shuttle);
                 shuttle.leg = Leg.HOME;
-                NodePos home = garage.home;
                 NodePos at = shuttle.motion == null ? null : shuttle.motion.currentNode();
-                List<NodePos> path = home == null || at == null || !host.isTravelNode(at) ? List.of()
-                        : path(shuttle, at, home::equals);
+                List<NodePos> path = at == null || !onWay(shuttle, at) ? List.of() : homePath(shuttle, at);
                 if (path.isEmpty()) {
                     park(shuttle);
                 } else {
@@ -2063,13 +2117,19 @@ public final class ShuttleFleet {
         return ShuttleDrive.next(speed, Math.min(shuttle.profile.speed(), limit), shuttle.profile.accel(), toStop);
     }
 
-    /** After a move: the shuttle has left its garage once it is past its first node, and keeps the heading it drove. */
-    private static void noteMove(Shuttle shuttle) {
+    /**
+     * After a move: the shuttle has left its garage once it is past its first
+     * node, which clients learn of at once, and keeps the heading it drove.
+     */
+    private void noteMove(Shuttle shuttle) {
         ShuttleMotion motion = shuttle.motion;
         if (motion.segment() == 0 && motion.progress() == 0) {
             return;
         }
-        shuttle.inGarage = false;
+        if (shuttle.inGarage) {
+            shuttle.inGarage = false;
+            syncPending = true;
+        }
         List<NodePos> path = motion.path();
         int to = motion.segment() > 0 ? motion.segment() : 1;
         if (to < path.size()) {
@@ -2163,7 +2223,12 @@ public final class ShuttleFleet {
     private boolean drives(Shuttle shuttle) {
         ShuttleMotion motion = shuttle.motion;
         return shuttle.restoring == null && shuttle.stop == 0 && shuttle.handover == 0 && !shuttle.riding && !motion.arrived()
-                && nextLoaded(motion);
+                && !waitsAtDoor(shuttle) && nextLoaded(motion);
+    }
+
+    /** Whether the shuttle waits inside its garage for the door time. */
+    private static boolean waitsAtDoor(Shuttle shuttle) {
+        return shuttle.door > 0 && shuttle.atOpenDoor();
     }
 
     /** Whether the shuttle stands on a lift car in its shaft. */
@@ -2231,7 +2296,11 @@ public final class ShuttleFleet {
         lifts.sendAll();
     }
 
-    /** The shuttles of one garage as clients draw them: only those out on the rails, idle ones sit inside the garage. */
+    /**
+     * The shuttles of one garage as clients draw them: those out on the rails
+     * and the one waiting inside for the door to drive out; idle ones and
+     * those not yet leaving stay unseen inside the garage.
+     */
     public List<ShuttleView> views(BlockPos garagePos) {
         List<ShuttleView> list = new ArrayList<>();
         Garage garage = garages.get(garagePos);
@@ -2240,15 +2309,17 @@ public final class ShuttleFleet {
         }
         for (Shuttle shuttle : garage.shuttles) {
             ShuttleMotion motion = shuttle.motion;
-            if (motion == null || (!shuttle.busy() || shuttle.leg == Leg.STRANDED) && motion.arrived() || shuttle.insideGarage()) {
+            if (motion == null || (!shuttle.busy() || shuttle.leg == Leg.STRANDED) && motion.arrived()
+                    || shuttle.insideGarage() && !shuttle.atOpenDoor()) {
                 continue;
             }
             List<BlockPos> path = new ArrayList<>();
             for (NodePos node : motion.path()) {
                 path.add(Conversions.toBlockPos(node));
             }
-            boolean still = shuttle.riding || motion.held() || shuttle.stop > 0 || shuttle.handover > 0 || motion != shuttle.speedFor;
-            double top = shuttle.inRing() ? shuttle.ringSpeed : shuttle.profile.speed();
+            boolean still = shuttle.riding || motion.held() || shuttle.stop > 0 || shuttle.handover > 0 || waitsAtDoor(shuttle)
+                    || motion != shuttle.speedFor;
+            double top = topSpeed(shuttle);
             ShuttleView.Drive shown = still ? ShuttleView.Drive.STILL
                     : new ShuttleView.Drive((float) shuttle.speed, (float) top, (float) shuttle.profile.accel(),
                             (float) shuttle.profile.cornerSpeed());

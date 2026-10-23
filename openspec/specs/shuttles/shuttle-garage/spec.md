@@ -49,7 +49,7 @@ The garage SHALL be a member of the warehouse network only through the rail on i
 - **THEN** the garage does not belong to that warehouse, its lamp is dark and its shuttles serve nothing
 
 ### Requirement: Home rail per garage
-The rail behind a garage SHALL be the home of its shuttles: idle shuttles sit inside the garage, a shuttle leaves onto the home rail for a job and returns through it. A garage with no rail behind it SHALL keep its shuttles inside and they SHALL NOT serve jobs. When a garage loses its home rail while shuttles are out, those shuttles SHALL be recalled as the Recall button does; a home rail that only unloads with its chunk SHALL NOT recall them, the garage keeps it as home until the chunk loads again. Shuttles out on a job SHALL keep moving and finish their legs whether or not any garage has a home rail. The shuttles of several garages SHALL serve one shared queue; the free shuttle with the cheapest way to the job by travel cost SHALL take it.
+The rail behind a garage SHALL be the home of its shuttles: idle shuttles stand inside the garage, a shuttle leaves through the doorway onto the home rail for a job and returns through it. The step between a garage and its home rail SHALL be usable only by that garage's shuttles. Before a shuttle drives out of its garage it SHALL wait inside for the door time from `warehouse.json` (`door_ticks`, example 10). A garage with no rail behind it SHALL keep its shuttles inside and they SHALL NOT serve jobs. When a garage loses its home rail while shuttles are out, those shuttles SHALL be recalled as the Recall button does. Shuttles out on a job SHALL keep moving and finish their legs whether or not any garage has a home rail. The shuttles of several garages SHALL serve one shared queue; the free shuttle with the shortest way to the job SHALL take it.
 
 #### Scenario: Two garages
 - **WHEN** a warehouse has garage A on the west aisle and garage B on the east aisle, each with one shuttle, and a pick is made on the east aisle
@@ -66,6 +66,18 @@ The rail behind a garage SHALL be the home of its shuttles: idle shuttles sit in
 #### Scenario: Home rail unloads while out
 - **WHEN** the home rail of a garage lies in the next chunk, which unloads while the garage's shuttle carries cobblestone to a rack
 - **THEN** nothing drops, the shuttle is still out, and it drives home once the chunk loads again
+
+#### Scenario: Leaving through the doorway
+- **WHEN** a shuttle of a garage takes a job
+- **THEN** it waits the door time inside, then drives out through the doorway onto the home rail
+
+#### Scenario: Job while pulling in
+- **WHEN** a new job comes in while a shuttle on its way home is already close enough to its doorway that the shutter opens for it
+- **THEN** the shuttle drives into its garage first and takes the next job from there, through the door as usual; a shuttle further from home takes the job at once
+
+#### Scenario: No shortcut through a garage
+- **WHEN** two rails are linked only through a garage standing between them
+- **THEN** no shuttle of another garage drives through it
 
 ### Requirement: Garage is protected while it holds shuttles
 A garage with at least one shuttle, inside or out, SHALL NOT be broken by a player and SHALL NOT be dismantled with the Configuration Carrot; the player SHALL be told to take the shuttles out first. An empty garage breaks and dismantles normally. When a garage is destroyed anyway, for example by an explosion, its shuttles SHALL drop as items at the garage, shuttles out on a job SHALL drop their cargo there and their jobs SHALL go back to the queue.
@@ -94,7 +106,7 @@ The garage SHALL be craftable from vanilla materials and a rail, and SHALL drop 
 - **THEN** a Shuttle Garage is produced
 
 ### Requirement: Doorway at the back
-The garage's back SHALL show a doorway with a rail running into it, so the block reads as the place shuttles drive into from the aisle behind it. The front SHALL carry the connection lamp, and the carrot SHALL turn the garage. On placement the garage SHALL turn its doorway towards a warehouse rail when one is at hand:
+The garage's back SHALL have an open doorway, 12 by 12 pixels with the rail running in, closed by a roll-up shutter of steel slats. The shutter SHALL roll up into the lintel when a shuttle of the garage is about to drive through the doorway and roll down once it is through, in both directions; it SHALL be drawn by the client from where the garage's shuttles are and SHALL NOT be saved or sent. The front SHALL carry the connection lamp, and the carrot SHALL turn the garage. On placement the garage SHALL turn its doorway towards a warehouse rail when one is at hand:
 - placed by clicking the side of a warehouse rail, the doorway SHALL face that rail;
 - otherwise, when a warehouse rail lies beside it in the direction the player looks, the doorway SHALL face that rail;
 - otherwise, when exactly one warehouse rail lies beside it, the doorway SHALL face that rail;
@@ -127,6 +139,14 @@ The garage's back SHALL show a doorway with a rail running into it, so the block
 #### Scenario: Carrot turns it after placement
 - **WHEN** a garage placed with its doorway towards a rail is turned with the carrot
 - **THEN** it turns as before and keeps the new facing
+
+#### Scenario: Shutter opens for a shuttle
+- **WHEN** a shuttle of the garage takes a job
+- **THEN** the shutter rolls up while the shuttle waits inside, the shuttle drives out, and the shutter rolls down behind it
+
+#### Scenario: Shutter shut at rest
+- **WHEN** every shuttle of the garage is inside and idle
+- **THEN** the shutter is down
 
 ### Requirement: Recall and pause
 The garage GUI SHALL have a Recall button and an Active / Paused toggle. Recall SHALL bring every shuttle of the garage inside at once: cargo drops at the garage, a job not yet loaded goes back to the front of the queue, a loaded pick counts as missing for its request, and every slot can be emptied afterwards. A paused garage SHALL hand out no shuttles for new jobs; shuttles already out finish their job and park. The pause state SHALL persist with the block and SHALL show in the GUI line and in the warehouse summary.

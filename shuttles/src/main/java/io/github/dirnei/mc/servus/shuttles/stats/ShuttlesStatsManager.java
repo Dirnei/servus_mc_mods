@@ -32,6 +32,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final int DEFAULT_STOCK_RULE_INTERVAL = 100;
     public static final double DEFAULT_LIFT_SPEED = 0.1;
     public static final int DEFAULT_LIFT_HANDOVER_TICKS = 10;
+    public static final int DEFAULT_DOOR_TICKS = 10;
     public static final double DEFAULT_LIFT_ACCEL = 0.005;
     public static final int DEFAULT_LIFT_UPGRADE_SLOTS = 4;
     public static final double DEFAULT_LIFT_SPEED_PER_UPGRADE = 0.05;
@@ -114,6 +115,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private volatile int stockRuleInterval = DEFAULT_STOCK_RULE_INTERVAL;
     private volatile double liftSpeed = DEFAULT_LIFT_SPEED;
     private volatile int liftHandoverTicks = DEFAULT_LIFT_HANDOVER_TICKS;
+    private volatile int doorTicks = DEFAULT_DOOR_TICKS;
     private volatile double liftAccel = DEFAULT_LIFT_ACCEL;
     private volatile int liftUpgradeSlots = DEFAULT_LIFT_UPGRADE_SLOTS;
     private volatile double liftSpeedPerUpgrade = DEFAULT_LIFT_SPEED_PER_UPGRADE;
@@ -189,6 +191,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         stockRuleInterval = intField(files.get(WAREHOUSE), "stock_rule_interval", DEFAULT_STOCK_RULE_INTERVAL);
         liftSpeed = doubleField(files.get(WAREHOUSE), "lift_speed", DEFAULT_LIFT_SPEED);
         liftHandoverTicks = intField(files.get(WAREHOUSE), "lift_handover_ticks", DEFAULT_LIFT_HANDOVER_TICKS);
+        doorTicks = countField(files.get(WAREHOUSE), "door_ticks", DEFAULT_DOOR_TICKS);
         liftAccel = Math.max(0.0001, doubleField(files.get(WAREHOUSE), "lift_accel", DEFAULT_LIFT_ACCEL));
         liftUpgradeSlots = Math.max(0, intField(files.get(WAREHOUSE), "lift_upgrade_slots", DEFAULT_LIFT_UPGRADE_SLOTS));
         liftSpeedPerUpgrade = Math.max(0, doubleField(files.get(WAREHOUSE), "lift_speed_per_upgrade", DEFAULT_LIFT_SPEED_PER_UPGRADE));
@@ -366,6 +369,11 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     /** Ticks a shuttle stands still when it hands over to a lift car and when the car hands it back. */
     public int liftHandoverTicks() {
         return liftHandoverTicks;
+    }
+
+    /** Ticks a shuttle waits inside its garage while the door opens before it drives out, {@code door_ticks} in {@code warehouse.json}. */
+    public int doorTicks() {
+        return doorTicks;
     }
 
     /** Speed the lift car gains per tick when it starts and loses when it brakes. */
