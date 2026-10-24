@@ -113,13 +113,17 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
     }
 
     private Optional<CalcinationRecipe> currentRecipe() {
+        return currentHolder().map(RecipeHolder::value);
+    }
+
+    /** The recipe the input burns with, once the input holds its count. */
+    private Optional<RecipeHolder<CalcinationRecipe>> currentHolder() {
         ItemStack stack = inventory.getStackInSlot(SLOT_INPUT);
         if (level == null || stack.isEmpty()) {
             return Optional.empty();
         }
         return CalcinationRecipes.forItem(level, stack)
-                .map(RecipeHolder::value)
-                .filter(recipe -> stack.getCount() >= recipe.input().count());
+                .filter(holder -> stack.getCount() >= holder.value().input().count());
     }
 
     @Override
@@ -252,13 +256,15 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
 
     @Override
     protected void finishWork() {
-        currentRecipe().ifPresent(recipe -> {
+        currentHolder().ifPresent(holder -> {
+            CalcinationRecipe recipe = holder.value();
             ItemStack used = inventory.extractItem(SLOT_INPUT, recipe.input().count(), false);
             salt += recipe.output().salt();
             CalcinerPorts.fillTanks(level, worldPosition, getBlockState().getValue(MachineBlock.FACING), recipe.output());
             setChanged();
             if (level instanceof ServerLevel server) {
                 Journal.recordItem(server, team(), "calcine", used, used.getCount());
+                Journal.recordCalcination(server, team(), holder.id().identifier());
                 for (Principle principle : Principle.values()) {
                     Journal.recordPrinciple(server, team(), principle, recipe.output().get(principle));
                 }

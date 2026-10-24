@@ -10,6 +10,8 @@ import com.klikli_dev.modonomicon.api.datagen.book.page.BookSpotlightPageModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookTextPageModel;
 import com.klikli_dev.modonomicon.client.gui.book.theme.GuiSprite;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.datagen.AlchemyRecipeTable;
+import io.github.dirnei.mc.servus.alchemy.journal.CalcinationTable;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import java.util.List;
 import net.minecraft.resources.Identifier;
@@ -53,6 +55,16 @@ final class JournalEntries {
         /** The chapter's tasks with the reader's team progress; the chapter id is the entry id. */
         void tasks() {
             page("work", () -> JournalTasksPageModel.of(ServusAlchemyIds.MOD_ID + ":" + entryId()));
+        }
+
+        /** The calcination table, on as many pages as the shipped recipes fill; its rows come from the recipes in game. */
+        void calcinationTable(String page) {
+            int parts = CalcinationTable.layout(AlchemyRecipeTable.calcination(), AlchemyRecipeTable.Calcine::name,
+                    AlchemyRecipeTable.Calcine::dimension, CalcinationTable.PAGE, Integer.MAX_VALUE).pages().size();
+            for (int i = 0; i < parts; i++) {
+                int part = i;
+                page(i == 0 ? page : page + "_" + (i + 1), () -> CalcinationTablePageModel.of(part, part == parts - 1));
+            }
         }
 
         /** A spotlight page that shows an item with a title and a short text. */

@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.client.gnome.GnomeModel;
 import io.github.dirnei.mc.servus.alchemy.client.gnome.GnomeRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.hollow.VeinColorTint;
+import io.github.dirnei.mc.servus.alchemy.client.journal.CalcinationTablePageRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.journal.JournalTasksPageRenderer;
 import io.github.dirnei.mc.servus.alchemy.client.salamander.SalamanderModel;
 import io.github.dirnei.mc.servus.alchemy.client.salamander.SalamanderRenderer;
@@ -13,6 +14,7 @@ import io.github.dirnei.mc.servus.alchemy.client.sight.RevealRenderers;
 import io.github.dirnei.mc.servus.alchemy.gnome.Gnome;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
+import io.github.dirnei.mc.servus.alchemy.journal.CalcinationTablePage;
 import io.github.dirnei.mc.servus.alchemy.journal.JournalTasksPage;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyMenus;
@@ -78,7 +80,7 @@ public final class ServusAlchemyClient {
 
     /**
      * The dev only icon export, when the iconExport run asks for it, the Elemental Sight renderers, the sight check that
-     * lets only the sighted click gnomes, and the journal task page.
+     * lets only the sighted click gnomes, the journal task page and the calcination table.
      */
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
@@ -86,5 +88,7 @@ public final class ServusAlchemyClient {
         RevealRenderers.add(new HollowRevealRenderer());
         Gnome.watchSightWith(() -> ElementalSight.active(Minecraft.getInstance().player));
         PageRendererRegistry.registerPageRenderer(JournalTasksPage.ID, page -> new JournalTasksPageRenderer((JournalTasksPage) page));
+        PageRendererRegistry.registerPageRenderer(CalcinationTablePage.ID,
+                page -> new CalcinationTablePageRenderer((CalcinationTablePage) page));
     }
 }

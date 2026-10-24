@@ -15,7 +15,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
 
-/** Every team's journal: task counts and finished chapters. */
+/** Every team's journal: task counts, finished chapters and tried calcination recipes. */
 public final class JournalSavedData extends SavedData {
 
     private static final String NAME = "servus_journal";
@@ -32,7 +32,8 @@ public final class JournalSavedData extends SavedData {
         return teams.computeIfAbsent(team, id -> new TeamJournal());
     }
 
-    private static JournalSavedData load(CompoundTag tag, HolderLookup.Provider registries) {
+    /** Reads the journals that {@link #save} wrote. */
+    public static JournalSavedData load(CompoundTag tag, HolderLookup.Provider registries) {
         JournalSavedData data = new JournalSavedData();
         ListTag teams = tag.getListOrEmpty("Teams");
         for (int i = 0; i < teams.size(); i++) {
@@ -47,6 +48,9 @@ public final class JournalSavedData extends SavedData {
             }
             for (Tag finished : entry.getListOrEmpty("Finished")) {
                 journal.markFinished(finished.asString().orElse(""));
+            }
+            for (Tag tried : entry.getListOrEmpty("Tried")) {
+                tried.asString().ifPresent(journal::markTried);
             }
         }
         return data;
@@ -63,6 +67,9 @@ public final class JournalSavedData extends SavedData {
             ListTag finished = new ListTag();
             journal.finished().forEach(chapter -> finished.add(StringTag.valueOf(chapter)));
             entry.put("Finished", finished);
+            ListTag tried = new ListTag();
+            journal.tried().forEach(recipe -> tried.add(StringTag.valueOf(recipe)));
+            entry.put("Tried", tried);
             list.add(entry);
         });
         tag.put("Teams", list);

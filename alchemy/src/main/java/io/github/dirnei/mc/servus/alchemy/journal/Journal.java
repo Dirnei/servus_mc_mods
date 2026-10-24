@@ -64,6 +64,18 @@ public final class Journal {
         return filter.equals(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
     }
 
+    /** A Calciner of the team burned something with the calcination recipe; the journal's table reveals its row. */
+    public static void recordCalcination(ServerLevel level, UUID team, Identifier recipe) {
+        if (team == null) {
+            return;
+        }
+        JournalSavedData data = JournalSavedData.get(level.getServer());
+        if (data.forTeam(team).markTried(recipe.toString())) {
+            data.setDirty();
+            JournalSync.markChanged(team);
+        }
+    }
+
     /** An event without a filter, such as {@code sight}. */
     public static void recordEvent(ServerLevel level, UUID team, String event, int amount) {
         record(level, team, event, task -> task.filter().isEmpty(), amount);

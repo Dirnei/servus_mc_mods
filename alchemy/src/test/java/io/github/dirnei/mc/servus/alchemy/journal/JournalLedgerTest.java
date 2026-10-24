@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.alchemy.journal.JournalLedger.TaskDef;
 import io.github.dirnei.mc.servus.alchemy.journal.JournalLedger.TeamJournal;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class JournalLedgerTest {
@@ -133,5 +134,22 @@ class JournalLedgerTest {
     @Test
     void zeroCountTasksAreRefused() {
         assertThrows(IllegalArgumentException.class, () -> new TaskDef("bad", "calcine", "", 0));
+    }
+
+    @Test
+    void firstCalcinationMarksTheRecipeTried() {
+        TeamJournal journal = new TeamJournal();
+        assertTrue(journal.markTried("s:calcination/nether_wart"));
+        assertFalse(journal.markTried("s:calcination/nether_wart"));
+        assertEquals(Set.of("s:calcination/nether_wart"), journal.tried());
+    }
+
+    @Test
+    void triedRecipesStayWithTheirTeam() {
+        TeamJournal first = new TeamJournal();
+        TeamJournal second = new TeamJournal();
+        first.markTried("s:calcination/ender_pearl");
+        assertTrue(second.tried().isEmpty());
+        assertTrue(second.markTried("s:calcination/ender_pearl"));
     }
 }

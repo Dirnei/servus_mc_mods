@@ -99,7 +99,7 @@ public final class AlchemyRecipeTable {
                 new Calcine("redstone", "Redstone", Input.of(Tags.Items.DUSTS_REDSTONE), new Principles(0, 0, 100)),
                 new Calcine("bones", "Bones", Input.of(Tags.Items.BONES), new Principles(100, 0, 0)),
                 nether("netherrack", "Netherrack", Input.of(Tags.Items.NETHERRACKS), new Principles(20, 40, 0)),
-                nether("soul_sand", "Soul Sand", Input.of(ItemTags.SOUL_FIRE_BASE_BLOCKS), new Principles(20, 60, 0)),
+                nether("soul_sand", "Soul Sand and Soil", Input.of(ItemTags.SOUL_FIRE_BASE_BLOCKS), new Principles(20, 60, 0)),
                 nether("nether_wart", "Nether Wart", Input.of(Tags.Items.CROPS_NETHER_WART), new Principles(0, 60, 20)),
                 nether("nether_wart_block", "Nether Wart Block", Input.of(Items.NETHER_WART_BLOCK), new Principles(0, 540, 180)),
                 nether("crimson_stems", "Crimson Stems", Input.of(ItemTags.CRIMSON_STEMS), new Principles(0, 150, 0)),

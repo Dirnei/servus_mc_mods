@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.alchemy.journal;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.foundation.team.Teams;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import net.minecraft.server.MinecraftServer;
@@ -50,9 +51,13 @@ public final class JournalSync {
     }
 
     public static void send(ServerPlayer player) {
-        JournalLedger.TeamJournal journal = Journal.journalOf(player.level().getServer(), Teams.teamOf(player));
-        PacketDistributor.sendToPlayer(player,
-                new JournalProgressPayload(JournalProgress.snapshot(JournalChapters.INSTANCE.chapters(), journal)));
+        PacketDistributor.sendToPlayer(player, payload(Journal.journalOf(player.level().getServer(), Teams.teamOf(player))));
+    }
+
+    /** What a member of the team gets: its open and finished chapters and its tried calcination recipes. */
+    public static JournalProgressPayload payload(JournalLedger.TeamJournal journal) {
+        return new JournalProgressPayload(JournalProgress.snapshot(JournalChapters.INSTANCE.chapters(), journal),
+                List.copyOf(journal.tried()));
     }
 
     @SubscribeEvent

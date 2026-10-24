@@ -5,6 +5,9 @@
 ### Added
 - Nether and End matter burns in the Calciner: Netherrack, Soul Sand, Nether Wart and its block, Crimson and Warped Stems, Blaze Rods, Magma Cream, Glowstone Dust, Nether Quartz, End Stone, Purpur, Chorus Fruit, Ender Pearls and Shulker Shells.
 
+### Changed
+- The journal's Calciner table fills in as your team burns things, with hints for the rest.
+
 ### Fixed
 - When several calcination recipes take the same item, the most specific one wins.
 

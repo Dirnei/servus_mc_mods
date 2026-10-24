@@ -15,6 +15,7 @@ import io.github.dirnei.mc.servus.alchemy.gametest.PurifierGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.RitualGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.SalamanderGameTests;
 import io.github.dirnei.mc.servus.alchemy.hint.HintSounds;
+import io.github.dirnei.mc.servus.alchemy.journal.CalcinationTablePage;
 import io.github.dirnei.mc.servus.alchemy.journal.JournalTasksPage;
 import io.github.dirnei.mc.servus.alchemy.machine.AlchemyMachineDefaults;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
@@ -43,6 +44,7 @@ public final class ServusAlchemy {
     public ServusAlchemy(IEventBus modEventBus, ModContainer container) {
         AlchemyMachineDefaults.registerDefaults();
         JournalTasksPage.register();
+        CalcinationTablePage.register();
         ServusAlchemyBlocks.BLOCKS.register(modEventBus);
         PrincipleFluids.register(modEventBus);
         ElementalSight.register(modEventBus);

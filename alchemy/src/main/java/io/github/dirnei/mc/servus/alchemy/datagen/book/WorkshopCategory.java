@@ -126,8 +126,7 @@ final class WorkshopCategory extends CategoryProvider {
                             + "a tank on a plain side only ever fills.\n\n"
                             + "The Salt stays in the Ash Pan as Ash, one Ash for every 100 Salt. Take it with an empty hand, or put a hopper "
                             + "under the Ash Pan, and wash it in the Purifier. The Ash Pan holds a stack of 64 Ash; when it is full, the Calciner waits.");
-            e.list("burns", "What Burns", AlchemyRecipeTable.calcination().stream()
-                    .map(row -> PrincipleText.line(row.label(), row.output())).toList());
+            e.calcinationTable("burns");
         });
     }
 

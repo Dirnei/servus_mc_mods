@@ -26,6 +26,7 @@ import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.journal.JournalBookItem;
 import io.github.dirnei.mc.servus.alchemy.journal.JournalChapters;
 import io.github.dirnei.mc.servus.alchemy.journal.JournalLedger;
+import io.github.dirnei.mc.servus.alchemy.journal.JournalSavedData;
 import io.github.dirnei.mc.servus.alchemy.journal.JournalSync;
 import io.github.dirnei.mc.servus.alchemy.journal.ParacelsusJournalItem;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
@@ -50,6 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
@@ -254,6 +256,38 @@ public final class AlchemyGameTests {
             helper.assertTrue(journal.count(VILLACH, "calcine") == 1, "one calcined item should count");
             helper.assertTrue(journal.count(VILLACH, "salt") == 100, "100 mB Salt should count, got " + journal.count(VILLACH, "salt"));
         });
+    }
+
+    /** A calcine reveals the recipe's row of the journal table for the Calciner's team, and only that row. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void calcineRevealsTheRowForTheTeam(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = calciner(helper);
+        UUID team = UUID.randomUUID();
+        UUID other = UUID.randomUUID();
+        calciner.setTeam(team);
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.NETHER_WART));
+        String netherWart = ServusAlchemyIds.MOD_ID + ":calcination/nether_wart";
+        helper.succeedWhen(() -> {
+            MinecraftServer server = helper.getLevel().getServer();
+            JournalLedger.TeamJournal journal = Journal.journalOf(server, team);
+            helper.assertTrue(journal.tried().equals(Set.of(netherWart)), "only the Nether Wart recipe should be tried, got " + journal.tried());
+            helper.assertTrue(JournalSync.payload(journal).tried().contains(netherWart), "the members should get the tried recipe");
+            helper.assertTrue(Journal.journalOf(server, other).tried().isEmpty(), "another team should have tried nothing");
+        });
+    }
+
+    /** Tried calcination recipes are saved with the team's journal. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void triedRecipesSurviveASave(GameTestHelper helper) {
+        JournalSavedData data = new JournalSavedData();
+        UUID team = UUID.randomUUID();
+        String netherrack = ServusAlchemyIds.MOD_ID + ":calcination/netherrack";
+        data.forTeam(team).markTried(netherrack);
+        CompoundTag saved = data.save(new CompoundTag(), helper.getLevel().registryAccess());
+        JournalSavedData loaded = JournalSavedData.load(saved, helper.getLevel().registryAccess());
+        helper.assertTrue(loaded.forTeam(team).tried().equals(Set.of(netherrack)),
+                "the tried recipe should survive a save, got " + loaded.forTeam(team).tried());
+        helper.succeed();
     }
 
     static final String VILLACH = "servus_alchemy:villach";

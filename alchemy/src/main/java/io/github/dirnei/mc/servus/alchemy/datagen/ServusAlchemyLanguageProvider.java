@@ -5,15 +5,52 @@ import io.github.dirnei.mc.servus.alchemy.Principle;
 import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.PrincipleText;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.calciner.CalcinationDimension;
+import io.github.dirnei.mc.servus.alchemy.journal.CalcinationTable;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
+import java.util.Map;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
 final class ServusAlchemyLanguageProvider extends LanguageProvider {
+
+    /** Paracelsus' hint for each shipped calcination recipe not yet tried: what to burn, never by its name. */
+    private static final Map<String, String> CALCINATION_HINTS = Map.ofEntries(
+            Map.entry("cobblestone", "The rubble of every quarry."),
+            Map.entry("stone", "The smooth grey flesh of the mountain."),
+            Map.entry("dirt", "What the plough turns over."),
+            Map.entry("sand", "What the river leaves on its banks."),
+            Map.entry("gravel", "Loose stones that slide and rattle."),
+            Map.entry("logs", "The trunk of a tree, felled whole."),
+            Map.entry("planks", "Wood the carpenter has already cut."),
+            Map.entry("leaves", "The green crown of a tree."),
+            Map.entry("saplings", "A young tree that was never planted."),
+            Map.entry("crops", "The harvest of a farmer's field."),
+            Map.entry("seeds", "What the sower scatters in spring."),
+            Map.entry("coal", "The black stone that feeds the forge."),
+            Map.entry("raw_materials", "Ore from the mine, before the smelter."),
+            Map.entry("redstone", "Red dust from the deep. It tingles."),
+            Map.entry("bones", "What the dead leave behind."),
+            Map.entry("netherrack", "The red rock beyond the burning gate."),
+            Map.entry("soul_sand", "Sand that groans with trapped souls."),
+            Map.entry("nether_wart", "The red fungus the brewers prize."),
+            Map.entry("nether_wart_block", "That fungus, pressed into a block of nine."),
+            Map.entry("crimson_stems", "A red stalk from the burning woods."),
+            Map.entry("warped_stems", "A blue stalk from the burning woods."),
+            Map.entry("blaze_rod", "What a fire spirit leaves when slain."),
+            Map.entry("magma_cream", "The cream of a slime that lives in fire."),
+            Map.entry("glowstone_dust", "Dust that shines without a flame."),
+            Map.entry("nether_quartz", "White crystal grown in the red rock."),
+            Map.entry("end_stone", "Pale stone from beyond the eye."),
+            Map.entry("purpur_block", "A violet brick of the city in the void."),
+            Map.entry("chorus_fruit", "The fruit of the trees in the void."),
+            Map.entry("popped_chorus_fruit", "That same fruit, baked in a furnace."),
+            Map.entry("ender_pearl", "The eye of the tall, silent wanderer."),
+            Map.entry("shulker_shell", "The shell of the box that hides and bites."));
 
     private final LanguageProviderCache book;
 
@@ -136,6 +173,7 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("journal.servus_alchemy.tasks.title", "The Work");
         add("journal.servus_alchemy.tasks.finished", "Finished");
         add("journal.servus_alchemy.tasks.waiting", "The ink is still wet. Turn the page and come back.");
+        calcinationTable();
         add("journal.servus_alchemy.villach.task.calcine", "Calcine things");
         add("journal.servus_alchemy.villach.task.salt", "Gather Salt (mB)");
         add("journal.servus_alchemy.villach.task.purify", "Wash Ash in the Purifier");
@@ -258,6 +296,30 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
             add("fluid_type." + ServusAlchemyIds.MOD_ID + "." + principle.id(), name);
             add(entry.block().get(), name);
             add(entry.bucket().get(), name + " Bucket");
+        }
+    }
+
+    /** The texts of the journal's calcination table, and a name and hint for every shipped recipe. */
+    private void calcinationTable() {
+        String key = CalcinationTable.KEY;
+        add(key + "title", "What Burns");
+        add(key + "column.salt", "Salt");
+        add(key + "column.sulfur", "Sulfur");
+        add(key + "column.mercury", "Mercury");
+        add(CalcinationTable.headingKey(CalcinationDimension.OVERWORLD), "Overworld");
+        add(CalcinationTable.headingKey(CalcinationDimension.NETHER), "Nether");
+        add(CalcinationTable.headingKey(CalcinationDimension.END), "End");
+        add(key + "untried", "Not yet tried");
+        add(key + "blank", "These pages are still blank.");
+        add(key + "more", "%s more: see JEI");
+        for (AlchemyRecipeTable.Calcine row : AlchemyRecipeTable.calcination()) {
+            String id = ServusAlchemyIds.MOD_ID + ":calcination/" + row.name();
+            String hint = CALCINATION_HINTS.get(row.name());
+            if (hint == null) {
+                throw new IllegalStateException("No journal hint for the calcination recipe " + id);
+            }
+            add(CalcinationTable.nameKey(id), row.label());
+            add(CalcinationTable.hintKey(id), hint);
         }
     }
 }

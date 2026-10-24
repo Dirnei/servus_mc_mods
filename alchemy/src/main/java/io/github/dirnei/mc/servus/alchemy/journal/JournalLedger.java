@@ -48,11 +48,12 @@ public final class JournalLedger {
         }
     }
 
-    /** One team's progress: counts per {@code chapter/task} and the finished chapters. */
+    /** One team's progress: counts per {@code chapter/task}, the finished chapters and the calcination recipes tried. */
     public static final class TeamJournal {
 
         private final Map<String, Integer> counts = new HashMap<>();
         private final Set<String> finished = new LinkedHashSet<>();
+        private final Set<String> tried = new LinkedHashSet<>();
 
         public int count(String chapter, String task) {
             return counts.getOrDefault(key(chapter, task), 0);
@@ -76,6 +77,16 @@ public final class JournalLedger {
 
         public Map<String, Integer> counts() {
             return Map.copyOf(counts);
+        }
+
+        /** Notes that the team burned something with the calcination recipe; true when it is the first time. */
+        public boolean markTried(String recipeId) {
+            return tried.add(recipeId);
+        }
+
+        /** The ids of the calcination recipes the team has burned something with. */
+        public Set<String> tried() {
+            return Set.copyOf(tried);
         }
 
         static String key(String chapter, String task) {

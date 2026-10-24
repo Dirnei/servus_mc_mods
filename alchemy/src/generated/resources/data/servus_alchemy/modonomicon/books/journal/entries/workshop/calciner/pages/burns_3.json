@@ -1,11 +1,10 @@
 {
-  "type": "modonomicon:text",
+  "type": "servus_alchemy:calcination_table",
   "condition": {
     "type": "modonomicon:none"
   },
   "id": "burns_3",
-  "show_title_separator": true,
-  "sort_number": 21,
-  "text": "book.servus_alchemy.journal.workshop.calciner.burns_3.text",
-  "title": ""
+  "last": false,
+  "part": 2,
+  "sort_number": 21
 }

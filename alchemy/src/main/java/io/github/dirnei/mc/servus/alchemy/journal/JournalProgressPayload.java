@@ -11,10 +11,10 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
 /**
- * Server to client: the reader's team journal progress, every open or finished chapter with its task counts.
- * Replaces what the client had.
+ * Server to client: the reader's team journal progress, every open or finished chapter with its task counts, and the
+ * calcination recipes the team has tried. Replaces what the client had.
  */
-public record JournalProgressPayload(List<ChapterProgress> chapters) implements CustomPacketPayload {
+public record JournalProgressPayload(List<ChapterProgress> chapters, List<String> tried) implements CustomPacketPayload {
 
     public static final Type<JournalProgressPayload> TYPE =
             new Type<>(Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "journal_progress"));
@@ -31,8 +31,10 @@ public record JournalProgressPayload(List<ChapterProgress> chapters) implements 
             TASK.apply(ByteBufCodecs.list()), ChapterProgress::tasks,
             ChapterProgress::new);
 
-    public static final StreamCodec<FriendlyByteBuf, JournalProgressPayload> STREAM_CODEC =
-            CHAPTER.apply(ByteBufCodecs.list()).map(JournalProgressPayload::new, JournalProgressPayload::chapters);
+    public static final StreamCodec<FriendlyByteBuf, JournalProgressPayload> STREAM_CODEC = StreamCodec.composite(
+            CHAPTER.apply(ByteBufCodecs.list()), JournalProgressPayload::chapters,
+            ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()), JournalProgressPayload::tried,
+            JournalProgressPayload::new);
 
     @Override
     public Type<? extends CustomPacketPayload> type() {
