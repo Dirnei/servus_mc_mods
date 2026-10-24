@@ -18,6 +18,7 @@ public final class ShuttlesGameTests {
             DataBandwidthGameTests.class,
             DataCableGameTests.class,
             DataPacketGameTests.class,
+            EgressGameTests.class,
             ElevatorGameTests.class,
             FieldGameTests.class,
             FleetPersistenceGameTests.class,

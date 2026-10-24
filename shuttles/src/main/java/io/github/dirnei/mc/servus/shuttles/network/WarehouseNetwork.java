@@ -1160,6 +1160,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (slots.holds(job.id())) {
             return true;
         }
+        if (target instanceof PackingStationBlockEntity station && !station.admits(job.key(), job.amount())) {
+            return false;
+        }
         int locked = slots.lockIn(job.id(), job.key(), job.amount(), true);
         if (locked >= job.amount()) {
             return true;

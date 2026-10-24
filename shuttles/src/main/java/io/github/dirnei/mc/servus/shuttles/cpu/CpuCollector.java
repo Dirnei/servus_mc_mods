@@ -90,14 +90,16 @@ final class CpuCollector {
             return 0;
         }
         int budget = Math.min(order.amount() - order.directSent(), TerminalRequests.need(terminal, order.requestId()));
-        int direct = Math.min(toMove, budget);
-        if (direct <= 0) {
+        int asked = Math.min(toMove, budget);
+        if (asked <= 0) {
             return 0;
         }
-        Optional<Delivery> delivery = DataPackets.move(server, step.producer(), order.deliverTo(), key.stack(1), direct);
-        if (delivery.isEmpty()) {
+        Optional<Delivery> delivery = DataPackets.move(server, step.producer(), order.deliverTo(), key.stack(1), asked);
+        if (delivery.isEmpty() || delivery.get().ended() && delivery.get().state() == Delivery.State.FAILED) {
             return 0;
         }
+        // The terminal may grant less than asked; only the granted part is on its way.
+        int direct = delivery.get().requested();
         ProductionLedger ledger = ProductionLedger.get(server);
         ProductionLedger.Transfer transfer = ledger.open(direct);
         step.collecting(key, transfer.id(), direct);

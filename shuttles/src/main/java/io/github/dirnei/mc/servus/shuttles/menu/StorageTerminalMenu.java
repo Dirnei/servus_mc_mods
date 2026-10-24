@@ -528,6 +528,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             hash = hash * 31 + row.delivered();
             hash = hash * 31 + row.missing();
             hash = hash * 31 + row.state().hashCode();
+            hash = hash * 31 + row.slots().hashCode();
         }
         return hash;
     }

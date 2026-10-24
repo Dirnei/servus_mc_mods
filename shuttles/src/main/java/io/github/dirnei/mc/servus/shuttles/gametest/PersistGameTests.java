@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.shuttles.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalRequests;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalWarehouses;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -84,7 +85,7 @@ public final class PersistGameTests {
         });
     }
 
-    /** Open requests come back with their amounts, and a new request gets an id above the saved one. */
+    /** Open requests come back with their amounts and slots, and a new request gets an id above the saved one. */
     @ServusGameTest(timeoutTicks = 100)
     public static void terminalRequestsSurviveReload(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 0);
@@ -92,14 +93,15 @@ public final class PersistGameTests {
         StorageTerminalBlockEntity.Request request = terminal.newRequest(helper.getLevel(), STICK, 12);
         request.delivered = 4;
         request.missing = 8;
-        request.slot = 4;
+        request.slots.clear();
+        request.slots.addAll(List.of(4, 5));
         int savedId = request.id;
         StorageTerminalBlockEntity loaded = reload(helper, TerminalWiring.terminalPos(ACCESS));
         StorageTerminalBlockEntity.Request back = loaded.request(savedId);
         helper.assertTrue(back != null, "the request should be there after the reload");
         helper.assertTrue(back.key.equals(STICK) && back.requested == 12 && back.delivered == 4 && back.missing == 8,
                 "item and amounts should be kept, got " + back.requested + "/" + back.delivered + "/" + back.missing);
-        helper.assertTrue(back.slot == 4, "the request should still own output slot 4, got " + back.slot);
+        helper.assertTrue(back.slots.equals(List.of(4, 5)), "the request should still own output slots 4 and 5, got " + back.slots);
         StorageTerminalBlockEntity.Request next = loaded.newRequest(helper.getLevel(), STICK, 1);
         helper.assertTrue(next.id > savedId, "a new id should be above " + savedId + ", got " + next.id);
         helper.succeed();

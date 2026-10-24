@@ -9,5 +9,7 @@ public enum DeliveryReason {
     /** The target is gone or takes nothing. */
     NO_TARGET,
     /** The target's endpoint refused the offer; {@link Delivery#refusal()} says why. */
-    REFUSED
+    REFUSED,
+    /** The target took nothing for {@code stall_ticks} and has no endpoint to say so. */
+    STALLED
 }

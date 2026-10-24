@@ -455,6 +455,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.terminal.message.input_to_storage_full", "The Packing Station's To storage is full, the Input row waits");
         add("gui.servus_shuttles.terminal.message.out_of_stock", "Nothing of that in stock");
         add("gui.servus_shuttles.terminal.message.output_full", "Output row full, take your items");
+        add("gui.servus_shuttles.terminal.message.input_full", "Input row full");
         add("gui.servus_shuttles.terminal.message.missing", "Raw materials are missing");
         add("gui.servus_shuttles.terminal.message.no_cpu", "No Crafting CPU on this data line");
         add("gui.servus_shuttles.terminal.message.no_producer", "Nothing on this data line makes that");
@@ -514,6 +515,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.packing_station.status.no_wireless_there", "%s cannot trade: no Wireless Upgrade");
         add("gui.servus_shuttles.packing_station.status.to_storage_full", "To storage is full, waiting for put-away");
         add("gui.servus_shuttles.packing_station.status.waiting_shuttle", "Waiting for a shuttle with %s");
+        add("gui.servus_shuttles.packing_station.status.waiting_room", "Waiting for room for %s at the %s");
         add("gui.servus_shuttles.packing_station.status.idle", "Idle");
         add("gui.servus_shuttles.station.blocked.no_room", "%s: no room in %s or in general storage");
         add("gui.servus_shuttles.station.blocked.no_room_general", "%s: no room in general storage");

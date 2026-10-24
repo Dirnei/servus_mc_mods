@@ -115,6 +115,7 @@ public final class TerminalRequests {
             return refusal[0].isEmpty() ? "out_of_stock" : refusal[0];
         }
         request.requested += shipped;
+        terminal.growSlots(request);
         terminal.setChanged();
         return "";
     }
@@ -339,7 +340,7 @@ public final class TerminalRequests {
         for (Request request : terminal.requests()) {
             int delivered = request.delivered;
             rows.add(new RequestRow(request.id, request.key.stack(1), request.requested, Math.min(request.requested, delivered),
-                    request.missing, state(level, terminal, request, warehouse).name(), request.slot));
+                    request.missing, state(level, terminal, request, warehouse).name(), List.copyOf(request.slots)));
         }
         return rows;
     }
@@ -404,7 +405,8 @@ public final class TerminalRequests {
         }
         boolean noPower = warehouse.filter(WarehouseNetwork::noPower).isPresent();
         if (!request.shipments.isEmpty()) {
-            return noPower ? RequestState.NO_POWER : RequestState.PICKING;
+            // Nothing is picked for slots without room, so a full slot is the reason the rest waits.
+            return noPower ? RequestState.NO_POWER : terminal.fits(request) ? RequestState.PICKING : RequestState.WAITING_ROOM;
         }
         if (CpuOrders.cpuAt(level, request.orderCpu).filter(cpu -> cpu.book().hasOpenOrderFor(request.id)).isPresent()) {
             return noPower ? RequestState.NO_POWER : RequestState.PRODUCING;

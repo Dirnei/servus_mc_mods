@@ -104,6 +104,24 @@ public final class DataPackets {
         return Optional.of(delivery);
     }
 
+    /**
+     * Offers {@code amount} items like {@code like} to the member at {@code to}
+     * before anything is sent, for a sender that holds the grant until its
+     * items are ready and then starts a delivery with it. Empty when the
+     * target has no endpoint or no route links the two.
+     */
+    public static Optional<Grant> offer(ServerLevel level, BlockPos from, BlockPos to, ItemStack like, int amount) {
+        if (like.isEmpty() || amount < 1) {
+            return Optional.empty();
+        }
+        Optional<Route> route = route(level, from, to);
+        if (route.isEmpty() || route.get().failure() != null) {
+            return Optional.empty();
+        }
+        PacketEndpoint endpoint = PacketIo.endpoint(level, to, route.get().face());
+        return endpoint == null ? Optional.empty() : Optional.of(endpoint.offer(like.copyWithCount(1), amount));
+    }
+
     /** Whether the delivery with that id is still running. */
     public static boolean running(long deliveryId) {
         return RUNNING.contains(deliveryId);

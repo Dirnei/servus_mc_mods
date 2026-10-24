@@ -104,12 +104,15 @@ public final class TerminalRequestGameTests {
         return new StorageTerminalMenu(1, player.getInventory(), terminal);
     }
 
-    /** A request over a stack splits into two loads and shows its progress until both arrived. */
+    /** A request over a stack with one free slot fills it, waits for room and lands the rest once the slot is emptied. */
     @ServusGameTest(timeoutTicks = 500)
     public static void requestSplitsAndDelivers(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         StorageTerminalMenu menu = requestSetup(helper, player, 200);
         StorageTerminalBlockEntity terminal = menu.terminal();
+        for (int i = 1; i < terminal.output().getSlots(); i++) {
+            terminal.output().setStackInSlot(i, new ItemStack(Items.DIRT, 64));
+        }
         helper.runAfterDelay(10, () -> {
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 100);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request should go through");
@@ -169,7 +172,7 @@ public final class TerminalRequestGameTests {
             menu.request(cobblestone, 1);
             helper.assertTrue(terminal.requests().size() == 1 && terminal.requests().get(0).requested == 3,
                     "three clicks make one request for 3, got " + menu.stock().requests());
-            int slot = terminal.requests().get(0).slot;
+            int slot = terminal.requests().get(0).slots.get(0);
             helper.assertTrue(slot == 1, "the request skips the slot holding dirt, got " + slot);
             Waits.when(helper, () -> terminal.output().getStackInSlot(1).is(Items.COBBLESTONE)
                             && terminal.output().getStackInSlot(1).getCount() == 3 && terminal.requests().isEmpty(), 400,
@@ -187,7 +190,7 @@ public final class TerminalRequestGameTests {
         ItemKey cobblestone = ItemKey.of(new ItemStack(Items.COBBLESTONE));
         Waits.when(helper, () -> TerminalWiring.stockOf(menu, Items.BREAD) == 10, 100, () -> "the bread should be indexed", () -> {
             menu.request(cobblestone, 1);
-            int owned = terminal.requests().get(0).slot;
+            int owned = terminal.requests().get(0).slots.get(0);
             for (int slot = 0; slot < terminal.output().getSlots(); slot++) {
                 if (slot != owned) {
                     terminal.output().setStackInSlot(slot, new ItemStack(Items.DIRT, 64));
@@ -211,7 +214,7 @@ public final class TerminalRequestGameTests {
         ItemKey bread = ItemKey.of(new ItemStack(Items.BREAD));
         helper.runAfterDelay(10, () -> {
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 100);
-            int slot = terminal.requests().get(0).slot;
+            int slot = terminal.requests().get(0).slots.get(0);
             Waits.when(helper, () -> terminal.output().getStackInSlot(slot).getCount() == 64, 460,
                     () -> "a stack should fill the request's slot, slot holds " + terminal.output().getStackInSlot(slot), () -> {
                 menu.cancel(terminal.requests().get(0).id);

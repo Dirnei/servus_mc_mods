@@ -89,6 +89,8 @@ public final class ServusShuttlesEvents {
                     (terminal, side) -> terminal);
             event.registerBlockEntity(ServusFoundationCapabilities.PACKET_INLET, ServusShuttlesBlockEntities.STORAGE_TERMINAL.get(),
                     (terminal, side) -> terminal.packetHandler());
+            event.registerBlockEntity(ServusFoundationCapabilities.PACKET_ENDPOINT, ServusShuttlesBlockEntities.STORAGE_TERMINAL.get(),
+                    (terminal, side) -> terminal.packetEndpoint());
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusShuttlesBlockEntities.OUTBOUND_STATION.get(),
                     (station, side) -> station.handlerFor(side));
             event.registerBlockEntity(ServusFoundationCapabilities.PACKET_INLET, ServusShuttlesBlockEntities.CRAFTING_STATION.get(),

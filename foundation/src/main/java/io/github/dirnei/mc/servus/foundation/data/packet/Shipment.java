@@ -39,6 +39,8 @@ public final class Shipment {
     private boolean routed;
     private List<DataNetwork.Hop> hops = List.of();
     private int retry;
+    /** Game time since which a full target took nothing, -1 while items move. */
+    private long blockedSince = -1;
 
     private Shipment(Delivery delivery, BlockPos from, BlockPos to, ItemStack pending, ItemStack like, int toTake,
                      ItemView sourceView, Grant grant) {
@@ -90,6 +92,10 @@ public final class Shipment {
         if (!routed && !route(network, level)) {
             return true;
         }
+        if (stalled(level, limits)) {
+            settle(level, DeliveryReason.STALLED);
+            return pending.isEmpty();
+        }
         if (retry > 0 && --retry > 0) {
             return false;
         }
@@ -104,6 +110,7 @@ public final class Shipment {
             moved = pending.isEmpty() ? take(level, allowed, limits) : offer(level, allowed, limits);
         }
         if (moved > 0) {
+            blockedSince = -1;
             delivery.addDelivered(moved);
             if (out != null) {
                 out.consume(TransferGate.Flow.OUT, moved);
@@ -117,6 +124,19 @@ public final class Shipment {
             delivery.done();
         }
         return delivery.ended() && pending.isEmpty();
+    }
+
+    /** Whether a delivery without a grant found its target full for {@code stall_ticks}. */
+    private boolean stalled(ServerLevel level, PacketLimits limits) {
+        return grant == null && blockedSince >= 0 && level.getGameTime() - blockedSince >= limits.stallTicks();
+    }
+
+    /** The target took less than offered: waits {@code retry_interval} and counts towards a stall. */
+    private void waitForTarget(ServerLevel level, PacketLimits limits) {
+        retry = limits.retryTicks();
+        if (blockedSince < 0) {
+            blockedSince = level.getGameTime();
+        }
     }
 
     private static int allowance(TransferGate gate, TransferGate.Flow flow) {
@@ -138,7 +158,7 @@ public final class Shipment {
             } else {
                 pending.grow(rest.getCount());
             }
-            retry = limits.retryTicks();
+            waitForTarget(level, limits);
         }
         return count - rest.getCount();
     }
@@ -167,7 +187,7 @@ public final class Shipment {
         }
         int takes = grant != null ? Math.min(has, grant.left()) : PacketIo.acceptable(level, to, targetFace, like.copyWithCount(has));
         if (takes <= 0) {
-            retry = limits.retryTicks();
+            waitForTarget(level, limits);
             return 0;
         }
         ItemStack got = PacketIo.extract(level, from, sourceFace, sourceView, like, takes);
@@ -184,7 +204,7 @@ public final class Shipment {
             if (!pending.isEmpty()) {
                 toTake -= pending.getCount();
             }
-            retry = limits.retryTicks();
+            waitForTarget(level, limits);
         }
         return moved;
     }

@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.terminal;
 import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
+import io.github.dirnei.mc.servus.foundation.data.packet.PacketEndpoint;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
@@ -94,8 +95,8 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
         public Tracked relay;
         /** Retries a just woken site gets before its missing stock counts; not saved. */
         public int tries;
-        /** The output slot this request owns and its deliveries land in, {@link RequestSlots#NONE} without one. */
-        public int slot = RequestSlots.NONE;
+        /** The output slots this request owns and its deliveries land in, empty without one. */
+        public final List<Integer> slots = new ArrayList<>();
 
         Request(int id, ItemKey key, int requested) {
             this.id = id;
@@ -139,6 +140,9 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
     private final List<Request> requests = new ArrayList<>();
     private int ticks;
     private boolean idsSeen;
+    private final TerminalEndpoint endpoint = new TerminalEndpoint(this);
+    /** Ticks between two sweeps of the endpoint's grants. */
+    private static final int GRANT_SWEEP_TICKS = 20;
 
     public StorageTerminalBlockEntity(BlockPos pos, BlockState state) {
         super(ServusShuttlesBlockEntities.STORAGE_TERMINAL.get(), pos, state);
@@ -155,6 +159,11 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
     /** The slots the player and automation hand items in through. */
     public ItemSlots input() {
         return input;
+    }
+
+    /** The endpoint packet deliveries offer to before they send: room in a request's slots or the Input row. */
+    public PacketEndpoint packetEndpoint() {
+        return endpoint;
     }
 
     /** What automation and packets see: items a request waits for go to the output, the rest to the input. */
@@ -187,11 +196,11 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
         return null;
     }
 
-    /** Makes a request in the slot {@link #freeSlot} offers; callers refuse first when there is none. */
+    /** Makes a request in the slots {@link #freeSlots} offers; callers refuse first when there is none. */
     public Request newRequest(ServerLevel level, ItemKey key, int requested) {
         seeIds(level);
         Request request = new Request(ProductionLedger.get(level).nextRequestId(), key, requested);
-        request.slot = freeSlot(key);
+        request.slots.addAll(freeSlots(key, requested));
         requests.add(request);
         setChanged();
         return request;
@@ -207,31 +216,100 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
         }
     }
 
-    /** The output slot a new request for the key would own, or {@link RequestSlots#NONE} when the row is full. */
+    /** The first output slot a new request for the key would own, or {@link RequestSlots#NONE} when the row is full. */
     public int freeSlot(ItemKey key) {
+        return RequestSlots.choose(slotView(), key);
+    }
+
+    /** The output slots a new request for {@code amount} of the key would own: as many as it fills and are free, empty when the row is full. */
+    public List<Integer> freeSlots(ItemKey key, int amount) {
+        return RequestSlots.choose(slotView(), key, RequestSlots.needed(amount, stackSize(key)));
+    }
+
+    private List<RequestSlots.Slot<ItemKey>> slotView() {
         List<RequestSlots.Slot<ItemKey>> slots = new ArrayList<>();
         for (int i = 0; i < output.getSlots(); i++) {
             ItemStack stack = output.getStackInSlot(i);
             slots.add(new RequestSlots.Slot<>(owner(i) != null, stack.isEmpty() ? null : ItemKey.of(stack),
                     stack.getCount() < Math.min(stack.getMaxStackSize(), output.getSlotLimit(i))));
         }
-        return RequestSlots.choose(slots, key);
+        return slots;
+    }
+
+    /** How many of the key one output slot holds. */
+    private int stackSize(ItemKey key) {
+        return Math.min(key.stack(1).getMaxStackSize(), output.getSlotLimit(0));
+    }
+
+    /**
+     * Lets a grown request own more free slots, as many as the items it still
+     * waits for need beyond the room its slots have left.
+     */
+    public void growSlots(Request request) {
+        int size = stackSize(request.key);
+        int room = 0;
+        for (int slot : request.slots) {
+            ItemStack stack = output.getStackInSlot(slot);
+            room += stack.isEmpty() ? size : request.key.matches(stack) ? Math.max(0, size - stack.getCount()) : 0;
+        }
+        int missingRoom = request.requested - request.delivered - room;
+        if (missingRoom > 0) {
+            for (int slot : freeSlots(request.key, missingRoom)) {
+                if (!request.slots.contains(slot)) {
+                    request.slots.add(slot);
+                }
+            }
+            setChanged();
+        }
     }
 
     /** The open request owning an output slot, or null. */
     public Request owner(int slot) {
         for (Request request : requests) {
-            if (request.slot == slot) {
+            if (request.slots.contains(slot)) {
                 return request;
             }
         }
         return null;
     }
 
-    /** Whether one more of the request's item fits into its slot. */
+    /** Whether one more of the request's item fits into one of its slots. */
     public boolean fits(Request request) {
-        return request.slot >= 0 && request.slot < output.getSlots()
-                && output.insertItem(request.slot, request.key.stack(1), true).isEmpty();
+        for (int slot : request.slots) {
+            if (slot >= 0 && slot < output.getSlots() && output.insertItem(slot, request.key.stack(1), true).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** The first open request still waiting for the key, or null. */
+    Request waitingRequest(ItemKey key) {
+        for (Request request : requests) {
+            if (request.key.equals(key) && request.delivered < request.requested) {
+                return request;
+            }
+        }
+        return null;
+    }
+
+    /** Puts items into the request's slots and credits what landed; returns what did not fit. */
+    ItemStack deliverToSlots(Request request, ItemStack stack) {
+        ItemStack rest = stack;
+        for (int slot : request.slots) {
+            if (rest.isEmpty()) {
+                break;
+            }
+            if (slot >= 0 && slot < output.getSlots()) {
+                rest = output.insertItem(slot, rest, false);
+            }
+        }
+        int landed = stack.getCount() - rest.getCount();
+        if (landed > 0) {
+            request.delivered = Math.min(request.requested, request.delivered + landed);
+            setChanged();
+        }
+        return rest;
     }
 
     /** Keeps the ledger's request counter above the ids of loaded requests. */
@@ -265,6 +343,9 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
     public static void serverTick(Level level, BlockPos pos, BlockState state, StorageTerminalBlockEntity terminal) {
         if (level instanceof ServerLevel server) {
             TerminalRequests.tick(server, terminal, ++terminal.ticks);
+            if (terminal.ticks % GRANT_SWEEP_TICKS == 0) {
+                terminal.endpoint.sweep(server.getGameTime());
+            }
             if (terminal.storeSoon || terminal.ticks % 20 == 0) {
                 terminal.storeInput(server);
             }
@@ -424,7 +505,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
         entry.putInt("Requested", request.requested);
         entry.putInt("Delivered", request.delivered);
         entry.putInt("Missing", request.missing);
-        entry.putInt("Slot", request.slot);
+        entry.putIntArray("Slots", request.slots.stream().mapToInt(Integer::intValue).toArray());
         if (request.orderCpu != null) {
             entry.put("OrderCpu", ValueIo.posTag(request.orderCpu));
         }
@@ -452,7 +533,13 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
         Request request = new Request(entry.getIntOr("Id", 0), ItemKey.of(item), entry.getIntOr("Requested", 0));
         request.delivered = entry.getIntOr("Delivered", 0);
         request.missing = entry.getIntOr("Missing", 0);
-        request.slot = entry.getIntOr("Slot", RequestSlots.NONE);
+        if (entry.contains("Slots")) {
+            for (int slot : entry.getIntArray("Slots").orElse(new int[0])) {
+                request.slots.add(slot);
+            }
+        } else {
+            request.slots.add(entry.getIntOr("Slot", RequestSlots.NONE));
+        }
         request.orderCpu = ValueIo.readPos(entry, "OrderCpu").orElse(null);
         request.remote = entry.contains("Remote") ? entry.getStringOr("Remote", "") : null;
         request.shipped = entry.getBooleanOr("Shipped", false);
@@ -496,8 +583,9 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
             readRequest(registries, (CompoundTag) raw).ifPresent(requests::add);
         }
         for (Request request : requests) {
-            if (request.slot < 0 || request.slot >= output.getSlots()) {
-                request.slot = freeSlot(request.key);
+            request.slots.removeIf(slot -> slot < 0 || slot >= output.getSlots());
+            if (request.slots.isEmpty()) {
+                request.slots.addAll(freeSlots(request.key, request.requested - request.delivered));
             }
         }
     }
@@ -614,6 +702,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
                 RemoteTransfers.release(worldPosition, request.id);
             }
         }
+        endpoint.closeAll();
         super.setRemoved();
     }
 

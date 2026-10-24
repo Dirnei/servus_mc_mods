@@ -959,7 +959,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             return null;
         }
         for (RequestRow row : ClientStock.requests()) {
-            if (row.slot() == slot.index) {
+            if (row.owns(slot.index)) {
                 return row;
             }
         }
@@ -975,23 +975,28 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     protected void extractSlots(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.extractSlots(graphics, mouseX, mouseY);
         for (RequestRow row : ClientStock.requests()) {
-            if (row.slot() < 0 || row.slot() >= menu.outputSlots()) {
-                continue;
+            for (int index : row.slots()) {
+                if (index >= 0 && index < menu.outputSlots()) {
+                    extractRequest(graphics, row, menu.slots.get(index));
+                }
             }
-            Slot slot = menu.slots.get(row.slot());
-            int x = slot.x;
-            int y = slot.y;
-            if (!slot.hasItem()) {
-                graphics.fakeItem(row.stack(), x, y);
-                graphics.fill(x, y, x + 16, y + 16, 0x908B8B8B);
-            }
-            smallText(graphics, Component.literal(row.delivered() + "/" + row.requested()), x + 16, y + 1, 0xFFFFFFFF);
-            graphics.fill(x, y, x + 4, y + 4, 0xFF202020);
-            graphics.fill(x + 1, y + 1, x + 3, y + 3, stateColour(row.state()));
-            int filled = row.requested() <= 0 ? 0 : 16 * Math.min(row.delivered(), row.requested()) / row.requested();
-            graphics.fill(x, y + 16, x + 16, y + 17, 0xFF202020);
-            graphics.fill(x, y + 16, x + filled, y + 17, stateColour(row.state()));
         }
+    }
+
+    /** One request on one of its output slots. */
+    private void extractRequest(GuiGraphicsExtractor graphics, RequestRow row, Slot slot) {
+        int x = slot.x;
+        int y = slot.y;
+        if (!slot.hasItem()) {
+            graphics.fakeItem(row.stack(), x, y);
+            graphics.fill(x, y, x + 16, y + 16, 0x908B8B8B);
+        }
+        smallText(graphics, Component.literal(row.delivered() + "/" + row.requested()), x + 16, y + 1, 0xFFFFFFFF);
+        graphics.fill(x, y, x + 4, y + 4, 0xFF202020);
+        graphics.fill(x + 1, y + 1, x + 3, y + 3, stateColour(row.state()));
+        int filled = row.requested() <= 0 ? 0 : 16 * Math.min(row.delivered(), row.requested()) / row.requested();
+        graphics.fill(x, y + 16, x + 16, y + 17, 0xFF202020);
+        graphics.fill(x, y + 16, x + filled, y + 17, stateColour(row.state()));
     }
 
     @Override

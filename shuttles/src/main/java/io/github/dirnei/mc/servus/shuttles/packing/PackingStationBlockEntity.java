@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.packing;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
+import io.github.dirnei.mc.servus.foundation.data.packet.DeliveryReason;
 import io.github.dirnei.mc.servus.foundation.data.packet.Grant;
 import io.github.dirnei.mc.servus.foundation.data.packet.GrantBook;
 import io.github.dirnei.mc.servus.foundation.data.packet.PacketEndpoint;
@@ -85,6 +86,14 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         private final long feed;
         /** The receiver's To storage room a wireless shipment without a terminal fills, null while it holds none. */
         private Grant intakeGrant;
+        /** Room the target granted before the picks arrive, null while none is held. */
+        private Grant pickGrant;
+        /** The data line delivery running for this shipment, null while none runs. */
+        private Delivery delivery;
+        /** Whether the target answers offers; false until an offer found an endpoint. */
+        private boolean endpoint;
+        /** Why the target takes nothing now, a lang key suffix, null while it takes items. */
+        private String waiting;
 
         Shipment(BlockPos target, ItemKey key, ProductionLedger.Transfer transfer, boolean wireless, String site, BlockPos terminal, long feed) {
             this.target = target;
@@ -148,6 +157,23 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         int missing() {
             return transfer.missing();
         }
+
+        /** Whether a data line delivery of this shipment runs now. */
+        boolean sending() {
+            return delivery != null && !delivery.ended();
+        }
+
+        /** The held grant while it still takes items, else null. */
+        private Grant heldGrant() {
+            return pickGrant != null && !pickGrant.closed() && pickGrant.left() > 0 ? pickGrant : null;
+        }
+
+        private void dropPickGrant() {
+            if (pickGrant != null) {
+                pickGrant.close();
+                pickGrant = null;
+            }
+        }
     }
 
     /** A saved shipment, resolved against the ledger on the first tick after loading. */
@@ -182,6 +208,8 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     public static final String REFUSE_OFFLINE = "offline";
     public static final String REFUSE_NO_STORAGE = "no_storage";
     public static final String REFUSE_FULL = "to_storage_full";
+    /** Why a shipment waits after its delivery to a target without endpoint stalled. */
+    private static final String STALLED = "stalled";
 
     /** Ticks after the last wireless item moved during which the station counts as sending. */
     private static final int SENDING_TICKS = 20;
@@ -204,9 +232,6 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     private int grantSweep;
     private final List<Shipment> shipments = new ArrayList<>();
     private final List<SavedShipment> unresolved = new ArrayList<>();
-    private Delivery running;
-    private ServerLevel shippingLevel;
-    private Shipment runningFor;
     private int sendTimer;
     private final RateBudget toStorage = new RateBudget(ShuttlesStatsManager.INSTANCE.packingItemsPerSecond());
     private final RateBudget toNetwork = new RateBudget(ShuttlesStatsManager.INSTANCE.packingItemsPerSecond());
@@ -377,9 +402,10 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         if (wirelessSending() && wirelessKey != null) {
             return status(Component.translatable(STATUS + "sending", wirelessKey.stack(1).getHoverName(), wirelessTo), false);
         }
-        if (dataSending() && runningFor != null) {
+        Shipment sending = sendingShipment();
+        if (sending != null) {
             return status(Component.translatable(STATUS + "sending",
-                    runningFor.key.stack(1).getHoverName(), targetName(server, runningFor.target)), false);
+                    sending.key.stack(1).getHoverName(), targetName(server, sending.target)), false);
         }
         if (blockedReason() != null) {
             String item = blockedStack().getHoverName().getString();
@@ -392,6 +418,12 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         }
         if (toStorageFull()) {
             return status(Component.translatable(STATUS + "to_storage_full"), true);
+        }
+        for (Shipment shipment : shipments) {
+            if (!shipment.ended() && !shipment.wireless && shipment.waiting != null) {
+                return status(Component.translatable(STATUS + "waiting_room",
+                        shipment.key.stack(1).getHoverName(), targetName(server, shipment.target)), true);
+            }
         }
         for (Shipment shipment : shipments) {
             if (!shipment.ended() && !shipment.relay() && shipment.missing() > outgoingCount(shipment.key)) {
@@ -427,6 +459,9 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     public Shipment addShipment(BlockPos target, ItemKey key, int planned) {
         Shipment shipment = new Shipment(target.immutable(), key, ledger().open(planned), false, "", null, -1);
         shipments.add(shipment);
+        if (level instanceof ServerLevel server) {
+            holdGrant(server, shipment);
+        }
         setChanged();
         return shipment;
     }
@@ -497,7 +532,17 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     }
 
     private boolean dataSending() {
-        return running != null && !running.ended();
+        return sendingShipment() != null;
+    }
+
+    /** The oldest shipment with a data line delivery running, or null. */
+    private Shipment sendingShipment() {
+        for (Shipment shipment : shipments) {
+            if (shipment.sending()) {
+                return shipment;
+            }
+        }
+        return null;
     }
 
     private boolean wirelessSending() {
@@ -506,8 +551,12 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
 
     /** Whether the items moving right now belong to the shipment with that id. */
     public boolean isSending(long shipmentId) {
-        return dataSending() && runningFor != null && runningFor.id() == shipmentId
-                || wirelessSending() && wirelessId == shipmentId;
+        for (Shipment shipment : shipments) {
+            if (shipment.id() == shipmentId && shipment.sending()) {
+                return true;
+            }
+        }
+        return wirelessSending() && wirelessId == shipmentId;
     }
 
     /** Books items of a shipment that arrived; the shipment ends once nothing is missing. */
@@ -530,6 +579,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             if (shipment.ended()) {
                 forgetIncoming(shipment);
                 closeIntakeGrant(shipment);
+                shipment.dropPickGrant();
                 it.remove();
             }
         }
@@ -552,6 +602,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     public void setRemoved() {
         shipments.forEach(this::forgetIncoming);
         shipments.forEach(PackingStationBlockEntity::closeIntakeGrant);
+        shipments.forEach(Shipment::dropPickGrant);
         grants.closeAll();
         super.setRemoved();
     }
@@ -591,13 +642,16 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         }
     }
 
-    /** Starts the next data line delivery when none runs, and hands items nobody waits for to the intake. */
+    /**
+     * Starts a data line delivery for every shipment whose items are there and
+     * not claimed by another delivery, sends only into room its target
+     * grants, holds a grant for shipments still waiting for picks, and hands
+     * items nobody waits for to the intake. A target without room holds up
+     * only its own shipment.
+     */
     private void ship(ServerLevel server) {
         if (!unresolved.isEmpty()) {
             resolve();
-        }
-        if (dataSending()) {
-            return;
         }
         pruneEnded();
         capRelays();
@@ -605,32 +659,122 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             returnOrphans();
             return;
         }
-        for (Shipment shipment : shipments) {
-            if (shipment.wireless) {
+        for (Shipment shipment : new ArrayList<>(shipments)) {
+            if (shipment.wireless || shipment.ended() || shipment.sending()) {
                 continue;
             }
-            int count = Math.min(shipment.missing(), outgoingCount(shipment.key));
-            if (count <= 0) {
-                continue;
+            int ready = Math.min(shipment.missing(), outgoingCount(shipment.key) - claimed(shipment.key));
+            if (ready > 0) {
+                send(server, shipment, ready);
+            } else if (!shipment.relay()) {
+                holdGrant(server, shipment);
             }
-            // The items stay in the To network buffer until the move takes them at the station's rate.
-            Optional<Delivery> started = DataPackets.move(server, worldPosition, shipment.target, shipment.key.stack(1), count, new ItemView(outgoing));
-            if (started.isEmpty() || started.get().ended() && started.get().state() == Delivery.State.FAILED) {
-                // Refused at once: this shipment cannot be served.
-                ledger().end(shipment.transfer);
-                continue;
-            }
-            running = started.get();
-            runningFor = shipment;
-            shippingLevel = server;
-            running.onEnd(delivery -> finished(shipment, delivery));
-            showSending(true);
-            return;
         }
         returnOrphans();
         if (!sending()) {
             showSending(false);
         }
+    }
+
+    /** Items of the key that running data line deliveries still take from the To network buffer, which they share. */
+    private int claimed(ItemKey key) {
+        int claimed = 0;
+        for (Shipment shipment : shipments) {
+            if (shipment.sending() && shipment.key.equals(key)) {
+                claimed += Math.max(0, shipment.delivery.requested() - shipment.delivery.delivered());
+            }
+        }
+        return claimed;
+    }
+
+    /** Starts the shipment's delivery of {@code ready} items, into the grant it holds when it has one. */
+    private void send(ServerLevel server, Shipment shipment, int ready) {
+        Grant held = shipment.heldGrant();
+        shipment.pickGrant = null;
+        int count = held == null ? ready : Math.min(ready, held.left());
+        // The items stay in the To network buffer until the move takes them at the station's rate.
+        Optional<Delivery> started = DataPackets.move(server, worldPosition, shipment.target, shipment.key.stack(1), count,
+                new ItemView(outgoing), held);
+        if (started.isEmpty()) {
+            return;
+        }
+        Delivery delivery = started.get();
+        if (delivery.ended() && delivery.state() == Delivery.State.FAILED) {
+            if (delivery.reason() == DeliveryReason.REFUSED) {
+                shipment.waiting = delivery.refusal();
+            } else {
+                ledger().end(shipment.transfer);
+            }
+            return;
+        }
+        shipment.waiting = null;
+        shipment.delivery = delivery;
+        delivery.onEnd(ended -> finished(shipment, ended));
+        showSending(true);
+    }
+
+    /**
+     * Keeps a grant of the target's room for what the shipment still needs
+     * beyond the items on their way, so picks come only for room the target
+     * has. A grant nothing was picked for yet is asked again, so it follows
+     * room that freed since; a target without endpoint holds no grant.
+     */
+    private void holdGrant(ServerLevel server, Shipment shipment) {
+        int admitted = admitted(shipment.key);
+        if (shipment.heldGrant() != null && admitted > 0) {
+            return;
+        }
+        shipment.dropPickGrant();
+        int need = shipment.missing() - admitted;
+        if (need <= 0) {
+            return;
+        }
+        Optional<Grant> offered = DataPackets.offer(server, worldPosition, shipment.target, shipment.key.stack(1), need);
+        shipment.endpoint = offered.isPresent();
+        if (offered.isEmpty()) {
+            return;
+        }
+        if (!offered.get().granted()) {
+            shipment.waiting = offered.get().refusal();
+            return;
+        }
+        shipment.waiting = null;
+        shipment.pickGrant = offered.get();
+    }
+
+    /**
+     * Whether a pick may bring its items into the To network buffer now: as
+     * far as targets granted room for that item, or shipments to targets
+     * without an endpoint still need it. A pick no open shipment wants goes
+     * through, so its items return to storage.
+     */
+    public boolean admits(ItemKey key, int amount) {
+        int granted = 0;
+        int open = 0;
+        boolean wanted = false;
+        for (Shipment shipment : shipments) {
+            if (shipment.ended() || shipment.relay() || !shipment.key.equals(key)) {
+                continue;
+            }
+            wanted = true;
+            if (shipment.wireless || !shipment.endpoint) {
+                open += shipment.missing();
+            } else if (shipment.heldGrant() != null) {
+                granted += shipment.heldGrant().left();
+            }
+        }
+        return !wanted || PickAdmission.admits(granted, open, admitted(key), amount);
+    }
+
+    /** Items of the key in the To network buffer or reserved there for picks on their way. */
+    private int admitted(ItemKey key) {
+        int reserved = 0;
+        for (LockedSlots.Locked locked : outgoing.locked()) {
+            if (locked.lock().kind() == SlotLock.Kind.IN && locked.lock().key().equals(key)) {
+                reserved += locked.lock().amount();
+            }
+        }
+        return outgoingCount(key) + reserved;
     }
 
     /**
@@ -854,15 +998,19 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         return false;
     }
 
+    /**
+     * Books a delivery that ended. A target that refused or stalled keeps the
+     * shipment open to be tried again; a route or target that is gone ends it.
+     */
     private void finished(Shipment shipment, Delivery delivery) {
-        ProductionLedger ledger = ProductionLedger.get(shippingLevel);
+        ProductionLedger ledger = ledger();
         ledger.delivered(shipment.transfer, delivery.delivered());
-        if (delivery.state() == Delivery.State.FAILED || shipment.missing() == 0) {
+        shipment.delivery = null;
+        boolean retried = delivery.reason() == DeliveryReason.REFUSED || delivery.reason() == DeliveryReason.STALLED;
+        if (delivery.state() == Delivery.State.FAILED && !retried || shipment.missing() == 0) {
             ledger.end(shipment.transfer);
-        }
-        if (runningFor == shipment) {
-            running = null;
-            runningFor = null;
+        } else if (delivery.state() == Delivery.State.FAILED) {
+            shipment.waiting = delivery.reason() == DeliveryReason.STALLED ? STALLED : delivery.refusal();
         }
         setChanged();
     }

@@ -24,8 +24,10 @@ PLAN.md leaves no open decision for this change; the explore session settled pic
 ### Storage Terminal endpoint
 `StorageTerminalBlockEntity` registers `PACKET_ENDPOINT` next to its packet inlet. `offer(like, amount)`:
 - an open request waiting for the item: grant `min(amount, room)` where room is the free space of the request's slots less the grants it already holds;
-- no request waiting: grant the room of the Input row, as the inlet takes such packets today;
-- otherwise refuse `output_full`.
+- no request waiting: grant the room of the Input row, as the inlet takes such packets today, else refuse `input_full`;
+- a waiting request without room refuses `output_full`.
+
+The endpoint lives in `terminal/TerminalEndpoint` with its own `GrantBook`, swept every second by the terminal.
 
 `receive` inserts into the request's slots (or the Input row); `close` drops the grant. A grant's room is a counter, not a slot lock, because only the request's own deliveries can land in its slots anyway.
 
@@ -35,13 +37,15 @@ PLAN.md leaves no open decision for this change; the explore session settled pic
 ### Station: grant, admit, send
 Each non wireless `Shipment` of the station holds at most one `Grant` and an `admitted` count.
 
-1. **Offer**: in `ship`, a shipment with `missing() > 0`, no grant and an endpoint at the target face offers `missing()` minus what is already in the buffer for it. A refusal sets the shipment's `waitingReason` (shown in the status line) and is tried again on the next push interval.
-2. **Admit**: `WarehouseNetwork.readyToSend(PickJob)` for a Packing Station destination also asks `station.admits(job)`: the job's shipment has granted room not yet admitted. Admitting adds the job's amount to `admitted`. Jobs for a shipment whose target has no endpoint are admitted as today, by buffer room only. Picks stay planned and their rack locks stay, so the requestable count and other requests are unaffected.
+1. **Offer**: when a shipment is added, and in `ship` while its items are not there, a shipment offers `missing()` minus what is already in the buffer or on its way for that item, through the new `DataPackets.offer(level, from, to, like, amount)`, which returns empty for a target without endpoint. A refusal sets the shipment's waiting reason (shown in the status line) and is tried again on the next push interval. A held grant nothing was picked for yet is closed and offered again each round, so it follows room the player freed.
+2. **Admit**: `WarehouseNetwork.readyToSend(PickJob)` for a Packing Station destination also asks `station.admits(key, amount)`, per item: the held grants of that item plus what shipments to targets without endpoint (and wireless shipments) still need, less what is in the buffer or IN locked there for picks on their way. A pick no open shipment wants is admitted so its items return to storage, and with nothing of the item on its way any room lets one pick through, so a pick larger than the room never waits forever. Picks stay planned and their rack locks stay, so the requestable count and other requests are unaffected.
 3. **Send**: once the buffer holds the admitted items for a grant, or the admitted jobs have all ended, the station starts `DataPackets.move` with the held grant for what is there. The grant ends with that delivery, and the next round offers again for what is still missing.
 
-Several deliveries run at once, at most one per shipment; they share the station's `toNetwork` budget through `TransferGate` as deliveries of one gate already do. `dataSending()` no longer gates the loop, so `returnOrphans()` runs every push interval. The status line picks the running delivery, else the oldest shipment's waiting reason.
+Several deliveries run at once, at most one per shipment; they share the station's `toNetwork` budget through `TransferGate` as deliveries of one gate already do. Deliveries of the same item share the buffer by claims: a shipment sends at most what is there less what running deliveries of that item still take. A refused delivery leaves its shipment open with the refusal as waiting reason; a stalled one too; only a missing route or target ends it. `dataSending()` no longer gates the loop, so `returnOrphans()` runs every push interval. The status line picks the running delivery, else the oldest shipment's waiting reason.
 
-Pure logic: `packing/PickAdmission` (granted, admitted, job amount, has endpoint, buffer room) and the terminal's grant room (slot counts, stack size, held grants), both with JUnit.
+Pure logic: `packing/PickAdmission` (granted, open need, admitted, pick amount) and `terminal/RequestRoom` (slot counts, stack size, held grants, need), both with JUnit; `terminal/RequestSlots` chooses several slots.
+
+The request row's state is waiting for room while none of its slots has room, also before its rest is picked, since nothing is picked for a full slot.
 
 Alternative considered: keep picking ahead and only fix the blocking. Simpler, but parked items still fill the To network buffer, which is a second way into the same clog.
 

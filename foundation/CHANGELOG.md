@@ -5,6 +5,9 @@
 ### Added
 - A delivery handshake on the data line: before items move, the sender offers them and the receiving block grants room or says why not.
 
+### Changed
+- A delivery to a block that takes nothing for a while ends with what arrived instead of holding up its sender.
+
 ## 0.4.0
 
 ### Added

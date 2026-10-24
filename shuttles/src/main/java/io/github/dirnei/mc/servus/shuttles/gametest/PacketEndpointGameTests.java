@@ -201,6 +201,77 @@ public final class PacketEndpointGameTests {
                 helper.assertTrue(WarehouseFixtures.count(station.inputs(), Items.OAK_PLANKS) == 8, "8 planks should be in the station");
             });
         });
+    }
 
+    /** A Crafting Station with a sticks job whose outputs are full and whose inputs hold planks up to {@code room} short of full. */
+    private static CraftingStationBlockEntity fullStation(GameTestHelper helper, int room) {
+        CraftingStationBlockEntity station = helper.getBlockEntity(SENDER, CraftingStationBlockEntity.class);
+        StationJobs.sticksJob(station, 64);
+        for (int slot = 0; slot < station.outputs().getSlots(); slot++) {
+            station.outputs().setStackInSlot(slot, new ItemStack(Items.STICK, 64));
+        }
+        for (int slot = 0; slot < station.inputs().getSlots(); slot++) {
+            station.inputs().setStackInSlot(slot, new ItemStack(Items.OAK_PLANKS, slot == 0 ? 64 - room : 64));
+        }
+        return station;
+    }
+
+    private static Delivery planksToStation(GameTestHelper helper, ItemSlots stock, int amount) {
+        return DataPackets.move(helper.getLevel(), helper.absolutePos(POINT), helper.absolutePos(SENDER),
+                new ItemStack(Items.OAK_PLANKS), amount, new ItemView(stock)).orElseThrow();
+    }
+
+    /** A target without endpoint that stays full ends the delivery as stalled; it reports what arrived and the rest stays at the source. */
+    @ServusGameTest(timeoutTicks = 1000)
+    public static void fullTargetStalls(GameTestHelper helper) {
+        setup(helper, true, 0);
+        CraftingStationBlockEntity station = fullStation(helper, 4);
+        ItemSlots stock = new ItemSlots(1);
+        stock.setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 16));
+        helper.runAfterDelay(10, () -> {
+            Delivery delivery = planksToStation(helper, stock, 16);
+            helper.runAfterDelay(400, () -> {
+                helper.assertTrue(delivery.state() == Delivery.State.RUNNING, "the delivery should still wait after 400 ticks, is " + delivery);
+                helper.succeedWhen(() -> {
+                    helper.assertTrue(delivery.state() == Delivery.State.FAILED && delivery.reason() == DeliveryReason.STALLED,
+                            "the delivery should end as stalled, is " + delivery);
+                    helper.assertTrue(delivery.delivered() == 4, "it should report the 4 that arrived, is " + delivery);
+                    helper.assertTrue(planks(stock) == 12, "12 planks should stay at the source, got " + planks(stock));
+                    helper.assertTrue(WarehouseFixtures.count(station.inputs(), Items.OAK_PLANKS) == 64 * station.inputs().getSlots(),
+                            "the station's inputs should be full");
+                });
+            });
+        });
+    }
+
+    /** Room that frees before the stall time lets the delivery go on and finish. */
+    @ServusGameTest(timeoutTicks = 600)
+    public static void roomInTimeFinishes(GameTestHelper helper) {
+        setup(helper, true, 0);
+        CraftingStationBlockEntity station = fullStation(helper, 0);
+        ItemSlots stock = new ItemSlots(1);
+        stock.setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 16));
+        helper.runAfterDelay(10, () -> {
+            Delivery delivery = planksToStation(helper, stock, 16);
+            helper.runAfterDelay(300, () -> {
+                station.inputs().setStackInSlot(0, ItemStack.EMPTY);
+                helper.succeedWhen(() -> helper.assertTrue(delivery.state() == Delivery.State.DONE && delivery.delivered() == 16,
+                        "the delivery should finish with 16, is " + delivery));
+            });
+        });
+    }
+
+    /** A grant no delivery takes up ends after the hold time and frees its slot. */
+    @ServusGameTest(timeoutTicks = 1500)
+    public static void unusedHeldGrantEnds(GameTestHelper helper) {
+        Setup setup = setup(helper, true, 0);
+        helper.runAfterDelay(10, () -> {
+            Grant held = setup.point().offer(new ItemStack(Items.OAK_PLANKS), 64);
+            helper.assertTrue(held.granted(), "the station should grant a slot");
+            helper.succeedWhen(() -> {
+                helper.assertTrue(held.closed(), "the unused grant should end");
+                helper.assertTrue(setup.point().buffer().locked().isEmpty(), "its slot should be free again");
+            });
+        });
     }
 }
