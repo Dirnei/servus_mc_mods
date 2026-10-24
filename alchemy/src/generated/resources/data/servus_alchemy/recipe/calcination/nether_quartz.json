@@ -1,0 +1,11 @@
+{
+  "type": "servus_alchemy:calcination",
+  "dimension": "nether",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:gems/quartz"
+  },
+  "output": {
+    "salt": 120
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "servus_alchemy:calcination",
+  "dimension": "end",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:shulker_shell"
+  },
+  "output": {
+    "mercury": 80,
+    "salt": 200
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "servus_alchemy:calcination",
+  "dimension": "end",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:purpur_block"
+  },
+  "output": {
+    "mercury": 20,
+    "salt": 50
+  }
+}

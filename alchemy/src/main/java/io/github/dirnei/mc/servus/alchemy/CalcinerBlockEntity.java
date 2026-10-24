@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.alchemy;
 
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.calciner.CalcinationRecipes;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerLayout;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPorts;
@@ -35,7 +36,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -117,8 +117,9 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
         if (level == null || stack.isEmpty()) {
             return Optional.empty();
         }
-        return ServusRecipes.first(level, ServusAlchemyRecipes.CALCINATION.get(), new SingleRecipeInput(stack))
-                .map(RecipeHolder::value);
+        return CalcinationRecipes.forItem(level, stack)
+                .map(RecipeHolder::value)
+                .filter(recipe -> stack.getCount() >= recipe.input().count());
     }
 
     @Override

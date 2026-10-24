@@ -2,11 +2,13 @@ package io.github.dirnei.mc.servus.alchemy.gametest;
 
 import com.klikli_dev.modonomicon.api.ModonomiconAPI;
 import com.klikli_dev.modonomicon.api.multiblock.Multiblock;
+import io.github.dirnei.mc.servus.alchemy.CalcinationRecipe;
 import io.github.dirnei.mc.servus.alchemy.CalcinerBlock;
 import io.github.dirnei.mc.servus.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.Principle;
 import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.calciner.CalcinationRecipes;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerLayout;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerLayout.Cell;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerLayout.Role;
@@ -20,11 +22,13 @@ import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -37,6 +41,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HopperBlock;
@@ -702,6 +707,64 @@ public final class CalcinerGameTests {
         helper.assertTrue(crafted(helper, Items.BRICKS, Items.IRON_BARS, Items.FURNACE, "BIB", "BFB").isEmpty(), "bricks make no Firebox");
         helper.assertTrue(crafted(helper, Items.BRICKS, Items.IRON_INGOT, Items.AIR, "B B", "BIB").isEmpty(), "bricks make no Ash Pan");
         helper.assertTrue(crafted(helper, Items.BRICKS, Items.IRON_BARS, Items.CAULDRON, "BIB", "BFB").isEmpty(), "bricks make no Calciner");
+        helper.succeed();
+    }
+
+    /** Burns one {@code item} in a formed Calciner and expects exactly these principles. */
+    private static void burnsInto(GameTestHelper helper, Item item, int salt, int sulfur, int mercury) {
+        CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 4));
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(item));
+        helper.succeedWhen(() -> {
+            helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_INPUT).isEmpty(), item + " should be burned");
+            int madeSulfur = tankAt(helper, sulfurTank(CALCINER)).getFluidInTank(0).getAmount();
+            int madeMercury = tankAt(helper, mercuryTank(CALCINER)).getFluidInTank(0).getAmount();
+            helper.assertTrue(calciner.salt() == salt && madeSulfur == sulfur && madeMercury == mercury,
+                    item + " should give " + salt + "/" + sulfur + "/" + mercury + " Salt/Sulfur/Mercury, gave "
+                            + calciner.salt() + "/" + madeSulfur + "/" + madeMercury);
+        });
+    }
+
+    /** Nether Wart is in the crops tag too, but burns with its own recipe. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void netherWartBurnsWithItsOwnRecipe(GameTestHelper helper) {
+        burnsInto(helper, Items.NETHER_WART, 0, 60, 20);
+    }
+
+    /** A Nether Wart Block burns into the principles of the nine Nether Wart it is crafted from. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void netherWartBlockBurnsIntoNineWarts(GameTestHelper helper) {
+        burnsInto(helper, Items.NETHER_WART_BLOCK, 0, 540, 180);
+    }
+
+    /** A Crimson Stem is a log too, but burns as a stem. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void crimsonStemBurnsAsAStem(GameTestHelper helper) {
+        burnsInto(helper, Items.CRIMSON_STEM, 0, 150, 0);
+    }
+
+    /** Dragon's Breath is kept for the Prelum and never goes into the Calciner. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void dragonsBreathIsNotCalcinable(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
+        ItemStack breath = new ItemStack(Items.DRAGON_BREATH);
+        helper.assertTrue(!calciner.calcinable(breath), "Dragon's Breath should not be calcinable");
+        helper.assertTrue(calciner.insertInput(breath).getCount() == 1, "the Calciner should refuse Dragon's Breath");
+        helper.succeed();
+    }
+
+    /** The Crops recipe shows and burns wheat, but leaves Nether Wart to its own recipe. */
+    @ServusGameTest(timeoutTicks = 20)
+    @SuppressWarnings("unchecked")
+    public static void cropsRecipeDoesNotBurnNetherWart(GameTestHelper helper) {
+        RecipeHolder<CalcinationRecipe> crops = (RecipeHolder<CalcinationRecipe>) ServusRecipes.byId(helper.getLevel(),
+                Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "calcination/crops")).orElseThrow();
+        List<ItemStack> burns = CalcinationRecipes.burns(helper.getLevel(), crops);
+        helper.assertTrue(burns.stream().anyMatch(stack -> stack.is(Items.WHEAT)), "the Crops recipe should burn wheat");
+        helper.assertTrue(burns.stream().noneMatch(stack -> stack.is(Items.NETHER_WART)), "the Crops recipe should not burn Nether Wart");
+        helper.assertTrue(CalcinationRecipes.forItem(helper.getLevel(), new ItemStack(Items.NETHER_WART))
+                        .map(holder -> holder.id().identifier().getPath()).orElse("").equals("calcination/nether_wart"),
+                "Nether Wart should pick the Nether Wart recipe");
         helper.succeed();
     }
 

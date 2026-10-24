@@ -1,5 +1,13 @@
 # Servus: Alchemy changelog
 
+## Unreleased
+
+### Added
+- Nether and End matter burns in the Calciner: Netherrack, Soul Sand, Nether Wart and its block, Crimson and Warped Stems, Blaze Rods, Magma Cream, Glowstone Dust, Nether Quartz, End Stone, Purpur, Chorus Fruit, Ender Pearls and Shulker Shells.
+
+### Fixed
+- When several calcination recipes take the same item, the most specific one wins.
+
 ## 0.3.0-alpha
 
 ### Added

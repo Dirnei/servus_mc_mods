@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorRecipe;
+import io.github.dirnei.mc.servus.alchemy.calciner.CalcinationRecipes;
 import io.github.dirnei.mc.servus.alchemy.prelum.PressingRecipe;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurificationRecipe;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyComponents;
@@ -71,7 +72,9 @@ public final class ServusAlchemyJeiPlugin implements IModPlugin {
         if (minecraft.level == null) {
             return;
         }
-        registration.addRecipes(CALCINATION, ServusRecipes.all(minecraft.level, ServusAlchemyRecipes.CALCINATION.get()));
+        registration.addRecipes(CALCINATION, ServusRecipes.all(minecraft.level, ServusAlchemyRecipes.CALCINATION.get()).stream()
+                .filter(holder -> !CalcinationRecipes.burns(minecraft.level, holder).isEmpty())
+                .toList());
         registration.addRecipes(PURIFICATION, ServusRecipes.all(minecraft.level, ServusAlchemyRecipes.PURIFICATION.get()));
         registration.addRecipes(COAGULATION, CoagulatorBlockEntity.sortedRecipes(minecraft.level));
         registration.addRecipes(ATHANOR, ServusRecipes.all(minecraft.level, ServusAlchemyRecipes.ATHANOR.get()));

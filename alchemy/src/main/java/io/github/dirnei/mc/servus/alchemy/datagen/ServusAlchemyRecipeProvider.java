@@ -94,7 +94,7 @@ final class ServusAlchemyRecipeProvider extends RecipeProvider {
     private void calcination(RecipeOutput output) {
         for (AlchemyRecipeTable.Calcine row : AlchemyRecipeTable.calcination()) {
             output.accept(key("calcination/" + row.name()), new CalcinationRecipe(new SizedIngredient(row.input().ingredient(items), 1), row.output(),
-                    CalcinationRecipe.DEFAULT_TIME), null);
+                    CalcinationRecipe.DEFAULT_TIME, row.dimension()), null);
         }
     }
 

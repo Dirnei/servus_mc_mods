@@ -1,0 +1,12 @@
+{
+  "type": "servus_alchemy:calcination",
+  "dimension": "end",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:chorus_fruit"
+  },
+  "output": {
+    "mercury": 60,
+    "sulfur": 20
+  }
+}

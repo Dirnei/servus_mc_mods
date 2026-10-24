@@ -60,7 +60,8 @@ public final class ServusRecipes {
         clientRecipes = recipes;
     }
 
-    private static RecipeMap recipes(Level level) {
+    /** The recipes a level sees: the recipe manager's on a server, the synced ones on a client. A reload makes a new map. */
+    public static RecipeMap recipeMap(Level level) {
         if (level instanceof ServerLevel server) {
             return server.recipeAccess().recipeMap();
         }
@@ -74,7 +75,7 @@ public final class ServusRecipes {
 
     /** The recipe with that id; on a client only recipes of synced types. */
     public static Optional<RecipeHolder<?>> byId(Level level, Identifier id) {
-        return Optional.ofNullable(recipes(level).byKey(key(id)));
+        return Optional.ofNullable(recipeMap(level).byKey(key(id)));
     }
 
     /** The crafting recipe with that id, empty for other recipe types. */
@@ -91,12 +92,12 @@ public final class ServusRecipes {
 
     /** The first recipe of a type that matches the input. */
     public static <I extends RecipeInput, T extends Recipe<I>> Optional<RecipeHolder<T>> first(Level level, RecipeType<T> type, I input) {
-        return recipes(level).getRecipesFor(type, input, level).findFirst();
+        return recipeMap(level).getRecipesFor(type, input, level).findFirst();
     }
 
     /** Every recipe of a type. */
     public static <I extends RecipeInput, T extends Recipe<I>> List<RecipeHolder<T>> all(Level level, RecipeType<T> type) {
-        return List.copyOf(recipes(level).byType(type));
+        return List.copyOf(recipeMap(level).byType(type));
     }
 
     /** The result a recipe shows (its first display), empty when it shows none. */

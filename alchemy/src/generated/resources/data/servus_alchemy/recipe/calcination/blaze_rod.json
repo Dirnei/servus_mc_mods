@@ -1,0 +1,11 @@
+{
+  "type": "servus_alchemy:calcination",
+  "dimension": "nether",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:rods/blaze"
+  },
+  "output": {
+    "sulfur": 400
+  }
+}

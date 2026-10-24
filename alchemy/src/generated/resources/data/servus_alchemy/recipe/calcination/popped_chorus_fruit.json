@@ -1,0 +1,11 @@
+{
+  "type": "servus_alchemy:calcination",
+  "dimension": "end",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:popped_chorus_fruit"
+  },
+  "output": {
+    "mercury": 100
+  }
+}

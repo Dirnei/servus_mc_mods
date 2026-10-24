@@ -1,0 +1,11 @@
+{
+  "type": "servus_alchemy:calcination",
+  "dimension": "end",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:ender_pearls"
+  },
+  "output": {
+    "mercury": 300
+  }
+}

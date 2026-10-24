@@ -1,0 +1,12 @@
+{
+  "type": "servus_alchemy:calcination",
+  "dimension": "nether",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:dusts/glowstone"
+  },
+  "output": {
+    "mercury": 60,
+    "sulfur": 30
+  }
+}

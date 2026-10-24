@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.alchemy.datagen;
 import io.github.dirnei.mc.servus.alchemy.Principles;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorRecipe;
+import io.github.dirnei.mc.servus.alchemy.calciner.CalcinationDimension;
 import io.github.dirnei.mc.servus.alchemy.datagen.gamedata.GameDataExportProvider;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinSeedItem;
 import io.github.dirnei.mc.servus.alchemy.prelum.PressingRecipe;
@@ -51,8 +52,13 @@ public final class AlchemyRecipeTable {
         }
     }
 
-    /** One calcination: what goes in, and the principles it gives. */
-    public record Calcine(String name, String label, Input input, Principles output) {
+    /** One calcination: what goes in, the principles it gives and where its matter comes from. */
+    public record Calcine(String name, String label, Input input, Principles output, CalcinationDimension dimension) {
+
+        /** An Overworld calcination. */
+        public Calcine(String name, String label, Input input, Principles output) {
+            this(name, label, input, output, CalcinationDimension.OVERWORLD);
+        }
     }
 
     /** One coagulation: the principles it takes and what it makes. */
@@ -91,7 +97,31 @@ public final class AlchemyRecipeTable {
                 new Calcine("coal", "Coal", Input.of(ItemTags.COALS), new Principles(0, 200, 0)),
                 new Calcine("raw_materials", "Raw ore", Input.of(Tags.Items.RAW_MATERIALS), new Principles(150, 0, 50)),
                 new Calcine("redstone", "Redstone", Input.of(Tags.Items.DUSTS_REDSTONE), new Principles(0, 0, 100)),
-                new Calcine("bones", "Bones", Input.of(Tags.Items.BONES), new Principles(100, 0, 0)));
+                new Calcine("bones", "Bones", Input.of(Tags.Items.BONES), new Principles(100, 0, 0)),
+                nether("netherrack", "Netherrack", Input.of(Tags.Items.NETHERRACKS), new Principles(20, 40, 0)),
+                nether("soul_sand", "Soul Sand", Input.of(ItemTags.SOUL_FIRE_BASE_BLOCKS), new Principles(20, 60, 0)),
+                nether("nether_wart", "Nether Wart", Input.of(Tags.Items.CROPS_NETHER_WART), new Principles(0, 60, 20)),
+                nether("nether_wart_block", "Nether Wart Block", Input.of(Items.NETHER_WART_BLOCK), new Principles(0, 540, 180)),
+                nether("crimson_stems", "Crimson Stems", Input.of(ItemTags.CRIMSON_STEMS), new Principles(0, 150, 0)),
+                nether("warped_stems", "Warped Stems", Input.of(ItemTags.WARPED_STEMS), new Principles(0, 150, 0)),
+                nether("blaze_rod", "Blaze Rod", Input.of(Tags.Items.RODS_BLAZE), new Principles(0, 400, 0)),
+                nether("magma_cream", "Magma Cream", Input.of(Items.MAGMA_CREAM), new Principles(0, 80, 40)),
+                nether("glowstone_dust", "Glowstone Dust", Input.of(Tags.Items.DUSTS_GLOWSTONE), new Principles(0, 30, 60)),
+                nether("nether_quartz", "Nether Quartz", Input.of(Tags.Items.GEMS_QUARTZ), new Principles(120, 0, 0)),
+                end("end_stone", "End Stone", Input.of(Tags.Items.END_STONES), new Principles(40, 0, 40)),
+                end("purpur_block", "Purpur Block", Input.of(Items.PURPUR_BLOCK), new Principles(50, 0, 20)),
+                end("chorus_fruit", "Chorus Fruit", Input.of(Items.CHORUS_FRUIT), new Principles(0, 20, 60)),
+                end("popped_chorus_fruit", "Popped Chorus Fruit", Input.of(Items.POPPED_CHORUS_FRUIT), new Principles(0, 0, 100)),
+                end("ender_pearl", "Ender Pearl", Input.of(Tags.Items.ENDER_PEARLS), new Principles(0, 0, 300)),
+                end("shulker_shell", "Shulker Shell", Input.of(Items.SHULKER_SHELL), new Principles(200, 0, 80)));
+    }
+
+    private static Calcine nether(String name, String label, Input input, Principles output) {
+        return new Calcine(name, label, input, output, CalcinationDimension.NETHER);
+    }
+
+    private static Calcine end(String name, String label, Input input, Principles output) {
+        return new Calcine(name, label, input, output, CalcinationDimension.END);
     }
 
     /** What the Purifier leaches into Salt: the Ash of the Calciner. */
