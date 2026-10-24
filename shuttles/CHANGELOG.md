@@ -4,6 +4,7 @@
 
 ### Changed
 - A data line belongs to one warehouse. A line that reaches two warehouses is in conflict and pauses: its terminals show no stock and refuse requests, and its Packing Stations send nothing. Terminals no longer add up the stock of several warehouses.
+- Packing Stations reserve whole To storage slots before items arrive and put a slot away only once it is complete, so one shuttle takes the whole stack, and the warehouse picks the station closest to the rack. A Packing Station moves 10 items per second.
 
 ## 0.4.0
 

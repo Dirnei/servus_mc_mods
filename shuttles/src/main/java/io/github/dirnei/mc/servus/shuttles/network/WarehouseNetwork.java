@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.network;
 
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
+import io.github.dirnei.mc.servus.foundation.data.packet.Grant;
 import io.github.dirnei.mc.servus.foundation.graph.NodePos;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
@@ -37,6 +38,7 @@ import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
 import io.github.dirnei.mc.servus.shuttles.order.StockRules;
 import io.github.dirnei.mc.servus.shuttles.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.packing.PackingStationBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.packing.IngressRanking;
 import io.github.dirnei.mc.servus.shuttles.packing.PackingStationChoice;
 import io.github.dirnei.mc.servus.shuttles.packing.WirelessIncoming;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
@@ -831,6 +833,65 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return new Shipping("", Optional.of(shipment), destination);
     }
 
+    /**
+     * Where items going into storage over the data line go: the Packing
+     * Station that granted room and its grant, or the refusal with the station
+     * that was asked first, none when no station was asked.
+     */
+    public record Ingress(BlockPos station, Grant grant) {
+
+        static Ingress refused(String why) {
+            return new Ingress(null, Grant.refused(why));
+        }
+
+        public boolean granted() {
+            return grant.granted();
+        }
+
+        /** Why no station took the items, a lang key suffix; empty when one did. */
+        public String refusal() {
+            return grant.refusal();
+        }
+    }
+
+    /**
+     * Offers {@code amount} items going into storage from the data member at
+     * {@code sender} to this warehouse's Packing Stations on its line, cheapest
+     * shuttle trip from the station to the rack the put-away rule picks first,
+     * and returns the first grant.
+     *
+     * @return refusal keys: {@code offline}, {@code no_storage}, {@code no_packing_station},
+     *         {@code to_storage_full} or another station refusal
+     */
+    public Ingress offerIngress(BlockPos sender, ItemKey key, int amount) {
+        if (status() != Status.ONLINE || level == null) {
+            return Ingress.refused(PackingStationBlockEntity.REFUSE_OFFLINE);
+        }
+        Optional<BlockPos> rack = putAwayTarget(key.stack(1), pos -> true);
+        if (rack.isEmpty()) {
+            return Ingress.refused(PackingStationBlockEntity.REFUSE_NO_STORAGE);
+        }
+        List<IngressRanking.Candidate<PackingStationBlockEntity>> candidates = new ArrayList<>();
+        for (BlockPos pos : packingStations()) {
+            if (loaded(pos) instanceof PackingStationBlockEntity point
+                    && DataNetworks.networkAt(level, pos).filter(network -> network.reaches(sender)).isPresent()) {
+                candidates.add(new IngressRanking.Candidate<>(point, trip(List.of(rack.get()), pos), pos.asLong()));
+            }
+        }
+        if (candidates.isEmpty()) {
+            return Ingress.refused("no_packing_station");
+        }
+        Ingress first = null;
+        for (PackingStationBlockEntity point : IngressRanking.order(candidates)) {
+            Ingress ingress = new Ingress(point.getBlockPos(), point.offer(key.stack(1), amount));
+            if (ingress.granted()) {
+                return ingress;
+            }
+            first = first == null ? ingress : first;
+        }
+        return first;
+    }
+
     /** The travel cost from the cheapest rack to the Packing Station, 0 without racks, unreachable without a way. */
     private int trip(List<BlockPos> racks, BlockPos packingStation) {
         if (racks.isEmpty()) {
@@ -1063,8 +1124,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return fleet.hasShuttles() && !destinationReachable ? "no_rail" : "needs_shuttle";
     }
 
-    /** The next job id of the world. */
-    private int nextJobId() {
+    /** The next job id of the world; also the lock id of a Packing Station's grant. */
+    public int nextJobId() {
         return CounterData.get(level.getServer(), CounterData.Kind.JOB_IDS).take();
     }
 
@@ -1574,7 +1635,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 }
             }
         }
-        for (LockKey orphan : lockSweep.sweep(locks, lock -> fleet.knows(lock.jobId()))) {
+        for (LockKey orphan : lockSweep.sweep(locks, lock -> fleet.knows(lock.jobId()) || grantLock(lock))) {
             if (loaded(orphan.pos()) instanceof LockHolder holder && orphan.inventory() < holder.lockedSlots().size()) {
                 LockedSlots slots = holder.lockedSlots().get(orphan.inventory());
                 if (slots.locksOf(orphan.slot()).stream().anyMatch(lock -> lock.jobId() == orphan.jobId())) {
@@ -1586,6 +1647,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 }
             }
         }
+    }
+
+    /** Whether the lock belongs to an open grant of a Packing Station, which its station sweeps itself. */
+    private boolean grantLock(LockKey lock) {
+        return loaded(lock.pos()) instanceof PackingStationBlockEntity station && station.holdsGrant(lock.jobId());
     }
 
     /** Stations, sources and served Field Heads, the blocks whose slots take locks. */

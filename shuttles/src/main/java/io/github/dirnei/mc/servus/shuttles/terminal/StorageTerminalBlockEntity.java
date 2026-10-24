@@ -1,8 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.terminal;
 
 import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
-import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
-import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
@@ -18,7 +16,6 @@ import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.order.ProductionLedger;
-import io.github.dirnei.mc.servus.shuttles.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.ArrayList;
@@ -115,12 +112,22 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
             setChanged();
         }
     };
-    /** Items handed in; stored into the warehouse on the next tick, leftovers retried. */
+    /**
+     * Items handed in; stored into the warehouse on the next tick, leftovers
+     * retried. A slot whose move runs takes nothing more, since its grant only
+     * covers what it offered, so a stack handed in meanwhile starts a slot of
+     * its own.
+     */
     private final ItemSlots input = new ItemSlots(TerminalLayout.Storage.ROW_SLOTS) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
             storeSoon = true;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return inputMoving(slot) ? getStackInSlot(slot).getCount() : super.getSlotLimit(slot);
         }
     };
     private final LegacyItemHandler packets = new RoutingHandler();
@@ -265,11 +272,11 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
     }
 
     /**
-     * Moves the input slots over the data line to the nearest Packing Station,
-     * which puts them away. One move per slot takes items out of the slot only
-     * as fast as the station converts them and has room in its To storage
-     * buffer, so the row shrinks over time and keeps what the station cannot
-     * take yet. A slot whose move still runs is left alone.
+     * Moves the input slots over the data line to the Packing Station the
+     * warehouse chooses, which puts them away. Each slot offers its stack and
+     * sends only what a station granted, at the station's rate, so the row
+     * shrinks over time and keeps what no station can take yet; the first
+     * refusal is the row's message. A slot whose move still runs is left alone.
      */
     public void storeInput(ServerLevel server) {
         storeSoon = false;
@@ -286,20 +293,26 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
             inputRefusal = LineWarehouse.CONFLICT_KEY;
             return;
         }
-        Optional<BlockPos> point = line.online().flatMap(this::nearestPackingStation);
-        if (point.isEmpty()) {
+        Optional<WarehouseNetwork> warehouse = line.online();
+        if (warehouse.isEmpty()) {
             inputRefusal = "input_no_packing_station";
             return;
         }
-        inputRefusal = null;
+        String refusal = null;
         for (int i = 0; i < input.getSlots(); i++) {
             ItemStack stack = input.getStackInSlot(i);
-            if (stack.isEmpty() || inputMoves[i] != null && !inputMoves[i].ended()) {
+            if (stack.isEmpty() || inputMoving(i)) {
                 continue;
             }
-            inputMoves[i] = DataPackets.move(server, worldPosition, point.get(), stack.copyWithCount(1), stack.getCount(),
-                    new ItemView(inputViews[i])).orElse(null);
+            WarehouseNetwork.Ingress ingress = warehouse.get().offerIngress(worldPosition, ItemKey.of(stack), stack.getCount());
+            if (!ingress.granted()) {
+                refusal = refusal == null ? "input_" + ingress.refusal() : refusal;
+                continue;
+            }
+            inputMoves[i] = DataPackets.move(server, worldPosition, ingress.station(), stack.copyWithCount(1), stack.getCount(),
+                    new ItemView(inputViews[i]), ingress.grant()).orElse(null);
         }
+        inputRefusal = refusal;
     }
 
     /**
@@ -355,33 +368,13 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
         return rest;
     }
 
+    private boolean inputMoving(int slot) {
+        return inputMoves[slot] != null && !inputMoves[slot].ended();
+    }
+
     /** Why the input waits, a message key without its prefix, or null. */
     public String inputRefusal() {
         return inputRefusal;
-    }
-
-    /** The Packing Station of the warehouse on this data line nearest to the terminal. */
-    private Optional<BlockPos> nearestPackingStation(WarehouseNetwork warehouse) {
-        Optional<DataNetwork> line = DataNetworks.networkAt((ServerLevel) level, worldPosition);
-        if (line.isEmpty()) {
-            return Optional.empty();
-        }
-        BlockPos best = null;
-        for (BlockPos pos : warehouse.packingStations()) {
-            if (!level.isLoaded(pos) || !line.get().reaches(pos) || !(level.getBlockEntity(pos) instanceof PackingStationBlockEntity)) {
-                continue;
-            }
-            if (best == null || closer(pos, best)) {
-                best = pos;
-            }
-        }
-        return Optional.ofNullable(best);
-    }
-
-    private boolean closer(BlockPos candidate, BlockPos best) {
-        double a = candidate.distSqr(worldPosition);
-        double b = best.distSqr(worldPosition);
-        return a < b || (a == b && candidate.asLong() < best.asLong());
     }
 
     /** Lights or darkens the lamp. */

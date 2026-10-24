@@ -21,6 +21,7 @@ public final class Delivery {
     private int delivered;
     private State state = State.RUNNING;
     private DeliveryReason reason;
+    private String refusal = "";
     private final List<Consumer<Delivery>> listeners = new ArrayList<>();
 
     public Delivery(long id, int requested) {
@@ -49,6 +50,11 @@ public final class Delivery {
         return reason;
     }
 
+    /** The endpoint's reason, a lang key suffix, when the delivery failed as refused; empty otherwise. */
+    public String refusal() {
+        return refusal;
+    }
+
     public boolean ended() {
         return state != State.RUNNING;
     }
@@ -63,6 +69,14 @@ public final class Delivery {
 
     public void fail(DeliveryReason why) {
         end(State.FAILED, why);
+    }
+
+    /** Fails as refused by the target's endpoint with its reason. */
+    public void refuse(String why) {
+        if (!ended()) {
+            refusal = why == null ? "" : why;
+        }
+        end(State.FAILED, DeliveryReason.REFUSED);
     }
 
     /** Runs the listener when the delivery ends, or right away when it already has. */

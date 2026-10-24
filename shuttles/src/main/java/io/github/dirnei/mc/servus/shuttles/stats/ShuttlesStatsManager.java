@@ -57,7 +57,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final int DEFAULT_CPU_MAX_BLOCKS = 512;
     public static final int DEFAULT_HANDOFF_WAIT_TICKS = 100;
     public static final int DEFAULT_PATTERNS_PER_BLOCK = 9;
-    public static final double DEFAULT_PACKING_ITEMS_PER_SECOND = 8.0;
+    public static final double DEFAULT_PACKING_ITEMS_PER_SECOND = 10.0;
     public static final int DEFAULT_PACKING_UPGRADE_SLOTS = 2;
     public static final int DEFAULT_FIELD_CAPACITY = 8000;
     public static final int DEFAULT_FIELD_WATER_PER_RAIL = 1;

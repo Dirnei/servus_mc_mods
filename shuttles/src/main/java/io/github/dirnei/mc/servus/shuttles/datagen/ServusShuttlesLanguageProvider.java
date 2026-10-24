@@ -450,6 +450,9 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.terminal.message.no_rail", "The Packing Station has no rail for shuttle deliveries");
         add("gui.servus_shuttles.terminal.message.no_packing_station", "No Packing Station of the warehouse on this data line");
         add("gui.servus_shuttles.terminal.message.input_no_packing_station", "No Packing Station on this data line");
+        add("gui.servus_shuttles.terminal.message.input_offline", "The warehouse is offline, the Input row waits");
+        add("gui.servus_shuttles.terminal.message.input_no_storage", "No storage of the warehouse takes these items");
+        add("gui.servus_shuttles.terminal.message.input_to_storage_full", "The Packing Station's To storage is full, the Input row waits");
         add("gui.servus_shuttles.terminal.message.out_of_stock", "Nothing of that in stock");
         add("gui.servus_shuttles.terminal.message.output_full", "Output row full, take your items");
         add("gui.servus_shuttles.terminal.message.missing", "Raw materials are missing");

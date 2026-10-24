@@ -408,6 +408,25 @@ public class LockedSlots extends ItemSlots {
         return left;
     }
 
+    /**
+     * Puts the stack into the job's IN locked slots and keeps the locks, for a
+     * job that fills its slots in several parts; returns what did not fit.
+     */
+    public ItemStack fillAs(int jobId, ItemStack stack) {
+        return asJob(jobId, () -> {
+            ItemStack rest = stack;
+            for (Locked entry : locked()) {
+                if (rest.isEmpty()) {
+                    break;
+                }
+                if (entry.lock().jobId() == jobId && entry.lock().kind() == SlotLock.Kind.IN) {
+                    rest = insertItem(entry.slot(), rest, false);
+                }
+            }
+            return rest;
+        });
+    }
+
     @Override
     public int insert(int index, ItemResource resource, int amount, TransactionContext transaction) {
         if (counted) {

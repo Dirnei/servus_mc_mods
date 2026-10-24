@@ -7,5 +7,7 @@ public enum DeliveryReason {
     /** A packet's route broke and no other route was left. */
     ROUTE_BROKEN,
     /** The target is gone or takes nothing. */
-    NO_TARGET
+    NO_TARGET,
+    /** The target's endpoint refused the offer; {@link Delivery#refusal()} says why. */
+    REFUSED
 }

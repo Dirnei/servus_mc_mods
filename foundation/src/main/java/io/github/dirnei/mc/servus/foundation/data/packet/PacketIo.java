@@ -51,6 +51,11 @@ final class PacketIo {
         return level.isLoaded(member) ? level.getCapability(ServusFoundationCapabilities.TRANSFER_GATE, member, face) : null;
     }
 
+    /** The target's packet endpoint on that face, or null when it takes packets without an offer. */
+    static PacketEndpoint endpoint(ServerLevel level, BlockPos target, Direction face) {
+        return level.isLoaded(target) ? level.getCapability(ServusFoundationCapabilities.PACKET_ENDPOINT, target, face) : null;
+    }
+
     /** How many of {@code stack} the target would take right now; a stock sink is trusted to take all. */
     static int acceptable(ServerLevel level, BlockPos target, Direction face, ItemStack stack) {
         if (stack.isEmpty() || !level.isLoaded(target)) {

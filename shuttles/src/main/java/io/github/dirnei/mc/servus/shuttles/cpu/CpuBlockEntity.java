@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
+import io.github.dirnei.mc.servus.foundation.data.packet.Grant;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
@@ -24,7 +25,6 @@ import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.terminal.LineWarehouse;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalWarehouses;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -203,23 +203,24 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
     }
 
     /**
-     * Sends every buffered stack as packets to the Packing Station that takes
-     * collected outputs; without one, or when a send fails at once, the stack
-     * drops at the removed block.
+     * Sends every buffered stack as packets into storage, to the Packing
+     * Station the warehouse chooses. What no station grants drops beside the
+     * station that was asked first; without one, or when a send fails at once,
+     * at the removed block.
      */
     private void emptyBuffer(ServerLevel server, BlockPos removed) {
         List<ItemStack> stacks = CpuBufferNbt.stacks(buffer.clear());
         leaving.clear();
         Optional<BlockPos> from = memberPos(removed);
-        Optional<BlockPos> point = from.flatMap(member -> collectionPoint(server, member));
         for (ItemStack stack : stacks) {
-            if (from.isPresent() && point.isPresent()) {
-                Optional<Delivery> sent = DataPackets.send(server, from.get(), point.get(), stack);
-                if (sent.isPresent() && sent.get().state() != Delivery.State.FAILED) {
-                    continue;
-                }
+            Optional<WarehouseNetwork.Ingress> ingress = from.flatMap(member -> ingress(member, ItemKey.of(stack), stack.getCount()));
+            ItemStack rest = ingress.filter(WarehouseNetwork.Ingress::granted)
+                    .map(granted -> sendToStorage(server, from.get(), granted, stack)).orElse(stack);
+            BlockPos at = ingress.filter(refused -> !refused.granted() && refused.station() != null)
+                    .map(WarehouseNetwork.Ingress::station).orElse(removed);
+            if (!rest.isEmpty()) {
+                Containers.dropItemStack(server, at.getX() + 0.5, at.getY() + 0.5, at.getZ() + 0.5, rest);
             }
-            Containers.dropItemStack(server, removed.getX() + 0.5, removed.getY() + 0.5, removed.getZ() + 0.5, stack);
         }
         setChanged();
     }
@@ -257,8 +258,8 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
         if (leftovers.isEmpty()) {
             return;
         }
-        Optional<BlockPos> point = memberPos().flatMap(member -> collectionPoint(server, member));
-        if (point.isEmpty()) {
+        Optional<BlockPos> member = memberPos();
+        if (member.isEmpty()) {
             return;
         }
         for (CpuBuffer.Entry<ItemKey> entry : leftovers) {
@@ -266,9 +267,24 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
             if (leaving.containsKey(slot)) {
                 continue;
             }
-            fromBuffer((int) entry.order(), entry.key(), point.get(), entry.count(), true)
+            Optional<WarehouseNetwork.Ingress> ingress = ingress(member.get(), entry.key(), entry.count());
+            if (ingress.isEmpty() || !ingress.get().granted()) {
+                continue;
+            }
+            fromBuffer((int) entry.order(), entry.key(), ingress.get().station(), entry.count(), true, ingress.get().grant())
                     .ifPresent(transfer -> leaving.put(slot, transfer));
         }
+    }
+
+    /** Sends what the grant takes of the stack from the member at {@code from}; returns the rest. */
+    private static ItemStack sendToStorage(ServerLevel server, BlockPos from, WarehouseNetwork.Ingress ingress, ItemStack stack) {
+        ItemStack rest = stack.copy();
+        ItemStack part = rest.split(ingress.grant().amount());
+        Optional<Delivery> sent = DataPackets.send(server, from, ingress.station(), part, ingress.grant());
+        if (sent.isEmpty() || sent.get().state() == Delivery.State.FAILED) {
+            rest.grow(part.getCount());
+        }
+        return rest;
     }
 
     /** Positions of the box, on the master only. */
@@ -605,17 +621,25 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
      * @return the ledger id, empty when the move could not start
      */
     private Optional<Long> fromBuffer(int orderId, ItemKey key, BlockPos target, int count, boolean leaving) {
+        return fromBuffer(orderId, key, target, count, leaving, null);
+    }
+
+    /** Like {@link #fromBuffer(int, ItemKey, BlockPos, int, boolean)} into a grant the target already gave. */
+    private Optional<Long> fromBuffer(int orderId, ItemKey key, BlockPos target, int count, boolean leaving, Grant grant) {
         Optional<BlockPos> member = memberPos();
         if (member.isEmpty() || !(level instanceof ServerLevel server)) {
+            if (grant != null) {
+                grant.close();
+            }
             return Optional.empty();
         }
         ItemView source = new ItemView(new BufferSource(this, orderId, key, leaving));
-        Optional<Delivery> delivery = DataPackets.move(server, member.get(), target, key.stack(1), count, source);
+        Optional<Delivery> delivery = DataPackets.move(server, member.get(), target, key.stack(1), count, source, grant);
         if (delivery.isEmpty() || delivery.get().state() == Delivery.State.FAILED) {
             return Optional.empty();
         }
         ProductionLedger ledger = ProductionLedger.get(server);
-        ProductionLedger.Transfer transfer = ledger.open(count);
+        ProductionLedger.Transfer transfer = ledger.open(delivery.get().requested());
         ledger.track(transfer, delivery.get());
         setChanged();
         return Optional.of(transfer.id());
@@ -682,20 +706,9 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
         return pattern.recipe().equals(step.recipe().id()) && pattern.required().equals(step.inputs());
     }
 
-    /** The Packing Station of the line that takes collected outputs: the lowest position whose line reaches the producer. */
-    Optional<BlockPos> collectionPoint(ServerLevel level, BlockPos producer) {
-        Optional<WarehouseNetwork> warehouse = warehouse();
-        if (warehouse.isEmpty()) {
-            return Optional.empty();
-        }
-        List<BlockPos> points = new ArrayList<>();
-        for (BlockPos point : warehouse.get().packingStations()) {
-            if (level.getBlockEntity(point) instanceof PackingStationBlockEntity
-                    && DataNetworks.networkAt(level, point).filter(network -> network.reaches(producer)).isPresent()) {
-                points.add(point);
-            }
-        }
-        return points.stream().min(Comparator.comparingLong(BlockPos::asLong));
+    /** Offers items going into storage from the data member at {@code sender} to the line's warehouse; empty without one. */
+    Optional<WarehouseNetwork.Ingress> ingress(BlockPos sender, ItemKey key, int amount) {
+        return warehouse().map(warehouse -> warehouse.offerIngress(sender, key, amount));
     }
 
     @Override

@@ -37,6 +37,7 @@ public final class ShuttlesGameTests {
             PotatoStorageGameTests.class,
             PacketInletGameTests.class,
             PackingStationGameTests.class,
+            PacketEndpointGameTests.class,
             PutAwayRankGameTests.class,
             PatternGameTests.class,
             PatternResultGameTests.class,

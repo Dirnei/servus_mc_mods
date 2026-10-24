@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.production;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.data.packet.PacketEndpoint;
 import io.github.dirnei.mc.servus.foundation.drive.Drivable;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
@@ -28,6 +29,9 @@ public final class ServusFoundationCapabilities {
     public static final BlockCapability<UpkeepHolder, Direction> UPKEEP = sided("upkeep", UpkeepHolder.class);
 
     public static final BlockCapability<TransferGate, Direction> TRANSFER_GATE = sided("transfer_gate", TransferGate.class);
+
+    /** Where a target answers offers before a delivery to it starts (see {@code PacketEndpoint}). */
+    public static final BlockCapability<PacketEndpoint, Direction> PACKET_ENDPOINT = sided("packet_endpoint", PacketEndpoint.class);
 
     /** Where a crank or motor hands work to the block it touches; the context is the side it touches. */
     public static final BlockCapability<Drivable, Direction> DRIVE = sided("drive", Drivable.class);

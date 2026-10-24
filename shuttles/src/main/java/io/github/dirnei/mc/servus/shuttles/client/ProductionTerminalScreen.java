@@ -390,6 +390,11 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             Component verb = I18n.exists(verbKey) ? Component.translatable(verbKey) : Component.literal(args.get(1));
             return Component.translatable("gui.servus_shuttles.production.job.working", args.get(0), verb, args.get(2), args.get(3));
         }
+        if (job.status().equals("blocked") && args.size() == 1) {
+            String reasonKey = "gui.servus_shuttles.terminal.message." + args.get(0);
+            Component reason = I18n.exists(reasonKey) ? Component.translatable(reasonKey) : Component.literal(args.get(0));
+            return Component.translatable("gui.servus_shuttles.production.job.blocked", reason);
+        }
         return Component.translatable("gui.servus_shuttles.production.job." + job.status(), args.toArray());
     }
 

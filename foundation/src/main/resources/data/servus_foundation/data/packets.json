@@ -1,3 +1,4 @@
 {
-  "retry_interval": 20
+  "retry_interval": 20,
+  "grant_hold_ticks": 1200
 }

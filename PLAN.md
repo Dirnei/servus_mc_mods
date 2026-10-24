@@ -139,7 +139,7 @@ The base mod every Servus mod builds on: the shared API, the Configuration Carro
 7. **Pure logic separated from Minecraft.** Graph algorithms, BOM planning, ratio math, order scheduling live in plain Java classes with no Minecraft types, unit tested with JUnit.
 8. **Persistence:** network and journal progress in `SavedData`, block state in block entities using data components and codecs.
 
-The bridge between the mods lives in Servus: Foundation as a small API (production and stock capabilities, packet inlet, data line, upgrades, upkeep, Machine Adapter, item supplier). Keep it small and grow it only when a second mod actually needs something.
+The bridge between the mods lives in Servus: Foundation as a small API (production and stock capabilities, packet inlet and packet endpoint, data line, upgrades, upkeep, Machine Adapter, item supplier). Keep it small and grow it only when a second mod actually needs something.
 
 ---
 

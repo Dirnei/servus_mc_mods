@@ -1,5 +1,10 @@
 # Servus: Foundation changelog
 
+## Unreleased
+
+### Added
+- A delivery handshake on the data line: before items move, the sender offers them and the receiving block grants room or says why not.
+
 ## 0.4.0
 
 ### Added

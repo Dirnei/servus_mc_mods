@@ -12,7 +12,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 
-/** Loads the data line limits (the retry interval) from {@code data/<ns>/data/packets.json}. */
+/** Loads the data line limits (retry interval, grant hold time) from {@code data/<ns>/data/packets.json}. */
 public final class PacketLimitsManager extends SimpleJsonResourceReloadListener<JsonElement> {
 
     /** Key of this listener in the reload event. */
@@ -34,10 +34,11 @@ public final class PacketLimitsManager extends SimpleJsonResourceReloadListener<
     protected void apply(Map<Identifier, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
         PacketLimits read = PacketLimits.DEFAULTS;
         if (files.get(PACKETS) instanceof JsonObject json) {
-            read = new PacketLimits(json.has("retry_interval") ? json.get("retry_interval").getAsInt() : read.retryTicks());
+            read = new PacketLimits(json.has("retry_interval") ? json.get("retry_interval").getAsInt() : read.retryTicks(),
+                    json.has("grant_hold_ticks") ? json.get("grant_hold_ticks").getAsInt() : read.grantHoldTicks());
         }
         limits = read;
-        ServusFoundation.LOGGER.info("Data packets: retry every {} ticks", read.retryTicks());
+        ServusFoundation.LOGGER.info("Data packets: retry every {} ticks, grants held {} ticks", read.retryTicks(), read.grantHoldTicks());
     }
 
     /** The limits of the loaded datapacks, the defaults before any is loaded. */

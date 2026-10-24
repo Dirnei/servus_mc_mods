@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEn
 import io.github.dirnei.mc.servus.shuttles.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.shuttles.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
 import io.github.dirnei.mc.servus.shuttles.menu.PackingStationMenu;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
@@ -23,9 +24,12 @@ import io.github.dirnei.mc.servus.shuttles.production.ProductionView;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleView;
+import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlock;
 import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlockEntity;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -239,12 +243,17 @@ public final class PackingStationGameTests {
 
     /** Most items a station at 8 per second can convert in {@code ticks}: one second of saved up budget plus the rate. */
     private static int atMost(int ticks) {
-        return 8 + ticks * 8 / 20 + 1;
+        return rate() + ticks * rate() / 20 + 1;
+    }
+
+    /** The base rate from data, in items per second. */
+    private static int rate() {
+        return (int) ShuttlesStatsManager.INSTANCE.packingItemsPerSecond();
     }
 
     /** Fewest items expected in {@code ticks}: the rate minus one push interval of start up. */
     private static int atLeast(int ticks) {
-        return (ticks - 10) * 8 / 20;
+        return (ticks - 10) * rate() / 20;
     }
 
     /** Loads a station's To network buffer with planks and opens a shipment of them to the Crafting Station. */
@@ -261,9 +270,9 @@ public final class PackingStationGameTests {
         return preloaded - WarehouseFixtures.count(point.outgoing(), Items.OAK_PLANKS);
     }
 
-    /** A shipment of 64 planks leaves the Packing Station at about 8 per second. */
+    /** A shipment of 64 planks leaves the Packing Station at about its rate from data. */
     @ServusGameTest(timeoutTicks = 400)
-    public static void drainsAtEightPerSecond(GameTestHelper helper) {
+    public static void drainsAtTheRate(GameTestHelper helper) {
         Setup setup = setup(helper, 0, true, false);
         helper.runAfterDelay(10, () -> {
             long start = helper.getTick();
@@ -273,13 +282,14 @@ public final class PackingStationGameTests {
             helper.runAfterDelay(80, () -> {
                 int arrived = WarehouseFixtures.count(setup.station().inputs(), Items.OAK_PLANKS);
                 helper.assertTrue(arrived >= atLeast(80) && arrived <= atMost(80),
-                        "about 32 planks should have left after 4 seconds, got " + arrived);
+                        "about " + 4 * rate() + " planks should have left after 4 seconds, got " + arrived);
                 helper.assertTrue(WarehouseFixtures.count(point.outgoing(), Items.OAK_PLANKS) == 64 - arrived, "the rest waits in the To network buffer");
             });
             helper.succeedWhen(() -> {
                 helper.assertTrue(WarehouseFixtures.count(setup.station().inputs(), Items.OAK_PLANKS) == 64, "all 64 planks should arrive");
                 long took = helper.getTick() - start;
-                helper.assertTrue(took >= 130, "64 planks at 8 per second take about 8 seconds, took " + took + " ticks");
+                int expected = (64 - rate()) * 20 / rate();
+                helper.assertTrue(took >= expected, "64 planks at " + rate() + " per second take at least " + expected + " ticks, took " + took);
             });
         });
     }
@@ -295,7 +305,7 @@ public final class PackingStationGameTests {
                 int fromFar = sent(helper, FAR, 64);
                 int fromNear = sent(helper, NEAR, 64);
                 helper.assertTrue(fromFar >= atLeast(80) && fromNear >= atLeast(80),
-                        "both stations should send about 32 planks in 4 seconds, got " + fromFar + " and " + fromNear);
+                        "both stations should send about " + 4 * rate() + " planks in 4 seconds, got " + fromFar + " and " + fromNear);
                 helper.assertTrue(fromFar + fromNear > atMost(80),
                         "together they should send more than one station can, got " + (fromFar + fromNear));
                 helper.succeed();
@@ -322,9 +332,9 @@ public final class PackingStationGameTests {
             helper.runAfterDelay(80, () -> {
                 int sent = sent(helper, FAR, 64);
                 helper.assertTrue(sent >= atLeast(80) && sent <= atMost(80),
-                        "about 32 planks should go out in 4 seconds, got " + sent);
+                        "about " + 4 * rate() + " planks should go out in 4 seconds, got " + sent);
                 helper.assertTrue(in.delivered() >= atLeast(80) && in.delivered() <= atMost(80),
-                        "about 32 cobblestone should come in in 4 seconds, got " + in.delivered());
+                        "about " + 4 * rate() + " cobblestone should come in in 4 seconds, got " + in.delivered());
                 helper.succeed();
             });
         });
@@ -374,7 +384,7 @@ public final class PackingStationGameTests {
         helper.succeed();
     }
 
-    /** One Speed Upgrade doubles the station's rate: about 16 planks per second leave, and the GUI shows 16/s. */
+    /** One Speed Upgrade doubles the station's rate: twice the base rate leaves each second, and the GUI shows it. */
     @ServusGameTest(timeoutTicks = 200)
     public static void speedUpgradeDoubles(GameTestHelper helper) {
         setup(helper, 0, true, false);
@@ -390,13 +400,15 @@ public final class PackingStationGameTests {
         helper.assertTrue(point.upgrades().getStackInSlot(0).is(ServusFoundationItems.SPEED_UPGRADE.get()),
                 "shift click puts the Speed Upgrade into the upgrade row");
         helper.assertTrue(player.getInventory().getItem(0).getCount() == 4, "cobblestone stays in the inventory");
-        helper.assertTrue(point.rate() == 16, "the rate is 16 per second, got " + point.rate());
-        helper.assertTrue(point.status().rate() == 16, "the GUI is told 16/s, got " + point.status().rate());
+        int doubled = 2 * rate();
+        helper.assertTrue(point.rate() == doubled, "the rate is " + doubled + " per second, got " + point.rate());
+        helper.assertTrue(point.status().rate() == doubled, "the GUI is told " + doubled + "/s, got " + point.status().rate());
         helper.runAfterDelay(10, () -> {
             preload(helper, FAR, 128);
             helper.runAfterDelay(80, () -> {
                 int sent = sent(helper, FAR, 128);
-                helper.assertTrue(sent >= 56 && sent <= 16 + 64 + 1, "about 64 planks should go out in 4 seconds, got " + sent);
+                helper.assertTrue(sent >= 70 * doubled / 20 && sent <= doubled + 4 * doubled + 1,
+                        "about " + 4 * doubled + " planks should go out in 4 seconds, got " + sent);
                 helper.succeed();
             });
         });
@@ -419,7 +431,7 @@ public final class PackingStationGameTests {
         });
     }
 
-    /** A station sending at its full rate shows 8 of 8 to network marked busy and 0 of 8 to storage. */
+    /** A station sending at its full rate shows its rate to network marked busy and nothing to storage. */
     @ServusGameTest(timeoutTicks = 200)
     public static void stationRowShowsUse(GameTestHelper helper) {
         setup(helper, 0, true, false);
@@ -432,11 +444,70 @@ public final class PackingStationGameTests {
                         ProductionView.packing(helper.getLevel(), line);
                 helper.assertTrue(rows.size() == 1 && rows.get(0).pos().equals(helper.absolutePos(FAR)), "one Packing Station row, got " + rows);
                 var row = rows.get(0);
-                helper.assertTrue(row.rate() == 8, "rate 8, got " + row.rate());
-                helper.assertTrue(row.toNetwork() >= 7 && row.toNetwork() <= 9 && row.busyToNetwork(),
-                        "about 8 of 8 to network and busy, got " + row);
-                helper.assertTrue(row.toStorage() == 0 && !row.busyToStorage(), "0 of 8 to storage, got " + row);
+                helper.assertTrue(row.rate() == rate(), "rate " + rate() + ", got " + row.rate());
+                helper.assertTrue(row.toNetwork() >= rate() - 1 && row.toNetwork() <= rate() + 1 && row.busyToNetwork(),
+                        "about the full rate to network and busy, got " + row);
+                helper.assertTrue(row.toStorage() == 0 && !row.busyToStorage(), "nothing to storage, got " + row);
                 helper.succeed();
+            });
+        });
+    }
+
+    /** Places a Storage Terminal on the data line at x 4 and hands in a stack once it joined. */
+    private static StorageTerminalBlockEntity handInTerminal(GameTestHelper helper) {
+        BlockPos terminalPos = new BlockPos(4, 1, 9);
+        helper.setBlock(terminalPos, ServusShuttlesBlocks.STORAGE_TERMINAL.get().defaultBlockState()
+                .setValue(StorageTerminalBlock.FACING, Direction.NORTH));
+        return helper.getBlockEntity(terminalPos, StorageTerminalBlockEntity.class);
+    }
+
+    /** While a handed in stack arrives nothing is put away; once the slot is full one shuttle job takes all 64. */
+    @ServusGameTest(timeoutTicks = 1200)
+    public static void inputStackIsOneTrip(GameTestHelper helper) {
+        Setup setup = setup(helper, 0, false, true);
+        StorageTerminalBlockEntity terminal = handInTerminal(helper);
+        PackingStationBlockEntity point = helper.getBlockEntity(NEAR, PackingStationBlockEntity.class);
+        Set<Integer> jobs = new HashSet<>();
+        boolean[] earlyJob = {false};
+        helper.onEachTick(() -> {
+            for (var locked : point.buffer().locked()) {
+                if (locked.lock().kind() == SlotLock.Kind.OUT) {
+                    jobs.add(locked.lock().jobId());
+                    earlyJob[0] |= WarehouseFixtures.count(point.buffer(), Items.OAK_LOG) < 64
+                            && WarehouseFixtures.count(setup.rack().items(), Items.OAK_LOG) == 0;
+                }
+            }
+        });
+        helper.runAfterDelay(10, () -> {
+            terminal.input().setStackInSlot(0, new ItemStack(Items.OAK_LOG, 64));
+            helper.succeedWhen(() -> {
+                helper.assertTrue(WarehouseFixtures.count(setup.rack().items(), Items.OAK_LOG) == 64, "the rack should hold 64 logs, got "
+                        + WarehouseFixtures.count(setup.rack().items(), Items.OAK_LOG));
+                helper.assertTrue(!earlyJob[0], "no put-away should be planned before the slot is full");
+                helper.assertTrue(jobs.size() == 1, "one put-away job should take the stack, got " + jobs.size());
+            });
+        });
+    }
+
+    /** The Input row goes to the Packing Station with the cheaper trip to the rack, and to the other one when that one is full. */
+    @ServusGameTest(timeoutTicks = 400)
+    public static void inputGoesToCheaperStation(GameTestHelper helper) {
+        setup(helper, 0, true, true);
+        StorageTerminalBlockEntity terminal = handInTerminal(helper);
+        PackingStationBlockEntity far = helper.getBlockEntity(FAR, PackingStationBlockEntity.class);
+        PackingStationBlockEntity near = helper.getBlockEntity(NEAR, PackingStationBlockEntity.class);
+        boolean[] farGotLogs = {false};
+        helper.onEachTick(() -> farGotLogs[0] |= WarehouseFixtures.count(far.buffer(), Items.OAK_LOG) > 0);
+        helper.runAfterDelay(10, () -> {
+            terminal.input().setStackInSlot(0, new ItemStack(Items.OAK_LOG, 16));
+            Waits.when(helper, () -> terminal.input().getStackInSlot(0).isEmpty(), 200, () -> "the logs should leave the Input row", () -> {
+                helper.assertTrue(!farGotLogs[0], "the logs should go to the station near the rack, not the far one");
+                for (int slot = 0; slot < near.buffer().getSlots(); slot++) {
+                    near.buffer().setStackInSlot(slot, new ItemStack(Items.DIAMOND, 64));
+                }
+                terminal.input().setStackInSlot(0, new ItemStack(Items.OAK_LOG, 16));
+                Waits.when(helper, () -> farGotLogs[0], 100, () -> "with the near station full the logs should go to the far one",
+                        helper::succeed);
             });
         });
     }

@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
+import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
+import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
+import java.util.HashSet;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
@@ -273,6 +276,31 @@ public final class ControllerWirelessGameTests {
                 helper.assertTrue(sites.b().energyStored() == SENDER_CHARGE, "the outpost paid nothing, has " + sites.b().energyStored());
                 ProductionLedger.Transfer transfer = ProductionLedger.get(helper.getLevel()).transfer(id);
                 helper.assertTrue(transfer != null && transfer.ended() && transfer.delivered() == 10, "the transfer ended with 10 delivered");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** An operator transfer into the base's storage reserves a To storage slot there and is put away in one shuttle job. */
+    @ServusGameTest(timeoutTicks = 700)
+    public static void transferIntoStorageReservesSlot(GameTestHelper helper) {
+        Sites sites = sites(helper);
+        PackingStationBlockEntity receiver = helper.getBlockEntity(A_PACKING, PackingStationBlockEntity.class);
+        Set<Integer> reserved = new HashSet<>();
+        Set<Integer> jobs = new HashSet<>();
+        helper.onEachTick(() -> {
+            for (LockedSlots.Locked locked : receiver.buffer().locked()) {
+                (locked.lock().kind() == SlotLock.Kind.IN ? reserved : jobs).add(locked.lock().jobId());
+            }
+        });
+        Waits.when(helper, () -> indexed(sites), 40, () -> "the outpost indexes its rack", () -> {
+            WarehouseNetwork outpost = sites.b().network().orElseThrow();
+            WarehouseNetwork.Shipping shipping = outpost.shipWireless(helper.absolutePos(A_PACKING), key(helper, A_CONTROLLER), iron(), 30, 0);
+            helper.assertTrue(shipping.shipped(), "the outpost ships, refusal " + shipping.refusal());
+            Waits.when(helper, () -> WarehouseFixtures.count(sites.rackA(), Items.IRON_INGOT) == 30, 520,
+                    () -> "30 iron arrive in the base rack, had " + WarehouseFixtures.count(sites.rackA(), Items.IRON_INGOT), () -> {
+                helper.assertTrue(reserved.size() == 1, "one grant reserved the slot, got " + reserved.size());
+                helper.assertTrue(jobs.size() == 1, "one put-away job took the iron, got " + jobs.size());
                 helper.succeed();
             });
         });

@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
+import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.order.Handoff;
 import io.github.dirnei.mc.servus.shuttles.order.OrderStep;
 import io.github.dirnei.mc.servus.shuttles.order.ProductionLedger;
@@ -39,7 +40,6 @@ final class CpuCollector {
         if (!server.isLoaded(producer)) {
             return;
         }
-        Optional<BlockPos> target = Optional.empty();
         WorkOrder order = step.ref() == null ? null : cpu.book().order(step.ref().order());
         for (ItemKey key : outputs(step)) {
             int toMove = extractable(server, producer, key) - step.inFlight(key);
@@ -55,20 +55,23 @@ final class CpuCollector {
             if (toMove <= 0) {
                 continue;
             }
-            if (target.isEmpty()) {
-                target = cpu.collectionPoint(server, producer);
-                if (target.isEmpty()) {
-                    return;
-                }
+            Optional<WarehouseNetwork.Ingress> ingress = cpu.ingress(producer, key, toMove);
+            if (ingress.isEmpty()) {
+                return;
             }
-            Optional<Delivery> delivery = DataPackets.move(server, producer, target.get(), key.stack(1), toMove);
-            if (delivery.isPresent()) {
+            if (!ingress.get().granted()) {
+                continue;
+            }
+            Optional<Delivery> delivery = DataPackets.move(server, producer, ingress.get().station(), key.stack(1), toMove, null,
+                    ingress.get().grant());
+            if (delivery.isPresent() && delivery.get().state() != Delivery.State.FAILED) {
+                int sent = delivery.get().requested();
                 if (order != null) {
-                    order.overflowed(key, Math.min(toMove, handed.overflow()));
+                    order.overflowed(key, Math.min(sent, handed.overflow()));
                 }
                 ProductionLedger ledger = ProductionLedger.get(server);
-                ProductionLedger.Transfer transfer = ledger.open(toMove);
-                step.collecting(key, transfer.id(), toMove);
+                ProductionLedger.Transfer transfer = ledger.open(sent);
+                step.collecting(key, transfer.id(), sent);
                 ledger.track(transfer, delivery.get());
                 cpu.setChanged();
             }

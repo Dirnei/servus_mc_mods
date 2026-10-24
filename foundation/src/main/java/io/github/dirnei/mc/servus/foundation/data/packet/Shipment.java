@@ -31,6 +31,8 @@ public final class Shipment {
     private final ItemStack like;
     private int toTake;
     private final ItemView sourceView;
+    /** The room the target's endpoint reserved for this shipment, null for a target without endpoint. */
+    private final Grant grant;
 
     private Direction targetFace = Direction.UP;
     private Direction sourceFace = Direction.UP;
@@ -39,7 +41,7 @@ public final class Shipment {
     private int retry;
 
     private Shipment(Delivery delivery, BlockPos from, BlockPos to, ItemStack pending, ItemStack like, int toTake,
-                     ItemView sourceView) {
+                     ItemView sourceView, Grant grant) {
         this.delivery = delivery;
         this.from = from.immutable();
         this.to = to.immutable();
@@ -47,14 +49,15 @@ public final class Shipment {
         this.like = like;
         this.toTake = toTake;
         this.sourceView = sourceView;
+        this.grant = grant;
     }
 
-    static Shipment send(Delivery delivery, BlockPos from, BlockPos to, ItemStack stack) {
-        return new Shipment(delivery, from, to, stack.copy(), ItemStack.EMPTY, 0, null);
+    static Shipment send(Delivery delivery, BlockPos from, BlockPos to, ItemStack stack, Grant grant) {
+        return new Shipment(delivery, from, to, stack.copy(), ItemStack.EMPTY, 0, null, grant);
     }
 
-    static Shipment move(Delivery delivery, BlockPos from, BlockPos to, ItemStack like, int amount, ItemView sourceView) {
-        return new Shipment(delivery, from, to, ItemStack.EMPTY, like.copyWithCount(1), amount, sourceView);
+    static Shipment move(Delivery delivery, BlockPos from, BlockPos to, ItemStack like, int amount, ItemView sourceView, Grant grant) {
+        return new Shipment(delivery, from, to, ItemStack.EMPTY, like.copyWithCount(1), amount, sourceView, grant);
     }
 
     public Delivery delivery() {
@@ -122,9 +125,13 @@ public final class Shipment {
 
     /** Offers part of the held stack to the target; what does not fit is offered again after the retry interval. */
     private int offer(ServerLevel level, int allowed, PacketLimits limits) {
+        if (grantUsedUp()) {
+            settle(level, DeliveryReason.NO_TARGET);
+            return 0;
+        }
         int count = Math.min(allowed, pending.getCount());
         ItemStack part = pending.split(count);
-        ItemStack rest = PacketIo.insert(level, to, targetFace, part);
+        ItemStack rest = insert(level, part);
         if (!rest.isEmpty()) {
             if (pending.isEmpty()) {
                 pending = rest;
@@ -136,15 +143,29 @@ public final class Shipment {
         return count - rest.getCount();
     }
 
+    /** Whether the grant takes nothing more, because it is full or its endpoint closed it. */
+    private boolean grantUsedUp() {
+        return grant != null && grant.left() <= 0;
+    }
+
+    /** Puts items into the target: into the grant's room when there is one, else through its inlet or sink. */
+    private ItemStack insert(ServerLevel level, ItemStack stack) {
+        return grant != null ? grant.deliver(stack, level.getGameTime()) : PacketIo.insert(level, to, targetFace, stack);
+    }
+
     /** Takes only what the target accepts from the source and inserts it; a full target is asked again later. */
     private int take(ServerLevel level, int allowed, PacketLimits limits) {
+        if (grantUsedUp()) {
+            toTake = 0;
+            return 0;
+        }
         int max = Math.min(allowed, toTake);
         int has = PacketIo.available(level, from, sourceFace, sourceView, like, max);
         if (has <= 0) {
             toTake = 0;
             return 0;
         }
-        int takes = PacketIo.acceptable(level, to, targetFace, like.copyWithCount(has));
+        int takes = grant != null ? Math.min(has, grant.left()) : PacketIo.acceptable(level, to, targetFace, like.copyWithCount(has));
         if (takes <= 0) {
             retry = limits.retryTicks();
             return 0;
@@ -155,7 +176,7 @@ public final class Shipment {
             return 0;
         }
         toTake -= got.getCount();
-        ItemStack rest = PacketIo.insert(level, to, targetFace, got);
+        ItemStack rest = insert(level, got);
         int moved = got.getCount() - rest.getCount();
         if (!rest.isEmpty()) {
             toTake += rest.getCount();

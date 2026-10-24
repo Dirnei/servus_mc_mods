@@ -74,6 +74,8 @@ public final class ServusShuttlesEvents {
                     (point, side) -> point);
             event.registerBlockEntity(ServusFoundationCapabilities.TRANSFER_GATE, ServusShuttlesBlockEntities.PACKING_STATION.get(),
                     (point, side) -> point);
+            event.registerBlockEntity(ServusFoundationCapabilities.PACKET_ENDPOINT, ServusShuttlesBlockEntities.PACKING_STATION.get(),
+                    (point, side) -> point);
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusShuttlesBlockEntities.CRAFTING_CPU.get(),
                     (cpu, side) -> cpu.dataLink());
             // Packets enter the CPU's buffer through its inlet; pipes and hoppers see no item capability.
