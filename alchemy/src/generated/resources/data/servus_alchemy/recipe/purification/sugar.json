@@ -1,0 +1,13 @@
+{
+  "type": "servus_alchemy:purification",
+  "input": {
+    "count": 8,
+    "ingredient": "minecraft:sugar"
+  },
+  "residue": {
+    "id": "servus_alchemy:kandis"
+  },
+  "salt": 100,
+  "time": 160,
+  "water": 500
+}

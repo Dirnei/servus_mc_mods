@@ -4,6 +4,7 @@
 
 ### Added
 - Nether and End matter burns in the Calciner: Netherrack, Soul Sand, Nether Wart and its block, Crimson and Warped Stems, Blaze Rods, Magma Cream, Glowstone Dust, Nether Quartz, End Stone, Purpur, Chorus Fruit, Ender Pearls and Shulker Shells.
+- The Purifier washes Sugar, Gunpowder and Redstone into Kandis, Brimstone and Cinnabar, Salt from Dried Kelp, Rotten Flesh, Soul Sand and Magma Cream, and colour out of Concrete Powder, Wool, Carpet and Terracotta.
 
 ### Changed
 - The journal's Calciner table fills in as your team burns things, with hints for the rest.

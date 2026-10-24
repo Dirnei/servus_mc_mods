@@ -1,0 +1,13 @@
+{
+  "type": "servus_alchemy:purification",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:soul_sand"
+  },
+  "residue": {
+    "id": "minecraft:sand"
+  },
+  "salt": 25,
+  "time": 80,
+  "water": 250
+}

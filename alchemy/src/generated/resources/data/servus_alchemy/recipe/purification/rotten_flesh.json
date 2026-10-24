@@ -1,0 +1,13 @@
+{
+  "type": "servus_alchemy:purification",
+  "input": {
+    "count": 4,
+    "ingredient": "minecraft:rotten_flesh"
+  },
+  "residue": {
+    "id": "minecraft:leather"
+  },
+  "salt": 100,
+  "time": 120,
+  "water": 250
+}

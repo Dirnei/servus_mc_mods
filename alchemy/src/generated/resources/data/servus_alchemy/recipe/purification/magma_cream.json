@@ -1,0 +1,13 @@
+{
+  "type": "servus_alchemy:purification",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:magma_cream"
+  },
+  "residue": {
+    "id": "minecraft:slime_ball"
+  },
+  "salt": 25,
+  "time": 80,
+  "water": 250
+}

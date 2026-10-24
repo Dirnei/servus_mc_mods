@@ -9,12 +9,16 @@ import io.github.dirnei.mc.servus.alchemy.hollow.VeinSeedItem;
 import io.github.dirnei.mc.servus.alchemy.prelum.PressingRecipe;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.UnaryOperator;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
@@ -70,8 +74,26 @@ public final class AlchemyRecipeTable {
                                int tier, ItemStackTemplate result, int time) {
     }
 
-    /** One purification: an item leached with water into Salt. */
-    public record Purify(String name, String label, Input input, int count, int water, int salt, ItemStackTemplate residue, int time) {
+    /** One purification: an item leached with water into Salt, maybe with a residue; with no Salt it is a wash. */
+    public record Purify(String name, String label, Input input, int count, int water, int salt, @Nullable ItemStackTemplate residue,
+                         String residueLabel, int time) {
+
+        /** A purification that leaves no residue. */
+        public static Purify saltOnly(String name, String label, Input input, int count, int water, int salt, int time) {
+            return new Purify(name, label, input, count, water, salt, null, "", time);
+        }
+
+        public Optional<ItemStackTemplate> residueTemplate() {
+            return Optional.ofNullable(residue);
+        }
+
+        public int residueCount() {
+            return residue == null ? 0 : residue.count();
+        }
+    }
+
+    /** One kind of colour wash: a recipe per colour, listed in the journal as one line. */
+    public record Wash(String label, String residueLabel, List<Purify> rows) {
     }
 
     /** One pressing at the Prelum: a counted item pressed into one result. */
@@ -124,10 +146,65 @@ public final class AlchemyRecipeTable {
         return new Calcine(name, label, input, output, CalcinationDimension.END);
     }
 
-    /** What the Purifier leaches into Salt: the Ash of the Calciner. */
+    /** What the Purifier leaches into Salt: the Ash of the Calciner, the seeds of the Coagulator and everyday matter. */
     public static List<Purify> purification() {
-        return List.of(new Purify("ash", "Ash", Input.of(ServusAlchemyItems.ASH.get()), 4, 400, 400,
-                new ItemStackTemplate(ServusAlchemyItems.CAPUT_MORTUUM.get()), 160));
+        return List.of(
+                purify("ash", "Ash", ServusAlchemyItems.ASH.get(), 4, 400, 400, ServusAlchemyItems.CAPUT_MORTUUM.get(), "Caput Mortuum", 160),
+                purify("sugar", "Sugar", Items.SUGAR, 8, 500, 100, ServusAlchemyItems.KANDIS.get(), "Kandis", 160),
+                purify("gunpowder", "Gunpowder", Items.GUNPOWDER, 4, 400, 200, ServusAlchemyItems.BRIMSTONE.get(), "Brimstone", 160),
+                purify("redstone", "Redstone Dust", Items.REDSTONE, 8, 400, 50, ServusAlchemyItems.CINNABAR.get(), "Cinnabar", 160),
+                Purify.saltOnly("dried_kelp", "Dried Kelp", Input.of(Items.DRIED_KELP), 4, 250, 200, 80),
+                purify("rotten_flesh", "Rotten Flesh", Items.ROTTEN_FLESH, 4, 250, 100, Items.LEATHER, "Leather", 120),
+                purify("soul_sand", "Soul Sand", Items.SOUL_SAND, 1, 250, 25, Items.SAND, "Sand", 80),
+                purify("magma_cream", "Magma Cream", Items.MAGMA_CREAM, 1, 250, 25, Items.SLIME_BALL, "Slimeball", 80));
+    }
+
+    private static Purify purify(String name, String label, ItemLike input, int count, int water, int salt, ItemLike residue,
+                                 String residueLabel, int time) {
+        return new Purify(name, label, Input.of(input), count, water, salt, new ItemStackTemplate(residue.asItem()), residueLabel, time);
+    }
+
+    /** Items washed per cycle of a colour wash. */
+    private static final int WASH_COUNT = 8;
+    private static final int WASH_WATER = 250;
+    private static final int WASH_TIME = 40;
+
+    /** The colour washes: dye washed out of Concrete Powder (into Concrete), Wool, Carpet and Terracotta, one recipe per colour. */
+    public static List<Wash> washes() {
+        return List.of(
+                wash("Concrete Powder of any colour", "its Concrete", colour -> colour + "_concrete_powder", colour -> colour + "_concrete", true),
+                wash("dyed Wool", "White Wool", colour -> colour + "_wool", colour -> "white_wool", false),
+                wash("dyed Carpet", "White Carpet", colour -> colour + "_carpet", colour -> "white_carpet", false),
+                wash("dyed Terracotta", "Terracotta", colour -> colour + "_terracotta", colour -> "terracotta", true));
+    }
+
+    private static Wash wash(String label, String residueLabel, UnaryOperator<String> input, UnaryOperator<String> residue,
+                             boolean withWhite) {
+        List<Purify> rows = new ArrayList<>();
+        for (DyeColor colour : DyeColor.values()) {
+            if (colour == DyeColor.WHITE && !withWhite) {
+                continue;
+            }
+            Item in = vanilla(input.apply(colour.getSerializedName()));
+            Item out = vanilla(residue.apply(colour.getSerializedName()));
+            String inPath = BuiltInRegistries.ITEM.getKey(in).getPath();
+            rows.add(new Purify("wash_" + inPath, GameDataExportProvider.titleCase(inPath), Input.of(in), WASH_COUNT, WASH_WATER, 0,
+                    new ItemStackTemplate(out, WASH_COUNT), GameDataExportProvider.titleCase(BuiltInRegistries.ITEM.getKey(out).getPath()),
+                    WASH_TIME));
+        }
+        return new Wash(label, residueLabel, List.copyOf(rows));
+    }
+
+    private static Item vanilla(String path) {
+        return BuiltInRegistries.ITEM.getOptional(Identifier.withDefaultNamespace(path))
+                .orElseThrow(() -> new IllegalStateException("no vanilla item " + path));
+    }
+
+    /** Every shipped purification recipe: {@link #purification()} and each colour of {@link #washes()}. */
+    public static List<Purify> allPurification() {
+        List<Purify> all = new ArrayList<>(purification());
+        washes().forEach(wash -> all.addAll(wash.rows()));
+        return List.copyOf(all);
     }
 
     /** What the Prelum presses: Caput Mortuum into Netherite Scrap, the end of the Work. */

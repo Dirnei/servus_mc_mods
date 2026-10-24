@@ -1,0 +1,13 @@
+{
+  "type": "servus_alchemy:purification",
+  "input": {
+    "count": 8,
+    "ingredient": "minecraft:redstone"
+  },
+  "residue": {
+    "id": "servus_alchemy:cinnabar"
+  },
+  "salt": 50,
+  "time": 160,
+  "water": 400
+}

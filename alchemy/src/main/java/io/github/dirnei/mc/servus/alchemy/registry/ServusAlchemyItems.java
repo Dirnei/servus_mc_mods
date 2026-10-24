@@ -51,6 +51,12 @@ public final class ServusAlchemyItems {
     public static final DeferredItem<BlockItem> SALT_CRYSTAL_BLOCK = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.SALT_CRYSTAL_BLOCK);
     public static final DeferredItem<Item> SULFUR = ITEMS.registerSimpleItem("sulfur");
     public static final DeferredItem<Item> QUICKSILVER = ITEMS.registerSimpleItem("quicksilver");
+    /** Rock sugar, washed out of Sugar by the Purifier. */
+    public static final DeferredItem<QuoteItem> KANDIS = ITEMS.registerItem("kandis", QuoteItem::new);
+    /** Yellow rock, washed out of Gunpowder by the Purifier. */
+    public static final DeferredItem<QuoteItem> BRIMSTONE = ITEMS.registerItem("brimstone", QuoteItem::new);
+    /** Red ore of Mercury, washed out of Redstone Dust by the Purifier. */
+    public static final DeferredItem<QuoteItem> CINNABAR = ITEMS.registerItem("cinnabar", QuoteItem::new);
     /** The seed of a metal from the Athanor; a gnome plants it in his Hollow. */
     public static final DeferredItem<VeinSeedItem> SEED = ITEMS.registerItem("seed", VeinSeedItem::new);
 
@@ -79,6 +85,7 @@ public final class ServusAlchemyItems {
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(PARACELSUS_JOURNAL, CALCINER, FIREBOX, ASH_PAN,
             ALEMBIC, RECEIVER, SULFUR_HOOD, COPPER_DUCT, PURIFIER, CATCH_BASIN, RESIDUE_CROCK, COAGULATOR, VAT, ATHANOR, GNOME_HOLLOW,
             PRINCIPLE_DROPPER, ASH, CAPUT_MORTUUM, SALT_CRYSTAL, SALT_CRYSTAL_BLOCK, SULFUR, QUICKSILVER,
+            KANDIS, BRIMSTONE, CINNABAR,
             SAL_AMMONIAC, IGNIS_PERPETUUS, SALAMANDER_FORGE, RECEPTACULUM, SEALED_FLASK, PRELUM_SCREW, PRELUM, SALAMANDER_SPAWN_EGG,
             MINER_GNOME_SPAWN_EGG, LANTERN_GNOME_SPAWN_EGG, HOUSE_GNOME_SPAWN_EGG, TINY_PICKAXE, RED_FELT_SCRAP, SALT_OFFERING);
 

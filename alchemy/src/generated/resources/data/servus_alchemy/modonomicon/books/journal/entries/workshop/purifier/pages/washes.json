@@ -5,7 +5,7 @@
   },
   "id": "washes",
   "show_title_separator": true,
-  "sort_number": 7,
+  "sort_number": 9,
   "text": "book.servus_alchemy.journal.workshop.purifier.washes.text",
   "title": "book.servus_alchemy.journal.workshop.purifier.washes.title"
 }

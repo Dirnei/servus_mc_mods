@@ -24,6 +24,9 @@ final class ServusAlchemyItemModelProvider extends ItemModelProvider {
         basicItem(ServusAlchemyItems.SALT_CRYSTAL.get());
         basicItem(ServusAlchemyItems.SULFUR.get());
         basicItem(ServusAlchemyItems.QUICKSILVER.get());
+        basicItem(ServusAlchemyItems.KANDIS.get());
+        basicItem(ServusAlchemyItems.BRIMSTONE.get());
+        basicItem(ServusAlchemyItems.CINNABAR.get());
         basicItem(ServusAlchemyItems.SAL_AMMONIAC.get());
         basicItem(ServusAlchemyItems.IGNIS_PERPETUUS.get());
         basicItem(ServusAlchemyItems.SEALED_FLASK.get());

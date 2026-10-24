@@ -1,0 +1,13 @@
+{
+  "type": "servus_alchemy:purification",
+  "input": {
+    "count": 8,
+    "ingredient": "minecraft:pink_carpet"
+  },
+  "residue": {
+    "count": 8,
+    "id": "minecraft:white_carpet"
+  },
+  "salt": 0,
+  "water": 250
+}

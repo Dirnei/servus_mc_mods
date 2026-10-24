@@ -7,12 +7,14 @@ import com.klikli_dev.modonomicon.api.datagen.book.BookIconModel;
 import io.github.dirnei.mc.servus.alchemy.Principle;
 import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.PrincipleText;
+import io.github.dirnei.mc.servus.alchemy.PurificationText;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.datagen.AlchemyRecipeTable;
 import io.github.dirnei.mc.servus.alchemy.datagen.ServusAlchemyMultiblockProvider;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
+import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -148,10 +150,19 @@ final class WorkshopCategory extends CategoryProvider {
                             + "Take the Salt from the Basin with an empty bucket, or pipe it away. Take the Caput Mortuum from the Crock "
                             + "with an empty hand, or set a hopper under it. Sneak with an empty hand on the Vat to take the Ash back. Keep the Caput Mortuum: nothing in the "
                             + "Great Work is worthless forever.");
-            e.list("washes", "What It Washes", AlchemyRecipeTable.purification().stream()
-                    .map(row -> row.count() + " " + row.label() + " and " + row.water() + " mB water: " + row.salt() + " Salt"
-                            + " and " + row.residue().count() + " " + AlchemyRecipeTable.label(row.residue()))
-                    .toList());
+            e.text("more", "More Than Ash",
+                    "The Vat washes more than Ash. Sugar, Gunpowder and Redstone leave crystals behind that the Coagulator will want, "
+                            + "and Dried Kelp gives the cheapest Salt of all.\n\n"
+                            + "Water also washes the dye out of wool, carpet and terracotta and sets Concrete Powder. "
+                            + "What gives no Salt only fills the Crock.");
+            List<String> washes = new ArrayList<>();
+            AlchemyRecipeTable.purification().forEach(row -> washes.add(PurificationText.line(row.count(), row.label(), row.water(),
+                    row.salt(), row.residueCount(), row.residueLabel())));
+            AlchemyRecipeTable.washes().forEach(wash -> {
+                AlchemyRecipeTable.Purify first = wash.rows().getFirst();
+                washes.add(PurificationText.kindLine(first.count(), wash.label(), first.water(), wash.residueLabel()));
+            });
+            e.list("washes", "What It Washes", washes);
         });
     }
 

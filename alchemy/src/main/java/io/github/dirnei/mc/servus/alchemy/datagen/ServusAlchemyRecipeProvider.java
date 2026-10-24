@@ -68,9 +68,9 @@ final class ServusAlchemyRecipeProvider extends RecipeProvider {
 
     /** What the Purifier leaches, from the shared table the journal lists. */
     private void purification(RecipeOutput output) {
-        for (AlchemyRecipeTable.Purify row : AlchemyRecipeTable.purification()) {
+        for (AlchemyRecipeTable.Purify row : AlchemyRecipeTable.allPurification()) {
             output.accept(key("purification/" + row.name()), new PurificationRecipe(new SizedIngredient(row.input().ingredient(items), row.count()),
-                    row.water(), row.salt(), Optional.of(row.residue()), row.time()), null);
+                    row.water(), row.salt(), row.residueTemplate(), row.time()), null);
         }
     }
 

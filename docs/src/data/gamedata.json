@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "mod_version": "0.2.0-alpha",
+  "mod_version": "0.3.0-alpha",
   "machines": {
     "servus_alchemy:athanor": {
       "kind": "crafter",
@@ -524,6 +524,420 @@
       ]
     },
     "servus_alchemy:purification/ash": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/dried_kelp": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/gunpowder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/magma_cream": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/redstone": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/rotten_flesh": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/soul_sand": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/sugar": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_black_carpet": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_black_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_black_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_black_wool": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_blue_carpet": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_blue_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_blue_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_blue_wool": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_brown_carpet": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_brown_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_brown_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_brown_wool": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_cyan_carpet": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_cyan_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_cyan_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_cyan_wool": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_gray_carpet": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_gray_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_gray_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_gray_wool": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_green_carpet": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_green_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_green_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_green_wool": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_light_blue_carpet": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_light_blue_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_light_blue_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_light_blue_wool": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_light_gray_carpet": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_light_gray_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_light_gray_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_light_gray_wool": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_lime_carpet": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_lime_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_lime_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_lime_wool": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_magenta_carpet": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_magenta_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_magenta_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_magenta_wool": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_orange_carpet": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_orange_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_orange_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_orange_wool": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_pink_carpet": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_pink_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_pink_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_pink_wool": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_purple_carpet": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_purple_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_purple_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_purple_wool": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_red_carpet": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_red_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_red_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_red_wool": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_white_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_white_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_yellow_carpet": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_yellow_concrete_powder": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_yellow_terracotta": {
+      "type": "servus_alchemy:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_alchemy:purification/wash_yellow_wool": {
       "type": "servus_alchemy:purification",
       "special": true,
       "inputs": [],

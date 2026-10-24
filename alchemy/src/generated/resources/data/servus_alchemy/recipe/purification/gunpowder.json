@@ -1,0 +1,13 @@
+{
+  "type": "servus_alchemy:purification",
+  "input": {
+    "count": 4,
+    "ingredient": "minecraft:gunpowder"
+  },
+  "residue": {
+    "id": "servus_alchemy:brimstone"
+  },
+  "salt": 200,
+  "time": 160,
+  "water": 400
+}

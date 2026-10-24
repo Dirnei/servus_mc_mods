@@ -24,6 +24,7 @@ import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -32,7 +33,9 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
@@ -91,14 +94,14 @@ public class PurifierBlockEntity extends BlockEntity implements TeamOwned {
     private int pushCooldown;
     /** The brine level last sent to the clients, in sixteenths with the fluid kind, -1 before the first send. */
     private int drawn = -1;
-    /** The item count last sent to the clients, -1 before the first send. */
-    private int drawnItems = -1;
-    /** The residue count last sent to the clients, -1 before the first send. */
-    private int drawnResidue = -1;
-    /** On the client: how many items lie on the vat floor. */
-    private int shownItems;
-    /** On the client: how much residue lies in the Crock. */
-    private int shownResidue;
+    /** The items last sent to the clients, kind and count, null before the first send. */
+    private Shown drawnItems;
+    /** The residue last sent to the clients, kind and count, null before the first send. */
+    private Shown drawnResidue;
+    /** On the client: what lies on the vat floor. */
+    private Shown shownItems = Shown.NONE;
+    /** On the client: what lies in the Crock. */
+    private Shown shownResidue = Shown.NONE;
 
     public PurifierBlockEntity(BlockPos pos, BlockState state) {
         super(ServusAlchemyBlockEntities.PURIFIER.get(), pos, state);
@@ -267,22 +270,44 @@ public class PurifierBlockEntity extends BlockEntity implements TeamOwned {
         }
     }
 
-    /** On the client: how many items lie on the vat floor, for the ash layer. */
-    public int shownItems() {
+    /** What a slot shows on the client: the item and how many. */
+    public record Shown(Item item, int count) {
+
+        public static final Shown NONE = new Shown(Items.AIR, 0);
+
+        public static Shown of(ItemStack stack) {
+            return stack.isEmpty() ? NONE : new Shown(stack.getItem(), stack.getCount());
+        }
+
+        public void write(CompoundTag tag, String key) {
+            tag.putString(key, BuiltInRegistries.ITEM.getKey(item).toString());
+            tag.putInt(key + "Count", count);
+        }
+
+        public static Shown read(CompoundTag tag, String key) {
+            Item item = Optional.ofNullable(Identifier.tryParse(tag.getStringOr(key, "")))
+                    .flatMap(BuiltInRegistries.ITEM::getOptional).orElse(Items.AIR);
+            int count = tag.getIntOr(key + "Count", 0);
+            return item == Items.AIR || count <= 0 ? NONE : new Shown(item, count);
+        }
+    }
+
+    /** On the client: what lies on the vat floor, for its layer. */
+    public Shown shownItems() {
         return shownItems;
     }
 
-    /** On the client: how much residue lies in the Crock, for its heap. */
-    public int shownResidue() {
+    /** On the client: what lies in the Crock, for its heap. */
+    public Shown shownResidue() {
         return shownResidue;
     }
 
-    /** Sends the brine and the items to the clients when the drawn level, kind or item count changed. */
+    /** Sends the brine and the items to the clients when the drawn level, a kind or an item count changed. */
     private void syncBrine() {
         int now = brineKey();
-        int items = inventory.getStackInSlot(SLOT_INPUT).getCount();
-        int residue = inventory.getStackInSlot(SLOT_RESIDUE).getCount();
-        if ((now != drawn || items != drawnItems || residue != drawnResidue) && level != null) {
+        Shown items = Shown.of(inventory.getStackInSlot(SLOT_INPUT));
+        Shown residue = Shown.of(inventory.getStackInSlot(SLOT_RESIDUE));
+        if ((now != drawn || !items.equals(drawnItems) || !residue.equals(drawnResidue)) && level != null) {
             drawn = now;
             drawnItems = items;
             drawnResidue = residue;
@@ -335,8 +360,8 @@ public class PurifierBlockEntity extends BlockEntity implements TeamOwned {
         progress = input.getIntOr("Progress", 0);
         ownership.load(tag);
         if (tag.contains("ShownItems")) {
-            shownItems = input.getIntOr("ShownItems", 0);
-            shownResidue = input.getIntOr("ShownResidue", 0);
+            shownItems = Shown.read(tag, "ShownItems");
+            shownResidue = Shown.read(tag, "ShownResidue");
         }
     }
 
@@ -346,8 +371,8 @@ public class PurifierBlockEntity extends BlockEntity implements TeamOwned {
         CompoundTag tag = super.getUpdateTag(registries);
         tag.put("Water", water.writeToNBT(registries, new CompoundTag()));
         tag.put("Salt", salt.writeToNBT(registries, new CompoundTag()));
-        tag.putInt("ShownItems", inventory.getStackInSlot(SLOT_INPUT).getCount());
-        tag.putInt("ShownResidue", inventory.getStackInSlot(SLOT_RESIDUE).getCount());
+        Shown.of(inventory.getStackInSlot(SLOT_INPUT)).write(tag, "ShownItems");
+        Shown.of(inventory.getStackInSlot(SLOT_RESIDUE)).write(tag, "ShownResidue");
         return tag;
     }
 

@@ -250,6 +250,48 @@ public final class PurifierGameTests {
         });
     }
 
+    /** Sugar is washed into a little Salt and a Kandis, the Salt crystal the Coagulator takes as a seed. */
+    @ServusGameTest(timeoutTicks = 300)
+    public static void purifierGrowsKandisFromSugar(GameTestHelper helper) {
+        PurifierBlockEntity purifier = purifier(helper);
+        helper.assertTrue(purifier.insert(new ItemStack(Items.SUGAR, 8)).isEmpty(), "the Vat takes Sugar");
+        purifier.water().fill(water(500), false);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(purifier.salt().getFluidAmount() == 100, "100 mB Salt, got " + purifier.salt().getFluidAmount());
+            ItemStack residue = crockItems(helper).extractItem(0, 64, true);
+            helper.assertTrue(residue.is(ServusAlchemyItems.KANDIS.get()) && residue.getCount() == 1, "one Kandis waits in the Crock, got " + residue);
+            helper.assertTrue(purifier.inventory().getStackInSlot(PurifierBlockEntity.SLOT_INPUT).isEmpty(), "the Sugar is used up");
+        });
+    }
+
+    /** Concrete Powder washes into Concrete without any Salt, and a wash counts nothing for the journal. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void purifierWashesConcreteWithoutSalt(GameTestHelper helper) {
+        PurifierBlockEntity purifier = purifier(helper);
+        UUID team = UUID.randomUUID();
+        purifier.setTeam(team);
+        helper.assertTrue(purifier.insert(new ItemStack(Items.RED_CONCRETE_POWDER, 8)).isEmpty(), "the Vat takes Red Concrete Powder");
+        purifier.water().fill(water(250), false);
+        helper.succeedWhen(() -> {
+            ItemStack residue = crockItems(helper).extractItem(0, 64, true);
+            helper.assertTrue(residue.is(Items.RED_CONCRETE) && residue.getCount() == 8, "8 Red Concrete wait in the Crock, got " + residue);
+            helper.assertTrue(purifier.salt().isEmpty(), "a wash makes no Salt");
+            helper.assertTrue(purifier.water().isEmpty(), "the water is used up");
+            helper.assertTrue(Journal.journalOf(helper.getLevel().getServer(), team).count(AlchemyGameTests.VILLACH, "purify") == 0,
+                    "a wash counts nothing for the journal");
+        });
+    }
+
+    /** White Wool and plain Terracotta have no colour to wash out. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void purifierRefusesPlainWool(GameTestHelper helper) {
+        PurifierBlockEntity purifier = purifier(helper);
+        helper.assertTrue(!purifier.purifiable(new ItemStack(Items.WHITE_WOOL)), "White Wool is refused");
+        helper.assertTrue(!purifier.purifiable(new ItemStack(Items.TERRACOTTA)), "plain Terracotta is refused");
+        helper.assertTrue(purifier.purifiable(new ItemStack(Items.BLUE_WOOL)), "Blue Wool is taken");
+        helper.succeed();
+    }
+
     /** The journal's schematic accepts the build, anchored on the log. */
     @ServusGameTest(timeoutTicks = 20)
     public static void purifierSchematicMatchesTheBuild(GameTestHelper helper) {

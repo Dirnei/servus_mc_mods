@@ -1,0 +1,13 @@
+{
+  "type": "servus_alchemy:purification",
+  "input": {
+    "count": 8,
+    "ingredient": "minecraft:yellow_concrete_powder"
+  },
+  "residue": {
+    "count": 8,
+    "id": "minecraft:yellow_concrete"
+  },
+  "salt": 0,
+  "water": 250
+}

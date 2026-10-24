@@ -1,0 +1,13 @@
+{
+  "type": "servus_alchemy:purification",
+  "input": {
+    "count": 8,
+    "ingredient": "minecraft:lime_terracotta"
+  },
+  "residue": {
+    "count": 8,
+    "id": "minecraft:terracotta"
+  },
+  "salt": 0,
+  "water": 250
+}

@@ -1,0 +1,10 @@
+{
+  "type": "servus_alchemy:purification",
+  "input": {
+    "count": 4,
+    "ingredient": "minecraft:dried_kelp"
+  },
+  "salt": 200,
+  "time": 80,
+  "water": 250
+}

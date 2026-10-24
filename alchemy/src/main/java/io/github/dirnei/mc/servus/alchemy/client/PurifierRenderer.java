@@ -15,10 +15,15 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 
-/** Draws the Purifier: the Ash still to wash on the Vat's floor with the water over it, the Salt in the Catch Basin and the Caput Mortuum in the Residue Crock. */
+/**
+ * Draws the Purifier: what is still to wash on the Vat's floor with the water over it, the Salt in the Catch Basin and the residue
+ * in the Residue Crock. Blocks show their own texture, other items grey ash and the dark Caput Mortuum.
+ */
 public final class PurifierRenderer extends BufferedBlockEntityRenderer<PurifierBlockEntity> {
 
     /** The inside of the vat in blocks: above the floor, inside the walls, below the rim. */
@@ -54,10 +59,10 @@ public final class PurifierRenderer extends BufferedBlockEntityRenderer<Purifier
     protected void render(PurifierBlockEntity purifier, float partialTick, PoseStack poseStack, SubmitBuffers buffers,
                           int packedLight) {
         float floor = FLOOR;
-        int items = purifier.shownItems();
-        if (items > 0) {
-            TextureAtlasSprite ash = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(ASH);
-            float height = 1 / 16F + (ASH_MAX - 1 / 16F) * Math.min(1.0F, items / 64F);
+        PurifierBlockEntity.Shown items = purifier.shownItems();
+        if (items.count() > 0) {
+            TextureAtlasSprite ash = sprite(items.item(), ASH);
+            float height = 1 / 16F + (ASH_MAX - 1 / 16F) * Math.min(1.0F, items.count() / 64F);
             CalcinerRenderer.drawBox(buffers.getBuffer(Sheets.translucentBlockSheet()), poseStack.last(),
                     INSIDE_MIN, FLOOR, INSIDE_MIN, INSIDE_MAX, FLOOR + height, INSIDE_MAX, ash, 0xFFFFFFFF, packedLight);
             floor = FLOOR + height;
@@ -72,17 +77,26 @@ public final class PurifierRenderer extends BufferedBlockEntityRenderer<Purifier
         poseStack.translate(basin.getX(), basin.getY(), basin.getZ());
         drawLiquid(purifier.salt(), BASIN_FLOOR, BASIN_FLOOR, BASIN_RIM, poseStack, buffers, packedLight);
         poseStack.popPose();
-        int residue = purifier.shownResidue();
-        if (residue > 0) {
+        PurifierBlockEntity.Shown residue = purifier.shownResidue();
+        if (residue.count() > 0) {
             BlockPos crock = PurifierStructure.partPos(purifier.getLevel(), vat, PurifierLayout.Role.CROCK).subtract(vat);
-            TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(RESIDUE);
-            float top = CROCK_FLOOR + 1 / 16F + (CROCK_TOP - CROCK_FLOOR - 1 / 16F) * Math.min(1.0F, residue / 64F);
+            TextureAtlasSprite sprite = sprite(residue.item(), RESIDUE);
+            float top = CROCK_FLOOR + 1 / 16F + (CROCK_TOP - CROCK_FLOOR - 1 / 16F) * Math.min(1.0F, residue.count() / 64F);
             poseStack.pushPose();
             poseStack.translate(crock.getX(), crock.getY(), crock.getZ());
             CalcinerRenderer.drawBox(buffers.getBuffer(Sheets.translucentBlockSheet()), poseStack.last(),
                     CROCK_MIN, CROCK_FLOOR, CROCK_MIN, CROCK_MAX, top, CROCK_MAX, sprite, 0xFFFFFFFF, packedLight);
             poseStack.popPose();
         }
+    }
+
+    /** The texture of a block item's block, or {@code fallback} for any other item. */
+    private static TextureAtlasSprite sprite(Item item, Identifier fallback) {
+        if (item instanceof BlockItem block) {
+            return Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(block.getBlock().defaultBlockState())
+                    .particleMaterial().sprite();
+        }
+        return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(fallback);
     }
 
     /** One liquid as high as its tank is full, between {@code bottom} and {@code rim}, never thinner than half a pixel above {@code floor}. */

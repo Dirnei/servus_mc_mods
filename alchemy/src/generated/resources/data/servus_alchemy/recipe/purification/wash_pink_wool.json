@@ -1,0 +1,13 @@
+{
+  "type": "servus_alchemy:purification",
+  "input": {
+    "count": 8,
+    "ingredient": "minecraft:pink_wool"
+  },
+  "residue": {
+    "count": 8,
+    "id": "minecraft:white_wool"
+  },
+  "salt": 0,
+  "water": 250
+}

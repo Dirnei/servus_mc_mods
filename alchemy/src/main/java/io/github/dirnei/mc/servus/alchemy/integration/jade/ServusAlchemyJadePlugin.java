@@ -296,8 +296,8 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
                 return;
             }
             CompoundTag tag = new CompoundTag();
-            tag.putInt("Items", purifier.inventory().getStackInSlot(PurifierBlockEntity.SLOT_INPUT).getCount());
-            tag.putInt("Residue", purifier.inventory().getStackInSlot(PurifierBlockEntity.SLOT_RESIDUE).getCount());
+            PurifierBlockEntity.Shown.of(purifier.inventory().getStackInSlot(PurifierBlockEntity.SLOT_INPUT)).write(tag, "Items");
+            PurifierBlockEntity.Shown.of(purifier.inventory().getStackInSlot(PurifierBlockEntity.SLOT_RESIDUE)).write(tag, "Residue");
             tag.putInt("Water", purifier.water().getFluidAmount());
             tag.putInt("Salt", purifier.salt().getFluidAmount());
             tag.putInt("Capacity", purifier.water().getCapacity());
@@ -312,12 +312,19 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
             }
             CompoundTag tag = data.getCompoundOrEmpty("Purifier");
             int capacity = tag.getIntOr("Capacity", 0);
-            tooltip.add(Component.translatable("jade.servus_alchemy.purifier.items", tag.getIntOr("Items", 0)));
+            itemLine(tooltip, PurifierBlockEntity.Shown.read(tag, "Items"));
             tooltip.add(Component.translatable("jade.servus_alchemy.purifier.water", tag.getIntOr("Water", 0), capacity));
             tooltip.add(Component.translatable("jade.servus_alchemy.calciner.principle", tag.getIntOr("Salt", 0), capacity,
                     principleName(Principle.SALT)));
-            tooltip.add(Component.translatable("jade.servus_alchemy.purifier.residue", tag.getIntOr("Residue", 0)));
+            itemLine(tooltip, PurifierBlockEntity.Shown.read(tag, "Residue"));
             tooltip.add(Component.translatable("jade.servus_alchemy.calciner.progress", tag.getIntOr("Progress", 0)));
+        }
+
+        private static void itemLine(ITooltip tooltip, PurifierBlockEntity.Shown shown) {
+            if (shown.count() > 0) {
+                tooltip.add(Component.translatable("jade.servus_alchemy.purifier.item", shown.count(),
+                        shown.item().getDefaultInstance().getHoverName()));
+            }
         }
 
         @Override

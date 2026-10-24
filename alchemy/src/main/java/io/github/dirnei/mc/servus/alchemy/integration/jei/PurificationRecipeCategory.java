@@ -8,10 +8,11 @@ import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.material.Fluids;
 
-/** JEI category for purification: the item and the water, an arrow, the Salt it makes and the time. */
+/** JEI category for purification: the item and the water, an arrow, the Salt it makes if any, the residue if any and the time. */
 public final class PurificationRecipeCategory extends AlchemyRecipeCategory<PurificationRecipe> {
 
     public PurificationRecipeCategory(IGuiHelper guiHelper) {
@@ -28,8 +29,18 @@ public final class PurificationRecipeCategory extends AlchemyRecipeCategory<Puri
         builder.addInputSlot(21, SLOT_Y)
                 .setStandardSlotBackground()
                 .addFluidStack(Fluids.WATER, recipe.water());
-        builder.addOutputSlot(80, SLOT_Y)
-                .setStandardSlotBackground()
-                .addFluidStack(PrincipleFluids.fluid(Principle.SALT), recipe.salt());
+        int outputX = 80;
+        if (recipe.salt() > 0) {
+            builder.addOutputSlot(outputX, SLOT_Y)
+                    .setStandardSlotBackground()
+                    .addFluidStack(PrincipleFluids.fluid(Principle.SALT), recipe.salt());
+            outputX += 20;
+        }
+        ItemStack residue = recipe.residue();
+        if (!residue.isEmpty()) {
+            builder.addOutputSlot(outputX, SLOT_Y)
+                    .setStandardSlotBackground()
+                    .addItemStack(residue);
+        }
     }
 }

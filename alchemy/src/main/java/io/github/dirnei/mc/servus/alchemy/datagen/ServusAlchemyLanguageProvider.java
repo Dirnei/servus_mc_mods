@@ -79,7 +79,7 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("message.servus_alchemy.purifier.at.beside_the_log", "beside the log");
         add("message.servus_alchemy.purifier.at.on_the_other_side_of_the_log", "on the other side of the log");
         add("message.servus_alchemy.purifier.at.itself", "here");
-        add("jade.servus_alchemy.purifier.residue", "Caput Mortuum: %s");
+        add("jade.servus_alchemy.purifier.item", "%2$s: %1$s");
         add("jade.servus_alchemy.gnome_hollow.no_vein", "No vein");
         add("jade.servus_alchemy.gnome_hollow.vein", "Vein: %s");
         add("jade.servus_alchemy.gnome_hollow.ripeness", "Ripeness %s / %s");
@@ -126,7 +126,6 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("message.servus_alchemy.coagulator.at.left_of_the_middle_vat", "left of the middle Vat");
         add("message.servus_alchemy.coagulator.at.right_of_the_middle_vat", "right of the middle Vat");
         add("message.servus_alchemy.coagulator.at.itself", "here");
-        add("jade.servus_alchemy.purifier.items", "Ash: %s");
         add("jade.servus_alchemy.purifier.water", "%s / %s mB Water");
         add(ServusAlchemyBlocks.CALCINER_STONE_BRICKS.get(), "Calciner Stone Bricks");
         add(ServusAlchemyBlocks.CALCINER_DEEPSLATE_TILES.get(), "Calciner Deepslate Tiles");
@@ -278,6 +277,15 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("gui.servus_alchemy.jei.athanor.tier", "Stage: %s");
         add(ServusAlchemyItems.SULFUR.get(), "Sulfur");
         add(ServusAlchemyItems.QUICKSILVER.get(), "Quicksilver");
+        add(ServusAlchemyItems.KANDIS.get(), "Kandis");
+        add(ServusAlchemyItems.KANDIS.get().getDescriptionId() + ".quote",
+                "Sugar that remembers it was a crystal once. Like begets like, they say.");
+        add(ServusAlchemyItems.BRIMSTONE.get(), "Brimstone");
+        add(ServusAlchemyItems.BRIMSTONE.get().getDescriptionId() + ".quote",
+                "The stone that burns. A soul of Sulfur sleeps in it.");
+        add(ServusAlchemyItems.CINNABAR.get(), "Cinnabar");
+        add(ServusAlchemyItems.CINNABAR.get().getDescriptionId() + ".quote",
+                "Red as dragon's blood, and quick silver hides inside.");
         add(ServusAlchemyItems.SAL_AMMONIAC.get(), "Sal Ammoniac");
         add(ServusAlchemyItems.SAL_AMMONIAC.get().getDescriptionId() + ".quote",
                 "The salamander gives back what it eats, only better. Do not tell the goldsmiths.");
