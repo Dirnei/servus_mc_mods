@@ -64,7 +64,7 @@ public final class OrderGridGameTests {
             helper.assertTrue(menu.stock().online(), "the warehouse should be online");
             helper.assertFalse(menu.stock().orderGrid(), "no Craft button without a CPU and a Crafting Station");
             craftingTableGrid(menu);
-            menu.startOrder(1, false);
+            menu.startOrder(1);
             helper.assertTrue(menu.terminal().requests().isEmpty(), "no order is made, message " + menu.stock().message());
             helper.succeed();
         });
@@ -112,17 +112,18 @@ public final class OrderGridGameTests {
             craftingTableGrid(menu);
             CraftPreviewPayload preview = menu.preview(ItemStack.EMPTY, 1, CraftPreviewRequestPayload.Mode.ORDER);
             helper.assertTrue(preview.startable() && !preview.patternSaved(), "a one-off crafting table can start, got " + preview);
-            menu.startOrder(1, false);
+            menu.startOrder(1);
             StorageTerminalBlockEntity terminal = menu.terminal();
             helper.assertTrue(menu.stock().message().isEmpty() && terminal.requests().size() == 1,
                     "one request should be listed, message " + menu.stock().message());
-            helper.assertFalse(craftingTableSaved(helper), "Only this once saves no pattern");
+            helper.assertFalse(craftingTableSaved(helper), "a one-off start saves no pattern");
+            helper.assertTrue(menu.gridCells().stream().allMatch(ItemStack::isEmpty), "the started order clears the grid");
             Waits.when(helper, () -> terminal.outputCount(Items.CRAFTING_TABLE) >= 1, 1200,
                     () -> "the crafting table should land in the output slots", helper::succeed);
         });
     }
 
-    /** Save as pattern stores the grid as a pattern of the line and starts the order. */
+    /** Save stores the grid as a pattern of the line and starts no order. */
     @ServusGameTest(timeoutTicks = 200)
     public static void saveAsPatternStores(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 16);
@@ -130,12 +131,28 @@ public final class OrderGridGameTests {
         StorageTerminalMenu menu = menu(helper, player);
         Waits.when(helper, () -> stocked(helper, menu), 160, () -> "stations and CPU should join the line", () -> {
             craftingTableGrid(menu);
-            menu.startOrder(1, true);
+            menu.savePattern();
             helper.assertTrue(menu.stock().message().isEmpty(), "no message, got " + menu.stock().message());
-            helper.assertTrue(menu.terminal().requests().size() == 1, "the order starts");
+            helper.assertTrue(menu.terminal().requests().isEmpty(), "saving starts no order");
             helper.assertTrue(craftingTableSaved(helper), "the crafting table pattern is stored");
             CraftPreviewPayload preview = menu.preview(ItemStack.EMPTY, 1, CraftPreviewRequestPayload.Mode.ORDER);
             helper.assertTrue(preview.patternSaved(), "the grid is now a known pattern");
+            helper.succeed();
+        });
+    }
+
+    /** A refused save keeps the grid, stores nothing and tells why on the message line. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void refusedSaveKeepsGrid(GameTestHelper helper) {
+        StationHandsGameTests.setup(helper, 16);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = menu(helper, player);
+        Waits.when(helper, () -> stocked(helper, menu), 160, () -> "stations and CPU should join the line", () -> {
+            menu.setGhost(4, new ItemStack(Items.STICK));
+            menu.savePattern();
+            helper.assertTrue(menu.stock().message().equals("no_match"), "the grid matches nothing, got " + menu.stock().message());
+            helper.assertTrue(menu.gridCells().get(4).is(Items.STICK), "the grid keeps its stick");
+            helper.assertTrue(menu.terminal().requests().isEmpty(), "no order starts");
             helper.succeed();
         });
     }
@@ -148,7 +165,7 @@ public final class OrderGridGameTests {
         StorageTerminalMenu menu = menu(helper, player);
         Waits.when(helper, () -> stocked(helper, menu), 160, () -> "stations and CPU should join the line", () -> {
             craftingTableGrid(menu);
-            menu.startOrder(1, false);
+            menu.startOrder(1);
             CpuBlockEntity cpu = CpuOrders.cpus(helper.getLevel(), StationHandsGameTests.line(helper)).get(0);
             HolderLookup.Provider registries = helper.getLevel().registryAccess();
             cpu.book().load(cpu.book().save(registries), registries);

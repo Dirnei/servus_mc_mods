@@ -17,8 +17,7 @@ class TerminalLayoutTest {
     private static Rect framed(Area area) {
         Rect rect = area.rect();
         boolean slots = area.name().equals("inventory") || area.name().equals("hotbar") || area.name().equals("output")
-                || area.name().equals("input") || area.name().equals("grid") || area.name().equals("order grid")
-                || area.name().equals("order result");
+                || area.name().equals("input") || area.name().equals("grid") || area.name().equals("order grid");
         return slots ? new Rect(rect.x() - 1, rect.y() - 1, rect.w() + 2, rect.h() + 2) : rect;
     }
 
@@ -59,7 +58,9 @@ class TerminalLayoutTest {
                 for (Area area : layout.areas()) {
                     Rect rect = framed(area);
                     if (area.name().startsWith("side")) {
-                        assertTrue(rect.right() <= 0 && rect.x() >= Storage.SIDE_X, at + area.name() + " is not left of the panel");
+                        boolean left = rect.right() <= 0 && rect.x() >= Storage.SIDE_X;
+                        boolean right = rect.x() >= Storage.WIDTH && rect.right() <= Storage.RIGHT_SIDE_X + Storage.SIDE_SIZE + 1;
+                        assertTrue(left || right, at + area.name() + " is not in a side column");
                         assertTrue(rect.y() >= layout.top() && rect.bottom() <= Storage.BASE_HEIGHT, at + area.name() + " leaves the panel height");
                     } else {
                         assertTrue(rect.x() >= 0 && rect.right() <= Storage.WIDTH && rect.y() >= layout.top()
@@ -70,9 +71,6 @@ class TerminalLayoutTest {
                 assertTrue(dialog.y() >= layout.top() && dialog.bottom() <= Storage.OUTPUT.bottom(), at + "the dialog leaves its area");
                 assertFalse(dialog.overlaps(Storage.INVENTORY_LABEL), at + "the dialog covers the inventory label");
                 assertTrue(layout.height() <= screen - 4, at + "the panel does not fit the screen");
-                Rect order = Storage.ORDER;
-                assertTrue(order.x() >= dialog.x() && order.right() <= dialog.right() && order.y() >= dialog.y()
-                        && order.bottom() <= dialog.bottom(), at + "the order grid leaves the dialog area");
             }
         }
         assertTrue(Storage.outputX(Storage.ROW_SLOTS - 1) + TerminalLayout.CELL <= Storage.OUTPUT.right(), "nine output slots fit");
@@ -80,16 +78,31 @@ class TerminalLayoutTest {
         assertTrue(Storage.INPUT.bottom() < Storage.OUTPUT.y(), "the input row sits above the output row");
     }
 
+    private static void assertInsidePopup(List<Area> areas, Rect popup) {
+        for (Area area : areas) {
+            Rect rect = framed(area);
+            assertTrue(rect.x() >= popup.x() && rect.right() <= popup.right() && rect.y() >= popup.y() && rect.bottom() <= popup.bottom(),
+                    area.name() + " leaves its popup");
+        }
+        assertEquals(Storage.WIDTH, 2 * popup.x() + popup.w(), "the popup is centred on the panel");
+        assertTrue(popup.bottom() < Storage.INVENTORY_LABEL.y(), "the popup leaves the inventory free");
+    }
+
+    @Test
+    void craftPartsApartAndInsideTheOrderArea() {
+        assertDisjoint(Storage.craftAreas());
+        assertInsidePopup(Storage.craftAreas(), Storage.CRAFT_POPUP);
+        Rect stepper = Storage.CRAFT_STEPPER;
+        Rect item = Storage.CRAFT_ITEM;
+        assertTrue(item.x() >= stepper.x() + 50 && item.right() <= stepper.right() && item.y() >= stepper.y() + 14
+                && item.bottom() <= stepper.y() + 32, "the crafted item sits beside the field, between the button rows");
+        assertEquals(Storage.CRAFT_LISTS.right(), Storage.craftListX(2) + Storage.CRAFT_LIST_WIDTH, "three lists fill the row");
+    }
+
     @Test
     void orderPartsApartAndInsideTheOrderArea() {
         assertDisjoint(Storage.orderAreas());
-        Rect order = Storage.ORDER;
-        for (Area area : Storage.orderAreas()) {
-            Rect rect = framed(area);
-            assertTrue(rect.x() >= order.x() && rect.right() <= order.right() && rect.y() >= order.y() && rect.bottom() <= order.bottom(),
-                    area.name() + " leaves the order area");
-        }
-        assertFalse(order.overlaps(Storage.INVENTORY_LABEL) || order.overlaps(Storage.INVENTORY), "the order grid covers the inventory");
+        assertInsidePopup(Storage.orderAreas(), Storage.ORDER_POPUP);
         assertTrue(Storage.orderX(8) + TerminalLayout.CELL <= Storage.ORDER_GRID.right()
                 && Storage.orderY(8) + TerminalLayout.CELL <= Storage.ORDER_GRID.bottom(), "nine order cells fit");
     }

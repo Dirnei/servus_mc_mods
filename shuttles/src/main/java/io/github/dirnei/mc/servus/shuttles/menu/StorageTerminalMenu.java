@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.menu;
 
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
+import io.github.dirnei.mc.servus.foundation.logistics.menu.GhostSlot;
 import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
@@ -228,22 +229,39 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     }
 
     /**
-     * Orders this many results of the order grid on a CPU of the line, and
-     * saves the grid as a pattern of the line once the order is made when
-     * {@code save} is set; a refused save is told on the message line.
+     * Orders this many results of the order grid on a CPU of the line, once,
+     * without saving a pattern; the cells are cleared once the order is made.
      */
-    public void startOrder(int amount, boolean save) {
+    public void startOrder(int amount) {
         if (!(terminal.getLevel() instanceof ServerLevel server)) {
             message = "offline";
         } else {
-            List<ItemStack> cells = gridCells();
-            Optional<EncodedPattern> pattern = PatternEditing.encode(server, cells);
+            Optional<EncodedPattern> pattern = PatternEditing.encode(server, gridCells());
             message = pattern.isEmpty() ? "no_match" : TerminalRequests.craftOneOff(server, terminal, pattern.get(), Math.max(1, amount));
-            if (message.isEmpty() && save) {
-                String saved = TerminalCraftables.line(server, terminal.getBlockPos())
-                        .map(line -> PatternEditing.save(server, line, player, cells, null)).orElse("no_storage");
-                message = saved.equals("no_storage") || saved.equals("full") ? "pattern_" + saved : "";
+            if (message.isEmpty()) {
+                for (int cell = 0; cell < EncodedPattern.GRID; cell++) {
+                    setGhost(cell, ItemStack.EMPTY);
+                }
             }
+        }
+        sync.force();
+    }
+
+    /**
+     * Saves the order grid as a pattern of the line without ordering; a
+     * refused save keeps the grid and is told on the message line.
+     */
+    public void savePattern() {
+        if (!(terminal.getLevel() instanceof ServerLevel server)) {
+            message = "offline";
+        } else {
+            String saved = TerminalCraftables.line(server, terminal.getBlockPos())
+                    .map(line -> PatternEditing.save(server, line, player, gridCells(), null)).orElse("no_storage");
+            message = switch (saved) {
+                case "" -> "";
+                case "empty", "no_match" -> "no_match";
+                default -> "pattern_" + saved;
+            };
         }
         sync.force();
     }

@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.menu;
 import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
+import io.github.dirnei.mc.servus.foundation.logistics.menu.GhostSlot;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.shuttles.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlockEntity;

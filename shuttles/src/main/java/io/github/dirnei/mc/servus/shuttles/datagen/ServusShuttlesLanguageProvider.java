@@ -364,11 +364,11 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.terminal.multiple_controllers", "Its rails reach more than one Warehouse Controller");
         add("gui.servus_shuttles.terminal.requests", "Requests");
         add("gui.servus_shuttles.terminal.crafting", "Crafting");
-        add("gui.servus_shuttles.terminal.craft_button", "Craft");
-        add("gui.servus_shuttles.terminal.craft_button_hint", "Order a crafting recipe from the Crafting CPU");
+        add("gui.servus_shuttles.terminal.craft_button_hint", "Craft: order a crafting recipe from the Crafting CPU");
         add("gui.servus_shuttles.terminal.order_save", "Save as pattern");
-        add("gui.servus_shuttles.terminal.order_once", "Only this once");
-        add("gui.servus_shuttles.terminal.order_ask", "No pattern has this recipe. Save it?");
+        add("gui.servus_shuttles.terminal.order_next", "Next");
+        add("gui.servus_shuttles.terminal.order_clear", "Clear");
+        add("gui.servus_shuttles.terminal.back", "Back");
         add("gui.servus_shuttles.terminal.order_needs", "Needs a Crafting CPU and a Crafting Station on the data line");
         add("gui.servus_shuttles.terminal.request_split", "%s from stock, %s crafted");
         add("gui.servus_shuttles.terminal.input_tag", "Input: items put here are stored in the warehouse");
@@ -453,8 +453,9 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.terminal.message.no_producer", "Nothing on this data line makes that");
         add("gui.servus_shuttles.terminal.message.no_station", "No Crafting Station on this data line");
         add("gui.servus_shuttles.terminal.message.no_match", "The grid matches no recipe");
-        add("gui.servus_shuttles.terminal.message.pattern_no_storage", "Ordered once: no Pattern Storage on this data line");
-        add("gui.servus_shuttles.terminal.message.pattern_full", "Ordered once: the Pattern Storage is full");
+        add("gui.servus_shuttles.terminal.message.pattern_no_storage", "Not saved: no Pattern Storage on this data line");
+        add("gui.servus_shuttles.terminal.message.pattern_full", "Not saved: the Pattern Storage is full");
+        add("gui.servus_shuttles.terminal.message.pattern_duplicate", "Not saved: this data line already has that pattern");
         add("gui.servus_shuttles.terminal.filter.all", "All");
         add("gui.servus_shuttles.terminal.filter.stock", "Stock");
         add("gui.servus_shuttles.terminal.filter.craftable", "Craftable");

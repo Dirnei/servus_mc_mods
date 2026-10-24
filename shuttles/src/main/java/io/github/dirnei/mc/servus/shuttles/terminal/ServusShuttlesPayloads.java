@@ -159,7 +159,9 @@ public final class ServusShuttlesPayloads {
         toMenu(registrar, CraftStartPayload.TYPE, CraftStartPayload.STREAM_CODEC, StorageTerminalMenu.class,
                 (player, menu, payload) -> menu.craft(ItemKey.of(payload.item()), payload.amount()));
         toMenu(registrar, OrderStartPayload.TYPE, OrderStartPayload.STREAM_CODEC, StorageTerminalMenu.class,
-                (player, menu, payload) -> menu.startOrder(payload.amount(), payload.save()));
+                (player, menu, payload) -> menu.startOrder(payload.amount()));
+        toMenu(registrar, OrderSavePayload.TYPE, OrderSavePayload.STREAM_CODEC, StorageTerminalMenu.class,
+                (player, menu, payload) -> menu.savePattern());
         toMenu(registrar, SetStockRulePayload.TYPE, SetStockRulePayload.STREAM_CODEC, StorageTerminalMenu.class,
                 (player, menu, payload) -> menu.setRule(ItemKey.of(payload.item()), payload.min(), payload.max()));
         toMenu(registrar, SelectSitePayload.TYPE, SelectSitePayload.STREAM_CODEC, StorageTerminalMenu.class,

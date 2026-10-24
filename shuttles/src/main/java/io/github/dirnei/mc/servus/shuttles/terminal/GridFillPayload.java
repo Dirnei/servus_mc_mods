@@ -10,10 +10,13 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Client to server (JEI transfer): set the order grid's ghost cells. Entry i
- * lists the stacks cell i accepts, empty for a cell that stays empty.
+ * Client to server: set the order grid's ghost cells (JEI transfer), or
+ * clear them all ({@link #CLEAR}). Entry i lists the stacks cell i accepts,
+ * empty or missing for a cell that stays empty.
  */
 public record GridFillPayload(List<List<ItemStack>> slots) implements CustomPacketPayload {
+
+    public static final GridFillPayload CLEAR = new GridFillPayload(List.of());
 
     public static final Type<GridFillPayload> TYPE =
             new Type<>(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "grid_fill"));

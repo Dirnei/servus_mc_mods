@@ -71,6 +71,8 @@ public final class TerminalLayout {
         public static final int SIDE_X = -22;
         public static final int SIDE_SIZE = 18;
         public static final int SIDE_STEP = 20;
+        /** Left edge of the column right of the panel, which holds the Craft button. */
+        public static final int RIGHT_SIDE_X = WIDTH + 4;
 
         public static final Rect MESSAGE = new Rect(8, 92, 174, 9);
         public static final Rect INPUT = new Rect(8, 104, ROW_SLOTS * CELL, CELL);
@@ -82,20 +84,29 @@ public final class TerminalLayout {
         public static final Rect HOTBAR = new Rect(8, 217, 9 * CELL, CELL);
 
         /**
-         * The order grid's area: the dialog area of the base rows. Its parts
-         * stay at these offsets on every height, since the ghost cells are
-         * menu slots that cannot move.
+         * The order grid popup at fixed offsets of the base rows, since its
+         * ghost cells are menu slots that cannot move; centred on the panel,
+         * wider than it and above the inventory label.
          */
-        public static final Rect ORDER = new Rect(8, 18, 174, OUTPUT.bottom() - 18);
-        public static final Rect ORDER_GRID = new Rect(13, 23, 3 * CELL, 3 * CELL);
-        public static final Rect ORDER_ARROW = new Rect(72, 45, 16, 10);
-        public static final Rect ORDER_RESULT = new Rect(93, 41, CELL, CELL);
-        public static final Rect ORDER_AMOUNT_LABEL = new Rect(116, 23, 62, 9);
-        public static final Rect ORDER_AMOUNT = new Rect(116, 33, 62, 12);
-        public static final Rect ORDER_STATUS = new Rect(116, 48, 62, 30);
-        public static final Rect ORDER_STEPS = new Rect(12, 82, 166, 14);
-        public static final Rect ORDER_PREVIEW = new Rect(12, 98, 166, 28);
-        public static final Rect ORDER_BUTTONS = new Rect(12, 128, 166, 14);
+        public static final Rect ORDER_POPUP = new Rect(-23, 40, 236, 90);
+        public static final Rect ORDER_GRID = new Rect(36, 46, 3 * CELL, 3 * CELL);
+        public static final Rect ORDER_ARROW = new Rect(95, 68, 16, 10);
+        public static final Rect ORDER_RESULT = new Rect(116, 65, 16, 16);
+        public static final Rect ORDER_SAVE = new Rect(136, 64, 18, 18);
+        public static final Rect ORDER_BUTTONS = new Rect(-17, 110, 224, 14);
+
+        /** The amount popup of the craft dialog and the order grid's second step, centred like the order grid. */
+        public static final Rect CRAFT_POPUP = new Rect(-23, 18, 236, 128);
+        public static final Rect CRAFT_TITLE = new Rect(-17, 24, 224, 9);
+        public static final Rect CRAFT_STEPPER = new Rect(58, 36, 74, 46);
+        /** The crafted item beside the stepper's field, inside {@link #CRAFT_STEPPER}'s middle row. */
+        public static final Rect CRAFT_ITEM = new Rect(110, 51, 16, 16);
+        public static final Rect CRAFT_LISTS = new Rect(-17, 86, 224, 36);
+        public static final int CRAFT_LIST_WIDTH = 72;
+        public static final Rect CRAFT_BUTTONS = new Rect(-17, 126, 224, 14);
+        /** Width of Cancel, Back and Clear; Next and Start are {@link #WIDE_BUTTON} wide. */
+        public static final int BUTTON = 50;
+        public static final int WIDE_BUTTON = 60;
 
         private Storage() {
         }
@@ -111,7 +122,7 @@ public final class TerminalLayout {
 
             /** Everything but the dialogs and the order grid, which lie over the grid on purpose. */
             public List<Area> areas() {
-                List<Area> areas = new ArrayList<>(List.of(new Area("title", title), new Area("craft button", craft),
+                List<Area> areas = new ArrayList<>(List.of(new Area("title", title), new Area("side craft", craft),
                         new Area("search", search), new Area("grid", grid), new Area("scrollbar", scrollbar),
                         new Area("message", MESSAGE), new Area("input", INPUT), new Area("input tag", INPUT_TAG),
                         new Area("output", OUTPUT), new Area("output tag", OUTPUT_TAG),
@@ -126,10 +137,19 @@ public final class TerminalLayout {
         /** The parts of the order grid. */
         public static List<Area> orderAreas() {
             return List.of(new Area("order grid", ORDER_GRID), new Area("order arrow", ORDER_ARROW),
-                    new Area("order result", ORDER_RESULT), new Area("order amount label", ORDER_AMOUNT_LABEL),
-                    new Area("order amount", ORDER_AMOUNT), new Area("order status", ORDER_STATUS),
-                    new Area("order steps", ORDER_STEPS), new Area("order preview", ORDER_PREVIEW),
+                    new Area("order result", ORDER_RESULT), new Area("order save", ORDER_SAVE),
                     new Area("order buttons", ORDER_BUTTONS));
+        }
+
+        /** The parts of the amount panel. */
+        public static List<Area> craftAreas() {
+            return List.of(new Area("craft title", CRAFT_TITLE), new Area("craft stepper", CRAFT_STEPPER),
+                    new Area("craft lists", CRAFT_LISTS), new Area("craft buttons", CRAFT_BUTTONS));
+        }
+
+        /** Left edge of list {@code column} (0 to 2) of the amount panel. */
+        public static int craftListX(int column) {
+            return CRAFT_LISTS.x() + column * (CRAFT_LIST_WIDTH + (CRAFT_LISTS.w() - 3 * CRAFT_LIST_WIDTH) / 2);
         }
 
         /** The layout for a number of grid rows, at least {@link #BASE_ROWS}. */
@@ -140,7 +160,7 @@ public final class TerminalLayout {
             for (int i = 0; i < SIDE_BUTTONS; i++) {
                 side.add(new Rect(SIDE_X, top + 4 + i * SIDE_STEP, SIDE_SIZE, SIDE_SIZE));
             }
-            return new Layout(shown, top, new Rect(8, top + 6, 76, 9), new Rect(86, top + 4, 32, 12),
+            return new Layout(shown, top, new Rect(8, top + 6, 112, 9), new Rect(RIGHT_SIDE_X, top + 4, SIDE_SIZE, SIDE_SIZE),
                     new Rect(122, top + 4, 60, 12), new Rect(8, top + 18, COLUMNS * CELL, shown * CELL),
                     new Rect(174, top + 18, 8, shown * CELL),
                     new Rect(8, top + 18, 174, OUTPUT.bottom() - (top + 18)), List.copyOf(side));

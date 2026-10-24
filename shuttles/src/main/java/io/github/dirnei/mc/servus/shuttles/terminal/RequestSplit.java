@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.terminal;
 
+import io.github.dirnei.mc.servus.foundation.ui.AmountSteps;
+
 /**
  * How a Storage Terminal request is split between stock and crafting: what
  * the amount prompt starts at, how high it may go, and how many items come

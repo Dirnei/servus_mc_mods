@@ -4,6 +4,7 @@
 
 ### Added
 - The Data Potato reports on Servus storage blocks too, without opening them.
+- A number stepper and a scrollable item list for the screens of every Servus mod.
 
 ### Fixed
 - Utility Ducts no longer wash away in water or lava. They hold back flowing fluids, can be placed into water and are waterloggable with a bucket.

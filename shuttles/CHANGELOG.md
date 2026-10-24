@@ -6,7 +6,8 @@
 - Shuttles get a number per world, shown in their tooltip and in the garage.
 - Slots a shuttle job fills or empties are locked and shown with a colour wash, a ghost item and the shuttle's label.
 - Shuttles follow each other with a gap, take turns at merges and leave a garage one after another.
-- A one-off order grid in the Storage Terminal replaces the crafting popup and can save its pattern.
+- A one-off order grid in the Storage Terminal, opened with the hammer button right of the panel: ghost items by click or drag, Clear, and Save as pattern without ordering.
+- One amount panel for the order grid and craftable items: an amount stepper, scrolling From stock, To craft and Missing lists, and Start greyed with the reason.
 - The Shuttle Garage has a real doorway with a roll-up shutter that opens for its shuttles.
 - The Warehouse Controller and a new Storage tab in the Production Terminal show how full the storage is, per warehouse and zone.
 - The Data Potato reports a rack section's used and free slots and a Fluid Gantry's tanks in chat.
@@ -24,6 +25,7 @@
 - A Warehouse Controller placed against the side of an elevator shaft joins the warehouse.
 - Shuttles roll out of and into their garage smoothly instead of appearing and vanishing on the rail in front of it.
 - Rails, farm rails and elevator shafts no longer wash away in water or lava. They hold back flowing fluids and cannot be placed into a fluid source.
+- JEI's plus fills the Storage Terminal order grid when a CPU is on the line, and a carried stack shows above the terminal's dialogs.
 
 ## 0.3.0
 

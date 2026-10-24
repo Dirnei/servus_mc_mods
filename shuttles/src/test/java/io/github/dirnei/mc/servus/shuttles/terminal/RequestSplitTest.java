@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.terminal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import io.github.dirnei.mc.servus.foundation.ui.AmountSteps;
 import org.junit.jupiter.api.Test;
 
 class RequestSplitTest {

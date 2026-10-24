@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.menu;
 
+import io.github.dirnei.mc.servus.foundation.logistics.menu.GhostSlot;
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;

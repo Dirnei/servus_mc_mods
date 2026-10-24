@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.shuttles.terminal;
+package io.github.dirnei.mc.servus.foundation.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -29,6 +29,22 @@ class AmountStepsTest {
         assertEquals(1, AmountSteps.add(5, -10));
         assertEquals(1, AmountSteps.add(1, -1));
         assertEquals(AmountSteps.MAX, AmountSteps.add(99995, 10));
+    }
+
+    @Test
+    void stepKeepsItsOwnBounds() {
+        assertEquals(0, AmountSteps.step(5, -10, 64, 0, 100));
+        assertEquals(100, AmountSteps.step(95, 10, 64, 0, 100));
+        assertEquals(7, AmountSteps.step(6, 1, 64, 1, 99999));
+    }
+
+    @Test
+    void stackStepsSnapToFullStacks() {
+        assertEquals(64, AmountSteps.step(1, AmountSteps.STACK, 64, 1, 99999));
+        assertEquals(128, AmountSteps.step(64, AmountSteps.STACK, 64, 1, 99999));
+        assertEquals(64, AmountSteps.step(128, -AmountSteps.STACK, 64, 1, 99999));
+        assertEquals(1, AmountSteps.step(64, -AmountSteps.STACK, 64, 1, 99999));
+        assertEquals(32, AmountSteps.step(17, AmountSteps.STACK, 16, 1, 99999));
     }
 
     @Test
