@@ -185,7 +185,7 @@ public final class RemoteTransfers {
      * @return an empty string when the transfer was made, else the refusal key:
      *         {@code offline}, {@code no_team}, {@code no_site}, {@code no_wireless_here}, {@code no_power_here},
      *         {@code no_packing_here}, {@code no_wireless_there}, {@code no_power_there}, {@code no_packing_there},
-     *         {@code site_asleep} or a refusal of the other site's shipment
+     *         {@code site_asleep}, {@code output_full} or a refusal of the other site's shipment
      */
     public static String request(ServerLevel level, StorageTerminalBlockEntity terminal, String siteKey, ItemKey key, int amount) {
         if (TerminalWarehouses.reachable(level, terminal.getBlockPos()).isEmpty()) {
@@ -220,6 +220,9 @@ public final class RemoteTransfers {
         }
         if (network(level, site.get()).filter(network -> network.available(key) <= 0).isPresent()) {
             return "out_of_stock";
+        }
+        if (terminal.freeSlot(key) == RequestSlots.NONE) {
+            return "output_full";
         }
         Request request = terminal.newRequest(level, key, amount);
         request.remote = siteKey;

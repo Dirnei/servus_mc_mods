@@ -508,8 +508,9 @@ public final class ShuttleModuleGameTests {
                 helper.assertTrue(network.ridingJobs() == 2 && network.queuedJobs() == 0,
                         "both jobs ride the one shuttle, riding " + network.ridingJobs() + ", queued " + network.queuedJobs());
                 StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, FL_TERMINAL);
-                Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 100, 700,
-                        () -> "all 100 should arrive, got " + terminal.outputCount(Items.COBBLESTONE), helper::succeed);
+                int[] taken = {0};
+                Waits.when(helper, () -> (taken[0] += TerminalWiring.takeOutput(terminal, Items.COBBLESTONE)) == 100, 700,
+                        () -> "all 100 should arrive, got " + taken[0], helper::succeed);
             });
         });
     }

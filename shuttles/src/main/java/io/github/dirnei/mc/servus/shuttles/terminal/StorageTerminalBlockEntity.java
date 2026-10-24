@@ -98,6 +98,8 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
         public Tracked relay;
         /** Retries a just woken site gets before its missing stock counts; not saved. */
         public int tries;
+        /** The output slot this request owns and its deliveries land in, {@link RequestSlots#NONE} without one. */
+        public int slot = RequestSlots.NONE;
 
         Request(int id, ItemKey key, int requested) {
             this.id = id;
@@ -179,9 +181,11 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
         return null;
     }
 
+    /** Makes a request in the slot {@link #freeSlot} offers; callers refuse first when there is none. */
     public Request newRequest(ServerLevel level, ItemKey key, int requested) {
         seeIds(level);
         Request request = new Request(ProductionLedger.get(level).nextRequestId(), key, requested);
+        request.slot = freeSlot(key);
         requests.add(request);
         setChanged();
         return request;
@@ -195,6 +199,33 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
         if (requests.removeIf(entry -> entry.id == id)) {
             setChanged();
         }
+    }
+
+    /** The output slot a new request for the key would own, or {@link RequestSlots#NONE} when the row is full. */
+    public int freeSlot(ItemKey key) {
+        List<RequestSlots.Slot<ItemKey>> slots = new ArrayList<>();
+        for (int i = 0; i < output.getSlots(); i++) {
+            ItemStack stack = output.getStackInSlot(i);
+            slots.add(new RequestSlots.Slot<>(owner(i) != null, stack.isEmpty() ? null : ItemKey.of(stack),
+                    stack.getCount() < Math.min(stack.getMaxStackSize(), output.getSlotLimit(i))));
+        }
+        return RequestSlots.choose(slots, key);
+    }
+
+    /** The open request owning an output slot, or null. */
+    public Request owner(int slot) {
+        for (Request request : requests) {
+            if (request.slot == slot) {
+                return request;
+            }
+        }
+        return null;
+    }
+
+    /** Whether one more of the request's item fits into its slot. */
+    public boolean fits(Request request) {
+        return request.slot >= 0 && request.slot < output.getSlots()
+                && output.insertItem(request.slot, request.key.stack(1), true).isEmpty();
     }
 
     /** Keeps the ledger's request counter above the ids of loaded requests. */
@@ -219,18 +250,10 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
         return false;
     }
 
-    /** Gives arrived items to the open requests of that item, oldest first. */
-    private void credit(ItemKey key, int count) {
-        for (Request request : requests) {
-            if (count <= 0) {
-                return;
-            }
-            if (request.key.equals(key) && request.delivered < request.requested) {
-                int share = Math.min(count, request.requested - request.delivered);
-                request.delivered += share;
-                count -= share;
-            }
-        }
+    /** The request owning the slot when it still waits for this item, else null. */
+    private Request waitingOwner(int slot, ItemKey key) {
+        Request request = owner(slot);
+        return request != null && request.key.equals(key) && request.delivered < request.requested ? request : null;
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, StorageTerminalBlockEntity terminal) {
@@ -409,6 +432,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
         entry.putInt("Requested", request.requested);
         entry.putInt("Delivered", request.delivered);
         entry.putInt("Missing", request.missing);
+        entry.putInt("Slot", request.slot);
         if (request.orderCpu != null) {
             entry.put("OrderCpu", ValueIo.posTag(request.orderCpu));
         }
@@ -436,6 +460,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
         Request request = new Request(entry.getIntOr("Id", 0), ItemKey.of(item), entry.getIntOr("Requested", 0));
         request.delivered = entry.getIntOr("Delivered", 0);
         request.missing = entry.getIntOr("Missing", 0);
+        request.slot = entry.getIntOr("Slot", RequestSlots.NONE);
         request.orderCpu = ValueIo.readPos(entry, "OrderCpu").orElse(null);
         request.remote = entry.contains("Remote") ? entry.getStringOr("Remote", "") : null;
         request.shipped = entry.getBooleanOr("Shipped", false);
@@ -478,13 +503,18 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
         for (Tag raw : tag.getListOrEmpty("Requests")) {
             readRequest(registries, (CompoundTag) raw).ifPresent(requests::add);
         }
+        for (Request request : requests) {
+            if (request.slot < 0 || request.slot >= output.getSlots()) {
+                request.slot = freeSlot(request.key);
+            }
+        }
     }
 
     /**
      * What automation and packets see: the output slots first, then the input
-     * slots. An item an open request waits for may only go into the output,
-     * where it is credited; every other item only into the input, which
-     * stores it. Nothing can be taken out.
+     * slots. An item an open request waits for may only go into the slot of
+     * that request, where it is credited; every other item only into the
+     * input, which stores it. Nothing can be taken out.
      */
     private final class RoutingHandler extends LegacyItemHandler {
 
@@ -505,13 +535,14 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
             }
             boolean wanted = waitsFor(ItemKey.of(stack));
             if (slot < output.getSlots()) {
-                if (!wanted) {
+                Request request = waitingOwner(slot, ItemKey.of(stack));
+                if (request == null) {
                     return stack;
                 }
                 ItemStack left = output.insertItem(slot, stack, simulate);
                 int landed = stack.getCount() - left.getCount();
                 if (!simulate && landed > 0) {
-                    credit(ItemKey.of(stack), landed);
+                    request.delivered = Math.min(request.requested, request.delivered + landed);
                 }
                 return left;
             }
@@ -530,7 +561,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return (slot < output.getSlots()) == waitsFor(ItemKey.of(stack));
+            return slot < output.getSlots() ? waitingOwner(slot, ItemKey.of(stack)) != null : !waitsFor(ItemKey.of(stack));
         }
     }
 

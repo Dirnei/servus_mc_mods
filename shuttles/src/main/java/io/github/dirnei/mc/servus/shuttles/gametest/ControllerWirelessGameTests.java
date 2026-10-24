@@ -563,14 +563,15 @@ public final class ControllerWirelessGameTests {
         });
     }
 
-    /** A transfer that arrives while the output slots are full waits in the receiving Packing Station and moves on once they are emptied. */
+    /** A transfer that arrives while its output slot is full waits in the receiving Packing Station and moves on once the slot is emptied. */
     @ServusGameTest(timeoutTicks = 1000)
     public static void transferWaitsWhileOutputFull(GameTestHelper helper) {
         Sites sites = sites(helper);
         sites.a().setEnergy(10000);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         StorageTerminalBlockEntity terminal = terminal(helper);
-        for (int slot = 0; slot < terminal.output().getSlots(); slot++) {
+        terminal.output().setStackInSlot(0, new ItemStack(Items.IRON_INGOT, 60));
+        for (int slot = 1; slot < terminal.output().getSlots(); slot++) {
             terminal.output().setStackInSlot(slot, new ItemStack(Items.COBBLESTONE, 64));
         }
         listed(helper, sites, () -> {
@@ -583,14 +584,12 @@ public final class ControllerWirelessGameTests {
                             && terminal(helper).requests().get(0).relay != null, 540,
                     () -> "the outpost sent all 16 iron to the base's Packing Station", () -> {
                 helper.runAfterDelay(20, () -> {
-                    helper.assertTrue(terminal(helper).outputCount(Items.IRON_INGOT) == 0, "no iron fits into the full output slots");
+                    helper.assertTrue(terminal(helper).outputCount(Items.IRON_INGOT) == 64, "only 4 iron fit into the transfer's slot");
                     helper.assertTrue(WarehouseFixtures.count(sites.rackA(), Items.IRON_INGOT) == 0, "nothing is put away at the base");
                     List<RequestRow> rows = menu.stock().requests();
                     helper.assertTrue(rows.size() == 1 && rows.get(0).state().equals("WAITING_ROOM"), "the transfer waits for room, was " + rows);
-                    for (int slot = 0; slot < terminal(helper).output().getSlots(); slot++) {
-                        terminal(helper).output().setStackInSlot(slot, ItemStack.EMPTY);
-                    }
-                    Waits.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 16 && terminal(helper).requests().isEmpty(), 300,
+                    terminal(helper).output().setStackInSlot(0, ItemStack.EMPTY);
+                    Waits.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 12 && terminal(helper).requests().isEmpty(), 300,
                             () -> "with room the iron moves on, had " + terminal(helper).outputCount(Items.IRON_INGOT), () -> {
                         helper.assertTrue(WarehouseFixtures.count(sites.rackA(), Items.IRON_INGOT) == 0, "still nothing is put away at the base");
                         helper.succeed();

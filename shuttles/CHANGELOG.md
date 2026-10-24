@@ -17,6 +17,7 @@
 - The Field Head buffer and field runs reserve their slots; with a full warehouse a Harvester parks in its garage instead of dropping crops on the field.
 - The Storage Terminal counts only what can still be requested and asks only for what is there unless a CPU crafts the rest.
 - Stations and the terminal say "no shuttle available" when no shuttle can take a job.
+- Storage Terminal requests sit on their own Output row slot with progress; a click requests one, shift a stack, right click asks for an amount, middle or Ctrl click cancels.
 
 ### Fixed
 - Shuttle jobs, their cargo and station claims survive a reload or an unloaded warehouse; nothing drops mid-trip.

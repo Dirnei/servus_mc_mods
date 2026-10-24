@@ -379,8 +379,8 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.terminal.plus_stack", "+Stack");
         add("gui.servus_shuttles.terminal.request", "Request");
         add("gui.servus_shuttles.terminal.cancel", "Cancel");
-        add("gui.servus_shuttles.terminal.click_hint", "Click to request, shift click for a stack");
-        add("gui.servus_shuttles.terminal.cancel_hint", "Click to cancel this request");
+        add("gui.servus_shuttles.terminal.click_hint", "Click for one, shift click for a stack, right click for an amount");
+        add("gui.servus_shuttles.terminal.cancel_hint", "Middle click or Ctrl click to cancel this request");
         add("gui.servus_shuttles.terminal.request_line", "Request: %s of %s delivered");
         add("gui.servus_shuttles.terminal.setting.sort", "Sort by: %s");
         add("gui.servus_shuttles.terminal.setting.sort.name", "Name");
@@ -447,6 +447,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.terminal.message.no_packing_station", "No Packing Station of the warehouse on this data line");
         add("gui.servus_shuttles.terminal.message.input_no_packing_station", "No Packing Station on this data line");
         add("gui.servus_shuttles.terminal.message.out_of_stock", "Nothing of that in stock");
+        add("gui.servus_shuttles.terminal.message.output_full", "Output row full, take your items");
         add("gui.servus_shuttles.terminal.message.missing", "Raw materials are missing");
         add("gui.servus_shuttles.terminal.message.no_cpu", "No Crafting CPU on this data line");
         add("gui.servus_shuttles.terminal.message.no_producer", "Nothing on this data line makes that");

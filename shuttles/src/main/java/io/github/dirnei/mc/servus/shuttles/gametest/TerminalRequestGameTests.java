@@ -118,32 +118,109 @@ public final class TerminalRequestGameTests {
                 helper.assertTrue(rows.size() == 1 && rows.get(0).requested() == 100 && rows.get(0).delivered() == 0, "one open request for 100, got " + rows);
                 helper.assertTrue(rows.get(0).state().equals("PICKING") || rows.get(0).state().equals("SENDING"), "state should be picking or sending, was " + rows.get(0).state());
             });
-            Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 100 && menu.stock().requests().isEmpty(), 460,
-                    () -> "100 cobblestone should arrive and the request settle, had " + terminal.outputCount(Items.COBBLESTONE)
-                            + ", rows " + menu.stock().requests(), helper::succeed);
+            Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 64 && menu.stock().requests().get(0).state().equals("WAITING_ROOM"), 460,
+                    () -> "a stack should fill the request's slot and the rest wait for room, had " + terminal.outputCount(Items.COBBLESTONE)
+                            + ", rows " + menu.stock().requests(), () -> {
+                int taken = TerminalWiring.takeOutput(terminal, Items.COBBLESTONE);
+                Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 100 - taken && menu.stock().requests().isEmpty(), 300,
+                        () -> "the other 36 should land in the emptied slot, had " + terminal.outputCount(Items.COBBLESTONE)
+                                + ", rows " + menu.stock().requests(), helper::succeed);
+            });
         });
     }
 
-    /** When the output slots are full the shuttle waits beside the terminal and unloads once a slot frees up. */
+    /** When the request's slot is full the packets wait and land once the player empties it. */
     @ServusGameTest(timeoutTicks = 400)
     public static void outputFullShuttleWaits(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         StorageTerminalMenu menu = requestSetup(helper, player, 64);
         StorageTerminalBlockEntity terminal = menu.terminal();
-        for (int i = 0; i < terminal.output().getSlots(); i++) {
+        terminal.output().setStackInSlot(0, new ItemStack(Items.COBBLESTONE, 32));
+        for (int i = 1; i < terminal.output().getSlots(); i++) {
             terminal.output().setStackInSlot(i, new ItemStack(Items.DIRT, 64));
         }
         helper.runAfterDelay(10, () -> {
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 64);
+            helper.assertTrue(menu.stock().message().isEmpty(), "the leftover cobblestone slot takes the request, was " + menu.stock().message());
             Waits.when(helper, () -> !menu.stock().requests().isEmpty() && menu.stock().requests().get(0).state().equals("WAITING_ROOM"), 300,
                     () -> "the packets should be waiting for room, got " + menu.stock().requests(), () -> {
                 List<RequestRow> rows = menu.stock().requests();
-                helper.assertTrue(rows.size() == 1 && rows.get(0).delivered() == 0, "nothing delivered yet, got " + rows);
-                helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 0, "nothing can land yet");
+                helper.assertTrue(rows.size() == 1 && rows.get(0).delivered() == 32, "32 delivered into the leftover stack, got " + rows);
+                helper.assertTrue(terminal.outputCount(Items.DIRT) == 8 * 64, "no cobblestone lands in the dirt slots");
                 terminal.output().setStackInSlot(0, ItemStack.EMPTY);
-                Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 64 && menu.stock().requests().isEmpty(), 300,
+                Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 32 && menu.stock().requests().isEmpty(), 300,
                         () -> "the waiting packets should land once a slot is free, had " + terminal.outputCount(Items.COBBLESTONE)
                                 + ", rows " + menu.stock().requests(), helper::succeed);
+            });
+        });
+    }
+
+    /** A one item request owns a slot and lands there; two more clicks grow the same request in the same slot. */
+    @ServusGameTest(timeoutTicks = 500)
+    public static void clicksGrowOneRequestInItsSlot(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = requestSetup(helper, player, 50);
+        StorageTerminalBlockEntity terminal = menu.terminal();
+        ItemKey cobblestone = ItemKey.of(new ItemStack(Items.COBBLESTONE));
+        terminal.output().setStackInSlot(0, new ItemStack(Items.DIRT, 5));
+        helper.runAfterDelay(10, () -> {
+            menu.request(cobblestone, 1);
+            menu.request(cobblestone, 1);
+            menu.request(cobblestone, 1);
+            helper.assertTrue(terminal.requests().size() == 1 && terminal.requests().get(0).requested == 3,
+                    "three clicks make one request for 3, got " + menu.stock().requests());
+            int slot = terminal.requests().get(0).slot;
+            helper.assertTrue(slot == 1, "the request skips the slot holding dirt, got " + slot);
+            Waits.when(helper, () -> terminal.output().getStackInSlot(1).is(Items.COBBLESTONE)
+                            && terminal.output().getStackInSlot(1).getCount() == 3 && terminal.requests().isEmpty(), 400,
+                    () -> "3 cobblestone should land in slot 1, slot holds " + terminal.output().getStackInSlot(1), helper::succeed);
+        });
+    }
+
+    /** With every slot owned or holding other items a new request is refused; a click on an open request's item still grows it. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void fullOutputRowRefuses(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = requestSetup(helper, player, 50);
+        StorageTerminalBlockEntity terminal = menu.terminal();
+        WarehouseFixtures.stock(helper, RQ_RACK, new ItemStack(Items.BREAD, 10));
+        ItemKey cobblestone = ItemKey.of(new ItemStack(Items.COBBLESTONE));
+        Waits.when(helper, () -> TerminalWiring.stockOf(menu, Items.BREAD) == 10, 100, () -> "the bread should be indexed", () -> {
+            menu.request(cobblestone, 1);
+            int owned = terminal.requests().get(0).slot;
+            for (int slot = 0; slot < terminal.output().getSlots(); slot++) {
+                if (slot != owned) {
+                    terminal.output().setStackInSlot(slot, new ItemStack(Items.DIRT, 64));
+                }
+            }
+            menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 1);
+            helper.assertTrue(menu.stock().message().equals("output_full"), "the bread request is refused, got " + menu.stock().message());
+            menu.request(cobblestone, 1);
+            helper.assertTrue(menu.stock().message().isEmpty() && terminal.requests().size() == 1 && terminal.requests().get(0).requested == 2,
+                    "the cobblestone request grows to 2, got " + menu.stock().message() + " " + menu.stock().requests());
+            helper.succeed();
+        });
+    }
+
+    /** Cancelling keeps what arrived in the slot, and the slot stays taken for other items until it is emptied. */
+    @ServusGameTest(timeoutTicks = 600)
+    public static void cancelKeepsDeliveredItems(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = requestSetup(helper, player, 200);
+        StorageTerminalBlockEntity terminal = menu.terminal();
+        ItemKey bread = ItemKey.of(new ItemStack(Items.BREAD));
+        helper.runAfterDelay(10, () -> {
+            menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 100);
+            int slot = terminal.requests().get(0).slot;
+            Waits.when(helper, () -> terminal.output().getStackInSlot(slot).getCount() == 64, 460,
+                    () -> "a stack should fill the request's slot, slot holds " + terminal.output().getStackInSlot(slot), () -> {
+                menu.cancel(terminal.requests().get(0).id);
+                helper.assertTrue(terminal.requests().isEmpty(), "the request ends");
+                helper.assertTrue(terminal.output().getStackInSlot(slot).getCount() == 64, "the 64 delivered stay in the slot");
+                helper.assertTrue(terminal.freeSlot(bread) != slot, "the full slot is not offered to bread");
+                terminal.output().setStackInSlot(slot, ItemStack.EMPTY);
+                helper.assertTrue(terminal.freeSlot(bread) == slot, "the emptied slot is free again, got " + terminal.freeSlot(bread));
+                helper.succeed();
             });
         });
     }

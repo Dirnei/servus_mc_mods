@@ -44,6 +44,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
@@ -757,14 +758,14 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                 : Component.translatable("gui.servus_shuttles.terminal.state." + row.state().toLowerCase(Locale.ROOT));
     }
 
+    private List<Component> requestTooltip(RequestRow row) {
+        return List.of(row.stack().getHoverName(),
+                Component.translatable("gui.servus_shuttles.terminal.request_line", row.delivered(), row.requested()),
+                stateText(row),
+                Component.translatable("gui.servus_shuttles.terminal.cancel_hint"));
+    }
+
     private List<Component> cellTooltip(Cell cell) {
-        if (cell.isRequest()) {
-            RequestRow row = cell.request();
-            return List.of(cell.stack().getHoverName(),
-                    Component.translatable("gui.servus_shuttles.terminal.request_line", row.delivered(), row.requested()),
-                    stateText(row),
-                    Component.translatable("gui.servus_shuttles.terminal.cancel_hint"));
-        }
         List<Component> lines = new ArrayList<>(Screen.getTooltipFromItem(Minecraft.getInstance(), cell.stack()));
         if (cell.stocked()) {
             lines.add(Component.translatable("gui.servus_shuttles.stored", cell.count()));
@@ -814,20 +815,10 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     }
 
     /**
-     * One cell: a request with its delivered count and state mark on a blue
-     * ground, or an item with its count or a craft label, a blue corner for a
+     * One cell: an item with its count or a craft label, a blue corner for a
      * stock rule and an orange corner when a stocked item is craftable too.
      */
     private void renderCell(GuiGraphicsExtractor graphics, Cell cell, int x, int y, boolean greyed) {
-        if (cell.isRequest()) {
-            graphics.fill(x - 1, y - 1, x + 17, y + 17, 0xFF5868A8);
-            graphics.item(cell.stack(), x, y);
-            RequestRow row = cell.request();
-            smallText(graphics, Component.literal(row.delivered() + "/" + row.requested()), x + 16, y + 11, 0xFFFFFFFF);
-            graphics.fill(x + 12, y, x + 16, y + 4, 0xFF202020);
-            graphics.fill(x + 13, y + 1, x + 15, y + 3, stateColour(row.state()));
-            return;
-        }
         graphics.item(cell.stack(), x, y);
         if (greyed) {
             graphics.fill(x, y, x + 16, y + 16, 0xA0707070);
@@ -843,6 +834,57 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         if (cell.stocked() && cell.craftable()) {
             graphics.fill(x, y + 13, x + 3, y + 16, 0xFFFFB040);
         }
+    }
+
+    /** The open request owning an output slot of the menu, or null. */
+    private RequestRow requestAt(Slot slot) {
+        if (slot == null || slot.index >= menu.outputSlots()) {
+            return null;
+        }
+        for (RequestRow row : ClientStock.requests()) {
+            if (row.slot() == slot.index) {
+                return row;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Each request on its output slot: the item faded while nothing has
+     * arrived, delivered of requested at the top, a state mark in the corner
+     * and a progress bar along the bottom edge.
+     */
+    @Override
+    protected void extractSlots(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractSlots(graphics, mouseX, mouseY);
+        for (RequestRow row : ClientStock.requests()) {
+            if (row.slot() < 0 || row.slot() >= menu.outputSlots()) {
+                continue;
+            }
+            Slot slot = menu.slots.get(row.slot());
+            int x = slot.x;
+            int y = slot.y;
+            if (!slot.hasItem()) {
+                graphics.fakeItem(row.stack(), x, y);
+                graphics.fill(x, y, x + 16, y + 16, 0x908B8B8B);
+            }
+            smallText(graphics, Component.literal(row.delivered() + "/" + row.requested()), x + 16, y + 1, 0xFFFFFFFF);
+            graphics.fill(x, y, x + 4, y + 4, 0xFF202020);
+            graphics.fill(x + 1, y + 1, x + 3, y + 3, stateColour(row.state()));
+            int filled = row.requested() <= 0 ? 0 : 16 * Math.min(row.delivered(), row.requested()) / row.requested();
+            graphics.fill(x, y + 16, x + 16, y + 17, 0xFF202020);
+            graphics.fill(x, y + 16, x + filled, y + 17, stateColour(row.state()));
+        }
+    }
+
+    @Override
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        RequestRow row = menu.getCarried().isEmpty() ? requestAt(hoveredSlot) : null;
+        if (row != null) {
+            graphics.setComponentTooltipForNextFrame(font, requestTooltip(row), mouseX, mouseY);
+            return;
+        }
+        super.extractTooltip(graphics, mouseX, mouseY);
     }
 
     /** Half size text right aligned at {@code right}, drawn above items. */
@@ -1152,20 +1194,23 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         if (ClientStock.online() && cellAt(mouseX, mouseY) >= 0 && clickGrid(cellUnder(mouseX, mouseY), button)) {
             return true;
         }
+        RequestRow request = requestAt(hoveredSlot);
+        boolean cancelClick = button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE
+                || button == GLFW.GLFW_MOUSE_BUTTON_LEFT && Minecraft.getInstance().hasControlDown();
+        if (request != null && cancelClick) {
+            ClientPacketDistributor.sendToServer(new CancelRequestPayload(request.id()));
+            return true;
+        }
         return super.mouseClicked(event, doubleClick);
     }
 
     /**
-     * A click on the grid: a request cancels; a carried stack is stored; an
-     * item opens the request dialog, or the craft dialog when it is not stocked
-     * or is middle or control clicked while craftable; shift requests a stack
-     * at once, or all there is when the stock is smaller.
+     * A click on the grid: a carried stack is stored; an item is requested
+     * once, a stack at once with shift (or all there is when the stock is
+     * smaller), the amount prompt opens on a right click, and the craft dialog
+     * when it is not stocked or is middle or control clicked while craftable.
      */
     private boolean clickGrid(Optional<Cell> cell, int button) {
-        if (cell.isPresent() && cell.get().isRequest()) {
-            ClientPacketDistributor.sendToServer(new CancelRequestPayload(cell.get().request().id()));
-            return true;
-        }
         if (!menu.getCarried().isEmpty()) {
             ClientPacketDistributor.sendToServer(PushCarriedPayload.INSTANCE);
             return true;
@@ -1180,8 +1225,10 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         } else if (Minecraft.getInstance().hasShiftDown()) {
             int count = (int) Math.min(found.stack().getMaxStackSize(), found.count());
             ClientPacketDistributor.sendToServer(new RequestItemPayload(found.stack(), count));
-        } else {
+        } else if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
             openRequest(found);
+        } else {
+            ClientPacketDistributor.sendToServer(new RequestItemPayload(found.stack(), 1));
         }
         return true;
     }

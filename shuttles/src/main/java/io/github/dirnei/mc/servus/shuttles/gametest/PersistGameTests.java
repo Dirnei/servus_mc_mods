@@ -92,12 +92,14 @@ public final class PersistGameTests {
         StorageTerminalBlockEntity.Request request = terminal.newRequest(helper.getLevel(), STICK, 12);
         request.delivered = 4;
         request.missing = 8;
+        request.slot = 4;
         int savedId = request.id;
         StorageTerminalBlockEntity loaded = reload(helper, TerminalWiring.terminalPos(ACCESS));
         StorageTerminalBlockEntity.Request back = loaded.request(savedId);
         helper.assertTrue(back != null, "the request should be there after the reload");
         helper.assertTrue(back.key.equals(STICK) && back.requested == 12 && back.delivered == 4 && back.missing == 8,
                 "item and amounts should be kept, got " + back.requested + "/" + back.delivered + "/" + back.missing);
+        helper.assertTrue(back.slot == 4, "the request should still own output slot 4, got " + back.slot);
         StorageTerminalBlockEntity.Request next = loaded.newRequest(helper.getLevel(), STICK, 1);
         helper.assertTrue(next.id > savedId, "a new id should be above " + savedId + ", got " + next.id);
         helper.succeed();

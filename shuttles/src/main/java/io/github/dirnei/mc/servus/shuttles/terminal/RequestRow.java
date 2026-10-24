@@ -14,8 +14,9 @@ import net.minecraft.world.item.ItemStack;
  * @param delivered how many landed in the output slots
  * @param missing   how many cannot come
  * @param state     the request state name
+ * @param slot      the output slot the request owns, {@link RequestSlots#NONE} without one
  */
-public record RequestRow(int id, ItemStack stack, int requested, int delivered, int missing, String state) {
+public record RequestRow(int id, ItemStack stack, int requested, int delivered, int missing, String state, int slot) {
 
     public static final StreamCodec<RegistryFriendlyByteBuf, RequestRow> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, RequestRow::id,
@@ -24,5 +25,6 @@ public record RequestRow(int id, ItemStack stack, int requested, int delivered, 
             ByteBufCodecs.VAR_INT, RequestRow::delivered,
             ByteBufCodecs.VAR_INT, RequestRow::missing,
             ByteBufCodecs.STRING_UTF8, RequestRow::state,
+            ByteBufCodecs.VAR_INT, RequestRow::slot,
             RequestRow::new);
 }

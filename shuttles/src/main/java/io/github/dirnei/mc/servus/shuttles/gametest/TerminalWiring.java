@@ -15,6 +15,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Places a Storage Terminal on the data line of a warehouse: a Packing Station,
@@ -88,6 +89,19 @@ public final class TerminalWiring {
     }
 
     /** A Utility Duct carrying only the data line. */
+    /** Takes every stack of the item out of the output slots, as a player collecting them; returns how many. */
+    public static int takeOutput(StorageTerminalBlockEntity terminal, Item item) {
+        int taken = 0;
+        for (int slot = 0; slot < terminal.output().getSlots(); slot++) {
+            ItemStack stack = terminal.output().getStackInSlot(slot);
+            if (stack.is(item)) {
+                taken += stack.getCount();
+                terminal.output().setStackInSlot(slot, ItemStack.EMPTY);
+            }
+        }
+        return taken;
+    }
+
     public static UtilityDuctBlockEntity dataDuct(GameTestHelper helper, BlockPos pos) {
         GameTestSteps.duct(helper, pos, Line.DATA);
         return helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);

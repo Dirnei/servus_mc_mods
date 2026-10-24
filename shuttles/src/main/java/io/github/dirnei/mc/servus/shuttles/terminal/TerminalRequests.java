@@ -54,9 +54,12 @@ public final class TerminalRequests {
      * Makes a request for {@code amount} of {@code key}: what is requestable
      * is shipped, the rest is crafted when a CPU of the line can make it with
      * nothing missing, else the request is only for what can be shipped.
+     * When stock covers it and this site has an open request for the key
+     * without a work order, that request grows instead.
      *
      * @return an empty string when the request was made, else the refusal key:
-     *         {@code offline}, {@code no_packing_station}, {@code needs_shuttle}, {@code no_rail} or {@code out_of_stock}
+     *         {@code offline}, {@code no_packing_station}, {@code needs_shuttle}, {@code no_rail},
+     *         {@code out_of_stock} or {@code output_full}
      */
     public static String request(ServerLevel level, StorageTerminalBlockEntity terminal, ItemKey key, int amount) {
         List<WarehouseNetwork> warehouses = TerminalWarehouses.reachable(level, terminal.getBlockPos());
@@ -69,6 +72,13 @@ public final class TerminalRequests {
         RequestSplit split = RequestSplit.of(amount, available, restCraftable);
         if (split.total() <= 0) {
             return "out_of_stock";
+        }
+        Optional<Request> open = split.toCraft() == 0 ? growable(level, terminal, key) : Optional.empty();
+        if (open.isPresent()) {
+            return grow(terminal, open.get(), warehouses, split.fromStock());
+        }
+        if (terminal.freeSlot(key) == RequestSlots.NONE) {
+            return "output_full";
         }
         Request request = terminal.newRequest(level, key, split.total());
         String[] refusal = {""};
@@ -90,6 +100,25 @@ public final class TerminalRequests {
         return "";
     }
 
+    /** An open request of this site for the key whose items all come from stock. */
+    private static Optional<Request> growable(ServerLevel level, StorageTerminalBlockEntity terminal, ItemKey key) {
+        return terminal.requests().stream()
+                .filter(request -> request.remote == null && request.key.equals(key) && !producing(level, request))
+                .findFirst();
+    }
+
+    /** Ships {@code amount} more on an open request; returns the refusal key, empty when something was shipped. */
+    private static String grow(StorageTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses, int amount) {
+        String[] refusal = {""};
+        int shipped = amount - ship(terminal, request, warehouses, amount, refusal);
+        if (shipped <= 0) {
+            return refusal[0].isEmpty() ? "out_of_stock" : refusal[0];
+        }
+        request.requested += shipped;
+        terminal.setChanged();
+        return "";
+    }
+
     /** How many of the key the warehouses hold that no pick has locked. */
     private static long available(List<WarehouseNetwork> warehouses, ItemKey key) {
         long sum = 0;
@@ -104,11 +133,14 @@ public final class TerminalRequests {
      * the item's own stock, for a new request whose results land in the output slots.
      *
      * @return an empty string when the order was made, else the refusal key:
-     *         {@code offline}, {@code no_cpu}, {@code no_producer} or {@code missing}
+     *         {@code offline}, {@code output_full}, {@code no_cpu}, {@code no_producer} or {@code missing}
      */
     public static String craft(ServerLevel level, StorageTerminalBlockEntity terminal, ItemKey key, int amount) {
         if (TerminalWarehouses.reachable(level, terminal.getBlockPos()).isEmpty()) {
             return "offline";
+        }
+        if (terminal.freeSlot(key) == RequestSlots.NONE) {
+            return "output_full";
         }
         OrderBook.Preview preview =
                 TerminalCraftables.preview(level, terminal.getBlockPos(), key, amount);
@@ -136,11 +168,14 @@ public final class TerminalRequests {
      * results land in the output slots.
      *
      * @return an empty string when the order was made, else the refusal key:
-     *         {@code offline}, {@code no_cpu}, {@code no_station}, {@code no_producer} or {@code missing}
+     *         {@code offline}, {@code output_full}, {@code no_cpu}, {@code no_station}, {@code no_producer} or {@code missing}
      */
     public static String craftOneOff(ServerLevel level, StorageTerminalBlockEntity terminal, EncodedPattern pattern, int amount) {
         if (TerminalWarehouses.reachable(level, terminal.getBlockPos()).isEmpty()) {
             return "offline";
+        }
+        if (terminal.freeSlot(ItemKey.of(pattern.result())) == RequestSlots.NONE) {
+            return "output_full";
         }
         String refusal = TerminalCraftables.orderRefusal(level, terminal.getBlockPos());
         if (!refusal.isEmpty()) {
@@ -317,7 +352,7 @@ public final class TerminalRequests {
         for (Request request : terminal.requests()) {
             int delivered = request.delivered;
             rows.add(new RequestRow(request.id, request.key.stack(1), request.requested, Math.min(request.requested, delivered),
-                    request.missing, state(level, terminal, request, warehouses).name()));
+                    request.missing, state(level, terminal, request, warehouses).name(), request.slot));
         }
         return rows;
     }
@@ -338,7 +373,7 @@ public final class TerminalRequests {
 
     /** Packets that find no room in the output slots wait at the terminal. */
     private static RequestState delivering(StorageTerminalBlockEntity terminal, Request request) {
-        return fits(terminal, request) ? RequestState.SENDING : RequestState.WAITING_ROOM;
+        return terminal.fits(request) ? RequestState.SENDING : RequestState.WAITING_ROOM;
     }
 
     /**
@@ -388,11 +423,6 @@ public final class TerminalRequests {
             return noPower ? RequestState.NO_POWER : RequestState.PRODUCING;
         }
         return RequestState.MISSING;
-    }
-
-    /** Whether one more of the request's item fits into the output slots. */
-    private static boolean fits(StorageTerminalBlockEntity terminal, Request request) {
-        return terminal.output().insertItemStacked(request.key.stack(1), true).isEmpty();
     }
 
     /** Whether the wake of the other site waits because its controller had too little FE to wake. */
