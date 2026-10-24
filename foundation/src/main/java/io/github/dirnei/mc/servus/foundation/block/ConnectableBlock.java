@@ -10,31 +10,39 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.LiquidBlockContainer;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A thin block with six connection flags, used by cables and ducts. Subclasses
- * decide what a side connects to. Sneak wrench dismantles it.
+ * decide what a side connects to. Sneak wrench dismantles it. Fluids stop at it
+ * like at a wall, and it can not be placed into a fluid source unless
+ * {@link #placedInto} says otherwise.
  */
-public abstract class ConnectableBlock extends BaseEntityBlock implements Wrenchable {
+public abstract class ConnectableBlock extends BaseEntityBlock implements Wrenchable, LiquidBlockContainer {
 
     public static final BooleanProperty NORTH = BlockStateProperties.NORTH;
     public static final BooleanProperty SOUTH = BlockStateProperties.SOUTH;
@@ -93,7 +101,7 @@ public abstract class ConnectableBlock extends BaseEntityBlock implements Wrench
     }
 
     @Override
-    public BlockState getStateForPlacement(BlockPlaceContext context) {
+    public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         BlockState state = defaultBlockState();
@@ -101,7 +109,22 @@ public abstract class ConnectableBlock extends BaseEntityBlock implements Wrench
             BlockPos neighborPos = pos.relative(direction);
             state = state.setValue(property(direction), connectsTo(level, neighborPos, level.getBlockState(neighborPos), direction));
         }
-        return state;
+        return placedInto(state, level.getFluidState(pos));
+    }
+
+    /** The state to place where {@code fluid} is, or null to refuse the placement. Refuses every fluid source. */
+    protected @Nullable BlockState placedInto(BlockState state, FluidState fluid) {
+        return fluid.isSource() ? null : state;
+    }
+
+    @Override
+    public boolean canPlaceLiquid(@Nullable LivingEntity user, BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
+        return false;
+    }
+
+    @Override
+    public boolean placeLiquid(LevelAccessor level, BlockPos pos, BlockState state, FluidState fluidState) {
+        return false;
     }
 
     @Override

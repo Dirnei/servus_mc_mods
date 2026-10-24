@@ -17,6 +17,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctModelData;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctPose;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctShapes;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlock;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.ChannelRequests;
@@ -71,6 +72,8 @@ public final class ServusLogisticsGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos DUCT = new BlockPos(3, 1, 3);
+    /** Centre of the fluid tests, far enough from the edges that water does not run off. */
+    private static final BlockPos POOL = new BlockPos(6, 1, 6);
 
     /** Three ducts in a row along x with a chest north of each. */
     private static final BlockPos DUCT_A = new BlockPos(2, 1, 6);
@@ -1141,5 +1144,92 @@ public final class ServusLogisticsGameTests {
         helper.assertTrue(Reveal.analysing(player) == analysing, what + ": analysing should be " + analysing);
         helper.assertTrue(Reveal.seesThroughPanels(player) == (configuring || analysing),
                 what + ": panels see-through should be " + (configuring || analysing));
+    }
+
+    /** Water flowing against a duct leaves it standing and dry. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void waterStopsAtDuct(GameTestHelper helper) {
+        fluidStopsAtDuct(helper, Blocks.WATER, Fluids.WATER, 100);
+    }
+
+    /** Lava flowing against a duct leaves it standing and dry. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void lavaStopsAtDuct(GameTestHelper helper) {
+        fluidStopsAtDuct(helper, Blocks.LAVA, Fluids.LAVA, 100);
+    }
+
+    private static void fluidStopsAtDuct(GameTestHelper helper, Block source, Fluid fluid, int ticks) {
+        stoneFloor(helper);
+        duct(helper, POOL, Line.ITEM);
+        helper.setBlock(POOL.west(), source.defaultBlockState());
+        helper.runAfterDelay(ticks, () -> {
+            helper.assertBlockPresent(ServusLogisticsBlocks.UTILITY_DUCT.get(), POOL);
+            helper.assertTrue(helper.getLevel().getFluidState(helper.absolutePos(POOL)).isEmpty(), "no fluid enters the duct");
+            helper.assertTrue(helper.getLevel().getFluidState(helper.absolutePos(POOL.west().north())).getType().isSame(fluid), "the fluid flowed beside the duct, got " + helper.getLevel().getFluidState(helper.absolutePos(POOL.west().north())));
+            helper.assertItemEntityNotPresent(ServusLogisticsItems.ITEM_PIPE.get(), POOL, 2);
+            helper.succeed();
+        });
+    }
+
+    /** Stone under the whole area, so fluids around {@code POOL} spread evenly instead of running to an edge. */
+    private static void stoneFloor(GameTestHelper helper) {
+        for (int x = 0; x < 12; x++) {
+            for (int z = 0; z < 12; z++) {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE.defaultBlockState());
+            }
+        }
+    }
+
+    /** A line item used on the floor of a water source places a waterlogged duct and the water stays. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void ductWaterloggedInWaterSource(GameTestHelper helper) {
+        stoneFloor(helper);
+        helper.setBlock(POOL, Blocks.WATER.defaultBlockState());
+        useLine(helper, helper.makeMockPlayer(GameType.SURVIVAL), ServusLogisticsItems.ITEM_PIPE.get(), POOL.below(), Direction.UP);
+        helper.assertBlockPresent(ServusLogisticsBlocks.UTILITY_DUCT.get(), POOL);
+        helper.assertBlockProperty(POOL, UtilityDuctBlock.WATERLOGGED, true);
+        helper.assertTrue(helper.getLevel().getFluidState(helper.absolutePos(POOL)).isSourceOfType(Fluids.WATER), "the water stays in the duct");
+        helper.succeed();
+    }
+
+    /** A line item used on the floor of a lava source places no duct and keeps the lava. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void ductRefusedInLavaSource(GameTestHelper helper) {
+        stoneFloor(helper);
+        helper.setBlock(POOL, Blocks.LAVA.defaultBlockState());
+        ItemStack stack = new ItemStack(ServusLogisticsItems.ITEM_PIPE.get());
+        GameTestSteps.useOn(helper, helper.makeMockPlayer(GameType.SURVIVAL), stack, POOL.below(), Direction.UP);
+        helper.assertTrue(helper.getLevel().getFluidState(helper.absolutePos(POOL)).isSourceOfType(Fluids.LAVA), "the lava source stays");
+        helper.assertTrue(stack.getCount() == 1, "the item stays in hand");
+        helper.succeed();
+    }
+
+    /** Breaking a waterlogged duct leaves a water source. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void brokenWaterloggedDuctLeavesWater(GameTestHelper helper) {
+        stoneFloor(helper);
+        duct(helper, POOL, Line.ITEM);
+        helper.setBlock(POOL, helper.getBlockState(POOL).setValue(UtilityDuctBlock.WATERLOGGED, true));
+        helper.destroyBlock(POOL);
+        helper.assertTrue(helper.getLevel().getFluidState(helper.absolutePos(POOL)).isSourceOfType(Fluids.WATER), "a water source stays");
+        helper.succeed();
+    }
+
+    /** A duct placed into flowing water is placed dry and holds the water back. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void ductDamsFlowingWater(GameTestHelper helper) {
+        stoneFloor(helper);
+        helper.setBlock(POOL.west(2), Blocks.WATER.defaultBlockState());
+        helper.runAfterDelay(100, () -> {
+            helper.assertTrue(helper.getLevel().getFluidState(helper.absolutePos(POOL)).getType() == Fluids.FLOWING_WATER, "water flows at the spot");
+            useLine(helper, helper.makeMockPlayer(GameType.SURVIVAL), ServusLogisticsItems.ITEM_PIPE.get(), POOL.below(), Direction.UP);
+            helper.assertBlockPresent(ServusLogisticsBlocks.UTILITY_DUCT.get(), POOL);
+            helper.assertBlockProperty(POOL, UtilityDuctBlock.WATERLOGGED, false);
+            helper.runAfterDelay(30, () -> {
+                helper.assertBlockPresent(ServusLogisticsBlocks.UTILITY_DUCT.get(), POOL);
+                helper.assertTrue(helper.getLevel().getFluidState(helper.absolutePos(POOL)).isEmpty(), "no water enters the duct");
+                helper.succeed();
+            });
+        });
     }
 }

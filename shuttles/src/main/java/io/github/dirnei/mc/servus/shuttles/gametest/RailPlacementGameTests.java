@@ -14,6 +14,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.material.Fluids;
 
 /** Placing rails: hanging on rack fronts, bridges, overhangs and sneak placing. */
 public final class RailPlacementGameTests {
@@ -353,5 +354,45 @@ public final class RailPlacementGameTests {
         for (int y = 1; y <= height; y++) {
             helper.setBlock(new BlockPos(x, y, z), ServusShuttlesBlocks.ELEVATOR.get().defaultBlockState());
         }
+    }
+
+    /** Centre of the fluid tests, far enough from the edges that water does not run off. */
+    private static final BlockPos POOL = new BlockPos(6, 1, 6);
+
+    /** Stone under the whole area, so fluids spread evenly instead of running to an edge. */
+    static void stoneFloor(GameTestHelper helper) {
+        for (int x = 0; x < 12; x++) {
+            for (int z = 0; z < 12; z++) {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE.defaultBlockState());
+            }
+        }
+    }
+
+    /** Water flowing against a rail and a farm rail leaves both standing and dry. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void waterStopsAtRail(GameTestHelper helper) {
+        stoneFloor(helper);
+        helper.setBlock(POOL.east(), ServusShuttlesBlocks.RAIL.get().defaultBlockState());
+        helper.setBlock(POOL.west(), ServusShuttlesBlocks.FARM_RAIL.get().defaultBlockState());
+        helper.setBlock(POOL, Blocks.WATER.defaultBlockState());
+        helper.runAfterDelay(40, () -> {
+            helper.assertBlockPresent(ServusShuttlesBlocks.RAIL.get(), POOL.east());
+            helper.assertBlockPresent(ServusShuttlesBlocks.FARM_RAIL.get(), POOL.west());
+            helper.assertTrue(helper.getLevel().getFluidState(helper.absolutePos(POOL.east())).isEmpty(), "no water enters the rail");
+            helper.assertTrue(helper.getLevel().getFluidState(helper.absolutePos(POOL.west())).isEmpty(), "no water enters the farm rail");
+            helper.assertFalse(helper.getLevel().getFluidState(helper.absolutePos(POOL.north())).isEmpty(), "the water flowed beside the rails");
+            helper.succeed();
+        });
+    }
+
+    /** A rail used on the floor of a water source places no rail and keeps the source. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void railRefusedInWaterSource(GameTestHelper helper) {
+        stoneFloor(helper);
+        helper.setBlock(POOL, Blocks.WATER.defaultBlockState());
+        clickRail(helper, helper.makeMockPlayer(GameType.SURVIVAL), POOL.below(), Direction.UP);
+        helper.assertTrue(helper.getLevel().getFluidState(helper.absolutePos(POOL)).isSourceOfType(Fluids.WATER), "the water source stays");
+        helper.assertFalse(helper.getBlockState(POOL).getBlock() instanceof RailBlock, "no rail is placed");
+        helper.succeed();
     }
 }

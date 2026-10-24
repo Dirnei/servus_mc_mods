@@ -47,6 +47,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.level.material.Fluids;
 
 /** Elevator shafts: linking floors, the lift car, its upgrades and placing segments. */
 public final class ElevatorGameTests {
@@ -774,6 +775,42 @@ public final class ElevatorGameTests {
         stack.set(MaterialContent.MATERIAL.get(), BIRCH);
         TestPlayers.useOnTop(helper, TestPlayers.holding(helper, stack), stack, stone);
         helper.assertTrue(BIRCH.equals(segmentWood(helper, stone.above())), "the segment is birch, got " + segmentWood(helper, stone.above()));
+        helper.succeed();
+    }
+
+    /** Water on top of a shaft leaves every segment standing and dry. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void waterStopsAtShaftTop(GameTestHelper helper) {
+        RailPlacementGameTests.stoneFloor(helper);
+        BlockPos bottom = new BlockPos(6, 1, 6);
+        for (int y = 0; y < 3; y++) {
+            helper.setBlock(bottom.above(y), ServusShuttlesBlocks.ELEVATOR.get().defaultBlockState());
+        }
+        helper.setBlock(bottom.above(3), Blocks.WATER.defaultBlockState());
+        helper.runAfterDelay(40, () -> {
+            for (int y = 0; y < 3; y++) {
+                helper.assertBlockPresent(ServusShuttlesBlocks.ELEVATOR.get(), bottom.above(y));
+                helper.assertTrue(helper.getLevel().getFluidState(helper.absolutePos(bottom.above(y))).isEmpty(), "no water enters segment " + y);
+            }
+            helper.assertFalse(helper.getLevel().getFluidState(helper.absolutePos(bottom.north())).isEmpty(), "the water ran down beside the shaft");
+            helper.succeed();
+        });
+    }
+
+    /** An elevator used on the floor of a water source places no segment and keeps the source. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void segmentRefusedInWaterSource(GameTestHelper helper) {
+        RailPlacementGameTests.stoneFloor(helper);
+        BlockPos pool = new BlockPos(6, 1, 6);
+        helper.setBlock(pool, Blocks.WATER.defaultBlockState());
+        BlockPos floor = helper.absolutePos(pool.below());
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack stack = new ItemStack(ServusShuttlesItems.ELEVATOR.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
+                new BlockHitResult(Vec3.atCenterOf(floor).relative(Direction.UP, 0.5), Direction.UP, floor, false)));
+        helper.assertTrue(helper.getLevel().getFluidState(helper.absolutePos(pool)).isSourceOfType(Fluids.WATER), "the water source stays");
+        helper.assertFalse(helper.getBlockState(pool).getBlock() instanceof ElevatorBlock, "no segment is placed");
         helper.succeed();
     }
 }

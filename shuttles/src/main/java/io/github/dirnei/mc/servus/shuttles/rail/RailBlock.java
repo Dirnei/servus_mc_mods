@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Rail that links storage blocks into one warehouse network. Rails connect to
@@ -94,8 +95,11 @@ public class RailBlock extends ConnectableBlock {
     }
 
     @Override
-    public BlockState getStateForPlacement(BlockPlaceContext context) {
+    public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = super.getStateForPlacement(context);
+        if (state == null) {
+            return null;
+        }
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         for (Direction direction : Direction.Plane.HORIZONTAL) {

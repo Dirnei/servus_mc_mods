@@ -22,6 +22,7 @@
 - Shuttle jobs, their cargo and station claims survive a reload or an unloaded warehouse; nothing drops mid-trip.
 - A Warehouse Controller placed against the side of an elevator shaft joins the warehouse.
 - Shuttles roll out of and into their garage smoothly instead of appearing and vanishing on the rail in front of it.
+- Rails, farm rails and elevator shafts no longer wash away in water or lava. They hold back flowing fluids and cannot be placed into a fluid source.
 
 ## 0.3.0
 
