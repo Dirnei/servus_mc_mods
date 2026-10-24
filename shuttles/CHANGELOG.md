@@ -1,6 +1,6 @@
 # Servus: Shuttles changelog
 
-## Unreleased
+## 0.4.0
 
 ### Added
 - Shuttles get a number per world, shown in their tooltip and in the garage.

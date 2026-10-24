@@ -1,6 +1,6 @@
 # Servus: Alchemy changelog
 
-## Unreleased
+## 0.3.0-alpha
 
 ### Added
 - Citrinitas ritual: place three Principle Vats beside the Athanor's tanks and offer an Amethyst Block; yellow citrine grows out of the vats.
