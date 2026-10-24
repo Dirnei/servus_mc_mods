@@ -21,6 +21,7 @@ import io.github.dirnei.mc.servus.shuttles.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.shuttles.production.DataLineBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
+import io.github.dirnei.mc.servus.shuttles.terminal.LineWarehouse;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalWarehouses;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -30,10 +31,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
@@ -444,15 +447,24 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
         }
     }
 
+    /** The CPU's slots and buffer, and a note when its line reaches two warehouses. Server side. */
     public Component summary() {
         int open = book == null ? 0 : book.openCount();
         int slots = slots();
-        return Component.translatable("message.servus_shuttles.cpu.summary", Math.min(open, slots), slots, Math.max(0, open - slots),
-                bufferUsed(), room());
+        MutableComponent summary = Component.translatable("message.servus_shuttles.cpu.summary", Math.min(open, slots), slots,
+                Math.max(0, open - slots), bufferUsed(), room());
+        if (line().conflict()) {
+            summary.append(" ").append(Component.translatable("message.servus_shuttles.cpu.line_conflict").withStyle(ChatFormatting.RED));
+        }
+        return summary;
     }
 
-    private List<WarehouseNetwork> warehouses() {
-        return memberPos().map(pos -> TerminalWarehouses.reachable(serverLevel(), pos)).orElse(List.of());
+    private LineWarehouse line() {
+        return memberPos().map(pos -> TerminalWarehouses.line(serverLevel(), pos)).orElse(LineWarehouse.NONE);
+    }
+
+    private Optional<WarehouseNetwork> warehouse() {
+        return line().online();
     }
 
     /** The CPU's view of its data line for the order book. */
@@ -471,9 +483,11 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
         @Override
         public Map<ItemKey, Long> stock() {
             Map<ItemKey, Long> stock = new HashMap<>();
-            for (Map.Entry<ItemKey, Long> entry : TerminalWarehouses.stock(warehouses())) {
-                stock.put(entry.getKey(), entry.getValue());
-            }
+            warehouse().ifPresent(warehouse -> {
+                for (Map.Entry<ItemKey, Long> entry : TerminalWarehouses.stock(warehouse)) {
+                    stock.put(entry.getKey(), entry.getValue());
+                }
+            });
             return stock;
         }
 
@@ -484,28 +498,22 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
 
         @Override
         public OrderBook.Feed feed(BlockPos producer, ItemKey key, int amount) {
-            List<WarehouseNetwork> byStock = new ArrayList<>(warehouses());
-            byStock.sort(Comparator.comparingLong((WarehouseNetwork warehouse) -> warehouse.available(key)).reversed());
-            int remaining = amount;
+            LineWarehouse line = line();
+            if (line.conflict()) {
+                return new OrderBook.Feed(0, LineWarehouse.CONFLICT_KEY, List.of());
+            }
             int planned = 0;
             String refusal = "";
             List<OrderBook.Shipped> shipped = new ArrayList<>();
-            for (WarehouseNetwork warehouse : byStock) {
-                if (remaining <= 0) {
-                    break;
-                }
-                long available = warehouse.available(key);
-                if (available <= 0) {
-                    continue;
-                }
-                WarehouseNetwork.Shipping shipping = warehouse.ship(producer, key, (int) Math.min(available, remaining));
+            Optional<WarehouseNetwork> online = line.online();
+            long available = online.map(warehouse -> warehouse.available(key)).orElse(0L);
+            if (available > 0) {
+                WarehouseNetwork.Shipping shipping = online.get().ship(producer, key, (int) Math.min(available, amount));
                 if (shipping.shipped()) {
                     PackingStationBlockEntity.Shipment shipment = shipping.shipment().orElseThrow();
-                    int asked = shipment.planned();
-                    shipped.add(new OrderBook.Shipped(shipment.id(), asked));
-                    planned += asked;
-                    remaining -= asked;
-                } else if (refusal.isEmpty()) {
+                    planned = shipment.planned();
+                    shipped.add(new OrderBook.Shipped(shipment.id(), planned));
+                } else {
                     refusal = shipping.refusal();
                 }
             }
@@ -676,13 +684,15 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
 
     /** The Packing Station of the line that takes collected outputs: the lowest position whose line reaches the producer. */
     Optional<BlockPos> collectionPoint(ServerLevel level, BlockPos producer) {
+        Optional<WarehouseNetwork> warehouse = warehouse();
+        if (warehouse.isEmpty()) {
+            return Optional.empty();
+        }
         List<BlockPos> points = new ArrayList<>();
-        for (WarehouseNetwork warehouse : warehouses()) {
-            for (BlockPos point : warehouse.packingStations()) {
-                if (level.getBlockEntity(point) instanceof PackingStationBlockEntity
-                        && DataNetworks.networkAt(level, point).filter(network -> network.reaches(producer)).isPresent()) {
-                    points.add(point);
-                }
+        for (BlockPos point : warehouse.get().packingStations()) {
+            if (level.getBlockEntity(point) instanceof PackingStationBlockEntity
+                    && DataNetworks.networkAt(level, point).filter(network -> network.reaches(producer)).isPresent()) {
+                points.add(point);
             }
         }
         return points.stream().min(Comparator.comparingLong(BlockPos::asLong));

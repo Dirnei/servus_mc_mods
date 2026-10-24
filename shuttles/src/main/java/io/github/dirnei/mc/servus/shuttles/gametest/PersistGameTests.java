@@ -54,8 +54,8 @@ public final class PersistGameTests {
 
     private static boolean planksIndexed(GameTestHelper helper) {
         ItemKey planks = ItemKey.of(new ItemStack(Items.OAK_PLANKS));
-        return TerminalWarehouses.reachable(helper.getLevel(), helper.absolutePos(TerminalWiring.terminalPos(ACCESS))).stream()
-                .anyMatch(warehouse -> warehouse.available(planks) >= 8);
+        return TerminalWarehouses.online(helper.getLevel(), helper.absolutePos(TerminalWiring.terminalPos(ACCESS)))
+                .filter(warehouse -> warehouse.available(planks) >= 8).isPresent();
     }
 
     private static CraftingStationBlockEntity station(GameTestHelper helper, BlockPos pos) {

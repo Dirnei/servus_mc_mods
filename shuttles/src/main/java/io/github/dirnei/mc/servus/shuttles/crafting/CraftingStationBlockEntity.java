@@ -399,8 +399,7 @@ public class CraftingStationBlockEntity extends DataLineBlockEntity implements M
         }
         if (payer == null || --payerCheck <= 0) {
             payerCheck = PAYER_TICKS;
-            payer = TerminalWarehouses.reachable(server, worldPosition).stream().findFirst()
-                    .flatMap(WarehouseNetwork::controllerPos).orElse(null);
+            payer = TerminalWarehouses.online(server, worldPosition).flatMap(WarehouseNetwork::controllerPos).orElse(null);
         }
         if (payer == null || !server.isLoaded(payer)
                 || !(server.getBlockEntity(payer) instanceof WarehouseControllerBlockEntity controller)) {

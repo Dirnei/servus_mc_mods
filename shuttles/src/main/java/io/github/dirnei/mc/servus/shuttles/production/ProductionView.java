@@ -36,6 +36,7 @@ import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.PackingRow;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.PatternRow;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.PatternsView;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.StorageRow;
+import io.github.dirnei.mc.servus.shuttles.terminal.LineWarehouse;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalWarehouses;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -61,11 +62,14 @@ public final class ProductionView {
     private ProductionView() {
     }
 
-    /** Whether a formed CPU or an online warehouse is on the line at {@code pos}. */
+    /** Whether a formed CPU or an online warehouse is on the line at {@code pos}, and the line is not in conflict. */
     public static boolean online(ServerLevel level, BlockPos pos) {
         Optional<DataNetwork> line = DataNetworks.networkAt(level, pos);
-        return line.isPresent() && (!CpuOrders.cpus(level, line.get()).isEmpty()
-                || !TerminalWarehouses.reachable(level, pos).isEmpty());
+        if (line.isEmpty()) {
+            return false;
+        }
+        LineWarehouse warehouse = TerminalWarehouses.line(level, pos);
+        return !warehouse.conflict() && (!CpuOrders.cpus(level, line.get()).isEmpty() || warehouse.online().isPresent());
     }
 
     /** The current CPUs, jobs, machines and patterns of the terminal's line. */
@@ -97,15 +101,11 @@ public final class ProductionView {
         jobs.sort(Comparator.comparing((JobRow job) -> job.open() ? 0 : 1)
                 .thenComparingLong(job -> job.cpu().asLong()).thenComparingInt(JobRow::id));
         List<MachineRow> machines = machines(level, line.get(), blocked);
-        List<WarehouseNetwork> warehouses = TerminalWarehouses.reachable(level, pos);
-        boolean online = !cpus.isEmpty() || !warehouses.isEmpty();
+        LineWarehouse warehouse = TerminalWarehouses.line(level, pos);
+        boolean online = !cpus.isEmpty() || warehouse.online().isPresent();
         return new ProductionPayload(pos, online, online ? "" : "nothing", cpus, jobs, machines, patterns(level, line.get()),
-                packing(level, line.get()), busiest(level, line.get()), storage(warehouses));
-    }
-
-    /** How full each warehouse is, named after its site. */
-    public static List<StorageRow> storage(List<WarehouseNetwork> warehouses) {
-        return warehouses.stream().map(ProductionView::storage).toList();
+                packing(level, line.get()), busiest(level, line.get()), warehouse.online().map(ProductionView::storage).stream().toList(),
+                warehouse.conflict());
     }
 
     /** How full a warehouse is, named after its site; empty name without a controller. */

@@ -31,6 +31,7 @@ public final class ShuttlesGameTests {
             HarvesterGameTests.class,
             HeavyRackGameTests.class,
             LeftoverGameTests.class,
+            LineConflictGameTests.class,
             MiniWarehouseGameTests.class,
             OrderGridGameTests.class,
             PotatoStorageGameTests.class,

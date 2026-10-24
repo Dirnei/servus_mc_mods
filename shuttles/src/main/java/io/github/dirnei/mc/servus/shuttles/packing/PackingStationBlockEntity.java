@@ -25,6 +25,8 @@ import io.github.dirnei.mc.servus.shuttles.site.SiteRegistry;
 import io.github.dirnei.mc.servus.shuttles.site.WirelessCost;
 import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
+import io.github.dirnei.mc.servus.shuttles.terminal.LineWarehouse;
+import io.github.dirnei.mc.servus.shuttles.terminal.TerminalWarehouses;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -299,6 +301,9 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         if (!dataLine && !capable && wirelessWaiting == null && !wirelessSending()) {
             return status(Component.translatable(STATUS + "no_data_line"), true);
         }
+        if (dataLine && lineConflict(server)) {
+            return status(Component.translatable(STATUS + LineWarehouse.CONFLICT_KEY), true);
+        }
         if (wirelessSending() && wirelessKey != null) {
             return status(Component.translatable(STATUS + "sending", wirelessKey.stack(1).getHoverName(), wirelessTo), false);
         }
@@ -518,6 +523,10 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         }
         pruneEnded();
         capRelays();
+        if (lineConflict(server)) {
+            returnOrphans();
+            return;
+        }
         for (Shipment shipment : shipments) {
             if (shipment.wireless) {
                 continue;
@@ -567,6 +576,11 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
                 setChanged();
             }
         }
+    }
+
+    /** Whether the data line this station touches reaches two or more warehouses. */
+    public boolean lineConflict(ServerLevel server) {
+        return TerminalWarehouses.line(server, worldPosition).conflict();
     }
 
     /** The controller of this station's warehouse while it is online. */

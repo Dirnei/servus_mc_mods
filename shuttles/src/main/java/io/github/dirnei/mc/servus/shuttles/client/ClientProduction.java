@@ -92,6 +92,11 @@ public final class ClientProduction {
         return shown == null ? List.of() : shown.storage();
     }
 
+    /** Whether the shown line reaches two or more warehouses. */
+    public static boolean lineConflict() {
+        return shown != null && shown.lineConflict();
+    }
+
     public static PatternsView patterns() {
         return shown == null ? PatternsView.EMPTY : shown.patterns();
     }

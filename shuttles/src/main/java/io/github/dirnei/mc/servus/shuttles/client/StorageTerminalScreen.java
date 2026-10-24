@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.shuttles.site.RemoteSite;
 import io.github.dirnei.mc.servus.shuttles.terminal.CancelRequestPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewRequestPayload;
+import io.github.dirnei.mc.servus.shuttles.terminal.LineWarehouse;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftStartPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.GridFillPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.OrderSavePayload;
@@ -74,6 +75,8 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     private static final int COLOUR_TEXT = 0xFF404040;
     private static final int COLOUR_DIM = 0xFF707070;
     private static final int COLOUR_ALERT = 0xFFB03030;
+    /** The alert colour on the dark item grid. */
+    private static final int COLOUR_ALERT_ON_GRID = 0xFFFF6060;
     private static final int COLOUR_GOOD = 0xFF2E7D32;
     /** Preview rows under the request split line. */
     private static final int SHORT_PREVIEW_ROWS = 2;
@@ -845,7 +848,8 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             Component text = !ClientStock.loaded() ? Component.translatable("gui.servus_shuttles.terminal.loading")
                     : Component.translatable("gui.servus_shuttles.terminal." + ClientStock.reason());
             Rect grid = layout.grid();
-            graphics.centeredText(font, text, leftPos + grid.x() + grid.w() / 2, topPos + grid.y() + grid.h() / 2 - 4, 0xFFFFFFFF);
+            int colour = LineWarehouse.CONFLICT_KEY.equals(ClientStock.reason()) ? COLOUR_ALERT_ON_GRID : 0xFFFFFFFF;
+            graphics.centeredText(font, text, leftPos + grid.x() + grid.w() / 2, topPos + grid.y() + grid.h() / 2 - 4, colour);
             return;
         }
         renderMessage(graphics);

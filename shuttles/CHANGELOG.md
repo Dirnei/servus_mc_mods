@@ -1,5 +1,10 @@
 # Servus: Shuttles changelog
 
+## Unreleased
+
+### Changed
+- A data line belongs to one warehouse. A line that reaches two warehouses is in conflict and pauses: its terminals show no stock and refuse requests, and its Packing Stations send nothing. Terminals no longer add up the stock of several warehouses.
+
 ## 0.4.0
 
 ### Added

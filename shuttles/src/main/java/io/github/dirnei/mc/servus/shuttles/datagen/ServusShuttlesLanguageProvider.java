@@ -98,6 +98,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("message.servus_shuttles.cpu.no_cpu_block", "Not formed: a CPU needs at least one Crafting CPU block");
         add("message.servus_shuttles.cpu.formed", "Crafting CPU formed: %sx%sx%s, %s CPU blocks, %s Buffer blocks");
         add("message.servus_shuttles.cpu.summary", "Crafting CPU: %s of %s order slots in use, %s waiting, %s of %s buffer stacks");
+        add("message.servus_shuttles.cpu.line_conflict", "Two warehouses on this data line");
         add("gui.servus_shuttles.crafting_station.save", "Save");
         add("gui.servus_shuttles.crafting_station.delete", "Delete");
         add("gui.servus_shuttles.crafting_station.cancel", "Cancel");
@@ -152,6 +153,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.storage.warehouse", "Warehouse");
         add("gui.servus_shuttles.production.tab.storage", "Storage");
         add("gui.servus_shuttles.production.no_warehouse", "No warehouse on this data line");
+        add("gui.servus_shuttles.production.line_conflict", "Two warehouses on this data line");
         add("gui.servus_shuttles.controller.energy_use", "%s / %s FE, using %s FE/s");
         add("gui.servus_shuttles.controller.no_power", "No power: the warehouse's automation waits");
         add("gui.servus_shuttles.controller.energy.tooltip",
@@ -360,6 +362,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.search", "Search");
         add("gui.servus_shuttles.stored", "Stored: %s");
         add("gui.servus_shuttles.terminal.no_warehouse", "No warehouse on this data line");
+        add("gui.servus_shuttles.terminal.line_conflict", "Two warehouses on this data line");
         add("gui.servus_shuttles.terminal.no_controller", "Its rails reach no Warehouse Controller");
         add("gui.servus_shuttles.terminal.multiple_controllers", "Its rails reach more than one Warehouse Controller");
         add("gui.servus_shuttles.terminal.requests", "Requests");
@@ -442,6 +445,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.site.state.sleeping", "Sleeping, wakes for a transfer");
         add("gui.servus_shuttles.site.state.unreachable", "Sleeping, cannot wake");
         add("gui.servus_shuttles.terminal.message.offline", "No warehouse on this data line");
+        add("gui.servus_shuttles.terminal.message.line_conflict", "Two warehouses on this data line");
         add("gui.servus_shuttles.terminal.message.needs_shuttle", "No shuttle available");
         add("gui.servus_shuttles.terminal.message.no_rail", "The Packing Station has no rail for shuttle deliveries");
         add("gui.servus_shuttles.terminal.message.no_packing_station", "No Packing Station of the warehouse on this data line");
@@ -497,6 +501,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.packing_station.status.sending", "Sending %s to %s");
         add("gui.servus_shuttles.packing_station.status.no_rail", "No rail: place it beside a warehouse rail");
         add("gui.servus_shuttles.packing_station.status.no_data_line", "No data line touches this station");
+        add("gui.servus_shuttles.packing_station.status.line_conflict", "Two warehouses on this data line");
         add("gui.servus_shuttles.packing_station.status.wireless_only", "No data line: serves wireless transfers only");
         add("gui.servus_shuttles.packing_station.status.receiver_full", "%s has no room in To storage");
         add("gui.servus_shuttles.packing_station.status.receiver_asleep", "Waiting for %s to load");

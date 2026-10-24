@@ -19,7 +19,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 
-/** The Storage Terminal on the data line: packets, reach, several warehouses, cancel and closed output. */
+/** The Storage Terminal on the data line: packets, reach, cancel and closed output. */
 public final class TerminalCableGameTests {
 
     private TerminalCableGameTests() {
@@ -95,35 +95,6 @@ public final class TerminalCableGameTests {
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 5);
             helper.assertTrue(menu.stock().message().equals("offline"), "requests are refused, got " + menu.stock().message());
             helper.succeed();
-        });
-    }
-
-    /** Two warehouses on one line: their stock adds up and a request takes from the fuller one first. */
-    @ServusGameTest(timeoutTicks = 400)
-    public static void twoWarehousesMergeAndSplit(GameTestHelper helper) {
-        HeavyRackBlockEntity first = warehouse(helper, new BlockPos(2, 1, 1), Items.COBBLESTONE, 30);
-        helper.setBlock(new BlockPos(3, 1, 1), ServusShuttlesBlocks.PACKING_STATION.get().defaultBlockState());
-        TerminalWiring.railUnder(helper, new BlockPos(3, 1, 1));
-        HeavyRackBlockEntity second = warehouse(helper, new BlockPos(2, 1, 8), Items.COBBLESTONE, 20);
-        helper.setBlock(new BlockPos(3, 1, 8), ServusShuttlesBlocks.PACKING_STATION.get().defaultBlockState());
-        TerminalWiring.railUnder(helper, new BlockPos(3, 1, 8));
-        for (int z = 1; z <= 8; z++) {
-            TerminalWiring.dataDuct(helper, new BlockPos(4, 1, z));
-        }
-        StorageTerminalBlockEntity terminal = terminal(helper, new BlockPos(5, 1, 4));
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
-        Waits.when(helper, () -> TerminalWiring.stockOf(menu, Items.COBBLESTONE) == 50, 60,
-                () -> "the terminal should list 50 cobblestone from both warehouses, had " + TerminalWiring.stockOf(menu, Items.COBBLESTONE), () -> {
-            menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 40);
-            helper.assertTrue(menu.stock().message().isEmpty(), "the request goes through, got " + menu.stock().message());
-            Waits.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 40 && menu.stock().requests().isEmpty(), 360,
-                    () -> "40 cobblestone should arrive, had " + terminal.outputCount(Items.COBBLESTONE) + ", rows " + menu.stock().requests(), () -> {
-                int left = WarehouseFixtures.count(second, Items.COBBLESTONE);
-                helper.assertTrue(first.isEmpty() && left == 10,
-                        "30 come from the fuller warehouse and 10 from the other, left " + WarehouseFixtures.count(first, Items.COBBLESTONE) + " and " + left);
-                helper.succeed();
-            });
         });
     }
 

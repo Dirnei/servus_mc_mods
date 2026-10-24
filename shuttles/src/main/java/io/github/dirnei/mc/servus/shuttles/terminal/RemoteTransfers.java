@@ -44,12 +44,12 @@ public final class RemoteTransfers {
     private RemoteTransfers() {
     }
 
-    /** The controller of the first warehouse the terminal reaches: this site's antenna. */
+    /** The controller of the terminal's warehouse: this site's antenna. */
     public static Optional<WarehouseControllerBlockEntity> controller(ServerLevel level, BlockPos terminal) {
-        return TerminalRequests.first(level, terminal).flatMap(WarehouseNetwork::controller);
+        return TerminalWarehouses.online(level, terminal).flatMap(WarehouseNetwork::controller);
     }
 
-    /** The team whose sites the terminal sees: that of the first warehouse it reaches. */
+    /** The team whose sites the terminal sees: that of its warehouse. */
     public static Optional<UUID> team(ServerLevel level, BlockPos terminal) {
         return controller(level, terminal).flatMap(WarehouseControllerBlockEntity::team);
     }
@@ -59,9 +59,9 @@ public final class RemoteTransfers {
         return controller(level, terminal).map(WarehouseControllerBlockEntity::capable).orElse(false);
     }
 
-    /** The sites the terminal reaches itself, by key. */
+    /** The site the terminal reaches itself, by key. */
     private static Set<String> local(ServerLevel level, BlockPos terminal) {
-        return TerminalWarehouses.reachable(level, terminal).stream()
+        return TerminalWarehouses.online(level, terminal).stream()
                 .flatMap(warehouse -> warehouse.controllerPos().stream())
                 .map(pos -> SiteRecord.key(level.dimension(), pos))
                 .collect(Collectors.toSet());
@@ -119,23 +119,23 @@ public final class RemoteTransfers {
     }
 
     /**
-     * The Packing Station of this site that receives a transfer: on the first
-     * reachable warehouse, among those that reach the terminal by data line,
+     * The Packing Station of this site that receives a transfer: of the
+     * terminal's warehouse, among those that reach the terminal by data line,
      * the one with the fewest open incoming transfers.
      */
     private static Optional<PackingStationBlockEntity> receiver(ServerLevel level, BlockPos terminal) {
-        Optional<WarehouseNetwork> first = TerminalRequests.first(level, terminal);
-        if (first.isEmpty()) {
+        Optional<WarehouseNetwork> warehouse = TerminalWarehouses.online(level, terminal);
+        if (warehouse.isEmpty()) {
             return Optional.empty();
         }
         List<PackingStationBlockEntity> stations = new ArrayList<>();
-        for (BlockPos pos : first.get().packingStations()) {
+        for (BlockPos pos : warehouse.get().packingStations()) {
             if (level.getBlockEntity(pos) instanceof PackingStationBlockEntity point
                     && DataNetworks.networkAt(level, pos).filter(network -> network.reaches(terminal)).isPresent()) {
                 stations.add(point);
             }
         }
-        return ReceiverChoice.choose(stations, point -> first.get().incomingWireless(point.getBlockPos()),
+        return ReceiverChoice.choose(stations, point -> warehouse.get().incomingWireless(point.getBlockPos()),
                 point -> point.getBlockPos().asLong());
     }
 
@@ -183,13 +183,14 @@ public final class RemoteTransfers {
      * Requests {@code amount} of {@code key} from the site with that key.
      *
      * @return an empty string when the transfer was made, else the refusal key:
-     *         {@code offline}, {@code no_team}, {@code no_site}, {@code no_wireless_here}, {@code no_power_here},
+     *         {@code offline}, {@code line_conflict}, {@code no_team}, {@code no_site}, {@code no_wireless_here}, {@code no_power_here},
      *         {@code no_packing_here}, {@code no_wireless_there}, {@code no_power_there}, {@code no_packing_there},
      *         {@code site_asleep}, {@code output_full} or a refusal of the other site's shipment
      */
     public static String request(ServerLevel level, StorageTerminalBlockEntity terminal, String siteKey, ItemKey key, int amount) {
-        if (TerminalWarehouses.reachable(level, terminal.getBlockPos()).isEmpty()) {
-            return "offline";
+        LineWarehouse line = TerminalWarehouses.line(level, terminal.getBlockPos());
+        if (line.online().isEmpty()) {
+            return TerminalRequests.unavailable(line);
         }
         Optional<UUID> team = team(level, terminal.getBlockPos());
         if (team.isEmpty()) {

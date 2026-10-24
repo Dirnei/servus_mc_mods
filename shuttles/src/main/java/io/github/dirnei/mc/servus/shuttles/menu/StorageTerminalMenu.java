@@ -14,6 +14,7 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
 import io.github.dirnei.mc.servus.shuttles.site.SiteRegistry;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewPayload;
+import io.github.dirnei.mc.servus.shuttles.terminal.LineWarehouse;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewRequestPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.RemoteTransfers;
 import io.github.dirnei.mc.servus.shuttles.terminal.RequestRow;
@@ -203,9 +204,11 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             return;
         }
         Map<ItemKey, Long> stock = new HashMap<>();
-        for (Map.Entry<ItemKey, Long> entry : TerminalWarehouses.stock(TerminalWarehouses.reachable(server, terminal.getBlockPos()))) {
-            stock.put(entry.getKey(), entry.getValue());
-        }
+        TerminalWarehouses.online(server, terminal.getBlockPos()).ifPresent(warehouse -> {
+            for (Map.Entry<ItemKey, Long> entry : TerminalWarehouses.stock(warehouse)) {
+                stock.put(entry.getKey(), entry.getValue());
+            }
+        });
         for (int cell = 0; cell < EncodedPattern.GRID; cell++) {
             setGhost(cell, cell < options.size() ? mostStocked(options.get(cell), stock) : ItemStack.EMPTY);
         }
@@ -266,9 +269,9 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         sync.force();
     }
 
-    /** The first reachable warehouse, for rules and pushes. */
+    /** The line's warehouse, for rules and pushes. */
     private Optional<WarehouseNetwork> online() {
-        return terminal.getLevel() instanceof ServerLevel server ? TerminalRequests.first(server, terminal.getBlockPos()) : Optional.empty();
+        return terminal.getLevel() instanceof ServerLevel server ? TerminalWarehouses.online(server, terminal.getBlockPos()) : Optional.empty();
     }
 
     /**
@@ -319,10 +322,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     }
 
     private CraftPreviewPayload requestPreview(ServerLevel server, ItemKey key, int amount) {
-        long available = 0;
-        for (WarehouseNetwork warehouse : TerminalWarehouses.reachable(server, terminal.getBlockPos())) {
-            available += warehouse.available(key);
-        }
+        long available = TerminalWarehouses.online(server, terminal.getBlockPos()).map(warehouse -> warehouse.available(key)).orElse(0L);
         if (available >= amount) {
             return new CraftPreviewPayload(key.stack(1), amount, List.of(), List.of(), List.of(), "", amount, false);
         }
@@ -465,14 +465,17 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         if (!(terminal.getLevel() instanceof ServerLevel server)) {
             return new StockSyncPayload(terminal.getBlockPos(), false, "no_warehouse", List.of(), List.of(), shown, List.of(), List.of());
         }
-        List<WarehouseNetwork> warehouses = TerminalWarehouses.reachable(server, terminal.getBlockPos());
-        List<RequestRow> requests = TerminalRequests.rows(server, terminal, warehouses);
-        if (warehouses.isEmpty()) {
+        LineWarehouse line = TerminalWarehouses.line(server, terminal.getBlockPos());
+        Optional<WarehouseNetwork> online = line.online();
+        List<RequestRow> requests = TerminalRequests.rows(server, terminal, online);
+        if (online.isEmpty()) {
             view = "";
-            return new StockSyncPayload(terminal.getBlockPos(), false, "no_warehouse", List.of(), requests, shown, List.of(), List.of());
+            String reason = line.conflict() ? LineWarehouse.CONFLICT_KEY : "no_warehouse";
+            return new StockSyncPayload(terminal.getBlockPos(), false, reason, List.of(), requests, shown, List.of(), List.of());
         }
+        WarehouseNetwork warehouse = online.get();
         List<SiteRow> sites = RemoteTransfers.sites(server, terminal.getBlockPos());
-        boolean noPower = warehouses.stream().anyMatch(WarehouseNetwork::noPower);
+        boolean noPower = warehouse.noPower();
         if (!view.isEmpty()) {
             var site = SiteRegistry.of(server).site(view);
             if (site.isPresent() && sites.stream().anyMatch(row -> row.key().equals(view))) {
@@ -482,8 +485,8 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             }
             view = "";
         }
-        return new StockSyncPayload(terminal.getBlockPos(), true, "", entries(TerminalWarehouses.stock(warehouses)), requests, shown,
-                warehouses.get(0).ruleRows(), TerminalCraftables.of(server, terminal.getBlockPos(), MAX_ENTRIES), sites, "", -1, noPower,
+        return new StockSyncPayload(terminal.getBlockPos(), true, "", entries(TerminalWarehouses.stock(warehouse)), requests, shown,
+                warehouse.ruleRows(), TerminalCraftables.of(server, terminal.getBlockPos(), MAX_ENTRIES), sites, "", -1, noPower,
                 TerminalCraftables.canOrder(server, terminal.getBlockPos()));
     }
 

@@ -28,16 +28,18 @@ import net.minecraft.resources.Identifier;
  * @param patterns the patterns of the line and their capacity
  * @param packing  every Packing Station of the line with its rate use
  * @param busiest  the busiest data duct of the line, empty when the line is idle
- * @param storage  how full each warehouse on the line is
+ * @param storage  how full the line's warehouse is, empty without one
+ * @param lineConflict whether the line reaches two or more warehouses
  */
 public record ProductionPayload(BlockPos terminal, boolean online, String reason, List<CpuRow> cpus, List<JobRow> jobs, List<MachineRow> machines,
-                                PatternsView patterns, List<PackingRow> packing, List<DuctRow> busiest, List<StorageRow> storage)
+                                PatternsView patterns, List<PackingRow> packing, List<DuctRow> busiest, List<StorageRow> storage,
+                                boolean lineConflict)
         implements CustomPacketPayload {
 
     /** A view without Packing Stations, line load and storage. */
     public ProductionPayload(BlockPos terminal, boolean online, String reason, List<CpuRow> cpus, List<JobRow> jobs,
                              List<MachineRow> machines, PatternsView patterns) {
-        this(terminal, online, reason, cpus, jobs, machines, patterns, List.of(), List.of(), List.of());
+        this(terminal, online, reason, cpus, jobs, machines, patterns, List.of(), List.of(), List.of(), false);
     }
 
     public static final Type<ProductionPayload> TYPE =
@@ -55,6 +57,7 @@ public record ProductionPayload(BlockPos terminal, boolean online, String reason
                 PackingRow.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, payload.packing());
                 DuctRow.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, payload.busiest());
                 StorageRow.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, payload.storage());
+                ByteBufCodecs.BOOL.encode(buf, payload.lineConflict());
             },
             buf -> new ProductionPayload(BlockPos.STREAM_CODEC.decode(buf), ByteBufCodecs.BOOL.decode(buf),
                     ByteBufCodecs.STRING_UTF8.decode(buf), CpuRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf),
@@ -62,7 +65,7 @@ public record ProductionPayload(BlockPos terminal, boolean online, String reason
                     MachineRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf), PatternsView.STREAM_CODEC.decode(buf),
                     PackingRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf),
                     DuctRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf),
-                    StorageRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf)));
+                    StorageRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf), ByteBufCodecs.BOOL.decode(buf)));
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

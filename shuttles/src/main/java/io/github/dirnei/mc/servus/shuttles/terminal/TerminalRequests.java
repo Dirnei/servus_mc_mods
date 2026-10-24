@@ -15,16 +15,14 @@ import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlockEntity.R
 import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlockEntity.RequestState;
 import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlockEntity.Tracked;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
 /**
- * Requests of a Storage Terminal on the data line: shipped by the reachable
- * warehouses through their Packing Stations, booked as shipments end, retried
+ * Requests of a Storage Terminal on the data line: shipped by the line's
+ * warehouse through its Packing Stations, booked as shipments end, retried
  * while stock is missing. Server thread only.
  */
 public final class TerminalRequests {
@@ -40,7 +38,7 @@ public final class TerminalRequests {
         terminal.seeIds(level);
         book(level, terminal);
         if (ticks % LAMP_TICKS == 0) {
-            terminal.setOnline(!TerminalWarehouses.reachable(level, terminal.getBlockPos()).isEmpty());
+            terminal.setOnline(TerminalWarehouses.online(level, terminal.getBlockPos()).isPresent());
         }
         if (ticks % RETRY_TICKS == 0) {
             retry(level, terminal);
@@ -58,15 +56,17 @@ public final class TerminalRequests {
      * without a work order, that request grows instead.
      *
      * @return an empty string when the request was made, else the refusal key:
-     *         {@code offline}, {@code no_packing_station}, {@code needs_shuttle}, {@code no_rail},
+     *         {@code offline}, {@code line_conflict}, {@code no_packing_station}, {@code needs_shuttle}, {@code no_rail},
      *         {@code out_of_stock} or {@code output_full}
      */
     public static String request(ServerLevel level, StorageTerminalBlockEntity terminal, ItemKey key, int amount) {
-        List<WarehouseNetwork> warehouses = TerminalWarehouses.reachable(level, terminal.getBlockPos());
-        if (warehouses.isEmpty()) {
-            return "offline";
+        LineWarehouse line = TerminalWarehouses.line(level, terminal.getBlockPos());
+        Optional<WarehouseNetwork> online = line.online();
+        if (online.isEmpty()) {
+            return unavailable(line);
         }
-        long available = available(warehouses, key);
+        WarehouseNetwork warehouse = online.get();
+        long available = warehouse.available(key);
         boolean restCraftable = amount > available
                 && TerminalCraftables.preview(level, terminal.getBlockPos(), key, (int) (amount - available)).startable();
         RequestSplit split = RequestSplit.of(amount, available, restCraftable);
@@ -75,14 +75,14 @@ public final class TerminalRequests {
         }
         Optional<Request> open = split.toCraft() == 0 ? growable(level, terminal, key) : Optional.empty();
         if (open.isPresent()) {
-            return grow(terminal, open.get(), warehouses, split.fromStock());
+            return grow(terminal, open.get(), warehouse, split.fromStock());
         }
         if (terminal.freeSlot(key) == RequestSlots.NONE) {
             return "output_full";
         }
         Request request = terminal.newRequest(level, key, split.total());
         String[] refusal = {""};
-        int remaining = ship(terminal, request, warehouses, split.fromStock(), refusal) + split.toCraft();
+        int remaining = ship(terminal, request, warehouse, split.fromStock(), refusal) + split.toCraft();
         if (remaining > 0 && restCraftable) {
             CpuOrders.Placed placed = CpuOrders.create(level, terminal.getBlockPos(), key, remaining, request.id);
             if (placed.made()) {
@@ -108,9 +108,9 @@ public final class TerminalRequests {
     }
 
     /** Ships {@code amount} more on an open request; returns the refusal key, empty when something was shipped. */
-    private static String grow(StorageTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses, int amount) {
+    private static String grow(StorageTerminalBlockEntity terminal, Request request, WarehouseNetwork warehouse, int amount) {
         String[] refusal = {""};
-        int shipped = amount - ship(terminal, request, warehouses, amount, refusal);
+        int shipped = amount - ship(terminal, request, warehouse, amount, refusal);
         if (shipped <= 0) {
             return refusal[0].isEmpty() ? "out_of_stock" : refusal[0];
         }
@@ -119,13 +119,9 @@ public final class TerminalRequests {
         return "";
     }
 
-    /** How many of the key the warehouses hold that no pick has locked. */
-    private static long available(List<WarehouseNetwork> warehouses, ItemKey key) {
-        long sum = 0;
-        for (WarehouseNetwork warehouse : warehouses) {
-            sum += warehouse.available(key);
-        }
-        return sum;
+    /** Why a line has no warehouse to work with: a conflict, else offline. */
+    static String unavailable(LineWarehouse line) {
+        return line.conflict() ? LineWarehouse.CONFLICT_KEY : "offline";
     }
 
     /**
@@ -133,11 +129,12 @@ public final class TerminalRequests {
      * the item's own stock, for a new request whose results land in the output slots.
      *
      * @return an empty string when the order was made, else the refusal key:
-     *         {@code offline}, {@code output_full}, {@code no_cpu}, {@code no_producer} or {@code missing}
+     *         {@code offline}, {@code line_conflict}, {@code output_full}, {@code no_cpu}, {@code no_producer} or {@code missing}
      */
     public static String craft(ServerLevel level, StorageTerminalBlockEntity terminal, ItemKey key, int amount) {
-        if (TerminalWarehouses.reachable(level, terminal.getBlockPos()).isEmpty()) {
-            return "offline";
+        LineWarehouse line = TerminalWarehouses.line(level, terminal.getBlockPos());
+        if (line.online().isEmpty()) {
+            return unavailable(line);
         }
         if (terminal.freeSlot(key) == RequestSlots.NONE) {
             return "output_full";
@@ -168,11 +165,12 @@ public final class TerminalRequests {
      * results land in the output slots.
      *
      * @return an empty string when the order was made, else the refusal key:
-     *         {@code offline}, {@code output_full}, {@code no_cpu}, {@code no_station}, {@code no_producer} or {@code missing}
+     *         {@code offline}, {@code line_conflict}, {@code output_full}, {@code no_cpu}, {@code no_station}, {@code no_producer} or {@code missing}
      */
     public static String craftOneOff(ServerLevel level, StorageTerminalBlockEntity terminal, EncodedPattern pattern, int amount) {
-        if (TerminalWarehouses.reachable(level, terminal.getBlockPos()).isEmpty()) {
-            return "offline";
+        LineWarehouse warehouse = TerminalWarehouses.line(level, terminal.getBlockPos());
+        if (warehouse.online().isEmpty()) {
+            return unavailable(warehouse);
         }
         if (terminal.freeSlot(ItemKey.of(pattern.result())) == RequestSlots.NONE) {
             return "output_full";
@@ -201,32 +199,23 @@ public final class TerminalRequests {
         return "";
     }
 
-    /** Ships up to {@code amount} from the warehouses holding the most first; returns what is still missing. */
-    private static int ship(StorageTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses,
+    /** Ships up to {@code amount} from the warehouse; returns what is still missing. */
+    private static int ship(StorageTerminalBlockEntity terminal, Request request, WarehouseNetwork warehouse,
                             int amount, String[] refusal) {
-        List<WarehouseNetwork> byStock = new ArrayList<>(warehouses);
-        byStock.sort(Comparator.comparingLong((WarehouseNetwork warehouse) -> warehouse.available(request.key)).reversed());
-        int remaining = amount;
-        for (WarehouseNetwork warehouse : byStock) {
-            if (remaining <= 0) {
-                break;
-            }
-            long available = warehouse.available(request.key);
-            if (available <= 0) {
-                continue;
-            }
-            WarehouseNetwork.Shipping shipping = warehouse.ship(terminal.getBlockPos(), request.key,
-                    (int) Math.min(available, remaining), request.id);
-            if (shipping.shipped()) {
-                PackingStationBlockEntity.Shipment shipment = shipping.shipment().orElseThrow();
-                request.shipments.add(new Tracked(shipping.packingStation(), shipment.id(), shipment.planned()));
-                terminal.setChanged();
-                remaining -= shipment.planned();
-            } else if (refusal[0].isEmpty()) {
-                refusal[0] = shipping.refusal();
-            }
+        long available = warehouse.available(request.key);
+        if (amount <= 0 || available <= 0) {
+            return Math.max(0, amount);
         }
-        return Math.max(0, remaining);
+        WarehouseNetwork.Shipping shipping = warehouse.ship(terminal.getBlockPos(), request.key,
+                (int) Math.min(available, amount), request.id);
+        if (!shipping.shipped()) {
+            refusal[0] = shipping.refusal();
+            return amount;
+        }
+        PackingStationBlockEntity.Shipment shipment = shipping.shipment().orElseThrow();
+        request.shipments.add(new Tracked(shipping.packingStation(), shipment.id(), shipment.planned()));
+        terminal.setChanged();
+        return Math.max(0, amount - shipment.planned());
     }
 
     /**
@@ -299,7 +288,7 @@ public final class TerminalRequests {
 
     /** Ships the missing part of idle requests again; stock may have arrived meanwhile. */
     private static void retry(ServerLevel level, StorageTerminalBlockEntity terminal) {
-        List<WarehouseNetwork> warehouses = null;
+        Optional<WarehouseNetwork> warehouse = null;
         for (Request request : terminal.requests()) {
             if (request.remote != null) {
                 // A transfer waits for its site to come online, then is shipped once.
@@ -311,13 +300,13 @@ public final class TerminalRequests {
             if (request.missing <= 0 || !request.shipments.isEmpty() || producing(level, request)) {
                 continue;
             }
-            if (warehouses == null) {
-                warehouses = TerminalWarehouses.reachable(level, terminal.getBlockPos());
+            if (warehouse == null) {
+                warehouse = TerminalWarehouses.online(level, terminal.getBlockPos());
             }
-            if (warehouses.isEmpty()) {
+            if (warehouse.isEmpty()) {
                 return;
             }
-            request.missing = ship(terminal, request, warehouses, request.missing, new String[] {""});
+            request.missing = ship(terminal, request, warehouse.get(), request.missing, new String[] {""});
         }
     }
 
@@ -327,9 +316,7 @@ public final class TerminalRequests {
         if (request == null) {
             return;
         }
-        for (WarehouseNetwork warehouse : TerminalWarehouses.reachable(level, terminal.getBlockPos())) {
-            warehouse.dropQueuedFor(requestId);
-        }
+        TerminalWarehouses.online(level, terminal.getBlockPos()).ifPresent(warehouse -> warehouse.dropQueuedFor(requestId));
         if (request.remote != null) {
             RemoteTransfers.dropQueued(level, request);
         }
@@ -347,18 +334,18 @@ public final class TerminalRequests {
     }
 
     /** The open requests as the GUI lists them. */
-    public static List<RequestRow> rows(ServerLevel level, StorageTerminalBlockEntity terminal, List<WarehouseNetwork> warehouses) {
+    public static List<RequestRow> rows(ServerLevel level, StorageTerminalBlockEntity terminal, Optional<WarehouseNetwork> warehouse) {
         List<RequestRow> rows = new ArrayList<>();
         for (Request request : terminal.requests()) {
             int delivered = request.delivered;
             rows.add(new RequestRow(request.id, request.key.stack(1), request.requested, Math.min(request.requested, delivered),
-                    request.missing, state(level, terminal, request, warehouses).name(), request.slot));
+                    request.missing, state(level, terminal, request, warehouse).name(), request.slot));
         }
         return rows;
     }
 
-    private static RequestState state(ServerLevel level, StorageTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses) {
-        return request.remote != null ? remoteState(level, terminal, request) : localState(level, terminal, request, warehouses);
+    private static RequestState state(ServerLevel level, StorageTerminalBlockEntity terminal, Request request, Optional<WarehouseNetwork> warehouse) {
+        return request.remote != null ? remoteState(level, terminal, request) : localState(level, terminal, request, warehouse);
     }
 
     /** The Packing Station running a shipment, while its chunk is loaded. */
@@ -411,11 +398,11 @@ public final class TerminalRequests {
 
     /** Shuttles and Crafting Stations stop without power: what waits for them waits for power. */
     private static RequestState localState(ServerLevel level, StorageTerminalBlockEntity terminal, Request request,
-                                           List<WarehouseNetwork> warehouses) {
+                                           Optional<WarehouseNetwork> warehouse) {
         if (request.shipments.stream().anyMatch(tracked -> sending(level, tracked))) {
             return delivering(terminal, request);
         }
-        boolean noPower = warehouses.stream().anyMatch(WarehouseNetwork::noPower);
+        boolean noPower = warehouse.filter(WarehouseNetwork::noPower).isPresent();
         if (!request.shipments.isEmpty()) {
             return noPower ? RequestState.NO_POWER : RequestState.PICKING;
         }
@@ -431,11 +418,5 @@ public final class TerminalRequests {
                 .flatMap(site -> SiteWakes.status(site.dimension(), site.pos()))
                 .map(status -> status.reason() == WakeAllowance.Reason.NO_POWER)
                 .orElse(false);
-    }
-
-    /** The first reachable warehouse, for rules and pushes. */
-    public static Optional<WarehouseNetwork> first(ServerLevel level, BlockPos pos) {
-        List<WarehouseNetwork> warehouses = TerminalWarehouses.reachable(level, pos);
-        return warehouses.isEmpty() ? Optional.empty() : Optional.of(warehouses.get(0));
     }
 }

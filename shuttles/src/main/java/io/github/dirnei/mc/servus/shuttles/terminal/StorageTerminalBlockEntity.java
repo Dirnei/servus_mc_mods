@@ -1,7 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.terminal;
 
 import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
-import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
@@ -282,7 +281,12 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
             inputRefusal = null;
             return;
         }
-        Optional<BlockPos> point = nearestPackingStation(server);
+        LineWarehouse line = TerminalWarehouses.line(server, worldPosition);
+        if (line.conflict()) {
+            inputRefusal = LineWarehouse.CONFLICT_KEY;
+            return;
+        }
+        Optional<BlockPos> point = line.online().flatMap(this::nearestPackingStation);
         if (point.isEmpty()) {
             inputRefusal = "input_no_packing_station";
             return;
@@ -356,20 +360,15 @@ public class StorageTerminalBlockEntity extends BlockEntity implements MaterialH
         return inputRefusal;
     }
 
-    /** The Packing Station of an online warehouse on this data line nearest to the terminal. */
-    private Optional<BlockPos> nearestPackingStation(ServerLevel server) {
-        Optional<DataNetwork> line = DataNetworks.networkAt(server, worldPosition);
+    /** The Packing Station of the warehouse on this data line nearest to the terminal. */
+    private Optional<BlockPos> nearestPackingStation(WarehouseNetwork warehouse) {
+        Optional<DataNetwork> line = DataNetworks.networkAt((ServerLevel) level, worldPosition);
         if (line.isEmpty()) {
             return Optional.empty();
         }
         BlockPos best = null;
-        for (DataMember member : line.get().dataMembers()) {
-            BlockPos pos = member.pos();
-            if (!server.isLoaded(pos) || !(server.getBlockEntity(pos) instanceof PackingStationBlockEntity packingStation)) {
-                continue;
-            }
-            boolean online = packingStation.network().filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE).isPresent();
-            if (!online) {
+        for (BlockPos pos : warehouse.packingStations()) {
+            if (!level.isLoaded(pos) || !line.get().reaches(pos) || !(level.getBlockEntity(pos) instanceof PackingStationBlockEntity)) {
                 continue;
             }
             if (best == null || closer(pos, best)) {

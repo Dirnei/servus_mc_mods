@@ -206,6 +206,7 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 
 ### Open: Shuttles
 
+- Delivery handshake on the data line: Packing Stations reserve whole To storage slots and send out only what a target has room for (`m8-wtp-ingress`, `m8-wtp-egress`).
 - Shuttles meeting head on pass through each other; passing places or one way aisles if play tests ask for them.
 - A way to unload a shuttle parked with cargo by hand; today only Recall empties it, dropping the cargo at the garage.
 - Stock reserved by open work orders in the terminal's requestable count, if play tests ask for it (today only locked picks lower it).

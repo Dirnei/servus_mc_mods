@@ -564,6 +564,10 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private List<Line> storageLines() {
         List<Line> result = new ArrayList<>();
         List<StorageRow> warehouses = ClientProduction.storage();
+        if (ClientProduction.lineConflict()) {
+            result.add(text(Component.translatable("gui.servus_shuttles.production.line_conflict"), COLOUR_ALERT));
+            return result;
+        }
         if (warehouses.isEmpty()) {
             result.add(text(Component.translatable("gui.servus_shuttles.production.no_warehouse"), COLOUR_DIM));
             return result;
