@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "first_seeds",
+  "show_title_separator": true,
+  "sort_number": 10,
+  "text": "book.servus_alchemy.journal.workshop.coagulator.first_seeds.text",
+  "title": "book.servus_alchemy.journal.workshop.coagulator.first_seeds.title"
+}

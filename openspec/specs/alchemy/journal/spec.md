@@ -46,11 +46,11 @@ When every task of a chapter is done the chapter SHALL be finished for the team,
 - **THEN** that member gets the Villach advancement when they log in
 
 ### Requirement: Chapter recipes stay locked
-A coagulation recipe MAY name a `chapter`. A Coagulator SHALL only select such a recipe when the team of its owner has finished that chapter, and its GUI SHALL name the needed chapter in the recipe's tooltip.
+A coagulation recipe MAY name a `chapter`. A Coagulator SHALL only grow such a recipe from its seed when the team of its owner has finished that chapter, and its GUI SHALL name the needed chapter in the seed's tooltip.
 
 #### Scenario: Locked recipe
-- **WHEN** a player clicks a recipe whose chapter their team has not finished
-- **THEN** the selection does not change and the tooltip names the chapter the recipe needs
+- **WHEN** a player puts the seed of a recipe whose chapter their team has not finished into a Coagulator
+- **THEN** nothing grows and the seed tooltip names the chapter the recipe needs
 
 ### Requirement: The journal book
 Alchemy SHALL ship a Modonomicon book `servus_alchemy:journal`, "Paracelsus' Journal", with one entry per chapter that tells the chapter's part of the story, lists its tasks and what it unlocks. The entry of a chapter with a parent SHALL stay locked until the reader has the parent's advancement.

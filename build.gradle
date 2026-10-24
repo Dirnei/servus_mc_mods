@@ -102,6 +102,8 @@ subprojects {
             gameTestServer {
                 type = 'gameTestServer'
                 gameDirectory = project.file('runs/gametest')
+                // Recipes only the GameTests use, added while recipes load.
+                systemProperty 'servus.gametest.recipes', 'true'
             }
             data {
                 // One run generates client assets and server data together (NeoForge 21.4+).
@@ -202,6 +204,7 @@ neoForge {
         gameTestServerAll {
             type = 'gameTestServer'
             gameDirectory = project.file('runs/gametest')
+            systemProperty 'servus.gametest.recipes', 'true'
         }
         // Renders every item of docs/src/data/gamedata.json as an icon for the docs site, then quits.
         iconExport {

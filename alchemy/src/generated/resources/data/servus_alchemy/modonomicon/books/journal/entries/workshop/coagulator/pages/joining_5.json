@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "joining_5",
+  "show_title_separator": true,
+  "sort_number": 9,
+  "text": "book.servus_alchemy.journal.workshop.coagulator.joining_5.text",
+  "title": ""
+}

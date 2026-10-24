@@ -4,13 +4,16 @@ import io.github.dirnei.mc.servus.alchemy.CalcinationRecipe;
 import io.github.dirnei.mc.servus.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorRecipe;
+import io.github.dirnei.mc.servus.alchemy.coagulator.SeedIndex;
 import io.github.dirnei.mc.servus.alchemy.prelum.PressingRecipe;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurificationRecipe;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -21,6 +24,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
 
@@ -84,9 +88,25 @@ final class ServusAlchemyRecipeProvider extends RecipeProvider {
 
     /** What the Coagulator makes from the principles, from the shared table the journal lists. */
     private void coagulation(RecipeOutput output) {
-        for (AlchemyRecipeTable.Coagulate row : AlchemyRecipeTable.coagulation()) {
+        List<AlchemyRecipeTable.Coagulate> rows = AlchemyRecipeTable.coagulation();
+        checkSeeds(rows);
+        for (AlchemyRecipeTable.Coagulate row : rows) {
+            Optional<Ingredient> seed = row.seeds().isEmpty() ? Optional.empty() : Optional.of(Ingredient.of(row.seeds().stream()));
             output.accept(key("coagulation/" + row.name()), new CoagulationRecipe(row.input(), Optional.empty(), row.result(),
-                    CoagulationRecipe.DEFAULT_TIME, Optional.empty()), null);
+                    CoagulationRecipe.DEFAULT_TIME, seed, Optional.empty()), null);
+        }
+    }
+
+    /** Fails the run when two shipped coagulations share a seed item. */
+    private static void checkSeeds(List<AlchemyRecipeTable.Coagulate> rows) {
+        List<SeedIndex.Entry<String>> entries = rows.stream()
+                .map(row -> new SeedIndex.Entry<>(row.name(), row.seedItems().stream()
+                        .map(item -> BuiltInRegistries.ITEM.getKey(item).toString()).toList(), row.name()))
+                .toList();
+        List<SeedIndex.Conflict> conflicts = SeedIndex.build(entries).conflicts();
+        if (!conflicts.isEmpty()) {
+            SeedIndex.Conflict first = conflicts.getFirst();
+            throw new IllegalStateException("Seed " + first.item() + " of coagulation " + first.rejected() + " is already the seed of " + first.kept());
         }
     }
 

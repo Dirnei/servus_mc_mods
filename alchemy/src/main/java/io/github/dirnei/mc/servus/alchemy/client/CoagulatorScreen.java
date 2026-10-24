@@ -1,12 +1,11 @@
 package io.github.dirnei.mc.servus.alchemy.client;
 
 import io.github.dirnei.mc.servus.alchemy.CoagulationRecipe;
-import io.github.dirnei.mc.servus.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.CoagulatorMenu;
 import io.github.dirnei.mc.servus.alchemy.Principle;
 import io.github.dirnei.mc.servus.alchemy.PrincipleMenu;
+import io.github.dirnei.mc.servus.alchemy.coagulator.CoagulatorSeeds;
 import io.github.dirnei.mc.servus.foundation.client.MachineScreen;
-import io.github.dirnei.mc.servus.foundation.client.RecipePickerPopup;
 import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import java.util.ArrayList;
@@ -14,204 +13,104 @@ import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
-import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.RecipeHolder;
 
-/** The Coagulator: slots, gauges, and a select button that opens a popup of "No recipe" and every coagulation recipe. */
+/** The Coagulator: the seed slot under the arrow, the ingredient and output slots and the principle gauges. */
 public class CoagulatorScreen extends MachineScreen {
 
     /** No side panel: the Coagulator's ports are fixed by its build. */
     public static final Layout LAYOUT = new Layout(false, true, false, false, false, MachineScreens.gui("coagulator"));
 
-    private static final int BUTTON_X = 48;
-    private static final int BUTTON_Y = 55;
-    private static final int BUTTON_W = 100;
-    private static final int BUTTON_H = 15;
-    private static final int KEY_ESCAPE = 256;
-    /** Popup entry 0 clears the selection; entry {@code i} is recipe {@code i - 1}. */
-    private static final int NONE_ENTRIES = 1;
-    private static final ItemStack NONE_ICON = new ItemStack(Items.BARRIER);
-
     private final PrincipleGauges gauges;
-    private final RecipePickerPopup popup = new RecipePickerPopup();
-    private boolean popupOpen;
 
     public CoagulatorScreen(MachineMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, LAYOUT);
         this.gauges = new PrincipleGauges((PrincipleMenu) menu);
     }
 
-    private List<RecipeHolder<CoagulationRecipe>> recipes() {
-        return minecraft == null || minecraft.level == null ? List.of()
-                : CoagulatorBlockEntity.sortedRecipes(minecraft.level);
-    }
-
-    private int selected() {
-        return ((CoagulatorMenu) menu).selectedIndex();
-    }
-
-    private boolean buttonHovered(double mouseX, double mouseY) {
-        return mouseX >= leftPos + BUTTON_X && mouseX < leftPos + BUTTON_X + BUTTON_W
-                && mouseY >= topPos + BUTTON_Y && mouseY < topPos + BUTTON_Y + BUTTON_H;
+    private CoagulatorMenu coagulatorMenu() {
+        return (CoagulatorMenu) menu;
     }
 
     @Override
     protected void init() {
         super.init();
         gauges.place(leftPos, topPos);
-        popupOpen = false;
     }
 
     @Override
     public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(guiGraphics, mouseX, mouseY, partialTick);
         gauges.render(guiGraphics);
-        List<RecipeHolder<CoagulationRecipe>> recipes = recipes();
-        int index = selected();
-        boolean hovered = !popupOpen && buttonHovered(mouseX, mouseY);
-        int bx = leftPos + BUTTON_X;
-        int by = topPos + BUTTON_Y;
-        guiGraphics.fill(bx, by, bx + BUTTON_W, by + BUTTON_H, 0xFF373737);
-        guiGraphics.fill(bx + 1, by + 1, bx + BUTTON_W - 1, by + BUTTON_H - 1, hovered ? 0xFFDDDDDD : 0xFFA0A0A0);
-        boolean hasRecipe = index >= 0 && index < recipes.size();
-        ItemStack icon = hasRecipe ? recipes.get(index).value().result() : NONE_ICON;
-        guiGraphics.pose().pushMatrix();
-        guiGraphics.pose().translate(bx + 2, by + 1.5F);
-        guiGraphics.pose().scale(0.75F, 0.75F);
-        guiGraphics.item(icon, 0, 0);
-        guiGraphics.pose().popMatrix();
-        Component label = hasRecipe ? icon.getHoverName() : Component.translatable("gui.servus_alchemy.coagulator.none");
-        int textX = bx + 17;
-        String text = font.plainSubstrByWidth(label.getString(), bx + BUTTON_W - 10 - textX);
-        guiGraphics.text(font, text, textX, by + 4, 0xFF202020, false);
-        guiGraphics.text(font, "v", bx + BUTTON_W - 9, by + 4, 0xFF202020, false);
     }
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-        // An open popup hides the mouse from everything below it.
-        super.extractRenderState(guiGraphics, popupOpen ? -1 : mouseX, popupOpen ? -1 : mouseY, partialTick);
-        List<RecipeHolder<CoagulationRecipe>> recipes = recipes();
-        if (!popupOpen) {
-            gauges.renderTooltip(guiGraphics, font, mouseX, mouseY);
-            int index = selected();
-            if (buttonHovered(mouseX, mouseY)) {
-                showTooltip(guiGraphics, index >= 0 && index < recipes.size() ? tooltip(recipes.get(index).value()) : noneTooltip(),
-                        mouseX, mouseY);
-            }
-            return;
-        }
-        List<ItemStack> entries = new ArrayList<>();
-        entries.add(NONE_ICON);
-        recipes.forEach(holder -> entries.add(holder.value().result()));
-        popup.render(guiGraphics, font, leftPos, topPos, imageWidth, imageHeight,
-                Component.translatable("gui.servus_alchemy.coagulator.pick"), entries, selected() + NONE_ENTRIES, mouseX, mouseY);
-        int entry = popup.indexAt(mouseX, mouseY, entries.size());
-        if (entry >= NONE_ENTRIES) {
-            showTooltip(guiGraphics, tooltip(recipes.get(entry - NONE_ENTRIES).value()), mouseX, mouseY);
-        } else if (entry >= 0) {
-            showTooltip(guiGraphics, noneTooltip(), mouseX, mouseY);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        gauges.renderTooltip(guiGraphics, font, mouseX, mouseY);
+        Slot seed = coagulatorMenu().seedSlot();
+        if (menu.getCarried().isEmpty() && isHovering(seed.x, seed.y, 16, 16, mouseX, mouseY)) {
+            showTooltip(guiGraphics, seedTooltip(seed.getItem()), mouseX, mouseY);
         }
     }
 
-    /** Shows the tooltip in place of any other one set this frame; the popup and the button are on top of everything. */
+    /** Shows the tooltip in place of the item's own one. */
     private void showTooltip(GuiGraphicsExtractor guiGraphics, List<Component> lines, int mouseX, int mouseY) {
         guiGraphics.setTooltipForNextFrame(font, lines.stream().map(Component::getVisualOrderText).toList(),
                 DefaultTooltipPositioner.INSTANCE, mouseX, mouseY, true);
     }
 
-    private static List<Component> noneTooltip() {
-        return List.of(Component.translatable("gui.servus_alchemy.coagulator.none"),
-                Component.translatable("gui.servus_alchemy.coagulator.none.tooltip").withStyle(ChatFormatting.GRAY));
+    /** What the seed grows and needs; for an empty slot, what belongs there. */
+    private List<Component> seedTooltip(ItemStack seed) {
+        if (seed.isEmpty() || minecraft == null || minecraft.level == null) {
+            return List.of(Component.translatable("gui.servus_alchemy.coagulator.seed"),
+                    Component.translatable("gui.servus_alchemy.coagulator.seed.empty").withStyle(ChatFormatting.GRAY));
+        }
+        List<Component> lines = new ArrayList<>();
+        lines.add(seed.getHoverName());
+        CoagulatorSeeds.recipeFor(minecraft.level, seed).map(holder -> holder.value()).ifPresent(recipe -> {
+            lines.add(seedUse(recipe, seed));
+            addRecipe(lines, recipe);
+        });
+        return lines;
     }
 
-    private List<Component> tooltip(CoagulationRecipe recipe) {
-        List<Component> lines = new ArrayList<>();
-        lines.add(recipe.result().getHoverName());
+    /** That one seed is used up per cycle, and what it grows into. */
+    public static Component seedUse(CoagulationRecipe recipe, ItemStack seed) {
+        ItemStack grown = recipe.resultFrom(seed);
+        return Component.translatable("gui.servus_alchemy.coagulator.seed.used_up", grown.getCount(), grown.getHoverName())
+                .withStyle(ChatFormatting.GRAY);
+    }
+
+    private void addRecipe(List<Component> lines, CoagulationRecipe recipe) {
+        lines.add(Component.translatable("gui.servus_alchemy.coagulator.grows", recipe.result().getHoverName()).withStyle(ChatFormatting.GRAY));
         for (Principle principle : Principle.values()) {
             int amount = recipe.input().get(principle);
             if (amount > 0) {
                 lines.add(Component.translatable("gui.servus_alchemy.coagulator.needs", amount,
-                        Component.translatable("fluid_type.servus_alchemy." + principle.id())));
+                        Component.translatable("fluid_type.servus_alchemy." + principle.id())).withStyle(ChatFormatting.GRAY));
             }
         }
         recipe.ingredient().ifPresent(sized -> {
             ItemStack first = ServusRecipes.firstItem(sized.ingredient());
             if (!first.isEmpty()) {
-                lines.add(Component.literal(sized.count() + " x ").append(first.getHoverName()));
+                lines.add(Component.literal(sized.count() + " x ").append(first.getHoverName()).withStyle(ChatFormatting.GRAY));
             }
         });
         recipe.chapter().ifPresent(chapter -> lines.add(Component.translatable("gui.servus_alchemy.coagulator.chapter",
-                Component.translatable("journal." + chapter.getNamespace() + "." + chapter.getPath())).withStyle(ChatFormatting.GRAY)));
-        return lines;
+                Component.translatable("journal." + chapter.getNamespace() + "." + chapter.getPath()))
+                .withStyle(coagulatorMenu().seedLocked() ? ChatFormatting.RED : ChatFormatting.GRAY)));
     }
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        double mouseX = event.x();
-        double mouseY = event.y();
-        if (popupOpen) {
-            int count = recipes().size() + NONE_ENTRIES;
-            int entry = popup.indexAt(mouseX, mouseY, count);
-            int button = entry < NONE_ENTRIES ? CoagulatorMenu.RECIPE_BUTTON_NONE : CoagulatorMenu.RECIPE_BUTTON_FIRST + entry - NONE_ENTRIES;
-            if (entry >= 0 && clickButton(button)) {
-                popupOpen = false;
-            } else if (!popup.clickBar(mouseX, mouseY, count) && !popup.contains(mouseX, mouseY)) {
-                popupOpen = false;
-            }
-            return true;
-        }
-        if (gauges.click(this::clickButton, menu.getCarried(), mouseX, mouseY)) {
-            return true;
-        }
-        if (buttonHovered(mouseX, mouseY)) {
-            popup.open(leftPos, topPos, imageWidth, imageHeight, recipes().size() + NONE_ENTRIES, selected() + NONE_ENTRIES);
-            popupOpen = true;
+        if (gauges.click(this::clickButton, menu.getCarried(), event.x(), event.y())) {
             return true;
         }
         return super.mouseClicked(event, doubleClick);
-    }
-
-    @Override
-    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
-        if (popupOpen) {
-            popup.drag(event.y(), recipes().size() + NONE_ENTRIES);
-            return true;
-        }
-        return super.mouseDragged(event, dragX, dragY);
-    }
-
-    @Override
-    public boolean mouseReleased(MouseButtonEvent event) {
-        if (popupOpen) {
-            popup.release();
-            return true;
-        }
-        return super.mouseReleased(event);
-    }
-
-    @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (popupOpen) {
-            popup.scroll(scrollY, recipes().size() + NONE_ENTRIES);
-            return true;
-        }
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
-    }
-
-    @Override
-    public boolean keyPressed(KeyEvent event) {
-        if (popupOpen) {
-            if (event.key() == KEY_ESCAPE) {
-                popupOpen = false;
-            }
-            return true;
-        }
-        return super.keyPressed(event);
     }
 }

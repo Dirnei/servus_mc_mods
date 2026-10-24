@@ -155,9 +155,12 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("message.servus_alchemy.calciner.below", "below the %s");
         add(ServusAlchemyBlocks.COAGULATOR.get(), "Coagulator");
         add("gui.servus_alchemy.coagulator.needs", "%s mB %s");
-        add("gui.servus_alchemy.coagulator.none", "No recipe");
-        add("gui.servus_alchemy.coagulator.none.tooltip", "The Coagulator stops and keeps its principles");
-        add("gui.servus_alchemy.coagulator.pick", "Pick a recipe");
+        add("gui.servus_alchemy.coagulator.seed", "Seed");
+        add("gui.servus_alchemy.coagulator.seed.empty", "Put seeds of what should grow here. One is used up per cycle; a crystal of the product itself comes back doubled.");
+        add("gui.servus_alchemy.coagulator.seed.used_up", "Used up, one per cycle: gives %s x %s");
+        add("gui.servus_alchemy.jei.coagulation.self_seed", "Grown from a crystal of itself: %s");
+        add("gui.servus_alchemy.coagulator.grows", "Grows %s");
+        add("gui.servus_alchemy.jei.coagulation.seed", "Seed");
         add("gui.servus_alchemy.coagulator.chapter", "Needs the journal chapter %s");
         add("journal.servus_alchemy.villach", "Villach");
         add("journal.servus_alchemy.schwaz", "Schwaz");

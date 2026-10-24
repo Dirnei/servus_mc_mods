@@ -5,5 +5,9 @@
   },
   "result": {
     "id": "servus_alchemy:salt_crystal"
-  }
+  },
+  "seed": [
+    "servus_alchemy:kandis",
+    "servus_alchemy:salt_crystal"
+  ]
 }

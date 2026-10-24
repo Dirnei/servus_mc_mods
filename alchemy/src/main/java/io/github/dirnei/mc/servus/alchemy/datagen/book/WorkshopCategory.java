@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.PrincipleText;
 import io.github.dirnei.mc.servus.alchemy.PurificationText;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
+import io.github.dirnei.mc.servus.alchemy.coagulator.SeedText;
 import io.github.dirnei.mc.servus.alchemy.datagen.AlchemyRecipeTable;
 import io.github.dirnei.mc.servus.alchemy.datagen.ServusAlchemyMultiblockProvider;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
@@ -16,6 +17,7 @@ import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 
@@ -180,9 +182,22 @@ final class WorkshopCategory extends CategoryProvider {
                             + "The left Vat takes Sulfur, the middle one Salt and the right one Mercury, the same sides as at the Calciner. "
                             + "Use this journal on the Coagulator to bring the build together; break any block and it falls apart.");
             e.text("joining", "Joining",
-                    "Open the Coagulator with an empty hand, press the select button and choose what to make. Then bring the principles: "
-                            + "by pipe or bucket into their Vats, or on a gauge in the GUI.\n\n"
-                            + "A hopper or pipe feeds the ingredient into the table and takes the products from it.");
+                    "Like begets like. Lay seeds in the mold: crystals of what should grow, as many of one kind as a stack holds. "
+                            + "Open the Coagulator with an empty hand and put them into the seed slot, or use them on the table.\n\n"
+                            + "Then bring the principles: by pipe or bucket into their Vats, or on a gauge in the GUI. Each time they set, "
+                            + "one seed is used up and comes back doubled: two of its kind lie in the output. When the last seed is gone, "
+                            + "the Coagulator stops.\n\n"
+                            + "To stop sooner, take the seeds out: in the GUI, or sneak with an empty hand on the table. A hopper or pipe "
+                            + "feeds the ingredient and more of the same seed and takes the products, but never takes the seeds.");
+            e.text("first_seeds", "First Seeds",
+                    "Every product grows from a crystal of itself. The very first Salt Crystal, Sulfur and Quicksilver need a "
+                            + "stranger: the Purifier washes them out of Sugar, Gunpowder and Redstone. A stranger seed does not "
+                            + "come back; it turns into one crystal of the product.");
+            e.list("seeds", "Seeds", AlchemyRecipeTable.coagulation().stream()
+                    .flatMap(row -> row.seedItems().stream()
+                            .filter(seed -> seed != row.result().item().value())
+                            .map(seed -> SeedText.line(AlchemyRecipeTable.label(new ItemStackTemplate(seed)), row.label())))
+                    .toList());
             e.list("makes", "What It Makes", AlchemyRecipeTable.coagulation().stream()
                     .map(row -> PrincipleText.line(row.label(), row.input())).toList());
         });

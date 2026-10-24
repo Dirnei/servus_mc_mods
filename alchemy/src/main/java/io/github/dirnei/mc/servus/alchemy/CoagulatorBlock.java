@@ -24,7 +24,7 @@ import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
 
-/** The Coagulator, the casting table of its build: it holds the tanks, the slots and the recipe. */
+/** The Coagulator, the casting table of its build: it holds the tanks, the slots and the seed. */
 public class CoagulatorBlock extends MachineBlock {
 
     public static final MapCodec<CoagulatorBlock> CODEC = simpleCodec(CoagulatorBlock::new);
@@ -46,7 +46,7 @@ public class CoagulatorBlock extends MachineBlock {
         builder.add(FORMED);
     }
 
-    /** The Journal forms the build; anything else passes to an empty hand's click. */
+    /** The Journal forms the build; seeds go into the seed slot of a formed Coagulator as far as it has room; anything else opens the GUI. */
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
@@ -56,14 +56,27 @@ public class CoagulatorBlock extends MachineBlock {
             }
             return InteractionResult.SUCCESS;
         }
+        if (state.getValue(FORMED) && level.getBlockEntity(pos) instanceof CoagulatorBlockEntity coagulator
+                && coagulator.seedRoom(stack) > 0) {
+            if (!level.isClientSide()) {
+                stack.consume(coagulator.plantSeed(stack), player);
+            }
+            return InteractionResult.SUCCESS;
+        }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
-    /** An empty hand opens the recipe GUI of a formed Coagulator. */
+    /** An empty hand opens the GUI of a formed Coagulator; sneaking it takes all seeds out instead. */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!state.getValue(FORMED)) {
             return InteractionResult.PASS;
+        }
+        if (player.isShiftKeyDown() && level.getBlockEntity(pos) instanceof CoagulatorBlockEntity coagulator && !coagulator.seed().isEmpty()) {
+            if (!level.isClientSide()) {
+                player.getInventory().placeItemBackInInventory(coagulator.takeSeed());
+            }
+            return InteractionResult.SUCCESS;
         }
         return super.useWithoutItem(state, level, pos, player, hitResult);
     }

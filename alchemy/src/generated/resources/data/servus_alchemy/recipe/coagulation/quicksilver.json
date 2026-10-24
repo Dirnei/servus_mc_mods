@@ -5,5 +5,9 @@
   },
   "result": {
     "id": "servus_alchemy:quicksilver"
-  }
+  },
+  "seed": [
+    "servus_alchemy:cinnabar",
+    "servus_alchemy:quicksilver"
+  ]
 }

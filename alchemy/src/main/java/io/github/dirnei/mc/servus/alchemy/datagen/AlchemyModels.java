@@ -331,7 +331,7 @@ final class AlchemyModels {
         switch (piece) {
             case 0 -> box(model, -4, 1.5F, 7, 2, 3.5F, 9, "#cut");
             case 2 -> box(model, 14, 1.5F, 7, 20, 3.5F, 9, "#cut");
-            case 1 -> box(model, 7, -4, 7, 9, 0, 9, "#cut");
+            case 1 -> box(model, 7, -2, 7, 9, 0, 9, "#cut");
             default -> {
             }
         }

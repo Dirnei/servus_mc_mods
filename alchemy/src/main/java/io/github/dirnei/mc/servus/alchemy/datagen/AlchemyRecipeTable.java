@@ -65,8 +65,18 @@ public final class AlchemyRecipeTable {
         }
     }
 
-    /** One coagulation: the principles it takes and what it makes. */
-    public record Coagulate(String name, String label, Principles input, ItemStackTemplate result) {
+    /** One coagulation: the principles it takes, what it makes and the items that seed it; no seeds means its own result. */
+    public record Coagulate(String name, String label, Principles input, ItemStackTemplate result, List<Item> seeds) {
+
+        /** A coagulation seeded by its own result. */
+        public Coagulate(String name, String label, Principles input, ItemStackTemplate result) {
+            this(name, label, input, result, List.of());
+        }
+
+        /** The items that seed it: its seeds, or else its own result. */
+        public List<Item> seedItems() {
+            return seeds.isEmpty() ? List.of(result.item().value()) : seeds;
+        }
     }
 
     /** One Athanor craft: the item laid on it, the principles it burns, the stage it needs and the result. */
@@ -216,9 +226,9 @@ public final class AlchemyRecipeTable {
     /** What the Coagulator makes from the principles; no metal in Nigredo. */
     public static List<Coagulate> coagulation() {
         return List.of(
-                new Coagulate("salt_crystal", "Salt Crystal", new Principles(250, 0, 0), new ItemStackTemplate(ServusAlchemyItems.SALT_CRYSTAL.get())),
-                new Coagulate("sulfur", "Sulfur", new Principles(0, 250, 0), new ItemStackTemplate(ServusAlchemyItems.SULFUR.get())),
-                new Coagulate("quicksilver", "Quicksilver", new Principles(0, 0, 250), new ItemStackTemplate(ServusAlchemyItems.QUICKSILVER.get())),
+                firstSeed("salt_crystal", "Salt Crystal", new Principles(250, 0, 0), ServusAlchemyItems.SALT_CRYSTAL.get(), ServusAlchemyItems.KANDIS.get()),
+                firstSeed("sulfur", "Sulfur", new Principles(0, 250, 0), ServusAlchemyItems.SULFUR.get(), ServusAlchemyItems.BRIMSTONE.get()),
+                firstSeed("quicksilver", "Quicksilver", new Principles(0, 0, 250), ServusAlchemyItems.QUICKSILVER.get(), ServusAlchemyItems.CINNABAR.get()),
                 new Coagulate("clay_ball", "Clay Ball", new Principles(100, 0, 50), new ItemStackTemplate(Items.CLAY_BALL)),
                 new Coagulate("flint", "Flint", new Principles(150, 0, 0), new ItemStackTemplate(Items.FLINT)),
                 new Coagulate("gunpowder", "Gunpowder", new Principles(50, 150, 0), new ItemStackTemplate(Items.GUNPOWDER)),
@@ -226,6 +236,11 @@ public final class AlchemyRecipeTable {
                 new Coagulate("glowstone_dust", "Glowstone Dust", new Principles(0, 100, 100), new ItemStackTemplate(Items.GLOWSTONE_DUST)),
                 new Coagulate("bone_meal", "Bone Meal", new Principles(60, 20, 0), new ItemStackTemplate(Items.BONE_MEAL)),
                 new Coagulate("slime_ball", "Slimeball", new Principles(0, 50, 150), new ItemStackTemplate(Items.SLIME_BALL)));
+    }
+
+    /** A coagulation that grows from a first seed the Purifier washes out, as well as from its own result. */
+    private static Coagulate firstSeed(String name, String label, Principles input, Item result, Item seed) {
+        return new Coagulate(name, label, input, new ItemStackTemplate(result), List.of(seed, result));
     }
 
     /** Crafts on the Athanor. */

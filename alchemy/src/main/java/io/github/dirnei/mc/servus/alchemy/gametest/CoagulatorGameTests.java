@@ -13,18 +13,22 @@ import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.coagulator.CoagulatorLayout;
 import io.github.dirnei.mc.servus.alchemy.coagulator.CoagulatorLayout.Cell;
 import io.github.dirnei.mc.servus.alchemy.coagulator.CoagulatorLayout.Role;
+import io.github.dirnei.mc.servus.alchemy.coagulator.CoagulatorSeeds;
 import io.github.dirnei.mc.servus.alchemy.coagulator.CoagulatorStructure;
 import io.github.dirnei.mc.servus.alchemy.coagulator.VatBlock;
+import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.alchemy.structure.Structures;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
+import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
-import java.util.List;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import java.util.Map;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -34,7 +38,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HopperBlock;
@@ -42,8 +45,10 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
-/** The Coagulator as a build: forming, unforming, the Vats and the casting table's items. */
+/** The Coagulator as a build: forming, unforming, the Vats, the casting table's items and its seed. */
 public final class CoagulatorGameTests {
 
     static final BlockPos COAGULATOR = new BlockPos(5, 1, 5);
@@ -79,6 +84,14 @@ public final class CoagulatorGameTests {
 
     static FluidView vatHandler(GameTestHelper helper, BlockPos controller, int piece) {
         return FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(vat(controller, piece)), Direction.UP));
+    }
+
+    /** Lays the result of the shipped recipe {@code name} into the seed slot. */
+    static void seedWith(GameTestHelper helper, CoagulatorBlockEntity coagulator, String name) {
+        Identifier id = AlchemyGameTests.coagulation(name);
+        CoagulationRecipe recipe = ServusRecipes.byId(helper.getLevel(), id)
+                .map(holder -> (CoagulationRecipe) holder.value()).orElseThrow(() -> new IllegalStateException("missing " + id));
+        helper.assertTrue(coagulator.plantSeed(recipe.result()) == 1, "the " + name + " seed should go in");
     }
 
     static boolean isFormed(GameTestHelper helper, BlockPos controller) {
@@ -156,21 +169,21 @@ public final class CoagulatorGameTests {
         helper.succeed();
     }
 
-    /** The casting table takes the ingredient and a hopper under it takes the product. */
+    /** The casting table takes the ingredient and a hopper under it takes the products. */
     @ServusGameTest(timeoutTicks = 200)
     public static void itemsAtTheCastingTable(GameTestHelper helper) {
         CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
-        coagulator.select(AlchemyGameTests.coagulation("salt_crystal"));
+        seedWith(helper, coagulator, "salt_crystal");
         ItemView port = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(COAGULATOR), Direction.NORTH));
-        helper.assertTrue(port != null && port.getSlots() == 2, "the Coagulator has its item port");
+        helper.assertTrue(port != null && port.getSlots() == 3, "the Coagulator has its item port");
         helper.assertTrue(port.insertItem(1, new ItemStack(Items.STONE), false).getCount() == 1, "nothing goes into the output");
         helper.assertTrue(ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(vat(COAGULATOR, 1)), Direction.NORTH)) == null,
                 "a Vat takes no items");
         helper.setBlock(COAGULATOR.below(), Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.DOWN));
         HopperBlockEntity hopper = helper.getBlockEntity(COAGULATOR.below(), HopperBlockEntity.class);
         vatHandler(helper, COAGULATOR, 1).fill(new FluidStack(PrincipleFluids.fluid(Principle.SALT), 250), false);
-        helper.succeedWhen(() -> helper.assertTrue(hopper.countItem(ServusAlchemyItems.SALT_CRYSTAL.get()) == 1,
-                "the hopper should take the Salt Crystal"));
+        helper.succeedWhen(() -> helper.assertTrue(hopper.countItem(ServusAlchemyItems.SALT_CRYSTAL.get()) == 2,
+                "the hopper should take both Salt Crystals"));
     }
 
     /** Clay Ball, a Nigredo good, comes from the principles alone. */
@@ -192,7 +205,7 @@ public final class CoagulatorGameTests {
         CoagulationRecipe recipe = ServusRecipes.byId(helper.getLevel(), id)
                 .map(holder -> (CoagulationRecipe) holder.value()).orElseThrow(() -> new IllegalStateException("missing " + id));
         helper.assertTrue(recipe.ingredient().isEmpty() && recipe.chapter().isEmpty(), name + " needs no item and no chapter");
-        coagulator.select(id);
+        seedWith(helper, coagulator, name);
         coagulator.tanks().insert(recipe.input());
         helper.succeedWhen(() -> {
             helper.assertTrue(coagulator.inventory().getStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT).is(result), name + " should be made");
@@ -205,7 +218,7 @@ public final class CoagulatorGameTests {
     public static void unformedCoagulatorDoesNothing(GameTestHelper helper) {
         build(helper, COAGULATOR, Direction.NORTH);
         CoagulatorBlockEntity coagulator = helper.getBlockEntity(COAGULATOR, CoagulatorBlockEntity.class);
-        coagulator.select(AlchemyGameTests.coagulation("salt_crystal"));
+        seedWith(helper, coagulator, "salt_crystal");
         coagulator.tanks().insert(new Principles(250, 0, 0));
         helper.assertTrue(vatHandler(helper, COAGULATOR, 1) == null, "an unformed Vat offers nothing");
         helper.runAfterDelay(100, () -> {
@@ -214,26 +227,166 @@ public final class CoagulatorGameTests {
         });
     }
 
-    /** Picking "No recipe" clears the selection, and the Coagulator leaves its Salt alone. */
+    /** Taking the seed out stops the Coagulator, and it leaves its Salt alone. */
     @ServusGameTest(timeoutTicks = 120)
-    public static void noRecipeStopsTheCoagulator(GameTestHelper helper) {
+    public static void takingTheSeedOutStopsTheCoagulator(GameTestHelper helper) {
         CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
-        coagulator.select(AlchemyGameTests.coagulation("salt_crystal"));
+        seedWith(helper, coagulator, "salt_crystal");
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         CoagulatorMenu menu = new CoagulatorMenu(0, player.getInventory(), coagulator);
-        int index = menu.selectedIndex();
-        List<RecipeHolder<CoagulationRecipe>> recipes = CoagulatorBlockEntity.sortedRecipes(helper.getLevel());
-        helper.assertTrue(index >= 0 && recipes.get(index).id().identifier().equals(AlchemyGameTests.coagulation("salt_crystal")),
-                "the menu should report the selected Salt Crystal, got " + index);
-        helper.assertTrue(menu.clickMenuButton(player, CoagulatorMenu.RECIPE_BUTTON_NONE), "the button should be taken");
-        helper.assertTrue(coagulator.selected().isEmpty(), "the selection should be cleared");
-        helper.assertTrue(menu.selectedIndex() == -1, "the menu should report no recipe");
+        helper.assertTrue(menu.seedSlot().getItem().is(ServusAlchemyItems.SALT_CRYSTAL.get()), "the menu shows the seed");
+        helper.assertTrue(menu.seedSlot().remove(1).is(ServusAlchemyItems.SALT_CRYSTAL.get()), "the seed comes out of the slot");
+        helper.assertTrue(coagulator.seed().isEmpty(), "the seed slot is empty");
         coagulator.tanks().insert(new Principles(250, 0, 0));
         helper.runAfterDelay(100, () -> {
             helper.assertTrue(coagulator.inventory().getStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT).isEmpty(), "nothing is made");
             helper.assertTrue(coagulator.tanks().contents().equals(new Principles(250, 0, 0)), "the Salt stays in the tank");
             helper.succeed();
         });
+    }
+
+    /** Three Kandis grow three Salt Crystals, one used up per cycle, and then the Coagulator stops with Salt left over. */
+    @ServusGameTest(timeoutTicks = 300)
+    public static void kandisSeedsAreUsedUp(GameTestHelper helper) {
+        CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
+        helper.assertTrue(coagulator.plantSeed(new ItemStack(ServusAlchemyItems.KANDIS.get(), 3)) == 3, "three Kandis go in");
+        coagulator.tanks().insert(new Principles(1000, 0, 0));
+        helper.runAfterDelay(240, () -> {
+            ItemStack output = coagulator.inventory().getStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT);
+            helper.assertTrue(output.is(ServusAlchemyItems.SALT_CRYSTAL.get()) && output.getCount() == 3, "three Salt Crystals, got " + output);
+            helper.assertTrue(coagulator.seed().isEmpty(), "the Kandis are used up, left " + coagulator.seed());
+            helper.assertTrue(coagulator.tanks().amount(Principle.SALT) == 250, "the Coagulator stops with 250 mB Salt left, has "
+                    + coagulator.tanks().amount(Principle.SALT));
+            helper.succeed();
+        });
+    }
+
+    /** Two Redstone seeds are used up and come back doubled: four Redstone, and the Coagulator stops. */
+    @ServusGameTest(timeoutTicks = 300)
+    public static void redstoneSeedsDouble(GameTestHelper helper) {
+        CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
+        helper.assertTrue(coagulator.plantSeed(new ItemStack(Items.REDSTONE, 2)) == 2, "two Redstone go in");
+        coagulator.tanks().insert(new Principles(150, 0, 450));
+        helper.runAfterDelay(200, () -> {
+            ItemStack output = coagulator.inventory().getStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT);
+            helper.assertTrue(output.is(Items.REDSTONE) && output.getCount() == 4, "four Redstone, got " + output);
+            helper.assertTrue(coagulator.seed().isEmpty(), "the Redstone seeds are used up, left " + coagulator.seed());
+            helper.assertTrue(coagulator.tanks().contents().equals(new Principles(50, 0, 150)),
+                    "the Coagulator stops with one cycle of principles left, has " + coagulator.tanks().contents());
+            helper.succeed();
+        });
+    }
+
+    /** Autocrafting sees one seed among the inputs: Kandis gives one Salt Crystal, a Salt Crystal gives two. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void productionListsTheSeed(GameTestHelper helper) {
+        CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
+        coagulator.plantSeed(new ItemStack(ServusAlchemyItems.KANDIS.get(), 5));
+        ProductionRecipe fromKandis = coagulator.production().recipes().getFirst();
+        helper.assertTrue(fromKandis.inputs().size() == 1 && fromKandis.inputs().getFirst().is(ServusAlchemyItems.KANDIS.get())
+                && fromKandis.inputs().getFirst().getCount() == 1, "one Kandis is an input, got " + fromKandis.inputs());
+        helper.assertTrue(fromKandis.outputs().getFirst().getCount() == 1, "Kandis gives one Salt Crystal");
+        coagulator.takeSeed();
+        coagulator.plantSeed(new ItemStack(ServusAlchemyItems.SALT_CRYSTAL.get(), 5));
+        ProductionRecipe fromCrystal = coagulator.production().recipes().getFirst();
+        helper.assertTrue(fromCrystal.inputs().size() == 1 && fromCrystal.inputs().getFirst().is(ServusAlchemyItems.SALT_CRYSTAL.get())
+                && fromCrystal.inputs().getFirst().getCount() == 1, "one Salt Crystal is an input, got " + fromCrystal.inputs());
+        helper.assertTrue(fromCrystal.outputs().getFirst().is(ServusAlchemyItems.SALT_CRYSTAL.get())
+                && fromCrystal.outputs().getFirst().getCount() == 2, "a Salt Crystal gives two, got " + fromCrystal.outputs());
+        helper.succeed();
+    }
+
+    /** Without a seed the Coagulator makes nothing and keeps its Salt. */
+    @ServusGameTest(timeoutTicks = 120)
+    public static void noSeedDoesNothing(GameTestHelper helper) {
+        CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
+        coagulator.tanks().insert(new Principles(250, 0, 0));
+        helper.runAfterDelay(100, () -> {
+            helper.assertTrue(coagulator.inventory().getStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT).isEmpty(), "nothing is made");
+            helper.assertTrue(coagulator.tanks().contents().equals(new Principles(250, 0, 0)), "the Salt stays in the tank");
+            helper.succeed();
+        });
+    }
+
+    /** The seed of a recipe locked behind Villach grows nothing for a team without Villach, and grows once the team finishes it. */
+    @ServusGameTest(timeoutTicks = 300)
+    public static void lockedSeedGrowsNothing(GameTestHelper helper) {
+        CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
+        UUID team = UUID.randomUUID();
+        coagulator.setTeam(team);
+        helper.assertTrue(coagulator.plantSeed(new ItemStack(Items.ECHO_SHARD)) == 1, "the locked recipe's seed goes in");
+        helper.assertTrue(coagulator.seedRecipe().filter(holder -> holder.id().identifier().equals(GameTestRecipes.LOCKED_SEED)).isPresent(),
+                "the Echo Shard seeds the locked gametest recipe");
+        coagulator.tanks().insert(new Principles(50, 0, 0));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        CoagulatorMenu menu = new CoagulatorMenu(0, player.getInventory(), coagulator);
+        helper.assertTrue(menu.seedLocked(), "the menu reports the seed as locked");
+        helper.runAfterDelay(100, () -> {
+            helper.assertTrue(coagulator.inventory().getStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT).isEmpty(), "a locked seed grows nothing");
+            helper.assertTrue(coagulator.tanks().amount(Principle.SALT) == 50, "the Salt stays");
+            Journal.finish(helper.getLevel().getServer(), team, AlchemyGameTests.VILLACH);
+            helper.succeedWhen(() -> helper.assertTrue(coagulator.inventory().getStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT).is(Items.ECHO_SHARD),
+                    "the seed grows once Villach is finished"));
+        });
+    }
+
+    /** A seed item two recipes name stays with the recipe whose id sorts first; the other recipe loses it. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void duplicateSeedStaysWithTheFirstRecipe(GameTestHelper helper) {
+        helper.assertTrue(CoagulatorSeeds.recipeFor(helper.getLevel(), new ItemStack(ServusAlchemyItems.KANDIS.get()))
+                        .filter(holder -> holder.id().identifier().equals(AlchemyGameTests.coagulation("salt_crystal"))).isPresent(),
+                "Kandis grows Salt Crystals");
+        helper.assertTrue(ServusRecipes.byId(helper.getLevel(), GameTestRecipes.DUPLICATE_SEED).isPresent(), "the duplicate recipe is loaded");
+        helper.assertTrue(CoagulatorSeeds.seedsOf(helper.getLevel(), GameTestRecipes.DUPLICATE_SEED).isEmpty(), "the duplicate recipe lost its seed");
+        helper.succeed();
+    }
+
+    /** A pipe lays Kandis into the seed slot and adds more of them, but refuses another seed and takes nothing out. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void pipeAddsSeedsButNeverTakesThem(GameTestHelper helper) {
+        CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
+        ResourceHandler<ItemResource> port = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(COAGULATOR), Direction.NORTH);
+        ItemStack left = Transfer.insertItem(port, new ItemStack(ServusAlchemyItems.KANDIS.get(), 16), false);
+        helper.assertTrue(left.isEmpty(), "the pipe lays all 16 Kandis in, kept " + left.getCount());
+        helper.assertTrue(Transfer.insertItem(port, new ItemStack(ServusAlchemyItems.KANDIS.get(), 4), false).isEmpty(), "four more Kandis go in");
+        helper.assertTrue(coagulator.seed().is(ServusAlchemyItems.KANDIS.get()) && coagulator.seed().getCount() == 20,
+                "20 Kandis are the seed, got " + coagulator.seed());
+        helper.assertTrue(Transfer.insertItem(port, new ItemStack(ServusAlchemyItems.BRIMSTONE.get()), false).getCount() == 1,
+                "another seed is refused");
+        ItemView view = ItemView.of(port);
+        for (int slot = 0; slot < view.getSlots(); slot++) {
+            helper.assertTrue(view.extractItem(slot, 64, false).isEmpty(), "nothing comes out of slot " + slot);
+        }
+        helper.assertTrue(coagulator.seed().is(ServusAlchemyItems.KANDIS.get()) && coagulator.seed().getCount() == 20, "the seeds stay");
+        helper.succeed();
+    }
+
+    /** A pipe lays a stack of Salt Crystals into the seed slot like any other seed. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void pipeLaysAStackOfSelfSeeds(GameTestHelper helper) {
+        CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
+        ResourceHandler<ItemResource> port = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(COAGULATOR), Direction.NORTH);
+        ItemStack left = Transfer.insertItem(port, new ItemStack(ServusAlchemyItems.SALT_CRYSTAL.get(), 16), false);
+        helper.assertTrue(left.isEmpty(), "the pipe lays all 16 Salt Crystals in, kept " + left.getCount());
+        helper.assertTrue(coagulator.seed().is(ServusAlchemyItems.SALT_CRYSTAL.get()) && coagulator.seed().getCount() == 16,
+                "16 Salt Crystals are the seed");
+        helper.succeed();
+    }
+
+    /** Cinnabar used on the table goes in as a whole stack, another seed is refused, and sneaking with an empty hand takes them all out. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void seedByHand(GameTestHelper helper) {
+        CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
+        Player player = CalcinerGameTests.player(helper, new ItemStack(ServusAlchemyItems.CINNABAR.get(), 3));
+        CalcinerGameTests.use(helper, player, COAGULATOR);
+        helper.assertTrue(coagulator.seed().is(ServusAlchemyItems.CINNABAR.get()) && coagulator.seed().getCount() == 3, "three Cinnabar are the seed");
+        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty(), "all Cinnabar left the hand");
+        helper.assertTrue(coagulator.plantSeed(new ItemStack(ServusAlchemyItems.BRIMSTONE.get())) == 0, "Brimstone is refused while Cinnabar is in");
+        player.setShiftKeyDown(true);
+        CalcinerGameTests.use(helper, player, COAGULATOR);
+        helper.assertTrue(coagulator.seed().isEmpty(), "sneaking takes the seeds out");
+        helper.assertTrue(player.getInventory().countItem(ServusAlchemyItems.CINNABAR.get()) == 3, "the player gets the three Cinnabar back");
+        helper.succeed();
     }
 
     /** The journal's schematic accepts the build that forming accepts. */

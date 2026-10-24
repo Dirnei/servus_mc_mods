@@ -175,11 +175,11 @@ public final class AlchemyGameTests {
         return Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "coagulation/" + name);
     }
 
-    /** A formed Coagulator build around {@link #MACHINE}, with {@code recipe} selected when not null. */
+    /** A formed Coagulator build around {@link #MACHINE}, seeded with the result of {@code recipe} when not null. */
     static CoagulatorBlockEntity coagulator(GameTestHelper helper, String recipe) {
         CoagulatorBlockEntity coagulator = CoagulatorGameTests.formed(helper, MACHINE);
         if (recipe != null) {
-            coagulator.select(coagulation(recipe));
+            CoagulatorGameTests.seedWith(helper, coagulator, recipe);
         }
         return coagulator;
     }
@@ -228,9 +228,9 @@ public final class AlchemyGameTests {
         });
     }
 
-    /** The selected recipe is saved with the block entity and reported as the only production recipe. */
+    /** The seed is saved with the block entity and its recipe reported as the only production recipe. */
     @ServusGameTest(timeoutTicks = 20)
-    public static void coagulatorKeepsAndReportsItsSelection(GameTestHelper helper) {
+    public static void coagulatorKeepsItsSeedAndReportsItsRecipe(GameTestHelper helper) {
         CoagulatorBlockEntity coagulator = coagulator(helper, "gunpowder");
         ProductionProvider production = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION, helper.absolutePos(MACHINE), Direction.UP);
         helper.assertTrue(production != null && production.recipes().size() == 1
@@ -238,9 +238,11 @@ public final class AlchemyGameTests {
         CompoundTag saved = coagulator.saveWithoutMetadata(helper.getLevel().registryAccess());
         helper.setBlock(MACHINE, Blocks.AIR.defaultBlockState());
         CoagulatorBlockEntity fresh = coagulator(helper, null);
-        helper.assertTrue(fresh.selected().isEmpty(), "a new Coagulator has nothing selected");
+        helper.assertTrue(fresh.seed().isEmpty(), "a new Coagulator has no seed");
         fresh.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), saved));
-        helper.assertTrue(fresh.selected().filter(id -> id.equals(coagulation("gunpowder"))).isPresent(), "the selection should be loaded");
+        helper.assertTrue(fresh.seed().is(Items.GUNPOWDER), "the seed should be loaded");
+        helper.assertTrue(fresh.seedRecipe().filter(holder -> holder.id().identifier().equals(coagulation("gunpowder"))).isPresent(),
+                "the seed grows gunpowder again");
         helper.succeed();
     }
 
@@ -299,7 +301,7 @@ public final class AlchemyGameTests {
         CoagulatorBlockEntity coagulator = coagulator(helper, null);
         coagulator.setTeam(team);
         CoagulationRecipe locked = new CoagulationRecipe(new Principles(10, 0, 0), Optional.empty(), new ItemStackTemplate(Items.FLINT),
-                40, Optional.of(Identifier.parse(VILLACH)));
+                40, Optional.empty(), Optional.of(Identifier.parse(VILLACH)));
         helper.assertTrue(!coagulator.unlocked(locked), "a recipe of an unfinished chapter is locked");
         ServerLevel level = helper.getLevel();
         Journal.recordItem(level, team, "calcine", new ItemStack(Items.COBBLESTONE), 100);
