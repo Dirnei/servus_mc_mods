@@ -40,6 +40,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
@@ -228,7 +229,7 @@ public final class ShuttleFleet {
         syncPending = true;
     }
 
-    private List<Shuttle> shuttles() {
+    List<Shuttle> shuttles() {
         List<Shuttle> all = new ArrayList<>();
         for (Garage garage : garages.values()) {
             all.addAll(garage.shuttles);
@@ -839,6 +840,7 @@ public final class ShuttleFleet {
             lastQueueSize = jobs.size();
             host.queueChanged();
         }
+        updateReasons();
         if (moving || wasMoving || syncPending) {
             if (++syncTimer >= SYNC_INTERVAL || syncPending) {
                 syncTimer = 0;
@@ -847,6 +849,61 @@ public final class ShuttleFleet {
             }
         }
         wasMoving = moving;
+    }
+
+    /** Works out why each shuttle drives or stands after this tick's moves and syncs those whose kind changed. */
+    private void updateReasons() {
+        for (Shuttle shuttle : shuttles()) {
+            shuttle.reason = reason(shuttle);
+            if (shuttle.reason.kind() != shuttle.signalShown) {
+                shuttle.signalShown = shuttle.reason.kind();
+                syncPending = true;
+            }
+        }
+    }
+
+    /**
+     * Why the shuttle drives or stands, the first that holds of: settling
+     * after a restore or an unloaded chunk ahead, its stop, field work, the
+     * garage door, a lift handover, riding the car, the gate that refused it,
+     * a ring of followers, the shuttle ahead holding it back.
+     */
+    private StandReason reason(Shuttle shuttle) {
+        ShuttleMotion motion = shuttle.motion;
+        if (motion == null) {
+            return StandReason.of(StandReason.Kind.STOP);
+        }
+        if (shuttle.restoring != null) {
+            return StandReason.of(StandReason.Kind.CHUNK);
+        }
+        if (shuttle.stop > 0) {
+            return StandReason.of(StandReason.Kind.STOP);
+        }
+        if (shuttle.fieldRun() != null && motion.arrived()) {
+            return StandReason.of(StandReason.Kind.FIELD_WORK);
+        }
+        if (waitsAtDoor(shuttle)) {
+            return StandReason.of(StandReason.Kind.DOOR);
+        }
+        if (shuttle.handover > 0) {
+            return StandReason.of(StandReason.Kind.HANDOVER);
+        }
+        if (shuttle.riding) {
+            return StandReason.of(StandReason.Kind.RIDING);
+        }
+        if (motion.arrived()) {
+            return StandReason.of(StandReason.Kind.STOP);
+        }
+        if (!nextLoaded(motion)) {
+            return StandReason.of(StandReason.Kind.CHUNK);
+        }
+        if (motion.held() && shuttle.gate != null) {
+            return shuttle.gate;
+        }
+        if (shuttle.inRing()) {
+            return StandReason.of(StandReason.Kind.RING);
+        }
+        return shuttle.heldBy >= 0 ? StandReason.following(shuttle.heldBy) : StandReason.DRIVING;
     }
 
     /** One tick of one shuttle; true while it drives, rides or hands over to a lift. */
@@ -901,7 +958,10 @@ public final class ShuttleFleet {
             return false;
         }
         boolean wasHeld = shuttle.motion.held();
-        boolean done = shuttle.motion.advance(drive(shuttle), segment -> pay(shuttle, segment) && lifts.mayStart(shuttle, segment));
+        boolean done = shuttle.motion.advance(drive(shuttle), segment -> {
+            shuttle.gate = null;
+            return pay(shuttle, segment) && lifts.mayStart(shuttle, segment);
+        });
         if (shuttle.motion.held()) {
             shuttle.speed = 0;
         }
@@ -2022,6 +2082,11 @@ public final class ShuttleFleet {
         return lifts.car(bottom);
     }
 
+    /** The Data Potato's report of the shuttles on the rail or segment at pos. */
+    public List<Component> report(BlockPos pos) {
+        return ShuttleReport.at(this, pos);
+    }
+
     /**
      * The shaft lost segments: its riders and callers lose their cargo and go
      * home, or into their garage when no way home is left. Crossers carry on.
@@ -2077,6 +2142,7 @@ public final class ShuttleFleet {
             last = segment;
         }
         if (!StepPower.mayStart(host.drawPower(cost))) {
+            shuttle.gate = StandReason.of(StandReason.Kind.POWER);
             return false;
         }
         shuttle.paidFor = motion;
@@ -2148,6 +2214,7 @@ public final class ShuttleFleet {
             shuttle.leader = -1;
             shuttle.leaderSpeed = 0;
             shuttle.ringSpeed = Double.NaN;
+            shuttle.heldBy = -1;
             if (onRails(shuttle)) {
                 onRails.add(shuttle);
                 cars.add(car(shuttle));
@@ -2184,6 +2251,7 @@ public final class ShuttleFleet {
             double freeSpeed = nextSpeed(shuttle, Double.POSITIVE_INFINITY);
             if (shuttle.room < MIN_STEP || nextSpeed(shuttle, shuttle.room) < freeSpeed - 1e-9) {
                 leaderOf.put(shuttle.id, limit.leader());
+                shuttle.heldBy = limit.leader();
                 free.put(shuttle.id, freeSpeed);
             }
         }
@@ -2192,6 +2260,7 @@ public final class ShuttleFleet {
             if (onCar(shuttle) && ShuttleTraffic.chainReaches(leaderOf, id, other -> callsCar(byId.get(other), shuttle.lift))) {
                 shuttle.room = Double.POSITIVE_INFINITY;
                 leaderOf.remove(id);
+                shuttle.heldBy = -1;
             }
         }
         for (List<Integer> ring : ShuttleTraffic.rings(leaderOf)) {
@@ -2320,7 +2389,7 @@ public final class ShuttleFleet {
                             (float) shuttle.profile.cornerSpeed());
             Optional<BlockPos> lift = shuttle.riding && shuttle.lift != null ? Optional.of(shuttle.lift) : Optional.empty();
             list.add(new ShuttleView(path, motion.segment(), (float) motion.progress(), shown, shuttle.shownCargo(), lift, shuttle.item.copy(),
-                    sightGlass(shuttle), still ? Optional.empty() : lead(shuttle), felling(shuttle)));
+                    sightGlass(shuttle), still ? Optional.empty() : lead(shuttle), felling(shuttle), shuttle.reason.kind()));
         }
         return list;
     }

@@ -15,10 +15,24 @@ final class ShuttleGlide {
     static double[] at(ShuttleView view, double elapsed) {
         List<BlockPos> path = view.path();
         ShuttleView.Drive drive = view.drive();
-        double leadAt = view.lead().map(lead -> (double) lead.at()).orElse(Double.POSITIVE_INFINITY);
-        double leadSpeed = view.lead().map(lead -> (double) lead.speed()).orElse(0.0);
         return ShuttleDrive.glide(path.size(), view.segment(), view.progress(), drive.speed(), drive.top(), drive.accel(), elapsed,
-                i -> !horizontal(path, i), i -> corner(path, i), drive.corner(), leadAt, leadSpeed);
+                i -> !horizontal(path, i), i -> corner(path, i), drive.corner(), leadAt(view), leadSpeed(view));
+    }
+
+    /** Whether the shuttle brakes in the tick it drives now, the elapsed ticks after the sync. */
+    static boolean braking(ShuttleView view, double elapsed) {
+        List<BlockPos> path = view.path();
+        ShuttleView.Drive drive = view.drive();
+        return ShuttleDrive.braking(path.size(), view.segment(), view.progress(), drive.speed(), drive.top(), drive.accel(), elapsed,
+                i -> !horizontal(path, i), i -> corner(path, i), drive.corner(), leadAt(view), leadSpeed(view));
+    }
+
+    private static double leadAt(ShuttleView view) {
+        return view.lead().map(lead -> (double) lead.at()).orElse(Double.POSITIVE_INFINITY);
+    }
+
+    private static double leadSpeed(ShuttleView view) {
+        return view.lead().map(lead -> (double) lead.speed()).orElse(0.0);
     }
 
     private static boolean corner(List<BlockPos> path, int i) {

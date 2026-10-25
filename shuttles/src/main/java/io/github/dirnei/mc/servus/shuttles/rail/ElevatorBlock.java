@@ -2,6 +2,11 @@ package io.github.dirnei.mc.servus.shuttles.rail;
 
 import java.util.function.IntPredicate;
 import org.jspecify.annotations.Nullable;
+import io.github.dirnei.mc.servus.foundation.item.PotatoInspectable;
+import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleReport;
+import java.util.List;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.redstone.Orientation;
 import io.github.dirnei.mc.servus.shuttles.menu.ElevatorMenu;
 import io.github.dirnei.mc.servus.shuttles.shuttle.LiftUpgrades;
@@ -33,9 +38,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * middle. Segments stack vertically into a shaft with one lift car and take
  * rails on their four sides; the network joins anything touching them.
  * Entities pass through and climb the shaft, and stand on each level from
- * above like on scaffolding.
+ * above like on scaffolding. The Data Potato reports the shuttles on it.
  */
-public class ElevatorBlock extends ConnectableBlock {
+public class ElevatorBlock extends ConnectableBlock implements PotatoInspectable {
 
     public static final MapCodec<ElevatorBlock> CODEC = simpleCodec(ElevatorBlock::new);
 
@@ -59,7 +64,12 @@ public class ElevatorBlock extends ConnectableBlock {
         return neighborState.getBlock() instanceof RailBlock;
     }
 
-    /** An item in hand keeps its own use: an elevator builds the shaft up, the carrot dismantles. */
+    @Override
+    public List<Component> potatoReport(Level level, BlockPos pos, BlockState state, Vec3 hit) {
+        return ShuttleReport.of(level, pos);
+    }
+
+    /** An item in hand keeps its own use: an elevator builds the shaft up, the carrot dismantles, the Data Potato reports. */
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {

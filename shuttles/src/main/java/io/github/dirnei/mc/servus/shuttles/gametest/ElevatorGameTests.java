@@ -1,6 +1,11 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.PlayerClicks;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.shuttles.shuttle.StandReason;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.server.level.ServerPlayer;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
@@ -812,5 +817,76 @@ public final class ElevatorGameTests {
         helper.assertTrue(helper.getLevel().getFluidState(helper.absolutePos(pool)).isSourceOfType(Fluids.WATER), "the water source stays");
         helper.assertFalse(helper.getBlockState(pool).getBlock() instanceof ElevatorBlock, "no segment is placed");
         helper.succeed();
+    }
+
+    /**
+     * The Data Potato on an empty rail finds no shuttle. A shuttle beside the
+     * shaft while the car is held on the top floor waits for the car on floor
+     * 1: its signal says so and the potato on its rail names the floor. Let
+     * go, the car carries it up, and the potato on the segment at the car's
+     * height reports it riding to floor 3.
+     */
+    @ServusGameTest(timeoutTicks = 400)
+    public static void shuttleWaitingForCarReportsTheLift(GameTestHelper helper) {
+        liftBase(helper, 1);
+        liftRack(helper, new BlockPos(5, 3, 3), Items.BREAD, 20);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos bottom = helper.absolutePos(LC_BOTTOM);
+        BlockPos garagePos = helper.absolutePos(LC_GARAGE);
+        BlockPos besideShaft = new BlockPos(3, 1, 3);
+        List<Component> chat = new ArrayList<>();
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = liftNetwork(helper);
+            BlockPos empty = new BlockPos(1, 1, 3);
+            PlayerClicks.use(helper, potatoPlayer(helper, empty, chat), empty);
+            helper.assertTrue(chat.size() == 1, "one line on an empty rail, got " + chat);
+            potatoArgs(helper, chat.get(0), "shuttle_none");
+
+            network.lift(bottom).call(-1, bottom.getY() + 2);
+            new StorageTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, LC_TERMINAL))
+                    .request(ItemKey.of(new ItemStack(Items.BREAD)), 20);
+            Waits.when(helper, () -> signalled(network, garagePos, StandReason.Kind.LIFT), 200,
+                    () -> "the shuttle should wait beside the shaft for the car, views " + network.shuttleViews(garagePos), () -> {
+                chat.clear();
+                PlayerClicks.use(helper, potatoPlayer(helper, besideShaft, chat), besideShaft);
+                helper.assertTrue(chat.size() == 1, "one shuttle beside the shaft, got " + chat);
+                Object[] reason = reasonArgs(helper, chat.get(0), "lift");
+                helper.assertTrue(reason[0].equals(1), "it waits on floor 1, got " + List.of(reason));
+                network.lift(bottom).remove(-1);
+                Waits.when(helper, () -> signalled(network, garagePos, StandReason.Kind.RIDING) && network.lift(bottom).y() > bottom.getY() + 0.5,
+                        200, () -> "the car should carry the shuttle up", () -> {
+                    BlockPos segment = LC_BOTTOM.above((int) Math.round(network.lift(bottom).y()) - bottom.getY());
+                    chat.clear();
+                    PlayerClicks.use(helper, potatoPlayer(helper, segment, chat), segment);
+                    helper.assertTrue(chat.size() == 1, "the rider at the car's height, got " + chat);
+                    Object[] riding = reasonArgs(helper, chat.get(0), "riding");
+                    helper.assertTrue(riding[0].equals(3), "it rides to floor 3, got " + List.of(riding));
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    /** Whether a drawn shuttle of the garage shows that signal. */
+    static boolean signalled(WarehouseNetwork network, BlockPos garage, StandReason.Kind kind) {
+        return network.shuttleViews(garage).stream().anyMatch(view -> view.signal() == kind);
+    }
+
+    static ServerPlayer potatoPlayer(GameTestHelper helper, BlockPos pos, List<Component> chat) {
+        return PlayerClicks.player(helper, pos, new ItemStack(ServusFoundationItems.DATA_POTATO.get()), chat);
+    }
+
+    /** The arguments of a Data Potato line with that key under {@code message.servus_shuttles.potato.}. */
+    static Object[] potatoArgs(GameTestHelper helper, Component line, String key) {
+        String full = "message.servus_shuttles.potato." + key;
+        helper.assertTrue(line.getContents() instanceof TranslatableContents contents && contents.getKey().equals(full),
+                "expected " + full + ", got " + line);
+        return ((TranslatableContents) line.getContents()).getArgs();
+    }
+
+    /** The arguments of the reason in a shuttle line, after checking the reason's kind. */
+    static Object[] reasonArgs(GameTestHelper helper, Component line, String reason) {
+        Object[] args = potatoArgs(helper, line, "shuttle_line");
+        return potatoArgs(helper, (Component) args[1], "shuttle_reason." + reason);
     }
 }

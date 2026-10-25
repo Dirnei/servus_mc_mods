@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Shuttles light up on the rails: white headlights in front, tail lights that show whether a shuttle drives, brakes, is held behind another or waits for the lift or power, and a number plate on both sides. The Data Potato on a rail or shaft names every shuttle there and what it waits for, following the queue and naming a deadlock.
 - Tree fields: a Field Head set to Trees plants saplings on every other plot (2x2 trees in squares with a Range Upgrade), needs no water, and a Lumber shuttle fells grown trees with their leaves, brings the wood home and replants.
 - Lumber shuttles fell trees with an arm and a saw, and the tree topples away from the rail, lands and breaks apart into the shuttle.
 - Patterns can be Exact or Any. An Any pattern, such as sticks or a chest, crafts from whichever planks or logs the warehouse holds most of; the recipe editor has the Exact / Any button and the Patterns tab marks Any patterns.

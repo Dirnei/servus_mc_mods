@@ -37,6 +37,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Draws every shuttle of this garage: its own item, whose model shows the
@@ -45,7 +46,8 @@ import net.minecraft.world.phys.AABB;
  * is open. A shuttle riding a lift car is drawn at the car's height. A
  * shuttle that drove in stays drawn inside until the doorway's roll-up
  * shutter is down; the shutter opens while a shuttle waits inside to leave
- * or comes close on its way in.
+ * or comes close on its way in. Each shuttle carries its lamps and number
+ * plates, see {@link ShuttleSignals}.
  */
 public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarageBlockEntity> {
 
@@ -149,6 +151,8 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
             RenderSubmit.item(poseStack, collector, cart, ItemDisplayContext.NONE, level, 0, light);
         }
         view.glass().ifPresent(glass -> sightGlass(glass, level, railPos, poseStack, collector, light));
+        Vec3 centre = new Vec3(pos[0] + 0.5, pos[1] + FLOOR + 0.5 * SHUTTLE_SCALE, pos[2] + 0.5);
+        ShuttleSignals.draw(poseStack, collector, cart, view, elapsed, level.getGameTime(), felling.isPresent(), centre, light);
         String tool = ShuttleModules.of(cart).toolSpec().map(ModuleSpec::id).orElse("");
         if (!view.cargo().isEmpty() && ShuttleLook.openHold(ShuttleItem.tier(cart), tool)) {
             poseStack.translate(0.0, CARGO_Y - 0.5, 0.0);

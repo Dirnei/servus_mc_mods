@@ -27,6 +27,16 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
+import io.github.dirnei.mc.servus.foundation.item.DataPotatoItem;
+import io.github.dirnei.mc.servus.foundation.item.PotatoInspectable;
+import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleReport;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Rail that links storage blocks into one warehouse network. Rails connect to
@@ -34,8 +44,9 @@ import org.jspecify.annotations.Nullable;
  * storage block is a dock and renders its own piece. A rail stands on a floor,
  * hangs on a rack front or elevator segment, or is free in the air; free rails
  * bridge short gaps and fall when the gap does not hold (see {@link RailSpan}).
+ * The Data Potato reports the shuttles on it.
  */
-public class RailBlock extends ConnectableBlock {
+public class RailBlock extends ConnectableBlock implements PotatoInspectable {
 
     public static final MapCodec<RailBlock> CODEC = simpleCodec(RailBlock::new);
     public static final BooleanProperty DOCK_NORTH = BooleanProperty.create("dock_north");
@@ -200,6 +211,21 @@ public class RailBlock extends ConnectableBlock {
                 level.destroyBlock(rail, true);
             }
         }
+    }
+
+    /** The Data Potato gets the click, for its report. */
+    @Override
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
+                                          BlockHitResult hitResult) {
+        if (stack.getItem() instanceof DataPotatoItem) {
+            return InteractionResult.PASS;
+        }
+        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+    }
+
+    @Override
+    public List<Component> potatoReport(Level level, BlockPos pos, BlockState state, Vec3 hit) {
+        return ShuttleReport.of(level, pos);
     }
 
     @Override

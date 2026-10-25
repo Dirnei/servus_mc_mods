@@ -118,6 +118,20 @@ public final class ShuttleDrive {
         return new double[] {at[0], at[1], v};
     }
 
+    /**
+     * Whether the shuttle brakes in the tick it drives after the given ticks
+     * behind a point it must not pass: that tick's step is shorter than the
+     * one before it. Same parameters as {@link #glide(int, int, double, double, double, double, double, IntPredicate,
+     * IntPredicate, double, double, double)}.
+     */
+    public static boolean braking(int nodes, int segment, double progress, double speed, double top, double accel, double ticks,
+                                  IntPredicate vertical, IntPredicate corner, double cornerTop, double leadAt, double leadSpeed) {
+        double whole = Math.floor(Math.max(0, ticks));
+        double before = glide(nodes, segment, progress, speed, top, accel, whole, vertical, corner, cornerTop, leadAt, leadSpeed)[2];
+        double now = glide(nodes, segment, progress, speed, top, accel, whole + 1, vertical, corner, cornerTop, leadAt, leadSpeed)[2];
+        return now < before - 1e-9;
+    }
+
     private static double step(int nodes, double[] at, double v, double top, double accel, IntPredicate vertical, IntPredicate corner,
                                double cornerTop, double lead) {
         double limit = Math.min(top, cornerLimit(nodes, (int) at[0], at[1], corner, cornerTop, accel));

@@ -17,9 +17,11 @@ import net.neoforged.neoforge.fluids.FluidStack;
  * tier, upgrades and tool; a tanker carrying fluid shows it in its sight glass.
  * A shuttle behind another in its lane carries the point it must stay behind;
  * an unfolded Lumber shuttle carries the tree it fells and its felling phase.
+ * The signal tells why it drives or stands, for its tail lights.
  */
 public record ShuttleView(List<BlockPos> path, int segment, float progress, Drive drive, ItemStack cargo, Optional<BlockPos> lift,
-                          ItemStack shuttle, Optional<SightGlass> glass, Optional<Lead> lead, Optional<Felling> felling) {
+                          ItemStack shuttle, Optional<SightGlass> glass, Optional<Lead> lead, Optional<Felling> felling,
+                          StandReason.Kind signal) {
 
     /**
      * A Lumber shuttle unfolded at a rail: the base log of the tree its head
@@ -101,6 +103,7 @@ public record ShuttleView(List<BlockPos> path, int segment, float progress, Driv
             ByteBufCodecs.optional(SightGlass.STREAM_CODEC), ShuttleView::glass,
             ByteBufCodecs.optional(Lead.STREAM_CODEC), ShuttleView::lead,
             ByteBufCodecs.optional(Felling.STREAM_CODEC), ShuttleView::felling,
+            ByteBufCodecs.VAR_INT.map(StandReason.Kind::byId, StandReason.Kind::ordinal), ShuttleView::signal,
             ShuttleView::new);
 
     public boolean moving() {

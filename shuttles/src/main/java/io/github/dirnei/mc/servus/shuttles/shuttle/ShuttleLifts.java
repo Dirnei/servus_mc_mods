@@ -175,6 +175,7 @@ final class ShuttleLifts {
         Shaft shaft = host.shaftOf(entry);
         LiftCar car = carFor(shaft);
         if (car == null) {
+            shuttle.gate = waitAt(StandReason.Kind.LIFT, shaft, entry);
             return false;
         }
         if (isRider(car, shuttle)) {
@@ -187,6 +188,7 @@ final class ShuttleLifts {
             fleet.markSync();
             return true;
         }
+        shuttle.gate = waitAt(StandReason.Kind.LIFT, shaft, entry);
         return false;
     }
 
@@ -194,6 +196,7 @@ final class ShuttleLifts {
         Shaft shaft = host.shaftOf(entry);
         LiftCar car = carFor(shaft);
         if (car == null) {
+            shuttle.gate = waitAt(StandReason.Kind.DECK, shaft, entry);
             return false;
         }
         if (car.isCrossing(shuttle.id)) {
@@ -204,7 +207,13 @@ final class ShuttleLifts {
             car.beginCross(shuttle.id, entry.y());
             return true;
         }
+        shuttle.gate = waitAt(StandReason.Kind.DECK, shaft, entry);
         return false;
+    }
+
+    /** The wait at that segment of the shaft for its car or a deck; without a shaft the segment stands for it. */
+    private static StandReason waitAt(StandReason.Kind kind, Shaft shaft, NodePos segment) {
+        return StandReason.atShaft(kind, shaft == null ? segment : shaft.bottom(), segment.y());
     }
 
     /**
@@ -217,6 +226,7 @@ final class ShuttleLifts {
         Shaft shaft = host.shaftOf(from);
         LiftCar car = carFor(shaft);
         if (car == null) {
+            shuttle.gate = waitAt(StandReason.Kind.LIFT, shaft, from);
             return;
         }
         if (!isRider(car, shuttle)) {
@@ -224,6 +234,7 @@ final class ShuttleLifts {
             shuttle.inside = true;
             car.call(shuttle.id, from.y());
             if (!car.canBoard(shuttle.id, from.y())) {
+                shuttle.gate = waitAt(StandReason.Kind.LIFT, shaft, from);
                 return;
             }
             car.board(shuttle.id);

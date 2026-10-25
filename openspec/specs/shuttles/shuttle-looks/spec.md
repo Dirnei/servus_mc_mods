@@ -61,11 +61,15 @@ The front of the shuttle SHALL face the way it drives.
 - **THEN** the wing stands on its end plates without middle struts, and the back wall folds out under it
 
 ### Requirement: The item looks like the shuttle
-A shuttle item SHALL show the same composed look as the shuttle on the rails, in inventories, the garage GUI, the Shuttle Workshop and when held or dropped. Installing or removing an upgrade or a tool, or a tier build, SHALL change the item's look at once.
+A shuttle item SHALL show the same composed look as the shuttle on the rails, in inventories, the garage GUI, the Shuttle Workshop and when held or dropped, except for the lights and the number plate, which only a shuttle on the rails or on a lift car shows. Installing or removing an upgrade or a tool, or a tier build, SHALL change the item's look at once.
 
 #### Scenario: Installing a tool
 - **WHEN** a player installs a Harvester into a Mk1 shuttle in the workshop
 - **THEN** the shuttle in the workshop slot shows the reel on its front
+
+#### Scenario: Numbered shuttle in a slot
+- **WHEN** a player looks at Shuttle #12 in a garage slot
+- **THEN** the slot shows the shuttle without lights or number plate, and the tooltip names it "Shuttle #12"
 
 ### Requirement: Shuttle size
 A shuttle SHALL be drawn a little below block scale (example 0.8, so a body of about 10 pixels), bigger than the first carts, with its wheels on the rail top, and SHALL stay inside the block of the rail it stands on, so it does not reach into a rack or a station beside the rail. Only a tool MAY reach past the body to the sides. A shuttle standing on a lift car SHALL fit on the car. Its wheels or tracks SHALL stand on the two rail heads, on a rail and on a lift car, and its wheels SHALL show from the side below the body, so the shuttle does not look like a box hovering over the rail.

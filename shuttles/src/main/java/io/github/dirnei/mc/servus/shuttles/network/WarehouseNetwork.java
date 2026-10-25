@@ -477,6 +477,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return fleet.views(garage);
     }
 
+    /** The Data Potato's report of the shuttles on the rail or elevator segment at pos. */
+    public List<Component> shuttleReport(BlockPos pos) {
+        return fleet.report(pos);
+    }
+
     /** Sends an idle shuttle of the garage along the rails at those positions without a job. For GameTests. */
     public boolean sendShuttleAlong(BlockPos garage, int slot, List<BlockPos> path) {
         return fleet.sendAlong(garage, slot, path.stream().map(Conversions::toNodePos).toList());

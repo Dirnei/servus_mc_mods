@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.shuttle;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -172,5 +173,31 @@ class ShuttleDriveTest {
         double[] whole = ShuttleDrive.glide(NODES, TURN - 4, 0, 0, TOP, ACCEL, 30, i -> false, i -> i == TURN, CORNER);
         assertEquals(at[0] + at[1], whole[0] + whole[1], 1e-9);
         assertEquals(v, whole[2], 1e-9);
+    }
+
+    @Test
+    void brakesOnlyOnTheLastBlocksBeforeThePathEnd() {
+        boolean braked = false;
+        for (int t = 0; t < 120; t++) {
+            boolean braking = ShuttleDrive.braking(21, 0, 0, TOP, TOP, ACCEL, t, i -> false, i -> false, 0, Double.POSITIVE_INFINITY, 0);
+            double[] at = ShuttleDrive.glide(21, 0, 0, TOP, TOP, ACCEL, t, i -> false);
+            if (braking) {
+                braked = true;
+                assertTrue(at[0] + at[1] >= 18, "brakes only near the end, at " + (at[0] + at[1]));
+            }
+        }
+        assertTrue(braked, "the shuttle brakes before the end of its path");
+        assertFalse(ShuttleDrive.braking(21, 20, 0, 0, TOP, ACCEL, 3, i -> false, i -> false, 0, Double.POSITIVE_INFINITY, 0),
+                "a shuttle standing at the end does not brake");
+    }
+
+    @Test
+    void holdingTopSpeedIsNoBraking() {
+        for (int t = 0; t < 60; t++) {
+            assertFalse(ShuttleDrive.braking(200, 0, 0, TOP, TOP, ACCEL, t + 0.5, i -> false, i -> false, 0, Double.POSITIVE_INFINITY, 0),
+                    "tick " + t);
+        }
+        assertFalse(ShuttleDrive.braking(200, 0, 0, 0, TOP, ACCEL, 2, i -> false, i -> false, 0, Double.POSITIVE_INFINITY, 0),
+                "speeding up is no braking");
     }
 }

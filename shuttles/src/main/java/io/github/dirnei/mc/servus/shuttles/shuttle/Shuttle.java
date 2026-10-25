@@ -83,6 +83,14 @@ final class Shuttle {
     double ringSpeed = Double.NaN;
     /** Its following as clients last got it, to sync when it changes. */
     long followShown;
+    /** The id of the shuttle that holds it back this tick, or -1: it stands or drives slower behind that one. */
+    int heldBy = -1;
+    /** Why the gate before its next segment refused it last time it asked, null when it let the shuttle through. */
+    StandReason gate;
+    /** Why it drives or stands, worked out at the end of each tick. */
+    StandReason reason = StandReason.DRIVING;
+    /** The kind of that reason as clients last got it, to sync when it changes. */
+    StandReason.Kind signalShown = StandReason.Kind.DRIVING;
 
     Shuttle(Garage garage, int slot, ShuttleProfile profile) {
         this.garage = garage;

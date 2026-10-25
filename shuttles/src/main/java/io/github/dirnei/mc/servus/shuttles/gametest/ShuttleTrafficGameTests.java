@@ -1,6 +1,9 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.PlayerClicks;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.shuttles.shuttle.StandReason;
+import net.minecraft.network.chat.Component;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
@@ -292,6 +295,71 @@ public final class ShuttleTrafficGameTests {
                 helper.succeed();
             });
         });
+    }
+
+    /**
+     * The shuttles' signals while one loads at a bay: the picker drives, then
+     * stands for its stop; the shuttle a block behind it is held behind it,
+     * and the Data Potato on the follower's rail names the picker and what it does.
+     */
+    @ServusGameTest(timeoutTicks = 400)
+    public static void heldShuttleNamesTheOneAhead(GameTestHelper helper) {
+        WarehouseFixtures.controller(helper, CONTROLLER);
+        WarehouseFixtures.railRow(helper, 1, 11, Z);
+        BlockPos follower = new BlockPos(1, 1, Z - 1);
+        BlockPos picker = new BlockPos(2, 1, Z - 1);
+        BlockPos terminalPos = new BlockPos(3, 1, Z + 1);
+        BlockPos rack = new BlockPos(8, 1, Z + 1);
+        TerminalWiring.place(helper, terminalPos);
+        WarehouseFixtures.rack(helper, rack, Direction.NORTH);
+        WarehouseFixtures.stock(helper, rack, new ItemStack(Items.COBBLESTONE, 16));
+        garage(helper, follower, Direction.NORTH, shuttle(ServusShuttlesItems.SHUTTLE_MK1.get(), 0));
+        garage(helper, picker, Direction.NORTH, shuttle(ServusShuttlesItems.SHUTTLE_MK1.get(), 0));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        boolean[] sawDriving = {false};
+        List<Component> chat = new ArrayList<>();
+        Watch watch = watch(helper, follower, picker);
+        helper.runAfterDelay(10, () -> {
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, terminalPos);
+            new StorageTerminalMenu(1, player.getInventory(), terminal).request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 16);
+            send(helper, follower, 0, outOf(helper, follower, alongX(helper, 1, 11, Z)));
+            watch.active = true;
+            watch.each = () -> {
+                for (ShuttleView view : watch.now.getOrDefault(picker, List.of())) {
+                    sawDriving[0] |= view.signal() == StandReason.Kind.DRIVING;
+                }
+            };
+            Waits.when(helper, () -> held(watch, follower) != null && signal(watch, picker) == StandReason.Kind.STOP, 300,
+                    () -> "the follower should be held behind the loading picker", () -> {
+                helper.assertTrue(sawDriving[0], "the picker drove with its driving signal first");
+                ShuttleView held = held(watch, follower);
+                BlockPos at = held.path().get(Math.min(held.segment(), held.path().size() - 1));
+                BlockPos rail = new BlockPos(at.getX() - helper.absolutePos(BlockPos.ZERO).getX(), 1, Z);
+                helper.assertTrue(helper.absolutePos(rail).equals(at), "the follower stands on the aisle at " + rail);
+                PlayerClicks.use(helper, ElevatorGameTests.potatoPlayer(helper, rail, chat), rail);
+                helper.assertTrue(chat.size() == 2, "the follower and the picker it waits behind, got " + chat);
+                Object[] behind = ElevatorGameTests.reasonArgs(helper, chat.get(0), "following");
+                Object[] chain = ElevatorGameTests.potatoArgs(helper, chat.get(1), "shuttle_chain");
+                helper.assertTrue(behind[0].equals(chain[0]), "the line names the shuttle ahead, got " + behind[0] + " and " + chain[0]);
+                ElevatorGameTests.potatoArgs(helper, (Component) chain[1], "shuttle_reason.stop");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** The drawn shuttle of the garage that stands held behind another, or null. */
+    private static ShuttleView held(Watch watch, BlockPos garage) {
+        for (ShuttleView view : watch.now.getOrDefault(garage, List.of())) {
+            if (view.signal() == StandReason.Kind.FOLLOWING && view.drive().speed() == 0) {
+                return view;
+            }
+        }
+        return null;
+    }
+
+    private static StandReason.Kind signal(Watch watch, BlockPos garage) {
+        List<ShuttleView> views = watch.now.getOrDefault(garage, List.of());
+        return views.isEmpty() ? null : views.get(0).signal();
     }
 
     /** At a junction the shuttle with the shorter way goes first; the other follows it a block behind. */

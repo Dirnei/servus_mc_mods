@@ -637,5 +637,23 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("message.servus_shuttles.potato.gantry_mode", "Fluid Gantry, %s");
         add("message.servus_shuttles.potato.gantry_tank", "%s tank: %s, lock: %s");
         add("message.servus_shuttles.potato.gantry_any", "Any");
+        add("message.servus_shuttles.potato.shuttle_line", "%s: %s");
+        add("message.servus_shuttles.potato.shuttle_chain", "  then %s: %s");
+        add("message.servus_shuttles.potato.shuttle_cycle", "  These shuttles wait for each other");
+        add("message.servus_shuttles.potato.shuttle_none", "No shuttle here");
+        add("message.servus_shuttles.potato.shuttle_offline", "Not part of an online warehouse");
+        add("message.servus_shuttles.potato.shuttle_reason.driving", "Driving");
+        add("message.servus_shuttles.potato.shuttle_reason.following", "Waiting behind %s");
+        add("message.servus_shuttles.potato.shuttle_reason.following_unknown", "Waiting behind another shuttle");
+        add("message.servus_shuttles.potato.shuttle_reason.ring", "Moving in a ring of shuttles that follow each other");
+        add("message.servus_shuttles.potato.shuttle_reason.stop", "Stopping at %s, %s, %s");
+        add("message.servus_shuttles.potato.shuttle_reason.field_work", "Working its field");
+        add("message.servus_shuttles.potato.shuttle_reason.door", "Waiting for its garage door");
+        add("message.servus_shuttles.potato.shuttle_reason.handover", "Handing over to the lift car");
+        add("message.servus_shuttles.potato.shuttle_reason.riding", "Riding the lift car to floor %s");
+        add("message.servus_shuttles.potato.shuttle_reason.lift", "Waiting for the lift car on floor %s");
+        add("message.servus_shuttles.potato.shuttle_reason.deck", "Waiting for the deck on floor %s to fold");
+        add("message.servus_shuttles.potato.shuttle_reason.power", "Waiting for power");
+        add("message.servus_shuttles.potato.shuttle_reason.chunk", "Waiting for the chunk ahead to load");
     }
 }
