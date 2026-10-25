@@ -776,6 +776,23 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return ((y - grid.y()) / CELL + scrollRow) * COLUMNS + (x - grid.x()) / CELL;
     }
 
+    /** An item drawn in the grid and the corner it is drawn at, on the screen. */
+    public record GridItem(ItemStack stack, int x, int y) {
+    }
+
+    /** The stock item under the mouse in the grid, for JEI's recipe and usage keys. */
+    public Optional<GridItem> gridItemAt(double mouseX, double mouseY) {
+        int index = cellAt(mouseX, mouseY);
+        List<Cell> list = cells();
+        if (index < 0 || index >= list.size()) {
+            return Optional.empty();
+        }
+        int shown = index - scrollRow * COLUMNS;
+        Rect grid = layout.grid();
+        return Optional.of(new GridItem(list.get(index).stack(), leftPos + grid.x() + shown % COLUMNS * CELL,
+                topPos + grid.y() + shown / COLUMNS * CELL));
+    }
+
     private Optional<Cell> cellUnder(double mouseX, double mouseY) {
         int index = cellAt(mouseX, mouseY);
         List<Cell> list = cells();
@@ -1344,6 +1361,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         double mouseX = event.x();
         double mouseY = event.y();
         int button = event.button();
+        blurSearchUnlessOver(mouseX, mouseY);
         if (!dialogOpen() && siteSelector() && overTitle(mouseX, mouseY)
                 && (button == GLFW.GLFW_MOUSE_BUTTON_LEFT || button == GLFW.GLFW_MOUSE_BUTTON_RIGHT)) {
             ClientPacketDistributor.sendToServer(new SelectSitePayload(nextSite(button == GLFW.GLFW_MOUSE_BUTTON_LEFT ? 1 : -1)));
@@ -1398,6 +1416,17 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             return true;
         }
         return super.mouseClicked(event, doubleClick);
+    }
+
+    /** Takes the focus from the search box, keeping its text, when a press lands anywhere else. */
+    private void blurSearchUnlessOver(double mouseX, double mouseY) {
+        if (search == null || !search.isFocused() || search.isMouseOver(mouseX, mouseY)) {
+            return;
+        }
+        search.setFocused(false);
+        if (getFocused() == search) {
+            setFocused(null);
+        }
     }
 
     /**

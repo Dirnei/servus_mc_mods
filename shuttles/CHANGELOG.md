@@ -15,6 +15,7 @@
 
 ### Fixed
 - The Storage Terminal's scrollbar can be dragged with the mouse.
+- A click anywhere in the Storage Terminal takes the focus from the search box, and JEI's recipe and usage keys work on the items in its grid.
 
 ## 0.4.0
 

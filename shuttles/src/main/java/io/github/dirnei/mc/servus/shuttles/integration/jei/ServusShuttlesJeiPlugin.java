@@ -5,12 +5,15 @@ import io.github.dirnei.mc.servus.shuttles.client.StorageTerminalScreen;
 import io.github.dirnei.mc.servus.shuttles.client.JeiSearchBridge;
 import io.github.dirnei.mc.servus.shuttles.client.WarehouseControllerScreen;
 import java.util.List;
+import java.util.Optional;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
+import mezz.jei.api.gui.builder.IClickableIngredientFactory;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
+import mezz.jei.api.runtime.IClickableIngredient;
 import mezz.jei.api.runtime.IIngredientFilter;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.renderer.Rect2i;
@@ -44,6 +47,14 @@ public final class ServusShuttlesJeiPlugin implements IModPlugin {
             @Override
             public List<Rect2i> getGuiExtraAreas(StorageTerminalScreen screen) {
                 return screen.extraAreas();
+            }
+
+            @Override
+            public Optional<? extends IClickableIngredient<?>> getClickableIngredientUnderMouse(IClickableIngredientFactory factory,
+                                                                                              StorageTerminalScreen screen, double mouseX,
+                                                                                              double mouseY) {
+                return screen.gridItemAt(mouseX, mouseY)
+                        .flatMap(item -> factory.createBuilder(item.stack()).buildWithArea(item.x(), item.y(), 16, 16));
             }
         });
         registration.addGuiContainerHandler(WarehouseControllerScreen.class,
