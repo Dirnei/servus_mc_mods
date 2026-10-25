@@ -42,6 +42,10 @@ public final class ItemChannelNetwork extends LineNetwork<ItemChannelNetwork.End
         boolean allows(ItemStack stack) {
             return duct.filterAllows(side, stack);
         }
+
+        boolean active() {
+            return duct.isActive(Line.ITEM, side);
+        }
     }
 
     private final RoundRobinPlan<Endpoint> plan = new RoundRobinPlan<>();
@@ -101,7 +105,7 @@ public final class ItemChannelNetwork extends LineNetwork<ItemChannelNetwork.End
         int perPull = stats.itemsPerPull();
         for (List<Endpoint> list : new ArrayList<>(endpoints.values())) {
             for (Endpoint source : list) {
-                if (source.mode() == SideMode.INPUT) {
+                if (source.mode() == SideMode.INPUT && source.active()) {
                     pull(source, perPull);
                 }
             }
@@ -178,9 +182,9 @@ public final class ItemChannelNetwork extends LineNetwork<ItemChannelNetwork.End
         return notOffered;
     }
 
-    /** How much of the stack the endpoint's inventory would take right now, zero for the origin, ducts and filtered items. */
+    /** How much of the stack the endpoint's inventory would take right now, zero for the origin, ducts, inactive sides and filtered items. */
     private static int capacity(Endpoint endpoint, BlockPos origin, ItemStack stack) {
-        if (endpoint.target().equals(origin) || !endpoint.allows(stack)) {
+        if (endpoint.target().equals(origin) || !endpoint.active() || !endpoint.allows(stack)) {
             return 0;
         }
         ItemView handler = ItemView.of(endpoint.cache().getCapability());

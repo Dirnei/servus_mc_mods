@@ -21,8 +21,8 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * The chat report of the Data Potato on a duct: per present line the clicked
- * side's mode, channel, priority, run size and in and out sides, or for the
- * centre the run sizes only; the data line always names tier, bandwidth and
+ * side's mode, Control, channel, priority, run size and in and out sides, or for the
+ * centre whether the duct is powered and the run sizes; the data line always names tier, bandwidth and
  * load. Server thread only; counts cover the loaded part of a run.
  */
 public final class DuctReport {
@@ -41,7 +41,7 @@ public final class DuctReport {
     public static List<Component> of(UtilityDuctBlockEntity duct, Direction side) {
         List<Component> lines = new ArrayList<>();
         lines.add(side == null
-                ? Component.translatable(KEY + "duct_centre")
+                ? Component.translatable(KEY + "duct_centre", Component.translatable(KEY + (duct.isPowered() ? "powered" : "unpowered")))
                 : Component.translatable(KEY + "duct_side", Component.translatable("gui.servus_foundation.side." + side.getSerializedName())));
         for (Line line : Line.VALUES) {
             if (!duct.has(line)) {
@@ -60,12 +60,19 @@ public final class DuctReport {
         int channel = duct.channel(line, side);
         EndpointTally tally = EndpointTally.of(channel, duct.<LineNetwork<?>>network(line).map(LineNetwork::blockSides).orElse(List.of()));
         Component mode = Component.translatable("gui.servus_foundation.mode." + duct.mode(line, side).name().toLowerCase(Locale.ROOT));
+        Component control = control(duct, line, side);
         if (line == Line.ITEM) {
-            return Component.translatable(KEY + "item_side", lineName(line), mode, channelName(duct, channel), duct.priority(side),
+            return Component.translatable(KEY + "item_side", lineName(line), mode, control, channelName(duct, channel), duct.priority(side),
                     runSize(duct, line), tally.in(), tally.out());
         }
-        return Component.translatable(KEY + "side", lineName(line), mode, channelName(duct, channel), runSize(duct, line),
+        return Component.translatable(KEY + "side", lineName(line), mode, control, channelName(duct, channel), runSize(duct, line),
                 tally.in(), tally.out());
+    }
+
+    /** The side's Control by name, marked paused while it keeps the side from moving anything. */
+    private static Component control(UtilityDuctBlockEntity duct, Line line, Direction side) {
+        Component name = Component.translatable("gui.servus_foundation.control." + duct.control(line, side).key());
+        return duct.isActive(line, side) ? name : Component.translatable(KEY + "paused", name);
     }
 
     private static Component dataLine(UtilityDuctBlockEntity duct) {

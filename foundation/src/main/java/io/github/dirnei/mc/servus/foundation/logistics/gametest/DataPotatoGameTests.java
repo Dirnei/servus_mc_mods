@@ -6,6 +6,7 @@ import static io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps.duct;
 import io.github.dirnei.mc.servus.foundation.gametest.PlayerClicks;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DataCableItem;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctControl;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctReport;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
@@ -28,6 +29,8 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LeverBlock;
+import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -66,15 +69,37 @@ public final class DataPotatoGameTests {
             assertKey(helper, report.get(0), "duct_side");
             Object[] item = assertKey(helper, report.get(1), "item_side");
             helper.assertTrue(text(item[1]).equals("gui.servus_foundation.mode.output"), "the mode is Push out, got " + text(item[1]));
-            helper.assertTrue(text(item[2]).equals("\"Iron ore\""), "the channel is \"Iron ore\", got " + text(item[2]));
-            helper.assertTrue(((Component) item[2]).getStyle().getColor() != null, "the channel name is coloured");
-            helper.assertTrue(Arrays.asList(item).subList(3, 7).equals(List.of(2, 3, 2, 2)),
-                    "priority 2, 3 ducts, 2 in, 2 out, got " + Arrays.asList(item).subList(3, 7));
+            helper.assertTrue(text(item[2]).equals("gui.servus_foundation.control.always"), "the Control is Always, got " + text(item[2]));
+            helper.assertTrue(text(item[3]).equals("\"Iron ore\""), "the channel is \"Iron ore\", got " + text(item[3]));
+            helper.assertTrue(((Component) item[3]).getStyle().getColor() != null, "the channel name is coloured");
+            helper.assertTrue(Arrays.asList(item).subList(4, 8).equals(List.of(2, 3, 2, 2)),
+                    "priority 2, 3 ducts, 2 in, 2 out, got " + Arrays.asList(item).subList(4, 8));
 
             List<Component> centre = DuctReport.of(ducts[1], null);
-            assertKey(helper, centre.get(0), "duct_centre");
+            Object[] header = assertKey(helper, centre.get(0), "duct_centre");
+            helper.assertTrue(text(header[0]).equals(KEY + "unpowered"), "the centre names the duct unpowered, got " + text(header[0]));
             Object[] run = assertKey(helper, centre.get(1), "run");
             helper.assertTrue(run[1].equals(3), "the centre names the run of 3 ducts, got " + run[1]);
+            helper.succeed();
+        });
+    }
+
+    /** A fluid side on While unpowered under a duct that a lever powers reports its Control as paused. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void potatoReportsPausedSide(GameTestHelper helper) {
+        helper.setBlock(DUCT_B.north(), Blocks.CAULDRON.defaultBlockState());
+        helper.setBlock(DUCT_B.south(), Blocks.LEVER.defaultBlockState().setValue(LeverBlock.FACE, AttachFace.FLOOR)
+                .setValue(LeverBlock.POWERED, true));
+        UtilityDuctBlockEntity duct = duct(helper, DUCT_B, Line.FLUID);
+        duct.setControl(Line.FLUID, Direction.NORTH, DuctControl.UNPOWERED);
+
+        helper.runAfterDelay(5, () -> {
+            Object[] fluid = assertKey(helper, DuctReport.of(duct, Direction.NORTH).get(1), "side");
+            Object[] paused = assertKey(helper, (Component) fluid[2], "paused");
+            helper.assertTrue(text(paused[0]).equals("gui.servus_foundation.control.unpowered"),
+                    "the paused Control is While unpowered, got " + text(paused[0]));
+            Object[] header = assertKey(helper, DuctReport.of(duct, null).get(0), "duct_centre");
+            helper.assertTrue(text(header[0]).equals(KEY + "powered"), "the centre names the duct powered, got " + text(header[0]));
             helper.succeed();
         });
     }

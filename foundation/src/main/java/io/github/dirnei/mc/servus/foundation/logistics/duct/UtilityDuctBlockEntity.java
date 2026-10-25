@@ -66,7 +66,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
  * A utility duct: a set of lines (Item Pipe, Power Cable, Fluid Pipe, data line), each with a mode
- * and a channel per side, plus item filters and priorities per side. Each
+ * a {@link DuctControl} and a channel per side, plus item filters and priorities per side. Each
  * present line joins its own network type, so items, energy and fluids form separate
  * graphs through the same blocks. The duct also keeps which sides carry an
  * arm per line and which arms end at an inventory or machine, synced to the
@@ -92,6 +92,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     private final int[][] channels = new int[Line.VALUES.length][SIDES];
     private final ItemSlots[] filters = new ItemSlots[SIDES];
     private final int[] priorities = new int[SIDES];
+    private final DuctControl[][] controls = new DuctControl[Line.VALUES.length][SIDES];
+    /** Whether a neighbour sends the duct a redstone signal; server side, synced. */
+    private boolean powered;
     private final int[] arms = new int[Line.VALUES.length];
     private int endpoints;
     private final EnumSet<Line> joined = EnumSet.noneOf(Line.class);
@@ -115,6 +118,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         super(ServusLogisticsBlockEntities.UTILITY_DUCT.get(), pos, state);
         for (SideMode[] row : modes) {
             Arrays.fill(row, SideMode.BOTH);
+        }
+        for (DuctControl[] row : controls) {
+            Arrays.fill(row, DuctControl.ALWAYS);
         }
         for (Direction direction : DIRECTIONS) {
             filters[direction.ordinal()] = new ItemSlots(FILTER_SLOTS) {
@@ -224,6 +230,43 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             case OUTPUT -> SideMode.DISABLED;
             case DISABLED, PULL, PUSH -> SideMode.BOTH;
         };
+    }
+
+    /** The Control of a line's side; the data line is always {@link DuctControl#ALWAYS}. */
+    public DuctControl control(Line line, Direction side) {
+        return line == Line.DATA ? DuctControl.ALWAYS : controls[line.ordinal()][side.ordinal()];
+    }
+
+    /** Sets the Control of a line's side; the data line has none and ignores it. */
+    public void setControl(Line line, Direction side, DuctControl control) {
+        if (line == Line.DATA || control == null || controls[line.ordinal()][side.ordinal()] == control) {
+            return;
+        }
+        controls[line.ordinal()][side.ordinal()] = control;
+        configChanged();
+    }
+
+    /** Whether a neighbour sends the duct a redstone signal. */
+    public boolean isPowered() {
+        return powered;
+    }
+
+    /** Whether the line's side moves anything now, after its Control and the duct's redstone signal. */
+    public boolean isActive(Line line, Direction side) {
+        return control(line, side).active(powered);
+    }
+
+    /** Reads the redstone signal around the duct; tells the client when it changed. Server only. */
+    private void refreshPowered() {
+        if (!neighboursLoaded()) {
+            return;
+        }
+        boolean now = level.hasNeighborSignal(worldPosition);
+        if (now != powered) {
+            powered = now;
+            setChanged();
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
     }
 
     /** The channel id of a line's side; a channel that no longer exists reads as Default (0). */
@@ -355,6 +398,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         if (level == null || level.isClientSide() || isRemoved()) {
             return;
         }
+        refreshPowered();
         boolean armsChanged = recomputeArms();
         if (armsChanged) {
             setChanged();
@@ -783,6 +827,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         for (Line line : lines) {
             join(line);
         }
+        refreshPowered();
         if (refreshPose()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
@@ -841,7 +886,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
     }
 
-    /** The name of the block the side touches, for the endpoint GUI title. */
+    /** The name of the block the side touches, for the endpoint GUI. */
     public Component touchedBlockName(Direction side) {
         if (level == null) {
             return Component.empty();
@@ -849,13 +894,30 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         return level.getBlockState(worldPosition.relative(side)).getBlock().getName();
     }
 
-    /** The endpoint GUI of one side: "Utility Duct, West: Chest". */
+    /** Whether the endpoint GUI may show a side: a block other than a duct is beside it, whatever the side's modes. */
+    public boolean isSelectable(Direction side) {
+        if (level == null) {
+            return false;
+        }
+        BlockPos neighbour = worldPosition.relative(side);
+        return !level.getBlockState(neighbour).isAir() && !(level.getBlockEntity(neighbour) instanceof UtilityDuctBlockEntity);
+    }
+
+    /** {@link #isSelectable} per side, indexed by direction ordinal. */
+    public boolean[] selectableSides() {
+        boolean[] selectable = new boolean[SIDES];
+        for (Direction side : DIRECTIONS) {
+            selectable[side.ordinal()] = isSelectable(side);
+        }
+        return selectable;
+    }
+
+    /** The endpoint GUI, opened on {@code side}; the GUI can switch to any other selectable side. */
     public MenuProvider menuProvider(Direction side) {
         return new MenuProvider() {
             @Override
             public Component getDisplayName() {
-                return Component.translatable("gui.servus_foundation.utility_duct.title",
-                        Component.translatable("gui.servus_foundation.side." + side.getSerializedName()), touchedBlockName(side));
+                return Component.translatable("gui.servus_foundation.utility_duct");
             }
 
             @Override
@@ -886,6 +948,10 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         output.store("Lines", Codec.STRING.listOf(), lines.stream().map(Line::id).toList());
         saveModesAndChannels(output);
         saveFiltersAndPriorities(output);
+        saveControls(output);
+        if (powered) {
+            output.putBoolean("Powered", true);
+        }
         output.putIntArray("Arms", arms.clone());
         output.putInt("Endpoints", endpoints);
         output.putInt("RestBase", basePose);
@@ -946,6 +1012,34 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         ValueIo.putTag(output, "Priorities", priorityTag);
     }
 
+    /** Only Controls other than Always are written. */
+    private void saveControls(ValueOutput output) {
+        CompoundTag controlTag = new CompoundTag();
+        for (Line line : Line.VALUES) {
+            CompoundTag perSide = new CompoundTag();
+            for (Direction direction : DIRECTIONS) {
+                DuctControl control = control(line, direction);
+                if (control != DuctControl.ALWAYS) {
+                    perSide.putInt(direction.getSerializedName(), control.id());
+                }
+            }
+            if (!perSide.isEmpty()) {
+                controlTag.put(line.id(), perSide);
+            }
+        }
+        ValueIo.putTag(output, "Controls", controlTag);
+    }
+
+    private void loadControls(ValueInput input) {
+        CompoundTag controlTag = ValueIo.getTag(input, "Controls");
+        for (Line line : Line.VALUES) {
+            CompoundTag perSide = controlTag.getCompoundOrEmpty(line.id());
+            for (Direction direction : DIRECTIONS) {
+                controls[line.ordinal()][direction.ordinal()] = DuctControl.byId(perSide.getIntOr(direction.getSerializedName(), 0));
+            }
+        }
+    }
+
     private void savePanels(ValueOutput output) {
         CompoundTag panelTag = new CompoundTag();
         for (Direction side : DIRECTIONS) {
@@ -977,6 +1071,8 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             filters[direction.ordinal()].load(filterIn, direction.getSerializedName());
             priorities[direction.ordinal()] = clampPriority(priorityTag.getIntOr(direction.getSerializedName(), 0));
         }
+        loadControls(input);
+        powered = input.getBooleanOr("Powered", false);
         int[] savedArms = input.getIntArray("Arms").orElse(new int[0]);
         Arrays.fill(arms, 0);
         System.arraycopy(savedArms, 0, arms, 0, Math.min(arms.length, savedArms.length));

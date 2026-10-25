@@ -74,6 +74,8 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
 
     /** One duct side with its neighbour's fluid handler. */
     static final class Endpoint {
+        final UtilityDuctBlockEntity duct;
+        final Direction side;
         final BlockPos target;
         final SideMode mode;
         final int channel;
@@ -81,11 +83,18 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
         /** An in and out side whose block has received fluid acts only as a sink from then on. */
         boolean receiving;
 
-        Endpoint(BlockPos target, SideMode mode, int channel, BlockCapabilityCache<ResourceHandler<FluidResource>, Direction> cache) {
+        Endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int channel,
+                 BlockCapabilityCache<ResourceHandler<FluidResource>, Direction> cache) {
+            this.duct = duct;
+            this.side = side;
             this.target = target;
             this.mode = mode;
             this.channel = channel;
             this.cache = cache;
+        }
+
+        boolean active() {
+            return duct.isActive(Line.FLUID, side);
         }
 
         boolean inAndOut() {
@@ -127,7 +136,7 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
 
     @Override
     protected Endpoint endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int channel) {
-        return new Endpoint(target, mode, channel, BlockCapabilityCache.create(Capabilities.Fluid.BLOCK, level, target, side.getOpposite()));
+        return new Endpoint(duct, side, target, mode, channel, BlockCapabilityCache.create(Capabilities.Fluid.BLOCK, level, target, side.getOpposite()));
     }
 
     @Override
@@ -156,7 +165,7 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
         Map<Endpoint, Source> offers = new HashMap<>();
         Set<FluidKey> offered = new LinkedHashSet<>();
         for (Endpoint endpoint : channel) {
-            FluidView handler = endpoint.handler();
+            FluidView handler = endpoint.active() ? endpoint.handler() : null;
             if (handler == null) {
                 continue;
             }
@@ -221,7 +230,7 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
         long room = 0;
         for (List<Endpoint> list : endpoints.values()) {
             for (Endpoint endpoint : list) {
-                if (endpoint.channel != channel || !endpoint.mode.allowsExtract() || endpoint.target.equals(origin)) {
+                if (endpoint.channel != channel || !endpoint.mode.allowsExtract() || endpoint.target.equals(origin) || !endpoint.active()) {
                     continue;
                 }
                 FluidView handler = endpoint.handler();

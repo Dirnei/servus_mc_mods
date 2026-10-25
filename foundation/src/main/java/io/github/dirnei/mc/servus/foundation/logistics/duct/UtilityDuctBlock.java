@@ -131,7 +131,7 @@ public class UtilityDuctBlock extends ConnectableBlock implements PotatoInspecta
         return false;
     }
 
-    /** A neighbour was placed, removed or changed: the block entity refreshes its arms. */
+    /** A neighbour was placed, removed or changed, or its redstone signal changed: the block entity refreshes its arms and power. */
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
                                    boolean movedByPiston) {
@@ -251,9 +251,9 @@ public class UtilityDuctBlock extends ConnectableBlock implements PotatoInspecta
     /**
      * Sneak wrench on a panel takes that panel off; anywhere else it removes
      * the duct, whose lines and panels drop when its block entity is removed. Without
-     * sneaking, a click on an arm that ends at an inventory or machine opens
-     * that side's endpoint GUI; the centre, an arm toward another duct and a
-     * panel open nothing.
+     * sneaking, a click on the centre or any arm opens the endpoint GUI: on the
+     * clicked side when a block other than a duct is beside it, else on the
+     * first such side. A panel, or a duct with no such side, opens nothing.
      */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
@@ -276,10 +276,12 @@ public class UtilityDuctBlock extends ConnectableBlock implements PotatoInspecta
                 || hitPanel(duct, context.getClickLocation(), pos, context.getClickedFace()) != null) {
             return InteractionResult.PASS;
         }
-        Direction side = hitArm(duct, context.getClickLocation(), pos);
-        if (side == null || !duct.isEndpoint(side)) {
+        Direction clicked = hitArm(duct, context.getClickLocation(), pos);
+        int start = DuctSides.startSide(duct.selectableSides(), clicked == null ? DuctSides.NONE : clicked.ordinal());
+        if (start == DuctSides.NONE) {
             return InteractionResult.PASS;
         }
+        Direction side = Direction.values()[start];
         if (!level.isClientSide()) {
             player.openMenu(duct.menuProvider(side), buf -> buf.writeBlockPos(pos).writeEnum(side));
         }

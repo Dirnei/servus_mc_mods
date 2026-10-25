@@ -204,6 +204,9 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - Power Cable with a tiered transfer rate.
 - Hand made patterns for Machine Adapters, if the play tests ask for them.
 - Ender Anchor respects FTB Chunks claims: with FTB Chunks installed it loads only chunks the owner's team has claimed (or unclaimed ones), never another team's (soft integration with the FTB Chunks API).
+- Duct overflow, after `m5-duct-endpoint-gui`: fluid filter slots and fluid priorities on the duct (`m5-duct-fluid-filter`), then an amount per filter entry that keeps that much in a giving block and fills a receiving block up to it (`m5-duct-keep-amounts`).
+- An Overflow Valve block, if play tests ask for one beside the duct amounts.
+- Warehouse excess on stock rules: a rule with only a maximum ships the surplus above it to a station.
 
 ### Open: Shuttles
 

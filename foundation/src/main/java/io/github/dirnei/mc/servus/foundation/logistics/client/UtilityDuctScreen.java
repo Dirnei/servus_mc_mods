@@ -22,6 +22,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -31,9 +32,10 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /**
- * The endpoint GUI of one duct side: one tab per present line on the left
- * edge, and the page of the selected line with its mode, channel and remove
- * button; the Item Pipe page adds the filter slots and the priority. The
+ * The endpoint GUI of a duct: a side picker row on top, the selected side's
+ * neighbour name, one tab per present line on the left edge, and the page of
+ * the selected line with its mode, Control, channel and remove button; the
+ * Item Pipe page adds the filter slots and the priority. The
  * Power Cable and Fluid Pipe pages have no filter or priority; the data page
  * only switches the side on or off and removes the line. A left click with an
  * empty cursor on a filter slot opens a search popup over every item for that
@@ -44,15 +46,18 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
     private static final Identifier TEXTURE =
             Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "textures/gui/utility_duct.png");
     private static final int MARGIN = 8;
-    private static final int MODE_Y = 18;
+    private static final int PICKER_Y = 16;
+    private static final int SIDE_NAME_Y = 39;
+    private static final int MODE_Y = 52;
     private static final int MODE_HEIGHT = 20;
-    private static final int CHANNEL_Y = 42;
-    private static final int FILTER_LABEL_Y = 62;
-    private static final int PRIORITY_Y = 94;
+    private static final int HALF_GAP = 4;
+    private static final int CHANNEL_Y = 76;
+    private static final int FILTER_LABEL_Y = 96;
+    private static final int PRIORITY_Y = 128;
     private static final int REMOVE_WIDTH = 16;
     private static final int TAB_WIDTH = 28;
     private static final int TAB_HEIGHT = 26;
-    private static final int TAB_TOP = 10;
+    private static final int TAB_TOP = 50;
     private static final int TAB_STRIDE = 28;
     private static final int TEXT = 0xFF404040;
     private static final int PANEL = 0xFFC6C6C6;
@@ -60,7 +65,10 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
     private static final int PANEL_LIGHT = 0xFFFFFFFF;
 
     private Button modeButton;
+    private Button controlButton;
     private Line shownPage;
+    private Direction shownSide;
+    private final DuctSidePicker sidePicker;
     private int linesSeen = -1;
     private final ItemPicker filterPicker;
     private final ChannelPopup channelPopup;
@@ -69,7 +77,8 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
     private int pickerSlot;
 
     public UtilityDuctScreen(UtilityDuctMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title, 176, 204);
+        super(menu, playerInventory, title, 176, 238);
+        this.sidePicker = new DuctSidePicker(menu.duct());
         this.filterPicker = new ItemPicker(Component.translatable("gui.servus_foundation.filter_picker"),
                 entry -> sendFilter(pickerSlot, entry.itemId()));
         this.channelPopup = new ChannelPopup(menu);
@@ -83,6 +92,7 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         this.inventoryLabelY = UtilityDuctMenu.INVENTORY_Y - 11;
         filterPicker.setArea(leftPos, topPos, imageWidth, imageHeight);
         channelPopup.setArea(leftPos, topPos, imageWidth, imageHeight);
+        sidePicker.place(leftPos + (imageWidth - DuctSidePicker.width()) / 2, topPos + PICKER_Y);
         rebuildButtons();
     }
 
@@ -140,7 +150,9 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
     private void rebuildButtons() {
         clearWidgets();
         modeButton = null;
+        controlButton = null;
         linesSeen = menu.duct().linesMask();
+        shownSide = menu.side();
         List<Line> tabs = tabs();
         if (!tabs.contains(menu.page())) {
             menu.setPage(tabs.isEmpty() ? null : tabs.get(0));
@@ -150,10 +162,16 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         if (line == null) {
             return;
         }
+        int fullWidth = imageWidth - 2 * MARGIN;
+        int halfWidth = (fullWidth - HALF_GAP) / 2;
         modeButton = Button.builder(Component.empty(), button -> press(UtilityDuctMenu.BUTTON_CYCLE_MODE + line.ordinal()))
-                .bounds(leftPos + MARGIN, topPos + MODE_Y, imageWidth - 2 * MARGIN, MODE_HEIGHT).build();
+                .bounds(leftPos + MARGIN, topPos + MODE_Y, line == Line.DATA ? fullWidth : halfWidth, MODE_HEIGHT).build();
         addRenderableWidget(modeButton);
         if (line != Line.DATA) {
+            controlButton = Button.builder(Component.empty(), button -> press(UtilityDuctMenu.BUTTON_CYCLE_CONTROL + line.ordinal()))
+                    .bounds(leftPos + imageWidth - MARGIN - halfWidth, topPos + MODE_Y, halfWidth, MODE_HEIGHT).build();
+            controlButton.setTooltip(Tooltip.create(Component.translatable("gui.servus_foundation.control.tooltip")));
+            addRenderableWidget(controlButton);
             addRenderableWidget(new ChannelButton(leftPos + MARGIN, topPos + CHANNEL_Y, imageWidth - 2 * MARGIN,
                     () -> menu.duct().channel(line, menu.side()), () -> channelPopup.open(line)));
         }
@@ -213,7 +231,7 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-        if (linesSeen != menu.duct().linesMask() || shownPage != menu.page()) {
+        if (linesSeen != menu.duct().linesMask() || shownPage != menu.page() || shownSide != menu.side()) {
             rebuildButtons();
         }
         if (modeButton != null && shownPage != null) {
@@ -222,6 +240,10 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
                     ? (mode == SideMode.DISABLED ? "gui.servus_foundation.data.off" : "gui.servus_foundation.data.on")
                     : "gui.servus_foundation.mode." + mode.name().toLowerCase(Locale.ROOT);
             modeButton.setMessage(Component.translatable(key));
+        }
+        if (controlButton != null && shownPage != null) {
+            controlButton.setMessage(Component.translatable("gui.servus_foundation.control",
+                    Component.translatable("gui.servus_foundation.control." + menu.duct().control(shownPage, menu.side()).key())));
         }
         if (filterPicker.isOpen() && shownPage != Line.ITEM) {
             filterPicker.close();
@@ -244,6 +266,8 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         Line hovered = tabAt(mouseX, mouseY);
         if (hovered != null) {
             guiGraphics.setTooltipForNextFrame(font, Component.translatable("gui.servus_foundation.line." + hovered.id()), mouseX, mouseY);
+        } else {
+            sidePicker.renderTooltip(guiGraphics, font, mouseX, mouseY);
         }
     }
 
@@ -252,6 +276,7 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         super.extractBackground(guiGraphics, mouseX, mouseY, partialTick);
         renderTabs(guiGraphics);
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
+        sidePicker.render(guiGraphics, menu.side(), mouseX, mouseY);
         if (shownPage == Line.ITEM) {
             for (int i = 0; i < 9; i++) {
                 int x = leftPos + UtilityDuctMenu.SLOT_X + i * 18 - 1;
@@ -268,6 +293,9 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
     @Override
     protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         super.extractLabels(guiGraphics, mouseX, mouseY);
+        Component sideName = Component.translatable("gui.servus_foundation.utility_duct.side",
+                DuctSidePicker.sideName(menu.side()), menu.duct().touchedBlockName(menu.side()));
+        guiGraphics.text(font, font.plainSubstrByWidth(sideName.getString(), imageWidth - 2 * MARGIN), MARGIN, SIDE_NAME_Y, TEXT, false);
         if (shownPage == Line.ITEM) {
             guiGraphics.text(font, Component.translatable("gui.servus_foundation.filter"), MARGIN, FILTER_LABEL_Y, TEXT, false);
             guiGraphics.text(font, Component.translatable("gui.servus_foundation.priority", menu.priority()), MARGIN + 20, PRIORITY_Y + 4, TEXT, false);
@@ -289,6 +317,14 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         if (tab != null) {
             menu.setPage(tab);
             rebuildButtons();
+            return true;
+        }
+        Direction picked = sidePicker.sideAt(event.x(), event.y());
+        if (picked != null) {
+            if (picked != menu.side() && menu.duct().isSelectable(picked)) {
+                press(UtilityDuctMenu.BUTTON_SELECT_SIDE + picked.ordinal());
+                rebuildButtons();
+            }
             return true;
         }
         return super.mouseClicked(event, doubleClick);

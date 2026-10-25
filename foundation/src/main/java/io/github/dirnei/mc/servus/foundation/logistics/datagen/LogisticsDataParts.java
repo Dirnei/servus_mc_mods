@@ -148,7 +148,17 @@ public final class LogisticsDataParts {
         provider.add("message.servus_foundation.fluid_tank.content", "%s: %s / %s mB");
         provider.add("message.servus_foundation.fluid_tank.mixed", "The tanks hold different fluids");
         provider.add("gui.servus_foundation.utility_duct", "Utility Duct");
-        provider.add("gui.servus_foundation.utility_duct.title", "Utility Duct, %s: %s");
+        provider.add("gui.servus_foundation.utility_duct.side", "%s: %s");
+        provider.add("gui.servus_foundation.side_picker.duct", "Another duct, configure it there");
+        provider.add("gui.servus_foundation.side_picker.empty", "Nothing here");
+        provider.add("gui.servus_foundation.control", "Control: %s");
+        provider.add("gui.servus_foundation.control.always", "Always");
+        provider.add("gui.servus_foundation.control.powered", "While powered");
+        provider.add("gui.servus_foundation.control.unpowered", "While unpowered");
+        provider.add("gui.servus_foundation.control.off", "Off");
+        provider.add("gui.servus_foundation.control.tooltip", "When this line moves anything on this side. "
+                + "While powered and While unpowered follow a redstone signal into the duct. "
+                + "Off keeps the connection and only stops the movement.");
         provider.add("gui.servus_foundation.remove.item", "Remove Item Pipe");
         provider.add("gui.servus_foundation.remove.energy", "Remove Power Cable");
         provider.add("gui.servus_foundation.remove.fluid", "Remove Fluid Pipe");
@@ -189,9 +199,12 @@ public final class LogisticsDataParts {
         provider.add("gui.servus_foundation.mode.output", "Push out");
         provider.add("gui.servus_foundation.mode.disabled", "Disabled");
         provider.add("message.servus_foundation.potato.duct_side", "Utility Duct, %s side (loaded ducts only)");
-        provider.add("message.servus_foundation.potato.duct_centre", "Utility Duct, centre (loaded ducts only)");
-        provider.add("message.servus_foundation.potato.item_side", "%s: %s, %s, priority %s, %s ducts, %s in / %s out");
-        provider.add("message.servus_foundation.potato.side", "%s: %s, %s, %s ducts, %s in / %s out");
+        provider.add("message.servus_foundation.potato.duct_centre", "Utility Duct, centre, %s (loaded ducts only)");
+        provider.add("message.servus_foundation.potato.powered", "powered");
+        provider.add("message.servus_foundation.potato.unpowered", "unpowered");
+        provider.add("message.servus_foundation.potato.paused", "%s, paused");
+        provider.add("message.servus_foundation.potato.item_side", "%s: %s, %s, %s, priority %s, %s ducts, %s in / %s out");
+        provider.add("message.servus_foundation.potato.side", "%s: %s, %s, %s, %s ducts, %s in / %s out");
         provider.add("message.servus_foundation.potato.run", "%s: %s ducts");
         provider.add("message.servus_foundation.potato.data", "%s: %s, %s items/s, %s used");
         provider.add("message.servus_foundation.potato.tank_size", "Size: %s x %s x %s blocks");

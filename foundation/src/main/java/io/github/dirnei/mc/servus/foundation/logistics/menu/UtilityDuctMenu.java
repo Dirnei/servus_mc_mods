@@ -26,9 +26,10 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * The endpoint configuration of one duct side: per present line (Item Pipe,
- * Power Cable, Fluid Pipe) the mode, the channel and a remove button (the data
- * line only on or off and remove), for the
+ * The endpoint configuration of a duct, one side at a time: the side can be
+ * switched to any side with a block other than a duct beside it. Per present
+ * line (Item Pipe, Power Cable, Fluid Pipe) the mode, the Control, the channel
+ * and a remove button (the data line only on or off and remove), for the
  * Item Pipe the side's filter as ghost slots and its priority, plus the
  * player inventory. Everything but the slots and the channel goes through
  * button ids; a filter slot is also set by item id through
@@ -39,8 +40,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public class UtilityDuctMenu extends AbstractContainerMenu {
 
     public static final int SLOT_X = 8;
-    public static final int FILTER_Y = 72;
-    public static final int INVENTORY_Y = 122;
+    public static final int FILTER_Y = 106;
+    public static final int INVENTORY_Y = 156;
 
     /** Mode button of a line: {@code BUTTON_CYCLE_MODE + line.ordinal()}. */
     public static final int BUTTON_CYCLE_MODE = 10;
@@ -48,12 +49,16 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
     public static final int BUTTON_REMOVE_LINE = 20;
     public static final int BUTTON_PRIORITY_DOWN = 30;
     public static final int BUTTON_PRIORITY_UP = 31;
+    /** Side picker button: {@code BUTTON_SELECT_SIDE + direction.ordinal()}. */
+    public static final int BUTTON_SELECT_SIDE = 40;
+    /** Control button of a line: {@code BUTTON_CYCLE_CONTROL + line.ordinal()}. */
+    public static final int BUTTON_CYCLE_CONTROL = 50;
 
     private static final int DATA_PRIORITY = 0;
     private static final int CABLE_SYNC_TICKS = 20;
 
     private final UtilityDuctBlockEntity duct;
-    private final Direction side;
+    private Direction side;
     private final ContainerLevelAccess access;
     private final ContainerData data;
     private final Player player;
@@ -95,9 +100,27 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
         return duct;
     }
 
-    /** The side this menu configures. */
+    /** The side this menu configures now. */
     public Direction side() {
         return side;
+    }
+
+    /**
+     * Switches to another side when a block other than a duct is beside it.
+     * The server sends the new side's priority and channels.
+     *
+     * @return whether the side is shown now
+     */
+    public boolean selectSide(Direction next) {
+        if (!duct.isSelectable(next)) {
+            return false;
+        }
+        if (next != side) {
+            side = next;
+            data.set(DATA_PRIORITY, duct.priority(side));
+            sendCableChannels(true);
+        }
+        return true;
     }
 
     /** The line whose page is shown, the first present line until a tab is clicked. */
@@ -175,6 +198,16 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
                 if (duct.lines().isEmpty()) {
                     player.level().removeBlock(duct.getBlockPos(), false);
                 }
+            }
+            return true;
+        }
+        if (id >= BUTTON_SELECT_SIDE && id < BUTTON_SELECT_SIDE + Direction.values().length) {
+            return selectSide(Direction.values()[id - BUTTON_SELECT_SIDE]);
+        }
+        if (id >= BUTTON_CYCLE_CONTROL && id < BUTTON_CYCLE_CONTROL + Line.VALUES.length) {
+            Line line = Line.byOrdinal(id - BUTTON_CYCLE_CONTROL);
+            if (line != Line.DATA && duct.has(line)) {
+                duct.setControl(line, side, duct.control(line, side).next());
             }
             return true;
         }

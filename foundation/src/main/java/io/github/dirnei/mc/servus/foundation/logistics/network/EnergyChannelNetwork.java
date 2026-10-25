@@ -35,7 +35,12 @@ public final class EnergyChannelNetwork extends LineNetwork<EnergyChannelNetwork
     public static final NetworkType<UtilityDuctBlockEntity, DuctEvent, EnergyChannelNetwork> TYPE =
             new NetworkType<>(ID, RULE, EnergyChannelNetwork::new);
 
-    record Endpoint(SideMode mode, int channel, BlockCapabilityCache<EnergyHandler, Direction> cache) {
+    record Endpoint(UtilityDuctBlockEntity duct, Direction side, SideMode mode, int channel,
+                    BlockCapabilityCache<EnergyHandler, Direction> cache) {
+
+        boolean active() {
+            return duct.isActive(Line.ENERGY, side);
+        }
     }
 
     public EnergyChannelNetwork(int id, NetworkSet<UtilityDuctBlockEntity, DuctEvent, ?> owner) {
@@ -44,7 +49,7 @@ public final class EnergyChannelNetwork extends LineNetwork<EnergyChannelNetwork
 
     @Override
     protected Endpoint endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int channel) {
-        return new Endpoint(mode, channel, BlockCapabilityCache.create(Capabilities.Energy.BLOCK, level, target, side.getOpposite()));
+        return new Endpoint(duct, side, mode, channel, BlockCapabilityCache.create(Capabilities.Energy.BLOCK, level, target, side.getOpposite()));
     }
 
     @Override
@@ -56,6 +61,9 @@ public final class EnergyChannelNetwork extends LineNetwork<EnergyChannelNetwork
         Map<Integer, List<EnergySink>> sinks = new HashMap<>();
         for (List<Endpoint> list : endpoints.values()) {
             for (Endpoint endpoint : list) {
+                if (!endpoint.active()) {
+                    continue;
+                }
                 EnergyView storage = EnergyView.of(endpoint.cache().getCapability());
                 if (storage == null) {
                     continue;
