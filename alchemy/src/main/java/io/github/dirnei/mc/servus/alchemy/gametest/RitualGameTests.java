@@ -91,7 +91,7 @@ public final class RitualGameTests {
         helper.runAfterDelay(duration + 5, () -> {
             for (BlockPos vat : VATS) {
                 helper.assertTrue(crystal(helper, vat) == VatCrystal.CITRINE, "citrine grows in the vat at " + vat);
-                helper.assertTrue(helper.getBlockEntity(vat, GrownVatBlockEntity.class) != null, "the grown vat draws its cluster");
+                helper.assertTrue(helper.getBlockEntity(vat, GrownVatBlockEntity.class) != null, "the grown vat draws its tower");
             }
             helper.assertTrue(athanor.ritual() == null, "the ritual is over");
             helper.assertTrue(athanor.tier() == 2 && helper.getBlockState(AlchemyGameTests.ATHANOR).getValue(AthanorBlock.TIER) == 2,
@@ -315,11 +315,11 @@ public final class RitualGameTests {
         helper.succeed();
     }
 
-    /** The vats are empty Principle Vats without a cluster. */
+    /** The vats are empty Principle Vats without a tower. */
     private static void assertEmptyVats(GameTestHelper helper, List<BlockPos> vats) {
         for (BlockPos vat : vats) {
             helper.assertTrue(crystal(helper, vat) == VatCrystal.NONE, "the vat at " + vat + " stands empty, got " + crystal(helper, vat));
-            helper.assertTrue(helper.getLevel().getBlockEntity(helper.absolutePos(vat)) == null, "the empty vat at " + vat + " draws no cluster");
+            helper.assertTrue(helper.getLevel().getBlockEntity(helper.absolutePos(vat)) == null, "the empty vat at " + vat + " draws no tower");
         }
     }
 

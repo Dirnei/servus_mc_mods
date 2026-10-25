@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.alchemy.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorTiers.BlockAt;
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.CrystalRamp;
 import io.github.dirnei.mc.servus.alchemy.athanor.ritual.RitualTimeline;
 import io.github.dirnei.mc.servus.alchemy.athanor.ritual.RubedoObeliskBlock;
 import io.github.dirnei.mc.servus.alchemy.coagulator.VatBlock;
@@ -88,7 +89,7 @@ public final class RitualLooks {
     }
 
     /**
-     * A plain vat fills with the crystal's liquid and the cluster grows out of it. A vat already grown turns its crystal's
+     * A plain vat fills with the crystal's liquid and the tower grows out of it. A vat already grown turns its crystal's
      * colour into the new one, after its crystal answered the rising offering with a pulse; its own renderer draws it.
      */
     private static void vat(PoseStack poseStack, SubmitBuffers buffers, Level level, BlockPos pos, BlockAt to, Moment moment) {
@@ -98,13 +99,13 @@ public final class RitualLooks {
         if (grown.grown()) {
             float shift = moment.timeline().recolor(moment.t());
             float pulse = 0.35F * moment.timeline().answer(moment.t());
-            int body = RitualTimeline.mix(RitualTimeline.mix(grown.body(), target.body(), shift), 0xFFFFFF, pulse);
+            CrystalRamp ramp = grown.ramp().mix(target.ramp(), shift).toward(0xFFFFFF, pulse);
             int color = RitualTimeline.mix(RitualTimeline.mix(grown.color(), target.color(), shift), 0xFFFFFF, pulse);
-            VatTints.put(pos, body, color, moment.time());
+            VatTints.put(pos, ramp, color, moment.time());
             return;
         }
         CrystalDrawing.liquid(poseStack, buffers, moment.fill(), target.color());
-        CrystalDrawing.cluster(poseStack, buffers, pos, moment.growth(), target.body());
+        CrystalDrawing.tower(poseStack, buffers, level, pos, moment.growth(), target.ramp());
     }
 
     /** The Obsidian cracks with glowing veins and the obelisk rises out of it; the upper half has no look of its own. */

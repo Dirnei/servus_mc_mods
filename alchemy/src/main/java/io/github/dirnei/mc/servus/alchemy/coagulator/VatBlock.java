@@ -35,7 +35,7 @@ import org.jspecify.annotations.Nullable;
  * A Principle Vat of the Coagulator, placed three times above it. While formed, {@link #PIECE}
  * says which one it is and so which principle it takes: Sulfur, Salt or Mercury from left to right.
  * An Athanor ritual may grow a crystal out of a plain vat ({@link #CRYSTAL}); a grown vat gives light,
- * has a block entity for its cluster and is no Coagulator vat.
+ * has a block entity for its tower and is no Coagulator vat.
  */
 public class VatBlock extends Block implements Wrenchable, EntityBlock {
 
@@ -101,7 +101,7 @@ public class VatBlock extends Block implements Wrenchable, EntityBlock {
         return state.getValue(CRYSTAL).light();
     }
 
-    /** Only a grown vat has a block entity, which draws its cluster. */
+    /** Only a grown vat has a block entity, which draws its tower. */
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return state.getValue(CRYSTAL).grown() ? new GrownVatBlockEntity(pos, state) : null;

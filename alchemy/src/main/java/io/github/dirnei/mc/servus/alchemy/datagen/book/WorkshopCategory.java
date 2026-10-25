@@ -323,8 +323,8 @@ final class WorkshopCategory extends CategoryProvider {
                             + "Heated in the white fire, amethyst turns into yellow citrine, the stone Citrinitas is named after.");
             e.text("build", "Building It",
                     "Beside each tank, on its outer side three blocks from the Athanor, set an empty Principle Vat on the hearth level. "
-                            + "Then use an Amethyst Block on the white Athanor: it rises, bursts into three streams of light, and a cluster "
-                            + "of citrine grows out of each vat. The flame turns yellow.\n\n"
+                            + "Then use an Amethyst Block on the white Athanor: it rises, bursts into three streams of light, and a tower "
+                            + "of citrine grows out of each vat, budding as it stands. The flame turns yellow.\n\n"
                             + "Break a grown vat and the citrine falls to shards; the fire is white again until the ritual is cast anew.");
             e.multiblock("ring", ServusAlchemyMultiblockProvider.athanor("citrinitas"), "The Yellow Ring",
                     "Three empty Principle Vats beside the tanks of the white Athanor; then offer it an Amethyst Block. "

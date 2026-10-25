@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.world.phys.AABB;
 
 /**
- * Draws a grown vat's full liquid and its crystal cluster, which stands up to three blocks tall, in the colours of its
+ * Draws a grown vat's full liquid and its citrine tower, which stands about three blocks tall, in the colours of its
  * crystal, or in those a running ritual gives it while it turns the crystal into another.
  */
 public class GrownVatRenderer extends BufferedBlockEntityRenderer<GrownVatBlockEntity> {
@@ -19,17 +19,17 @@ public class GrownVatRenderer extends BufferedBlockEntityRenderer<GrownVatBlockE
 
     @Override
     public AABB getRenderBoundingBox(GrownVatBlockEntity vat) {
-        return new AABB(vat.getBlockPos()).expandTowards(0, 2, 0).inflate(1, 0, 1);
+        return new AABB(vat.getBlockPos()).expandTowards(0, 3, 0).inflate(1, 0, 1);
     }
 
     @Override
     protected void render(GrownVatBlockEntity vat, float partialTick, PoseStack poseStack, SubmitBuffers buffers, int light) {
         VatCrystal crystal = vat.crystal();
-        if (!crystal.grown()) {
+        if (!crystal.grown() || vat.getLevel() == null) {
             return;
         }
-        VatTints.Tint tint = vat.getLevel() == null ? null : VatTints.at(vat.getBlockPos(), vat.getLevel().getGameTime() + partialTick);
+        VatTints.Tint tint = VatTints.at(vat.getBlockPos(), vat.getLevel().getGameTime() + partialTick);
         CrystalDrawing.liquid(poseStack, buffers, 1, tint == null ? crystal.color() : tint.color());
-        CrystalDrawing.cluster(poseStack, buffers, vat.getBlockPos(), 1, tint == null ? crystal.body() : tint.body());
+        CrystalDrawing.tower(poseStack, buffers, vat.getLevel(), vat.getBlockPos(), 1, tint == null ? crystal.ramp() : tint.ramp());
     }
 }

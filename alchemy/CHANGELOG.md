@@ -10,6 +10,7 @@
 - The journal's Calciner table fills in as your team burns things, with hints for the rest.
 - The Coagulator grows what its seed is and uses one seed per cycle: a product seeds itself and comes back doubled, while Kandis, Brimstone and Cinnabar turn into Salt Crystal, Sulfur and Quicksilver. The recipe popup is gone.
 - Drinking the Elixir of Sight no longer gives back a glass bottle.
+- Grown citrine is now a stepped tower with small upward-leaning buds in clear yellows, and buds no longer grow into the tanks beside the vat.
 
 ### Fixed
 - When several calcination recipes take the same item, the most specific one wins.

@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitual;
 import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitual.Phases;
 import io.github.dirnei.mc.servus.alchemy.athanor.ritual.AthanorRitual.Sounds;
-import io.github.dirnei.mc.servus.alchemy.athanor.ritual.CrystalCluster;
 import io.github.dirnei.mc.servus.alchemy.athanor.ritual.RitualTimeline;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -72,17 +71,5 @@ class RitualTimelineTest {
         assertEquals(0, RUBEDO.answer(0), "the crystal answers only once the offering rises");
         assertTrue(RUBEDO.answer(14) > 0.5F);
         assertEquals(0, RUBEDO.answer(60));
-    }
-
-    @Test
-    void clusterIsFullSizeOnceGrown() {
-        for (CrystalCluster.Spike spike : CrystalCluster.SPIKES) {
-            assertEquals(0, CrystalCluster.scale(spike, 0));
-            assertEquals(1, CrystalCluster.scale(spike, 1), 1e-6);
-        }
-        CrystalCluster.Spike tallest = CrystalCluster.SPIKES.get(0);
-        assertEquals(0, CrystalCluster.scale(tallest, 0.4F), "the big spike grows last");
-        assertEquals(3.0, CrystalCluster.ROOT + CrystalCluster.top(tallest), 0.05,
-                "from the vat's floor the tallest spike reaches the top of the tanks, three blocks up");
     }
 }

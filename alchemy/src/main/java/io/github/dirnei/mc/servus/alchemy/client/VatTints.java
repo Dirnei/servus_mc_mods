@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.alchemy.client;
 
+import io.github.dirnei.mc.servus.alchemy.athanor.ritual.CrystalRamp;
 import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
@@ -12,10 +13,10 @@ import org.jspecify.annotations.Nullable;
 public final class VatTints {
 
     /**
-     * @param body  RGB of the crystal's body
+     * @param ramp  colours of the crystal's body
      * @param color RGB of its liquid
      */
-    public record Tint(int body, int color, float time) {
+    public record Tint(CrystalRamp ramp, int color, float time) {
     }
 
     private static final float STALE = 3;
@@ -24,8 +25,8 @@ public final class VatTints {
     private VatTints() {
     }
 
-    public static void put(BlockPos vat, int body, int color, float time) {
-        TINTS.put(vat.immutable(), new Tint(body, color, time));
+    public static void put(BlockPos vat, CrystalRamp ramp, int color, float time) {
+        TINTS.put(vat.immutable(), new Tint(ramp, color, time));
     }
 
     /** The tint of the vat at {@code vat} at game time {@code time}, or null when no ritual turns it now. */
