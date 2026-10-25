@@ -15,13 +15,13 @@ public final class FieldHeadLook {
     /**
      * Whether the head has a problem, the same ones that put a red marker on a
      * tab of its GUI: it serves no field, its work status is a problem, the
-     * field is corroded or dry, or the fertilizing is held up. The bar on the
+     * field is corroded or dry while it needs water, or the fertilizing is held up. The bar on the
      * head is red while this holds.
      *
      * @param serving    the head serves a field
      * @param work       the work status, null when not serving
      * @param corroded   the served field is corroded
-     * @param hydrated   the served field has water
+     * @param hydrated   the served field has water, or needs none
      * @param fertilize  the fertilize status, null when not serving
      */
     public static boolean problem(boolean serving, FieldWork work, boolean corroded, boolean hydrated, FertilizeStatus fertilize) {

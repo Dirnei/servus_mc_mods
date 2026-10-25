@@ -25,6 +25,7 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.JobNeeds;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleItem;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -157,6 +158,11 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
     private long agedWater;
     /** Crop items from the registry, filled on first use; registries are frozen by then. */
     private static volatile List<Item> cropItems;
+    /** What the field grows; the crop slot holds the sapling of a Trees field. */
+    private FieldKind kind = FieldKind.CROPS;
+    /** Whether a Trees field plants its sapling in squares of four. */
+    private boolean twoByTwo;
+    /** Harvest only; in a Trees field it reads fell only. */
     private boolean harvestOnly;
     /** The ripe percent that calls a harvest; 0 follows {@code harvest_share} from {@code field.json}. */
     private int harvestPercent;
@@ -197,6 +203,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
     private int minZ;
     private int maxZ;
     private final FieldRipeness<BlockPos> ripeness = new FieldRipeness<>();
+    /** Plots of trees a Lumber shuttle gave up felling, with the block they held then; not saved. */
+    private final Map<BlockPos, Unfellable> unfellable = new HashMap<>();
     private final Set<BlockPos> rechecks = new HashSet<>();
     private final List<AABBTicket> tickets = new ArrayList<>();
     private boolean refreshPending = true;
@@ -411,8 +419,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
     }
 
     private void useWater() {
-        if (stage == FieldCorrosion.CORRODED) {
-            // Corroded rails water nothing, so they use no water and age no further.
+        if (kind.trees() || stage == FieldCorrosion.CORRODED) {
+            // Trees need no water, and corroded rails water nothing: neither uses water or ages.
             if (hydrated) {
                 hydrated = false;
                 dropTickets();
@@ -517,7 +525,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
 
     /** The mB per minute the served field uses while watered; 0 while it serves none or its rails are corroded. */
     public int waterPerMinute() {
-        if (status != FieldStatus.SERVING || stage == FieldCorrosion.CORRODED) {
+        if (status != FieldStatus.SERVING || kind.trees() || stage == FieldCorrosion.CORRODED) {
             return 0;
         }
         return FieldWater.perMinute(rails.size(), ShuttlesStatsManager.INSTANCE.fieldWaterPerRail(),
@@ -814,18 +822,38 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         show(level.getBlockState(worldPosition), FieldHeadBlock.CORRODED, corroded);
     }
 
-    /** Reads every loaded plot again and works out what the rails can see. */
+    /** Reads every loaded plot again and works out what the rails can see; trees given up on are tried again. */
     public void recheckAll() {
         ground.clear();
+        unfellable.clear();
         if (level == null) {
             return;
         }
+        PlotRules rules = rules();
         for (BlockPos plot : candidates) {
             if (level.isLoaded(plot)) {
-                ground.put(plot, HarvesterWork.classify(level, plot, level.getBlockState(plot)));
+                ground.put(plot, HarvesterWork.classify(level, plot, level.getBlockState(plot), rules));
             }
         }
         refreshReach();
+    }
+
+    /** How this field reads its plots: its kind, sapling, layout, candidates and the trees it gave up on. */
+    public PlotRules rules() {
+        if (!kind.trees()) {
+            return PlotRules.CROPS;
+        }
+        Block sapling = crop.getStackInSlot(0).getItem() instanceof BlockItem item ? item.getBlock() : null;
+        Set<BlockPos> inField = candidates;
+        return new PlotRules(kind, sapling, plantMode(), twoByTwo, hasRangeUpgrade(), inField::contains, (plot, state) -> {
+            Unfellable given = unfellable.get(plot);
+            return given != null && given.state() == state;
+        });
+    }
+
+    /** The plot's state as it is in the world now, read by this field's rules. */
+    public PlotState classify(BlockPos plot) {
+        return level == null ? PlotState.BLOCKED : HarvesterWork.classify(level, plot, level.getBlockState(plot), rules());
     }
 
     /** The plots the rails see now, and their ripeness rebuilt from {@link #ground}. */
@@ -859,10 +887,29 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         }
     }
 
-    /** Records what a plot holds now, the block on it being that state. */
+    /**
+     * Records what a plot holds now, the block on it being that state; a tree
+     * given up on there is tried again once its block changed, and in a 2x2
+     * field the rest of its square is read again too.
+     */
     void update(BlockPos plot, BlockState state) {
         BlockPos key = plot.immutable();
-        PlotState now = HarvesterWork.classify(level, key, state);
+        Unfellable given = unfellable.get(key);
+        if (given != null && given.state() != state) {
+            unfellable.remove(key);
+        }
+        record(key, state);
+        if (kind.trees() && twoByTwo) {
+            for (BlockPos mate : treeBase(key)) {
+                if (!mate.equals(key) && candidates.contains(mate) && level.isLoaded(mate)) {
+                    record(mate, level.getBlockState(mate));
+                }
+            }
+        }
+    }
+
+    private void record(BlockPos key, BlockState state) {
+        PlotState now = HarvesterWork.classify(level, key, state, rules());
         PlotState before = ground.put(key, now);
         // A crop that appears where none grew (a ripe one harvested and replanted counts too) is newly planted.
         if (now == PlotState.GROWING) {
@@ -905,9 +952,185 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
                 && chunk.getMaxBlockZ() >= minZ && chunk.getMinBlockZ() <= maxZ;
     }
 
-    /** Whether the item plants an age crop and can be the crop of a field. */
+    /** Whether the item plants an age crop and can be the crop of a Crops field. */
     public static boolean isCropItem(ItemStack stack) {
         return stack.getItem() instanceof BlockItem item && item.getBlock() instanceof CropBlock;
+    }
+
+    /** Whether the item is a sapling that places a block and can be the sapling of a Trees field. */
+    public static boolean isSaplingItem(ItemStack stack) {
+        return stack.is(ItemTags.SAPLINGS) && stack.getItem() instanceof BlockItem;
+    }
+
+    /** Whether the item may be this field's crop or sapling, by its kind. */
+    private boolean fitsKind(ItemStack stack) {
+        return kind.trees() ? isSaplingItem(stack) : isCropItem(stack);
+    }
+
+    /** Every sapling item that places a block, from the item tag, so mods' saplings count too. */
+    public static List<Item> saplingItems() {
+        List<Item> items = new ArrayList<>();
+        BuiltInRegistries.ITEM.getTagOrEmpty(ItemTags.SAPLINGS).forEach(holder -> {
+            if (holder.value() instanceof BlockItem) {
+                items.add(holder.value());
+            }
+        });
+        return items;
+    }
+
+    /**
+     * Whether the sapling may be chosen in that layout: a 2x2 entry needs a
+     * sapling of {@link TreeTags#SAPLINGS_2X2} and a Range Upgrade in the head,
+     * a single entry a sapling outside {@link TreeTags#SAPLINGS_2X2_ONLY}.
+     */
+    public boolean saplingAllowed(ItemStack stack, boolean squares) {
+        if (!isSaplingItem(stack)) {
+            return false;
+        }
+        if (squares) {
+            return stack.is(TreeTags.SAPLINGS_2X2) && hasRangeUpgrade();
+        }
+        return !stack.is(TreeTags.SAPLINGS_2X2_ONLY);
+    }
+
+    /** What the field grows. */
+    public FieldKind kind() {
+        return kind;
+    }
+
+    /**
+     * Sets what the field grows. A change clears the crop or sapling, harvest
+     * only and the 2x2 layout, forgets the produce and reads the field again.
+     */
+    public void setKind(FieldKind newKind) {
+        if (newKind == kind) {
+            return;
+        }
+        kind = newKind;
+        crop.setStackInSlot(0, ItemStack.EMPTY);
+        harvestOnly = false;
+        twoByTwo = false;
+        forgetProduce();
+        if (kind.trees() && hydrated) {
+            hydrated = false;
+            dropTickets();
+        }
+        if (status == FieldStatus.SERVING) {
+            recheckAll();
+        }
+        lookDirty = true;
+        setChanged();
+        syncClients();
+    }
+
+    /** Whether a Trees field plants its sapling in squares of four. */
+    public boolean twoByTwo() {
+        return twoByTwo;
+    }
+
+    /**
+     * Sets the sapling of a Trees field in that layout; a sapling turns fell
+     * only off. Returns false and changes nothing when the field grows crops
+     * or the sapling is not allowed in that layout.
+     */
+    public boolean setSapling(ItemStack stack, boolean squares) {
+        if (!kind.trees() || !saplingAllowed(stack, squares)) {
+            return false;
+        }
+        boolean layoutChanged = squares != twoByTwo;
+        twoByTwo = squares;
+        if (putCrop(stack) || layoutChanged) {
+            recheckTrees();
+        }
+        return true;
+    }
+
+    /** Whether the head holds at least one Range Upgrade, which 2x2 trees need. */
+    public boolean hasRangeUpgrade() {
+        return !rangeUpgrades.getStackInSlot(0).isEmpty();
+    }
+
+    /** Whether a 2x2 sapling is set while no Range Upgrade is in the head, so no square is planted. */
+    public boolean needsRange() {
+        return kind.trees() && twoByTwo && plantMode() && !hasRangeUpgrade();
+    }
+
+    /**
+     * Marks the plots of a tree a Lumber shuttle gave up felling, so they stop
+     * counting as ready until the block on them changes.
+     *
+     * @param tooLarge whether the tree was too large rather than no tree at all
+     */
+    public void giveUp(Collection<BlockPos> base, boolean tooLarge) {
+        if (level == null) {
+            return;
+        }
+        for (BlockPos plot : base) {
+            BlockPos key = plot.immutable();
+            unfellable.put(key, new Unfellable(level.getBlockState(key), tooLarge));
+            if (candidates.contains(key)) {
+                record(key, level.getBlockState(key));
+            }
+        }
+    }
+
+    /** Whether a tree on the field was too large to fell. */
+    public boolean treeTooLarge() {
+        for (Unfellable given : unfellable.values()) {
+            if (given.tooLarge()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** The plots a tree on that plot stands on: its square in a 2x2 field, else the plot alone. */
+    public List<BlockPos> treeBase(BlockPos plot) {
+        List<BlockPos> base = new ArrayList<>();
+        for (FieldPos pos : TreeSpots.base(FieldPositions.of(plot), twoByTwo)) {
+            base.add(FieldPositions.toBlockPos(pos));
+        }
+        return base;
+    }
+
+    /**
+     * Whether a position on the plots' level is the base of another tree: a
+     * spot or square plot of the field that does not touch the given base, so
+     * the trunk of an old tree grown over several plots still comes down whole.
+     */
+    public boolean otherTreeBase(BlockPos pos, Collection<BlockPos> base) {
+        for (BlockPos plot : base) {
+            if (Math.abs(plot.getX() - pos.getX()) <= 1 && Math.abs(plot.getZ() - pos.getZ()) <= 1) {
+                return false;
+            }
+        }
+        return level != null && candidates.contains(pos) && HarvesterWork.isTreeSpot(level, pos, rules());
+    }
+
+    /**
+     * The saplings planting that plot takes at once: one for a spot, the plots
+     * of its square that hold no sapling yet in a 2x2 field.
+     */
+    public int saplingsNeeded(BlockPos plot) {
+        if (!twoByTwo) {
+            return 1;
+        }
+        int needed = 0;
+        for (BlockPos member : treeBase(plot)) {
+            if (plotState(member) != PlotState.GROWING) {
+                needed++;
+            }
+        }
+        return needed;
+    }
+
+    /** What this field's runs ask of their shuttle: a Harvester for crops, a Lumber module for trees. */
+    public JobNeeds jobNeeds() {
+        return kind.trees() ? JobNeeds.LUMBER : JobNeeds.HARVESTER;
+    }
+
+    /** A tree a Lumber shuttle gave up felling: the block its plot held then, and whether it was too large. */
+    private record Unfellable(BlockState state, boolean tooLarge) {
     }
 
     /** The crop item of the field, empty when none is set. */
@@ -915,21 +1138,41 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         return crop.getStackInSlot(0).copy();
     }
 
-    /** Sets the crop of the field (empty clears it); a crop turns harvest only off. Items that plant no age crop are ignored. */
+    /**
+     * Sets the crop or sapling of the field (empty clears it); one turns
+     * harvest only off. Items that do not fit the field's kind are ignored.
+     */
     public void setCrop(ItemStack stack) {
+        if (putCrop(stack)) {
+            recheckTrees();
+        }
+    }
+
+    /** Sets the crop or sapling; true when what the field plants changed. */
+    private boolean putCrop(ItemStack stack) {
         Item before = crop.getStackInSlot(0).getItem();
+        boolean plantedBefore = plantMode();
         if (stack.isEmpty()) {
             crop.setStackInSlot(0, ItemStack.EMPTY);
-        } else if (isCropItem(stack)) {
+        } else if (fitsKind(stack)) {
             crop.setStackInSlot(0, stack.copyWithCount(1));
             harvestOnly = false;
         }
-        if (crop.getStackInSlot(0).getItem() != before) {
+        boolean changed = crop.getStackInSlot(0).getItem() != before;
+        if (changed) {
             forgetProduce();
         }
         lookDirty = true;
         setChanged();
         syncClients();
+        return changed || plantMode() != plantedBefore;
+    }
+
+    /** A Trees field reads its plots by its sapling and layout, so it reads them again after they change. */
+    private void recheckTrees() {
+        if (kind.trees() && status == FieldStatus.SERVING) {
+            recheckAll();
+        }
     }
 
     /** Every item that plants an age crop, from the item registry, so mods' crops count too. */
@@ -954,7 +1197,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
      * one controller. Server side.
      */
     public Optional<Map<Identifier, Long>> cropStock() {
-        return stockOf(cropItems());
+        return stockOf(kind.trees() ? saplingItems() : cropItems());
     }
 
     /** The warehouse stock of each of the items with a non zero count, keyed by item id; empty without a served field online. */
@@ -997,12 +1240,20 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         setChanged();
     }
 
-    /** Harvest without planting; turning it on clears the crop. */
+    /** Harvest without planting, fell only in a Trees field; turning it on clears the crop or sapling and the 2x2 layout. */
     public void setHarvestOnly(boolean on) {
+        boolean plantedBefore = plantMode();
         harvestOnly = on;
         if (on && !crop.getStackInSlot(0).isEmpty()) {
             crop.setStackInSlot(0, ItemStack.EMPTY);
             forgetProduce();
+        }
+        boolean layoutChanged = on && twoByTwo;
+        if (layoutChanged) {
+            twoByTwo = false;
+        }
+        if (layoutChanged || plantMode() != plantedBefore) {
+            recheckTrees();
         }
         lookDirty = true;
         setChanged();
@@ -1365,8 +1616,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         }
         Optional<WarehouseNetwork> network = network();
         boolean online = network.map(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE).orElse(false);
-        boolean harvester = network.map(WarehouseNetwork::hasFieldShuttles).orElse(false);
-        boolean reachable = network.map(warehouse -> warehouse.fieldReachable(worldPosition)).orElse(false);
+        JobNeeds needs = jobNeeds();
+        boolean shuttle = network.map(warehouse -> warehouse.hasFieldShuttles(needs)).orElse(false);
+        boolean reachable = network.map(warehouse -> warehouse.fieldReachable(worldPosition, needs)).orElse(false);
         boolean working = network.map(warehouse -> warehouse.hasFieldJob(worldPosition)).orElse(false);
         boolean buffered = supplyCount(SupplyBuffer.Part.SEEDS) > 0;
         boolean inStock = !buffered && plantMode() && network.map(warehouse -> warehouse.available(ItemKey.of(crop())) > 0).orElse(false);
@@ -1375,9 +1627,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         boolean collector = network.map(warehouse -> warehouse.supplyReachable(worldPosition)).orElse(false);
         FieldWork.Collect collect = FieldWork.Collect.of(toStorageHoldsItems(), collector,
                 toStorageBlocked == PutAwayPlan.Reason.NO_ROOM || toStorageBlocked == PutAwayPlan.Reason.NO_STORAGE, toStorageHasFreeSlot());
-        return FieldWork.of(network.isPresent(), online, harvestOnly || plantMode(), harvester, reachable, working, harvestCalled(),
-                plantMode(), hydrated, tillableCount(), plantableCount(), plantedCount(), seeds).whilePaused(harvestPaused())
-                .whileCollecting(collect);
+        return FieldWork.of(kind, network.isPresent(), online, harvestOnly || plantMode(), shuttle, reachable, needsRange(), treeTooLarge(),
+                working, harvestCalled(), plantMode(), hydrated, tillableCount(), plantableCount(), plantedCount(), seeds)
+                .whilePaused(harvestPaused()).whileCollecting(collect);
     }
 
     /** The warehouse the field's rails belong to, empty while the head serves no field. Server side. */
@@ -1439,7 +1691,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
      */
     public boolean problem() {
         boolean serving = servesRails();
-        return FieldHeadLook.problem(serving, serving ? work() : null, corrosion() == FieldCorrosion.CORRODED, hydrated,
+        return FieldHeadLook.problem(serving, serving ? work() : null, corrosion() == FieldCorrosion.CORRODED, hydrated || kind.trees(),
                 serving ? fertilizeStatus() : null);
     }
 
@@ -1503,6 +1755,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         tag.put("Water", tank.writeToNBT(registries, new CompoundTag()));
         tag.put("Crop", crop.serializeNBT(registries));
         output.putBoolean("HarvestOnly", harvestOnly);
+        putKind(tag);
         tag.put("RangeUpgrades", rangeUpgrades.serializeNBT(registries));
         if (harvestPercent > 0) {
             output.putInt("HarvestPercent", harvestPercent);
@@ -1563,6 +1816,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
             crop.deserializeNBT(registries, tag.getCompoundOrEmpty("Crop"));
         }
         harvestOnly = input.getBooleanOr("HarvestOnly", false);
+        kind = FieldKind.byName(tag.getStringOr("Kind", ""));
+        twoByTwo = kind.trees() && tag.getBooleanOr("TwoByTwo", false);
         if (tag.contains("RangeUpgrades")) {
             rangeUpgrades.deserializeNBT(registries, tag.getCompoundOrEmpty("RangeUpgrades"));
         }
@@ -1598,6 +1853,11 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         }
     }
 
+    private void putKind(CompoundTag tag) {
+        tag.putString("Kind", kind.name());
+        tag.putBoolean("TwoByTwo", twoByTwo);
+    }
+
     /** Saves the chosen anti-corrosion item, an empty id for Off; nothing while it was never chosen. */
     private void putAntiCorrosion(CompoundTag tag) {
         if (antiCorrosionChosen) {
@@ -1622,6 +1882,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         materialSlot.save(tag);
         tag.put("Crop", crop.serializeNBT(registries));
         tag.putBoolean("HarvestOnly", harvestOnly);
+        putKind(tag);
         if (fertilizer != null) {
             tag.putString("Fertilizer", BuiltInRegistries.ITEM.getKey(fertilizer).toString());
         }

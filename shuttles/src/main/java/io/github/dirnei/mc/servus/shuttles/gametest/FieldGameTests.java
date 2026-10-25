@@ -494,18 +494,18 @@ public final class FieldGameTests {
         openMenu(helper, player, head);
         helper.assertTrue(player.getInventory().countItem(Items.WHEAT_SEEDS) == 0, "the player holds no seeds");
         head.setHarvestOnly(true);
-        helper.assertTrue(FieldHeadMenu.choose(player, id(Items.WHEAT_SEEDS)), "wheat seeds should be taken");
+        helper.assertTrue(FieldHeadMenu.choose(player, id(Items.WHEAT_SEEDS), false), "wheat seeds should be taken");
         helper.assertTrue(head.crop().is(Items.WHEAT_SEEDS) && !head.harvestOnly(), "wheat is the crop and harvest only is off");
-        helper.assertTrue(!FieldHeadMenu.choose(player, id(Items.COBBLESTONE)), "cobblestone should be refused");
-        helper.assertTrue(!FieldHeadMenu.choose(player, Optional.of(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "no_such_item"))),
+        helper.assertTrue(!FieldHeadMenu.choose(player, id(Items.COBBLESTONE), false), "cobblestone should be refused");
+        helper.assertTrue(!FieldHeadMenu.choose(player, Optional.of(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "no_such_item")), false),
                 "an unknown id should be refused");
         helper.assertTrue(head.crop().is(Items.WHEAT_SEEDS) && !head.harvestOnly(), "refused ids change nothing");
-        helper.assertTrue(FieldHeadMenu.choose(player, Optional.empty()), "the none entry should be taken");
+        helper.assertTrue(FieldHeadMenu.choose(player, Optional.empty(), false), "the none entry should be taken");
         helper.assertTrue(head.harvestOnly() && head.crop().isEmpty(), "harvest only clears the crop");
-        helper.assertTrue(FieldHeadMenu.choose(player, id(Items.CARROT)), "a carrot plants a crop");
+        helper.assertTrue(FieldHeadMenu.choose(player, id(Items.CARROT), false), "a carrot plants a crop");
         helper.assertTrue(head.crop().is(Items.CARROT) && !head.harvestOnly(), "carrots turn harvest only off");
         player.containerMenu = player.inventoryMenu;
-        helper.assertTrue(!FieldHeadMenu.choose(player, id(Items.WHEAT_SEEDS)) && head.crop().is(Items.CARROT),
+        helper.assertTrue(!FieldHeadMenu.choose(player, id(Items.WHEAT_SEEDS), false) && head.crop().is(Items.CARROT),
                 "without the head's menu open nothing changes");
         helper.succeed();
     }

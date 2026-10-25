@@ -62,7 +62,7 @@ class FieldHeadLookTest {
         for (FieldWork work : FieldWork.values()) {
             boolean fine = work == FieldWork.WORKING || work == FieldWork.HARVEST_DUE || work == FieldWork.READY
                     || work == FieldWork.GROWING || work == FieldWork.WAITING_RIPE || work == FieldWork.SEEDS_COMING
-                    || work == FieldWork.HARVEST_PAUSED;
+                    || work == FieldWork.HARVEST_PAUSED || work == FieldWork.TREE_TOO_LARGE;
             assertEquals(!fine, work.problem(), work.name());
         }
     }

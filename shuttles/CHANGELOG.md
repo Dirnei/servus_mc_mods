@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Tree fields: a Field Head set to Trees plants saplings on every other plot (2x2 trees in squares with a Range Upgrade), needs no water, and a Lumber shuttle fells grown trees with their leaves, brings the wood home and replants.
+
 ### Changed
 - Harvesters and Spreaders unload into a To storage buffer on the Field Head, and plain shuttles put it away into the racks.
 - A data line belongs to one warehouse. A line that reaches two warehouses is in conflict and pauses: its terminals show no stock and refuse requests, and its Packing Stations send nothing. Terminals no longer add up the stock of several warehouses.

@@ -6,6 +6,8 @@ import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.shuttles.field.ChooseAntiCorrosionPayload;
 import io.github.dirnei.mc.servus.shuttles.field.ChooseFertilizerPayload;
 import io.github.dirnei.mc.servus.shuttles.field.ChooseFieldCropPayload;
+import io.github.dirnei.mc.servus.shuttles.field.ChooseFieldKindPayload;
+import io.github.dirnei.mc.servus.shuttles.field.FieldKind;
 import io.github.dirnei.mc.servus.shuttles.field.FertilizeMode;
 import io.github.dirnei.mc.servus.shuttles.field.FertilizeStatus;
 import io.github.dirnei.mc.servus.shuttles.field.FieldAmount;
@@ -23,7 +25,9 @@ import io.github.dirnei.mc.servus.shuttles.menu.FieldHeadMenu.Page;
 import io.github.dirnei.mc.servus.foundation.picker.PickerList;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -78,12 +82,17 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private static final int STEP_W = 14;
     private static final int STEP_DOWN_X = RIGHT - 2 * STEP_W - 2;
     private static final int STEP_UP_X = RIGHT - STEP_W;
-    private static final int RIPE_Y = 44;
+    /** The Field tab: the kind buttons on top, the crop or sapling picker below them. */
+    private static final int KIND_Y = FieldHeadMenu.PICKER_Y;
+    private static final int KIND_H = 12;
+    private static final int KIND_W = 60;
+    private static final int FIELD_PICKER_Y = KIND_Y + KIND_H + 2;
+    private static final int RIPE_Y = 54;
     private static final int RIPE_X = 90;
     private static final int RIPE_W = RIGHT - RIPE_X;
     private static final int RIPE_H = 7;
-    private static final int THRESHOLD_Y = 60;
-    private static final int WORK_Y = 80;
+    private static final int THRESHOLD_Y = 68;
+    private static final int WORK_Y = 86;
     private static final int WATER_Y = 44;
     private static final int BAR_Y = 56;
     private static final int BAR_H = 8;
@@ -114,14 +123,24 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private static final int ROW_H = 12;
     private static final int COLOUR_RULE = 0xFF8B8B8B;
     private static final int ROWS = 3;
+    /** Work statuses a Trees field words its own way, speaking of trees and saplings instead of crops and seeds. */
+    private static final Set<FieldWork> TREE_LINES = EnumSet.of(FieldWork.NO_CROP, FieldWork.WORKING, FieldWork.HARVEST_DUE,
+            FieldWork.WAITING_RIPE, FieldWork.READY, FieldWork.NO_SEEDS, FieldWork.SEEDS_COMING, FieldWork.NO_SUPPLY_SHUTTLE,
+            FieldWork.GROWING, FieldWork.NO_PLOTS);
 
     private final ItemPicker cropPicker;
+    private final ItemPicker saplingPicker;
+    private final List<ItemPicker.Entry> saplingEntries;
+    /** Whether the sapling picker's 2x2 entries are locked, as last handed to it; null before the first. */
+    private Boolean squaresLocked;
     private final ItemPicker fertilizerPicker;
     private final ItemPicker antiCorrosionPicker;
     /** The stock maps last handed to the pickers, to hand them over only when the menu got new ones. */
     private Map<Identifier, Long> cropPickerStock;
     private Map<Identifier, Long> supplyPickerStock;
     private final List<Button> modeButtons = new ArrayList<>();
+    /** The kind buttons of the Field tab, in {@link FieldKind} order. */
+    private final List<Button> kindButtons = new ArrayList<>();
     /** The typed amounts of the Stock tab, in {@link FieldAmount} order. */
     private final List<AmountField> amountFields = new ArrayList<>();
     private Button harvestDown;
@@ -134,7 +153,11 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     public FieldHeadScreen(FieldHeadMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, FieldHeadMenu.IMAGE_WIDTH, FieldHeadMenu.IMAGE_HEIGHT);
         this.cropPicker = picker("crop_picker", "crop_no_stock", CropPickerEntries.build(),
-                entry -> ClientPacketDistributor.sendToServer(new ChooseFieldCropPayload(entry.itemId())));
+                entry -> ClientPacketDistributor.sendToServer(new ChooseFieldCropPayload(entry.itemId(), false)));
+        this.saplingEntries = SaplingPickerEntries.build();
+        this.saplingPicker = picker("sapling_picker", "sapling_no_stock", saplingEntries,
+                entry -> ClientPacketDistributor.sendToServer(new ChooseFieldCropPayload(SaplingPickerEntries.itemId(entry),
+                        SaplingPickerEntries.square(entry))));
         this.fertilizerPicker = picker("fertilizer_picker", "fertilizer_no_stock",
                 TagPickerEntries.build(FieldHeadBlockEntity.FERTILIZER, Component.translatable("gui.servus_shuttles.field_head.fertilizer_none")),
                 entry -> ClientPacketDistributor.sendToServer(new ChooseFertilizerPayload(entry.itemId())));
@@ -154,17 +177,25 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     /** The picker of the shown page, null on pages without one. */
     private ItemPicker pagePicker() {
         return switch (menu.page()) {
-            case FIELD -> cropPicker;
+            case FIELD -> fieldPicker();
             case WATER -> antiCorrosionPicker;
             case FERTILIZER -> fertilizerPicker;
             default -> null;
         };
     }
 
+    /** The picker of the Field tab: crops for a Crops field, saplings for a Trees field. */
+    private ItemPicker fieldPicker() {
+        return menu.kind().trees() ? saplingPicker : cropPicker;
+    }
+
     /** The picker whose popup is open, or null. */
     private ItemPicker openPicker() {
         if (cropPicker.isOpen()) {
             return cropPicker;
+        }
+        if (saplingPicker.isOpen()) {
+            return saplingPicker;
         }
         if (fertilizerPicker.isOpen()) {
             return fertilizerPicker;
@@ -175,9 +206,16 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     /** Hands the head's crop and fertilizer and the menu's stock to the pickers. */
     private void syncPickers() {
         cropPicker.setSelected(menu.harvestOnly() ? PickerList.NONE_ID : ItemPicker.Entry.idOf(menu.crop()));
+        saplingPicker.setSelected(menu.harvestOnly() ? PickerList.NONE_ID : SaplingPickerEntries.idOf(menu.crop(), menu.twoByTwo()));
         if (menu.stock() != cropPickerStock) {
             cropPickerStock = menu.stock();
             cropPicker.setStock(CropPickerEntries.keyed(cropPickerStock));
+            saplingPicker.setStock(SaplingPickerEntries.keyed(cropPickerStock));
+        }
+        boolean locked = !menu.hasRangeUpgrade();
+        if (!Boolean.valueOf(locked).equals(squaresLocked)) {
+            squaresLocked = locked;
+            saplingPicker.setLocked(locked ? SaplingPickerEntries.squaresLocked(saplingEntries) : Map.of());
         }
         fertilizerPicker.setSelected(ItemPicker.Entry.idOf(menu.fertilizer()));
         antiCorrosionPicker.setSelected(ItemPicker.Entry.idOf(menu.antiCorrosion()));
@@ -196,8 +234,18 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         topPos = Math.max(0, topPos);
         this.inventoryLabelX = FieldHeadMenu.INVENTORY_X;
         this.inventoryLabelY = FieldHeadMenu.INVENTORY_Y - 11;
-        cropPicker.setButton(leftPos + FieldHeadMenu.PICKER_X, topPos + FieldHeadMenu.PICKER_Y, FieldHeadMenu.PICKER_WIDTH);
-        cropPicker.setArea(leftPos, topPos, imageWidth, imageHeight);
+        kindButtons.clear();
+        for (FieldKind kind : FieldKind.values()) {
+            String key = "gui.servus_shuttles.field_head.kind." + kind.name().toLowerCase(Locale.ROOT);
+            kindButtons.add(addRenderableWidget(Button.builder(Component.translatable(key),
+                            button -> ClientPacketDistributor.sendToServer(new ChooseFieldKindPayload(kind.ordinal())))
+                    .bounds(leftPos + MARGIN + kind.ordinal() * (KIND_W + 2), topPos + KIND_Y, KIND_W, KIND_H)
+                    .tooltip(Tooltip.create(Component.translatable(key + ".tooltip"))).build()));
+        }
+        for (ItemPicker picker : List.of(cropPicker, saplingPicker)) {
+            picker.setButton(leftPos + FieldHeadMenu.PICKER_X, topPos + FIELD_PICKER_Y, FieldHeadMenu.PICKER_WIDTH);
+            picker.setArea(leftPos, topPos, imageWidth, imageHeight);
+        }
         harvestDown = stepButton("-", THRESHOLD_Y - 2, STEP_DOWN_X, FieldHeadMenu.BUTTON_THRESHOLD_DOWN);
         harvestUp = stepButton("+", THRESHOLD_Y - 2, STEP_UP_X, FieldHeadMenu.BUTTON_THRESHOLD_UP);
         fertilizerPicker.setButton(leftPos + FieldHeadMenu.PICKER_X, topPos + FieldHeadMenu.PICKER_Y, FieldHeadMenu.PICKER_WIDTH);
@@ -357,7 +405,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                 if (menu.corrosion() == FieldCorrosion.CORRODED) {
                     return Component.translatable("gui.servus_shuttles.field_head.corroded");
                 }
-                return serving() && !menu.hydrated() ? Component.translatable("gui.servus_shuttles.field_head.dry") : null;
+                return serving() && !menu.hydrated() && !menu.kind().trees() ? Component.translatable("gui.servus_shuttles.field_head.dry") : null;
             }
             case FERTILIZER -> {
                 FertilizeStatus status = menu.fertilizeStatus();
@@ -382,7 +430,8 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             return Component.translatable("gui.servus_shuttles.field_head.work.harvest_paused",
                     grouped(menu.produceStock()), grouped(menu.harvestLimit()), menu.produce().getHoverName());
         }
-        return Component.translatable("gui.servus_shuttles.field_head.work." + work.name().toLowerCase(Locale.ROOT));
+        String trees = menu.kind().trees() && TREE_LINES.contains(work) ? "trees." : "";
+        return Component.translatable("gui.servus_shuttles.field_head.work." + trees + work.name().toLowerCase(Locale.ROOT));
     }
 
     private Component fertilizeLine(FertilizeStatus status) {
@@ -423,9 +472,9 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         return null;
     }
 
-    private static ItemStack icon(Page page) {
+    private ItemStack icon(Page page) {
         return switch (page) {
-            case FIELD -> new ItemStack(Items.WHEAT);
+            case FIELD -> new ItemStack(menu.kind().trees() ? Items.OAK_SAPLING : Items.WHEAT);
             case WATER -> new ItemStack(Items.WATER_BUCKET);
             case FERTILIZER -> new ItemStack(Items.BONE_MEAL);
             case STOCK -> new ItemStack(Items.CHEST);
@@ -456,6 +505,10 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         boolean serving = serving();
         harvestDown.visible = page == Page.FIELD && serving;
         harvestUp.visible = page == Page.FIELD && serving;
+        for (int i = 0; i < kindButtons.size(); i++) {
+            kindButtons.get(i).visible = page == Page.FIELD;
+            kindButtons.get(i).active = menu.kind().ordinal() != i;
+        }
         for (AmountField field : amountFields) {
             field.box().visible = page == Page.STOCK;
         }
@@ -678,7 +731,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                 FieldHeadMenu.INVENTORY_Y + PlayerInventorySlots.HOTBAR_OFFSET);
         switch (menu.page()) {
             case FIELD -> {
-                cropPicker.renderButton(graphics, font, mouseX, mouseY);
+                fieldPicker().renderButton(graphics, font, mouseX, mouseY);
                 if (serving()) {
                     renderRipeBar(graphics);
                 }
@@ -839,7 +892,9 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
 
     private void renderWaterLabels(GuiGraphicsExtractor graphics) {
         graphics.text(font, Component.translatable("gui.servus_shuttles.field_head.water", menu.water(), menu.capacity()), MARGIN, WATER_Y, COLOUR_TEXT, false);
-        if (serving()) {
+        if (serving() && menu.kind().trees()) {
+            graphics.text(font, Component.translatable("gui.servus_shuttles.field_head.trees_need_no_water"), MARGIN, WATER_RATE_Y, COLOUR_TEXT, false);
+        } else if (serving()) {
             Component water = menu.hydrated() || menu.waterPerMinute() <= 0
                     ? Component.translatable("gui.servus_shuttles.field_head.water_rate", menu.waterPerMinute())
                     : Component.translatable("gui.servus_shuttles.field_head.dry");

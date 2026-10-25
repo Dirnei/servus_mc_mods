@@ -90,4 +90,16 @@ class FieldRipenessTest {
         field.update("a", PlotState.RIPE);
         assertTrue(field.growing().isEmpty());
     }
+
+    @Test
+    void idleIsNeitherPlantedNorOpen() {
+        FieldRipeness<String> field = new FieldRipeness<>();
+        field.update("leaves", PlotState.IDLE);
+        field.update("sapling", PlotState.GROWING);
+        assertEquals(PlotState.IDLE, field.state("leaves"));
+        assertEquals(1, field.planted());
+        assertEquals(0, field.ripe());
+        assertEquals(0, field.tillable());
+        assertEquals(0, field.plantable());
+    }
 }

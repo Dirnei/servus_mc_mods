@@ -72,7 +72,7 @@ Putting an item into the install slot SHALL install it into the shuttle in the s
 - **THEN** it does not go in
 
 ### Requirement: Tool modules mark field work
-A tool module SHALL be able to mark its shuttle as field only. A field only shuttle SHALL never take a warehouse pick or put-away. A shuttle with no tool module, or with a tool module that is not field only, SHALL take warehouse jobs. The Harvester and the Spreader are tool modules and are field only; a field only shuttle SHALL take only the field jobs of its own tool.
+A tool module SHALL be able to mark its shuttle as field only. A field only shuttle SHALL never take a warehouse pick or put-away. A shuttle with no tool module, or with a tool module that is not field only, SHALL take warehouse jobs. The Harvester, the Spreader and the Lumber module are tool modules and are field only; a field only shuttle SHALL take only the field jobs of its own tool.
 
 #### Scenario: No tool module
 - **WHEN** a garage holds a shuttle with only Speed upgrades
@@ -85,6 +85,10 @@ A tool module SHALL be able to mark its shuttle as field only. A field only shut
 #### Scenario: Spreader shuttle
 - **WHEN** a garage holds a shuttle with a Spreader
 - **THEN** that shuttle takes no warehouse pick or put-away and no harvest run
+
+#### Scenario: Lumber shuttle
+- **WHEN** a garage holds a shuttle with a Lumber module
+- **THEN** that shuttle takes no warehouse pick or put-away, no crop field job and no fertilize run
 
 ### Requirement: Workshop look
 The workshop SHALL look like the other wood blocks and still stand apart as a block that is not on the warehouse network. All four sides SHALL show the dark iron frame over board panels in its wood, without the iron crossbar of the stations, with a wrench and a yellow-handled screwdriver hanging on the boards. The top SHALL show a steel bench plate with an engraved shuttle outline and a vise at its edge; the bottom SHALL show the plain frame over boards. The workshop SHALL show no connection lamp, no dark recessed port and no teal. The item SHALL look like the block.

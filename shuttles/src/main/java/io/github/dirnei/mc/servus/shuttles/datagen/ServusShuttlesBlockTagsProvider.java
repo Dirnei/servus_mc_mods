@@ -1,11 +1,13 @@
 package io.github.dirnei.mc.servus.shuttles.datagen;
 
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
+import io.github.dirnei.mc.servus.shuttles.field.TreeTags;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 
 final class ServusShuttlesBlockTagsProvider extends BlockTagsProvider {
@@ -26,5 +28,8 @@ final class ServusShuttlesBlockTagsProvider extends BlockTagsProvider {
                 .add(ServusShuttlesBlocks.PRODUCTION_TERMINAL.get()).add(ServusShuttlesBlocks.PATTERN_STORAGE.get())
                 .add(ServusShuttlesBlocks.FARM_RAIL.get()).add(ServusShuttlesBlocks.FIELD_HEAD.get());
         tag(BlockTags.CLIMBABLE).add(ServusShuttlesBlocks.ELEVATOR.get());
+        tag(TreeTags.TREE_LOGS).addTag(BlockTags.LOGS).add(Blocks.MANGROVE_ROOTS);
+        tag(TreeTags.TREE_ATTACHMENTS).add(Blocks.VINE, Blocks.COCOA, Blocks.MANGROVE_PROPAGULE, Blocks.PALE_HANGING_MOSS, Blocks.MOSS_CARPET,
+                Blocks.PALE_MOSS_CARPET);
     }
 }

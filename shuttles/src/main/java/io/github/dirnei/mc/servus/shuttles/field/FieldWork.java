@@ -42,7 +42,15 @@ public enum FieldWork {
     /** The head's To storage buffer holds items no rack has room for. */
     COLLECT_NO_ROOM,
     /** The head's To storage buffer has no free slot: no run goes out until a shuttle collects. */
-    TO_STORAGE_FULL;
+    TO_STORAGE_FULL,
+    /** No garage of the warehouse holds a shuttle with a Lumber module. */
+    NO_LUMBER,
+    /** No Lumber shuttle can reach the field without riding a lift car. */
+    NO_LUMBER_WAY,
+    /** A 2x2 sapling is set but the head holds no Range Upgrade, so no square is planted. */
+    NEEDS_RANGE,
+    /** A grown tree on the field is too large to fell and is left standing. */
+    TREE_TOO_LARGE;
 
     private static final FieldWork[] VALUES = values();
 
@@ -76,7 +84,7 @@ public enum FieldWork {
     /** Whether this status is a problem: drawn in the warning colour, a red tab marker and a red bar on the head. */
     public boolean problem() {
         return switch (this) {
-            case WORKING, HARVEST_DUE, READY, GROWING, WAITING_RIPE, SEEDS_COMING, HARVEST_PAUSED -> false;
+            case WORKING, HARVEST_DUE, READY, GROWING, WAITING_RIPE, SEEDS_COMING, HARVEST_PAUSED, TREE_TOO_LARGE -> false;
             default -> true;
         };
     }
@@ -128,7 +136,7 @@ public enum FieldWork {
      */
     public FieldWork whileCollecting(Collect collect) {
         boolean fieldWorkable = switch (this) {
-            case NOT_LINKED, NO_CONTROLLER, NO_CROP, NO_HARVESTER, NO_WAY -> false;
+            case NOT_LINKED, NO_CONTROLLER, NO_CROP, NO_HARVESTER, NO_WAY, NO_LUMBER, NO_LUMBER_WAY, NEEDS_RANGE -> false;
             default -> true;
         };
         if (!fieldWorkable) {
@@ -147,8 +155,8 @@ public enum FieldWork {
     }
 
     /**
-     * Picks the reason in the order the warehouse checks it, so the first
-     * missing piece is the one shown.
+     * Picks the reason for a Crops field in the order the warehouse checks it,
+     * so the first missing piece is the one shown.
      *
      * @param linked     the field's rails belong to a warehouse
      * @param online     that warehouse has exactly one controller
@@ -166,6 +174,37 @@ public enum FieldWork {
      */
     public static FieldWork of(boolean linked, boolean online, boolean cropSet, boolean harvester, boolean reachable, boolean working,
             boolean harvestDue, boolean plantMode, boolean hydrated, int tillable, int plantable, int planted, Seeds seeds) {
+        return of(FieldKind.CROPS, linked, online, cropSet, harvester, reachable, false, false, working, harvestDue, plantMode, hydrated,
+                tillable, plantable, planted, seeds);
+    }
+
+    /**
+     * Picks the reason in the order the warehouse checks it, so the first
+     * missing piece is the one shown. A Trees field asks for a Lumber shuttle
+     * instead of a Harvester, says right after the way check that 2x2 trees
+     * need a Range Upgrade or that a tree is too large to fell, and never
+     * waits for water.
+     *
+     * @param kind       what the field grows
+     * @param linked     the field's rails belong to a warehouse
+     * @param online     that warehouse has exactly one controller
+     * @param cropSet    a crop, a sapling, harvest only or fell only is set
+     * @param shuttle    a garage of the warehouse holds a shuttle with the kind's tool
+     * @param reachable  some such shuttle reaches the field without a lift
+     * @param needsRange a 2x2 sapling is set and the head holds no Range Upgrade
+     * @param tooLarge   a grown tree on the field is too large to fell
+     * @param working    a run for this field is queued or under way
+     * @param harvestDue the ripe share reached the threshold
+     * @param plantMode  a crop or sapling is set and harvest only is off
+     * @param hydrated   the field has water; ignored for trees
+     * @param tillable   empty plots on dirt or grass
+     * @param plantable  empty plots on farmland, or empty spots of a Trees field
+     * @param planted    plots holding a crop, a sapling or a tree
+     * @param seeds      where seeds or saplings come from
+     */
+    public static FieldWork of(FieldKind kind, boolean linked, boolean online, boolean cropSet, boolean shuttle, boolean reachable,
+            boolean needsRange, boolean tooLarge, boolean working, boolean harvestDue, boolean plantMode, boolean hydrated, int tillable,
+            int plantable, int planted, Seeds seeds) {
         if (!linked) {
             return NOT_LINKED;
         }
@@ -175,11 +214,17 @@ public enum FieldWork {
         if (!cropSet) {
             return NO_CROP;
         }
-        if (!harvester) {
-            return NO_HARVESTER;
+        if (!shuttle) {
+            return kind.trees() ? NO_LUMBER : NO_HARVESTER;
         }
         if (!reachable) {
-            return NO_WAY;
+            return kind.trees() ? NO_LUMBER_WAY : NO_WAY;
+        }
+        if (kind.trees() && needsRange) {
+            return NEEDS_RANGE;
+        }
+        if (kind.trees() && tooLarge) {
+            return TREE_TOO_LARGE;
         }
         if (working) {
             return WORKING;
@@ -191,7 +236,7 @@ public enum FieldWork {
             return WAITING_RIPE;
         }
         if (tillable > 0 || plantable > 0) {
-            if (!hydrated) {
+            if (!hydrated && !kind.trees()) {
                 return DRY;
             }
             if (tillable > 0 || seeds == Seeds.BUFFERED) {

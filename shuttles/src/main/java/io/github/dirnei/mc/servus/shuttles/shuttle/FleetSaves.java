@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwo
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.shuttles.field.FieldCargo;
+import io.github.dirnei.mc.servus.shuttles.field.FieldKind;
 import io.github.dirnei.mc.servus.shuttles.gantry.TankRef;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.shuttle.Shuttle.Load;
@@ -53,7 +54,10 @@ public final class FleetSaves {
                 tag.putInt("Amount", putAway.amount());
                 tag.putLong("Target", putAway.target().asLong());
             }
-            case FieldJob field -> headJob(tag, "field", field.head());
+            case FieldJob field -> {
+                headJob(tag, "field", field.head());
+                tag.putString("Kind", field.kind().name());
+            }
             case FertilizeJob fertilize -> headJob(tag, "fertilize", fertilize.head());
             case SupplyJob supply -> headJob(tag, "supply", supply.head());
             case FluidJob fluid -> {
@@ -86,7 +90,7 @@ public final class FleetSaves {
                     pos(tag, "Source"), pos(tag, "Terminal")));
             case "put_away" -> loadKey(tag, registries).map(key -> new PutAwayJob(id, pos(tag, "Station"), tag.getIntOr("Slot", 0), key,
                     tag.getIntOr("Amount", 0), pos(tag, "Target")));
-            case "field" -> Optional.of(new FieldJob(id, pos(tag, "Head")));
+            case "field" -> Optional.of(new FieldJob(id, pos(tag, "Head"), FieldKind.byName(tag.getStringOr("Kind", ""))));
             case "fertilize" -> Optional.of(new FertilizeJob(id, pos(tag, "Head")));
             case "supply" -> Optional.of(new SupplyJob(id, pos(tag, "Head")));
             case "fluid" -> loadFluidJob(id, tag, registries);
@@ -305,6 +309,7 @@ public final class FleetSaves {
         switch (run) {
             case HarvestRun harvest -> {
                 tag.putString("Kind", "harvest");
+                tag.putString("FieldKind", harvest.kind.name());
                 CompoundTag tally = new CompoundTag();
                 harvest.tally.forEach((id, count) -> tally.putLong(id.toString(), count));
                 tag.put("Tally", tally);
@@ -332,7 +337,7 @@ public final class FleetSaves {
         BlockPos head = pos(tag, "Head");
         FieldRun run = switch (tag.getStringOr("Kind", "")) {
             case "harvest" -> {
-                HarvestRun harvest = new HarvestRun(head, slots);
+                HarvestRun harvest = new HarvestRun(head, slots, FieldKind.byName(tag.getStringOr("FieldKind", "")));
                 CompoundTag tally = tag.getCompoundOrEmpty("Tally");
                 for (String key : tally.keySet()) {
                     Identifier id = Identifier.tryParse(key);

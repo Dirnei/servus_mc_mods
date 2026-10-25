@@ -8,10 +8,12 @@ public enum PlotState {
     TILLABLE,
     /** Empty or overgrown, on farmland. */
     PLANTABLE,
-    /** An age crop that is not ripe yet. */
+    /** An age crop that is not ripe yet, or a sapling on a spot of a Trees field. */
     GROWING,
-    /** An age crop at its last stage. */
-    RIPE;
+    /** An age crop at its last stage, or a grown tree in a Trees field. */
+    RIPE,
+    /** Open for the rails' sight but nothing to work: leaves, a plot between tree spots, a tree too large to fell. */
+    IDLE;
 
     /** The state from the old planted and ripe flags; anything unplanted counts as blocked. */
     public static PlotState of(boolean planted, boolean ripe) {

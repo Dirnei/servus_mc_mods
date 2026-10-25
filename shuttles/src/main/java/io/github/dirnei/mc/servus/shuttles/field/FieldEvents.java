@@ -12,14 +12,16 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.BonemealEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.BlockGrowFeatureEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.level.block.CropGrowEvent;
 
 /**
  * Keeps the ripeness of the fields current from game events instead of
- * scanning: crop growth updates a plot at once, bone meal, breaking, placing
- * and trampling queue the plot for the head's next tick, when the block has
- * changed. Chunk loads refresh the fields that reach into them.
+ * scanning: crop growth updates a plot at once, bone meal, a sapling growing
+ * into a tree, breaking, placing and trampling queue the plot for the head's
+ * next tick, when the block has changed. Chunk loads refresh the fields that
+ * reach into them.
  */
 @EventBusSubscriber(modid = ServusShuttlesIds.MOD_ID)
 public final class FieldEvents {
@@ -38,6 +40,24 @@ public final class FieldEvents {
     public static void onBonemeal(BonemealEvent event) {
         if (!event.isCanceled()) {
             queue(event.getLevel(), event.getPos());
+        }
+    }
+
+    /**
+     * A sapling is about to grow into a tree; the tree may start from any of
+     * the four saplings of a square, so its neighbours are read too, on the
+     * next tick, after the tree stands or failed to grow.
+     */
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onGrowFeature(BlockGrowFeatureEvent event) {
+        if (event.isCanceled()) {
+            return;
+        }
+        BlockPos pos = event.getPos();
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                queue(event.getLevel(), pos.offset(dx, 0, dz));
+            }
         }
     }
 

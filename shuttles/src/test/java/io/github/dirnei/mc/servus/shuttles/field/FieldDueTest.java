@@ -29,4 +29,12 @@ class FieldDueTest {
     void nothingToDo() {
         assertFalse(FieldDue.due(false, true, true, 0, 0, true));
     }
+
+    @Test
+    void treesNeedNoWater() {
+        assertTrue(FieldDue.dueTrees(false, true, 2, true));
+        assertFalse(FieldDue.dueTrees(false, true, 2, false));
+        assertTrue(FieldDue.dueTrees(true, false, 0, false));
+        assertFalse(FieldDue.dueTrees(false, false, 3, true));
+    }
 }

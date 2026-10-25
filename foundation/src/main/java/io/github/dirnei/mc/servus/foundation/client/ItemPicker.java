@@ -92,6 +92,7 @@ public final class ItemPicker {
     private String selected = PickerList.NONE_ID;
     private Map<String, Long> stock;
     private Component zeroHint = Component.empty();
+    private Map<String, Component> locked = Map.of();
     private int buttonX;
     private int buttonY;
     private int buttonWidth;
@@ -112,7 +113,7 @@ public final class ItemPicker {
         this.onPick = onPick;
     }
 
-    /** The entries to choose from, in any order; they are shown by name with the none entry first. */
+    /** The entries to choose from, in any order; they are shown in {@link PickerList#ranked} order, set when the list opens or the search changes. */
     public void setEntries(List<Entry> entries) {
         byId.clear();
         List<PickerList.Item> items = new ArrayList<>();
@@ -137,6 +138,11 @@ public final class ItemPicker {
     /** The hint shown on an entry with no stock. */
     public void setZeroHint(Component hint) {
         zeroHint = hint;
+    }
+
+    /** Entries that cannot be picked now, by id, with the hint that says why; they are drawn grey and ignore clicks. */
+    public void setLocked(Map<String, Component> hints) {
+        locked = Map.copyOf(hints);
     }
 
     /** Where the button sits, absolute; 18 pixels tall. */
@@ -194,7 +200,7 @@ public final class ItemPicker {
     private void refilter() {
         String query = search == null ? "" : search.getValue();
         List<Entry> entries = new ArrayList<>();
-        for (PickerList.Item item : PickerList.filter(sorted, query)) {
+        for (PickerList.Item item : PickerList.ranked(PickerList.filter(sorted, query), locked.keySet(), stock)) {
             entries.add(byId.get(item.id()));
         }
         shown = entries;
@@ -276,7 +282,7 @@ public final class ItemPicker {
                 graphics.item(entry.icon(), lx + 1, top + 1);
             }
             long count = count(entry);
-            int colour = count == 0 ? GREY : TEXT;
+            int colour = count == 0 || locked.containsKey(entry.id()) ? GREY : TEXT;
             int nameRight = lx + LIST_WIDTH - 3;
             if (count >= 0) {
                 String text = PickerStock.shortCount(count);
@@ -317,7 +323,10 @@ public final class ItemPicker {
         }
         List<Component> lines = new ArrayList<>();
         lines.add(entry.name());
-        if (count(entry) == 0) {
+        Component lockHint = locked.get(entry.id());
+        if (lockHint != null) {
+            lines.add(lockHint.copy().withColor(0xA04000));
+        } else if (count(entry) == 0) {
             lines.add(zeroHint.copy().withColor(0xA04000));
         }
         graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
@@ -343,6 +352,9 @@ public final class ItemPicker {
         int index = indexAt(mouseX, mouseY);
         if (index >= 0) {
             Entry entry = shown.get(index);
+            if (locked.containsKey(entry.id())) {
+                return true;
+            }
             selected = entry.id();
             close();
             onPick.accept(entry);

@@ -27,7 +27,7 @@ public final class PlotWork {
             case RIPE -> harvest ? new Action(true, false, plantMode) : Action.NONE;
             case TILLABLE -> plantMode ? new Action(false, true, haveSeed) : Action.NONE;
             case PLANTABLE -> plantMode && haveSeed ? new Action(false, false, true) : Action.NONE;
-            case GROWING, BLOCKED -> Action.NONE;
+            case GROWING, BLOCKED, IDLE -> Action.NONE;
         };
     }
 }

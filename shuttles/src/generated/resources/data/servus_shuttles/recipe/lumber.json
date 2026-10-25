@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": "minecraft:iron_axe",
+    "I": "minecraft:iron_ingot",
+    "P": "minecraft:piston",
+    "S": "minecraft:stonecutter"
+  },
+  "pattern": [
+    "IAI",
+    "ISI",
+    " P "
+  ],
+  "result": {
+    "id": "servus_shuttles:lumber"
+  }
+}

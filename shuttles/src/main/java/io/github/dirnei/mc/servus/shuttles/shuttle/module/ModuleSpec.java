@@ -15,6 +15,9 @@ public record ModuleSpec(String id, boolean fieldOnly, boolean wide) {
     /** The id of the Spreader module, which fertilize runs ask for. */
     public static final String SPREADER = "spreader";
 
+    /** The id of the Lumber module, which the field jobs of Trees fields ask for. */
+    public static final String LUMBER = "lumber";
+
     /** The id of the Tanker module, which tanker runs ask for. */
     public static final String TANKER = "tanker";
 }

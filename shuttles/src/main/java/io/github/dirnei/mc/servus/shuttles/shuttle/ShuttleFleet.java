@@ -667,26 +667,16 @@ public final class ShuttleFleet {
         return false;
     }
 
-    /** Whether some garage with a rail has a shuttle with a Harvester. */
-    public boolean hasFieldShuttles() {
-        return hasFieldShuttles(JobNeeds.HARVESTER);
-    }
-
     /** Whether some garage with a rail has a shuttle for field jobs with these needs. */
     public boolean hasFieldShuttles(JobNeeds needs) {
         return anyFits(needs);
     }
 
     /**
-     * Whether some Harvester shuttle in a garage with a rail can drive from
-     * its garage to a rail of that head's field, without a lift when it is too
-     * wide for one.
+     * Whether some shuttle with these needs in a garage with a rail can drive
+     * from its garage to a rail of that head's field, without a lift when it
+     * is too wide for one.
      */
-    public boolean fieldReachable(BlockPos head) {
-        return fieldReachable(head, JobNeeds.HARVESTER);
-    }
-
-    /** Like {@link #fieldReachable(BlockPos)} for shuttles with these needs. */
     public boolean fieldReachable(BlockPos head, JobNeeds needs) {
         return reachable(fieldRuns.fieldRails(head), needs);
     }

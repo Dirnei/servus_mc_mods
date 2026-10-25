@@ -7,7 +7,7 @@ Harvester shuttles tend the fields of their warehouse: they drive out over the f
 ## Requirements
 
 ### Requirement: Harvester module
-The Harvester SHALL be a craftable tool module. It SHALL go into a shuttle through the install slot of the Shuttle Workshop, into the shuttle's tool place. A shuttle with a Harvester SHALL be field only: it SHALL take field jobs and SHALL NOT take warehouse picks or put-aways. A shuttle without a Harvester SHALL NOT take field jobs. The Harvester SHALL be wide, and its tooltip SHALL say that it does not fit into lifts.
+The Harvester SHALL be a craftable tool module. It SHALL go into a shuttle through the install slot of the Shuttle Workshop, into the shuttle's tool place. A shuttle with a Harvester SHALL be field only: it SHALL take the field jobs of Crops fields and SHALL NOT take warehouse picks, put-aways or the jobs of Trees fields. A shuttle without a Harvester SHALL NOT take the field jobs of Crops fields. The Harvester SHALL be wide, and its tooltip SHALL say that it does not fit into lifts.
 
 #### Scenario: Fit a Harvester
 - **WHEN** a player puts a Mk1 shuttle into the workshop and a Harvester into the install slot
@@ -25,8 +25,12 @@ The Harvester SHALL be a craftable tool module. It SHALL go into a shuttle throu
 - **WHEN** a player hovers over a Harvester item
 - **THEN** the tooltip says it does not fit into lifts
 
+#### Scenario: Harvesters leave trees alone
+- **WHEN** a warehouse has a Harvester shuttle and a Trees field with grown trees
+- **THEN** the harvester stays in its garage
+
 ### Requirement: Field jobs
-A warehouse SHALL look at the Field Head of every field whose farm rails are part of its rails every `field_check_interval` ticks (in `data/<ns>/shuttles/field.json`, example 40). It SHALL queue a field job for that field when it has a Harvester shuttle, no field job for that field is queued or running, the head's To storage buffer has a free slot, and either the head signals harvest due, or the field has a crop set, is hydrated and has a plot to till or, while the warehouse holds the crop item, a plot to plant. At most one field job per field SHALL be queued or running at a time. A field job SHALL go to the free Harvester shuttle with the shortest way to a farm rail of the field that has work.
+A warehouse SHALL look at the Field Head of every field whose farm rails are part of its rails every `field_check_interval` ticks (in `data/<ns>/shuttles/field.json`, example 40). It SHALL queue a field job for a Crops field when it has a Harvester shuttle, no field job for that field is queued or running, the head's To storage buffer has a free slot, and either the head signals harvest due, or the field has a crop set, is hydrated and has a plot to till or, while the warehouse holds the crop item, a plot to plant. At most one field job per field SHALL be queued or running at a time. A field job SHALL go to the free Harvester shuttle with the shortest way to a farm rail of the field that has work. Trees fields get their jobs from Lumber shuttles (see `shuttles/lumber`).
 
 #### Scenario: Harvest due sends a harvester
 - **WHEN** a field with wheat set has a harvest due and its warehouse has a free Harvester shuttle

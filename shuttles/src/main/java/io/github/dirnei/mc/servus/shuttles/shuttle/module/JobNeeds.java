@@ -13,7 +13,10 @@ public record JobNeeds(Set<String> modules, boolean field) {
     /** Warehouse picks and put-aways: any shuttle that is not field only. */
     public static final JobNeeds WAREHOUSE = new JobNeeds(Set.of(), false);
 
-    /** Field jobs: a shuttle with a Harvester. */
+    /** Field jobs of Trees fields: a shuttle with a Lumber module. */
+    public static final JobNeeds LUMBER = new JobNeeds(Set.of(ModuleSpec.LUMBER), true);
+
+    /** Field jobs of Crops fields: a shuttle with a Harvester. */
     public static final JobNeeds HARVESTER = new JobNeeds(Set.of(ModuleSpec.HARVESTER), true);
 
     /** Fertilize runs: a shuttle with a Spreader. */

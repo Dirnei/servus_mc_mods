@@ -58,6 +58,7 @@ final class ServusShuttlesBlockStateProvider extends BlockStateProvider {
         itemModels().basicItem(ServusShuttlesItems.WIRELESS_UPGRADE.get());
         itemModels().basicItem(ServusShuttlesItems.HARVESTER.get());
         itemModels().basicItem(ServusShuttlesItems.SPREADER.get());
+        itemModels().basicItem(ServusShuttlesItems.LUMBER.get());
         itemModels().basicItem(ServusShuttlesItems.TANKER.get());
         // The workshop: the same tools on all four sides, the bench on top, no facing.
         Map<Direction, Identifier> workshopFaces = new EnumMap<>(Direction.class);

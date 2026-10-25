@@ -1,18 +1,22 @@
 package io.github.dirnei.mc.servus.shuttles.shuttle;
 
+import io.github.dirnei.mc.servus.shuttles.field.FieldKind;
 import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 
 /**
- * The state of one harvester's field run beyond what every field run has:
- * whether it plants at the rail it works, a full cargo, kept seeds and the
- * seeds it takes from the Field Head's buffer. The decisions are pure
- * ({@code HarvestStep}, {@code PlotWork}, {@code SeedPlan}).
+ * The state of one field run of a Harvester or a Lumber shuttle beyond what
+ * every field run has: whether it plants at the rail it works, a full cargo,
+ * kept seeds or saplings and those it takes from the Field Head's buffer.
+ * The decisions are pure ({@code HarvestStep}, {@code PlotWork},
+ * {@code TreePlotWork}, {@code SeedPlan}).
  */
 final class HarvestRun extends FieldRun {
 
+    /** What the field grew when the run started; the run works only a field of that kind. */
+    final FieldKind kind;
     /** Whether the rail the harvester works now gets tilled and planted, fixed when it got there. */
     boolean stopPlants;
     /** The last harvest did not fit. */
@@ -32,7 +36,8 @@ final class HarvestRun extends FieldRun {
     /** Everything harvested in this run by item id, for the head to learn its produce from at the end. */
     final Map<Identifier, Long> tally = new HashMap<>();
 
-    HarvestRun(BlockPos head, int slots) {
+    HarvestRun(BlockPos head, int slots, FieldKind kind) {
         super(head, slots);
+        this.kind = kind;
     }
 }

@@ -190,10 +190,17 @@ public final class ServusShuttlesCommands {
             return fail(source, "No Field Head at " + pos.toShortString());
         }
         FieldHeadBlockEntity head = found.get();
-        String mode = head.harvestOnly() ? "harvest only"
-                : head.crop().isEmpty() ? "no crop" : "crop " + name(head.crop());
+        boolean trees = head.kind().trees();
+        String mode;
+        if (head.harvestOnly()) {
+            mode = trees ? "fell only" : "harvest only";
+        } else if (head.crop().isEmpty()) {
+            mode = trees ? "no sapling" : "no crop";
+        } else {
+            mode = (trees ? "sapling " : "crop ") + name(head.crop()) + (head.twoByTwo() ? " 2x2" : "");
+        }
         List<String> lines = List.of(
-                "Field Head " + pos.toShortString() + ": " + lower(head.status()),
+                "Field Head " + pos.toShortString() + ": " + lower(head.status()) + ", kind " + lower(head.kind()),
                 "Rails " + head.rails().size() + ", plots " + head.plots().size() + ", planted " + head.plantedCount() + ", ripe " + head.ripeCount()
                         + ", to till " + head.tillableCount() + ", to plant " + head.plantableCount(),
                 "Water " + head.water() + " / " + head.capacity() + " mB, " + (head.hydrated() ? "hydrated" : "dry"),

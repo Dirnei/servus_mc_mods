@@ -38,6 +38,7 @@ final class ShuttleModels {
         handling(provider);
         harvester(provider);
         spreader(provider);
+        lumber(provider);
         tanker(provider);
         provider.itemModels().withExistingParent("shuttle", part(provider, "body_mk1"));
         provider.itemModels().withExistingParent("shuttle_mk2", part(provider, "body_mk2"));
@@ -207,6 +208,32 @@ final class ShuttleModels {
         box(model, -2, 0.5F, -3.5F, 18, 1.5F, -1.5F, bone);
         box(model, -2, 1.5F, -3, -1, 3, -2, IRON);
         box(model, 17, 1.5F, -3, 18, 3, -2, IRON);
+    }
+
+    /**
+     * A turret on the front of the hold with a two part steel arm folded on
+     * top and the felling head at its end: a dark iron ring on a steel post
+     * down to the chassis, a steel turret head, the lower arm lying forward
+     * past the front to a dark iron elbow, the upper arm folded back over it
+     * to the head, a dark iron block between two grip claws with the saw
+     * disc lying flat on top. Everything stays in front of the crane beam
+     * (z 10.5 and up, the crane ends at z 10) and within x 6 to 10; parts
+     * that touch end exactly at each other's faces, and the post stops 0.05
+     * short of the chassis top and the lid top so it shares no plane with
+     * the hold.
+     */
+    private static void lumber(BlockStateProvider provider) {
+        BlockModelBuilder model = model(provider, "tool_lumber", STEEL);
+        box(model, 7.5F, 4.05F, 11.5F, 8.5F, 10.95F, 12.5F, STEEL);
+        box(model, 6, 11, 10.5F, 10, 12, 13.5F, DARK_IRON);
+        box(model, 6.5F, 12, 11, 9.5F, 13.5F, 13, STEEL);
+        box(model, 7, 12.5F, 13, 9, 13.5F, 17, STEEL);
+        box(model, 6.5F, 12, 17, 9.5F, 14.5F, 18, DARK_IRON);
+        box(model, 7, 13.5F, 14, 9, 14.5F, 17, STEEL);
+        box(model, 7, 13.5F, 12.5F, 9, 15, 14, DARK_IRON);
+        box(model, 6, 13.5F, 13.5F, 7, 15, 14.5F, DARK_IRON);
+        box(model, 9, 13.5F, 13.5F, 10, 15, 14.5F, DARK_IRON);
+        box(model, 6, 15, 11.5F, 10, 15.5F, 15, STEEL);
     }
 
     /**

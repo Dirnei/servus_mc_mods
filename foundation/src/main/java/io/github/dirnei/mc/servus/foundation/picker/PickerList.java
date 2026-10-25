@@ -5,10 +5,12 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The entries of an item picker: sorted by name with the "none" entry first,
- * and narrowed by a search text. Pure logic.
+ * narrowed by a search text and ranked by what can be picked. Pure logic.
  */
 public final class PickerList {
 
@@ -35,6 +37,21 @@ public final class PickerList {
     public static List<Item> sorted(Collection<Item> items) {
         List<Item> list = new ArrayList<>(items);
         list.sort(ORDER);
+        return list;
+    }
+
+    /**
+     * The entries in picking order: the none entry first, then the ones not
+     * locked before the locked ones, each by stock, most first, then by name.
+     * A null stock ranks by name only.
+     */
+    public static List<Item> ranked(List<Item> items, Set<String> locked, Map<String, Long> stock) {
+        List<Item> list = new ArrayList<>(items);
+        list.sort(Comparator
+                .comparing((Item item) -> !item.isNone())
+                .thenComparing(item -> locked.contains(item.id()))
+                .thenComparing(item -> stock == null ? 0L : -stock.getOrDefault(item.id(), 0L))
+                .thenComparing(ORDER));
         return list;
     }
 

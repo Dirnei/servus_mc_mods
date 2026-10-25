@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.shuttles.field.FieldCropStockPayload;
 import io.github.dirnei.mc.servus.shuttles.field.FieldSupplyStockPayload;
 import io.github.dirnei.mc.servus.shuttles.field.FieldThreshold;
 import io.github.dirnei.mc.servus.shuttles.field.FieldHeadBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.field.FieldKind;
 import io.github.dirnei.mc.servus.shuttles.field.FieldStatus;
 import io.github.dirnei.mc.servus.shuttles.field.FieldWork;
 import io.github.dirnei.mc.servus.shuttles.field.FieldWorkerPayload;
@@ -394,12 +395,13 @@ public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu {
     }
 
     /**
-     * Sets the crop the player chose in the picker: an item id that plants an
-     * age crop, or empty for harvest only. Acts only while the player's open
-     * menu is a Field Head menu they can still use. Returns whether the choice
-     * was taken. Server side.
+     * Sets the crop or sapling the player chose in the picker: an item id that
+     * plants an age crop in a Crops field or a sapling in a Trees field, in
+     * squares when {@code twoByTwo}, or empty for harvest only or fell only.
+     * Acts only while the player's open menu is a Field Head menu they can
+     * still use. Returns whether the choice was taken. Server side.
      */
-    public static boolean choose(Player player, Optional<Identifier> crop) {
+    public static boolean choose(Player player, Optional<Identifier> crop, boolean twoByTwo) {
         FieldHeadMenu menu = usableMenu(player);
         if (menu == null) {
             return false;
@@ -409,13 +411,50 @@ public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu {
             menu.update();
             return true;
         }
-        Optional<ItemStack> stack = stackOf(crop.get()).filter(FieldHeadBlockEntity::isCropItem);
-        if (stack.isEmpty()) {
+        Optional<ItemStack> stack = stackOf(crop.get());
+        boolean taken;
+        if (menu.head.kind().trees()) {
+            taken = stack.isPresent() && menu.head.setSapling(stack.get(), twoByTwo);
+        } else {
+            taken = !twoByTwo && stack.filter(FieldHeadBlockEntity::isCropItem).isPresent();
+            if (taken) {
+                menu.head.setCrop(stack.get());
+            }
+        }
+        if (taken) {
+            menu.update();
+        }
+        return taken;
+    }
+
+    /**
+     * Sets the field kind the player chose on the Field tab. Acts only while
+     * the player's open menu is a Field Head menu they can still use. Returns
+     * whether the choice was taken. Server side.
+     */
+    public static boolean chooseKind(Player player, FieldKind kind) {
+        FieldHeadMenu menu = usableMenu(player);
+        if (menu == null) {
             return false;
         }
-        menu.head.setCrop(stack.get());
+        menu.head.setKind(kind);
         menu.update();
         return true;
+    }
+
+    /** What the field grows, as the head last synced it. */
+    public FieldKind kind() {
+        return head.kind();
+    }
+
+    /** Whether the field's sapling is planted in squares of four, as the head last synced it. */
+    public boolean twoByTwo() {
+        return head.twoByTwo();
+    }
+
+    /** Whether the Range Upgrade slot holds an upgrade, which 2x2 saplings need. */
+    public boolean hasRangeUpgrade() {
+        return slots.get(RANGE_SLOT).hasItem();
     }
 
     /**

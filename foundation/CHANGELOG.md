@@ -6,6 +6,7 @@
 - A delivery handshake on the data line: before items move, the sender offers them and the receiving block grants room or says why not.
 
 ### Changed
+- Item pickers can show an entry greyed out with a hint saying why it cannot be chosen yet.
 - A delivery to a block that takes nothing for a while ends with what arrived instead of holding up its sender.
 
 ## 0.4.0

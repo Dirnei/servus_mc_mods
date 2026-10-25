@@ -14,6 +14,8 @@ import io.github.dirnei.mc.servus.shuttles.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.shuttles.field.ChooseAntiCorrosionPayload;
 import io.github.dirnei.mc.servus.shuttles.field.ChooseFertilizerPayload;
 import io.github.dirnei.mc.servus.shuttles.field.ChooseFieldCropPayload;
+import io.github.dirnei.mc.servus.shuttles.field.ChooseFieldKindPayload;
+import io.github.dirnei.mc.servus.shuttles.field.FieldKind;
 import io.github.dirnei.mc.servus.shuttles.field.FieldAmount;
 import io.github.dirnei.mc.servus.shuttles.field.FieldCropStockPayload;
 import io.github.dirnei.mc.servus.shuttles.field.FieldSupplyStockPayload;
@@ -92,7 +94,9 @@ public final class ServusShuttlesPayloads {
         toMenu(registrar, EditPatternPayload.TYPE, EditPatternPayload.STREAM_CODEC, ProductionTerminalMenu.class,
                 (player, menu, payload) -> menu.openExisting(payload.storage(), payload.slot()));
         registrar.playToServer(ChooseFieldCropPayload.TYPE, ChooseFieldCropPayload.STREAM_CODEC,
-                (payload, context) -> FieldHeadMenu.choose(context.player(), payload.crop()));
+                (payload, context) -> FieldHeadMenu.choose(context.player(), payload.crop(), payload.twoByTwo()));
+        registrar.playToServer(ChooseFieldKindPayload.TYPE, ChooseFieldKindPayload.STREAM_CODEC,
+                (payload, context) -> FieldHeadMenu.chooseKind(context.player(), FieldKind.byId(payload.kind())));
         registrar.playToServer(ChooseFertilizerPayload.TYPE, ChooseFertilizerPayload.STREAM_CODEC,
                 (payload, context) -> FieldHeadMenu.chooseFertilizer(context.player(), payload.fertilizer()));
         registrar.playToServer(ChooseAntiCorrosionPayload.TYPE, ChooseAntiCorrosionPayload.STREAM_CODEC,

@@ -320,6 +320,17 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_shuttle", has(ServusShuttlesItems.SHUTTLE_MK1.get()))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusShuttlesItems.LUMBER.get())
+                .pattern("IAI")
+                .pattern("ISI")
+                .pattern(" P ")
+                .define('I', Items.IRON_INGOT)
+                .define('A', Items.IRON_AXE)
+                .define('S', Items.STONECUTTER)
+                .define('P', Items.PISTON)
+                .unlockedBy("has_shuttle", has(ServusShuttlesItems.SHUTTLE_MK1.get()))
+                .save(output);
+
         ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusShuttlesItems.TANKER.get())
                 .pattern("IBI")
                 .pattern("ITI")

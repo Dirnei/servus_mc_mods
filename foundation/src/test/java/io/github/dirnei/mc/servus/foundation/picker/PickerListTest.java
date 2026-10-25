@@ -3,6 +3,8 @@ package io.github.dirnei.mc.servus.foundation.picker;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class PickerListTest {
@@ -44,5 +46,18 @@ class PickerListTest {
     @Test
     void noneStaysWhenNothingMatches() {
         assertEquals(List.of(NONE), PickerList.filter(List.of(NONE, CARROT, WHEAT), "melon"));
+    }
+
+    @Test
+    void rankedPutsPickableFirstThenMostStockThenName() {
+        List<PickerList.Item> all = List.of(NONE, BEET, CARROT, RICE, WHEAT);
+        Map<String, Long> stock = Map.of(WHEAT.id(), 40L, CARROT.id(), 40L, RICE.id(), 900L);
+        assertEquals(List.of(NONE, CARROT, WHEAT, BEET, RICE), PickerList.ranked(all, Set.of(RICE.id()), stock));
+    }
+
+    @Test
+    void rankedWithoutStockKeepsNameOrderAndLocksLast() {
+        List<PickerList.Item> all = List.of(NONE, BEET, CARROT, RICE, WHEAT);
+        assertEquals(List.of(NONE, BEET, RICE, WHEAT, CARROT), PickerList.ranked(all, Set.of(CARROT.id()), null));
     }
 }

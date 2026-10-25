@@ -31,7 +31,7 @@ public final class FleetPersistenceGameTests {
     }
 
     /** Unloads the block entity at {@code pos} as its chunk would, lets {@code meanwhile} change the world, then loads it from its tag. */
-    private static <T extends BlockEntity> T reload(GameTestHelper helper, BlockPos pos, Consumer<CompoundTag> edit, Runnable meanwhile) {
+    static <T extends BlockEntity> T reload(GameTestHelper helper, BlockPos pos, Consumer<CompoundTag> edit, Runnable meanwhile) {
         ServerLevel level = helper.getLevel();
         BlockPos absolute = helper.absolutePos(pos);
         BlockEntity old = level.getBlockEntity(absolute);

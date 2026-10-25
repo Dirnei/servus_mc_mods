@@ -210,7 +210,7 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - A way to unload a shuttle parked with cargo by hand; today only Recall empties it, dropping the cargo at the garage.
 - Stock reserved by open work orders in the terminal's requestable count, if play tests ask for it (today only locked picks lower it).
 - Storage Terminal request prompt and stock rule dialog on the Foundation number stepper and the amount panel look of the craft dialog; other screens (Field Head amounts, Fluid Gantry keep steps, Production Terminal lists) on the Foundation widgets.
-- `m10-lumber`: a Lumber module for tree fields; later field kinds beyond crops.
+- Field kinds beyond crops and trees: Crimson and Warped fungi on nylium first.
 - SEND and KEEP rules between sites in the controller GUI (the local min/max stock rules join the same list) and an In transit view.
 - Wireless Terminal with range tiers.
 - Stock rules in a mined Warehouse Controller item, if the play tests ask for them (today only the carrot dismantle keeps them; name and FE travel both ways).
@@ -233,5 +233,5 @@ Shuttles carry fluids between Fluid Gantries (built 2026-10-20). Still open in M
 
 - A converter between principles (surplus Sulfur to Salt and so on), or only the Sink
 - Alchemist's Spectacles as a permanent Elemental Sight in a later stage
-- Field kinds beyond crops (trees first, then others) and which modules they need
+- Other field kinds (fungi first) and which modules they need
 - Art style and texture direction (shared look across the family)

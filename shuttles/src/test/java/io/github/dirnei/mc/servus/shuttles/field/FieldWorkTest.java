@@ -113,4 +113,32 @@ class FieldWorkTest {
         assertEquals(FieldWork.READY, FieldWork.READY.whileCollecting(FieldWork.Collect.FINE));
         assertTrue(FieldWork.TO_STORAGE_FULL.problem());
     }
+
+    private static FieldWork trees(boolean lumber, boolean reachable, boolean needsRange, boolean tooLarge, boolean hydrated, int plantable) {
+        return FieldWork.of(FieldKind.TREES, true, true, true, lumber, reachable, needsRange, tooLarge, false, false, true, hydrated, 0,
+                plantable, 0, FieldWork.Seeds.BUFFERED);
+    }
+
+    @Test
+    void treesAskForALumberShuttle() {
+        assertEquals(FieldWork.NO_LUMBER, trees(false, false, true, true, true, 1));
+        assertEquals(FieldWork.NO_LUMBER_WAY, trees(true, false, true, true, true, 1));
+        assertTrue(FieldWork.NO_LUMBER.problem());
+        assertTrue(FieldWork.NO_LUMBER_WAY.problem());
+    }
+
+    @Test
+    void rangeAndSizeComeAfterTheWay() {
+        assertEquals(FieldWork.NEEDS_RANGE, trees(true, true, true, true, true, 1));
+        assertEquals(FieldWork.TREE_TOO_LARGE, trees(true, true, false, true, true, 1));
+        assertTrue(FieldWork.NEEDS_RANGE.problem());
+        assertFalse(FieldWork.TREE_TOO_LARGE.problem());
+    }
+
+    @Test
+    void treesAreNeverDry() {
+        assertEquals(FieldWork.READY, trees(true, true, false, false, false, 2));
+        assertEquals(FieldWork.DRY, FieldWork.of(FieldKind.CROPS, true, true, true, true, true, true, true, false, false, true, false, 0, 2, 0,
+                FieldWork.Seeds.BUFFERED), "crops ignore the tree checks and still need water");
+    }
 }

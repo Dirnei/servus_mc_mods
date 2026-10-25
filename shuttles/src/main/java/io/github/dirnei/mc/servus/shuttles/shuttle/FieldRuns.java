@@ -14,6 +14,8 @@ import io.github.dirnei.mc.servus.shuttles.field.PlotWork;
 import io.github.dirnei.mc.servus.shuttles.field.SeedPlan;
 import io.github.dirnei.mc.servus.shuttles.field.SupplyBuffer;
 import io.github.dirnei.mc.servus.shuttles.field.SupplyPlan;
+import io.github.dirnei.mc.servus.shuttles.field.TreePlotWork;
+import io.github.dirnei.mc.servus.shuttles.field.TreeWalk;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleTiers;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
@@ -28,10 +30,12 @@ import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.BoneMealItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.LevelEvent;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * The legs of field runs: a harvester harvests, tills, plants and takes seeds
@@ -109,9 +113,9 @@ final class FieldRuns {
         return head.plantMode() ? ItemKey.of(head.crop()) : null;
     }
 
-    /** Whether the field gets tilled and planted now: a crop is set, harvest only is off and it has water. */
+    /** Whether the field gets tilled and planted now: a crop is set, harvest only is off and it has water, which trees do not need. */
     private static boolean plants(FieldHeadBlockEntity head) {
-        return head.plantMode() && head.hydrated();
+        return head.plantMode() && (head.hydrated() || head.kind().trees());
     }
 
     private static boolean carriesSeed(FieldRun run, ItemKey crop) {
@@ -121,6 +125,17 @@ final class FieldRuns {
     /** Ticks one plot takes for this shuttle: the field's work time shortened by its Handling. */
     private static int workTicks(Shuttle shuttle) {
         return ShuttleTiers.workTicks(ShuttlesStatsManager.INSTANCE.fieldWorkTicks(), shuttle.profile.handling());
+    }
+
+    /** Ticks felling a tree takes for this shuttle: the felling time shortened by its Handling. */
+    private static int fellTicks(Shuttle shuttle) {
+        return ShuttleTiers.workTicks(ShuttlesStatsManager.INSTANCE.fellTicks(), shuttle.profile.handling());
+    }
+
+    /** Ticks the next plot of the stop takes: felling time for a grown tree, else the work time. */
+    private int stepTicks(Shuttle shuttle, HarvestRun run, FieldHeadBlockEntity head) {
+        BlockPos next = run.kind.trees() ? nextPlot(run, head) : null;
+        return next != null && head.classify(next) == PlotState.RIPE ? fellTicks(shuttle) : workTicks(shuttle);
     }
 
     /** Called every tick while a field shuttle stands still at the end of its leg. */
@@ -265,7 +280,7 @@ final class FieldRuns {
     }
 
     void startRun(Shuttle shuttle, FieldJob job) {
-        shuttle.run = new HarvestRun(job.head(), shuttle.profile.stacks());
+        shuttle.run = new HarvestRun(job.head(), shuttle.profile.stacks(), job.kind());
         turn(shuttle);
     }
 
@@ -276,16 +291,29 @@ final class FieldRuns {
             return false;
         }
         for (BlockPos plot : plots) {
-            if (PlotWork.plan(head.plotState(plot), plants, haveSeed, run.harvest).any()) {
+            if (hasWork(run, head, plot, head.plotState(plot), plants, haveSeed)) {
                 return true;
             }
         }
         return false;
     }
 
-    /** Whether any rail of the field this warehouse drives on has work. */
+    /** Whether the plot in that state needs something the shuttle can do now: harvest, till, plant, fell. */
+    private static boolean hasWork(HarvestRun run, FieldHeadBlockEntity head, BlockPos plot, PlotState state, boolean plants, boolean haveSeed) {
+        if (!run.kind.trees()) {
+            return PlotWork.plan(state, plants, haveSeed, run.harvest).any();
+        }
+        if (state != PlotState.RIPE && state != PlotState.PLANTABLE) {
+            return false;
+        }
+        ItemKey sapling = cropKey(head);
+        int carried = sapling == null ? 0 : run.cargo.count(sapling);
+        return TreePlotWork.plan(state, plants, carried, head.saplingsNeeded(plot), run.harvest).any();
+    }
+
+    /** Whether any rail of the field this warehouse drives on has work; none once the field's kind is no longer the run's. */
     private boolean workLeft(HarvestRun run, FieldHeadBlockEntity head) {
-        if (run.idle) {
+        if (run.idle || head.kind() != run.kind) {
             return false;
         }
         boolean plants = plants(head);
@@ -318,11 +346,11 @@ final class FieldRuns {
         int wanted = 0;
         boolean room = false;
         ItemKey crop = head == null ? null : cropKey(head);
-        if (crop != null && plants(head) && !run.fetchTried && !run.idle) {
+        if (crop != null && plants(head) && head.kind() == run.kind && !run.fetchTried && !run.idle) {
             int max = crop.stack(1).getMaxStackSize();
             int cargoRoom = run.cargo.room(crop, max);
             wanted = SeedPlan.toFetch(run.harvest ? head.ripeCount() : 0, head.plantableCount() + head.tillableCount(), run.cargo.count(crop),
-                    head.supplyAvailable(SupplyBuffer.Part.SEEDS), Integer.MAX_VALUE, max);
+                    head.supplyAvailable(SupplyBuffer.Part.SEEDS), Integer.MAX_VALUE, max, head.twoByTwo() ? SeedPlan.SQUARE : 1);
             room = cargoRoom > 0;
             run.seedAmount = Math.min(wanted, cargoRoom);
             if (!room && run.cargo.count(crop) == run.cargoCount()) {
@@ -447,7 +475,7 @@ final class FieldRuns {
         run.queue.addAll(run.reach(head.rails(), head.plots(), head.radius()).getOrDefault(rail, List.of()));
         run.stopPlants = plants(head);
         run.harvest = !head.harvestPaused();
-        run.countdown = workTicks(shuttle);
+        run.countdown = stepTicks(shuttle, run, head);
         shuttle.leg = Leg.WORKING;
         fleet.markSync();
     }
@@ -489,7 +517,7 @@ final class FieldRuns {
             }
             if (result == PlotResult.CHANGED) {
                 run.worked = true;
-                run.countdown = workTicks(shuttle);
+                run.countdown = stepTicks(shuttle, run, head);
                 fleet.markSync();
                 if (nextPlot(run, head) != null) {
                     return;
@@ -516,8 +544,8 @@ final class FieldRuns {
         while (!run.queue.isEmpty()) {
             BlockPos plot = run.queue.peek();
             if (level.isLoaded(plot)) {
-                PlotState state = HarvesterWork.classify(level, plot);
-                if (PlotWork.plan(state, run.stopPlants, haveSeed, run.harvest).any()) {
+                PlotState state = head.classify(plot);
+                if (head.kind() == run.kind && hasWork(run, head, plot, state, run.stopPlants, haveSeed)) {
                     return plot;
                 }
                 if (head.plotState(plot) != state) {
@@ -532,6 +560,9 @@ final class FieldRuns {
 
     /** Harvests, tills and plants one plot; FULL when its harvest does not fit and the cargo is not empty. */
     private PlotResult workPlot(HarvestRun run, FieldHeadBlockEntity head, BlockPos plot) {
+        if (run.kind.trees()) {
+            return fellAndPlant(run, head, plot);
+        }
         ServerLevel level = host.level();
         boolean plants = run.stopPlants;
         ItemKey crop = plants ? cropKey(head) : null;
@@ -573,6 +604,106 @@ final class FieldRuns {
             }
         }
         return changed ? PlotResult.CHANGED : PlotResult.NOTHING;
+    }
+
+    /**
+     * Fells the grown tree on the plot and plants the spot or square, or
+     * plants an empty one. The tree's drops are rolled first: FULL when they
+     * do not fit and the cargo is not empty. Saplings from the drops are kept
+     * for replanting before the cargo's; a square is planted only all at once.
+     * A tree too large to fell, or logs without leaves, are given up on.
+     */
+    private PlotResult fellAndPlant(HarvestRun run, FieldHeadBlockEntity head, BlockPos plot) {
+        ServerLevel level = host.level();
+        PlotState state = head.classify(plot);
+        boolean plantMode = run.stopPlants && (!head.twoByTwo() || head.hasRangeUpgrade()) && HarvesterWork.isTreeSpot(level, plot, head.rules());
+        ItemKey sapling = plantMode ? cropKey(head) : null;
+        int needed = head.saplingsNeeded(plot);
+        boolean fell = state == PlotState.RIPE && run.harvest;
+        List<FieldCargo.Entry<ItemKey>> drops = new ArrayList<>();
+        TreeWalk.Felled tree = null;
+        List<BlockPos> base = head.treeBase(plot);
+        if (fell) {
+            TreeWalk.Result walked = HarvesterWork.walkTree(level, base, pos -> head.otherTreeBase(pos, base),
+                    ShuttlesStatsManager.INSTANCE.maxTreeLogs(), ShuttlesStatsManager.INSTANCE.maxTreeBlocks());
+            if (!(walked instanceof TreeWalk.Felled felled)) {
+                head.giveUp(base, walked instanceof TreeWalk.TooLarge);
+                return PlotResult.NOTHING;
+            }
+            tree = felled;
+            for (ItemStack drop : HarvesterWork.treeDrops(level, felled)) {
+                drops.add(new FieldCargo.Entry<>(ItemKey.of(drop), drop.getCount(), drop.getMaxStackSize()));
+            }
+        }
+        int carried = sapling == null ? 0 : run.cargo.count(sapling);
+        int inDrops = sapling == null ? 0 : count(drops, sapling);
+        TreePlotWork.Action action = TreePlotWork.plan(state, plantMode, carried + inDrops, needed, run.harvest);
+        int kept = action.plant() ? take(drops, sapling, Math.min(needed, inDrops)) : 0;
+        if (tree != null) {
+            if (!run.cargo.fits(drops) && !run.cargo.isEmpty()) {
+                return PlotResult.FULL;
+            }
+            BlockState trunk = level.getBlockState(plot);
+            HarvesterWork.removeTree(level, tree);
+            HarvesterWork.showFelled(level, plot, trunk);
+            for (BlockPos removed : HarvesterWork.treeBlocks(tree)) {
+                head.recheck(removed);
+            }
+            tally(run, drops, null);
+            addOrStore(run, drops);
+            if (kept > 0) {
+                run.tally.merge(BuiltInRegistries.ITEM.getKey(sapling.item()), (long) kept, Long::sum);
+            }
+        }
+        if (action.plant()) {
+            List<BlockPos> spots = new ArrayList<>();
+            for (BlockPos member : base) {
+                if (!level.getBlockState(member).is(BlockTags.SAPLINGS)) {
+                    spots.add(member);
+                }
+            }
+            if (spots.size() == needed && HarvesterWork.plantSaplings(level, spots, sapling.stack(1)) == needed) {
+                run.cargo.take(sapling, needed - kept);
+                for (BlockPos member : spots) {
+                    head.recheck(member);
+                }
+                return PlotResult.CHANGED;
+            }
+            if (kept > 0) {
+                addOrStore(run, List.of(new FieldCargo.Entry<>(sapling, kept, sapling.stack(1).getMaxStackSize())));
+            }
+        }
+        return tree != null ? PlotResult.CHANGED : PlotResult.NOTHING;
+    }
+
+    /** How many of the key the entries hold. */
+    private static int count(List<FieldCargo.Entry<ItemKey>> entries, ItemKey key) {
+        int count = 0;
+        for (FieldCargo.Entry<ItemKey> entry : entries) {
+            if (entry.key().equals(key)) {
+                count += entry.count();
+            }
+        }
+        return count;
+    }
+
+    /** Takes up to amount of the key out of the entries; returns how many came out. */
+    private static int take(List<FieldCargo.Entry<ItemKey>> entries, ItemKey key, int amount) {
+        int taken = 0;
+        for (int i = entries.size() - 1; i >= 0 && taken < amount; i--) {
+            FieldCargo.Entry<ItemKey> entry = entries.get(i);
+            if (!entry.key().equals(key)) {
+                continue;
+            }
+            int part = Math.min(amount - taken, entry.count());
+            taken += part;
+            if (part == entry.count()) {
+                entries.remove(i);
+            } else {
+                entries.set(i, new FieldCargo.Entry<>(key, entry.count() - part, entry.max()));
+            }
+        }
+        return taken;
     }
 
     /** Counts a harvested plot's drops, the seed kept for replanting included, toward the run's produce. */
@@ -953,7 +1084,7 @@ final class FieldRuns {
     private void dosePlot(SpreadRun run, FieldHeadBlockEntity head, BlockPos plot) {
         ServerLevel level = host.level();
         for (int i = 0; i < run.doses && run.cargo.count(run.fertilizer) > 0; i++) {
-            if (HarvesterWork.classify(level, plot) != PlotState.GROWING) {
+            if (head.classify(plot) != PlotState.GROWING) {
                 break;
             }
             ItemStack dose = run.fertilizer.stack(1);
