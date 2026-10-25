@@ -42,4 +42,18 @@ public final class ListScroll {
         int free = track - thumbLength(rows, visible, track);
         return free * clamp(offset, rows, visible) / (rows - visible);
     }
+
+    /**
+     * The offset, 0 to {@code maxOffset}, whose thumb, {@code thumb} long on a
+     * track {@code track} long, centres on {@code along} from the top of the
+     * track; for dragging the thumb with the mouse.
+     */
+    public static int offsetAt(double along, int thumb, int track, int maxOffset) {
+        int free = track - thumb;
+        if (maxOffset <= 0 || free <= 0) {
+            return 0;
+        }
+        long offset = Math.round((along - thumb / 2.0) / free * maxOffset);
+        return (int) Math.max(0, Math.min(maxOffset, offset));
+    }
 }

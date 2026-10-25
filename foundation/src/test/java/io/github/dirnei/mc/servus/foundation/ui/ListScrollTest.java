@@ -41,4 +41,22 @@ class ListScrollTest {
         assertEquals(20, ListScroll.thumbStart(8, 11, 3, 27));
         assertEquals(10, ListScroll.thumbStart(4, 11, 3, 27));
     }
+
+    @Test
+    void dragPositionGivesOffset() {
+        assertEquals(0, ListScroll.offsetAt(7.5, 15, 115, 20), "thumb at the top");
+        assertEquals(20, ListScroll.offsetAt(107.5, 15, 115, 20), "thumb at the bottom");
+        assertEquals(10, ListScroll.offsetAt(57.5, 15, 115, 20), "middle of the bar");
+    }
+
+    @Test
+    void dragOutsideTheBarClamps() {
+        assertEquals(0, ListScroll.offsetAt(-40, 15, 115, 20));
+        assertEquals(20, ListScroll.offsetAt(500, 15, 115, 20));
+    }
+
+    @Test
+    void dragWithNothingToScrollStaysAtTop() {
+        assertEquals(0, ListScroll.offsetAt(80, 15, 115, 0));
+    }
 }

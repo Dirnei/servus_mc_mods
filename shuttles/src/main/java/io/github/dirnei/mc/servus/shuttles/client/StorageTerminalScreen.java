@@ -37,6 +37,7 @@ import io.github.dirnei.mc.servus.foundation.client.NumberStepper;
 import io.github.dirnei.mc.servus.foundation.client.PopupPanel;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.ui.AmountSteps;
+import io.github.dirnei.mc.servus.foundation.ui.ListScroll;
 import io.github.dirnei.mc.servus.shuttles.pattern.CraftingGrid;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -75,6 +76,8 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     private static final int COLOUR_TEXT = 0xFF404040;
     private static final int COLOUR_DIM = 0xFF707070;
     private static final int COLOUR_ALERT = 0xFFB03030;
+    /** Length of the grid's scrollbar thumb. */
+    private static final int THUMB = 15;
     /** The alert colour on the dark item grid. */
     private static final int COLOUR_ALERT_ON_GRID = 0xFFFF6060;
     private static final int COLOUR_GOOD = 0xFF2E7D32;
@@ -125,6 +128,8 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     private final Set<Integer> draggedCells = new HashSet<>();
     /** Set when a dialog took a press, so its release puts no carried stack into a slot behind it. */
     private boolean swallowRelease;
+    /** Whether the left button went down on the grid's scrollbar and still holds the thumb. */
+    private boolean draggingThumb;
     /** The reason Next or Start is greyed out, null while it can be pressed. */
     private String nextReason;
     private String startReason;
@@ -796,13 +801,23 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         renderScrollThumb(graphics);
     }
 
+    private boolean overScrollbar(double mouseX, double mouseY) {
+        return layout.scrollbar().contains((int) mouseX - leftPos, (int) mouseY - topPos);
+    }
+
+    /** Scrolls the grid so the thumb centres on the mouse, as far as the grid scrolls. */
+    private void dragThumb(double mouseY) {
+        Rect bar = layout.scrollbar();
+        scrollRow = ListScroll.offsetAt(mouseY - topPos - bar.y(), THUMB, bar.h(), maxScrollRow());
+    }
+
     private void renderScrollThumb(GuiGraphicsExtractor graphics) {
         int max = maxScrollRow();
         Rect bar = layout.scrollbar();
-        int track = bar.h() - 15;
+        int track = bar.h() - THUMB;
         int thumb = topPos + bar.y() + (max == 0 ? 0 : track * scrollRow / max);
         int thumbX = leftPos + bar.x();
-        graphics.fill(thumbX, thumb, thumbX + bar.w(), thumb + 15, max == 0 ? 0xFF9A9A9A : 0xFFE0E0E0);
+        graphics.fill(thumbX, thumb, thumbX + bar.w(), thumb + THUMB, max == 0 ? 0xFF9A9A9A : 0xFFE0E0E0);
     }
 
     /** A small arrow beside a row: up into the warehouse for the input, down to the player for the output. */
@@ -1367,6 +1382,11 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             }
             return super.mouseClicked(event, doubleClick);
         }
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && overScrollbar(mouseX, mouseY)) {
+            draggingThumb = true;
+            dragThumb(mouseY);
+            return true;
+        }
         if (ClientStock.online() && cellAt(mouseX, mouseY) >= 0 && clickGrid(cellUnder(mouseX, mouseY), button)) {
             return true;
         }
@@ -1431,6 +1451,10 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     /** Dragging the cursor's item over the order grid sets a ghost copy in each cell it passes. */
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
+        if (draggingThumb) {
+            dragThumb(event.y());
+            return true;
+        }
         int cell = ghostCellAt(event.x(), event.y());
         if (cell >= 0 && !menu.getCarried().isEmpty()) {
             if (draggedCells.add(cell)) {
@@ -1448,6 +1472,10 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
+        if (draggingThumb) {
+            draggingThumb = false;
+            return true;
+        }
         if (!swallowRelease) {
             return super.mouseReleased(event);
         }
