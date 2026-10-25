@@ -4,6 +4,7 @@
 
 ### Added
 - Tree fields: a Field Head set to Trees plants saplings on every other plot (2x2 trees in squares with a Range Upgrade), needs no water, and a Lumber shuttle fells grown trees with their leaves, brings the wood home and replants.
+- Lumber shuttles fell trees with an arm and a saw, and the tree topples away from the rail, lands and breaks apart into the shuttle.
 
 ### Changed
 - Harvesters and Spreaders unload into a To storage buffer on the Field Head, and plain shuttles put it away into the racks.

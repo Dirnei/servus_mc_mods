@@ -20,9 +20,11 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.shuttle.FieldJob;
 import io.github.dirnei.mc.servus.shuttles.shuttle.FleetSaves;
 import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleJob;
+import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleView;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.JobNeeds;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleModules;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleProfile;
+import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleTiers;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
@@ -472,5 +474,107 @@ public final class LumberGameTests {
 
     private static FieldKind kindOf(ShuttleJob job) {
         return job instanceof FieldJob field ? field.kind() : null;
+    }
+
+    /** The felling the farm's garage shows for a shuttle now, if any. */
+    private static Optional<ShuttleView.Felling> felling(GameTestHelper helper) {
+        return FarmFixtures.network(helper).shuttleViews(helper.absolutePos(GARAGE)).stream()
+                .flatMap(view -> view.felling().stream()).findFirst();
+    }
+
+    private static boolean inPhase(GameTestHelper helper, ShuttleView.Felling.Phase phase) {
+        return felling(helper).filter(fell -> fell.phase() == phase).isPresent();
+    }
+
+    /** An oak on the spot, a Lumber shuttle with oak saplings in the head's buffer. */
+    private static FarmFixtures.Farm oakField(GameTestHelper helper, BlockPos spot, ItemStack shuttle) {
+        oak(helper, spot);
+        FarmFixtures.Farm farm = treeFarm(helper, shuttle);
+        helper.runAfterDelay(2, () -> {
+            trees(farm.head(), new ItemStack(Items.OAK_SAPLING), false);
+            farm.head().fillSupply(SupplyBuffer.Part.SEEDS, Items.OAK_SAPLING, 64);
+        });
+        return farm;
+    }
+
+    /**
+     * The tree's blocks are gone as the topple part starts and its drops are
+     * aboard; the spot is planted only once the topple part is over.
+     */
+    @ServusGameTest(template = TALL, timeoutTicks = 700)
+    public static void toppleRemovesThenPlants(GameTestHelper helper) {
+        BlockPos spot = spot(helper);
+        FarmFixtures.Farm farm = oakField(helper, spot, lumber());
+        Waits.when(helper, () -> inPhase(helper, ShuttleView.Felling.Phase.TOPPLE), 500, () -> "the oak should start to topple", () -> {
+            long toppled = helper.getLevel().getGameTime();
+            helper.assertTrue(trunkGone(helper, spot), "the logs are gone when the topple part starts");
+            helper.assertTrue(!helper.getBlockState(spot).is(Blocks.OAK_SAPLING), "the spot is not planted yet");
+            helper.assertTrue(FarmFixtures.network(helper).shuttleViews(helper.absolutePos(GARAGE)).stream().anyMatch(view -> !view.cargo().isEmpty()),
+                    "the drops are aboard");
+            Waits.when(helper, () -> helper.getBlockState(spot).is(Blocks.OAK_SAPLING), 200, () -> "the spot should be planted after the topple", () -> {
+                long waited = helper.getLevel().getGameTime() - toppled;
+                helper.assertTrue(waited >= ShuttlesStatsManager.INSTANCE.toppleTicks() - 1,
+                        "the sapling comes after the topple part, waited " + waited);
+                helper.assertTrue(noItemsLying(helper), "nothing drops");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Handling shortens the saw part and leaves the topple part as long as it is. */
+    @ServusGameTest(template = TALL, timeoutTicks = 700)
+    public static void handlingShortensOnlyTheSaw(GameTestHelper helper) {
+        ItemStack shuttle = new ItemStack(ServusShuttlesItems.SHUTTLE_MK3.get());
+        ShuttleModules.set(shuttle, new ShuttleModules(Optional.of(ServusShuttlesItems.LUMBER.get()), 0, 2));
+        ShuttleProfile profile = ShuttleModules.profile(shuttle, ShuttlesStatsManager.INSTANCE.shuttleTiers());
+        int saw = ShuttleTiers.workTicks(ShuttlesStatsManager.INSTANCE.fellTicks(), profile.handling());
+        helper.assertTrue(saw < ShuttlesStatsManager.INSTANCE.fellTicks(), "two Handling upgrades shorten the saw part, got " + saw);
+        oakField(helper, spot(helper), shuttle);
+        Waits.when(helper, () -> inPhase(helper, ShuttleView.Felling.Phase.SAW), 400, () -> "the shuttle should start to saw", () -> {
+            helper.assertTrue(felling(helper).get().ticks() == saw, "the saw part takes " + saw + " ticks, got " + felling(helper).get().ticks());
+            Waits.when(helper, () -> inPhase(helper, ShuttleView.Felling.Phase.TOPPLE), 200, () -> "the oak should topple", () -> {
+                helper.assertTrue(felling(helper).get().ticks() == ShuttlesStatsManager.INSTANCE.toppleTicks(),
+                        "the topple part keeps its length, got " + felling(helper).get().ticks());
+                helper.succeed();
+            });
+        });
+    }
+
+    /** A tree a player breaks while the shuttle saws is not felled: no topple, and the spot is planted. */
+    @ServusGameTest(template = TALL, timeoutTicks = 700)
+    public static void brokenTreeEndsTheSaw(GameTestHelper helper) {
+        BlockPos spot = spot(helper);
+        FarmFixtures.Farm farm = oakField(helper, spot, lumber());
+        boolean[] toppled = {false};
+        Waits.when(helper, () -> inPhase(helper, ShuttleView.Felling.Phase.SAW), 500, () -> "the shuttle should start to saw", () -> {
+            for (int y = 0; y < OAK_HEIGHT; y++) {
+                helper.setBlock(spot.above(y), Blocks.AIR.defaultBlockState());
+            }
+            farm.head().recheck(helper.absolutePos(spot));
+            Waits.when(helper, () -> {
+                toppled[0] |= inPhase(helper, ShuttleView.Felling.Phase.TOPPLE);
+                return helper.getBlockState(spot).is(Blocks.OAK_SAPLING) && out(helper) == 0;
+            }, 400, () -> "the shuttle should plant the empty spot and go home, out " + out(helper), () -> {
+                helper.assertTrue(!toppled[0], "nothing toppled");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** A run saved while the tree topples goes on after a reload and brings the logs home. */
+    @ServusGameTest(template = TALL, timeoutTicks = 800)
+    public static void reloadDuringTopple(GameTestHelper helper) {
+        BlockPos spot = spot(helper);
+        FarmFixtures.Farm farm = oakField(helper, spot, lumber());
+        Waits.when(helper, () -> inPhase(helper, ShuttleView.Felling.Phase.TOPPLE), 500, () -> "the oak should start to topple", () -> {
+            FleetPersistenceGameTests.reload(helper, GARAGE, tag -> { }, () -> { });
+            Waits.when(helper, () -> helper.getBlockState(spot).is(Blocks.OAK_SAPLING) && out(helper) == 0
+                            && HarvesterGameTests.toStorage(farm, Items.OAK_LOG) == OAK_HEIGHT, 500,
+                    () -> "the run should go on, plant the spot and bring the logs home, logs " + HarvesterGameTests.toStorage(farm, Items.OAK_LOG)
+                            + ", out " + out(helper), () -> {
+                        helper.assertTrue(noItemsLying(helper), "nothing drops");
+                        helper.succeed();
+                    });
+        });
     }
 }

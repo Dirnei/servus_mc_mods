@@ -234,6 +234,32 @@ final class ShuttleModels {
         box(model, 6, 13.5F, 13.5F, 7, 15, 14.5F, DARK_IRON);
         box(model, 9, 13.5F, 13.5F, 10, 15, 14.5F, DARK_IRON);
         box(model, 6, 15, 11.5F, 10, 15.5F, 15, STEEL);
+        lumberRig(provider);
+    }
+
+    /**
+     * The parts the renderer poses while a Lumber shuttle fells a tree. The
+     * base is the tool's post and ring in the shuttle's own space; every other
+     * part is built around its pivot at the model's centre (8, 8, 8), so the
+     * renderer only moves, turns and stretches it: the turret head turning on
+     * the ring, the lower and upper arm, each one block long along +z and
+     * stretched to the length the arm telescopes to, the felling head hanging
+     * under the wrist, one grip claw from its hinge, drawn twice, and the saw
+     * disc around its axle, two crossed plates of which the smaller one is the
+     * thicker so their faces never share a plane.
+     */
+    private static void lumberRig(BlockStateProvider provider) {
+        BlockModelBuilder base = model(provider, "lumber_base", STEEL);
+        box(base, 7.5F, 4.05F, 11.5F, 8.5F, 10.95F, 12.5F, STEEL);
+        box(base, 6, 11, 10.5F, 10, 12, 13.5F, DARK_IRON);
+        box(model(provider, "lumber_turret", STEEL), 6.5F, 8, 7, 9.5F, 9.5F, 9, STEEL);
+        box(model(provider, "lumber_arm_lower", STEEL), 7, 7.5F, 8, 9, 8.5F, 24, STEEL);
+        box(model(provider, "lumber_arm_upper", STEEL), 7, 7.5F, 8, 9, 8.5F, 24, STEEL);
+        box(model(provider, "lumber_head", DARK_IRON), 6.55F, 7.5F, 6, 9.45F, 9, 8, DARK_IRON);
+        box(model(provider, "lumber_claw", DARK_IRON), 7.5F, 7.6F, 8.05F, 8.5F, 8.9F, 11.05F, DARK_IRON);
+        BlockModelBuilder saw = model(provider, "lumber_saw", STEEL);
+        box(saw, 5, 7.75F, 6, 11, 8.25F, 10, STEEL);
+        box(saw, 6, 7.7F, 5, 10, 8.3F, 11, STEEL);
     }
 
     /**

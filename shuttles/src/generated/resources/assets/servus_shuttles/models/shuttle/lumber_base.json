@@ -1,0 +1,146 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ]
+        },
+        "east": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1,
+            6.8999996
+          ]
+        },
+        "north": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1,
+            6.8999996
+          ]
+        },
+        "south": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1,
+            6.8999996
+          ]
+        },
+        "up": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ]
+        },
+        "west": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1,
+            6.8999996
+          ]
+        }
+      },
+      "from": [
+        7.5,
+        4.05,
+        11.5
+      ],
+      "to": [
+        8.5,
+        10.95,
+        12.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            4,
+            3
+          ]
+        },
+        "east": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ]
+        },
+        "north": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            4,
+            1
+          ]
+        },
+        "south": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            4,
+            1
+          ]
+        },
+        "up": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            4,
+            3
+          ]
+        },
+        "west": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ]
+        }
+      },
+      "from": [
+        6,
+        11,
+        10.5
+      ],
+      "to": [
+        10,
+        12,
+        13.5
+      ]
+    }
+  ],
+  "textures": {
+    "electric_pump_steel": "servus_foundation:block/electric_pump_steel",
+    "heavy_rack_iron": "servus_shuttles:block/heavy_rack_iron",
+    "particle": "servus_foundation:block/electric_pump_steel"
+  }
+}

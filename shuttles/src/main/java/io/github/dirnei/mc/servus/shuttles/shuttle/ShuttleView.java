@@ -15,10 +15,36 @@ import net.neoforged.neoforge.fluids.FluidStack;
  * path. While the shuttle rides a lift car, lift holds that shaft's lowest
  * segment and the shuttle is drawn on the car. The shuttle item tells its
  * tier, upgrades and tool; a tanker carrying fluid shows it in its sight glass.
- * A shuttle behind another in its lane carries the point it must stay behind.
+ * A shuttle behind another in its lane carries the point it must stay behind;
+ * a Lumber shuttle felling a tree carries the trunk and its felling phase.
  */
 public record ShuttleView(List<BlockPos> path, int segment, float progress, Drive drive, ItemStack cargo, Optional<BlockPos> lift,
-                          ItemStack shuttle, Optional<SightGlass> glass, Optional<Lead> lead) {
+                          ItemStack shuttle, Optional<SightGlass> glass, Optional<Lead> lead, Optional<Felling> felling) {
+
+    /**
+     * A Lumber shuttle at work on a tree: the trunk's plot, the phase, how
+     * many ticks the phase lasts and how many of them had passed at the sync.
+     */
+    public record Felling(BlockPos trunk, Phase phase, int ticks, int elapsed) {
+
+        /** The saw part (reach, grip, saw) and the topple part (fall, break apart, fold back). */
+        public enum Phase {
+            SAW, TOPPLE;
+
+            private static final Phase[] VALUES = values();
+
+            public static Phase byId(int id) {
+                return id >= 0 && id < VALUES.length ? VALUES[id] : SAW;
+            }
+        }
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, Felling> STREAM_CODEC = StreamCodec.composite(
+                BlockPos.STREAM_CODEC, Felling::trunk,
+                ByteBufCodecs.VAR_INT.map(Phase::byId, Phase::ordinal), Felling::phase,
+                ByteBufCodecs.VAR_INT, Felling::ticks,
+                ByteBufCodecs.VAR_INT, Felling::elapsed,
+                Felling::new);
+    }
 
     /**
      * The point a following shuttle must not pass: its path position
@@ -69,6 +95,7 @@ public record ShuttleView(List<BlockPos> path, int segment, float progress, Driv
             ItemStack.OPTIONAL_STREAM_CODEC, ShuttleView::shuttle,
             ByteBufCodecs.optional(SightGlass.STREAM_CODEC), ShuttleView::glass,
             ByteBufCodecs.optional(Lead.STREAM_CODEC), ShuttleView::lead,
+            ByteBufCodecs.optional(Felling.STREAM_CODEC), ShuttleView::felling,
             ShuttleView::new);
 
     public boolean moving() {

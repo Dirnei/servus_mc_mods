@@ -20,7 +20,10 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleLook;
 import io.github.dirnei.mc.servus.foundation.client.FluidBox;
 import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.TankerLook;
+import io.github.dirnei.mc.servus.shuttles.shuttle.module.ModuleSpec;
+import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleModules;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -136,7 +139,9 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
         poseStack.scale(SHUTTLE_SCALE, SHUTTLE_SCALE, SHUTTLE_SCALE);
         poseStack.translate(0.0, 0.5, 0.0);
         ItemStack cart = view.shuttle().isEmpty() ? new ItemStack(ServusShuttlesItems.SHUTTLE_MK1.get()) : view.shuttle();
-        RenderSubmit.item(poseStack, collector, cart, ItemDisplayContext.NONE, level, 0, light);
+        Optional<ShuttleView.Felling> felling = view.felling().filter(fell -> fellsWith(cart));
+        RenderSubmit.item(poseStack, collector, felling.isPresent() ? withoutTool(cart) : cart, ItemDisplayContext.NONE, level, 0, light);
+        felling.ifPresent(fell -> fellingArm(fell, level, pos, yaw, fell.elapsed() + elapsed, poseStack, collector, light));
         view.glass().ifPresent(glass -> sightGlass(glass, level, railPos, poseStack, collector, light));
         if (!view.cargo().isEmpty() && ShuttleLook.openHold(ShuttleItem.tier(cart))) {
             poseStack.translate(0.0, CARGO_Y - 0.5, 0.0);
@@ -147,6 +152,41 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
         List<BlockPos> path = view.path();
         return GarageShutter.wantsOpen(path.getFirst().equals(origin), path.size() > 1 && path.getLast().equals(origin), path.size(),
                 at[0] + at[1], view.drive().top());
+    }
+
+    /** Whether the shuttle carries the Lumber module, whose arm is drawn posed while it fells. */
+    private static boolean fellsWith(ItemStack cart) {
+        return ShuttleModules.of(cart).toolSpec().map(ModuleSpec::id).filter(ModuleSpec.LUMBER::equals).isPresent();
+    }
+
+    /** The shuttle without its tool, for drawing the body while the posed arm is drawn on its own. */
+    private static ItemStack withoutTool(ItemStack cart) {
+        ItemStack copy = cart.copy();
+        ShuttleModules.set(copy, ShuttleModules.of(copy).withTool(Optional.empty()));
+        return copy;
+    }
+
+    /**
+     * The felling arm and the sawdust, drawn in the shuttle item's space, centred
+     * like the item: the trunk is turned into the shuttle model's pixels first.
+     */
+    private static void fellingArm(ShuttleView.Felling felling, Level level, double[] pos, double yaw, double ticksIn, PoseStack poseStack,
+                                   SubmitNodeCollector collector, int light) {
+        BlockPos trunk = felling.trunk();
+        double dx = trunk.getX() - pos[0];
+        double dz = trunk.getZ() - pos[2];
+        double dy = trunk.getY() + FellingArmLook.cutHeight() - (pos[1] + FLOOR);
+        double radians = Math.toRadians(yaw);
+        double localX = dx * Math.cos(radians) - dz * Math.sin(radians);
+        double localZ = dx * Math.sin(radians) + dz * Math.cos(radians);
+        double toPixels = 16 / SHUTTLE_SCALE;
+        double[] trunkModel = {8 + localX * toPixels, dy * toPixels, 8 + localZ * toPixels};
+        poseStack.pushPose();
+        // The item is drawn around its centre, so its model space starts half a block down and back.
+        poseStack.translate(-0.5, -0.5, -0.5);
+        FellingArmLook.draw(poseStack, collector, felling, trunkModel, ticksIn, light);
+        poseStack.popPose();
+        FellingArmLook.sawdust(level, felling, ticksIn);
     }
 
     /**

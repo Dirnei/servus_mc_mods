@@ -20,6 +20,7 @@
   "fertilizer_buffer": 64,
   "harvest_buffer_slots": 9,
   "fell_ticks": 40,
+  "topple_ticks": 80,
   "max_tree_logs": 200,
   "max_tree_blocks": 1000,
   "harvest_limit": 0,

@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.terminal;
 
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
+import io.github.dirnei.mc.servus.shuttles.client.ClientFallingTrees;
 import io.github.dirnei.mc.servus.shuttles.client.ClientFieldWorker;
 import io.github.dirnei.mc.servus.shuttles.client.ClientLifts;
 import io.github.dirnei.mc.servus.shuttles.client.ClientPackingStatus;
@@ -21,6 +22,7 @@ import io.github.dirnei.mc.servus.shuttles.field.FieldCropStockPayload;
 import io.github.dirnei.mc.servus.shuttles.field.FieldSupplyStockPayload;
 import io.github.dirnei.mc.servus.shuttles.field.FieldWorkerPayload;
 import io.github.dirnei.mc.servus.shuttles.field.SetFieldAmountPayload;
+import io.github.dirnei.mc.servus.shuttles.field.TreeFallPayload;
 import io.github.dirnei.mc.servus.shuttles.gantry.SetGantryLockPayload;
 import io.github.dirnei.mc.servus.shuttles.garage.GarageStrandedPayload;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotLocksPayload;
@@ -130,6 +132,7 @@ public final class ServusShuttlesPayloads {
         registrar.playToClient(PackingStatusPayload.TYPE, PackingStatusPayload.STREAM_CODEC,
                 (payload, context) -> ClientPackingStatus.update(payload));
         registrar.playToClient(FieldWorkerPayload.TYPE, FieldWorkerPayload.STREAM_CODEC, (payload, context) -> ClientFieldWorker.update(payload));
+        registrar.playToClient(TreeFallPayload.TYPE, TreeFallPayload.STREAM_CODEC, (payload, context) -> ClientFallingTrees.accept(payload));
         registrar.playToClient(FieldCropStockPayload.TYPE, FieldCropStockPayload.STREAM_CODEC, (payload, context) -> {
             if (context.player().containerMenu instanceof FieldHeadMenu menu) {
                 menu.acceptStock(payload);

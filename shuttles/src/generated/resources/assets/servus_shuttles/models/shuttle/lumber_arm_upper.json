@@ -1,0 +1,77 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ]
+        },
+        "north": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ]
+        },
+        "south": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ]
+        },
+        "up": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ]
+        }
+      },
+      "from": [
+        7,
+        7.5,
+        8
+      ],
+      "to": [
+        9,
+        8.5,
+        24
+      ]
+    }
+  ],
+  "textures": {
+    "electric_pump_steel": "servus_foundation:block/electric_pump_steel",
+    "particle": "servus_foundation:block/electric_pump_steel"
+  }
+}

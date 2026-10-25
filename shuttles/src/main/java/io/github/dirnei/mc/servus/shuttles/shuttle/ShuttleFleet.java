@@ -2320,9 +2320,19 @@ public final class ShuttleFleet {
                             (float) shuttle.profile.cornerSpeed());
             Optional<BlockPos> lift = shuttle.riding && shuttle.lift != null ? Optional.of(shuttle.lift) : Optional.empty();
             list.add(new ShuttleView(path, motion.segment(), (float) motion.progress(), shown, shuttle.shownCargo(), lift, shuttle.item.copy(),
-                    sightGlass(shuttle), still ? Optional.empty() : lead(shuttle)));
+                    sightGlass(shuttle), still ? Optional.empty() : lead(shuttle), felling(shuttle)));
         }
         return list;
+    }
+
+    /** The tree a Lumber shuttle is felling and how far into its phase it is; empty for every other shuttle. */
+    private static Optional<ShuttleView.Felling> felling(Shuttle shuttle) {
+        HarvestRun run = shuttle.run;
+        if (run == null || run.felling == null) {
+            return Optional.empty();
+        }
+        HarvestRun.Fell fell = run.felling;
+        return Optional.of(new ShuttleView.Felling(fell.plot(), fell.phase(), fell.ticks(), Math.max(0, fell.ticks() - run.countdown)));
     }
 
     /** The point a following shuttle must stay behind, as of now, and how fast it moves on; empty when nothing is ahead or in a ring. */

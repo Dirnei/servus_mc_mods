@@ -35,6 +35,12 @@ final class HarvestRun extends FieldRun {
     boolean harvest = true;
     /** Everything harvested in this run by item id, for the head to learn its produce from at the end. */
     final Map<Identifier, Long> tally = new HashMap<>();
+    /** The tree a Lumber shuttle is felling while it saws or the tree topples, else null; not saved. */
+    Fell felling;
+
+    /** A tree being felled: the plot worked, the phase and how many ticks the phase lasts, counted down by the run's countdown. */
+    record Fell(BlockPos plot, ShuttleView.Felling.Phase phase, int ticks) {
+    }
 
     HarvestRun(BlockPos head, int slots, FieldKind kind) {
         super(head, slots);

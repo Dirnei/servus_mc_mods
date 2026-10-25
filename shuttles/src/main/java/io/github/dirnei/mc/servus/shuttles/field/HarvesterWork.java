@@ -16,7 +16,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.LeavesBlock;
-import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -228,10 +227,5 @@ public final class HarvesterWork {
         for (BlockPos pos : treeBlocks(tree)) {
             level.setBlock(pos, level.getBlockState(pos).getFluidState().createLegacyBlock(), Block.UPDATE_CLIENTS);
         }
-    }
-
-    /** The wood break sound with break particles of that block at the tree's base. */
-    public static void showFelled(ServerLevel level, BlockPos base, BlockState log) {
-        level.levelEvent(LevelEvent.PARTICLES_DESTROY_BLOCK, base, Block.getId(log));
     }
 }
