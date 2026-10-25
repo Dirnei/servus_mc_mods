@@ -369,6 +369,15 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("tooltip.servus_shuttles.module.harvester", "Harvests, tills and plants fields; field work only");
         add("tooltip.servus_shuttles.module.spreader", "Spreads fertilizer on growing crops; field work only");
         add("tooltip.servus_shuttles.module.lumber", "Fells trees and plants saplings on tree fields; field work only");
+        add("subtitles.servus_shuttles.chainsaw.idle", "Chainsaw idles");
+        add("subtitles.servus_shuttles.chainsaw.cut", "Chainsaw cuts");
+        add("subtitles.servus_shuttles.chainsaw.stop", "Chainsaw stops");
+        add("subtitles.servus_shuttles.hold.doors_open", "Hold doors open");
+        add("subtitles.servus_shuttles.hold.walls_down", "Stabilizers land");
+        add("subtitles.servus_shuttles.crane.up", "Crane rises");
+        add("subtitles.servus_shuttles.crane.down", "Crane folds in");
+        add("subtitles.servus_shuttles.hold.walls_up", "Stabilizers rise");
+        add("subtitles.servus_shuttles.hold.doors_shut", "Hold doors shut");
         add("tooltip.servus_shuttles.module.tanker", "Carries fluids between Fluid Gantries; tanker runs only");
         add(ServusShuttlesItems.ZONE_LABEL.get(), "Zone Label");
         add("gui.servus_shuttles.production.pattern_recipe", "%s %s from %s");

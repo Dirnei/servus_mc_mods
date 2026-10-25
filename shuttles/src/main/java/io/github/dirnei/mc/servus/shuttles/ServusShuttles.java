@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesRecipes;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesSounds;
 import java.util.List;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.bus.api.IEventBus;
@@ -34,6 +35,7 @@ public final class ServusShuttles {
         ServusShuttlesMenus.MENUS.register(modEventBus);
         ServusShuttlesComponents.COMPONENTS.register(modEventBus);
         ServusShuttlesRecipes.RECIPE_SERIALIZERS.register(modEventBus);
+        ServusShuttlesSounds.SOUNDS.register(modEventBus);
         NetworkTypes.register(WarehouseNetwork.TYPE);
         for (var block : List.of(ServusShuttlesBlocks.CRAFTING_CPU, ServusShuttlesBlocks.CPU_BUFFER, ServusShuttlesBlocks.PACKING_STATION,
                 ServusShuttlesBlocks.INBOUND_STATION, ServusShuttlesBlocks.OUTBOUND_STATION, ServusShuttlesBlocks.STORAGE_TERMINAL,

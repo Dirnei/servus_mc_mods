@@ -4,142 +4,143 @@
     {
       "faces": {
         "down": {
-          "texture": "#electric_pump_steel",
+          "texture": "#diamond_block",
           "uv": [
             0,
             0,
-            6,
-            4
+            5.25,
+            10.5
           ]
         },
         "east": {
-          "texture": "#electric_pump_steel",
+          "texture": "#diamond_block",
           "uv": [
             0,
             0,
-            4,
-            0.5
+            10.5,
+            0.6999998
           ]
         },
         "north": {
-          "texture": "#electric_pump_steel",
+          "texture": "#diamond_block",
           "uv": [
             0,
             0,
-            6,
-            0.5
+            5.25,
+            0.6999998
           ]
         },
         "south": {
-          "texture": "#electric_pump_steel",
+          "texture": "#diamond_block",
           "uv": [
             0,
             0,
-            6,
-            0.5
+            5.25,
+            0.6999998
           ]
         },
         "up": {
-          "texture": "#electric_pump_steel",
+          "texture": "#diamond_block",
           "uv": [
             0,
             0,
-            6,
-            4
+            5.25,
+            10.5
           ]
         },
         "west": {
-          "texture": "#electric_pump_steel",
+          "texture": "#diamond_block",
           "uv": [
             0,
             0,
-            4,
-            0.5
+            10.5,
+            0.6999998
           ]
         }
       },
       "from": [
-        5,
-        7.75,
-        6
+        8,
+        11.6,
+        2.75
       ],
       "to": [
-        11,
-        8.25,
-        10
+        13.25,
+        12.3,
+        13.25
       ]
     },
     {
       "faces": {
         "down": {
-          "texture": "#electric_pump_steel",
+          "texture": "#smooth_stone",
           "uv": [
             0,
             0,
-            4,
-            6
+            3.5,
+            8
           ]
         },
         "east": {
-          "texture": "#electric_pump_steel",
+          "texture": "#smooth_stone",
           "uv": [
             0,
             0,
-            6,
-            0.6000004
+            8,
+            0.19999981
           ]
         },
         "north": {
-          "texture": "#electric_pump_steel",
+          "texture": "#smooth_stone",
           "uv": [
             0,
             0,
-            4,
-            0.6000004
+            3.5,
+            0.19999981
           ]
         },
         "south": {
-          "texture": "#electric_pump_steel",
+          "texture": "#smooth_stone",
           "uv": [
             0,
             0,
-            4,
-            0.6000004
+            3.5,
+            0.19999981
           ]
         },
         "up": {
-          "texture": "#electric_pump_steel",
+          "texture": "#smooth_stone",
           "uv": [
             0,
             0,
-            4,
-            6
+            3.5,
+            8
           ]
         },
         "west": {
-          "texture": "#electric_pump_steel",
+          "texture": "#smooth_stone",
           "uv": [
             0,
             0,
-            6,
-            0.6000004
+            8,
+            0.19999981
           ]
         }
       },
       "from": [
-        6,
-        7.7,
-        5
+        8.75,
+        12.3,
+        4
       ],
       "to": [
-        10,
-        8.3,
-        11
+        12.25,
+        12.5,
+        12
       ]
     }
   ],
   "textures": {
-    "electric_pump_steel": "servus_foundation:block/electric_pump_steel",
-    "particle": "servus_foundation:block/electric_pump_steel"
+    "diamond_block": "minecraft:block/diamond_block",
+    "particle": "minecraft:block/diamond_block",
+    "smooth_stone": "minecraft:block/smooth_stone"
   }
 }

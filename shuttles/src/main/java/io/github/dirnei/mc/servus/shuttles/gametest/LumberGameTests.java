@@ -8,6 +8,7 @@ import static io.github.dirnei.mc.servus.shuttles.gametest.FarmFixtures.noItemsL
 import static io.github.dirnei.mc.servus.shuttles.gametest.FarmFixtures.out;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.field.FertilizeMode;
 import io.github.dirnei.mc.servus.shuttles.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.shuttles.field.FieldHeadBlockEntity;
@@ -26,6 +27,8 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleModules;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleProfile;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleTiers;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -232,7 +235,7 @@ public final class LumberGameTests {
      * trunk and the leaves it holds, logs reach the To storage buffer, nothing
      * drops, and the spot holds a new oak sapling.
      */
-    @ServusGameTest(template = TALL, timeoutTicks = 700)
+    @ServusGameTest(template = TALL, timeoutTicks = 900)
     public static void lumberFellsOak(GameTestHelper helper) {
         BlockPos spot = spot(helper);
         oak(helper, spot);
@@ -241,7 +244,7 @@ public final class LumberGameTests {
         helper.runAfterDelay(2, () -> {
             trees(farm.head(), new ItemStack(Items.OAK_SAPLING), false);
             farm.head().fillSupply(SupplyBuffer.Part.SEEDS, Items.OAK_SAPLING, 64);
-            Waits.when(helper, () -> trunkGone(helper, spot) && helper.getBlockState(spot).is(Blocks.OAK_SAPLING) && out(helper) == 0, 650,
+            Waits.when(helper, () -> trunkGone(helper, spot) && helper.getBlockState(spot).is(Blocks.OAK_SAPLING) && out(helper) == 0, 850,
                     () -> "the oak should be felled and replanted, out " + out(helper) + ", spot " + helper.getBlockState(spot)
                             + ", work " + farm.head().work(), () -> {
                         helper.assertTrue(HarvesterGameTests.toStorage(farm, Items.OAK_LOG) == OAK_HEIGHT,
@@ -427,7 +430,7 @@ public final class LumberGameTests {
     }
 
     /** A Lumber shuttle whose garage reloads while it carries logs brings them to the head and finishes the run. */
-    @ServusGameTest(template = TALL, timeoutTicks = 800)
+    @ServusGameTest(template = TALL, timeoutTicks = 1000)
     public static void runSurvivesReload(GameTestHelper helper) {
         BlockPos spot = spot(helper);
         oak(helper, spot);
@@ -437,7 +440,7 @@ public final class LumberGameTests {
             trees(farm.head(), new ItemStack(Items.OAK_SAPLING), false);
             farm.head().setHarvestOnly(true);
             Waits.when(helper, () -> trunkGone(helper, spot) && FarmFixtures.network(helper).garageOut(garage) > 0,
-                    500, () -> "the Lumber shuttle should fell the oak and still be out", () -> {
+                    600, () -> "the Lumber shuttle should fell the oak and still be out", () -> {
                         FleetPersistenceGameTests.reload(helper, GARAGE, tag -> { }, () -> { });
                         Waits.when(helper, () -> HarvesterGameTests.toStorage(farm, Items.OAK_LOG) == OAK_HEIGHT && out(helper) == 0, 500,
                                 () -> "the logs should reach the head, it holds " + HarvesterGameTests.toStorage(farm, Items.OAK_LOG)
@@ -501,11 +504,11 @@ public final class LumberGameTests {
      * The tree's blocks are gone as the topple part starts and its drops are
      * aboard; the spot is planted only once the topple part is over.
      */
-    @ServusGameTest(template = TALL, timeoutTicks = 700)
+    @ServusGameTest(template = TALL, timeoutTicks = 900)
     public static void toppleRemovesThenPlants(GameTestHelper helper) {
         BlockPos spot = spot(helper);
         FarmFixtures.Farm farm = oakField(helper, spot, lumber());
-        Waits.when(helper, () -> inPhase(helper, ShuttleView.Felling.Phase.TOPPLE), 500, () -> "the oak should start to topple", () -> {
+        Waits.when(helper, () -> inPhase(helper, ShuttleView.Felling.Phase.TOPPLE), 600, () -> "the oak should start to topple", () -> {
             long toppled = helper.getLevel().getGameTime();
             helper.assertTrue(trunkGone(helper, spot), "the logs are gone when the topple part starts");
             helper.assertTrue(!helper.getBlockState(spot).is(Blocks.OAK_SAPLING), "the spot is not planted yet");
@@ -522,7 +525,7 @@ public final class LumberGameTests {
     }
 
     /** Handling shortens the saw part and leaves the topple part as long as it is. */
-    @ServusGameTest(template = TALL, timeoutTicks = 700)
+    @ServusGameTest(template = TALL, timeoutTicks = 900)
     public static void handlingShortensOnlyTheSaw(GameTestHelper helper) {
         ItemStack shuttle = new ItemStack(ServusShuttlesItems.SHUTTLE_MK3.get());
         ShuttleModules.set(shuttle, new ShuttleModules(Optional.of(ServusShuttlesItems.LUMBER.get()), 0, 2));
@@ -530,7 +533,7 @@ public final class LumberGameTests {
         int saw = ShuttleTiers.workTicks(ShuttlesStatsManager.INSTANCE.fellTicks(), profile.handling());
         helper.assertTrue(saw < ShuttlesStatsManager.INSTANCE.fellTicks(), "two Handling upgrades shorten the saw part, got " + saw);
         oakField(helper, spot(helper), shuttle);
-        Waits.when(helper, () -> inPhase(helper, ShuttleView.Felling.Phase.SAW), 400, () -> "the shuttle should start to saw", () -> {
+        Waits.when(helper, () -> inPhase(helper, ShuttleView.Felling.Phase.SAW), 500, () -> "the shuttle should start to saw", () -> {
             helper.assertTrue(felling(helper).get().ticks() == saw, "the saw part takes " + saw + " ticks, got " + felling(helper).get().ticks());
             Waits.when(helper, () -> inPhase(helper, ShuttleView.Felling.Phase.TOPPLE), 200, () -> "the oak should topple", () -> {
                 helper.assertTrue(felling(helper).get().ticks() == ShuttlesStatsManager.INSTANCE.toppleTicks(),
@@ -541,12 +544,12 @@ public final class LumberGameTests {
     }
 
     /** A tree a player breaks while the shuttle saws is not felled: no topple, and the spot is planted. */
-    @ServusGameTest(template = TALL, timeoutTicks = 700)
+    @ServusGameTest(template = TALL, timeoutTicks = 900)
     public static void brokenTreeEndsTheSaw(GameTestHelper helper) {
         BlockPos spot = spot(helper);
         FarmFixtures.Farm farm = oakField(helper, spot, lumber());
         boolean[] toppled = {false};
-        Waits.when(helper, () -> inPhase(helper, ShuttleView.Felling.Phase.SAW), 500, () -> "the shuttle should start to saw", () -> {
+        Waits.when(helper, () -> inPhase(helper, ShuttleView.Felling.Phase.SAW), 600, () -> "the shuttle should start to saw", () -> {
             for (int y = 0; y < OAK_HEIGHT; y++) {
                 helper.setBlock(spot.above(y), Blocks.AIR.defaultBlockState());
             }
@@ -562,19 +565,161 @@ public final class LumberGameTests {
     }
 
     /** A run saved while the tree topples goes on after a reload and brings the logs home. */
-    @ServusGameTest(template = TALL, timeoutTicks = 800)
+    @ServusGameTest(template = TALL, timeoutTicks = 1000)
     public static void reloadDuringTopple(GameTestHelper helper) {
         BlockPos spot = spot(helper);
         FarmFixtures.Farm farm = oakField(helper, spot, lumber());
-        Waits.when(helper, () -> inPhase(helper, ShuttleView.Felling.Phase.TOPPLE), 500, () -> "the oak should start to topple", () -> {
+        Waits.when(helper, () -> inPhase(helper, ShuttleView.Felling.Phase.TOPPLE), 600, () -> "the oak should start to topple", () -> {
             FleetPersistenceGameTests.reload(helper, GARAGE, tag -> { }, () -> { });
             Waits.when(helper, () -> helper.getBlockState(spot).is(Blocks.OAK_SAPLING) && out(helper) == 0
-                            && HarvesterGameTests.toStorage(farm, Items.OAK_LOG) == OAK_HEIGHT, 500,
+                            && HarvesterGameTests.toStorage(farm, Items.OAK_LOG) == OAK_HEIGHT, 600,
                     () -> "the run should go on, plant the spot and bring the logs home, logs " + HarvesterGameTests.toStorage(farm, Items.OAK_LOG)
                             + ", out " + out(helper), () -> {
                         helper.assertTrue(noItemsLying(helper), "nothing drops");
                         helper.succeed();
                     });
         });
+    }
+
+    /** A Mk3 Lumber shuttle with two Handling upgrades: room for two oaks' drops, and Handling that must not shorten unfolding. */
+    private static ItemStack roomyLumber() {
+        ItemStack shuttle = new ItemStack(ServusShuttlesItems.SHUTTLE_MK3.get());
+        ShuttleModules.set(shuttle, new ShuttleModules(Optional.of(ServusShuttlesItems.LUMBER.get()), 0, 2));
+        return shuttle;
+    }
+
+    /**
+     * What the farm's shuttle did, tick by tick: each felling phase it
+     * showed, apart from standing ready, and MOVE while it drove, each
+     * written once for as long as it lasts; the ticks each unfold and fold
+     * part was given; and whether it ever moved while unfolding or folding.
+     */
+    private static final class Record {
+        final List<String> steps = new ArrayList<>();
+        final List<Integer> unfoldTicks = new ArrayList<>();
+        boolean movedUnfolded;
+
+        /** Starts recording; called as the test starts, since a running tick may not add tick work. */
+        static Record of(GameTestHelper helper) {
+            Record record = new Record();
+            helper.onEachTick(() -> record.tick(helper));
+            return record;
+        }
+
+        private void tick(GameTestHelper helper) {
+            Optional<ShuttleView> view = helper.getBlockEntity(FarmFixtures.CONTROLLER, WarehouseControllerBlockEntity.class).network()
+                    .flatMap(network -> network.shuttleViews(helper.absolutePos(GARAGE)).stream().findFirst());
+            if (view.isEmpty()) {
+                return;
+            }
+            Optional<ShuttleView.Felling> felling = view.get().felling();
+            String step = felling.map(fell -> fell.phase().name()).orElse(view.get().moving() ? "MOVE" : null);
+            if (felling.isPresent() && view.get().moving()) {
+                movedUnfolded = true;
+            }
+            if (step == null || step.equals(ShuttleView.Felling.Phase.READY.name()) || (!steps.isEmpty() && steps.getLast().equals(step))) {
+                return;
+            }
+            steps.add(step);
+            felling.filter(fell -> fell.phase() == ShuttleView.Felling.Phase.UNFOLD || fell.phase() == ShuttleView.Felling.Phase.FOLD)
+                    .ifPresent(fell -> unfoldTicks.add(fell.ticks()));
+        }
+
+        void clear() {
+            steps.clear();
+            unfoldTicks.clear();
+        }
+
+        /** The steps from the first unfold to the last fold. */
+        String felling() {
+            int from = steps.indexOf(ShuttleView.Felling.Phase.UNFOLD.name());
+            int to = steps.lastIndexOf(ShuttleView.Felling.Phase.FOLD.name());
+            return from < 0 || to < from ? "" : String.join(" ", steps.subList(from, to + 1));
+        }
+
+        int count(ShuttleView.Felling.Phase phase) {
+            return (int) steps.stream().filter(phase.name()::equals).count();
+        }
+    }
+
+    /**
+     * Two oaks worked from one rail: the shuttle unfolds once, in
+     * {@code unfold_ticks} that Handling does not shorten, fells both without
+     * folding in between, and folds once before it drives off to unload,
+     * standing still while it unfolds and folds.
+     */
+    @ServusGameTest(template = TALL, timeoutTicks = 1100)
+    public static void twoOaksAtOneRailUnfoldOnce(GameTestHelper helper) {
+        BlockPos spot = spot(helper);
+        BlockPos south = new BlockPos(spot.getX(), 1, 2 * RAIL_Z - spot.getZ());
+        oak(helper, south);
+        FarmFixtures.Farm farm = oakField(helper, spot, roomyLumber());
+        Record record = Record.of(helper);
+        Waits.when(helper, () -> trunkGone(helper, spot) && trunkGone(helper, south) && out(helper) == 0, 1050,
+                () -> "both oaks should be felled, steps " + record.steps, () -> {
+                    helper.assertTrue(record.felling().equals("UNFOLD SAW TOPPLE SAW TOPPLE FOLD"),
+                            "one unfold, two trees, one fold, got " + record.steps);
+                    helper.assertTrue(record.unfoldTicks.stream().allMatch(ticks -> ticks == ShuttlesStatsManager.INSTANCE.unfoldTicks()),
+                            "unfolding and folding take unfold_ticks, got " + record.unfoldTicks);
+                    helper.assertTrue(!record.movedUnfolded, "the shuttle stands still while it is unfolded");
+                    helper.assertTrue(HarvesterGameTests.toStorage(farm, Items.OAK_LOG) == 2 * OAK_HEIGHT,
+                            "the logs of both oaks are unloaded, got " + HarvesterGameTests.toStorage(farm, Items.OAK_LOG));
+                    helper.succeed();
+                });
+    }
+
+    /** Oaks at two rails: the shuttle folds before it drives to the second rail and unfolds again there. */
+    @ServusGameTest(template = TALL, timeoutTicks = 1200)
+    public static void foldsBeforeTheNextRail(GameTestHelper helper) {
+        BlockPos spot = spot(helper);
+        BlockPos east = spot.offset(2, 0, 0);
+        oak(helper, east);
+        oakField(helper, spot, roomyLumber());
+        Record record = Record.of(helper);
+        Waits.when(helper, () -> trunkGone(helper, spot) && trunkGone(helper, east) && out(helper) == 0, 1150,
+                () -> "both oaks should be felled, steps " + record.steps, () -> {
+                    helper.assertTrue(record.felling().equals("UNFOLD SAW TOPPLE FOLD MOVE UNFOLD SAW TOPPLE FOLD"),
+                            "fold, drive, unfold again, got " + record.steps);
+                    helper.assertTrue(!record.movedUnfolded, "the shuttle stands still while it is unfolded");
+                    helper.succeed();
+                });
+    }
+
+    /** A stop where the shuttle only plants saplings does not unfold. */
+    @ServusGameTest(template = TALL, timeoutTicks = 500)
+    public static void plantingDoesNotUnfold(GameTestHelper helper) {
+        BlockPos spot = spot(helper);
+        FarmFixtures.Farm farm = treeFarm(helper, lumber());
+        Record record = Record.of(helper);
+        helper.runAfterDelay(2, () -> {
+            trees(farm.head(), new ItemStack(Items.OAK_SAPLING), false);
+            farm.head().fillSupply(SupplyBuffer.Part.SEEDS, Items.OAK_SAPLING, 64);
+            Waits.when(helper, () -> helper.getBlockState(spot).is(Blocks.OAK_SAPLING) && out(helper) == 0, 450,
+                    () -> "the spot should be planted, out " + out(helper), () -> {
+                        helper.assertTrue(record.count(ShuttleView.Felling.Phase.UNFOLD) == 0 && record.count(ShuttleView.Felling.Phase.FOLD) == 0,
+                                "planting needs no crane, got " + record.steps);
+                        helper.succeed();
+                    });
+        });
+    }
+
+    /** A run saved while the shuttle unfolds restores folded: it unfolds again from the start, then fells the oak. */
+    @ServusGameTest(template = TALL, timeoutTicks = 1000)
+    public static void reloadDuringUnfoldRestoresFolded(GameTestHelper helper) {
+        BlockPos spot = spot(helper);
+        FarmFixtures.Farm farm = oakField(helper, spot, lumber());
+        Record record = Record.of(helper);
+        Waits.when(helper, () -> felling(helper).filter(fell -> fell.phase() == ShuttleView.Felling.Phase.UNFOLD && fell.elapsed() > 5).isPresent(),
+                500, () -> "the shuttle should start to unfold", () -> {
+                    FleetPersistenceGameTests.reload(helper, GARAGE, tag -> { }, () -> { });
+                    record.clear();
+                    Waits.when(helper, () -> trunkGone(helper, spot) && helper.getBlockState(spot).is(Blocks.OAK_SAPLING) && out(helper) == 0, 800,
+                            () -> "the run should fell the oak after the reload, steps " + record.steps, () -> {
+                                helper.assertTrue(record.felling().startsWith("UNFOLD SAW TOPPLE"),
+                                        "the restored shuttle unfolds again before it saws, got " + record.steps);
+                                helper.assertTrue(HarvesterGameTests.toStorage(farm, Items.OAK_LOG) == OAK_HEIGHT, "the logs reach the head");
+                                helper.succeed();
+                            });
+                });
     }
 }

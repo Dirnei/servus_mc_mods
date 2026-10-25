@@ -1,0 +1,214 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#yellow_terracotta",
+          "uv": [
+            0,
+            0,
+            7,
+            4
+          ]
+        },
+        "east": {
+          "texture": "#yellow_terracotta",
+          "uv": [
+            0,
+            0,
+            4,
+            8.5
+          ]
+        },
+        "north": {
+          "texture": "#yellow_terracotta",
+          "uv": [
+            0,
+            0,
+            7,
+            8.5
+          ]
+        },
+        "south": {
+          "texture": "#yellow_terracotta",
+          "uv": [
+            0,
+            0,
+            7,
+            8.5
+          ]
+        },
+        "up": {
+          "texture": "#yellow_terracotta",
+          "uv": [
+            0,
+            0,
+            7,
+            4
+          ]
+        },
+        "west": {
+          "texture": "#yellow_terracotta",
+          "uv": [
+            0,
+            0,
+            4,
+            8.5
+          ]
+        }
+      },
+      "from": [
+        4.5,
+        -4,
+        5.5
+      ],
+      "to": [
+        11.5,
+        4.5,
+        9.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            5,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.5,
+            6.5
+          ]
+        },
+        "north": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            5,
+            6.5
+          ]
+        },
+        "south": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            5,
+            6.5
+          ]
+        },
+        "up": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            5,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.5,
+            6.5
+          ]
+        }
+      },
+      "from": [
+        5.5,
+        -3,
+        5
+      ],
+      "to": [
+        10.5,
+        3.5,
+        5.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.7999997,
+            1
+          ]
+        },
+        "east": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ]
+        },
+        "north": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.7999997,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.7999997,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.7999997,
+            1
+          ]
+        },
+        "west": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ]
+        }
+      },
+      "from": [
+        7.6,
+        -2,
+        9.5
+      ],
+      "to": [
+        8.4,
+        0,
+        10.5
+      ]
+    }
+  ],
+  "textures": {
+    "heavy_rack_iron": "servus_shuttles:block/heavy_rack_iron",
+    "particle": "servus_foundation:block/electric_pump_steel",
+    "yellow_terracotta": "minecraft:block/yellow_terracotta"
+  }
+}

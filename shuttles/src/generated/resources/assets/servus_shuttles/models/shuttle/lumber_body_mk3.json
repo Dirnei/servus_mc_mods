@@ -1,0 +1,146 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            12,
+            12
+          ]
+        },
+        "east": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            12,
+            2
+          ]
+        },
+        "north": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            12,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            12,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            12,
+            12
+          ]
+        },
+        "west": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            12,
+            2
+          ]
+        }
+      },
+      "from": [
+        2,
+        2,
+        2
+      ],
+      "to": [
+        14,
+        4,
+        14
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#diamond_block",
+          "uv": [
+            0,
+            0,
+            10.5,
+            10.5
+          ]
+        },
+        "east": {
+          "texture": "#diamond_block",
+          "uv": [
+            0,
+            0,
+            10.5,
+            0.75
+          ]
+        },
+        "north": {
+          "texture": "#diamond_block",
+          "uv": [
+            0,
+            0,
+            10.5,
+            0.75
+          ]
+        },
+        "south": {
+          "texture": "#diamond_block",
+          "uv": [
+            0,
+            0,
+            10.5,
+            0.75
+          ]
+        },
+        "up": {
+          "texture": "#diamond_block",
+          "uv": [
+            0,
+            0,
+            10.5,
+            10.5
+          ]
+        },
+        "west": {
+          "texture": "#diamond_block",
+          "uv": [
+            0,
+            0,
+            10.5,
+            0.75
+          ]
+        }
+      },
+      "from": [
+        2.75,
+        4,
+        2.75
+      ],
+      "to": [
+        13.25,
+        4.75,
+        13.25
+      ]
+    }
+  ],
+  "textures": {
+    "diamond_block": "minecraft:block/diamond_block",
+    "particle": "minecraft:block/diamond_block",
+    "smooth_stone": "minecraft:block/smooth_stone"
+  }
+}

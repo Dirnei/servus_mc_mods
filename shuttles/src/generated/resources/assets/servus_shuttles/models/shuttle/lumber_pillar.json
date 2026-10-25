@@ -4,74 +4,74 @@
     {
       "faces": {
         "down": {
-          "texture": "#electric_pump_steel",
+          "texture": "#yellow_terracotta",
           "uv": [
             0,
             0,
-            3,
-            2
+            2.8999996,
+            3
           ]
         },
         "east": {
-          "texture": "#electric_pump_steel",
+          "texture": "#yellow_terracotta",
           "uv": [
             0,
             0,
-            2,
-            1.5
+            3,
+            3.5
           ]
         },
         "north": {
-          "texture": "#electric_pump_steel",
+          "texture": "#yellow_terracotta",
           "uv": [
             0,
             0,
-            3,
-            1.5
+            2.8999996,
+            3.5
           ]
         },
         "south": {
-          "texture": "#electric_pump_steel",
+          "texture": "#yellow_terracotta",
           "uv": [
             0,
             0,
-            3,
-            1.5
+            2.8999996,
+            3.5
           ]
         },
         "up": {
-          "texture": "#electric_pump_steel",
+          "texture": "#yellow_terracotta",
+          "uv": [
+            0,
+            0,
+            2.8999996,
+            3
+          ]
+        },
+        "west": {
+          "texture": "#yellow_terracotta",
           "uv": [
             0,
             0,
             3,
-            2
-          ]
-        },
-        "west": {
-          "texture": "#electric_pump_steel",
-          "uv": [
-            0,
-            0,
-            2,
-            1.5
+            3.5
           ]
         }
       },
       "from": [
-        6.5,
-        8,
-        7
+        6.55,
+        5.5,
+        10
       ],
       "to": [
-        9.5,
-        9.5,
-        9
+        9.45,
+        9,
+        13
       ]
     }
   ],
   "textures": {
-    "electric_pump_steel": "servus_foundation:block/electric_pump_steel",
-    "particle": "servus_foundation:block/electric_pump_steel"
+    "particle": "servus_foundation:block/electric_pump_steel",
+    "yellow_terracotta": "minecraft:block/yellow_terracotta"
   }
 }

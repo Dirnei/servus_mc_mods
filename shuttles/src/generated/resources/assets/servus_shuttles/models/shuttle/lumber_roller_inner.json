@@ -4,69 +4,69 @@
     {
       "faces": {
         "down": {
-          "texture": "#electric_pump_steel",
+          "texture": "#yellow_terracotta",
           "uv": [
             0,
             0,
-            1,
+            10.4,
             1
           ]
         },
         "east": {
-          "texture": "#electric_pump_steel",
+          "texture": "#yellow_terracotta",
           "uv": [
             0,
             0,
             1,
-            6.8999996
+            4.5
           ]
         },
         "north": {
-          "texture": "#electric_pump_steel",
+          "texture": "#yellow_terracotta",
           "uv": [
             0,
             0,
-            1,
-            6.8999996
+            10.4,
+            4.5
           ]
         },
         "south": {
-          "texture": "#electric_pump_steel",
+          "texture": "#yellow_terracotta",
           "uv": [
             0,
             0,
-            1,
-            6.8999996
+            10.4,
+            4.5
           ]
         },
         "up": {
-          "texture": "#electric_pump_steel",
+          "texture": "#yellow_terracotta",
           "uv": [
             0,
             0,
-            1,
+            10.4,
             1
           ]
         },
         "west": {
-          "texture": "#electric_pump_steel",
+          "texture": "#yellow_terracotta",
           "uv": [
             0,
             0,
             1,
-            6.8999996
+            4.5
           ]
         }
       },
       "from": [
         7.5,
-        4.05,
-        11.5
+        8,
+        7.5
       ],
       "to": [
-        8.5,
-        10.95,
-        12.5
+        17.9,
+        12.5,
+        8.5
       ]
     },
     {
@@ -76,8 +76,8 @@
           "uv": [
             0,
             0,
-            4,
-            3
+            1.2000008,
+            1.2000003
           ]
         },
         "east": {
@@ -85,8 +85,8 @@
           "uv": [
             0,
             0,
-            3,
-            1
+            1.2000003,
+            5.1000004
           ]
         },
         "north": {
@@ -94,8 +94,8 @@
           "uv": [
             0,
             0,
-            4,
-            1
+            1.2000008,
+            5.1000004
           ]
         },
         "south": {
@@ -103,8 +103,8 @@
           "uv": [
             0,
             0,
-            4,
-            1
+            1.2000008,
+            5.1000004
           ]
         },
         "up": {
@@ -112,8 +112,8 @@
           "uv": [
             0,
             0,
-            4,
-            3
+            1.2000008,
+            1.2000003
           ]
         },
         "west": {
@@ -121,26 +121,26 @@
           "uv": [
             0,
             0,
-            3,
-            1
+            1.2000003,
+            5.1000004
           ]
         }
       },
       "from": [
-        6,
-        11,
-        10.5
+        16.8,
+        7.7,
+        7.4
       ],
       "to": [
-        10,
-        12,
-        13.5
+        18,
+        12.8,
+        8.6
       ]
     }
   ],
   "textures": {
-    "electric_pump_steel": "servus_foundation:block/electric_pump_steel",
     "heavy_rack_iron": "servus_shuttles:block/heavy_rack_iron",
-    "particle": "servus_foundation:block/electric_pump_steel"
+    "particle": "servus_foundation:block/electric_pump_steel",
+    "yellow_terracotta": "minecraft:block/yellow_terracotta"
   }
 }

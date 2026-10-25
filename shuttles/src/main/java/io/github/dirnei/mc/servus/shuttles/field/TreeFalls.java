@@ -18,8 +18,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
  */
 public final class TreeFalls {
 
-    /** The percent of the topple part the fall and the break apart take; the arm folds back in the rest. */
-    public static final int FALL_SHARE = 80;
+    /** The percent of the topple part the fall and the break apart take; the head swings home in the rest. */
+    public static final int FALL_SHARE = HarvesterTimeline.FALL_PERCENT;
 
     private TreeFalls() {
     }

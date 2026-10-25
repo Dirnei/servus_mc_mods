@@ -16,20 +16,25 @@ import net.neoforged.neoforge.fluids.FluidStack;
  * segment and the shuttle is drawn on the car. The shuttle item tells its
  * tier, upgrades and tool; a tanker carrying fluid shows it in its sight glass.
  * A shuttle behind another in its lane carries the point it must stay behind;
- * a Lumber shuttle felling a tree carries the trunk and its felling phase.
+ * an unfolded Lumber shuttle carries the tree it fells and its felling phase.
  */
 public record ShuttleView(List<BlockPos> path, int segment, float progress, Drive drive, ItemStack cargo, Optional<BlockPos> lift,
                           ItemStack shuttle, Optional<SightGlass> glass, Optional<Lead> lead, Optional<Felling> felling) {
 
     /**
-     * A Lumber shuttle at work on a tree: the trunk's plot, the phase, how
-     * many ticks the phase lasts and how many of them had passed at the sync.
+     * A Lumber shuttle unfolded at a rail: the base log of the tree its head
+     * grips, or last gripped, the phase, how many ticks the phase lasts and
+     * how many of them had passed at the sync.
      */
     public record Felling(BlockPos trunk, Phase phase, int ticks, int elapsed) {
 
-        /** The saw part (reach, grip, saw) and the topple part (fall, break apart, fold back). */
+        /**
+         * Unfolding before the first tree of a stop, standing unfolded between
+         * trees, the saw part (reach, grip, cut), the topple part (let go, fall,
+         * break apart, swing home) and folding before the shuttle drives on.
+         */
         public enum Phase {
-            SAW, TOPPLE;
+            UNFOLD, READY, SAW, TOPPLE, FOLD;
 
             private static final Phase[] VALUES = values();
 

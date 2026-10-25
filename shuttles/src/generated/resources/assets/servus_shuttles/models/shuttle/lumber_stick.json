@@ -1,0 +1,77 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#yellow_terracotta",
+          "uv": [
+            0,
+            0,
+            2.5,
+            9
+          ]
+        },
+        "east": {
+          "texture": "#yellow_terracotta",
+          "uv": [
+            0,
+            0,
+            9,
+            2.5
+          ]
+        },
+        "north": {
+          "texture": "#yellow_terracotta",
+          "uv": [
+            0,
+            0,
+            2.5,
+            2.5
+          ]
+        },
+        "south": {
+          "texture": "#yellow_terracotta",
+          "uv": [
+            0,
+            0,
+            2.5,
+            2.5
+          ]
+        },
+        "up": {
+          "texture": "#yellow_terracotta",
+          "uv": [
+            0,
+            0,
+            2.5,
+            9
+          ]
+        },
+        "west": {
+          "texture": "#yellow_terracotta",
+          "uv": [
+            0,
+            0,
+            9,
+            2.5
+          ]
+        }
+      },
+      "from": [
+        6.75,
+        6.75,
+        8
+      ],
+      "to": [
+        9.25,
+        9.25,
+        17
+      ]
+    }
+  ],
+  "textures": {
+    "particle": "servus_foundation:block/electric_pump_steel",
+    "yellow_terracotta": "minecraft:block/yellow_terracotta"
+  }
+}

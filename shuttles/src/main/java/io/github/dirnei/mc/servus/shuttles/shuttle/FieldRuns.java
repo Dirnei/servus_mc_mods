@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.shuttles.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.field.FieldRoute;
 import io.github.dirnei.mc.servus.shuttles.field.FieldStatus;
 import io.github.dirnei.mc.servus.shuttles.field.HarvestStep;
+import io.github.dirnei.mc.servus.shuttles.field.HarvesterPose;
 import io.github.dirnei.mc.servus.shuttles.field.HarvesterWork;
 import io.github.dirnei.mc.servus.shuttles.field.PlotState;
 import io.github.dirnei.mc.servus.shuttles.field.PlotWork;
@@ -133,9 +134,10 @@ final class FieldRuns {
     }
 
     /**
-     * Ticks before the next plot of the stop is worked: the saw part of
-     * felling for a grown tree whose drops have room, which the shuttle's
-     * view then shows, else {@code otherwise}.
+     * Ticks before the next plot of the stop is worked: for a grown tree whose
+     * drops have room the saw part of felling, or first unfolding when the
+     * shuttle is still folded, which the shuttle's view then shows, else
+     * {@code otherwise}.
      */
     private int stepTicks(Shuttle shuttle, HarvestRun run, FieldHeadBlockEntity head, int otherwise) {
         run.felling = null;
@@ -143,9 +145,63 @@ final class FieldRuns {
         if (next == null || head.classify(next) != PlotState.RIPE || !treeFits(run, head, next)) {
             return otherwise;
         }
-        int ticks = fellTicks(shuttle);
-        run.felling = new HarvestRun.Fell(next, ShuttleView.Felling.Phase.SAW, ticks);
+        BlockPos grip = gripLog(head, next, Conversions.toBlockPos(shuttle.at()));
+        ShuttleView.Felling.Phase phase = run.unfolded ? ShuttleView.Felling.Phase.SAW : ShuttleView.Felling.Phase.UNFOLD;
+        int ticks = run.unfolded ? fellTicks(shuttle) : ShuttlesStatsManager.INSTANCE.unfoldTicks();
+        fell(run, next, grip, phase, ticks);
         return ticks;
+    }
+
+    private static void fell(HarvestRun run, BlockPos plot, BlockPos grip, ShuttleView.Felling.Phase phase, int ticks) {
+        run.felling = new HarvestRun.Fell(plot, grip, phase, ticks);
+        run.lastGrip = grip;
+    }
+
+    /** The base log of the tree on the plot that the head grips: the one nearest the rail. */
+    private static BlockPos gripLog(FieldHeadBlockEntity head, BlockPos plot, BlockPos rail) {
+        List<BlockPos> base = head.treeBase(plot);
+        if (base.isEmpty()) {
+            return plot;
+        }
+        List<double[]> centres = new ArrayList<>(base.size());
+        for (BlockPos log : base) {
+            centres.add(new double[] {log.getX(), log.getY(), log.getZ()});
+        }
+        return base.get(HarvesterPose.nearestLog(centres, rail.getX(), rail.getZ()));
+    }
+
+    /**
+     * Before an unfolded Lumber shuttle leaves its rail: it folds, waiting at
+     * the rail, and goes on with {@code after} once folded; false when it is
+     * folded already.
+     */
+    private boolean startFold(Shuttle shuttle, HarvestRun run, HarvestRun.AfterFold after) {
+        if (!run.unfolded) {
+            return false;
+        }
+        int ticks = ShuttlesStatsManager.INSTANCE.unfoldTicks();
+        BlockPos grip = run.lastGrip == null ? Conversions.toBlockPos(shuttle.at()) : run.lastGrip;
+        fell(run, grip, grip, ShuttleView.Felling.Phase.FOLD, ticks);
+        run.countdown = ticks;
+        run.afterFold = after;
+        shuttle.leg = Leg.WORKING;
+        fleet.markSync();
+        return true;
+    }
+
+    /** The shuttle has folded: it goes on as it was about to before folding. */
+    private void finishFold(Shuttle shuttle, HarvestRun run) {
+        run.unfolded = false;
+        run.felling = null;
+        HarvestRun.AfterFold after = run.afterFold;
+        run.afterFold = null;
+        fleet.markSync();
+        FieldHeadBlockEntity head = servingHead(run.head);
+        if (after == HarvestRun.AfterFold.NEXT_RAIL && head != null) {
+            leaveRail(shuttle, run, head);
+        } else {
+            turn(shuttle);
+        }
     }
 
     /** Whether the drops of the tree on the plot, rolled now, fit into the cargo, or the cargo is empty; trees given up on fit. */
@@ -366,6 +422,9 @@ final class FieldRuns {
      */
     private void turn(Shuttle shuttle) {
         HarvestRun run = shuttle.run;
+        if (startFold(shuttle, run, HarvestRun.AfterFold.TURN)) {
+            return;
+        }
         run.felling = null;
         fleet.markSync();
         if (!fleet.onWay(shuttle, shuttle.at())) {
@@ -516,13 +575,20 @@ final class FieldRuns {
 
     /**
      * One tick at a rail: wait out the work time, then work the next plot that
-     * needs something. A felled tree topples while the shuttle waits, and its
-     * spot is planted once the topple part is over.
+     * needs something. A Lumber shuttle unfolds before its first tree and
+     * folds before it leaves; a felled tree topples while the shuttle waits,
+     * and its spot is planted once the topple part is over.
      */
     private void work(Shuttle shuttle) {
         HarvestRun run = shuttle.run;
         if (!fleet.onWay(shuttle, shuttle.at())) {
             lose(shuttle);
+            return;
+        }
+        if (run.felling != null && run.felling.phase() == ShuttleView.Felling.Phase.FOLD) {
+            if (--run.countdown <= 0) {
+                finishFold(shuttle, run);
+            }
             return;
         }
         FieldHeadBlockEntity head = servingHead(run.head);
@@ -533,6 +599,12 @@ final class FieldRuns {
             return;
         }
         if (--run.countdown > 0) {
+            return;
+        }
+        if (run.felling != null && run.felling.phase() == ShuttleView.Felling.Phase.UNFOLD) {
+            run.unfolded = true;
+            run.countdown = stepTicks(shuttle, run, head, 1);
+            fleet.markSync();
             return;
         }
         if (run.felling != null && run.felling.phase() == ShuttleView.Felling.Phase.TOPPLE) {
@@ -594,8 +666,11 @@ final class FieldRuns {
         leaveRail(shuttle, run, head);
     }
 
-    /** The stop is done: on to the nearest rail with work, else the run decides again. */
+    /** The stop is done: on to the nearest rail with work, else the run decides again; an unfolded Lumber shuttle folds first. */
     private void leaveRail(Shuttle shuttle, HarvestRun run, FieldHeadBlockEntity head) {
+        if (startFold(shuttle, run, HarvestRun.AfterFold.NEXT_RAIL)) {
+            return;
+        }
         run.visited.add(Conversions.toBlockPos(shuttle.at()));
         if (!goToWork(shuttle, head)) {
             if (!run.worked) {
@@ -699,6 +774,7 @@ final class FieldRuns {
         if (!run.cargo.fits(drops) && !run.cargo.isEmpty()) {
             return PlotResult.FULL;
         }
+        BlockPos grip = gripLog(head, plot, rail);
         TreeFalls.send(level, head, base, rail, tree, rolled, toppleShare());
         HarvesterWork.removeTree(level, tree);
         for (BlockPos removed : HarvesterWork.treeBlocks(tree)) {
@@ -707,12 +783,12 @@ final class FieldRuns {
         tally(run, drops, null);
         addOrStore(run, drops);
         int ticks = ShuttlesStatsManager.INSTANCE.toppleTicks();
-        run.felling = new HarvestRun.Fell(plot, ShuttleView.Felling.Phase.TOPPLE, ticks);
+        fell(run, plot, grip, ShuttleView.Felling.Phase.TOPPLE, ticks);
         run.countdown = ticks;
         return PlotResult.TOPPLING;
     }
 
-    /** The ticks of the topple part the fall and break apart take; the rest is the arm folding back. */
+    /** The ticks of the topple part the fall and break apart take; in the rest the head swings home. */
     private static int toppleShare() {
         return Math.max(1, ShuttlesStatsManager.INSTANCE.toppleTicks() * TreeFalls.FALL_SHARE / 100);
     }

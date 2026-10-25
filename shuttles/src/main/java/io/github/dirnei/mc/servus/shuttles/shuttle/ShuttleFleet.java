@@ -2325,14 +2325,21 @@ public final class ShuttleFleet {
         return list;
     }
 
-    /** The tree a Lumber shuttle is felling and how far into its phase it is; empty for every other shuttle. */
+    /**
+     * The felling phase of an unfolded Lumber shuttle and how far into it it
+     * is, standing ready between two trees; empty for every other shuttle.
+     */
     private static Optional<ShuttleView.Felling> felling(Shuttle shuttle) {
         HarvestRun run = shuttle.run;
-        if (run == null || run.felling == null) {
+        if (run == null) {
             return Optional.empty();
         }
+        if (run.felling == null) {
+            return run.unfolded && run.lastGrip != null
+                    ? Optional.of(new ShuttleView.Felling(run.lastGrip, ShuttleView.Felling.Phase.READY, 1, 1)) : Optional.empty();
+        }
         HarvestRun.Fell fell = run.felling;
-        return Optional.of(new ShuttleView.Felling(fell.plot(), fell.phase(), fell.ticks(), Math.max(0, fell.ticks() - run.countdown)));
+        return Optional.of(new ShuttleView.Felling(fell.grip(), fell.phase(), fell.ticks(), Math.max(0, fell.ticks() - run.countdown)));
     }
 
     /** The point a following shuttle must stay behind, as of now, and how fast it moves on; empty when nothing is ahead or in a ring. */

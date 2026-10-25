@@ -25,6 +25,7 @@ public final class ServusShuttlesDataGen {
         PackOutput output = generator.getPackOutput();
         CompletableFuture<HolderLookup.Provider> lookup = event.getLookupProvider();
         event.addProvider(new ServusShuttlesLanguageProvider(output));
+        event.addProvider(new ServusShuttlesSoundsProvider(output));
         event.addProvider(new ServusShuttlesBlockStateProvider(output));
         event.addProvider(new ServusShuttlesBlockTagsProvider(output, lookup));
         event.addProvider(new ServusShuttlesItemTagsProvider(output, lookup));

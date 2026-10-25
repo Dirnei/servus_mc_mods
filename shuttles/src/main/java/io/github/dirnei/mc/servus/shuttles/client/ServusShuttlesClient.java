@@ -76,10 +76,10 @@ public final class ServusShuttlesClient {
         event.register(ShuttleItemModel.TYPE, ShuttleItemModel.Unbaked.MAP_CODEC);
     }
 
-    /** The Lumber shuttle's felling arm parts, posed by the garage renderer while it fells. */
+    /** The Lumber shuttle's hold, crane and harvester head parts, posed by the garage renderer while it is unfolded. */
     @SubscribeEvent
     public static void onRegisterStandalone(ModelEvent.RegisterStandalone event) {
-        FellingArmLook.register(event);
+        HarvesterLook.register(event);
     }
 
     /** Wraps every rack block state model so the boards show the rack's wood. */

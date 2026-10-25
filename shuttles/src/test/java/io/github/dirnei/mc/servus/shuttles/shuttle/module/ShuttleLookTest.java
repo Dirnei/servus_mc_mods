@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class ShuttleLookTest {
@@ -35,9 +36,29 @@ class ShuttleLookTest {
 
     @Test
     void onlyTheMk1HoldIsOpen() {
-        assertTrue(ShuttleLook.openHold(1));
-        assertFalse(ShuttleLook.openHold(2));
-        assertFalse(ShuttleLook.openHold(3));
+        assertTrue(ShuttleLook.openHold(1, ""));
+        assertFalse(ShuttleLook.openHold(2, ""));
+        assertFalse(ShuttleLook.openHold(3, ""));
+    }
+
+    @Test
+    void lumberHoldIsClosed() {
+        assertFalse(ShuttleLook.openHold(1, ModuleSpec.LUMBER));
+    }
+
+    @Test
+    void plainShuttleParts() {
+        assertEquals(List.of("body_mk2", "drive_3", "handling_2", "tool_harvester"),
+                ShuttleLook.parts(ShuttleLook.Key.of(2, 8, 8, "harvester")));
+        assertEquals(List.of("body_mk1", "drive_0"), ShuttleLook.parts(ShuttleLook.Key.of(1, 0, 0, "")));
+    }
+
+    @Test
+    void lumberShuttleShowsItsHoldNoHandlingAndAStrutlessSpoiler() {
+        assertEquals(List.of("lumber_hold_mk3", "drive_3_lumber", "tool_lumber"),
+                ShuttleLook.parts(ShuttleLook.Key.of(3, 6, 8, ModuleSpec.LUMBER)));
+        assertEquals(List.of("lumber_hold_mk2", "drive_2", "tool_lumber"),
+                ShuttleLook.parts(ShuttleLook.Key.of(2, 3, 2, ModuleSpec.LUMBER)));
     }
 
     @Test

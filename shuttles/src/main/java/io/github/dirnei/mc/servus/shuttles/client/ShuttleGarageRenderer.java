@@ -54,6 +54,8 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
     private static final double CARGO_Y = 4.0 / 16.0 + 0.5 * CARGO_SCALE;
     /** The wheels stand on the two rail heads, 2 pixels above the ground (or the lift car deck). */
     private static final double FLOOR = 2.0 / 16.0;
+    /** How high above the floor the hold's doors and walls sound, in blocks. */
+    private static final double HOLD_SOUND_HEIGHT = 0.4;
     /** The shuttle is drawn a little below block scale. */
     private static final float SHUTTLE_SCALE = 0.8F;
     /** Gap between a sight glass frame and the fluid drawn on it, in model pixels. */
@@ -140,10 +142,15 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
         poseStack.translate(0.0, 0.5, 0.0);
         ItemStack cart = view.shuttle().isEmpty() ? new ItemStack(ServusShuttlesItems.SHUTTLE_MK1.get()) : view.shuttle();
         Optional<ShuttleView.Felling> felling = view.felling().filter(fell -> fellsWith(cart));
-        RenderSubmit.item(poseStack, collector, felling.isPresent() ? withoutTool(cart) : cart, ItemDisplayContext.NONE, level, 0, light);
-        felling.ifPresent(fell -> fellingArm(fell, level, pos, yaw, fell.elapsed() + elapsed, poseStack, collector, light));
+        if (felling.isPresent()) {
+            ShuttleView.Felling fell = felling.get();
+            harvester(cart, fell, level, pos, yaw, fell.elapsed() + elapsed, poseStack, collector, light);
+        } else {
+            RenderSubmit.item(poseStack, collector, cart, ItemDisplayContext.NONE, level, 0, light);
+        }
         view.glass().ifPresent(glass -> sightGlass(glass, level, railPos, poseStack, collector, light));
-        if (!view.cargo().isEmpty() && ShuttleLook.openHold(ShuttleItem.tier(cart))) {
+        String tool = ShuttleModules.of(cart).toolSpec().map(ModuleSpec::id).orElse("");
+        if (!view.cargo().isEmpty() && ShuttleLook.openHold(ShuttleItem.tier(cart), tool)) {
             poseStack.translate(0.0, CARGO_Y - 0.5, 0.0);
             poseStack.scale(CARGO_SCALE, CARGO_SCALE, CARGO_SCALE);
             RenderSubmit.item(poseStack, collector, view.cargo(), ItemDisplayContext.FIXED, level, 1, light);
@@ -154,39 +161,41 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
                 at[0] + at[1], view.drive().top());
     }
 
-    /** Whether the shuttle carries the Lumber module, whose arm is drawn posed while it fells. */
+    /** Whether the shuttle carries the Lumber module, which unfolds its hold and crane at a rail where it fells. */
     private static boolean fellsWith(ItemStack cart) {
         return ShuttleModules.of(cart).toolSpec().map(ModuleSpec::id).filter(ModuleSpec.LUMBER::equals).isPresent();
     }
 
-    /** The shuttle without its tool, for drawing the body while the posed arm is drawn on its own. */
-    private static ItemStack withoutTool(ItemStack cart) {
-        ItemStack copy = cart.copy();
-        ShuttleModules.set(copy, ShuttleModules.of(copy).withTool(Optional.empty()));
-        return copy;
-    }
-
     /**
-     * The felling arm and the sawdust, drawn in the shuttle item's space, centred
-     * like the item: the trunk is turned into the shuttle model's pixels first.
+     * The unfolded Lumber shuttle, the sawdust and the chainsaw at the saw, drawn in the shuttle item's
+     * space, centred like the item: the gripped log is turned into the
+     * shuttle model's pixels first.
      */
-    private static void fellingArm(ShuttleView.Felling felling, Level level, double[] pos, double yaw, double ticksIn, PoseStack poseStack,
-                                   SubmitNodeCollector collector, int light) {
+    private static void harvester(ItemStack cart, ShuttleView.Felling felling, Level level, double[] pos, double yaw, double ticksIn,
+                                  PoseStack poseStack, SubmitNodeCollector collector, int light) {
         BlockPos trunk = felling.trunk();
         double dx = trunk.getX() - pos[0];
         double dz = trunk.getZ() - pos[2];
-        double dy = trunk.getY() + FellingArmLook.cutHeight() - (pos[1] + FLOOR);
+        double dy = trunk.getY() - (pos[1] + FLOOR);
         double radians = Math.toRadians(yaw);
         double localX = dx * Math.cos(radians) - dz * Math.sin(radians);
         double localZ = dx * Math.sin(radians) + dz * Math.cos(radians);
         double toPixels = 16 / SHUTTLE_SCALE;
-        double[] trunkModel = {8 + localX * toPixels, dy * toPixels, 8 + localZ * toPixels};
+        double[] log = {8 + localX * toPixels, dy * toPixels, 8 + localZ * toPixels};
         poseStack.pushPose();
         // The item is drawn around its centre, so its model space starts half a block down and back.
         poseStack.translate(-0.5, -0.5, -0.5);
-        FellingArmLook.draw(poseStack, collector, felling, trunkModel, ticksIn, light);
+        HarvesterLook.draw(poseStack, collector, cart, felling, log, ticksIn, light);
         poseStack.popPose();
-        FellingArmLook.sawdust(level, felling, ticksIn);
+        HarvesterLook.sawdust(level, felling, ticksIn);
+        double[] saw = HarvesterLook.saw(felling, log, ticksIn);
+        double sawX = (saw[0] - 8) / toPixels;
+        double sawZ = (saw[2] - 8) / toPixels;
+        double[] sawAt = {pos[0] + 0.5 + sawX * Math.cos(radians) + sawZ * Math.sin(radians), pos[1] + FLOOR + saw[1] / toPixels,
+                pos[2] + 0.5 - sawX * Math.sin(radians) + sawZ * Math.cos(radians)};
+        double[] holdAt = {pos[0] + 0.5, pos[1] + FLOOR + HOLD_SOUND_HEIGHT, pos[2] + 0.5};
+        HarvesterSounds.update(level, BlockPos.containing(pos[0], pos[1], pos[2]), trunk, HarvesterLook.part(felling),
+                HarvesterLook.moment(felling, ticksIn), sawAt, holdAt);
     }
 
     /**

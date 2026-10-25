@@ -1,0 +1,213 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            0.75,
+            12.6
+          ]
+        },
+        "east": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            12.6,
+            0.8999996
+          ]
+        },
+        "north": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            0.75,
+            0.8999996
+          ]
+        },
+        "south": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            0.75,
+            0.8999996
+          ]
+        },
+        "up": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            0.75,
+            12.6
+          ]
+        },
+        "west": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            12.6,
+            0.8999996
+          ]
+        }
+      },
+      "from": [
+        6.65,
+        8.05,
+        7.4
+      ],
+      "to": [
+        7.4,
+        8.95,
+        20
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            6.2499995,
+            1
+          ]
+        },
+        "east": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1,
+            0.8999996
+          ]
+        },
+        "north": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            6.2499995,
+            0.8999996
+          ]
+        },
+        "south": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            6.2499995,
+            0.8999996
+          ]
+        },
+        "up": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            6.2499995,
+            1
+          ]
+        },
+        "west": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1,
+            0.8999996
+          ]
+        }
+      },
+      "from": [
+        6.65,
+        8.05,
+        20
+      ],
+      "to": [
+        12.9,
+        8.95,
+        21
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1,
+            1.25
+          ]
+        },
+        "east": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1.25,
+            0.8999996
+          ]
+        },
+        "north": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1,
+            0.8999996
+          ]
+        },
+        "south": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1,
+            0.8999996
+          ]
+        },
+        "up": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1,
+            1.25
+          ]
+        },
+        "west": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1.25,
+            0.8999996
+          ]
+        }
+      },
+      "from": [
+        11.9,
+        8.05,
+        18.75
+      ],
+      "to": [
+        12.9,
+        8.95,
+        20
+      ]
+    }
+  ],
+  "textures": {
+    "electric_pump_steel": "servus_foundation:block/electric_pump_steel",
+    "particle": "servus_foundation:block/electric_pump_steel"
+  }
+}

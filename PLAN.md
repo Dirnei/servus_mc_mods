@@ -215,6 +215,7 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - Wireless Terminal with range tiers.
 - Stock rules in a mined Warehouse Controller item, if the play tests ask for them (today only the carrot dismantle keeps them; name and FE travel both ways).
 - Outbound dock: delivery by teleport or by courier drone to a landing pad.
+- Garage doorway lower than the spoiler and the loading arm: the Mk3 spoiler and the Handling crane reach past the 12 pixel opening; a taller doorway or parts that duck under it.
 - Explore shuttle portals between sites, overland cargo carts and a separate Servus: Transit mod for passenger travel.
 
 ### Open: M13 Fluid logistics

@@ -35,12 +35,25 @@ final class HarvestRun extends FieldRun {
     boolean harvest = true;
     /** Everything harvested in this run by item id, for the head to learn its produce from at the end. */
     final Map<Identifier, Long> tally = new HashMap<>();
-    /** The tree a Lumber shuttle is felling while it saws or the tree topples, else null; not saved. */
+    /** What a Lumber shuttle's crane is doing while it unfolds, saws, the tree topples or it folds, else null; not saved. */
     Fell felling;
+    /** Whether a Lumber shuttle stands unfolded at its rail; not saved, so a restored shuttle is folded. */
+    boolean unfolded;
+    /** The base log the head gripped last, which the folding crane leaves from. */
+    BlockPos lastGrip;
+    /** What the shuttle does once it has folded. */
+    AfterFold afterFold;
 
-    /** A tree being felled: the plot worked, the phase and how many ticks the phase lasts, counted down by the run's countdown. */
-    record Fell(BlockPos plot, ShuttleView.Felling.Phase phase, int ticks) {
+    /**
+     * A part of felling: the plot worked, the base log the head grips, the
+     * phase and how many ticks the phase lasts, counted down by the run's
+     * countdown.
+     */
+    record Fell(BlockPos plot, BlockPos grip, ShuttleView.Felling.Phase phase, int ticks) {
     }
+
+    /** Where a folding Lumber shuttle goes on to: the next rail with work, or the run decides again. */
+    enum AfterFold { NEXT_RAIL, TURN }
 
     HarvestRun(BlockPos head, int slots, FieldKind kind) {
         super(head, slots);

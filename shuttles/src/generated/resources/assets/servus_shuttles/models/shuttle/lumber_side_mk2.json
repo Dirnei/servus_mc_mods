@@ -1,0 +1,283 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#iron_block",
+          "uv": [
+            0,
+            0,
+            0.75,
+            10.5
+          ]
+        },
+        "east": {
+          "texture": "#iron_block",
+          "uv": [
+            0,
+            0,
+            10.5,
+            7.45
+          ]
+        },
+        "north": {
+          "texture": "#iron_block",
+          "uv": [
+            0,
+            0,
+            0.75,
+            7.45
+          ]
+        },
+        "south": {
+          "texture": "#iron_block",
+          "uv": [
+            0,
+            0,
+            0.75,
+            7.45
+          ]
+        },
+        "up": {
+          "texture": "#iron_block",
+          "uv": [
+            0,
+            0,
+            0.75,
+            10.5
+          ]
+        },
+        "west": {
+          "texture": "#iron_block",
+          "uv": [
+            0,
+            0,
+            10.5,
+            7.45
+          ]
+        }
+      },
+      "from": [
+        13.25,
+        4,
+        2.75
+      ],
+      "to": [
+        14,
+        11.45,
+        13.25
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            0.75,
+            10.5
+          ]
+        },
+        "east": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            10.5,
+            1
+          ]
+        },
+        "north": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            0.75,
+            1
+          ]
+        },
+        "south": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            0.75,
+            1
+          ]
+        },
+        "up": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            0.75,
+            10.5
+          ]
+        },
+        "west": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            10.5,
+            1
+          ]
+        }
+      },
+      "from": [
+        13.25,
+        11.45,
+        2.75
+      ],
+      "to": [
+        14,
+        12.45,
+        13.25
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.3000002,
+            8
+          ]
+        },
+        "east": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            8,
+            1.8000002
+          ]
+        },
+        "north": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.3000002,
+            1.8000002
+          ]
+        },
+        "south": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.3000002,
+            1.8000002
+          ]
+        },
+        "up": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.3000002,
+            8
+          ]
+        },
+        "west": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            8,
+            1.8000002
+          ]
+        }
+      },
+      "from": [
+        14,
+        4.2,
+        4
+      ],
+      "to": [
+        14.3,
+        6,
+        12
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.39999962,
+            9
+          ]
+        },
+        "east": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            9,
+            1.3999996
+          ]
+        },
+        "north": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.39999962,
+            1.3999996
+          ]
+        },
+        "south": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.39999962,
+            1.3999996
+          ]
+        },
+        "up": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.39999962,
+            9
+          ]
+        },
+        "west": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            9,
+            1.3999996
+          ]
+        }
+      },
+      "from": [
+        14,
+        10.85,
+        3.5
+      ],
+      "to": [
+        14.4,
+        12.25,
+        12.5
+      ]
+    }
+  ],
+  "textures": {
+    "heavy_rack_iron": "servus_shuttles:block/heavy_rack_iron",
+    "iron_block": "minecraft:block/iron_block",
+    "particle": "minecraft:block/iron_block",
+    "smooth_stone": "minecraft:block/smooth_stone"
+  }
+}

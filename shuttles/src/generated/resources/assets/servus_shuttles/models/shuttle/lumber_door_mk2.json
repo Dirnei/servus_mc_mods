@@ -1,0 +1,146 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#iron_block",
+          "uv": [
+            0,
+            0,
+            5.25,
+            10.5
+          ]
+        },
+        "east": {
+          "texture": "#iron_block",
+          "uv": [
+            0,
+            0,
+            10.5,
+            0.6999998
+          ]
+        },
+        "north": {
+          "texture": "#iron_block",
+          "uv": [
+            0,
+            0,
+            5.25,
+            0.6999998
+          ]
+        },
+        "south": {
+          "texture": "#iron_block",
+          "uv": [
+            0,
+            0,
+            5.25,
+            0.6999998
+          ]
+        },
+        "up": {
+          "texture": "#iron_block",
+          "uv": [
+            0,
+            0,
+            5.25,
+            10.5
+          ]
+        },
+        "west": {
+          "texture": "#iron_block",
+          "uv": [
+            0,
+            0,
+            10.5,
+            0.6999998
+          ]
+        }
+      },
+      "from": [
+        8,
+        11.6,
+        2.75
+      ],
+      "to": [
+        13.25,
+        12.3,
+        13.25
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            3.5,
+            8
+          ]
+        },
+        "east": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            8,
+            0.19999981
+          ]
+        },
+        "north": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            3.5,
+            0.19999981
+          ]
+        },
+        "south": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            3.5,
+            0.19999981
+          ]
+        },
+        "up": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            3.5,
+            8
+          ]
+        },
+        "west": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0,
+            0,
+            8,
+            0.19999981
+          ]
+        }
+      },
+      "from": [
+        8.75,
+        12.3,
+        4
+      ],
+      "to": [
+        12.25,
+        12.5,
+        12
+      ]
+    }
+  ],
+  "textures": {
+    "iron_block": "minecraft:block/iron_block",
+    "particle": "minecraft:block/iron_block",
+    "smooth_stone": "minecraft:block/smooth_stone"
+  }
+}

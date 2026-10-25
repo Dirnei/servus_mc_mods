@@ -1,0 +1,80 @@
+{
+  "chainsaw.cut": {
+    "sounds": [
+      "servus_shuttles:chainsaw_cut"
+    ],
+    "subtitle": "subtitles.servus_shuttles.chainsaw.cut"
+  },
+  "chainsaw.idle": {
+    "sounds": [
+      "servus_shuttles:chainsaw_idle_loop"
+    ],
+    "subtitle": "subtitles.servus_shuttles.chainsaw.idle"
+  },
+  "chainsaw.stop": {
+    "sounds": [
+      "servus_shuttles:chainsaw_stop"
+    ],
+    "subtitle": "subtitles.servus_shuttles.chainsaw.stop"
+  },
+  "crane.down": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.piston.contract",
+        "pitch": 0.6
+      }
+    ],
+    "subtitle": "subtitles.servus_shuttles.crane.down"
+  },
+  "crane.up": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.piston.extend",
+        "pitch": 0.6
+      }
+    ],
+    "subtitle": "subtitles.servus_shuttles.crane.up"
+  },
+  "hold.doors_open": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.iron_trapdoor.open",
+        "pitch": 0.7
+      }
+    ],
+    "subtitle": "subtitles.servus_shuttles.hold.doors_open"
+  },
+  "hold.doors_shut": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.iron_trapdoor.close",
+        "pitch": 0.7
+      }
+    ],
+    "subtitle": "subtitles.servus_shuttles.hold.doors_shut"
+  },
+  "hold.walls_down": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.iron_door.close",
+        "pitch": 0.55
+      }
+    ],
+    "subtitle": "subtitles.servus_shuttles.hold.walls_down"
+  },
+  "hold.walls_up": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.iron_door.open",
+        "pitch": 0.55
+      }
+    ],
+    "subtitle": "subtitles.servus_shuttles.hold.walls_up"
+  }
+}

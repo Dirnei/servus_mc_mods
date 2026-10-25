@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.datagen;
 
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
+import io.github.dirnei.mc.servus.shuttles.field.HarvesterParts;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.TankerLook;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
@@ -15,7 +16,8 @@ import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
  * body; the client composes the rest per stack. Model +z is the front. The
  * body spans 2 to 14, the drive 0 to 16; only a tool reaches further. The last
  * drive step carries a rear spoiler that hangs past the back to z -1.5. The left side of the hold (x = 2, y 5 to 8, z 5 to 11) stays free for the name
- * plate. Textures are vanilla placeholders.
+ * plate. A Lumber shuttle has its own hold per tier and a spoiler without
+ * middle struts. Textures are vanilla placeholders.
  */
 final class ShuttleModels {
 
@@ -26,14 +28,18 @@ final class ShuttleModels {
     private static final String DARK_IRON = ServusShuttlesIds.MOD_ID + ":block/heavy_rack_iron";
     private static final String ARM = "minecraft:block/yellow_terracotta";
     private static final String IRON = "minecraft:block/iron_block";
+    private static final String OAK = "minecraft:block/oak_planks";
+    private static final String DIAMOND = "minecraft:block/diamond_block";
+    private static final String GOLD = "minecraft:block/gold_block";
+    private static final String RUBBER = "minecraft:block/black_concrete";
 
     private ShuttleModels() {
     }
 
     static void shuttle(BlockStateProvider provider) {
-        body(provider, 1, "minecraft:block/oak_planks");
+        body(provider, 1, OAK);
         body(provider, 2, IRON);
-        body(provider, 3, "minecraft:block/diamond_block");
+        body(provider, 3, DIAMOND);
         drives(provider);
         handling(provider);
         harvester(provider);
@@ -65,11 +71,10 @@ final class ShuttleModels {
         // A darker lid band.
         box(model, 2, 10, 2, 14, 11, 14, CHASSIS);
         if (tier == 3) {
-            String gold = "minecraft:block/gold_block";
-            box(model, 2, 11, 2, 4, 12, 4, gold);
-            box(model, 12, 11, 2, 14, 12, 4, gold);
-            box(model, 2, 11, 12, 4, 12, 14, gold);
-            box(model, 12, 11, 12, 14, 12, 14, gold);
+            box(model, 2, 11, 2, 4, 12, 4, GOLD);
+            box(model, 12, 11, 2, 14, 12, 4, GOLD);
+            box(model, 2, 11, 12, 4, 12, 14, GOLD);
+            box(model, 12, 11, 12, 14, 12, 14, GOLD);
         }
     }
 
@@ -86,6 +91,10 @@ final class ShuttleModels {
         BlockModelBuilder racing = model(provider, "drive_3", TRACK);
         tracks(racing);
         spoiler(racing);
+
+        BlockModelBuilder lumber = model(provider, "drive_3_lumber", TRACK);
+        tracks(lumber);
+        lumberSpoiler(lumber);
     }
 
     /**
@@ -102,6 +111,21 @@ final class ShuttleModels {
         for (float x : new float[] {5.5F, 9.5F}) {
             strut(model, x, 9, 3, 14.4F, 0.75F);
         }
+    }
+
+    /**
+     * The spoiler of a Lumber shuttle: the same wing, standing on its dark
+     * iron end plates, which reach down beside the chassis, each with a foot
+     * into the chassis side. No middle struts, so the back wall folds out
+     * under the wing; the plates end at z 2.7, short of the side walls that
+     * fold out from z 2.75.
+     */
+    private static void lumberSpoiler(BlockModelBuilder model) {
+        box(model, 0.5F, 14, -1, 15.5F, 15, 2.5F, STEEL);
+        box(model, 0, 2, -1.5F, 0.5F, 15.5F, 2.7F, DARK_IRON);
+        box(model, 15.5F, 2, -1.5F, 16, 15.5F, 2.7F, DARK_IRON);
+        box(model, 0.5F, 2.5F, 2.1F, 2, 3.5F, 2.7F, DARK_IRON);
+        box(model, 14, 2.5F, 2.1F, 15.5F, 3.5F, 2.7F, DARK_IRON);
     }
 
     /** A 1 by 1 steel strut from bottom centre (y0, z0) to top centre (y1, z1), built upright and turned about X. */
@@ -211,55 +235,56 @@ final class ShuttleModels {
     }
 
     /**
-     * A turret on the front of the hold with a two part steel arm folded on
-     * top and the felling head at its end: a dark iron ring on a steel post
-     * down to the chassis, a steel turret head, the lower arm lying forward
-     * past the front to a dark iron elbow, the upper arm folded back over it
-     * to the head, a dark iron block between two grip claws with the saw
-     * disc lying flat on top. Everything stays in front of the crane beam
-     * (z 10.5 and up, the crane ends at z 10) and within x 6 to 10; parts
-     * that touch end exactly at each other's faces, and the post stops 0.05
-     * short of the chassis top and the lid top so it shares no plane with
-     * the hold.
+     * The Lumber module brings its own hold, so its tool model is empty. The
+     * closed Lumber hold per tier and every part the renderer poses while the
+     * shuttle is unfolded come from {@link HarvesterParts}: the hold's floor
+     * on the chassis, the folding walls, ends and doors per tier, the crane
+     * and the harvester head. Parts built around their own origin are shifted
+     * to the model's centre.
      */
     private static void lumber(BlockStateProvider provider) {
-        BlockModelBuilder model = model(provider, "tool_lumber", STEEL);
-        box(model, 7.5F, 4.05F, 11.5F, 8.5F, 10.95F, 12.5F, STEEL);
-        box(model, 6, 11, 10.5F, 10, 12, 13.5F, DARK_IRON);
-        box(model, 6.5F, 12, 11, 9.5F, 13.5F, 13, STEEL);
-        box(model, 7, 12.5F, 13, 9, 13.5F, 17, STEEL);
-        box(model, 6.5F, 12, 17, 9.5F, 14.5F, 18, DARK_IRON);
-        box(model, 7, 13.5F, 14, 9, 14.5F, 17, STEEL);
-        box(model, 7, 13.5F, 12.5F, 9, 15, 14, DARK_IRON);
-        box(model, 6, 13.5F, 13.5F, 7, 15, 14.5F, DARK_IRON);
-        box(model, 9, 13.5F, 13.5F, 10, 15, 14.5F, DARK_IRON);
-        box(model, 6, 15, 11.5F, 10, 15.5F, 15, STEEL);
-        lumberRig(provider);
+        model(provider, "tool_lumber", STEEL);
+        for (int tier = 1; tier <= 3; tier++) {
+            BlockModelBuilder hold = model(provider, "lumber_hold_mk" + tier, holdTexture(tier));
+            for (HarvesterParts.Box box : HarvesterParts.hold(tier)) {
+                lumberBox(hold, box, 0, tier);
+            }
+        }
+        for (HarvesterParts.Part part : HarvesterParts.Part.values()) {
+            float shift = part.centred() ? (float) HarvesterParts.CENTRE : 0;
+            for (int tier = 1; tier <= (part.tiered() ? 3 : 1); tier++) {
+                BlockModelBuilder model = model(provider, part.model(tier), part.tiered() ? holdTexture(tier) : STEEL);
+                for (HarvesterParts.Box box : HarvesterParts.boxes(part, tier)) {
+                    lumberBox(model, box, shift, tier);
+                }
+            }
+        }
     }
 
-    /**
-     * The parts the renderer poses while a Lumber shuttle fells a tree. The
-     * base is the tool's post and ring in the shuttle's own space; every other
-     * part is built around its pivot at the model's centre (8, 8, 8), so the
-     * renderer only moves, turns and stretches it: the turret head turning on
-     * the ring, the lower and upper arm, each one block long along +z and
-     * stretched to the length the arm telescopes to, the felling head hanging
-     * under the wrist, one grip claw from its hinge, drawn twice, and the saw
-     * disc around its axle, two crossed plates of which the smaller one is the
-     * thicker so their faces never share a plane.
-     */
-    private static void lumberRig(BlockStateProvider provider) {
-        BlockModelBuilder base = model(provider, "lumber_base", STEEL);
-        box(base, 7.5F, 4.05F, 11.5F, 8.5F, 10.95F, 12.5F, STEEL);
-        box(base, 6, 11, 10.5F, 10, 12, 13.5F, DARK_IRON);
-        box(model(provider, "lumber_turret", STEEL), 6.5F, 8, 7, 9.5F, 9.5F, 9, STEEL);
-        box(model(provider, "lumber_arm_lower", STEEL), 7, 7.5F, 8, 9, 8.5F, 24, STEEL);
-        box(model(provider, "lumber_arm_upper", STEEL), 7, 7.5F, 8, 9, 8.5F, 24, STEEL);
-        box(model(provider, "lumber_head", DARK_IRON), 6.55F, 7.5F, 6, 9.45F, 9, 8, DARK_IRON);
-        box(model(provider, "lumber_claw", DARK_IRON), 7.5F, 7.6F, 8.05F, 8.5F, 8.9F, 11.05F, DARK_IRON);
-        BlockModelBuilder saw = model(provider, "lumber_saw", STEEL);
-        box(saw, 5, 7.75F, 6, 11, 8.25F, 10, STEEL);
-        box(saw, 6, 7.7F, 5, 10, 8.3F, 11, STEEL);
+    private static void lumberBox(BlockModelBuilder model, HarvesterParts.Box box, float shift, int tier) {
+        box(model, (float) box.x1() + shift, (float) box.y1() + shift, (float) box.z1() + shift,
+                (float) box.x2() + shift, (float) box.y2() + shift, (float) box.z2() + shift, texture(box.paint(), tier));
+    }
+
+    private static String holdTexture(int tier) {
+        return switch (tier) {
+            case 1 -> OAK;
+            case 2 -> IRON;
+            default -> DIAMOND;
+        };
+    }
+
+    private static String texture(HarvesterParts.Paint paint, int tier) {
+        return switch (paint) {
+            case HOLD -> holdTexture(tier);
+            case RIM -> tier == 1 ? OAK : CHASSIS;
+            case CHASSIS -> CHASSIS;
+            case DARK -> DARK_IRON;
+            case STEEL -> STEEL;
+            case ARM -> ARM;
+            case RUBBER -> RUBBER;
+            case GOLD -> GOLD;
+        };
     }
 
     /**

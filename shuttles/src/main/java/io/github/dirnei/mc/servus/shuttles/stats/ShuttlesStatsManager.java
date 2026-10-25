@@ -81,6 +81,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final int DEFAULT_HARVEST_BUFFER_SLOTS = 9;
     public static final int DEFAULT_FELL_TICKS = 40;
     public static final int DEFAULT_TOPPLE_TICKS = 80;
+    public static final int DEFAULT_UNFOLD_TICKS = 30;
     public static final int DEFAULT_MAX_TREE_LOGS = 200;
     public static final int DEFAULT_MAX_TREE_BLOCKS = 1000;
     public static final int DEFAULT_HARVEST_LIMIT = 0;
@@ -170,6 +171,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private volatile int harvestBufferSlots = DEFAULT_HARVEST_BUFFER_SLOTS;
     private volatile int fellTicks = DEFAULT_FELL_TICKS;
     private volatile int toppleTicks = DEFAULT_TOPPLE_TICKS;
+    private volatile int unfoldTicks = DEFAULT_UNFOLD_TICKS;
     private volatile int maxTreeLogs = DEFAULT_MAX_TREE_LOGS;
     private volatile int maxTreeBlocks = DEFAULT_MAX_TREE_BLOCKS;
     private volatile int harvestLimit = DEFAULT_HARVEST_LIMIT;
@@ -252,6 +254,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         harvestBufferSlots = intField(files.get(FIELD), "harvest_buffer_slots", DEFAULT_HARVEST_BUFFER_SLOTS);
         fellTicks = intField(files.get(FIELD), "fell_ticks", DEFAULT_FELL_TICKS);
         toppleTicks = intField(files.get(FIELD), "topple_ticks", DEFAULT_TOPPLE_TICKS);
+        unfoldTicks = intField(files.get(FIELD), "unfold_ticks", DEFAULT_UNFOLD_TICKS);
         maxTreeLogs = intField(files.get(FIELD), "max_tree_logs", DEFAULT_MAX_TREE_LOGS);
         maxTreeBlocks = intField(files.get(FIELD), "max_tree_blocks", DEFAULT_MAX_TREE_BLOCKS);
         harvestLimit = countField(files.get(FIELD), "harvest_limit", DEFAULT_HARVEST_LIMIT);
@@ -640,7 +643,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         fellTicks = ticks;
     }
 
-    /** Ticks a felled tree takes to topple, break apart and the arm to fold back; Handling never shortens it. */
+    /** Ticks a felled tree takes to topple, break apart and the head to swing back over the hold; Handling never shortens it. */
     public int toppleTicks() {
         return toppleTicks;
     }
@@ -648,6 +651,16 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     /** For tests: sets the topple ticks as if a datapack had been loaded. */
     public void setToppleTicks(int ticks) {
         toppleTicks = ticks;
+    }
+
+    /** Ticks a Lumber shuttle takes to unfold its crane at a rail, and again to fold it; Handling never shortens them. */
+    public int unfoldTicks() {
+        return unfoldTicks;
+    }
+
+    /** For tests: sets the unfold ticks as if a datapack had been loaded. */
+    public void setUnfoldTicks(int ticks) {
+        unfoldTicks = ticks;
     }
 
     /** The most logs a tree may have for a Lumber shuttle to fell it. */

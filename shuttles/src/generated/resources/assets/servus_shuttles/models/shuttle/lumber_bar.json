@@ -1,0 +1,282 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            12.4,
+            1.3999996
+          ]
+        },
+        "east": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1.3999996,
+            0.8999996
+          ]
+        },
+        "north": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            12.4,
+            0.8999996
+          ]
+        },
+        "south": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            12.4,
+            0.8999996
+          ]
+        },
+        "up": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            12.4,
+            1.3999996
+          ]
+        },
+        "west": {
+          "texture": "#electric_pump_steel",
+          "uv": [
+            0,
+            0,
+            1.3999996,
+            0.8999996
+          ]
+        }
+      },
+      "from": [
+        8,
+        7.55,
+        7.3
+      ],
+      "to": [
+        20.4,
+        8.45,
+        8.7
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            13,
+            0.40000057
+          ]
+        },
+        "east": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.40000057,
+            1.2000003
+          ]
+        },
+        "north": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            13,
+            1.2000003
+          ]
+        },
+        "south": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            13,
+            1.2000003
+          ]
+        },
+        "up": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            13,
+            0.40000057
+          ]
+        },
+        "west": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.40000057,
+            1.2000003
+          ]
+        }
+      },
+      "from": [
+        8,
+        7.4,
+        8.7
+      ],
+      "to": [
+        21,
+        8.6,
+        9.1
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            13,
+            0.4000001
+          ]
+        },
+        "east": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.4000001,
+            1.2000003
+          ]
+        },
+        "north": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            13,
+            1.2000003
+          ]
+        },
+        "south": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            13,
+            1.2000003
+          ]
+        },
+        "up": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            13,
+            0.4000001
+          ]
+        },
+        "west": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.4000001,
+            1.2000003
+          ]
+        }
+      },
+      "from": [
+        8,
+        7.4,
+        6.9
+      ],
+      "to": [
+        21,
+        8.6,
+        7.3
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.6000004,
+            1.3999996
+          ]
+        },
+        "east": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            1.3999996,
+            1.2000003
+          ]
+        },
+        "north": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.6000004,
+            1.2000003
+          ]
+        },
+        "south": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.6000004,
+            1.2000003
+          ]
+        },
+        "up": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.6000004,
+            1.3999996
+          ]
+        },
+        "west": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            1.3999996,
+            1.2000003
+          ]
+        }
+      },
+      "from": [
+        20.4,
+        7.4,
+        7.3
+      ],
+      "to": [
+        21,
+        8.6,
+        8.7
+      ]
+    }
+  ],
+  "textures": {
+    "electric_pump_steel": "servus_foundation:block/electric_pump_steel",
+    "heavy_rack_iron": "servus_shuttles:block/heavy_rack_iron",
+    "particle": "servus_foundation:block/electric_pump_steel"
+  }
+}

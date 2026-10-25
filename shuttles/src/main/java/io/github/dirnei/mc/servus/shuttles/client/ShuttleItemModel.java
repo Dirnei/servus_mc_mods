@@ -36,9 +36,10 @@ import org.joml.Vector3fc;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The item model of a shuttle tier: every stack shows the tier's body, the
- * drive and Handling part of its look steps and its tool, composed from the
- * part models under {@code models/shuttle/}. The rail renderer draws the
+ * The item model of a shuttle tier: every stack shows the parts
+ * {@link ShuttleLook#parts} names for it, the tier's body, the drive and
+ * Handling part of its look steps and its tool, composed from the part models
+ * under {@code models/shuttle/}. The rail renderer draws the
  * shuttle's item, so the rails and every inventory show the same look. Item
  * model definitions of the shuttle items name {@link #TYPE}.
  */
@@ -46,9 +47,6 @@ public final class ShuttleItemModel implements ItemModel {
 
     /** The registered item model type. */
     public static final Identifier TYPE = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "shuttle");
-
-    private static final int DRIVE_STEPS = 4;
-    private static final int HANDLING_STEPS = 3;
 
     private record Look(List<BakedQuad> quads, Vector3fc[] extents) {
     }
@@ -64,16 +62,18 @@ public final class ShuttleItemModel implements ItemModel {
         this.transformation = transformation;
     }
 
-    /** Every part name: the bodies, drive and Handling steps and the tool of every registered module. */
+    /** Every part name: the bodies and Lumber holds, drive and Handling steps and the tool of every registered module. */
     private static List<String> partNames() {
         List<String> names = new ArrayList<>();
         for (int tier = 1; tier <= 3; tier++) {
             names.add("body_mk" + tier);
+            names.add("lumber_hold_mk" + tier);
         }
-        for (int step = 0; step < DRIVE_STEPS; step++) {
+        for (int step = 0; step < ShuttleLook.DRIVE_STEPS; step++) {
             names.add("drive_" + step);
         }
-        for (int step = 1; step < HANDLING_STEPS; step++) {
+        names.add(ShuttleLook.drivePart(ShuttleLook.Key.of(1, Integer.MAX_VALUE, 0, ModuleSpec.LUMBER)));
+        for (int step = 1; step < ShuttleLook.HANDLING_STEPS; step++) {
             names.add("handling_" + step);
         }
         for (Item item : BuiltInRegistries.ITEM) {
@@ -89,17 +89,8 @@ public final class ShuttleItemModel implements ItemModel {
     }
 
     private Look compose(ShuttleLook.Key key) {
-        List<String> names = new ArrayList<>();
-        names.add("body_mk" + Math.max(1, Math.min(3, key.tier())));
-        names.add("drive_" + Math.min(DRIVE_STEPS - 1, key.speedStep()));
-        if (key.handlingStep() > 0) {
-            names.add("handling_" + Math.min(HANDLING_STEPS - 1, key.handlingStep()));
-        }
-        if (!key.tool().isEmpty()) {
-            names.add("tool_" + key.tool());
-        }
         List<BakedQuad> quads = new ArrayList<>();
-        for (String name : names) {
+        for (String name : ShuttleLook.parts(key)) {
             quads.addAll(parts.getOrDefault(name, List.of()));
         }
         return new Look(List.copyOf(quads), CuboidItemModelWrapper.computeExtents(quads));

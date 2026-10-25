@@ -8,7 +8,7 @@
           "uv": [
             0,
             0,
-            2.8999996,
+            4,
             2
           ]
         },
@@ -18,7 +18,7 @@
             0,
             0,
             2,
-            1.5
+            2
           ]
         },
         "north": {
@@ -26,8 +26,8 @@
           "uv": [
             0,
             0,
-            2.8999996,
-            1.5
+            4,
+            2
           ]
         },
         "south": {
@@ -35,8 +35,8 @@
           "uv": [
             0,
             0,
-            2.8999996,
-            1.5
+            4,
+            2
           ]
         },
         "up": {
@@ -44,7 +44,7 @@
           "uv": [
             0,
             0,
-            2.8999996,
+            4,
             2
           ]
         },
@@ -54,24 +54,24 @@
             0,
             0,
             2,
-            1.5
+            2
           ]
         }
       },
       "from": [
-        6.55,
+        6,
         7.5,
-        6
+        10.5
       ],
       "to": [
-        9.45,
-        9,
-        8
+        10,
+        9.5,
+        12.5
       ]
     }
   ],
   "textures": {
     "heavy_rack_iron": "servus_shuttles:block/heavy_rack_iron",
-    "particle": "servus_shuttles:block/heavy_rack_iron"
+    "particle": "servus_foundation:block/electric_pump_steel"
   }
 }
