@@ -1,12 +1,18 @@
 package io.github.dirnei.mc.servus.shuttles.pattern;
 
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
+import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
+import io.github.dirnei.mc.servus.shuttles.terminal.MostStocked;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
@@ -43,8 +49,13 @@ public final class CraftingGrid {
         return text;
     }
 
-    /** The template laid out by a vanilla crafting recipe, one ingredient item per cell, for the recipe viewer. */
-    public static Optional<List<ItemStack>> templateOf(Level level, Identifier id) {
+    /**
+     * The template laid out by a vanilla crafting recipe for the recipe viewer:
+     * per cell the stack {@link #stockedChoice} picks from what its ingredient accepts.
+     *
+     * @param stock the warehouse's requestable stock, largest first; empty without a warehouse
+     */
+    public static Optional<List<ItemStack>> templateOf(Level level, Identifier id, List<Map.Entry<ItemKey, Long>> stock) {
         Optional<RecipeHolder<?>> holder = ServusRecipes.byId(level, id);
         if (holder.isEmpty() || !(holder.get().value() instanceof CraftingRecipe recipe)) {
             return Optional.empty();
@@ -56,14 +67,38 @@ public final class CraftingGrid {
         int width = recipe instanceof ShapedRecipe shaped ? shaped.getWidth() : 3;
         List<Optional<Ingredient>> ingredients = ServusRecipes.gridIngredients(recipe);
         for (int i = 0; i < ingredients.size() && i < GRID; i++) {
-            ItemStack item = ingredients.get(i).map(ServusRecipes::firstItem).orElse(ItemStack.EMPTY);
+            ItemStack item = ingredients.get(i).map(ingredient -> stockedChoice(ServusRecipes.items(ingredient), stock))
+                    .orElse(ItemStack.EMPTY);
             if (!item.isEmpty()) {
                 int cell = width == 3 ? i : (i / width) * 3 + i % width;
                 if (cell < GRID) {
-                    cells.set(cell, item.copyWithCount(1));
+                    cells.set(cell, item);
                 }
             }
         }
         return Optional.of(cells);
+    }
+
+    /**
+     * A single stack for a cell that accepts these items: the stocked stack of
+     * an accepted item the warehouse has the most of, with its components,
+     * else the first accepted item. Empty when nothing is accepted.
+     */
+    public static ItemStack stockedChoice(List<ItemStack> accepted, List<Map.Entry<ItemKey, Long>> stock) {
+        Set<Item> items = new HashSet<>();
+        ItemStack first = ItemStack.EMPTY;
+        for (ItemStack option : accepted) {
+            if (!option.isEmpty()) {
+                items.add(option.getItem());
+                if (first.isEmpty()) {
+                    first = option;
+                }
+            }
+        }
+        if (first.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack fallback = first.copyWithCount(1);
+        return MostStocked.pick(stock, key -> items.contains(key.item())).map(key -> key.stack(1)).orElse(fallback);
     }
 }

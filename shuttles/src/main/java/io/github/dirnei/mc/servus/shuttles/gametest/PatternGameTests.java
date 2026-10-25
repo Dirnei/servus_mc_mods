@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
@@ -20,10 +21,12 @@ import io.github.dirnei.mc.servus.shuttles.production.ProductionView;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
+import io.github.dirnei.mc.servus.shuttles.terminal.TerminalWarehouses;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -50,6 +53,9 @@ public final class PatternGameTests {
     private static final BlockPos STORAGE_B = new BlockPos(3, 3, 3);
     private static final BlockPos DUCT = new BlockPos(5, 2, 2);
     private static final ItemKey STICK = ItemKey.of(new ItemStack(Items.STICK));
+    /** The rack west of the rail under the controller. */
+    private static final BlockPos RACK = new BlockPos(1, 0, 2);
+    private static final Identifier RACK_RECIPE = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "heavy_rack");
 
     private PatternGameTests() {
     }
@@ -318,6 +324,27 @@ public final class PatternGameTests {
                             && row.result().is(Items.STICK) && row.result().getCount() == 4
                             && row.inputs().size() == 1 && row.inputs().get(0).is(Items.OAK_PLANKS) && row.inputs().get(0).getCount() == 2,
                     "the sticks row with 2 planks, got " + row);
+            helper.succeed();
+        });
+    }
+
+    /** The recipe viewer fills the editor with the planks the warehouse stocks, not the first planks of the tag. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void editorFillPicksStockedPlanks(GameTestHelper helper) {
+        setup(helper, false, false);
+        WarehouseFixtures.stock(helper, RACK, new ItemStack(Items.SPRUCE_PLANKS, 16));
+        Player player = player(helper);
+        BlockPos terminal = helper.absolutePos(TERMINAL);
+        Waits.when(helper, () -> TerminalWarehouses.online(helper.getLevel(), terminal)
+                .map(warehouse -> TerminalWarehouses.stock(warehouse).stream().anyMatch(entry -> entry.getKey().item() == Items.SPRUCE_PLANKS))
+                .orElse(false), 160, () -> "the warehouse should list the spruce planks", () -> {
+            ProductionTerminalMenu menu = menu(helper, player);
+            menu.openEditorWith(RACK_RECIPE);
+            List<ItemStack> cells = menu.gridCells();
+            helper.assertTrue(menu.isEditing(), "the editor opens");
+            helper.assertTrue(cells.get(3).is(Items.SPRUCE_PLANKS) && cells.get(4).is(Items.SPRUCE_PLANKS) && cells.get(5).is(Items.SPRUCE_PLANKS),
+                    "the middle row holds the stocked spruce planks, got " + cells);
+            helper.assertTrue(cells.get(0).is(Items.IRON_INGOT), "the unstocked iron takes the first item, got " + cells);
             helper.succeed();
         });
     }

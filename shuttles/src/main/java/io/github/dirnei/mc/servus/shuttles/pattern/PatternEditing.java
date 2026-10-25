@@ -14,7 +14,8 @@ import net.minecraft.world.level.Level;
 
 /**
  * Saves and deletes patterns of a data line from a 3 by 3 grid, for the
- * Production Terminal's editor. Server thread only.
+ * Production Terminal's editor. Saving and deleting run on the server thread
+ * only; {@link #encode} also runs on the client for the grids' result.
  */
 public final class PatternEditing {
 

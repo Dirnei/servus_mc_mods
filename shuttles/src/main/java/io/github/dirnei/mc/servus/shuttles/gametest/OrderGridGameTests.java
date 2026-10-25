@@ -1,12 +1,17 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.shuttles.order.WorkOrder;
+import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
+import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewRequestPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlockEntity;
@@ -14,6 +19,7 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -28,6 +34,10 @@ public final class OrderGridGameTests {
     private static final BlockPos MINI_ORIGIN = new BlockPos(4, 1, 2);
     private static final BlockPos MINI_TERMINAL = new BlockPos(5, 1, 3);
     private static final int[] SQUARE = {0, 1, 3, 4};
+    private static final int[] RACK_IRON = {0, 2, 6, 8};
+    /** The second rack of {@link StationHandsGameTests#setup}, for extra stock. */
+    private static final BlockPos EXTRA = new BlockPos(1, 0, 3);
+    private static final Identifier OAK = Identifier.withDefaultNamespace("oak_planks");
 
     private OrderGridGameTests() {
     }
@@ -47,6 +57,13 @@ public final class OrderGridGameTests {
         for (int cell : SQUARE) {
             menu.setGhost(cell, new ItemStack(Items.OAK_PLANKS));
         }
+    }
+
+    /** Rails made of the wood of these planks. */
+    private static ItemStack rail(String planks, int count) {
+        ItemStack rail = new ItemStack(ServusShuttlesItems.RAIL.get(), count);
+        rail.set(MaterialContent.MATERIAL.get(), Identifier.withDefaultNamespace(planks));
+        return rail;
     }
 
     private static boolean craftingTableSaved(GameTestHelper helper) {
@@ -98,6 +115,58 @@ public final class OrderGridGameTests {
             helper.assertTrue(WarehouseFixtures.count(rack, Items.OAK_PLANKS) == 16, "the rack keeps its planks");
             CraftPreviewPayload preview = menu.preview(ItemStack.EMPTY, 4, CraftPreviewRequestPayload.Mode.ORDER);
             helper.assertTrue(preview.item().is(Items.STICK) && preview.patternSaved(), "the sticks pattern is known, got " + preview);
+            helper.succeed();
+        });
+    }
+
+    /** JEI's bare Rail finds the Rail the warehouse holds most of, with its wood. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void transferPicksStockedRail(GameTestHelper helper) {
+        StationHandsGameTests.setup(helper, 16);
+        WarehouseFixtures.stock(helper, EXTRA, rail("spruce_planks", 10), rail("oak_planks", 40));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = menu(helper, player);
+        Waits.when(helper, () -> stocked(helper, menu) && TerminalWiring.stockOf(menu, ServusShuttlesItems.RAIL.get()) == 50, 160,
+                () -> "stations, CPU and Rails should be on the line", () -> {
+            List<ItemStack> iron = List.of(new ItemStack(Items.IRON_INGOT));
+            List<ItemStack> bareRail = List.of(new ItemStack(ServusShuttlesItems.RAIL.get()));
+            menu.fillGhosts(List.of(iron, iron, iron, iron, bareRail, iron, iron, iron, iron));
+            ItemStack centre = menu.gridCells().get(4);
+            helper.assertTrue(ItemStack.isSameItemSameComponents(centre, rail("oak_planks", 1)),
+                    "the centre holds the stocked oak Rail, got " + centre + " " + centre.getComponentsPatch());
+            helper.assertTrue(menu.gridCells().get(0).is(Items.IRON_INGOT), "the unstocked iron takes the first item");
+            ItemStack result = PatternEditing.encode(helper.getLevel(), menu.gridCells()).map(EncodedPattern::result).orElse(ItemStack.EMPTY);
+            helper.assertTrue(result.is(ServusShuttlesItems.ELEVATOR.get()) && OAK.equals(result.get(MaterialContent.MATERIAL.get())),
+                    "the grid makes oak Elevators, got " + result.getComponents());
+            helper.succeed();
+        });
+    }
+
+    /** The rack grid's result carries the wood of its planks, equals the order preview's item and saves. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void rackGridResultMatchesPreview(GameTestHelper helper) {
+        StationHandsGameTests.setup(helper, 16);
+        WarehouseFixtures.stock(helper, EXTRA, new ItemStack(Items.IRON_INGOT, 16));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = menu(helper, player);
+        Waits.when(helper, () -> stocked(helper, menu), 160, () -> "stations and CPU should join the line", () -> {
+            for (int cell : RACK_IRON) {
+                menu.setGhost(cell, new ItemStack(Items.IRON_INGOT));
+            }
+            for (int cell = 3; cell < 6; cell++) {
+                menu.setGhost(cell, new ItemStack(Items.OAK_PLANKS));
+            }
+            ItemStack result = PatternEditing.encode(helper.getLevel(), menu.gridCells()).map(EncodedPattern::result).orElse(ItemStack.EMPTY);
+            helper.assertTrue(result.is(ServusShuttlesItems.HEAVY_RACK.get()) && result.getCount() == 3
+                            && OAK.equals(result.get(ServusShuttlesComponents.RACK_WOOD.get())),
+                    "the grid makes three oak racks, got " + result + " " + result.getComponents());
+            CraftPreviewPayload preview = menu.preview(ItemStack.EMPTY, 3, CraftPreviewRequestPayload.Mode.ORDER);
+            helper.assertTrue(ItemStack.isSameItemSameComponents(preview.item(), result) && !preview.patternSaved(),
+                    "the preview is the same oak rack, got " + preview);
+            menu.savePattern();
+            helper.assertTrue(menu.stock().message().isEmpty(), "no message, got " + menu.stock().message());
+            helper.assertTrue(PatternLibrary.entries(helper.getLevel(), StationHandsGameTests.line(helper)).stream()
+                    .anyMatch(entry -> ItemStack.isSameItemSameComponents(entry.pattern().result(), result)), "the oak rack pattern is stored");
             helper.succeed();
         });
     }

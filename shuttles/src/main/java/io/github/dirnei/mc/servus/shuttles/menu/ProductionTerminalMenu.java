@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.shuttles.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
+import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternLibrary;
@@ -23,8 +24,10 @@ import io.github.dirnei.mc.servus.shuttles.production.ProductionView;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout;
+import io.github.dirnei.mc.servus.shuttles.terminal.TerminalWarehouses;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -203,12 +206,17 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         return true;
     }
 
-    /** Opens the editor prefilled with a vanilla crafting recipe from the recipe viewer. */
+    /**
+     * Opens the editor prefilled with a vanilla crafting recipe from the recipe
+     * viewer, each cell holding the accepted stack the line's warehouse has the most of.
+     */
     public void openEditorWith(Identifier id) {
-        if (player.level().isClientSide()) {
+        if (!(terminal.getLevel() instanceof ServerLevel level)) {
             return;
         }
-        CraftingGrid.templateOf(player.level(), id).ifPresent(template -> {
+        List<Map.Entry<ItemKey, Long>> stock = TerminalWarehouses.online(level, terminal.getBlockPos())
+                .map(TerminalWarehouses::stock).orElse(List.of());
+        CraftingGrid.templateOf(level, id, stock).ifPresent(template -> {
             fill(template);
             if (!isEditing()) {
                 editingSlot = null;

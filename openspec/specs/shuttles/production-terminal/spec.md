@@ -73,11 +73,19 @@ The Patterns tab SHALL show a capacity bar with the used and total pattern place
 - **THEN** that pattern now holds the torch recipe
 
 ### Requirement: Recipe viewer transfer into the terminal
-With JEI installed, the transfer button on a vanilla crafting recipe SHALL open the editor of the open Production Terminal prefilled with that recipe's layout. Without JEI the terminal SHALL work unchanged.
+With JEI installed, the transfer button on a vanilla crafting recipe SHALL open the editor of the open Production Terminal prefilled with that recipe's layout. For each cell it SHALL choose, among the stacks the warehouse of the terminal's data line can give out that the cell's ingredient accepts, the one the warehouse has the most of, with that stack's components; without such a stack or without a warehouse on the line the cell SHALL take the ingredient's first item. The editor's preview SHALL show what the recipe makes from the grid, with the components the recipe adds (for example the wood of the planks), the same result a saved pattern has. Without JEI the terminal SHALL work unchanged.
 
 #### Scenario: Plus button in JEI
 - **WHEN** the terminal screen is open and the player presses the transfer button on the stick recipe in JEI
 - **THEN** the editor opens with a plank above a plank and the preview shows four sticks
+
+#### Scenario: Stocked planks
+- **WHEN** the warehouse of the line holds spruce planks and no other planks, and the player presses the transfer button on the Heavy Duty Rack recipe
+- **THEN** the middle row shows spruce planks and the preview shows Heavy Duty Racks whose tooltip names spruce wood
+
+#### Scenario: Stocked Rail
+- **WHEN** the warehouse of the line holds oak Rails and the player presses the transfer button on the Elevator recipe
+- **THEN** the centre cell shows an oak Rail with its wood, and the saved pattern takes that Rail from stock
 
 ### Requirement: Screen layout
 The Production Terminal screen SHALL show the title on its own row, the tab bar on the row below it and the list below the tab bar, so the title, the tabs and the rows never overlap; each tab SHALL be as wide as its label plus an even share of the row's spare width, so all tabs fit the row; the parts of a job row (icon, name, progress bar, step text, cancel button), of a buffer line under a job, of a machine row (icon, name, state, upkeep bar), of a CPU row (icon, name, slot bar, buffer bar, buffered items) and of a storage row (name, numbers, bar) SHALL not overlap and SHALL fit the list width; the pattern editor SHALL cover the list area with the player inventory below it, inside the panel. The panel SHALL fit a 1080p screen at the automatic GUI scale.

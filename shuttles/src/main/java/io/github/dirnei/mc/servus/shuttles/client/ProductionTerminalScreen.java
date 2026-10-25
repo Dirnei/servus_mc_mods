@@ -4,9 +4,10 @@ import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.foundation.client.RecipeEditorPopup;
 import io.github.dirnei.mc.servus.foundation.picker.PickerStock;
-import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.shuttles.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.shuttles.pattern.CraftingGrid;
+import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
+import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
 import io.github.dirnei.mc.servus.shuttles.production.CancelProductionOrderPayload;
 import io.github.dirnei.mc.servus.shuttles.production.EditPatternPayload;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.BufferItem;
@@ -160,9 +161,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         if (level == null) {
             return ItemStack.EMPTY;
         }
-        return CraftingGrid.match(level, menu.gridCells())
-                .map(holder -> ServusRecipes.displayResult(level, holder.value()))
-                .orElse(ItemStack.EMPTY);
+        return PatternEditing.encode(level, menu.gridCells()).map(EncodedPattern::result).orElse(ItemStack.EMPTY);
     }
 
     @Override

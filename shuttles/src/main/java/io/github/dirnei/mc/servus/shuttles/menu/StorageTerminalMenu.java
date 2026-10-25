@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.order.OrderBook;
+import io.github.dirnei.mc.servus.shuttles.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternLibrary;
@@ -28,7 +29,6 @@ import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout.Storage;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalRequests;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalWarehouses;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -196,39 +196,20 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     }
 
     /**
-     * Recipe viewer transfer: sets each ghost cell to the accepted item the
-     * warehouse can give the most of, else to the first one. Takes nothing.
+     * Recipe viewer transfer: sets each ghost cell to the stocked stack of an
+     * accepted item the warehouse can give the most of, with its components,
+     * else to the first accepted item. Takes nothing.
      */
     public void fillGhosts(List<List<ItemStack>> options) {
         if (!(terminal.getLevel() instanceof ServerLevel server)) {
             return;
         }
-        Map<ItemKey, Long> stock = new HashMap<>();
-        TerminalWarehouses.online(server, terminal.getBlockPos()).ifPresent(warehouse -> {
-            for (Map.Entry<ItemKey, Long> entry : TerminalWarehouses.stock(warehouse)) {
-                stock.put(entry.getKey(), entry.getValue());
-            }
-        });
+        List<Map.Entry<ItemKey, Long>> stock = TerminalWarehouses.online(server, terminal.getBlockPos())
+                .map(TerminalWarehouses::stock).orElse(List.of());
         for (int cell = 0; cell < EncodedPattern.GRID; cell++) {
-            setGhost(cell, cell < options.size() ? mostStocked(options.get(cell), stock) : ItemStack.EMPTY);
+            setGhost(cell, cell < options.size() ? CraftingGrid.stockedChoice(options.get(cell), stock) : ItemStack.EMPTY);
         }
         sync.force();
-    }
-
-    private static ItemStack mostStocked(List<ItemStack> options, Map<ItemKey, Long> stock) {
-        ItemStack best = ItemStack.EMPTY;
-        long bestCount = -1;
-        for (ItemStack option : options) {
-            if (option.isEmpty()) {
-                continue;
-            }
-            long count = stock.getOrDefault(ItemKey.of(option), 0L);
-            if (count > bestCount) {
-                best = option;
-                bestCount = count;
-            }
-        }
-        return best;
     }
 
     /**

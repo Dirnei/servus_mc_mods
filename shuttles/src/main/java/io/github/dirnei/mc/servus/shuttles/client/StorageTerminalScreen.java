@@ -35,10 +35,10 @@ import java.util.function.Supplier;
 import io.github.dirnei.mc.servus.foundation.client.ItemListView;
 import io.github.dirnei.mc.servus.foundation.client.NumberStepper;
 import io.github.dirnei.mc.servus.foundation.client.PopupPanel;
-import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.ui.AmountSteps;
 import io.github.dirnei.mc.servus.foundation.ui.ListScroll;
-import io.github.dirnei.mc.servus.shuttles.pattern.CraftingGrid;
+import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
+import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -411,8 +411,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         if (level == null) {
             return ItemStack.EMPTY;
         }
-        return CraftingGrid.match(level, menu.gridCells()).map(holder -> ServusRecipes.displayResult(level, holder.value()))
-                .orElse(ItemStack.EMPTY);
+        return PatternEditing.encode(level, menu.gridCells()).map(EncodedPattern::result).orElse(ItemStack.EMPTY);
     }
 
     private IconButton sideButton(Rect rect, Supplier<String> icon, Button.OnPress press) {
