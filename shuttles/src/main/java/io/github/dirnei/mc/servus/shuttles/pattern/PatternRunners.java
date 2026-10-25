@@ -26,24 +26,25 @@ public final class PatternRunners {
 
     /**
      * The producer's reported recipes plus one recipe per pattern it can run
-     * that it does not report already with the same id and inputs.
+     * that it does not report already with the same id and inputs. An Any
+     * pattern takes the accepted items the stock holds most of.
+     *
+     * @param stock what the planner may take, per item
      */
     public static List<ProductionRecipe> withPatterns(ServerLevel level, BlockPos producer, List<ProductionRecipe> reported,
-                                                      List<PatternLibrary.Entry> patterns) {
-        if (!(level.getBlockEntity(producer) instanceof CraftingStationBlockEntity)) {
+                                                      List<PatternLibrary.Entry> patterns, Map<ItemKey, Long> stock) {
+        if (!(level.getBlockEntity(producer) instanceof CraftingStationBlockEntity station)) {
             // Only stations run patterns; the provider's own list stays the same instance for caches.
             return reported;
         }
         List<ProductionRecipe> recipes = new ArrayList<>(reported);
-        int ticks = 1;
+        int ticks = station.workTicks();
         for (ProductionRecipe recipe : reported) {
             ticks = Math.max(ticks, recipe.ticks());
         }
-        if (level.getBlockEntity(producer) instanceof CraftingStationBlockEntity station) {
-            ticks = Math.max(ticks, station.workTicks());
-        }
+        ticks = Math.max(1, ticks);
         for (PatternLibrary.Entry entry : patterns) {
-            EncodedPattern pattern = entry.pattern();
+            EncodedPattern pattern = entry.variant(level, stock);
             if (!canRun(level, producer, pattern) || reports(recipes, pattern)) {
                 continue;
             }

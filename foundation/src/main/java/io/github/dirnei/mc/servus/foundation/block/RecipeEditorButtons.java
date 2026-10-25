@@ -10,6 +10,8 @@ public final class RecipeEditorButtons {
     public static final int SAVE = 103;
     public static final int DELETE = 104;
     public static final int CANCEL = 105;
+    /** Switches the recipe's mode, for editors that show the mode button. */
+    public static final int MODE = 106;
 
     /** Editor state: the popup is closed. */
     public static final int EDIT_CLOSED = -1;

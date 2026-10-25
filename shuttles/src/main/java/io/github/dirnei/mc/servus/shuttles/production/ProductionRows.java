@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.production;
 
+import io.github.dirnei.mc.servus.shuttles.pattern.AnyGroup;
 import io.github.dirnei.mc.servus.shuttles.storage.StorageFill;
 import io.netty.buffer.ByteBuf;
 import java.util.List;
@@ -25,14 +26,21 @@ public final class ProductionRows {
      * @param slot    its slot there
      * @param result  what one craft makes
      * @param inputs  what one craft consumes, with counts
+     * @param any     what the cells of an Any pattern accept, per ingredient; empty for an Exact pattern
      */
-    public record PatternRow(BlockPos storage, int slot, ItemStack result, List<ItemStack> inputs) {
+    public record PatternRow(BlockPos storage, int slot, ItemStack result, List<ItemStack> inputs, List<AnyGroup> any) {
         public static final StreamCodec<RegistryFriendlyByteBuf, PatternRow> STREAM_CODEC = StreamCodec.composite(
                 BlockPos.STREAM_CODEC, PatternRow::storage,
                 ByteBufCodecs.VAR_INT, PatternRow::slot,
                 ItemStack.OPTIONAL_STREAM_CODEC, PatternRow::result,
                 STACKS, PatternRow::inputs,
+                AnyGroup.STREAM_CODEC.apply(ByteBufCodecs.list()), PatternRow::any,
                 PatternRow::new);
+
+        /** Whether the pattern is shown as Any. */
+        public boolean isAny() {
+            return !any.isEmpty();
+        }
     }
 
     /**

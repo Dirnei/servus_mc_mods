@@ -7,16 +7,30 @@ import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabili
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.shuttles.crafting.CraftingStationBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
+import io.github.dirnei.mc.servus.shuttles.order.OrderStep;
+import io.github.dirnei.mc.servus.shuttles.order.StepRef;
+import io.github.dirnei.mc.servus.shuttles.order.WorkOrder;
 import io.github.dirnei.mc.servus.shuttles.outbound.OutboundStationBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
+import io.github.dirnei.mc.servus.shuttles.pattern.PatternStorageBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
@@ -123,6 +137,94 @@ public final class CraftingStationGameTests {
         station.outputs().setStackInSlot(0, new ItemStack(Items.STICK, 3));
         helper.assertTrue(handler.extractItem(CraftingStationBlockEntity.INPUT_SLOTS, 3, false).getCount() == 3, "outputs can be extracted");
         helper.succeed();
+    }
+
+    /** The sticks pattern saved with oak planks, as Any. */
+    private static EncodedPattern anySticks() {
+        return StationJobs.sticks().withMode(EncodedPattern.Mode.ANY);
+    }
+
+    /** The Any sticks pattern crafting from spruce planks. */
+    private static EncodedPattern spruceSticks() {
+        ItemKey spruce = ItemKey.of(new ItemStack(Items.SPRUCE_PLANKS));
+        return anySticks().withKeys(Arrays.asList(null, spruce, null, null, spruce));
+    }
+
+    private static boolean warehouseHolds(GameTestHelper helper, Item item, int count) {
+        return CpuLine.lineReady(helper) && CpuLine.warehouse(helper).available(ItemKey.of(new ItemStack(item))) >= count;
+    }
+
+    /** With 3 oak and 40 spruce planks, 16 sticks from an Any sticks pattern take 8 spruce planks, and the station crafts them. */
+    @ServusGameTest(timeoutTicks = 1600)
+    public static void anySticksUseSpruce(GameTestHelper helper) {
+        CpuLine.setup(helper, true);
+        helper.getBlockEntity(CpuLine.PATTERNS, PatternStorageBlockEntity.class).set(0, anySticks());
+        HeavyRackBlockEntity oak = CpuLine.stock(helper, CpuLine.RACK_A, Items.OAK_PLANKS, 3);
+        HeavyRackBlockEntity spruce = CpuLine.stock(helper, CpuLine.RACK_B, Items.SPRUCE_PLANKS, 40);
+        ItemKey spruceKey = ItemKey.of(new ItemStack(Items.SPRUCE_PLANKS));
+        Waits.when(helper, () -> warehouseHolds(helper, Items.SPRUCE_PLANKS, 40), 200, () -> "the warehouse should list the spruce planks", () -> {
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CpuLine.line(helper), CpuLine.STICK, 16, 0);
+            helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
+            WorkOrder order = placed.created().order();
+            OrderStep step = order.steps().get(0);
+            helper.assertTrue(order.steps().size() == 1 && step.inputs().equals(Map.of(spruceKey, 2)) && step.batches() == 4,
+                    "one sticks step of four batches from two spruce planks, got " + step.inputs() + " x" + step.batches());
+            helper.assertTrue(order.reserved().getOrDefault(spruceKey, 0) == 8, "eight spruce planks are reserved, got " + order.reserved());
+            CraftingStationBlockEntity station = helper.getBlockEntity(CpuLine.STATION, CraftingStationBlockEntity.class);
+            Waits.when(helper, () -> !order.open(), 1300,
+                    () -> "the order should finish, steps " + order.steps().stream().map(s -> s.state() + "/" + s.reason()).toList()
+                            + " job " + station.job().map(EncodedPattern::template).orElse(List.of()), () -> {
+                helper.assertTrue(WarehouseFixtures.count(spruce, Items.SPRUCE_PLANKS) == 32, "eight spruce planks were used, rack has "
+                        + WarehouseFixtures.count(spruce, Items.SPRUCE_PLANKS));
+                helper.assertTrue(WarehouseFixtures.count(oak, Items.OAK_PLANKS) == 3, "the oak planks stay");
+                helper.assertTrue(order.state() == WorkOrder.State.DONE, "the order is done, got " + order.state());
+                helper.succeed();
+            });
+        });
+    }
+
+    /** With no planks in stock an Any sticks pattern keeps its oak planks, so the order crafts oak planks first. */
+    @ServusGameTest(timeoutTicks = 300)
+    public static void anyWithoutStockCraftsOwnPlanks(GameTestHelper helper) {
+        CpuLine.setup(helper, true);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(CpuLine.PATTERNS, PatternStorageBlockEntity.class);
+        patterns.set(0, anySticks());
+        patterns.set(1, StationJobs.planks());
+        CpuLine.stock(helper, CpuLine.RACK_A, Items.OAK_LOG, 2);
+        Waits.when(helper, () -> warehouseHolds(helper, Items.OAK_LOG, 2), 200, () -> "the warehouse should list the logs", () -> {
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CpuLine.line(helper), CpuLine.STICK, 8, 0);
+            helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
+            List<OrderStep> steps = placed.created().order().steps();
+            helper.assertTrue(steps.size() == 2 && steps.get(0).output().is(Items.OAK_PLANKS)
+                            && steps.get(1).inputs().equals(Map.of(CpuLine.PLANKS, 2)),
+                    "oak planks first, then sticks from oak planks, got " + steps.stream().map(OrderStep::inputs).toList());
+            helper.succeed();
+        });
+    }
+
+    /** A station crafts an Any job from the chosen spruce planks, and a saved job keeps them. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void stationKeepsVariantAfterReload(GameTestHelper helper) {
+        CraftingStationBlockEntity station = plainStation(helper, CR_STATION);
+        station.assign(spruceSticks(), 1, new StepRef(helper.absolutePos(CS_STATION), 1, 0));
+        CompoundTag tag = station.saveWithoutMetadata(helper.getLevel().registryAccess());
+        CraftingStationBlockEntity copy = new CraftingStationBlockEntity(helper.absolutePos(CR_STATION), station.getBlockState());
+        copy.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), tag));
+        helper.assertTrue(copy.job().map(job -> job.any() && job.template().get(1).is(Items.SPRUCE_PLANKS)).orElse(false),
+                "the reloaded job crafts from spruce planks");
+        helper.assertTrue(copy.uses(new ItemStack(Items.SPRUCE_PLANKS)) && !copy.uses(new ItemStack(Items.OAK_PLANKS)),
+                "the reloaded job takes spruce planks, not oak");
+        Object owner = new Object();
+        station.release(station.jobOwner());
+        station.assign(spruceSticks(), 1, owner);
+        station.inputs().setStackInSlot(0, new ItemStack(Items.SPRUCE_PLANKS, 2));
+        Waits.when(helper, () -> station.outputs().getStackInSlot(0).is(Items.STICK), station.workTicks() + 60,
+                () -> "the station should craft sticks from spruce planks", () -> {
+            helper.assertTrue(station.outputs().getStackInSlot(0).getCount() == 4 && station.inputs().getStackInSlot(0).isEmpty(),
+                    "four sticks from two spruce planks");
+            station.release(owner);
+            helper.succeed();
+        });
     }
 
     /** The station pulls planks from an Outbound Station and pushes the sticks into an Inbound Station; a shuttle puts them into the rack. */

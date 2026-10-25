@@ -9,14 +9,19 @@ import net.minecraft.world.item.ItemStack;
 /**
  * The recipe editor popup drawn over a machine GUI: the machine area dimmed,
  * a framed panel with a title, the frames of the 3 by 3 ghost grid (the menu
- * owns the slots), a preview of the matched result and Save, Delete and Cancel
- * buttons. All positions are relative to the GUI's top left corner.
+ * owns the slots), a preview of the matched result, Save, Delete and Cancel
+ * buttons and, for editors that have one, a mode button left of Save. All
+ * positions are relative to the GUI's top left corner.
  */
 public final class RecipeEditorPopup {
 
     /** A button of the popup, or none. */
     public enum Button {
-        NONE, SAVE, DELETE, CANCEL
+        NONE, SAVE, DELETE, CANCEL, MODE
+    }
+
+    /** What the mode button shows: its label, and whether it can be pressed. */
+    public record Mode(Component label, boolean enabled) {
     }
 
     public static final int CELL = 18;
@@ -24,12 +29,14 @@ public final class RecipeEditorPopup {
     public static final int HEIGHT = 72;
     private static final int PREVIEW_OFFSET_X = 68;
     private static final int PREVIEW_OFFSET_Y = 34;
-    private static final int BUTTON_OFFSET_X = 92;
-    private static final int BUTTON_W = 62;
+    private static final int BUTTON_OFFSET_X = 96;
+    private static final int BUTTON_W = 58;
     private static final int BUTTON_H = 14;
     private static final int SAVE_OFFSET_Y = 16;
     private static final int DELETE_OFFSET_Y = 34;
     private static final int CANCEL_OFFSET_Y = 52;
+    private static final int MODE_OFFSET_X = 62;
+    private static final int MODE_W = 32;
 
     private final int x;
     private final int y;
@@ -61,6 +68,11 @@ public final class RecipeEditorPopup {
 
     public boolean previewHovered(int left, int top, double mouseX, double mouseY) {
         return in(left, top, mouseX, mouseY, x + PREVIEW_OFFSET_X, y + PREVIEW_OFFSET_Y, CELL, CELL);
+    }
+
+    /** Whether the mouse is over the mode button. */
+    public boolean modeHovered(int left, int top, double mouseX, double mouseY) {
+        return onButton(Button.MODE, left, top, mouseX, mouseY);
     }
 
     /**
@@ -99,6 +111,12 @@ public final class RecipeEditorPopup {
         drawButton(graphics, font, left, top, mouseX, mouseY, Button.CANCEL, cancel);
     }
 
+    /** Draws the mode button left of Save, greyed when it cannot be pressed. */
+    public void renderMode(GuiGraphicsExtractor graphics, Font font, int left, int top, int mouseX, int mouseY, Mode mode) {
+        drawButton(graphics, font, left + x + MODE_OFFSET_X, top + y + SAVE_OFFSET_Y, MODE_W, BUTTON_H, mode.label().getString(),
+                mode.enabled() && modeHovered(left, top, mouseX, mouseY), mode.enabled());
+    }
+
     /** The button under the mouse; Delete only counts when an existing recipe is edited. */
     public Button buttonAt(int left, int top, double mouseX, double mouseY, boolean existing) {
         if (onButton(Button.SAVE, left, top, mouseX, mouseY)) {
@@ -110,14 +128,23 @@ public final class RecipeEditorPopup {
         if (onButton(Button.CANCEL, left, top, mouseX, mouseY)) {
             return Button.CANCEL;
         }
+        if (onButton(Button.MODE, left, top, mouseX, mouseY)) {
+            return Button.MODE;
+        }
         return Button.NONE;
     }
 
     /** A flat button in the editor's style, at absolute screen coordinates. */
     public static void drawButton(GuiGraphicsExtractor graphics, Font font, int x, int y, int w, int h, String label, boolean hovered) {
+        drawButton(graphics, font, x, y, w, h, label, hovered, true);
+    }
+
+    /** A flat button in the editor's style, greyed out when it cannot be pressed. */
+    public static void drawButton(GuiGraphicsExtractor graphics, Font font, int x, int y, int w, int h, String label, boolean hovered,
+                                  boolean enabled) {
         graphics.fill(x, y, x + w, y + h, 0xFF373737);
-        graphics.fill(x + 1, y + 1, x + w - 1, y + h - 1, hovered ? 0xFFDDDDDD : 0xFFA0A0A0);
-        graphics.text(font, label, x + (w - font.width(label)) / 2, y + (h - 8) / 2, 0xFF202020, false);
+        graphics.fill(x + 1, y + 1, x + w - 1, y + h - 1, !enabled ? 0xFF7A7A7A : hovered ? 0xFFDDDDDD : 0xFFA0A0A0);
+        graphics.text(font, label, x + (w - font.width(label)) / 2, y + (h - 8) / 2, enabled ? 0xFF202020 : 0xFF505050, false);
     }
 
     private void drawButton(GuiGraphicsExtractor graphics, Font font, int left, int top, int mouseX, int mouseY, Button button,
@@ -127,12 +154,15 @@ public final class RecipeEditorPopup {
     }
 
     private boolean onButton(Button button, int left, int top, double mouseX, double mouseY) {
+        if (button == Button.MODE) {
+            return in(left, top, mouseX, mouseY, x + MODE_OFFSET_X, y + SAVE_OFFSET_Y, MODE_W, BUTTON_H);
+        }
         return in(left, top, mouseX, mouseY, x + BUTTON_OFFSET_X, y + offsetY(button), BUTTON_W, BUTTON_H);
     }
 
     private static int offsetY(Button button) {
         return switch (button) {
-            case SAVE -> SAVE_OFFSET_Y;
+            case SAVE, MODE -> SAVE_OFFSET_Y;
             case DELETE -> DELETE_OFFSET_Y;
             case CANCEL -> CANCEL_OFFSET_Y;
             case NONE -> throw new IllegalArgumentException("NONE has no position");

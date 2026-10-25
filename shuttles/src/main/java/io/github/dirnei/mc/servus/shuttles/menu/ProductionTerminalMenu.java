@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.shuttles.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
+import io.github.dirnei.mc.servus.shuttles.pattern.AnyGroup;
 import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternLibrary;
@@ -65,6 +66,8 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
     private final Player player;
     private final ItemSlots grid = new ItemSlots(EncodedPattern.GRID);
     private final DataSlot editing = DataSlot.standalone();
+    /** The mode asked for in the editor, as {@link EncodedPattern.Mode#ordinal()}; saving stores Exact where Any is not possible. */
+    private final DataSlot mode = DataSlot.standalone();
     private final int gridStart;
     private final PayloadSync<ProductionPayload> sync = new PayloadSync<>(10, false, this::view, ProductionTerminalMenu::signature);
     private PatternLibrary.Free editingSlot;
@@ -76,6 +79,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         this.player = playerInventory.player;
         this.access = ContainerLevelAccess.create(terminal.getLevel(), terminal.getBlockPos());
         editing.set(RecipeEditorButtons.EDIT_CLOSED);
+        mode.set(EncodedPattern.Mode.ANY.ordinal());
         gridStart = slots.size();
         for (int i = 0; i < EncodedPattern.GRID; i++) {
             addSlot(new GhostSlot(() -> grid, i, RecipeEditorButtons.gridX(POPUP_X) + (i % 3) * 18,
@@ -95,6 +99,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
             addSlot(editorSlot(playerInventory, column, INVENTORY_X + column * 18, HOTBAR_Y));
         }
         addDataSlot(editing);
+        addDataSlot(mode);
     }
 
     /** A player inventory slot that is there only while the editor is open. */
@@ -154,6 +159,16 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         return editing() != RecipeEditorButtons.EDIT_CLOSED;
     }
 
+    /** The mode asked for in the editor; the pattern is saved Exact where Any is not possible. */
+    public EncodedPattern.Mode mode() {
+        return mode.get() == EncodedPattern.Mode.ANY.ordinal() ? EncodedPattern.Mode.ANY : EncodedPattern.Mode.EXACT;
+    }
+
+    /** Switches the asked mode between Exact and Any. */
+    public void toggleMode() {
+        mode.set((mode() == EncodedPattern.Mode.ANY ? EncodedPattern.Mode.EXACT : EncodedPattern.Mode.ANY).ordinal());
+    }
+
     public boolean isGridSlot(int slotId) {
         return slotId >= gridStart && slotId < gridStart + EncodedPattern.GRID;
     }
@@ -187,6 +202,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
     public void openNew() {
         fill(List.of());
         editingSlot = null;
+        mode.set(EncodedPattern.Mode.ANY.ordinal());
         editing.set(RecipeEditorButtons.EDIT_NEW);
     }
 
@@ -201,6 +217,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
             return false;
         }
         fill(entry.get().pattern().template());
+        mode.set(entry.get().pattern().mode().ordinal());
         editingSlot = new PatternLibrary.Free(storage, slot);
         editing.set(EDIT_EXISTING);
         return true;
@@ -220,6 +237,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
             fill(template);
             if (!isEditing()) {
                 editingSlot = null;
+                mode.set(EncodedPattern.Mode.ANY.ordinal());
                 editing.set(RecipeEditorButtons.EDIT_NEW);
             }
         });
@@ -243,7 +261,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         if (line.isEmpty()) {
             return "full";
         }
-        String result = PatternEditing.save(level, line.get(), player, gridCells(), editing() == EDIT_EXISTING ? editingSlot : null);
+        String result = PatternEditing.save(level, line.get(), player, gridCells(), editing() == EDIT_EXISTING ? editingSlot : null, mode());
         if (result.isEmpty()) {
             closeEditor();
             sync.force();
@@ -277,6 +295,10 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
                 player.sendOverlayMessage(Component.translatable("gui.servus_shuttles.production.pattern_message." + result)
                         .withStyle(ChatFormatting.RED));
             }
+            return true;
+        }
+        if (id == RecipeEditorButtons.MODE && isEditing()) {
+            toggleMode();
             return true;
         }
         if (id == RecipeEditorButtons.DELETE && isEditing()) {
@@ -407,6 +429,12 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         for (PatternRow row : patterns.rows()) {
             hash = hash * 31 + row.storage().hashCode() + row.slot();
             hash = hash * 31 + row.result().getItem().hashCode() * 7 + row.result().getCount();
+            for (AnyGroup group : row.any()) {
+                hash = hash * 31 + group.tagKey().hashCode() * 7 + group.total();
+                for (ItemStack item : group.items()) {
+                    hash = hash * 31 + item.getItem().hashCode();
+                }
+            }
             for (ItemStack input : row.inputs()) {
                 hash = hash * 31 + input.getItem().hashCode() * 7 + input.getCount();
             }

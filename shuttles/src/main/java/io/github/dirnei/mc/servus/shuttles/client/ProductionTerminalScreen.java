@@ -4,10 +4,14 @@ import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.foundation.client.RecipeEditorPopup;
 import io.github.dirnei.mc.servus.foundation.picker.PickerStock;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.shuttles.menu.ProductionTerminalMenu;
+import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
+import io.github.dirnei.mc.servus.shuttles.pattern.AnyGroup;
 import io.github.dirnei.mc.servus.shuttles.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
+import io.github.dirnei.mc.servus.shuttles.pattern.PatternVariants;
 import io.github.dirnei.mc.servus.shuttles.production.CancelProductionOrderPayload;
 import io.github.dirnei.mc.servus.shuttles.production.EditPatternPayload;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.BufferItem;
@@ -28,6 +32,7 @@ import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout.Rect;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
@@ -36,6 +41,7 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeMap;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.lwjgl.glfw.GLFW;
@@ -108,6 +114,9 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private int selected;
     private int linesVersion = -1;
     private int linesTab = -1;
+    private List<ItemKey> variantsGrid;
+    private RecipeMap variantsRecipes;
+    private PatternVariants variants = PatternVariants.NONE;
 
     public ProductionTerminalScreen(ProductionTerminalMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, WIDTH, HEIGHT);
@@ -146,6 +155,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
                 Component.translatable("gui.servus_shuttles.crafting_station.save"),
                 Component.translatable("gui.servus_shuttles.crafting_station.delete"),
                 Component.translatable("gui.servus_shuttles.crafting_station.cancel"));
+        popup.renderMode(graphics, font, leftPos, topPos, mouseX, mouseY, modeButton());
         for (int row = 0; row < 4; row++) {
             int y = topPos + (row < 3 ? ProductionTerminalMenu.INVENTORY_Y + row * 18 : ProductionTerminalMenu.HOTBAR_Y);
             for (int column = 0; column < 9; column++) {
@@ -164,6 +174,56 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         return PatternEditing.encode(level, menu.gridCells()).map(EncodedPattern::result).orElse(ItemStack.EMPTY);
     }
 
+    /** What the grid's items allow, worked out again only when the grid or the recipes change. */
+    private PatternVariants gridVariants() {
+        Level level = minecraft == null ? null : minecraft.level;
+        if (level == null) {
+            return PatternVariants.NONE;
+        }
+        List<ItemKey> cells = menu.gridCells().stream().map(cell -> cell.isEmpty() ? null : ItemKey.of(cell)).toList();
+        RecipeMap recipes = ServusRecipes.recipeMap(level);
+        if (!cells.equals(variantsGrid) || recipes != variantsRecipes) {
+            variantsGrid = cells;
+            variantsRecipes = recipes;
+            variants = PatternEditing.encode(level, menu.gridCells()).map(pattern -> PatternVariants.of(level, pattern))
+                    .orElse(PatternVariants.NONE);
+        }
+        return variants;
+    }
+
+    /** Any or Exact as asked; Exact and greyed where the grid allows no Any. */
+    private RecipeEditorPopup.Mode modeButton() {
+        boolean possible = gridVariants().possible();
+        boolean any = possible && menu.mode() == EncodedPattern.Mode.ANY;
+        return new RecipeEditorPopup.Mode(Component.translatable("gui.servus_shuttles.production.mode." + (any ? "any" : "exact")), possible);
+    }
+
+    private List<Component> modeTooltip() {
+        PatternVariants grid = gridVariants();
+        List<Component> tooltip = new ArrayList<>();
+        if (!grid.possible()) {
+            tooltip.add(Component.translatable("gui.servus_shuttles.production.mode.exact"));
+            String why = grid.verdict() == PatternVariants.Verdict.CHANGES_RESULT ? "changes_result" : "no_alternatives";
+            tooltip.add(Component.translatable("gui.servus_shuttles.production.mode." + why).withStyle(ChatFormatting.GRAY));
+            return tooltip;
+        }
+        boolean any = menu.mode() == EncodedPattern.Mode.ANY;
+        tooltip.add(Component.translatable("gui.servus_shuttles.production.mode." + (any ? "any" : "exact")));
+        tooltip.add(Component.translatable("gui.servus_shuttles.production.mode." + (any ? "any_hint" : "exact_hint"))
+                .withStyle(ChatFormatting.GRAY));
+        if (any) {
+            for (AnyGroup group : grid.groups()) {
+                tooltip.add(anyLabel(group));
+            }
+        }
+        tooltip.add(Component.translatable("gui.servus_shuttles.production.mode.toggle_hint").withStyle(ChatFormatting.DARK_GRAY));
+        return tooltip;
+    }
+
+    private static Component anyLabel(AnyGroup group) {
+        return group.label(I18n.exists(group.tagKey())).copy().withStyle(ChatFormatting.AQUA);
+    }
+
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
@@ -175,6 +235,8 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
                 } else {
                     graphics.setTooltipForNextFrame(font, preview, mouseX, mouseY);
                 }
+            } else if (popup.modeHovered(leftPos, topPos, mouseX, mouseY)) {
+                graphics.setComponentTooltipForNextFrame(font, modeTooltip(), mouseX, mouseY);
             }
             return;
         }
@@ -670,16 +732,32 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private Line patternLine(PatternRow row) {
         Component text = Component.translatable("gui.servus_shuttles.production.pattern_recipe", row.result().getCount(),
                 row.result().getHoverName(), CraftingGrid.stacks(row.inputs()));
+        Component anyTag = Component.translatable("gui.servus_shuttles.production.mode.any");
         Painter painter = (graphics, y, hovered) -> {
             if (hovered) {
                 graphics.fill(MARGIN, y, WIDTH - MARGIN, y + PATTERN_ROW, PATTERN_HOVER_SHADE);
             }
             graphics.item(row.result(), MARGIN + 4, y + 1);
-            graphics.text(font, text, MARGIN + 24, y + 5, COLOUR_TEXT, false);
+            int textRight = WIDTH - MARGIN - 2;
+            if (row.isAny()) {
+                int tagW = font.width(anyTag) + 4;
+                int tagX = WIDTH - MARGIN - 2 - tagW;
+                PanelPainter.bordered(graphics, tagX, y + 4, tagW, 10, PanelPainter.DARK, COLOUR_TEAL);
+                graphics.text(font, anyTag, tagX + 2, y + 5, 0xFFFFFFFF, false);
+                textRight = tagX - 2;
+            }
+            clipped(graphics, text.getString(), MARGIN + 24, y + 5, textRight - MARGIN - 24, COLOUR_TEXT);
         };
-        Supplier<List<Component>> tooltip = () -> List.of(text,
-                Component.translatable("gui.servus_shuttles.production.pattern_storage_at", row.storage().toShortString(), row.slot() + 1),
-                Component.translatable("gui.servus_shuttles.production.pattern_edit_hint"));
+        Supplier<List<Component>> tooltip = () -> {
+            List<Component> list = new ArrayList<>();
+            list.add(text);
+            for (AnyGroup group : row.any()) {
+                list.add(anyLabel(group));
+            }
+            list.add(Component.translatable("gui.servus_shuttles.production.pattern_storage_at", row.storage().toShortString(), row.slot() + 1));
+            list.add(Component.translatable("gui.servus_shuttles.production.pattern_edit_hint"));
+            return list;
+        };
         return new Line(PATTERN_ROW, painter, tooltip, () -> ClientPacketDistributor.sendToServer(new EditPatternPayload(row.storage(), row.slot())));
     }
 
@@ -840,6 +918,12 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
                 }
                 case CANCEL -> {
                     press(RecipeEditorButtons.CANCEL);
+                    return true;
+                }
+                case MODE -> {
+                    if (gridVariants().possible()) {
+                        press(RecipeEditorButtons.MODE);
+                    }
                     return true;
                 }
                 case NONE -> {

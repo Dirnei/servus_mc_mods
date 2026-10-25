@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.pattern;
 
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.shuttles.production.DataLineBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
@@ -17,6 +18,7 @@ import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.crafting.RecipeMap;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -37,6 +39,10 @@ public class PatternStorageBlockEntity extends DataLineBlockEntity implements Da
 
     /** Whether the kept patterns carry the result their recipe really makes; cleared by every restore. */
     private boolean refreshed;
+
+    /** The other items each kept pattern may take, by place, worked out on demand for the recipes in {@link #variantsFor}. */
+    private PatternVariants[] variants = new PatternVariants[0];
+    private RecipeMap variantsFor;
 
     public PatternStorageBlockEntity(BlockPos pos, BlockState state) {
         super(ServusShuttlesBlockEntities.PATTERN_STORAGE.get(), pos, state);
@@ -61,6 +67,27 @@ public class PatternStorageBlockEntity extends DataLineBlockEntity implements Da
     public Optional<EncodedPattern> pattern(int slot) {
         refresh();
         return slot >= 0 && slot < patterns.length ? Optional.ofNullable(patterns[slot]) : Optional.empty();
+    }
+
+    /** The other items each cell of the pattern at a place may take; {@link PatternVariants#NONE} for an empty place. */
+    public PatternVariants variants(int slot) {
+        Optional<EncodedPattern> pattern = pattern(slot);
+        if (pattern.isEmpty() || level == null) {
+            return PatternVariants.NONE;
+        }
+        RecipeMap recipes = ServusRecipes.recipeMap(level);
+        if (recipes != variantsFor || variants.length != patterns.length) {
+            variants = new PatternVariants[patterns.length];
+            variantsFor = recipes;
+        }
+        if (variants[slot] == null) {
+            variants[slot] = PatternVariants.of(level, pattern.get());
+        }
+        return variants[slot];
+    }
+
+    private void forgetVariants() {
+        variants = new PatternVariants[0];
     }
 
     /** Every place holding a pattern, in order. */
@@ -88,6 +115,7 @@ public class PatternStorageBlockEntity extends DataLineBlockEntity implements Da
     public void set(int slot, EncodedPattern pattern) {
         grow(slot + 1);
         patterns[slot] = level instanceof ServerLevel server ? pattern.assembled(server) : pattern;
+        forgetVariants();
         setChanged();
         updateLights();
     }
@@ -95,6 +123,7 @@ public class PatternStorageBlockEntity extends DataLineBlockEntity implements Da
     public void clear(int slot) {
         if (slot >= 0 && slot < patterns.length) {
             patterns[slot] = null;
+            forgetVariants();
             setChanged();
             updateLights();
         }
@@ -139,6 +168,7 @@ public class PatternStorageBlockEntity extends DataLineBlockEntity implements Da
                 }
             }
         }
+        forgetVariants();
         if (changed) {
             setChanged();
         }
@@ -163,6 +193,7 @@ public class PatternStorageBlockEntity extends DataLineBlockEntity implements Da
     private void restore(StoredPatterns stored) {
         patterns = new EncodedPattern[slots()];
         refreshed = false;
+        forgetVariants();
         if (stored == null) {
             return;
         }

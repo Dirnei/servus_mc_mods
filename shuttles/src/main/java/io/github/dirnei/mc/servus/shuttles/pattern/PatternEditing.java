@@ -24,14 +24,16 @@ public final class PatternEditing {
 
     /**
      * Saves the grid as a pattern: a new one goes into the first free place of
-     * the line's Pattern Storages, an existing one is rewritten in place.
+     * the line's Pattern Storages, an existing one is rewritten in place. Any
+     * is stored only where {@link PatternVariants} allows it, else Exact.
      *
      * @param editing the slot being edited, or null for a new pattern
+     * @param mode    the mode asked for
      * @return an empty string on success, else {@code empty}, {@code no_match},
      *         {@code duplicate}, {@code no_storage} or {@code full}
      */
     public static String save(ServerLevel level, DataNetwork network, Player player, List<ItemStack> grid,
-                              PatternLibrary.Free editing) {
+                              PatternLibrary.Free editing, EncodedPattern.Mode mode) {
         if (grid.stream().allMatch(ItemStack::isEmpty)) {
             return "empty";
         }
@@ -39,7 +41,7 @@ public final class PatternEditing {
         if (encoded.isEmpty()) {
             return "no_match";
         }
-        EncodedPattern pattern = encoded.get();
+        EncodedPattern pattern = encoded.get().withMode(allowed(level, encoded.get(), mode));
         if (PatternLibrary.contains(level, network, pattern, editing)) {
             return "duplicate";
         }
@@ -60,6 +62,11 @@ public final class PatternEditing {
         }
         storage.get().set(target.slot(), pattern);
         return "";
+    }
+
+    /** The mode asked for when the pattern allows it, else Exact. */
+    public static EncodedPattern.Mode allowed(Level level, EncodedPattern pattern, EncodedPattern.Mode asked) {
+        return asked == EncodedPattern.Mode.ANY && PatternVariants.of(level, pattern).possible() ? EncodedPattern.Mode.ANY : EncodedPattern.Mode.EXACT;
     }
 
     /**

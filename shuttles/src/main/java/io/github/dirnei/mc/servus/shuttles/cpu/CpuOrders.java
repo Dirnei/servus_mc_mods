@@ -101,15 +101,19 @@ public final class CpuOrders {
 
     /** The producers of the line with their reported recipes plus the patterns they can run, lowest position first. */
     public static List<OrderBook.Producer> producers(ServerLevel level, DataNetwork network) {
-        return producers(level, network, null);
+        return producers(level, network, null, Map.of());
     }
 
-    /** The producers of the line with {@code extra}, when given, as one more pattern of the line. */
-    public static List<OrderBook.Producer> producers(ServerLevel level, DataNetwork network, EncodedPattern extra) {
+    /**
+     * The producers of the line with {@code extra}, when given, as one more
+     * pattern of the line; Any patterns take the accepted items {@code stock}
+     * holds most of.
+     */
+    public static List<OrderBook.Producer> producers(ServerLevel level, DataNetwork network, EncodedPattern extra, Map<ItemKey, Long> stock) {
         List<OrderBook.Producer> list = new ArrayList<>();
         List<PatternLibrary.Entry> patterns = new ArrayList<>(PatternLibrary.entries(level, network));
         if (extra != null) {
-            patterns.add(new PatternLibrary.Entry(null, -1, extra));
+            patterns.add(PatternLibrary.Entry.unsaved(level, extra));
         }
         for (DataMember member : network.dataMembers(DataRole.PRODUCER)) {
             if (!level.isLoaded(member.pos())) {
@@ -118,7 +122,7 @@ public final class CpuOrders {
             ProductionProvider provider = level.getCapability(ServusFoundationCapabilities.PRODUCTION, member.pos(), null);
             if (provider != null) {
                 list.add(new OrderBook.Producer(member.pos(), level.getBlockState(member.pos()).getBlock().getName(),
-                        PatternRunners.withPatterns(level, member.pos(), provider.recipes(), patterns), provider.active()));
+                        PatternRunners.withPatterns(level, member.pos(), provider.recipes(), patterns, stock), provider.active()));
             }
         }
         list.sort(Comparator.comparingLong(producer -> producer.pos().asLong()));

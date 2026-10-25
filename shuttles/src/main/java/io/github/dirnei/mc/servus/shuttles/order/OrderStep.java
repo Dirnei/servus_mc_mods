@@ -106,6 +106,13 @@ public final class OrderStep {
         return inputs;
     }
 
+    /** The inputs per batch as a stock, which leads an Any pattern to the items this step was planned with. */
+    public Map<ItemKey, Long> inputStock() {
+        Map<ItemKey, Long> stock = new HashMap<>();
+        inputs.forEach((key, count) -> stock.put(key, (long) count));
+        return stock;
+    }
+
     /** How many of an input the whole step needs. */
     public int needed(ItemKey key) {
         return inputs.getOrDefault(key, 0) * batches;

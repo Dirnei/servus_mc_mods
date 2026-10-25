@@ -487,13 +487,13 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
     private final class Host implements OrderBook.Host {
 
         @Override
-        public List<OrderBook.Producer> producers() {
-            return dataNetwork().map(network -> CpuOrders.producers(serverLevel(), network)).orElse(List.of());
+        public List<OrderBook.Producer> producers(Map<ItemKey, Long> stock) {
+            return dataNetwork().map(network -> CpuOrders.producers(serverLevel(), network, null, stock)).orElse(List.of());
         }
 
         @Override
-        public List<OrderBook.Producer> producersWith(EncodedPattern extra) {
-            return dataNetwork().map(network -> CpuOrders.producers(serverLevel(), network, extra)).orElse(List.of());
+        public List<OrderBook.Producer> producersWith(EncodedPattern extra, Map<ItemKey, Long> stock) {
+            return dataNetwork().map(network -> CpuOrders.producers(serverLevel(), network, extra, stock)).orElse(List.of());
         }
 
         @Override
@@ -683,18 +683,26 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
         }
     }
 
-    /** The pattern of the CPU's data line that the step was planned from: same recipe id, same inputs per batch. */
+    /**
+     * The pattern of the CPU's data line that the step was planned from, same
+     * recipe id and same inputs per batch; for an Any pattern the variant
+     * crafting from the step's items.
+     */
     private Optional<EncodedPattern> patternFor(ServerLevel level, OrderStep step) {
         Optional<DataNetwork> network = dataNetwork();
         WorkOrder order = step.ref() == null ? null : book.order(step.ref().order());
-        if (order != null && order.oneOff() != null && runs(step, order.oneOff())) {
-            return Optional.of(order.oneOff());
+        Map<ItemKey, Long> planned = step.inputStock();
+        if (order != null && order.oneOff() != null) {
+            EncodedPattern oneOff = PatternLibrary.Entry.unsaved(level, order.oneOff()).variant(level, planned);
+            if (runs(step, oneOff)) {
+                return Optional.of(oneOff);
+            }
         }
         if (network.isEmpty()) {
             return Optional.empty();
         }
         for (PatternLibrary.Entry entry : PatternLibrary.entries(level, network.get())) {
-            EncodedPattern pattern = entry.pattern();
+            EncodedPattern pattern = entry.variant(level, planned);
             if (runs(step, pattern)) {
                 return Optional.of(pattern);
             }

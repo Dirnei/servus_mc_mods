@@ -33,12 +33,12 @@ public final class OrderBook {
 
     /** What the book needs from its CPU. */
     public interface Host {
-        /** The producers on the data line. */
-        List<Producer> producers();
+        /** The producers on the data line; Any patterns craft from the accepted items {@code stock} holds most of. */
+        List<Producer> producers(Map<ItemKey, Long> stock);
 
         /** The producers with one more pattern every Crafting Station of the line can run, for a one-off order. */
-        default List<Producer> producersWith(EncodedPattern extra) {
-            return producers();
+        default List<Producer> producersWith(EncodedPattern extra, Map<ItemKey, Long> stock) {
+            return producers(stock);
         }
 
         /** Every item the warehouses of the line hold that no pick has locked, with its count. */
@@ -131,8 +131,8 @@ public final class OrderBook {
         }
     }
 
-    /** Which producer runs which recipe; the planner's recipe id. */
-    public record StepKey(BlockPos producer, Identifier recipe) {
+    /** Which producer runs which recipe with which inputs; the planner's recipe id. */
+    public record StepKey(BlockPos producer, Identifier recipe, Map<ItemKey, Integer> inputs) {
     }
 
     /** The request id of orders a stock rule created. */
@@ -279,21 +279,23 @@ public final class OrderBook {
 
     /** Plans the amount from the line's stock minus every reservation; stock of the item itself does not count. */
     private OrderPlanner.Plan<ItemKey> plan(ItemKey key, int amount, Map<StepKey, ProductionRecipe> byKey, EncodedPattern oneOff) {
-        List<OrderPlanner.Recipe<ItemKey>> recipes = recipes(byKey, oneOff, key);
         Map<ItemKey, Long> available = new HashMap<>(host.stock());
         reservedTotal().forEach((k, reserved) -> available.merge(k, (long) -reserved, Long::sum));
         host.reservedElsewhere().forEach((k, reserved) -> available.merge(k, (long) -reserved, Long::sum));
         available.remove(key);
+        List<OrderPlanner.Recipe<ItemKey>> recipes = recipes(byKey, oneOff, key, available);
         return OrderPlanner.plan(key, amount, available, recipes, MAX_DEPTH);
     }
 
     /**
      * The producers' recipes as the planner sees them: producers without
      * planned or running steps first, then idle ones, then by time. With a
-     * one-off pattern only that pattern makes {@code target}.
+     * one-off pattern only that pattern makes {@code target}. Any patterns
+     * craft from the accepted items {@code available} holds most of.
      */
-    private List<OrderPlanner.Recipe<ItemKey>> recipes(Map<StepKey, ProductionRecipe> byKey, EncodedPattern oneOff, ItemKey target) {
-        List<Producer> producers = new ArrayList<>(producersFor(oneOff));
+    private List<OrderPlanner.Recipe<ItemKey>> recipes(Map<StepKey, ProductionRecipe> byKey, EncodedPattern oneOff, ItemKey target,
+                                                       Map<ItemKey, Long> available) {
+        List<Producer> producers = new ArrayList<>(producersFor(oneOff, available));
         producers.sort(Comparator.comparing((Producer producer) -> plannedOn(producer.pos()) || host.busyElsewhere(producer.pos()))
                 .thenComparing(producer -> producer.active().isPresent()));
         List<OrderPlanner.Recipe<ItemKey>> list = new ArrayList<>();
@@ -302,9 +304,10 @@ public final class OrderBook {
                 if (recipe.outputs().isEmpty() || oneOff != null && makes(recipe, target) && !runs(recipe, oneOff)) {
                     continue;
                 }
-                StepKey stepKey = new StepKey(producer.pos(), recipe.id());
+                Map<ItemKey, Integer> inputs = ItemKey.counts(recipe.inputs());
+                StepKey stepKey = new StepKey(producer.pos(), recipe.id(), inputs);
                 byKey.put(stepKey, recipe);
-                list.add(new OrderPlanner.Recipe<>(stepKey, ItemKey.counts(recipe.inputs()), ItemKey.counts(recipe.outputs()), recipe.ticks()));
+                list.add(new OrderPlanner.Recipe<>(stepKey, inputs, ItemKey.counts(recipe.outputs()), recipe.ticks()));
             }
         }
         // Stable sort keeps idle producers first among equal times.
@@ -312,8 +315,8 @@ public final class OrderBook {
         return list;
     }
 
-    private List<Producer> producersFor(EncodedPattern oneOff) {
-        return oneOff == null ? host.producers() : host.producersWith(oneOff);
+    private List<Producer> producersFor(EncodedPattern oneOff, Map<ItemKey, Long> stock) {
+        return oneOff == null ? host.producers(stock) : host.producersWith(oneOff, stock);
     }
 
     private static boolean makes(ProductionRecipe recipe, ItemKey key) {
@@ -325,9 +328,18 @@ public final class OrderBook {
         return false;
     }
 
-    /** Whether the recipe is the pattern's work: the same recipe with the same inputs. */
+    /**
+     * Whether the recipe is the pattern's work: the same recipe with the same
+     * inputs, or for an Any pattern the same recipe with the same result.
+     */
     private static boolean runs(ProductionRecipe recipe, EncodedPattern pattern) {
-        return recipe.id().equals(pattern.recipe()) && ItemKey.counts(recipe.inputs()).equals(pattern.required());
+        if (!recipe.id().equals(pattern.recipe())) {
+            return false;
+        }
+        if (pattern.any()) {
+            return recipe.outputs().size() == 1 && pattern.sameResult(recipe.outputs().get(0));
+        }
+        return ItemKey.counts(recipe.inputs()).equals(pattern.required());
     }
 
     /** Whether an open order of this book has a step on the producer that is not done yet. */
@@ -529,7 +541,7 @@ public final class OrderBook {
      * the same recipe with the same inputs, so chains spread over producers.
      */
     private void relocate(WorkOrder order, OrderStep step) {
-        for (Producer producer : producersFor(order.oneOff())) {
+        for (Producer producer : producersFor(order.oneOff(), step.inputStock())) {
             if (producer.pos().equals(step.producer()) || producerBusy(producer.pos(), step)) {
                 continue;
             }

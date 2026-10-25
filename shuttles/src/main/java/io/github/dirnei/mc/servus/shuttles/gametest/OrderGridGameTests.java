@@ -210,6 +210,23 @@ public final class OrderGridGameTests {
         });
     }
 
+    /** Save as pattern from the order grid stores Any where Any is possible. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void orderGridSavesAny(GameTestHelper helper) {
+        StationHandsGameTests.setup(helper, 16);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = menu(helper, player);
+        Waits.when(helper, () -> stocked(helper, menu), 160, () -> "stations and CPU should join the line", () -> {
+            craftingTableGrid(menu);
+            menu.savePattern();
+            helper.assertTrue(menu.stock().message().isEmpty(), "no message, got " + menu.stock().message());
+            helper.assertTrue(PatternLibrary.entries(helper.getLevel(), StationHandsGameTests.line(helper)).stream()
+                            .anyMatch(entry -> entry.pattern().result().is(Items.CRAFTING_TABLE) && entry.pattern().any()),
+                    "the crafting table pattern is stored as Any");
+            helper.succeed();
+        });
+    }
+
     /** A refused save keeps the grid, stores nothing and tells why on the message line. */
     @ServusGameTest(timeoutTicks = 200)
     public static void refusedSaveKeepsGrid(GameTestHelper helper) {

@@ -12,10 +12,14 @@ import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.shuttles.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.order.OrderStep;
+import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
+import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternStorageBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.pattern.PatternVariants;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionPayload;
+import io.github.dirnei.mc.servus.shuttles.production.ProductionRows;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionTerminalBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionView;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
@@ -26,7 +30,11 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -324,6 +332,83 @@ public final class PatternGameTests {
                             && row.result().is(Items.STICK) && row.result().getCount() == 4
                             && row.inputs().size() == 1 && row.inputs().get(0).is(Items.OAK_PLANKS) && row.inputs().get(0).getCount() == 2,
                     "the sticks row with 2 planks, got " + row);
+            helper.succeed();
+        });
+    }
+
+    /** A pattern saved before modes existed loads as Exact; an Any pattern keeps its mode through saving. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void oldPatternLoadsExact(GameTestHelper helper) {
+        RegistryOps<Tag> ops = helper.getLevel().registryAccess().createSerializationContext(NbtOps.INSTANCE);
+        Tag saved = EncodedPattern.CODEC.encodeStart(ops, sticksPattern().withMode(EncodedPattern.Mode.ANY)).getOrThrow();
+        helper.assertTrue(saved instanceof CompoundTag tag && tag.contains("mode"), "an Any pattern saves its mode");
+        EncodedPattern any = EncodedPattern.CODEC.parse(ops, saved).getOrThrow();
+        helper.assertTrue(any.any(), "the Any pattern loads as Any");
+        CompoundTag old = ((CompoundTag) saved).copy();
+        old.remove("mode");
+        EncodedPattern loaded = EncodedPattern.CODEC.parse(ops, old).getOrThrow();
+        helper.assertTrue(loaded.mode() == EncodedPattern.Mode.EXACT, "a pattern without a mode loads as Exact");
+        PatternStorageBlockEntity storage = StationJobs.patternStorage(helper, STORAGE_A);
+        storage.set(0, loaded);
+        helper.assertTrue(storage.pattern(0).map(pattern -> !pattern.any()).orElse(false), "the storage keeps it Exact");
+        helper.succeed();
+    }
+
+    /** A new sticks pattern saves as Any, and a chest is Any too; the Heavy Duty Rack stays Exact since its wood follows the planks. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void rackStaysExact(GameTestHelper helper) {
+        setup(helper, false, false);
+        Player player = player(helper);
+        Waits.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
+            ProductionTerminalMenu menu = menu(helper, player);
+            menu.openNew();
+            helper.assertTrue(menu.mode() == EncodedPattern.Mode.ANY, "a new pattern asks for Any");
+            sticksGrid(menu);
+            helper.assertTrue(menu.save().isEmpty(), "the sticks pattern saves");
+            menu.openEditorWith(RACK_RECIPE);
+            List<ItemStack> rack = menu.gridCells();
+            EncodedPattern encoded = PatternEditing.encode(helper.getLevel(), rack).orElseThrow();
+            PatternVariants variants = PatternVariants.of(helper.getLevel(), encoded);
+            helper.assertTrue(variants.verdict() == PatternVariants.Verdict.CHANGES_RESULT,
+                    "the rack's result changes with its planks, got " + variants.verdict());
+            helper.assertTrue(menu.save().isEmpty(), "the rack pattern saves");
+            ItemStack planks = new ItemStack(Items.OAK_PLANKS);
+            EncodedPattern chest = PatternEditing.encode(helper.getLevel(),
+                    List.of(planks, planks, planks, planks, ItemStack.EMPTY, planks, planks, planks, planks)).orElseThrow();
+            helper.assertTrue(PatternVariants.of(helper.getLevel(), chest).possible(), "a chest from any planks is the same chest");
+            List<PatternLibrary.Entry> entries = PatternLibrary.entries(helper.getLevel(), line(helper));
+            helper.assertTrue(entries.stream().anyMatch(entry -> entry.pattern().result().is(Items.STICK) && entry.pattern().any()),
+                    "the sticks pattern is Any, got " + entries);
+            helper.assertTrue(entries.stream().anyMatch(entry -> entry.pattern().recipe().equals(RACK_RECIPE) && !entry.pattern().any()),
+                    "the rack pattern is Exact, got " + entries);
+            ProductionPayload view = ProductionView.of(helper.getLevel(), helper.absolutePos(TERMINAL));
+            helper.assertTrue(view.patterns().rows().stream().filter(row -> row.result().is(Items.STICK))
+                            .allMatch(row -> row.isAny() && row.any().get(0).tagKey().equals("tag.item.minecraft.planks")),
+                    "the Patterns tab marks the sticks as Any planks");
+            helper.assertTrue(view.patterns().rows().stream().filter(row -> !row.result().is(Items.STICK)).noneMatch(ProductionRows.PatternRow::isAny),
+                    "the rack is not marked");
+            helper.succeed();
+        });
+    }
+
+    /** A second Any sticks pattern is a duplicate even with other planks; an Exact one with other planks is not. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void secondAnySticksRefused(GameTestHelper helper) {
+        setup(helper, false, false);
+        Player player = player(helper);
+        Waits.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
+            ProductionTerminalMenu menu = menu(helper, player);
+            menu.openNew();
+            sticksGrid(menu);
+            helper.assertTrue(menu.save().isEmpty(), "the oak sticks pattern saves as Any");
+            menu.openNew();
+            menu.setGhost(1, new ItemStack(Items.BIRCH_PLANKS));
+            menu.setGhost(4, new ItemStack(Items.BIRCH_PLANKS));
+            helper.assertTrue(menu.save().equals("duplicate"), "a second Any sticks pattern is refused");
+            menu.clickMenuButton(player, RecipeEditorButtons.MODE);
+            helper.assertTrue(menu.mode() == EncodedPattern.Mode.EXACT, "the mode button switches to Exact");
+            helper.assertTrue(menu.save().isEmpty(), "an Exact birch sticks pattern saves");
+            helper.assertTrue(PatternLibrary.entries(helper.getLevel(), line(helper)).size() == 2, "two patterns on the line");
             helper.succeed();
         });
     }

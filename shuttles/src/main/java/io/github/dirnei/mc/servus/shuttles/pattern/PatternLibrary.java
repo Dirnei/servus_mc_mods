@@ -5,10 +5,13 @@ import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import java.util.ArrayList;
 import java.util.Comparator;
+import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 
 /**
  * The patterns of a data line: every loaded Pattern Storage of the line,
@@ -16,8 +19,26 @@ import net.minecraft.server.level.ServerLevel;
  */
 public final class PatternLibrary {
 
-    /** A pattern and where it is kept. */
-    public record Entry(BlockPos storage, int slot, EncodedPattern pattern) {
+    /**
+     * A pattern and where it is kept.
+     *
+     * @param variants the other items its cells may take; {@link PatternVariants#NONE} for Exact patterns
+     */
+    public record Entry(BlockPos storage, int slot, EncodedPattern pattern, PatternVariants variants) {
+
+        /** A pattern kept nowhere, such as a one-off order's. */
+        public static Entry unsaved(Level level, EncodedPattern pattern) {
+            return new Entry(null, -1, pattern, pattern.any() ? PatternVariants.of(level, pattern) : PatternVariants.NONE);
+        }
+
+        private static Entry kept(PatternStorageBlockEntity storage, int slot, EncodedPattern pattern) {
+            return new Entry(storage.getBlockPos(), slot, pattern, pattern.any() ? storage.variants(slot) : PatternVariants.NONE);
+        }
+
+        /** The pattern crafting from the accepted items the stock holds most of; the pattern itself when it is Exact. */
+        public EncodedPattern variant(Level level, Map<ItemKey, ? extends Number> stock) {
+            return variants.variant(level, pattern, stock);
+        }
     }
 
     /** An empty pattern slot. */
@@ -44,7 +65,7 @@ public final class PatternLibrary {
         for (PatternStorageBlockEntity storage : storages(level, network)) {
             for (int slot : storage.usedSlots()) {
                 int at = slot;
-                storage.pattern(slot).ifPresent(pattern -> entries.add(new Entry(storage.getBlockPos(), at, pattern)));
+                storage.pattern(slot).ifPresent(pattern -> entries.add(Entry.kept(storage, at, pattern)));
             }
         }
         return entries;
@@ -74,7 +95,7 @@ public final class PatternLibrary {
     public static Optional<Entry> find(ServerLevel level, DataNetwork network, BlockPos storage, int slot) {
         for (PatternStorageBlockEntity candidate : storages(level, network)) {
             if (candidate.getBlockPos().equals(storage)) {
-                return candidate.pattern(slot).map(pattern -> new Entry(storage, slot, pattern));
+                return candidate.pattern(slot).map(pattern -> Entry.kept(candidate, slot, pattern));
             }
         }
         return Optional.empty();
@@ -86,7 +107,7 @@ public final class PatternLibrary {
             if (except != null && entry.storage().equals(except.storage()) && entry.slot() == except.slot()) {
                 continue;
             }
-            if (entry.pattern().sameWork(pattern.recipe(), pattern.keys())) {
+            if (entry.pattern().duplicates(pattern)) {
                 return true;
             }
         }

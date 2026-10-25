@@ -240,7 +240,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             message = "offline";
         } else {
             String saved = TerminalCraftables.line(server, terminal.getBlockPos())
-                    .map(line -> PatternEditing.save(server, line, player, gridCells(), null)).orElse("no_storage");
+                    .map(line -> PatternEditing.save(server, line, player, gridCells(), null, EncodedPattern.Mode.ANY)).orElse("no_storage");
             message = switch (saved) {
                 case "" -> "";
                 case "empty", "no_match" -> "no_match";
