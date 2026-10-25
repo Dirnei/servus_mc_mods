@@ -1,0 +1,12 @@
+{
+  "type": "servus_foundation:milling",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:pitcher_plant"
+  },
+  "result": {
+    "count": 4,
+    "id": "minecraft:cyan_dye"
+  },
+  "work": 100
+}

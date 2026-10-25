@@ -1,12 +1,9 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
-import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
-import io.github.dirnei.mc.servus.foundation.machine.mill.MillingRecipe;
 import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
-import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import java.util.List;
 import java.util.function.Function;
 import net.minecraft.advancements.Criterion;
@@ -17,13 +14,9 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.world.item.Item;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
 /** Datagen of the machines Foundation owns: models, loot, tags, lang and recipes. */
@@ -239,7 +232,6 @@ final class MachineDataParts {
                 .unlockedBy("has_power_cable", has.apply(ServusLogisticsItems.POWER_CABLE.get()))
                 .save(output);
 
-        output.accept(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "milling/sand")),
-                new MillingRecipe(new SizedIngredient(Ingredient.of(Items.GRAVEL), 1), new ItemStackTemplate(Items.SAND), 200), null);
+        MillingRecipes.recipes(output, items);
     }
 }

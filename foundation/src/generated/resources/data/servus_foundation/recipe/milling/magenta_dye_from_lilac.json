@@ -1,0 +1,12 @@
+{
+  "type": "servus_foundation:milling",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:lilac"
+  },
+  "result": {
+    "count": 4,
+    "id": "minecraft:magenta_dye"
+  },
+  "work": 100
+}

@@ -1,0 +1,12 @@
+{
+  "type": "servus_foundation:milling",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:bones"
+  },
+  "result": {
+    "count": 4,
+    "id": "minecraft:bone_meal"
+  },
+  "work": 100
+}

@@ -1,0 +1,12 @@
+{
+  "type": "servus_foundation:milling",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:dandelion"
+  },
+  "result": {
+    "count": 2,
+    "id": "minecraft:yellow_dye"
+  },
+  "work": 100
+}

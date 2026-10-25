@@ -1413,7 +1413,235 @@
         {"item": "servus_foundation:mill", "count": 1}
       ]
     },
+    "servus_foundation:milling/amethyst_shard": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/black_dye_from_wither_rose": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/blaze_powder": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/blue_dye_from_cornflower": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/bone_meal": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/clay_ball": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/cobbled_deepslate": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/cobblestone": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/cyan_dye_from_pitcher_plant": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/glowstone_dust": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/gravel": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/gravel_from_deepslate": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/gray_dye_from_closed_eyeblossom": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/light_blue_dye_from_blue_orchid": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/light_gray_dye_from_azure_bluet": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/light_gray_dye_from_oxeye_daisy": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/light_gray_dye_from_white_tulip": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/magenta_dye_from_allium": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/magenta_dye_from_lilac": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/orange_dye_from_open_eyeblossom": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/orange_dye_from_orange_tulip": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/orange_dye_from_torchflower": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/pink_dye_from_cactus_flower": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/pink_dye_from_peony": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/pink_dye_from_pink_petals": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/pink_dye_from_pink_tulip": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/quartz": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/red_dye_from_poppy": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/red_dye_from_red_tulip": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/red_dye_from_rose_bush": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/red_sand": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
     "servus_foundation:milling/sand": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/sand_from_sandstone": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/string": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/sugar": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/white_dye_from_lily_of_the_valley": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/yellow_dye_from_dandelion": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/yellow_dye_from_sunflower": {
+      "type": "servus_foundation:milling",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_foundation:milling/yellow_dye_from_wildflowers": {
       "type": "servus_foundation:milling",
       "special": true,
       "inputs": [],
@@ -1663,6 +1891,25 @@
       ],
       "outputs": [
         {"item": "servus_shuttles:inbound_station", "count": 1}
+      ]
+    },
+    "servus_shuttles:lumber": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IAI", "ISI", " P "],
+      "key": {
+        "A": {"item": "minecraft:iron_axe"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"item": "minecraft:piston"},
+        "S": {"item": "minecraft:stonecutter"}
+      },
+      "inputs": [
+        {"item": "minecraft:iron_axe", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 4},
+        {"item": "minecraft:piston", "count": 1},
+        {"item": "minecraft:stonecutter", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_shuttles:lumber", "count": 1}
       ]
     },
     "servus_shuttles:outbound_station": {
@@ -2041,6 +2288,9 @@
     "minecraft:hopper": {
       "name": "Hopper"
     },
+    "minecraft:iron_axe": {
+      "name": "Iron Axe"
+    },
     "minecraft:iron_bars": {
       "name": "Iron Bars"
     },
@@ -2082,6 +2332,9 @@
     },
     "minecraft:stone_bricks": {
       "name": "Stone Bricks"
+    },
+    "minecraft:stonecutter": {
+      "name": "Stonecutter"
     },
     "minecraft:stripped_dark_oak_log": {
       "name": "Stripped Dark Oak Log"
@@ -2256,6 +2509,9 @@
     },
     "servus_shuttles:inbound_station": {
       "name": "Inbound Station"
+    },
+    "servus_shuttles:lumber": {
+      "name": "Lumber Module"
     },
     "servus_shuttles:outbound_station": {
       "name": "Outbound Station"

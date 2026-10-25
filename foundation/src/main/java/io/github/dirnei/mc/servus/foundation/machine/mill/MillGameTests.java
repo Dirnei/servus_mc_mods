@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.machine.mill;
 
 import com.mojang.authlib.GameProfile;
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.drive.CrankTurns;
 import io.github.dirnei.mc.servus.foundation.drive.DriveStats;
 import io.github.dirnei.mc.servus.foundation.drive.DriveStatsManager;
@@ -18,12 +19,18 @@ import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabili
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -41,7 +48,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 /**
  * The Mill with its drivers: a motor grinds Gravel to Sand, nothing moves
  * without drive or power, the Speed Upgrade, the crank's turns and exhaustion,
- * where crank and drive go, and the Mill's item sides.
+ * where crank and drive go, the Mill's item sides and the shipped milling recipes.
  */
 public final class MillGameTests {
 
@@ -338,7 +345,7 @@ public final class MillGameTests {
     public static void millRefusesOtherItems(GameTestHelper helper) {
         MillBlockEntity mill = mill(helper, ItemStack.EMPTY);
         ItemView top = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(MILL), Direction.UP));
-        helper.assertTrue(top.insertItem(new ItemStack(Items.COBBLESTONE), false).getCount() == 1, "Cobblestone is refused");
+        helper.assertTrue(top.insertItem(new ItemStack(Items.DIRT), false).getCount() == 1, "Dirt is refused");
         helper.assertTrue(top.insertItem(new ItemStack(Items.GRAVEL), false).isEmpty(), "Gravel goes in through the top");
         helper.assertTrue(input(mill).is(Items.GRAVEL), "into the input slot");
         helper.succeed();
@@ -353,5 +360,51 @@ public final class MillGameTests {
         helper.assertTrue(milling.result().is(Items.SAND) && milling.result().getCount() == 1, "one Sand");
         helper.assertTrue(milling.input().count() == 1 && milling.work() > 0, "from one Gravel for some work");
         helper.succeed();
+    }
+
+    @ServusGameTest(timeoutTicks = 20)
+    public static void millingVanillaRecipesShipped(GameTestHelper helper) {
+        assertMills(helper, Items.STONE, Items.COBBLESTONE, 1);
+        assertMills(helper, Items.COBBLESTONE, Items.GRAVEL, 1);
+        assertMills(helper, Items.GLOWSTONE, Items.GLOWSTONE_DUST, 4);
+        assertMills(helper, Items.RED_WOOL, Items.STRING, 4);
+        assertMills(helper, Items.POPPY, Items.RED_DYE, 2);
+        assertMills(helper, Items.ROSE_BUSH, Items.RED_DYE, 4);
+        helper.succeed();
+    }
+
+    @ServusGameTest(timeoutTicks = 20)
+    public static void millingRefusesOresAndGems(GameTestHelper helper) {
+        helper.assertTrue(milling(helper, Items.IRON_ORE).isEmpty(), "Iron Ore has no milling recipe");
+        helper.assertTrue(milling(helper, Items.DIAMOND).isEmpty(), "Diamond has no milling recipe");
+        helper.succeed();
+    }
+
+    @ServusGameTest(timeoutTicks = 20)
+    public static void millingInputsAreDisjoint(GameTestHelper helper) {
+        Map<Holder<Item>, Identifier> takenBy = new HashMap<>();
+        for (RecipeHolder<MillingRecipe> holder : ServusRecipes.all(helper.getLevel(), MachineContent.MILLING.get())) {
+            Identifier id = holder.id().identifier();
+            if (!id.getNamespace().equals(ServusFoundationIds.MOD_ID)) {
+                continue;
+            }
+            holder.value().input().ingredient().items().forEach(item -> {
+                Identifier other = takenBy.putIfAbsent(item, id);
+                helper.assertTrue(other == null, item.getRegisteredName() + " is taken by " + other + " and " + id);
+            });
+        }
+        helper.succeed();
+    }
+
+    private static Optional<RecipeHolder<MillingRecipe>> milling(GameTestHelper helper, Item input) {
+        return ServusRecipes.first(helper.getLevel(), MachineContent.MILLING.get(), new SingleRecipeInput(new ItemStack(input)));
+    }
+
+    private static void assertMills(GameTestHelper helper, Item input, Item result, int count) {
+        Optional<RecipeHolder<MillingRecipe>> recipe = milling(helper, input);
+        String name = BuiltInRegistries.ITEM.getKey(input).toString();
+        helper.assertTrue(recipe.isPresent(), name + " has a milling recipe");
+        ItemStack made = recipe.get().value().result();
+        helper.assertTrue(made.is(result) && made.getCount() == count, name + " mills into " + count + " " + BuiltInRegistries.ITEM.getKey(result));
     }
 }

@@ -1,0 +1,11 @@
+{
+  "type": "servus_foundation:milling",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:deepslate"
+  },
+  "result": {
+    "id": "minecraft:cobbled_deepslate"
+  },
+  "work": 100
+}

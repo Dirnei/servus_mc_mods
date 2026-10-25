@@ -1,0 +1,12 @@
+{
+  "type": "servus_foundation:milling",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:rods/blaze"
+  },
+  "result": {
+    "count": 3,
+    "id": "minecraft:blaze_powder"
+  },
+  "work": 200
+}

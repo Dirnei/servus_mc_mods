@@ -114,8 +114,25 @@ The Mill runs `servus_foundation:milling` recipes. It has no power of its own: a
 
 An item without a milling recipe is refused by the Mill. Any mod or datapack can add milling recipes under `data/<namespace>/recipe/`.
 
-Built in milling recipe:
+Built in milling recipes, each from 1 input:
 
 | Recipe | Input | Result | Work |
 |---|---|---|---|
-| `servus_foundation:milling/sand` | 1 Gravel | 1 Sand | 200 |
+| `servus_foundation:milling/sand` | Gravel | 1 Sand | 200 |
+| `servus_foundation:milling/cobblestone` | Stone | 1 Cobblestone | 100 |
+| `servus_foundation:milling/cobbled_deepslate` | Deepslate | 1 Cobbled Deepslate | 100 |
+| `servus_foundation:milling/gravel` | `#c:cobblestones/normal` | 1 Gravel | 200 |
+| `servus_foundation:milling/gravel_from_deepslate` | `#c:cobblestones/deepslate` | 1 Gravel | 200 |
+| `servus_foundation:milling/sand_from_sandstone` | `#c:sandstone/uncolored_blocks` | 4 Sand | 200 |
+| `servus_foundation:milling/red_sand` | `#c:sandstone/red_blocks` | 4 Red Sand | 200 |
+| `servus_foundation:milling/sugar` | `#c:crops/sugar_cane` | 2 Sugar | 100 |
+| `servus_foundation:milling/glowstone_dust` | Glowstone | 4 Glowstone Dust | 100 |
+| `servus_foundation:milling/bone_meal` | `#c:bones` | 4 Bone Meal | 100 |
+| `servus_foundation:milling/blaze_powder` | `#c:rods/blaze` | 3 Blaze Powder | 200 |
+| `servus_foundation:milling/string` | `#minecraft:wool` | 4 String | 100 |
+| `servus_foundation:milling/clay_ball` | Clay | 4 Clay Ball | 100 |
+| `servus_foundation:milling/quartz` | Block of Quartz | 4 Nether Quartz | 200 |
+| `servus_foundation:milling/amethyst_shard` | Block of Amethyst | 4 Amethyst Shard | 200 |
+| `servus_foundation:milling/<dye>_from_<flower>` | every flower vanilla crafts into a dye | twice the vanilla dye count | 100 |
+
+The flowers give 2 dye each, and the tall ones (Lilac, Peony, Rose Bush, Sunflower, Pitcher Plant) give 4. The Golden Dandelion has no milling recipe. No two built in recipes take the same item, and ores, raw ores and gems have none.

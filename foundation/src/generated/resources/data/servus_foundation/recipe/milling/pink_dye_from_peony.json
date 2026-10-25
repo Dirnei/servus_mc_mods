@@ -1,0 +1,12 @@
+{
+  "type": "servus_foundation:milling",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:peony"
+  },
+  "result": {
+    "count": 4,
+    "id": "minecraft:pink_dye"
+  },
+  "work": 100
+}

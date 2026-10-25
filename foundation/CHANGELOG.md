@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- The Mill grinds vanilla items: stone to cobblestone, gravel and sand, glowstone, quartz, amethyst and clay blocks back to their pieces, sugar cane to sugar, bones to bone meal, blaze rods to powder, wool to string and flowers to dye.
 - A delivery handshake on the data line: before items move, the sender offers them and the receiving block grants room or says why not.
 
 ### Changed

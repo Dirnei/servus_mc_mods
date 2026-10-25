@@ -1,0 +1,12 @@
+{
+  "type": "servus_foundation:milling",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:amethyst_block"
+  },
+  "result": {
+    "count": 4,
+    "id": "minecraft:amethyst_shard"
+  },
+  "work": 200
+}

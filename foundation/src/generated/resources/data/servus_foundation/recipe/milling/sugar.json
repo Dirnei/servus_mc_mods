@@ -1,0 +1,12 @@
+{
+  "type": "servus_foundation:milling",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:crops/sugar_cane"
+  },
+  "result": {
+    "count": 2,
+    "id": "minecraft:sugar"
+  },
+  "work": 100
+}
