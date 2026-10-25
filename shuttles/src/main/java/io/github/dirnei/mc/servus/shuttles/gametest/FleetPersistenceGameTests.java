@@ -225,6 +225,7 @@ public final class FleetPersistenceGameTests {
             FieldFixtures.crop(helper, plot, Blocks.WHEAT, 7);
         }
         FarmFixtures.Farm farm = FarmFixtures.farm(helper, FarmFixtures.shuttleWith(ServusShuttlesItems.HARVESTER.get()));
+        FarmFixtures.carrier(farm);
         BlockPos garage = helper.absolutePos(FarmFixtures.GARAGE);
         helper.runAfterDelay(2, () -> {
             FieldFixtures.water(farm.head());

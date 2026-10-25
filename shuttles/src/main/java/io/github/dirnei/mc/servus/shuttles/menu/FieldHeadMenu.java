@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.menu;
 
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.shuttles.field.FertilizeMode;
 import io.github.dirnei.mc.servus.shuttles.field.FieldAmount;
 import io.github.dirnei.mc.servus.shuttles.field.FertilizeStatus;
@@ -14,6 +15,7 @@ import io.github.dirnei.mc.servus.shuttles.field.FieldStatus;
 import io.github.dirnei.mc.servus.shuttles.field.FieldWork;
 import io.github.dirnei.mc.servus.shuttles.field.FieldWorkerPayload;
 import io.github.dirnei.mc.servus.shuttles.field.SupplyBuffer;
+import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotLocksPayload;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
@@ -65,6 +67,12 @@ public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu {
     public static final int INVENTORY_Y = 154;
     public static final int IMAGE_HEIGHT = INVENTORY_Y + PlayerInventorySlots.HOTBAR_OFFSET + 18 + 6;
     public static final int INVENTORY_START = 1;
+    /** The first read-only slot of the To storage row, after the player inventory. */
+    public static final int TO_STORAGE_START = INVENTORY_START + 36;
+    /** The To storage row on the Stock tab: at most one row of slots right of its label. */
+    public static final int TO_STORAGE_X = 84;
+    public static final int TO_STORAGE_Y = 125;
+    public static final int TO_STORAGE_COLUMNS = 9;
     public static final int BUTTON_THRESHOLD_DOWN = 1;
     public static final int BUTTON_THRESHOLD_UP = 2;
     /** Mode buttons: this id plus the {@link FertilizeMode} ordinal. */
@@ -81,6 +89,7 @@ public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu {
     private static final int STOCK_INTERVAL = 20;
 
     private final FieldHeadBlockEntity head;
+    private final int toStorageShown;
     private final ContainerLevelAccess access;
     private final Player player;
     private final DataSlot waterLow = DataSlot.standalone();
@@ -143,6 +152,10 @@ public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu {
     }
 
     public FieldHeadMenu(int containerId, Inventory playerInventory, FieldHeadBlockEntity head) {
+        this(containerId, playerInventory, head, head.toStorage());
+    }
+
+    private FieldHeadMenu(int containerId, Inventory playerInventory, FieldHeadBlockEntity head, ItemSlots toStorage) {
         super(ServusShuttlesMenus.FIELD_HEAD.get(), containerId);
         this.head = head;
         this.player = playerInventory.player;
@@ -154,6 +167,16 @@ public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu {
             }
         });
         PlayerInventorySlots.add(this::addSlot, playerInventory, INVENTORY_X, INVENTORY_Y);
+        toStorageShown = Math.min(toStorage.getSlots(), TO_STORAGE_COLUMNS);
+        for (int slot = 0; slot < toStorageShown; slot++) {
+            int index = TO_STORAGE_START + slot;
+            addSlot(new PackingStationMenu.ReadOnlySlot(toStorage, slot, TO_STORAGE_X + slot * 18, TO_STORAGE_Y) {
+                @Override
+                public boolean isActive() {
+                    return shows(index);
+                }
+            });
+        }
         for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags,
                 work, threshold, radius, corrosion, corrosionProgress, waterRateLow, waterRateHigh, agingLow, agingHigh, fertilizeMode, fertilizePercent, reserve, antiCorrosionReserve, fertilizeStatus,
                 harvestLimitLow, harvestLimitHigh, fertilizeBelowLow, fertilizeBelowHigh, produceStockLow, produceStockHigh}) {
@@ -175,10 +198,17 @@ public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu {
         return slots;
     }
 
+    /** What the client needs to build the menu: the head's position and the size of its To storage buffer. */
+    public static void writeOpening(RegistryFriendlyByteBuf buf, FieldHeadBlockEntity head) {
+        buf.writeBlockPos(head.getBlockPos());
+        buf.writeVarInt(head.toStorage().getSlots());
+    }
+
     public static FieldHeadMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
         BlockPos pos = buf.readBlockPos();
+        int toStorage = buf.readVarInt();
         if (playerInventory.player.level().getBlockEntity(pos) instanceof FieldHeadBlockEntity head) {
-            return new FieldHeadMenu(containerId, playerInventory, head);
+            return new FieldHeadMenu(containerId, playerInventory, head, new LockedSlots(toStorage));
         }
         throw new IllegalStateException("No field head at " + pos);
     }
@@ -408,6 +438,11 @@ public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu {
         return true;
     }
 
+    /** How many slots of the To storage buffer the Stock tab shows. */
+    public int toStorageShown() {
+        return toStorageShown;
+    }
+
     /** The position of the head this menu shows. */
     public BlockPos headPos() {
         return head.getBlockPos();
@@ -415,7 +450,10 @@ public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu {
 
     /** The page a head slot belongs to, null for the player inventory. */
     public static Page pageOf(int slot) {
-        return slot == RANGE_SLOT ? Page.UPGRADES : null;
+        if (slot == RANGE_SLOT) {
+            return Page.UPGRADES;
+        }
+        return slot >= TO_STORAGE_START ? Page.STOCK : null;
     }
 
     /** Head slots are active on the server, and on the client only on their page. */
@@ -630,8 +668,11 @@ public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu {
             return ItemStack.EMPTY;
         }
         ItemStack before = stack.copy();
+        if (index >= TO_STORAGE_START) {
+            return ItemStack.EMPTY;
+        }
         if (index < INVENTORY_START) {
-            if (!moveItemStackTo(stack, INVENTORY_START, slots.size(), true)) {
+            if (!moveItemStackTo(stack, INVENTORY_START, TO_STORAGE_START, true)) {
                 return ItemStack.EMPTY;
             }
         } else if (slots.get(RANGE_SLOT).mayPlace(stack)) {

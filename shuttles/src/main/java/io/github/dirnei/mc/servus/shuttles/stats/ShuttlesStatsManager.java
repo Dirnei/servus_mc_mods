@@ -78,6 +78,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final double DEFAULT_FERTILIZE_SHARE = 0.5;
     public static final int DEFAULT_SEED_BUFFER = 64;
     public static final int DEFAULT_FERTILIZER_BUFFER = 64;
+    public static final int DEFAULT_HARVEST_BUFFER_SLOTS = 9;
     public static final int DEFAULT_HARVEST_LIMIT = 0;
     public static final int DEFAULT_FERTILIZE_BELOW = 0;
     public static final int DEFAULT_GANTRY_TANK_CAPACITY = 16000;
@@ -162,6 +163,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private volatile double fertilizeShare = DEFAULT_FERTILIZE_SHARE;
     private volatile int seedBuffer = DEFAULT_SEED_BUFFER;
     private volatile int fertilizerBuffer = DEFAULT_FERTILIZER_BUFFER;
+    private volatile int harvestBufferSlots = DEFAULT_HARVEST_BUFFER_SLOTS;
     private volatile int harvestLimit = DEFAULT_HARVEST_LIMIT;
     private volatile int fertilizeBelow = DEFAULT_FERTILIZE_BELOW;
     private volatile int gantryTankCapacity = DEFAULT_GANTRY_TANK_CAPACITY;
@@ -239,6 +241,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         fertilizeShare = Math.min(1.0, doubleField(files.get(FIELD), "fertilize_share", DEFAULT_FERTILIZE_SHARE));
         seedBuffer = countField(files.get(FIELD), "seed_buffer", DEFAULT_SEED_BUFFER);
         fertilizerBuffer = countField(files.get(FIELD), "fertilizer_buffer", DEFAULT_FERTILIZER_BUFFER);
+        harvestBufferSlots = intField(files.get(FIELD), "harvest_buffer_slots", DEFAULT_HARVEST_BUFFER_SLOTS);
         harvestLimit = countField(files.get(FIELD), "harvest_limit", DEFAULT_HARVEST_LIMIT);
         fertilizeBelow = countField(files.get(FIELD), "fertilize_below", DEFAULT_FERTILIZE_BELOW);
         gantryTankCapacity = intField(files.get(GANTRY), "tank_capacity", DEFAULT_GANTRY_TANK_CAPACITY);
@@ -608,6 +611,11 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     /** For tests: sets the seed buffer level as if a datapack had been loaded. */
     public void setSeedBuffer(int level) {
         seedBuffer = level;
+    }
+
+    /** How many slots a Field Head's To storage buffer has for what its field shuttles bring back. */
+    public int harvestBufferSlots() {
+        return harvestBufferSlots;
     }
 
     /** How many items of its fertilizer supply runs keep in a Field Head's buffer; 0 turns the part off. */

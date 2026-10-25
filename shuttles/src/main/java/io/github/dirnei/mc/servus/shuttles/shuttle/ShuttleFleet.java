@@ -1483,7 +1483,12 @@ public final class ShuttleFleet {
 
     /** No rack takes the cargo: the shuttle drives into its garage and parks there with it. */
     void strand(Shuttle shuttle) {
-        shuttle.strandReason = anyRoom(shuttle) ? StrandReason.NO_WAY : StrandReason.NO_ROOM;
+        strand(shuttle, anyRoom(shuttle) ? StrandReason.NO_WAY : StrandReason.NO_ROOM);
+    }
+
+    /** The shuttle drives into its garage and parks there with its cargo, for that reason. */
+    void strand(Shuttle shuttle, StrandReason reason) {
+        shuttle.strandReason = reason;
         if (shuttle.leg == Leg.STRANDED && shuttle.motion.arrived()) {
             return;
         }

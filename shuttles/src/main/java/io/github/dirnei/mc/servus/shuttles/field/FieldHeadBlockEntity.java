@@ -15,9 +15,12 @@ import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
+import io.github.dirnei.mc.servus.shuttles.network.PutAwaySource;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
+import io.github.dirnei.mc.servus.shuttles.zone.PutAwayPlan;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.JobNeeds;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleItem;
@@ -78,7 +81,7 @@ import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
  * The block shows the wood of its recipe, the ripe share bar ({@link FieldHeadBlock#RIPE}),
  * the water level in steps and the crop; see {@link FieldHeadLook}.
  */
-public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, MaterialHolder, LockHolder {
+public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, MaterialHolder, LockHolder, PutAwaySource {
 
     /** Items that hold a field's copper stage for one aging step. */
     public static final TagKey<Item> ANTI_CORROSION = ItemTags.create(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "anti_corrosion"));
@@ -128,6 +131,20 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
     };
     /** Seeds, fertilizer and anti-corrosion items, filled by supply runs and taken by field shuttles only. */
     private final SupplyBuffer buffer = new SupplyBuffer(this::bufferChanged);
+    /** What the field's shuttles bring back, waiting for plain shuttles to put it away. */
+    private final LockedSlots toStorage = new LockedSlots(ShuttlesStatsManager.INSTANCE.harvestBufferSlots()) {
+        @Override
+        protected void onContentsChanged(int slot) {
+            toStorageChanged();
+        }
+
+        @Override
+        protected void onLocksChanged() {
+            toStorageChanged();
+        }
+    };
+    /** Why the To storage buffer cannot be put away, null while nothing is stuck. */
+    private PutAwayPlan.Reason toStorageBlocked;
     /** Whether the player chose the anti-corrosion item; until then it is the first item of the tag. */
     private boolean antiCorrosionChosen;
     /** The chosen anti-corrosion item, null for Off; meaningful while {@link #antiCorrosionChosen}. */
@@ -538,7 +555,102 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
     /** The buffer parts, whose locks reserve room and items for shuttle jobs. */
     @Override
     public List<LockedSlots> lockedSlots() {
-        return List.of(buffer.slots());
+        return List.of(buffer.slots(), toStorage);
+    }
+
+    /** The To storage buffer; plain shuttles take from it through its locks. */
+    public LockedSlots toStorage() {
+        return toStorage;
+    }
+
+    @Override
+    public LockedSlots putAwayBuffer() {
+        return toStorage;
+    }
+
+    @Override
+    public void setBlocked(PutAwayPlan.Reason reason, ItemKey key, String zoneDisplay) {
+        toStorageBlocked = reason;
+    }
+
+    @Override
+    public void clearBlocked() {
+        toStorageBlocked = null;
+    }
+
+    /** Why the To storage buffer waits, null while it is put away or empty. */
+    public PutAwayPlan.Reason toStorageBlocked() {
+        return toStorageBlocked;
+    }
+
+    /** Whether the To storage buffer has an empty slot no put-away holds. */
+    public boolean toStorageHasFreeSlot() {
+        return HeadUnload.hasFreeSlot(toStorageSlots());
+    }
+
+    /** Whether the To storage buffer holds anything. */
+    public boolean toStorageHoldsItems() {
+        for (int slot = 0; slot < toStorage.getSlots(); slot++) {
+            if (!toStorage.getStackInSlot(slot).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether the To storage buffer would take at least part of the stacks. */
+    public boolean toStorageTakesAny(List<ItemStack> stacks) {
+        List<HeadUnload.Stack<ItemKey>> unload = unloadStacks(stacks);
+        return HeadUnload.plan(toStorageSlots(), unload).aboard().stream().mapToInt(HeadUnload.Stack::count).sum()
+                < unload.stream().mapToInt(HeadUnload.Stack::count).sum();
+    }
+
+    /**
+     * Puts what a field shuttle brings back into the To storage buffer, same
+     * items first, then empty slots; returns what does not fit.
+     */
+    public List<ItemStack> unloadToStorage(List<ItemStack> stacks) {
+        HeadUnload.Plan<ItemKey> plan = HeadUnload.plan(toStorageSlots(), unloadStacks(stacks));
+        for (int slot = 0; slot < toStorage.getSlots(); slot++) {
+            HeadUnload.Slot<ItemKey> after = plan.slots().get(slot);
+            if (after.key() != null && after.count() != toStorage.getStackInSlot(slot).getCount()) {
+                toStorage.setStackInSlot(slot, after.key().stack(after.count()));
+            }
+        }
+        List<ItemStack> aboard = new ArrayList<>();
+        for (HeadUnload.Stack<ItemKey> left : plan.aboard()) {
+            aboard.add(left.key().stack(left.count()));
+        }
+        return aboard;
+    }
+
+    private static List<HeadUnload.Stack<ItemKey>> unloadStacks(List<ItemStack> stacks) {
+        List<HeadUnload.Stack<ItemKey>> unload = new ArrayList<>();
+        for (ItemStack stack : stacks) {
+            if (!stack.isEmpty()) {
+                unload.add(new HeadUnload.Stack<>(ItemKey.of(stack), stack.getCount(), stack.getMaxStackSize()));
+            }
+        }
+        return unload;
+    }
+
+    private List<HeadUnload.Slot<ItemKey>> toStorageSlots() {
+        List<HeadUnload.Slot<ItemKey>> slots = new ArrayList<>(toStorage.getSlots());
+        for (int slot = 0; slot < toStorage.getSlots(); slot++) {
+            ItemStack stack = toStorage.getStackInSlot(slot);
+            boolean locked = toStorage.isLocked(slot);
+            slots.add(stack.isEmpty() ? new HeadUnload.Slot<>(null, 0, 0, locked)
+                    : new HeadUnload.Slot<>(ItemKey.of(stack), stack.getCount(), stack.getMaxStackSize(), locked));
+        }
+        return slots;
+    }
+
+    /** Saves the change and tells the warehouse to plan put-aways from the buffer. */
+    private void toStorageChanged() {
+        setChanged();
+        if (level != null && !level.isClientSide()) {
+            warehouse().ifPresent(network -> network.post(new WarehouseEvent.Intake(worldPosition)));
+        }
     }
 
     private void bufferChanged() {
@@ -1260,8 +1372,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         boolean inStock = !buffered && plantMode() && network.map(warehouse -> warehouse.available(ItemKey.of(crop())) > 0).orElse(false);
         boolean supplier = inStock && network.map(warehouse -> warehouse.supplyReachable(worldPosition)).orElse(false);
         FieldWork.Seeds seeds = FieldWork.Seeds.of(buffered, inStock, supplier);
+        boolean collector = network.map(warehouse -> warehouse.supplyReachable(worldPosition)).orElse(false);
+        FieldWork.Collect collect = FieldWork.Collect.of(toStorageHoldsItems(), collector,
+                toStorageBlocked == PutAwayPlan.Reason.NO_ROOM || toStorageBlocked == PutAwayPlan.Reason.NO_STORAGE, toStorageHasFreeSlot());
         return FieldWork.of(network.isPresent(), online, harvestOnly || plantMode(), harvester, reachable, working, harvestCalled(),
-                plantMode(), hydrated, tillableCount(), plantableCount(), plantedCount(), seeds).whilePaused(harvestPaused());
+                plantMode(), hydrated, tillableCount(), plantableCount(), plantedCount(), seeds).whilePaused(harvestPaused())
+                .whileCollecting(collect);
     }
 
     /** The warehouse the field's rails belong to, empty while the head serves no field. Server side. */
@@ -1392,6 +1508,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
             output.putInt("HarvestPercent", harvestPercent);
         }
         tag.put("Buffer", buffer.save(registries));
+        tag.put("ToStorage", toStorage.serializeNBT(registries));
+        tag.put("ToStorageLocks", toStorage.saveLocks(registries));
         if (stageKnown) {
             output.putInt("Corrosion", stage);
         }
@@ -1451,6 +1569,10 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         harvestPercent = tag.contains("HarvestPercent") ? FieldThreshold.clamp(input.getIntOr("HarvestPercent", 0)) : 0;
         if (tag.contains("Buffer")) {
             buffer.load(registries, tag.getCompoundOrEmpty("Buffer"));
+        }
+        if (tag.contains("ToStorage")) {
+            toStorage.fillFrom(registries, tag.getCompoundOrEmpty("ToStorage"));
+            toStorage.loadLocks(registries, tag.getListOrEmpty("ToStorageLocks"));
         }
         antiCorrosion = readItem(tag, "AntiCorrosion");
         antiCorrosionChosen = tag.contains("AntiCorrosion") && (antiCorrosion == null || isAntiCorrosion(new ItemStack(antiCorrosion)));
@@ -1577,7 +1699,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         }
     }
 
-    /** Tells the field it lost its head and drops the Range Upgrades and the supply buffer when the block is removed. */
+    /** Tells the field it lost its head and drops the Range Upgrades and both buffers when the block is removed. */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
@@ -1588,6 +1710,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), takeRangeUpgrades());
         for (ItemStack stack : buffer.takeEverything()) {
             Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), stack);
+        }
+        for (int slot = 0; slot < toStorage.getSlots(); slot++) {
+            ItemStack stack = toStorage.getStackInSlot(slot);
+            if (!stack.isEmpty()) {
+                Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), stack.copy());
+            }
         }
     }
 }

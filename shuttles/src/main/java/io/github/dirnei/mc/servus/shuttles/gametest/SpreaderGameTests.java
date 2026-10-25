@@ -290,4 +290,37 @@ public final class SpreaderGameTests {
     private static Optional<Identifier> id(Item item) {
         return Optional.of(BuiltInRegistries.ITEM.getKey(item));
     }
+    /**
+     * Fertilizing is turned off while the Spreader carries bone meal: what it
+     * carries goes into the head's To storage buffer, not to a rack, and the
+     * plain shuttle puts it back into the rack.
+     */
+    @ServusGameTest(timeoutTicks = 900)
+    public static void leftoverGoesToTheHead(GameTestHelper helper) {
+        BlockPos[] young = {new BlockPos(5, 1, RAIL_Z - 1), new BlockPos(6, 1, RAIL_Z + 1)};
+        for (BlockPos plot : young) {
+            wheat(helper, plot, 1);
+        }
+        FarmFixtures.Farm farm = spreaderFarm(helper, spreader());
+        FarmFixtures.carrier(farm);
+        WarehouseFixtures.put(farm.rack(), new ItemStack(Items.BONE_MEAL, 20));
+        BlockPos garage = helper.absolutePos(FarmFixtures.GARAGE);
+        boolean[] atHead = {false};
+        helper.onEachTick(() -> atHead[0] |= HarvesterGameTests.toStorageCount(farm.head(), Items.BONE_MEAL) > 0);
+        helper.runAfterDelay(3, () -> {
+            fertilize(farm, FertilizeMode.UNTIL_RIPE, 0);
+            Waits.when(helper, () -> network(helper).shuttleViews(garage).stream().anyMatch(view -> view.cargo().is(Items.BONE_MEAL)
+                            && ShuttleModules.of(view.shuttle()).tool().filter(tool -> tool == ServusShuttlesItems.SPREADER.get()).isPresent()), 500,
+                    () -> "the Spreader should carry bone meal", () -> {
+                farm.head().setFertilizeMode(FertilizeMode.OFF);
+                Waits.when(helper, () -> atHead[0] && out(helper) == 0 && !farm.head().toStorageHoldsItems()
+                                && rackMeal(farm) > 0, 350,
+                        () -> "the bone meal should pass the head's To storage buffer back into storage, rack " + rackMeal(farm)
+                                + ", buffer " + buffered(farm) + ", out " + out(helper) + ", seen at the head " + atHead[0], () -> {
+                    helper.assertTrue(noItemsLying(helper), "nothing should drop on the ground");
+                    helper.succeed();
+                });
+            });
+        });
+    }
 }

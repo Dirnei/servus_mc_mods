@@ -122,6 +122,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.garage.paused", "Paused");
         add("gui.servus_shuttles.garage.stranded.no_room", "%s holds %s %s: no room");
         add("gui.servus_shuttles.garage.stranded.no_way", "%s holds %s %s: no way to a rack with room");
+        add("gui.servus_shuttles.garage.stranded.head_full", "%s holds %s %s: the Field Head's To storage is full");
         add("gui.servus_shuttles.lock.in", "Reserved: %s brings %s %s");
         add("gui.servus_shuttles.lock.out", "Reserved: %s takes %s %s");
         add("gui.servus_shuttles.lock.in_waiting", "Reserved: brings %s %s, waiting for a shuttle");
@@ -227,6 +228,8 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.field_head.stock.row.keep.tooltip", "Supply runs never take the warehouse stock at or below these");
         add("gui.servus_shuttles.field_head.stock.row.harvest_limit", "Harvest up to");
         add("gui.servus_shuttles.field_head.stock.row.fertilize_below", "Fertilize below");
+        add("gui.servus_shuttles.field_head.to_storage", "To storage");
+        add("gui.servus_shuttles.field_head.to_storage.tooltip", "What the field's shuttles bring back. It waits here for a shuttle to put it away");
         add("gui.servus_shuttles.field_head.stock.in_warehouse", "%s in the warehouse: %s");
         add("gui.servus_shuttles.field_head.stock.no_warehouse", "No counts: the field is not on a warehouse");
         add("gui.servus_shuttles.field_head.amount.typing", "Type a number, then press Enter or click elsewhere");
@@ -302,6 +305,9 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.field_head.work.growing", "Growing");
         add("gui.servus_shuttles.field_head.work.no_plots", "No plot to till or plant");
         add("gui.servus_shuttles.field_head.work.harvest_paused", "Harvest paused: %s / %s %s");
+        add("gui.servus_shuttles.field_head.work.collect_no_shuttle", "Waiting for a shuttle to collect the harvest: none without a tool reaches the head");
+        add("gui.servus_shuttles.field_head.work.collect_no_room", "No rack has room for the harvest at the head");
+        add("gui.servus_shuttles.field_head.work.to_storage_full", "To storage is full, waiting for a shuttle to collect the harvest");
         add("gui.servus_shuttles.field_head.status.no_field", "No farm rail beside the head");
         add("gui.servus_shuttles.field_head.status.too_large", "The field is too large");
         add("gui.servus_shuttles.field_head.status.other_head", "This field has another head");

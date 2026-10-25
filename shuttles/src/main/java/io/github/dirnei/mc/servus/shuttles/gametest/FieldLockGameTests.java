@@ -9,6 +9,7 @@ import static io.github.dirnei.mc.servus.shuttles.gametest.FarmFixtures.out;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.shuttles.field.FieldHeadBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.field.FieldWork;
 import io.github.dirnei.mc.servus.shuttles.field.SupplyBuffer;
 import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
@@ -130,13 +131,16 @@ public final class FieldLockGameTests {
             FieldFixtures.crop(helper, plot, Blocks.WHEAT, 7);
         }
         FarmFixtures.Farm farm = farm(helper, harvester());
+        FarmFixtures.carrier(farm);
         HeavyRackBlockEntity near = WarehouseFixtures.rack(helper, NEAR_RACK, Direction.NORTH);
         WarehouseFixtures.put(farm.rack(), new ItemStack(Items.WHEAT, 5));
         boolean[] lockedOnTheWay = {false};
         helper.onEachTick(() -> lockedOnTheWay[0] |= !locks(farm.rack().items(), SlotLock.Kind.IN, Items.WHEAT).isEmpty());
         helper.runAfterDelay(2, () -> {
             farm.head().setHarvestOnly(true);
-            Waits.when(helper, () -> helper.getBlockState(plots[0]).isAir() && helper.getBlockState(plots[1]).isAir() && out(helper) == 0, 550,
+            Waits.when(helper, () -> helper.getBlockState(plots[0]).isAir() && helper.getBlockState(plots[1]).isAir() && out(helper) == 0
+                            && WarehouseFixtures.count(farm.rack(), Items.WHEAT) == 7 && !farm.head().toStorageHoldsItems()
+                            && farm.rack().items().locked().isEmpty() && near.items().locked().isEmpty(), 550,
                     () -> "the wheat should be harvested and stored", () -> {
                 helper.assertTrue(WarehouseFixtures.count(farm.rack(), Items.WHEAT) == 7 && WarehouseFixtures.count(near, Items.WHEAT) == 0,
                         "the wheat joins the rack holding wheat, it holds " + WarehouseFixtures.count(farm.rack(), Items.WHEAT)
@@ -150,31 +154,42 @@ public final class FieldLockGameTests {
     }
 
     /**
-     * A full warehouse: the harvester parks in its garage with its carrots,
-     * the garage lamp turns red and the garage names it; once the rack has
-     * room the carrots are stored and the lamp is no longer red.
+     * The head's To storage buffer has one free slot and the harvester brings
+     * carrots and potatoes: one crop fills the slot, the harvester parks in
+     * its garage with the other, and unloads it once a slot is free.
      */
-    @ServusGameTest(timeoutTicks = 900)
-    public static void fullWarehouseParksTheHarvester(GameTestHelper helper) {
-        BlockPos plot = new BlockPos(5, 1, RAIL_Z - 1);
-        FieldFixtures.crop(helper, plot, Blocks.CARROTS, 7);
+    @ServusGameTest(timeoutTicks = 800)
+    public static void fullToStorageParksTheHarvester(GameTestHelper helper) {
+        BlockPos carrots = new BlockPos(5, 1, RAIL_Z - 1);
+        BlockPos potatoes = new BlockPos(5, 1, RAIL_Z + 1);
+        FieldFixtures.crop(helper, carrots, Blocks.CARROTS, 7);
+        FieldFixtures.crop(helper, potatoes, Blocks.POTATOES, 7);
         FarmFixtures.Farm farm = farm(helper, harvester());
-        WarehouseFixtures.fill(farm.rack(), Items.COBBLESTONE);
+        LockedSlots toStorage = farm.head().toStorage();
+        for (int slot = 1; slot < toStorage.getSlots(); slot++) {
+            toStorage.setStackInSlot(slot, new ItemStack(Items.COBBLESTONE, 64));
+        }
         BlockPos garage = helper.absolutePos(GARAGE);
         helper.runAfterDelay(2, () -> {
             farm.head().setHarvestOnly(true);
-            Waits.when(helper, () -> helper.getBlockState(plot).isAir() && WarehouseFixtures.blocked(helper, GARAGE)
-                            && network(helper).shuttleViews(garage).isEmpty(), 400,
-                    () -> "the harvester should park in its garage with the carrots", () -> {
+            Waits.when(helper, () -> helper.getBlockState(carrots).isAir() && helper.getBlockState(potatoes).isAir()
+                            && WarehouseFixtures.blocked(helper, GARAGE) && network(helper).shuttleViews(garage).isEmpty(), 500,
+                    () -> "the harvester should park in its garage with the potatoes", () -> {
                 List<ShuttleFleet.Stranded> stranded = network(helper).stranded(garage);
-                helper.assertTrue(stranded.size() == 1 && stranded.getFirst().cargo().is(Items.CARROT)
-                        && stranded.getFirst().reason() == StrandReason.NO_ROOM, "the garage names the parked carrots: " + stranded);
-                helper.assertTrue(noItemsLying(helper), "the carrots must not drop");
-                farm.rack().clear();
-                Waits.when(helper, () -> WarehouseFixtures.count(farm.rack(), Items.CARROT) >= 1 && out(helper) == 0
+                Item unloaded = toStorage.getStackInSlot(0).getItem();
+                Item parked = unloaded == Items.CARROT ? Items.POTATO : Items.CARROT;
+                helper.assertTrue(unloaded == Items.CARROT || unloaded == Items.POTATO, "one crop fills the free slot, it holds " + toStorage.getStackInSlot(0));
+                helper.assertTrue(stranded.size() == 1 && stranded.getFirst().cargo().is(parked)
+                        && stranded.getFirst().reason() == StrandReason.HEAD_FULL, "the garage names the other crop parked: " + stranded);
+                helper.assertTrue(farm.head().work() == FieldWork.COLLECT_NO_SHUTTLE,
+                        "without a plain shuttle the head says nobody collects: " + farm.head().work());
+                helper.assertTrue(noItemsLying(helper), "nothing drops");
+                toStorage.setStackInSlot(1, ItemStack.EMPTY);
+                Waits.when(helper, () -> toStorage.getStackInSlot(1).is(parked) && out(helper) == 0
                                 && WarehouseFixtures.activity(helper, GARAGE) != StorageNodeBlocks.Activity.BLOCKED, 300,
-                        () -> "the carrots should be stored once there is room", helper::succeed);
+                        () -> "the parked crop should be unloaded at the head once a slot is free", helper::succeed);
             });
         });
     }
+
 }

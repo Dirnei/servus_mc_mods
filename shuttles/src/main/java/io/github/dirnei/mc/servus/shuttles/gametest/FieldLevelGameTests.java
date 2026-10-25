@@ -160,6 +160,7 @@ public final class FieldLevelGameTests {
     public static void harvestResumesBelowTheLimit(GameTestHelper helper) {
         ripeWheat(helper);
         FarmFixtures.Farm farm = farm(helper, harvester());
+        FarmFixtures.carrier(farm);
         WarehouseFixtures.put(farm.rack(), new ItemStack(Items.WHEAT, 20));
         FieldHeadBlockEntity head = farm.head();
         helper.runAfterDelay(2, () -> {
@@ -168,13 +169,11 @@ public final class FieldLevelGameTests {
             helper.runAfterDelay(60, () -> {
                 helper.assertTrue(allAged(helper, 7) && out(helper) == 0, "the harvest waits while 20 wheat are in stock");
                 takeOut(farm.rack(), Items.WHEAT, 15);
-                Waits.when(helper, () -> allReplanted(helper) && out(helper) == 0, 550,
+                Waits.when(helper, () -> allReplanted(helper) && out(helper) == 0
+                                && WarehouseFixtures.count(farm.rack(), Items.WHEAT) == 5 + RIPE.length, 550,
                         () -> "the field should be harvested once 5 wheat are left, rack holds " + WarehouseFixtures.count(farm.rack(), Items.WHEAT)
                                 + ", ages " + ages(helper),
-                        () -> {
-                    helper.assertTrue(WarehouseFixtures.count(farm.rack(), Items.WHEAT) == 5 + RIPE.length, "the harvest reached the rack");
-                    helper.succeed();
-                });
+                        helper::succeed);
             });
         });
     }

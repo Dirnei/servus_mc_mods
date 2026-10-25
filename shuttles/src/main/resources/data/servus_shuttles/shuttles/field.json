@@ -18,6 +18,7 @@
   "fertilize_share": 0.5,
   "seed_buffer": 64,
   "fertilizer_buffer": 64,
+  "harvest_buffer_slots": 9,
   "harvest_limit": 0,
   "fertilize_below": 0
 }

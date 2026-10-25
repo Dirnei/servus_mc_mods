@@ -31,7 +31,7 @@ public class PackingStationMenu extends AbstractContainerMenu implements LockedM
     public static final int FIRST_LABEL_Y = 18;
 
     /** A slot that shows a system buffer and refuses every click. */
-    public static final class ReadOnlySlot extends ResourceHandlerSlot {
+    public static class ReadOnlySlot extends ResourceHandlerSlot {
 
         public ReadOnlySlot(ItemSlots handler, int index, int x, int y) {
             super(handler, handler::set, index, x, y);

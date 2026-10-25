@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
 import io.github.dirnei.mc.servus.shuttles.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
+import io.github.dirnei.mc.servus.shuttles.network.PutAwaySource;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
@@ -39,7 +40,7 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
  * The inbound dock: an intake buffer that hoppers, ducts and players fill and
  * the warehouse drains into storage by its zone rules. Never indexed.
  */
-public class InboundStationBlockEntity extends StationBlockEntity implements LockHolder {
+public class InboundStationBlockEntity extends StationBlockEntity implements LockHolder, PutAwaySource {
 
     private final LockedSlots buffer = new LockedSlots(ShuttlesStatsManager.INSTANCE.inboundBufferSlots()) {
         @Override
@@ -99,6 +100,11 @@ public class InboundStationBlockEntity extends StationBlockEntity implements Loc
 
     protected InboundStationBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state, SideConfig.inbound());
+    }
+
+    @Override
+    public LockedSlots putAwayBuffer() {
+        return buffer;
     }
 
     @Override
@@ -190,6 +196,7 @@ public class InboundStationBlockEntity extends StationBlockEntity implements Loc
     }
 
     /** Records the first stack that has no room and turns the activity lamp red. */
+    @Override
     public void setBlocked(PutAwayPlan.Reason reason, ItemKey key, String zoneDisplay) {
         blockedReason = reason;
         blockedStack = key.stack(1);
@@ -198,6 +205,7 @@ public class InboundStationBlockEntity extends StationBlockEntity implements Loc
     }
 
     /** Nothing is stuck: the lamp shows orange while stacks are being put away, green when the buffer is empty. */
+    @Override
     public void clearBlocked() {
         blockedReason = null;
         blockedStack = ItemStack.EMPTY;

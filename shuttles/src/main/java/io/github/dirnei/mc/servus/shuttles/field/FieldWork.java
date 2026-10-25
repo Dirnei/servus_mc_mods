@@ -36,7 +36,13 @@ public enum FieldWork {
     /** No plot beside the rails can be tilled or planted. */
     NO_PLOTS,
     /** The warehouse holds the head's harvest limit of the produce: ripe crops wait on the field. */
-    HARVEST_PAUSED;
+    HARVEST_PAUSED,
+    /** The head's To storage buffer holds items no plain shuttle can reach to put away. */
+    COLLECT_NO_SHUTTLE,
+    /** The head's To storage buffer holds items no rack has room for. */
+    COLLECT_NO_ROOM,
+    /** The head's To storage buffer has no free slot: no run goes out until a shuttle collects. */
+    TO_STORAGE_FULL;
 
     private static final FieldWork[] VALUES = values();
 
@@ -82,6 +88,58 @@ public enum FieldWork {
      */
     public FieldWork whilePaused(boolean paused) {
         return paused && (this == WAITING_RIPE || this == GROWING) ? HARVEST_PAUSED : this;
+    }
+
+    /** How the head's To storage buffer is being put away. */
+    public enum Collect {
+        /** Empty, or plain shuttles are putting it away with room to spare. */
+        FINE,
+        /** No slot is free; a plain shuttle will collect. */
+        FULL,
+        /** It holds items and no plain shuttle reaches the head. */
+        NO_SHUTTLE,
+        /** It holds items no rack has room for. */
+        NO_ROOM;
+
+        /**
+         * @param holdsItems the buffer holds items
+         * @param collector  a shuttle without a tool can drive to the head's rail
+         * @param noRoom     the last put-away found no rack with room for some of it
+         * @param freeSlot   some slot is empty and free
+         */
+        public static Collect of(boolean holdsItems, boolean collector, boolean noRoom, boolean freeSlot) {
+            if (!holdsItems) {
+                return FINE;
+            }
+            if (!collector) {
+                return NO_SHUTTLE;
+            }
+            if (noRoom) {
+                return NO_ROOM;
+            }
+            return freeSlot ? FINE : FULL;
+        }
+    }
+
+    /**
+     * The status while the To storage buffer waits: once the field could be
+     * worked at all, a buffer that cannot be emptied or has no free slot is
+     * what the head shows.
+     */
+    public FieldWork whileCollecting(Collect collect) {
+        boolean fieldWorkable = switch (this) {
+            case NOT_LINKED, NO_CONTROLLER, NO_CROP, NO_HARVESTER, NO_WAY -> false;
+            default -> true;
+        };
+        if (!fieldWorkable) {
+            return this;
+        }
+        return switch (collect) {
+            case FINE -> this;
+            case NO_SHUTTLE -> COLLECT_NO_SHUTTLE;
+            case NO_ROOM -> COLLECT_NO_ROOM;
+            case FULL -> TO_STORAGE_FULL;
+        };
     }
 
     public static FieldWork byId(int id) {

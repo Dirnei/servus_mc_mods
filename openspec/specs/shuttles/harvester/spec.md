@@ -26,7 +26,7 @@ The Harvester SHALL be a craftable tool module. It SHALL go into a shuttle throu
 - **THEN** the tooltip says it does not fit into lifts
 
 ### Requirement: Field jobs
-A warehouse SHALL look at the Field Head of every field whose farm rails are part of its rails every `field_check_interval` ticks (in `data/<ns>/shuttles/field.json`, example 40). It SHALL queue a field job for that field when it has a Harvester shuttle, no field job for that field is queued or running, and either the head signals harvest due, or the field has a crop set, is hydrated and has a plot to till or, while the warehouse holds the crop item, a plot to plant. At most one field job per field SHALL be queued or running at a time. A field job SHALL go to the free Harvester shuttle with the shortest way to a farm rail of the field that has work.
+A warehouse SHALL look at the Field Head of every field whose farm rails are part of its rails every `field_check_interval` ticks (in `data/<ns>/shuttles/field.json`, example 40). It SHALL queue a field job for that field when it has a Harvester shuttle, no field job for that field is queued or running, the head's To storage buffer has a free slot, and either the head signals harvest due, or the field has a crop set, is hydrated and has a plot to till or, while the warehouse holds the crop item, a plot to plant. At most one field job per field SHALL be queued or running at a time. A field job SHALL go to the free Harvester shuttle with the shortest way to a farm rail of the field that has work.
 
 #### Scenario: Harvest due sends a harvester
 - **WHEN** a field with wheat set has a harvest due and its warehouse has a free Harvester shuttle
@@ -39,6 +39,10 @@ A warehouse SHALL look at the Field Head of every field whose farm rails are par
 #### Scenario: Planting needs seeds
 - **WHEN** a hydrated field with wheat set has only empty farmland and the warehouse holds no wheat seeds
 - **THEN** no field job is queued
+
+#### Scenario: To storage buffer full
+- **WHEN** a field has a harvest due and every slot of its head's To storage buffer holds items
+- **THEN** no field job is queued until a plain shuttle has collected from the buffer
 
 ### Requirement: Field run
 On a field run the harvester SHALL drive over the rails to the nearest farm rail of the field whose plots have work, work those plots, and then drive to the next nearest farm rail with work, until no rail has work it can do or its cargo is full. A work segment in which nothing on the field changed (for example a crop that cannot grow on a dark plot) SHALL end the run. Each plot SHALL be worked from the farm rail nearest to it, so the harvester reaches at most 4 blocks, the strip of the field, to each side of the rail it stands on. Working a plot that needs something done SHALL take `work_ticks` ticks (in `field.json`, example 10), shortened by the shuttle's Handling upgrades like a stop and at least one tick; plots that need nothing SHALL cost no time. The harvester SHALL be drawn standing on the rail of the plots it works and moving between rails like other shuttles. After working a plot the head SHALL count the plot as it is now.
@@ -79,15 +83,15 @@ In harvest only mode the harvester SHALL only harvest. Crops that are not ripe a
 - **THEN** only the ripe wheat is harvested
 
 ### Requirement: Field cargo
-A harvester on a field run SHALL carry up to the stacks of its tier (example 2 for Mk1), each stack one item type. When the drops of the next ripe plot do not fit, the harvester SHALL stop working, put the harvest away and come back while work remains. When the drops of a plot do not fit even into an empty cargo, the harvester SHALL harvest it anyway, the part that does not fit SHALL ride along to be put away, and the harvester SHALL put the harvest away before it works on. A seed kept for replanting that cannot be planted SHALL ride along the same way. Nothing SHALL drop on the plot.
+A harvester on a field run SHALL carry up to the stacks of its tier (example 2 for Mk1), each stack one item type. When the drops of the next ripe plot do not fit, the harvester SHALL stop working, unload at the head and come back while work remains. When the drops of a plot do not fit even into an empty cargo, the harvester SHALL harvest it anyway, the part that does not fit SHALL ride along to be unloaded, and the harvester SHALL unload at the head before it works on. A seed kept for replanting that cannot be planted SHALL ride along the same way. Nothing SHALL drop on the plot.
 
 #### Scenario: Full cargo goes home
 - **WHEN** a Mk1 harvester harvests a field with more ripe wheat than two stacks hold
-- **THEN** it drives to storage with a full cargo, puts it away and returns to harvest the rest
+- **THEN** it drives to the farm rail beside the head with a full cargo, unloads it there and returns to harvest the rest
 
 #### Scenario: A bigger tier stays out longer
 - **WHEN** a Mk2 harvester harvests the same field
-- **THEN** it carries up to four stacks before it drives to storage
+- **THEN** it carries up to four stacks before it unloads at the head
 
 ### Requirement: Seeds
 To plant, the harvester SHALL take the field's crop item from its cargo, which holds the harvest. When it puts the harvest away while plots remain to plant, it SHALL keep up to one stack of the crop item, no more than those plots need; when the kept seeds leave no room for the next harvest, the next put-away SHALL keep none. Spare crop items SHALL first fill the head's seed buffer up to its level, less the room a supply run reserved, at the farm rail beside the head, before the rest is put away. Only when the field has no ripe plot left to harvest and the harvester carries fewer crop items than there are plots to plant SHALL it take the shortfall, up to one stack and as far as its cargo has room, from the head's seed buffer, never from racks: it SHALL lock those seeds in the buffer (OUT) when it decides to fetch them, out of the seeds no other job reserved, and take them at the head. When the buffer holds none it may take, the harvester SHALL plant only what the harvest provides and leave the rest of the farmland empty.
@@ -100,31 +104,8 @@ To plant, the harvester SHALL take the field's crop item from its cargo, which h
 - **WHEN** a hydrated field with wheat set has only empty farmland and the head's seed buffer holds wheat seeds
 - **THEN** the harvester locks the seeds it needs in the buffer, takes them at the head, plants the farmland and the buffer holds fewer seeds
 
-### Requirement: Harvest put-away
-The harvest SHALL go into warehouse storage by the put-away rule of inbound stations (see `shuttles/zones`): zone tiers first, then racks already holding the item (a partial stack first), then the others by free slots, cheaper travel deciding within each, with the travel cost from where the harvester stands. Only racks the harvester can drive to count; a rack whose rails it reaches only by lift SHALL be skipped. The harvester SHALL lock the room it fills in the racks it chose (IN) when it plans the put-away, drive to the front rail of each and unload there as its job. What a rack does not take on arrival SHALL be routed again by the same rule from where the harvester stands. When no rack it may use has room for some of the cargo, or none can be reached, the harvester SHALL drive into its garage and park there with that cargo as a shuttle with cargo that has nowhere to go (see `shuttles/shuttle-garage`): the garage shows the error state, the harvester takes no other job and tries again when room may have appeared. Once its cargo is stored it SHALL go on with its run.
-
-#### Scenario: Zones apply
-- **WHEN** a warehouse has a rack zoned for wheat and an unzoned rack, and a harvester brings wheat
-- **THEN** the wheat goes into the zoned rack
-
-#### Scenario: Holding rack first
-- **WHEN** an unzoned rack far away holds a partial stack of wheat and an empty unzoned rack stands next to the field, and a harvester brings wheat
-- **THEN** the wheat goes into the rack that holds wheat
-
-#### Scenario: Room locked on the way
-- **WHEN** a harvester drives to a rack with 40 wheat
-- **THEN** the rack slots it fills hold IN locks for 40 wheat naming its field job until it unloads there
-
-#### Scenario: Warehouse full
-- **WHEN** the only rack of a warehouse is full and a harvester comes back with wheat
-- **THEN** the harvester parks in its garage holding the wheat, the garage lamp shows the error, and it puts the wheat away once the player empties the rack
-
-#### Scenario: Storage upstairs is skipped
-- **WHEN** the rack zoned for wheat faces a rail one floor up, reached only by the shaft, and an unzoned rack stands on the harvester's floor
-- **THEN** the wheat goes into the rack on the harvester's floor
-
 ### Requirement: Runs that cannot go on
-- When the Field Head is removed or no longer serves the field, the harvester SHALL stop working, put away what it carries and go home.
+- When the Field Head is removed or no longer serves the field, the harvester SHALL stop working, go home and its cargo SHALL drop at the garage.
 - When the field loses its water during a run, the harvester SHALL finish the rail it works on; it SHALL then go on only while ripe plots remain and SHALL NOT start more tilling or planting.
 - When the rail the harvester stands on or drives over is removed, or its garage loses the way home, the harvester SHALL go back into its garage and its cargo SHALL drop at the garage.
 - When its garage is removed or the player recalls the garage's shuttles, the cargo SHALL drop at the garage.
@@ -132,7 +113,7 @@ A field job that ends in one of these ways SHALL NOT be queued again by itself; 
 
 #### Scenario: Head broken mid run
 - **WHEN** the player breaks the Field Head while the harvester works the field with wheat in its cargo
-- **THEN** the harvester stops, puts the wheat into storage and parks
+- **THEN** the harvester stops, goes home and the wheat lies on the ground at the garage
 
 #### Scenario: Rail broken under the harvester
 - **WHEN** the player breaks the farm rail the harvester stands on
@@ -156,3 +137,18 @@ A tool module SHALL be either wide or not; the Harvester SHALL be wide. A shuttl
 #### Scenario: Plain shuttles still ride
 - **WHEN** a plain shuttle has a pick from a rack one floor up
 - **THEN** it rides the lift car as before
+
+### Requirement: Harvest unloads at the head
+A harvester SHALL NOT drive to racks. When its cargo is full and when its run ends, it SHALL unload at the farm rail beside the Field Head: spare crop items into the seed buffer as before, everything else into the head's To storage buffer (see `shuttles/field-head`). When that buffer does not take everything, the harvester SHALL park in its garage with the rest as a shuttle with cargo that has nowhere to go, and unload it at the head once the buffer has room again.
+
+#### Scenario: Full cargo unloads at the head
+- **WHEN** a Mk1 harvester has two stacks of wheat aboard and ripe plots remain
+- **THEN** it drives to the farm rail beside the head, puts the wheat into the To storage buffer and goes on harvesting
+
+#### Scenario: Storage on another floor
+- **WHEN** the only rack of the warehouse faces a rail one floor up, reached only by the shaft, and a harvester comes back with wheat
+- **THEN** the wheat goes into the head's To storage buffer and not into storage on the harvester's floor
+
+#### Scenario: Buffer full mid run
+- **WHEN** the To storage buffer has room for one stack and the harvester carries two
+- **THEN** one stack goes into the buffer, and the harvester parks in its garage with the other until a plain shuttle has collected from the buffer

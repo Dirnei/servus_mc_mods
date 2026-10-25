@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.field;
 
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import io.github.dirnei.mc.servus.shuttles.menu.FieldHeadMenu;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -113,7 +114,7 @@ public class FieldHeadBlock extends BaseEntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof FieldHeadBlockEntity head) {
-            player.openMenu(head, pos);
+            player.openMenu(head, buf -> FieldHeadMenu.writeOpening(buf, head));
         }
         return InteractionResult.SUCCESS;
     }

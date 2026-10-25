@@ -63,7 +63,6 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleView;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.JobNeeds;
 import io.github.dirnei.mc.servus.shuttles.site.SiteChunks;
 import io.github.dirnei.mc.servus.shuttles.site.SiteRegistry;
-import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.storage.StorageFill;
 import io.github.dirnei.mc.servus.shuttles.terminal.RuleRow;
@@ -638,7 +637,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     /**
      * A rack is reached only through the rails in front of the bays of its
-     * section; any other block through every travel node touching it.
+     * section, a Field Head through the farm rail beside it, any other block
+     * through every travel node touching it.
      */
     @Override
     public Set<NodePos> dockRails(NodePos storage) {
@@ -654,6 +654,13 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 if (isTravelNode(front)) {
                     result.add(front);
                 }
+            }
+            return result;
+        }
+        if (loaded(pos) instanceof FieldHeadBlockEntity head) {
+            BlockPos rail = head.headRail();
+            if (rail != null && isTravelNode(Conversions.toNodePos(rail))) {
+                result.add(Conversions.toNodePos(rail));
             }
             return result;
         }
@@ -1180,7 +1187,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     @Override
     public ItemStack loadPutAway(PutAwayJob job) {
-        return loaded(job.station()) instanceof InboundStationBlockEntity station ? station.buffer().extractAs(job.id()) : ItemStack.EMPTY;
+        return loaded(job.station()) instanceof PutAwaySource source ? source.putAwayBuffer().extractAs(job.id()) : ItemStack.EMPTY;
     }
 
     @Override
@@ -1431,6 +1438,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         } else if (event instanceof WarehouseEvent.Intake intake) {
             if (stations.contains(intake.pos())) {
                 pendingStations.add(intake.pos());
+            } else if (loaded(intake.pos()) instanceof FieldHeadBlockEntity) {
+                pendingStations.add(intake.pos());
+                // A field shuttle parked with cargo for a full To storage buffer tries again.
+                fleet.roomChanged();
             }
         } else if (event instanceof WarehouseEvent.FluidChanged fluid) {
             if (gantries.contains(fluid.pos())) {
@@ -1596,7 +1607,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     private void tickStations() {
-        if (stations.isEmpty()) {
+        if (stations.isEmpty() && pendingStations.isEmpty() && blockedStations.isEmpty()) {
             return;
         }
         if (zonesDirty) {
@@ -1612,8 +1623,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         for (BlockPos pos : new ArrayList<>(pendingStations)) {
             pendingStations.remove(pos);
-            if (loaded(pos) instanceof InboundStationBlockEntity station) {
-                drain(pos, station);
+            if (loaded(pos) instanceof PutAwaySource source) {
+                drain(pos, source);
+            } else {
+                blockedStations.remove(pos);
             }
         }
     }
@@ -1643,7 +1656,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 LockedSlots slots = holder.lockedSlots().get(orphan.inventory());
                 if (slots.locksOf(orphan.slot()).stream().anyMatch(lock -> lock.jobId() == orphan.jobId())) {
                     slots.release(orphan.slot(), orphan.jobId());
-                    if (stations.contains(orphan.pos())) {
+                    if (holder instanceof PutAwaySource) {
                         pendingStations.add(orphan.pos());
                     }
                     fleet.roomChanged();
@@ -1687,7 +1700,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
      * station, locking its room there and its station slot for the amount
      * that rack takes.
      */
-    private void drain(BlockPos pos, InboundStationBlockEntity station) {
+    private void drain(BlockPos pos, PutAwaySource station) {
         int budget = ShuttlesStatsManager.INSTANCE.putAwayPerTick();
         ItemKey blockedKey = null;
         String blockedZone = null;
@@ -1695,9 +1708,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         boolean more = false;
         boolean stationReached = fleet.canReach(pos);
         RailCosts.Search<NodePos> costs = null;
-        for (int slot = 0; slot < station.buffer().getSlots(); slot++) {
-            ItemStack stack = station.buffer().getStackInSlot(slot);
-            if (stack.isEmpty() || station.buffer().isLocked(slot)) {
+        for (int slot = 0; slot < station.putAwayBuffer().getSlots(); slot++) {
+            ItemStack stack = station.putAwayBuffer().getStackInSlot(slot);
+            if (stack.isEmpty() || station.putAwayBuffer().isLocked(slot)) {
                 continue;
             }
             if (budget <= 0) {
@@ -1726,7 +1739,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             BlockPos target = ranked.get(0);
             int id = nextJobId();
             int amount = rackSlots(target).lockIn(id, key, stack.getCount(), false);
-            station.buffer().lock(slot, new SlotLock(SlotLock.Kind.OUT, key, amount, id));
+            station.putAwayBuffer().lock(slot, new SlotLock(SlotLock.Kind.OUT, key, amount, id));
             fleet.requestPutAway(new PutAwayJob(id, pos, slot, key, amount, target));
         }
         if (more) {
@@ -1748,14 +1761,14 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
      * that no shuttle has loaded yet, up to a stack per job and as far as its
      * rack has room, so a buffer filling item by item makes one trip, not many.
      */
-    private boolean joinOpenPutAway(BlockPos pos, InboundStationBlockEntity station, int slot, ItemStack stack) {
+    private boolean joinOpenPutAway(BlockPos pos, PutAwaySource station, int slot, ItemStack stack) {
         ItemKey key = ItemKey.of(stack);
         Optional<PutAwayJob> open = fleet.openPutAway(pos, key);
         if (open.isEmpty()) {
             return false;
         }
         LockedSlots target = rackSlots(open.get().target());
-        int room = stack.getMaxStackSize() - station.buffer().lockedAmount(open.get().id(), SlotLock.Kind.OUT);
+        int room = stack.getMaxStackSize() - station.putAwayBuffer().lockedAmount(open.get().id(), SlotLock.Kind.OUT);
         if (target == null || room <= 0) {
             return false;
         }
@@ -1763,7 +1776,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (joined <= 0) {
             return false;
         }
-        station.buffer().lock(slot, new SlotLock(SlotLock.Kind.OUT, key, joined, open.get().id()));
+        station.putAwayBuffer().lock(slot, new SlotLock(SlotLock.Kind.OUT, key, joined, open.get().id()));
         return true;
     }
 
@@ -1803,7 +1816,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (suppliers && !fleet.hasSupplyJob(pos) && supplyDue(head)) {
                 fleet.requestSupply(new SupplyJob(nextJobId(), pos));
             }
-            if (harvesters && !fleet.hasFieldJob(pos) && fleet.fieldReachable(pos, JobNeeds.HARVESTER)) {
+            if (head.toStorageHoldsItems()) {
+                pendingStations.add(pos);
+            }
+            if (harvesters && !fleet.hasFieldJob(pos) && head.toStorageHasFreeSlot() && fleet.fieldReachable(pos, JobNeeds.HARVESTER)) {
                 boolean seeds = head.supplyCount(SupplyBuffer.Part.SEEDS) > 0;
                 if (FieldDue.due(head.harvestCalled(), head.plantMode(), head.hydrated(), head.tillableCount(), head.plantableCount(), seeds)) {
                     fleet.requestField(new FieldJob(nextJobId(), pos));

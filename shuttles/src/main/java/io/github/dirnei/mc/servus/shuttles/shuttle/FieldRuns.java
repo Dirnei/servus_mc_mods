@@ -649,12 +649,18 @@ final class FieldRuns {
     }
 
     /**
-     * Puts the stacks on their way into storage: plans racks for them by the
-     * put-away rule from where the shuttle stands, locking their room, and
-     * drives to the first; with no rack for some, the shuttle parks in its
-     * garage with them. Once all are stored, the run decides again.
+     * Puts the stacks on their way into storage. A Harvester or Spreader
+     * brings them to its head's To storage buffer; a plain shuttle on a
+     * supply run plans racks for them by the put-away rule from where it
+     * stands, locking their room, and drives to the first. With no room for
+     * some, the shuttle parks in its garage with them. Once all are stored,
+     * the run decides again.
      */
     void continueStore(Shuttle shuttle) {
+        if (shuttle.supply == null) {
+            storeAtHead(shuttle);
+            return;
+        }
         FieldRun run = shuttle.fieldRun();
         int jobId = jobId(shuttle);
         run.store.removeIf(ItemStack::isEmpty);
@@ -683,6 +689,45 @@ final class FieldRuns {
             fleet.markSync();
             return;
         }
+        stored(shuttle);
+    }
+
+    /**
+     * Brings the stacks on their way into storage to the head's To storage
+     * buffer, where plain shuttles put them away. What the buffer does not
+     * take parks with the shuttle in its garage until the buffer has room;
+     * without a head the shuttle goes home and its cargo drops there.
+     */
+    private void storeAtHead(Shuttle shuttle) {
+        FieldRun run = shuttle.fieldRun();
+        run.store.removeIf(ItemStack::isEmpty);
+        if (run.store.isEmpty()) {
+            stored(shuttle);
+            return;
+        }
+        FieldHeadBlockEntity head = servingHead(run.head);
+        if (head == null) {
+            lose(shuttle);
+            return;
+        }
+        if (atHead(shuttle, head)) {
+            List<ItemStack> aboard = head.unloadToStorage(run.store);
+            run.store.clear();
+            run.store.addAll(aboard);
+        } else if (head.toStorageTakesAny(run.store) && goToHead(shuttle, head)) {
+            shuttle.strandReason = null;
+            return;
+        }
+        if (!run.store.isEmpty()) {
+            fleet.strand(shuttle, StrandReason.HEAD_FULL);
+            fleet.markSync();
+            return;
+        }
+        stored(shuttle);
+    }
+
+    /** Everything is stored: the run decides what comes next. */
+    private void stored(Shuttle shuttle) {
         shuttle.strandReason = null;
         if (shuttle.supply != null) {
             supplyTurn(shuttle);

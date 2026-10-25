@@ -547,7 +547,23 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                 return rowTooltip(row);
             }
         }
+        if (onToStorageRow(mouseX, mouseY)) {
+            return List.of(Component.translatable("gui.servus_shuttles.field_head.to_storage.tooltip"));
+        }
         return List.of();
+    }
+
+    /** Whether the mouse is on the To storage label or one of its empty slots; a slot with items shows the item instead. */
+    private boolean onToStorageRow(int mouseX, int mouseY) {
+        if (inside(mouseX, mouseY, MARGIN, FieldHeadMenu.TO_STORAGE_Y, TABLE_X - MARGIN, 16)) {
+            return true;
+        }
+        for (int slot = 0; slot < menu.toStorageShown(); slot++) {
+            if (emptySlotHovered(FieldHeadMenu.TO_STORAGE_START + slot, mouseX, mouseY)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** The column's role and its item, or why it has none. */
@@ -686,6 +702,9 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             }
         }
         graphics.fill(leftPos + MARGIN, topPos + RULE_Y, leftPos + RIGHT, topPos + RULE_Y + 1, COLOUR_RULE);
+        for (int slot = 0; slot < menu.toStorageShown(); slot++) {
+            slotFrame(graphics, FieldHeadMenu.TO_STORAGE_X + slot * 18, FieldHeadMenu.TO_STORAGE_Y);
+        }
     }
 
     private void slotFrame(GuiGraphicsExtractor graphics, int slotX, int slotY) {
@@ -788,6 +807,8 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         for (StockRow row : StockRow.values()) {
             clipped(graphics, Component.translatable(row.key()), MARGIN, row.textY, TABLE_X - MARGIN - 2, COLOUR_TEXT);
         }
+        clipped(graphics, Component.translatable("gui.servus_shuttles.field_head.to_storage"), MARGIN, FieldHeadMenu.TO_STORAGE_Y + 4,
+                TABLE_X - MARGIN - 2, COLOUR_TEXT);
         for (StockColumn column : StockColumn.values()) {
             if (columnItem(column).isEmpty()) {
                 cell(graphics, column == StockColumn.PRODUCE ? "?"

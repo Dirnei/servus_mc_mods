@@ -94,4 +94,23 @@ class FieldWorkTest {
         assertEquals(FieldWork.DRY, FieldWork.DRY.whilePaused(true));
         assertFalse(FieldWork.HARVEST_PAUSED.problem());
     }
+
+    @Test
+    void collectNeedsItems() {
+        assertEquals(FieldWork.Collect.FINE, FieldWork.Collect.of(false, false, true, false));
+        assertEquals(FieldWork.Collect.NO_SHUTTLE, FieldWork.Collect.of(true, false, false, true));
+        assertEquals(FieldWork.Collect.NO_ROOM, FieldWork.Collect.of(true, true, true, true));
+        assertEquals(FieldWork.Collect.FULL, FieldWork.Collect.of(true, true, false, false));
+        assertEquals(FieldWork.Collect.FINE, FieldWork.Collect.of(true, true, false, true));
+    }
+
+    @Test
+    void waitingBufferOverridesOnlyAWorkableField() {
+        assertEquals(FieldWork.COLLECT_NO_SHUTTLE, FieldWork.WORKING.whileCollecting(FieldWork.Collect.NO_SHUTTLE));
+        assertEquals(FieldWork.TO_STORAGE_FULL, FieldWork.HARVEST_DUE.whileCollecting(FieldWork.Collect.FULL));
+        assertEquals(FieldWork.COLLECT_NO_ROOM, FieldWork.GROWING.whileCollecting(FieldWork.Collect.NO_ROOM));
+        assertEquals(FieldWork.NO_HARVESTER, FieldWork.NO_HARVESTER.whileCollecting(FieldWork.Collect.FULL));
+        assertEquals(FieldWork.READY, FieldWork.READY.whileCollecting(FieldWork.Collect.FINE));
+        assertTrue(FieldWork.TO_STORAGE_FULL.problem());
+    }
 }
