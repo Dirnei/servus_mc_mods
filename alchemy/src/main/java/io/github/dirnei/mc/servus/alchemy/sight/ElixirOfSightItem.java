@@ -12,13 +12,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.Consumables;
 import net.minecraft.world.level.Level;
 
 /**
- * The Elixir of Sight: drunk like a potion, gives Elemental Sight, may poison the drinker and leaves a glass bottle. Drinking
- * (time, animation, sound) and the bottle come from the consumable and use remainder components set in {@link #properties()};
+ * The Elixir of Sight: drunk like a potion, gives Elemental Sight, may poison the drinker and is used up with its bottle.
+ * Drinking (time, animation, sound) comes from the consumable component set in {@link #properties()};
  * the poison numbers come from {@link ElixirDoseData}.
  */
 public class ElixirOfSightItem extends Item {
@@ -27,11 +26,10 @@ public class ElixirOfSightItem extends Item {
         super(properties);
     }
 
-    /** Item properties of the elixir: a potion style drink that leaves a glass bottle. */
+    /** Item properties of the elixir: a potion style drink that leaves nothing behind. */
     public static Properties properties() {
         return new Properties().stacksTo(16)
-                .component(DataComponents.CONSUMABLE, Consumables.defaultDrink().build())
-                .usingConvertsTo(Items.GLASS_BOTTLE);
+                .component(DataComponents.CONSUMABLE, Consumables.defaultDrink().build());
     }
 
     @Override

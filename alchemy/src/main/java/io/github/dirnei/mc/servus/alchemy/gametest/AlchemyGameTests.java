@@ -992,14 +992,14 @@ public final class AlchemyGameTests {
         helper.succeed();
     }
 
-    /** Drinking the Elixir of Sight gives Elemental Sight and leaves a glass bottle. */
+    /** Drinking the Elixir of Sight gives Elemental Sight and leaves nothing in the hand. */
     @ServusGameTest(timeoutTicks = 20)
     public static void elixirGivesElementalSight(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack left = new ItemStack(ElementalSight.ELIXIR.get()).finishUsingItem(helper.getLevel(), player);
         helper.assertTrue(ElementalSight.active(player), "the drinker should have Elemental Sight");
         helper.assertTrue(player.getEffect(ElementalSight.EFFECT).getDuration() == ElementalSight.DURATION, "for three minutes");
-        helper.assertTrue(left.is(Items.GLASS_BOTTLE), "a glass bottle should be left, got " + left);
+        helper.assertTrue(left.isEmpty(), "nothing should be left, got " + left);
         helper.succeed();
     }
 

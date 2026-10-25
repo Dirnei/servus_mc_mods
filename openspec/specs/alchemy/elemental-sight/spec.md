@@ -13,11 +13,11 @@ Alchemy SHALL register the beneficial effect Elemental Sight (`servus_alchemy:el
 - **THEN** the effect shows in the inventory with its remaining time
 
 ### Requirement: Elixir of Sight
-The Elixir of Sight SHALL be drunk like a potion, over a short time, SHALL give the drinker Elemental Sight for its duration (example 3,600 ticks), and SHALL leave a glass bottle. It SHALL stack to 16. Every drink SHALL also roll a poison chance (see "The dose makes the poison"); Elemental Sight SHALL be granted whether the roll poisons or not.
+The Elixir of Sight SHALL be drunk like a potion, over a short time, SHALL give the drinker Elemental Sight for its duration (example 3,600 ticks), and SHALL be used up entirely, leaving no glass bottle. It SHALL stack to 16. Every drink SHALL also roll a poison chance (see "The dose makes the poison"); Elemental Sight SHALL be granted whether the roll poisons or not.
 
 #### Scenario: Drink
 - **WHEN** a player finishes drinking an Elixir of Sight and the roll does not poison
-- **THEN** they have Elemental Sight for three minutes and hold a glass bottle
+- **THEN** they have Elemental Sight for three minutes and the elixir is gone from their hand, with no glass bottle in its place
 
 ### Requirement: The elixir is an Athanor craft
 The Elixir of Sight SHALL be made on an Athanor of at least Albedo from Quicksilver and the three principles (example 100 mB Salt, 100 mB Sulfur, 250 mB Mercury, 200 ticks).
