@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.network;
 
 import io.github.dirnei.mc.servus.foundation.graph.Side;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachines;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.network.NetworkBlockEntity;
 import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
@@ -14,6 +15,8 @@ import java.util.Objects;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
@@ -101,6 +104,7 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
             tag.put("Warehouse", state);
         }
         output.store(tag);
+        NamedMachines.save(this, output);
     }
 
     @Override
@@ -110,6 +114,33 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         HolderLookup.Provider registries = input.lookup();
         zone = tag.contains("Zone") ? ZoneDefinition.load(tag.getCompoundOrEmpty("Zone"), registries) : null;
         warehouseState = tag.getCompoundOrEmpty("Warehouse");
+        NamedMachines.load(this, input);
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        NamedMachines.writeUpdate(this, tag);
+        return tag;
+    }
+
+    @Override
+    protected void applyImplicitComponents(DataComponentGetter input) {
+        super.applyImplicitComponents(input);
+        NamedMachines.apply(this, input);
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        NamedMachines.collect(this, builder);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        NamedMachines.removeFromTag(this, output);
     }
 
     /** Marks the node as leaving for good before it leaves its network: broken or replaced, not unloaded. */

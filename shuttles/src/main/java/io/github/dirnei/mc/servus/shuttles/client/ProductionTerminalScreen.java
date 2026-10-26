@@ -392,7 +392,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     }
 
     private static Component cpuLineText(CpuRow cpu) {
-        return Component.translatable("gui.servus_shuttles.production.cpu_line", cpu.cpu().toShortString(), cpu.inUse(), cpu.slots(),
+        return Component.translatable("gui.servus_shuttles.production.cpu_line", cpu.label(), cpu.inUse(), cpu.slots(),
                 cpu.waiting());
     }
 
@@ -519,7 +519,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     /** One CPU: icon, position and size, slot and buffer bars, and the buffered items cut short with a rest count. */
     private Line cpuLine(CpuRow cpu) {
         ItemStack icon = new ItemStack(ServusShuttlesBlocks.CRAFTING_CPU.get());
-        Component title = Component.translatable("gui.servus_shuttles.production.cpu.title", cpu.cpu().toShortString(),
+        Component title = Component.translatable("gui.servus_shuttles.production.cpu.title", cpu.label(),
                 cpu.sizeX(), cpu.sizeY(), cpu.sizeZ());
         Painter painter = (graphics, y, hovered) -> {
             shade(graphics, y, Production.CPU_HEIGHT, hovered);
@@ -567,6 +567,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         list.add(title);
         list.add(Component.translatable("gui.servus_shuttles.production.cpu.blocks", cpu.cpuBlocks(), cpu.bufferBlocks()));
         list.add(cpuLineText(cpu));
+        list.add(Component.translatable("gui.servus_shuttles.production.machine.at", cpu.cpu().toShortString()));
         if (cpu.room() <= 0) {
             list.add(Component.translatable("gui.servus_shuttles.production.cpu.no_buffer"));
             return list;
@@ -779,9 +780,9 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             boolean busy = station.busyToNetwork() || station.busyToStorage();
             boolean working = station.toNetwork() > 0 || station.toStorage() > 0;
             int colour = busy ? COLOUR_ALERT : working ? COLOUR_GOOD : COLOUR_DIM;
-            paintMachineRow(graphics, y, hovered, icon, icon.getHoverName().getString(), state.getString(), colour);
+            paintMachineRow(graphics, y, hovered, icon, station.label().getString(), state.getString(), colour);
         };
-        Supplier<List<Component>> tooltip = () -> List.of(icon.getHoverName(), toNetwork, toStorage,
+        Supplier<List<Component>> tooltip = () -> List.of(station.label(), toNetwork, toStorage,
                 Component.translatable("gui.servus_shuttles.production.machine.at", station.pos().toShortString()));
         return new Line(Production.MACHINE_HEIGHT, painter, tooltip, null);
     }
@@ -800,7 +801,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private Line machineLine(MachineRow machine) {
         Painter painter = (graphics, y, hovered) -> {
             int colour = machine.problem() ? COLOUR_ALERT : machine.state().equals("crafting") ? COLOUR_GOOD : COLOUR_DIM;
-            paintMachineRow(graphics, y, hovered, machine.icon(), machine.name(), machineState(machine).getString(), colour);
+            paintMachineRow(graphics, y, hovered, machine.icon(), machine.name().getString(), machineState(machine).getString(), colour);
             if (machine.upkeepLevel() > 0) {
                 bar(graphics, Production.MACHINE_BAR, y, machine.upkeepCount(), machine.upkeepLevel(),
                         machine.upkeepCount() > 0 ? COLOUR_AMBER : COLOUR_ALERT);
@@ -811,7 +812,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
 
     private List<Component> machineTooltip(MachineRow machine) {
         List<Component> list = new ArrayList<>();
-        list.add(Component.literal(machine.name()));
+        list.add(machine.name());
         list.add(machineState(machine));
         if (machine.makes() < 0) {
             list.add(Component.translatable("gui.servus_shuttles.production.machine.any_pattern"));

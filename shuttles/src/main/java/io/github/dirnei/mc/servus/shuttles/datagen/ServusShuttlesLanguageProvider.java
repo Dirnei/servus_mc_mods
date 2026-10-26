@@ -34,9 +34,9 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.production.no_jobs", "No crafting jobs");
         add("gui.servus_shuttles.production.cpus_header", "%s CPUs, %s of %s slots");
         add("gui.servus_shuttles.production.cpus_header_one", "1 CPU, %s of %s slots");
-        add("gui.servus_shuttles.production.cpu_line", "CPU at %s: %s of %s slots, %s waiting");
+        add("gui.servus_shuttles.production.cpu_line", "%s: %s of %s slots, %s waiting");
         add("gui.servus_shuttles.production.tab.cpus", "CPUs");
-        add("gui.servus_shuttles.production.cpu.title", "CPU at %s, %sx%sx%s");
+        add("gui.servus_shuttles.production.cpu.title", "%s, %sx%sx%s");
         add("gui.servus_shuttles.production.cpu.blocks", "%s CPU blocks, %s Buffer blocks");
         add("gui.servus_shuttles.production.cpu.slots", "%s of %s slots");
         add("gui.servus_shuttles.production.cpu.waiting", "%s waiting");
@@ -97,7 +97,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("message.servus_shuttles.cpu.gap", "Not formed: gap at %s %s %s");
         add("message.servus_shuttles.cpu.no_cpu_block", "Not formed: a CPU needs at least one Crafting CPU block");
         add("message.servus_shuttles.cpu.formed", "Crafting CPU formed: %sx%sx%s, %s CPU blocks, %s Buffer blocks");
-        add("message.servus_shuttles.cpu.summary", "Crafting CPU: %s of %s order slots in use, %s waiting, %s of %s buffer stacks");
+        add("message.servus_shuttles.cpu.summary", "%s: %s of %s order slots in use, %s waiting, %s of %s buffer stacks");
         add("message.servus_shuttles.cpu.line_conflict", "Two warehouses on this data line");
         add("gui.servus_shuttles.crafting_station.save", "Save");
         add("gui.servus_shuttles.crafting_station.delete", "Delete");
@@ -162,7 +162,6 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.controller.sites.no_upgrade", "Insert a Wireless Upgrade to trade with other sites");
         add("gui.servus_shuttles.controller.sites.no_power", "Needs %s FE for wireless");
         add("gui.servus_shuttles.controller.name", "Site name");
-        add("gui.servus_shuttles.controller.name_hint", "Name this site");
         add("gui.servus_shuttles.controller.online", "Online");
         add("gui.servus_shuttles.controller.offline_none", "Offline: no controller");
         add("gui.servus_shuttles.controller.offline_multiple", "Offline: more than one controller");
@@ -360,12 +359,14 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("item.servus_shuttles.shuttle.named", "%s (%s)");
         add("shuttle.servus_shuttles.label", "Shuttle #%s");
         add("shuttle.servus_shuttles.label.named", "%s (#%s)");
-        add("station.servus_shuttles.label.inbound", "Inbound #%s");
-        add("station.servus_shuttles.label.outbound", "Outbound #%s");
-        add("station.servus_shuttles.label.packing", "Packing #%s");
-        add("station.servus_shuttles.label.named", "%s (#%s)");
-        add("gui.servus_shuttles.station.name", "Station name");
-        add("gui.servus_shuttles.station.name_hint", "Name this station");
+        add("machine.servus_shuttles.inbound_station", "Inbound #%s");
+        add("machine.servus_shuttles.outbound_station", "Outbound #%s");
+        add("machine.servus_shuttles.packing_station", "Packing #%s");
+        add("machine.servus_shuttles.field_head", "Field Head #%s");
+        add("machine.servus_shuttles.shuttle_garage", "Garage #%s");
+        add("machine.servus_shuttles.elevator", "Lift #%s");
+        add("machine.servus_shuttles.crafting_station", "Crafting Station #%s");
+        add("machine.servus_shuttles.crafting_cpu", "CPU #%s");
         add("tooltip.servus_shuttles.shuttle.plain", "No upgrades");
         add("tooltip.servus_shuttles.shuttle.tool", "Tool: %s");
         add("tooltip.servus_shuttles.shuttle.speed", "Speed upgrades: %s");
@@ -698,7 +699,6 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("message.servus_shuttles.potato.rack_empty", "Empty");
         add("message.servus_shuttles.potato.rack_item", "%s: %s");
         add("message.servus_shuttles.potato.gantry_mode", "Fluid Gantry, %s");
-        add("message.servus_shuttles.potato.station_label", "Station: %s");
         add("message.servus_shuttles.potato.station_site", "Site: %s");
         add("message.servus_shuttles.potato.station_online", "Online");
         add("message.servus_shuttles.potato.station_offline", "Offline: %s");
@@ -714,12 +714,15 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("message.servus_shuttles.potato.shuttle_reason.following_unknown", "Waiting behind another shuttle");
         add("message.servus_shuttles.potato.shuttle_reason.ring", "Moving in a ring of shuttles that follow each other");
         add("message.servus_shuttles.potato.shuttle_reason.stop", "Stopping at %s, %s, %s");
+        add("message.servus_shuttles.potato.shuttle_reason.stop_at", "Stopping at %s");
         add("message.servus_shuttles.potato.shuttle_reason.field_work", "Working its field");
+        add("message.servus_shuttles.potato.shuttle_reason.field_work_at", "Working the field of %s");
+        add("message.servus_shuttles.potato.shuttle_lift", "the lift");
         add("message.servus_shuttles.potato.shuttle_reason.door", "Waiting for its garage door");
         add("message.servus_shuttles.potato.shuttle_reason.handover", "Handing over to the lift car");
-        add("message.servus_shuttles.potato.shuttle_reason.riding", "Riding the lift car to floor %s");
-        add("message.servus_shuttles.potato.shuttle_reason.lift", "Waiting for the lift car on floor %s");
-        add("message.servus_shuttles.potato.shuttle_reason.deck", "Waiting for the deck on floor %s to fold");
+        add("message.servus_shuttles.potato.shuttle_reason.riding", "Riding the car of %s to floor %s");
+        add("message.servus_shuttles.potato.shuttle_reason.lift", "Waiting for the car of %s on floor %s");
+        add("message.servus_shuttles.potato.shuttle_reason.deck", "Waiting for the deck of %s on floor %s to fold");
         add("message.servus_shuttles.potato.shuttle_reason.power", "Waiting for power");
         add("message.servus_shuttles.potato.shuttle_reason.chunk", "Waiting for the chunk ahead to load");
     }

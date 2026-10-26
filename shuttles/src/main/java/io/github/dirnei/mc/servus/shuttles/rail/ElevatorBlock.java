@@ -152,7 +152,9 @@ public class ElevatorBlock extends ConnectableBlock implements PotatoInspectable
     /**
      * A new segment joins the shaft above it: that shaft's lowest segment was
      * the one above, so its upgrades move down to the lowest segment of the
-     * joined shaft; what finds no free slot drops.
+     * joined shaft; what finds no free slot drops. Its number and name move
+     * down to the new segment when that is the lowest; when the new segment
+     * joins two shafts, the lower one keeps its own and the upper one's go.
      */
     @Override
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
@@ -161,13 +163,21 @@ public class ElevatorBlock extends ConnectableBlock implements PotatoInspectable
             return;
         }
         BlockPos above = pos.above();
-        if (!(level.getBlockEntity(above) instanceof ElevatorBlockEntity upper) || upper.upgradeCount() == 0) {
+        if (!(level.getBlockEntity(above) instanceof ElevatorBlockEntity upper)) {
             return;
         }
         // The new segment's block entity is not made yet; asking the level for it makes it now.
         ElevatorBlockEntity bottom = bottomOf(level, pos);
-        if (bottom != null) {
+        if (bottom == null) {
+            return;
+        }
+        if (upper.upgradeCount() > 0) {
             bottom.upgrades().insertAll(upper.upgrades().takeAll()).forEach(stack -> Block.popResource(level, pos, stack));
+        }
+        if (bottom.getBlockPos().equals(pos)) {
+            upper.nameSlot().moveTo(bottom.nameSlot());
+        } else {
+            upper.nameSlot().clear();
         }
     }
 

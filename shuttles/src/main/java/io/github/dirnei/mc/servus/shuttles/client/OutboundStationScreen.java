@@ -2,22 +2,20 @@ package io.github.dirnei.mc.servus.shuttles.client;
 
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
+import io.github.dirnei.mc.servus.foundation.client.NamedMachineScreen;
 import io.github.dirnei.mc.servus.foundation.client.SideConfigPanel;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
-import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.shuttles.outbound.ExportListPayload;
 import io.github.dirnei.mc.servus.shuttles.outbound.KeepSlotPayload;
 import io.github.dirnei.mc.servus.shuttles.station.StationStatePayload;
+import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout.Rect;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -28,10 +26,8 @@ import org.lwjgl.glfw.GLFW;
  * Keep row with its exports, buffer row, state line, player inventory, the
  * shared side panel on the left, and the Claim an export picker over it all.
  */
-public class OutboundStationScreen extends AbstractContainerScreen<OutboundStationMenu> {
+public class OutboundStationScreen extends NamedMachineScreen<OutboundStationMenu> {
 
-    private static final Identifier TEXTURE =
-            Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "textures/gui/outbound_station.png");
     private static final int COLOUR_TEXT = 0xFF404040;
     private static final int COLOUR_ALERT = 0xFFB03030;
 
@@ -42,27 +38,16 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
     private final ExportPicker picker = new ExportPicker(menu::exportList);
 
     public OutboundStationScreen(OutboundStationMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title, 176, 166);
+        super(menu, playerInventory, title, 176, OutboundStationMenu.IMAGE_HEIGHT);
         ClientStationState.clear();
     }
 
-    private StationNameField name;
-
-    /** The name is the title: a borderless field in the title row, showing the numbered label until a name is typed. */
     @Override
     protected void init() {
         super.init();
         this.inventoryLabelY = OutboundStationMenu.INVENTORY_Y - 11;
         panel.placeBeside(leftPos, topPos);
-        name = new StationNameField(font, leftPos + titleLabelX, topPos + titleLabelY, imageWidth - 2 * titleLabelX, menu.station(), COLOUR_TEXT);
-        addRenderableWidget(name.box());
         picker.build(font, leftPos, topPos, imageWidth, imageHeight).forEach(this::addRenderableWidget);
-    }
-
-    @Override
-    protected void containerTick() {
-        super.containerTick();
-        name.tick();
     }
 
     @Override
@@ -75,7 +60,7 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
             }
             return true;
         }
-        return name.keyPressed(event) || super.keyPressed(event);
+        return super.keyPressed(event);
     }
 
     private boolean isKeepSlot(Slot slot) {
@@ -119,14 +104,22 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
     @Override
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
+        PanelPainter.panel(graphics, leftPos, topPos, imageWidth, imageHeight);
+        slotRow(graphics, OutboundStationMenu.KEEP_Y, menu.keepSlots());
+        slotRow(graphics, OutboundStationMenu.BUFFER_Y, menu.bufferSlots());
+        PanelPainter.playerInventory(graphics, leftPos, topPos, OutboundStationMenu.INVENTORY_Y, OutboundStationMenu.HOTBAR_Y);
         panel.render(graphics, font, mouseX, mouseY);
+    }
+
+    private void slotRow(GuiGraphicsExtractor graphics, int y, int count) {
+        int columns = OutboundStationMenu.COLUMNS;
+        int rows = (count + columns - 1) / columns;
+        PanelPainter.slots(graphics, leftPos, topPos, new Rect(8, y, columns * 18, rows * 18), columns, count);
     }
 
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, COLOUR_TEXT, false);
-        name.renderNumber(graphics, font, imageWidth - titleLabelX, titleLabelY, COLOUR_TEXT);
+        super.extractLabels(graphics, mouseX, mouseY);
         graphics.text(font, Component.translatable("gui.servus_shuttles.outbound.keep"), 8, OutboundStationMenu.KEEP_Y - 10, COLOUR_TEXT, false);
         graphics.text(font, Component.translatable("gui.servus_shuttles.outbound.buffer"), 8, OutboundStationMenu.BUFFER_Y - 10, COLOUR_TEXT, false);
         StationStatePayload state = ClientStationState.state();
@@ -193,7 +186,6 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
 
     @Override
     public void removed() {
-        name.send();
         super.removed();
         ClientStationState.clear();
     }

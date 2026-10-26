@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.shuttles.controller;
 
+import java.util.Map;
+import io.github.dirnei.mc.servus.shuttles.network.MachineCounters;
+import io.github.dirnei.mc.servus.foundation.naming.MachineKind;
+import com.mojang.serialization.Codec;
 import io.github.dirnei.mc.servus.foundation.production.StockProvider;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.upgrade.AnchorUpgradeSlots;
@@ -23,8 +27,6 @@ import io.github.dirnei.mc.servus.shuttles.site.SiteWakes;
 import io.github.dirnei.mc.servus.shuttles.site.WakeMachine;
 import io.github.dirnei.mc.servus.shuttles.site.WirelessCost;
 import io.github.dirnei.mc.servus.shuttles.site.WirelessReach;
-import io.github.dirnei.mc.servus.shuttles.station.CarriedCounters;
-import io.github.dirnei.mc.servus.shuttles.station.StationCounters;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -58,7 +60,8 @@ import net.neoforged.neoforge.model.data.ModelData;
 public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity implements MaterialHolder, MenuProvider {
 
     private static final String WAREHOUSE_ID = "WarehouseId";
-    private static final String STATION_COUNTERS = "StationCounters";
+    private static final String MACHINE_COUNTERS = "MachineCounters";
+    private static final Codec<Map<String, Integer>> COUNTERS_CODEC = Codec.unboundedMap(Codec.STRING, Codec.INT);
 
     private final MaterialSlot materialSlot = new MaterialSlot(this);
 
@@ -67,9 +70,9 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     private final StockRules rules = new StockRules();
 
     private String siteName = "";
-    /** The warehouse's identity: stations numbered under another id are numbered again. */
+    /** The warehouse's identity: machines numbered under another id are numbered again. */
     private UUID warehouseId = UUID.randomUUID();
-    private final StationCounters stationCounters = new StationCounters();
+    private final MachineCounters machineCounters = new MachineCounters();
     private UUID team;
     private final Set<Long> span = new LinkedHashSet<>();
     private final AnchorUpgradeSlots upgrades =
@@ -121,16 +124,16 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         return warehouseId;
     }
 
-    /** Gives the next station number of the kind in this warehouse. */
-    public int takeStationNumber(StationCounters.Kind kind) {
-        int number = stationCounters.take(kind);
+    /** Gives the next number of the machine kind in this warehouse. */
+    public int takeNumber(MachineKind kind) {
+        int number = machineCounters.take(kind.id().toString());
         setChanged();
         return number;
     }
 
-    /** The last station number this warehouse gave for the kind. */
-    public int lastStationNumber(StationCounters.Kind kind) {
-        return stationCounters.last(kind);
+    /** The last number this warehouse gave for the machine kind. */
+    public int lastNumber(MachineKind kind) {
+        return machineCounters.last(kind.id().toString());
     }
 
     /** The team of the player who placed the controller, empty when placed by no player. */
@@ -451,7 +454,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         tag.put("StockRules", rules.save(registries));
         output.putString("SiteName", siteName);
         output.store(WAREHOUSE_ID, UUIDUtil.CODEC, warehouseId);
-        output.store(STATION_COUNTERS, CarriedCounters.CODEC, CarriedCounters.of(stationCounters));
+        output.store(MACHINE_COUNTERS, COUNTERS_CODEC, machineCounters.toMap());
         if (team != null) {
             tag.store("Team", UUIDUtil.CODEC, team);
         }
@@ -474,7 +477,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         }
         siteName = SiteName.clean(input.getStringOr("SiteName", ""));
         input.read(WAREHOUSE_ID, UUIDUtil.CODEC).ifPresent(id -> warehouseId = id);
-        input.read(STATION_COUNTERS, CarriedCounters.CODEC).ifPresent(carried -> stationCounters.copyFrom(carried.counters()));
+        input.read(MACHINE_COUNTERS, COUNTERS_CODEC).ifPresent(machineCounters::load);
         team = tag.read("Team", UUIDUtil.CODEC).orElse(null);
         span.clear();
         for (long key : tag.getLongArray("Span").orElse(new long[0])) {
@@ -525,9 +528,9 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         if (id != null) {
             warehouseId = id;
         }
-        CarriedCounters counters = input.get(ServusShuttlesComponents.STATION_COUNTERS.get());
+        Map<String, Integer> counters = input.get(ServusShuttlesComponents.MACHINE_COUNTERS.get());
         if (counters != null) {
-            stationCounters.copyFrom(counters.counters());
+            machineCounters.load(counters);
         }
     }
 
@@ -542,7 +545,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
             builder.set(ServusShuttlesComponents.CONTROLLER_ENERGY.get(), energy.stored());
         }
         builder.set(ServusShuttlesComponents.WAREHOUSE_ID.get(), warehouseId);
-        builder.set(ServusShuttlesComponents.STATION_COUNTERS.get(), CarriedCounters.of(stationCounters));
+        builder.set(ServusShuttlesComponents.MACHINE_COUNTERS.get(), machineCounters.toMap());
     }
 
     @Override
@@ -553,7 +556,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         output.discard("SiteName");
         output.discard("Energy");
         output.discard(WAREHOUSE_ID);
-        output.discard(STATION_COUNTERS);
+        output.discard(MACHINE_COUNTERS);
     }
 
     @Override

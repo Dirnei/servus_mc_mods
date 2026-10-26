@@ -5,15 +5,14 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineStatus;
 import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
 import io.github.dirnei.mc.servus.foundation.side.SideLayer;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
-/** Screen shared by all machines. The layout says which indicators to draw and on which background. */
-public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
+/** Screen shared by all machines, named or not. The layout says which indicators to draw and on which background. */
+public class MachineScreen extends NamedMachineScreen<MachineMenu> {
 
     /**
      * Which indicators a machine screen shows, whether it has the side panel, its background texture, and whether a
@@ -139,7 +138,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             super.extractLabels(guiGraphics, mouseX, mouseY);
             return;
         }
-        guiGraphics.text(font, title, titleLabelX, titleLabelY, 0xFF404040, false);
+        extractTitle(guiGraphics);
         StatusLine line = statusLine();
         if (line != null) {
             textFitted(guiGraphics, line.text(), inventoryLabelX, inventoryLabelY, imageWidth - 2 * inventoryLabelX, line.color());

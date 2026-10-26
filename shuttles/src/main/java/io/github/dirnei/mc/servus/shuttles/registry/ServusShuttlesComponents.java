@@ -5,8 +5,10 @@ import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.gantry.GantryContents;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleModules;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
-import io.github.dirnei.mc.servus.shuttles.station.CarriedCounters;
 import com.mojang.serialization.Codec;
+import io.netty.buffer.ByteBuf;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
@@ -81,35 +83,11 @@ public final class ServusShuttlesComponents {
                     .persistent(UUIDUtil.CODEC)
                     .networkSynchronized(UUIDUtil.STREAM_CODEC));
 
-    /** The station counters a dropped Warehouse Controller keeps; missing means counting from 1. */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<CarriedCounters>> STATION_COUNTERS =
-            COMPONENTS.registerComponentType("station_counters", builder -> builder
-                    .persistent(CarriedCounters.CODEC)
-                    .networkSynchronized(CarriedCounters.STREAM_CODEC));
-
-    /** The number a dismantled station keeps; missing means not numbered. */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> STATION_NUMBER =
-            COMPONENTS.registerComponentType("station_number", builder -> builder
-                    .persistent(Codec.INT)
-                    .networkSynchronized(ByteBufCodecs.VAR_INT));
-
-    /** The counter that gave the number a dismantled station keeps, as the name of its station kind. */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> STATION_COUNTER =
-            COMPONENTS.registerComponentType("station_counter", builder -> builder
-                    .persistent(Codec.STRING)
-                    .networkSynchronized(ByteBufCodecs.STRING_UTF8));
-
-    /** The name a dismantled station keeps; missing means unnamed. */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> STATION_NAME =
-            COMPONENTS.registerComponentType("station_name", builder -> builder
-                    .persistent(Codec.STRING)
-                    .networkSynchronized(ByteBufCodecs.STRING_UTF8));
-
-    /** The warehouse that numbered a dismantled station. */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<UUID>> STATION_WAREHOUSE =
-            COMPONENTS.registerComponentType("station_warehouse", builder -> builder
-                    .persistent(UUIDUtil.CODEC)
-                    .networkSynchronized(UUIDUtil.STREAM_CODEC));
+    /** The last machine number per kind a dropped Warehouse Controller keeps; missing means counting from 1. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Map<String, Integer>>> MACHINE_COUNTERS =
+            COMPONENTS.registerComponentType("machine_counters", builder -> builder
+                    .persistent(Codec.unboundedMap(Codec.STRING, Codec.INT))
+                    .networkSynchronized(ByteBufCodecs.<ByteBuf, String, Integer, Map<String, Integer>>map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.VAR_INT)));
 
     private ServusShuttlesComponents() {
     }

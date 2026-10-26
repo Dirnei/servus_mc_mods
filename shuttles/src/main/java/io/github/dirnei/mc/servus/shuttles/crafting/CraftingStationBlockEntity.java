@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.crafting;
 
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMachineKinds;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameSlot;
 import io.github.dirnei.mc.servus.foundation.block.SidedBlockEntity;
 import io.github.dirnei.mc.servus.foundation.craft.IngredientGatherer;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
@@ -61,7 +64,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
  * results wait in the outputs for the CPU; without a job it crafts nothing,
  * automation inserts nothing and leftover outputs are pushed into neighbours.
  */
-public class CraftingStationBlockEntity extends DataLineBlockEntity implements MenuProvider, SidedBlockEntity {
+public class CraftingStationBlockEntity extends DataLineBlockEntity implements MenuProvider, SidedBlockEntity, NamedMachine {
 
     public static final int INPUT_SLOTS = 9;
     public static final int OUTPUT_SLOTS = 4;
@@ -142,6 +145,8 @@ public class CraftingStationBlockEntity extends DataLineBlockEntity implements M
             return slot < INPUT_SLOTS && uses(stack);
         }
     }
+
+    private final MachineNameSlot nameSlot = new MachineNameSlot(this, ServusShuttlesMachineKinds.CRAFTING_STATION);
 
     public CraftingStationBlockEntity(BlockPos pos, BlockState state) {
         super(ServusShuttlesBlockEntities.CRAFTING_STATION.get(), pos, state);
@@ -516,8 +521,13 @@ public class CraftingStationBlockEntity extends DataLineBlockEntity implements M
     }
 
     @Override
+    public MachineNameSlot nameSlot() {
+        return nameSlot;
+    }
+
+    @Override
     public Component getDisplayName() {
-        return Component.translatable(getBlockState().getBlock().getDescriptionId());
+        return label();
     }
 
     @Override

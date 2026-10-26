@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.shuttles.field;
 
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMachineKinds;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachines;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameSlot;
 import net.minecraft.world.Containers;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.ResourceHandler;
@@ -82,7 +86,7 @@ import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
  * The block shows the wood of its recipe, the ripe share bar ({@link FieldHeadBlock#RIPE}),
  * the water level in steps and the crop; see {@link FieldHeadLook}.
  */
-public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, MaterialHolder, LockHolder, PutAwaySource {
+public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, MaterialHolder, LockHolder, PutAwaySource, NamedMachine {
 
     /** Items that hold a field's copper stage for one aging step. */
     public static final TagKey<Item> ANTI_CORROSION = ItemTags.create(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "anti_corrosion"));
@@ -90,6 +94,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
     public static final TagKey<Item> FERTILIZER = ItemTags.create(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "fertilizer"));
 
     private final MaterialSlot materialSlot = new MaterialSlot(this);
+    private final MachineNameSlot nameSlot = new MachineNameSlot(this, ServusShuttlesMachineKinds.FIELD_HEAD);
 
     private final FluidSlot tank = new FluidSlot(ShuttlesStatsManager.INSTANCE.fieldCapacity(), stack -> stack.is(FluidTags.WATER)) {
         @Override
@@ -1737,8 +1742,13 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
     }
 
     @Override
+    public MachineNameSlot nameSlot() {
+        return nameSlot;
+    }
+
+    @Override
     public Component getDisplayName() {
-        return Component.translatable(getBlockState().getBlock().getDescriptionId());
+        return label();
     }
 
     @Override
@@ -1752,6 +1762,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
         materialSlot.save(output);
+        NamedMachines.save(this, output);
         tag.put("Water", tank.writeToNBT(registries, new CompoundTag()));
         tag.put("Crop", crop.serializeNBT(registries));
         output.putBoolean("HarvestOnly", harvestOnly);
@@ -1811,6 +1822,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
         materialSlot.load(input);
+        NamedMachines.load(this, input);
         tank.readFromNBT(registries, tag.getCompoundOrEmpty("Water"));
         if (tag.contains("Crop")) {
             crop.deserializeNBT(registries, tag.getCompoundOrEmpty("Crop"));
@@ -1880,6 +1892,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
         materialSlot.save(tag);
+        NamedMachines.writeUpdate(this, tag);
         tag.put("Crop", crop.serializeNBT(registries));
         tag.putBoolean("HarvestOnly", harvestOnly);
         putKind(tag);
@@ -1901,12 +1914,14 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
+        NamedMachines.apply(this, input);
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
         materialSlot.collect(builder);
+        NamedMachines.collect(this, builder);
     }
 
     @Override
@@ -1914,6 +1929,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
         MaterialSlot.removeFromTag(output);
+        NamedMachines.removeFromTag(this, output);
     }
 
     @Override

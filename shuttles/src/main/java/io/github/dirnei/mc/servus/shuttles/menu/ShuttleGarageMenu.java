@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.menu;
 
+import java.util.Optional;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
 import io.github.dirnei.mc.servus.shuttles.garage.GarageStrandedPayload;
@@ -27,7 +30,7 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
  * One slot per shuttle place above the player inventory. The slot of a
  * shuttle that is out on a job cannot be emptied until it is back.
  */
-public class ShuttleGarageMenu extends AbstractContainerMenu {
+public class ShuttleGarageMenu extends AbstractContainerMenu implements MachineNameMenu {
 
     public static final int SLOTS_Y = 30;
     public static final int INVENTORY_Y = 96;
@@ -68,6 +71,11 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
         addDataSlot(out);
         addDataSlot(active);
         addDataSlot(outSlots);
+    }
+
+    @Override
+    public Optional<NamedMachine> namedMachine() {
+        return Optional.of(garage);
     }
 
     public static ShuttleGarageMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {

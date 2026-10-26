@@ -1,7 +1,11 @@
 package io.github.dirnei.mc.servus.shuttles.shuttle;
 
+import net.minecraft.core.Direction;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineLabels;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMachineKinds;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleItem;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -89,7 +93,7 @@ public final class ShuttleReport {
     }
 
     private static Component label(Shuttle shuttle) {
-        return ShuttleItem.label(shuttle.item);
+        return ShuttleItem.chatLabel(shuttle.item);
     }
 
     /** What the shuttle does now, in words. */
@@ -101,14 +105,34 @@ public final class ShuttleReport {
                 Shuttle leader = byId.get(reason.leader());
                 yield leader == null ? Component.translatable(KEY + "reason.following_unknown") : Component.translatable(key, label(leader));
             }
-            case LIFT, DECK -> Component.translatable(key, reason.floor());
-            case STOP -> {
-                BlockPos at = Conversions.toBlockPos(shuttle.at());
-                yield Component.translatable(key, at.getX(), at.getY(), at.getZ());
+            case LIFT, DECK -> Component.translatable(key, shaftLabel(fleet, shuttle), reason.floor());
+            case STOP -> stopReason(fleet, shuttle, key);
+            case RIDING -> Component.translatable(key, shaftLabel(fleet, shuttle), rideFloor(fleet, shuttle));
+            case FIELD_WORK -> {
+                FieldRun run = shuttle.fieldRun();
+                yield run == null ? Component.translatable(key) : Component.translatable(key + "_at", MachineLabels.chatAt(fleet.level(), run.head));
             }
-            case RIDING -> Component.translatable(key, rideFloor(fleet, shuttle));
             default -> Component.translatable(key);
         };
+    }
+
+    /** The named machine beside the rail the shuttle stops at, else the rail's coordinates. */
+    private static Component stopReason(ShuttleFleet fleet, Shuttle shuttle, String key) {
+        BlockPos at = Conversions.toBlockPos(shuttle.at());
+        Level level = fleet.level();
+        for (Direction side : Direction.Plane.HORIZONTAL) {
+            BlockPos beside = at.relative(side);
+            if (level.isLoaded(beside) && level.getBlockEntity(beside) instanceof NamedMachine machine) {
+                return Component.translatable(key + "_at", machine.chatLabel());
+            }
+        }
+        return Component.translatable(key, at.getX(), at.getY(), at.getZ());
+    }
+
+    /** The label of the shaft the shuttle waits at or rides. */
+    private static Component shaftLabel(ShuttleFleet fleet, Shuttle shuttle) {
+        return shuttle.lift == null ? ServusShuttlesMachineKinds.ELEVATOR.inChat(Component.translatable(KEY + "lift"))
+                : MachineLabels.chatAt(fleet.level(), shuttle.lift);
     }
 
     /** The floor the car carries the shuttle to. */

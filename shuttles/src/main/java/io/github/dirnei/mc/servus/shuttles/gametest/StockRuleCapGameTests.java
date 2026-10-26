@@ -384,7 +384,7 @@ public final class StockRuleCapGameTests {
                         () -> "the rule should read refusing, got " + row(helper, COBBLESTONE), () -> {
                             RuleRow row = row(helper, COBBLESTONE);
                             helper.assertTrue(row.detail().getContents() instanceof TranslatableContents contents
-                                    && contents.getKey().equals("station.servus_shuttles.label.inbound") && contents.getArgs()[0].equals(1),
+                                    && contents.getKey().equals("machine.servus_shuttles.inbound_station") && contents.getArgs()[0].equals(1),
                                     "the rule names Inbound #1, got " + row.detail());
                             Waits.when(helper, () -> row(helper, COBBLESTONE).state().equals("ok"), RULE_WAIT,
                                     () -> "the rule should read ok again, got " + row(helper, COBBLESTONE), helper::succeed);

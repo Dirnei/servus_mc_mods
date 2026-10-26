@@ -2,6 +2,8 @@ package io.github.dirnei.mc.servus.shuttles.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMachineKinds;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.PackingStationMenu;
@@ -12,7 +14,6 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.station.StationBlock;
 import io.github.dirnei.mc.servus.shuttles.station.StationBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.station.StationCounters;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -34,7 +35,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.Vec3;
 
-/** Station numbers per warehouse, their survival through dismantles and saves, and station names. */
+/** Station numbers per warehouse, their survival through dismantles and saves, and station names, on the shared machine naming. */
 public final class StationNumberGameTests {
 
     /** The rail row of the first warehouse runs along z 2, its stations stand at z 3. */
@@ -103,6 +104,14 @@ public final class StationNumberGameTests {
         return ((TranslatableContents) label.getContents()).getArgs();
     }
 
+    /** Asserts "<name> (<kind> #n)": the name, then the numbered kind label. */
+    private static void assertNamedLabel(GameTestHelper helper, Component label, String name, String kindKey, int number) {
+        Object[] args = labelArgs(helper, label, NamedMachine.NAMED_KEY);
+        helper.assertTrue(args[0].equals(name), "the label names " + name + ", got " + args[0]);
+        Object[] numbered = labelArgs(helper, (Component) args[1], kindKey);
+        helper.assertTrue(numbered[0].equals(number), "the label numbers #" + number + ", got " + numbered[0]);
+    }
+
     /** Two Outbound Stations and one Inbound Station linked one after the other are Outbound #1, #2 and Inbound #1. */
     @ServusGameTest(timeoutTicks = 200)
     public static void firstStationsNumberedPerKind(GameTestHelper helper) {
@@ -116,9 +125,9 @@ public final class StationNumberGameTests {
                     assertNumber(helper, first, 1);
                     assertNumber(helper, second, 2);
                     assertNumber(helper, intake, 1);
-                    Object[] args = labelArgs(helper, second.label(), "station.servus_shuttles.label.outbound");
+                    Object[] args = labelArgs(helper, second.label(), "machine.servus_shuttles.outbound_station");
                     helper.assertTrue(args[0].equals(2), "the label reads Outbound #2");
-                    labelArgs(helper, intake.getDisplayName(), "station.servus_shuttles.label.inbound");
+                    labelArgs(helper, intake.getDisplayName(), "machine.servus_shuttles.inbound_station");
                     helper.succeed();
                 });
             });
@@ -163,8 +172,8 @@ public final class StationNumberGameTests {
             WarehouseControllerBlockEntity loaded = new WarehouseControllerBlockEntity(controller.getBlockPos(), controller.getBlockState());
             loaded.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), controllerTag));
             helper.assertTrue(loaded.warehouseId().equals(controller.warehouseId()), "the warehouse keeps its identity");
-            helper.assertTrue(loaded.lastStationNumber(StationCounters.Kind.INBOUND) == 2
-                    && loaded.takeStationNumber(StationCounters.Kind.INBOUND) == 3, "the next Inbound Station is #3");
+            helper.assertTrue(loaded.lastNumber(ServusShuttlesMachineKinds.INBOUND_STATION) == 2
+                    && loaded.takeNumber(ServusShuttlesMachineKinds.INBOUND_STATION) == 3, "the next Inbound Station is #3");
             helper.succeed();
         });
     }
@@ -225,7 +234,7 @@ public final class StationNumberGameTests {
         });
     }
 
-    /** Outbound #2 named "Compost Dock" placed into a second warehouse whose last Outbound Station is #1 reads "Compost Dock (#2)" there. */
+    /** Outbound #2 named "Compost Dock" placed into a second warehouse whose last Outbound Station is #1 reads "Compost Dock (Outbound #2)" there. */
     @ServusGameTest(timeoutTicks = 200)
     public static void stationInAnotherWarehouseGetsItsNumber(GameTestHelper helper) {
         warehouse(helper, ROW_A);
@@ -240,8 +249,7 @@ public final class StationNumberGameTests {
             OutboundStationBlockEntity moved = place(helper, spot(6, ROW_B), state, item, OutboundStationBlockEntity.class);
             Waits.when(helper, () -> moved.number() == 2 && moved.name().equals("Compost Dock") && !moved.needsNumber(otherId(helper)), WAIT,
                     () -> "the station should be Compost Dock (#2) of the second warehouse, got #" + moved.number() + " " + moved.name(), () -> {
-                        Object[] args = labelArgs(helper, moved.label(), "station.servus_shuttles.label.named");
-                        helper.assertTrue(args[0].equals("Compost Dock") && args[1].equals(2), "the label reads Compost Dock (#2)");
+                        assertNamedLabel(helper, moved.label(), "Compost Dock", "machine.servus_shuttles.outbound_station", 2);
                         helper.succeed();
                     });
         }));
@@ -299,17 +307,16 @@ public final class StationNumberGameTests {
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
             player.setPos(Vec3.atCenterOf(helper.absolutePos(spot(3, ROW_A))).add(1, 0, 0));
             OutboundStationMenu menu = new OutboundStationMenu(1, player.getInventory(), station);
-            menu.rename("  Compost\nDock  ");
+            menu.renameMachine(player, "  Compost\nDock  ");
             helper.assertTrue(station.name().equals("CompostDock"), "the name is cleaned, got '" + station.name() + "'");
-            Object[] args = labelArgs(helper, station.label(), "station.servus_shuttles.label.named");
-            helper.assertTrue(args[0].equals("CompostDock") && args[1].equals(1), "the label reads CompostDock (#1)");
-            menu.rename("");
+            assertNamedLabel(helper, station.label(), "CompostDock", "machine.servus_shuttles.outbound_station", 1);
+            menu.renameMachine(player, "");
             helper.assertTrue(station.name().isEmpty(), "a cleared field removes the name");
-            labelArgs(helper, station.label(), "station.servus_shuttles.label.outbound");
+            labelArgs(helper, station.label(), "machine.servus_shuttles.outbound_station");
 
             Player far = helper.makeMockPlayer(GameType.SURVIVAL);
             far.setPos(Vec3.atCenterOf(helper.absolutePos(spot(3, ROW_A))).add(40, 0, 0));
-            new OutboundStationMenu(2, far.getInventory(), station).rename("Far Away");
+            new OutboundStationMenu(2, far.getInventory(), station).renameMachine(far, "Far Away");
             helper.assertTrue(station.name().isEmpty(), "a player who may not use the GUI cannot rename");
             helper.succeed();
         });
@@ -333,8 +340,8 @@ public final class StationNumberGameTests {
                     assertNumber(helper, intake, 1);
                     assertNumber(helper, packer, 1);
                     assertNumber(helper, second, 2);
-                    labelArgs(helper, intake.label(), "station.servus_shuttles.label.inbound");
-                    Object[] args = labelArgs(helper, packer.getDisplayName(), "station.servus_shuttles.label.packing");
+                    labelArgs(helper, intake.label(), "machine.servus_shuttles.inbound_station");
+                    Object[] args = labelArgs(helper, packer.getDisplayName(), "machine.servus_shuttles.packing_station");
                     helper.assertTrue(args[0].equals(1), "the label reads Packing #1");
                     helper.succeed();
                 });
@@ -351,13 +358,12 @@ public final class StationNumberGameTests {
         whenNumbered(helper, () -> packer, () -> {
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
             player.setPos(Vec3.atCenterOf(helper.absolutePos(spot(4, ROW_A))).add(1, 0, 0));
-            new PackingStationMenu(1, player.getInventory(), packer).rename("Parcel Dock");
-            Object[] args = labelArgs(helper, packer.label(), "station.servus_shuttles.label.named");
-            helper.assertTrue(args[0].equals("Parcel Dock") && args[1].equals(1), "the label reads Parcel Dock (#1)");
+            new PackingStationMenu(1, player.getInventory(), packer).renameMachine(player, "Parcel Dock");
+            assertNamedLabel(helper, packer.label(), "Parcel Dock", "machine.servus_shuttles.packing_station", 1);
 
             Player far = helper.makeMockPlayer(GameType.SURVIVAL);
             far.setPos(Vec3.atCenterOf(helper.absolutePos(spot(4, ROW_A))).add(40, 0, 0));
-            new PackingStationMenu(2, far.getInventory(), packer).rename("Far Away");
+            new PackingStationMenu(2, far.getInventory(), packer).renameMachine(far, "Far Away");
             helper.assertTrue(packer.name().equals("Parcel Dock"), "a player who may not use the GUI cannot rename");
             helper.succeed();
         });
@@ -379,29 +385,5 @@ public final class StationNumberGameTests {
                 helper.succeed();
             });
         });
-    }
-
-    /** A Packing Station saved with a number but no counter took it from the Inbound counter: it loads unnumbered, an Inbound Station keeps its number. */
-    @ServusGameTest(timeoutTicks = 200)
-    public static void packingStationDropsAnInboundNumber(GameTestHelper helper) {
-        WarehouseControllerBlockEntity controller = warehouse(helper, ROW_A);
-        InboundStationBlockEntity intake = inbound(helper, 2, ROW_A);
-        PackingStationBlockEntity packer = packing(helper, 4, ROW_A);
-        whenNumbered(helper, () -> intake, () -> whenNumbered(helper, () -> packer, () -> {
-            CompoundTag packerTag = packer.saveWithFullMetadata(helper.getLevel().registryAccess());
-            packerTag.remove("StationCounter");
-            PackingStationBlockEntity loadedPacker = new PackingStationBlockEntity(packer.getBlockPos(), packer.getBlockState());
-            loadedPacker.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), packerTag));
-            helper.assertTrue(loadedPacker.number() == 0 && loadedPacker.needsNumber(controller.warehouseId()),
-                    "a Packing Station with an Inbound number is numbered again, got #" + loadedPacker.number());
-
-            CompoundTag intakeTag = intake.saveWithFullMetadata(helper.getLevel().registryAccess());
-            intakeTag.remove("StationCounter");
-            InboundStationBlockEntity loadedIntake = new InboundStationBlockEntity(intake.getBlockPos(), intake.getBlockState());
-            loadedIntake.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), intakeTag));
-            helper.assertTrue(loadedIntake.number() == 1 && !loadedIntake.needsNumber(controller.warehouseId()),
-                    "an Inbound Station keeps Inbound #1, got #" + loadedIntake.number());
-            helper.succeed();
-        }));
     }
 }

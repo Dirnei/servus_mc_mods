@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
 import io.github.dirnei.mc.servus.foundation.gametest.PlayerClicks;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
@@ -154,9 +155,11 @@ public final class PotatoStorageGameTests {
             ServerPlayer player = potatoPlayer(helper, at, chat);
             PlayerClicks.use(helper, player, at);
             helper.assertTrue(chat.size() == 3, "label, site and online, got " + chat);
-            Component label = (Component) args(helper, chat.get(0), "station_label")[0];
-            helper.assertTrue(label.getContents() instanceof TranslatableContents contents && contents.getKey().equals("station.servus_shuttles.label.named")
-                    && contents.getArgs()[0].equals("Compost Dock") && contents.getArgs()[1].equals(1), "the label is Compost Dock (#1), got " + label);
+            Component label = chat.get(0);
+            helper.assertTrue(label.getContents() instanceof TranslatableContents contents && contents.getKey().equals(NamedMachine.NAMED_KEY)
+                    && contents.getArgs()[0].equals("Compost Dock") && contents.getArgs()[1] instanceof Component numbered
+                    && numbered.getContents() instanceof TranslatableContents kind && kind.getKey().equals("machine.servus_shuttles.outbound_station")
+                    && kind.getArgs()[0].equals(1), "the label is Compost Dock (Outbound #1), got " + label);
             helper.assertTrue(args(helper, chat.get(1), "station_site")[0].equals("North Mine"), "the site is North Mine");
             args(helper, chat.get(2), "station_online");
             helper.assertTrue(player.containerMenu == player.inventoryMenu, "no GUI opens");
@@ -175,7 +178,7 @@ public final class PotatoStorageGameTests {
             ServerPlayer player = potatoPlayer(helper, at, chat);
             PlayerClicks.use(helper, player, at);
             helper.assertTrue(chat.size() == 2, "label and offline reason, got " + chat);
-            helper.assertTrue(text(args(helper, chat.get(0), "station_label")[0]).equals("block.servus_shuttles.inbound_station"),
+            helper.assertTrue(text(chat.get(0)).equals("block.servus_shuttles.inbound_station"),
                     "an unnumbered station reads Inbound Station");
             helper.assertTrue(text(args(helper, chat.get(1), "station_offline")[0]).equals("gui.servus_shuttles.terminal.no_controller"),
                     "the station has no controller");

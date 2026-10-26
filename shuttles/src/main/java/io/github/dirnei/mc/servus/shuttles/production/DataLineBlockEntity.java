@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
 import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
 import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
 import io.github.dirnei.mc.servus.foundation.material.MaterialSlot;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachines;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -73,18 +74,21 @@ public abstract class DataLineBlockEntity extends BlockEntity implements Materia
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         materialSlot.save(output);
+        NamedMachines.save(this, output);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         materialSlot.load(input);
+        NamedMachines.load(this, input);
     }
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
         materialSlot.save(tag);
+        NamedMachines.writeUpdate(this, tag);
         return tag;
     }
 
@@ -97,12 +101,14 @@ public abstract class DataLineBlockEntity extends BlockEntity implements Materia
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
+        NamedMachines.apply(this, input);
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
         materialSlot.collect(builder);
+        NamedMachines.collect(this, builder);
     }
 
     @Override
@@ -110,6 +116,7 @@ public abstract class DataLineBlockEntity extends BlockEntity implements Materia
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
         MaterialSlot.removeFromTag(output);
+        NamedMachines.removeFromTag(this, output);
     }
 
     @Override

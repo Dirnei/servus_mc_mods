@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.production;
 
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.network.chat.Component;
 import io.github.dirnei.mc.servus.shuttles.pattern.AnyGroup;
 import io.github.dirnei.mc.servus.shuttles.storage.StorageFill;
 import io.netty.buffer.ByteBuf;
@@ -98,7 +100,8 @@ public final class ProductionRows {
      * One formed Crafting CPU of the line, for the header tooltip and the CPUs tab.
      *
      * @param cpu          the CPU's master position
-     * @param slots        its order slots
+     * @param label        the CPU's label, such as "CPU #1"
+     * @param slots       its order slots
      * @param inUse        slots taken by open orders
      * @param waiting      open orders beyond the slots
      * @param sizeX        the box's length along x
@@ -110,13 +113,14 @@ public final class ProductionRows {
      * @param used         buffer stacks in use
      * @param buffered     what the buffer holds, oldest first
      */
-    public record CpuRow(BlockPos cpu, int slots, int inUse, int waiting, int sizeX, int sizeY, int sizeZ, int cpuBlocks,
+    public record CpuRow(BlockPos cpu, Component label, int slots, int inUse, int waiting, int sizeX, int sizeY, int sizeZ, int cpuBlocks,
                          int bufferBlocks, int room, int used, List<BufferItem> buffered) {
         public static final StreamCodec<RegistryFriendlyByteBuf, CpuRow> STREAM_CODEC = StreamCodec.of(CpuRow::write, CpuRow::read);
         private static final StreamCodec<RegistryFriendlyByteBuf, List<BufferItem>> ITEMS = BufferItem.STREAM_CODEC.apply(ByteBufCodecs.list());
 
         private static void write(RegistryFriendlyByteBuf buf, CpuRow row) {
             BlockPos.STREAM_CODEC.encode(buf, row.cpu);
+            ComponentSerialization.TRUSTED_STREAM_CODEC.encode(buf, row.label);
             buf.writeVarInt(row.slots);
             buf.writeVarInt(row.inUse);
             buf.writeVarInt(row.waiting);
@@ -131,7 +135,7 @@ public final class ProductionRows {
         }
 
         private static CpuRow read(RegistryFriendlyByteBuf buf) {
-            return new CpuRow(BlockPos.STREAM_CODEC.decode(buf), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
+            return new CpuRow(BlockPos.STREAM_CODEC.decode(buf), ComponentSerialization.TRUSTED_STREAM_CODEC.decode(buf), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
                     buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
                     ITEMS.decode(buf));
         }
@@ -213,7 +217,7 @@ public final class ProductionRows {
      * @param upkeepLevel the level it keeps
      * @param makes       how many different items it can make, -1 for any pattern
      */
-    public record MachineRow(BlockPos pos, ItemStack icon, String name, String state, ItemStack item, int left, String reason,
+    public record MachineRow(BlockPos pos, ItemStack icon, Component name, String state, ItemStack item, int left, String reason,
                              ItemStack upkeep, int upkeepCount, int upkeepLevel, int makes) {
         public static final StreamCodec<RegistryFriendlyByteBuf, MachineRow> STREAM_CODEC = StreamCodec.of(MachineRow::write, MachineRow::read);
 
@@ -224,7 +228,7 @@ public final class ProductionRows {
         private static void write(RegistryFriendlyByteBuf buf, MachineRow row) {
             BlockPos.STREAM_CODEC.encode(buf, row.pos);
             ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, row.icon);
-            buf.writeUtf(row.name);
+            ComponentSerialization.TRUSTED_STREAM_CODEC.encode(buf, row.name);
             buf.writeUtf(row.state);
             ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, row.item);
             buf.writeVarInt(row.left);
@@ -236,7 +240,8 @@ public final class ProductionRows {
         }
 
         private static MachineRow read(RegistryFriendlyByteBuf buf) {
-            return new MachineRow(BlockPos.STREAM_CODEC.decode(buf), ItemStack.OPTIONAL_STREAM_CODEC.decode(buf), buf.readUtf(),
+            return new MachineRow(BlockPos.STREAM_CODEC.decode(buf), ItemStack.OPTIONAL_STREAM_CODEC.decode(buf),
+                    ComponentSerialization.TRUSTED_STREAM_CODEC.decode(buf),
                     buf.readUtf(), ItemStack.OPTIONAL_STREAM_CODEC.decode(buf), buf.readVarInt(), buf.readUtf(),
                     ItemStack.OPTIONAL_STREAM_CODEC.decode(buf), buf.readVarInt(), buf.readVarInt(), buf.readInt());
         }
@@ -247,13 +252,15 @@ public final class ProductionRows {
      * the last second in each direction.
      *
      * @param pos       where it stands
+     * @param label     its label, such as "Packing #1"
      * @param toStorage items per second that came in over the line
      * @param toNetwork items per second that went out over the line
      * @param rate      items per second it converts in each direction, upgrades included
      */
-    public record PackingRow(BlockPos pos, int toStorage, int toNetwork, int rate) {
+    public record PackingRow(BlockPos pos, Component label, int toStorage, int toNetwork, int rate) {
         public static final StreamCodec<RegistryFriendlyByteBuf, PackingRow> STREAM_CODEC = StreamCodec.composite(
                 BlockPos.STREAM_CODEC, PackingRow::pos,
+                ComponentSerialization.TRUSTED_STREAM_CODEC, PackingRow::label,
                 ByteBufCodecs.VAR_INT, PackingRow::toStorage,
                 ByteBufCodecs.VAR_INT, PackingRow::toNetwork,
                 ByteBufCodecs.VAR_INT, PackingRow::rate,

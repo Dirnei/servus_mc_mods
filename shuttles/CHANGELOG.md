@@ -3,7 +3,8 @@
 ## Unreleased
 
 ### Added
-- Inbound, Outbound and Packing Stations get a number per warehouse ("Outbound #3", "Packing #1") and an optional name typed into their title row ("Compost Dock (#3)"). The Data Potato on a station names it, its site and whether it is online.
+- Inbound, Outbound and Packing Stations get a number per warehouse ("Outbound #3", "Packing #1") and an optional name typed into their title row ("Compost Dock (Outbound #3)"). The Data Potato on a station names it, its site and whether it is online.
+- Field Heads, Shuttle Garages, elevator shafts ("Lift #2"), Crafting Stations and Crafting CPUs get numbers and names too. Production Terminal rows on every tab, CPU messages and the Data Potato's shuttle report name machines by them, and a moved machine keeps its name. In chat, shuttles read green and lifts aqua.
 - Shuttles light up on the rails: white headlights in front, tail lights that show whether a shuttle drives, brakes, is held behind another or waits for the lift or power, and a number plate on both sides. The Data Potato on a rail or shaft names every shuttle there and what it waits for, following the queue and naming a deadlock.
 - Tree fields: a Field Head set to Trees plants saplings on every other plot (2x2 trees in squares with a Range Upgrade), needs no water, and a Lumber shuttle fells grown trees with their leaves, brings the wood home and replants.
 - Lumber shuttles fell trees with an arm and a saw, and the tree topples away from the rail, lands and breaks apart into the shuttle.

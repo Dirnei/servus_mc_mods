@@ -5,6 +5,9 @@ import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStatus;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameMenu;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -26,7 +29,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
  * Base menu for machines: machine slots first, then the player inventory,
  * with progress and burn data synced through {@link ContainerData}.
  */
-public abstract class MachineMenu extends AbstractContainerMenu {
+public abstract class MachineMenu extends AbstractContainerMenu implements MachineNameMenu {
 
     protected final MachineBlockEntity machine;
     private final ContainerData data;
@@ -81,6 +84,11 @@ public abstract class MachineMenu extends AbstractContainerMenu {
 
     public MachineBlockEntity machine() {
         return machine;
+    }
+
+    @Override
+    public Optional<NamedMachine> namedMachine() {
+        return machine instanceof NamedMachine named ? Optional.of(named) : Optional.empty();
     }
 
     protected ContainerData data() {

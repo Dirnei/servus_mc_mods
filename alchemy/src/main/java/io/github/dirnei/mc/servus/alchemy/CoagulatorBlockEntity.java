@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.alchemy;
 
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyMachineKinds;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameSlot;
 import io.github.dirnei.mc.servus.alchemy.coagulator.CoagulatorSeeds;
 import io.github.dirnei.mc.servus.alchemy.coagulator.SeedSlot;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
@@ -42,7 +45,7 @@ import net.minecraft.world.level.storage.ValueOutput;
  * turns into the result; a crystal of the result comes back with it, so the cycle gives one more. It needs no power: the
  * joined principles only take the recipe's time to cool and set.
  */
-public class CoagulatorBlockEntity extends MachineBlockEntity implements TeamOwned {
+public class CoagulatorBlockEntity extends MachineBlockEntity implements TeamOwned, NamedMachine {
 
     public static final int SLOT_INGREDIENT = 0;
     public static final int SLOT_OUTPUT = 1;
@@ -68,6 +71,13 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements TeamOwn
     private int shownProgress;
     private int shownTicks = 1;
     private long shownAt;
+
+    private final MachineNameSlot nameSlot = new MachineNameSlot(this, ServusAlchemyMachineKinds.COAGULATOR);
+
+    @Override
+    public MachineNameSlot nameSlot() {
+        return nameSlot;
+    }
 
     public CoagulatorBlockEntity(BlockPos pos, BlockState state) {
         super(ServusAlchemyBlockEntities.COAGULATOR.get(), pos, state, 3);

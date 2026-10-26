@@ -18,6 +18,9 @@ import net.minecraft.world.item.TooltipFlag;
 /** A shuttle of one tier for a Shuttle Garage; its tooltip lists its tool and upgrades. */
 public class ShuttleItem extends Item {
 
+    /** The colour of shuttle labels in chat and action bar messages. */
+    public static final ChatFormatting CHAT_COLOUR = ChatFormatting.GREEN;
+
     private final int tier;
 
     public ShuttleItem(int tier, Properties properties) {
@@ -93,6 +96,11 @@ public class ShuttleItem extends Item {
             case NAMED -> Component.translatable("item.servus_shuttles.shuttle.named", plate.get(), tierName);
             case PLAIN -> tierName;
         };
+    }
+
+    /** The {@link #label} for chat and action bar messages, in green; GUI text uses the plain label. */
+    public static Component chatLabel(ItemStack stack) {
+        return label(stack).copy().withStyle(CHAT_COLOUR);
     }
 
     /** A shuttle is named by its {@link #label}; an anvil name still wins in the hover name. */

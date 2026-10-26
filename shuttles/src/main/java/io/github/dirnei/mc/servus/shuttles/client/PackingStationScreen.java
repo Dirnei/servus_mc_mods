@@ -1,19 +1,18 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
+import io.github.dirnei.mc.servus.foundation.client.NamedMachineScreen;
 import io.github.dirnei.mc.servus.foundation.upgrade.Upgrades;
 import io.github.dirnei.mc.servus.shuttles.menu.PackingStationMenu;
 import io.github.dirnei.mc.servus.shuttles.packing.PackingStatusPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout.Rect;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 
 /** The name field as title, two read-only rows, To storage and To network, the upgrade row with the rate, a status line and the player inventory. */
-public class PackingStationScreen extends AbstractContainerScreen<PackingStationMenu> {
+public class PackingStationScreen extends NamedMachineScreen<PackingStationMenu> {
 
     private static final int COLOUR_TEXT = 0xFF404040;
     private static final int COLOUR_ALERT = 0xFFB03030;
@@ -24,31 +23,10 @@ public class PackingStationScreen extends AbstractContainerScreen<PackingStation
         ClientPackingStatus.clear();
     }
 
-    /** Null while the client has not loaded the station; the plain title shows then. */
-    private StationNameField name;
-
-    /** The name is the title: a borderless field in the title row, showing the numbered label until a name is typed. */
     @Override
     protected void init() {
         super.init();
         this.inventoryLabelY = menu.inventoryY() - 11;
-        if (menu.station() != null) {
-            name = new StationNameField(font, leftPos + titleLabelX, topPos + titleLabelY, imageWidth - 2 * titleLabelX, menu.station(), COLOUR_TEXT);
-            addRenderableWidget(name.box());
-        }
-    }
-
-    @Override
-    protected void containerTick() {
-        super.containerTick();
-        if (name != null) {
-            name.tick();
-        }
-    }
-
-    @Override
-    public boolean keyPressed(KeyEvent event) {
-        return (name != null && name.keyPressed(event)) || super.keyPressed(event);
     }
 
     private Rect toStorageRow() {
@@ -104,12 +82,7 @@ public class PackingStationScreen extends AbstractContainerScreen<PackingStation
 
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        if (name == null) {
-            super.extractLabels(graphics, mouseX, mouseY);
-        } else {
-            graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, COLOUR_TEXT, false);
-            name.renderNumber(graphics, font, imageWidth - titleLabelX, titleLabelY, COLOUR_TEXT);
-        }
+        super.extractLabels(graphics, mouseX, mouseY);
         graphics.text(font, Component.translatable("gui.servus_shuttles.packing_station.to_storage"),
                 8, PackingStationMenu.FIRST_LABEL_Y, COLOUR_TEXT, false);
         graphics.text(font, Component.translatable("gui.servus_shuttles.packing_station.to_network"),
@@ -129,9 +102,6 @@ public class PackingStationScreen extends AbstractContainerScreen<PackingStation
 
     @Override
     public void removed() {
-        if (name != null) {
-            name.send();
-        }
         super.removed();
         ClientPackingStatus.clear();
     }

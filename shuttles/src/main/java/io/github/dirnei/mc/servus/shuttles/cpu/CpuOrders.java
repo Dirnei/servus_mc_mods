@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.cpu;
 
+import io.github.dirnei.mc.servus.foundation.naming.MachineLabels;
 import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
@@ -121,7 +122,7 @@ public final class CpuOrders {
             }
             ProductionProvider provider = level.getCapability(ServusFoundationCapabilities.PRODUCTION, member.pos(), null);
             if (provider != null) {
-                list.add(new OrderBook.Producer(member.pos(), level.getBlockState(member.pos()).getBlock().getName(),
+                list.add(new OrderBook.Producer(member.pos(), MachineLabels.at(level, member.pos()),
                         PatternRunners.withPatterns(level, member.pos(), provider.recipes(), patterns, stock), provider.active()));
             }
         }

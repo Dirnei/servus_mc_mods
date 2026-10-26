@@ -23,12 +23,14 @@ public final class DataMembers {
 
     private final Map<NodePos, Map<Touch, Set<DataRole>>> byMember = new LinkedHashMap<>();
     private final Map<Touch, NodePos> byTouch = new HashMap<>();
+    private int revision;
 
     /**
      * Sets what the given cable side touches. Empty roles mean the side
      * touches no member; any earlier touch of that side is replaced.
      */
     public void touch(NodePos cable, Side side, NodePos member, Set<DataRole> roles) {
+        revision++;
         Touch touch = new Touch(cable, side);
         untouch(touch);
         if (!roles.isEmpty()) {
@@ -46,6 +48,7 @@ public final class DataMembers {
 
     /** Forgets every touch of a cable, its own membership included, after it left the network. */
     public void removeCable(NodePos cable) {
+        revision++;
         for (Side side : Side.ALL) {
             untouch(new Touch(cable, side));
         }
@@ -54,6 +57,7 @@ public final class DataMembers {
 
     /** Takes over every touch of another network, after a merge. */
     public void absorb(DataMembers other) {
+        revision++;
         other.byMember.forEach((member, touches) -> touches.forEach((touch, roles) -> {
             untouch(touch);
             add(touch, member, roles);
@@ -76,6 +80,11 @@ public final class DataMembers {
             }
         });
         return Collections.unmodifiableSet(result);
+    }
+
+    /** Counts every change of the members, so a reader can tell whether they changed since it last looked. */
+    public int revision() {
+        return revision;
     }
 
     public boolean contains(NodePos member) {

@@ -14,6 +14,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -29,6 +31,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachines;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
@@ -467,6 +470,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         if (sides != null && !sides.isDefault()) {
             ValueIo.putBytes(output, "FluidSides", sides.toBytes());
         }
+        NamedMachines.save(this, output);
     }
 
     @Override
@@ -482,6 +486,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         if (sides != null) {
             sides.fromBytes(ValueIo.getBytes(input, "FluidSides"));
         }
+        NamedMachines.load(this, input);
     }
 
     /** Sends the side modes along, for the client side markers. */
@@ -493,6 +498,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         if (sides != null) {
             tag.putIntArray("FluidSides", ValueIo.toInts(sides.toBytes()));
         }
+        NamedMachines.writeUpdate(this, tag);
         return tag;
     }
 
@@ -503,7 +509,26 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable(getBlockState().getBlock().getDescriptionId());
+        return NamedMachines.displayName(this);
+    }
+
+    @Override
+    protected void applyImplicitComponents(DataComponentGetter input) {
+        super.applyImplicitComponents(input);
+        NamedMachines.apply(this, input);
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        NamedMachines.collect(this, builder);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        NamedMachines.removeFromTag(this, output);
     }
 
     /** Exposes the inventory to automation with slot role and side mode rules applied. */

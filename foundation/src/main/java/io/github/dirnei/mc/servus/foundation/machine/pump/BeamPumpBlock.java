@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.PartShapes;
 import io.github.dirnei.mc.servus.foundation.machine.PixelBoxes;
 import io.github.dirnei.mc.servus.foundation.machine.TwoHalves;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachinePart;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -37,7 +38,13 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * the upper half carries the beam's pivot and forwards clicks to the lower
  * half. Each pump adds its own part shapes.
  */
-public abstract class BeamPumpBlock extends PumpBlock {
+public abstract class BeamPumpBlock extends PumpBlock implements NamedMachinePart {
+
+    /** The upper half stands for the machine in the lower half. */
+    @Override
+    public BlockPos namedMachinePos(Level level, BlockPos pos, BlockState state) {
+        return TwoHalves.lowerPos(state, pos);
+    }
 
     public static final EnumProperty<DoubleBlockHalf> HALF = TwoHalves.HALF;
 

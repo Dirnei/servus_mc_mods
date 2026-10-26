@@ -12,6 +12,9 @@ import io.github.dirnei.mc.servus.alchemy.journal.Journal;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurificationRecipe;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyMachineKinds;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameSlot;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyRecipes;
 import io.github.dirnei.mc.servus.alchemy.structure.SlotPort;
 import io.github.dirnei.mc.servus.foundation.machine.BurnerMachineBlockEntity;
@@ -47,7 +50,7 @@ import net.minecraft.world.level.storage.ValueOutput;
  * Salt stays in the Ash Pan as Ash. A cycle runs only while both tanks and the Ash Pan have room
  * for its output. It has no GUI.
  */
-public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements TeamOwned {
+public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements TeamOwned, NamedMachine {
 
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_FUEL = 1;
@@ -60,6 +63,7 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
     private static final int FALLBACK_SALT_PER_ASH = 100;
 
     private final TeamOwnership ownership = new TeamOwnership(this);
+    private final MachineNameSlot nameSlot = new MachineNameSlot(this, ServusAlchemyMachineKinds.CALCINER);
     private final LegacyItemHandler inputPort = SlotPort.insertOnly(inventory, SLOT_INPUT, this::calcinable);
     private final LegacyItemHandler fuelPort = SlotPort.insertOnly(inventory, SLOT_FUEL, this::burns);
     private final LegacyItemHandler ashPort = new CalcinerPorts.AshPort(this);
@@ -84,6 +88,11 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Tea
     public CalcinerBlockEntity(BlockPos pos, BlockState state) {
         super(ServusAlchemyBlockEntities.CALCINER.get(), pos, state, 3);
         AlchemyMachines.closeAllSides(this);
+    }
+
+    @Override
+    public MachineNameSlot nameSlot() {
+        return nameSlot;
     }
 
     /** Whether the structure around this Calciner is formed; only then it works. */

@@ -1,9 +1,9 @@
 package io.github.dirnei.mc.servus.foundation.adapter;
 
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
+import io.github.dirnei.mc.servus.foundation.client.NamedMachineScreen;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
@@ -14,7 +14,7 @@ import net.minecraft.world.item.ItemStack;
  * with minus and plus, and how many upkeep items the machine holds. Drawn
  * without a texture: a plain panel with slot frames.
  */
-public class AdapterScreen extends AbstractContainerScreen<AdapterMenu> {
+public class AdapterScreen extends NamedMachineScreen<AdapterMenu> {
 
     private static final int TEXT = 0xFF404040;
     private static final int PANEL = 0xFFC6C6C6;

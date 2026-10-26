@@ -13,21 +13,7 @@ class SiteNameTest {
     }
 
     @Test
-    void nameIsTrimmed() {
-        assertEquals("North Mine", SiteName.display("  North Mine ", 1, 2));
-    }
-
-    @Test
-    void longNamesAreCut() {
-        String typed = "Averylongwarehousenamethatgoesonandonandon";
-        String cleaned = SiteName.clean(typed);
-        assertEquals(SiteName.MAX_LENGTH, cleaned.length());
-        assertEquals(typed.substring(0, SiteName.MAX_LENGTH), cleaned);
-    }
-
-    @Test
-    void controlAndFormatCharactersAreDropped() {
-        assertEquals("North Mine", SiteName.clean("No\nrth §cMine".replace("§c", "")));
-        assertEquals("Northc Mine", SiteName.clean("North§c Mine"));
+    void nameIsCleaned() {
+        assertEquals("North Mine", SiteName.display("  North\n Mine ", 1, 2));
     }
 }

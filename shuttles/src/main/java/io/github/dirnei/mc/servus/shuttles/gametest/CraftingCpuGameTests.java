@@ -380,7 +380,7 @@ public final class CraftingCpuGameTests {
                     "the third waits for the CPU: " + orders.get(2).state());
             Component summary = cpu.summary();
             helper.assertTrue(summary.getContents() instanceof TranslatableContents contents
-                            && Arrays.equals(contents.getArgs(), new Object[] {2, 2, 1, 0, 6}),
+                            && Arrays.equals(Arrays.copyOfRange(contents.getArgs(), 1, 6), new Object[] {2, 2, 1, 0, 6}),
                     "summary should say 2 of 2 in use, 1 waiting and 0 of 6 buffer stacks, got " + summary.getString());
             helper.succeed();
         });

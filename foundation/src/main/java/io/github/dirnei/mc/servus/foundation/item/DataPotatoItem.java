@@ -1,6 +1,10 @@
 package io.github.dirnei.mc.servus.foundation.item;
 
+import io.github.dirnei.mc.servus.foundation.naming.MachineLabels;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -17,14 +21,37 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * The Data Potato, Servus' investigation tool. Held, it shows analysis views
- * such as the data duct load; used on a {@link PotatoInspectable} block it
- * prints that block's report into chat.
+ * such as the data duct load; used on a named machine it prints the
+ * machine's label, and on a {@link PotatoInspectable} block that block's
+ * report, into chat.
  * It never configures or dismantles anything, also when sneaking.
  */
 public class DataPotatoItem extends Item {
 
     public DataPotatoItem(Properties properties) {
         super(properties.stacksTo(1));
+    }
+
+    /** A named machine answers before its block is used: its label, then its block's report, and no GUI opens. */
+    @Override
+    public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+        Optional<NamedMachine> found = MachineLabels.machineAt(level, pos);
+        if (found.isEmpty()) {
+            return InteractionResult.PASS;
+        }
+        NamedMachine named = found.get();
+        Player player = context.getPlayer();
+        if (!level.isClientSide() && player != null) {
+            List<Component> report = new ArrayList<>(named.potatoLines());
+            BlockState state = level.getBlockState(pos);
+            if (state.getBlock() instanceof PotatoInspectable inspectable) {
+                report.addAll(inspectable.potatoReport(level, pos, state, context.getClickLocation()));
+            }
+            report.forEach(player::sendSystemMessage);
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Override

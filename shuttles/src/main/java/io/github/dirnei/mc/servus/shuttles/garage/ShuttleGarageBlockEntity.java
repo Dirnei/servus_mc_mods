@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.garage;
 
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMachineKinds;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameSlot;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
@@ -44,8 +47,9 @@ import net.neoforged.neoforge.model.data.ModelData;
  * back onto the rail. The live shuttles are data on the network's fleet;
  * this only holds the items and tells the network what each slot's shuttle can do.
  */
-public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements MaterialHolder, MenuProvider {
+public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements MaterialHolder, MenuProvider, NamedMachine {
 
+    private final MachineNameSlot nameSlot = new MachineNameSlot(this, ServusShuttlesMachineKinds.SHUTTLE_GARAGE);
     private final MaterialSlot materialSlot = new MaterialSlot(this);
 
     private final ItemSlots shuttles = new ItemSlots(ShuttlesStatsManager.INSTANCE.garageCapacity()) {
@@ -196,8 +200,13 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
     }
 
     @Override
+    public MachineNameSlot nameSlot() {
+        return nameSlot;
+    }
+
+    @Override
     public Component getDisplayName() {
-        return Component.translatable(getBlockState().getBlock().getDescriptionId());
+        return label();
     }
 
     @Override

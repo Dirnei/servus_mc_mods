@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.alchemy.homunculus;
 
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyMachineKinds;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameSlot;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeGiftData;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
@@ -29,7 +32,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * brings the gnomes and the Elixir it lives on. Pipes take the yield and fill the gifts and the Elixir; the data line
  * sees the yields of the Hollows in the homunculus' reach. Its fire never goes out.
  */
-public class ReceptaculumBlockEntity extends MachineBlockEntity {
+public class ReceptaculumBlockEntity extends MachineBlockEntity implements NamedMachine {
 
     public static final int YIELD_SLOTS = 27;
     public static final int GIFT_FIRST = YIELD_SLOTS;
@@ -54,6 +57,13 @@ public class ReceptaculumBlockEntity extends MachineBlockEntity {
             return recipes().stream().map(ProductionRecipe::id).findFirst();
         }
     };
+
+    private final MachineNameSlot nameSlot = new MachineNameSlot(this, ServusAlchemyMachineKinds.RECEPTACULUM);
+
+    @Override
+    public MachineNameSlot nameSlot() {
+        return nameSlot;
+    }
 
     public ReceptaculumBlockEntity(BlockPos pos, BlockState state) {
         super(ServusAlchemyBlockEntities.RECEPTACULUM.get(), pos, state, SLOTS);

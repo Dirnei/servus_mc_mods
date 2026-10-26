@@ -19,7 +19,7 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
         add("tooltip.servus_foundation.stone", "Stone: %s");
         add(ServusFoundationItems.CONFIGURATION_CARROT.get(), "Configuration Carrot");
         add(ServusFoundationItems.DATA_POTATO.get(), "Data Potato");
-        add("tooltip.servus_foundation.data_potato", "Hold to see data cable load; use on a duct, tank or storage block for a report");
+        add("tooltip.servus_foundation.data_potato", "Hold to see data cable load; use on a duct, tank, storage block or machine for a report");
         add(ServusFoundationItems.GOGGLES.get(), "Engineer Goggles");
         add(AdapterContent.BLOCK.get(), "Machine Adapter");
         MachineDataParts.lang(this);
@@ -34,6 +34,14 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
         add("gui.servus_foundation.machine_adapter.upkeep", "Upkeep item and level");
         add("gui.servus_foundation.machine_adapter.count", "%s of %s in the machine");
         add("gui.servus_foundation.machine_adapter.no_upkeep", "No upkeep");
+        add("gui.servus_foundation.machine_name", "Machine name");
+        add("gui.servus_foundation.name.rename", "Rename");
+        add("gui.servus_foundation.name.save", "Save name");
+        add("machine.servus_foundation.label.named", "%s (%s)");
+        add("machine.servus_foundation.label.unloaded", "Machine");
+        add("machine.servus_foundation.machine_adapter", "Adapter #%s");
+        add("machine.servus_foundation.coal_generator", "Coal Generator #%s");
+        add("machine.servus_foundation.burner_pump", "Burner Pump #%s");
         add(ServusFoundationItems.SPEED_UPGRADE.get(), "Speed Upgrade");
         add("tooltip.servus_foundation.upgrade.speed", "Speed x%s in upgrade slots");
         add(ServusFoundationItems.CAPACITY_UPGRADE.get(), "Capacity Upgrade");

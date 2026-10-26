@@ -198,7 +198,7 @@ public final class CpuBufferGameTests {
             cpu.buffer().land(PLANKS, 12);
             Component summary = cpu.summary();
             helper.assertTrue(summary.getContents() instanceof TranslatableContents contents
-                            && Arrays.equals(contents.getArgs(), new Object[] {2, 2, 1, 3, 6}),
+                            && Arrays.equals(Arrays.copyOfRange(contents.getArgs(), 1, 6), new Object[] {2, 2, 1, 3, 6}),
                     "summary should say 2 of 2 in use, 1 waiting and 3 of 6 buffer stacks, got " + summary.getString());
             helper.succeed();
         });

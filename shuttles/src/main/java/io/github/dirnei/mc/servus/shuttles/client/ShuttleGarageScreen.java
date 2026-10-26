@@ -1,12 +1,12 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
+import io.github.dirnei.mc.servus.foundation.client.NamedMachineScreen;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.menu.ShuttleGarageMenu;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
@@ -14,7 +14,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 /** A centred row of shuttle slots, a count line, the player inventory. */
-public class ShuttleGarageScreen extends AbstractContainerScreen<ShuttleGarageMenu> {
+public class ShuttleGarageScreen extends NamedMachineScreen<ShuttleGarageMenu> {
 
     private static final Identifier TEXTURE =
             Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "textures/gui/shuttle_garage.png");

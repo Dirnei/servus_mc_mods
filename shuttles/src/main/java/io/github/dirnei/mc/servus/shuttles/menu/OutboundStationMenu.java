@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.menu;
 
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameMenu;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigData;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.GhostSlot;
@@ -33,13 +35,15 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
  * Keep row (ghost slots with amounts, some holding exports), buffer row and
  * the player inventory; the state line and the export list come along as payloads.
  */
-public class OutboundStationMenu extends AbstractContainerMenu implements LockedMenu, StationNameMenu {
+public class OutboundStationMenu extends AbstractContainerMenu implements LockedMenu, MachineNameMenu {
 
-    public static final int KEEP_Y = 18;
-    public static final int BUFFER_Y = 44;
-    public static final int STATUS_Y = 66;
-    public static final int INVENTORY_Y = 84;
-    private static final int COLUMNS = 9;
+    public static final int COLUMNS = 9;
+    public static final int KEEP_Y = 30;
+    public static final int BUFFER_Y = 58;
+    public static final int STATUS_Y = 78;
+    public static final int INVENTORY_Y = 98;
+    public static final int HOTBAR_Y = INVENTORY_Y + PlayerInventorySlots.HOTBAR_OFFSET;
+    public static final int IMAGE_HEIGHT = HOTBAR_Y + 18 + 6;
 
     private final OutboundStationBlockEntity station;
     private final ContainerLevelAccess access;
@@ -88,6 +92,10 @@ public class OutboundStationMenu extends AbstractContainerMenu implements Locked
         return keepSlots;
     }
 
+    public int bufferSlots() {
+        return inventoryStart - bufferStart;
+    }
+
     public int inventoryStart() {
         return inventoryStart;
     }
@@ -103,10 +111,8 @@ public class OutboundStationMenu extends AbstractContainerMenu implements Locked
     }
 
     @Override
-    public void rename(String typed) {
-        if (stillValid(player)) {
-            station.rename(typed);
-        }
+    public Optional<NamedMachine> namedMachine() {
+        return Optional.of(station);
     }
 
     @Override

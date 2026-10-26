@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
@@ -289,7 +292,9 @@ public final class ProductionTerminalGameTests {
             MachineRow first = machines.get(0);
             helper.assertTrue(first.pos().equals(helper.absolutePos(adapter)) && first.state().equals("out_of_fuel") && first.problem(),
                     "the empty furnace adapter should come first as out of fuel, got " + machines);
-            helper.assertTrue(first.name().endsWith("(adapter)") && first.icon().is(Items.FURNACE), "named and shown as the furnace, got " + first);
+            helper.assertTrue(first.name().getContents() instanceof TranslatableContents label && label.getKey().equals(NamedMachine.NAMED_KEY)
+                    && label.getArgs()[0] instanceof Component faced && faced.getString().equals(Blocks.FURNACE.getName().getString())
+                    && first.icon().is(Items.FURNACE), "named after and shown as the furnace, got " + first);
             helper.assertTrue(first.makes() > 10 && first.upkeep().is(Items.COAL) && first.upkeepCount() == 0 && first.upkeepLevel() > 0,
                     "a count of smeltable items and an empty coal upkeep, got " + first);
             helper.assertTrue(machines.get(1).state().equals("idle"), "the station follows as idle, got " + machines.get(1));

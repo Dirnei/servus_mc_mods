@@ -14,6 +14,8 @@ import io.github.dirnei.mc.servus.foundation.logistics.menu.SetDuctFilterPayload
 import io.github.dirnei.mc.servus.foundation.logistics.menu.SetDuctFluidFilterPayload;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.SetSideChannelPayload;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.UtilityDuctMenu;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameMenu;
+import io.github.dirnei.mc.servus.foundation.naming.RenameMachinePayload;
 import io.github.dirnei.mc.servus.foundation.team.Teams;
 import java.util.UUID;
 import net.minecraft.server.level.ServerPlayer;
@@ -55,6 +57,11 @@ public final class ServusFoundationPayloads {
                         payload.id(), payload.name(), payload.colour(), payload.icon()));
         registrar.playToServer(DeleteChannelPayload.TYPE, DeleteChannelPayload.STREAM_CODEC,
                 (payload, context) -> ChannelRequests.delete(context.player(), team(context.player()), payload.line(), payload.id()));
+        registrar.playToServer(RenameMachinePayload.TYPE, RenameMachinePayload.STREAM_CODEC, (payload, context) -> {
+            if (context.player().containerMenu instanceof MachineNameMenu menu) {
+                menu.renameMachine(context.player(), payload.name());
+            }
+        });
     }
 
     private static UUID team(Player player) {

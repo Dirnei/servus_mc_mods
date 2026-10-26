@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.alchemy.athanor;
 
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyMachineKinds;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameSlot;
 import io.github.dirnei.mc.servus.alchemy.Principle;
 import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.Principles;
@@ -70,7 +73,7 @@ import org.jspecify.annotations.Nullable;
  * The alchemist's furnace: burns principles for the craft of the item lying on it, as far as its
  * structure allows. It holds no principles itself; it reads and drains the three Fluid Tanks of its build.
  */
-public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned {
+public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned, NamedMachine {
 
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_OUTPUT = 1;
@@ -93,6 +96,13 @@ public class AthanorBlockEntity extends MachineBlockEntity implements TeamOwned 
     private ItemStack shownOutput = ItemStack.EMPTY;
     private @Nullable AthanorRitual ritual;
     private long ritualStart;
+
+    private final MachineNameSlot nameSlot = new MachineNameSlot(this, ServusAlchemyMachineKinds.ATHANOR);
+
+    @Override
+    public MachineNameSlot nameSlot() {
+        return nameSlot;
+    }
 
     public AthanorBlockEntity(BlockPos pos, BlockState state) {
         super(ServusAlchemyBlockEntities.ATHANOR.get(), pos, state, 2);

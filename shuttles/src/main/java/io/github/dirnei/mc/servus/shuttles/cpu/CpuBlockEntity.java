@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.cpu;
 
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMachineKinds;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameSlot;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
@@ -54,7 +57,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
  * work orders. They are saved with the master, pause while it is unloaded and
  * are cancelled when the box unforms.
  */
-public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
+public class CpuBlockEntity extends DataLineBlockEntity implements DataLink, NamedMachine {
 
     private OrderBook book;
 
@@ -76,6 +79,8 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
     private int bufferTimer;
     /** Leftover moves on their way to a Packing Station, by order and key, with their ledger ids. */
     private final Map<CpuBuffer.Entry<ItemKey>, Long> leaving = new HashMap<>();
+
+    private final MachineNameSlot nameSlot = new MachineNameSlot(this, ServusShuttlesMachineKinds.CRAFTING_CPU);
 
     public CpuBlockEntity(BlockPos pos, BlockState state) {
         super(ServusShuttlesBlockEntities.CRAFTING_CPU.get(), pos, state);
@@ -119,8 +124,26 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
         return landed;
     }
 
+    @Override
+    public MachineNameSlot nameSlot() {
+        return nameSlot;
+    }
+
+    /** Only the master holds the box's number. */
+    @Override
+    public boolean takesNumber() {
+        return isMaster();
+    }
+
+    /** Every block of a formed box reads as its master. */
+    @Override
+    public Component label() {
+        CpuBlockEntity master = master();
+        return master == null || master == this ? NamedMachine.super.label() : master.label();
+    }
+
     /** The master of the box this block belongs to, or null while unformed. */
-    CpuBlockEntity master() {
+    public CpuBlockEntity master() {
         return level == null ? null : CpuBlock.master(level, worldPosition);
     }
 
@@ -467,7 +490,7 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
     public Component summary() {
         int open = book == null ? 0 : book.openCount();
         int slots = slots();
-        MutableComponent summary = Component.translatable("message.servus_shuttles.cpu.summary", Math.min(open, slots), slots,
+        MutableComponent summary = Component.translatable("message.servus_shuttles.cpu.summary", label(), Math.min(open, slots), slots,
                 Math.max(0, open - slots), bufferUsed(), room());
         if (line().conflict()) {
             summary.append(" ").append(Component.translatable("message.servus_shuttles.cpu.line_conflict").withStyle(ChatFormatting.RED));

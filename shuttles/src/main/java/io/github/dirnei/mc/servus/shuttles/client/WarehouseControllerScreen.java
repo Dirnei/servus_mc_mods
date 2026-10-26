@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
 import io.github.dirnei.mc.servus.foundation.client.Scrollbar;
+import io.github.dirnei.mc.servus.foundation.client.TitleNameEditor;
 import io.github.dirnei.mc.servus.foundation.picker.PickerStock;
 import io.github.dirnei.mc.servus.shuttles.controller.ControllerEnergy;
 import io.github.dirnei.mc.servus.shuttles.controller.RenameSitePayload;
@@ -17,8 +18,6 @@ import java.util.List;
 import java.util.Locale;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -27,7 +26,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import org.lwjgl.glfw.GLFW;
 
 /** The site GUI of a Warehouse Controller: name, status, FE, chunk map, storage fill, Anchor Upgrades, Wireless Upgrade and other sites. */
 public class WarehouseControllerScreen extends AbstractContainerScreen<WarehouseControllerMenu> {
@@ -54,9 +52,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
     /** Right edge of a site row's name, left of the scrollbar. */
     private static final int SITE_NAME_RIGHT = SITES_WIDTH - 13;
 
-    private EditBox name;
-    private boolean nameWasFocused;
-    private String sentName;
+    private TitleNameEditor nameEditor;
     /** Where the online line was drawn, for its summary tooltip; -1 when not drawn. */
     private int onlineLineY = -1;
     /** Where the FE line was drawn, for its tooltip; -1 when not drawn. */
@@ -68,65 +64,35 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         ClientSiteStatus.clear();
     }
 
-    /** The name is the title: a borderless field in the title row, showing the default name until one is typed. */
+    /** The name is the title, renamed with the pencil after it; the default name shows until one is typed. */
     @Override
     protected void init() {
         super.init();
         this.inventoryLabelY = WarehouseControllerMenu.INVENTORY_Y - 11;
-        name = new EditBox(font, leftPos + titleLabelX, topPos + titleLabelY, imageWidth - 2 * titleLabelX, 10,
-                Component.translatable("gui.servus_shuttles.controller.name"));
-        name.setMaxLength(SiteName.MAX_LENGTH);
-        name.setHint(Component.literal(SiteName.display("", menu.pos().getX(), menu.pos().getZ())));
-        name.setBordered(false);
-        name.setTextColor(COLOUR_TEXT);
-        name.setTextShadow(false);
-        name.setTooltip(Tooltip.create(Component.translatable("gui.servus_shuttles.controller.name_hint")));
-        name.setValue(menu.name());
-        sentName = menu.name();
-        addRenderableWidget(name);
-    }
-
-    private void sendName() {
-        String typed = name.getValue();
-        if (!SiteName.clean(typed).equals(SiteName.clean(sentName))) {
-            sentName = typed;
-            ClientPacketDistributor.sendToServer(new RenameSitePayload(typed));
+        if (nameEditor == null) {
+            nameEditor = new TitleNameEditor(SiteName.clean(menu.name()),
+                    Component.literal(SiteName.display("", menu.pos().getX(), menu.pos().getZ())),
+                    Component.translatable("gui.servus_shuttles.controller.name"), SiteName.MAX_LENGTH, SiteName::clean,
+                    typed -> ClientPacketDistributor.sendToServer(new RenameSitePayload(typed)), this::setFocused);
         }
+        addRenderableWidget(nameEditor.createBox(font));
+        addRenderableWidget(nameEditor.createButton());
     }
 
     @Override
     protected void containerTick() {
         super.containerTick();
-        boolean focused = name.isFocused();
-        if (nameWasFocused && !focused) {
-            sendName();
-        }
-        nameWasFocused = focused;
+        nameEditor.tick();
     }
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        int keyCode = event.key();
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
-            sendName();
-            return super.keyPressed(event);
-        }
-        if (name.isFocused()) {
-            if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
-                sendName();
-                name.setFocused(false);
-                return true;
-            }
-            if (name.keyPressed(event) || name.canConsumeInput()) {
-                return true;
-            }
-        }
-        return super.keyPressed(event);
+        return nameEditor.keyPressed(event) || super.keyPressed(event);
     }
 
     @Override
     public void removed() {
-        sendName();
+        nameEditor.removed();
         super.removed();
     }
 
@@ -144,6 +110,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        nameEditor.layout(font, leftPos + titleLabelX, topPos + titleLabelY, imageWidth - 2 * titleLabelX);
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         int x = mouseX - leftPos;
         int y = mouseY - topPos;
@@ -316,6 +283,9 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (nameEditor.mouseClicked(event)) {
+            return true;
+        }
         SiteStatusPayload status = ClientSiteStatus.status();
         if (listsSites(status) && syncSitesBar(status).mouseClicked(event.x(), event.y(), event.button())) {
             return true;
@@ -368,6 +338,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         SiteStatusPayload status = ClientSiteStatus.status();
+        nameEditor.drawTitle(graphics, font, leftPos, topPos);
         graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, COLOUR_TEXT, false);
         Component upgrades = Component.translatable("gui.servus_shuttles.controller.upgrades");
         graphics.text(font, upgrades, menu.upgradeX(0) - 1, WarehouseControllerMenu.UPGRADES_Y - 11, COLOUR_TEXT, false);

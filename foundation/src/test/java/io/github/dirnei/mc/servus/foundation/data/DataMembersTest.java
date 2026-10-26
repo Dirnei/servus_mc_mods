@@ -98,4 +98,35 @@ class DataMembersTest {
         assertEquals(2, members.size());
         assertEquals(EnumSet.of(DataRole.PRODUCER, DataRole.STOCK), members.all().get(MEMBER));
     }
+
+    @Test
+    void everyChangeBumpsTheRevision() {
+        DataMembers members = new DataMembers();
+        int start = members.revision();
+        members.touch(CABLE_A, Side.EAST, MEMBER, Set.of(DataRole.PRODUCER));
+        int touched = members.revision();
+        assertTrue(touched > start, "touch bumps");
+        members.self(OTHER, Set.of(DataRole.LINK));
+        int self = members.revision();
+        assertTrue(self > touched, "self bumps");
+        members.removeCable(CABLE_A);
+        int removed = members.revision();
+        assertTrue(removed > self, "removeCable bumps");
+        DataMembers other = new DataMembers();
+        other.touch(CABLE_B, Side.WEST, MEMBER, Set.of(DataRole.STOCK));
+        members.absorb(other);
+        assertTrue(members.revision() > removed, "absorb bumps");
+    }
+
+    @Test
+    void readsKeepTheRevision() {
+        DataMembers members = new DataMembers();
+        members.touch(CABLE_A, Side.EAST, MEMBER, Set.of(DataRole.PRODUCER));
+        int revision = members.revision();
+        members.all();
+        members.withRole(DataRole.PRODUCER);
+        members.contains(MEMBER);
+        members.size();
+        assertEquals(revision, members.revision());
+    }
 }

@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.menu;
 
+import java.util.Optional;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameMenu;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigData;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
@@ -24,7 +27,7 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
  * Inputs, the job area and outputs above the player inventory. The job comes
  * from the Crafting CPU; the station has nothing to configure but its sides.
  */
-public class CraftingStationMenu extends AbstractContainerMenu {
+public class CraftingStationMenu extends AbstractContainerMenu implements MachineNameMenu {
 
     public static final int WIDTH = 200;
     public static final int HEIGHT = 166;
@@ -87,6 +90,11 @@ public class CraftingStationMenu extends AbstractContainerMenu {
 
     public CraftingStationBlockEntity station() {
         return station;
+    }
+
+    @Override
+    public Optional<NamedMachine> namedMachine() {
+        return Optional.of(station);
     }
 
     public SideMode sideMode(RelativeSide side) {

@@ -7,6 +7,9 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameSlot;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachines;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
@@ -47,9 +50,10 @@ import net.neoforged.neoforge.model.data.ModelData;
  * forwards ingredients and upkeep into the machine, offers its output, and
  * exposes the upkeep side's upkeep, which the data network keeps stocked.
  */
-public class MachineAdapterBlockEntity extends BlockEntity implements MaterialHolder, MenuProvider {
+public class MachineAdapterBlockEntity extends BlockEntity implements MaterialHolder, MenuProvider, NamedMachine {
 
     private final MaterialSlot materialSlot = new MaterialSlot(this);
+    private final MachineNameSlot nameSlot = new MachineNameSlot(this, AdapterContent.KIND);
 
     /** Ticks after which an unanswered upkeep request is given up. */
     public static final int REQUEST_TIMEOUT = DataNetwork.UPKEEP_TIMEOUT;
@@ -304,6 +308,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MaterialHo
         }
         output.putInt("level", upkeepLevel);
         output.putBoolean("set", upkeepSet);
+        NamedMachines.save(this, output);
     }
 
     @Override
@@ -313,6 +318,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MaterialHo
         upkeepItem = input.read("upkeep", ItemStack.CODEC).orElse(ItemStack.EMPTY);
         upkeepLevel = input.getIntOr("level", MachineProfile.DEFAULT_LEVEL);
         upkeepSet = input.getBooleanOr("set", false);
+        NamedMachines.load(this, input);
     }
 
     @Override
@@ -334,8 +340,23 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MaterialHo
     }
 
     @Override
+    public MachineNameSlot nameSlot() {
+        return nameSlot;
+    }
+
+    /** An unnamed adapter reads as its faced machine with its own label: "Furnace (Adapter #1)". */
+    @Override
+    public Component label() {
+        Component faced = machineName();
+        if (!name().isEmpty() || faced.getString().isEmpty()) {
+            return NamedMachine.super.label();
+        }
+        return Component.translatable(NAMED_KEY, faced, numberLabel());
+    }
+
+    @Override
     public Component getDisplayName() {
-        return Component.translatable("block.servus_foundation.machine_adapter");
+        return NamedMachine.super.label();
     }
 
     @Override
@@ -352,12 +373,14 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MaterialHo
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
+        NamedMachines.apply(this, input);
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
         materialSlot.collect(builder);
+        NamedMachines.collect(this, builder);
     }
 
     @Override
@@ -365,6 +388,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MaterialHo
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
         MaterialSlot.removeFromTag(output);
+        NamedMachines.removeFromTag(this, output);
     }
 
     @Override

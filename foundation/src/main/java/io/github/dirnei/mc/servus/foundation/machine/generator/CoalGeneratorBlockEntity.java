@@ -6,6 +6,9 @@ import net.minecraft.world.level.storage.ValueOutput;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.BurnerMachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.EnergyNeighbors;
+import io.github.dirnei.mc.servus.foundation.machine.FoundationMachineKinds;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameSlot;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
 import io.github.dirnei.mc.servus.foundation.machine.MachineEnergyStorage;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
@@ -29,11 +32,13 @@ import net.minecraft.world.level.block.state.BlockState;
  * to its neighbours. Once the buffer is full it waits until the buffer drops
  * below its restart threshold.
  */
-public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
+public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity implements NamedMachine {
 
     public static final int SLOT_FUEL = 0;
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "coal_generator");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
+
+    private final MachineNameSlot nameSlot = new MachineNameSlot(this, FoundationMachineKinds.COAL_GENERATOR);
 
     private final MachineEnergyStorage energy;
     private final RestartGate restart = new RestartGate();
@@ -49,6 +54,11 @@ public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
 
     public MachineEnergyStorage energyStorage() {
         return energy;
+    }
+
+    @Override
+    public MachineNameSlot nameSlot() {
+        return nameSlot;
     }
 
     @Override

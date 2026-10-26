@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.menu;
 
+import java.util.Optional;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameMenu;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
@@ -25,7 +28,7 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
  * rows, then a row of upgrade slots, the only slots players can change, and
  * the player inventory. The status line and the rate come along as a payload.
  */
-public class PackingStationMenu extends AbstractContainerMenu implements LockedMenu, StationNameMenu {
+public class PackingStationMenu extends AbstractContainerMenu implements LockedMenu, MachineNameMenu {
 
     public static final int COLUMNS = 9;
     public static final int FIRST_LABEL_Y = 18;
@@ -132,10 +135,8 @@ public class PackingStationMenu extends AbstractContainerMenu implements LockedM
     }
 
     @Override
-    public void rename(String typed) {
-        if (point != null && stillValid(player)) {
-            point.rename(typed);
-        }
+    public Optional<NamedMachine> namedMachine() {
+        return Optional.ofNullable(point);
     }
 
     public int toStorageSlots() {

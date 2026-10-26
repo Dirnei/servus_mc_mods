@@ -103,6 +103,11 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
         return dataMembers().stream().filter(member -> member.has(role)).toList();
     }
 
+    /** Changes whenever a member joins, leaves or changes its roles. */
+    public int membersRevision() {
+        return members.revision();
+    }
+
     public boolean hasMember(BlockPos pos) {
         return members.contains(Conversions.toNodePos(pos));
     }

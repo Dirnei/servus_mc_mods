@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import io.github.dirnei.mc.servus.foundation.material.Material;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachines;
 
 /**
  * The Machine Adapter: faces the machine it was placed against and makes it a
@@ -81,7 +82,8 @@ public class MachineAdapterBlock extends BaseEntityBlock implements Wrenchable {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         if (!level.isClientSide()) {
-            Block.popResource(level, pos, Material.stamp(new ItemStack(this), level.getBlockEntity(pos)));
+            BlockEntity adapter = level.getBlockEntity(pos);
+            Block.popResource(level, pos, NamedMachines.stamp(Material.stamp(new ItemStack(this), adapter), adapter));
             level.removeBlock(pos, false);
         }
         return InteractionResult.SUCCESS;

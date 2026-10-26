@@ -2,6 +2,8 @@ package io.github.dirnei.mc.servus.shuttles.station;
 
 import io.github.dirnei.mc.servus.foundation.data.packet.Grant;
 import io.github.dirnei.mc.servus.foundation.data.packet.PacketEndpoint;
+import io.github.dirnei.mc.servus.foundation.naming.MachineKind;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMachineKinds;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
@@ -346,8 +348,8 @@ public class InboundStationBlockEntity extends StationBlockEntity implements Loc
     }
 
     @Override
-    public StationCounters.Kind stationKind() {
-        return StationCounters.Kind.INBOUND;
+    protected MachineKind stationKind() {
+        return ServusShuttlesMachineKinds.INBOUND_STATION;
     }
 
     @Override

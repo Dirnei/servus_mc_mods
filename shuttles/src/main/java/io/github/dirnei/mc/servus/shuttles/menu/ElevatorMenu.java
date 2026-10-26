@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.menu;
 
+import java.util.Optional;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
@@ -22,7 +25,7 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
  * The Speed upgrades of an elevator shaft, opened from any of its segments but
  * always on the lowest one, where they are kept; then the player inventory.
  */
-public class ElevatorMenu extends AbstractContainerMenu {
+public class ElevatorMenu extends AbstractContainerMenu implements MachineNameMenu {
 
     public static final int UPGRADES_Y = 30;
     public static final int INVENTORY_Y = 74;
@@ -31,15 +34,18 @@ public class ElevatorMenu extends AbstractContainerMenu {
 
     private final ContainerLevelAccess access;
     private final int upgradeSlots;
+    /** The shaft's lowest segment, which keeps its name; null on a client that has not loaded it. */
+    private final ElevatorBlockEntity bottom;
 
     /** Server side: the lowest segment's own slots. */
     public ElevatorMenu(int containerId, Inventory playerInventory, ElevatorBlockEntity bottom) {
-        this(containerId, playerInventory, ContainerLevelAccess.create(bottom.getLevel(), bottom.getBlockPos()), bottom.upgrades());
+        this(containerId, playerInventory, ContainerLevelAccess.create(bottom.getLevel(), bottom.getBlockPos()), bottom.upgrades(), bottom);
     }
 
-    private ElevatorMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access, ItemSlots upgrades) {
+    private ElevatorMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access, ItemSlots upgrades, ElevatorBlockEntity bottom) {
         super(ServusShuttlesMenus.ELEVATOR.get(), containerId);
         this.access = access;
+        this.bottom = bottom;
         this.upgradeSlots = upgrades.getSlots();
         for (int slot = 0; slot < upgradeSlots; slot++) {
             addSlot(new ResourceHandlerSlot(upgrades, upgrades::set, slot, upgradeX(slot), UPGRADES_Y));
@@ -52,13 +58,19 @@ public class ElevatorMenu extends AbstractContainerMenu {
         BlockPos bottom = buf.readBlockPos();
         int slots = buf.readVarInt();
         return new ElevatorMenu(containerId, playerInventory, ContainerLevelAccess.create(playerInventory.player.level(), bottom),
-                new LiftUpgradeSlots(slots, null));
+                new LiftUpgradeSlots(slots, null),
+                playerInventory.player.level().getBlockEntity(bottom) instanceof ElevatorBlockEntity segment ? segment : null);
     }
 
     /** What the server writes for {@link #fromNetwork}. */
     public static void writeOpening(RegistryFriendlyByteBuf buf, ElevatorBlockEntity bottom) {
         buf.writeBlockPos(bottom.getBlockPos());
         buf.writeVarInt(bottom.upgrades().getSlots());
+    }
+
+    @Override
+    public Optional<NamedMachine> namedMachine() {
+        return Optional.ofNullable(bottom);
     }
 
     public int upgradeSlots() {

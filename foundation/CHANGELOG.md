@@ -8,6 +8,7 @@
 - Keep and fill up to amounts on duct filter entries: right click a set filter slot to keep 64 saplings in a chest or fill a furnace up to 16 coal.
 - The Mill grinds vanilla items: stone to cobblestone, gravel and sand, glowstone, quartz, amethyst and clay blocks back to their pieces, sugar cane to sugar, bones to bone meal, blaze rods to powder, wool to string and flowers to dye.
 - A delivery handshake on the data line: before items move, the sender offers them and the receiving block grants room or says why not.
+- Machines that shuttles or the Crafting CPU work with get a number from their warehouse and an optional name typed into their GUI's title row; the Machine Adapter reads "Furnace (Adapter #1)" or its name. The Coal Generator and Burner Pump on a data line are named the same way. The Data Potato on such a machine names it.
 - A one line number stepper for the screens of every Servus mod.
 
 ### Changed

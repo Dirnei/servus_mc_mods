@@ -3,7 +3,9 @@ package io.github.dirnei.mc.servus.shuttles.gametest;
 import io.github.dirnei.mc.servus.foundation.gametest.PlayerClicks;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.shuttles.shuttle.StandReason;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
@@ -851,20 +853,40 @@ public final class ElevatorGameTests {
                 PlayerClicks.use(helper, potatoPlayer(helper, besideShaft, chat), besideShaft);
                 helper.assertTrue(chat.size() == 1, "one shuttle beside the shaft, got " + chat);
                 Object[] reason = reasonArgs(helper, chat.get(0), "lift");
-                helper.assertTrue(reason[0].equals(1), "it waits on floor 1, got " + List.of(reason));
+                assertLiftLabel(helper, reason[0]);
+                assertShuttleGreen(helper, chat.get(0));
+                helper.assertTrue(reason[1].equals(1), "it waits on floor 1, got " + List.of(reason));
                 network.lift(bottom).remove(-1);
                 Waits.when(helper, () -> signalled(network, garagePos, StandReason.Kind.RIDING) && network.lift(bottom).y() > bottom.getY() + 0.5,
                         200, () -> "the car should carry the shuttle up", () -> {
                     BlockPos segment = LC_BOTTOM.above((int) Math.round(network.lift(bottom).y()) - bottom.getY());
                     chat.clear();
                     PlayerClicks.use(helper, potatoPlayer(helper, segment, chat), segment);
-                    helper.assertTrue(chat.size() == 1, "the rider at the car's height, got " + chat);
-                    Object[] riding = reasonArgs(helper, chat.get(0), "riding");
-                    helper.assertTrue(riding[0].equals(3), "it rides to floor 3, got " + List.of(riding));
+                    helper.assertTrue(chat.size() == 2, "the shaft's label, then the rider at the car's height, got " + chat);
+                    assertLiftLabel(helper, chat.get(0));
+                    Object[] riding = reasonArgs(helper, chat.get(1), "riding");
+                    assertLiftLabel(helper, riding[0]);
+                    helper.assertTrue(riding[1].equals(3), "it rides to floor 3, got " + List.of(riding));
                     helper.succeed();
                 });
             });
         });
+    }
+
+    /** Asserts that a report names the shaft as Lift #1. */
+    private static void assertLiftLabel(GameTestHelper helper, Object label) {
+        helper.assertTrue(label instanceof Component component && component.getContents() instanceof TranslatableContents contents
+                && contents.getKey().equals("machine.servus_shuttles.elevator") && contents.getArgs()[0].equals(1),
+                "the report names the shaft Lift #1, got " + label);
+        helper.assertTrue(TextColor.fromLegacyFormat(ChatFormatting.AQUA).equals(((Component) label).getStyle().getColor()),
+                "a lift reads aqua in chat, got " + ((Component) label).getStyle());
+    }
+
+    /** The shuttle named first in a potato line reads green in chat. */
+    private static void assertShuttleGreen(GameTestHelper helper, Component line) {
+        Component shuttle = (Component) potatoArgs(helper, line, "shuttle_line")[0];
+        helper.assertTrue(TextColor.fromLegacyFormat(ChatFormatting.GREEN).equals(shuttle.getStyle().getColor()),
+                "a shuttle reads green in chat, got " + shuttle.getStyle());
     }
 
     /** Whether a drawn shuttle of the garage shows that signal. */

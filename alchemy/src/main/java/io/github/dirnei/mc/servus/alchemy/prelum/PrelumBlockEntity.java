@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.alchemy.prelum;
 
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyMachineKinds;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameSlot;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.TeamOwned;
 import io.github.dirnei.mc.servus.alchemy.TeamOwnership;
@@ -33,7 +36,7 @@ import net.minecraft.world.level.storage.ValueOutput;
  * Runs the pressing recipe that matches its input once the input holds the recipe's count, one result per pressing,
  * without fuel. Each pressed result counts as a {@code press} journal event for the owning team.
  */
-public class PrelumBlockEntity extends MachineBlockEntity implements TeamOwned {
+public class PrelumBlockEntity extends MachineBlockEntity implements TeamOwned, NamedMachine {
 
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_OUTPUT = 1;
@@ -58,6 +61,13 @@ public class PrelumBlockEntity extends MachineBlockEntity implements TeamOwned {
             return currentRecipe().map(holder -> holder.id().identifier());
         }
     };
+
+    private final MachineNameSlot nameSlot = new MachineNameSlot(this, ServusAlchemyMachineKinds.PRELUM);
+
+    @Override
+    public MachineNameSlot nameSlot() {
+        return nameSlot;
+    }
 
     public PrelumBlockEntity(BlockPos pos, BlockState state) {
         super(ServusAlchemyBlockEntities.PRELUM.get(), pos, state, 2);

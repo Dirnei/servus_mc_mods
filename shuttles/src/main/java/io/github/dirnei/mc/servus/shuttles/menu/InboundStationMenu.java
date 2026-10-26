@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.menu;
 
+import java.util.Optional;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameMenu;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigData;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
@@ -21,7 +24,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /** The station's buffer and the player inventory; the state line comes along as a payload. */
-public class InboundStationMenu extends AbstractContainerMenu implements LockedMenu, StationNameMenu {
+public class InboundStationMenu extends AbstractContainerMenu implements LockedMenu, MachineNameMenu {
 
     public static final int BUFFER_Y = 18;
     public static final int STATUS_Y = 40;
@@ -73,10 +76,8 @@ public class InboundStationMenu extends AbstractContainerMenu implements LockedM
     }
 
     @Override
-    public void rename(String typed) {
-        if (stillValid(player)) {
-            station.rename(typed);
-        }
+    public Optional<NamedMachine> namedMachine() {
+        return Optional.of(station);
     }
 
     @Override

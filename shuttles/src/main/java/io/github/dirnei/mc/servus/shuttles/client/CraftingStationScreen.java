@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
+import io.github.dirnei.mc.servus.foundation.client.NamedMachineScreen;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.foundation.client.SideConfigPanel;
@@ -7,7 +8,6 @@ import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.menu.CraftingStationMenu;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -19,7 +19,7 @@ import net.minecraft.world.item.ItemStack;
  * Crafting Station GUI: inputs on the left, the job the CPU handed the
  * station in the middle, a progress bar and the outputs on the right.
  */
-public class CraftingStationScreen extends AbstractContainerScreen<CraftingStationMenu> {
+public class CraftingStationScreen extends NamedMachineScreen<CraftingStationMenu> {
 
     private static final Identifier TEXTURE =
             Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "textures/gui/crafting_station.png");

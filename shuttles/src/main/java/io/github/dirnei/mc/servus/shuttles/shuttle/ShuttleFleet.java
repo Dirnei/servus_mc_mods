@@ -219,6 +219,11 @@ public final class ShuttleFleet {
     private final Set<BlockPos> strandedGarages = new HashSet<>();
     private int lastQueueSize;
 
+    /** The level of the fleet's warehouse. */
+    ServerLevel level() {
+        return host.level();
+    }
+
     public ShuttleFleet(Host host) {
         this.host = host;
         this.lifts = new ShuttleLifts(this, host);

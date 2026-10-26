@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.packing;
 
+import io.github.dirnei.mc.servus.foundation.naming.MachineKind;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMachineKinds;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
@@ -27,7 +29,6 @@ import io.github.dirnei.mc.servus.shuttles.site.SiteRecord;
 import io.github.dirnei.mc.servus.shuttles.site.SiteRegistry;
 import io.github.dirnei.mc.servus.shuttles.site.WirelessCost;
 import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.station.StationCounters;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.terminal.LineWarehouse;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalWarehouses;
@@ -314,8 +315,8 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     }
 
     @Override
-    public StationCounters.Kind stationKind() {
-        return StationCounters.Kind.PACKING;
+    protected MachineKind stationKind() {
+        return ServusShuttlesMachineKinds.PACKING_STATION;
     }
 
     @Override

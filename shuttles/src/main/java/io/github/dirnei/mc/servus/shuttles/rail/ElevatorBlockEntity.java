@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.rail;
 
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMachineKinds;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameSlot;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.shuttles.menu.ElevatorMenu;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
@@ -42,10 +45,10 @@ import net.minecraft.world.level.storage.ValueOutput;
  * Connector node: joins the warehouse graph but holds no stock. The lowest
  * segment of a shaft also carries where its lift car is parked, so a player
  * who loads the chunk later sees the car there. That height is never saved.
- * The lowest segment also keeps the shaft's Speed upgrades; every segment has
- * the slots, but the others stay empty.
+ * The lowest segment also keeps the shaft's Speed upgrades and its number and
+ * name; every segment has the slots, but the others stay empty.
  */
-public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuProvider, MaterialHolder {
+public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuProvider, MaterialHolder, NamedMachine {
 
     private static final String LIFT_Y = "LiftY";
     private static final String UPGRADES = "Upgrades";
@@ -58,6 +61,7 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
     /** The segment took the place of a Warehouse Rail, which comes back when the segment goes. */
     private boolean replacedRail;
     private @Nullable Identifier railWood;
+    private final MachineNameSlot nameSlot = new MachineNameSlot(this, ServusShuttlesMachineKinds.ELEVATOR);
     private final LiftUpgradeSlots upgrades = new LiftUpgradeSlots(ShuttlesStatsManager.INSTANCE.liftUpgradeSlots(), this::upgradesChanged);
 
     public ElevatorBlockEntity(BlockPos pos, BlockState state) {
@@ -96,8 +100,26 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
     }
 
     @Override
+    public MachineNameSlot nameSlot() {
+        return nameSlot;
+    }
+
+    /** Only the lowest segment holds the shaft's number. */
+    @Override
+    public boolean takesNumber() {
+        return level != null && !(level.getBlockState(worldPosition.below()).getBlock() instanceof ElevatorBlock);
+    }
+
+    /** Every segment reads as its shaft, whose lowest segment keeps the name. */
+    @Override
+    public Component label() {
+        ElevatorBlockEntity bottom = level == null ? null : ElevatorBlock.bottomOf(level, worldPosition);
+        return bottom == null || bottom == this ? NamedMachine.super.label() : bottom.label();
+    }
+
+    @Override
     public Component getDisplayName() {
-        return Component.translatable(getBlockState().getBlock().getDescriptionId());
+        return label();
     }
 
     @Override
@@ -200,7 +222,7 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
     }
 
     /**
-     * When the block is removed, its upgrades go to the heir segment of the shaft, or drop,
+     * When the block is removed, its upgrades, number and name go to the heir segment of the shaft, or the upgrades drop,
      * and a rail it replaced is put back once the removal is done.
      */
     @Override
@@ -214,7 +236,7 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
             // After the removal: the level still sends the segment's own neighbour updates as air.
             minecraft.schedule(new TickTask(minecraft.getTickCount(), () -> ElevatorBlock.putRailBack(server, pos, wood)));
         }
-        if (level == null || upgradeCount() <= 0) {
+        if (level == null || upgradeCount() <= 0 && nameSlot.isEmpty()) {
             return;
         }
         List<ItemStack> items = upgrades().takeAll();
@@ -223,6 +245,7 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
         if (heirPos != null && level.getBlockState(heirPos).canSurvive(level, heirPos)
                 && level.getBlockEntity(heirPos) instanceof ElevatorBlockEntity next) {
             items = next.upgrades().insertAll(items);
+            nameSlot.moveTo(next.nameSlot());
         }
         items.forEach(stack -> Block.popResource(level, pos, stack));
     }

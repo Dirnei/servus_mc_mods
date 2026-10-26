@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.alchemy.forge;
 
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyMachineKinds;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameSlot;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
@@ -28,7 +31,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * Smelts every one item smelting recipe without fuel, one item per work cycle of the machine's
  * {@code work_ticks}. Its fire never goes out, so it counts as working for the lit state at all times.
  */
-public class SalamanderForgeBlockEntity extends MachineBlockEntity {
+public class SalamanderForgeBlockEntity extends MachineBlockEntity implements NamedMachine {
 
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_OUTPUT = 1;
@@ -59,6 +62,13 @@ public class SalamanderForgeBlockEntity extends MachineBlockEntity {
                     .findFirst();
         }
     };
+
+    private final MachineNameSlot nameSlot = new MachineNameSlot(this, ServusAlchemyMachineKinds.SALAMANDER_FORGE);
+
+    @Override
+    public MachineNameSlot nameSlot() {
+        return nameSlot;
+    }
 
     public SalamanderForgeBlockEntity(BlockPos pos, BlockState state) {
         super(ServusAlchemyBlockEntities.SALAMANDER_FORGE.get(), pos, state, 2);

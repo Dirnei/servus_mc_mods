@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.TwoHalves;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachinePart;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -38,7 +39,13 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * cube is the machine; the chimney mirrors the cube's facing and lit state,
  * smokes while it burns and forwards clicks to the cube.
  */
-public class CoalGeneratorBlock extends MachineBlock {
+public class CoalGeneratorBlock extends MachineBlock implements NamedMachinePart {
+
+    /** The chimney stands for the machine in the cube below. */
+    @Override
+    public BlockPos namedMachinePos(Level level, BlockPos pos, BlockState state) {
+        return TwoHalves.lowerPos(state, pos);
+    }
 
     public static final MapCodec<CoalGeneratorBlock> CODEC = simpleCodec(CoalGeneratorBlock::new);
     public static final EnumProperty<DoubleBlockHalf> HALF = TwoHalves.HALF;

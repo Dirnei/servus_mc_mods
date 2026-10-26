@@ -7,7 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
-/** The chat report of the Data Potato on a station: its label, its site and whether it is online. Server thread only. */
+/** The chat report of the Data Potato on a station, after its label: its site and whether it is online. Server thread only. */
 public final class StationReport {
 
     private static final String KEY = "message.servus_shuttles.potato.station_";
@@ -20,7 +20,6 @@ public final class StationReport {
             return List.of();
         }
         List<Component> report = new ArrayList<>();
-        report.add(Component.translatable(KEY + "label", station.label()));
         String offline = station.offlineReason();
         if (!offline.isEmpty()) {
             report.add(Component.translatable(KEY + "offline", Component.translatable("gui.servus_shuttles.terminal." + offline)));

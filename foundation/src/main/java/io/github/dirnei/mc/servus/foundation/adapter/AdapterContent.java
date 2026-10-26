@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.foundation.adapter;
 
 import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
+import io.github.dirnei.mc.servus.foundation.naming.MachineKind;
+import io.github.dirnei.mc.servus.foundation.naming.MachineKinds;
 import net.minecraft.world.item.Item;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.material.Material;
@@ -44,6 +46,9 @@ public final class AdapterContent {
     public static final DeferredHolder<MenuType<?>, MenuType<AdapterMenu>> MENU =
             MENUS.register("machine_adapter", () -> IMenuTypeExtension.create(AdapterMenu::fromNetwork));
 
+    /** The adapter's kind of named machine: "Adapter #1". */
+    public static final MachineKind KIND = new MachineKind(BLOCK.getId(), BLOCK);
+
     private AdapterContent() {
     }
 
@@ -53,5 +58,6 @@ public final class AdapterContent {
         ITEMS.register(modEventBus);
         BLOCK_ENTITIES.register(modEventBus);
         MENUS.register(modEventBus);
+        MachineKinds.register(KIND);
     }
 }

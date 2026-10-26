@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.production;
 
+import net.minecraft.network.chat.Component;
+import io.github.dirnei.mc.servus.foundation.naming.MachineLabels;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlockEntity;
 import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
@@ -119,7 +121,7 @@ public final class ProductionView {
         List<PackingRow> rows = new ArrayList<>();
         for (DataMember member : line.dataMembers(DataRole.LINK)) {
             if (level.isLoaded(member.pos()) && level.getBlockEntity(member.pos()) instanceof PackingStationBlockEntity station) {
-                rows.add(new PackingRow(member.pos(), station.used(TransferGate.Flow.IN), station.used(TransferGate.Flow.OUT),
+                rows.add(new PackingRow(member.pos(), station.label(), station.used(TransferGate.Flow.IN), station.used(TransferGate.Flow.OUT),
                         (int) Math.round(station.rate())));
             }
         }
@@ -132,7 +134,7 @@ public final class ProductionView {
         return line.busiest().map(load -> {
             String name = level.isLoaded(load.pos()) && level.getBlockEntity(load.pos()) instanceof UtilityDuctBlockEntity duct
                     ? new ItemStack(duct.lineItem(Line.DATA)).getHoverName().getString()
-                    : name(level, load.pos());
+                    : level.getBlockState(load.pos()).getBlock().getName().getString();
             return List.of(new DuctRow(load.pos(), name, load.load(), (int) Math.round(load.bandwidth())));
         }).orElse(List.of());
     }
@@ -156,7 +158,7 @@ public final class ProductionView {
         for (CpuBuffer.Entry<ItemKey> entry : buffered) {
             items.add(new BufferItem(entry.key().stack(1), entry.count(), (int) entry.order(), entry.leaving()));
         }
-        return new CpuRow(cpu.getBlockPos(), slots, Math.min(open, slots), Math.max(0, open - slots),
+        return new CpuRow(cpu.getBlockPos(), cpu.label(), slots, Math.min(open, slots), Math.max(0, open - slots),
                 size == null ? 0 : size.x(), size == null ? 0 : size.y(), size == null ? 0 : size.z(),
                 cpu.cpuBlocks(), cpu.bufferBlocks(), cpu.room(), cpu.bufferUsed(), items);
     }
@@ -184,7 +186,7 @@ public final class ProductionView {
         List<BufferLine> lines = new ArrayList<>();
         byStep.forEach((step, items) -> {
             if (!items.isEmpty()) {
-                lines.add(new BufferLine(machineName(level, step.producer()), items));
+                lines.add(new BufferLine(MachineLabels.at(level, step.producer()).getString(), items));
             }
         });
         return lines;
@@ -219,8 +221,8 @@ public final class ProductionView {
             int perCraft = output.isEmpty() ? 0 : output.getCount();
             int done = output.isEmpty() ? 0 : JobStatus.craftsDone(current.collected(ItemKey.of(output)), perCraft, current.batches());
             String sending = current.handing().map(handing -> handing.key().stack(1).getHoverName().getString()).orElse("");
-            String sendingTo = current.handing().map(handing -> machineName(level, handing.target())).orElse("");
-            step = new JobStatus.Step(machineName(level, current.producer()), lower(current.state()), current.reason(),
+            String sendingTo = current.handing().map(handing -> MachineLabels.at(level, handing.target()).getString()).orElse("");
+            step = new JobStatus.Step(MachineLabels.at(level, current.producer()).getString(), lower(current.state()), current.reason(),
                     verb(level, current.recipe().id()), done, current.batches(), outOfFuel(level, current.producer()),
                     sending, sendingTo, level.isLoaded(current.producer())
                     && level.getBlockEntity(current.producer()) instanceof CraftingStationBlockEntity station && station.waitingForPower());
@@ -277,7 +279,7 @@ public final class ProductionView {
         ItemStack upkeepItem = keeps ? upkeep.upkeepItem().copyWithCount(1) : ItemStack.EMPTY;
         int upkeepCount = keeps ? upkeep.upkeepCount() : 0;
         int upkeepLevel = keeps ? upkeep.upkeepLevel() : 0;
-        String name = machineName(level, pos);
+        Component name = MachineLabels.at(level, pos);
         boolean noMachine = false;
         if (level.getBlockEntity(pos) instanceof MachineAdapterBlockEntity adapter) {
             BlockState faced = adapter.machineState();
@@ -310,13 +312,13 @@ public final class ProductionView {
                                          String blockedReason) {
         if (station.working()) {
             boolean noPower = station.waitingForPower();
-            return new MachineRow(pos, icon, name(level, pos), noPower ? "blocked" : "crafting",
+            return new MachineRow(pos, icon, station.label(), noPower ? "blocked" : "crafting",
                     station.job().orElseThrow().result().copyWithCount(1), station.jobLeft(), noPower ? "no power" : "",
                     ItemStack.EMPTY, 0, 0, -1);
         }
         String reason = blockedReason.isEmpty() && station.job().isEmpty() && station.hasOutputs() ? "outputs not collected" : blockedReason;
         String state = reason.isEmpty() ? "idle" : "blocked";
-        return new MachineRow(pos, icon, name(level, pos), state, ItemStack.EMPTY, 0, reason, ItemStack.EMPTY, 0, 0, -1);
+        return new MachineRow(pos, icon, station.label(), state, ItemStack.EMPTY, 0, reason, ItemStack.EMPTY, 0, 0, -1);
     }
 
     private static String machineState(boolean noMachine, boolean working, boolean outOfFuel, boolean blocked, boolean producer,
@@ -348,18 +350,6 @@ public final class ProductionView {
             }
         }
         return items.size();
-    }
-
-    /** The block's name, or the faced machine's name with "(adapter)" for a Machine Adapter. */
-    private static String machineName(ServerLevel level, BlockPos pos) {
-        if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof MachineAdapterBlockEntity adapter) {
-            return adapter.machineName().getString() + " (adapter)";
-        }
-        return name(level, pos);
-    }
-
-    private static String name(ServerLevel level, BlockPos pos) {
-        return level.getBlockState(pos).getBlock().getName().getString();
     }
 
     private static String lower(Enum<?> value) {

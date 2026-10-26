@@ -198,6 +198,7 @@ public final class MachineContent {
 
     public static void register(IEventBus modEventBus) {
         FoundationMachines.registerDefaults();
+        FoundationMachineKinds.register();
         Material.register(SINK.getId(), MaterialKind.STONE);
         Material.register(CHIMNEY.getId(), MaterialKind.STONE);
         BLOCKS.register(modEventBus);

@@ -13,8 +13,6 @@ import io.github.dirnei.mc.servus.shuttles.client.ClientStock;
 import io.github.dirnei.mc.servus.shuttles.controller.RenameSitePayload;
 import io.github.dirnei.mc.servus.shuttles.outbound.ClaimExportPayload;
 import io.github.dirnei.mc.servus.shuttles.outbound.ExportListPayload;
-import io.github.dirnei.mc.servus.shuttles.menu.StationNameMenu;
-import io.github.dirnei.mc.servus.shuttles.station.RenameStationPayload;
 import io.github.dirnei.mc.servus.shuttles.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.shuttles.field.ChooseAntiCorrosionPayload;
 import io.github.dirnei.mc.servus.shuttles.field.ChooseFertilizerPayload;
@@ -117,11 +115,6 @@ public final class ServusShuttlesPayloads {
                 (player, menu, payload) -> menu.setKeep(payload.slot(), payload.item(), payload.amount()));
         toMenu(registrar, ClaimExportPayload.TYPE, ClaimExportPayload.STREAM_CODEC, OutboundStationMenu.class,
                 (player, menu, payload) -> menu.claim(payload.slot(), payload.item()));
-        registrar.playToServer(RenameStationPayload.TYPE, RenameStationPayload.STREAM_CODEC, (payload, context) -> {
-            if (context.player() instanceof ServerPlayer player && player.containerMenu instanceof StationNameMenu menu) {
-                menu.rename(payload.name());
-            }
-        });
         toMenu(registrar, RenameSitePayload.TYPE, RenameSitePayload.STREAM_CODEC, WarehouseControllerMenu.class,
                 (player, menu, payload) -> menu.rename(payload.name()));
         toMenu(registrar, SetLabelNamePayload.TYPE, SetLabelNamePayload.STREAM_CODEC, ZoneLabelMenu.class,

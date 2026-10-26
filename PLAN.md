@@ -221,8 +221,10 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - Outbound dock: delivery by teleport or by courier drone to a landing pad.
 - Garage doorway lower than the spoiler and the loading arm: the Mk3 spoiler and the Handling crane reach past the 12 pixel opening; a taller doorway or parts that duck under it.
 - Explore shuttle portals between sites, overland cargo carts and a separate Servus: Transit mod for passenger travel.
-- Station numbers and names for the Fluid Inbound and Fluid Outbound stations once M13 builds them.
 - Inbound pipe grants from a slow source: a pipe grant closes as soon as its chest runs dry, so a quarry feeding a chest slowly still makes part trips. A minimum wait before a short grant ends, if play tests ask for it.
+- Fluid Inbound and Fluid Outbound stations join machine names (`NamedMachine`) once M13 builds them.
+- Renaming machines without a GUI (Crafting CPU, Athanor): a Name Tag on the block or a later GUI.
+- A carrot dismantle for the Field Head that keeps its number, name and settings; today a moved Field Head is numbered again and loses its name.
 
 ### Open: M13 Fluid logistics
 

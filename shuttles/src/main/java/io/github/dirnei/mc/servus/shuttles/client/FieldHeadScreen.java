@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
+import io.github.dirnei.mc.servus.foundation.client.NamedMachineScreen;
 import io.github.dirnei.mc.servus.foundation.client.ItemPicker;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
@@ -34,7 +35,6 @@ import java.util.function.Consumer;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -59,7 +59,7 @@ import org.lwjgl.glfw.GLFW;
  * slot, radius, field size). The player inventory is always below. A tab whose
  * page holds a problem gets a red marker.
  */
-public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
+public class FieldHeadScreen extends NamedMachineScreen<FieldHeadMenu> {
 
     private static final int MARGIN = FieldHeadMenu.PICKER_X;
     private static final int WIDTH = FieldHeadMenu.PICKER_WIDTH;

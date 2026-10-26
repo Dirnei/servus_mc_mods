@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.garage;
 
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachines;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
@@ -127,7 +128,8 @@ public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
                 if (occupied(level, pos)) {
                     player.sendOverlayMessage(Component.translatable("message.servus_shuttles.garage.occupied"));
                 } else {
-                    Block.popResource(level, pos, Material.stamp(new ItemStack(this), level.getBlockEntity(pos)));
+                    BlockEntity garage = level.getBlockEntity(pos);
+                    Block.popResource(level, pos, NamedMachines.stamp(Material.stamp(new ItemStack(this), garage), garage));
                     level.removeBlock(pos, false);
                 }
             } else {

@@ -1,6 +1,12 @@
 package io.github.dirnei.mc.servus.shuttles.network;
 
 import com.google.common.base.Suppliers;
+import io.github.dirnei.mc.servus.shuttles.rail.ElevatorBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlock;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineLabels;
+import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.packet.Grant;
@@ -127,8 +133,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     public enum Status { ONLINE, NO_CONTROLLER, MULTIPLE_CONTROLLERS }
 
     private static final int BLOCKED_RETRY_TICKS = 20;
-    /** Stations numbered together get numbers by height, then x, then z. */
-    private static final Comparator<BlockPos> STATION_ORDER =
+    /** Machines numbered together get numbers by height, then x, then z. */
+    private static final Comparator<BlockPos> NUMBER_ORDER =
             Comparator.<BlockPos>comparingInt(BlockPos::getY).thenComparingInt(BlockPos::getX).thenComparingInt(BlockPos::getZ);
     /** Ticks between two sweeps for station claims whose job is gone. */
     private static final int CLAIM_SWEEP_TICKS = 100;
@@ -159,8 +165,13 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final Set<BlockPos> pendingStations = new LinkedHashSet<>();
     /** Stations holding a stack that found no room; retried on zone and room changes and on a slow timer. */
     private final Set<BlockPos> blockedStations = new LinkedHashSet<>();
-    /** Stations that joined or whose warehouse changed; numbered while online once they are loaded. */
-    private final Set<BlockPos> stationsToNumber = new HashSet<>();
+    /** Members that are named machines: stations, garages and elevator segments. */
+    private final Set<BlockPos> namedMembers = new HashSet<>();
+    /** Named machines that joined or whose warehouse changed; numbered while online once they are loaded. */
+    private final Set<BlockPos> machinesToNumber = new HashSet<>();
+    /** The data line whose members were last queued for numbers, and its members revision then. */
+    private DataNetwork numberedLine;
+    private int numberedLineRevision;
     private int blockedRetry;
     /** Fluid Gantries, by their master's position. */
     private final Set<BlockPos> gantries = new LinkedHashSet<>();
@@ -242,7 +253,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         } else if (node.kind() == WarehouseConnectionRule.NodeKind.STATION) {
             stations.add(blockPos);
             pendingStations.add(blockPos);
-            stationsToNumber.add(blockPos);
         } else if (node instanceof ShuttleGarageBlockEntity garage) {
             garages.add(blockPos);
             fleet.adoptGarage(blockPos, garage.slots(), garage.isActive());
@@ -256,10 +266,14 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 shaftsDirty = true;
             }
         }
+        if (node instanceof NamedMachine) {
+            namedMembers.add(blockPos);
+            machinesToNumber.add(blockPos);
+        }
         if (node instanceof WarehouseControllerBlockEntity) {
             controllers++;
             controllerPos = blockPos;
-            stationsToNumber.addAll(stations);
+            renumberAll();
         }
         membershipChanged(node);
         restoreState(node, blockPos);
@@ -279,7 +293,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         stations.remove(blockPos);
         pendingStations.remove(blockPos);
         blockedStations.remove(blockPos);
-        stationsToNumber.remove(blockPos);
+        namedMembers.remove(blockPos);
+        machinesToNumber.remove(blockPos);
+        if (node instanceof ElevatorBlockEntity) {
+            machinesToNumber.addAll(namedMembers);
+        }
         zones.remove(blockPos);
         dropSource(blockPos);
         if (forGood && node instanceof HeavyRackBlockEntity) {
@@ -306,7 +324,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (blockPos.equals(controllerPos)) {
                 controllerPos = null;
             }
-            stationsToNumber.addAll(stations);
+            renumberAll();
         }
         membershipChanged(node);
     }
@@ -335,7 +353,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         shaftsDirty = true;
         stations.addAll(that.stations);
         pendingStations.addAll(that.stations);
-        stationsToNumber.addAll(stations);
+        namedMembers.addAll(that.namedMembers);
+        renumberAll();
         garages.addAll(that.garages);
         gantries.addAll(that.gantries);
         pendingGantries.addAll(that.gantries);
@@ -371,7 +390,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         held.clear();
         pendingStations.clear();
         blockedStations.clear();
-        stationsToNumber.clear();
+        namedMembers.clear();
+        machinesToNumber.clear();
+        numberedLine = null;
         zones.clear();
         dirtyQueue.clear();
         dirtySet.clear();
@@ -1280,8 +1301,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     /** The label of the station at the position, or a plain "Station" when it is not loaded. */
     public Component stationLabel(BlockPos pos) {
-        return loaded(pos) instanceof StationBlockEntity station ? station.label()
-                : Component.translatable("station.servus_shuttles.label.unloaded");
+        return MachineLabels.at(level, pos, Component.translatable("station.servus_shuttles.label.unloaded"));
     }
 
     public boolean removeStockRule(ItemKey key) {
@@ -1741,8 +1761,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             fleet.roomChanged();
         }
         tickStations();
-        if (!stationsToNumber.isEmpty()) {
-            numberStations();
+        if (!machinesToNumber.isEmpty()) {
+            numberMachines();
         }
         if (!pendingGantries.isEmpty()) {
             readGantries();
@@ -1754,6 +1774,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         rules.tick(level);
         if (++fieldTimer >= ShuttlesStatsManager.INSTANCE.fieldCheckInterval()) {
             fieldTimer = 0;
+            queueFieldAndLineMachines();
             tickFields();
         }
         if (++fluidTimer >= ShuttlesStatsManager.INSTANCE.fluidCheckInterval()) {
@@ -1810,28 +1831,83 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
+    /** Queues every named member and, at the next check, every named machine of the data line: the warehouse changed. */
+    private void renumberAll() {
+        machinesToNumber.addAll(namedMembers);
+        numberedLine = null;
+    }
+
     /**
-     * Gives every loaded station waiting for a number one from the controller, in
-     * position order so stations numbered together get stable numbers. Unloaded
-     * stations wait; nothing happens while the warehouse is offline.
+     * Gives every loaded named machine waiting for a number one from the controller,
+     * in position order so machines numbered together get stable numbers. Unloaded
+     * machines wait; nothing happens while the warehouse is offline.
      */
-    private void numberStations() {
+    private void numberMachines() {
         Optional<WarehouseControllerBlockEntity> found = controller();
         if (found.isEmpty()) {
             return;
         }
         WarehouseControllerBlockEntity controller = found.get();
-        List<BlockPos> waiting = new ArrayList<>(stationsToNumber);
-        waiting.sort(STATION_ORDER);
+        List<BlockPos> waiting = new ArrayList<>(machinesToNumber);
+        waiting.sort(NUMBER_ORDER);
         for (BlockPos pos : waiting) {
             if (!level.isLoaded(pos)) {
                 continue;
             }
-            stationsToNumber.remove(pos);
-            if (level.getBlockEntity(pos) instanceof StationBlockEntity station && station.needsNumber(controller.warehouseId())) {
-                station.assignNumber(controller.warehouseId(), controller.takeStationNumber(station.stationKind()));
+            machinesToNumber.remove(pos);
+            if (level.getBlockEntity(pos) instanceof NamedMachine machine && machine.needsNumber(controller.warehouseId())) {
+                machine.assignNumber(controller.warehouseId(), controller.takeNumber(machine.machineKind()));
             }
         }
+    }
+
+    /**
+     * Queues the named machines that belong to this warehouse without being on
+     * its rails: the Field Heads it serves that need a number from it, and the
+     * named machines of its data line once the line or its members changed.
+     */
+    private void queueFieldAndLineMachines() {
+        Optional<WarehouseControllerBlockEntity> controller = controller();
+        if (controller.isEmpty()) {
+            return;
+        }
+        for (FieldHeadBlockEntity head : servedHeads()) {
+            if (head.needsNumber(controller.get().warehouseId())) {
+                machinesToNumber.add(head.getBlockPos());
+            }
+        }
+        Optional<DataNetwork> line = CpuOrders.network(level, this);
+        if (line.isEmpty() || line.get() == numberedLine && line.get().membersRevision() == numberedLineRevision) {
+            return;
+        }
+        numberedLine = line.get();
+        numberedLineRevision = numberedLine.membersRevision();
+        for (DataMember member : numberedLine.dataMembers()) {
+            BlockPos pos = member.pos();
+            if (!level.isLoaded(pos)) {
+                continue;
+            }
+            CpuBlockEntity cpu = CpuBlock.master(level, pos);
+            if (cpu != null) {
+                machinesToNumber.add(cpu.getBlockPos());
+                continue;
+            }
+            MachineLabels.machineAt(level, pos).map(machine -> machine.nameSlot().pos())
+                    .filter(this::numberedThroughLine)
+                    .ifPresent(machinesToNumber::add);
+        }
+    }
+
+    /**
+     * Whether this warehouse numbers the named machine there through its data line: anything
+     * but a rail member of another warehouse with a controller, so a Packing Station on two
+     * warehouses' lines keeps the number of the one whose rails it joins.
+     */
+    private boolean numberedThroughLine(BlockPos pos) {
+        if (!(level.getBlockEntity(pos) instanceof StorageNodeBlockEntity node)) {
+            return true;
+        }
+        return node.network().filter(other -> other != this && other.controllerPos().isPresent()).isEmpty();
     }
 
     private void tickStations() {

@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.menu;
 
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
@@ -54,7 +56,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
  * {@link #setAmount(Player, BlockPos, FieldAmount, long)}, the
  * rest through menu buttons.
  */
-public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu {
+public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu, MachineNameMenu {
 
     public static final int PICKER_X = 8;
     public static final int PICKER_Y = 17;
@@ -723,6 +725,11 @@ public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu {
         }
         QuickMoves.settle(slot, stack);
         return stack.getCount() == before.getCount() ? ItemStack.EMPTY : before;
+    }
+
+    @Override
+    public Optional<NamedMachine> namedMachine() {
+        return Optional.ofNullable(head);
     }
 
     @Override

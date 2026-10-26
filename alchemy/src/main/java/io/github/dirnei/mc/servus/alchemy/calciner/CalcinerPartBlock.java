@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.alchemy.PlayerItems;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachinePart;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -32,7 +33,13 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
 
 /** One custom part of the Calciner structure: the Firebox, Ash Pan, Alembic, Receiver or Sulfur Hood. */
-public class CalcinerPartBlock extends Block implements Wrenchable {
+public class CalcinerPartBlock extends Block implements Wrenchable, NamedMachinePart {
+
+    /** A formed part stands for its Calciner. */
+    @Override
+    public @Nullable BlockPos namedMachinePos(Level level, BlockPos pos, BlockState state) {
+        return CalcinerStructure.controllerOf(state, pos).orElse(null);
+    }
 
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty FORMED = BooleanProperty.create("formed");

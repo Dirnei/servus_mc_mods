@@ -2,6 +2,9 @@ package io.github.dirnei.mc.servus.foundation.adapter;
 
 import io.github.dirnei.mc.servus.foundation.logistics.menu.GhostSlot;
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameMenu;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -18,7 +21,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
  * The adapter's upkeep GUI: a ghost slot for the upkeep item, the level with
  * minus and plus buttons, the count in the machine, and the player inventory.
  */
-public class AdapterMenu extends AbstractContainerMenu {
+public class AdapterMenu extends AbstractContainerMenu implements MachineNameMenu {
 
     public static final int GHOST_X = 8;
     public static final int GHOST_Y = 40;
@@ -72,6 +75,11 @@ public class AdapterMenu extends AbstractContainerMenu {
 
     public MachineAdapterBlockEntity adapter() {
         return adapter;
+    }
+
+    @Override
+    public Optional<NamedMachine> namedMachine() {
+        return Optional.of(adapter);
     }
 
     public int level() {

@@ -1,9 +1,11 @@
 package io.github.dirnei.mc.servus.alchemy;
 
+import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyMachineKinds;
 import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.gametest.AlchemyGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.CalcinerGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.CoagulatorGameTests;
+import io.github.dirnei.mc.servus.alchemy.gametest.MachineNameGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.GameTestRecipes;
 import io.github.dirnei.mc.servus.alchemy.gametest.DropperGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.ForgeGameTests;
@@ -47,6 +49,7 @@ public final class ServusAlchemy {
         JournalTasksPage.register();
         CalcinationTablePage.register();
         ServusAlchemyBlocks.BLOCKS.register(modEventBus);
+        ServusAlchemyMachineKinds.register();
         PrincipleFluids.register(modEventBus);
         ElementalSight.register(modEventBus);
         ServusAlchemyEntities.ENTITIES.register(modEventBus);
@@ -60,7 +63,8 @@ public final class ServusAlchemy {
         ServusGameTests.register(modEventBus, ServusAlchemyIds.MOD_ID, List.of(
                 AlchemyGameTests.class, CalcinerGameTests.class, PurifierGameTests.class, CoagulatorGameTests.class, HollowGameTests.class,
                 DropperGameTests.class, SalamanderGameTests.class, ForgeGameTests.class,
-                HomunculusGameTests.class, PrelumGameTests.class, HintGameTests.class, GnomeGameTests.class, RitualGameTests.class));
+                HomunculusGameTests.class, PrelumGameTests.class, HintGameTests.class, GnomeGameTests.class, RitualGameTests.class,
+                MachineNameGameTests.class));
         GameTestRecipes.registerWhenTesting();
         ServusRecipes.syncToClients(ServusAlchemyRecipes.CALCINATION);
         ServusRecipes.syncToClients(ServusAlchemyRecipes.COAGULATION);

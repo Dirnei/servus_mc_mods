@@ -225,6 +225,12 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("vein.servus_alchemy.emerald", "Emerald");
         add(ServusAlchemyBlocks.PRINCIPLE_DROPPER.get(), "Principle Dropper");
         add(ServusAlchemyBlocks.SALAMANDER_FORGE.get(), "Salamander Forge");
+        add("machine.servus_alchemy.salamander_forge", "Salamander Forge #%s");
+        add("machine.servus_alchemy.receptaculum", "Receptaculum #%s");
+        add("machine.servus_alchemy.prelum", "Prelum #%s");
+        add("machine.servus_alchemy.coagulator", "Coagulator #%s");
+        add("machine.servus_alchemy.athanor", "Athanor #%s");
+        add("machine.servus_alchemy.calciner", "Calciner #%s");
         add(ServusAlchemyBlocks.RECEPTACULUM.get(), "Receptaculum");
         add(ServusAlchemyBlocks.VAS_HERMETICUM.get(), "Vas Hermeticum");
         add(ServusAlchemyItems.SEALED_FLASK.get(), "Sealed Flask");

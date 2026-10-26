@@ -2,7 +2,10 @@ package io.github.dirnei.mc.servus.foundation.machine.pump;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.BurnerMachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.FoundationMachineKinds;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.naming.MachineNameSlot;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.menu.BurnerPumpMenu;
@@ -20,7 +23,7 @@ import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 /** Burns furnace fuel and pumps water while it stands on an infinite water source. */
-public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements PumpMachine, BeamPumpEngine {
+public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements PumpMachine, BeamPumpEngine, NamedMachine {
 
     public static final int SLOT_FUEL = 0;
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "burner_pump");
@@ -28,6 +31,12 @@ public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements P
 
     private final PumpLogic pump = new PumpLogic(DEFAULTS.fluidCapacity(), this::setChanged);
     private final StrokeClock strokeClock = new StrokeClock();
+    private final MachineNameSlot nameSlot = new MachineNameSlot(this, FoundationMachineKinds.BURNER_PUMP);
+
+    @Override
+    public MachineNameSlot nameSlot() {
+        return nameSlot;
+    }
 
     public BurnerPumpBlockEntity(BlockPos pos, BlockState state) {
         super(MachineContent.BURNER_PUMP_ENTITY.get(), pos, state, 1);

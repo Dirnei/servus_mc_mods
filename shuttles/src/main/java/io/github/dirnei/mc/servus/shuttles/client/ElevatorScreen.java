@@ -1,14 +1,14 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
+import io.github.dirnei.mc.servus.foundation.client.NamedMachineScreen;
 import io.github.dirnei.mc.servus.shuttles.menu.ElevatorMenu;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout.Rect;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
 /** The shaft's Speed upgrade row with a label, and the player inventory. */
-public class ElevatorScreen extends AbstractContainerScreen<ElevatorMenu> {
+public class ElevatorScreen extends NamedMachineScreen<ElevatorMenu> {
 
     private static final int COLOUR_TEXT = 0xFF404040;
     private static final int WIDTH = 176;

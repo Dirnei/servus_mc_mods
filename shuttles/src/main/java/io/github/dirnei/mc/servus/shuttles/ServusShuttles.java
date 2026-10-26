@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMachineKinds;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesRecipes;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesSounds;
@@ -37,6 +38,7 @@ public final class ServusShuttles {
         ServusShuttlesRecipes.RECIPE_SERIALIZERS.register(modEventBus);
         ServusShuttlesSounds.SOUNDS.register(modEventBus);
         NetworkTypes.register(WarehouseNetwork.TYPE);
+        ServusShuttlesMachineKinds.register();
         for (var block : List.of(ServusShuttlesBlocks.CRAFTING_CPU, ServusShuttlesBlocks.CPU_BUFFER, ServusShuttlesBlocks.PACKING_STATION,
                 ServusShuttlesBlocks.INBOUND_STATION, ServusShuttlesBlocks.OUTBOUND_STATION, ServusShuttlesBlocks.STORAGE_TERMINAL,
                 ServusShuttlesBlocks.PRODUCTION_TERMINAL, ServusShuttlesBlocks.PATTERN_STORAGE, ServusShuttlesBlocks.CRAFTING_STATION,
