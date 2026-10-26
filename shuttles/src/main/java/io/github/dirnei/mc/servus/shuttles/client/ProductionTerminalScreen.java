@@ -706,6 +706,9 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             for (AnyGroup group : row.any()) {
                 list.add(PatternGridClient.anyLabel(group));
             }
+            for (AnyGroup follows : row.follows()) {
+                list.add(PatternGridClient.followsLine(follows));
+            }
             list.add(Component.translatable("gui.servus_shuttles.production.pattern_storage_at", row.storage().toShortString(), row.slot() + 1));
             list.add(Component.translatable("gui.servus_shuttles.production.pattern_edit_hint"));
             return list;

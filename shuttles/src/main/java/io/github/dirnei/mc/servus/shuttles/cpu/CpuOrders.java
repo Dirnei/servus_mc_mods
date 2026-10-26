@@ -134,17 +134,27 @@ public final class CpuOrders {
         return choose(level, network).map(cpu -> cpu.book().preview(key, amount)).orElseGet(() -> OrderBook.Preview.refused("no_cpu"));
     }
 
-    /** What an order crafting the pattern's result with that pattern only would take from stock, craft and miss. */
+    /**
+     * What an order crafting the pattern's result with that pattern only would
+     * take from stock, craft and miss; a material Any pattern makes the
+     * variant whose items the stock holds most of.
+     */
     public static OrderBook.Preview previewOneOff(ServerLevel level, DataNetwork network, EncodedPattern pattern, int amount) {
-        return choose(level, network).map(cpu -> cpu.book().preview(ItemKey.of(pattern.result()), amount, pattern))
+        return choose(level, network).map(cpu -> cpu.book().preview(oneOffKey(level, pattern), amount, pattern))
                 .orElseGet(() -> OrderBook.Preview.refused("no_cpu"));
     }
 
-    /** Makes an order crafting the pattern's result with that pattern only, saved on the line or not. */
+    /** Makes an order crafting the pattern's result with that pattern only, saved on the line or not, as {@link #previewOneOff} plans it. */
     public static Placed createOneOff(ServerLevel level, DataNetwork network, EncodedPattern pattern, int amount, int requestId) {
         return choose(level, network)
-                .map(cpu -> new Placed(cpu.book().create(ItemKey.of(pattern.result()), amount, requestId, pattern), cpu.getBlockPos()))
+                .map(cpu -> new Placed(cpu.book().create(oneOffKey(level, pattern), amount, requestId, pattern), cpu.getBlockPos()))
                 .orElseGet(CpuOrders::noCpu);
+    }
+
+    /** What a one-off order asks for: the result, or for a material Any pattern the result without its material. */
+    private static ItemKey oneOffKey(ServerLevel level, EncodedPattern pattern) {
+        PatternLibrary.Entry entry = PatternLibrary.Entry.unsaved(level, pattern);
+        return entry.material() ? entry.genericKey() : ItemKey.of(pattern.result());
     }
 
     /** The CPU of the line that {@link CpuChoice} picks for a new order. */

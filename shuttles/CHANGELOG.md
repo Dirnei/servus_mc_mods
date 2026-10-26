@@ -12,6 +12,7 @@
 - Stock rules can refuse an item at Inbound Stations above a cap: hoppers, pipes and Pull sides deliver only up to it and the rest stays with the sender. The rule names the station that refused.
 - Stock rules can export the surplus above a threshold: an Outbound Station claims the export in an empty keep slot and ships what is over it, and items that arrive above the threshold go straight to the station instead of into the racks.
 - Scrollbars on the Production Terminal lists and the Warehouse Controller's site list.
+- Heavy Duty Rack and Elevator patterns can be Any too, the material following the inputs: JEI's + gives an Any rack pattern, the Storage Terminal lists one rack that crafts from the most stocked planks, and a request for spruce racks uses or crafts spruce planks.
 
 ### Changed
 - The Lumber shuttle carries a closed hold; at a tree its doors and walls fold open and a harvester crane rises out of it, grips the trunk with rollers and knives, cuts it with a chainsaw you can hear, and folds away again before it drives on.

@@ -88,16 +88,23 @@ public final class VariantChoice<K> {
 
     /** The items per cell to craft with from this stock. */
     public List<K> pick(Map<K, ? extends Number> stock) {
+        List<K> perGroup = new ArrayList<>(groups.size());
+        for (List<K> group : groups) {
+            K best = mostStocked(group, stock);
+            perGroup.add(best);
+        }
+        return cells(perGroup);
+    }
+
+    /**
+     * The items per cell when each group takes the given item, one per group
+     * in {@link #groups()} order; a {@code null} keeps the group's cells as they are.
+     */
+    public List<K> cells(List<K> perGroup) {
         List<K> chosen = new ArrayList<>(own);
-        for (int group = 0; group < groups.size(); group++) {
-            K best = mostStocked(groups.get(group), stock);
-            if (best == null) {
-                continue;
-            }
-            for (int cell = 0; cell < groupOf.length; cell++) {
-                if (groupOf[cell] == group) {
-                    chosen.set(cell, best);
-                }
+        for (int cell = 0; cell < groupOf.length; cell++) {
+            if (groupOf[cell] >= 0 && perGroup.get(groupOf[cell]) != null) {
+                chosen.set(cell, perGroup.get(groupOf[cell]));
             }
         }
         return chosen;

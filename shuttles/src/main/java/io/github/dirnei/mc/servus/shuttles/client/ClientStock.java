@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
+import io.github.dirnei.mc.servus.shuttles.pattern.AnyGroup;
+import io.github.dirnei.mc.servus.shuttles.terminal.MaterialCraftable;
 import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.shuttles.site.RemoteSite;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewPayload;
@@ -158,6 +160,18 @@ public final class ClientStock {
             }
         }
         return false;
+    }
+
+    /** What the material of a material pattern's craftable entry follows, or null for any other stack. */
+    public static AnyGroup follows(ItemStack stack) {
+        if (shown != null) {
+            for (MaterialCraftable material : shown.materials()) {
+                if (ItemStack.isSameItemSameComponents(material.generic(), stack)) {
+                    return material.follows();
+                }
+            }
+        }
+        return null;
     }
 
     /** The rule for a stack, or null. */

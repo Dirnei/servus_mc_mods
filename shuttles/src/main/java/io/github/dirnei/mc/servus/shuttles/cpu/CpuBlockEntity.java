@@ -497,6 +497,16 @@ public class CpuBlockEntity extends DataLineBlockEntity implements DataLink {
         }
 
         @Override
+        public ItemKey resolve(ItemKey key, Map<ItemKey, Long> available, EncodedPattern oneOff) {
+            List<PatternLibrary.Entry> entries = new ArrayList<>(dataNetwork().map(network -> PatternLibrary.entries(serverLevel(), network))
+                    .orElse(List.of()));
+            if (oneOff != null) {
+                entries.add(PatternLibrary.Entry.unsaved(serverLevel(), oneOff));
+            }
+            return PatternLibrary.resolveGeneric(serverLevel(), entries, key, available);
+        }
+
+        @Override
         public Map<ItemKey, Long> stock() {
             Map<ItemKey, Long> stock = new HashMap<>();
             warehouse().ifPresent(warehouse -> {

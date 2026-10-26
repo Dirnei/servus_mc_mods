@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import java.util.List;
@@ -39,6 +40,49 @@ public final class PatternLibrary {
         public EncodedPattern variant(Level level, Map<ItemKey, ? extends Number> stock) {
             return variants.variant(level, pattern, stock);
         }
+
+        /** Every variant the planner may use, see {@link PatternVariants#variants}. */
+        public List<EncodedPattern> variants(Level level, Map<ItemKey, ? extends Number> stock, Collection<ItemKey> made) {
+            return variants.variants(level, pattern, stock, made);
+        }
+
+        /** Whether this is an Any pattern whose result follows its items. */
+        public boolean material() {
+            return pattern.any() && variants.material();
+        }
+
+        /** The result without its material, which a generic order asks for. */
+        public ItemKey genericKey() {
+            return ItemKey.of(variants.genericResult());
+        }
+    }
+
+    /**
+     * The variant a generic order makes: when {@code key} is the result
+     * without its material of a material pattern, the result of that
+     * pattern's variant from the items the stock holds most of; with several
+     * such patterns the one whose variant's items are stocked most. Else the
+     * key itself.
+     */
+    public static ItemKey resolveGeneric(Level level, List<Entry> entries, ItemKey key, Map<ItemKey, ? extends Number> stock) {
+        ItemKey best = key;
+        long bestStock = -1;
+        for (Entry entry : entries) {
+            if (!entry.material() || !entry.genericKey().equals(key)) {
+                continue;
+            }
+            EncodedPattern variant = entry.variant(level, stock);
+            long stocked = 0;
+            for (ItemKey input : variant.required().keySet()) {
+                Number held = stock.get(input);
+                stocked += held == null ? 0 : held.longValue();
+            }
+            if (stocked > bestStock) {
+                best = ItemKey.of(variant.result());
+                bestStock = stocked;
+            }
+        }
+        return best;
     }
 
     /** An empty pattern slot. */

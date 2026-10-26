@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.client.GreyOut;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.client.TerminalCells.Cell;
 import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
+import io.github.dirnei.mc.servus.shuttles.pattern.AnyGroup;
 import io.github.dirnei.mc.servus.shuttles.site.RemoteSite;
 import io.github.dirnei.mc.servus.shuttles.terminal.CancelRequestPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewPayload;
@@ -428,7 +429,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     /** Follows the result of the order grid's cells. */
     private void followResult() {
-        ItemStack result = grid.result();
+        ItemStack result = grid.ownResult();
         if (dialog == Dialog.ORDER && !ItemStack.matches(result, lastResult)) {
             lastResult = result.copy();
             applyDialog();
@@ -870,6 +871,10 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         } else {
             lines.add(Component.translatable("gui.servus_shuttles.terminal.craft_hint"));
         }
+        AnyGroup follows = ClientStock.follows(cell.stack());
+        if (follows != null) {
+            lines.add(PatternGridClient.followsLine(follows));
+        }
         return lines;
     }
 
@@ -1073,8 +1078,21 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
         if (!item.isEmpty()) {
             Rect at = Storage.CRAFT_ITEM;
-            renderItem(graphics, item.copyWithCount(craftedCount(preview, item)), at.x(), at.y(), mouseX, mouseY);
+            ItemStack made = madeVariant(preview, item);
+            renderItem(graphics, made.copyWithCount(craftedCount(preview, made)), at.x(), at.y(), mouseX, mouseY);
         }
+    }
+
+    /** The stack the order makes: the preview's To craft entry of the item, which names a material variant, else the item. */
+    private static ItemStack madeVariant(CraftPreviewPayload preview, ItemStack item) {
+        if (preview != null) {
+            for (StockEntry entry : preview.toCraft()) {
+                if (ItemStack.isSameItem(entry.stack(), item)) {
+                    return entry.stack();
+                }
+            }
+        }
+        return item;
     }
 
     private void renderDialogWidgets(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {

@@ -410,6 +410,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.pattern_grid.mode.changes_result", "The result changes with the items this recipe accepts");
         add("gui.servus_shuttles.pattern_grid.mode.no_alternatives", "These cells take no other items");
         add("gui.servus_shuttles.pattern.any_tag", "Any %s");
+        add("gui.servus_shuttles.pattern.follows", "Material follows: %s");
         add("gui.servus_shuttles.pattern.any_items", "Any of %s");
         add("gui.servus_shuttles.pattern.any_more", "%s and %s more");
         add("tag.item.minecraft.planks", "Planks");

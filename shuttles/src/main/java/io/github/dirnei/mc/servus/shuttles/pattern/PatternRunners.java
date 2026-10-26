@@ -4,8 +4,10 @@ import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.shuttles.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
@@ -27,7 +29,10 @@ public final class PatternRunners {
     /**
      * The producer's reported recipes plus one recipe per pattern it can run
      * that it does not report already with the same id and inputs. An Any
-     * pattern takes the accepted items the stock holds most of.
+     * pattern takes the accepted items the stock holds most of; a material
+     * pattern adds one recipe per variant. Material patterns are expanded
+     * twice, the second time also with what the first made, so a Rail made by
+     * a material pattern counts for the Elevator's Rail cell.
      *
      * @param stock what the planner may take, per item
      */
@@ -37,20 +42,47 @@ public final class PatternRunners {
             // Only stations run patterns; the provider's own list stays the same instance for caches.
             return reported;
         }
-        List<ProductionRecipe> recipes = new ArrayList<>(reported);
         int ticks = station.workTicks();
         for (ProductionRecipe recipe : reported) {
             ticks = Math.max(ticks, recipe.ticks());
         }
         ticks = Math.max(1, ticks);
+        List<EncodedPattern> plain = new ArrayList<>();
+        Set<ItemKey> made = new HashSet<>();
+        for (ProductionRecipe recipe : reported) {
+            recipe.outputs().forEach(output -> made.add(ItemKey.of(output)));
+        }
         for (PatternLibrary.Entry entry : patterns) {
-            EncodedPattern pattern = entry.variant(level, stock);
+            if (!entry.material()) {
+                EncodedPattern pattern = entry.variant(level, stock);
+                plain.add(pattern);
+                made.add(ItemKey.of(pattern.result()));
+            }
+        }
+        for (EncodedPattern pattern : materialVariants(level, patterns, stock, made)) {
+            made.add(ItemKey.of(pattern.result()));
+        }
+        List<EncodedPattern> runnable = new ArrayList<>(plain);
+        runnable.addAll(materialVariants(level, patterns, stock, made));
+        List<ProductionRecipe> recipes = new ArrayList<>(reported);
+        for (EncodedPattern pattern : runnable) {
             if (!canRun(level, producer, pattern) || reports(recipes, pattern)) {
                 continue;
             }
             recipes.add(new ProductionRecipe(pattern.recipe(), pattern.inputs(), List.of(pattern.result()), ticks));
         }
         return recipes;
+    }
+
+    private static List<EncodedPattern> materialVariants(ServerLevel level, List<PatternLibrary.Entry> patterns, Map<ItemKey, Long> stock,
+                                                         Set<ItemKey> made) {
+        List<EncodedPattern> variants = new ArrayList<>();
+        for (PatternLibrary.Entry entry : patterns) {
+            if (entry.material()) {
+                variants.addAll(entry.variants(level, stock, made));
+            }
+        }
+        return variants;
     }
 
     private static boolean reports(List<ProductionRecipe> recipes, EncodedPattern pattern) {

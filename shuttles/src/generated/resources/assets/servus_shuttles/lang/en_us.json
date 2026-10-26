@@ -276,6 +276,7 @@
   "gui.servus_shuttles.pattern.any_items": "Any of %s",
   "gui.servus_shuttles.pattern.any_more": "%s and %s more",
   "gui.servus_shuttles.pattern.any_tag": "Any %s",
+  "gui.servus_shuttles.pattern.follows": "Material follows: %s",
   "gui.servus_shuttles.pattern_grid.mode.any": "Any",
   "gui.servus_shuttles.pattern_grid.mode.any_hint": "The CPU crafts with whichever accepted item the warehouse holds most of",
   "gui.servus_shuttles.pattern_grid.mode.changes_result": "The result changes with the items this recipe accepts",

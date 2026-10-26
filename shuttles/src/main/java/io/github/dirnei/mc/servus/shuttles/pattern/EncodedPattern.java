@@ -136,6 +136,11 @@ public record EncodedPattern(Identifier recipe, List<ItemStack> template, ItemSt
         return new EncodedPattern(recipe, cells, result, mode);
     }
 
+    /** This pattern with another result, as a material variant makes it. */
+    public EncodedPattern withResult(ItemStack other) {
+        return new EncodedPattern(recipe, template, other, mode);
+    }
+
     /** The template's cells as keys, {@code null} for empty cells. */
     public List<ItemKey> keys() {
         List<ItemKey> keys = new ArrayList<>(GRID);
@@ -164,13 +169,15 @@ public record EncodedPattern(Identifier recipe, List<ItemStack> template, ItemSt
 
     /**
      * Whether a line holding both would hold the same work twice: the same
-     * recipe with the same items, or two Any patterns of one recipe and result.
+     * recipe with the same items, or two Any patterns of one recipe whose
+     * results are the same item in the same count, whatever their material.
      */
     public boolean duplicates(EncodedPattern other) {
         if (sameWork(other.recipe, other.keys())) {
             return true;
         }
-        return any() && other.any() && recipe.equals(other.recipe) && sameResult(other.result);
+        return any() && other.any() && recipe.equals(other.recipe) && ItemStack.isSameItem(result, other.result)
+                && result.getCount() == other.result.getCount();
     }
 
     /** Whether the stack is this pattern's result: same item, components and count. */

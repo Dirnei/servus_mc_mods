@@ -44,6 +44,15 @@ public final class OrderBook {
         /** Every item the warehouses of the line hold that no pick has locked, with its count. */
         Map<ItemKey, Long> stock();
 
+        /**
+         * The item an order for {@code key} makes: for the result without its
+         * material of a material pattern of the line or of {@code oneOff}, the
+         * variant {@code available} holds the items of most; else the key.
+         */
+        default ItemKey resolve(ItemKey key, Map<ItemKey, Long> available, EncodedPattern oneOff) {
+            return key;
+        }
+
         /** Stock reserved by the other CPUs of the line, per key. */
         Map<ItemKey, Integer> reservedElsewhere();
 
@@ -118,11 +127,12 @@ public final class OrderBook {
      * @param toCraft   what its steps make, per key
      * @param missing   raw material it cannot get, per key
      * @param refusal   {@code no_cpu} or {@code no_producer} when no order can be planned, else empty
+     * @param made      the item the order makes: the asked key, or the variant a generic key resolves to; null when refused
      */
     public record Preview(Map<ItemKey, Integer> fromStock, Map<ItemKey, Integer> toCraft, Map<ItemKey, Integer> missing,
-                          String refusal) {
+                          String refusal, ItemKey made) {
         public static Preview refused(String refusal) {
-            return new Preview(Map.of(), Map.of(), Map.of(), refusal);
+            return new Preview(Map.of(), Map.of(), Map.of(), refusal, null);
         }
 
         /** Whether an order can start right away: planned, with nothing missing. */
@@ -241,9 +251,11 @@ public final class OrderBook {
      * Plans and creates an order whose item is made only by {@code oneOff}
      * when given: a pattern the order keeps, saved on the line or not.
      */
-    public Created create(ItemKey key, int amount, int requestId, EncodedPattern oneOff) {
+    public Created create(ItemKey asked, int amount, int requestId, EncodedPattern oneOff) {
         Map<StepKey, ProductionRecipe> byKey = new HashMap<>();
-        OrderPlanner.Plan<ItemKey> plan = plan(key, amount, byKey, oneOff);
+        Planned planned = plan(asked, amount, byKey, oneOff);
+        OrderPlanner.Plan<ItemKey> plan = planned.plan();
+        ItemKey key = planned.key();
         if (plan.steps().isEmpty()) {
             return new Created(null, plan.missing().containsKey(key) ? "no_producer" : "in_stock");
         }
@@ -276,8 +288,10 @@ public final class OrderBook {
     }
 
     /** What an order made only by {@code oneOff}, when given, would do. */
-    public Preview preview(ItemKey key, int amount, EncodedPattern oneOff) {
-        OrderPlanner.Plan<ItemKey> plan = plan(key, amount, new HashMap<>(), oneOff);
+    public Preview preview(ItemKey asked, int amount, EncodedPattern oneOff) {
+        Planned planned = plan(asked, amount, new HashMap<>(), oneOff);
+        OrderPlanner.Plan<ItemKey> plan = planned.plan();
+        ItemKey key = planned.key();
         if (plan.steps().isEmpty() && plan.missing().containsKey(key)) {
             return Preview.refused("no_producer");
         }
@@ -285,17 +299,25 @@ public final class OrderBook {
         for (OrderPlanner.Step<ItemKey> step : plan.steps()) {
             step.recipe().outputs().forEach((output, count) -> toCraft.merge(output, count * step.batches(), Integer::sum));
         }
-        return new Preview(new LinkedHashMap<>(plan.reserved()), toCraft, new LinkedHashMap<>(plan.missing()), "");
+        return new Preview(new LinkedHashMap<>(plan.reserved()), toCraft, new LinkedHashMap<>(plan.missing()), "", key);
     }
 
-    /** Plans the amount from the line's stock minus every reservation; stock of the item itself does not count. */
-    private OrderPlanner.Plan<ItemKey> plan(ItemKey key, int amount, Map<StepKey, ProductionRecipe> byKey, EncodedPattern oneOff) {
+    /** A plan and the key it makes. */
+    private record Planned(ItemKey key, OrderPlanner.Plan<ItemKey> plan) {
+    }
+
+    /**
+     * Plans the amount from the line's stock minus every reservation, for
+     * the key a generic key resolves to; stock of the item itself does not count.
+     */
+    private Planned plan(ItemKey asked, int amount, Map<StepKey, ProductionRecipe> byKey, EncodedPattern oneOff) {
         Map<ItemKey, Long> available = new HashMap<>(host.stock());
         reservedTotal().forEach((k, reserved) -> available.merge(k, (long) -reserved, Long::sum));
         host.reservedElsewhere().forEach((k, reserved) -> available.merge(k, (long) -reserved, Long::sum));
+        ItemKey key = host.resolve(asked, available, oneOff);
         available.remove(key);
         List<OrderPlanner.Recipe<ItemKey>> recipes = recipes(byKey, oneOff, key, available);
-        return OrderPlanner.plan(key, amount, available, recipes, MAX_DEPTH);
+        return new Planned(key, OrderPlanner.plan(key, amount, available, recipes, MAX_DEPTH));
     }
 
     /**
@@ -341,14 +363,16 @@ public final class OrderBook {
 
     /**
      * Whether the recipe is the pattern's work: the same recipe with the same
-     * inputs, or for an Any pattern the same recipe with the same result.
+     * inputs, or for an Any pattern the same recipe making the same item in
+     * the same count, whatever material a variant gives it.
      */
     private static boolean runs(ProductionRecipe recipe, EncodedPattern pattern) {
         if (!recipe.id().equals(pattern.recipe())) {
             return false;
         }
         if (pattern.any()) {
-            return recipe.outputs().size() == 1 && pattern.sameResult(recipe.outputs().get(0));
+            return recipe.outputs().size() == 1 && ItemStack.isSameItem(recipe.outputs().get(0), pattern.result())
+                    && recipe.outputs().get(0).getCount() == pattern.result().getCount();
         }
         return ItemKey.counts(recipe.inputs()).equals(pattern.required());
     }

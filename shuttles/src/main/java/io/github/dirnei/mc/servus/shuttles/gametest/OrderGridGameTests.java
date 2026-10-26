@@ -291,6 +291,34 @@ public final class OrderGridGameTests {
         });
     }
 
+    /** An Any one-off rack order makes the wood the warehouse holds most of, and its request names that wood. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void oneOffAnyRackTakesMostStockedWood(GameTestHelper helper) {
+        StationHandsGameTests.setup(helper, 5);
+        WarehouseFixtures.stock(helper, EXTRA, new ItemStack(Items.IRON_INGOT, 16), new ItemStack(Items.BIRCH_PLANKS, 40));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = menu(helper, player);
+        Waits.when(helper, () -> stocked(helper, menu) && TerminalWiring.stockOf(menu, Items.BIRCH_PLANKS) == 40, 160,
+                () -> "stations, CPU and birch planks should be on the line", () -> {
+            List<ItemStack> oak = MaterialPatternGameTests.rackGrid(Items.OAK_PLANKS);
+            for (int cell = 0; cell < oak.size(); cell++) {
+                menu.setGhost(cell, oak.get(cell));
+            }
+            helper.assertTrue(menu.mode() == EncodedPattern.Mode.ANY, "the rack grid starts as Any");
+            ItemStack birchRack = PatternEditing.encode(helper.getLevel(), MaterialPatternGameTests.rackGrid(Items.BIRCH_PLANKS))
+                    .orElseThrow().result();
+            CraftPreviewPayload preview = menu.preview(ItemStack.EMPTY, 3, CraftPreviewRequestPayload.Mode.ORDER);
+            helper.assertTrue(preview.toCraft().stream().anyMatch(entry -> ItemStack.isSameItemSameComponents(entry.stack(), birchRack))
+                            && fromStock(preview, Items.BIRCH_PLANKS) == 3 && preview.startable(),
+                    "To craft lists birch racks from birch planks, got " + preview);
+            menu.startOrder(3);
+            helper.assertTrue(menu.stock().requests().size() == 1
+                            && ItemStack.isSameItemSameComponents(menu.stock().requests().get(0).stack(), birchRack),
+                    "the request names birch racks, got " + menu.stock().requests() + " message " + menu.stock().message());
+            helper.succeed();
+        });
+    }
+
     /** An Exact one-off order needs exactly its planks; the same grid as Any takes the stocked ones. */
     @ServusGameTest(timeoutTicks = 200)
     public static void oneOffExactWaitsForBirch(GameTestHelper helper) {

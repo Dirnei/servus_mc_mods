@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.order.OrderBook;
+import io.github.dirnei.mc.servus.shuttles.pattern.PatternLibrary;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -24,8 +25,8 @@ import net.minecraft.world.item.ItemStack;
 /** What the producers on a terminal's data line can make, for the stock grid and the craft dialog. Server thread only. */
 public final class TerminalCraftables {
 
-    /** The last craftable list per data line and the producer signature it was built from. */
-    private record Cached(List<Long> key, List<ItemStack> items) {
+    /** The last craftable list and material entries per data line, and the producer signature they were built from. */
+    private record Cached(List<Long> key, List<ItemStack> items, List<MaterialCraftable> materials) {
     }
 
     /** Recipe lists longer than this are compared by identity; their providers cache them. */
@@ -47,29 +48,53 @@ public final class TerminalCraftables {
         return DataNetworks.networkAt(level, terminal);
     }
 
-    /** One item of every runnable recipe's first output on the terminal's line, sorted by name, at most {@code limit}. */
+    /**
+     * One item of every runnable recipe's first output on the terminal's
+     * line, sorted by name, at most {@code limit}. A material Any pattern is
+     * listed once, as its item without the material, instead of its variants.
+     */
     public static List<ItemStack> of(ServerLevel level, BlockPos terminal, int limit) {
-        Optional<DataNetwork> line = line(level, terminal);
-        if (line.isEmpty()) {
-            return List.of();
-        }
-        List<OrderBook.Producer> producers = CpuOrders.producers(level, line.get());
-        List<Long> key = signature(producers);
-        Cached cached = CACHE.get(line.get());
-        if (cached == null || !cached.key().equals(key)) {
-            cached = new Cached(key, build(producers));
-            CACHE.put(line.get(), cached);
-        }
-        List<ItemStack> list = cached.items();
+        List<ItemStack> list = cached(level, terminal).map(Cached::items).orElse(List.of());
         return list.size() > limit ? list.subList(0, limit) : list;
     }
 
-    private static List<ItemStack> build(List<OrderBook.Producer> producers) {
+    /** The material Any patterns' entries of the terminal's line, for their tooltip. */
+    public static List<MaterialCraftable> materials(ServerLevel level, BlockPos terminal) {
+        return cached(level, terminal).map(Cached::materials).orElse(List.of());
+    }
+
+    private static Optional<Cached> cached(ServerLevel level, BlockPos terminal) {
+        Optional<DataNetwork> line = line(level, terminal);
+        if (line.isEmpty()) {
+            return Optional.empty();
+        }
+        List<OrderBook.Producer> producers = CpuOrders.producers(level, line.get());
+        List<PatternLibrary.Entry> materials = PatternLibrary.entries(level, line.get()).stream().filter(PatternLibrary.Entry::material).toList();
+        List<Long> key = signature(producers);
+        for (PatternLibrary.Entry entry : materials) {
+            key.add((long) entry.genericKey().hashCode());
+        }
+        Cached cached = CACHE.get(line.get());
+        if (cached == null || !cached.key().equals(key)) {
+            cached = build(key, producers, materials);
+            CACHE.put(line.get(), cached);
+        }
+        return Optional.of(cached);
+    }
+
+    private static Cached build(List<Long> key, List<OrderBook.Producer> producers, List<PatternLibrary.Entry> materials) {
         builds++;
         Map<ItemKey, ItemStack> found = new LinkedHashMap<>();
+        List<MaterialCraftable> entries = new ArrayList<>();
+        for (PatternLibrary.Entry entry : materials) {
+            ItemStack generic = entry.variants().genericResult().copyWithCount(1);
+            if (found.putIfAbsent(ItemKey.of(generic), generic) == null) {
+                entries.add(new MaterialCraftable(generic, entry.variants().follows()));
+            }
+        }
         for (OrderBook.Producer producer : producers) {
             for (ProductionRecipe recipe : producer.recipes()) {
-                if (!recipe.outputs().isEmpty()) {
+                if (!recipe.outputs().isEmpty() && !variantOf(recipe.outputs().get(0), materials)) {
                     ItemStack output = recipe.outputs().get(0);
                     found.putIfAbsent(ItemKey.of(output), output.copyWithCount(1));
                 }
@@ -77,7 +102,17 @@ public final class TerminalCraftables {
         }
         List<ItemStack> list = new ArrayList<>(found.values());
         list.sort(Comparator.comparing(stack -> stack.getHoverName().getString()));
-        return List.copyOf(list);
+        return new Cached(key, List.copyOf(list), List.copyOf(entries));
+    }
+
+    /** Whether the output is a variant of one of the material patterns, which are listed once by their item without material. */
+    private static boolean variantOf(ItemStack output, List<PatternLibrary.Entry> materials) {
+        for (PatternLibrary.Entry entry : materials) {
+            if (ItemKey.of(entry.variants().generic(output)).equals(entry.genericKey())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

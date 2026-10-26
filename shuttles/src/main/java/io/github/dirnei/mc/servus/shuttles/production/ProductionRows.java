@@ -27,19 +27,22 @@ public final class ProductionRows {
      * @param result  what one craft makes
      * @param inputs  what one craft consumes, with counts
      * @param any     what the cells of an Any pattern accept, per ingredient; empty for an Exact pattern
+     * @param follows for an Any material pattern the ingredient its material follows, else empty
      */
-    public record PatternRow(BlockPos storage, int slot, ItemStack result, List<ItemStack> inputs, List<AnyGroup> any) {
+    public record PatternRow(BlockPos storage, int slot, ItemStack result, List<ItemStack> inputs, List<AnyGroup> any,
+                             List<AnyGroup> follows) {
         public static final StreamCodec<RegistryFriendlyByteBuf, PatternRow> STREAM_CODEC = StreamCodec.composite(
                 BlockPos.STREAM_CODEC, PatternRow::storage,
                 ByteBufCodecs.VAR_INT, PatternRow::slot,
                 ItemStack.OPTIONAL_STREAM_CODEC, PatternRow::result,
                 STACKS, PatternRow::inputs,
                 AnyGroup.STREAM_CODEC.apply(ByteBufCodecs.list()), PatternRow::any,
+                AnyGroup.STREAM_CODEC.apply(ByteBufCodecs.list(1)), PatternRow::follows,
                 PatternRow::new);
 
         /** Whether the pattern is shown as Any. */
         public boolean isAny() {
-            return !any.isEmpty();
+            return !any.isEmpty() || !follows.isEmpty();
         }
     }
 

@@ -9,7 +9,9 @@ import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternVariants;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -22,12 +24,16 @@ import net.minecraft.world.level.Level;
 /**
  * What the recipe grid view shows for a menu's {@link io.github.dirnei.mc.servus.shuttles.pattern.PatternGrid}
  * on the client: the result the cells make, and the Exact or Any button with
- * what each Any cell accepts. The pattern and its variants are worked out
- * again only when the cells or the recipes change. Client only.
+ * what each Any cell accepts. A material grid set to Any shows its variants'
+ * results in turn, one per second, and says what the material follows. The
+ * pattern and its variants are worked out again only when the cells or the
+ * recipes change. Client only.
  */
 final class PatternGridClient implements RecipeGridView.Source {
 
     private static final String MODE = "gui.servus_shuttles.pattern_grid.mode.";
+    /** Ticks each variant's result shows. */
+    private static final int CYCLE_TICKS = 20;
 
     private final Supplier<List<ItemStack>> cells;
     private final Supplier<EncodedPattern.Mode> mode;
@@ -36,6 +42,7 @@ final class PatternGridClient implements RecipeGridView.Source {
     private RecipeMap cachedRecipes;
     private Optional<EncodedPattern> pattern = Optional.empty();
     private PatternVariants variants = PatternVariants.NONE;
+    private List<ItemStack> variantResults = List.of();
 
     /**
      * @param cells  the menu's ghost cells
@@ -48,10 +55,29 @@ final class PatternGridClient implements RecipeGridView.Source {
         this.toggle = toggle;
     }
 
-    @Override
-    public ItemStack result() {
+    /** What the cells themselves make, empty when they match nothing. */
+    ItemStack ownResult() {
         refresh();
         return pattern.map(EncodedPattern::result).orElse(ItemStack.EMPTY);
+    }
+
+    /** The cells' result, or for a material grid set to Any each variant's result in turn. */
+    @Override
+    public ItemStack result() {
+        Level level = Minecraft.getInstance().level;
+        if (!materialAny() || variantResults.isEmpty() || level == null) {
+            return ownResult();
+        }
+        return variantResults.get((int) (level.getGameTime() / CYCLE_TICKS % variantResults.size()));
+    }
+
+    @Override
+    public List<Component> resultNotes() {
+        return materialAny() ? List.of(followsLine(variants.follows())) : List.of();
+    }
+
+    private boolean materialAny() {
+        return any() && variants.material();
     }
 
     /** What the grid's items allow. */
@@ -104,11 +130,19 @@ final class PatternGridClient implements RecipeGridView.Source {
         return group.label(I18n.exists(group.tagKey())).copy().withStyle(ChatFormatting.AQUA);
     }
 
+    /** "Material follows: Planks" for a material pattern, as the grid, the Patterns tab and the craftable entry show it. */
+    static Component followsLine(AnyGroup follows) {
+        Component name = I18n.exists(follows.tagKey()) ? Component.translatable(follows.tagKey())
+                : follows.items().isEmpty() ? Component.empty() : follows.items().get(0).getHoverName();
+        return Component.translatable("gui.servus_shuttles.pattern.follows", name).withStyle(ChatFormatting.AQUA);
+    }
+
     private void refresh() {
         Level level = Minecraft.getInstance().level;
         if (level == null) {
             pattern = Optional.empty();
             variants = PatternVariants.NONE;
+            variantResults = List.of();
             return;
         }
         List<ItemStack> grid = cells.get();
@@ -121,5 +155,9 @@ final class PatternGridClient implements RecipeGridView.Source {
         cachedRecipes = recipes;
         pattern = PatternEditing.encode(level, grid);
         variants = pattern.map(found -> PatternVariants.of(level, found)).orElse(PatternVariants.NONE);
+        variantResults = pattern.filter(found -> variants.material())
+                .map(found -> variants.variants(level, found.withMode(EncodedPattern.Mode.ANY), Map.of(), Set.of()).stream()
+                        .map(EncodedPattern::result).toList())
+                .orElse(List.of());
     }
 }

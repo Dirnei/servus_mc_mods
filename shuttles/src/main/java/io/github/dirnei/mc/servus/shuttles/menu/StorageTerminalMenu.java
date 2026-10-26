@@ -489,13 +489,13 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             if (site.isPresent() && sites.stream().anyMatch(row -> row.key().equals(view))) {
                 int state = RemoteTransfers.state(server, site.get()).ordinal();
                 return new StockSyncPayload(terminal.getBlockPos(), true, "", entries(RemoteTransfers.stock(server, site.get())), requests,
-                        shown, List.of(), List.of(), sites, view, state, noPower, false);
+                        shown, List.of(), List.of(), sites, view, state, noPower, false, List.of());
             }
             view = "";
         }
         return new StockSyncPayload(terminal.getBlockPos(), true, "", entries(TerminalWarehouses.stock(warehouse)), requests, shown,
                 warehouse.ruleRows(), TerminalCraftables.of(server, terminal.getBlockPos(), MAX_ENTRIES), sites, "", -1, noPower,
-                TerminalCraftables.canOrder(server, terminal.getBlockPos()));
+                TerminalCraftables.canOrder(server, terminal.getBlockPos()), TerminalCraftables.materials(server, terminal.getBlockPos()));
     }
 
     private static List<StockEntry> entries(List<Map.Entry<ItemKey, Long>> stock) {

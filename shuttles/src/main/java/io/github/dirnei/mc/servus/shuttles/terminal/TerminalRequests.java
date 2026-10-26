@@ -127,7 +127,9 @@ public final class TerminalRequests {
 
     /**
      * Crafts {@code amount} of {@code key} on a CPU of the line, independent of
-     * the item's own stock, for a new request whose results land in the output slots.
+     * the item's own stock, for a new request whose results land in the output
+     * slots. A material pattern's item without its material crafts the variant
+     * the stock holds the items of most, and the request names that variant.
      *
      * @return an empty string when the order was made, else the refusal key:
      *         {@code offline}, {@code line_conflict}, {@code output_full}, {@code no_cpu}, {@code no_producer} or {@code missing}
@@ -137,9 +139,6 @@ public final class TerminalRequests {
         if (line.online().isEmpty()) {
             return unavailable(line);
         }
-        if (terminal.freeSlot(key) == RequestSlots.NONE) {
-            return "output_full";
-        }
         OrderBook.Preview preview =
                 TerminalCraftables.preview(level, terminal.getBlockPos(), key, amount);
         if (!preview.refusal().isEmpty()) {
@@ -148,9 +147,13 @@ public final class TerminalRequests {
         if (!preview.missing().isEmpty()) {
             return "missing";
         }
-        Request request = terminal.newRequest(level, key, amount);
+        ItemKey made = preview.made();
+        if (terminal.freeSlot(made) == RequestSlots.NONE) {
+            return "output_full";
+        }
+        Request request = terminal.newRequest(level, made, amount);
         request.missing = amount;
-        CpuOrders.Placed placed = CpuOrders.create(level, terminal.getBlockPos(), key, amount, request.id);
+        CpuOrders.Placed placed = CpuOrders.create(level, terminal.getBlockPos(), made, amount, request.id);
         if (!placed.made()) {
             terminal.removeRequest(request.id);
             return placed.refusal();
@@ -173,9 +176,6 @@ public final class TerminalRequests {
         if (warehouse.online().isEmpty()) {
             return unavailable(warehouse);
         }
-        if (terminal.freeSlot(ItemKey.of(pattern.result())) == RequestSlots.NONE) {
-            return "output_full";
-        }
         String refusal = TerminalCraftables.orderRefusal(level, terminal.getBlockPos());
         if (!refusal.isEmpty()) {
             return refusal;
@@ -187,8 +187,11 @@ public final class TerminalRequests {
         if (!preview.missing().isEmpty()) {
             return "missing";
         }
+        if (terminal.freeSlot(preview.made()) == RequestSlots.NONE) {
+            return "output_full";
+        }
         DataNetwork line = TerminalCraftables.line(level, terminal.getBlockPos()).orElseThrow();
-        Request request = terminal.newRequest(level, ItemKey.of(pattern.result()), amount);
+        Request request = terminal.newRequest(level, preview.made(), amount);
         request.missing = amount;
         CpuOrders.Placed placed = CpuOrders.createOneOff(level, line, pattern, amount, request.id);
         if (!placed.made()) {

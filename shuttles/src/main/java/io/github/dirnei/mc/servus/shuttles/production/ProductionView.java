@@ -142,7 +142,8 @@ public final class ProductionView {
         List<PatternRow> rows = new ArrayList<>();
         for (PatternLibrary.Entry entry : PatternLibrary.entries(level, line)) {
             rows.add(new PatternRow(entry.storage(), entry.slot(), entry.pattern().result(), entry.pattern().inputs(),
-                    entry.pattern().any() ? entry.variants().groups() : List.of()));
+                    entry.pattern().any() ? entry.variants().groups() : List.of(),
+                    entry.material() ? List.of(entry.variants().follows()) : List.of()));
         }
         return new PatternsView(rows, rows.size(), PatternLibrary.capacity(level, line));
     }
