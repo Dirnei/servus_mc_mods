@@ -11,6 +11,8 @@ import io.github.dirnei.mc.servus.shuttles.client.ClientSiteStatus;
 import io.github.dirnei.mc.servus.shuttles.client.ClientStationState;
 import io.github.dirnei.mc.servus.shuttles.client.ClientStock;
 import io.github.dirnei.mc.servus.shuttles.controller.RenameSitePayload;
+import io.github.dirnei.mc.servus.shuttles.outbound.ClaimExportPayload;
+import io.github.dirnei.mc.servus.shuttles.outbound.ExportListPayload;
 import io.github.dirnei.mc.servus.shuttles.menu.StationNameMenu;
 import io.github.dirnei.mc.servus.shuttles.station.RenameStationPayload;
 import io.github.dirnei.mc.servus.shuttles.controller.SiteStatusPayload;
@@ -113,6 +115,8 @@ public final class ServusShuttlesPayloads {
                 (player, menu, payload) -> menu.engrave(payload.name()));
         toMenu(registrar, KeepSlotPayload.TYPE, KeepSlotPayload.STREAM_CODEC, OutboundStationMenu.class,
                 (player, menu, payload) -> menu.setKeep(payload.slot(), payload.item(), payload.amount()));
+        toMenu(registrar, ClaimExportPayload.TYPE, ClaimExportPayload.STREAM_CODEC, OutboundStationMenu.class,
+                (player, menu, payload) -> menu.claim(payload.slot(), payload.item()));
         registrar.playToServer(RenameStationPayload.TYPE, RenameStationPayload.STREAM_CODEC, (payload, context) -> {
             if (context.player() instanceof ServerPlayer player && player.containerMenu instanceof StationNameMenu menu) {
                 menu.rename(payload.name());
@@ -136,6 +140,11 @@ public final class ServusShuttlesPayloads {
         registrar.playToClient(LiftSyncPayload.TYPE, LiftSyncPayload.STREAM_CODEC, (payload, context) -> ClientLifts.update(payload));
         registrar.playToClient(StationStatePayload.TYPE, StationStatePayload.STREAM_CODEC,
                 (payload, context) -> ClientStationState.update(payload));
+        registrar.playToClient(ExportListPayload.TYPE, ExportListPayload.STREAM_CODEC, (payload, context) -> {
+            if (context.player().containerMenu instanceof OutboundStationMenu menu) {
+                menu.acceptExports(payload);
+            }
+        });
         registrar.playToClient(PackingStatusPayload.TYPE, PackingStatusPayload.STREAM_CODEC,
                 (payload, context) -> ClientPackingStatus.update(payload));
         registrar.playToClient(FieldWorkerPayload.TYPE, FieldWorkerPayload.STREAM_CODEC, (payload, context) -> ClientFieldWorker.update(payload));
@@ -178,7 +187,7 @@ public final class ServusShuttlesPayloads {
                 (player, menu, payload) -> menu.savePattern());
         toMenu(registrar, SetStockRulePayload.TYPE, SetStockRulePayload.STREAM_CODEC, StorageTerminalMenu.class,
                 (player, menu, payload) -> menu.setRule(ItemKey.of(payload.item()), payload.min(), payload.max(), payload.cap(),
-                        payload.remove()));
+                        payload.export(), payload.remove()));
         toMenu(registrar, SelectSitePayload.TYPE, SelectSitePayload.STREAM_CODEC, StorageTerminalMenu.class,
                 (player, menu, payload) -> menu.selectSite(payload.site()));
         toMenu(registrar, CancelRequestPayload.TYPE, CancelRequestPayload.STREAM_CODEC, StorageTerminalMenu.class,

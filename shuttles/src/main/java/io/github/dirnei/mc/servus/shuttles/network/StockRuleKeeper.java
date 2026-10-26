@@ -21,12 +21,16 @@ import net.minecraft.server.level.ServerLevel;
 /**
  * Orders for a warehouse's stock rules on the CPUs of its data line, keeps
  * which rules Inbound Stations refused items for, and tracks the state of
- * each rule.
+ * each rule and of its export.
  */
 final class StockRuleKeeper {
 
     /** The state of a rule whose cap refused items since its previous check. */
     static final String REFUSING = "refusing";
+    /** Export states. */
+    static final String NO_STATION = "no_station";
+    static final String EXPORTING = "exporting";
+    static final String STATION_FULL = "station_full";
 
     private final WarehouseNetwork network;
     /** The state of each rule after its last order attempt, when not ok. */
@@ -35,6 +39,8 @@ final class StockRuleKeeper {
     private final Map<ItemKey, BlockPos> refusedSince = new LinkedHashMap<>();
     /** The label of the station that refused each item before the last check. */
     private final Map<ItemKey, Component> refusing = new HashMap<>();
+    /** What the last outbound check did for each held export, when not ok. */
+    private final Map<ItemKey, String> exportStates = new HashMap<>();
     private int timer;
 
     StockRuleKeeper(WarehouseNetwork network) {
@@ -42,13 +48,14 @@ final class StockRuleKeeper {
     }
 
     /**
-     * Replaces the rule of the item with the Make pair (null for none) and
-     * the cap (0 for none), or refuses it.
+     * Replaces the rule of the item with the Make pair (null for none), the
+     * cap (0 for none) and the export threshold (-1 for none), or refuses it.
+     * A station holding the export keeps it while the rule still exports.
      *
      * @return {@link RuleThresholds#OK} or the reason
      */
-    String set(ItemKey key, StockRule.Make make, int cap) {
-        String check = RuleThresholds.check(make == null ? -1 : make.min(), make == null ? -1 : make.max(), cap);
+    String set(ItemKey key, StockRule.Make make, int cap, int export) {
+        String check = RuleThresholds.check(make == null ? -1 : make.min(), make == null ? -1 : make.max(), cap, export);
         if (!check.equals(RuleThresholds.OK)) {
             return check;
         }
@@ -56,20 +63,36 @@ final class StockRuleKeeper {
         if (rules.isEmpty()) {
             return "offline";
         }
-        rules.get().set(new StockRule(key, make, cap));
+        rules.get().set(new StockRule(key, make, cap, export));
         states.remove(key);
+        exportStates.remove(key);
         timer = ShuttlesStatsManager.INSTANCE.stockRuleInterval();
         return RuleThresholds.OK;
     }
 
-    /** Sets the Make pair of the item's rule, keeping its cap. */
+    /** Sets the Make pair of the item's rule, keeping its cap and export. */
     String setMake(ItemKey key, int min, int max) {
-        return set(key, new StockRule.Make(min, max), current(key).map(StockRule::cap).orElse(0));
+        return set(key, new StockRule.Make(min, max), current(key).map(StockRule::cap).orElse(0),
+                current(key).map(StockRule::export).orElse(-1));
     }
 
-    /** Sets the cap of the item's rule, keeping its Make pair. */
+    /** Sets the cap of the item's rule, keeping its Make pair and export. */
     String setCap(ItemKey key, int cap) {
-        return set(key, current(key).map(StockRule::make).orElse(null), cap);
+        return set(key, current(key).map(StockRule::make).orElse(null), cap, current(key).map(StockRule::export).orElse(-1));
+    }
+
+    /** The state of a held export after the last outbound check: exporting, station full or ok. */
+    String exportState(ItemKey key) {
+        return exportStates.getOrDefault(key, "ok");
+    }
+
+    /** Records what an outbound check did for a held export: exporting, station full, or null for ok. */
+    void exportChecked(ItemKey key, String state) {
+        if (state == null) {
+            exportStates.remove(key);
+        } else {
+            exportStates.put(key, state);
+        }
     }
 
     /** Clears the cap of the item's rule and removes a rule left without a threshold; false when it had no cap. */
@@ -93,6 +116,7 @@ final class StockRuleKeeper {
 
     boolean remove(ItemKey key) {
         states.remove(key);
+        exportStates.remove(key);
         refusing.remove(key);
         refusedSince.remove(key);
         return network.stockRules().map(rules -> rules.remove(key)).orElse(false);
@@ -173,7 +197,10 @@ final class StockRuleKeeper {
             for (StockRule rule : rules.all()) {
                 String state = state(rule);
                 Component detail = state.equals(REFUSING) ? refusing.get(rule.key()) : Component.empty();
-                rows.add(RuleRow.of(rule, state, detail));
+                Optional<BlockPos> holder = rules.exportHolder(rule.key()).map(claim -> claim.station());
+                Component label = holder.map(pos -> network.stationLabel(pos)).orElse(Component.empty());
+                String exportState = holder.isEmpty() ? NO_STATION : exportStates.getOrDefault(rule.key(), "ok");
+                rows.add(RuleRow.of(rule, state, detail, label, exportState));
             }
         });
         return rows;

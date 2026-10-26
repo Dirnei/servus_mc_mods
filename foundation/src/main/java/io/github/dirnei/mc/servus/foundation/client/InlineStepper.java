@@ -42,8 +42,9 @@ public final class InlineStepper {
     private final IntConsumer changed;
     private int value;
     private boolean wasFocused;
-    /** Whether 0 means off: the field is empty and shows its hint. */
-    private boolean offAtZero;
+    /** Whether a value means off: the field is then empty and shows its hint. */
+    private boolean offShown;
+    private int offValue;
 
     public InlineStepper(Font font, Component name, int min, int max, IntSupplier stack, IntConsumer changed) {
         this.min = min;
@@ -63,11 +64,13 @@ public final class InlineStepper {
     }
 
     /**
-     * Makes 0 mean off: the field shows {@code hint} instead of 0, and
-     * clearing the field turns it off. Needs a lowest value of 0.
+     * Makes {@code value} mean off: the field shows {@code hint} instead of
+     * it, and clearing the field turns it off. The value must lie in range,
+     * usually the lowest one.
      */
-    public InlineStepper offAtZero(Component hint) {
-        offAtZero = true;
+    public InlineStepper offAt(int value, Component hint) {
+        offShown = true;
+        offValue = clamp(value);
         field.setHint(hint);
         commit();
         return this;
@@ -107,7 +110,7 @@ public final class InlineStepper {
 
     /** Rewrites the field with the clamped value, as on Enter or when it loses focus. */
     public void commit() {
-        field.setValue(offAtZero && value == 0 ? "" : Integer.toString(value));
+        field.setValue(offShown && value == offValue ? "" : Integer.toString(value));
     }
 
     /** Commits when the field lost focus. */
@@ -146,8 +149,8 @@ public final class InlineStepper {
 
     private void typed(String text) {
         if (text.isEmpty()) {
-            if (offAtZero) {
-                set(clamp(0));
+            if (offShown) {
+                set(offValue);
             }
             return;
         }

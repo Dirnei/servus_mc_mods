@@ -348,19 +348,19 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
 
     /**
      * Sets or removes the stock rule of an item: the Make pair (min and max
-     * -1 for none) and the cap (0 for none). A rule that breaks the threshold
-     * rules is refused on the message line.
+     * -1 for none), the cap (0 for none) and the export (-1 for none). A rule
+     * that breaks the threshold rules is refused on the message line.
      */
-    public void setRule(ItemKey key, int min, int max, int cap, boolean remove) {
+    public void setRule(ItemKey key, int min, int max, int cap, int export, boolean remove) {
         Optional<WarehouseNetwork> network = online();
         if (network.isEmpty()) {
             message = "offline";
         } else if (remove) {
             network.get().removeStockRule(key);
         } else {
-            String check = RuleThresholds.check(min, max, cap);
+            String check = RuleThresholds.check(min, max, cap, export);
             if (check.equals(RuleThresholds.OK)) {
-                check = network.get().setStockRule(key, max < 0 ? null : new StockRule.Make(min, max), cap);
+                check = network.get().setStockRule(key, max < 0 ? null : new StockRule.Make(min, max), cap, export);
             }
             message = check.equals(RuleThresholds.OK) ? "" : check.equals("offline") ? check : "rule_" + check;
         }
@@ -513,6 +513,9 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             hash = hash * 31 + rule.cap();
             hash = hash * 31 + rule.state().hashCode();
             hash = hash * 31 + rule.detail().getString().hashCode();
+            hash = hash * 31 + rule.export();
+            hash = hash * 31 + rule.holder().getString().hashCode();
+            hash = hash * 31 + rule.exportState().hashCode();
         }
         for (ItemStack craftable : payload.craftables()) {
             hash = hash * 31 + craftable.getItem().hashCode();

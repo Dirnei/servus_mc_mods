@@ -40,6 +40,19 @@ class RuleThresholdsTest {
     }
 
     @Test
+    void exportOnly() {
+        assertEquals(RuleThresholds.OK, RuleThresholds.check(-1, -1, 0, 0));
+        assertEquals(RuleThresholds.OK, RuleThresholds.check(-1, -1, 0, 2000));
+    }
+
+    @Test
+    void exportNotAboveFillUpTo() {
+        assertEquals(RuleThresholds.EXPORT_NOT_ABOVE, RuleThresholds.check(100, 500, 0, 400));
+        assertEquals(RuleThresholds.EXPORT_NOT_ABOVE, RuleThresholds.check(100, 500, 0, 500));
+        assertEquals(RuleThresholds.OK, RuleThresholds.check(100, 500, 5000, 2000));
+    }
+
+    @Test
     void capEqualToMaximum() {
         assertEquals(RuleThresholds.OK, RuleThresholds.check(8, 16, 16));
     }

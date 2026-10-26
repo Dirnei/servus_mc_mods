@@ -318,6 +318,9 @@ public final class ServusShuttlesCommands {
         if (rule.hasCap()) {
             parts.add("refuse above " + rule.cap());
         }
+        if (rule.hasExport()) {
+            parts.add("export above " + rule.export());
+        }
         boolean refused = rule.state().equals("refusing");
         parts.add(refused ? "refused at " : rule.state().replace('_', ' '));
         MutableComponent line = Component.literal("  - " + name(rule.stack()) + ": " + String.join(", ", parts));

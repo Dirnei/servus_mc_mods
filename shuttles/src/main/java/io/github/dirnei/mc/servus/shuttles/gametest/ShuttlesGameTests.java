@@ -39,6 +39,7 @@ public final class ShuttlesGameTests {
             PotatoStorageGameTests.class,
             StationNumberGameTests.class,
             StockRuleCapGameTests.class,
+            StockRuleExportGameTests.class,
             PacketInletGameTests.class,
             PackingStationGameTests.class,
             PacketEndpointGameTests.class,

@@ -150,9 +150,24 @@ public class OutboundStationBlockEntity extends StationBlockEntity implements De
         return countOf(buffer, key);
     }
 
-    /** Sets a keep slot; an empty item or an amount below one clears it. */
+    /** Whether the keep slot holds an export of its warehouse; such a slot keeps nothing. */
+    public boolean isExportSlot(int slot) {
+        return network().map(network -> network.holdsExport(worldPosition, slot)).orElse(false);
+    }
+
+    /** Claims the item's export for an empty keep slot; true when the warehouse gave it. */
+    public boolean claimExport(ItemKey key, int slot) {
+        return network().map(network -> network.claimExport(key, worldPosition, slot)).orElse(false);
+    }
+
+    /** Frees the keep slot from its export; true when it held one. */
+    public boolean releaseExport(int slot) {
+        return network().map(network -> network.releaseExport(worldPosition, slot)).orElse(false);
+    }
+
+    /** Sets a keep slot; an empty item or an amount below one clears it. A slot holding an export is left alone. */
     public void setKeep(int slot, ItemStack item, int amount) {
-        if (slot < 0 || slot >= keep.getSlots()) {
+        if (slot < 0 || slot >= keep.getSlots() || isExportSlot(slot)) {
             return;
         }
         if (item.isEmpty() || amount < 1) {

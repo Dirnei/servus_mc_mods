@@ -75,6 +75,7 @@ final class ItemPopup {
     private InlineStepper orderBelow;
     private InlineStepper fillUpTo;
     private InlineStepper refuseAbove;
+    private InlineStepper exportAbove;
     private Button removeButton;
     private Button ruleCancel;
     private Button saveButton;
@@ -103,9 +104,11 @@ final class ItemPopup {
         int keptMin = orderBelow == null ? 0 : orderBelow.value();
         int keptMax = fillUpTo == null ? AmountSteps.MIN : fillUpTo.value();
         int keptCap = refuseAbove == null ? 0 : refuseAbove.value();
-        orderBelow = ruleField(font, "rule.order_below", Storage.RULE_MAKE, 0, keptMin);
-        fillUpTo = ruleField(font, "rule.fill_up_to", Storage.RULE_MAKE, 1, keptMax);
-        refuseAbove = ruleField(font, "rule.refuse_above", Storage.RULE_LIMIT, 1, keptCap);
+        int keptExport = exportAbove == null ? -1 : exportAbove.value();
+        orderBelow = ruleField(font, "rule.order_below", Storage.RULE_MAKE, 0, 0, Integer.MIN_VALUE, keptMin);
+        fillUpTo = ruleField(font, "rule.fill_up_to", Storage.RULE_MAKE, 1, 0, 0, keptMax);
+        exportAbove = ruleField(font, "rule.export_above", Storage.RULE_LIMIT, 0, -1, -1, keptExport);
+        refuseAbove = ruleField(font, "rule.refuse_above", Storage.RULE_LIMIT, 1, 0, 0, keptCap);
         Rect buttons = Storage.RULE_BUTTONS;
         removeButton = Button.builder(Component.translatable(KEY + "rule_remove"), b -> removeRule())
                 .bounds(left + buttons.x(), top + buttons.y(), Storage.BUTTON, buttons.h()).build();
@@ -118,11 +121,14 @@ final class ItemPopup {
         return widgets();
     }
 
-    /** A field of a Make or Limit row, from 0 up; Order when below keeps 0 as a number, the others show 0 as off. */
-    private InlineStepper ruleField(Font font, String key, Rect group, int column, int value) {
-        InlineStepper stepper = new InlineStepper(font, Component.translatable(KEY + key), 0, AmountSteps.MAX, this::stackSize, changed -> { });
-        if (!key.equals("rule.order_below")) {
-            stepper.offAtZero(Component.translatable(KEY + "rule.off"));
+    /**
+     * A field of a Make or Limit row from {@code lowest} up, showing
+     * {@code off} as "off"; {@link Integer#MIN_VALUE} for a field that is never off.
+     */
+    private InlineStepper ruleField(Font font, String key, Rect group, int column, int lowest, int off, int value) {
+        InlineStepper stepper = new InlineStepper(font, Component.translatable(KEY + key), lowest, AmountSteps.MAX, this::stackSize, changed -> { });
+        if (off != Integer.MIN_VALUE) {
+            stepper.offAt(off, Component.translatable(KEY + "rule.off"));
         }
         stepper.place(left + Storage.ruleFieldX(group, column), top + group.y() + Storage.RULE_FIELD_LABEL, Storage.RULE_FIELD);
         stepper.setValue(value);
@@ -130,7 +136,7 @@ final class ItemPopup {
     }
 
     private List<InlineStepper> ruleFields() {
-        return List.of(orderBelow, fillUpTo, refuseAbove);
+        return List.of(orderBelow, fillUpTo, exportAbove, refuseAbove);
     }
 
     private List<AbstractWidget> requestWidgets() {
@@ -190,6 +196,7 @@ final class ItemPopup {
         orderBelow.setValue(rule == null || !rule.hasMake() ? 0 : rule.min());
         fillUpTo.setValue(rule == null ? stackSize() : rule.hasMake() ? rule.max() : 0);
         refuseAbove.setValue(rule == null ? 0 : rule.cap());
+        exportAbove.setValue(rule == null ? -1 : rule.export());
         tab = wanted;
         if (!tabs.enabled(wanted)) {
             for (Tab other : Tab.values()) {
@@ -432,11 +439,17 @@ final class ItemPopup {
         text(graphics, font, item.getHoverName(), title.x() + 20, textY, nameWidth, COLOUR_TEXT);
 
         renderGroup(graphics, font, Storage.RULE_MAKE, KEY + "rule.make", KEY + "rule.order_below", KEY + "rule.fill_up_to");
-        renderGroup(graphics, font, Storage.RULE_LIMIT, KEY + "rule.limit", null, KEY + "rule.refuse_above");
+        renderGroup(graphics, font, Storage.RULE_LIMIT, KEY + "rule.limit", KEY + "rule.export_above", KEY + "rule.refuse_above");
         String refusal = input().refusal();
         Rect note = Storage.RULE_NOTE;
         if (refusal != null) {
             text(graphics, font, Component.translatable(KEY + refusal), note.x(), note.y(), note.w(), COLOUR_ALERT);
+        }
+        if (exportAbove.value() >= 0) {
+            boolean held = rule != null && rule.hasExport() && !rule.exportState().equals("no_station");
+            Component line = held ? Component.translatable(KEY + "rule.export_goes_to", rule.holder())
+                    : Component.translatable(KEY + "rule.export_no_station");
+            text(graphics, font, line, note.x(), note.y() + 10, note.w(), held ? COLOUR_TEXT : COLOUR_ALERT);
         }
         saveReason = GreyOut.apply(saveButton, saveReason, refusal == null ? null : KEY + refusal);
         removeButton.active = rule != null;
@@ -462,7 +475,7 @@ final class ItemPopup {
     }
 
     private RuleInput input() {
-        return RuleInput.of(orderBelow.value(), fillUpTo.value(), refuseAbove.value());
+        return RuleInput.of(orderBelow.value(), fillUpTo.value(), refuseAbove.value(), exportAbove.value());
     }
 
     /** The colour of a rule state in the popup and the Rules tab. */
@@ -479,7 +492,7 @@ final class ItemPopup {
         if (input.refusal() != null) {
             return;
         }
-        ClientPacketDistributor.sendToServer(new SetStockRulePayload(item, input.min(), input.max(), input.cap(), false));
+        ClientPacketDistributor.sendToServer(new SetStockRulePayload(item, input.min(), input.max(), input.cap(), input.export(), false));
         host.closePopup();
     }
 

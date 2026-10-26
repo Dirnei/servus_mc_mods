@@ -7,12 +7,19 @@ import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
+import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.shuttles.outbound.ExportListPayload;
 import io.github.dirnei.mc.servus.shuttles.outbound.OutboundStationBlockEntity;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
 import io.github.dirnei.mc.servus.shuttles.station.StationStatePayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -22,7 +29,10 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
-/** Keep row (ghost slots with amounts), buffer row and the player inventory; the state line comes along as a payload. */
+/**
+ * Keep row (ghost slots with amounts, some holding exports), buffer row and
+ * the player inventory; the state line and the export list come along as payloads.
+ */
 public class OutboundStationMenu extends AbstractContainerMenu implements LockedMenu, StationNameMenu {
 
     public static final int KEEP_Y = 18;
@@ -39,6 +49,9 @@ public class OutboundStationMenu extends AbstractContainerMenu implements Locked
     private final int bufferStart;
     private final int inventoryStart;
     private final PayloadSync<StationStatePayload> sync = new PayloadSync<>(5, false, this::state);
+    private final PayloadSync<ExportListPayload> exportSync = new PayloadSync<>(5, true, this::exports, ExportListPayload::signature);
+    /** The exports as the server last sent them, on the client. */
+    private ExportListPayload exports = ExportListPayload.EMPTY;
 
     public OutboundStationMenu(int containerId, Inventory playerInventory, OutboundStationBlockEntity station) {
         super(ServusShuttlesMenus.OUTBOUND_STATION.get(), containerId);
@@ -108,17 +121,68 @@ public class OutboundStationMenu extends AbstractContainerMenu implements Locked
         return false;
     }
 
-    /** Keep slots take the carried item with its count on a left click and clear on a right click. */
+    /**
+     * Keep slots take the carried item with its count on a left click and
+     * clear on a right click. A slot holding an export ignores left clicks
+     * and releases the export on a right click with an empty hand.
+     */
     @Override
     public void clicked(int slotId, int button, ContainerInput clickType, Player player) {
         if (slotId >= 0 && slotId < keepSlots) {
             if (!player.level().isClientSide()) {
                 ItemStack carried = getCarried();
-                station.setKeep(slotId, button == 1 ? ItemStack.EMPTY : carried, carried.getCount());
+                if (station.isExportSlot(slotId)) {
+                    if (button == 1 && carried.isEmpty() && station.releaseExport(slotId)) {
+                        exportSync.force();
+                    }
+                } else {
+                    station.setKeep(slotId, button == 1 ? ItemStack.EMPTY : carried, carried.getCount());
+                }
             }
             return;
         }
         super.clicked(slotId, button, clickType, player);
+    }
+
+    /** Server side: claims the item's export for an empty keep slot, from the picker. */
+    public void claim(int slot, ItemStack item) {
+        if (stillValid(player) && slot >= 0 && slot < keepSlots && !item.isEmpty()) {
+            station.claimExport(ItemKey.of(item), slot);
+            exportSync.force();
+        }
+    }
+
+    /** Client side: the export list the server sent. */
+    public void acceptExports(ExportListPayload payload) {
+        exports = payload;
+    }
+
+    /** The exports of this station and those it may claim, as the client last heard them. */
+    public ExportListPayload exportList() {
+        return exports;
+    }
+
+    /** The exports of this station and those of its warehouse it may claim, unassigned ones first. Server side. */
+    public ExportListPayload exports() {
+        Optional<WarehouseNetwork> network = station.network().filter(found -> found.status() == WarehouseNetwork.Status.ONLINE);
+        if (network.isEmpty()) {
+            return ExportListPayload.EMPTY;
+        }
+        BlockPos pos = station.getBlockPos();
+        List<ExportListPayload.Slot> slots = new ArrayList<>();
+        network.get().exportSlotsAt(pos).forEach((slot, export) ->
+                slots.add(new ExportListPayload.Slot(slot, export.key().stack(1), export.threshold(), export.state())));
+        List<ExportListPayload.Offer> free = new ArrayList<>();
+        List<ExportListPayload.Offer> held = new ArrayList<>();
+        for (WarehouseNetwork.ExportOffer offer : network.get().exportOffers()) {
+            if (offer.holder().isEmpty()) {
+                free.add(new ExportListPayload.Offer(offer.key().stack(1), offer.threshold(), Component.empty()));
+            } else if (!offer.holder().get().equals(pos)) {
+                held.add(new ExportListPayload.Offer(offer.key().stack(1), offer.threshold(), network.get().stationLabel(offer.holder().get())));
+            }
+        }
+        free.addAll(held);
+        return new ExportListPayload(slots, free);
     }
 
     /** Shift click moves between the buffer and the player inventory. */
@@ -158,6 +222,7 @@ public class OutboundStationMenu extends AbstractContainerMenu implements Locked
         super.broadcastChanges();
         locks.tick(player, containerId, station::network);
         sync.tick(player);
+        exportSync.tick(player);
     }
 
     /** The station's state as the client should see it: the shortage rides in the blocked fields. */

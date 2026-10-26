@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.foundation.client.SideConfigPanel;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.menu.OutboundStationMenu;
+import io.github.dirnei.mc.servus.shuttles.outbound.ExportListPayload;
 import io.github.dirnei.mc.servus.shuttles.outbound.KeepSlotPayload;
 import io.github.dirnei.mc.servus.shuttles.station.StationStatePayload;
 import java.util.List;
@@ -21,8 +22,12 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import org.lwjgl.glfw.GLFW;
 
-/** Keep row, buffer row, state line, player inventory, the shared side panel on the left. */
+/**
+ * Keep row with its exports, buffer row, state line, player inventory, the
+ * shared side panel on the left, and the Claim an export picker over it all.
+ */
 public class OutboundStationScreen extends AbstractContainerScreen<OutboundStationMenu> {
 
     private static final Identifier TEXTURE =
@@ -30,8 +35,11 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
     private static final int COLOUR_TEXT = 0xFF404040;
     private static final int COLOUR_ALERT = 0xFFB03030;
 
+    private static final int COLOUR_EXPORT = 0xFFE07A1F;
+
     private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == RelativeSide.FRONT,
             side -> MenuButtons.press(minecraft, menu, SideConfigMenus.buttonOf(side)));
+    private final ExportPicker picker = new ExportPicker(menu::exportList);
 
     public OutboundStationScreen(OutboundStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, 176, 166);
@@ -48,6 +56,7 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
         panel.placeBeside(leftPos, topPos);
         name = new StationNameField(font, leftPos + titleLabelX, topPos + titleLabelY, imageWidth - 2 * titleLabelX, menu.station(), COLOUR_TEXT);
         addRenderableWidget(name.box());
+        picker.build(font, leftPos, topPos, imageWidth, imageHeight).forEach(this::addRenderableWidget);
     }
 
     @Override
@@ -58,6 +67,14 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
 
     @Override
     public boolean keyPressed(KeyEvent event) {
+        if (picker.isOpen()) {
+            if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
+                picker.close();
+            } else {
+                picker.search().keyPressed(event);
+            }
+            return true;
+        }
         return name.keyPressed(event) || super.keyPressed(event);
     }
 
@@ -65,13 +82,32 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
         return slot != null && slot.index < menu.keepSlots();
     }
 
+    /** The export in a keep slot, or null. */
+    private ExportListPayload.Slot exportIn(Slot slot) {
+        return isKeepSlot(slot) ? menu.exportList().slot(slot.index) : null;
+    }
+
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+        if (picker.isOpen()) {
+            picker.render(graphics, font, leftPos, topPos, imageWidth, imageHeight, mouseX, mouseY);
+            return;
+        }
+        ExportListPayload.Slot export = exportIn(hoveredSlot);
+        if (export != null) {
+            List<Component> lines = List.of(Component.translatable("gui.servus_shuttles.outbound.export_line", export.item().getHoverName(),
+                            export.threshold()),
+                    Component.translatable("gui.servus_shuttles.outbound.export_state." + export.state()),
+                    Component.translatable("gui.servus_shuttles.outbound.export_release"));
+            graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
+            return;
+        }
         if (isKeepSlot(hoveredSlot)) {
             ItemStack keep = hoveredSlot.getItem();
             List<Component> lines = keep.isEmpty()
-                    ? List.of(Component.translatable("gui.servus_shuttles.outbound.keep_hint"))
+                    ? List.of(Component.translatable("gui.servus_shuttles.outbound.keep_hint"),
+                            Component.translatable("gui.servus_shuttles.outbound.claim_hint"))
                     : List.of(Component.translatable("gui.servus_shuttles.outbound.keep_line", keep.getCount(), keep.getHoverName()),
                             Component.translatable("gui.servus_shuttles.outbound.keep_adjust"));
             graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
@@ -104,16 +140,31 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
         }
     }
 
+    /** An empty keep slot clicked with an empty hand opens the picker; while it is open, it takes every click. */
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (picker.isOpen()) {
+            return picker.mouseClicked(event, doubleClick);
+        }
+        Slot slot = hoveredSlot;
+        if (event.button() == 0 && isKeepSlot(slot) && !slot.hasItem() && exportIn(slot) == null && menu.getCarried().isEmpty()
+                && ClientStationState.state().online()) {
+            picker.open(slot.index);
+            setFocused(picker.search());
+            return true;
+        }
         return panel.mouseClicked(event.x(), event.y()) || super.mouseClicked(event, doubleClick);
     }
 
     /** Scrolling over a keep slot adjusts its amount by one, by a stack with shift. */
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (picker.isOpen()) {
+            picker.mouseScrolled(scrollY);
+            return true;
+        }
         Slot slot = hoveredSlot;
-        if (isKeepSlot(slot) && !slot.getItem().isEmpty()) {
+        if (isKeepSlot(slot) && !slot.getItem().isEmpty() && exportIn(slot) == null) {
             ItemStack keep = slot.getItem();
             int step = Minecraft.getInstance().hasShiftDown() ? keep.getMaxStackSize() : 1;
             int amount = Math.max(1, keep.getCount() + (scrollY > 0 ? step : -step));
@@ -130,14 +181,29 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
         ClientStationState.clear();
     }
 
+    /** Draws every slot, then the exports in their keep slots: the item, an orange marker and the threshold. */
     @Override
     protected void extractSlots(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.extractSlots(graphics, mouseX, mouseY);
         LockOverlay.draw(graphics, menu, menu.locks());
+        for (ExportListPayload.Slot export : menu.exportList().slots()) {
+            if (export.slot() < 0 || export.slot() >= menu.keepSlots()) {
+                continue;
+            }
+            Slot slot = menu.slots.get(export.slot());
+            graphics.fakeItem(export.item(), slot.x, slot.y);
+            graphics.fill(slot.x, slot.y, slot.x + 5, slot.y + 5, 0xFF202020);
+            graphics.fill(slot.x + 1, slot.y + 1, slot.x + 4, slot.y + 4, COLOUR_EXPORT);
+            Component above = Component.literal(StorageTerminalScreen.abbreviate(export.threshold()) + "+");
+            PanelPainter.smallText(graphics, font, above, slot.x + 17, slot.y + 12, 0xFFFFFFFF);
+        }
     }
 
     @Override
     protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        if (picker.isOpen()) {
+            return;
+        }
         if (!LockOverlay.tooltip(graphics, font, hoveredSlot, menu.locks(), mouseX, mouseY)) {
             super.extractTooltip(graphics, mouseX, mouseY);
         }

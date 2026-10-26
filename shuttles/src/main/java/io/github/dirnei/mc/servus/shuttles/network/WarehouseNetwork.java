@@ -37,6 +37,7 @@ import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotFill;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
 import io.github.dirnei.mc.servus.shuttles.order.CapRoom;
+import io.github.dirnei.mc.servus.shuttles.order.ExportPlan;
 import io.github.dirnei.mc.servus.shuttles.order.StockRule;
 import io.github.dirnei.mc.servus.shuttles.order.StockRules;
 import io.github.dirnei.mc.servus.shuttles.outbound.OutboundStationBlockEntity;
@@ -46,7 +47,6 @@ import io.github.dirnei.mc.servus.shuttles.packing.PackingStationChoice;
 import io.github.dirnei.mc.servus.shuttles.packing.WirelessIncoming;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.shuttle.CounterData;
 import io.github.dirnei.mc.servus.shuttles.shuttle.FertilizeJob;
 import io.github.dirnei.mc.servus.shuttles.shuttle.FleetSaves;
@@ -87,6 +87,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
@@ -1044,6 +1045,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (status() != Status.ONLINE) {
             return;
         }
+        releaseGoneExports();
         for (BlockPos pos : new ArrayList<>(stations)) {
             if (loaded(pos) instanceof OutboundStationBlockEntity station) {
                 restock(pos, station);
@@ -1051,10 +1053,15 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
+    /**
+     * Plans the keep slots of a station, then its exports with the free slots
+     * the keep plans left, and sets the station's state and lamp.
+     */
     private void restock(BlockPos pos, OutboundStationBlockEntity station) {
         ItemStack shortStack = ItemStack.EMPTY;
         String shortReason = "";
         boolean pending = false;
+        int freeSlots = station.buffer().freeSlots();
         for (int slot = 0; slot < station.keep().getSlots(); slot++) {
             ItemStack wanted = station.keep().getStackInSlot(slot);
             if (wanted.isEmpty()) {
@@ -1074,12 +1081,38 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
             Started started = planAndStart(pos, key, missing, 0);
             pending |= started.planned() > 0;
+            freeSlots -= slotsFor(started.planned(), key);
             if (started.planned() < missing && shortStack.isEmpty()) {
                 shortStack = key.stack(1);
                 shortReason = started.refusal().isEmpty() ? "out_of_stock" : started.refusal();
             }
         }
+        Map<Integer, ItemKey> exports = stockRules().map(found -> found.exportsAt(pos)).orElse(Map.of());
+        for (ItemKey key : exports.values()) {
+            StockRule rule = stockRules().map(found -> found.get(key)).orElse(null);
+            if (rule == null || !rule.hasExport()) {
+                continue;
+            }
+            int onTheWay = pendingTo(pos, key);
+            long surplus = ExportPlan.surplus(available(key), rule.export(), 0);
+            int wanted = ExportPlan.bounded(surplus, Math.max(0, freeSlots), key.stack(1).getMaxStackSize());
+            int planned = wanted > 0 ? planAndStart(pos, key, wanted, 0).planned() : 0;
+            freeSlots -= slotsFor(planned, key);
+            pending |= planned > 0 || onTheWay > 0;
+            boolean full = surplus > 0 && wanted == 0;
+            if (full && shortStack.isEmpty()) {
+                shortStack = key.stack(1);
+                shortReason = "export_full";
+            }
+            rules.exportChecked(key, full ? StockRuleKeeper.STATION_FULL : planned > 0 || onTheWay > 0 ? StockRuleKeeper.EXPORTING : null);
+        }
         station.setRestockState(shortStack, shortReason, pending);
+    }
+
+    /** How many buffer slots that many items of the key fill. */
+    private static int slotsFor(int items, ItemKey key) {
+        int stack = Math.max(1, key.stack(1).getMaxStackSize());
+        return (items + stack - 1) / stack;
     }
 
     /** Items of the key queued, riding or held for a destination. */
@@ -1118,7 +1151,92 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
      * @return {@link io.github.dirnei.mc.servus.shuttles.order.RuleThresholds#OK} or the reason the rule was refused
      */
     public String setStockRule(ItemKey key, StockRule.Make make, int cap) {
-        return rules.set(key, make, cap);
+        return rules.set(key, make, cap, -1);
+    }
+
+    /**
+     * Replaces the item's rule with the Make pair (null for none), the cap (0 for none) and the export (-1 for none).
+     *
+     * @return {@link io.github.dirnei.mc.servus.shuttles.order.RuleThresholds#OK} or the reason the rule was refused
+     */
+    public String setStockRule(ItemKey key, StockRule.Make make, int cap, int export) {
+        return rules.set(key, make, cap, export);
+    }
+
+    /** One export a station holds: the item, the rule's threshold and the export state. */
+    public record ExportSlot(ItemKey key, int threshold, String state) {
+    }
+
+    /** An export of this warehouse with its threshold and the station holding it, empty while none does. */
+    public record ExportOffer(ItemKey key, int threshold, Optional<BlockPos> holder) {
+    }
+
+    /** The exports the station at the position holds, by keep slot. */
+    public Map<Integer, ExportSlot> exportSlotsAt(BlockPos station) {
+        Map<Integer, ExportSlot> slots = new TreeMap<>();
+        stockRules().ifPresent(found -> found.exportsAt(station).forEach((slot, key) -> {
+            StockRule rule = found.get(key);
+            if (rule != null) {
+                slots.put(slot, new ExportSlot(key, rule.export(), rules.exportState(key)));
+            }
+        }));
+        return slots;
+    }
+
+    /** Whether a keep slot of the station at the position holds an export. */
+    public boolean holdsExport(BlockPos station, int slot) {
+        return stockRules().map(found -> found.exportsAt(station).containsKey(slot)).orElse(false);
+    }
+
+    /** Every export of the warehouse, for the claim picker. */
+    public List<ExportOffer> exportOffers() {
+        List<ExportOffer> offers = new ArrayList<>();
+        stockRules().ifPresent(found -> {
+            for (StockRule rule : found.all()) {
+                if (rule.hasExport()) {
+                    offers.add(new ExportOffer(rule.key(), rule.export(), found.exportHolder(rule.key()).map(claim -> claim.station())));
+                }
+            }
+        });
+        return offers;
+    }
+
+    /**
+     * Gives the item's export to a keep slot of an Outbound Station of this
+     * warehouse whose slot holds neither a keep amount nor an export.
+     *
+     * @return whether the export was claimed
+     */
+    public boolean claimExport(ItemKey key, BlockPos station, int slot) {
+        if (status() != Status.ONLINE || !stations.contains(station) || !(loaded(station) instanceof OutboundStationBlockEntity outbound)
+                || slot < 0 || slot >= outbound.keep().getSlots() || !outbound.keep().getStackInSlot(slot).isEmpty()) {
+            return false;
+        }
+        return stockRules().map(found -> found.claimExport(key, station, slot)).orElse(false);
+    }
+
+    /** Frees a keep slot of a station from its export; true when it held one. */
+    public boolean releaseExport(BlockPos station, int slot) {
+        return stockRules().flatMap(found -> found.releaseExport(station, slot)).isPresent();
+    }
+
+    /**
+     * Frees the exports of stations that left the warehouse: broken,
+     * dismantled or cut off by a removed rail. A station whose chunk is not
+     * loaded, or that has not joined a network yet, keeps its exports.
+     */
+    private void releaseGoneExports() {
+        stockRules().ifPresent(found -> {
+            Set<BlockPos> holders = new LinkedHashSet<>();
+            found.exportClaims().values().forEach(claim -> holders.add(claim.station()));
+            for (BlockPos pos : holders) {
+                boolean member = stations.contains(pos) || !level.isLoaded(pos);
+                boolean joining = level.getBlockEntity(pos) instanceof OutboundStationBlockEntity station && station.network().isEmpty();
+                if (!member && !joining) {
+                    found.releaseStation(pos);
+                }
+            }
+        });
     }
 
     /** Sets the cap of the item's rule and keeps its Make pair; returns OK or the reason. */
@@ -1156,10 +1274,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return CapRoom.room(rule.cap(), held, offered);
     }
 
-    /** The label of the station at the position, or the Inbound Station's block name when it is not loaded. */
+    /** The label of the station at the position, or a plain "Station" when it is not loaded. */
     public Component stationLabel(BlockPos pos) {
         return loaded(pos) instanceof StationBlockEntity station ? station.label()
-                : Component.translatable(ServusShuttlesBlocks.INBOUND_STATION.get().getDescriptionId());
+                : Component.translatable("station.servus_shuttles.label.unloaded");
     }
 
     public boolean removeStockRule(ItemKey key) {

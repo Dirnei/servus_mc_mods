@@ -16,8 +16,8 @@ import net.minecraft.network.chat.Component;
 /**
  * The Storage Terminal's Rules tab in the grid's area: the add slot with the
  * column headings as a fixed first row, then one row per stock rule with its
- * item, its Make range, its cap and its state, sorted by item name, filtered
- * by the search and scrolled like the grid.
+ * item, its Make range, its export threshold, its cap and its station or
+ * state, sorted by item name, filtered by the search and scrolled like the grid.
  */
 final class RulesList {
 
@@ -77,6 +77,7 @@ final class RulesList {
         PanelPainter.slots(graphics, left, top, add, 1, 1);
         graphics.text(font, "+", left + add.x() + 5, top + add.y() + 4, 0xFFFFFFFF, true);
         heading(graphics, font, left, top, grid, Storage.RULE_ROW_MAKE, "rules.make");
+        heading(graphics, font, left, top, grid, Storage.RULE_ROW_EXPORT, "rules.export");
         heading(graphics, font, left, top, grid, Storage.RULE_ROW_REFUSE, "rules.refuse");
         heading(graphics, font, left, top, grid, Storage.RULE_ROW_STATE, "rules.state");
         List<RuleRow> shown = shown(query);
@@ -104,16 +105,36 @@ final class RulesList {
         Rect icon = Storage.RULE_ROW_ICON;
         graphics.item(rule.stack(), x + icon.x(), y + icon.y());
         cell(graphics, font, make(rule), x, y, Storage.RULE_ROW_MAKE, COLOUR_TEXT);
-        cell(graphics, font, cap(rule), x, y, Storage.RULE_ROW_REFUSE, COLOUR_TEXT);
-        cell(graphics, font, ItemPopup.stateText(rule), x, y, Storage.RULE_ROW_STATE, ItemPopup.stateColour(rule.state()));
+        cell(graphics, font, number(rule.hasExport(), rule.export()), x, y, Storage.RULE_ROW_EXPORT, COLOUR_TEXT);
+        cell(graphics, font, number(rule.hasCap(), rule.cap()), x, y, Storage.RULE_ROW_REFUSE, COLOUR_TEXT);
+        boolean export = rule.hasExport() && !rule.state().equals("refusing");
+        Component state = export ? exportText(rule) : ItemPopup.stateText(rule);
+        cell(graphics, font, state, x, y, Storage.RULE_ROW_STATE, export ? exportColour(rule.exportState()) : ItemPopup.stateColour(rule.state()));
+    }
+
+    /** Where the export goes as the Station column shows it: the station's label, "no station" or "Outbound #2 full". */
+    static Component exportText(RuleRow rule) {
+        return switch (rule.exportState()) {
+            case "no_station" -> Component.translatable(KEY + "export_state.no_station");
+            case "station_full" -> Component.translatable(KEY + "export_state.station_full", rule.holder());
+            default -> rule.holder();
+        };
+    }
+
+    private static int exportColour(String state) {
+        return switch (state) {
+            case "no_station", "station_full" -> 0xFFB03030;
+            case "exporting" -> 0xFF8A5A00;
+            default -> COLOUR_TEXT;
+        };
     }
 
     private static Component make(RuleRow rule) {
         return rule.hasMake() ? Component.translatable(KEY + "rule_range", rule.min(), rule.max()) : Component.literal("-");
     }
 
-    private static Component cap(RuleRow rule) {
-        return rule.hasCap() ? Component.literal(StorageTerminalScreen.abbreviate(rule.cap())) : Component.literal("-");
+    private static Component number(boolean set, int value) {
+        return set ? Component.literal(StorageTerminalScreen.abbreviate(value)) : Component.literal("-");
     }
 
     private static void cell(GuiGraphicsExtractor graphics, Font font, Component text, int x, int y, Rect at, int colour) {
@@ -136,6 +157,9 @@ final class RulesList {
         }
         if (rule.hasCap()) {
             lines.add(Component.translatable(KEY + "rule_refuse", rule.cap()));
+        }
+        if (rule.hasExport()) {
+            lines.add(Component.translatable(KEY + "rule_export", rule.export(), Component.translatable(KEY + "export_state." + rule.exportState(), rule.holder())));
         }
         lines.add(Component.translatable(KEY + "rule_line", ItemPopup.stateText(rule)));
         return lines;
