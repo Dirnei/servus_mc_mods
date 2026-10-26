@@ -194,7 +194,7 @@ public final class ServusShuttlesPayloads {
                 (player, menu, payload) -> menu.cancel(payload.id()));
         toMenu(registrar, PushCarriedPayload.TYPE, PushCarriedPayload.STREAM_CODEC, StorageTerminalMenu.class,
                 (player, menu, payload) -> menu.pushCarried());
-        toMenu(registrar, GridFillPayload.TYPE, GridFillPayload.STREAM_CODEC, StorageTerminalMenu.class,
-                (player, menu, payload) -> menu.fillGhosts(payload.slots()));
+        toMenu(registrar, OrderGridRecipePayload.TYPE, OrderGridRecipePayload.STREAM_CODEC, StorageTerminalMenu.class,
+                (player, menu, payload) -> menu.fillFromRecipe(payload.recipe(), payload.keepMode()));
     }
 }

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.terminal;
 
+import io.github.dirnei.mc.servus.foundation.ui.RecipeGridLayout;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -131,16 +132,11 @@ public final class TerminalLayout {
         public static final Rect HOTBAR = new Rect(8, 217, 9 * CELL, CELL);
 
         /**
-         * The order grid popup at fixed offsets of the base rows, since its
-         * ghost cells are menu slots that cannot move; centred on the panel,
-         * wider than it and above the inventory label.
+         * The order grid's recipe grid view, without a title, at fixed offsets
+         * of the base rows, since its ghost cells are menu slots that cannot
+         * move; centred on the panel, wider than it and above the inventory label.
          */
-        public static final Rect ORDER_POPUP = new Rect(-23, 40, 236, 90);
-        public static final Rect ORDER_GRID = new Rect(36, 46, 3 * CELL, 3 * CELL);
-        public static final Rect ORDER_ARROW = new Rect(95, 68, 16, 10);
-        public static final Rect ORDER_RESULT = new Rect(116, 65, 16, 16);
-        public static final Rect ORDER_SAVE = new Rect(136, 64, 18, 18);
-        public static final Rect ORDER_BUTTONS = new Rect(-17, 110, 224, 14);
+        public static final Rect ORDER_POPUP = new Rect(-23, 40, RecipeGridLayout.WIDTH, RecipeGridLayout.HEIGHT);
 
         /** The amount popup of the craft dialog and the order grid's second step, centred like the order grid. */
         public static final Rect CRAFT_POPUP = new Rect(-23, 18, 236, 128);
@@ -151,7 +147,7 @@ public final class TerminalLayout {
         public static final Rect CRAFT_LISTS = new Rect(-17, 86, 224, 36);
         public static final int CRAFT_LIST_WIDTH = 72;
         public static final Rect CRAFT_BUTTONS = new Rect(-17, 126, 224, 14);
-        /** Width of Cancel, Back and Clear; Next and Start are {@link #WIDE_BUTTON} wide. */
+        /** Width of Cancel and Back; Start is {@link #WIDE_BUTTON} wide. */
         public static final int BUTTON = 50;
         public static final int WIDE_BUTTON = 60;
 
@@ -213,12 +209,6 @@ public final class TerminalLayout {
             }
         }
 
-        /** The parts of the order grid. */
-        public static List<Area> orderAreas() {
-            return List.of(new Area("order grid", ORDER_GRID), new Area("order arrow", ORDER_ARROW),
-                    new Area("order result", ORDER_RESULT), new Area("order save", ORDER_SAVE),
-                    new Area("order buttons", ORDER_BUTTONS));
-        }
 
         /** The parts of the Rule tab. */
         public static List<Area> ruleAreas() {
@@ -274,14 +264,6 @@ public final class TerminalLayout {
             return Math.max(BASE_ROWS, Math.min(height.rows(), fit));
         }
 
-        /** Item origin of an order grid cell. */
-        public static int orderX(int cell) {
-            return ORDER_GRID.x() + (cell % 3) * CELL;
-        }
-
-        public static int orderY(int cell) {
-            return ORDER_GRID.y() + (cell / 3) * CELL;
-        }
 
         /** Item origin of an Input row slot. */
         public static int inputX(int slot) {
@@ -313,7 +295,8 @@ public final class TerminalLayout {
         public static final Rect LIST = new Rect(8, 34, 224, 180);
         /** The list's scrollbar track; its frame draws 1 pixel around it. */
         public static final Rect SCROLLBAR = new Rect(236, 34, 8, 180);
-        public static final Rect POPUP = new Rect(46, 34, 160, 72);
+        /** The recipe editor's recipe grid view, with a title, centred above the inventory. */
+        public static final Rect POPUP = new Rect((WIDTH - RecipeGridLayout.WIDTH) / 2, 30, RecipeGridLayout.WIDTH, RecipeGridLayout.HEIGHT);
         public static final Rect INVENTORY = new Rect(45, 122, 9 * CELL, 3 * CELL);
         public static final Rect HOTBAR = new Rect(45, 180, 9 * CELL, CELL);
 

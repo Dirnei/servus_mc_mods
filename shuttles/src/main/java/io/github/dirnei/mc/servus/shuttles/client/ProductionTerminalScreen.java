@@ -2,17 +2,13 @@ package io.github.dirnei.mc.servus.shuttles.client;
 
 import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
-import io.github.dirnei.mc.servus.foundation.client.RecipeEditorPopup;
+import io.github.dirnei.mc.servus.foundation.client.RecipeGridView;
 import io.github.dirnei.mc.servus.foundation.client.Scrollbar;
 import io.github.dirnei.mc.servus.foundation.picker.PickerStock;
-import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.shuttles.menu.ProductionTerminalMenu;
-import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.pattern.AnyGroup;
 import io.github.dirnei.mc.servus.shuttles.pattern.CraftingGrid;
-import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
-import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
-import io.github.dirnei.mc.servus.shuttles.pattern.PatternVariants;
+
 import io.github.dirnei.mc.servus.shuttles.production.CancelProductionOrderPayload;
 import io.github.dirnei.mc.servus.shuttles.production.EditPatternPayload;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.BufferItem;
@@ -33,7 +29,6 @@ import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout.Rect;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
@@ -41,9 +36,9 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeMap;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
@@ -51,8 +46,8 @@ import org.lwjgl.glfw.GLFW;
  * Title, a tab row (Crafting, Patterns, Machines, CPUs, Storage) and a scrollable list
  * below. Each tab turns the last synced rows into lines; a line can draw
  * itself, show a tooltip and react to a click. The Patterns tab opens the
- * shared recipe editor popup over the panel, with the player inventory below
- * it while it is open.
+ * recipe editor, the shared recipe grid view, over the panel, with the player
+ * inventory below it while it is open.
  */
 public class ProductionTerminalScreen extends AbstractContainerScreen<ProductionTerminalMenu> {
 
@@ -113,16 +108,24 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     /** One scrollbar per tab, so each tab keeps its scroll position; offsets in pixels. */
     private final List<Scrollbar> bars = tabs.stream().map(tab -> new Scrollbar()).toList();
     private final List<Line> lines = new ArrayList<>();
-    private final RecipeEditorPopup popup = new RecipeEditorPopup(ProductionTerminalMenu.POPUP_X, ProductionTerminalMenu.POPUP_Y, WIDTH, HEIGHT);
+    private final PatternGridClient grid;
+    private final RecipeGridView editor;
     private int selected;
     private int linesVersion = -1;
     private int linesTab = -1;
-    private List<ItemKey> variantsGrid;
-    private RecipeMap variantsRecipes;
-    private PatternVariants variants = PatternVariants.NONE;
+    /** Set when the editor took a press, so its release puts no carried stack into a slot. */
+    private boolean swallowRelease;
 
     public ProductionTerminalScreen(ProductionTerminalMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, WIDTH, HEIGHT);
+        grid = new PatternGridClient(menu::gridCells, menu::mode, () -> press(RecipeEditorButtons.MODE));
+        editor = new RecipeGridView(ProductionTerminalMenu.POPUP_X, ProductionTerminalMenu.POPUP_Y, this::editorTitle, grid, List.of(
+                RecipeGridView.Action.cancel(() -> press(RecipeEditorButtons.CANCEL)),
+                RecipeGridView.Action.clear(() -> press(RecipeEditorButtons.CLEAR)),
+                new RecipeGridView.Action(Component.translatable("gui.servus_shuttles.crafting_station.delete"), this::editingExisting,
+                        () -> null, () -> press(RecipeEditorButtons.DELETE)),
+                RecipeGridView.Action.needsResult(Component.translatable("gui.servus_shuttles.crafting_station.save"), grid, () -> true,
+                        () -> press(RecipeEditorButtons.SAVE))));
     }
 
     @Override
@@ -139,6 +142,8 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         this.inventoryLabelY = Integer.MIN_VALUE;
         Rect track = Production.SCROLLBAR;
         bars.forEach(bar -> bar.setArea(leftPos + track.x(), topPos + track.y(), track.w(), track.h()));
+        editor.build(leftPos, topPos).forEach(this::addRenderableWidget);
+        editor.setVisible(menu.isEditing());
     }
 
     /** The scrollbar of the tab on display. */
@@ -146,28 +151,31 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         return bars.get(selected);
     }
 
+    private boolean editingExisting() {
+        return menu.editing() == ProductionTerminalMenu.EDIT_EXISTING;
+    }
+
+    private Component editorTitle() {
+        return Component.translatable(editingExisting() ? "gui.servus_shuttles.production.edit_pattern"
+                : "gui.servus_shuttles.production.new_pattern_title");
+    }
+
     @Override
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
         PanelPainter.panel(graphics, leftPos, topPos, imageWidth, imageHeight);
         graphics.fill(leftPos + MARGIN, topPos + LIST_Y - 2, leftPos + WIDTH - MARGIN, topPos + LIST_Y - 1, PanelPainter.SLOT);
+        editor.setVisible(menu.isEditing());
         if (menu.isEditing()) {
-            renderEditor(graphics, mouseX, mouseY);
+            renderEditor(graphics);
         } else {
             bar().render(graphics, mouseX, mouseY);
         }
     }
 
-    /** The recipe editor popup with the player inventory's slot frames below it. */
-    private void renderEditor(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        boolean existing = menu.editing() == ProductionTerminalMenu.EDIT_EXISTING;
-        Component title = Component.translatable(existing ? "gui.servus_shuttles.production.edit_pattern"
-                : "gui.servus_shuttles.production.new_pattern_title");
-        popup.render(graphics, font, leftPos, topPos, mouseX, mouseY, title, existing, preview(),
-                Component.translatable("gui.servus_shuttles.crafting_station.save"),
-                Component.translatable("gui.servus_shuttles.crafting_station.delete"),
-                Component.translatable("gui.servus_shuttles.crafting_station.cancel"));
-        popup.renderMode(graphics, font, leftPos, topPos, mouseX, mouseY, modeButton());
+    /** The recipe editor with the player inventory's slot frames below it; slots and buttons draw over it. */
+    private void renderEditor(GuiGraphicsExtractor graphics) {
+        editor.render(graphics, font, leftPos, topPos, WIDTH, HEIGHT);
         for (int row = 0; row < 4; row++) {
             int y = topPos + (row < 3 ? ProductionTerminalMenu.INVENTORY_Y + row * 18 : ProductionTerminalMenu.HOTBAR_Y);
             for (int column = 0; column < 9; column++) {
@@ -177,79 +185,11 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         }
     }
 
-    /** The result the ghost grid matches on the client, empty when none. */
-    private ItemStack preview() {
-        Level level = minecraft == null ? null : minecraft.level;
-        if (level == null) {
-            return ItemStack.EMPTY;
-        }
-        return PatternEditing.encode(level, menu.gridCells()).map(EncodedPattern::result).orElse(ItemStack.EMPTY);
-    }
-
-    /** What the grid's items allow, worked out again only when the grid or the recipes change. */
-    private PatternVariants gridVariants() {
-        Level level = minecraft == null ? null : minecraft.level;
-        if (level == null) {
-            return PatternVariants.NONE;
-        }
-        List<ItemKey> cells = menu.gridCells().stream().map(cell -> cell.isEmpty() ? null : ItemKey.of(cell)).toList();
-        RecipeMap recipes = ServusRecipes.recipeMap(level);
-        if (!cells.equals(variantsGrid) || recipes != variantsRecipes) {
-            variantsGrid = cells;
-            variantsRecipes = recipes;
-            variants = PatternEditing.encode(level, menu.gridCells()).map(pattern -> PatternVariants.of(level, pattern))
-                    .orElse(PatternVariants.NONE);
-        }
-        return variants;
-    }
-
-    /** Any or Exact as asked; Exact and greyed where the grid allows no Any. */
-    private RecipeEditorPopup.Mode modeButton() {
-        boolean possible = gridVariants().possible();
-        boolean any = possible && menu.mode() == EncodedPattern.Mode.ANY;
-        return new RecipeEditorPopup.Mode(Component.translatable("gui.servus_shuttles.production.mode." + (any ? "any" : "exact")), possible);
-    }
-
-    private List<Component> modeTooltip() {
-        PatternVariants grid = gridVariants();
-        List<Component> tooltip = new ArrayList<>();
-        if (!grid.possible()) {
-            tooltip.add(Component.translatable("gui.servus_shuttles.production.mode.exact"));
-            String why = grid.verdict() == PatternVariants.Verdict.CHANGES_RESULT ? "changes_result" : "no_alternatives";
-            tooltip.add(Component.translatable("gui.servus_shuttles.production.mode." + why).withStyle(ChatFormatting.GRAY));
-            return tooltip;
-        }
-        boolean any = menu.mode() == EncodedPattern.Mode.ANY;
-        tooltip.add(Component.translatable("gui.servus_shuttles.production.mode." + (any ? "any" : "exact")));
-        tooltip.add(Component.translatable("gui.servus_shuttles.production.mode." + (any ? "any_hint" : "exact_hint"))
-                .withStyle(ChatFormatting.GRAY));
-        if (any) {
-            for (AnyGroup group : grid.groups()) {
-                tooltip.add(anyLabel(group));
-            }
-        }
-        tooltip.add(Component.translatable("gui.servus_shuttles.production.mode.toggle_hint").withStyle(ChatFormatting.DARK_GRAY));
-        return tooltip;
-    }
-
-    private static Component anyLabel(AnyGroup group) {
-        return group.label(I18n.exists(group.tagKey())).copy().withStyle(ChatFormatting.AQUA);
-    }
-
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         if (menu.isEditing()) {
-            if (popup.previewHovered(leftPos, topPos, mouseX, mouseY)) {
-                ItemStack preview = preview();
-                if (preview.isEmpty()) {
-                    graphics.setTooltipForNextFrame(font, Component.translatable("gui.servus_shuttles.crafting_station.no_match"), mouseX, mouseY);
-                } else {
-                    graphics.setTooltipForNextFrame(font, preview, mouseX, mouseY);
-                }
-            } else if (popup.modeHovered(leftPos, topPos, mouseX, mouseY)) {
-                graphics.setComponentTooltipForNextFrame(font, modeTooltip(), mouseX, mouseY);
-            }
+            editor.renderTooltips(graphics, font, mouseX, mouseY);
             return;
         }
         Line hovered = lineAt(mouseX, mouseY);
@@ -728,7 +668,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
                     patterns.used() >= patterns.total() ? COLOUR_ALERT : COLOUR_TEAL, PanelPainter.DARK);
         }, null, null));
         Component add = Component.translatable("gui.servus_shuttles.production.new_pattern");
-        result.add(new Line(16, (graphics, y, hovered) -> RecipeEditorPopup.drawButton(graphics, font, MARGIN, y + 1,
+        result.add(new Line(16, (graphics, y, hovered) -> PanelPainter.flatButton(graphics, font, MARGIN, y + 1,
                 font.width(add) + 10, 13, add.getString(), hovered),
                 () -> List.of(Component.translatable("gui.servus_shuttles.production.new_pattern_hint")),
                 () -> press(RecipeEditorButtons.OPEN_NEW)));
@@ -744,7 +684,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private Line patternLine(PatternRow row) {
         Component text = Component.translatable("gui.servus_shuttles.production.pattern_recipe", row.result().getCount(),
                 row.result().getHoverName(), CraftingGrid.stacks(row.inputs()));
-        Component anyTag = Component.translatable("gui.servus_shuttles.production.mode.any");
+        Component anyTag = Component.translatable("gui.servus_shuttles.pattern_grid.mode.any");
         Painter painter = (graphics, y, hovered) -> {
             if (hovered) {
                 graphics.fill(MARGIN, y, LIST_RIGHT, y + PATTERN_ROW, PATTERN_HOVER_SHADE);
@@ -764,7 +704,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             List<Component> list = new ArrayList<>();
             list.add(text);
             for (AnyGroup group : row.any()) {
-                list.add(anyLabel(group));
+                list.add(PatternGridClient.anyLabel(group));
             }
             list.add(Component.translatable("gui.servus_shuttles.production.pattern_storage_at", row.storage().toShortString(), row.slot() + 1));
             list.add(Component.translatable("gui.servus_shuttles.production.pattern_edit_hint"));
@@ -919,27 +859,9 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         double mouseX = event.x();
         double mouseY = event.y();
         if (menu.isEditing()) {
-            switch (popup.buttonAt(leftPos, topPos, mouseX, mouseY, menu.editing() == ProductionTerminalMenu.EDIT_EXISTING)) {
-                case SAVE -> {
-                    press(RecipeEditorButtons.SAVE);
-                    return true;
-                }
-                case DELETE -> {
-                    press(RecipeEditorButtons.DELETE);
-                    return true;
-                }
-                case CANCEL -> {
-                    press(RecipeEditorButtons.CANCEL);
-                    return true;
-                }
-                case MODE -> {
-                    if (gridVariants().possible()) {
-                        press(RecipeEditorButtons.MODE);
-                    }
-                    return true;
-                }
-                case NONE -> {
-                }
+            if (editor.press(mouseX, mouseY, !menu.getCarried().isEmpty(), cell -> clickGhostCell(cell, event.button()))) {
+                swallowRelease = true;
+                return true;
             }
             return super.mouseClicked(event, doubleClick);
         }
@@ -972,6 +894,30 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         return super.mouseClicked(event, doubleClick);
     }
 
+    /** Dragging the cursor's item over the editor's cells sets a ghost copy in each cell it passes. */
+    @Override
+    public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
+        if (menu.isEditing()) {
+            return editor.drag(event.x(), event.y(), !menu.getCarried().isEmpty(), cell -> clickGhostCell(cell, event.button()))
+                    || super.mouseDragged(event, dx, dy);
+        }
+        return bar().mouseDragged(event.y()) || super.mouseDragged(event, dx, dy);
+    }
+
+    @Override
+    public boolean mouseReleased(MouseButtonEvent event) {
+        if (swallowRelease) {
+            swallowRelease = false;
+            return true;
+        }
+        return bar().mouseReleased() || super.mouseReleased(event);
+    }
+
+    private void clickGhostCell(int cell, int button) {
+        Slot slot = menu.slots.get(menu.gridStart() + cell);
+        slotClicked(slot, slot.index, button, ContainerInput.PICKUP);
+    }
+
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (menu.isEditing()) {
@@ -979,16 +925,6 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         }
         bar().scrollBy(-(int) (scrollY * ROW));
         return true;
-    }
-
-    @Override
-    public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
-        return bar().mouseDragged(event.y()) || super.mouseDragged(event, dx, dy);
-    }
-
-    @Override
-    public boolean mouseReleased(MouseButtonEvent event) {
-        return bar().mouseReleased() || super.mouseReleased(event);
     }
 
     @Override

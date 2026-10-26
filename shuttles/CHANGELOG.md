@@ -20,6 +20,7 @@
 - Packing Stations reserve whole To storage slots before items arrive and put a slot away only once it is complete, so one shuttle takes the whole stack, and the warehouse picks the station closest to the rack. A Packing Station moves 10 items per second.
 - A Storage Terminal request takes as many Output slots as its amount needs, and Packing Stations send only what a target has room for, so a full slot no longer holds up other deliveries; the station's status names a target that is full.
 - The Storage Terminal's scrollbar looks and drags like every other list's.
+- The Production Terminal's recipe editor and the Storage Terminal's order grid share one look: both fill cells by click and drag, have Clear and the Exact / Any button, and a one-off order or a pattern saved from the order grid keeps the chosen mode.
 
 ### Fixed
 - The Storage Terminal's scrollbar can be dragged with the mouse.

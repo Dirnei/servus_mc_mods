@@ -20,6 +20,13 @@ final class PanelPainter {
     private PanelPainter() {
     }
 
+    /** A flat button drawn into a list line, lighter while hovered; absolute coordinates. */
+    static void flatButton(GuiGraphicsExtractor graphics, Font font, int x, int y, int w, int h, String label, boolean hovered) {
+        graphics.fill(x, y, x + w, y + h, DARK);
+        graphics.fill(x + 1, y + 1, x + w - 1, y + h - 1, hovered ? 0xFFDDDDDD : 0xFFA0A0A0);
+        graphics.text(font, label, x + (w - font.width(label)) / 2, y + (h - 8) / 2, 0xFF202020, false);
+    }
+
     /** A raised grey panel with a black outline. */
     static void panel(GuiGraphicsExtractor graphics, int x, int y, int w, int h) {
         graphics.fill(x + 1, y, x + w - 1, y + h, OUTLINE);

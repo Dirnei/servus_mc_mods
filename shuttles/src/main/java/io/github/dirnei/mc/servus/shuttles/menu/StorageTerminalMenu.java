@@ -1,9 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.menu;
 
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
-import io.github.dirnei.mc.servus.foundation.logistics.menu.GhostSlot;
+import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.order.OrderBook;
@@ -12,6 +11,7 @@ import io.github.dirnei.mc.servus.shuttles.order.StockRule;
 import io.github.dirnei.mc.servus.shuttles.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
+import io.github.dirnei.mc.servus.shuttles.pattern.PatternGrid;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -65,7 +66,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     private final int inputStart;
     private final int inventoryStart;
     private final int gridStart;
-    private final ItemSlots grid = new ItemSlots(EncodedPattern.GRID);
+    private final PatternGrid grid = new PatternGrid();
     private final PayloadSync<StockSyncPayload> sync = new PayloadSync<>(10, false, this::stock, StorageTerminalMenu::signature);
     private String message = "";
     /** The key of the other site the grid shows, empty for this site. */
@@ -108,14 +109,9 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             addSlot(new Slot(playerInventory, column, Storage.HOTBAR.x() + column * 18, Storage.HOTBAR.y()));
         }
         gridStart = slots.size();
-        for (int cell = 0; cell < EncodedPattern.GRID; cell++) {
-            addSlot(new GhostSlot(() -> grid, cell, Storage.orderX(cell), Storage.orderY(cell)) {
-                @Override
-                public boolean isActive() {
-                    return orderOpen;
-                }
-            });
-        }
+        grid.slots(RecipeEditorButtons.gridX(Storage.ORDER_POPUP.x()), RecipeEditorButtons.gridY(Storage.ORDER_POPUP.y(), false),
+                () -> orderOpen).forEach(this::addSlot);
+        addDataSlot(grid.modeSlot());
     }
 
     public static StorageTerminalMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -161,16 +157,31 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
 
     /** The ghost cells, for the result, the preview and the order. */
     public List<ItemStack> gridCells() {
-        List<ItemStack> cells = new ArrayList<>(EncodedPattern.GRID);
-        for (int cell = 0; cell < EncodedPattern.GRID; cell++) {
-            cells.add(grid.getStackInSlot(cell));
-        }
-        return cells;
+        return grid.cells();
+    }
+
+    /** The mode asked for in the order grid; orders and saves use Exact where Any is not possible. */
+    public EncodedPattern.Mode mode() {
+        return grid.mode();
     }
 
     /** Puts a single copy of the stack into a ghost cell, or clears it for an empty stack. */
     public void setGhost(int cell, ItemStack stack) {
-        grid.setStackInSlot(cell, stack.isEmpty() ? ItemStack.EMPTY : stack.copyWithCount(1));
+        grid.setGhost(cell, stack);
+    }
+
+    /** Mode and Clear of the order grid, and Cancel, which empties it and asks for Any again. */
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        if (player.level().isClientSide()) {
+            return false;
+        }
+        if (id == RecipeEditorButtons.CANCEL) {
+            grid.clear();
+            grid.resetMode();
+            return true;
+        }
+        return grid.button(id);
     }
 
     /** Ghost cells take a copy of the cursor and never hand anything out. */
@@ -198,36 +209,41 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     }
 
     /**
-     * Recipe viewer transfer: sets each ghost cell to the stocked stack of an
-     * accepted item the warehouse can give the most of, with its components,
-     * else to the first accepted item. Takes nothing.
+     * Recipe viewer transfer: lays a vanilla crafting recipe out in the ghost
+     * cells, each the accepted stack the warehouse has the most of, with its
+     * components, else the ingredient's first item. Takes nothing.
+     *
+     * @param keepMode whether the order grid was open already, which keeps its mode; else it asks for Any
      */
-    public void fillGhosts(List<List<ItemStack>> options) {
+    public void fillFromRecipe(Identifier recipe, boolean keepMode) {
         if (!(terminal.getLevel() instanceof ServerLevel server)) {
             return;
         }
         List<Map.Entry<ItemKey, Long>> stock = TerminalWarehouses.online(server, terminal.getBlockPos())
                 .map(TerminalWarehouses::stock).orElse(List.of());
-        for (int cell = 0; cell < EncodedPattern.GRID; cell++) {
-            setGhost(cell, cell < options.size() ? CraftingGrid.stockedChoice(options.get(cell), stock) : ItemStack.EMPTY);
-        }
+        CraftingGrid.templateOf(server, recipe, stock).ifPresent(template -> {
+            grid.fill(template);
+            if (!keepMode) {
+                grid.resetMode();
+            }
+        });
         sync.force();
     }
 
     /**
      * Orders this many results of the order grid on a CPU of the line, once,
-     * without saving a pattern; the cells are cleared once the order is made.
+     * with its mode, without saving a pattern; once the order is made the
+     * cells are cleared and the mode asks for Any again.
      */
     public void startOrder(int amount) {
         if (!(terminal.getLevel() instanceof ServerLevel server)) {
             message = "offline";
         } else {
-            Optional<EncodedPattern> pattern = PatternEditing.encode(server, gridCells());
+            Optional<EncodedPattern> pattern = grid.pattern(server);
             message = pattern.isEmpty() ? "no_match" : TerminalRequests.craftOneOff(server, terminal, pattern.get(), Math.max(1, amount));
             if (message.isEmpty()) {
-                for (int cell = 0; cell < EncodedPattern.GRID; cell++) {
-                    setGhost(cell, ItemStack.EMPTY);
-                }
+                grid.clear();
+                grid.resetMode();
             }
         }
         sync.force();
@@ -242,7 +258,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             message = "offline";
         } else {
             String saved = TerminalCraftables.line(server, terminal.getBlockPos())
-                    .map(line -> PatternEditing.save(server, line, player, gridCells(), null, EncodedPattern.Mode.ANY)).orElse("no_storage");
+                    .map(line -> PatternEditing.save(server, line, player, gridCells(), null, grid.mode())).orElse("no_storage");
             message = switch (saved) {
                 case "" -> "";
                 case "empty", "no_match" -> "no_match";
@@ -314,7 +330,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     }
 
     private CraftPreviewPayload orderPreview(ServerLevel server, int amount) {
-        Optional<EncodedPattern> pattern = PatternEditing.encode(server, gridCells());
+        Optional<EncodedPattern> pattern = grid.pattern(server);
         if (pattern.isEmpty()) {
             return new CraftPreviewPayload(ItemStack.EMPTY, amount, List.of(), List.of(), List.of(), "no_match");
         }

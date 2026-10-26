@@ -26,6 +26,9 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
         add("gui.servus_foundation.picker.search", "Search");
         add("gui.servus_foundation.stepper.less", "Less: click for 1, shift click for a stack");
         add("gui.servus_foundation.stepper.more", "More: click for 1, shift click for a stack");
+        add("gui.servus_foundation.recipe_grid.cancel", "Cancel");
+        add("gui.servus_foundation.recipe_grid.clear", "Clear");
+        add("gui.servus_foundation.recipe_grid.no_match", "The grid matches no recipe");
         add("gui.servus_foundation.machine_adapter.machine", "Machine: %s");
         add("gui.servus_foundation.machine_adapter.no_profile", "No machine this adapter knows");
         add("gui.servus_foundation.machine_adapter.upkeep", "Upkeep item and level");

@@ -84,7 +84,7 @@ public final class CraftingGrid {
      * an accepted item the warehouse has the most of, with its components,
      * else the first accepted item. Empty when nothing is accepted.
      */
-    public static ItemStack stockedChoice(List<ItemStack> accepted, List<Map.Entry<ItemKey, Long>> stock) {
+    private static ItemStack stockedChoice(List<ItemStack> accepted, List<Map.Entry<ItemKey, Long>> stock) {
         Set<Item> items = new HashSet<>();
         ItemStack first = ItemStack.EMPTY;
         for (ItemStack option : accepted) {

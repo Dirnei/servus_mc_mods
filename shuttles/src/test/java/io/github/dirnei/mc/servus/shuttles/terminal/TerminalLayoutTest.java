@@ -17,7 +17,7 @@ class TerminalLayoutTest {
     private static Rect framed(Area area) {
         Rect rect = area.rect();
         boolean slots = area.name().equals("inventory") || area.name().equals("hotbar") || area.name().equals("output")
-                || area.name().equals("input") || area.name().equals("grid") || area.name().equals("order grid");
+                || area.name().equals("input") || area.name().equals("grid");
         return slots ? new Rect(rect.x() - 1, rect.y() - 1, rect.w() + 2, rect.h() + 2) : rect;
     }
 
@@ -141,11 +141,15 @@ class TerminalLayoutTest {
     }
 
     @Test
-    void orderPartsApartAndInsideTheOrderArea() {
-        assertDisjoint(Storage.orderAreas());
-        assertInsidePopup(Storage.orderAreas(), Storage.ORDER_POPUP);
-        assertTrue(Storage.orderX(8) + TerminalLayout.CELL <= Storage.ORDER_GRID.right()
-                && Storage.orderY(8) + TerminalLayout.CELL <= Storage.ORDER_GRID.bottom(), "nine order cells fit");
+    void orderPopupCentredAboveTheInventory() {
+        assertInsidePopup(List.of(), Storage.ORDER_POPUP);
+        assertTrue(Storage.ORDER_POPUP.y() >= Storage.layout(Storage.BASE_ROWS).grid().y(), "the order grid lies over the base rows");
+    }
+
+    @Test
+    void productionEditorEndsAboveTheInventory() {
+        assertTrue(Production.POPUP.bottom() < Production.INVENTORY.y() - 1, "the editor leaves the inventory's slot frames free");
+        assertTrue(Production.POPUP.y() >= Production.TABS.bottom(), "the editor starts below the tab row");
     }
 
     @Test

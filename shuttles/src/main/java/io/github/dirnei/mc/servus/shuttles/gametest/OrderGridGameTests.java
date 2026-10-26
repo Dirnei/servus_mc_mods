@@ -1,7 +1,9 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
+import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
+import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
@@ -14,6 +16,7 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewRequestPayload;
+import io.github.dirnei.mc.servus.shuttles.terminal.StockEntry;
 import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlockEntity;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -21,6 +24,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -38,6 +42,8 @@ public final class OrderGridGameTests {
     /** The second rack of {@link StationHandsGameTests#setup}, for extra stock. */
     private static final BlockPos EXTRA = new BlockPos(1, 0, 3);
     private static final Identifier OAK = Identifier.withDefaultNamespace("oak_planks");
+    private static final Identifier STICK_RECIPE = Identifier.withDefaultNamespace("stick");
+    private static final Identifier ELEVATOR_RECIPE = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "elevator");
 
     private OrderGridGameTests() {
     }
@@ -57,6 +63,17 @@ public final class OrderGridGameTests {
         for (int cell : SQUARE) {
             menu.setGhost(cell, new ItemStack(Items.OAK_PLANKS));
         }
+    }
+
+    /** A plank above a plank of this kind: sticks. */
+    private static void sticksGrid(StorageTerminalMenu menu, Item planks) {
+        menu.setGhost(1, new ItemStack(planks));
+        menu.setGhost(4, new ItemStack(planks));
+    }
+
+    /** How many of the item From stock lists in the preview. */
+    private static long fromStock(CraftPreviewPayload preview, Item item) {
+        return preview.fromStock().stream().filter(entry -> entry.stack().is(item)).mapToLong(StockEntry::count).sum();
     }
 
     /** Rails made of the wood of these planks. */
@@ -99,7 +116,10 @@ public final class OrderGridGameTests {
         });
     }
 
-    /** JEI's transfer sets each cell to the accepted item the warehouse holds most of and takes nothing. */
+    /**
+     * JEI's transfer lays the recipe out with the accepted item the warehouse
+     * holds most of, takes nothing, opens as Any and keeps the mode of an open grid.
+     */
     @ServusGameTest(timeoutTicks = 200)
     public static void transferSetsStockedGhosts(GameTestHelper helper) {
         HeavyRackBlockEntity rack = StationHandsGameTests.setup(helper, 16);
@@ -107,14 +127,19 @@ public final class OrderGridGameTests {
         player.getInventory().add(new ItemStack(Items.BIRCH_PLANKS, 5));
         StorageTerminalMenu menu = menu(helper, player);
         Waits.when(helper, () -> stocked(helper, menu), 160, () -> "stations and CPU should join the line", () -> {
-            List<ItemStack> planks = List.of(new ItemStack(Items.BIRCH_PLANKS), new ItemStack(Items.OAK_PLANKS));
-            menu.fillGhosts(List.of(List.of(), planks, List.of(), List.of(), planks, List.of(), List.of(), List.of(), List.of()));
-            helper.assertTrue(menu.gridCells().get(1).is(Items.OAK_PLANKS) && menu.gridCells().get(4).is(Items.OAK_PLANKS),
+            menu.clickMenuButton(player, RecipeEditorButtons.MODE);
+            menu.fillFromRecipe(STICK_RECIPE, false);
+            List<ItemStack> used = menu.gridCells().stream().filter(cell -> !cell.isEmpty()).toList();
+            helper.assertTrue(used.size() == 2 && used.stream().allMatch(cell -> cell.is(Items.OAK_PLANKS)),
                     "the stocked oak planks are chosen, got " + menu.gridCells());
+            helper.assertTrue(menu.mode() == EncodedPattern.Mode.ANY, "a transfer that opens the grid starts as Any");
             helper.assertTrue(player.getInventory().countItem(Items.BIRCH_PLANKS) == 5, "the inventory keeps its planks");
             helper.assertTrue(WarehouseFixtures.count(rack, Items.OAK_PLANKS) == 16, "the rack keeps its planks");
             CraftPreviewPayload preview = menu.preview(ItemStack.EMPTY, 4, CraftPreviewRequestPayload.Mode.ORDER);
             helper.assertTrue(preview.item().is(Items.STICK) && preview.patternSaved(), "the sticks pattern is known, got " + preview);
+            menu.clickMenuButton(player, RecipeEditorButtons.MODE);
+            menu.fillFromRecipe(STICK_RECIPE, true);
+            helper.assertTrue(menu.mode() == EncodedPattern.Mode.EXACT, "a transfer into the open grid keeps its mode");
             helper.succeed();
         });
     }
@@ -128,9 +153,7 @@ public final class OrderGridGameTests {
         StorageTerminalMenu menu = menu(helper, player);
         Waits.when(helper, () -> stocked(helper, menu) && TerminalWiring.stockOf(menu, ServusShuttlesItems.RAIL.get()) == 50, 160,
                 () -> "stations, CPU and Rails should be on the line", () -> {
-            List<ItemStack> iron = List.of(new ItemStack(Items.IRON_INGOT));
-            List<ItemStack> bareRail = List.of(new ItemStack(ServusShuttlesItems.RAIL.get()));
-            menu.fillGhosts(List.of(iron, iron, iron, iron, bareRail, iron, iron, iron, iron));
+            menu.fillFromRecipe(ELEVATOR_RECIPE, false);
             ItemStack centre = menu.gridCells().get(4);
             helper.assertTrue(ItemStack.isSameItemSameComponents(centre, rail("oak_planks", 1)),
                     "the centre holds the stocked oak Rail, got " + centre + " " + centre.getComponentsPatch());
@@ -239,6 +262,133 @@ public final class OrderGridGameTests {
             helper.assertTrue(menu.stock().message().equals("no_match"), "the grid matches nothing, got " + menu.stock().message());
             helper.assertTrue(menu.gridCells().get(4).is(Items.STICK), "the grid keeps its stick");
             helper.assertTrue(menu.terminal().requests().isEmpty(), "no order starts");
+            helper.succeed();
+        });
+    }
+
+    /** An Any one-off order of sticks takes the spruce planks the warehouse holds most of and leaves the oak planks. */
+    @ServusGameTest(timeoutTicks = 1400)
+    public static void oneOffAnyUsesSpruce(GameTestHelper helper) {
+        HeavyRackBlockEntity rack = StationHandsGameTests.setup(helper, 3);
+        WarehouseFixtures.stock(helper, EXTRA, new ItemStack(Items.SPRUCE_PLANKS, 40));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = menu(helper, player);
+        Waits.when(helper, () -> stocked(helper, menu) && TerminalWiring.stockOf(menu, Items.SPRUCE_PLANKS) == 40, 160,
+                () -> "stations, CPU and spruce planks should be on the line", () -> {
+            sticksGrid(menu, Items.OAK_PLANKS);
+            helper.assertTrue(menu.mode() == EncodedPattern.Mode.ANY, "the order grid starts as Any");
+            CraftPreviewPayload preview = menu.preview(ItemStack.EMPTY, 16, CraftPreviewRequestPayload.Mode.ORDER);
+            helper.assertTrue(fromStock(preview, Items.SPRUCE_PLANKS) == 8 && preview.missing().isEmpty() && preview.startable(),
+                    "the preview takes 8 spruce planks, got " + preview);
+            menu.startOrder(16);
+            helper.assertTrue(menu.mode() == EncodedPattern.Mode.ANY && menu.gridCells().stream().allMatch(ItemStack::isEmpty),
+                    "a started order empties the grid and asks for Any again");
+            StorageTerminalBlockEntity terminal = menu.terminal();
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) >= 16, 1200, () -> "16 sticks should land in the output slots", () -> {
+                helper.assertTrue(WarehouseFixtures.count(rack, Items.OAK_PLANKS) == 3, "the oak planks stay in the warehouse");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** An Exact one-off order needs exactly its planks; the same grid as Any takes the stocked ones. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void oneOffExactWaitsForBirch(GameTestHelper helper) {
+        StationHandsGameTests.setup(helper, 16);
+        WarehouseFixtures.stock(helper, EXTRA, new ItemStack(Items.SPRUCE_PLANKS, 40));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = menu(helper, player);
+        Waits.when(helper, () -> stocked(helper, menu), 160, () -> "stations and CPU should join the line", () -> {
+            sticksGrid(menu, Items.BIRCH_PLANKS);
+            CraftPreviewPayload any = menu.preview(ItemStack.EMPTY, 8, CraftPreviewRequestPayload.Mode.ORDER);
+            helper.assertTrue(any.missing().isEmpty() && any.startable(), "Any takes stocked planks, got " + any);
+            menu.clickMenuButton(player, RecipeEditorButtons.MODE);
+            CraftPreviewPayload exact = menu.preview(ItemStack.EMPTY, 8, CraftPreviewRequestPayload.Mode.ORDER);
+            helper.assertTrue(exact.missing().stream().anyMatch(entry -> entry.stack().is(Items.BIRCH_PLANKS)) && !exact.startable(),
+                    "Exact misses birch planks, got " + exact);
+            helper.succeed();
+        });
+    }
+
+    /** An Any one-off order keeps its mode through a save and load of its CPU's orders and still crafts from spruce. */
+    @ServusGameTest(timeoutTicks = 1400)
+    public static void oneOffAnyKeepsModeAfterReload(GameTestHelper helper) {
+        HeavyRackBlockEntity rack = StationHandsGameTests.setup(helper, 3);
+        WarehouseFixtures.stock(helper, EXTRA, new ItemStack(Items.SPRUCE_PLANKS, 40));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = menu(helper, player);
+        Waits.when(helper, () -> stocked(helper, menu) && TerminalWiring.stockOf(menu, Items.SPRUCE_PLANKS) == 40, 160,
+                () -> "stations, CPU and spruce planks should be on the line", () -> {
+            sticksGrid(menu, Items.OAK_PLANKS);
+            menu.startOrder(16);
+            CpuBlockEntity cpu = CpuOrders.cpus(helper.getLevel(), StationHandsGameTests.line(helper)).get(0);
+            HolderLookup.Provider registries = helper.getLevel().registryAccess();
+            cpu.book().load(cpu.book().save(registries), registries);
+            WorkOrder order = cpu.book().orders().get(cpu.book().orders().size() - 1);
+            helper.assertTrue(order.oneOff() != null && order.oneOff().any(), "the loaded order keeps its Any one-off pattern");
+            StorageTerminalBlockEntity terminal = menu.terminal();
+            Waits.when(helper, () -> terminal.outputCount(Items.STICK) >= 16, 1200,
+                    () -> "the sticks should land after the reload, order " + order.state() + " " + order.reason(), () -> {
+                helper.assertTrue(WarehouseFixtures.count(rack, Items.OAK_PLANKS) == 3, "the oak planks stay in the warehouse");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Save as pattern stores the mode the grid is set to. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void saveAsPatternKeepsExact(GameTestHelper helper) {
+        StationHandsGameTests.setup(helper, 16);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = menu(helper, player);
+        Waits.when(helper, () -> stocked(helper, menu), 160, () -> "stations and CPU should join the line", () -> {
+            craftingTableGrid(menu);
+            menu.clickMenuButton(player, RecipeEditorButtons.MODE);
+            menu.savePattern();
+            helper.assertTrue(PatternLibrary.entries(helper.getLevel(), StationHandsGameTests.line(helper)).stream()
+                            .anyMatch(entry -> entry.pattern().result().is(Items.CRAFTING_TABLE) && !entry.pattern().any()),
+                    "the crafting table pattern is stored as Exact");
+            helper.succeed();
+        });
+    }
+
+    /** Save shows only while the line has no pattern this one duplicates under the chosen mode. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void saveHiddenForSecondAnyPattern(GameTestHelper helper) {
+        StationHandsGameTests.setup(helper, 16);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = menu(helper, player);
+        Waits.when(helper, () -> stocked(helper, menu), 160, () -> "stations and CPU should join the line", () -> {
+            craftingTableGrid(menu);
+            menu.savePattern();
+            for (int cell : SQUARE) {
+                menu.setGhost(cell, new ItemStack(Items.BIRCH_PLANKS));
+            }
+            CraftPreviewPayload any = menu.preview(ItemStack.EMPTY, 1, CraftPreviewRequestPayload.Mode.ORDER);
+            helper.assertTrue(any.patternSaved(), "an Any birch table duplicates the Any oak table, got " + any);
+            menu.clickMenuButton(player, RecipeEditorButtons.MODE);
+            CraftPreviewPayload exact = menu.preview(ItemStack.EMPTY, 1, CraftPreviewRequestPayload.Mode.ORDER);
+            helper.assertFalse(exact.patternSaved(), "an Exact birch table is new, got " + exact);
+            helper.succeed();
+        });
+    }
+
+    /** Clear empties the grid and keeps its mode; Cancel empties it and asks for Any again. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void clearButtonEmptiesGrid(GameTestHelper helper) {
+        StationHandsGameTests.setup(helper, 16);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = menu(helper, player);
+        Waits.when(helper, () -> stocked(helper, menu), 160, () -> "stations and CPU should join the line", () -> {
+            craftingTableGrid(menu);
+            menu.clickMenuButton(player, RecipeEditorButtons.MODE);
+            menu.clickMenuButton(player, RecipeEditorButtons.CLEAR);
+            helper.assertTrue(menu.gridCells().stream().allMatch(ItemStack::isEmpty), "Clear empties every cell");
+            helper.assertTrue(menu.mode() == EncodedPattern.Mode.EXACT, "Clear keeps the mode");
+            craftingTableGrid(menu);
+            menu.clickMenuButton(player, RecipeEditorButtons.CANCEL);
+            helper.assertTrue(menu.gridCells().stream().allMatch(ItemStack::isEmpty) && menu.mode() == EncodedPattern.Mode.ANY,
+                    "Cancel empties the grid and asks for Any again");
             helper.succeed();
         });
     }

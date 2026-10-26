@@ -413,6 +413,28 @@ public final class PatternGameTests {
         });
     }
 
+    /** Clear in the editor empties every cell, keeps the mode and leaves the stored pattern as it is. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void clearButtonEmptiesEditor(GameTestHelper helper) {
+        setup(helper, false, false);
+        Player player = player(helper);
+        Waits.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
+            ProductionTerminalMenu menu = menu(helper, player);
+            menu.openNew();
+            sticksGrid(menu);
+            helper.assertTrue(menu.save().isEmpty(), "the sticks pattern saves");
+            PatternLibrary.Entry saved = PatternLibrary.entries(helper.getLevel(), line(helper)).get(0);
+            helper.assertTrue(menu.openExisting(saved.storage(), saved.slot()), "the pattern opens");
+            menu.clickMenuButton(player, RecipeEditorButtons.MODE);
+            menu.clickMenuButton(player, RecipeEditorButtons.CLEAR);
+            helper.assertTrue(menu.isEditing() && menu.gridCells().stream().allMatch(ItemStack::isEmpty), "Clear empties every cell");
+            helper.assertTrue(menu.mode() == EncodedPattern.Mode.EXACT, "Clear keeps the mode");
+            helper.assertTrue(PatternLibrary.entries(helper.getLevel(), line(helper)).get(0).pattern().any(),
+                    "the stored pattern is unchanged until Save");
+            helper.succeed();
+        });
+    }
+
     /** The recipe viewer fills the editor with the planks the warehouse stocks, not the first planks of the tag. */
     @ServusGameTest(timeoutTicks = 200)
     public static void editorFillPicksStockedPlanks(GameTestHelper helper) {

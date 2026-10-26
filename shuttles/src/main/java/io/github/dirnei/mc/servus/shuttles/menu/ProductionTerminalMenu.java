@@ -3,8 +3,6 @@ package io.github.dirnei.mc.servus.shuttles.menu;
 import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
-import io.github.dirnei.mc.servus.foundation.logistics.menu.GhostSlot;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.shuttles.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
@@ -12,6 +10,7 @@ import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.pattern.AnyGroup;
 import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
+import io.github.dirnei.mc.servus.shuttles.pattern.PatternGrid;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionPayload;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionRows;
@@ -26,7 +25,6 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalWarehouses;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,10 +62,8 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
     private final ProductionTerminalBlockEntity terminal;
     private final ContainerLevelAccess access;
     private final Player player;
-    private final ItemSlots grid = new ItemSlots(EncodedPattern.GRID);
+    private final PatternGrid grid = new PatternGrid();
     private final DataSlot editing = DataSlot.standalone();
-    /** The mode asked for in the editor, as {@link EncodedPattern.Mode#ordinal()}; saving stores Exact where Any is not possible. */
-    private final DataSlot mode = DataSlot.standalone();
     private final int gridStart;
     private final PayloadSync<ProductionPayload> sync = new PayloadSync<>(10, false, this::view, ProductionTerminalMenu::signature);
     private PatternLibrary.Free editingSlot;
@@ -79,17 +75,8 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         this.player = playerInventory.player;
         this.access = ContainerLevelAccess.create(terminal.getLevel(), terminal.getBlockPos());
         editing.set(RecipeEditorButtons.EDIT_CLOSED);
-        mode.set(EncodedPattern.Mode.ANY.ordinal());
         gridStart = slots.size();
-        for (int i = 0; i < EncodedPattern.GRID; i++) {
-            addSlot(new GhostSlot(() -> grid, i, RecipeEditorButtons.gridX(POPUP_X) + (i % 3) * 18,
-                    RecipeEditorButtons.gridY(POPUP_Y) + (i / 3) * 18) {
-                @Override
-                public boolean isActive() {
-                    return isEditing();
-                }
-            });
-        }
+        grid.slots(RecipeEditorButtons.gridX(POPUP_X), RecipeEditorButtons.gridY(POPUP_Y, true), this::isEditing).forEach(this::addSlot);
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
                 addSlot(editorSlot(playerInventory, column + row * 9 + 9, INVENTORY_X + column * 18, INVENTORY_Y + row * 18));
@@ -99,7 +86,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
             addSlot(editorSlot(playerInventory, column, INVENTORY_X + column * 18, HOTBAR_Y));
         }
         addDataSlot(editing);
-        addDataSlot(mode);
+        addDataSlot(grid.modeSlot());
     }
 
     /** A player inventory slot that is there only while the editor is open. */
@@ -161,12 +148,12 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
 
     /** The mode asked for in the editor; the pattern is saved Exact where Any is not possible. */
     public EncodedPattern.Mode mode() {
-        return mode.get() == EncodedPattern.Mode.ANY.ordinal() ? EncodedPattern.Mode.ANY : EncodedPattern.Mode.EXACT;
+        return grid.mode();
     }
 
-    /** Switches the asked mode between Exact and Any. */
-    public void toggleMode() {
-        mode.set((mode() == EncodedPattern.Mode.ANY ? EncodedPattern.Mode.EXACT : EncodedPattern.Mode.ANY).ordinal());
+    /** Index of the first ghost cell of the editor. */
+    public int gridStart() {
+        return gridStart;
     }
 
     public boolean isGridSlot(int slotId) {
@@ -175,34 +162,24 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
 
     /** The ghost grid's cells, for the preview and for saving. */
     public List<ItemStack> gridCells() {
-        List<ItemStack> cells = new ArrayList<>(EncodedPattern.GRID);
-        for (int i = 0; i < EncodedPattern.GRID; i++) {
-            cells.add(grid.getStackInSlot(i));
-        }
-        return cells;
+        return grid.cells();
     }
 
     private Optional<DataNetwork> line() {
         return terminal.getLevel() instanceof ServerLevel level ? DataNetworks.networkAt(level, terminal.getBlockPos()) : Optional.empty();
     }
 
-    private void fill(List<ItemStack> template) {
-        for (int i = 0; i < EncodedPattern.GRID; i++) {
-            grid.setStackInSlot(i, i < template.size() ? template.get(i).copy() : ItemStack.EMPTY);
-        }
-    }
-
     private void closeEditor() {
-        fill(List.of());
+        grid.clear();
         editingSlot = null;
         editing.set(RecipeEditorButtons.EDIT_CLOSED);
     }
 
     /** Opens the editor on a new, empty pattern. */
     public void openNew() {
-        fill(List.of());
+        grid.clear();
         editingSlot = null;
-        mode.set(EncodedPattern.Mode.ANY.ordinal());
+        grid.resetMode();
         editing.set(RecipeEditorButtons.EDIT_NEW);
     }
 
@@ -216,8 +193,8 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         if (entry.isEmpty()) {
             return false;
         }
-        fill(entry.get().pattern().template());
-        mode.set(entry.get().pattern().mode().ordinal());
+        grid.fill(entry.get().pattern().template());
+        grid.setMode(entry.get().pattern().mode());
         editingSlot = new PatternLibrary.Free(storage, slot);
         editing.set(EDIT_EXISTING);
         return true;
@@ -234,10 +211,10 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         List<Map.Entry<ItemKey, Long>> stock = TerminalWarehouses.online(level, terminal.getBlockPos())
                 .map(TerminalWarehouses::stock).orElse(List.of());
         CraftingGrid.templateOf(level, id, stock).ifPresent(template -> {
-            fill(template);
+            grid.fill(template);
             if (!isEditing()) {
                 editingSlot = null;
-                mode.set(EncodedPattern.Mode.ANY.ordinal());
+                grid.resetMode();
                 editing.set(RecipeEditorButtons.EDIT_NEW);
             }
         });
@@ -245,7 +222,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
 
     /** Puts a single copy of the stack into a ghost cell, as a click with the cursor does. */
     public void setGhost(int cell, ItemStack stack) {
-        grid.setStackInSlot(cell, stack.isEmpty() ? ItemStack.EMPTY : stack.copyWithCount(1));
+        grid.setGhost(cell, stack);
     }
 
     /**
@@ -297,9 +274,8 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
             }
             return true;
         }
-        if (id == RecipeEditorButtons.MODE && isEditing()) {
-            toggleMode();
-            return true;
+        if ((id == RecipeEditorButtons.MODE || id == RecipeEditorButtons.CLEAR) && isEditing()) {
+            return grid.button(id);
         }
         if (id == RecipeEditorButtons.DELETE && isEditing()) {
             delete();

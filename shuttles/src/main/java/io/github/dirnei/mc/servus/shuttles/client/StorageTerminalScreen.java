@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
+import io.github.dirnei.mc.servus.foundation.client.GreyOut;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.client.TerminalCells.Cell;
 import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
@@ -10,7 +11,7 @@ import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewRequestPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.ItemPopupTabs.Tab;
 import io.github.dirnei.mc.servus.shuttles.terminal.LineWarehouse;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftStartPayload;
-import io.github.dirnei.mc.servus.shuttles.terminal.GridFillPayload;
+
 import io.github.dirnei.mc.servus.shuttles.terminal.OrderSavePayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.OrderStartPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.PushCarriedPayload;
@@ -24,19 +25,19 @@ import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout.Rect;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout.Storage;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalSettings;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Supplier;
+import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.client.ItemListView;
+import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.foundation.client.NumberStepper;
 import io.github.dirnei.mc.servus.foundation.client.PopupPanel;
+import io.github.dirnei.mc.servus.foundation.client.RecipeGridView;
 import io.github.dirnei.mc.servus.foundation.client.Scrollbar;
 import io.github.dirnei.mc.servus.foundation.ui.AmountSteps;
-import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
-import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
+import io.github.dirnei.mc.servus.foundation.ui.RecipeGridLayout.Box;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -55,7 +56,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
@@ -87,6 +87,8 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     /** Set by the recipe viewer's transfer: open the order grid on the terminal screen now or when it shows next. */
     private static boolean orderRequested;
+    /** Whether the last shown terminal screen has its order grid open, also while JEI's recipe view is in front of it. */
+    private static boolean orderShown;
 
     private Storage.Layout layout = Storage.layout(Storage.BASE_ROWS);
     private EditBox search;
@@ -111,21 +113,28 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     private final List<ItemListView> craftLists = new ArrayList<>();
     private IconButton saveButton;
     private Button backButton;
-    private Button clearButton;
-    private Button nextButton;
     private Button startButton;
-    /** The ghost cells one drag of the cursor's item has set, so each is clicked once. */
-    private final Set<Integer> draggedCells = new HashSet<>();
+    private final PatternGridClient grid;
+    private final RecipeGridView orderView;
     /** Set when a dialog took a press, so its release puts no carried stack into a slot behind it. */
     private boolean swallowRelease;
     /** The scrollbar of the shown list, the Stock grid or the Rules tab's rule rows; its offset follows {@link #scrolled()}. */
     private final Scrollbar scrollbar = new Scrollbar();
-    /** The reason Next or Start is greyed out, null while it can be pressed. */
-    private String nextReason;
+    /** The reason Start is greyed out, null while it can be pressed. */
     private String startReason;
 
     public StorageTerminalScreen(StorageTerminalMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, Storage.WIDTH, Storage.BASE_HEIGHT);
+        grid = new PatternGridClient(menu::gridCells, menu::mode, () -> press(RecipeEditorButtons.MODE));
+        orderView = new RecipeGridView(Storage.ORDER_POPUP.x(), Storage.ORDER_POPUP.y(), null, grid, List.of(
+                RecipeGridView.Action.cancel(this::cancel),
+                RecipeGridView.Action.clear(() -> press(RecipeEditorButtons.CLEAR)),
+                RecipeGridView.Action.needsResult(Component.translatable("gui.servus_shuttles.terminal.order_next"), grid, () -> true,
+                        this::openOrderAmount)));
+    }
+
+    private void press(int button) {
+        MenuButtons.press(minecraft, menu, button);
     }
 
     private TerminalSettings settings() {
@@ -171,6 +180,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         initSideButtons();
         initCraftButton();
         popup.build(font, leftPos, topPos).forEach(this::addRenderableWidget);
+        orderView.build(leftPos, topPos).forEach(this::addRenderableWidget);
         initCraftPanel();
         applyDialog();
         if (orderRequested) {
@@ -217,24 +227,16 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         craftButton.setTooltip(Tooltip.create(Component.translatable("gui.servus_shuttles.terminal.craft_button_hint")));
     }
 
-    /** The order grid's Save, Back or Cancel and Next, and the amount panel's stepper, lists and Start. */
+    /** The order grid's Save beside its result, and the amount panel's Back or Cancel, stepper, lists and Start. */
     private void initCraftPanel() {
-        Rect save = Storage.ORDER_SAVE;
-        saveButton = addRenderableWidget(new IconButton(leftPos + save.x(), topPos + save.y(), save.w(), save.h(), () -> "save_pattern",
-                b -> savePattern()));
+        Box save = orderView.extra();
+        saveButton = addRenderableWidget(new IconButton(save.x(), save.y(), save.w(), save.h(), () -> "save_pattern", b -> savePattern()));
         saveButton.setTooltip(Tooltip.create(Component.translatable("gui.servus_shuttles.terminal.order_save")));
-        Rect order = Storage.ORDER_BUTTONS;
         Rect row = Storage.CRAFT_BUTTONS;
         backButton = addRenderableWidget(Button.builder(Component.empty(), b -> back())
                 .bounds(leftPos + row.x(), topPos + row.y(), Storage.BUTTON, row.h()).build());
-        clearButton = addRenderableWidget(Button.builder(Component.translatable("gui.servus_shuttles.terminal.order_clear"), b -> clearGrid())
-                .bounds(leftPos + order.x() + (order.w() - Storage.BUTTON) / 2, topPos + order.y(), Storage.BUTTON, order.h()).build());
-        nextButton = addRenderableWidget(Button.builder(Component.translatable("gui.servus_shuttles.terminal.order_next"),
-                b -> openOrderAmount()).bounds(leftPos + order.right() - Storage.WIDE_BUTTON, topPos + order.y(), Storage.WIDE_BUTTON, order.h())
-                .build());
         startButton = addRenderableWidget(Button.builder(Component.translatable("gui.servus_shuttles.terminal.craft_start"),
                 b -> start()).bounds(leftPos + row.right() - Storage.WIDE_BUTTON, topPos + row.y(), Storage.WIDE_BUTTON, row.h()).build());
-        nextReason = null;
         startReason = null;
         int kept = craftAmount == null ? AmountSteps.MIN : craftAmount.value();
         craftAmount = new NumberStepper(font, Component.translatable("gui.servus_shuttles.terminal.amount"), AmountSteps.MIN,
@@ -252,13 +254,22 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
     }
 
-    /** The recipe viewer's transfer: show the order grid now, or when the terminal screen shows next. */
-    public static void requestOrderGrid() {
+    /**
+     * The recipe viewer's transfer: show the order grid now, or when the
+     * terminal screen shows next.
+     *
+     * @return whether the order grid was open already, so the transfer keeps its mode
+     */
+    public static boolean requestOrderGrid() {
+        boolean wasOpen = orderShown;
         if (Minecraft.getInstance().screen instanceof StorageTerminalScreen screen) {
-            screen.openOrder();
+            if (!wasOpen) {
+                screen.openOrder();
+            }
         } else {
             orderRequested = true;
         }
+        return wasOpen;
     }
 
     /** Opens the order grid over the item grid while a CPU and a Crafting Station are on the line. */
@@ -298,10 +309,10 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
     }
 
-    /** Cancel or Escape: closes the open dialog; the order grid's cells are cleared. */
+    /** Cancel or Escape: closes the open dialog; the order grid's cells are cleared and its mode asks for Any again. */
     private void cancel() {
         if (orderFlow()) {
-            clearGrid();
+            press(RecipeEditorButtons.CANCEL);
         }
         closeDialog();
     }
@@ -320,10 +331,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return dialog == Dialog.ORDER ? Storage.ORDER_POPUP : Storage.CRAFT_POPUP;
     }
 
-    /** Empties every ghost cell of the order grid. */
-    private void clearGrid() {
-        ClientPacketDistributor.sendToServer(GridFillPayload.CLEAR);
-    }
 
     private void showAmountPanel() {
         ClientStock.clearPreview();
@@ -348,14 +355,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         askPreview();
     }
 
-    /** The result the order grid's ghost cells make, on the client, empty when they match nothing. */
-    private ItemStack orderResult() {
-        Level level = minecraft == null ? null : minecraft.level;
-        if (level == null) {
-            return ItemStack.EMPTY;
-        }
-        return PatternEditing.encode(level, menu.gridCells()).map(EncodedPattern::result).orElse(ItemStack.EMPTY);
-    }
 
     private IconButton sideButton(Rect rect, Supplier<String> icon, Button.OnPress press) {
         return addRenderableWidget(new IconButton(leftPos + rect.x(), topPos + rect.y(), rect.w(), rect.h(), icon, press));
@@ -429,7 +428,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     /** Follows the result of the order grid's cells. */
     private void followResult() {
-        ItemStack result = orderResult();
+        ItemStack result = grid.result();
         if (dialog == Dialog.ORDER && !ItemStack.matches(result, lastResult)) {
             lastResult = result.copy();
             applyDialog();
@@ -500,6 +499,8 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         boolean order = dialog == Dialog.ORDER;
         boolean panel = amountPanel();
         menu.setOrderOpen(order);
+        orderView.setVisible(order);
+        orderShown = order;
         craftButton.visible = !open && ClientStock.orderGrid();
         search.visible = !open;
         for (int i = 0; i < sideButtons.size(); i++) {
@@ -508,19 +509,16 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         popup.setVisible(dialog == Dialog.ITEM);
         craftAmount.setVisible(panel);
         saveButton.visible = false;
-        backButton.visible = order || panel;
-        Rect backRow = order ? Storage.ORDER_BUTTONS : Storage.CRAFT_BUTTONS;
-        backButton.setPosition(leftPos + backRow.x(), topPos + backRow.y());
-        clearButton.visible = order;
+        backButton.visible = panel;
         backButton.setMessage(Component.translatable(dialog == Dialog.ORDER_AMOUNT ? "gui.servus_shuttles.terminal.back"
                 : "gui.servus_shuttles.terminal.cancel"));
-        nextButton.visible = order;
         startButton.visible = panel;
     }
 
     /** The widgets of the open dialog that take clicks and are drawn again over its panel. */
     private List<AbstractWidget> dialogWidgets() {
-        List<AbstractWidget> widgets = new ArrayList<>(List.of(saveButton, backButton, clearButton, nextButton, startButton));
+        List<AbstractWidget> widgets = new ArrayList<>(List.of(saveButton, backButton, startButton));
+        widgets.addAll(orderView.widgets());
         widgets.addAll(craftAmount.widgets());
         if (dialog == Dialog.ITEM) {
             widgets.addAll(popup.pageWidgets());
@@ -800,14 +798,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return null;
     }
 
-    /** A grey arrow pointing right, 16 by 10, from the grid to the result. */
-    private static void arrow(GuiGraphicsExtractor graphics, int x, int y) {
-        int colour = PanelPainter.SLOT;
-        graphics.fill(x, y + 3, x + 10, y + 7, colour);
-        for (int i = 0; i < 5; i++) {
-            graphics.fill(x + 10 + i, y + i, x + 11 + i, y + 10 - i, colour);
-        }
-    }
 
     /** The grid, the rule list or the open dialog, drawn before the carried item so a dragged stack stays on top. */
     @Override
@@ -1028,14 +1018,17 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     /** The popup over the dimmed terminal; its widgets were drawn below it by super and are drawn again on top. */
     private void renderDialog(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        Rect panel = popupRect();
+        int dimX = leftPos + Storage.SIDE_X;
         int dimTop = topPos + layout.top();
-        PopupPanel.draw(graphics, leftPos + Storage.SIDE_X, dimTop, imageWidth - Storage.SIDE_X, topPos + Storage.INVENTORY_LABEL.y() - 1 - dimTop,
-                leftPos + panel.x(), topPos + panel.y(), panel.w(), panel.h());
+        int dimWidth = imageWidth - Storage.SIDE_X;
+        int dimHeight = topPos + Storage.INVENTORY_LABEL.y() - 1 - dimTop;
         if (dialog == Dialog.ORDER) {
+            orderView.render(graphics, font, dimX, dimTop, dimWidth, dimHeight);
             renderOrder(graphics, mouseX, mouseY);
             return;
         }
+        Rect panel = popupRect();
+        PopupPanel.draw(graphics, dimX, dimTop, dimWidth, dimHeight, leftPos + panel.x(), topPos + panel.y(), panel.w(), panel.h());
         if (dialog == Dialog.ITEM) {
             popup.renderTabs(graphics, font, mouseX, mouseY);
         }
@@ -1047,30 +1040,15 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     }
 
     /**
-     * The order grid: ghost cells drawn again over the panel, the arrow, the
-     * result with one craft's count, Save while no pattern has the recipe,
-     * Cancel and Next.
+     * Over the order grid's view: the ghost cells drawn again, Save while no
+     * pattern has the recipe with this mode, the view's buttons and tooltips.
      */
     private void renderOrder(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        PanelPainter.slots(graphics, leftPos, topPos, Storage.ORDER_GRID, 3, 9);
-        List<ItemStack> cells = menu.gridCells();
-        for (int cell = 0; cell < cells.size(); cell++) {
-            int cx = leftPos + Storage.orderX(cell);
-            int cy = topPos + Storage.orderY(cell);
-            graphics.item(cells.get(cell), cx, cy);
-            if (mouseX >= cx && mouseX < cx + 16 && mouseY >= cy && mouseY < cy + 16) {
-                graphics.fill(cx, cy, cx + 16, cy + 16, 0x80FFFFFF);
-            }
-        }
-        arrow(graphics, leftPos + Storage.ORDER_ARROW.x(), topPos + Storage.ORDER_ARROW.y());
-        Rect result = Storage.ORDER_RESULT;
+        orderView.renderCells(graphics, menu.gridCells(), mouseX, mouseY);
         CraftPreviewPayload preview = currentPreview();
         saveButton.visible = !lastResult.isEmpty() && preview != null && preview.refusal().isEmpty() && !preview.patternSaved();
-        nextReason = GreyOut.apply(nextButton, nextReason, lastResult.isEmpty() ? "gui.servus_shuttles.terminal.message.no_match" : null);
         renderDialogWidgets(graphics, mouseX, mouseY);
-        if (!lastResult.isEmpty()) {
-            renderItem(graphics, lastResult, result.x(), result.y(), mouseX, mouseY);
-        }
+        orderView.renderTooltips(graphics, font, mouseX, mouseY);
     }
 
     /**
@@ -1272,16 +1250,12 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                 return true;
             }
         }
-        int cell = ghostCellAt(mouseX, mouseY);
-        draggedCells.clear();
-        if (cell >= 0) {
-            draggedCells.add(cell);
-            if (menu.getCarried().isEmpty()) {
-                return super.mouseClicked(event, doubleClick);
-            }
-            clickGhostCell(cell, event.button());
+        if (orderView.press(mouseX, mouseY, !menu.getCarried().isEmpty(), cell -> clickGhostCell(cell, event.button()))) {
             swallowRelease = true;
             return true;
+        }
+        if (orderView.cellAt(mouseX, mouseY) >= 0) {
+            return super.mouseClicked(event, doubleClick);
         }
         if (overDimmed(mouseX, mouseY)) {
             swallowRelease = true;
@@ -1340,16 +1314,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return true;
     }
 
-    /** The order grid's ghost cell under the mouse while it is open, else -1. */
-    private int ghostCellAt(double mouseX, double mouseY) {
-        int x = (int) mouseX - leftPos;
-        int y = (int) mouseY - topPos;
-        Rect grid = Storage.ORDER_GRID;
-        if (dialog != Dialog.ORDER || !grid.contains(x, y)) {
-            return -1;
-        }
-        return (y - grid.y()) / CELL * 3 + (x - grid.x()) / CELL;
-    }
 
     /** Whether the mouse is over the popup, its tabs or the dimmed part of the terminal above the inventory. */
     private boolean overDimmed(double mouseX, double mouseY) {
@@ -1369,11 +1333,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         if (amountPanel() && craftLists.stream().anyMatch(list -> list.mouseDragged(event.y()))) {
             return true;
         }
-        int cell = ghostCellAt(event.x(), event.y());
-        if (cell >= 0 && !menu.getCarried().isEmpty()) {
-            if (draggedCells.add(cell)) {
-                clickGhostCell(cell, event.button());
-            }
+        if (orderView.drag(event.x(), event.y(), !menu.getCarried().isEmpty(), cell -> clickGhostCell(cell, event.button()))) {
             return true;
         }
         return super.mouseDragged(event, dx, dy);
@@ -1458,6 +1418,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         super.removed();
         if (minecraft == null || minecraft.player == null || minecraft.player.containerMenu != menu) {
             ClientStock.close();
+            orderShown = false;
         }
     }
 

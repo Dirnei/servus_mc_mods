@@ -101,8 +101,6 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("message.servus_shuttles.cpu.line_conflict", "Two warehouses on this data line");
         add("gui.servus_shuttles.crafting_station.save", "Save");
         add("gui.servus_shuttles.crafting_station.delete", "Delete");
-        add("gui.servus_shuttles.crafting_station.cancel", "Cancel");
-        add("gui.servus_shuttles.crafting_station.no_match", "No matching recipe");
         add("gui.servus_shuttles.crafting_station.idle", "Idle");
         add("gui.servus_shuttles.crafting_station.left", "%s left");
         add("gui.servus_shuttles.outbound.keep", "Keep stocked");
@@ -404,13 +402,13 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.production.pattern_message.duplicate", "This data line already has that pattern");
         add("gui.servus_shuttles.production.pattern_message.no_storage", "No Pattern Storage on this data line");
         add("gui.servus_shuttles.production.pattern_message.full", "The Pattern Storage of this data line is full");
-        add("gui.servus_shuttles.production.mode.exact", "Exact");
-        add("gui.servus_shuttles.production.mode.any", "Any");
-        add("gui.servus_shuttles.production.mode.exact_hint", "Crafts with exactly these items");
-        add("gui.servus_shuttles.production.mode.any_hint", "The CPU crafts with whichever accepted item the warehouse holds most of");
-        add("gui.servus_shuttles.production.mode.toggle_hint", "Click to switch");
-        add("gui.servus_shuttles.production.mode.changes_result", "The result changes with the items this recipe accepts");
-        add("gui.servus_shuttles.production.mode.no_alternatives", "These cells take no other items");
+        add("gui.servus_shuttles.pattern_grid.mode.exact", "Exact");
+        add("gui.servus_shuttles.pattern_grid.mode.any", "Any");
+        add("gui.servus_shuttles.pattern_grid.mode.exact_hint", "Crafts with exactly these items");
+        add("gui.servus_shuttles.pattern_grid.mode.any_hint", "The CPU crafts with whichever accepted item the warehouse holds most of");
+        add("gui.servus_shuttles.pattern_grid.mode.toggle_hint", "Click to switch");
+        add("gui.servus_shuttles.pattern_grid.mode.changes_result", "The result changes with the items this recipe accepts");
+        add("gui.servus_shuttles.pattern_grid.mode.no_alternatives", "These cells take no other items");
         add("gui.servus_shuttles.pattern.any_tag", "Any %s");
         add("gui.servus_shuttles.pattern.any_items", "Any of %s");
         add("gui.servus_shuttles.pattern.any_more", "%s and %s more");
@@ -438,7 +436,6 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.terminal.craft_button_hint", "Craft: order a crafting recipe from the Crafting CPU");
         add("gui.servus_shuttles.terminal.order_save", "Save as pattern");
         add("gui.servus_shuttles.terminal.order_next", "Next");
-        add("gui.servus_shuttles.terminal.order_clear", "Clear");
         add("gui.servus_shuttles.terminal.back", "Back");
         add("gui.servus_shuttles.terminal.order_needs", "Needs a Crafting CPU and a Crafting Station on the data line");
         add("gui.servus_shuttles.terminal.request_split", "%s from stock, %s crafted");

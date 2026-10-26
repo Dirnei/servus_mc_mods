@@ -4,14 +4,10 @@ import io.github.dirnei.mc.servus.shuttles.client.ClientStock;
 import io.github.dirnei.mc.servus.shuttles.client.StorageTerminalScreen;
 import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
-import io.github.dirnei.mc.servus.shuttles.terminal.GridFillPayload;
-import java.util.ArrayList;
-import java.util.List;
+import io.github.dirnei.mc.servus.shuttles.terminal.OrderGridRecipePayload;
 import java.util.Optional;
 import mezz.jei.api.constants.RecipeTypes;
-import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
-import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandlerHelper;
@@ -19,17 +15,16 @@ import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /**
  * JEI plus button on crafting recipes while a Storage Terminal is open: opens
- * the order grid and asks the server to set its ghost cells to the recipe's
- * ingredients. JEI's crafting view lists its nine input slots in grid order,
- * so slot view i becomes cell i. Refused while the terminal's data line has
- * no Crafting CPU and Crafting Station to order from.
+ * the order grid and asks the server to lay the recipe out in its ghost
+ * cells, the same way the Production Terminal's editor is filled. Refused
+ * while the terminal's data line has no Crafting CPU and Crafting Station to
+ * order from.
  */
 public final class StorageTerminalRecipeTransferHandler implements IRecipeTransferHandler<StorageTerminalMenu, RecipeHolder<CraftingRecipe>> {
 
@@ -61,18 +56,8 @@ public final class StorageTerminalRecipeTransferHandler implements IRecipeTransf
             return helper.createUserErrorWithTooltip(Component.translatable("gui.servus_shuttles.terminal.order_needs"));
         }
         if (doTransfer) {
-            List<List<ItemStack>> grid = new ArrayList<>();
-            for (IRecipeSlotView view : slots.getSlotViews(RecipeIngredientRole.INPUT)) {
-                if (grid.size() == 9) {
-                    break;
-                }
-                grid.add(view.getItemStacks().map(ItemStack::copy).toList());
-            }
-            while (grid.size() < 9) {
-                grid.add(List.of());
-            }
-            StorageTerminalScreen.requestOrderGrid();
-            ClientPacketDistributor.sendToServer(new GridFillPayload(grid));
+            boolean keepMode = StorageTerminalScreen.requestOrderGrid();
+            ClientPacketDistributor.sendToServer(new OrderGridRecipePayload(recipe.id().identifier(), keepMode));
         }
         return null;
     }

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
+import io.github.dirnei.mc.servus.foundation.client.GreyOut;
 import io.github.dirnei.mc.servus.foundation.client.InlineStepper;
 import io.github.dirnei.mc.servus.foundation.client.NumberStepper;
 import io.github.dirnei.mc.servus.foundation.ui.AmountSteps;
