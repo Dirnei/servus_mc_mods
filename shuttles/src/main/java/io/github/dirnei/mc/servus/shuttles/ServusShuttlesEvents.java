@@ -67,6 +67,8 @@ public final class ServusShuttlesEvents {
                     (rack, side) -> rack.standalone() ? rack.items() : null);
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusShuttlesBlockEntities.INBOUND_STATION.get(),
                     (station, side) -> station.handlerFor(side));
+            event.registerBlockEntity(ServusFoundationCapabilities.PACKET_ENDPOINT, ServusShuttlesBlockEntities.INBOUND_STATION.get(),
+                    (station, side) -> station.endpointFor(side));
             // Packets enter a Packing Station through its inlet; pipes and hoppers see no item capability.
             event.registerBlockEntity(ServusFoundationCapabilities.PACKET_INLET, ServusShuttlesBlockEntities.PACKING_STATION.get(),
                     (point, side) -> point.intake());

@@ -67,10 +67,13 @@ public final class LockOverlay {
         return true;
     }
 
-    /** "Reserved: Shuttle #12 brings 64 Cobblestone", or that it waits for a shuttle. */
+    /** "Reserved: Shuttle #12 brings 64 Cobblestone", that it waits for a shuttle, or what a pipe still brings. */
     public static Component line(SlotLocksPayload.Entry entry) {
         String direction = entry.in() ? "in" : "out";
         Component item = entry.item().getHoverName();
+        if (entry.pipe()) {
+            return Component.translatable("gui.servus_shuttles.lock.in_pipe", entry.amount(), item);
+        }
         return entry.shuttle()
                 .map(shuttle -> Component.translatable("gui.servus_shuttles.lock." + direction, shuttle, entry.amount(), item))
                 .orElseGet(() -> Component.translatable("gui.servus_shuttles.lock." + direction + "_waiting", entry.amount(), item));

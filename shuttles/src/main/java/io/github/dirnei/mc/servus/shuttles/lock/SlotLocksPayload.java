@@ -29,8 +29,9 @@ public record SlotLocksPayload(int containerId, List<Entry> entries) implements 
      * @param amount  how many
      * @param jobId   the job holding the lock
      * @param shuttle the label of the shuttle on the job, empty while the job waits for one
+     * @param pipe    whether an Item Pipe's grant holds the slot; {@code amount} is then what the pipe still brings
      */
-    public record Entry(int slot, boolean in, ItemStack item, int amount, int jobId, Optional<Component> shuttle) {
+    public record Entry(int slot, boolean in, ItemStack item, int amount, int jobId, Optional<Component> shuttle, boolean pipe) {
 
         public static final StreamCodec<RegistryFriendlyByteBuf, Entry> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.VAR_INT, Entry::slot,
@@ -39,6 +40,7 @@ public record SlotLocksPayload(int containerId, List<Entry> entries) implements 
                 ByteBufCodecs.VAR_INT, Entry::amount,
                 ByteBufCodecs.VAR_INT, Entry::jobId,
                 ByteBufCodecs.optional(ComponentSerialization.STREAM_CODEC), Entry::shuttle,
+                ByteBufCodecs.BOOL, Entry::pipe,
                 Entry::new);
     }
 

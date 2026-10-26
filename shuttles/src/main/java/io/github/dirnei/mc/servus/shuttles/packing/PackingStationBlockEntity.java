@@ -5,7 +5,6 @@ import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.data.packet.DeliveryReason;
 import io.github.dirnei.mc.servus.foundation.data.packet.Grant;
-import io.github.dirnei.mc.servus.foundation.data.packet.GrantBook;
 import io.github.dirnei.mc.servus.foundation.data.packet.PacketEndpoint;
 import io.github.dirnei.mc.servus.foundation.data.packet.RateBudget;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
@@ -68,7 +67,7 @@ import net.minecraft.world.level.storage.ValueOutput;
  * {@code items_per_second} per direction, the two directions independent, shared
  * by data line deliveries and wireless transfers. As a {@link PacketEndpoint} it
  * answers offers into storage with whole To storage slots reserved for the
- * grant; reserved slots are put away once their grant has ended.
+ * grant (see {@link #planGrant}); reserved slots are put away once their grant has ended.
  */
 public class PackingStationBlockEntity extends InboundStationBlockEntity implements DeliveryTarget, DataLink, TransferGate, PacketEndpoint {
 
@@ -204,11 +203,6 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         }
     }
 
-    /** Ticks between two sweeps of the grants. */
-    private static final int GRANT_SWEEP_TICKS = 20;
-    public static final String REFUSE_OFFLINE = "offline";
-    public static final String REFUSE_NO_STORAGE = "no_storage";
-    public static final String REFUSE_FULL = "to_storage_full";
     /** Why a shipment waits after its delivery to a target without endpoint stalled. */
     private static final String STALLED = "stalled";
 
@@ -229,8 +223,6 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         }
     };
 
-    private final GrantBook grants = new GrantBook();
-    private int grantSweep;
     private final List<Shipment> shipments = new ArrayList<>();
     private final List<SavedShipment> unresolved = new ArrayList<>();
     private int sendTimer;
@@ -266,59 +258,16 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         return List.of(buffer(), outgoing);
     }
 
-    /**
-     * Answers an offer into storage: whole empty, unreserved To storage slots,
-     * as many as the amount needs, locked IN for the grant; refused while the
-     * warehouse is offline, when no storage would take the item or no slot is free.
-     */
+    /** An offer into storage reserves whole empty, unreserved To storage slots, as many as the amount needs. */
     @Override
-    public Grant offer(ItemStack like, int amount) {
-        Optional<WarehouseNetwork> network = network().filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE);
-        if (!(level instanceof ServerLevel server) || network.isEmpty() || like.isEmpty() || amount < 1) {
-            return Grant.refused(REFUSE_OFFLINE);
-        }
-        ItemKey key = ItemKey.of(like);
-        if (network.get().putAwayTarget(key.stack(1), pos -> true).isEmpty()) {
-            return Grant.refused(REFUSE_NO_STORAGE);
-        }
-        List<SlotGrant.Part> parts = SlotGrant.plan(freeIntakeSlots(), key.stack(1).getMaxStackSize(), amount);
-        if (parts.isEmpty()) {
-            return Grant.refused(REFUSE_FULL);
-        }
-        int lockId = network.get().nextJobId();
-        for (SlotGrant.Part part : parts) {
-            buffer().lock(part.slot(), new SlotLock(SlotLock.Kind.IN, key, part.count(), lockId));
-        }
-        Grant grant = Grant.of(this, lockId, SlotGrant.total(parts), server.getGameTime());
-        grants.add(grant);
-        return grant;
+    protected List<SlotGrant.Part> planGrant(WarehouseNetwork network, ItemKey key, int amount) {
+        return SlotGrant.plan(freeBufferSlots(), key.stack(1).getMaxStackSize(), amount);
     }
 
+    /** Data line deliveries and wireless transfers hold the grants here, not Item Pipes. */
     @Override
-    public ItemStack receive(Grant grant, ItemStack stack) {
-        return grants.holds(grant) ? buffer().fillAs((int) grant.ticket(), stack) : stack;
-    }
-
-    /** Frees the grant's slots, which the warehouse then puts away. */
-    @Override
-    public void close(Grant grant) {
-        grants.remove(grant);
-        buffer().release((int) grant.ticket());
-    }
-
-    /** Whether the lock with that id belongs to an open grant of this station. */
-    public boolean holdsGrant(int lockId) {
-        return grants.holds(lockId);
-    }
-
-    private List<Integer> freeIntakeSlots() {
-        List<Integer> free = new ArrayList<>();
-        for (int slot = 0; slot < buffer().getSlots(); slot++) {
-            if (buffer().getStackInSlot(slot).isEmpty() && !buffer().isLocked(slot)) {
-                free.add(slot);
-            }
-        }
-        return free;
+    protected boolean grantsFromPipes() {
+        return false;
     }
 
     @Override
@@ -453,7 +402,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
 
     /** Whether the To storage buffer has no empty slot left that a grant could reserve. */
     private boolean toStorageFull() {
-        return freeIntakeSlots().isEmpty();
+        return freeBufferSlots().isEmpty();
     }
 
     /** Open shipments, oldest first. */
@@ -609,7 +558,6 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         shipments.forEach(this::forgetIncoming);
         shipments.forEach(PackingStationBlockEntity::closeIntakeGrant);
         shipments.forEach(Shipment::dropPickGrant);
-        grants.closeAll();
         super.setRemoved();
     }
 
@@ -636,10 +584,6 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         InboundStationBlockEntity.serverTick(level, pos, state, point);
         point.tickBudgets();
         if (level instanceof ServerLevel server) {
-            if (++point.grantSweep >= GRANT_SWEEP_TICKS) {
-                point.grantSweep = 0;
-                point.grants.sweep(server.getGameTime());
-            }
             point.shipWireless(server);
             if (++point.sendTimer >= ShuttlesStatsManager.INSTANCE.pushInterval()) {
                 point.sendTimer = 0;
@@ -1137,7 +1081,6 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
-        dropGrantLocks();
         if (tag.contains("Outgoing")) {
             outgoing.fillFrom(registries, tag.getCompoundOrEmpty("Outgoing"));
             outgoing.loadLocks(registries, tag.getListOrEmpty("OutgoingLocks"));
@@ -1155,15 +1098,6 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
                 unresolved.add(new SavedShipment(entry.getLongOr("Id", 0L), target.get(), ItemKey.of(item),
                         entry.getBooleanOr("Wireless", false), entry.getStringOr("Site", ""),
                         ValueIo.readPos(entry, "Terminal").orElse(null), entry.getLongOr("Feed", -1L)));
-            }
-        }
-    }
-
-    /** Grants are not saved: IN locks left in the To storage buffer go, so its items are put away. */
-    private void dropGrantLocks() {
-        for (LockedSlots.Locked locked : buffer().locked()) {
-            if (locked.lock().kind() == SlotLock.Kind.IN) {
-                buffer().release(locked.slot(), locked.lock().jobId());
             }
         }
     }

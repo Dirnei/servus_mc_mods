@@ -90,4 +90,12 @@ class SlotFillTest {
         assertEquals(3, SlotFill.inUse(slots));
         assertEquals(0, SlotFill.inUse(List.of(empty(), empty())));
     }
+
+    @Test
+    void unreservedIsWhatNoOutLockTakes() {
+        assertEquals(20, SlotFill.unreserved(20, 0));
+        assertEquals(12, SlotFill.unreserved(20, 8));
+        assertEquals(0, SlotFill.unreserved(20, 20));
+        assertEquals(0, SlotFill.unreserved(20, 30));
+    }
 }

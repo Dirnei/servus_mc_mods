@@ -588,13 +588,14 @@ public final class ShuttleFleet {
     }
 
     /**
-     * A put-away of the item from that station that no shuttle has loaded
-     * yet, so more of the item may join it; empty when there is none.
+     * The put-aways of the item from that station that no shuttle has loaded
+     * yet, so more of the item may join them, queued ones first.
      */
-    public Optional<PutAwayJob> openPutAway(BlockPos station, ItemKey key) {
+    public List<PutAwayJob> openPutAways(BlockPos station, ItemKey key) {
+        List<PutAwayJob> open = new ArrayList<>();
         for (ShuttleJob job : jobs) {
             if (job instanceof PutAwayJob putAway && putAway.station().equals(station) && putAway.key().equals(key)) {
-                return Optional.of(putAway);
+                open.add(putAway);
             }
         }
         for (Shuttle shuttle : shuttles()) {
@@ -604,11 +605,11 @@ public final class ShuttleFleet {
             for (Load load : shuttle.loads) {
                 if (load.job instanceof PutAwayJob putAway && putAway.station().equals(station) && putAway.key().equals(key)
                         && load.cargo.isEmpty()) {
-                    return Optional.of(putAway);
+                    open.add(putAway);
                 }
             }
         }
-        return Optional.empty();
+        return open;
     }
 
     /** Queued jobs that are put-aways. */

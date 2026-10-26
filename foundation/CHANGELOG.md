@@ -14,6 +14,7 @@
 - Item pickers can show an entry greyed out with a hint saying why it cannot be chosen yet.
 - A delivery to a block that takes nothing for a while ends with what arrived instead of holding up its sender.
 - One shared scrollbar for lists and pickers, draggable everywhere.
+- Item Pipes fill partial stacks first and tell warehouse stations how much they bring.
 
 ### Fixed
 - Duct sides with neither In nor Out can be connected again from the duct GUI.

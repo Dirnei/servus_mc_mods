@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.station;
 
+import io.github.dirnei.mc.servus.foundation.data.packet.Grant;
+import io.github.dirnei.mc.servus.foundation.data.packet.PacketEndpoint;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
@@ -14,14 +16,18 @@ import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.PutAwaySource;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseEvent;
+import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.shuttles.packing.SlotGrant;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.zone.PutAwayPlan;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -39,11 +45,18 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 /**
  * The inbound dock: an intake buffer that hoppers, ducts and players fill and
- * the warehouse drains into storage by its zone rules. Never indexed.
+ * the warehouse drains into storage by its zone rules. Never indexed. A slot
+ * whose put-away no shuttle has loaded yet takes more of its own item. As a
+ * {@link PacketEndpoint} it answers an Item Pipe's offer with one empty slot
+ * reserved for the grant; that slot is put away once the grant has ended.
  */
-public class InboundStationBlockEntity extends StationBlockEntity implements LockHolder, PutAwaySource {
+public class InboundStationBlockEntity extends StationBlockEntity implements LockHolder, PutAwaySource, PacketEndpoint {
 
-    private final LockedSlots buffer = new LockedSlots(ShuttlesStatsManager.INSTANCE.inboundBufferSlots()) {
+    public static final String REFUSE_OFFLINE = "offline";
+    public static final String REFUSE_NO_STORAGE = "no_storage";
+    public static final String REFUSE_FULL = "to_storage_full";
+
+    private final LockedSlots buffer = new LockedSlots(ShuttlesStatsManager.INSTANCE.inboundBufferSlots(), LockedSlots.Mode.TOP_UP) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -107,6 +120,7 @@ public class InboundStationBlockEntity extends StationBlockEntity implements Loc
         }
     };
 
+    private final BufferGrants grants = new BufferGrants(buffer);
     private int pullTimer;
     private PutAwayPlan.Reason blockedReason;
     private ItemStack blockedStack = ItemStack.EMPTY;
@@ -148,8 +162,89 @@ public class InboundStationBlockEntity extends StationBlockEntity implements Loc
         return null;
     }
 
+    /** The offer answering side a duct on that side sees: every side that is not Off. */
+    public PacketEndpoint endpointFor(Direction side) {
+        return side != null && sideMode(side) != SideMode.DISABLED ? this : null;
+    }
+
+    /**
+     * Answers an offer into the buffer with the slots {@link #planGrant}
+     * reserves, locked IN for the grant; refused while the warehouse is
+     * offline, when no storage would take the item or nothing can be reserved.
+     */
+    @Override
+    public Grant offer(ItemStack like, int amount) {
+        Optional<WarehouseNetwork> network = network().filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE);
+        if (!(level instanceof ServerLevel server) || network.isEmpty() || like.isEmpty() || amount < 1) {
+            return Grant.refused(REFUSE_OFFLINE);
+        }
+        ItemKey key = ItemKey.of(like);
+        if (network.get().putAwayTarget(key.stack(1), pos -> true).isEmpty()) {
+            return Grant.refused(REFUSE_NO_STORAGE);
+        }
+        List<SlotGrant.Part> parts = planGrant(network.get(), key, amount);
+        if (parts.isEmpty()) {
+            return Grant.refused(REFUSE_FULL);
+        }
+        return grants.open(this, key, parts, network.get().nextJobId(), server.getGameTime());
+    }
+
+    /** The slots a grant reserves: one empty slot for at most a stack, no more than the item's cap leaves room for. */
+    protected List<SlotGrant.Part> planGrant(WarehouseNetwork network, ItemKey key, int amount) {
+        int stackSize = key.stack(1).getMaxStackSize();
+        List<Integer> free = grants.freeSlots();
+        if (free.isEmpty()) {
+            return List.of();
+        }
+        return SlotGrant.one(free, stackSize, amount, network.capRoom(key, Math.min(amount, stackSize)));
+    }
+
+    @Override
+    public ItemStack receive(Grant grant, ItemStack stack) {
+        return grants.receive(grant, stack);
+    }
+
+    /** Frees the grant's slots, which the warehouse then puts away. */
+    @Override
+    public void close(Grant grant) {
+        grants.close(grant);
+    }
+
+    /** Whether the lock with that id belongs to an open grant of this station. */
+    public boolean holdsGrant(int lockId) {
+        return grants.holds(lockId);
+    }
+
+    /** Whether the lock with that id belongs to an open grant an Item Pipe fills. */
+    public boolean holdsPipeGrant(int lockId) {
+        return grantsFromPipes() && grants.holds(lockId);
+    }
+
+    /** Whether the grants of this station come from Item Pipes. */
+    protected boolean grantsFromPipes() {
+        return true;
+    }
+
+    /** Empty buffer slots no lock holds. */
+    protected List<Integer> freeBufferSlots() {
+        return grants.freeSlots();
+    }
+
+    @Override
+    public void setRemoved() {
+        grants.closeAll();
+        super.setRemoved();
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        grants.closeAll();
+        super.onChunkUnloaded();
+    }
+
     /** Takes stacks from the neighbour on every Pull side while the buffer has room, every push interval. */
     public static void serverTick(Level level, BlockPos pos, BlockState state, InboundStationBlockEntity station) {
+        station.grants.tick(level.getGameTime());
         if (++station.pullTimer < ShuttlesStatsManager.INSTANCE.pushInterval()) {
             return;
         }
@@ -176,7 +271,7 @@ public class InboundStationBlockEntity extends StationBlockEntity implements Loc
             if (offered.isEmpty()) {
                 continue;
             }
-            int bufferRoom = offered.getCount() - buffer.insertItem(offered, true).getCount();
+            int bufferRoom = offered.getCount() - buffer.insertItemStacked(offered, true).getCount();
             ItemKey key = ItemKey.of(offered);
             int room = capRoom(key, bufferRoom);
             if (room < bufferRoom) {
@@ -187,7 +282,7 @@ public class InboundStationBlockEntity extends StationBlockEntity implements Loc
             }
             try (Transaction transaction = Transfer.open()) {
                 ItemStack taken = neighbour.extractItem(from, room, false);
-                if (!taken.isEmpty() && buffer.insertItem(taken, false).isEmpty()) {
+                if (!taken.isEmpty() && buffer.insertItemStacked(taken, false).isEmpty()) {
                     transaction.commit();
                     return;
                 }
@@ -195,9 +290,9 @@ public class InboundStationBlockEntity extends StationBlockEntity implements Loc
         }
     }
 
-    /** How many of the key the buffer holds, for the cap of the item's rule. */
+    /** How many of the key the buffer holds and its open grants still expect, for the cap of the item's rule. */
     public int held(ItemKey key) {
-        return countOf(buffer, key);
+        return countOf(buffer, key) + grants.left(key);
     }
 
     /** How many of the offered items the warehouse's cap for the item leaves room for; all while offline. */
@@ -280,9 +375,11 @@ public class InboundStationBlockEntity extends StationBlockEntity implements Loc
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
         loadStation(input, tag);
+        grants.closeAll();
         if (tag.contains("Items")) {
             buffer.fillFrom(registries, tag.getCompoundOrEmpty("Items"));
             buffer.loadLocks(registries, tag.getListOrEmpty("Locks"));
         }
+        grants.dropOrphanLocks();
     }
 }

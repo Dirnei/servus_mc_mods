@@ -48,7 +48,7 @@ public class InboundStationMenu extends AbstractContainerMenu implements LockedM
         inventoryStart = slots.size();
         PlayerInventorySlots.add(this::addSlot, playerInventory, 8, INVENTORY_Y);
         addDataSlots(new SideConfigData(station.sideConfig()));
-        locks = MenuLocks.of(slots);
+        locks = MenuLocks.of(slots).pipeGrants(station::holdsPipeGrant);
     }
 
     public static InboundStationMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {

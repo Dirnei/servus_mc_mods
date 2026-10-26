@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.gametest;
 
 import static io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps.duct;
 
+import io.github.dirnei.mc.servus.foundation.data.packet.Grant;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
@@ -282,6 +283,38 @@ public final class StockRuleCapGameTests {
                         helper.succeed();
                     });
                 });
+    }
+
+    /** Cobblestone capped at 100 with 74 in stock: a pipe's offer of 64 is granted 26. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void grantAtTheCap(GameTestHelper helper) {
+        cappedWarehouse(helper, COBBLESTONE, 100, 74, () -> {
+            Grant grant = inbound(helper).endpointFor(Direction.EAST).offer(new ItemStack(Items.COBBLESTONE), 64);
+            helper.assertTrue(grant.granted() && grant.amount() == 26, "the grant is 26, got " + grant.amount());
+            grant.close();
+            helper.succeed();
+        });
+    }
+
+    /**
+     * Cobblestone capped at 128 with 64 in stock and a pipe grant still
+     * expecting 64: a hopper hands in none. When the grant ends after 10, the
+     * other 54 no longer count.
+     */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void openGrantCountsUntilItEnds(GameTestHelper helper) {
+        cappedWarehouse(helper, COBBLESTONE, 128, 64, () -> {
+            InboundStationBlockEntity station = inbound(helper);
+            Grant grant = station.endpointFor(Direction.EAST).offer(new ItemStack(Items.COBBLESTONE), 64);
+            helper.assertTrue(grant.granted() && grant.amount() == 64, "the grant is 64, got " + grant.amount());
+            ItemStack refused = Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 10), false);
+            helper.assertTrue(refused.getCount() == 10, "the open grant counts towards the cap, took " + (10 - refused.getCount()));
+            grant.deliver(new ItemStack(Items.COBBLESTONE, 10), helper.getLevel().getGameTime());
+            grant.close();
+            ItemStack left = Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 60), false);
+            helper.assertTrue(left.getCount() == 6, "54 go in once the grant ended short, took " + (60 - left.getCount()));
+            helper.succeed();
+        });
     }
 
     /** Runs a {@code /servus_warehouse} command at the warehouse's controller and returns what it said. */

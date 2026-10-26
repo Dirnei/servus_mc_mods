@@ -127,6 +127,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.lock.out", "Reserved: %s takes %s %s");
         add("gui.servus_shuttles.lock.in_waiting", "Reserved: brings %s %s, waiting for a shuttle");
         add("gui.servus_shuttles.lock.out_waiting", "Reserved: takes %s %s, waiting for a shuttle");
+        add("gui.servus_shuttles.lock.in_pipe", "Reserved: pipe brings %s more %s");
         add(ServusShuttlesItems.SHUTTLE_MK1.get(), "Shuttle Mk1");
         add(ServusShuttlesItems.SHUTTLE_MK2.get(), "Shuttle Mk2");
         add(ServusShuttlesItems.SHUTTLE_MK3.get(), "Shuttle Mk3");

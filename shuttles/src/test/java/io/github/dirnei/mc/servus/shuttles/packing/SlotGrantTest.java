@@ -37,6 +37,27 @@ class SlotGrantTest {
     }
 
     @Test
+    void oneSlotForAChestOfCobblestone() {
+        assertEquals(List.of(new SlotGrant.Part(2, 64)), SlotGrant.one(List.of(2, 5), 64, 200, 200));
+    }
+
+    @Test
+    void oneSlotForLessThanAStack() {
+        assertEquals(List.of(new SlotGrant.Part(0, 20)), SlotGrant.one(List.of(0, 1), 64, 20, 20));
+    }
+
+    @Test
+    void oneSlotNeedsAFreeSlot() {
+        assertEquals(List.of(), SlotGrant.one(List.of(), 64, 64, 64));
+    }
+
+    @Test
+    void oneSlotStopsAtTheCapRoom() {
+        assertEquals(List.of(new SlotGrant.Part(3, 26)), SlotGrant.one(List.of(3), 64, 64, 26));
+        assertEquals(List.of(), SlotGrant.one(List.of(3), 64, 64, 0));
+    }
+
+    @Test
     void lastSlotHoldsTheRest() {
         assertEquals(List.of(new SlotGrant.Part(0, 64), new SlotGrant.Part(1, 6)), SlotGrant.plan(List.of(0, 1, 2), 64, 70));
     }

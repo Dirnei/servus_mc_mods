@@ -6,7 +6,8 @@ import java.util.List;
 /**
  * Plans the whole slots a Packing Station reserves for an offer into To
  * storage: as many free slots as the amount needs at the item's stack size,
- * as far as there are free slots, each holding up to a stack. Pure Java.
+ * as far as there are free slots, each holding up to a stack, and the one
+ * slot an Inbound Station reserves for an Item Pipe. Pure Java.
  */
 public final class SlotGrant {
 
@@ -31,6 +32,19 @@ public final class SlotGrant {
             left -= count;
         }
         return parts;
+    }
+
+    /**
+     * The one slot an Inbound Station reserves for a pipe's offer: the first
+     * free slot for the offered amount, at most a stack and at most
+     * {@code room}; empty without a free slot or room.
+     */
+    public static List<Part> one(List<Integer> freeSlots, int stackSize, int amount, int room) {
+        int count = Math.min(Math.min(amount, Math.max(1, stackSize)), room);
+        if (freeSlots.isEmpty() || count <= 0) {
+            return List.of();
+        }
+        return List.of(new Part(freeSlots.get(0), count));
     }
 
     /** How many items the parts hold together. */

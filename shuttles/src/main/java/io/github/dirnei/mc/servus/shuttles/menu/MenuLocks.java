@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.IntPredicate;
 import java.util.function.Supplier;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -33,6 +34,7 @@ public final class MenuLocks {
     private final List<Target> targets = new ArrayList<>();
     private final Map<Integer, List<SlotLocksPayload.Entry>> shown = new HashMap<>();
     private PayloadSync<SlotLocksPayload> sync;
+    private IntPredicate pipeGrant = jobId -> false;
 
     private MenuLocks() {
     }
@@ -57,6 +59,12 @@ public final class MenuLocks {
         return locks;
     }
 
+    /** Marks the locks whose id passes the test as held by an Item Pipe's grant. */
+    public MenuLocks pipeGrants(IntPredicate test) {
+        pipeGrant = test;
+        return this;
+    }
+
     /** Server side, from {@code broadcastChanges}: sends the locks when they changed. */
     public void tick(Player player, int containerId, Supplier<Optional<WarehouseNetwork>> network) {
         if (sync == null) {
@@ -70,8 +78,10 @@ public final class MenuLocks {
         for (Target target : targets) {
             for (SlotLock lock : target.slots().locksOf(target.index())) {
                 Optional<Component> shuttle = network.flatMap(warehouse -> warehouse.shuttleOnJob(lock.jobId())).map(ShuttleItem::label);
-                entries.add(new SlotLocksPayload.Entry(target.menuSlot(), lock.kind() == SlotLock.Kind.IN, lock.key().stack(1), lock.amount(),
-                        lock.jobId(), shuttle));
+                boolean pipe = lock.kind() == SlotLock.Kind.IN && pipeGrant.test(lock.jobId());
+                int amount = pipe ? Math.max(0, lock.amount() - target.slots().getStackInSlot(target.index()).getCount()) : lock.amount();
+                entries.add(new SlotLocksPayload.Entry(target.menuSlot(), lock.kind() == SlotLock.Kind.IN, lock.key().stack(1), amount,
+                        lock.jobId(), shuttle, pipe));
             }
         }
         return new SlotLocksPayload(containerId, entries);
@@ -81,7 +91,7 @@ public final class MenuLocks {
         long hash = payload.containerId();
         for (SlotLocksPayload.Entry entry : payload.entries()) {
             hash = hash * 31 + Objects.hash(entry.slot(), entry.in(), entry.amount(), entry.jobId(), ItemStack.hashItemAndComponents(entry.item()),
-                    entry.shuttle().map(Component::getString).orElse(""));
+                    entry.shuttle().map(Component::getString).orElse(""), entry.pipe());
         }
         return hash;
     }

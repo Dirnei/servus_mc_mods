@@ -179,6 +179,11 @@ public final class SlotFill {
         return Math.max(0, count - Math.max(0, reservedOut));
     }
 
+    /** Items of a slot that no OUT lock reserves yet, never below 0. */
+    public static int unreserved(int count, int reservedOut) {
+        return Math.max(0, count - Math.max(0, reservedOut));
+    }
+
     /** The sum of the parts' counts. */
     public static int total(List<Part> parts) {
         int sum = 0;

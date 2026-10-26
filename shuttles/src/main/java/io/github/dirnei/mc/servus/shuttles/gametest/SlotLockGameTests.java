@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
 import io.github.dirnei.mc.servus.shuttles.menu.HeavyRackMenu;
+import io.github.dirnei.mc.servus.shuttles.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
@@ -73,7 +74,7 @@ public final class SlotLockGameTests {
         });
     }
 
-    /** A Pull side does not top up a locked slot and loses nothing when the buffer takes less than offered. */
+    /** A Pull side does not top up a slot a pipe grant holds and loses nothing when the buffer takes less than offered. */
     @ServusGameTest(timeoutTicks = 100)
     public static void pullSideRespectsLocks(GameTestHelper helper) {
         InboundStationBlockEntity station = WarehouseFixtures.inbound(helper, LONE_STATION, Direction.NORTH);
@@ -82,7 +83,7 @@ public final class SlotLockGameTests {
         chest.setItem(0, new ItemStack(Items.BREAD, 64));
         station.sideConfig().set(station.relativeSide(Direction.SOUTH), SideMode.PULL);
         station.buffer().insertItem(0, new ItemStack(Items.BREAD, 20), false);
-        station.buffer().lock(0, new SlotLock(SlotLock.Kind.OUT, ItemKey.of(new ItemStack(Items.BREAD)), 20, FOREIGN_JOB));
+        station.buffer().lock(0, new SlotLock(SlotLock.Kind.IN, ItemKey.of(new ItemStack(Items.BREAD)), 64, FOREIGN_JOB));
         for (int slot = 2; slot < station.buffer().getSlots(); slot++) {
             station.buffer().insertItem(slot, new ItemStack(Items.STONE, 64), false);
         }
@@ -94,6 +95,42 @@ public final class SlotLockGameTests {
                     + chest.countItem(Items.BREAD));
             helper.succeed();
         });
+    }
+
+    /** A Pull side tops up an Inbound slot planned for a put-away up to a stack; only the rest goes into a free slot. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void pullSideTopsUpAPlannedSlot(GameTestHelper helper) {
+        InboundStationBlockEntity station = WarehouseFixtures.inbound(helper, LONE_STATION, Direction.NORTH);
+        helper.setBlock(LONE_STATION.south(), Blocks.CHEST.defaultBlockState());
+        ChestBlockEntity chest = helper.getBlockEntity(LONE_STATION.south(), ChestBlockEntity.class);
+        chest.setItem(0, new ItemStack(Items.BREAD, 64));
+        station.buffer().insertItem(0, new ItemStack(Items.BREAD, 20), false);
+        station.buffer().lock(0, new SlotLock(SlotLock.Kind.OUT, ItemKey.of(new ItemStack(Items.BREAD)), 20, FOREIGN_JOB));
+        station.sideConfig().set(station.relativeSide(Direction.SOUTH), SideMode.PULL);
+        Waits.when(helper, () -> chest.countItem(Items.BREAD) == 0, 60, () -> "the bread should leave the chest", () -> {
+            helper.assertTrue(station.buffer().getStackInSlot(0).getCount() == 64, "the planned slot fills to 64, has "
+                    + station.buffer().getStackInSlot(0));
+            helper.assertTrue(station.buffer().getStackInSlot(1).getCount() == 20, "the other 20 go into a free slot, has "
+                    + station.buffer().getStackInSlot(1));
+            helper.succeed();
+        });
+    }
+
+    /** A planned Inbound slot with bread takes no carrots and gives nothing to the intake, the buffer or the GUI. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void plannedSlotStaysClosedOtherwise(GameTestHelper helper) {
+        InboundStationBlockEntity station = WarehouseFixtures.inbound(helper, LONE_STATION, Direction.NORTH);
+        station.buffer().insertItem(0, new ItemStack(Items.BREAD, 20), false);
+        station.buffer().lock(0, new SlotLock(SlotLock.Kind.OUT, ItemKey.of(new ItemStack(Items.BREAD)), 20, FOREIGN_JOB));
+        Transfer.insertItem(station.intake(), new ItemStack(Items.CARROT, 10), false);
+        helper.assertTrue(station.buffer().getStackInSlot(0).is(Items.BREAD) && station.buffer().getStackInSlot(1).is(Items.CARROT),
+                "the carrots go into another slot");
+        helper.assertTrue(Transfer.extractItem(station.buffer(), 0, 64, false).isEmpty(), "the buffer gives nothing from the planned slot");
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        InboundStationMenu menu = new InboundStationMenu(1, player.getInventory(), station);
+        menu.clicked(0, 0, ContainerInput.PICKUP, player);
+        helper.assertTrue(menu.getCarried().isEmpty() && station.buffer().getStackInSlot(0).getCount() == 20, "a click takes nothing");
+        helper.succeed();
     }
 
     /** A put-away locks its station slot and the room in the rack, both for the same job, and releases both on delivery. */

@@ -28,22 +28,82 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
  * slot holds IN and OUT locks of several jobs side by side, and everyone but
  * a job acting through its own lock sees the slot's room and items less what
  * the other jobs reserved.
+ *
+ * <p>Top up slots (an Inbound Station buffer) keep a slot that holds only OUT
+ * locks open to more of its own item, so a planned put-away no shuttle has
+ * loaded yet keeps filling; extracts stay closed to all but the job.
  */
 public class LockedSlots extends ItemSlots {
+
+    /** How locks act on their slots. */
+    public enum Mode {
+        /** A locked slot is closed to everyone but its jobs. */
+        CLOSED,
+        /** Locks only reserve room and items. */
+        COUNTED,
+        /** Like closed, but a slot with only OUT locks takes more of its own item. */
+        TOP_UP
+    }
 
     private final List<List<SlotLock>> locks = new ArrayList<>();
     /** The job allowed through its own locks right now, 0 for none. */
     private int acting;
     private final boolean counted;
+    private final boolean topUp;
 
     public LockedSlots(int size) {
-        this(size, false);
+        this(size, Mode.CLOSED);
     }
 
     /** @param counted whether locks only reserve room and items instead of closing their slot */
     public LockedSlots(int size, boolean counted) {
+        this(size, counted ? Mode.COUNTED : Mode.CLOSED);
+    }
+
+    public LockedSlots(int size, Mode mode) {
         super(size);
-        this.counted = counted;
+        this.counted = mode == Mode.COUNTED;
+        this.topUp = mode == Mode.TOP_UP;
+    }
+
+    /** Whether a slot holding only OUT locks takes more of its own item. */
+    public boolean topsUp() {
+        return topUp;
+    }
+
+    /** Whether a slot holds an IN lock. */
+    public boolean hasIn(int slot) {
+        return inRange(slot) && at(slot).stream().anyMatch(lock -> lock.kind() == SlotLock.Kind.IN);
+    }
+
+    /** Whether a top up slot takes the resource although it is locked: it holds only OUT locks and that item. */
+    private boolean takesTopUp(int slot, ItemResource resource) {
+        if (!topUp || !inRange(slot) || at(slot).isEmpty() || hasIn(slot)) {
+            return false;
+        }
+        ItemStack stack = getStackInSlot(slot);
+        return !stack.isEmpty() && ItemResource.of(stack).equals(resource);
+    }
+
+    /** Grows the job's OUT lock on the slot by {@code more}; nothing when the job holds none there. */
+    public void growOut(int slot, int jobId, int more) {
+        if (!inRange(slot) || more <= 0) {
+            return;
+        }
+        List<SlotLock> slotLocks = at(slot);
+        for (int i = 0; i < slotLocks.size(); i++) {
+            SlotLock lock = slotLocks.get(i);
+            if (lock.jobId() == jobId && lock.kind() == SlotLock.Kind.OUT) {
+                slotLocks.set(i, new SlotLock(SlotLock.Kind.OUT, lock.key(), lock.amount() + more, jobId));
+                onLocksChanged();
+                return;
+            }
+        }
+    }
+
+    /** Whether the job holds an OUT lock on the slot. */
+    public boolean holdsOut(int slot, int jobId) {
+        return inRange(slot) && at(slot).stream().anyMatch(lock -> lock.jobId() == jobId && lock.kind() == SlotLock.Kind.OUT);
     }
 
     /** Called after a lock was placed or released. */
@@ -434,7 +494,7 @@ public class LockedSlots extends ItemSlots {
                     reserved(index, SlotLock.Kind.IN, acting)) : 0;
             return room <= 0 ? 0 : super.insert(index, resource, Math.min(amount, room), transaction);
         }
-        return blocked(index) ? 0 : super.insert(index, resource, amount, transaction);
+        return blocked(index) && !takesTopUp(index, resource) ? 0 : super.insert(index, resource, amount, transaction);
     }
 
     @Override
@@ -449,7 +509,7 @@ public class LockedSlots extends ItemSlots {
 
     @Override
     public boolean isValid(int index, ItemResource resource) {
-        return (counted || !blocked(index)) && super.isValid(index, resource);
+        return (counted || !blocked(index) || takesTopUp(index, resource)) && super.isValid(index, resource);
     }
 
     /** The locks as a list tag; empty when nothing is locked. */

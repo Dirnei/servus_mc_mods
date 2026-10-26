@@ -24,6 +24,7 @@
 - The Storage Terminal's scrollbar can be dragged with the mouse.
 - A click anywhere in the Storage Terminal takes the focus from the search box, and JEI's recipe and usage keys work on the items in its grid.
 - Recipes that put a material into their result, such as a Heavy Duty Rack from oak planks, can be ordered and saved from the order grid, and JEI fills the grid with stocked items and their materials.
+- A pipe or hopper feeding an Inbound Station fills one slot per stack, and one shuttle takes the whole stack.
 
 ## 0.4.0
 

@@ -215,6 +215,7 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - Stock reserved by open work orders in the terminal's requestable count, if play tests ask for it (today only locked picks lower it).
 - Field Head amounts and Fluid Gantry keep steps on the Foundation widgets.
 - Field kinds beyond crops and trees: Crimson and Warped fungi on nylium first.
+- Mangrove tree fields: lumber fields do not plant or fell mangroves with their roots yet.
 - SEND and KEEP rules between sites in the controller GUI (the local min/max stock rules join the same list) and an In transit view.
 - Wireless Terminal with range tiers.
 - Stock rules in a mined Warehouse Controller item, if the play tests ask for them (today only the carrot dismantle keeps them; name and FE travel both ways).
@@ -222,6 +223,7 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - Garage doorway lower than the spoiler and the loading arm: the Mk3 spoiler and the Handling crane reach past the 12 pixel opening; a taller doorway or parts that duck under it.
 - Explore shuttle portals between sites, overland cargo carts and a separate Servus: Transit mod for passenger travel.
 - Station numbers and names for the Fluid Inbound and Fluid Outbound stations once M13 builds them.
+- Inbound pipe grants from a slow source: a pipe grant closes as soon as its chest runs dry, so a quarry feeding a chest slowly still makes part trips. A minimum wait before a short grant ends, if play tests ask for it.
 
 ### Open: M13 Fluid logistics
 

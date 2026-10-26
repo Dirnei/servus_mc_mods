@@ -36,6 +36,7 @@ import io.github.dirnei.mc.servus.shuttles.index.ReservationTally;
 import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotFill;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
+import io.github.dirnei.mc.servus.shuttles.lock.TopUp;
 import io.github.dirnei.mc.servus.shuttles.order.CapRoom;
 import io.github.dirnei.mc.servus.shuttles.order.ExportPlan;
 import io.github.dirnei.mc.servus.shuttles.order.StockRule;
@@ -1889,9 +1890,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
-    /** Whether the lock belongs to an open grant of a Packing Station, which its station sweeps itself. */
+    /** Whether the lock belongs to an open grant of an Inbound or Packing Station, which its station sweeps itself. */
     private boolean grantLock(LockKey lock) {
-        return loaded(lock.pos()) instanceof PackingStationBlockEntity station && station.holdsGrant(lock.jobId());
+        return loaded(lock.pos()) instanceof InboundStationBlockEntity station && station.holdsGrant(lock.jobId());
     }
 
     /** Stations, sources and served Field Heads, the blocks whose slots take locks. */
@@ -1922,7 +1923,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
      * Plans up to {@code put_away_per_tick} unlocked stacks of the station's
      * buffer: each goes to the best rack by the put-away rule as seen from the
      * station, locking its room there and its station slot for the amount
-     * that rack takes.
+     * that rack takes. In a top up buffer the items a slot holds beyond its
+     * OUT locks are planned the same way; slots a grant reserves wait.
      */
     private void drain(BlockPos pos, PutAwaySource station) {
         int budget = ShuttlesStatsManager.INSTANCE.putAwayPerTick();
@@ -1932,9 +1934,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         boolean more = false;
         boolean stationReached = fleet.canReach(pos);
         RailCosts.Search<NodePos> costs = null;
-        for (int slot = 0; slot < station.putAwayBuffer().getSlots(); slot++) {
-            ItemStack stack = station.putAwayBuffer().getStackInSlot(slot);
-            if (stack.isEmpty() || station.putAwayBuffer().isLocked(slot)) {
+        LockedSlots buffer = station.putAwayBuffer();
+        for (int slot = 0; slot < buffer.getSlots(); slot++) {
+            ItemStack stack = unplanned(buffer, slot);
+            if (stack.isEmpty()) {
                 continue;
             }
             if (budget <= 0) {
@@ -1963,7 +1966,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             BlockPos target = ranked.get(0);
             int id = nextJobId();
             int amount = rackSlots(target).lockIn(id, key, stack.getCount(), false);
-            station.putAwayBuffer().lock(slot, new SlotLock(SlotLock.Kind.OUT, key, amount, id));
+            buffer.lock(slot, new SlotLock(SlotLock.Kind.OUT, key, amount, id));
             fleet.requestPutAway(new PutAwayJob(id, pos, slot, key, amount, target));
         }
         if (more) {
@@ -1981,27 +1984,52 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /**
-     * Lets a buffer stack join a put-away of the same item from this station
-     * that no shuttle has loaded yet, up to a stack per job and as far as its
-     * rack has room, so a buffer filling item by item makes one trip, not many.
+     * The items of a buffer slot no put-away has planned yet: the whole stack
+     * of an unlocked slot, in a top up buffer what a slot holding only OUT
+     * locks has beyond them; empty for other locked slots.
+     */
+    private static ItemStack unplanned(LockedSlots buffer, int slot) {
+        ItemStack stack = buffer.getStackInSlot(slot);
+        if (stack.isEmpty() || !buffer.isLocked(slot)) {
+            return stack;
+        }
+        if (!buffer.topsUp() || buffer.hasIn(slot)) {
+            return ItemStack.EMPTY;
+        }
+        int surplus = SlotFill.unreserved(stack.getCount(), buffer.reserved(slot, SlotLock.Kind.OUT, 0));
+        return surplus <= 0 ? ItemStack.EMPTY : stack.copyWithCount(surplus);
+    }
+
+    /**
+     * Lets unplanned items of a buffer slot join a put-away of the same item
+     * from this station that no shuttle has loaded yet, the job already on
+     * that slot first, up to a stack per job and as far as its rack has room,
+     * so a buffer filling item by item makes one trip, not many. A job on the
+     * slot grows its OUT lock there.
      */
     private boolean joinOpenPutAway(BlockPos pos, PutAwaySource station, int slot, ItemStack stack) {
         ItemKey key = ItemKey.of(stack);
-        Optional<PutAwayJob> open = fleet.openPutAway(pos, key);
-        if (open.isEmpty()) {
-            return false;
+        LockedSlots buffer = station.putAwayBuffer();
+        List<PutAwayJob> open = new ArrayList<>(fleet.openPutAways(pos, key));
+        open.sort(Comparator.comparing(job -> !buffer.holdsOut(slot, job.id())));
+        for (PutAwayJob job : open) {
+            LockedSlots target = rackSlots(job.target());
+            int room = TopUp.join(buffer.lockedAmount(job.id(), SlotLock.Kind.OUT), stack.getCount(), stack.getMaxStackSize());
+            if (target == null || room <= 0) {
+                continue;
+            }
+            int joined = target.extendIn(job.id(), key, room);
+            if (joined <= 0) {
+                continue;
+            }
+            if (buffer.holdsOut(slot, job.id())) {
+                buffer.growOut(slot, job.id(), joined);
+            } else {
+                buffer.lock(slot, new SlotLock(SlotLock.Kind.OUT, key, joined, job.id()));
+            }
+            return true;
         }
-        LockedSlots target = rackSlots(open.get().target());
-        int room = stack.getMaxStackSize() - station.putAwayBuffer().lockedAmount(open.get().id(), SlotLock.Kind.OUT);
-        if (target == null || room <= 0) {
-            return false;
-        }
-        int joined = target.extendIn(open.get().id(), key, Math.min(room, stack.getCount()));
-        if (joined <= 0) {
-            return false;
-        }
-        station.putAwayBuffer().lock(slot, new SlotLock(SlotLock.Kind.OUT, key, joined, open.get().id()));
-        return true;
+        return false;
     }
 
     /** Whether any source the key could go to has an inventory at all; the controller alone has none. */

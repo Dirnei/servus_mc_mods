@@ -224,6 +224,7 @@
   "gui.servus_shuttles.garage.stranded.no_room": "%s holds %s %s: no room",
   "gui.servus_shuttles.garage.stranded.no_way": "%s holds %s %s: no way to a rack with room",
   "gui.servus_shuttles.lock.in": "Reserved: %s brings %s %s",
+  "gui.servus_shuttles.lock.in_pipe": "Reserved: pipe brings %s more %s",
   "gui.servus_shuttles.lock.in_waiting": "Reserved: brings %s %s, waiting for a shuttle",
   "gui.servus_shuttles.lock.out": "Reserved: %s takes %s %s",
   "gui.servus_shuttles.lock.out_waiting": "Reserved: takes %s %s, waiting for a shuttle",
