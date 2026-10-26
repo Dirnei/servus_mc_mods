@@ -9,6 +9,7 @@
 - Lumber shuttles fell trees with an arm and a saw, and the tree topples away from the rail, lands and breaks apart into the shuttle.
 - Patterns can be Exact or Any. An Any pattern, such as sticks or a chest, crafts from whichever planks or logs the warehouse holds most of; the recipe editor has the Exact / Any button and the Patterns tab marks Any patterns.
 - The Storage Terminal has Stock and Rules tabs. Rules lists every stock rule with a search, and a carried item or a JEI drag on its add slot starts a rule for any item. A right click on an item opens one popup with Request, Craft and Rule tabs in place of the amount prompt.
+- Stock rules can refuse an item at Inbound Stations above a cap: hoppers, pipes and Pull sides deliver only up to it and the rest stays with the sender. The rule names the station that refused.
 
 ### Changed
 - The Lumber shuttle carries a closed hold; at a tree its doors and walls fold open and a harvester crane rises out of it, grips the trunk with rollers and knives, cuts it with a chainsaw you can hear, and folds away again before it drives on.

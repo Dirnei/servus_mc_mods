@@ -74,6 +74,7 @@ final class ItemPopup {
 
     private InlineStepper orderBelow;
     private InlineStepper fillUpTo;
+    private InlineStepper refuseAbove;
     private Button removeButton;
     private Button ruleCancel;
     private Button saveButton;
@@ -101,13 +102,10 @@ final class ItemPopup {
 
         int keptMin = orderBelow == null ? 0 : orderBelow.value();
         int keptMax = fillUpTo == null ? AmountSteps.MIN : fillUpTo.value();
-        orderBelow = new InlineStepper(font, Component.translatable(KEY + "rule.order_below"), 0, AmountSteps.MAX, this::stackSize, value -> { });
-        fillUpTo = new InlineStepper(font, Component.translatable(KEY + "rule.fill_up_to"), AmountSteps.MIN, AmountSteps.MAX, this::stackSize,
-                value -> { });
-        placeField(orderBelow, Storage.RULE_MAKE, 0);
-        placeField(fillUpTo, Storage.RULE_MAKE, 1);
-        orderBelow.setValue(keptMin);
-        fillUpTo.setValue(keptMax);
+        int keptCap = refuseAbove == null ? 0 : refuseAbove.value();
+        orderBelow = ruleField(font, "rule.order_below", Storage.RULE_MAKE, 0, keptMin);
+        fillUpTo = ruleField(font, "rule.fill_up_to", Storage.RULE_MAKE, 1, keptMax);
+        refuseAbove = ruleField(font, "rule.refuse_above", Storage.RULE_LIMIT, 1, keptCap);
         Rect buttons = Storage.RULE_BUTTONS;
         removeButton = Button.builder(Component.translatable(KEY + "rule_remove"), b -> removeRule())
                 .bounds(left + buttons.x(), top + buttons.y(), Storage.BUTTON, buttons.h()).build();
@@ -120,8 +118,19 @@ final class ItemPopup {
         return widgets();
     }
 
-    private void placeField(InlineStepper stepper, Rect group, int column) {
+    /** A field of a Make or Limit row, from 0 up; Order when below keeps 0 as a number, the others show 0 as off. */
+    private InlineStepper ruleField(Font font, String key, Rect group, int column, int value) {
+        InlineStepper stepper = new InlineStepper(font, Component.translatable(KEY + key), 0, AmountSteps.MAX, this::stackSize, changed -> { });
+        if (!key.equals("rule.order_below")) {
+            stepper.offAtZero(Component.translatable(KEY + "rule.off"));
+        }
         stepper.place(left + Storage.ruleFieldX(group, column), top + group.y() + Storage.RULE_FIELD_LABEL, Storage.RULE_FIELD);
+        stepper.setValue(value);
+        return stepper;
+    }
+
+    private List<InlineStepper> ruleFields() {
+        return List.of(orderBelow, fillUpTo, refuseAbove);
     }
 
     private List<AbstractWidget> requestWidgets() {
@@ -132,8 +141,8 @@ final class ItemPopup {
     }
 
     private List<AbstractWidget> ruleWidgets() {
-        List<AbstractWidget> widgets = new ArrayList<>(orderBelow.widgets());
-        widgets.addAll(fillUpTo.widgets());
+        List<AbstractWidget> widgets = new ArrayList<>();
+        ruleFields().forEach(field -> widgets.addAll(field.widgets()));
         widgets.addAll(List.of(removeButton, ruleCancel, saveButton));
         return widgets;
     }
@@ -178,8 +187,9 @@ final class ItemPopup {
         tabs = ItemPopupTabs.of(count, canCraft, warehouse);
         amount.setValue(RequestSplit.prefill(stackSize(), requestable, craftable));
         RuleRow rule = ClientStock.ruleFor(item);
-        orderBelow.setValue(rule == null ? 0 : rule.min());
-        fillUpTo.setValue(rule == null ? stackSize() : rule.max());
+        orderBelow.setValue(rule == null || !rule.hasMake() ? 0 : rule.min());
+        fillUpTo.setValue(rule == null ? stackSize() : rule.hasMake() ? rule.max() : 0);
+        refuseAbove.setValue(rule == null ? 0 : rule.cap());
         tab = wanted;
         if (!tabs.enabled(wanted)) {
             for (Tab other : Tab.values()) {
@@ -233,8 +243,7 @@ final class ItemPopup {
 
     void tick() {
         amount.tick();
-        orderBelow.tick();
-        fillUpTo.tick();
+        ruleFields().forEach(InlineStepper::tick);
     }
 
     /** The tab under the mouse on the strip, null elsewhere. */
@@ -411,8 +420,7 @@ final class ItemPopup {
         Rect title = Storage.RULE_TITLE;
         graphics.item(item, left + title.x(), top + title.y());
         RuleRow rule = rule();
-        Component state = rule == null ? Component.translatable(KEY + "rule.none")
-                : Component.translatable(KEY + "rule_state." + rule.state());
+        Component state = rule == null ? Component.translatable(KEY + "rule.none") : stateText(rule);
         Component stock = Component.translatable(KEY + "rule.in_stock", requestable);
         int stateWidth = font.width(state);
         int stockWidth = font.width(stock);
@@ -424,7 +432,8 @@ final class ItemPopup {
         text(graphics, font, item.getHoverName(), title.x() + 20, textY, nameWidth, COLOUR_TEXT);
 
         renderGroup(graphics, font, Storage.RULE_MAKE, KEY + "rule.make", KEY + "rule.order_below", KEY + "rule.fill_up_to");
-        String refusal = RuleInput.refusal(orderBelow.value(), fillUpTo.value());
+        renderGroup(graphics, font, Storage.RULE_LIMIT, KEY + "rule.limit", null, KEY + "rule.refuse_above");
+        String refusal = input().refusal();
         Rect note = Storage.RULE_NOTE;
         if (refusal != null) {
             text(graphics, font, Component.translatable(KEY + refusal), note.x(), note.y(), note.w(), COLOUR_ALERT);
@@ -433,12 +442,27 @@ final class ItemPopup {
         removeButton.active = rule != null;
     }
 
-    /** A group row: its label in the left column and a label over each of its two fields. */
+    /** A group row: its label in the left column and a label over each of its fields; a null field label leaves that column empty. */
     private void renderGroup(GuiGraphicsExtractor graphics, Font font, Rect group, String label, String first, String second) {
         int labelWidth = Storage.RULE_GROUP_LABEL - 2;
         text(graphics, font, Component.translatable(label), group.x(), group.y() + Storage.RULE_FIELD_LABEL + 3, labelWidth, COLOUR_TEXT);
-        text(graphics, font, Component.translatable(first), Storage.ruleFieldX(group, 0), group.y(), Storage.RULE_FIELD, COLOUR_TEXT);
-        text(graphics, font, Component.translatable(second), Storage.ruleFieldX(group, 1), group.y(), Storage.RULE_FIELD, COLOUR_TEXT);
+        String[] fields = {first, second};
+        for (int column = 0; column < fields.length; column++) {
+            if (fields[column] != null) {
+                text(graphics, font, Component.translatable(fields[column]), Storage.ruleFieldX(group, column), group.y(), Storage.RULE_FIELD,
+                        COLOUR_TEXT);
+            }
+        }
+    }
+
+    /** A rule's state as players read it: "refused at Inbound #1" names the station. */
+    static Component stateText(RuleRow rule) {
+        return rule.state().equals("refusing") ? Component.translatable(KEY + "rule_state.refusing", rule.detail())
+                : Component.translatable(KEY + "rule_state." + rule.state());
+    }
+
+    private RuleInput input() {
+        return RuleInput.of(orderBelow.value(), fillUpTo.value(), refuseAbove.value());
     }
 
     /** The colour of a rule state in the popup and the Rules tab. */
@@ -451,16 +475,17 @@ final class ItemPopup {
     }
 
     private void saveRule() {
-        if (RuleInput.refusal(orderBelow.value(), fillUpTo.value()) != null) {
+        RuleInput input = input();
+        if (input.refusal() != null) {
             return;
         }
-        ClientPacketDistributor.sendToServer(new SetStockRulePayload(item, orderBelow.value(), fillUpTo.value()));
+        ClientPacketDistributor.sendToServer(new SetStockRulePayload(item, input.min(), input.max(), input.cap(), false));
         host.closePopup();
     }
 
     private void removeRule() {
         if (rule() != null) {
-            ClientPacketDistributor.sendToServer(new SetStockRulePayload(item, -1, -1));
+            ClientPacketDistributor.sendToServer(SetStockRulePayload.removal(item));
         }
         host.closePopup();
     }
@@ -475,8 +500,7 @@ final class ItemPopup {
             ClientPacketDistributor.sendToServer(new RequestItemPayload(item, amount.value()));
             host.closePopup();
         } else if (tab == Tab.RULE) {
-            orderBelow.commit();
-            fillUpTo.commit();
+            ruleFields().forEach(InlineStepper::commit);
             saveRule();
         }
     }
@@ -500,7 +524,7 @@ final class ItemPopup {
             return amount.field();
         }
         if (tab == Tab.RULE) {
-            return orderBelow.field().isFocused() ? orderBelow.field() : fillUpTo.field();
+            return ruleFields().stream().map(InlineStepper::field).filter(EditBox::isFocused).findFirst().orElse(fillUpTo.field());
         }
         return null;
     }
@@ -509,7 +533,7 @@ final class ItemPopup {
     boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
         return switch (tab) {
             case REQUEST -> amount.mouseScrolled(mouseX, mouseY, scrollY);
-            case RULE -> orderBelow.mouseScrolled(mouseX, mouseY, scrollY) || fillUpTo.mouseScrolled(mouseX, mouseY, scrollY);
+            case RULE -> ruleFields().stream().anyMatch(field -> field.mouseScrolled(mouseX, mouseY, scrollY));
             case CRAFT -> false;
         };
     }

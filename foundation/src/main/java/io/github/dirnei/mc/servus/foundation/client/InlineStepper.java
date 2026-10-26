@@ -42,6 +42,8 @@ public final class InlineStepper {
     private final IntConsumer changed;
     private int value;
     private boolean wasFocused;
+    /** Whether 0 means off: the field is empty and shows its hint. */
+    private boolean offAtZero;
 
     public InlineStepper(Font font, Component name, int min, int max, IntSupplier stack, IntConsumer changed) {
         this.min = min;
@@ -58,6 +60,17 @@ public final class InlineStepper {
                 .tooltip(Tooltip.create(Component.translatable("gui.servus_foundation.stepper.less"))).build();
         plus = Button.builder(Component.literal("+"), b -> step(true)).size(BUTTON_WIDTH, HEIGHT)
                 .tooltip(Tooltip.create(Component.translatable("gui.servus_foundation.stepper.more"))).build();
+    }
+
+    /**
+     * Makes 0 mean off: the field shows {@code hint} instead of 0, and
+     * clearing the field turns it off. Needs a lowest value of 0.
+     */
+    public InlineStepper offAtZero(Component hint) {
+        offAtZero = true;
+        field.setHint(hint);
+        commit();
+        return this;
     }
 
     /** The minus button, the field and the plus button, for {@code addRenderableWidget}. */
@@ -89,12 +102,12 @@ public final class InlineStepper {
     /** Shows {@code amount}, kept in range, without telling the callback. */
     public void setValue(int amount) {
         value = clamp(amount);
-        field.setValue(Integer.toString(value));
+        commit();
     }
 
     /** Rewrites the field with the clamped value, as on Enter or when it loses focus. */
     public void commit() {
-        field.setValue(Integer.toString(value));
+        field.setValue(offAtZero && value == 0 ? "" : Integer.toString(value));
     }
 
     /** Commits when the field lost focus. */
@@ -133,6 +146,9 @@ public final class InlineStepper {
 
     private void typed(String text) {
         if (text.isEmpty()) {
+            if (offAtZero) {
+                set(clamp(0));
+            }
             return;
         }
         try {

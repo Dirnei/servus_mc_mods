@@ -23,6 +23,7 @@ import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.order.OrderStep;
+import io.github.dirnei.mc.servus.shuttles.order.RuleThresholds;
 import io.github.dirnei.mc.servus.shuttles.order.WorkOrder;
 import io.github.dirnei.mc.servus.shuttles.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.site.SiteRecord;
@@ -41,6 +42,7 @@ import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -102,6 +104,15 @@ public final class ServusShuttlesCommands {
                                         .then(Commands.argument("min", IntegerArgumentType.integer(0))
                                                 .then(Commands.argument("max", IntegerArgumentType.integer(0))
                                                         .executes(ServusShuttlesCommands::rule))))))
+                .then(Commands.literal("cap")
+                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
+                                        .then(Commands.argument("amount", IntegerArgumentType.integer(1))
+                                                .executes(ServusShuttlesCommands::cap)))))
+                .then(Commands.literal("uncap")
+                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
+                                        .executes(ServusShuttlesCommands::uncap))))
                 .then(Commands.literal("unrule")
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
@@ -292,9 +303,35 @@ public final class ServusShuttlesCommands {
             return 0;
         }
         for (RuleRow rule : rules) {
-            say(source, "  - " + name(rule.stack()) + ": keep " + rule.min() + " to " + rule.max() + ", " + rule.state().replace('_', ' '));
+            Component line = ruleLine(rule);
+            source.sendSuccess(() -> line, false);
         }
         return rules.size();
+    }
+
+    /** "  - Cobblestone: refuse above 4096, refused at Inbound #1"; the station label is resolved by the client. */
+    private static Component ruleLine(RuleRow rule) {
+        List<String> parts = new ArrayList<>();
+        if (rule.hasMake()) {
+            parts.add("keep " + rule.min() + " to " + rule.max());
+        }
+        if (rule.hasCap()) {
+            parts.add("refuse above " + rule.cap());
+        }
+        boolean refused = rule.state().equals("refusing");
+        parts.add(refused ? "refused at " : rule.state().replace('_', ' '));
+        MutableComponent line = Component.literal("  - " + name(rule.stack()) + ": " + String.join(", ", parts));
+        return refused ? line.append(rule.detail()) : line;
+    }
+
+    /** The reason a rule command was refused, in words. */
+    private static String thresholdReason(String check) {
+        return switch (check) {
+            case RuleThresholds.MAKE_ORDER -> "the minimum must be below the maximum";
+            case RuleThresholds.CAP_BELOW_MAX -> "the cap must not be below the maximum";
+            case RuleThresholds.EMPTY -> "a rule needs a Make pair or a cap";
+            default -> check.replace('_', ' ');
+        };
     }
 
     private static int rule(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -307,8 +344,46 @@ public final class ServusShuttlesCommands {
         ItemStack item = item(context);
         int min = IntegerArgumentType.getInteger(context, "min");
         int max = IntegerArgumentType.getInteger(context, "max");
-        network.get().setStockRule(ItemKey.of(item), min, max);
-        say(source, "Keeping " + min + " to " + Math.max(min, max) + " " + name(item));
+        String check = RuleThresholds.check(min, max, 0);
+        if (check.equals(RuleThresholds.OK)) {
+            check = network.get().setStockRule(ItemKey.of(item), min, max);
+        }
+        if (!check.equals(RuleThresholds.OK)) {
+            return fail(source, "Rule refused: " + thresholdReason(check));
+        }
+        say(source, "Keeping " + min + " to " + max + " " + name(item));
+        return 1;
+    }
+
+    private static int cap(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+        CommandSourceStack source = context.getSource();
+        Optional<WarehouseNetwork> network = networkAt(source, pos);
+        if (network.isEmpty()) {
+            return 0;
+        }
+        ItemStack item = item(context);
+        int amount = IntegerArgumentType.getInteger(context, "amount");
+        String check = network.get().setStockCap(ItemKey.of(item), amount);
+        if (!check.equals(RuleThresholds.OK)) {
+            return fail(source, "Cap refused: " + thresholdReason(check));
+        }
+        say(source, "Refusing " + name(item) + " at Inbound Stations above " + amount);
+        return 1;
+    }
+
+    private static int uncap(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+        CommandSourceStack source = context.getSource();
+        Optional<WarehouseNetwork> network = networkAt(source, pos);
+        if (network.isEmpty()) {
+            return 0;
+        }
+        ItemStack item = item(context);
+        if (!network.get().clearStockCap(ItemKey.of(item))) {
+            return fail(source, "No cap for " + name(item));
+        }
+        say(source, "Cap for " + name(item) + " removed");
         return 1;
     }
 

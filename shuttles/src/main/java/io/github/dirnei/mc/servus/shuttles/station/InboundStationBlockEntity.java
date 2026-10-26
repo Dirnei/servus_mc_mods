@@ -35,6 +35,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 /**
  * The inbound dock: an intake buffer that hoppers, ducts and players fill and
@@ -56,8 +57,25 @@ public class InboundStationBlockEntity extends StationBlockEntity implements Loc
         }
     };
 
-    /** The outside view: inserts only, so nothing drains the dock. */
+    /**
+     * The outside view: inserts only, so nothing drains the dock, and no more
+     * of an item than its rule's cap leaves room for. What the open
+     * transactions already accepted counts towards the cap.
+     */
     private final LegacyItemHandler intake = new LegacyItemHandler() {
+        @Override
+        public int insert(int index, ItemResource resource, int amount, TransactionContext transaction) {
+            if (resource.isEmpty() || amount <= 0) {
+                return super.insert(index, resource, amount, transaction);
+            }
+            int pending = pendingInserts(resource);
+            int room = Math.max(0, capRoom(ItemKey.of(resource.toStack()), pending + amount) - pending);
+            if (room < amount) {
+                reportCapRefused(ItemKey.of(resource.toStack()));
+            }
+            return room <= 0 ? 0 : super.insert(index, resource, room, transaction);
+        }
+
         @Override
         public int getSlots() {
             return buffer.getSlots();
@@ -149,7 +167,7 @@ public class InboundStationBlockEntity extends StationBlockEntity implements Loc
 
     /**
      * Takes as much of the first stack the neighbour offers as the unlocked
-     * slots take. Taking and storing happen in one transaction, so an item
+     * slots and the item's cap take. Taking and storing happen in one transaction, so an item
      * the buffer does not take stays with the neighbour.
      */
     private void pullOneStack(ItemView neighbour) {
@@ -158,7 +176,12 @@ public class InboundStationBlockEntity extends StationBlockEntity implements Loc
             if (offered.isEmpty()) {
                 continue;
             }
-            int room = offered.getCount() - buffer.insertItem(offered, true).getCount();
+            int bufferRoom = offered.getCount() - buffer.insertItem(offered, true).getCount();
+            ItemKey key = ItemKey.of(offered);
+            int room = capRoom(key, bufferRoom);
+            if (room < bufferRoom) {
+                reportCapRefused(key);
+            }
             if (room <= 0) {
                 continue;
             }
@@ -170,6 +193,20 @@ public class InboundStationBlockEntity extends StationBlockEntity implements Loc
                 }
             }
         }
+    }
+
+    /** How many of the key the buffer holds, for the cap of the item's rule. */
+    public int held(ItemKey key) {
+        return countOf(buffer, key);
+    }
+
+    /** How many of the offered items the warehouse's cap for the item leaves room for; all while offline. */
+    private int capRoom(ItemKey key, int offered) {
+        return network().map(network -> network.capRoom(key, offered)).orElse(offered);
+    }
+
+    private void reportCapRefused(ItemKey key) {
+        network().ifPresent(network -> network.post(new WarehouseEvent.CapRefused(key, worldPosition)));
     }
 
     /** Whether a put-away job holds the slot. */

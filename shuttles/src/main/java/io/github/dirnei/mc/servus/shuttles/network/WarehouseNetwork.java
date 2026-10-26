@@ -36,6 +36,8 @@ import io.github.dirnei.mc.servus.shuttles.index.ReservationTally;
 import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotFill;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
+import io.github.dirnei.mc.servus.shuttles.order.CapRoom;
+import io.github.dirnei.mc.servus.shuttles.order.StockRule;
 import io.github.dirnei.mc.servus.shuttles.order.StockRules;
 import io.github.dirnei.mc.servus.shuttles.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.packing.PackingStationBlockEntity;
@@ -44,6 +46,7 @@ import io.github.dirnei.mc.servus.shuttles.packing.PackingStationChoice;
 import io.github.dirnei.mc.servus.shuttles.packing.WirelessIncoming;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.shuttle.CounterData;
 import io.github.dirnei.mc.servus.shuttles.shuttle.FertilizeJob;
 import io.github.dirnei.mc.servus.shuttles.shuttle.FleetSaves;
@@ -64,6 +67,7 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleView;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.JobNeeds;
 import io.github.dirnei.mc.servus.shuttles.site.SiteChunks;
 import io.github.dirnei.mc.servus.shuttles.site.SiteRegistry;
+import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.station.StationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.storage.StorageFill;
@@ -1099,8 +1103,63 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 ? Optional.of(controller.rules()) : Optional.empty();
     }
 
-    public void setStockRule(ItemKey key, int min, int max) {
-        rules.set(key, min, max);
+    /**
+     * Sets the Make pair of the item's rule and keeps its cap.
+     *
+     * @return {@link io.github.dirnei.mc.servus.shuttles.order.RuleThresholds#OK} or the reason the rule was refused
+     */
+    public String setStockRule(ItemKey key, int min, int max) {
+        return rules.setMake(key, min, max);
+    }
+
+    /**
+     * Replaces the item's rule with the Make pair (null for none) and the cap (0 for none).
+     *
+     * @return {@link io.github.dirnei.mc.servus.shuttles.order.RuleThresholds#OK} or the reason the rule was refused
+     */
+    public String setStockRule(ItemKey key, StockRule.Make make, int cap) {
+        return rules.set(key, make, cap);
+    }
+
+    /** Sets the cap of the item's rule and keeps its Make pair; returns OK or the reason. */
+    public String setStockCap(ItemKey key, int cap) {
+        return rules.setCap(key, cap);
+    }
+
+    /** Clears the cap of the item's rule, removing a rule left without a Make pair; false when it had no cap. */
+    public boolean clearStockCap(ItemKey key) {
+        return rules.clearCap(key);
+    }
+
+    /**
+     * How many of {@code offered} items of the key an Inbound Station may take
+     * under the cap of the item's rule: all without a capped rule or while
+     * offline. Held counts the indexed stock, every Inbound buffer, the
+     * put-aways loaded on shuttles and what open CPU orders still make for
+     * storage.
+     */
+    public int capRoom(ItemKey key, int offered) {
+        if (status() != Status.ONLINE) {
+            return offered;
+        }
+        StockRule rule = stockRules().map(found -> found.get(key)).orElse(null);
+        if (rule == null || !rule.hasCap()) {
+            return offered;
+        }
+        long held = index.count(key) + fleet.putAwayCargo(key)
+                + CpuOrders.network(level, this).map(line -> CpuOrders.incomingFor(level, line, key)).orElse(0);
+        for (BlockPos pos : stations) {
+            if (loaded(pos) instanceof InboundStationBlockEntity inbound) {
+                held += inbound.held(key);
+            }
+        }
+        return CapRoom.room(rule.cap(), held, offered);
+    }
+
+    /** The label of the station at the position, or the Inbound Station's block name when it is not loaded. */
+    public Component stationLabel(BlockPos pos) {
+        return loaded(pos) instanceof StationBlockEntity station ? station.label()
+                : Component.translatable(ServusShuttlesBlocks.INBOUND_STATION.get().getDescriptionId());
     }
 
     public boolean removeStockRule(ItemKey key) {
@@ -1461,6 +1520,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 // A field shuttle parked with cargo for a full To storage buffer tries again.
                 fleet.roomChanged();
             }
+        } else if (event instanceof WarehouseEvent.CapRefused refused) {
+            rules.refused(refused.key(), refused.station());
         } else if (event instanceof WarehouseEvent.FluidChanged fluid) {
             if (gantries.contains(fluid.pos())) {
                 pendingGantries.add(fluid.pos());

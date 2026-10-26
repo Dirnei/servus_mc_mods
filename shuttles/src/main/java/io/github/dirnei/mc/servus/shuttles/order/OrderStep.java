@@ -255,6 +255,17 @@ public final class OrderStep {
         return collected.getOrDefault(key, 0);
     }
 
+    /** Outputs of the key the step makes that have not reached a Packing Station yet. */
+    public int toCollect(ItemKey key) {
+        int made = 0;
+        for (ItemStack output : recipe.outputs()) {
+            if (ItemKey.of(output).equals(key)) {
+                made += output.getCount() * batches;
+            }
+        }
+        return Math.max(0, made - collected(key));
+    }
+
     /** The step is done once its first output was collected in full. */
     public boolean outputsCollected() {
         if (recipe.outputs().isEmpty()) {

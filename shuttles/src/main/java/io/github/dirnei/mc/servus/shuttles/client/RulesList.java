@@ -14,10 +14,10 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 /**
- * The Storage Terminal's Rules tab in the grid's area: the add slot as a
- * fixed first row, then one row per stock rule with its item, its Make range
- * and its state, sorted by item name, filtered by the search and scrolled
- * like the grid.
+ * The Storage Terminal's Rules tab in the grid's area: the add slot with the
+ * column headings as a fixed first row, then one row per stock rule with its
+ * item, its Make range, its cap and its state, sorted by item name, filtered
+ * by the search and scrolled like the grid.
  */
 final class RulesList {
 
@@ -76,8 +76,9 @@ final class RulesList {
         Rect add = addSlot(grid);
         PanelPainter.slots(graphics, left, top, add, 1, 1);
         graphics.text(font, "+", left + add.x() + 5, top + add.y() + 4, 0xFFFFFFFF, true);
-        Component hint = Component.translatable(KEY + "rules.add");
-        graphics.text(font, font.plainSubstrByWidth(hint.getString(), grid.w() - 22), left + grid.x() + 20, top + grid.y() + 4, COLOUR_HINT, false);
+        heading(graphics, font, left, top, grid, Storage.RULE_ROW_MAKE, "rules.make");
+        heading(graphics, font, left, top, grid, Storage.RULE_ROW_REFUSE, "rules.refuse");
+        heading(graphics, font, left, top, grid, Storage.RULE_ROW_STATE, "rules.state");
         List<RuleRow> shown = shown(query);
         int x = mouseX - left;
         int y = mouseY - top;
@@ -92,22 +93,56 @@ final class RulesList {
         }
     }
 
+    /** A column heading in the add slot's row, over its column. */
+    private static void heading(GuiGraphicsExtractor graphics, Font font, int left, int top, Rect grid, Rect column, String key) {
+        Component text = Component.translatable(KEY + key);
+        graphics.text(font, font.plainSubstrByWidth(text.getString(), column.w()), left + grid.x() + column.x(), top + grid.y() + column.y(),
+                COLOUR_HINT, false);
+    }
+
     private void renderRow(GuiGraphicsExtractor graphics, Font font, RuleRow rule, int x, int y) {
         Rect icon = Storage.RULE_ROW_ICON;
         graphics.item(rule.stack(), x + icon.x(), y + icon.y());
-        cell(graphics, font, Component.translatable(KEY + "rule_range", rule.min(), rule.max()), x, y, Storage.RULE_ROW_MAKE, COLOUR_TEXT);
-        cell(graphics, font, Component.translatable(KEY + "rule_state." + rule.state()), x, y, Storage.RULE_ROW_STATE,
-                ItemPopup.stateColour(rule.state()));
+        cell(graphics, font, make(rule), x, y, Storage.RULE_ROW_MAKE, COLOUR_TEXT);
+        cell(graphics, font, cap(rule), x, y, Storage.RULE_ROW_REFUSE, COLOUR_TEXT);
+        cell(graphics, font, ItemPopup.stateText(rule), x, y, Storage.RULE_ROW_STATE, ItemPopup.stateColour(rule.state()));
+    }
+
+    private static Component make(RuleRow rule) {
+        return rule.hasMake() ? Component.translatable(KEY + "rule_range", rule.min(), rule.max()) : Component.literal("-");
+    }
+
+    private static Component cap(RuleRow rule) {
+        return rule.hasCap() ? Component.literal(StorageTerminalScreen.abbreviate(rule.cap())) : Component.literal("-");
     }
 
     private static void cell(GuiGraphicsExtractor graphics, Font font, Component text, int x, int y, Rect at, int colour) {
         graphics.text(font, font.plainSubstrByWidth(text.getString(), at.w()), x + at.x(), y + at.y(), colour, false);
     }
 
-    /** The tooltip of a rule row: the item and the click hint. */
+    /** The tooltip of a rule row: the item, the rule in full and the click hint. */
     static List<Component> tooltip(RuleRow rule) {
         List<Component> lines = new ArrayList<>(Screen.getTooltipFromItem(Minecraft.getInstance(), rule.stack()));
+        lines.addAll(ruleLines(rule));
         lines.add(Component.translatable(KEY + "rules.row_hint"));
         return lines;
+    }
+
+    /** The rule as tooltip lines: "Rule: keep 8 to 16", "refuse above 4096" and its state. */
+    static List<Component> ruleLines(RuleRow rule) {
+        List<Component> lines = new ArrayList<>();
+        if (rule.hasMake()) {
+            lines.add(Component.translatable(KEY + "rule_keep", rule.min(), rule.max()));
+        }
+        if (rule.hasCap()) {
+            lines.add(Component.translatable(KEY + "rule_refuse", rule.cap()));
+        }
+        lines.add(Component.translatable(KEY + "rule_line", ItemPopup.stateText(rule)));
+        return lines;
+    }
+
+    /** The add slot's tooltip. */
+    static Component addTooltip() {
+        return Component.translatable(KEY + "rules.add");
     }
 }

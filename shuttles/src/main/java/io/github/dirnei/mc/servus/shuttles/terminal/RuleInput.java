@@ -1,30 +1,31 @@
 package io.github.dirnei.mc.servus.shuttles.terminal;
 
+import io.github.dirnei.mc.servus.shuttles.order.RuleThresholds;
+
 /**
- * Checks the numbers of the Storage Terminal's Rule tab before Save: Order
- * when below at least 0, Fill up to at least 1, and the first below the
- * second. Pure, no Minecraft imports.
+ * The numbers of the Storage Terminal's Rule tab as a rule: Fill up to and the
+ * cap at 0 are off, and with Fill up to off and Order when below at 0 the rule
+ * has no Make pair. Pure, no Minecraft imports.
+ *
+ * @param min the Make minimum, -1 without a Make pair
+ * @param max the Make maximum, -1 without a Make pair
+ * @param cap refuse at Inbound above this, 0 for none
  */
-public final class RuleInput {
+public record RuleInput(int min, int max, int cap) {
 
-    /** Order when below is negative. */
-    public static final String MIN_LOW = "rule_min_low";
-    /** Fill up to is below 1. */
-    public static final String MAX_LOW = "rule_max_low";
-    /** Order when below is not below Fill up to. */
-    public static final String ORDER = "rule_order";
-
-    private RuleInput() {
+    /** The fields as typed: Order when below, Fill up to (0 is off) and Refuse at Inbound above (0 is off). */
+    public static RuleInput of(int orderBelow, int fillUpTo, int refuseAbove) {
+        boolean make = fillUpTo > 0 || orderBelow > 0;
+        return new RuleInput(make ? orderBelow : -1, make ? fillUpTo : -1, Math.max(0, refuseAbove));
     }
 
-    /** The reason key Save is greyed out for, or null when the rule may be saved. */
-    public static String refusal(int min, int max) {
-        if (min < 0) {
-            return MIN_LOW;
-        }
-        if (max < 1) {
-            return MAX_LOW;
-        }
-        return min < max ? null : ORDER;
+    public boolean hasMake() {
+        return max >= 0;
+    }
+
+    /** The lang key suffix Save is greyed out for, or null when the rule may be saved. */
+    public String refusal() {
+        String check = RuleThresholds.check(min, max, cap);
+        return check.equals(RuleThresholds.OK) ? null : "rule_" + check;
     }
 }

@@ -177,8 +177,9 @@ public final class TerminalLayout {
         /** The Rules tab lists one rule per row in the grid's area; the first row is the add slot. */
         public static final int RULE_ROW = CELL;
         public static final Rect RULE_ROW_ICON = new Rect(0, 0, 16, 16);
-        public static final Rect RULE_ROW_MAKE = new Rect(20, 4, 60, 9);
-        public static final Rect RULE_ROW_STATE = new Rect(84, 4, 78, 9);
+        public static final Rect RULE_ROW_MAKE = new Rect(18, 4, 52, 9);
+        public static final Rect RULE_ROW_REFUSE = new Rect(72, 4, 28, 9);
+        public static final Rect RULE_ROW_STATE = new Rect(102, 4, 60, 9);
 
         private Storage() {
         }
@@ -233,7 +234,7 @@ public final class TerminalLayout {
         /** The parts of one Rules tab row, relative to the row's top left corner. */
         public static List<Area> ruleRowAreas() {
             return List.of(new Area("rule row icon", RULE_ROW_ICON), new Area("rule row make", RULE_ROW_MAKE),
-                    new Area("rule row state", RULE_ROW_STATE));
+                    new Area("rule row refuse", RULE_ROW_REFUSE), new Area("rule row state", RULE_ROW_STATE));
         }
 
         /** The parts of the amount panel. */

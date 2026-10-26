@@ -502,6 +502,19 @@ public final class ShuttleFleet {
         return job instanceof PickJob pick && pick.terminal().equals(destination) && pick.key().equals(key) ? pick.amount() : 0;
     }
 
+    /** Items of the key loaded on shuttles for put-aways, on their way into the racks. */
+    public int putAwayCargo(ItemKey key) {
+        int sum = 0;
+        for (Shuttle shuttle : shuttles()) {
+            for (Load load : shuttle.loads) {
+                if (load.job instanceof PutAwayJob && !load.cargo.isEmpty() && ItemKey.of(load.cargo).equals(key)) {
+                    sum += load.cargo.getCount();
+                }
+            }
+        }
+        return sum;
+    }
+
     /** Items of the key on queued picks bound for a destination. */
     public int queuedAmount(BlockPos destination, ItemKey key) {
         return sumQueued(job -> amountFor(job, destination, key));

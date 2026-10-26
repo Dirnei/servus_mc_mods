@@ -13,6 +13,10 @@ public sealed interface WarehouseEvent {
     record ZoneChanged(BlockPos pos) implements WarehouseEvent {
     }
 
+    /** The Inbound Station at {@code station} took less of the item than offered because of its rule's cap. */
+    record CapRefused(ItemKey key, BlockPos station) implements WarehouseEvent {
+    }
+
     /** The inbound station at {@code pos} has something in its buffer. */
     record Intake(BlockPos pos) implements WarehouseEvent {
     }

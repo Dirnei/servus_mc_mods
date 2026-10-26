@@ -1,7 +1,9 @@
 package io.github.dirnei.mc.servus.shuttles.terminal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -9,27 +11,42 @@ class RuleInputTest {
 
     @Test
     void eightToSixteenIsValid() {
-        assertNull(RuleInput.refusal(8, 16));
+        RuleInput input = RuleInput.of(8, 16, 0);
+        assertNull(input.refusal());
+        assertTrue(input.hasMake());
+        assertEquals(new RuleInput(8, 16, 0), input);
     }
 
     @Test
     void minimumEqualToMaximumIsRefused() {
-        assertEquals(RuleInput.ORDER, RuleInput.refusal(16, 16));
-        assertEquals(RuleInput.ORDER, RuleInput.refusal(20, 16));
+        assertEquals("rule_make_order", RuleInput.of(16, 16, 0).refusal());
     }
 
     @Test
     void zeroToOneIsValid() {
-        assertNull(RuleInput.refusal(0, 1));
+        assertNull(RuleInput.of(0, 1, 0).refusal());
     }
 
     @Test
-    void maximumZeroIsRefused() {
-        assertEquals(RuleInput.MAX_LOW, RuleInput.refusal(0, 0));
+    void fillUpToOffWithAMinimumIsRefused() {
+        assertEquals("rule_make_order", RuleInput.of(8, 0, 4096).refusal());
     }
 
     @Test
-    void negativeMinimumIsRefused() {
-        assertEquals(RuleInput.MIN_LOW, RuleInput.refusal(-1, 16));
+    void makeOffWithACap() {
+        RuleInput input = RuleInput.of(0, 0, 4096);
+        assertFalse(input.hasMake());
+        assertEquals(new RuleInput(-1, -1, 4096), input);
+        assertNull(input.refusal());
+    }
+
+    @Test
+    void nothingSetIsRefused() {
+        assertEquals("rule_empty", RuleInput.of(0, 0, 0).refusal());
+    }
+
+    @Test
+    void capBelowFillUpToIsRefused() {
+        assertEquals("rule_cap_below_max", RuleInput.of(8, 16, 10).refusal());
     }
 }

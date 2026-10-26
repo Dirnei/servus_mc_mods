@@ -155,6 +155,15 @@ public final class WorkOrder {
         return state == State.WAITING || state == State.RUNNING || state == State.BLOCKED;
     }
 
+    /** Items of the order's item its steps still make or send toward a Packing Station. */
+    public int toCollect() {
+        int left = 0;
+        for (OrderStep step : steps) {
+            left += step.toCollect(key);
+        }
+        return left;
+    }
+
     /** Whether a step of this order is feeding or producing on the producer. */
     public boolean occupies(BlockPos producer, OrderStep except) {
         if (!open()) {

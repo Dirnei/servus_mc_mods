@@ -8,8 +8,15 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
-/** Client to server: keep min to max of the item; a negative min removes the rule. */
-public record SetStockRulePayload(ItemStack item, int min, int max) implements CustomPacketPayload {
+/**
+ * Client to server: the rule of the item, or its removal.
+ *
+ * @param min    the Make minimum, -1 together with {@code max} for no Make pair
+ * @param max    the Make maximum
+ * @param cap    refuse at Inbound above this, 0 for none
+ * @param remove whether the rule is removed; the thresholds are then ignored
+ */
+public record SetStockRulePayload(ItemStack item, int min, int max, int cap, boolean remove) implements CustomPacketPayload {
 
     public static final Type<SetStockRulePayload> TYPE =
             new Type<>(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "set_stock_rule"));
@@ -18,7 +25,14 @@ public record SetStockRulePayload(ItemStack item, int min, int max) implements C
             ItemStack.STREAM_CODEC, SetStockRulePayload::item,
             ByteBufCodecs.INT, SetStockRulePayload::min,
             ByteBufCodecs.INT, SetStockRulePayload::max,
+            ByteBufCodecs.INT, SetStockRulePayload::cap,
+            ByteBufCodecs.BOOL, SetStockRulePayload::remove,
             SetStockRulePayload::new);
+
+    /** Removes the rule of the item. */
+    public static SetStockRulePayload removal(ItemStack item) {
+        return new SetStockRulePayload(item, -1, -1, 0, true);
+    }
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

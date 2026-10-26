@@ -11,7 +11,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 
-/** The stock rules of one warehouse, one per item, kept on the controller. */
+/** The stock rules of one warehouse, one per item, kept on the controller. Min and Max are saved only for a Make pair, Cap only when set. */
 public final class StockRules {
 
     private final Map<ItemKey, StockRule> rules = new LinkedHashMap<>();
@@ -47,8 +47,13 @@ public final class StockRules {
         for (StockRule rule : rules.values()) {
             CompoundTag tag = new CompoundTag();
             tag.put("Item", Saving.key(rule.key(), registries));
-            tag.putInt("Min", rule.min());
-            tag.putInt("Max", rule.max());
+            if (rule.hasMake()) {
+                tag.putInt("Min", rule.make().min());
+                tag.putInt("Max", rule.make().max());
+            }
+            if (rule.hasCap()) {
+                tag.putInt("Cap", rule.cap());
+            }
             list.add(tag);
         }
         CompoundTag root = new CompoundTag();
@@ -60,8 +65,13 @@ public final class StockRules {
         rules.clear();
         for (Tag element : root.getListOrEmpty("Rules")) {
             CompoundTag tag = (CompoundTag) element;
-            Saving.key(tag.getCompoundOrEmpty("Item"), registries).ifPresent(key ->
-                    rules.put(key, new StockRule(key, tag.getIntOr("Min", 0), tag.getIntOr("Max", 0))));
+            Saving.key(tag.getCompoundOrEmpty("Item"), registries).ifPresent(key -> {
+                StockRule.Make make = tag.contains("Max") ? new StockRule.Make(tag.getIntOr("Min", 0), tag.getIntOr("Max", 0)) : null;
+                StockRule rule = new StockRule(key, make, tag.getIntOr("Cap", 0));
+                if (!rule.empty()) {
+                    rules.put(key, rule);
+                }
+            });
         }
     }
 }

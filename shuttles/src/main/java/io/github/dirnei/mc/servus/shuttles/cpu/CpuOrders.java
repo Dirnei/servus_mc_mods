@@ -213,6 +213,15 @@ public final class CpuOrders {
         return sum;
     }
 
+    /** Items of the key the open orders of every CPU of the line still make for storage. */
+    public static int incomingFor(ServerLevel level, DataNetwork network, ItemKey key) {
+        int sum = 0;
+        for (CpuBlockEntity cpu : cpus(level, network)) {
+            sum += cpu.book().incomingFor(key);
+        }
+        return sum;
+    }
+
     /** Stock reserved by the CPUs of the line other than the one owning {@code except}. */
     public static Map<ItemKey, Integer> reservedOnLine(ServerLevel level, DataNetwork network, OrderBook except) {
         Map<ItemKey, Integer> total = new HashMap<>();

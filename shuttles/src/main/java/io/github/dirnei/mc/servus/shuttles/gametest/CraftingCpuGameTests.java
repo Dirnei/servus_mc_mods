@@ -524,12 +524,12 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void stockRulesPersist(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, CONTROLLER);
-        controller.rules().set(new StockRule(STICK, 8, 16));
+        controller.rules().set(StockRule.make(STICK, 8, 16));
         CompoundTag tag = controller.saveWithoutMetadata(helper.getLevel().registryAccess());
         WarehouseControllerBlockEntity copy = new WarehouseControllerBlockEntity(helper.absolutePos(CONTROLLER), controller.getBlockState());
         copy.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), tag));
         StockRule rule = copy.rules().get(STICK);
-        helper.assertTrue(rule != null && rule.min() == 8 && rule.max() == 16, "the rule should survive save and load: " + rule);
+        helper.assertTrue(rule != null && rule.hasMake() && rule.make().min() == 8 && rule.make().max() == 16 && !rule.hasCap(), "the rule should survive save and load: " + rule);
         helper.succeed();
     }
 

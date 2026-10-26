@@ -195,6 +195,17 @@ public final class OrderBook {
         return sum;
     }
 
+    /** Items of the key that open orders still make for storage, not for a terminal request. */
+    public int incomingFor(ItemKey key) {
+        int sum = 0;
+        for (WorkOrder order : orders) {
+            if (order.open() && order.deliverTo() == null && order.key().equals(key)) {
+                sum += order.toCollect();
+            }
+        }
+        return sum;
+    }
+
     /** Stock reserved by every open order, per key. */
     public Map<ItemKey, Integer> reservedTotal() {
         Map<ItemKey, Integer> total = new HashMap<>();

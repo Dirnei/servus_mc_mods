@@ -7,6 +7,8 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.order.OrderBook;
+import io.github.dirnei.mc.servus.shuttles.order.RuleThresholds;
+import io.github.dirnei.mc.servus.shuttles.order.StockRule;
 import io.github.dirnei.mc.servus.shuttles.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
@@ -344,15 +346,24 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         sync.force();
     }
 
-    /** Sets the stock rule of an item; a negative minimum removes it. */
-    public void setRule(ItemKey key, int min, int max) {
-        online().ifPresent(network -> {
-            if (min < 0) {
-                network.removeStockRule(key);
-            } else {
-                network.setStockRule(key, min, max);
+    /**
+     * Sets or removes the stock rule of an item: the Make pair (min and max
+     * -1 for none) and the cap (0 for none). A rule that breaks the threshold
+     * rules is refused on the message line.
+     */
+    public void setRule(ItemKey key, int min, int max, int cap, boolean remove) {
+        Optional<WarehouseNetwork> network = online();
+        if (network.isEmpty()) {
+            message = "offline";
+        } else if (remove) {
+            network.get().removeStockRule(key);
+        } else {
+            String check = RuleThresholds.check(min, max, cap);
+            if (check.equals(RuleThresholds.OK)) {
+                check = network.get().setStockRule(key, max < 0 ? null : new StockRule.Make(min, max), cap);
             }
-        });
+            message = check.equals(RuleThresholds.OK) ? "" : check.equals("offline") ? check : "rule_" + check;
+        }
         sync.force();
     }
 
@@ -499,7 +510,9 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             hash = hash * 31 + rule.stack().getItem().hashCode();
             hash = hash * 31 + rule.min();
             hash = hash * 31 + rule.max();
+            hash = hash * 31 + rule.cap();
             hash = hash * 31 + rule.state().hashCode();
+            hash = hash * 31 + rule.detail().getString().hashCode();
         }
         for (ItemStack craftable : payload.craftables()) {
             hash = hash * 31 + craftable.getItem().hashCode();

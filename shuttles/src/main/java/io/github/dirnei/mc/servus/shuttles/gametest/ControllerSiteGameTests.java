@@ -196,7 +196,7 @@ public final class ControllerSiteGameTests {
         WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, at);
         controller.setSiteName("  North Mine ");
         controller.setEnergy(12000);
-        controller.rules().set(new StockRule(ItemKey.of(new ItemStack(Items.STICK)), 8, 16));
+        controller.rules().set(StockRule.make(ItemKey.of(new ItemStack(Items.STICK)), 8, 16));
         controller.upgrades().insertItem(0, new ItemStack(MachineContent.ANCHOR_UPGRADE.get()), false);
         controller.setSpan(Set.of(controller.homeChunk(), SiteChunks.key(9999, 9999)));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);

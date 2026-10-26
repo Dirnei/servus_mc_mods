@@ -847,6 +847,11 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                 graphics.setTooltipForNextFrame(font, RulesList.tooltip(rule.get()), Optional.empty(), mouseX, mouseY);
                 return;
             }
+            Rect add = RulesList.addSlot(layout.grid());
+            if (add.contains(mouseX - leftPos, mouseY - topPos)) {
+                graphics.setTooltipForNextFrame(font, font.split(RulesList.addTooltip(), 200), mouseX, mouseY);
+                return;
+            }
         } else {
             renderGrid(graphics, mouseX, mouseY);
         }
@@ -879,8 +884,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             lines.add(Component.translatable("gui.servus_shuttles.stored", cell.count()));
             RuleRow rule = ClientStock.ruleFor(cell.stack());
             if (rule != null) {
-                lines.add(Component.translatable("gui.servus_shuttles.terminal.rule_line", rule.min(), rule.max(),
-                        Component.translatable("gui.servus_shuttles.terminal.rule_state." + rule.state())));
+                lines.addAll(RulesList.ruleLines(rule));
             }
             lines.add(Component.translatable("gui.servus_shuttles.terminal.click_hint"));
             if (cell.craftable()) {

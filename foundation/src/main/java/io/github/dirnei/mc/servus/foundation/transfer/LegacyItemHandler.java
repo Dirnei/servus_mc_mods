@@ -28,6 +28,11 @@ public abstract class LegacyItemHandler implements ResourceHandler<ItemResource>
 
     public abstract int getSlots();
 
+    /** Items of the resource this handler accepted in open transactions and inserts when they commit, over all slots. */
+    protected int pendingInserts(ItemResource resource) {
+        return ops.sum(op -> op.insert() && op.resource().equals(resource), Op::amount);
+    }
+
     public abstract ItemStack getStackInSlot(int slot);
 
     /** Inserts into a slot; returns what did not fit. */
