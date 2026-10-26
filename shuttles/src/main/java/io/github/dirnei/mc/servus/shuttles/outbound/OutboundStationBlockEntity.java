@@ -16,6 +16,7 @@ import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
 import io.github.dirnei.mc.servus.shuttles.station.StationBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.station.StationCounters;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -208,6 +209,11 @@ public class OutboundStationBlockEntity extends StationBlockEntity implements De
                 buffer.setStackInSlot(i, left);
             }
         }
+    }
+
+    @Override
+    public StationCounters.Kind stationKind() {
+        return StationCounters.Kind.OUTBOUND;
     }
 
     @Override

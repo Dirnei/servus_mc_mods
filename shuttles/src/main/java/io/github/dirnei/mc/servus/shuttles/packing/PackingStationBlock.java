@@ -24,7 +24,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import io.github.dirnei.mc.servus.foundation.material.Material;
 
 /**
  * The Packing Station: a station on the rails that is also a link member of the
@@ -68,7 +67,10 @@ public class PackingStationBlock extends InboundStationBlock implements TooltipB
         return "tooltip.servus_shuttles.packing_station";
     }
 
-    /** Sneaking dismantles and drops both buffers; a plain click does nothing, there are no side modes. */
+    /**
+     * Sneaking dismantles and drops both buffers, keeping the wood, number and
+     * name on the item; a plain click does nothing, there are no side modes.
+     */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         Player player = context.getPlayer();
@@ -78,10 +80,12 @@ public class PackingStationBlock extends InboundStationBlock implements TooltipB
             return InteractionResult.PASS;
         }
         if (!level.isClientSide()) {
+            ItemStack drop = new ItemStack(this);
             if (level.getBlockEntity(pos) instanceof PackingStationBlockEntity point) {
                 point.dropContents(level, pos);
+                drop.applyComponents(point.collectComponents());
             }
-            Block.popResource(level, pos, Material.stamp(new ItemStack(this), level.getBlockEntity(pos)));
+            Block.popResource(level, pos, drop);
             level.removeBlock(pos, false);
         }
         return InteractionResult.SUCCESS;

@@ -221,6 +221,7 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - Outbound dock: delivery by teleport or by courier drone to a landing pad.
 - Garage doorway lower than the spoiler and the loading arm: the Mk3 spoiler and the Handling crane reach past the 12 pixel opening; a taller doorway or parts that duck under it.
 - Explore shuttle portals between sites, overland cargo carts and a separate Servus: Transit mod for passenger travel.
+- Station numbers and names for the Fluid Inbound and Fluid Outbound stations once M13 builds them.
 
 ### Open: M13 Fluid logistics
 

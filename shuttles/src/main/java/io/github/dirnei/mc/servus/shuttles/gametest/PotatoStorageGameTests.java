@@ -3,10 +3,12 @@ package io.github.dirnei.mc.servus.shuttles.gametest;
 import io.github.dirnei.mc.servus.foundation.gametest.PlayerClicks;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
+import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.gantry.GantryMode;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
+import io.github.dirnei.mc.servus.shuttles.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
@@ -25,7 +27,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
 
-/** The Data Potato on storage: the section report of a rack and the tank report of a Fluid Gantry. */
+/** The Data Potato on storage: the section report of a rack, the tank report of a Fluid Gantry and the station report. */
 public final class PotatoStorageGameTests {
 
     private static final String KEY = "message.servus_shuttles.potato.";
@@ -136,6 +138,50 @@ public final class PotatoStorageGameTests {
         helper.assertTrue(gantry.mode() == GantryMode.STORAGE && gantry.lock(0) == Fluids.WATER && gantry.lock(1) == null
                 && gantry.tank(0).getFluidAmount() == 12000, "nothing changed");
         helper.succeed();
+    }
+
+    /** An Outbound Station of the site "North Mine" reports its label, the site and that it is online; no GUI opens. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void potatoReportsOnlineStation(GameTestHelper helper) {
+        WarehouseFixtures.railRow(helper, 1, 6, 2);
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, new BlockPos(0, 1, 2));
+        controller.setSiteName("North Mine");
+        BlockPos at = new BlockPos(3, 1, 3);
+        OutboundStationBlockEntity station = WarehouseFixtures.outbound(helper, at, Direction.NORTH);
+        Waits.when(helper, () -> station.number() > 0, 60, () -> "the station should get a number", () -> {
+            station.rename("Compost Dock");
+            List<Component> chat = new ArrayList<>();
+            ServerPlayer player = potatoPlayer(helper, at, chat);
+            PlayerClicks.use(helper, player, at);
+            helper.assertTrue(chat.size() == 3, "label, site and online, got " + chat);
+            Component label = (Component) args(helper, chat.get(0), "station_label")[0];
+            helper.assertTrue(label.getContents() instanceof TranslatableContents contents && contents.getKey().equals("station.servus_shuttles.label.named")
+                    && contents.getArgs()[0].equals("Compost Dock") && contents.getArgs()[1].equals(1), "the label is Compost Dock (#1), got " + label);
+            helper.assertTrue(args(helper, chat.get(1), "station_site")[0].equals("North Mine"), "the site is North Mine");
+            args(helper, chat.get(2), "station_online");
+            helper.assertTrue(player.containerMenu == player.inventoryMenu, "no GUI opens");
+            helper.succeed();
+        });
+    }
+
+    /** A station whose rail reaches no controller reports its label and that it has no controller. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void potatoReportsOfflineStation(GameTestHelper helper) {
+        WarehouseFixtures.railRow(helper, 1, 6, 2);
+        BlockPos at = new BlockPos(3, 1, 3);
+        WarehouseFixtures.inbound(helper, at, Direction.NORTH);
+        helper.runAfterDelay(5, () -> {
+            List<Component> chat = new ArrayList<>();
+            ServerPlayer player = potatoPlayer(helper, at, chat);
+            PlayerClicks.use(helper, player, at);
+            helper.assertTrue(chat.size() == 2, "label and offline reason, got " + chat);
+            helper.assertTrue(text(args(helper, chat.get(0), "station_label")[0]).equals("block.servus_shuttles.inbound_station"),
+                    "an unnumbered station reads Inbound Station");
+            helper.assertTrue(text(args(helper, chat.get(1), "station_offline")[0]).equals("gui.servus_shuttles.terminal.no_controller"),
+                    "the station has no controller");
+            helper.assertTrue(player.containerMenu == player.inventoryMenu, "no GUI opens");
+            helper.succeed();
+        });
     }
 
     /** A row of {@code count} joined racks facing north from x {@code first}, left (west) to right. */

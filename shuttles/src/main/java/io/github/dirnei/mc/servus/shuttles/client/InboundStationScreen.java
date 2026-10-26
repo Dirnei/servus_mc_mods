@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.shuttles.station.StationStatePayload;
 import java.util.Locale;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -21,6 +22,7 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
 
     private static final Identifier TEXTURE =
             Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "textures/gui/inbound_station.png");
+    private static final int COLOUR_TEXT = 0xFF404040;
     private static final int COLOUR_ALERT = 0xFFB03030;
 
     private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == RelativeSide.FRONT,
@@ -31,11 +33,27 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
         ClientStationState.clear();
     }
 
+    private StationNameField name;
+
+    /** The name is the title: a borderless field in the title row, showing the numbered label until a name is typed. */
     @Override
     protected void init() {
         super.init();
         this.inventoryLabelY = InboundStationMenu.INVENTORY_Y - 11;
         panel.placeBeside(leftPos, topPos);
+        name = new StationNameField(font, leftPos + titleLabelX, topPos + titleLabelY, imageWidth - 2 * titleLabelX, menu.station(), COLOUR_TEXT);
+        addRenderableWidget(name.box());
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        name.tick();
+    }
+
+    @Override
+    public boolean keyPressed(KeyEvent event) {
+        return name.keyPressed(event) || super.keyPressed(event);
     }
 
     @Override
@@ -54,7 +72,8 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
     /** The state line only explains a red lamp; the lamps on the block tell idle from working. */
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        super.extractLabels(graphics, mouseX, mouseY);
+        graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, COLOUR_TEXT, false);
+        name.renderNumber(graphics, font, imageWidth - titleLabelX, titleLabelY, COLOUR_TEXT);
         StationStatePayload state = ClientStationState.state();
         if (!state.online()) {
             Component reason = Component.translatable("gui.servus_shuttles.terminal." + state.reason());
@@ -82,6 +101,7 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
 
     @Override
     public void removed() {
+        name.send();
         super.removed();
         ClientStationState.clear();
     }

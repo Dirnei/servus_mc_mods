@@ -21,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /** The station's buffer and the player inventory; the state line comes along as a payload. */
-public class InboundStationMenu extends AbstractContainerMenu implements LockedMenu {
+public class InboundStationMenu extends AbstractContainerMenu implements LockedMenu, StationNameMenu {
 
     public static final int BUFFER_Y = 18;
     public static final int STATUS_Y = 40;
@@ -70,6 +70,13 @@ public class InboundStationMenu extends AbstractContainerMenu implements LockedM
 
     public SideMode sideMode(RelativeSide side) {
         return station.sideConfig().mode(side);
+    }
+
+    @Override
+    public void rename(String typed) {
+        if (stillValid(player)) {
+            station.rename(typed);
+        }
     }
 
     @Override

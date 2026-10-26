@@ -12,6 +12,7 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -37,11 +38,27 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
         ClientStationState.clear();
     }
 
+    private StationNameField name;
+
+    /** The name is the title: a borderless field in the title row, showing the numbered label until a name is typed. */
     @Override
     protected void init() {
         super.init();
         this.inventoryLabelY = OutboundStationMenu.INVENTORY_Y - 11;
         panel.placeBeside(leftPos, topPos);
+        name = new StationNameField(font, leftPos + titleLabelX, topPos + titleLabelY, imageWidth - 2 * titleLabelX, menu.station(), COLOUR_TEXT);
+        addRenderableWidget(name.box());
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        name.tick();
+    }
+
+    @Override
+    public boolean keyPressed(KeyEvent event) {
+        return name.keyPressed(event) || super.keyPressed(event);
     }
 
     private boolean isKeepSlot(Slot slot) {
@@ -72,7 +89,8 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
 
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        super.extractLabels(graphics, mouseX, mouseY);
+        graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, COLOUR_TEXT, false);
+        name.renderNumber(graphics, font, imageWidth - titleLabelX, titleLabelY, COLOUR_TEXT);
         graphics.text(font, Component.translatable("gui.servus_shuttles.outbound.keep"), 8, OutboundStationMenu.KEEP_Y - 10, COLOUR_TEXT, false);
         graphics.text(font, Component.translatable("gui.servus_shuttles.outbound.buffer"), 8, OutboundStationMenu.BUFFER_Y - 10, COLOUR_TEXT, false);
         StationStatePayload state = ClientStationState.state();
@@ -107,6 +125,7 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
 
     @Override
     public void removed() {
+        name.send();
         super.removed();
         ClientStationState.clear();
     }

@@ -361,6 +361,12 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("item.servus_shuttles.shuttle.named", "%s (%s)");
         add("shuttle.servus_shuttles.label", "Shuttle #%s");
         add("shuttle.servus_shuttles.label.named", "%s (#%s)");
+        add("station.servus_shuttles.label.inbound", "Inbound #%s");
+        add("station.servus_shuttles.label.outbound", "Outbound #%s");
+        add("station.servus_shuttles.label.packing", "Packing #%s");
+        add("station.servus_shuttles.label.named", "%s (#%s)");
+        add("gui.servus_shuttles.station.name", "Station name");
+        add("gui.servus_shuttles.station.name_hint", "Name this station");
         add("tooltip.servus_shuttles.shuttle.plain", "No upgrades");
         add("tooltip.servus_shuttles.shuttle.tool", "Tool: %s");
         add("tooltip.servus_shuttles.shuttle.speed", "Speed upgrades: %s");
@@ -635,6 +641,10 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("message.servus_shuttles.potato.rack_empty", "Empty");
         add("message.servus_shuttles.potato.rack_item", "%s: %s");
         add("message.servus_shuttles.potato.gantry_mode", "Fluid Gantry, %s");
+        add("message.servus_shuttles.potato.station_label", "Station: %s");
+        add("message.servus_shuttles.potato.station_site", "Site: %s");
+        add("message.servus_shuttles.potato.station_online", "Online");
+        add("message.servus_shuttles.potato.station_offline", "Offline: %s");
         add("message.servus_shuttles.potato.gantry_tank", "%s tank: %s, lock: %s");
         add("message.servus_shuttles.potato.gantry_any", "Any");
         add("message.servus_shuttles.potato.shuttle_line", "%s: %s");

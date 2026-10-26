@@ -23,6 +23,8 @@ import io.github.dirnei.mc.servus.shuttles.site.SiteWakes;
 import io.github.dirnei.mc.servus.shuttles.site.WakeMachine;
 import io.github.dirnei.mc.servus.shuttles.site.WirelessCost;
 import io.github.dirnei.mc.servus.shuttles.site.WirelessReach;
+import io.github.dirnei.mc.servus.shuttles.station.CarriedCounters;
+import io.github.dirnei.mc.servus.shuttles.station.StationCounters;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -55,6 +57,9 @@ import net.neoforged.neoforge.model.data.ModelData;
 /** Exactly one per network makes the warehouse online. Shuttles live in garages. */
 public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity implements MaterialHolder, MenuProvider {
 
+    private static final String WAREHOUSE_ID = "WarehouseId";
+    private static final String STATION_COUNTERS = "StationCounters";
+
     private final MaterialSlot materialSlot = new MaterialSlot(this);
 
     /** Shuttles an older save kept in the controller; dropped as items on load. */
@@ -62,6 +67,9 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     private final StockRules rules = new StockRules();
 
     private String siteName = "";
+    /** The warehouse's identity: stations numbered under another id are numbered again. */
+    private UUID warehouseId = UUID.randomUUID();
+    private final StationCounters stationCounters = new StationCounters();
     private UUID team;
     private final Set<Long> span = new LinkedHashSet<>();
     private final AnchorUpgradeSlots upgrades =
@@ -106,6 +114,23 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
             syncRecord();
         }
         return siteName;
+    }
+
+    /** The identity of this warehouse, carried with the controller by the carrot. */
+    public UUID warehouseId() {
+        return warehouseId;
+    }
+
+    /** Gives the next station number of the kind in this warehouse. */
+    public int takeStationNumber(StationCounters.Kind kind) {
+        int number = stationCounters.take(kind);
+        setChanged();
+        return number;
+    }
+
+    /** The last station number this warehouse gave for the kind. */
+    public int lastStationNumber(StationCounters.Kind kind) {
+        return stationCounters.last(kind);
     }
 
     /** The team of the player who placed the controller, empty when placed by no player. */
@@ -425,6 +450,8 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         materialSlot.save(output);
         tag.put("StockRules", rules.save(registries));
         output.putString("SiteName", siteName);
+        output.store(WAREHOUSE_ID, UUIDUtil.CODEC, warehouseId);
+        output.store(STATION_COUNTERS, CarriedCounters.CODEC, CarriedCounters.of(stationCounters));
         if (team != null) {
             tag.store("Team", UUIDUtil.CODEC, team);
         }
@@ -446,6 +473,8 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
             rules.load(tag.getCompoundOrEmpty("StockRules"), registries);
         }
         siteName = SiteName.clean(input.getStringOr("SiteName", ""));
+        input.read(WAREHOUSE_ID, UUIDUtil.CODEC).ifPresent(id -> warehouseId = id);
+        input.read(STATION_COUNTERS, CarriedCounters.CODEC).ifPresent(carried -> stationCounters.copyFrom(carried.counters()));
         team = tag.read("Team", UUIDUtil.CODEC).orElse(null);
         span.clear();
         for (long key : tag.getLongArray("Span").orElse(new long[0])) {
@@ -492,6 +521,14 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         if (carried != null) {
             energy.setStored(carried);
         }
+        UUID id = input.get(ServusShuttlesComponents.WAREHOUSE_ID.get());
+        if (id != null) {
+            warehouseId = id;
+        }
+        CarriedCounters counters = input.get(ServusShuttlesComponents.STATION_COUNTERS.get());
+        if (counters != null) {
+            stationCounters.copyFrom(counters.counters());
+        }
     }
 
     @Override
@@ -504,6 +541,8 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         if (energy.stored() > 0) {
             builder.set(ServusShuttlesComponents.CONTROLLER_ENERGY.get(), energy.stored());
         }
+        builder.set(ServusShuttlesComponents.WAREHOUSE_ID.get(), warehouseId);
+        builder.set(ServusShuttlesComponents.STATION_COUNTERS.get(), CarriedCounters.of(stationCounters));
     }
 
     @Override
@@ -513,6 +552,8 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         MaterialSlot.removeFromTag(output);
         output.discard("SiteName");
         output.discard("Energy");
+        output.discard(WAREHOUSE_ID);
+        output.discard(STATION_COUNTERS);
     }
 
     @Override

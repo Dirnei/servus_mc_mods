@@ -214,6 +214,11 @@ public class InboundStationBlockEntity extends StationBlockEntity implements Loc
     }
 
     @Override
+    public StationCounters.Kind stationKind() {
+        return StationCounters.Kind.INBOUND;
+    }
+
+    @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new InboundStationMenu(containerId, playerInventory, this);
     }

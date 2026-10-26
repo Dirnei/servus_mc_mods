@@ -25,7 +25,7 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
  * rows, then a row of upgrade slots, the only slots players can change, and
  * the player inventory. The status line and the rate come along as a payload.
  */
-public class PackingStationMenu extends AbstractContainerMenu implements LockedMenu {
+public class PackingStationMenu extends AbstractContainerMenu implements LockedMenu, StationNameMenu {
 
     public static final int COLUMNS = 9;
     public static final int FIRST_LABEL_Y = 18;
@@ -124,6 +124,18 @@ public class PackingStationMenu extends AbstractContainerMenu implements LockedM
         buf.writeVarInt(point.buffer().getSlots());
         buf.writeVarInt(point.outgoing().getSlots());
         buf.writeVarInt(point.upgrades().getSlots());
+    }
+
+    /** The station, or null on a client that has not loaded it. */
+    public PackingStationBlockEntity station() {
+        return point;
+    }
+
+    @Override
+    public void rename(String typed) {
+        if (point != null && stillValid(player)) {
+            point.rename(typed);
+        }
     }
 
     public int toStorageSlots() {

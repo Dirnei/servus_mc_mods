@@ -13,10 +13,15 @@ import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
+import io.github.dirnei.mc.servus.shuttles.site.SiteName;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
@@ -42,9 +47,18 @@ import net.neoforged.neoforge.model.data.ModelData;
 public abstract class StationBlockEntity extends StorageNodeBlockEntity implements MaterialHolder, MenuProvider, SidedBlockEntity {
 
     private static final String SIDES = "Sides";
+    private static final String NUMBER = "StationNumber";
+    private static final String COUNTER = "StationCounter";
+    private static final String NAME = "StationName";
+    private static final String WAREHOUSE = "StationWarehouse";
 
     private final MaterialSlot materialSlot = new MaterialSlot(this);
     private final SideConfig sides;
+    /** The number its warehouse gave, 0 while it has none. */
+    private int number;
+    private String name = "";
+    /** The warehouse that gave the number. */
+    private UUID numberedBy;
 
     protected StationBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, SideConfig sides) {
         super(type, pos, state);
@@ -54,6 +68,77 @@ public abstract class StationBlockEntity extends StorageNodeBlockEntity implemen
 
     /** The stacks the station holds. */
     public abstract ItemSlots buffer();
+
+    /** Which of the warehouse's station counters numbers this station. */
+    public abstract StationCounters.Kind stationKind();
+
+    /** The number its warehouse gave, 0 while it has none. */
+    public int number() {
+        return number;
+    }
+
+    /** The name the player gave, empty when unnamed. */
+    public String name() {
+        return name;
+    }
+
+    /** Whether the warehouse with that id has to give this station a number. */
+    public boolean needsNumber(UUID warehouse) {
+        return StationCounters.needsNumber(numberedBy, number, warehouse);
+    }
+
+    /** A saved number, or 0 when another kind's counter gave it, so the station is numbered again by its own. */
+    private int ownNumber(int saved, String counter) {
+        return StationCounters.counterOf(counter, stationKind()) == stationKind() ? Math.max(0, saved) : 0;
+    }
+
+    /** Takes a number from the warehouse with that id. Server side. */
+    public void assignNumber(UUID warehouse, int given) {
+        numberedBy = warehouse;
+        number = given;
+        changedLabel();
+    }
+
+    /** Sets the name after cleaning it like a site name; an empty name removes it. Returns the kept name. */
+    public String rename(String typed) {
+        String cleaned = SiteName.clean(typed);
+        if (!cleaned.equals(name)) {
+            name = cleaned;
+            changedLabel();
+        }
+        return name;
+    }
+
+    private void changedLabel() {
+        setChanged();
+        if (level != null && !level.isClientSide()) {
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /**
+     * How players read this station: "Outbound #3", "Compost Dock (#3)", the name
+     * alone or the block name while it has no number. Resolved by the client.
+     */
+    public Component label() {
+        return labelOf(name);
+    }
+
+    /** The label as if the station had no name: the hint of the name field. */
+    public Component numberLabel() {
+        return labelOf("");
+    }
+
+    private Component labelOf(String shownName) {
+        StationLabel label = StationLabel.of(number, shownName);
+        return switch (label.form()) {
+            case NUMBERED_NAMED -> Component.translatable("station.servus_shuttles.label.named", label.name(), label.number());
+            case NUMBERED -> Component.translatable("station.servus_shuttles.label." + stationKind().name().toLowerCase(Locale.ROOT), label.number());
+            case NAMED -> Component.literal(label.name());
+            case PLAIN -> Component.translatable(getBlockState().getBlock().getDescriptionId());
+        };
+    }
 
     @Override
     public NodeKind kind() {
@@ -135,6 +220,16 @@ public abstract class StationBlockEntity extends StorageNodeBlockEntity implemen
     protected void saveStation(ValueOutput output, CompoundTag tag) {
         materialSlot.save(output);
         tag.putByteArray(SIDES, sides.toBytes());
+        if (number > 0) {
+            output.putInt(NUMBER, number);
+            output.putString(COUNTER, stationKind().name());
+        }
+        if (!name.isEmpty()) {
+            output.putString(NAME, name);
+        }
+        if (numberedBy != null) {
+            output.store(WAREHOUSE, UUIDUtil.CODEC, numberedBy);
+        }
     }
 
     /** Loads the wood and the sides saved by {@link #saveStation}. */
@@ -143,11 +238,14 @@ public abstract class StationBlockEntity extends StorageNodeBlockEntity implemen
         if (tag.contains(SIDES)) {
             sides.fromBytes(tag.getByteArray(SIDES).orElse(new byte[0]));
         }
+        number = ownNumber(input.getIntOr(NUMBER, 0), input.getStringOr(COUNTER, ""));
+        name = SiteName.clean(input.getStringOr(NAME, ""));
+        numberedBy = input.read(WAREHOUSE, UUIDUtil.CODEC).orElse(null);
     }
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable(getBlockState().getBlock().getDescriptionId());
+        return label();
     }
 
     @Override
@@ -155,6 +253,9 @@ public abstract class StationBlockEntity extends StorageNodeBlockEntity implemen
         CompoundTag tag = super.getUpdateTag(registries);
         materialSlot.save(tag);
         tag.putByteArray(SIDES, sides.toBytes());
+        tag.putInt(NUMBER, number);
+        tag.putString(COUNTER, stationKind().name());
+        tag.putString(NAME, name);
         return tag;
     }
 
@@ -172,12 +273,27 @@ public abstract class StationBlockEntity extends StorageNodeBlockEntity implemen
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
+        Integer carriedNumber = input.get(ServusShuttlesComponents.STATION_NUMBER.get());
+        number = ownNumber(carriedNumber == null ? 0 : carriedNumber,
+                input.getOrDefault(ServusShuttlesComponents.STATION_COUNTER.get(), ""));
+        name = SiteName.clean(input.getOrDefault(ServusShuttlesComponents.STATION_NAME.get(), ""));
+        numberedBy = input.get(ServusShuttlesComponents.STATION_WAREHOUSE.get());
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
         materialSlot.collect(builder);
+        if (number > 0) {
+            builder.set(ServusShuttlesComponents.STATION_NUMBER.get(), number);
+            builder.set(ServusShuttlesComponents.STATION_COUNTER.get(), stationKind().name());
+        }
+        if (!name.isEmpty()) {
+            builder.set(ServusShuttlesComponents.STATION_NAME.get(), name);
+        }
+        if (numberedBy != null) {
+            builder.set(ServusShuttlesComponents.STATION_WAREHOUSE.get(), numberedBy);
+        }
     }
 
     @Override
@@ -185,6 +301,10 @@ public abstract class StationBlockEntity extends StorageNodeBlockEntity implemen
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
         MaterialSlot.removeFromTag(output);
+        output.discard(NUMBER);
+        output.discard(COUNTER);
+        output.discard(NAME);
+        output.discard(WAREHOUSE);
     }
 
     @Override

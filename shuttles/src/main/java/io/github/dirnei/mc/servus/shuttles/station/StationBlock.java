@@ -2,10 +2,14 @@ package io.github.dirnei.mc.servus.shuttles.station;
 
 import io.github.dirnei.mc.servus.foundation.block.SideConfigWrench;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.foundation.item.DataPotatoItem;
+import io.github.dirnei.mc.servus.foundation.item.PotatoInspectable;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -21,12 +25,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * A warehouse station block: faces the player who placed it, shows whether it
- * is online and what it is doing, and leaves the carrot click to the wrench.
+ * is online and what it is doing, leaves the carrot click to the wrench and
+ * reports its label to the Data Potato.
  */
-public abstract class StationBlock extends BaseEntityBlock implements Wrenchable {
+public abstract class StationBlock extends BaseEntityBlock implements Wrenchable, PotatoInspectable {
 
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
 
@@ -54,10 +60,15 @@ public abstract class StationBlock extends BaseEntityBlock implements Wrenchable
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                           Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (stack.getItem() instanceof ConfigurationCarrotItem) {
+        if (stack.getItem() instanceof ConfigurationCarrotItem || stack.getItem() instanceof DataPotatoItem) {
             return InteractionResult.PASS;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+
+    @Override
+    public List<Component> potatoReport(Level level, BlockPos pos, BlockState state, Vec3 hit) {
+        return StationReport.of(level, pos);
     }
 
     @Override

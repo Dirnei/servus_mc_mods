@@ -64,6 +64,7 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleView;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.JobNeeds;
 import io.github.dirnei.mc.servus.shuttles.site.SiteChunks;
 import io.github.dirnei.mc.servus.shuttles.site.SiteRegistry;
+import io.github.dirnei.mc.servus.shuttles.station.StationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.storage.StorageFill;
 import io.github.dirnei.mc.servus.shuttles.terminal.RuleRow;
@@ -118,6 +119,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     public enum Status { ONLINE, NO_CONTROLLER, MULTIPLE_CONTROLLERS }
 
     private static final int BLOCKED_RETRY_TICKS = 20;
+    /** Stations numbered together get numbers by height, then x, then z. */
+    private static final Comparator<BlockPos> STATION_ORDER =
+            Comparator.<BlockPos>comparingInt(BlockPos::getY).thenComparingInt(BlockPos::getX).thenComparingInt(BlockPos::getZ);
     /** Ticks between two sweeps for station claims whose job is gone. */
     private static final int CLAIM_SWEEP_TICKS = 100;
 
@@ -147,6 +151,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final Set<BlockPos> pendingStations = new LinkedHashSet<>();
     /** Stations holding a stack that found no room; retried on zone and room changes and on a slow timer. */
     private final Set<BlockPos> blockedStations = new LinkedHashSet<>();
+    /** Stations that joined or whose warehouse changed; numbered while online once they are loaded. */
+    private final Set<BlockPos> stationsToNumber = new HashSet<>();
     private int blockedRetry;
     /** Fluid Gantries, by their master's position. */
     private final Set<BlockPos> gantries = new LinkedHashSet<>();
@@ -228,6 +234,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         } else if (node.kind() == WarehouseConnectionRule.NodeKind.STATION) {
             stations.add(blockPos);
             pendingStations.add(blockPos);
+            stationsToNumber.add(blockPos);
         } else if (node instanceof ShuttleGarageBlockEntity garage) {
             garages.add(blockPos);
             fleet.adoptGarage(blockPos, garage.slots(), garage.isActive());
@@ -244,6 +251,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (node instanceof WarehouseControllerBlockEntity) {
             controllers++;
             controllerPos = blockPos;
+            stationsToNumber.addAll(stations);
         }
         membershipChanged(node);
         restoreState(node, blockPos);
@@ -263,6 +271,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         stations.remove(blockPos);
         pendingStations.remove(blockPos);
         blockedStations.remove(blockPos);
+        stationsToNumber.remove(blockPos);
         zones.remove(blockPos);
         dropSource(blockPos);
         if (forGood && node instanceof HeavyRackBlockEntity) {
@@ -289,6 +298,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (blockPos.equals(controllerPos)) {
                 controllerPos = null;
             }
+            stationsToNumber.addAll(stations);
         }
         membershipChanged(node);
     }
@@ -317,6 +327,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         shaftsDirty = true;
         stations.addAll(that.stations);
         pendingStations.addAll(that.stations);
+        stationsToNumber.addAll(stations);
         garages.addAll(that.garages);
         gantries.addAll(that.gantries);
         pendingGantries.addAll(that.gantries);
@@ -352,6 +363,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         held.clear();
         pendingStations.clear();
         blockedStations.clear();
+        stationsToNumber.clear();
         zones.clear();
         dirtyQueue.clear();
         dirtySet.clear();
@@ -1546,6 +1558,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             fleet.roomChanged();
         }
         tickStations();
+        if (!stationsToNumber.isEmpty()) {
+            numberStations();
+        }
         if (!pendingGantries.isEmpty()) {
             readGantries();
         }
@@ -1608,6 +1623,30 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             BlockPos pos = pollOrder.get(cursor);
             if (sources.contains(pos)) {
                 poll(pos);
+            }
+        }
+    }
+
+    /**
+     * Gives every loaded station waiting for a number one from the controller, in
+     * position order so stations numbered together get stable numbers. Unloaded
+     * stations wait; nothing happens while the warehouse is offline.
+     */
+    private void numberStations() {
+        Optional<WarehouseControllerBlockEntity> found = controller();
+        if (found.isEmpty()) {
+            return;
+        }
+        WarehouseControllerBlockEntity controller = found.get();
+        List<BlockPos> waiting = new ArrayList<>(stationsToNumber);
+        waiting.sort(STATION_ORDER);
+        for (BlockPos pos : waiting) {
+            if (!level.isLoaded(pos)) {
+                continue;
+            }
+            stationsToNumber.remove(pos);
+            if (level.getBlockEntity(pos) instanceof StationBlockEntity station && station.needsNumber(controller.warehouseId())) {
+                station.assignNumber(controller.warehouseId(), controller.takeStationNumber(station.stationKind()));
             }
         }
     }

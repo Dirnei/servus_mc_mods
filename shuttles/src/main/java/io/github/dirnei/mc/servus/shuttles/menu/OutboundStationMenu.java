@@ -23,7 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /** Keep row (ghost slots with amounts), buffer row and the player inventory; the state line comes along as a payload. */
-public class OutboundStationMenu extends AbstractContainerMenu implements LockedMenu {
+public class OutboundStationMenu extends AbstractContainerMenu implements LockedMenu, StationNameMenu {
 
     public static final int KEEP_Y = 18;
     public static final int BUFFER_Y = 44;
@@ -87,6 +87,13 @@ public class OutboundStationMenu extends AbstractContainerMenu implements Locked
 
     public SideMode sideMode(RelativeSide side) {
         return station.sideConfig().mode(side);
+    }
+
+    @Override
+    public void rename(String typed) {
+        if (stillValid(player)) {
+            station.rename(typed);
+        }
     }
 
     @Override
