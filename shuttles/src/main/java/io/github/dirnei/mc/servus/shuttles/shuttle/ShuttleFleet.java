@@ -502,13 +502,45 @@ public final class ShuttleFleet {
         return job instanceof PickJob pick && pick.terminal().equals(destination) && pick.key().equals(key) ? pick.amount() : 0;
     }
 
-    /** Items of the key loaded on shuttles for put-aways, on their way into the racks. */
-    public int putAwayCargo(ItemKey key) {
+    /** Items of the key loaded on shuttles for put-aways that matches {@code bound}, given the stops the load still goes to. */
+    private int loadedPutAways(ItemKey key, Predicate<List<BlockPos>> bound) {
         int sum = 0;
         for (Shuttle shuttle : shuttles()) {
             for (Load load : shuttle.loads) {
-                if (load.job instanceof PutAwayJob && !load.cargo.isEmpty() && ItemKey.of(load.cargo).equals(key)) {
+                if (load.job instanceof PutAwayJob && !load.cargo.isEmpty() && ItemKey.of(load.cargo).equals(key) && bound.test(load.stops)) {
                     sum += load.cargo.getCount();
+                }
+            }
+        }
+        return sum;
+    }
+
+    /** Items of the key loaded on shuttles for put-aways, on their way into the racks: loads bound for a {@code leaving} stop do not count. */
+    public int putAwayCargo(ItemKey key, Predicate<BlockPos> leaving) {
+        return loadedPutAways(key, stops -> stops.stream().noneMatch(leaving));
+    }
+
+    /** Items of the key loaded on shuttles for put-aways and bound for that stop. */
+    public int putAwayCargoTo(BlockPos stop, ItemKey key) {
+        return loadedPutAways(key, stops -> stops.contains(stop));
+    }
+
+    /**
+     * Items of the key on put-aways not loaded yet, queued or on a shuttle on
+     * its way to the station, whose job matches, each counted by {@code amount}.
+     */
+    public int putAwaysWaiting(ItemKey key, Predicate<PutAwayJob> which, ToIntFunction<PutAwayJob> amount) {
+        int sum = 0;
+        for (ShuttleJob job : jobs) {
+            if (job instanceof PutAwayJob putAway && putAway.key().equals(key) && which.test(putAway)) {
+                sum += amount.applyAsInt(putAway);
+            }
+        }
+        for (Shuttle shuttle : shuttles()) {
+            for (Load load : shuttle.loads) {
+                if (load.job instanceof PutAwayJob putAway && load.cargo.isEmpty() && !load.storing && putAway.key().equals(key)
+                        && which.test(putAway)) {
+                    sum += amount.applyAsInt(putAway);
                 }
             }
         }
@@ -588,13 +620,15 @@ public final class ShuttleFleet {
     }
 
     /**
-     * The put-aways of the item from that station that no shuttle has loaded
-     * yet, so more of the item may join them, queued ones first.
+     * The put-aways of the item from that station to a target that matches
+     * that no shuttle has loaded yet, so more of the item may join them,
+     * queued ones first.
      */
-    public List<PutAwayJob> openPutAways(BlockPos station, ItemKey key) {
+    public List<PutAwayJob> openPutAways(BlockPos station, ItemKey key, Predicate<BlockPos> target) {
         List<PutAwayJob> open = new ArrayList<>();
         for (ShuttleJob job : jobs) {
-            if (job instanceof PutAwayJob putAway && putAway.station().equals(station) && putAway.key().equals(key)) {
+            if (job instanceof PutAwayJob putAway && putAway.station().equals(station) && putAway.key().equals(key)
+                    && target.test(putAway.target())) {
                 open.add(putAway);
             }
         }
@@ -604,7 +638,7 @@ public final class ShuttleFleet {
             }
             for (Load load : shuttle.loads) {
                 if (load.job instanceof PutAwayJob putAway && putAway.station().equals(station) && putAway.key().equals(key)
-                        && load.cargo.isEmpty()) {
+                        && target.test(putAway.target()) && load.cargo.isEmpty()) {
                     open.add(putAway);
                 }
             }

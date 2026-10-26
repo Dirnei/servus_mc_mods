@@ -13,9 +13,11 @@ import io.github.dirnei.mc.servus.shuttles.order.StockRule;
 import io.github.dirnei.mc.servus.shuttles.order.StockRules;
 import io.github.dirnei.mc.servus.shuttles.outbound.ExportListPayload;
 import io.github.dirnei.mc.servus.shuttles.outbound.OutboundStationBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.terminal.RuleRow;
 import java.util.Optional;
+import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -293,6 +295,85 @@ public final class StockRuleExportGameTests {
                             });
                         });
             });
+        });
+    }
+
+    /**
+     * A Mini Warehouse with a terminal on its Packing Station, the rack holding
+     * {@code wheat} and an Outbound Station south of the third rail that
+     * pushes nowhere and holds the wheat export above {@code above}; runs
+     * {@code then} once the rack is indexed.
+     */
+    private static void terminalWarehouse(GameTestHelper helper, int wheat, int above, Consumer<MiniWarehouse> then) {
+        MiniWarehouse warehouse = MiniWarehouse.build(helper, ORIGIN).withTerminal();
+        OutboundStationBlockEntity station = WarehouseFixtures.outbound(helper, warehouse.inboundPos(), Direction.SOUTH);
+        station.sideConfig().set(RelativeSide.BACK, SideMode.DISABLED);
+        if (wheat > 0) {
+            warehouse.stock(new ItemStack(Items.WHEAT, wheat));
+        }
+        Waits.when(helper, () -> station.network().map(network -> network.status() == WarehouseNetwork.Status.ONLINE
+                        && network.index().count(WHEAT) == wheat).orElse(false), WAIT,
+                () -> "the warehouse should be online with " + wheat + " wheat indexed", () -> {
+                    String check = station.network().orElseThrow().setStockRule(WHEAT, null, 0, above);
+                    helper.assertTrue(check.equals(RuleThresholds.OK), "the export is saved, got " + check);
+                    helper.assertTrue(station.claimExport(WHEAT, 0), "the station claims the wheat export");
+                    then.accept(warehouse);
+                });
+    }
+
+    /**
+     * With 30 wheat in the rack and the export above 40, 50 wheat put into the
+     * terminal split: 10 go into the rack and 40 ride straight to the Outbound
+     * Station; the rack never holds more than 40.
+     */
+    @ServusGameTest(timeoutTicks = 1000)
+    public static void terminalInputSkipsTheRack(GameTestHelper helper) {
+        int[] most = {0};
+        helper.onEachTick(() -> {
+            if (helper.getLevel().getBlockEntity(helper.absolutePos(ORIGIN.north())) instanceof HeavyRackBlockEntity rack) {
+                most[0] = Math.max(most[0], WarehouseFixtures.count(rack, Items.WHEAT));
+            }
+        });
+        terminalWarehouse(helper, 30, 40, warehouse -> {
+            OutboundStationBlockEntity station = station(helper, warehouse.inboundPos());
+            warehouse.terminal().input().setStackInSlot(0, new ItemStack(Items.WHEAT, 50));
+            Waits.when(helper, () -> station.bufferCount(WHEAT) == 40 && warehouse.rackCount(Items.WHEAT) == 40,
+                    check() + 6 * MiniWarehouse.TRIP_TICKS,
+                    () -> "40 wheat should reach the station and 40 be in the rack, station " + station.bufferCount(WHEAT)
+                            + ", rack " + warehouse.rackCount(Items.WHEAT), () ->
+                            helper.runAfterDelay(2 * check(), () -> {
+                                helper.assertTrue(most[0] <= 40, "the surplus never entered the rack, the rack held " + most[0]);
+                                helper.assertTrue(station.bufferCount(WHEAT) == 40 && warehouse.rackCount(Items.WHEAT) == 40,
+                                        "nothing ships twice, station " + station.bufferCount(WHEAT) + ", rack " + warehouse.rackCount(Items.WHEAT));
+                                helper.succeed();
+                            }));
+        });
+    }
+
+    /**
+     * When the Outbound Station has no free slot, 20 wheat from the terminal
+     * above the threshold are stored in the rack; once the station is emptied
+     * the export ships them from the rack.
+     */
+    @ServusGameTest(timeoutTicks = 1400)
+    public static void fullStationStoresTheSurplus(GameTestHelper helper) {
+        terminalWarehouse(helper, 40, 40, warehouse -> {
+            OutboundStationBlockEntity station = station(helper, warehouse.inboundPos());
+            for (int slot = 0; slot < station.buffer().getSlots(); slot++) {
+                station.buffer().setStackInSlot(slot, new ItemStack(Items.DIRT, 64));
+            }
+            warehouse.terminal().input().setStackInSlot(0, new ItemStack(Items.WHEAT, 20));
+            Waits.when(helper, () -> warehouse.rackCount(Items.WHEAT) == 60, check() + 6 * MiniWarehouse.TRIP_TICKS,
+                    () -> "the 20 wheat should be stored, rack " + warehouse.rackCount(Items.WHEAT), () -> {
+                        helper.assertTrue(station.bufferCount(WHEAT) == 0, "no wheat reached the full station");
+                        for (int slot = 0; slot < station.buffer().getSlots(); slot++) {
+                            station.buffer().setStackInSlot(slot, ItemStack.EMPTY);
+                        }
+                        Waits.when(helper, () -> station.bufferCount(WHEAT) == 20 && warehouse.rackCount(Items.WHEAT) == 40,
+                                check() + 4 * MiniWarehouse.TRIP_TICKS,
+                                () -> "the export should ship the 20 from the rack, station " + station.bufferCount(WHEAT)
+                                        + ", rack " + warehouse.rackCount(Items.WHEAT), helper::succeed);
+                    });
         });
     }
 }

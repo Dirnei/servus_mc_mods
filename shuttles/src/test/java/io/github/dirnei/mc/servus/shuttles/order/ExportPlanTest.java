@@ -51,4 +51,23 @@ class ExportPlanTest {
         assertFalse(ExportPlan.validExport(500, 500));
         assertTrue(ExportPlan.validExport(500, 501));
     }
+
+    @Test
+    void incomingBelowTheThresholdIsStored() {
+        assertEquals(0, ExportPlan.direct(1800, 2000, 64));
+        assertEquals(0, ExportPlan.direct(1936, 2000, 64));
+    }
+
+    @Test
+    void incomingAboveTheThresholdGoesDirect() {
+        assertEquals(14, ExportPlan.direct(1950, 2000, 64));
+        assertEquals(64, ExportPlan.direct(2000, 2000, 64));
+        assertEquals(64, ExportPlan.direct(2500, 2000, 64));
+        assertEquals(10, ExportPlan.direct(0, 0, 10));
+    }
+
+    @Test
+    void nothingIncomingNothingDirect() {
+        assertEquals(0, ExportPlan.direct(2500, 2000, 0));
+    }
 }

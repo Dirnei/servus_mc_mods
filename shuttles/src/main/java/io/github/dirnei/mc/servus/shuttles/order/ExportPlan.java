@@ -18,6 +18,20 @@ public final class ExportPlan {
         return Math.max(0, stock - Math.max(0, threshold) - Math.max(0, queued));
     }
 
+    /**
+     * How many of {@code incoming} items entering storage skip the racks and
+     * go straight to the export's station: the part the stock would hold
+     * above the threshold once they are stored.
+     *
+     * @param stock     the item's stock before them, including what is on its way into the racks
+     * @param threshold export above this
+     * @param incoming  the items entering storage
+     */
+    public static int direct(long stock, int threshold, int incoming) {
+        long above = Math.max(0, stock) + Math.max(0, incoming) - Math.max(0, threshold);
+        return (int) Math.max(0, Math.min(Math.max(0, incoming), above));
+    }
+
     /** The surplus bounded by the station's free slots, one stack per slot. */
     public static int bounded(long surplus, int freeSlots, int maxStackSize) {
         long room = (long) Math.max(0, freeSlots) * Math.max(1, maxStackSize);

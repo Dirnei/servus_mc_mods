@@ -205,7 +205,6 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - Hand made patterns for Machine Adapters, if the play tests ask for them.
 - Ender Anchor respects FTB Chunks claims: with FTB Chunks installed it loads only chunks the owner's team has claimed (or unclaimed ones), never another team's (soft integration with the FTB Chunks API).
 - An Overflow Valve block, if play tests ask for one beside the duct amounts.
-- Warehouse excess on stock rules: a rule with only a maximum ships the surplus above it to a station.
 
 ### Open: Shuttles
 

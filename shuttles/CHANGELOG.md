@@ -10,6 +10,7 @@
 - Patterns can be Exact or Any. An Any pattern, such as sticks or a chest, crafts from whichever planks or logs the warehouse holds most of; the recipe editor has the Exact / Any button and the Patterns tab marks Any patterns.
 - The Storage Terminal has Stock and Rules tabs. Rules lists every stock rule with a search, and a carried item or a JEI drag on its add slot starts a rule for any item. A right click on an item opens one popup with Request, Craft and Rule tabs in place of the amount prompt.
 - Stock rules can refuse an item at Inbound Stations above a cap: hoppers, pipes and Pull sides deliver only up to it and the rest stays with the sender. The rule names the station that refused.
+- Stock rules can export the surplus above a threshold: an Outbound Station claims the export in an empty keep slot and ships what is over it, and items that arrive above the threshold go straight to the station instead of into the racks.
 - Scrollbars on the Production Terminal lists and the Warehouse Controller's site list.
 
 ### Changed

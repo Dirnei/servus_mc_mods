@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.network;
 
+import com.google.common.base.Suppliers;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.packet.Grant;
@@ -91,6 +92,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -1118,7 +1120,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     /** Items of the key queued, riding or held for a destination. */
     private int pendingTo(BlockPos destination, ItemKey key) {
-        return fleet.queuedAmount(destination, key) + fleet.ridingAmount(destination, key) + heldAmount(destination, key);
+        return fleet.queuedAmount(destination, key) + fleet.ridingAmount(destination, key) + heldAmount(destination, key)
+                + putAwaysWaiting(key, job -> job.target().equals(destination)) + fleet.putAwayCargoTo(destination, key);
     }
 
     private int heldAmount(BlockPos destination, ItemKey key) {
@@ -1265,11 +1268,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (rule == null || !rule.hasCap()) {
             return offered;
         }
-        long held = index.count(key) + fleet.putAwayCargo(key)
+        long held = index.count(key) + fleet.putAwayCargo(key, this::exportStop)
                 + CpuOrders.network(level, this).map(line -> CpuOrders.incomingFor(level, line, key)).orElse(0);
         for (BlockPos pos : stations) {
             if (loaded(pos) instanceof InboundStationBlockEntity inbound) {
-                held += inbound.held(key);
+                held += inbound.held(key) - putAwaysWaiting(key, job -> job.station().equals(pos) && exportStop(job.target()));
             }
         }
         return CapRoom.room(rule.cap(), held, offered);
@@ -1401,7 +1404,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     @Override
     public ItemStack unloadInto(BlockPos target, int jobId, ItemStack cargo) {
-        LockedSlots slots = rackSlots(target);
+        LockedSlots slots = putAwaySlots(target);
         if (slots == null || cargo.isEmpty()) {
             return cargo;
         }
@@ -1933,7 +1936,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         boolean blockedByRack = false;
         boolean more = false;
         boolean stationReached = fleet.canReach(pos);
-        RailCosts.Search<NodePos> costs = null;
+        Supplier<RailCosts.Search<NodePos>> costs = stationReached
+                ? Suppliers.memoize(() -> fleet.costsFrom(dockRails(Conversions.toNodePos(pos)))) : () -> null;
         LockedSlots buffer = station.putAwayBuffer();
         for (int slot = 0; slot < buffer.getSlots(); slot++) {
             ItemStack stack = unplanned(buffer, slot);
@@ -1945,15 +1949,14 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 break;
             }
             ItemKey key = ItemKey.of(stack);
-            if (joinOpenPutAway(pos, station, slot, stack)) {
+            int direct = exportDirect(pos, station, slot, stack, costs);
+            int rest = stack.getCount() - direct;
+            if (rest <= 0 || joinOpenPutAway(pos, station, slot, key, rest, sources::contains) > 0) {
                 budget--;
                 continue;
             }
             PutAwayPlan.Tiers<BlockPos> tiers = tiers(key);
-            if (costs == null && stationReached) {
-                costs = fleet.costsFrom(dockRails(Conversions.toNodePos(pos)));
-            }
-            List<BlockPos> ranked = stationReached ? rankTargets(stack, tiers, costs, candidate -> true) : List.of();
+            List<BlockPos> ranked = stationReached ? rankTargets(stack, tiers, costs.get(), candidate -> true) : List.of();
             if (ranked.isEmpty()) {
                 if (blockedKey == null) {
                     blockedKey = key;
@@ -1965,7 +1968,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             budget--;
             BlockPos target = ranked.get(0);
             int id = nextJobId();
-            int amount = rackSlots(target).lockIn(id, key, stack.getCount(), false);
+            int amount = rackSlots(target).lockIn(id, key, rest, false);
             buffer.lock(slot, new SlotLock(SlotLock.Kind.OUT, key, amount, id));
             fleet.requestPutAway(new PutAwayJob(id, pos, slot, key, amount, target));
         }
@@ -2001,20 +2004,20 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /**
-     * Lets unplanned items of a buffer slot join a put-away of the same item
-     * from this station that no shuttle has loaded yet, the job already on
-     * that slot first, up to a stack per job and as far as its rack has room,
-     * so a buffer filling item by item makes one trip, not many. A job on the
-     * slot grows its OUT lock there.
+     * Lets {@code count} unplanned items of a buffer slot join a put-away of
+     * the same item from this station to a target that matches that no
+     * shuttle has loaded yet, the job already on that slot first, up to a
+     * stack per job and as far as its target has room, so a buffer filling
+     * item by item makes one trip, not many. A job on the slot grows its OUT
+     * lock there. Returns how many joined.
      */
-    private boolean joinOpenPutAway(BlockPos pos, PutAwaySource station, int slot, ItemStack stack) {
-        ItemKey key = ItemKey.of(stack);
+    private int joinOpenPutAway(BlockPos pos, PutAwaySource station, int slot, ItemKey key, int count, Predicate<BlockPos> targets) {
         LockedSlots buffer = station.putAwayBuffer();
-        List<PutAwayJob> open = new ArrayList<>(fleet.openPutAways(pos, key));
+        List<PutAwayJob> open = new ArrayList<>(fleet.openPutAways(pos, key, targets));
         open.sort(Comparator.comparing(job -> !buffer.holdsOut(slot, job.id())));
         for (PutAwayJob job : open) {
-            LockedSlots target = rackSlots(job.target());
-            int room = TopUp.join(buffer.lockedAmount(job.id(), SlotLock.Kind.OUT), stack.getCount(), stack.getMaxStackSize());
+            LockedSlots target = putAwaySlots(job.target());
+            int room = TopUp.join(buffer.lockedAmount(job.id(), SlotLock.Kind.OUT), count, key.stack(1).getMaxStackSize());
             if (target == null || room <= 0) {
                 continue;
             }
@@ -2027,9 +2030,69 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             } else {
                 buffer.lock(slot, new SlotLock(SlotLock.Kind.OUT, key, joined, job.id()));
             }
-            return true;
+            return joined;
         }
-        return false;
+        return 0;
+    }
+
+    /**
+     * Sends the part of a buffer stack that the stock would hold above its
+     * rule's export threshold once stored straight to the Outbound Station
+     * holding the export, as far as that station has free slots and a shuttle
+     * can drive there from the source. Locks the source slot and the room at
+     * the station and returns how many items go there; the rest is stored.
+     */
+    private int exportDirect(BlockPos pos, PutAwaySource source, int slot, ItemStack stack, Supplier<RailCosts.Search<NodePos>> costs) {
+        ItemKey key = ItemKey.of(stack);
+        StockRule rule = stockRules().map(found -> found.get(key)).orElse(null);
+        if (rule == null || !rule.hasExport()) {
+            return 0;
+        }
+        BlockPos holder = stockRules().flatMap(found -> found.exportHolder(key)).map(claim -> claim.station()).orElse(null);
+        if (holder == null || !exportStop(holder) || !(loaded(holder) instanceof OutboundStationBlockEntity outbound) || costs.get() == null
+                || Double.isInfinite(costs.get().costToAny(dockRails(Conversions.toNodePos(holder))))) {
+            return 0;
+        }
+        long stock = available(key) + fleet.putAwayCargo(key, this::exportStop) + putAwaysWaiting(key, job -> !exportStop(job.target()));
+        int wanted = ExportPlan.direct(stock, rule.export(), stack.getCount());
+        if (wanted <= 0) {
+            return 0;
+        }
+        int sent = joinOpenPutAway(pos, source, slot, key, wanted, holder::equals);
+        if (sent < wanted) {
+            int id = nextJobId();
+            int locked = outbound.deliveries().lockIn(id, key, wanted - sent, true);
+            if (locked > 0) {
+                source.putAwayBuffer().lock(slot, new SlotLock(SlotLock.Kind.OUT, key, locked, id));
+                fleet.requestPutAway(new PutAwayJob(id, pos, slot, key, locked, holder));
+                sent += locked;
+            }
+        }
+        return sent;
+    }
+
+    /** Whether a put-away stop takes its cargo out of storage: a station of this warehouse rather than a rack. */
+    private boolean exportStop(BlockPos pos) {
+        return stations.contains(pos) && !sources.contains(pos);
+    }
+
+    /**
+     * Items of the key on put-aways not loaded yet whose job matches, each
+     * counted by the OUT locks it holds at its source, since joining items
+     * grows those locks and not the job.
+     */
+    private int putAwaysWaiting(ItemKey key, Predicate<PutAwayJob> which) {
+        return fleet.putAwaysWaiting(key, which, job -> loaded(job.station()) instanceof PutAwaySource source
+                ? source.putAwayBuffer().lockedAmount(job.id(), SlotLock.Kind.OUT) : job.amount());
+    }
+
+    /** The slots a put-away unloads into: a rack's, or the buffer of an Outbound Station that takes an export straight from the source. */
+    private LockedSlots putAwaySlots(BlockPos target) {
+        LockedSlots rack = rackSlots(target);
+        if (rack != null) {
+            return rack;
+        }
+        return exportStop(target) && loaded(target) instanceof OutboundStationBlockEntity outbound ? outbound.deliveries() : null;
     }
 
     /** Whether any source the key could go to has an inventory at all; the controller alone has none. */

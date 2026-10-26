@@ -80,6 +80,32 @@ Every `outbound_check_interval` ticks an online warehouse SHALL, for each export
 - **WHEN** 300 wheat surplus is on its way to the station and the next check runs
 - **THEN** no further wheat is requested for those 300
 
+### Requirement: Incoming surplus skips the racks
+When items are put away and an Outbound Station holds the item's export, the part that would lift the stock above the threshold once stored SHALL go by shuttle straight from the source to that station. Only as much SHALL go as the station's free unlocked slots take, and only when a shuttle can drive there; the rest SHALL be stored, and the export ships it later.
+
+#### Scenario: Terminal input above the threshold
+- **WHEN** Outbound #3 holds the wheat export above 40, the racks hold 30 wheat and the player puts 50 wheat into the Storage Terminal's input
+- **THEN** 10 wheat go into a rack, 40 wheat ride straight to Outbound #3 and the racks never hold more than 40
+
+#### Scenario: Station has no room
+- **WHEN** every buffer slot of Outbound #3 is full, the racks hold 40 wheat and the player puts 20 wheat into the Storage Terminal's input
+- **THEN** the 20 wheat are stored in a rack, and once the station has room the export ships them from the rack
+
+#### Scenario: Below the threshold
+- **WHEN** the racks hold 1000 wheat, the export is above 2000 and 64 wheat arrive at an Inbound Station
+- **THEN** all 64 wheat are stored in a rack
+
+### Requirement: Surplus on its way straight to the station is counted once
+Items on their way straight from a source to the export's station SHALL count as on their way to that station, so the export check does not request them again, and SHALL NOT count as held for the rule's cap.
+
+#### Scenario: Not requested again
+- **WHEN** 40 wheat surplus ride from the Packing Station straight to Outbound #3 and the export check runs
+- **THEN** no wheat is requested from the racks for them
+
+#### Scenario: Not held for the cap
+- **WHEN** the wheat rule caps at 100 and exports above 40, and 40 wheat wait at an Inbound Station to go straight to Outbound #3
+- **THEN** the cap does not count those 40 wheat as held
+
 ### Requirement: Delivered surplus leaves the station
 The station SHALL push delivered surplus out of its Push sides and offer it on its Output sides like any buffer stack.
 
