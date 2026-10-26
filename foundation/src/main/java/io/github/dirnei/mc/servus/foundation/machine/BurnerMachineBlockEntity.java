@@ -36,11 +36,15 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
             return stats().upkeepLevel();
         }
 
+        /** Any fuel in the fuel slot counts: a slot of charcoal is stocked, and coal could not join it anyway. */
         @Override
         public int upkeepCount() {
             ItemStack item = upkeepStack();
             ItemStack fuel = inventory.getStackInSlot(fuelSlot());
-            return !item.isEmpty() && ItemStack.isSameItemSameComponents(item, fuel) ? fuel.getCount() : 0;
+            if (item.isEmpty() || fuel.isEmpty()) {
+                return 0;
+            }
+            return ItemStack.isSameItemSameComponents(item, fuel) || burnTimeOf(fuel) > 0 ? fuel.getCount() : 0;
         }
     };
 
@@ -141,7 +145,7 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
         if (fuel.isEmpty() || level == null) {
             return;
         }
-        int time = fuel.getBurnTime(RecipeType.SMELTING, level.fuelValues());
+        int time = burnTimeOf(fuel);
         if (time <= 0) {
             return;
         }
@@ -152,6 +156,11 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
         ItemStack remainder = remainderTemplate == null ? ItemStack.EMPTY : remainderTemplate.create();
         fuel.shrink(1);
         inventory.setStackInSlot(fuelSlot(), fuel.isEmpty() ? remainder : fuel);
+    }
+
+    /** Furnace burn time of a fuel item, 0 for items that do not burn or without a level. */
+    private int burnTimeOf(ItemStack fuel) {
+        return level == null ? 0 : fuel.getBurnTime(RecipeType.SMELTING, level.fuelValues());
     }
 
     /** An eternal fire shows as a full burn, a banked fire as none. */

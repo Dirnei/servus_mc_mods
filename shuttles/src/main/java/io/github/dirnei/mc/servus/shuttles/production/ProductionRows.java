@@ -207,7 +207,7 @@ public final class ProductionRows {
      *
      * @param pos         where it stands
      * @param icon        the block to show, the faced machine's for a Machine Adapter
-     * @param name        its block name, or the faced machine's name with "(adapter)" for a Machine Adapter
+     * @param name        its label, the faced machine's name with the adapter's label for a Machine Adapter
      * @param state       crafting, idle, out_of_fuel, blocked, no_machine, no_recipes or upkeep_only
      * @param item        what it is crafting, empty otherwise
      * @param left        crafts left of a Crafting Station's job, 0 otherwise
@@ -216,9 +216,22 @@ public final class ProductionRows {
      * @param upkeepCount upkeep items it holds
      * @param upkeepLevel the level it keeps
      * @param makes       how many different items it can make, -1 for any pattern
+     * @param energy      FE it stores
+     * @param energyCapacity FE it can store, 0 when it has no energy buffer
      */
     public record MachineRow(BlockPos pos, ItemStack icon, Component name, String state, ItemStack item, int left, String reason,
-                             ItemStack upkeep, int upkeepCount, int upkeepLevel, int makes) {
+                             ItemStack upkeep, int upkeepCount, int upkeepLevel, int makes, int energy, int energyCapacity) {
+
+        /** A row of a machine without an energy buffer. */
+        public MachineRow(BlockPos pos, ItemStack icon, Component name, String state, ItemStack item, int left, String reason,
+                          ItemStack upkeep, int upkeepCount, int upkeepLevel, int makes) {
+            this(pos, icon, name, state, item, left, reason, upkeep, upkeepCount, upkeepLevel, makes, 0, 0);
+        }
+
+        public boolean hasEnergy() {
+            return energyCapacity > 0;
+        }
+
         public static final StreamCodec<RegistryFriendlyByteBuf, MachineRow> STREAM_CODEC = StreamCodec.of(MachineRow::write, MachineRow::read);
 
         public boolean problem() {
@@ -237,13 +250,16 @@ public final class ProductionRows {
             buf.writeVarInt(row.upkeepCount);
             buf.writeVarInt(row.upkeepLevel);
             buf.writeInt(row.makes);
+            buf.writeVarInt(row.energy);
+            buf.writeVarInt(row.energyCapacity);
         }
 
         private static MachineRow read(RegistryFriendlyByteBuf buf) {
             return new MachineRow(BlockPos.STREAM_CODEC.decode(buf), ItemStack.OPTIONAL_STREAM_CODEC.decode(buf),
                     ComponentSerialization.TRUSTED_STREAM_CODEC.decode(buf),
                     buf.readUtf(), ItemStack.OPTIONAL_STREAM_CODEC.decode(buf), buf.readVarInt(), buf.readUtf(),
-                    ItemStack.OPTIONAL_STREAM_CODEC.decode(buf), buf.readVarInt(), buf.readVarInt(), buf.readInt());
+                    ItemStack.OPTIONAL_STREAM_CODEC.decode(buf), buf.readVarInt(), buf.readVarInt(), buf.readInt(),
+                    buf.readVarInt(), buf.readVarInt());
         }
     }
 

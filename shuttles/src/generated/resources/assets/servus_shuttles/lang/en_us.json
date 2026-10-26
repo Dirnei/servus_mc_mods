@@ -322,6 +322,7 @@
   "gui.servus_shuttles.production.machine.blocked": "blocked: %s",
   "gui.servus_shuttles.production.machine.crafting": "crafting %s",
   "gui.servus_shuttles.production.machine.crafting_left": "crafting %s, %s left",
+  "gui.servus_shuttles.production.machine.energy": "%s / %s FE",
   "gui.servus_shuttles.production.machine.idle": "idle",
   "gui.servus_shuttles.production.machine.makes": "Can make %s items",
   "gui.servus_shuttles.production.machine.no_machine": "no machine it knows",

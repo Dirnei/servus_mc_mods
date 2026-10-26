@@ -15,7 +15,7 @@ public interface UpkeepHolder {
     /** How many to keep. */
     int upkeepLevel();
 
-    /** How many of the upkeep item the block holds right now. */
+    /** How many of the upkeep item, or of another item doing its job such as another fuel, the block holds right now. */
     int upkeepCount();
 
     /**

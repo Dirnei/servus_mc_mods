@@ -20,6 +20,7 @@
 
 ### Fixed
 - Duct sides with neither In nor Out can be connected again from the duct GUI.
+- Burner machines count any fuel in their fuel slot as stocked upkeep, so a slot of charcoal no longer reads as empty on the data line.
 
 ## 0.4.0
 

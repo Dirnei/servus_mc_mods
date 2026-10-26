@@ -793,8 +793,15 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
                     ? Component.translatable("gui.servus_shuttles.production.machine.crafting_left", machine.item().getHoverName(), machine.left())
                     : Component.translatable("gui.servus_shuttles.production.machine.crafting", machine.item().getHoverName());
             case "blocked" -> Component.translatable("gui.servus_shuttles.production.machine.blocked", machine.reason());
+            case "upkeep_only" -> machine.hasEnergy() ? energy(machine)
+                    : Component.translatable("gui.servus_shuttles.production.machine.upkeep_only");
             default -> Component.translatable("gui.servus_shuttles.production.machine." + machine.state());
         };
+    }
+
+    private static Component energy(MachineRow machine) {
+        return Component.translatable("gui.servus_shuttles.production.machine.energy", PickerStock.shortCount(machine.energy()),
+                PickerStock.shortCount(machine.energyCapacity()));
     }
 
     /** A machine with its state and, when it has upkeep, a bar of the upkeep items it holds. */
@@ -822,6 +829,9 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         if (machine.upkeepLevel() > 0) {
             list.add(Component.translatable("gui.servus_shuttles.production.upkeep", machine.upkeep().getHoverName(),
                     machine.upkeepCount(), machine.upkeepLevel()));
+        }
+        if (machine.hasEnergy() && !machine.state().equals("upkeep_only")) {
+            list.add(energy(machine));
         }
         list.add(Component.translatable("gui.servus_shuttles.production.machine.at", machine.pos().toShortString()));
         return list;

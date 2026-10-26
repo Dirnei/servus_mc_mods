@@ -8,6 +8,8 @@ import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.shuttles.crafting.CraftingStationBlockEntity;
@@ -298,6 +300,28 @@ public final class ProductionTerminalGameTests {
             helper.assertTrue(first.makes() > 10 && first.upkeep().is(Items.COAL) && first.upkeepCount() == 0 && first.upkeepLevel() > 0,
                     "a count of smeltable items and an empty coal upkeep, got " + first);
             helper.assertTrue(machines.get(1).state().equals("idle"), "the station follows as idle, got " + machines.get(1));
+            helper.succeed();
+        });
+    }
+
+    /** A Coal Generator with charcoal and a full buffer on the line reads as fuelled with its energy full. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void generatorReportsFuelAndEnergy(GameTestHelper helper) {
+        BlockPos generator = new BlockPos(2, 1, 2);
+        BlockPos duct = new BlockPos(3, 1, 2);
+        BlockPos terminal = new BlockPos(3, 2, 2);
+        CoalGeneratorGameTests.place(helper, generator, Direction.NORTH);
+        CoalGeneratorBlockEntity machine = helper.getBlockEntity(generator, CoalGeneratorBlockEntity.class);
+        machine.inventory().setStackInSlot(CoalGeneratorBlockEntity.SLOT_FUEL, new ItemStack(Items.CHARCOAL, 60));
+        machine.energyStorage().setEnergy(machine.energyStorage().getMaxEnergyStored());
+        TerminalWiring.dataDuct(helper, duct);
+        terminal(helper, terminal);
+        Waits.when(helper, () -> view(helper, terminal).machines().size() == 1, 60, () -> "the generator should be listed", () -> {
+            MachineRow row = view(helper, terminal).machines().get(0);
+            helper.assertTrue(!row.state().equals("out_of_fuel") && !row.problem(), "charcoal is fuel, got " + row);
+            helper.assertTrue(row.upkeepCount() == 60 && row.upkeepCount() > row.upkeepLevel(), "the 60 charcoal it holds, got " + row);
+            helper.assertTrue(row.hasEnergy() && row.energy() == row.energyCapacity() && row.energy() == machine.energyStorage().getMaxEnergyStored(),
+                    "its full buffer, got " + row.energy() + " of " + row.energyCapacity());
             helper.succeed();
         });
     }

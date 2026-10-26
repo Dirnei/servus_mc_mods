@@ -78,6 +78,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.production.machine.no_machine", "no machine it knows");
         add("gui.servus_shuttles.production.machine.no_recipes", "no recipes");
         add("gui.servus_shuttles.production.machine.upkeep_only", "upkeep only");
+        add("gui.servus_shuttles.production.machine.energy", "%s / %s FE");
         add("gui.servus_shuttles.production.machine.makes", "Can make %s items");
         add("gui.servus_shuttles.production.machine.any_pattern", "Crafts any pattern");
         add("gui.servus_shuttles.production.machine.at", "At %s");

@@ -57,6 +57,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 
 /** Builds what a Production Terminal shows from the data line it touches. Server thread only. */
 public final class ProductionView {
@@ -303,8 +305,9 @@ public final class ProductionView {
         }
         String state = machineState(noMachine, !working.isEmpty(), keeps && upkeepCount <= 0, !blockedReason.isEmpty(),
                 member.has(DataRole.PRODUCER), !recipes.isEmpty());
+        EnergyHandler energy = level.getCapability(Capabilities.Energy.BLOCK, pos, null);
         return new MachineRow(pos, icon, name, state, working, 0, state.equals("blocked") ? blockedReason : "", upkeepItem, upkeepCount,
-                upkeepLevel, makes(recipes));
+                upkeepLevel, makes(recipes), energy == null ? 0 : energy.getAmountAsInt(), energy == null ? 0 : energy.getCapacityAsInt());
     }
 
     /** A Crafting Station shows only the job it is crafting, no recipe list. */

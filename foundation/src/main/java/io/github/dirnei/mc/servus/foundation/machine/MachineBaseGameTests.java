@@ -100,7 +100,7 @@ public final class MachineBaseGameTests {
         generator.inventory().setStackInSlot(CoalGeneratorBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 5));
         helper.assertTrue(upkeep(helper, generatorPos, Direction.NORTH).upkeepCount() == 5, "5 coal in the fuel slot count 5");
         generator.inventory().setStackInSlot(CoalGeneratorBlockEntity.SLOT_FUEL, new ItemStack(Items.CHARCOAL, 5));
-        helper.assertTrue(upkeep(helper, generatorPos, Direction.NORTH).upkeepCount() == 0, "charcoal is not the upkeep item");
+        helper.assertTrue(upkeep(helper, generatorPos, Direction.NORTH).upkeepCount() == 5, "5 charcoal are fuel too and count 5");
         helper.assertTrue(upkeep(helper, POS.east(4), Direction.NORTH) == null, "air has no upkeep");
         helper.succeed();
     }
