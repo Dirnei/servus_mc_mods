@@ -32,6 +32,11 @@ public final class ShuttleTraffic {
                 + Integer.signum(to.z() - from.z()) + 1;
     }
 
+    /** The opposite direction, {@link #NONE} for none. */
+    static int reverse(int direction) {
+        return direction == NONE ? NONE : 26 - direction;
+    }
+
     /** The node one step against the direction, so that a step from it in that direction leads to the node. */
     static NodePos behind(NodePos node, int direction) {
         return new NodePos(node.x() - (direction / 9 - 1), node.y() - (direction / 3 % 3 - 1), node.z() - (direction % 3 - 1));
@@ -60,9 +65,16 @@ public final class ShuttleTraffic {
             return path.size() - 1;
         }
 
-        /** The direction of the step into path node k. */
+        /**
+         * The direction of the step into path node k; at the first node the
+         * last heading, unless the path turns back there, which leaves the
+         * car facing the way it came.
+         */
         int in(int k) {
-            return k > 0 ? direction(path.get(k - 1), path.get(k)) : lastHeading;
+            if (k > 0) {
+                return direction(path.get(k - 1), path.get(k));
+            }
+            return lastHeading == reverse(out(0)) ? NONE : lastHeading;
         }
 
         /** The direction of the step out of path node k. */

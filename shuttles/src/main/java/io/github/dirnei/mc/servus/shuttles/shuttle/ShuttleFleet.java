@@ -2310,7 +2310,7 @@ public final class ShuttleFleet {
         }
         for (Integer id : new ArrayList<>(leaderOf.keySet())) {
             Shuttle shuttle = byId.get(id);
-            if (onCar(shuttle) && ShuttleTraffic.chainReaches(leaderOf, id, other -> callsCar(byId.get(other), shuttle.lift))) {
+            if (holdsCar(shuttle) && ShuttleTraffic.chainReaches(leaderOf, id, other -> callsCar(byId.get(other), shuttle.lift))) {
                 shuttle.room = Double.POSITIVE_INFINITY;
                 leaderOf.remove(id);
                 shuttle.heldBy = -1;
@@ -2351,6 +2351,14 @@ public final class ShuttleFleet {
     /** Whether the shuttle stands on a lift car in its shaft. */
     private static boolean onCar(Shuttle shuttle) {
         return shuttle.lift != null && shuttle.inside && !shuttle.crossing;
+    }
+
+    /**
+     * Whether the car of the shuttle's shaft must wait for it to drive off:
+     * it stands on the car, or crosses a deck the car may not fold.
+     */
+    private static boolean holdsCar(Shuttle shuttle) {
+        return onCar(shuttle) || shuttle.lift != null && shuttle.crossing;
     }
 
     /** Whether the shuttle stands on the car and its next block goes up or down: the car carries it, not its wheels. */

@@ -23,8 +23,12 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.terminal.RequestRow;
 import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.shuttle.LiftCar;
+import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleView;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlockEntity;
 import net.minecraft.resources.Identifier;
@@ -871,6 +875,67 @@ public final class ElevatorGameTests {
                 });
             });
         });
+    }
+
+    /**
+     * A shuttle crossing the ground floor deck towards a shuttle that waits
+     * beside the shaft for the car drives on: the car, bringing a rider down
+     * to that floor, cannot fold the deck while the crosser stands on it.
+     */
+    @ServusGameTest(timeoutTicks = 500)
+    public static void crosserDoesNotWaitForCarCaller(GameTestHelper helper) {
+        for (int x = 0; x <= 6; x++) {
+            for (int z = 0; z <= 6; z++) {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE.defaultBlockState());
+            }
+        }
+        BlockPos besideShaft = new BlockPos(3, 1, 3);
+        BlockPos crosserStart = new BlockPos(5, 1, 3);
+        BlockPos crosserEnd = new BlockPos(3, 1, 5);
+        for (BlockPos rail : List.of(new BlockPos(1, 1, 3), new BlockPos(2, 1, 3), besideShaft, crosserStart, new BlockPos(3, 1, 4), crosserEnd)) {
+            helper.setBlock(rail, ServusShuttlesBlocks.RAIL.get().defaultBlockState());
+        }
+        helper.setBlock(LC_BOTTOM, ServusShuttlesBlocks.ELEVATOR.get().defaultBlockState());
+        helper.setBlock(LC_MIDDLE, ServusShuttlesBlocks.ELEVATOR.get().defaultBlockState());
+        helper.setBlock(LC_TOP, ServusShuttlesBlocks.ELEVATOR.get().defaultBlockState());
+        WarehouseFixtures.controller(helper, LC_CONTROLLER);
+        ShuttleGarageBlockEntity garage = WarehouseFixtures.garage(helper, LC_GARAGE, Direction.NORTH, 0);
+        helper.assertTrue(garage.addShuttle() && garage.addShuttle(), "the garage takes two shuttles");
+        BlockPos bottom = helper.absolutePos(LC_BOTTOM);
+        BlockPos garagePos = helper.absolutePos(LC_GARAGE);
+        BlockPos crosserGoal = helper.absolutePos(crosserEnd);
+        List<BlockPos> callerWay = Stream.of(LC_GARAGE, besideShaft, LC_BOTTOM, LC_MIDDLE).map(helper::absolutePos).toList();
+        List<BlockPos> crosserWay = Stream.of(crosserStart, LC_BOTTOM, besideShaft, new BlockPos(3, 1, 4), crosserEnd)
+                .map(helper::absolutePos).toList();
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = liftNetwork(helper);
+            LiftCar car = network.lift(bottom);
+            int top = bottom.getY() + 2;
+            car.call(-1, top);
+            Waits.when(helper, () -> car.y() == top, 100, () -> "the car should go up to the top floor", () -> {
+                car.board(-1);
+                helper.assertTrue(network.sendShuttleAlong(garagePos, 0, callerWay), "the caller leaves");
+                Waits.when(helper, () -> signalled(network, garagePos, StandReason.Kind.LIFT), 200,
+                        () -> "the caller should wait beside the shaft for the busy car", () -> {
+                    helper.assertTrue(network.sendShuttleAlong(garagePos, 1, crosserWay), "the crosser leaves");
+                    Waits.when(helper, () -> crosser(network, garagePos, crosserGoal).filter(view -> view.segment() + view.progress() > 0.5).isPresent(), 100,
+                            () -> "the crosser should drive onto the deck", () -> {
+                        car.send(-1, bottom.getY());
+                        Waits.when(helper, () -> crosser(network, garagePos, crosserGoal).isEmpty() && car.y() == bottom.getY(), 300,
+                                () -> "the crosser should leave the deck and the car bring its rider down, crosser "
+                                        + crosser(network, garagePos, crosserGoal) + ", car at " + car.y(), () -> {
+                            car.remove(-1);
+                            helper.succeed();
+                        });
+                    });
+                });
+            });
+        });
+    }
+
+    /** The drawn shuttle of the garage on its way to the goal, while it is out. */
+    private static Optional<ShuttleView> crosser(WarehouseNetwork network, BlockPos garage, BlockPos goal) {
+        return network.shuttleViews(garage).stream().filter(view -> view.path().getLast().equals(goal)).findFirst();
     }
 
     /** Asserts that a report names the shaft as Lift #1. */

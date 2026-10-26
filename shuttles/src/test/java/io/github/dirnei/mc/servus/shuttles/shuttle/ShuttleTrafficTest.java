@@ -20,6 +20,7 @@ class ShuttleTrafficTest {
     private static final double WINDOW = 8;
     private static final double ACCEL = 0.01;
     private static final int EAST = ShuttleTraffic.direction(new NodePos(0, 0, 0), new NodePos(1, 0, 0));
+    private static final int WEST = ShuttleTraffic.direction(new NodePos(1, 0, 0), new NodePos(0, 0, 0));
 
     /** Nodes along x at z, from x0 to x1 in that order. */
     private static List<NodePos> alongX(int x0, int x1, int z) {
@@ -205,6 +206,13 @@ class ShuttleTrafficTest {
         Car standingAtStart = new Car(1, 1, List.of(new NodePos(5, 0, 0)), 0, 0, EAST, false, true, false, 0, ACCEL, 0);
         assertEquals(1, limits(standingAtStart, moving(2, alongX(0, 9, 0), 1, 0, 0.1)).get(2).leader());
         assertFalse(limits(standingAtStart, moving(3, alongX(9, 0, 0), 1, 0, 0.1)).get(3).led());
+    }
+
+    @Test
+    void carTurningBackAtItsFirstNodeIsNoLeaderOfTheCarItTurnedAwayFrom() {
+        Car turningBack = new Car(1, 1, alongX(5, 9, 0), 0, 0, WEST, false, true, false, 0, ACCEL, 0);
+        assertFalse(limits(turningBack, moving(2, alongX(9, 0, 0), 2, 0, 0.1)).get(2).led(), "they face each other and pass");
+        assertEquals(1, limits(turningBack, moving(3, alongX(0, 9, 0), 2, 0, 0.1)).get(3).leader(), "it still leads a car behind it");
     }
 
     @Test
