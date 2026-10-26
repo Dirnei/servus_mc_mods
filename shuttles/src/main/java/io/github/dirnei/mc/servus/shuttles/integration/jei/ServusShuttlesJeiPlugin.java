@@ -22,8 +22,9 @@ import net.minecraft.resources.Identifier;
 /**
  * JEI integration, loaded only when JEI is present: the transfer button opens
  * the Production Terminal's pattern editor and fills the Storage Terminal's
- * crafting grid, the Storage Terminal's search can follow JEI's search, and
- * JEI keeps the terminal's side column and upper rows free.
+ * crafting grid, the Storage Terminal's search can follow JEI's search, an
+ * ingredient dropped on the Rules tab's add slot opens its Rule tab, and JEI
+ * keeps the terminal's tab strip, side column and upper rows free.
  */
 @JeiPlugin
 public final class ServusShuttlesJeiPlugin implements IModPlugin {
@@ -57,6 +58,7 @@ public final class ServusShuttlesJeiPlugin implements IModPlugin {
                         .flatMap(item -> factory.createBuilder(item.stack()).buildWithArea(item.x(), item.y(), 16, 16));
             }
         });
+        registration.addGhostIngredientHandler(StorageTerminalScreen.class, new RuleAddSlotHandler());
         registration.addGuiContainerHandler(WarehouseControllerScreen.class,
                 new IGuiContainerHandler<WarehouseControllerScreen>() {
                     @Override

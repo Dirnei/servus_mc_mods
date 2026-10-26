@@ -213,7 +213,7 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - Shuttles meeting head on pass through each other; passing places or one way aisles if play tests ask for them.
 - A way to unload a shuttle parked with cargo by hand; today only Recall empties it, dropping the cargo at the garage.
 - Stock reserved by open work orders in the terminal's requestable count, if play tests ask for it (today only locked picks lower it).
-- Storage Terminal request prompt and stock rule dialog on the Foundation number stepper and the amount panel look of the craft dialog; other screens (Field Head amounts, Fluid Gantry keep steps, Production Terminal lists) on the Foundation widgets.
+- Field Head amounts, Fluid Gantry keep steps and Production Terminal lists on the Foundation widgets.
 - Field kinds beyond crops and trees: Crimson and Warped fungi on nylium first.
 - SEND and KEEP rules between sites in the controller GUI (the local min/max stock rules join the same list) and an In transit view.
 - Wireless Terminal with range tiers.

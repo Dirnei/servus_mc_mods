@@ -163,6 +163,8 @@
   "gui.servus_foundation.sink.unlimited": "Unlimited",
   "gui.servus_foundation.sink.upgrade_refused": "Empty the last row and tank first",
   "gui.servus_foundation.sink.upgrade_slot": "Capacity Upgrade: opens one more row and tank",
+  "gui.servus_foundation.stepper.less": "Less: click for 1, shift click for a stack",
+  "gui.servus_foundation.stepper.more": "More: click for 1, shift click for a stack",
   "gui.servus_foundation.switch.off": "Off",
   "gui.servus_foundation.switch.on": "On",
   "gui.servus_foundation.switch.tooltip.off": "Paused. The connection and settings stay; On runs it again.",

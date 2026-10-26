@@ -57,7 +57,10 @@ class TerminalLayoutTest {
                 String at = height + " at " + screen + ": ";
                 for (Area area : layout.areas()) {
                     Rect rect = framed(area);
-                    if (area.name().startsWith("side")) {
+                    if (area.name().equals("tabs")) {
+                        assertTrue(rect.bottom() == layout.top() && rect.x() >= 0 && rect.right() <= Storage.WIDTH,
+                                at + "the tab strip sits right above the panel");
+                    } else if (area.name().startsWith("side")) {
                         boolean left = rect.right() <= 0 && rect.x() >= Storage.SIDE_X;
                         boolean right = rect.x() >= Storage.WIDTH && rect.right() <= Storage.RIGHT_SIDE_X + Storage.SIDE_SIZE + 1;
                         assertTrue(left || right, at + area.name() + " is not in a side column");
@@ -67,10 +70,7 @@ class TerminalLayoutTest {
                                 && rect.bottom() <= Storage.BASE_HEIGHT, at + area.name() + " leaves the panel");
                     }
                 }
-                Rect dialog = layout.dialog();
-                assertTrue(dialog.y() >= layout.top() && dialog.bottom() <= Storage.OUTPUT.bottom(), at + "the dialog leaves its area");
-                assertFalse(dialog.overlaps(Storage.INVENTORY_LABEL), at + "the dialog covers the inventory label");
-                assertTrue(layout.height() <= screen - 4, at + "the panel does not fit the screen");
+                assertTrue(layout.heightWithTabs() <= screen - 4, at + "the panel with its tabs does not fit the screen");
             }
         }
         assertTrue(Storage.outputX(Storage.ROW_SLOTS - 1) + TerminalLayout.CELL <= Storage.OUTPUT.right(), "nine output slots fit");
@@ -100,6 +100,47 @@ class TerminalLayoutTest {
     }
 
     @Test
+    void rulePartsApartAndInsideThePopup() {
+        assertDisjoint(Storage.ruleAreas());
+        assertInsidePopup(Storage.ruleAreas(), Storage.CRAFT_POPUP);
+        for (Rect group : List.of(Storage.RULE_MAKE, Storage.RULE_LIMIT)) {
+            int first = Storage.ruleFieldX(group, 0);
+            int second = Storage.ruleFieldX(group, 1);
+            assertTrue(first >= group.x() + Storage.RULE_GROUP_LABEL, "the first field leaves room for the group label");
+            assertTrue(first + Storage.RULE_FIELD <= second, "the two fields do not overlap");
+            assertEquals(group.right(), second + Storage.RULE_FIELD, "the second field ends at the row's right edge");
+            assertTrue(Storage.RULE_FIELD_LABEL + 14 <= group.h(), "a label and a stepper fit the row");
+        }
+    }
+
+    @Test
+    void popupTabsSitOnThePopupsTopEdge() {
+        Rect tabs = Storage.POPUP_TABS;
+        Rect popup = Storage.CRAFT_POPUP;
+        assertEquals(popup.y(), tabs.bottom(), "the tabs end where the popup starts");
+        assertTrue(tabs.x() >= popup.x() && tabs.right() <= popup.right(), "the tabs stay over the popup");
+        for (Rect tab : TerminalLayout.compactTabs(tabs, new int[] {40, 26, 22}, Storage.TAB_PADDING)) {
+            assertTrue(tab.x() >= tabs.x() && tab.right() <= tabs.right(), "a popup tab leaves its strip");
+        }
+    }
+
+    @Test
+    void ruleRowPartsApartAndInsideTheGrid() {
+        assertDisjoint(Storage.ruleRowAreas());
+        assertInside(Storage.ruleRowAreas(), Storage.COLUMNS * TerminalLayout.CELL, Storage.RULE_ROW);
+    }
+
+    @Test
+    void compactTabsAreAsNarrowAsTheirLabels() {
+        Rect row = new Rect(10, 0, 200, 14);
+        List<Rect> tabs = TerminalLayout.compactTabs(row, new int[] {30, 20}, 6);
+        assertEquals(new Rect(10, 0, 42, 14), tabs.get(0));
+        assertEquals(new Rect(54, 0, 32, 14), tabs.get(1));
+        List<Rect> cut = TerminalLayout.compactTabs(new Rect(0, 0, 50, 14), new int[] {40, 40}, 6);
+        assertTrue(cut.get(1).right() <= 50, "too wide labels still end on the row");
+    }
+
+    @Test
     void orderPartsApartAndInsideTheOrderArea() {
         assertDisjoint(Storage.orderAreas());
         assertInsidePopup(Storage.orderAreas(), Storage.ORDER_POPUP);
@@ -109,12 +150,12 @@ class TerminalLayoutTest {
 
     @Test
     void storageRowsFollowTheHeight() {
-        assertEquals(5, Storage.rowsFor(TerminalSettings.Height.TALL, 270), "scale 4 fits one row more than the base");
+        assertEquals(4, Storage.rowsFor(TerminalSettings.Height.TALL, 270), "scale 4 fits only the base rows with the tab strip");
         assertEquals(9, Storage.rowsFor(TerminalSettings.Height.TALL, 540));
         assertEquals(6, Storage.rowsFor(TerminalSettings.Height.MEDIUM, 540));
         assertEquals(4, Storage.rowsFor(TerminalSettings.Height.SMALL, 540));
-        assertEquals(10, Storage.rowsFor(TerminalSettings.Height.AUTO, 360));
-        assertEquals(20, Storage.rowsFor(TerminalSettings.Height.AUTO, 540));
+        assertEquals(9, Storage.rowsFor(TerminalSettings.Height.AUTO, 360));
+        assertEquals(19, Storage.rowsFor(TerminalSettings.Height.AUTO, 540));
     }
 
     @Test

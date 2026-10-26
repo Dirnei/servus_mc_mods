@@ -2,7 +2,9 @@ package io.github.dirnei.mc.servus.shuttles.client;
 
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout.Rect;
 import io.github.dirnei.mc.servus.foundation.client.PopupPanel;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.network.chat.Component;
 
 /** Paints vanilla style panels, insets, slot frames and boxes with fills. */
 final class PanelPainter {
@@ -13,6 +15,7 @@ final class PanelPainter {
     private static final int LIGHT = 0xFFFFFFFF;
     private static final int SHADE = 0xFF555555;
     private static final int OUTLINE = 0xFF000000;
+    private static final int TAB_INACTIVE = 0xFF9A9A9A;
 
     private PanelPainter() {
     }
@@ -80,5 +83,31 @@ final class PanelPainter {
     /** A filled box with a one pixel border around it; {@code x, y, w, h} is the inside, absolute. */
     static void bordered(GuiGraphicsExtractor graphics, int x, int y, int w, int h, int border, int face) {
         PopupPanel.bordered(graphics, x, y, w, h, border, face);
+    }
+
+    /**
+     * A tab on the top edge of a panel, creative tab style; absolute. The
+     * active tab is drawn in the face colour and reaches {@code join} pixels
+     * down into the panel to cover its frame there, so tab and panel read as
+     * one; the others are darker and 2 pixels lower.
+     */
+    static void tab(GuiGraphicsExtractor graphics, int x, int y, int w, int h, boolean active, int join) {
+        int top = active ? y : y + 2;
+        graphics.fill(x, top, x + w, y + h, OUTLINE);
+        int bottom = active ? y + h + join : y + h;
+        graphics.fill(x + 1, top + 1, x + w - 1, bottom, active ? FACE : TAB_INACTIVE);
+        if (active) {
+            graphics.fill(x + 1, top + 1, x + w - 1, top + 2, LIGHT);
+            graphics.fill(x + 1, top + 1, x + 2, bottom, LIGHT);
+        }
+    }
+
+    /** Half size text right aligned at {@code right}, drawn above items; absolute. */
+    static void smallText(GuiGraphicsExtractor graphics, Font font, Component text, int right, int y, int colour) {
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(right - font.width(text) * 0.5F, y);
+        graphics.pose().scale(0.5F, 0.5F);
+        graphics.text(font, text, 0, 0, colour, true);
+        graphics.pose().popMatrix();
     }
 }

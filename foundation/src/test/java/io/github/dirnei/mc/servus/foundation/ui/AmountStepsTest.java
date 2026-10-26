@@ -48,6 +48,14 @@ class AmountStepsTest {
     }
 
     @Test
+    void lowestZeroKeepsZero() {
+        assertEquals(0, AmountSteps.step(0, -1, 64, 0, 99999));
+        assertEquals(64, AmountSteps.step(10, AmountSteps.STACK, 64, 0, 99999));
+        assertEquals(0, AmountSteps.step(10, -AmountSteps.STACK, 64, 0, 99999));
+        assertEquals(1, AmountSteps.step(0, 1, 64, 0, 99999));
+    }
+
+    @Test
     void stacksStayInRange() {
         assertEquals(AmountSteps.MAX, AmountSteps.plusStack(99990, 64));
         assertEquals(2, AmountSteps.plusStack(1, 1));

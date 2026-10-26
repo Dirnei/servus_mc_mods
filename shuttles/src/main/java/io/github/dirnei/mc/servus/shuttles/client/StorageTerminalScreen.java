@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.shuttles.site.RemoteSite;
 import io.github.dirnei.mc.servus.shuttles.terminal.CancelRequestPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewRequestPayload;
+import io.github.dirnei.mc.servus.shuttles.terminal.ItemPopupTabs.Tab;
 import io.github.dirnei.mc.servus.shuttles.terminal.LineWarehouse;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftStartPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.GridFillPayload;
@@ -15,10 +16,8 @@ import io.github.dirnei.mc.servus.shuttles.terminal.OrderStartPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.PushCarriedPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.RequestItemPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.RequestRow;
-import io.github.dirnei.mc.servus.shuttles.terminal.RequestSplit;
 import io.github.dirnei.mc.servus.shuttles.terminal.RuleRow;
 import io.github.dirnei.mc.servus.shuttles.terminal.SelectSitePayload;
-import io.github.dirnei.mc.servus.shuttles.terminal.SetStockRulePayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.StockEntry;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout.Rect;
@@ -28,7 +27,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -62,33 +60,32 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Refined Storage style Storage Terminal: view buttons left of the panel,
- * a Craft button and search, the item grid, a message line, the Input and
- * Output rows with the requests on the Output row, the player inventory; an
- * amount prompt for requests and rules, and the order grid followed by the
- * amount panel it shares with the craft dialog, each with a server preview. Everything sits where {@link Storage} says; extra
- * grid rows grow the panel upwards.
+ * Refined Storage style Storage Terminal: the Stock and Rules tabs above the
+ * panel, view buttons left of it, a Craft button and search, the item grid or
+ * the rule list, a message line, the Input and Output rows with the requests
+ * on the Output row, the player inventory; the item popup with its Request,
+ * Craft and Rule tabs, and the order grid followed by the amount panel it
+ * shares with the Craft tab, each with a server preview. Everything sits where
+ * {@link Storage} says; extra grid rows grow the panel upwards.
  */
-public class StorageTerminalScreen extends AbstractContainerScreen<StorageTerminalMenu> {
+public class StorageTerminalScreen extends AbstractContainerScreen<StorageTerminalMenu> implements ItemPopup.Host {
 
     private static final int COLUMNS = Storage.COLUMNS;
     private static final int CELL = TerminalLayout.CELL;
     private static final int COLOUR_TEXT = 0xFF404040;
-    private static final int COLOUR_DIM = 0xFF707070;
     private static final int COLOUR_ALERT = 0xFFB03030;
     /** Length of the grid's scrollbar thumb. */
     private static final int THUMB = 15;
     /** The alert colour on the dark item grid. */
     private static final int COLOUR_ALERT_ON_GRID = 0xFFFF6060;
-    private static final int COLOUR_GOOD = 0xFF2E7D32;
-    /** Preview rows under the request split line. */
-    private static final int SHORT_PREVIEW_ROWS = 2;
     private static final String[] CRAFT_LISTS = {"craft_from_stock", "craft_to_craft", "craft_missing"};
     private static final String[] SETTING_KINDS = {"sort", "direction", "view", "search", "height"};
-    /** Step button kinds: -2 and 2 are a stack down and up, the others add themselves. */
-    private static final int[] STEP_KINDS = {-2, -10, -1, 1, 10, 2};
+    private static final String[] TERMINAL_TABS = {"stock", "rules"};
+    /** The view buttons that only the Stock tab shows: sort, direction and view. */
+    private static final int STOCK_ONLY_BUTTONS = 3;
 
-    private enum Dialog { NONE, REQUEST, RULE, CRAFT, ORDER }
+    /** The item popup, the order grid and the order grid's amount panel. */
+    private enum Dialog { NONE, ITEM, ORDER, ORDER_AMOUNT }
 
     /** Set by the recipe viewer's transfer: open the order grid on the terminal screen now or when it shows next. */
     private static boolean orderRequested;
@@ -100,23 +97,18 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     private final TerminalCells cells = new TerminalCells();
     private int scrollRow;
     private final List<IconButton> sideButtons = new ArrayList<>();
+    /** Whether the Rules tab shows in place of the item grid; every opened screen starts on Stock. */
+    private boolean rulesTab;
+    private final RulesList rulesList = new RulesList();
 
     private Dialog dialog = Dialog.NONE;
+    private final ItemPopup popup = new ItemPopup(this);
     private IconButton craftButton;
-    private ItemStack subject = ItemStack.EMPTY;
-    /** The requestable count of the request prompt's item. */
-    private long subjectCount;
-    /** Whether a producer of the line makes the request prompt's item. */
-    private boolean subjectCraftable;
-    private EditBox amount;
-    private EditBox maximum;
     private int askedAmount = -1;
     /** The order grid cells the last order preview was asked for. */
     private List<ItemStack> askedGrid = List.of();
     /** The order grid's result the amount was last set for. */
     private ItemStack lastResult = ItemStack.EMPTY;
-    /** Whether the amount panel came from the order grid: Back returns there and Start orders the grid's recipe. */
-    private boolean fromOrder;
     private NumberStepper craftAmount;
     private final List<ItemListView> craftLists = new ArrayList<>();
     private IconButton saveButton;
@@ -133,11 +125,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     /** The reason Next or Start is greyed out, null while it can be pressed. */
     private String nextReason;
     private String startReason;
-    private final List<Button> stepButtons = new ArrayList<>();
-    private Button confirmButton;
-    private Button ruleButton;
-    private Button removeRuleButton;
-    private Button cancelButton;
 
     public StorageTerminalScreen(StorageTerminalMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, Storage.WIDTH, Storage.BASE_HEIGHT);
@@ -152,25 +139,15 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         refreshSideButtons();
     }
 
-    private Rect dialogRect() {
-        return layout.dialog();
-    }
-
-    private int dx() {
-        return leftPos + dialogRect().x();
-    }
-
-    private int dy() {
-        return topPos + dialogRect().y();
-    }
-
-    /** The side column and the rows above the base top, for JEI to keep free. */
+    /** The tab strip, the side column and the rows above the base top, for JEI to keep free. */
     public List<Rect2i> extraAreas() {
         List<Rect2i> areas = new ArrayList<>();
         int top = topPos + layout.top();
         areas.add(new Rect2i(leftPos + Storage.SIDE_X, top, -Storage.SIDE_X, layout.height()));
         Rect craft = layout.craft();
         areas.add(new Rect2i(leftPos + craft.x(), topPos + craft.y(), craft.w(), craft.h()));
+        Rect tabs = layout.tabs();
+        areas.add(new Rect2i(leftPos + tabs.x(), topPos + tabs.y(), tabs.w(), tabs.h()));
         if (layout.top() < 0) {
             areas.add(new Rect2i(leftPos, top, imageWidth, -layout.top()));
         }
@@ -178,14 +155,15 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     }
 
     /**
-     * Centres the panel as a whole, the base top below the extra rows, and
-     * registers the terminal on every show, also after another screen was in front.
+     * Centres the panel with its tab strip as a whole, the base top below the
+     * extra rows, and registers the terminal on every show, also after another
+     * screen was in front.
      */
     @Override
     protected void init() {
         layout = Storage.layout(Storage.rowsFor(settings().height(), height));
         super.init();
-        topPos = (height - layout.height()) / 2 - layout.top();
+        topPos = (height - layout.heightWithTabs()) / 2 + Storage.TAB_STRIP - layout.top();
         ClientStock.open(menu.terminal().getBlockPos());
         titleLabelX = layout.title().x();
         titleLabelY = layout.title().y();
@@ -194,7 +172,8 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         initSearch();
         initSideButtons();
         initCraftButton();
-        initDialog();
+        popup.build(font, leftPos, topPos).forEach(this::addRenderableWidget);
+        initCraftPanel();
         applyDialog();
         if (orderRequested) {
             orderRequested = false;
@@ -240,28 +219,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         craftButton.setTooltip(Tooltip.create(Component.translatable("gui.servus_shuttles.terminal.craft_button_hint")));
     }
 
-    private void initDialog() {
-        amount = numberField(40, "gui.servus_shuttles.terminal.amount");
-        amount.setResponder(text -> amountChanged());
-        maximum = numberField(120, "gui.servus_shuttles.terminal.rule_max");
-        stepButtons.clear();
-        for (int i = 0; i < STEP_KINDS.length; i++) {
-            int kind = STEP_KINDS[i];
-            stepButtons.add(addRenderableWidget(Button.builder(Component.empty(), b -> step(kind))
-                    .bounds(dx() + 4 + i * 28, dy() + 36, 26, 14).build()));
-        }
-        int bottom = dy() + dialogRect().h() - 17;
-        removeRuleButton = addRenderableWidget(Button.builder(Component.translatable("gui.servus_shuttles.terminal.rule_remove"),
-                b -> removeRule()).bounds(dx() + 4, bottom, 46, 14).build());
-        ruleButton = addRenderableWidget(Button.builder(Component.empty(), b -> toggleRule())
-                .bounds(dx() + 52, bottom, 38, 14).build());
-        confirmButton = addRenderableWidget(Button.builder(Component.empty(), b -> confirm())
-                .bounds(dx() + 92, bottom, 40, 14).build());
-        cancelButton = addRenderableWidget(Button.builder(Component.translatable("gui.servus_shuttles.terminal.cancel"),
-                b -> closeDialog()).bounds(dx() + 134, bottom, 36, 14).build());
-        initCraftPanel();
-    }
-
     /** The order grid's Save, Back or Cancel and Next, and the amount panel's stepper, lists and Start. */
     private void initCraftPanel() {
         Rect save = Storage.ORDER_SAVE;
@@ -297,14 +254,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
     }
 
-    /** A five digit field in the dialog's amount row. */
-    private EditBox numberField(int x, String key) {
-        EditBox field = new EditBox(font, dx() + x, dy() + 20, 50, 12, Component.translatable(key));
-        field.setMaxLength(5);
-        field.setFilter(text -> text.isEmpty() || text.chars().allMatch(Character::isDigit));
-        return addRenderableWidget(field);
-    }
-
     /** The recipe viewer's transfer: show the order grid now, or when the terminal screen shows next. */
     public static void requestOrderGrid() {
         if (Minecraft.getInstance().screen instanceof StorageTerminalScreen screen) {
@@ -319,9 +268,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         if (!ClientStock.orderGrid()) {
             return;
         }
-        subject = ItemStack.EMPTY;
         dialog = Dialog.ORDER;
-        fromOrder = false;
         lastResult = ItemStack.EMPTY;
         showOrderGrid();
     }
@@ -339,16 +286,14 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         if (dialog != Dialog.ORDER || lastResult.isEmpty()) {
             return;
         }
-        dialog = Dialog.CRAFT;
-        fromOrder = true;
+        dialog = Dialog.ORDER_AMOUNT;
         showAmountPanel();
     }
 
     /** Back to the order grid from its amount panel, or Cancel. */
     private void back() {
-        if (dialog == Dialog.CRAFT && fromOrder) {
+        if (dialog == Dialog.ORDER_AMOUNT) {
             dialog = Dialog.ORDER;
-            fromOrder = false;
             showOrderGrid();
         } else {
             cancel();
@@ -365,12 +310,12 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     /** Whether the order grid or its amount panel is open. */
     private boolean orderFlow() {
-        return dialog == Dialog.ORDER || dialog == Dialog.CRAFT && fromOrder;
+        return dialog == Dialog.ORDER || dialog == Dialog.ORDER_AMOUNT;
     }
 
-    /** The order grid and the amount panel are popups; the other dialogs lie over the grid. */
-    private boolean popupOpen() {
-        return dialog == Dialog.ORDER || dialog == Dialog.CRAFT;
+    /** Whether the amount panel shows: the order grid's second step or the item popup's Craft tab. */
+    private boolean amountPanel() {
+        return dialog == Dialog.ORDER_AMOUNT || dialog == Dialog.ITEM && popup.tab() == Tab.CRAFT;
     }
 
     private Rect popupRect() {
@@ -393,9 +338,9 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         askPreview();
     }
 
-    /** The item the amount panel makes: the order grid's result or the clicked craftable. */
+    /** The item the amount panel makes: the order grid's result or the item popup's item. */
     private ItemStack craftItem() {
-        return fromOrder ? lastResult : subject;
+        return dialog == Dialog.ORDER_AMOUNT ? lastResult : popup.item();
     }
 
     /** Saves the order grid as a pattern without ordering, then asks again whether it is saved. */
@@ -445,11 +390,16 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     private void searchChanged(String text) {
         scrollRow = 0;
+        rulesList.setScroll(0, text, layout.rows());
         searchText = text;
         if (searchMode() != TerminalSettings.SearchMode.NORMAL && !text.equals(lastSynced)) {
             lastSynced = text;
             JeiSearchBridge.write(text);
         }
+    }
+
+    private String query() {
+        return search == null ? "" : search.getValue();
     }
 
     @Override
@@ -462,7 +412,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                 search.setValue(jei);
             }
         }
-        if (dialog == Dialog.ORDER || dialog == Dialog.CRAFT && fromOrder) {
+        if (orderFlow()) {
             if (!ClientStock.orderGrid()) {
                 closeDialog();
             } else {
@@ -473,6 +423,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         if (craftAmount != null) {
             craftAmount.tick();
         }
+        popup.tick();
         if (craftButton != null) {
             craftButton.visible = !dialogOpen() && ClientStock.orderGrid();
         }
@@ -491,169 +442,117 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return dialog != Dialog.NONE;
     }
 
-    private boolean insideDialog(double mouseX, double mouseY) {
-        return dialogOpen() && dialogRect().contains((int) mouseX - leftPos, (int) mouseY - topPos);
+    /** How many of the item the warehouse can ship, as the stock sync says. */
+    private static long stockCount(ItemStack stack) {
+        for (StockEntry entry : ClientStock.entries()) {
+            if (ItemStack.isSameItemSameComponents(entry.stack(), stack)) {
+                return entry.count();
+            }
+        }
+        return 0;
     }
 
-    private void openRequest(Cell cell) {
-        subject = cell.stack().copyWithCount(1);
-        subjectCount = cell.count();
-        subjectCraftable = cell.craftable();
-        dialog = Dialog.REQUEST;
-        ClientStock.clearPreview();
-        askedAmount = -1;
-        amount.setValue(Integer.toString(RequestSplit.prefill(subject.getMaxStackSize(), subjectCount, subjectCraftable)));
+    /** Opens the item popup for one of the stack on the tab. */
+    private void openItem(ItemStack stack, Tab tab) {
+        dialog = Dialog.ITEM;
+        popup.open(stack, stockCount(stack), ClientStock.craftable(stack), ClientStock.online(), tab);
         applyDialog();
-        focusAmount();
     }
 
-    private void openCraft(ItemStack stack) {
-        subject = stack.copyWithCount(1);
-        dialog = Dialog.CRAFT;
-        fromOrder = false;
-        showAmountPanel();
+    /** Opens the Rule tab for the item, as the Rules tab's add slot does; for JEI's ghost drop too. */
+    public void openRuleFor(ItemStack stack) {
+        if (!stack.isEmpty()) {
+            openItem(stack, Tab.RULE);
+        }
     }
 
-    private void focusAmount() {
-        focus(amount);
+    /** The add slot on the screen while the Rules tab shows and nothing covers it, for JEI's ghost drop. */
+    public Optional<Rect2i> ruleAddTarget() {
+        if (!rulesTab || dialogOpen() || !ClientStock.online()) {
+            return Optional.empty();
+        }
+        Rect add = RulesList.addSlot(layout.grid());
+        return Optional.of(new Rect2i(leftPos + add.x(), topPos + add.y(), add.w(), add.h()));
     }
 
-    private void focus(EditBox field) {
+    @Override
+    public void tabShown(Tab tab) {
+        if (tab == Tab.CRAFT) {
+            showAmountPanel();
+        } else {
+            applyDialog();
+        }
+    }
+
+    @Override
+    public void closePopup() {
+        closeDialog();
+    }
+
+    @Override
+    public void focus(EditBox field) {
         setFocused(field);
         field.setFocused(true);
         search.setFocused(false);
-    }
-
-    private void toggleRule() {
-        if (dialog == Dialog.RULE) {
-            dialog = Dialog.REQUEST;
-            amount.setValue(Integer.toString(RequestSplit.prefill(subject.getMaxStackSize(), subjectCount, subjectCraftable)));
-        } else {
-            dialog = Dialog.RULE;
-            RuleRow rule = ClientStock.ruleFor(subject);
-            amount.setValue(rule == null ? "0" : Integer.toString(rule.min()));
-            maximum.setValue(rule == null ? Integer.toString(subject.getMaxStackSize()) : Integer.toString(rule.max()));
-        }
-        applyDialog();
     }
 
     /** Shows the widgets of the open dialog, or of the grid when none is open. */
     private void applyDialog() {
         boolean open = dialogOpen();
         boolean order = dialog == Dialog.ORDER;
-        boolean panel = dialog == Dialog.CRAFT;
-        boolean prompt = dialog == Dialog.REQUEST || dialog == Dialog.RULE;
+        boolean panel = amountPanel();
         menu.setOrderOpen(order);
         craftButton.visible = !open && ClientStock.orderGrid();
         search.visible = !open;
-        sideButtons.forEach(button -> button.visible = !open);
-        amount.visible = prompt;
-        maximum.visible = dialog == Dialog.RULE;
-        int stack = subject.isEmpty() ? 64 : subject.getMaxStackSize();
-        String[] labels = {"-" + stack, "-10", "-1", "+1", "+10", "+" + stack};
-        for (int i = 0; i < stepButtons.size(); i++) {
-            Button button = stepButtons.get(i);
-            button.visible = dialog == Dialog.REQUEST;
-            button.setMessage(Component.literal(labels[i]));
+        for (int i = 0; i < sideButtons.size(); i++) {
+            sideButtons.get(i).visible = !open && (!rulesTab || i >= STOCK_ONLY_BUTTONS);
         }
-        confirmButton.visible = prompt;
-        confirmButton.active = true;
-        confirmButton.setMessage(Component.translatable(dialog == Dialog.RULE ? "gui.servus_shuttles.terminal.rule_save"
-                : "gui.servus_shuttles.terminal.request"));
-        ruleButton.visible = prompt;
-        ruleButton.setMessage(Component.translatable(dialog == Dialog.RULE ? "gui.servus_shuttles.terminal.request" : "gui.servus_shuttles.terminal.rule"));
-        removeRuleButton.visible = dialog == Dialog.RULE;
-        cancelButton.visible = prompt;
+        popup.setVisible(dialog == Dialog.ITEM);
         craftAmount.setVisible(panel);
         saveButton.visible = false;
         backButton.visible = order || panel;
         Rect backRow = order ? Storage.ORDER_BUTTONS : Storage.CRAFT_BUTTONS;
         backButton.setPosition(leftPos + backRow.x(), topPos + backRow.y());
         clearButton.visible = order;
-        backButton.setMessage(Component.translatable(panel && fromOrder ? "gui.servus_shuttles.terminal.back" : "gui.servus_shuttles.terminal.cancel"));
+        backButton.setMessage(Component.translatable(dialog == Dialog.ORDER_AMOUNT ? "gui.servus_shuttles.terminal.back"
+                : "gui.servus_shuttles.terminal.cancel"));
         nextButton.visible = order;
         startButton.visible = panel;
     }
 
+    /** The widgets of the open dialog that take clicks and are drawn again over its panel. */
     private List<AbstractWidget> dialogWidgets() {
-        List<AbstractWidget> widgets = new ArrayList<>(List.of(amount, maximum, removeRuleButton, ruleButton, confirmButton, cancelButton,
-                saveButton, backButton, clearButton, nextButton, startButton));
-        widgets.addAll(stepButtons);
+        List<AbstractWidget> widgets = new ArrayList<>(List.of(saveButton, backButton, clearButton, nextButton, startButton));
         widgets.addAll(craftAmount.widgets());
+        if (dialog == Dialog.ITEM) {
+            widgets.addAll(popup.pageWidgets());
+        }
         return widgets;
     }
 
     private void closeDialog() {
         dialog = Dialog.NONE;
-        fromOrder = false;
-        subject = ItemStack.EMPTY;
-        amount.setFocused(false);
-        maximum.setFocused(false);
         craftAmount.field().setFocused(false);
         ClientStock.clearPreview();
         applyDialog();
     }
 
-    private static int parsed(EditBox field, int fallback) {
-        try {
-            return Integer.parseInt(field.getValue().trim());
-        } catch (NumberFormatException e) {
-            return fallback;
-        }
-    }
-
-    private int enteredAmount() {
-        return Math.max(0, parsed(amount, 0));
-    }
-
-    private void step(int kind) {
-        int stack = subject.isEmpty() ? 64 : subject.getMaxStackSize();
-        int now = enteredAmount();
-        int next = switch (kind) {
-            case 2 -> AmountSteps.plusStack(now, stack);
-            case -2 -> AmountSteps.minusStack(now, stack);
-            default -> AmountSteps.add(now, kind);
-        };
-        amount.setValue(Integer.toString(next));
-    }
-
-    /** The amount field changed: a request prompt stays within what it may ask, then a preview is asked. */
-    private void amountChanged() {
-        if (dialog == Dialog.REQUEST) {
-            int cap = RequestSplit.cap(subjectCount, subjectCraftable);
-            if (enteredAmount() > cap) {
-                amount.setValue(Integer.toString(cap));
-                return;
-            }
-        }
-        askPreview();
-    }
-
     /**
-     * Asks the server for a preview of the amount in the field: a craft, the
-     * crafted rest of a request above the requestable count, or the order
-     * grid. Answers arrive as {@link CraftPreviewPayload}.
+     * Asks the server for a preview of the amount panel's amount or of the
+     * order grid. Answers arrive as {@link CraftPreviewPayload}; the item
+     * popup asks for its Request tab itself.
      */
     private void askPreview() {
-        switch (dialog) {
-            case REQUEST -> {
-                int wanted = enteredAmount();
-                if (!subject.isEmpty() && wanted > subjectCount && wanted != askedAmount) {
-                    askedAmount = wanted;
-                    ClientPacketDistributor.sendToServer(new CraftPreviewRequestPayload(subject, wanted, CraftPreviewRequestPayload.Mode.REQUEST));
-                }
-            }
-            case CRAFT -> {
-                int wanted = craftAmount.value();
-                if (fromOrder) {
-                    askOrderPreview(wanted);
-                } else if (!subject.isEmpty() && wanted != askedAmount) {
-                    askedAmount = wanted;
-                    ClientPacketDistributor.sendToServer(new CraftPreviewRequestPayload(subject, wanted, CraftPreviewRequestPayload.Mode.CRAFT));
-                }
-            }
-            case ORDER -> askOrderPreview(previewAmount());
-            default -> {
+        if (dialog == Dialog.ORDER) {
+            askOrderPreview(previewAmount());
+        } else if (dialog == Dialog.ORDER_AMOUNT) {
+            askOrderPreview(craftAmount.value());
+        } else if (amountPanel()) {
+            int wanted = craftAmount.value();
+            ItemStack item = popup.item();
+            if (!item.isEmpty() && wanted != askedAmount) {
+                askedAmount = wanted;
+                ClientPacketDistributor.sendToServer(new CraftPreviewRequestPayload(item, wanted, CraftPreviewRequestPayload.Mode.CRAFT));
             }
         }
     }
@@ -668,13 +567,9 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
     }
 
-    /** The amount the open dialog's preview is for: the order grid's one craft, the amount panel's or the prompt's amount. */
+    /** The amount the open dialog's preview is for: the order grid's one craft or the amount panel's amount. */
     private int previewAmount() {
-        return switch (dialog) {
-            case ORDER -> lastResult.isEmpty() ? 1 : lastResult.getCount();
-            case CRAFT -> craftAmount.value();
-            default -> enteredAmount();
-        };
+        return dialog == Dialog.ORDER ? (lastResult.isEmpty() ? 1 : lastResult.getCount()) : craftAmount.value();
     }
 
     private static boolean sameCells(List<ItemStack> a, List<ItemStack> b) {
@@ -689,11 +584,11 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return true;
     }
 
-    /** The preview for exactly what the dialog shows, or null while it is on its way. */
+    /** The preview for exactly what the order grid or the amount panel shows, or null while it is on its way. */
     private CraftPreviewPayload currentPreview() {
         CraftPreviewPayload preview = ClientStock.preview();
-        boolean order = dialog == Dialog.ORDER || dialog == Dialog.CRAFT && fromOrder;
-        ItemStack item = order ? lastResult : subject;
+        boolean order = orderFlow();
+        ItemStack item = order ? lastResult : popup.item();
         if (preview == null || preview.amount() != previewAmount() || !ItemStack.isSameItemSameComponents(preview.item(), item)
                 || order && !sameCells(menu.gridCells(), askedGrid)) {
             return null;
@@ -701,60 +596,36 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return preview;
     }
 
+    /** Enter: Next on the order grid, Start on the amount panel, else the popup's Request or Save. */
     private void confirm() {
-        int wanted = enteredAmount();
-        switch (dialog) {
-            case REQUEST -> {
-                if (wanted > subjectCount) {
-                    CraftPreviewPayload preview = currentPreview();
-                    if (preview == null || !preview.requestable()) {
-                        return;
-                    }
-                }
-                if (wanted > 0) {
-                    ClientPacketDistributor.sendToServer(new RequestItemPayload(subject, wanted));
-                }
-            }
-            case ORDER -> {
-                openOrderAmount();
-                return;
-            }
-            case CRAFT -> {
-                start();
-                return;
-            }
-            case RULE -> ClientPacketDistributor.sendToServer(new SetStockRulePayload(subject, wanted, Math.max(wanted, parsed(maximum, wanted))));
-            default -> {
-            }
+        if (dialog == Dialog.ORDER) {
+            openOrderAmount();
+        } else if (amountPanel()) {
+            craftAmount.commit();
+            start();
+        } else if (dialog == Dialog.ITEM) {
+            popup.confirm();
         }
-        closeDialog();
     }
 
-    /** Start in the amount panel: orders the order grid's recipe once, or crafts the clicked item. */
+    /** Start in the amount panel: orders the order grid's recipe once, or crafts the popup's item. */
     private void start() {
         CraftPreviewPayload preview = currentPreview();
         if (preview == null || !preview.startable()) {
             return;
         }
         int wanted = craftAmount.value();
-        if (fromOrder) {
+        if (dialog == Dialog.ORDER_AMOUNT) {
             ClientPacketDistributor.sendToServer(new OrderStartPayload(wanted));
         } else {
-            ClientPacketDistributor.sendToServer(new CraftStartPayload(subject, wanted));
-        }
-        closeDialog();
-    }
-
-    private void removeRule() {
-        if (!subject.isEmpty()) {
-            ClientPacketDistributor.sendToServer(new SetStockRulePayload(subject, -1, -1));
+            ClientPacketDistributor.sendToServer(new CraftStartPayload(popup.item(), wanted));
         }
         closeDialog();
     }
 
     /** The grid's cells; clamps the scroll when they were rebuilt. */
     private List<Cell> cells() {
-        String query = search == null ? "" : search.getValue().toLowerCase(Locale.ROOT).trim();
+        String query = query().toLowerCase(Locale.ROOT).trim();
         if (cells.refresh(query, settings())) {
             scrollRow = Math.min(scrollRow, maxScrollRow());
         }
@@ -765,11 +636,29 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return Math.max(0, (cells.list().size() + COLUMNS - 1) / COLUMNS - layout.rows());
     }
 
+    /** How far the shown list scrolls: the grid's rows or the Rules tab's rule rows. */
+    private int maxScroll() {
+        return rulesTab ? rulesList.maxScroll(query(), layout.rows()) : maxScrollRow();
+    }
+
+    private int scrolled() {
+        return rulesTab ? rulesList.scroll() : scrollRow;
+    }
+
+    private void scrollTo(int row) {
+        if (rulesTab) {
+            rulesList.setScroll(row, query(), layout.rows());
+        } else {
+            cells();
+            scrollRow = Math.max(0, Math.min(maxScrollRow(), row));
+        }
+    }
+
     private int cellAt(double mouseX, double mouseY) {
         int x = (int) mouseX - leftPos;
         int y = (int) mouseY - topPos;
         Rect grid = layout.grid();
-        if (!grid.contains(x, y) || dialogOpen()) {
+        if (!grid.contains(x, y) || dialogOpen() || rulesTab) {
             return -1;
         }
         return ((y - grid.y()) / CELL + scrollRow) * COLUMNS + (x - grid.x()) / CELL;
@@ -798,11 +687,27 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return index >= 0 && index < list.size() ? Optional.of(list.get(index)) : Optional.empty();
     }
 
+    private Optional<RuleRow> ruleUnder(double mouseX, double mouseY) {
+        if (!rulesTab || dialogOpen()) {
+            return Optional.empty();
+        }
+        return rulesList.ruleAt(layout.grid(), query(), (int) mouseX - leftPos, (int) mouseY - topPos);
+    }
+
+    private boolean overAddSlot(double mouseX, double mouseY) {
+        return rulesTab && !dialogOpen() && RulesList.overAdd(layout.grid(), (int) mouseX - leftPos, (int) mouseY - topPos);
+    }
+
     @Override
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
         PanelPainter.panel(graphics, leftPos, topPos + layout.top(), imageWidth, layout.height());
-        PanelPainter.slots(graphics, leftPos, topPos, layout.grid(), COLUMNS, COLUMNS * layout.rows());
+        renderTerminalTabs(graphics);
+        if (rulesTab) {
+            PanelPainter.inset(graphics, leftPos, topPos, layout.grid());
+        } else {
+            PanelPainter.slots(graphics, leftPos, topPos, layout.grid(), COLUMNS, COLUMNS * layout.rows());
+        }
         PanelPainter.inset(graphics, leftPos, topPos, layout.scrollbar());
         PanelPainter.slots(graphics, leftPos, topPos, Storage.INPUT, Storage.ROW_SLOTS, Storage.ROW_SLOTS);
         PanelPainter.slots(graphics, leftPos, topPos, Storage.OUTPUT, Storage.ROW_SLOTS, menu.outputSlots());
@@ -817,21 +722,67 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         renderScrollThumb(graphics);
     }
 
+    private List<Rect> terminalTabRects() {
+        int[] widths = new int[TERMINAL_TABS.length];
+        for (int i = 0; i < TERMINAL_TABS.length; i++) {
+            widths[i] = font.width(terminalTabLabel(i));
+        }
+        return TerminalLayout.compactTabs(layout.tabs(), widths, Storage.TAB_PADDING);
+    }
+
+    private static Component terminalTabLabel(int tab) {
+        return Component.translatable("gui.servus_shuttles.terminal.tab." + TERMINAL_TABS[tab]);
+    }
+
+    /** The Stock and Rules tabs on the panel's top edge, the shown one joined to the panel. */
+    private void renderTerminalTabs(GuiGraphicsExtractor graphics) {
+        List<Rect> rects = terminalTabRects();
+        for (int i = 0; i < rects.size(); i++) {
+            Rect rect = rects.get(i);
+            boolean active = (i == 1) == rulesTab;
+            PanelPainter.tab(graphics, leftPos + rect.x(), topPos + rect.y(), rect.w(), rect.h(), active, 3);
+            Component label = terminalTabLabel(i);
+            graphics.text(font, label, leftPos + rect.x() + (rect.w() - font.width(label)) / 2, topPos + rect.y() + (active ? 4 : 5),
+                    COLOUR_TEXT, false);
+        }
+    }
+
+    /** The terminal tab under the mouse, -1 elsewhere. */
+    private int terminalTabAt(double mouseX, double mouseY) {
+        List<Rect> rects = terminalTabRects();
+        for (int i = 0; i < rects.size(); i++) {
+            if (rects.get(i).contains((int) mouseX - leftPos, (int) mouseY - topPos)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void showRulesTab(boolean rules) {
+        if (rules == rulesTab) {
+            return;
+        }
+        rulesTab = rules;
+        scrollRow = 0;
+        rulesList.setScroll(0, query(), layout.rows());
+        applyDialog();
+    }
+
     private boolean overScrollbar(double mouseX, double mouseY) {
         return layout.scrollbar().contains((int) mouseX - leftPos, (int) mouseY - topPos);
     }
 
-    /** Scrolls the grid so the thumb centres on the mouse, as far as the grid scrolls. */
+    /** Scrolls the shown list so the thumb centres on the mouse, as far as it scrolls. */
     private void dragThumb(double mouseY) {
         Rect bar = layout.scrollbar();
-        scrollRow = ListScroll.offsetAt(mouseY - topPos - bar.y(), THUMB, bar.h(), maxScrollRow());
+        scrollTo(ListScroll.offsetAt(mouseY - topPos - bar.y(), THUMB, bar.h(), maxScroll()));
     }
 
     private void renderScrollThumb(GuiGraphicsExtractor graphics) {
-        int max = maxScrollRow();
+        int max = maxScroll();
         Rect bar = layout.scrollbar();
         int track = bar.h() - THUMB;
-        int thumb = topPos + bar.y() + (max == 0 ? 0 : track * scrollRow / max);
+        int thumb = topPos + bar.y() + (max == 0 ? 0 : track * Math.min(scrolled(), max) / max);
         int thumbX = leftPos + bar.x();
         graphics.fill(thumbX, thumb, thumbX + bar.w(), thumb + THUMB, max == 0 ? 0xFF9A9A9A : 0xFFE0E0E0);
     }
@@ -871,7 +822,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
     }
 
-    /** The grid or the open dialog, drawn before the carried item so a dragged stack stays on top. */
+    /** The grid, the rule list or the open dialog, drawn before the carried item so a dragged stack stays on top. */
     @Override
     public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractContents(graphics, mouseX, mouseY, partialTick);
@@ -888,9 +839,18 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             renderDialog(graphics, mouseX, mouseY);
             return;
         }
-        renderGrid(graphics, mouseX, mouseY);
-        Optional<Cell> hovered = cellUnder(mouseX, mouseY);
         Component tag = tagTooltip(mouseX - leftPos, mouseY - topPos);
+        if (rulesTab) {
+            rulesList.render(graphics, font, leftPos, topPos, layout.grid(), layout.rows(), query(), mouseX, mouseY);
+            Optional<RuleRow> rule = ruleUnder(mouseX, mouseY);
+            if (rule.isPresent()) {
+                graphics.setTooltipForNextFrame(font, RulesList.tooltip(rule.get()), Optional.empty(), mouseX, mouseY);
+                return;
+            }
+        } else {
+            renderGrid(graphics, mouseX, mouseY);
+        }
+        Optional<Cell> hovered = cellUnder(mouseX, mouseY);
         if (siteSelector() && overTitle(mouseX, mouseY)) {
             graphics.setTooltipForNextFrame(font, font.split(Component.translatable("gui.servus_shuttles.terminal.site_tooltip"), 200), mouseX, mouseY);
         } else if (hovered.isPresent()) {
@@ -974,7 +934,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         if (cell.stocked()) {
             graphics.itemDecorations(font, cell.stack(), x, y, abbreviate(cell.count()));
         } else {
-            smallText(graphics, Component.translatable("gui.servus_shuttles.terminal.craft_cell"), x + 16, y + 11, 0xFFFFE080);
+            PanelPainter.smallText(graphics, font, Component.translatable("gui.servus_shuttles.terminal.craft_cell"), x + 16, y + 11, 0xFFFFE080);
         }
         if (ClientStock.ruleFor(cell.stack()) != null) {
             graphics.fill(x, y, x + 3, y + 3, 0xFF40A0FF);
@@ -1022,7 +982,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             graphics.fakeItem(row.stack(), x, y);
             graphics.fill(x, y, x + 16, y + 16, 0x908B8B8B);
         }
-        smallText(graphics, Component.literal(row.delivered() + "/" + row.requested()), x + 16, y + 1, 0xFFFFFFFF);
+        PanelPainter.smallText(graphics, font, Component.literal(row.delivered() + "/" + row.requested()), x + 16, y + 1, 0xFFFFFFFF);
         graphics.fill(x, y, x + 4, y + 4, 0xFF202020);
         graphics.fill(x + 1, y + 1, x + 3, y + 3, stateColour(row.state()));
         int filled = row.requested() <= 0 ? 0 : 16 * Math.min(row.delivered(), row.requested()) / row.requested();
@@ -1032,7 +992,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     @Override
     protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        if (popupOpen() && hoveredSlot != null && hoveredSlot.y < Storage.INVENTORY_LABEL.y() && !menu.isGridSlot(hoveredSlot.index)) {
+        if (dialogOpen() && hoveredSlot != null && hoveredSlot.y < Storage.INVENTORY_LABEL.y() && !menu.isGridSlot(hoveredSlot.index)) {
             return;
         }
         RequestRow row = menu.getCarried().isEmpty() ? requestAt(hoveredSlot) : null;
@@ -1041,15 +1001,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             return;
         }
         super.extractTooltip(graphics, mouseX, mouseY);
-    }
-
-    /** Half size text right aligned at {@code right}, drawn above items. */
-    private void smallText(GuiGraphicsExtractor graphics, Component text, int right, int y, int colour) {
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(right - font.width(text) * 0.5F, y);
-        graphics.pose().scale(0.5F, 0.5F);
-        graphics.text(font, text, 0, 0, colour, true);
-        graphics.pose().popMatrix();
     }
 
     /** Whether the grid shows the last known stock of a sleeping or unreachable site. */
@@ -1084,61 +1035,24 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                 leftPos + Storage.MESSAGE.x(), topPos + Storage.MESSAGE.y() + 1, colour, false);
     }
 
-    /** The dialog panel over the grid; its widgets were drawn below it by super and are drawn again on top. */
+    /** The popup over the dimmed terminal; its widgets were drawn below it by super and are drawn again on top. */
     private void renderDialog(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        if (popupOpen()) {
-            Rect popup = popupRect();
-            int dimTop = topPos + layout.top();
-            PopupPanel.draw(graphics, leftPos + Storage.SIDE_X, dimTop, imageWidth - Storage.SIDE_X, topPos + Storage.INVENTORY_LABEL.y() - 1 - dimTop,
-                    leftPos + popup.x(), topPos + popup.y(), popup.w(), popup.h());
-            if (dialog == Dialog.ORDER) {
-                renderOrder(graphics, mouseX, mouseY);
-            } else {
-                renderCraftPanel(graphics, mouseX, mouseY);
-            }
+        Rect panel = popupRect();
+        int dimTop = topPos + layout.top();
+        PopupPanel.draw(graphics, leftPos + Storage.SIDE_X, dimTop, imageWidth - Storage.SIDE_X, topPos + Storage.INVENTORY_LABEL.y() - 1 - dimTop,
+                leftPos + panel.x(), topPos + panel.y(), panel.w(), panel.h());
+        if (dialog == Dialog.ORDER) {
+            renderOrder(graphics, mouseX, mouseY);
             return;
         }
-        Rect area = dialogRect();
-        int x = dx();
-        int y = dy();
-        PanelPainter.bordered(graphics, x, y, area.w(), area.h(), PanelPainter.DARK, PanelPainter.FACE);
-        graphics.item(subject, x + 4, y + 2);
-        graphics.text(font, font.plainSubstrByWidth(subject.getHoverName().getString(), area.w() - 28), x + 24, y + 6, COLOUR_TEXT, false);
-        graphics.text(font, Component.translatable(dialog == Dialog.RULE ? "gui.servus_shuttles.terminal.rule_min"
-                : "gui.servus_shuttles.terminal.amount"), x + 4, y + 22, COLOUR_TEXT, false);
-        if (dialog == Dialog.RULE) {
-            graphics.text(font, Component.translatable("gui.servus_shuttles.terminal.rule_max"), x + 96, y + 22, COLOUR_TEXT, false);
+        if (dialog == Dialog.ITEM) {
+            popup.renderTabs(graphics, font, mouseX, mouseY);
         }
-        for (AbstractWidget widget : dialogWidgets()) {
-            if (widget.visible) {
-                widget.extractRenderState(graphics, mouseX, mouseY, 0);
-            }
+        if (amountPanel()) {
+            renderCraftPanel(graphics, mouseX, mouseY);
+        } else {
+            popup.renderPage(graphics, font, mouseX, mouseY);
         }
-        if (dialog == Dialog.REQUEST) {
-            renderRequestSplit(graphics, x, y);
-        }
-    }
-
-    /**
-     * A request above the requestable count: how many come from stock and
-     * how many are crafted, the craft preview and whether it can go.
-     */
-    private void renderRequestSplit(GuiGraphicsExtractor graphics, int x, int y) {
-        int wanted = enteredAmount();
-        if (wanted <= subjectCount) {
-            confirmButton.active = wanted > 0;
-            return;
-        }
-        CraftPreviewPayload preview = currentPreview();
-        confirmButton.active = preview != null && preview.requestable();
-        if (preview == null) {
-            graphics.text(font, Component.translatable("gui.servus_shuttles.terminal.craft_wait"), x + 4, y + 96, COLOUR_DIM, false);
-            return;
-        }
-        Component split = Component.translatable("gui.servus_shuttles.terminal.request_split", preview.inStock(), wanted - preview.inStock());
-        graphics.text(font, font.plainSubstrByWidth(split.getString(), dialogRect().w() - 8), x + 4, y + 54, COLOUR_TEXT, false);
-        previewColumns(graphics, x + 4, y + 66, preview, SHORT_PREVIEW_ROWS);
-        statusLine(graphics, preview, x + 4, y + 96, dialogRect().w() - 8);
     }
 
     /**
@@ -1161,7 +1075,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         Rect result = Storage.ORDER_RESULT;
         CraftPreviewPayload preview = currentPreview();
         saveButton.visible = !lastResult.isEmpty() && preview != null && preview.refusal().isEmpty() && !preview.patternSaved();
-        nextReason = greyOut(nextButton, nextReason, lastResult.isEmpty() ? "gui.servus_shuttles.terminal.message.no_match" : null);
+        nextReason = GreyOut.apply(nextButton, nextReason, lastResult.isEmpty() ? "gui.servus_shuttles.terminal.message.no_match" : null);
         renderDialogWidgets(graphics, mouseX, mouseY);
         if (!lastResult.isEmpty()) {
             renderItem(graphics, lastResult, result.x(), result.y(), mouseX, mouseY);
@@ -1179,7 +1093,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         Rect title = Storage.CRAFT_TITLE;
         Component head = Component.translatable("gui.servus_shuttles.terminal.craft_title", item.getHoverName());
         graphics.text(font, font.plainSubstrByWidth(head.getString(), title.w()), leftPos + title.x(), topPos + title.y(), COLOUR_TEXT, false);
-        startReason = greyOut(startButton, startReason, startRefusal(preview));
+        startReason = GreyOut.apply(startButton, startReason, startRefusal(preview));
         renderDialogWidgets(graphics, mouseX, mouseY);
         List<List<StockEntry>> rows = preview == null ? List.of(List.of(), List.of(), List.of())
                 : List.of(preview.fromStock(), preview.toCraft(), preview.missing());
@@ -1239,61 +1153,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return preview.startable() ? null : "gui.servus_shuttles.terminal.craft_wait";
     }
 
-    /**
-     * Greys the button out with the reason as its tooltip, or enables it
-     * without one; the tooltip is only replaced when the reason changes.
-     *
-     * @return the reason now shown
-     */
-    private static String greyOut(Button button, String shown, String reason) {
-        button.active = reason == null;
-        if (!Objects.equals(shown, reason)) {
-            button.setTooltip(reason == null ? null : Tooltip.create(Component.translatable(reason)));
-        }
-        return reason;
-    }
-
-    private void statusLine(GuiGraphicsExtractor graphics, CraftPreviewPayload preview, int x, int y, int width) {
-        Component status;
-        int colour;
-        if (!preview.refusal().isEmpty()) {
-            status = Component.translatable("gui.servus_shuttles.terminal.message." + preview.refusal());
-            colour = COLOUR_ALERT;
-        } else if (!preview.missing().isEmpty()) {
-            status = Component.translatable("gui.servus_shuttles.terminal.message.missing");
-            colour = COLOUR_ALERT;
-        } else {
-            status = Component.translatable("gui.servus_shuttles.terminal.craft_ready");
-            colour = COLOUR_GOOD;
-        }
-        graphics.text(font, font.plainSubstrByWidth(status.getString(), width), x, y, colour, false);
-    }
-
-    private void previewColumns(GuiGraphicsExtractor graphics, int x, int y, CraftPreviewPayload preview, int rows) {
-        previewColumn(graphics, x, y, "gui.servus_shuttles.terminal.craft_from_stock", preview.fromStock(), COLOUR_TEXT, rows);
-        previewColumn(graphics, x + 56, y, "gui.servus_shuttles.terminal.craft_to_craft", preview.toCraft(), COLOUR_GOOD, rows);
-        previewColumn(graphics, x + 112, y, "gui.servus_shuttles.terminal.craft_missing", preview.missing(), COLOUR_ALERT, rows);
-    }
-
-    private void previewColumn(GuiGraphicsExtractor graphics, int x, int y, String heading, List<StockEntry> rows, int colour, int shown) {
-        graphics.text(font, font.plainSubstrByWidth(Component.translatable(heading).getString(), 54), x, y, colour, false);
-        for (int i = 0; i < Math.min(shown, rows.size()); i++) {
-            StockEntry row = rows.get(i);
-            int rowY = y + 10 + i * 9;
-            graphics.pose().pushMatrix();
-            graphics.pose().translate(x, rowY);
-            graphics.pose().scale(0.5F, 0.5F);
-            graphics.item(row.stack(), 0, 0);
-            graphics.pose().popMatrix();
-            String text = row.count() + " " + row.stack().getHoverName().getString();
-            graphics.text(font, font.plainSubstrByWidth(text, 44), x + 10, rowY, COLOUR_TEXT, false);
-        }
-        if (rows.size() > shown) {
-            smallText(graphics, Component.translatable("gui.servus_shuttles.terminal.craft_more", rows.size() - shown),
-                    x + 54, y + 10 + shown * 9, COLOUR_DIM);
-        }
-    }
-
     /** A count in at most four characters: 999, 1.2k, 45k, 1.5M. */
     static String abbreviate(long count) {
         if (count < 1000) {
@@ -1308,7 +1167,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return String.format(Locale.ROOT, "%.1fM", count / 1000000.0);
     }
 
-    /** The rows above the base top, the side column and an open popup belong to the screen too. */
+    /** The tab strip, the rows above the base top, the side column and an open popup belong to the screen too. */
     @Override
     protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top) {
         int x = (int) mouseX - left;
@@ -1316,8 +1175,9 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         boolean panel = x >= 0 && x < imageWidth && y >= layout.top() && y < Storage.BASE_HEIGHT;
         boolean side = x >= Storage.SIDE_X && x < 0 && y >= layout.top() && y < Storage.BASE_HEIGHT
                 || layout.craft().contains(x, y);
-        boolean popup = popupOpen() && popupRect().contains(x, y);
-        return !panel && !side && !popup;
+        boolean tabs = layout.tabs().contains(x, y);
+        boolean open = dialogOpen() && (popupRect().contains(x, y) || dialog == Dialog.ITEM && Storage.POPUP_TABS.contains(x, y));
+        return !panel && !side && !tabs && !open;
     }
 
     /** Whether the title is the site selector: this site is wireless capable and has other sites to show. */
@@ -1361,8 +1221,15 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         double mouseY = event.y();
         int button = event.button();
         blurSearchUnlessOver(mouseX, mouseY);
-        if (!dialogOpen() && siteSelector() && overTitle(mouseX, mouseY)
-                && (button == GLFW.GLFW_MOUSE_BUTTON_LEFT || button == GLFW.GLFW_MOUSE_BUTTON_RIGHT)) {
+        if (dialogOpen()) {
+            return clickDialog(event, doubleClick);
+        }
+        int terminalTab = terminalTabAt(mouseX, mouseY);
+        if (terminalTab >= 0) {
+            showRulesTab(terminalTab == 1);
+            return true;
+        }
+        if (siteSelector() && overTitle(mouseX, mouseY) && (button == GLFW.GLFW_MOUSE_BUTTON_LEFT || button == GLFW.GLFW_MOUSE_BUTTON_RIGHT)) {
             ClientPacketDistributor.sendToServer(new SelectSitePayload(nextSite(button == GLFW.GLFW_MOUSE_BUTTON_LEFT ? 1 : -1)));
             scrollRow = 0;
             return true;
@@ -1374,34 +1241,13 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             search.setFocused(true);
             return true;
         }
-        if (dialogOpen()) {
-            for (AbstractWidget widget : dialogWidgets()) {
-                if (widget.visible && widget.mouseClicked(event, doubleClick)) {
-                    setFocused(widget);
-                    swallowRelease = true;
-                    return true;
-                }
-            }
-            int cell = ghostCellAt(mouseX, mouseY);
-            draggedCells.clear();
-            if (cell >= 0) {
-                draggedCells.add(cell);
-                if (menu.getCarried().isEmpty()) {
-                    return super.mouseClicked(event, doubleClick);
-                }
-                clickGhostCell(cell, button);
-                swallowRelease = true;
-                return true;
-            }
-            if (popupOpen() ? overDimmed(mouseX, mouseY) : insideDialog(mouseX, mouseY)) {
-                swallowRelease = true;
-                return true;
-            }
-            return super.mouseClicked(event, doubleClick);
-        }
         if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && overScrollbar(mouseX, mouseY)) {
             draggingThumb = true;
             dragThumb(mouseY);
+            return true;
+        }
+        if (rulesTab && ClientStock.online() && layout.grid().contains((int) mouseX - leftPos, (int) mouseY - topPos)) {
+            clickRules(mouseX, mouseY);
             return true;
         }
         if (ClientStock.online() && cellAt(mouseX, mouseY) >= 0 && clickGrid(cellUnder(mouseX, mouseY), button)) {
@@ -1415,6 +1261,49 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             return true;
         }
         return super.mouseClicked(event, doubleClick);
+    }
+
+    /** A press while a dialog is open: its tabs and widgets, the order grid's ghost cells; the dimmed rest takes the press. */
+    private boolean clickDialog(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        if (dialog == Dialog.ITEM && popup.clickTab(font, mouseX, mouseY)) {
+            swallowRelease = true;
+            return true;
+        }
+        for (AbstractWidget widget : dialogWidgets()) {
+            if (widget.visible && widget.mouseClicked(event, doubleClick)) {
+                setFocused(widget);
+                swallowRelease = true;
+                return true;
+            }
+        }
+        int cell = ghostCellAt(mouseX, mouseY);
+        draggedCells.clear();
+        if (cell >= 0) {
+            draggedCells.add(cell);
+            if (menu.getCarried().isEmpty()) {
+                return super.mouseClicked(event, doubleClick);
+            }
+            clickGhostCell(cell, event.button());
+            swallowRelease = true;
+            return true;
+        }
+        if (overDimmed(mouseX, mouseY)) {
+            swallowRelease = true;
+            return true;
+        }
+        return super.mouseClicked(event, doubleClick);
+    }
+
+    /** A click on the Rules tab: the add slot with a carried stack, or a rule row; both open the Rule tab. */
+    private void clickRules(double mouseX, double mouseY) {
+        swallowRelease = true;
+        if (overAddSlot(mouseX, mouseY)) {
+            openRuleFor(menu.getCarried());
+            return;
+        }
+        ruleUnder(mouseX, mouseY).ifPresent(rule -> openItem(rule.stack(), Tab.RULE));
     }
 
     /** Takes the focus from the search box, keeping its text, when a press lands anywhere else. */
@@ -1431,7 +1320,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     /**
      * A click on the grid: a carried stack is stored; an item is requested
      * once, a stack at once with shift (or all there is when the stock is
-     * smaller), the amount prompt opens on a right click, and the craft dialog
+     * smaller), the item popup opens on Request on a right click, and on Craft
      * when it is not stocked or is middle or control clicked while craftable.
      */
     private boolean clickGrid(Optional<Cell> cell, int button) {
@@ -1445,12 +1334,12 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         Cell found = cell.get();
         boolean craftClick = button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE || Minecraft.getInstance().hasControlDown();
         if (!found.stocked() || (found.craftable() && craftClick)) {
-            openCraft(found.stack());
+            openItem(found.stack(), Tab.CRAFT);
         } else if (Minecraft.getInstance().hasShiftDown()) {
             int count = (int) Math.min(found.stack().getMaxStackSize(), found.count());
             ClientPacketDistributor.sendToServer(new RequestItemPayload(found.stack(), count));
         } else if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
-            openRequest(found);
+            openItem(found.stack(), Tab.REQUEST);
         } else {
             ClientPacketDistributor.sendToServer(new RequestItemPayload(found.stack(), 1));
         }
@@ -1468,11 +1357,11 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return (y - grid.y()) / CELL * 3 + (x - grid.x()) / CELL;
     }
 
-    /** Whether the mouse is over the popup or the dimmed part of the terminal above the inventory. */
+    /** Whether the mouse is over the popup, its tabs or the dimmed part of the terminal above the inventory. */
     private boolean overDimmed(double mouseX, double mouseY) {
         int x = (int) mouseX - leftPos;
         int y = (int) mouseY - topPos;
-        return popupRect().contains(x, y)
+        return popupRect().contains(x, y) || Storage.POPUP_TABS.contains(x, y) || layout.tabs().contains(x, y)
                 || x >= Storage.SIDE_X && x < imageWidth && y >= layout.top() && y < Storage.INVENTORY_LABEL.y();
     }
 
@@ -1517,13 +1406,14 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (dialog == Dialog.CRAFT) {
+        if (amountPanel()) {
             if (!craftAmount.mouseScrolled(mouseX, mouseY, scrollY)) {
                 craftLists.forEach(list -> list.mouseScrolled(mouseX, mouseY, scrollY));
             }
+        } else if (dialog == Dialog.ITEM) {
+            popup.mouseScrolled(mouseX, mouseY, scrollY);
         } else if (!dialogOpen()) {
-            cells();
-            scrollRow = Math.max(0, Math.min(maxScrollRow(), scrollRow - (int) Math.signum(scrollY)));
+            scrollTo(scrolled() - (int) Math.signum(scrollY));
         }
         return true;
     }
@@ -1539,15 +1429,14 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             return super.keyPressed(event);
         }
         if (dialogOpen()) {
+            if (dialog == Dialog.ITEM && !amountPanel()) {
+                return popup.keyPressed(event);
+            }
             if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
-                craftAmount.commit();
                 confirm();
                 return true;
             }
-            if (maximum.isFocused() && (maximum.keyPressed(event) || maximum.canConsumeInput())) {
-                return true;
-            }
-            (dialog == Dialog.CRAFT ? craftAmount.field() : amount).keyPressed(event);
+            craftAmount.field().keyPressed(event);
             return true;
         }
         if (search.isFocused() && (search.keyPressed(event) || search.canConsumeInput())) {

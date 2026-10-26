@@ -8,6 +8,7 @@
 - Keep and fill up to amounts on duct filter entries: right click a set filter slot to keep 64 saplings in a chest or fill a furnace up to 16 coal.
 - The Mill grinds vanilla items: stone to cobblestone, gravel and sand, glowstone, quartz, amethyst and clay blocks back to their pieces, sugar cane to sugar, bones to bone meal, blaze rods to powder, wool to string and flowers to dye.
 - A delivery handshake on the data line: before items move, the sender offers them and the receiving block grants room or says why not.
+- A one line number stepper for the screens of every Servus mod.
 
 ### Changed
 - Item pickers can show an entry greyed out with a hint saying why it cannot be chosen yet.

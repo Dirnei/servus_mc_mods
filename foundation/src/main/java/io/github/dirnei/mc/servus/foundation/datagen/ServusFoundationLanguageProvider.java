@@ -24,6 +24,8 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
         add(AdapterContent.BLOCK.get(), "Machine Adapter");
         MachineDataParts.lang(this);
         add("gui.servus_foundation.picker.search", "Search");
+        add("gui.servus_foundation.stepper.less", "Less: click for 1, shift click for a stack");
+        add("gui.servus_foundation.stepper.more", "More: click for 1, shift click for a stack");
         add("gui.servus_foundation.machine_adapter.machine", "Machine: %s");
         add("gui.servus_foundation.machine_adapter.no_profile", "No machine this adapter knows");
         add("gui.servus_foundation.machine_adapter.upkeep", "Upkeep item and level");

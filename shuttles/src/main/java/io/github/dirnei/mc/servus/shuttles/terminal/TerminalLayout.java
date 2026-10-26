@@ -46,13 +46,60 @@ public final class TerminalLayout {
     public static final int CELL = 18;
     /** 1080p at GUI scale 4 leaves 270 pixels; a little margin stays free. */
     public static final int MAX_HEIGHT = 266;
+    /** Pixels between two tabs of a tab row. */
+    public static final int TAB_GAP = 2;
 
     private TerminalLayout() {
     }
 
     /**
-     * The Storage Terminal, Refined Storage style: view buttons in a column
-     * left of the panel, title, Craft button and search, the item grid with
+     * The tabs on a tab row, left to right: each as wide as its label plus an
+     * even share of the row's spare width, the remainder to the first tabs.
+     * Labels wider than the row get no padding and are cut by the caller; the
+     * tabs then still end inside the row.
+     */
+    public static List<Rect> tabs(Rect row, int[] labelWidths) {
+        int count = labelWidths.length;
+        if (count == 0) {
+            return List.of();
+        }
+        int room = row.w() - (count - 1) * TAB_GAP;
+        int labels = 0;
+        for (int width : labelWidths) {
+            labels += width;
+        }
+        int spare = room - labels;
+        List<Rect> rects = new ArrayList<>(count);
+        int x = row.x();
+        for (int i = 0; i < count; i++) {
+            int width = spare >= 0 ? labelWidths[i] + share(spare, i, count) : share(room, i, count);
+            rects.add(new Rect(x, row.y(), width, row.h()));
+            x += width + TAB_GAP;
+        }
+        return rects;
+    }
+
+    /**
+     * Tabs as narrow as their labels with {@code padding} on each side, from
+     * the row's left edge, never wider than the row.
+     */
+    public static List<Rect> compactTabs(Rect row, int[] labelWidths, int padding) {
+        int needed = (labelWidths.length - 1) * TAB_GAP;
+        for (int width : labelWidths) {
+            needed += width + 2 * padding;
+        }
+        return tabs(new Rect(row.x(), row.y(), Math.min(row.w(), Math.max(0, needed)), row.h()), labelWidths);
+    }
+
+    /** Part {@code index} of {@code total} split evenly into {@code count}, the remainder to the first parts. */
+    private static int share(int total, int index, int count) {
+        return total / count + (index < total % count ? 1 : 0);
+    }
+
+    /**
+     * The Storage Terminal, Refined Storage style: the Stock and Rules tabs
+     * above the panel, view buttons in a column left of it, title, Craft
+     * button and search, the item grid with
      * its scrollbar, a message line, the Input row, the Output row, then the
      * player inventory. Everything from the message line down sits at fixed
      * offsets from the panel's base top, so slots never move; extra grid rows
@@ -108,11 +155,36 @@ public final class TerminalLayout {
         public static final int BUTTON = 50;
         public static final int WIDE_BUTTON = 60;
 
+        /** The Request, Craft and Rule tabs of the item popup, on the popup's top edge over the dimmed title row. */
+        public static final Rect POPUP_TABS = new Rect(-17, 4, 224, 14);
+        /** Space on each side of a tab label. */
+        public static final int TAB_PADDING = 6;
+        /** Height of the Stock and Rules tab strip above the panel's top. */
+        public static final int TAB_STRIP = 14;
+
+        /** The Rule tab of the item popup: item and state, the Make and Limit groups, the note lines and the buttons. */
+        public static final Rect RULE_TITLE = new Rect(-17, 24, 224, 16);
+        public static final Rect RULE_MAKE = new Rect(-17, 44, 224, 23);
+        public static final Rect RULE_LIMIT = new Rect(-17, 71, 224, 23);
+        public static final Rect RULE_NOTE = new Rect(-17, 98, 224, 20);
+        public static final Rect RULE_BUTTONS = CRAFT_BUTTONS;
+        /** The group label column of the Make and Limit rows. */
+        public static final int RULE_GROUP_LABEL = 30;
+        /** One field block of a group row: a label over a one line stepper. */
+        public static final int RULE_FIELD = 94;
+        public static final int RULE_FIELD_LABEL = 9;
+
+        /** The Rules tab lists one rule per row in the grid's area; the first row is the add slot. */
+        public static final int RULE_ROW = CELL;
+        public static final Rect RULE_ROW_ICON = new Rect(0, 0, 16, 16);
+        public static final Rect RULE_ROW_MAKE = new Rect(20, 4, 60, 9);
+        public static final Rect RULE_ROW_STATE = new Rect(84, 4, 78, 9);
+
         private Storage() {
         }
 
         /** The parts that move with the number of grid rows. */
-        public record Layout(int rows, int top, Rect title, Rect craft, Rect search, Rect grid, Rect scrollbar, Rect dialog,
+        public record Layout(int rows, int top, Rect title, Rect craft, Rect search, Rect grid, Rect scrollbar, Rect tabs,
                              List<Rect> side) {
 
             /** Panel height including the rows above the base top. */
@@ -120,9 +192,14 @@ public final class TerminalLayout {
                 return BASE_HEIGHT - top;
             }
 
-            /** Everything but the dialogs and the order grid, which lie over the grid on purpose. */
+            /** Panel height with the Stock and Rules tab strip above it. */
+            public int heightWithTabs() {
+                return height() + TAB_STRIP;
+            }
+
+            /** Everything but the popups and the order grid, which lie over the grid on purpose. */
             public List<Area> areas() {
-                List<Area> areas = new ArrayList<>(List.of(new Area("title", title), new Area("side craft", craft),
+                List<Area> areas = new ArrayList<>(List.of(new Area("tabs", tabs), new Area("title", title), new Area("side craft", craft),
                         new Area("search", search), new Area("grid", grid), new Area("scrollbar", scrollbar),
                         new Area("message", MESSAGE), new Area("input", INPUT), new Area("input tag", INPUT_TAG),
                         new Area("output", OUTPUT), new Area("output tag", OUTPUT_TAG),
@@ -139,6 +216,24 @@ public final class TerminalLayout {
             return List.of(new Area("order grid", ORDER_GRID), new Area("order arrow", ORDER_ARROW),
                     new Area("order result", ORDER_RESULT), new Area("order save", ORDER_SAVE),
                     new Area("order buttons", ORDER_BUTTONS));
+        }
+
+        /** The parts of the Rule tab. */
+        public static List<Area> ruleAreas() {
+            return List.of(new Area("rule title", RULE_TITLE), new Area("rule make", RULE_MAKE),
+                    new Area("rule limit", RULE_LIMIT), new Area("rule note", RULE_NOTE), new Area("rule buttons", RULE_BUTTONS));
+        }
+
+        /** Left edge of field block {@code column} (0 or 1) of a Make or Limit row. */
+        public static int ruleFieldX(Rect group, int column) {
+            int gap = group.w() - RULE_GROUP_LABEL - 2 * RULE_FIELD;
+            return group.x() + RULE_GROUP_LABEL + column * (RULE_FIELD + gap);
+        }
+
+        /** The parts of one Rules tab row, relative to the row's top left corner. */
+        public static List<Area> ruleRowAreas() {
+            return List.of(new Area("rule row icon", RULE_ROW_ICON), new Area("rule row make", RULE_ROW_MAKE),
+                    new Area("rule row state", RULE_ROW_STATE));
         }
 
         /** The parts of the amount panel. */
@@ -163,16 +258,16 @@ public final class TerminalLayout {
             return new Layout(shown, top, new Rect(8, top + 6, 112, 9), new Rect(RIGHT_SIDE_X, top + 4, SIDE_SIZE, SIDE_SIZE),
                     new Rect(122, top + 4, 60, 12), new Rect(8, top + 18, COLUMNS * CELL, shown * CELL),
                     new Rect(174, top + 18, 8, shown * CELL),
-                    new Rect(8, top + 18, 174, OUTPUT.bottom() - (top + 18)), List.copyOf(side));
+                    new Rect(8, top - TAB_STRIP, 174, TAB_STRIP), List.copyOf(side));
         }
 
         /**
          * Grid rows for a height setting on a screen this many GUI pixels
-         * high: what the setting asks for, but no more than fit and never
-         * fewer than {@link #BASE_ROWS}.
+         * high: what the setting asks for, but no more than fit with the tab
+         * strip and never fewer than {@link #BASE_ROWS}.
          */
         public static int rowsFor(TerminalSettings.Height height, int screenHeight) {
-            int fit = BASE_ROWS + Math.max(0, (screenHeight - 4 - BASE_HEIGHT) / CELL);
+            int fit = BASE_ROWS + Math.max(0, (screenHeight - 4 - BASE_HEIGHT - TAB_STRIP) / CELL);
             return Math.max(BASE_ROWS, Math.min(height.rows(), fit));
         }
 
@@ -208,7 +303,7 @@ public final class TerminalLayout {
     public static final class Production {
         public static final int WIDTH = 240;
         public static final int HEIGHT = 222;
-        public static final int TAB_GAP = 2;
+        public static final int TAB_GAP = TerminalLayout.TAB_GAP;
 
         public static final Rect TITLE = new Rect(8, 6, 224, 9);
         public static final Rect TABS = new Rect(8, 18, 224, 12);
@@ -231,36 +326,9 @@ public final class TerminalLayout {
                     new Area("inventory", INVENTORY), new Area("hotbar", HOTBAR));
         }
 
-        /**
-         * The tabs on the tab row, left to right: each as wide as its label
-         * plus an even share of the row's spare width, the remainder to the
-         * first tabs. Labels wider than the row get no padding and are cut by
-         * the caller; the tabs then still end inside the row.
-         */
+        /** The tabs on the tab row, see {@link TerminalLayout#tabs(Rect, int[])}. */
         public static List<Rect> tabs(int[] labelWidths) {
-            int count = labelWidths.length;
-            if (count == 0) {
-                return List.of();
-            }
-            int row = TABS.w() - (count - 1) * TAB_GAP;
-            int labels = 0;
-            for (int width : labelWidths) {
-                labels += width;
-            }
-            int spare = row - labels;
-            List<Rect> rects = new ArrayList<>(count);
-            int x = TABS.x();
-            for (int i = 0; i < count; i++) {
-                int width = spare >= 0 ? labelWidths[i] + share(spare, i, count) : share(row, i, count);
-                rects.add(new Rect(x, TABS.y(), width, TABS.h()));
-                x += width + TAB_GAP;
-            }
-            return rects;
-        }
-
-        /** Part {@code index} of {@code total} split evenly into {@code count}, the remainder to the first parts. */
-        private static int share(int total, int index, int count) {
-            return total / count + (index < total % count ? 1 : 0);
+            return TerminalLayout.tabs(TABS, labelWidths);
         }
 
         /** A warehouse header of the Storage tab; parts below are relative to the row's top left corner on the list. */
