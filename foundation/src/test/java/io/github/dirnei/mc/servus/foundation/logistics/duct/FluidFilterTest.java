@@ -62,4 +62,35 @@ class FluidFilterTest {
         assertTrue(filter.isEmpty());
         assertNull(filter.get(FluidFilter.SLOTS));
     }
+
+    @Test
+    void amountGoesWithTheSlot() {
+        FluidFilter filter = new FluidFilter();
+        filter.setAmount(0, 500);
+        assertEquals(0, filter.amount(0));
+        filter.set(0, WATER);
+        filter.setAmount(0, 8000);
+        assertEquals(8000, filter.amount(0));
+        filter.set(0, WATER);
+        assertEquals(8000, filter.amount(0));
+        filter.set(0, LAVA);
+        assertEquals(0, filter.amount(0));
+        filter.setAmount(0, 100);
+        filter.clear(0);
+        filter.set(0, LAVA);
+        assertEquals(0, filter.amount(0));
+    }
+
+    @Test
+    void firstMatchingEntryWins() {
+        FluidFilter filter = new FluidFilter();
+        filter.set(1, WATER);
+        filter.set(4, WATER);
+        filter.setAmount(4, 2000);
+        assertEquals(0, filter.amountFor(WATER));
+        filter.setAmount(1, 1000);
+        assertEquals(1000, filter.amountFor(WATER));
+        assertEquals(0, filter.amountFor(LAVA));
+        assertEquals(2, filter.amountEntries());
+    }
 }

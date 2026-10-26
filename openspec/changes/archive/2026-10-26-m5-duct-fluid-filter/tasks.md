@@ -20,9 +20,10 @@ Apply after `m5-duct-endpoint-gui`.
 ## 4. Screen, picker and JEI
 
 - [x] 4.1 `client/ItemPicker` fluid entry kind drawn with `client/FluidSprites`; `logistics/client/FilterPickerEntries.fluids()` (source fluids, not empty, named by fluid type, sorted, "none" first). `gradlew build` green.
-- [x] 4.2 `logistics/client/UtilityDuctScreen`: Fluid Pipe page with nine fluid slots (sprite, tooltip name), click with carried fluid item, right click clear, empty cursor opens the fluid picker, shift click of an inventory item sets the first free slot, fluid priority with minus and plus; item slots hidden there. `gradlew build` green.
+- [x] 4.2 `logistics/client/UtilityDuctScreen`: Fluid Pipe page with nine fluid slots (sprite, tooltip name), click with carried fluid item, shift right click clear, empty cursor opens the fluid picker, shift click of an inventory item sets the first free slot, fluid priority with minus and plus; item slots hidden there. `gradlew build` green.
 - [x] 4.3 `integration/jei/DuctFilterGhostHandler`: fluid targets for `NeoForgeTypes.FLUID_STACK` and for filled containers on the Fluid Pipe page. `gradlew build` green.
 - [x] 4.4 Lang keys in `logistics/datagen/LogisticsDataParts` (fluid filter label, fluid picker title, fluid priority). `gradlew :foundation:runData` and `gradlew build` green.
+- [x] 4.5 Follow the endpoint GUI rework: the Fluid Pipe page shows In, Out, the redstone button and On/Off without Pull, the fluid filter row at `UtilityDuctMenu.FILTER_Y` 73 and the fluid priority at y 93; the Duct GUI and Duct inspect copies in this change's delta specs use the flags, redstone setting, On/Off and the trash can; fluid GameTests set `DuctMode.IN` and `DuctMode.OUT`. `gradlew build` and `gradlew :foundation:runGameTestServer` green.
 
 ## 5. Data Potato
 
@@ -30,8 +31,8 @@ Apply after `m5-duct-endpoint-gui`.
 
 ## 6. Play check and wrap up
 
-- [ ] 6.1 Play check from main: water bucket, lava bucket, a filled Fluid Tank item and a modded container set slots without being emptied; shift click sets the first free slot; picker lists each fluid once; JEI fluid drag; lava only reaches the furnace-like sink; a priority 5 tank fills first; slots look right in both GUI scales.
-- [ ] 6.2 Full gradle build, tests green, game launches with all three mods.
+- [x] 6.1 Play check from main: water bucket, lava bucket, a filled Fluid Tank item and a modded container set slots without being emptied; shift click sets the first free slot; picker lists each fluid once; JEI fluid drag; lava only reaches the furnace-like sink; a priority 5 tank fills first; slots look right in both GUI scales.
+- [x] 6.2 Full gradle build, tests green, game launches with all three mods.
 
 ## Workflow follow-up
 

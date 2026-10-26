@@ -9,7 +9,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.network.NetworkType;
 import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctMode;
 import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,7 +35,7 @@ public final class EnergyChannelNetwork extends LineNetwork<EnergyChannelNetwork
     public static final NetworkType<UtilityDuctBlockEntity, DuctEvent, EnergyChannelNetwork> TYPE =
             new NetworkType<>(ID, RULE, EnergyChannelNetwork::new);
 
-    record Endpoint(UtilityDuctBlockEntity duct, Direction side, SideMode mode, int channel,
+    record Endpoint(UtilityDuctBlockEntity duct, Direction side, DuctMode mode, int channel,
                     BlockCapabilityCache<EnergyHandler, Direction> cache) {
 
         boolean active() {
@@ -48,7 +48,7 @@ public final class EnergyChannelNetwork extends LineNetwork<EnergyChannelNetwork
     }
 
     @Override
-    protected Endpoint endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int channel) {
+    protected Endpoint endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, DuctMode mode, int channel) {
         return new Endpoint(duct, side, mode, channel, BlockCapabilityCache.create(Capabilities.Energy.BLOCK, level, target, side.getOpposite()));
     }
 
@@ -69,8 +69,8 @@ public final class EnergyChannelNetwork extends LineNetwork<EnergyChannelNetwork
                     continue;
                 }
                 int channel = endpoint.channel();
-                boolean mayPull = endpoint.mode().allowsInsert();
-                boolean mayPush = endpoint.mode().allowsExtract();
+                boolean mayPull = endpoint.mode().in();
+                boolean mayPush = endpoint.mode().out();
                 if (mayPull && storage.canExtract()) {
                     sources.computeIfAbsent(channel, c -> new ArrayList<>()).add(storage::extractEnergy);
                 } else if (mayPush && storage.canReceive()) {

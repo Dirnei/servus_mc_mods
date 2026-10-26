@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
@@ -129,7 +130,7 @@ public final class PipeAccessGameTests {
         // Facing south: the duct touches the station's back, an Input side.
         WarehouseFixtures.inbound(helper, FEED_STATION, Direction.SOUTH);
         UtilityDuctBlockEntity duct = itemDuct(helper, FEED_DUCT);
-        duct.setMode(Line.ITEM, Direction.NORTH, SideMode.INPUT);
+        duct.setMode(Line.ITEM, Direction.NORTH, DuctMode.IN_PULL);
         helper.assertTrue(duct.hasArm(Line.ITEM, Direction.SOUTH), "the duct shows an arm toward the station");
         InboundStationBlockEntity station = helper.getBlockEntity(FEED_STATION, InboundStationBlockEntity.class);
         Waits.when(helper, () -> station.buffer().getStackInSlot(0).getCount() == 16, 180,

@@ -6,7 +6,8 @@ import static io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps.duct;
 import io.github.dirnei.mc.servus.foundation.gametest.PlayerClicks;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DataCableItem;
-import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctControl;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctMode;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctRedstone;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctReport;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
@@ -16,7 +17,6 @@ import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlockEntity
 import io.github.dirnei.mc.servus.foundation.logistics.tank.TankReport;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.TankStatsManager;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +28,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeverBlock;
 import net.minecraft.world.level.block.state.properties.AttachFace;
@@ -58,8 +59,8 @@ public final class DataPotatoGameTests {
         for (UtilityDuctBlockEntity duct : ducts) {
             duct.setChannel(Line.ITEM, Direction.NORTH, iron);
         }
-        ducts[0].setMode(Line.ITEM, Direction.NORTH, SideMode.INPUT);
-        ducts[1].setMode(Line.ITEM, Direction.NORTH, SideMode.OUTPUT);
+        ducts[0].setMode(Line.ITEM, Direction.NORTH, DuctMode.IN_PULL);
+        ducts[1].setMode(Line.ITEM, Direction.NORTH, DuctMode.OUT);
         ducts[1].setPriority(Direction.NORTH, 2);
         ducts[1].setChannel(Line.ITEM, Direction.UP, iron);
 
@@ -68,12 +69,12 @@ public final class DataPotatoGameTests {
             helper.assertTrue(report.size() == 2, "a header and the item line, got " + report);
             assertKey(helper, report.get(0), "duct_side");
             Object[] item = assertKey(helper, report.get(1), "filtered_side");
-            helper.assertTrue(text(item[1]).equals("gui.servus_foundation.mode.output"), "the mode is Push out, got " + text(item[1]));
-            helper.assertTrue(text(item[2]).equals("gui.servus_foundation.control.always"), "the Control is Always, got " + text(item[2]));
+            helper.assertTrue(text(item[1]).equals("gui.servus_foundation.mode.out"), "the mode is Out, got " + text(item[1]));
+            helper.assertTrue(text(item[2]).equals("gui.servus_foundation.redstone.ignore"), "the redstone setting is Ignore, got " + text(item[2]));
             helper.assertTrue(text(item[3]).equals("\"Iron ore\""), "the channel is \"Iron ore\", got " + text(item[3]));
             helper.assertTrue(((Component) item[3]).getStyle().getColor() != null, "the channel name is coloured");
-            helper.assertTrue(Arrays.asList(item).subList(4, 9).equals(List.of(2, 0, 3, 2, 2)),
-                    "priority 2, no filter entries, 3 ducts, 2 in, 2 out, got " + Arrays.asList(item).subList(4, 9));
+            helper.assertTrue(Arrays.asList(item).subList(4, 10).equals(List.of(2, 0, 0, 3, 2, 2)),
+                    "priority 2, no filter entries, none with an amount, 3 ducts, 2 in, 2 out, got " + Arrays.asList(item).subList(4, 10));
 
             List<Component> centre = DuctReport.of(ducts[1], null);
             Object[] header = assertKey(helper, centre.get(0), "duct_centre");
@@ -84,40 +85,61 @@ public final class DataPotatoGameTests {
         });
     }
 
-    /** A fluid side on While unpowered under a duct that a lever powers reports its Control as paused. */
+    /** A fluid side on While unpowered under a duct that a lever powers reports paused, and switched off reports switched off. */
     @ServusGameTest(timeoutTicks = 40)
     public static void potatoReportsPausedSide(GameTestHelper helper) {
         helper.setBlock(DUCT_B.north(), Blocks.CAULDRON.defaultBlockState());
         helper.setBlock(DUCT_B.south(), Blocks.LEVER.defaultBlockState().setValue(LeverBlock.FACE, AttachFace.FLOOR)
                 .setValue(LeverBlock.POWERED, true));
         UtilityDuctBlockEntity duct = duct(helper, DUCT_B, Line.FLUID);
-        duct.setControl(Line.FLUID, Direction.NORTH, DuctControl.UNPOWERED);
+        duct.setRedstone(Line.FLUID, Direction.NORTH, DuctRedstone.UNPOWERED);
 
         helper.runAfterDelay(5, () -> {
             Object[] fluid = assertKey(helper, DuctReport.of(duct, Direction.NORTH).get(1), "filtered_side");
             Object[] paused = assertKey(helper, (Component) fluid[2], "paused");
-            helper.assertTrue(text(paused[0]).equals("gui.servus_foundation.control.unpowered"),
-                    "the paused Control is While unpowered, got " + text(paused[0]));
+            helper.assertTrue(text(paused[0]).equals("gui.servus_foundation.redstone.unpowered"),
+                    "the paused redstone setting is While unpowered, got " + text(paused[0]));
             Object[] header = assertKey(helper, DuctReport.of(duct, null).get(0), "duct_centre");
             helper.assertTrue(text(header[0]).equals(KEY + "powered"), "the centre names the duct powered, got " + text(header[0]));
+            duct.setOn(Line.FLUID, Direction.NORTH, false);
+            Object[] off = assertKey(helper, DuctReport.of(duct, Direction.NORTH).get(1), "filtered_side");
+            Object[] switchedOff = assertKey(helper, (Component) off[2], "switched_off");
+            helper.assertTrue(text(switchedOff[0]).equals("gui.servus_foundation.redstone.unpowered"),
+                    "a switched off side still names its redstone setting, got " + text(switchedOff[0]));
             helper.succeed();
         });
     }
 
-    /** A push out fluid side with fluid priority 4 and lava and water listed reports Push, priority 4 and 2 filter entries. */
+    /** An Out fluid side with fluid priority 4 and lava and water listed reports Out, priority 4 and 2 filter entries. */
     @ServusGameTest(timeoutTicks = 40)
     public static void potatoReportsFluidArm(GameTestHelper helper) {
         helper.setBlock(DUCT_B.north(), Blocks.CAULDRON.defaultBlockState());
         UtilityDuctBlockEntity duct = duct(helper, DUCT_B, Line.FLUID);
-        duct.setMode(Line.FLUID, Direction.NORTH, SideMode.OUTPUT);
+        duct.setMode(Line.FLUID, Direction.NORTH, DuctMode.OUT);
         duct.setFluidPriority(Direction.NORTH, 4);
         duct.setFluidFilter(Direction.NORTH, 0, Fluids.LAVA);
         duct.setFluidFilter(Direction.NORTH, 3, Fluids.WATER);
 
         helper.runAfterDelay(5, () -> {
             Object[] fluid = assertKey(helper, DuctReport.of(duct, Direction.NORTH).get(1), "filtered_side");
-            helper.assertTrue(text(fluid[1]).equals("gui.servus_foundation.mode.output"), "the mode is Push out, got " + text(fluid[1]));
+            helper.assertTrue(text(fluid[1]).equals("gui.servus_foundation.mode.out"), "the mode is Out, got " + text(fluid[1]));
             helper.assertTrue(fluid[4].equals(4) && fluid[5].equals(2), "priority 4 and 2 filter entries, got " + fluid[4] + " and " + fluid[5]);
+            helper.succeed();
+        });
+    }
+
+    /** A pull in item side listing oak sapling with amount 64 and stick reports 2 filter entries, 1 with an amount. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void potatoReportsAmountEntries(GameTestHelper helper) {
+        UtilityDuctBlockEntity duct = chestRow(helper)[1];
+        duct.setMode(Line.ITEM, Direction.NORTH, DuctMode.IN_PULL);
+        duct.filter(Direction.NORTH).setStackInSlot(0, new ItemStack(Items.OAK_SAPLING));
+        duct.filter(Direction.NORTH).setStackInSlot(1, new ItemStack(Items.STICK));
+        duct.setItemAmount(Direction.NORTH, 0, 64);
+
+        helper.runAfterDelay(5, () -> {
+            Object[] item = assertKey(helper, DuctReport.of(duct, Direction.NORTH).get(1), "filtered_side");
+            helper.assertTrue(item[5].equals(2) && item[6].equals(1), "2 filter entries, 1 with an amount, got " + item[5] + " and " + item[6]);
             helper.succeed();
         });
     }
@@ -151,7 +173,7 @@ public final class DataPotatoGameTests {
         UtilityDuctBlockEntity duct = chestRow(helper)[1];
         int iron = channel(helper, "Iron ore");
         duct.setChannel(Line.ITEM, Direction.NORTH, iron);
-        duct.setMode(Line.ITEM, Direction.NORTH, SideMode.OUTPUT);
+        duct.setMode(Line.ITEM, Direction.NORTH, DuctMode.OUT);
 
         helper.runAfterDelay(5, () -> {
             List<Component> chat = new ArrayList<>();
@@ -163,7 +185,7 @@ public final class DataPotatoGameTests {
             player.setShiftKeyDown(true);
             PlayerClicks.use(helper, player, DUCT_B);
             helper.assertTrue(helper.getBlockState(DUCT_B).is(ServusLogisticsBlocks.UTILITY_DUCT.get()), "sneaking does not dismantle");
-            helper.assertTrue(duct.mode(Line.ITEM, Direction.NORTH) == SideMode.OUTPUT, "the mode is unchanged");
+            helper.assertTrue(duct.mode(Line.ITEM, Direction.NORTH) == DuctMode.OUT, "the mode is unchanged");
             helper.assertTrue(duct.channel(Line.ITEM, Direction.NORTH) == iron, "the channel is unchanged");
             helper.assertTrue(duct.has(Line.ITEM), "the line stays");
             helper.succeed();

@@ -4,7 +4,7 @@
 
 The Fluid Pipe moves any fluid to any sink on its channel and shares it evenly, so a player cannot send only lava to one machine or fill a main tank before an overflow tank. The item line has had filters and priorities since M5. This is the second of three duct changes toward the overflow valve: the keep amounts in `m5-duct-keep-amounts` sit on fluid filter slots, so the fluid line needs them first.
 
-PLAN.md milestone M5 Logistics, open point added to "Open: Foundation" by `m5-duct-endpoint-gui`. Apply after `m5-duct-endpoint-gui`, whose side picker and page layout this change extends.
+PLAN.md milestone M5 Logistics, open point added to "Open: Foundation" by `m5-duct-endpoint-gui`. Apply after `m5-duct-endpoint-gui`, whose side tabs and page layout this change extends.
 
 ## What Changes
 

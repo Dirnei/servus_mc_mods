@@ -153,7 +153,7 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 | M1 Foundations | network graph with split and merge, mailbox tick, `NetworkManager`, Configuration Carrot, config |
 | M2, M3 Factorio style factory | superseded by M9; what lived on: pumps, Sink, Ender Anchor, side config, JEI, the docs site and Balance lab |
 | M4 Warehouse first slice | Heavy Duty Rack with sections, Warehouse Controller, terminal |
-| M5 Logistics | Utility Duct with item, power and fluid lines, modes, named team channels, filters with search and JEI, priorities, facades, goggles, Data Potato, Fluid Tank |
+| M5 Logistics | Utility Duct with item, power and fluid lines, side tabs with In, Out, Pull, redstone and On/Off per line, named team channels, item and fluid filters with search and JEI, keep and fill up to amounts, priorities, facades, goggles, Data Potato, Fluid Tank |
 | M6 Warehouse automation | rails, elevators with lift cars, simulated shuttles, garages with a roll-up door, Inbound Station, Zone Labels, placement assist |
 | M7 Autocrafting integration | production API, work orders, stock rules, Outbound Station, Crafting Station |
 | M8 On-demand autocrafting | Servus: Foundation merge, data cable with tiers, Packing Station, Storage Terminal, Crafting CPU, Production Terminal, Pattern Storage, Machine Adapter, shuttle jobs that survive a reload, slot locks, following traffic, shuttle numbers, terminal requests within stock |
@@ -204,7 +204,6 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - Power Cable with a tiered transfer rate.
 - Hand made patterns for Machine Adapters, if the play tests ask for them.
 - Ender Anchor respects FTB Chunks claims: with FTB Chunks installed it loads only chunks the owner's team has claimed (or unclaimed ones), never another team's (soft integration with the FTB Chunks API).
-- Duct overflow, after `m5-duct-endpoint-gui`: fluid filter slots and fluid priorities on the duct (`m5-duct-fluid-filter`), then an amount per filter entry that keeps that much in a giving block and fills a receiving block up to it (`m5-duct-keep-amounts`).
 - An Overflow Valve block, if play tests ask for one beside the duct amounts.
 - Warehouse excess on stock rules: a rule with only a maximum ships the surplus above it to a station.
 

@@ -3,12 +3,18 @@
 ## Unreleased
 
 ### Added
+- Utility Duct sides open on tabs, one per side with a block, and every item, power and fluid line has its own In, Out and Pull, a redstone setting (ignore, while powered, while unpowered) and an On/Off switch per side. A trash can removes a line.
+- Fluid filters on the Fluid Pipe, set with a bucket, any fluid container, the picker or JEI, and a fluid priority per side.
+- Keep and fill up to amounts on duct filter entries: right click a set filter slot to keep 64 saplings in a chest or fill a furnace up to 16 coal.
 - The Mill grinds vanilla items: stone to cobblestone, gravel and sand, glowstone, quartz, amethyst and clay blocks back to their pieces, sugar cane to sugar, bones to bone meal, blaze rods to powder, wool to string and flowers to dye.
 - A delivery handshake on the data line: before items move, the sender offers them and the receiving block grants room or says why not.
 
 ### Changed
 - Item pickers can show an entry greyed out with a hint saying why it cannot be chosen yet.
 - A delivery to a block that takes nothing for a while ends with what arrived instead of holding up its sender.
+
+### Fixed
+- Duct sides with neither In nor Out can be connected again from the duct GUI.
 
 ## 0.4.0
 

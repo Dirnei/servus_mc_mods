@@ -2,7 +2,7 @@
 
 ## Context
 
-Builds on `m5-duct-endpoint-gui` (side picker, mutable menu side, page layout, Control). Apply after it.
+Builds on `m5-duct-endpoint-gui` (side tabs, mutable menu side, page layout, In, Out and Pull flags, redstone setting and On/Off). Apply after it.
 
 `FluidRouting` (pure) routes per fluid key: each source offers one key (`Offer`), each sink takes the first offered key it accepts, short supply of a key is water filled over its sinks (`WaterFilling.allocate`), and what a sink could not take as its share goes to the sinks in order afterwards. `FluidRoutingTest` covers it.
 
@@ -32,7 +32,7 @@ The screen draws the nine fluid slots at the item filter position on the Fluid P
 ### D2 Setting slots through one payload
 New `SetDuctFluidFilterPayload(slot, Optional<Identifier> fluid)`, handled like `SetDuctFilterPayload` through the open `UtilityDuctMenu` (checks `stillValid`, the Fluid Pipe, the slot range and that the id is a registered fluid other than empty). The client resolves every way of setting into a fluid id:
 - click with a carried item: the item's fluid through `ItemAccess.forStack(carried).getCapability(Capabilities.Fluid.ITEM)`, first non-empty resource; nothing sent when it holds none;
-- right click: empty id;
+- shift right click: empty id (right click opens the amount popup, see m5-duct-keep-amounts);
 - shift click of an inventory slot on the Fluid Pipe page: the screen intercepts `QUICK_MOVE` there, resolves the fluid and sends it for `firstFree`; on other pages shift click keeps setting item filters;
 - click with an empty cursor: opens the picker;
 - JEI: see D4.
@@ -48,7 +48,7 @@ The carried item is never sent or changed, so a bucket stays full.
 ### D5 Filtered sources and sinks
 In `FluidChannelNetwork`:
 - A source with an empty filter offers `drain(MAX, true)` as now. A source with entries offers the first entry the handler can drain: `drain(new FluidStack(fluid, MAX), true)` per entry in slot order. So a Calciner-like block with Sulfur and Mercury tanks gives Mercury when only Mercury is listed.
-- A sink's `fill` returns 0 for a key whose fluid its filter does not allow; the undecided in and out sides use the same check in `accepts`.
+- A sink's `fill` returns 0 for a key whose fluid its filter does not allow; the undecided sides with In and Out use the same check in `accepts`.
 - `fill` (pushed in) refuses a fluid the pushing side's filter rejects, and skips sinks whose filter rejects it.
 
 ### D6 Fluid priority as routing tiers
@@ -91,3 +91,4 @@ None open in PLAN.md. Settled here: a fluid filter entry matches the fluid type 
 - The potato reports the item and the fluid side line with one key, `message.servus_foundation.potato.filtered_side` (it replaces `item_side`), which adds the number of filter entries after the priority. The power line keeps `side`.
 - Shift clicking an inventory item on the Fluid Pipe page sends nothing when the item holds no fluid or every fluid slot is set; it never falls through to the item filter.
 - `ItemPicker.Entry` gained a fluid component (with the old three argument constructor kept), and fluid entries draw the still texture in the fluid's colour through the new `FluidSprites.drawIcon`.
+- After the endpoint GUI rework (`m5-duct-endpoint-gui` design D4a and D6) the Fluid Pipe page shows In, Out, the redstone button and On/Off without Pull, the fluid filter row at y 73 and the fluid priority at y 93, and the trash can in the bottom right corner. The Duct GUI and Duct inspect copies in this change's delta specs follow it.

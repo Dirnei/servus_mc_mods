@@ -5,6 +5,7 @@ import static io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps.dataD
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
@@ -79,7 +80,7 @@ public final class DataCableTierGameTests {
         BlockPos pos = new BlockPos(3, 1, 3);
         UtilityDuctBlockEntity first = dataDuct(helper, pos, ServusLogisticsItems.DATA_CABLE.get());
         dataDuct(helper, pos.east(), ServusLogisticsItems.DATA_CABLE.get());
-        first.setMode(Line.DATA, Direction.UP, io.github.dirnei.mc.servus.foundation.side.SideMode.DISABLED);
+        first.setMode(Line.DATA, Direction.UP, DuctMode.NONE);
         ItemStack held = new ItemStack(ServusLogisticsItems.FAST_DATA_CABLE.get(), 3);
         BlockPos absolute = helper.absolutePos(pos);
         player.setItemInHand(InteractionHand.MAIN_HAND, held);
@@ -93,7 +94,7 @@ public final class DataCableTierGameTests {
             helper.assertTrue(dropped(helper, ServusLogisticsItems.DATA_CABLE.get()) == 1, "one Data Cable drops");
             helper.assertBlockNotPresent(ServusLogisticsBlocks.UTILITY_DUCT.get(), pos.north());
             helper.assertTrue(duct.hasArm(Line.DATA, Direction.EAST), "the link to the east duct stays");
-            helper.assertTrue(duct.mode(Line.DATA, Direction.UP) == io.github.dirnei.mc.servus.foundation.side.SideMode.DISABLED,
+            helper.assertTrue(duct.mode(Line.DATA, Direction.UP) == DuctMode.NONE,
                     "the side setting stays");
             helper.succeed();
         });

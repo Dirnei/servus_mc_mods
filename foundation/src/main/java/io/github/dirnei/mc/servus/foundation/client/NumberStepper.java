@@ -15,7 +15,9 @@ import net.minecraft.network.chat.Component;
 /**
  * A number field with a row of plus step buttons above it and the matching
  * minus buttons below it. A step of {@link AmountSteps#STACK} snaps to full
- * stacks of the size the stack supplier gives and is labelled with it.
+ * stacks of the size the stack supplier gives and is labelled with it. The
+ * buttons grow to fit their widest label and the field to fit the largest
+ * value, measured with the font, so {@link #width()} depends on both.
  *
  * <p>Use: create it in {@code init}, add every widget of {@link #widgets()}
  * with {@code addRenderableWidget}, {@link #place} it with absolute
@@ -26,12 +28,21 @@ import net.minecraft.network.chat.Component;
  */
 public final class NumberStepper {
 
+    /** The narrowest step button; wider labels widen every button of the stepper. */
     public static final int BUTTON_WIDTH = 24;
     public static final int BUTTON_HEIGHT = 14;
+    /** The narrowest field; a larger maximum widens it. */
     public static final int FIELD_WIDTH = 48;
     private static final int GAP = 1;
     private static final int ROW = 16;
+    /** Room around a button label. */
+    private static final int LABEL_PAD = 6;
+    /** Room inside the field's frame around its text. */
+    private static final int FIELD_PAD = 10;
+    /** The widest stack size a stack step can show. */
+    private static final String WIDEST_STACK = "99";
 
+    private final int buttonWidth;
     private final EditBox field;
     private final List<Button> plus = new ArrayList<>();
     private final List<Button> minus = new ArrayList<>();
@@ -53,16 +64,28 @@ public final class NumberStepper {
         this.changed = changed;
         this.steps = steps.clone();
         this.value = min;
-        field = new EditBox(font, 0, 0, FIELD_WIDTH, BUTTON_HEIGHT, name);
+        this.buttonWidth = buttonWidth(font, this.steps);
+        int fieldWidth = Math.max(FIELD_WIDTH, font.width(Integer.toString(max)) + FIELD_PAD);
+        field = new EditBox(font, 0, 0, fieldWidth, BUTTON_HEIGHT, name);
         field.setMaxLength(Integer.toString(max).length() + 1);
         field.setFilter(text -> text.chars().allMatch(Character::isDigit));
         field.setValue(Integer.toString(value));
         field.setResponder(this::typed);
         for (int step : this.steps) {
-            plus.add(Button.builder(Component.empty(), b -> step(step)).size(BUTTON_WIDTH, BUTTON_HEIGHT).build());
-            minus.add(Button.builder(Component.empty(), b -> step(-step)).size(BUTTON_WIDTH, BUTTON_HEIGHT).build());
+            plus.add(Button.builder(Component.empty(), b -> step(step)).size(buttonWidth, BUTTON_HEIGHT).build());
+            minus.add(Button.builder(Component.empty(), b -> step(-step)).size(buttonWidth, BUTTON_HEIGHT).build());
         }
         relabel();
+    }
+
+    /** The width every step button needs so its widest label, plus or minus, fits with room around it. */
+    private static int buttonWidth(Font font, int[] steps) {
+        int widest = 0;
+        for (int step : steps) {
+            String text = step == AmountSteps.STACK ? WIDEST_STACK : Integer.toString(step);
+            widest = Math.max(widest, Math.max(font.width("+" + text), font.width("-" + text)));
+        }
+        return Math.max(BUTTON_WIDTH, widest + LABEL_PAD);
     }
 
     /** The field and every step button, for {@code addRenderableWidget}. */
@@ -77,9 +100,9 @@ public final class NumberStepper {
         return field;
     }
 
-    /** Width of a button row; the field starts at the left edge of the rows. */
+    /** Width of a button row, or of the field when that is wider; the field starts at the left edge of the rows. */
     public int width() {
-        return steps.length * (BUTTON_WIDTH + GAP) - GAP;
+        return Math.max(steps.length * (buttonWidth + GAP) - GAP, field.getWidth());
     }
 
     public static int height() {
@@ -89,7 +112,7 @@ public final class NumberStepper {
     /** Puts the plus row at {@code y}, the field one row below and the minus row below that. */
     public void place(int x, int y) {
         for (int i = 0; i < steps.length; i++) {
-            int buttonX = x + i * (BUTTON_WIDTH + GAP);
+            int buttonX = x + i * (buttonWidth + GAP);
             plus.get(i).setPosition(buttonX, y);
             minus.get(i).setPosition(buttonX, y + 2 * ROW);
         }

@@ -4,12 +4,12 @@ import static io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps.duct;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.FluidFilter;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.UtilityDuctMenu;
 import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import java.util.Optional;
@@ -78,8 +78,8 @@ public final class DuctFluidFilterGameTests {
         UtilityDuctBlockEntity a = duct(helper, DUCT_A, Line.FLUID);
         UtilityDuctBlockEntity b = duct(helper, DUCT_B, Line.FLUID);
         UtilityDuctBlockEntity c = duct(helper, DUCT_C, Line.FLUID);
-        a.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
-        b.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
+        a.setMode(Line.FLUID, Direction.NORTH, DuctMode.IN);
+        b.setMode(Line.FLUID, Direction.NORTH, DuctMode.IN);
         c.setFluidFilter(Direction.NORTH, 0, Fluids.LAVA);
 
         helper.runAfterDelay(10, () -> {
@@ -119,7 +119,7 @@ public final class DuctFluidFilterGameTests {
         duct(helper, DUCT_B, Line.FLUID);
         duct(helper, DUCT_C, Line.FLUID);
         UtilityDuctBlockEntity d = duct(helper, DUCT_D, Line.FLUID);
-        a.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
+        a.setMode(Line.FLUID, Direction.NORTH, DuctMode.IN);
         d.setFluidPriority(Direction.NORTH, 5);
 
         helper.runAfterDelay(10, () -> {
@@ -141,7 +141,7 @@ public final class DuctFluidFilterGameTests {
         UtilityDuctBlockEntity c = duct(helper, DUCT_C, Line.FLUID);
         duct(helper, DUCT_D, Line.FLUID);
         UtilityDuctBlockEntity e = duct(helper, DUCT_E, Line.FLUID);
-        a.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
+        a.setMode(Line.FLUID, Direction.NORTH, DuctMode.IN);
         c.setFluidPriority(Direction.NORTH, 3);
         e.setFluidPriority(Direction.NORTH, 3);
 

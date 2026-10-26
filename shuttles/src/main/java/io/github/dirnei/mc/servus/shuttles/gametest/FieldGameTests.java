@@ -2,9 +2,9 @@ package io.github.dirnei.mc.servus.shuttles.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
@@ -291,7 +291,7 @@ public final class FieldGameTests {
         GameTestSteps.duct(helper, ductB, Line.FLUID);
         GameTestSteps.duct(helper, ductC, Line.FLUID);
         UtilityDuctBlockEntity a = helper.getBlockEntity(ductA, UtilityDuctBlockEntity.class);
-        a.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
+        a.setMode(Line.FLUID, Direction.NORTH, DuctMode.IN);
         FieldHeadBlockEntity head = helper.getBlockEntity(ductC.north(), FieldHeadBlockEntity.class);
         helper.succeedWhen(() -> helper.assertTrue(head.water() == 1000, "the head should hold the cauldron's water, got " + head.water()));
     }

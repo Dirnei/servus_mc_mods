@@ -4,15 +4,15 @@
 Each side of a duct's fluid line SHALL have a whitelist of up to nine fluids. An entry SHALL name a fluid type and match that fluid whatever its components. An empty list SHALL pass every fluid. Fluid drained from a side's block, fluid filled into a side's block and fluid pushed into the duct through a side SHALL match that side's list. A side whose block holds several fluids SHALL give only the listed ones.
 
 #### Scenario: Only lava to the furnace
-- **WHEN** a pull in side drains a tank of water and a tank of lava onto channel 1, and a machine on channel 1 touches a push out side whose fluid filter lists lava
+- **WHEN** a side with fluid In drains a tank of water and a tank of lava onto channel 1, and a machine on channel 1 touches a side with only Out whose fluid filter lists lava
 - **THEN** the machine receives only lava
 
 #### Scenario: Several tanks in one block
-- **WHEN** a pull in side whose fluid filter lists Mercury touches a block that holds a Sulfur tank and a Mercury tank
+- **WHEN** a side with fluid In whose fluid filter lists Mercury touches a block that holds a Sulfur tank and a Mercury tank
 - **THEN** only Mercury leaves that block
 
 #### Scenario: Empty filter
-- **WHEN** a push out side has no fluid filter entries
+- **WHEN** a side with only Out has no fluid filter entries
 - **THEN** its block receives any fluid it accepts, as before
 
 #### Scenario: Pushed in through a filtered side
@@ -43,18 +43,18 @@ A fluid filter slot SHALL be set to the fluid of an item that holds fluid (any m
 - **THEN** the slot shows lava
 
 #### Scenario: Clear
-- **WHEN** the player right clicks a fluid filter slot that shows water
+- **WHEN** the player shift right clicks a fluid filter slot that shows water
 - **THEN** the slot is empty
 
 ### Requirement: Per side fluid priorities
 Each side of a duct's fluid line SHALL have a priority from -9 to 9, default 0, set in the endpoint GUI, independent of the side's item priority. Routing SHALL offer fluid to the sinks of the highest priority on the channel first, sharing it fairly among them, and SHALL only offer what they cannot take to the next lower priority, and so on.
 
 #### Scenario: Main tank first
-- **WHEN** a source gives 1,000 mB a tick on channel 1, tank A touches a push out side with fluid priority 5 and tank B one with priority 0, both empty
+- **WHEN** a source gives 1,000 mB a tick on channel 1, tank A touches a side with only Out and fluid priority 5 and tank B one with priority 0, both empty
 - **THEN** tank A receives all the fluid until it is full, and only then tank B receives fluid
 
 #### Scenario: Fair within a priority
-- **WHEN** one source gives 100 mB in a tick and two empty tanks touch push out sides with fluid priority 3
+- **WHEN** one source gives 100 mB in a tick and two empty tanks touch sides with only Out and fluid priority 3
 - **THEN** each tank receives 50 mB that tick
 
 #### Scenario: Item priority stays separate
@@ -71,10 +71,10 @@ Routing fluid by priority tiers and fair shares within a tier SHALL be plain Jav
 ## MODIFIED Requirements
 
 ### Requirement: Fluid line behaviour
-Every tick a fluid line network SHALL, per channel, drain fluid from source blocks and fill it into sink blocks on the same channel. The pipe SHALL have no rate limit of its own: as much moves as the sources give and the sinks accept in that tick. Sinks SHALL be served by fluid priority, highest first, and short supply SHALL be shared fairly among the sinks of one priority. A pull in side SHALL make its block a source and a push out side its block a sink. Fluid SHALL only leave and enter a block when it passes that side's fluid filter, and a sink SHALL only receive fluid it accepts.
+Every tick a fluid line network SHALL, per channel, drain fluid from source blocks and fill it into sink blocks on the same channel. The pipe SHALL have no rate limit of its own: as much moves as the sources give and the sinks accept in that tick. Sinks SHALL be served by fluid priority, highest first, and short supply SHALL be shared fairly among the sinks of one priority. A side with only fluid In SHALL make its block a source and a side with only fluid Out its block a sink. Fluid SHALL only leave and enter a block when it passes that side's fluid filter, and a sink SHALL only receive fluid it accepts.
 
 #### Scenario: Pump to tank
-- **WHEN** a pump touches a duct's pull in side, a tank touches a push out side of a duct further along the run, both on channel 1, and the pump holds water
+- **WHEN** a pump touches a duct's side with only In, a tank touches a side with only Out of a duct further along the run, both on channel 1, and the pump holds water
 - **THEN** the tank's water rises every tick while the pump's buffer falls by the same amount
 
 #### Scenario: No pipe limit
@@ -94,7 +94,7 @@ Every tick a fluid line network SHALL, per channel, drain fluid from source bloc
 - **THEN** the water tank only receives water, and the empty tank receives one fluid and from then on only that fluid
 
 ### Requirement: Fluid pushed into a duct
-A duct carrying the Fluid Pipe SHALL accept fluid filled into it on a side whose fluid mode allows input and whose fluid filter passes the fluid, and SHALL pass it straight on to sinks on that side's channel by fluid priority and fluid filter, keeping nothing itself. With no sink that accepts the fluid it SHALL accept nothing.
+A duct carrying the Fluid Pipe SHALL accept fluid filled into it on a side with fluid In whose fluid filter passes the fluid, and SHALL pass it straight on to sinks on that side's channel by fluid priority and fluid filter, keeping nothing itself. With no sink that accepts the fluid it SHALL accept nothing.
 
 #### Scenario: Foreign pump pushes
 - **WHEN** another mod's pump fills water into a duct side on channel 1 and a tank on channel 1 has room
@@ -111,37 +111,45 @@ A duct carrying the Fluid Pipe SHALL accept fluid filled into it on a side whose
 ### Requirement: Duct GUI
 Using the Configuration Carrot, not sneaking, on any part of a duct (its centre or any arm) SHALL open the endpoint GUI. It SHALL open on the side of the clicked arm when that arm ends at a block other than a duct, and otherwise on the first selectable side in the order down, up, north, south, west, east. A duct without a selectable side SHALL open nothing.
 
-The GUI SHALL show a side picker row of six buttons, one per side. Each button SHALL show the item of the block beside that side (the item the pick block key would give), and the side's name in its tooltip together with the block's name. A side whose neighbour is a block other than a duct SHALL be selectable, whatever the modes of its lines, also when every line on it is disabled. A side toward another duct SHALL show that duct greyed and SHALL NOT be selectable. A side with no block beside it SHALL show an empty frame and SHALL NOT be selectable. The selected side SHALL be highlighted, and picking another side SHALL switch the GUI to that side without closing it, keeping the selected line tab when the duct carries it.
+The GUI SHALL show side tabs on top of the page, one fixed place per side in the order down, up, north, south, west, east. A tab SHALL show the item of the block beside that side (the item the pick block key would give), and the side's name in its tooltip together with the block's name. A side whose neighbour is a block other than a duct SHALL have a selectable tab, whatever the flags of its lines, also when no line on it connects. A side toward another duct SHALL show a greyed tab that SHALL NOT be selectable. A side with no block beside it SHALL show no tab, leaving its place free. The selected tab SHALL join the page, and picking another tab SHALL switch the GUI to that side without closing it, keeping the selected line tab when the duct carries it.
 
-Below the picker the GUI SHALL show the selected side's touched block name, one tab per present line on its left edge showing the line's item, and the page of the selected tab: the line's mode button, its Control button, a channel button showing the side's channel with its colour, icon and name, and a remove button; the Item Pipe page also the item filter slots and the item priority with minus and plus buttons; the Fluid Pipe page also the fluid filter slots and the fluid priority with minus and plus buttons; the data line page only an on and off button and the remove button. The player inventory SHALL be shown under every page. Item filter slots SHALL be hidden and inert on every page but the Item Pipe page, and fluid filter slots on every page but the Fluid Pipe page. Clicking a filter slot with an empty cursor SHALL open a search popup over the GUI that lists, on the Item Pipe page, every item with its icon and name, and on the Fluid Pipe page every fluid with its texture and name, filtered by the typed text, with a "none" entry first; picking an entry SHALL set the slot, "none" SHALL clear it. Bare hand right click SHALL open nothing.
+The page SHALL show the selected side's name and touched block name, one tab per present line on its left edge showing the line's item, and the page of the selected line. The item, power and fluid pages SHALL show a row of small icon buttons, each explained by its tooltip: In, Out and, on the Item Pipe page only, Pull as toggles that show whether they are on, the redstone setting as one button cycling Ignore redstone (gunpowder), While powered (lit redstone torch) and While unpowered (unlit redstone torch), and an On/Off button. Below the row a channel button SHALL show the side's channel with its colour, icon and name. The Item Pipe page SHALL also show the item filter slots and the item priority with minus and plus buttons, the Fluid Pipe page the fluid filter slots and the fluid priority with minus and plus buttons. The data line page SHALL only show an on and off button. Every page SHALL show a small trash can button in its bottom right corner, apart from the settings, whose tooltip says that it takes the line out of the whole duct and drops it, and that On/Off pauses instead. The player inventory SHALL be shown under every page. Item filter slots SHALL be hidden and inert on every page but the Item Pipe page, and fluid filter slots on every page but the Fluid Pipe page. Clicking a filter slot with an empty cursor SHALL open a search popup over the GUI that lists, on the Item Pipe page, every item with its icon and name, and on the Fluid Pipe page every fluid with its texture and name, filtered by the typed text, with a "none" entry first; picking an entry SHALL set the slot, "none" SHALL clear it. Bare hand right click SHALL open nothing.
 
 #### Scenario: Configure one side
-- **WHEN** the player uses the carrot on the west arm that touches a chest, sets the item mode to pull in and places cobblestone in a filter slot
+- **WHEN** the player uses the carrot on the west arm that touches a chest, switches Out off and Pull on for the item line and places cobblestone in a filter slot
 - **THEN** the duct pulls only cobblestone from the west
 
 #### Scenario: Two lines, two tabs
 - **WHEN** the player opens the GUI of a duct with an Item Pipe and a Power Cable
-- **THEN** two tabs show, the Item Pipe page is selected, and clicking the Power Cable tab shows its mode, Control button, channel button and remove button without filter slots
+- **THEN** two line tabs show, the Item Pipe page is selected, and clicking the Power Cable tab shows In, Out, the redstone button, On/Off, the channel button and the trash can, without Pull or filter slots
 
 #### Scenario: Fluid Pipe tab
 - **WHEN** the player opens the GUI of an arm whose duct carries all three lines and that touches a tank, and clicks the Fluid Pipe tab
-- **THEN** the Fluid Pipe page shows its mode, Control button, channel button, nine fluid filter slots, the fluid priority and the remove button, and no item filter slots
+- **THEN** the Fluid Pipe page shows In, Out, the redstone button, On/Off, the channel button, nine fluid filter slots, the fluid priority and the trash can, and no Pull or item filter slots
 
 #### Scenario: Data tab
 - **WHEN** the player opens the GUI of an arm toward a Warehouse Controller on a duct with the data line
-- **THEN** the data page shows an on and off button and the remove button, without Control button, channel button, filter slots or priority
+- **THEN** the data page shows an on and off button and the trash can, without flag buttons, redstone button, channel button, filter slots or priority
+
+#### Scenario: Trash can
+- **WHEN** the player hovers the trash can on the Item Pipe page
+- **THEN** the tooltip names "Remove Item Pipe" and says that it takes the line out of the whole duct and drops it, and that On/Off pauses instead; clicking it removes the Item Pipe from the duct and gives the player the item
+
+#### Scenario: Redstone button
+- **WHEN** the item line's side ignores redstone and the player clicks its redstone button twice
+- **THEN** the button shows a lit redstone torch after the first click and an unlit one after the second, and its tooltip names the setting
 
 #### Scenario: Open from the centre
 - **WHEN** a duct has a furnace above it and a chest to the north and the player uses the carrot on its centre
 - **THEN** the GUI opens on the up side, showing the furnace
 
-#### Scenario: Side picker shows the neighbours
+#### Scenario: Side tabs show the neighbours
 - **WHEN** a duct has a chest to the north, a furnace above, another duct to the east and nothing on the other sides, and the player opens its GUI
-- **THEN** the north button shows a chest, the up button a furnace, the east button a greyed duct and the other buttons empty frames; only north and up can be picked
+- **THEN** the north tab shows a chest, the up tab a furnace, the east tab a greyed duct, and down, south and west show no tab; only north and up can be picked
 
 #### Scenario: Switch sides
-- **WHEN** the GUI is open on the north side with the Item Pipe tab and the player picks up
-- **THEN** the GUI shows the up side's Item Pipe page with the furnace's name and that side's filter, mode and channel
+- **WHEN** the GUI is open on the north side with the Item Pipe tab and the player picks the up tab
+- **THEN** the GUI shows the up side's Item Pipe page with the furnace's name and that side's filter, flags and channel
 
 #### Scenario: Duct to duct arm
 - **WHEN** the player uses the carrot on an arm that leads to another duct, and the duct also touches a chest to the north
@@ -157,7 +165,7 @@ Below the picker the GUI SHALL show the selected side's touched block name, one 
 
 #### Scenario: Search popup
 - **WHEN** the player clicks an empty filter slot with an empty cursor
-- **THEN** a popup with a search field and a list opens over the GUI; typing narrows the list, Escape closes it without changing the slot
+- **THEN** a popup with a search field and an item list opens over the GUI; typing narrows the list, Escape closes it without changing the slot
 
 #### Scenario: Popup without JEI
 - **WHEN** JEI is not installed and the player clicks a filter slot with an empty cursor
@@ -166,3 +174,4 @@ Below the picker the GUI SHALL show the selected side's touched block name, one 
 #### Scenario: Channel button
 - **WHEN** the item line's side is on "Iron ore", red, with an iron ore icon
 - **THEN** the channel button shows a red swatch, the iron ore icon and "Iron ore"
+

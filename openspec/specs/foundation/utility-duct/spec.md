@@ -54,21 +54,45 @@ An Item Pipe, Power Cable, Fluid Pipe or Data Cable item SHALL place a Utility D
 - **THEN** no such item exists; the items are `servus_foundation:item_pipe`, `servus_foundation:power_cable` and `servus_foundation:fluid_pipe`
 
 ### Requirement: Per side modes per channel
-Each line of a duct SHALL have one of the modes in and out, pull in, push out or disabled per side, default in and out, set through the endpoint GUI's mode button for that line and kept with the block. A disabled side SHALL not connect visually or logically.
+Each item, power and fluid line of a duct SHALL have three flags per side, In, Out and Pull, kept with the block and set through the In, Out and Pull buttons of the line's page. The default SHALL be In and Out. In SHALL mean the side takes from its block, Out that it delivers to its block, and Pull that the duct also extracts items from its block. Pull SHALL only exist on the Item Pipe and only together with In: switching In off SHALL switch Pull off, and switching Pull on SHALL also switch In on. A side with neither In nor Out SHALL not connect visually or logically, and SHALL stay reachable in the endpoint GUI through the side tabs so its flags can be set again. The data line SHALL only be connected or not, through its on and off button.
 
 #### Scenario: Set a mode
-- **WHEN** the player sets the item line's west side to pull in
-- **THEN** the duct keeps that mode after reload and the GUI shows it
+- **WHEN** the player switches Pull on for the item line's west side, which is In and Out
+- **THEN** the side is In, Out and Pull, and the duct keeps that after reload and the GUI shows it
+
+#### Scenario: Pull switches In on
+- **WHEN** the item line's west side is only Out and the player clicks its Pull button
+- **THEN** the side is In, Out and Pull
+
+#### Scenario: In off drops Pull
+- **WHEN** the item line's west side is In and Pull and the player switches In off
+- **THEN** the side has neither In nor Out nor Pull and its arm goes away
+
+#### Scenario: Enable an unconnected side again
+- **WHEN** the item line's west side toward a chest has neither In nor Out, so the duct shows no arm there, and the player uses the carrot on the duct's centre, picks the West tab and switches In and Out on
+- **THEN** the arm toward the chest is back and items reach the chest again
+
+#### Scenario: Older worlds
+- **WHEN** a world saved before the flags is loaded, with sides in and out, pull in, push out and disabled
+- **THEN** on the Item Pipe they load as In and Out, In and Pull, Out, and neither, and a fluid or power pull in side loads as In
 
 ### Requirement: Item channel behaviour
-Items pushed into a duct on a side whose item mode allows input SHALL be routed round robin to inventories on sides whose item mode allows output and whose item channel equals the inserting side's channel, never back to the inserting inventory, within the per tick budget. Every `pull_interval` ticks each pull in side SHALL extract up to `items_per_pull` items from its inventory and route them on its own channel.
+Items pushed into a duct on a side with item In SHALL be routed round robin to inventories on sides with item Out whose item channel equals the inserting side's channel, never back to the inserting inventory, within the per tick budget. Every `pull_interval` ticks each side with item Pull SHALL extract up to `items_per_pull` items from its inventory and route them on its own channel, never back to that inventory, also when the side has Out. A side with In but without Pull SHALL take only what its block pushes into the duct and SHALL never extract from it.
 
 #### Scenario: Pull from a chest into another
-- **WHEN** chest A touches a duct's pull in side, chest B touches a push out side on the same channel and chest A holds 20 cobblestone
+- **WHEN** chest A touches a duct's side with In and Pull, chest B touches a side with Out on the same channel and chest A holds 20 cobblestone
 - **THEN** within a few seconds chest B holds the 20 cobblestone
 
+#### Scenario: In only does not pull
+- **WHEN** chest A touches a side with only In, chest B a side with Out on the same channel, and chest A holds 20 cobblestone
+- **THEN** chest A keeps its cobblestone, and 5 dirt pushed into the duct through chest A's side reach chest B
+
+#### Scenario: In, Out and Pull
+- **WHEN** chest A touches a side with In, Out and Pull, chest B a side with Out on the same channel, and chest A holds 20 cobblestone
+- **THEN** the cobblestone moves to chest B and none goes back into chest A
+
 #### Scenario: Disabled side
-- **WHEN** chest B's side is disabled
+- **WHEN** chest B's side has neither In nor Out
 - **THEN** chest B receives nothing
 
 #### Scenario: Different channel
@@ -151,26 +175,54 @@ Each side of a duct's item line SHALL have a priority from -9 to 9, default 0, s
 - **THEN** further items go to the priority 0 chest
 
 ### Requirement: Duct GUI
-Using the Configuration Carrot, not sneaking, on an arm of a duct that touches an inventory or machine SHALL open the endpoint GUI for that side. It SHALL show the side and the touched block's name, one tab per present line on its left edge showing the line's item, and the page of the selected tab: the line's mode button, a channel button showing the side's channel with its colour, icon and name, and a remove button; the Item Pipe page also the filter slots and the priority with minus and plus buttons; the data line page only an on and off button and the remove button. The player inventory SHALL be shown under every page. Filter slots SHALL be hidden and inert on every page but the Item Pipe page. Clicking a filter slot with an empty cursor SHALL open a search popup over the GUI that lists every item with its icon and name, filtered by the typed text, with a "none" entry first; picking an entry SHALL set the slot, "none" SHALL clear it. Using the carrot on the centre or on an arm toward another duct SHALL open nothing. Bare hand right click SHALL open nothing.
+Using the Configuration Carrot, not sneaking, on any part of a duct (its centre or any arm) SHALL open the endpoint GUI. It SHALL open on the side of the clicked arm when that arm ends at a block other than a duct, and otherwise on the first selectable side in the order down, up, north, south, west, east. A duct without a selectable side SHALL open nothing.
+
+The GUI SHALL show side tabs on top of the page, one fixed place per side in the order down, up, north, south, west, east. A tab SHALL show the item of the block beside that side (the item the pick block key would give), and the side's name in its tooltip together with the block's name. A side whose neighbour is a block other than a duct SHALL have a selectable tab, whatever the flags of its lines, also when no line on it connects. A side toward another duct SHALL show a greyed tab that SHALL NOT be selectable. A side with no block beside it SHALL show no tab, leaving its place free. The selected tab SHALL join the page, and picking another tab SHALL switch the GUI to that side without closing it, keeping the selected line tab when the duct carries it.
+
+The page SHALL show the selected side's name and touched block name, one tab per present line on its left edge showing the line's item, and the page of the selected line. The item, power and fluid pages SHALL show a row of small icon buttons, each explained by its tooltip: In, Out and, on the Item Pipe page only, Pull as toggles that show whether they are on, the redstone setting as one button cycling Ignore redstone (gunpowder), While powered (lit redstone torch) and While unpowered (unlit redstone torch), and an On/Off button. Below the row a channel button SHALL show the side's channel with its colour, icon and name. The Item Pipe page SHALL also show the item filter slots and the item priority with minus and plus buttons, the Fluid Pipe page the fluid filter slots and the fluid priority with minus and plus buttons. The data line page SHALL only show an on and off button. Every page SHALL show a small trash can button in its bottom right corner, apart from the settings, whose tooltip says that it takes the line out of the whole duct and drops it, and that On/Off pauses instead. The player inventory SHALL be shown under every page. Item filter slots SHALL be hidden and inert on every page but the Item Pipe page, and fluid filter slots on every page but the Fluid Pipe page. Clicking a filter slot with an empty cursor SHALL open a search popup over the GUI that lists, on the Item Pipe page, every item with its icon and name, and on the Fluid Pipe page every fluid with its texture and name, filtered by the typed text, with a "none" entry first; picking an entry SHALL set the slot, "none" SHALL clear it. Bare hand right click SHALL open nothing.
 
 #### Scenario: Configure one side
-- **WHEN** the player uses the carrot on the west arm that touches a chest, sets the item mode to pull in and places cobblestone in a filter slot
+- **WHEN** the player uses the carrot on the west arm that touches a chest, switches Out off and Pull on for the item line and places cobblestone in a filter slot
 - **THEN** the duct pulls only cobblestone from the west
 
 #### Scenario: Two lines, two tabs
 - **WHEN** the player opens the GUI of a duct with an Item Pipe and a Power Cable
-- **THEN** two tabs show, the Item Pipe page is selected, and clicking the Power Cable tab shows its mode, channel button and remove button without filter slots
+- **THEN** two line tabs show, the Item Pipe page is selected, and clicking the Power Cable tab shows In, Out, the redstone button, On/Off, the channel button and the trash can, without Pull or filter slots
 
 #### Scenario: Fluid Pipe tab
-- **WHEN** the player opens the GUI of an arm whose duct carries all three lines and that touches a tank
-- **THEN** three tabs show, and the Fluid Pipe page shows its mode, channel button and remove button without filter slots or priority
+- **WHEN** the player opens the GUI of an arm whose duct carries all three lines and that touches a tank, and clicks the Fluid Pipe tab
+- **THEN** the Fluid Pipe page shows In, Out, the redstone button, On/Off, the channel button, nine fluid filter slots, the fluid priority and the trash can, and no Pull or item filter slots
 
 #### Scenario: Data tab
 - **WHEN** the player opens the GUI of an arm toward a Warehouse Controller on a duct with the data line
-- **THEN** the data page shows an on and off button and the remove button, without channel button, filter slots or priority
+- **THEN** the data page shows an on and off button and the trash can, without flag buttons, redstone button, channel button, filter slots or priority
+
+#### Scenario: Trash can
+- **WHEN** the player hovers the trash can on the Item Pipe page
+- **THEN** the tooltip names "Remove Item Pipe" and says that it takes the line out of the whole duct and drops it, and that On/Off pauses instead; clicking it removes the Item Pipe from the duct and gives the player the item
+
+#### Scenario: Redstone button
+- **WHEN** the item line's side ignores redstone and the player clicks its redstone button twice
+- **THEN** the button shows a lit redstone torch after the first click and an unlit one after the second, and its tooltip names the setting
+
+#### Scenario: Open from the centre
+- **WHEN** a duct has a furnace above it and a chest to the north and the player uses the carrot on its centre
+- **THEN** the GUI opens on the up side, showing the furnace
+
+#### Scenario: Side tabs show the neighbours
+- **WHEN** a duct has a chest to the north, a furnace above, another duct to the east and nothing on the other sides, and the player opens its GUI
+- **THEN** the north tab shows a chest, the up tab a furnace, the east tab a greyed duct, and down, south and west show no tab; only north and up can be picked
+
+#### Scenario: Switch sides
+- **WHEN** the GUI is open on the north side with the Item Pipe tab and the player picks the up tab
+- **THEN** the GUI shows the up side's Item Pipe page with the furnace's name and that side's filter, flags and channel
 
 #### Scenario: Duct to duct arm
-- **WHEN** the player uses the carrot on an arm that leads to another duct
+- **WHEN** the player uses the carrot on an arm that leads to another duct, and the duct also touches a chest to the north
+- **THEN** the GUI opens on the north side
+
+#### Scenario: Nothing to configure
+- **WHEN** a duct only touches other ducts and the player uses the carrot on it
 - **THEN** no GUI opens
 
 #### Scenario: Bare hand
@@ -190,10 +242,10 @@ Using the Configuration Carrot, not sneaking, on an arm of a duct that touches a
 - **THEN** the channel button shows a red swatch, the iron ore icon and "Iron ore"
 
 ### Requirement: Fluid line behaviour
-Every tick a fluid line network SHALL, per channel, drain fluid from source blocks and fill it into sink blocks on the same channel. The pipe SHALL have no rate limit of its own: as much moves as the sources give and the sinks accept in that tick, sharing short supply fairly among the sinks. A pull in side SHALL make its block a source and a push out side its block a sink. Any fluid SHALL be moved, and a sink SHALL only receive fluid it accepts.
+Every tick a fluid line network SHALL, per channel, drain fluid from source blocks and fill it into sink blocks on the same channel. The pipe SHALL have no rate limit of its own: as much moves as the sources give and the sinks accept in that tick. Sinks SHALL be served by fluid priority, highest first, and short supply SHALL be shared fairly among the sinks of one priority. A side with only fluid In SHALL make its block a source and a side with only fluid Out its block a sink. Fluid SHALL only leave and enter a block when it passes that side's fluid filter, and a sink SHALL only receive fluid it accepts.
 
 #### Scenario: Pump to tank
-- **WHEN** a pump touches a duct's pull in side, a tank touches a push out side of a duct further along the run, both on channel 1, and the pump holds water
+- **WHEN** a pump touches a duct's side with only In, a tank touches a side with only Out of a duct further along the run, both on channel 1, and the pump holds water
 - **THEN** the tank's water rises every tick while the pump's buffer falls by the same amount
 
 #### Scenario: No pipe limit
@@ -201,7 +253,7 @@ Every tick a fluid line network SHALL, per channel, drain fluid from source bloc
 - **THEN** the whole content moves in one tick, as far as both tanks allow
 
 #### Scenario: Two sinks share
-- **WHEN** one source on channel 1 can give 100 mB in a tick and two empty tanks on channel 1 accept fluid
+- **WHEN** one source on channel 1 can give 100 mB in a tick and two empty tanks on channel 1 with the same fluid priority accept fluid
 - **THEN** each tank receives 50 mB that tick
 
 #### Scenario: Different channel
@@ -209,26 +261,26 @@ Every tick a fluid line network SHALL, per channel, drain fluid from source bloc
 - **THEN** no fluid moves
 
 #### Scenario: Mixed fluids
-- **WHEN** a tank of water and a tank of lava are sources on channel 1 and an empty tank and a water tank are sinks on channel 1
+- **WHEN** a tank of water and a tank of lava are sources on channel 1 and an empty tank and a water tank are sinks on channel 1, all without fluid filters
 - **THEN** the water tank only receives water, and the empty tank receives one fluid and from then on only that fluid
 
 ### Requirement: In and out sides for fluids
-On a side whose fluid mode is in and out, a block that accepts the fluid offered on its channel SHALL be a sink, and a block that gives fluid but accepts none SHALL be a source. So a pump drains into the pipe and a tank fills from it with the default mode, and fluid never runs back and forth between two tanks.
+On a side with fluid In and Out, a block that accepts the fluid offered on its channel SHALL be a sink, and a block that gives fluid but accepts none SHALL be a source. So a pump drains into the pipe and a tank fills from it with the default flags, and fluid never runs back and forth between two tanks. A side with only fluid In SHALL make its block a source, and a side with only fluid Out its block a sink.
 
 #### Scenario: Default settings
-- **WHEN** a pump and a tank touch the two ends of a fluid duct run with every side left on in and out
+- **WHEN** a pump and a tank touch the two ends of a fluid duct run with every side left on In and Out
 - **THEN** water flows from the pump into the tank
 
 #### Scenario: Emptying a tank
-- **WHEN** tank A touches a pull in side and tank B an in and out side on the same channel
+- **WHEN** tank A touches a side with only In and tank B a side with In and Out on the same channel
 - **THEN** fluid flows from tank A to tank B and never back
 
 #### Scenario: Two tanks on default sides
-- **WHEN** a full tank A and an empty tank B of the same size touch in and out sides on the same channel
+- **WHEN** a full tank A and an empty tank B of the same size touch In and Out sides on the same channel
 - **THEN** A's content moves into B and stays there; B keeps acting as a sink until the side's configuration changes
 
 ### Requirement: Fluid pushed into a duct
-A duct carrying the Fluid Pipe SHALL accept fluid filled into it on a side whose fluid mode allows input and SHALL pass it straight on to sinks on that side's channel, keeping nothing itself. With no sink that accepts the fluid it SHALL accept nothing.
+A duct carrying the Fluid Pipe SHALL accept fluid filled into it on a side with fluid In whose fluid filter passes the fluid, and SHALL pass it straight on to sinks on that side's channel by fluid priority and fluid filter, keeping nothing itself. With no sink that accepts the fluid it SHALL accept nothing.
 
 #### Scenario: Foreign pump pushes
 - **WHEN** another mod's pump fills water into a duct side on channel 1 and a tank on channel 1 has room
@@ -237,6 +289,10 @@ A duct carrying the Fluid Pipe SHALL accept fluid filled into it on a side whose
 #### Scenario: Nowhere to go
 - **WHEN** every sink on that channel is full
 - **THEN** the duct accepts no fluid
+
+#### Scenario: Pushed fluid follows priority
+- **WHEN** another mod's pump fills water into a duct side on channel 1 and two tanks on channel 1 have room, one on fluid priority 2 and one on 0
+- **THEN** the priority 2 tank receives the water until it is full
 
 ### Requirement: Named channel per line per side
 Each side of the item, power and fluid line SHALL be on one channel from the channel list, Default unless set, chosen in the endpoint GUI and kept with the block. Channels of the item, power and fluid lines on the same side are independent. Items, energy and fluid SHALL only move between sides on the same channel.
@@ -305,3 +361,197 @@ Flowing water and lava SHALL stop at a Utility Duct like at a solid wall: they S
 #### Scenario: Duct into flowing water
 - **WHEN** a player places a duct into flowing water
 - **THEN** the duct is placed dry and the water stops at it
+
+### Requirement: Redstone setting per line per side
+Each item, power and fluid line of a duct SHALL have a redstone setting per side, Ignore redstone, While powered or While unpowered, default Ignore redstone, kept with the block and cycled in that order by the line's redstone button. The settings of the lines on one side SHALL be independent. The data line SHALL have none.
+
+#### Scenario: Kept on reload
+- **WHEN** the fluid redstone setting of the east side is While powered and the world is reloaded
+- **THEN** the fluid setting of east is still While powered, and the item and power settings of east are Ignore redstone
+
+### Requirement: On/Off per line per side
+Each item, power and fluid line of a duct SHALL have an On/Off switch per side, default on, kept with the block and toggled by the line's On/Off button. A side SHALL be active when it is switched on and its redstone setting is met: Ignore redstone always, While powered while the duct is powered, While unpowered while it is not. Switching a side off or on SHALL keep its redstone setting and its flags. The data line SHALL have none.
+
+#### Scenario: Off kept on reload
+- **WHEN** the item line's up side is switched off and the world is reloaded
+- **THEN** the item line's up side is still off and its other lines are on
+
+#### Scenario: Off keeps the redstone setting
+- **WHEN** a side is While unpowered and the player switches it off and on again
+- **THEN** it is While unpowered again and runs as before
+
+#### Scenario: Older Control
+- **WHEN** a world saved with the older Control is loaded, a side on Off and one on While powered
+- **THEN** the first loads switched off with Ignore redstone, the second switched on with While powered
+
+### Requirement: Inactive sides move nothing
+A side that is not active SHALL keep its arm, connection, flags, channel, filter and priority, and SHALL move nothing on that line: it SHALL not be pulled from, SHALL not be a source or a sink, SHALL not receive routed items, fluid or energy, and SHALL accept nothing filled or inserted into the duct through it.
+
+#### Scenario: Switch a side off
+- **WHEN** chest A touches a side with In and Pull, chest B a side with Out on the same channel, chest A holds 20 cobblestone, and the player switches chest A's item side off
+- **THEN** chest A keeps its cobblestone, the arm toward chest A stays, and after switching it on again the cobblestone reaches chest B
+
+#### Scenario: Lines are independent
+- **WHEN** a machine's side carries the Item Pipe and the Power Cable, a lever beside the duct powers it, and the item redstone setting is While unpowered while the power setting is Ignore redstone
+- **THEN** the machine receives energy and no items
+
+#### Scenario: Off side accepts no pushed fluid
+- **WHEN** a pump pushes water into a duct side whose fluid line is switched off and a tank on the same channel has room
+- **THEN** the duct accepts no water through that side
+
+### Requirement: Duct redstone
+A duct SHALL count as powered while it receives a redstone signal from any neighbour, like a block that a lever or redstone dust powers. The powered state SHALL follow signal changes as they happen and SHALL NOT be found by checking blocks every tick. A duct SHALL not emit redstone.
+
+#### Scenario: Lever on a duct
+- **WHEN** chest A touches a side with In and Pull whose item redstone setting is While powered, chest B a side with Out on the same channel, chest A holds cobblestone and a lever on the ground beside the duct is switched on
+- **THEN** cobblestone moves to chest B, and once the lever is switched off no more cobblestone moves
+
+#### Scenario: Comparator stops the input
+- **WHEN** a comparator reads a full chest and powers the duct, and the item redstone setting of the side feeding that chest is While unpowered
+- **THEN** no items are delivered to that chest while it is full
+
+### Requirement: Side setting logic is pure
+The In, Out and Pull flags with their rules (Pull only with In, only on the Item Pipe, the data line only connected or not) and the loading of the older single modes, whether a side is active for its On/Off switch, redstone setting and powered state, the redstone cycle order and its storage encoding SHALL be plain Java without Minecraft classes and covered by unit tests.
+
+#### Scenario: Activity table
+- **WHEN** the unit tests check each redstone setting for on and off, powered and unpowered
+- **THEN** a switched off side is never active; switched on, Ignore redstone is active in both, While powered only when powered, While unpowered only when unpowered, and the cycle runs Ignore redstone, While powered, While unpowered, Ignore redstone
+
+#### Scenario: Flag tests
+- **WHEN** the unit tests set and toggle flags and load the older mode names
+- **THEN** Pull never stays without In, a side with neither In nor Out does not connect, and in and out, pull in, push out and disabled load as In and Out, In and Pull, Out and neither
+
+### Requirement: Per side fluid filters
+Each side of a duct's fluid line SHALL have a whitelist of up to nine fluids. An entry SHALL name a fluid type and match that fluid whatever its components. An empty list SHALL pass every fluid. Fluid drained from a side's block, fluid filled into a side's block and fluid pushed into the duct through a side SHALL match that side's list. A side whose block holds several fluids SHALL give only the listed ones.
+
+#### Scenario: Only lava to the furnace
+- **WHEN** a side with fluid In drains a tank of water and a tank of lava onto channel 1, and a machine on channel 1 touches a side with only Out whose fluid filter lists lava
+- **THEN** the machine receives only lava
+
+#### Scenario: Several tanks in one block
+- **WHEN** a side with fluid In whose fluid filter lists Mercury touches a block that holds a Sulfur tank and a Mercury tank
+- **THEN** only Mercury leaves that block
+
+#### Scenario: Empty filter
+- **WHEN** a side with only Out has no fluid filter entries
+- **THEN** its block receives any fluid it accepts, as before
+
+#### Scenario: Pushed in through a filtered side
+- **WHEN** another mod's pump pushes water into a side whose fluid filter lists lava
+- **THEN** the duct accepts no water through that side
+
+### Requirement: Setting fluid filter slots
+A fluid filter slot SHALL be set to the fluid of an item that holds fluid (any mod's container) when clicked with it, the first free slot when such an item is shift clicked in the inventory, by dragging a fluid or a filled container from JEI, or by picking a fluid in the search popup. Right click SHALL clear a slot. An item without fluid SHALL change nothing. The player's item SHALL never be taken or emptied. A slot SHALL show the fluid's texture in its colour and name it in its tooltip.
+
+#### Scenario: Water bucket sets water
+- **WHEN** the player clicks the first fluid filter slot with a water bucket on the cursor
+- **THEN** the slot shows water, the side passes only water, and the cursor still holds a water bucket
+
+#### Scenario: Filled tank item
+- **WHEN** the player shift clicks a dismantled Fluid Tank holding lava in the inventory
+- **THEN** the first free fluid filter slot shows lava
+
+#### Scenario: Item without fluid
+- **WHEN** the player clicks a fluid filter slot with cobblestone on the cursor
+- **THEN** the slot does not change
+
+#### Scenario: Drag a fluid from JEI
+- **WHEN** JEI is installed and the player drags Lava from the JEI fluid list onto the second fluid filter slot
+- **THEN** the second slot shows lava
+
+#### Scenario: Pick a fluid by search
+- **WHEN** the player clicks an empty fluid filter slot with an empty cursor, types "lav" and picks Lava
+- **THEN** the slot shows lava
+
+#### Scenario: Clear
+- **WHEN** the player shift right clicks a fluid filter slot that shows water
+- **THEN** the slot is empty
+
+### Requirement: Per side fluid priorities
+Each side of a duct's fluid line SHALL have a priority from -9 to 9, default 0, set in the endpoint GUI, independent of the side's item priority. Routing SHALL offer fluid to the sinks of the highest priority on the channel first, sharing it fairly among them, and SHALL only offer what they cannot take to the next lower priority, and so on.
+
+#### Scenario: Main tank first
+- **WHEN** a source gives 1,000 mB a tick on channel 1, tank A touches a side with only Out and fluid priority 5 and tank B one with priority 0, both empty
+- **THEN** tank A receives all the fluid until it is full, and only then tank B receives fluid
+
+#### Scenario: Fair within a priority
+- **WHEN** one source gives 100 mB in a tick and two empty tanks touch sides with only Out and fluid priority 3
+- **THEN** each tank receives 50 mB that tick
+
+#### Scenario: Item priority stays separate
+- **WHEN** a side's item priority is 5 and the player sets its fluid priority to -2
+- **THEN** after reload the item priority is 5 and the fluid priority is -2
+
+### Requirement: Fluid routing with priorities is pure
+Routing fluid by priority tiers and fair shares within a tier SHALL be plain Java without Minecraft classes and covered by unit tests.
+
+#### Scenario: Tier tests
+- **WHEN** the unit tests route one key to sinks of priorities 5, 5 and 0
+- **THEN** the two priority 5 sinks share the supply fairly, and the priority 0 sink receives only what both could not take
+
+### Requirement: Amounts on filter entries
+Every item filter slot and every fluid filter slot of a duct side SHALL carry an amount, none by default, in items for item entries and in mB for fluid entries. The amount SHALL be kept with the block and on dismantling, and SHALL be cleared with its slot. An entry without an amount SHALL behave as before. When two entries of one side name the same item or fluid, the first one's amount SHALL count.
+
+#### Scenario: Default
+- **WHEN** a player sets cobblestone in a filter slot
+- **THEN** the slot has no amount and cobblestone passes as before
+
+#### Scenario: Cleared with the slot
+- **WHEN** a slot shows sapling with amount 64 and the player shift right clicks it
+- **THEN** the slot is empty, and setting sapling again gives it no amount
+
+### Requirement: Keep amount on giving sides
+On a side that gives (an item side with Pull, a fluid side with only In, or a fluid side with In and Out acting as a source), an entry's amount SHALL be a keep amount: the duct SHALL take that item or fluid from the block only while the block holds more than the amount, and SHALL never take it below the amount. The held amount SHALL count everything of that item or fluid the block shows to that side, over all its slots or tanks.
+
+#### Scenario: Keep 64 saplings
+- **WHEN** a chest holds 300 oak saplings, its side has In and Pull with the entry "oak sapling, 64", and a composter's side on the same channel has Out
+- **THEN** the duct moves 236 saplings and the chest keeps 64
+
+#### Scenario: Overflow to the Sink
+- **WHEN** a tank holds 12,000 mB of water, its side has only In with the entry "water, 8,000 mB", and a Sink on the same channel accepts fluid
+- **THEN** 4,000 mB move to the Sink and the tank stays at 8,000 mB, and when a pump fills the tank again only the water above 8,000 mB moves
+
+#### Scenario: Below the amount
+- **WHEN** the chest holds 40 saplings with the entry "oak sapling, 64"
+- **THEN** no sapling leaves the chest
+
+#### Scenario: Counted over all slots
+- **WHEN** a chest holds 3 stacks of 64 cobblestone in different slots and the entry of its side with Pull is "cobblestone, 100"
+- **THEN** 92 cobblestone leave the chest
+
+### Requirement: Fill up to amount on receiving sides
+On a side that receives (an item side with Out receiving routed items, a fluid side with only Out, or a fluid side with In and Out acting as a sink), an entry's amount SHALL be a fill up to amount: the block SHALL receive that item or fluid only until it holds the amount. Further items or fluid SHALL go to other outputs on the channel as if this one were full.
+
+#### Scenario: Regulate a furnace
+- **WHEN** a furnace's side has only Out with the entry "coal, 16" and 64 coal arrive on the channel while a chest on a lower priority also receives
+- **THEN** the furnace holds 16 coal and the other 48 go to the chest
+
+#### Scenario: Refill as it burns
+- **WHEN** the furnace burns 3 of its 16 coal
+- **THEN** it receives 3 coal again
+
+#### Scenario: Fill a boiler to a level
+- **WHEN** a boiler's side has only Out with the entry "water, 4,000 mB" and a pump supplies water on the channel
+- **THEN** the boiler holds at most 4,000 mB of water from the duct
+
+### Requirement: Editing amounts
+A filter slot with an amount SHALL show it in its corner, fluids in mB shortened above 1,000. Right clicking a set filter slot SHALL open an amount popup with a number field, step buttons and Clear, labelled "Keep" on a giving side, "Up to" on a receiving side and "Keep / up to" on a side that does both (an item side with Pull and Out, a fluid side with In and Out). Saving an empty field or 0 SHALL remove the amount. The slot's tooltip SHALL name the amount and its meaning.
+
+#### Scenario: Set a keep amount
+- **WHEN** the item side has In and Pull, the player right clicks the sapling slot, types 64 and saves
+- **THEN** the slot shows 64 and its tooltip reads "Keep 64"
+
+#### Scenario: Fluid amount
+- **WHEN** the player sets 8000 on a water slot of a fluid side with only In
+- **THEN** the slot shows "8k" and its tooltip reads "Keep 8,000 mB"
+
+#### Scenario: Remove an amount
+- **WHEN** the player opens the popup on a slot with amount 64 and presses Clear
+- **THEN** the slot shows no amount and still lists its item
+
+### Requirement: Keep logic is pure
+How much may be given above a keep amount and how much may be received below a fill up to amount, given the held amount and the offered amount, SHALL be plain Java without Minecraft classes and covered by unit tests.
+
+#### Scenario: Allowance tests
+- **WHEN** the unit tests compute allowances
+- **THEN** holding 300 with keep 64 allows 236 of an offer of 1,000; holding 40 with keep 64 allows 0; holding 13 with up to 16 accepts 3 of an offer of 64; no amount allows the whole offer

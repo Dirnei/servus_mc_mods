@@ -2,10 +2,15 @@ package io.github.dirnei.mc.servus.foundation.logistics.client;
 
 import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.FluidFilter;
+import io.github.dirnei.mc.servus.foundation.picker.PickerStock;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
@@ -67,14 +72,29 @@ final class FluidFilterRow {
         }
     }
 
-    /** The hovered slot's fluid name; returns whether a tooltip was drawn. */
-    boolean renderTooltip(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY) {
+    /** The hovered slot's fluid name followed by {@code extra} lines for that slot; returns whether a tooltip was drawn. */
+    boolean renderTooltip(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY, IntFunction<List<Component>> extra) {
         int slot = slotAt(mouseX, mouseY);
         FluidStack fluid = slot == FluidFilter.NONE ? FluidStack.EMPTY : fluid(slot);
         if (fluid.isEmpty()) {
             return false;
         }
-        graphics.setTooltipForNextFrame(font, fluid.getHoverName(), mouseX, mouseY);
+        List<Component> lines = new ArrayList<>();
+        lines.add(fluid.getHoverName());
+        lines.addAll(extra.apply(slot));
+        graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
         return true;
+    }
+
+    /** Draws each set slot's amount in its corner, shortened above 1,000; call after the slots are drawn. */
+    void renderAmounts(GuiGraphicsExtractor graphics, Font font) {
+        FluidFilter current = filter.get();
+        for (int slot = 0; slot < FluidFilter.SLOTS; slot++) {
+            int amount = current.amount(slot);
+            if (amount > 0) {
+                String text = PickerStock.shortCount(amount);
+                graphics.text(font, text, left + slot * STRIDE + 17 - font.width(text), top + 9, 0xFFFFFFFF, true);
+            }
+        }
     }
 }

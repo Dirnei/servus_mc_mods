@@ -7,11 +7,11 @@ import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.data.DataSummary;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.shuttles.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import java.util.Arrays;
@@ -193,14 +193,14 @@ public final class DataCableGameTests {
         helper.runAfterDelay(2, () -> {
             helper.assertTrue(requireNetwork(helper, A).dataMembers().size() == 1, "the controller starts as a member");
             UtilityDuctBlockEntity east = helper.getBlockEntity(C, UtilityDuctBlockEntity.class);
-            east.setMode(Line.DATA, Direction.EAST, SideMode.DISABLED);
+            east.setMode(Line.DATA, Direction.EAST, DuctMode.NONE);
             UtilityDuctBlockEntity middle = helper.getBlockEntity(B, UtilityDuctBlockEntity.class);
-            middle.setMode(Line.DATA, Direction.WEST, SideMode.DISABLED);
+            middle.setMode(Line.DATA, Direction.WEST, DuctMode.NONE);
             helper.runAfterDelay(2, () -> {
                 helper.assertTrue(requireNetwork(helper, C).dataMembers().isEmpty(), "an off side reaches no member");
                 helper.assertTrue(!dataArm(helper, C, Direction.EAST), "no data arm toward the controller");
                 helper.assertTrue(requireNetwork(helper, A) != requireNetwork(helper, B), "an off side between ducts splits the network");
-                helper.assertTrue(east.mode(Line.DATA, Direction.EAST) == SideMode.DISABLED, "the side stays off");
+                helper.assertTrue(east.mode(Line.DATA, Direction.EAST) == DuctMode.NONE, "the side stays off");
                 helper.succeed();
             });
         });

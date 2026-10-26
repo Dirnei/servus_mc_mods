@@ -4,11 +4,12 @@ import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.fluid.FluidRouting;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctFluidHandler;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.FluidFilter;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.KeepAmounts;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.network.NetworkType;
 import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctMode;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,11 +37,11 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
  * filters decide which fluids leave and enter a block, and sinks are served
  * by fluid priority, highest first.
  *
- * <p>Roles per tick: a pull in side's block is a source, a push out side's
- * block a sink. An in and out side's block is a sink when it accepts one of
+ * <p>Roles per tick: a side with only In makes its block a source, one with only Out
+ * a sink. The block of a side with In and Out is a sink when it accepts one of
  * the fluids offered on its channel, and otherwise a source when it holds
- * fluid. Once an in and out side's block has received fluid it stays a sink
- * until that duct's configuration changes, so two tanks on in and out sides
+ * fluid. Once such a block has received fluid it stays a sink
+ * until that duct's configuration changes, so two tanks on In and Out sides
  * never trade fluid back and forth.
  */
 public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.Endpoint> {
@@ -83,13 +84,13 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
         final UtilityDuctBlockEntity duct;
         final Direction side;
         final BlockPos target;
-        final SideMode mode;
+        final DuctMode mode;
         final int channel;
         final BlockCapabilityCache<ResourceHandler<FluidResource>, Direction> cache;
-        /** An in and out side whose block has received fluid acts only as a sink from then on. */
+        /** A side with In and Out whose block has received fluid acts only as a sink from then on. */
         boolean receiving;
 
-        Endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int channel,
+        Endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, DuctMode mode, int channel,
                  BlockCapabilityCache<ResourceHandler<FluidResource>, Direction> cache) {
             this.duct = duct;
             this.side = side;
@@ -111,8 +112,12 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
             return duct.fluidPriority(side);
         }
 
+        int amountFor(Fluid fluid) {
+            return duct.fluidAmountFor(side, fluid);
+        }
+
         boolean inAndOut() {
-            return mode.allowsInsert() && mode.allowsExtract();
+            return mode.in() && mode.out();
         }
 
         /** The neighbour's handler, null when there is none or it is another duct. */
@@ -131,7 +136,7 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
         }
     }
 
-    /** An endpoint as a routing sink, taking only what its fluid filter passes. */
+    /** An endpoint as a routing sink, taking only what its fluid filter passes and up to its fill up to amount. */
     private record Sink(FluidView handler, Endpoint endpoint) implements FluidRouting.Sink<FluidKey> {
 
         @Override
@@ -143,6 +148,14 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
         public int fill(FluidKey key, int amount, boolean simulate) {
             if (!endpoint.allows(key)) {
                 return 0;
+            }
+            Fluid fluid = key.stack(1).getFluid();
+            int upTo = endpoint.amountFor(fluid);
+            if (upTo > 0) {
+                amount = KeepAmounts.receiveAllowance(heldAmount(handler, fluid), upTo, amount);
+                if (amount <= 0) {
+                    return 0;
+                }
             }
             int filled = handler.fill(key.stack(amount), simulate);
             if (!simulate && filled > 0 && endpoint.inAndOut()) {
@@ -157,7 +170,7 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
     }
 
     @Override
-    protected Endpoint endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int channel) {
+    protected Endpoint endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, DuctMode mode, int channel) {
         return new Endpoint(duct, side, target, mode, channel, BlockCapabilityCache.create(Capabilities.Fluid.BLOCK, level, target, side.getOpposite()));
     }
 
@@ -191,21 +204,21 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
             if (handler == null) {
                 continue;
             }
-            boolean mayGive = endpoint.mode.allowsInsert() && !endpoint.receiving;
+            boolean mayGive = endpoint.mode.in() && !endpoint.receiving;
             if (mayGive) {
-                FluidStack available = offerOf(handler, endpoint.duct.fluidFilter(endpoint.side));
+                FluidStack available = keepBack(endpoint, handler, offerOf(handler, endpoint.duct.fluidFilter(endpoint.side)));
                 if (!available.isEmpty()) {
                     FluidKey key = FluidKey.of(available);
                     offers.put(endpoint, new Source(handler, new FluidRouting.Offer<>(key, available.getAmount())));
                     offered.add(key);
                 }
             }
-            if (!endpoint.mode.allowsExtract()) {
+            if (!endpoint.mode.out()) {
                 Source source = offers.get(endpoint);
                 if (source != null) {
                     sources.add(source);
                 }
-            } else if (!endpoint.mode.allowsInsert()) {
+            } else if (!endpoint.mode.in()) {
                 sinks.add(new Sink(handler, endpoint));
             } else {
                 undecided.add(endpoint);
@@ -249,9 +262,35 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
         return FluidStack.EMPTY;
     }
 
+    /** The offer less what the side's keep amount for that fluid leaves in the block. */
+    private static FluidStack keepBack(Endpoint endpoint, FluidView handler, FluidStack available) {
+        if (available.isEmpty()) {
+            return available;
+        }
+        int keep = endpoint.amountFor(available.getFluid());
+        if (keep <= 0) {
+            return available;
+        }
+        int allowed = KeepAmounts.giveAllowance(heldAmount(handler, available.getFluid()), keep, available.getAmount());
+        return allowed <= 0 ? FluidStack.EMPTY : available.copyWithAmount(allowed);
+    }
+
+    /** How much of the fluid the handler holds over all its tanks. */
+    private static long heldAmount(FluidView handler, Fluid fluid) {
+        ResourceHandler<FluidResource> tanks = handler.handler();
+        long held = 0;
+        for (int index = 0; index < tanks.size(); index++) {
+            if (tanks.getResource(index).getFluid() == fluid) {
+                held += tanks.getAmountAsLong(index);
+            }
+        }
+        return held;
+    }
+
     private static boolean accepts(Endpoint endpoint, FluidView handler, Set<FluidKey> keys) {
+        Sink sink = new Sink(handler, endpoint);
         for (FluidKey key : keys) {
-            if (endpoint.allows(key) && handler.fill(key.stack(Integer.MAX_VALUE), true) > 0) {
+            if (sink.fill(key, Integer.MAX_VALUE, true) > 0) {
                 return true;
             }
         }
@@ -275,7 +314,7 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
         long room = 0;
         for (List<Endpoint> list : endpoints.values()) {
             for (Endpoint endpoint : list) {
-                if (endpoint.channel != channel || !endpoint.mode.allowsExtract() || endpoint.target.equals(origin) || !endpoint.active()
+                if (endpoint.channel != channel || !endpoint.mode.out() || endpoint.target.equals(origin) || !endpoint.active()
                         || !endpoint.allows(key)) {
                     continue;
                 }
@@ -283,9 +322,10 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
                 if (handler == null) {
                     continue;
                 }
-                int accepted = handler.fill(key.stack(resource.getAmount()), true);
+                Sink sink = new Sink(handler, endpoint);
+                int accepted = sink.fill(key, resource.getAmount(), true);
                 if (accepted > 0) {
-                    sinks.add(new Sink(handler, endpoint));
+                    sinks.add(sink);
                     room += accepted;
                 }
             }

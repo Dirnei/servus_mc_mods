@@ -31,9 +31,10 @@ All of them are listed in the Servus creative tab.
 One block that carries up to four lines: Item Pipe, Power Cable, Fluid Pipe and the data line. It works with any block that offers the standard item, energy or fluid capability.
 
 - Each line forms its own network: an item network only spans ducts with an Item Pipe, and so on.
-- Every side of every line has a mode: in and out (default), pull in, push out or disabled. A disabled side does not connect.
+- Every side of every line has three switches: In (takes from the block), Out (delivers to the block) and, on the Item Pipe, Pull (also extracts items, only with In). In and Out is the default. A side with neither In nor Out does not connect.
+- Every side of every line also has a redstone setting (ignore redstone, while powered, while unpowered) and an On/Off switch. A side that is off or whose redstone setting is not met keeps its connection and moves nothing.
 - Every side of every line sits on one of eight channels, each with a fixed color. Items, energy and fluids only move between sides on the same channel.
-- **Items** inserted into a duct go round robin to outputs on the same channel, never back to where they came from. Pull in sides extract items from their inventory at a fixed interval.
+- **Items** inserted into a duct go round robin to outputs on the same channel, never back to where they came from. Sides with Pull extract items from their inventory at a fixed interval.
 - **Filters**: each item side has a whitelist of up to nine ghost items. An empty list passes everything.
 - **Priorities**: each item side has a priority from -9 to 9. Higher priorities are filled first.
 - **Energy** is shared evenly between receivers on a channel, up to a per tick limit.
@@ -41,7 +42,7 @@ One block that carries up to four lines: Item Pipe, Power Cable, Fluid Pipe and 
 
 ### Endpoint GUI
 
-Use the Configuration Carrot on an arm that touches an inventory or machine. The GUI has a tab per line with the mode button, the channel selector and a remove button, and for the item line also the filter slots and the priority. The carrot on the center or on an arm to another duct opens nothing, and a bare hand never does. Removing the last line removes the duct.
+Use the Configuration Carrot on any part of a duct. Tabs on top pick the side, tabs on the left the line. Each line page has small buttons for In, Out, Pull, the redstone setting and On/Off (hover them for what they do), the channel selector, and for the item and fluid lines the filter slots and the priority. The trash can in the bottom right corner takes the line out of the duct and drops it; removing the last line removes the duct. A bare hand opens nothing.
 
 ### Appearance
 

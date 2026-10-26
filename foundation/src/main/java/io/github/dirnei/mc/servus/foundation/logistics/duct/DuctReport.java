@@ -11,7 +11,6 @@ import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -21,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * The chat report of the Data Potato on a duct: per present line the clicked
- * side's mode, Control, channel, priority and filter entries, run size and in and out sides, or for the
+ * side's In, Out and Pull flags, redstone setting and whether it is switched off or paused, channel, priority, filter entries and those with an amount, run size and in and out sides, or for the
  * centre whether the duct is powered and the run sizes; the data line always names tier, bandwidth and
  * load. Server thread only; counts cover the loaded part of a run.
  */
@@ -59,15 +58,15 @@ public final class DuctReport {
     private static Component sideLine(UtilityDuctBlockEntity duct, Line line, Direction side) {
         int channel = duct.channel(line, side);
         EndpointTally tally = EndpointTally.of(channel, duct.<LineNetwork<?>>network(line).map(LineNetwork::blockSides).orElse(List.of()));
-        Component mode = Component.translatable("gui.servus_foundation.mode." + duct.mode(line, side).name().toLowerCase(Locale.ROOT));
+        Component mode = Component.translatable("gui.servus_foundation.mode." + duct.mode(line, side).key());
         Component control = control(duct, line, side);
         if (line == Line.ITEM) {
             return Component.translatable(KEY + "filtered_side", lineName(line), mode, control, channelName(duct, channel), duct.priority(side),
-                    itemEntries(duct, side), runSize(duct, line), tally.in(), tally.out());
+                    itemEntries(duct, side), duct.itemAmountEntries(side), runSize(duct, line), tally.in(), tally.out());
         }
         if (line == Line.FLUID) {
             return Component.translatable(KEY + "filtered_side", lineName(line), mode, control, channelName(duct, channel), duct.fluidPriority(side),
-                    duct.fluidFilter(side).entries().size(), runSize(duct, line), tally.in(), tally.out());
+                    duct.fluidFilter(side).entries().size(), duct.fluidFilter(side).amountEntries(), runSize(duct, line), tally.in(), tally.out());
         }
         return Component.translatable(KEY + "side", lineName(line), mode, control, channelName(duct, channel), runSize(duct, line),
                 tally.in(), tally.out());
@@ -83,9 +82,12 @@ public final class DuctReport {
         return entries;
     }
 
-    /** The side's Control by name, marked paused while it keeps the side from moving anything. */
+    /** The side's redstone setting by name, marked switched off by its On/Off button, or paused while the setting is not met. */
     private static Component control(UtilityDuctBlockEntity duct, Line line, Direction side) {
-        Component name = Component.translatable("gui.servus_foundation.control." + duct.control(line, side).key());
+        Component name = Component.translatable("gui.servus_foundation.redstone." + duct.redstone(line, side).key());
+        if (!duct.isOn(line, side)) {
+            return Component.translatable(KEY + "switched_off", name);
+        }
         return duct.isActive(line, side) ? name : Component.translatable(KEY + "paused", name);
     }
 

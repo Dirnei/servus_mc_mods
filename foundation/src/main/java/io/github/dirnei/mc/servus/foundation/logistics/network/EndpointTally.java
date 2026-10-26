@@ -1,12 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.logistics.network;
 
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctMode;
 import java.util.List;
 
 /**
- * Counts the duct sides of one channel that take from a block ({@code in}: pull in,
- * in and out) and that deliver to a block ({@code out}: push out, in and out).
- * An in and out side counts on both; off sides and other channels count on neither.
+ * Counts the duct sides of one channel that take from a block ({@code in}: every side with In)
+ * and that deliver to a block ({@code out}: every side with Out).
+ * A side with In and Out counts on both; unconnected sides and other channels count on neither.
  *
  * @param in  sides on the channel the run takes from
  * @param out sides on the channel the run delivers to
@@ -14,7 +14,7 @@ import java.util.List;
 public record EndpointTally(int in, int out) {
 
     /** One duct side that touches a block: its channel id and mode. */
-    public record Side(int channel, SideMode mode) {
+    public record Side(int channel, DuctMode mode) {
     }
 
     /** The tally of {@code channel} over {@code sides}. */
@@ -35,11 +35,11 @@ public record EndpointTally(int in, int out) {
         return new EndpointTally(in, out);
     }
 
-    private static boolean takes(SideMode mode) {
-        return mode == SideMode.INPUT || mode == SideMode.BOTH;
+    private static boolean takes(DuctMode mode) {
+        return mode.in();
     }
 
-    private static boolean delivers(SideMode mode) {
-        return mode == SideMode.OUTPUT || mode == SideMode.BOTH;
+    private static boolean delivers(DuctMode mode) {
+        return mode.out();
     }
 }

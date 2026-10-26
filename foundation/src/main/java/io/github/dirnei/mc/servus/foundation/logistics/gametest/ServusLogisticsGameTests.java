@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.item.Reveal;
 import io.github.dirnei.mc.servus.foundation.logistics.channel.Channel;
 import io.github.dirnei.mc.servus.foundation.logistics.channel.DuctChannelData;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctModelData;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctPose;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctShapes;
@@ -26,7 +27,6 @@ import io.github.dirnei.mc.servus.foundation.logistics.network.ChannelUses;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import java.util.ArrayList;
@@ -112,7 +112,7 @@ public final class ServusLogisticsGameTests {
         UtilityDuctBlockEntity a = duct(helper, DUCT_A, Line.ITEM);
         duct(helper, DUCT_B, Line.ITEM);
         UtilityDuctBlockEntity c = duct(helper, DUCT_C, Line.ITEM);
-        a.setMode(Line.ITEM, Direction.NORTH, SideMode.INPUT);
+        a.setMode(Line.ITEM, Direction.NORTH, DuctMode.IN_PULL);
         c.setChannel(Line.ITEM, Direction.NORTH, channel(helper, "Other"));
 
         helper.runAfterDelay(80, () -> {
@@ -136,7 +136,7 @@ public final class ServusLogisticsGameTests {
         duct(helper, DUCT_B, Line.ITEM);
         UtilityDuctBlockEntity c = duct(helper, DUCT_C, Line.ITEM);
         a.filter(Direction.NORTH).setStackInSlot(0, new ItemStack(Items.COBBLESTONE));
-        a.setMode(Line.ITEM, Direction.NORTH, SideMode.INPUT);
+        a.setMode(Line.ITEM, Direction.NORTH, DuctMode.IN_PULL);
         c.setChannel(Line.ITEM, Direction.NORTH, channel(helper, "Other"));
 
         helper.runAfterDelay(80, () -> {
@@ -159,7 +159,7 @@ public final class ServusLogisticsGameTests {
         UtilityDuctBlockEntity b = duct(helper, DUCT_B, Line.ITEM);
         duct(helper, DUCT_C, Line.ITEM);
         int iron = channel(helper, "Iron ore");
-        a.setMode(Line.ITEM, Direction.NORTH, SideMode.INPUT);
+        a.setMode(Line.ITEM, Direction.NORTH, DuctMode.IN_PULL);
         a.setChannel(Line.ITEM, Direction.NORTH, iron);
         b.setChannel(Line.ITEM, Direction.NORTH, iron);
         helper.assertTrue(a.channel(Line.ITEM, Direction.NORTH) == iron, "side A reads the created channel");
@@ -239,9 +239,9 @@ public final class ServusLogisticsGameTests {
         west.addLine(Line.ENERGY);
         helper.assertTrue(duct.arms(Line.ENERGY) == westBit, "the energy arm should appear toward the west duct, got " + duct.arms(Line.ENERGY));
 
-        duct.setMode(Line.ITEM, Direction.EAST, SideMode.DISABLED);
+        duct.setMode(Line.ITEM, Direction.EAST, DuctMode.NONE);
         helper.assertTrue(duct.arms(Line.ITEM) == westBit && duct.endpoints() == 0, "a disabled side has no arm and is no endpoint");
-        duct.setMode(Line.ITEM, Direction.EAST, SideMode.BOTH);
+        duct.setMode(Line.ITEM, Direction.EAST, DuctMode.IN_OUT);
 
         helper.setBlock(chestPos, Blocks.AIR.defaultBlockState());
         helper.assertTrue(duct.arms(Line.ITEM) == westBit, "the item arm toward the removed chest should vanish, got " + duct.arms(Line.ITEM));
@@ -524,7 +524,7 @@ public final class ServusLogisticsGameTests {
         UtilityDuctBlockEntity a = duct(helper, DUCT_A, Line.FLUID);
         duct(helper, DUCT_B, Line.FLUID);
         duct(helper, DUCT_C, Line.FLUID);
-        a.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
+        a.setMode(Line.FLUID, Direction.NORTH, DuctMode.IN);
         helper.assertTrue(a.hasArm(Line.FLUID, Direction.NORTH), "the fluid line should reach the cauldron");
 
         helper.runAfterDelay(3, () -> {
@@ -564,7 +564,7 @@ public final class ServusLogisticsGameTests {
         UtilityDuctBlockEntity a = duct(helper, DUCT_A, Line.FLUID);
         UtilityDuctBlockEntity b = duct(helper, DUCT_B, Line.FLUID);
         duct(helper, DUCT_C, Line.FLUID);
-        a.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
+        a.setMode(Line.FLUID, Direction.NORTH, DuctMode.IN);
         int water = channel(helper, "Water");
         a.setChannel(Line.FLUID, Direction.NORTH, water);
         b.setChannel(Line.FLUID, Direction.NORTH, water);
@@ -588,8 +588,8 @@ public final class ServusLogisticsGameTests {
         UtilityDuctBlockEntity b = duct(helper, DUCT_B, Line.FLUID);
         duct(helper, DUCT_C, Line.FLUID);
         duct(helper, ductD, Line.FLUID);
-        a.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
-        b.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
+        a.setMode(Line.FLUID, Direction.NORTH, DuctMode.IN);
+        b.setMode(Line.FLUID, Direction.NORTH, DuctMode.IN);
 
         helper.runAfterDelay(10, () -> {
             boolean waterThenLava = holds(helper, CHEST_C, Fluids.WATER, 1000) && holds(helper, ductD.north(), Fluids.LAVA, 1000);
@@ -623,7 +623,7 @@ public final class ServusLogisticsGameTests {
                     "the duct keeps and gives nothing");
 
             UtilityDuctBlockEntity a = helper.getBlockEntity(DUCT_A, UtilityDuctBlockEntity.class);
-            a.setMode(Line.FLUID, Direction.NORTH, SideMode.OUTPUT);
+            a.setMode(Line.FLUID, Direction.NORTH, DuctMode.OUT);
             helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(DUCT_A), Direction.NORTH)) == null,
                     "a push out side exposes no fluid handler");
             helper.succeed();

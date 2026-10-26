@@ -1,12 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.logistics.menu;
 
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.FluidFilter;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsMenus;
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.team.Teams;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import java.util.Optional;
@@ -31,25 +31,26 @@ import net.neoforged.neoforge.network.PacketDistributor;
 /**
  * The endpoint configuration of a duct, one side at a time: the side can be
  * switched to any side with a block other than a duct beside it. Per present
- * line (Item Pipe, Power Cable, Fluid Pipe) the mode, the Control, the channel
+ * line (Item Pipe, Power Cable, Fluid Pipe) the In, Out and Pull flags, the redstone setting, On/Off, the channel
  * and a remove button (the data line only on or off and remove), for the
  * Item Pipe the side's filter as ghost slots and its priority, for the Fluid
  * Pipe the side's fluid filter and fluid priority, plus the player inventory.
  * Everything but the slots and the channel goes through button ids; a filter
  * slot is also set by item id through {@link SetDuctFilterPayload}, a fluid
- * filter slot only by fluid id through {@link SetDuctFluidFilterPayload}, and
- * channels go through {@link ChannelRequests}.
+ * filter slot only by fluid id through {@link SetDuctFluidFilterPayload}, the
+ * amount of either through {@link SetDuctFilterAmountPayload}, and channels go
+ * through {@link ChannelRequests}.
  * While open, the server sends the player the side's cable channels
  * ({@link CableChannelsPayload}) once a second when they changed.
  */
 public class UtilityDuctMenu extends AbstractContainerMenu {
 
     public static final int SLOT_X = 8;
-    public static final int FILTER_Y = 106;
-    public static final int INVENTORY_Y = 156;
+    public static final int FILTER_Y = 73;
+    public static final int INVENTORY_Y = 122;
 
-    /** Mode button of a line: {@code BUTTON_CYCLE_MODE + line.ordinal()}. */
-    public static final int BUTTON_CYCLE_MODE = 10;
+    /** In toggle of a line: {@code BUTTON_TOGGLE_IN + line.ordinal()}. */
+    public static final int BUTTON_TOGGLE_IN = 10;
     /** Remove button of a line: {@code BUTTON_REMOVE_LINE + line.ordinal()}. */
     public static final int BUTTON_REMOVE_LINE = 20;
     public static final int BUTTON_PRIORITY_DOWN = 30;
@@ -58,8 +59,14 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
     public static final int BUTTON_FLUID_PRIORITY_UP = 33;
     /** Side picker button: {@code BUTTON_SELECT_SIDE + direction.ordinal()}. */
     public static final int BUTTON_SELECT_SIDE = 40;
-    /** Control button of a line: {@code BUTTON_CYCLE_CONTROL + line.ordinal()}. */
-    public static final int BUTTON_CYCLE_CONTROL = 50;
+    /** Redstone button of a line: {@code BUTTON_CYCLE_REDSTONE + line.ordinal()}. */
+    public static final int BUTTON_CYCLE_REDSTONE = 50;
+    /** Out toggle of a line: {@code BUTTON_TOGGLE_OUT + line.ordinal()}. */
+    public static final int BUTTON_TOGGLE_OUT = 60;
+    /** Pull toggle of a line: {@code BUTTON_TOGGLE_PULL + line.ordinal()}. */
+    public static final int BUTTON_TOGGLE_PULL = 70;
+    /** On/Off button of a line: {@code BUTTON_TOGGLE_ON + line.ordinal()}; on the data line it connects or disconnects the side. */
+    public static final int BUTTON_TOGGLE_ON = 80;
 
     private static final int DATA_PRIORITY = 0;
     private static final int DATA_FLUID_PRIORITY = 1;
@@ -194,14 +201,27 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        if (id >= BUTTON_CYCLE_MODE && id < BUTTON_CYCLE_MODE + Line.VALUES.length) {
-            Line line = Line.byOrdinal(id - BUTTON_CYCLE_MODE);
-            if (duct.has(line)) {
-                SideMode current = duct.mode(line, side);
-                SideMode next = line == Line.DATA
-                        ? (current == SideMode.DISABLED ? SideMode.BOTH : SideMode.DISABLED)
-                        : UtilityDuctBlockEntity.cycle(current);
-                duct.setMode(line, side, next);
+        Line toggled = lineOf(id, BUTTON_TOGGLE_IN);
+        if (toggled == null) {
+            toggled = lineOf(id, BUTTON_TOGGLE_OUT);
+        }
+        if (toggled == null) {
+            toggled = lineOf(id, BUTTON_TOGGLE_PULL);
+        }
+        if (toggled != null) {
+            if (toggled != Line.DATA && duct.has(toggled)) {
+                DuctMode mode = duct.mode(toggled, side);
+                int base = id - toggled.ordinal();
+                duct.setMode(toggled, side, base == BUTTON_TOGGLE_IN ? mode.toggleIn() : base == BUTTON_TOGGLE_OUT ? mode.toggleOut() : mode.togglePull());
+            }
+            return true;
+        }
+        Line switched = lineOf(id, BUTTON_TOGGLE_ON);
+        if (switched != null) {
+            if (switched == Line.DATA && duct.has(switched)) {
+                duct.setMode(switched, side, duct.mode(switched, side).connects() ? DuctMode.NONE : DuctMode.IN_OUT);
+            } else if (duct.has(switched)) {
+                duct.setOn(switched, side, !duct.isOn(switched, side));
             }
             return true;
         }
@@ -221,10 +241,10 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
         if (id >= BUTTON_SELECT_SIDE && id < BUTTON_SELECT_SIDE + Direction.values().length) {
             return selectSide(Direction.values()[id - BUTTON_SELECT_SIDE]);
         }
-        if (id >= BUTTON_CYCLE_CONTROL && id < BUTTON_CYCLE_CONTROL + Line.VALUES.length) {
-            Line line = Line.byOrdinal(id - BUTTON_CYCLE_CONTROL);
-            if (line != Line.DATA && duct.has(line)) {
-                duct.setControl(line, side, duct.control(line, side).next());
+        Line cycled = lineOf(id, BUTTON_CYCLE_REDSTONE);
+        if (cycled != null) {
+            if (cycled != Line.DATA && duct.has(cycled)) {
+                duct.setRedstone(cycled, side, duct.redstone(cycled, side).next());
             }
             return true;
         }
@@ -239,6 +259,11 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
             return true;
         }
         return false;
+    }
+
+    /** The line of a per line button id in the block starting at {@code base}, or null outside that block. */
+    private static Line lineOf(int id, int base) {
+        return id >= base && id < base + Line.VALUES.length ? Line.byOrdinal(id - base) : null;
     }
 
     /**
@@ -296,6 +321,33 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
         }
         Fluid found = BuiltInRegistries.FLUID.getOptional(fluid.get()).orElse(Fluids.EMPTY);
         return found != Fluids.EMPTY && menu.setFluidFilter(slot, found);
+    }
+
+    /**
+     * Server side: sets the amount of a set item or fluid filter slot of the endpoint GUI the player has open;
+     * 0 removes it, and the duct keeps it in range. Returns false and changes nothing when the player has no
+     * usable endpoint GUI open, the line is neither the Item Pipe nor the Fluid Pipe or missing, or the slot is
+     * out of range or empty.
+     */
+    public static boolean setFilterAmount(Player player, int lineOrdinal, int slot, int amount) {
+        if (!(player.containerMenu instanceof UtilityDuctMenu menu) || !menu.stillValid(player)
+                || lineOrdinal < 0 || lineOrdinal >= Line.VALUES.length) {
+            return false;
+        }
+        Line line = Line.byOrdinal(lineOrdinal);
+        UtilityDuctBlockEntity duct = menu.duct;
+        if (!duct.has(line) || slot < 0 || slot >= FluidFilter.SLOTS) {
+            return false;
+        }
+        if (line == Line.ITEM && !duct.filter(menu.side).getStackInSlot(slot).isEmpty()) {
+            duct.setItemAmount(menu.side, slot, amount);
+            return true;
+        }
+        if (line == Line.FLUID && duct.fluidFilter(menu.side).get(slot) != null) {
+            duct.setFluidAmount(menu.side, slot, amount);
+            return true;
+        }
+        return false;
     }
 
     /** A click on a filter slot: right click clears it, any other click copies the cursor (an empty cursor clears). */

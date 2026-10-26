@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.menu.ClientCableChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.CreateChannelPayload;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.DeleteChannelPayload;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.EditChannelPayload;
+import io.github.dirnei.mc.servus.foundation.logistics.menu.SetDuctFilterAmountPayload;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.SetDuctFilterPayload;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.SetDuctFluidFilterPayload;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.SetSideChannelPayload;
@@ -40,6 +41,8 @@ public final class ServusFoundationPayloads {
                 (payload, context) -> UtilityDuctMenu.setFilterById(context.player(), payload.slot(), payload.item()));
         registrar.playToServer(SetDuctFluidFilterPayload.TYPE, SetDuctFluidFilterPayload.STREAM_CODEC,
                 (payload, context) -> UtilityDuctMenu.setFluidFilterById(context.player(), payload.slot(), payload.fluid()));
+        registrar.playToServer(SetDuctFilterAmountPayload.TYPE, SetDuctFilterAmountPayload.STREAM_CODEC,
+                (payload, context) -> UtilityDuctMenu.setFilterAmount(context.player(), payload.line(), payload.slot(), payload.amount()));
         registrar.playToClient(CableChannelsPayload.TYPE, CableChannelsPayload.STREAM_CODEC,
                 (payload, context) -> ClientCableChannels.update(payload));
         registrar.playToServer(SetSideChannelPayload.TYPE, SetSideChannelPayload.STREAM_CODEC,

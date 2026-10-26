@@ -7,7 +7,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEnti
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
 import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +40,7 @@ public abstract class LineNetwork<P> extends ServusNetwork<UtilityDuctBlockEntit
     }
 
     /** The endpoint of one enabled duct side whose neighbour is at {@code target}. */
-    protected abstract P endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int channel);
+    protected abstract P endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, DuctMode mode, int channel);
 
     /**
      * How many sides of this network sit on each channel id, counting only
@@ -101,8 +101,8 @@ public abstract class LineNetwork<P> extends ServusNetwork<UtilityDuctBlockEntit
         BlockPos blockPos = Conversions.toBlockPos(pos);
         List<P> list = new ArrayList<>(6);
         for (Direction direction : Direction.values()) {
-            SideMode mode = duct.mode(line, direction);
-            if (mode != SideMode.DISABLED) {
+            DuctMode mode = duct.mode(line, direction);
+            if (mode.connects()) {
                 list.add(endpoint(duct, direction, blockPos.relative(direction), mode, duct.channel(line, direction)));
             }
         }

@@ -3,12 +3,13 @@ package io.github.dirnei.mc.servus.foundation.logistics.network;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctItemHandler;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctStatsManager;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.KeepAmounts;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.routing.RoundRobinPlan;
 import io.github.dirnei.mc.servus.foundation.network.NetworkType;
 import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctMode;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -26,8 +27,8 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
  * The Item Pipe network of a set of connected utility ducts. Holds no items.
  * Routes inserted stacks to inventories on output sides of the same channel,
  * highest priority first and round robin within a priority, honouring side
- * filters, and pulls from inventories on pull in sides every few ticks onto
- * the pulling side's channel.
+ * filters and fill up to amounts, and pulls from inventories on sides with Pull
+ * every few ticks onto the pulling side's channel, leaving keep amounts behind.
  */
 public final class ItemChannelNetwork extends LineNetwork<ItemChannelNetwork.Endpoint> {
 
@@ -36,7 +37,7 @@ public final class ItemChannelNetwork extends LineNetwork<ItemChannelNetwork.End
     public static final NetworkType<UtilityDuctBlockEntity, DuctEvent, ItemChannelNetwork> TYPE =
             new NetworkType<>(ID, RULE, ItemChannelNetwork::new);
 
-    record Endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int priority,
+    record Endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, DuctMode mode, int priority,
                             int channel, BlockCapabilityCache<ResourceHandler<ItemResource>, Direction> cache) {
 
         boolean allows(ItemStack stack) {
@@ -45,6 +46,10 @@ public final class ItemChannelNetwork extends LineNetwork<ItemChannelNetwork.End
 
         boolean active() {
             return duct.isActive(Line.ITEM, side);
+        }
+
+        int amountFor(ItemStack stack) {
+            return duct.itemAmountFor(side, stack);
         }
     }
 
@@ -58,7 +63,7 @@ public final class ItemChannelNetwork extends LineNetwork<ItemChannelNetwork.End
     }
 
     @Override
-    protected Endpoint endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int channel) {
+    protected Endpoint endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, DuctMode mode, int channel) {
         return new Endpoint(duct, side, target, mode, duct.priority(side), channel,
                 BlockCapabilityCache.create(Capabilities.Item.BLOCK, level, target, side.getOpposite()));
     }
@@ -80,7 +85,7 @@ public final class ItemChannelNetwork extends LineNetwork<ItemChannelNetwork.End
             List<RoundRobinPlan.Target<Endpoint>> targets = new ArrayList<>();
             for (List<Endpoint> list : endpoints.values()) {
                 for (Endpoint endpoint : list) {
-                    if (endpoint.mode().allowsExtract()) {
+                    if (endpoint.mode().out()) {
                         targets.add(new RoundRobinPlan.Target<>(endpoint.channel(), endpoint.priority(), endpoint));
                     }
                 }
@@ -105,14 +110,17 @@ public final class ItemChannelNetwork extends LineNetwork<ItemChannelNetwork.End
         int perPull = stats.itemsPerPull();
         for (List<Endpoint> list : new ArrayList<>(endpoints.values())) {
             for (Endpoint source : list) {
-                if (source.mode() == SideMode.INPUT && source.active()) {
+                if (source.mode().pull() && source.active()) {
                     pull(source, perPull);
                 }
             }
         }
     }
 
-    /** One pull from a pull in side: the first slot whose items pass the filter and the channel accepts. */
+    /**
+     * One pull from a side with Pull: the first slot whose items pass the filter and the channel accepts,
+     * never taking an item below its keep amount.
+     */
     private void pull(Endpoint source, int perPull) {
         ItemView handler = ItemView.of(source.cache().getCapability());
         if (handler == null || handler.handler() instanceof DuctItemHandler) {
@@ -122,6 +130,14 @@ public final class ItemChannelNetwork extends LineNetwork<ItemChannelNetwork.End
             ItemStack available = handler.extractItem(slot, perPull, true);
             if (available.isEmpty() || !source.allows(available)) {
                 continue;
+            }
+            int keep = source.amountFor(available);
+            if (keep > 0) {
+                int allowed = KeepAmounts.giveAllowance(heldCount(handler, available), keep, available.getCount());
+                if (allowed <= 0) {
+                    continue;
+                }
+                available = available.copyWithCount(allowed);
             }
             ItemStack left = route(available, source.target(), source.channel(), true);
             int accepted = available.getCount() - left.getCount();
@@ -182,7 +198,10 @@ public final class ItemChannelNetwork extends LineNetwork<ItemChannelNetwork.End
         return notOffered;
     }
 
-    /** How much of the stack the endpoint's inventory would take right now, zero for the origin, ducts, inactive sides and filtered items. */
+    /**
+     * How much of the stack the endpoint's inventory would take right now, no more than its fill up to amount
+     * allows; zero for the origin, ducts, inactive sides and filtered items.
+     */
     private static int capacity(Endpoint endpoint, BlockPos origin, ItemStack stack) {
         if (endpoint.target().equals(origin) || !endpoint.active() || !endpoint.allows(stack)) {
             return 0;
@@ -192,7 +211,21 @@ public final class ItemChannelNetwork extends LineNetwork<ItemChannelNetwork.End
             return 0;
         }
         ItemStack left = insertAnySlot(handler, stack, true);
-        return stack.getCount() - left.getCount();
+        int room = stack.getCount() - left.getCount();
+        int upTo = endpoint.amountFor(stack);
+        return upTo > 0 && room > 0 ? KeepAmounts.receiveAllowance(heldCount(handler, stack), upTo, room) : room;
+    }
+
+    /** How many of the stack's item the inventory holds over all its slots. */
+    private static long heldCount(ItemView handler, ItemStack stack) {
+        long held = 0;
+        for (int slot = 0; slot < handler.getSlots(); slot++) {
+            ItemStack inSlot = handler.getStackInSlot(slot);
+            if (ItemStack.isSameItem(inSlot, stack)) {
+                held += inSlot.getCount();
+            }
+        }
+        return held;
     }
 
     private static ItemStack insertAnySlot(ItemView handler, ItemStack stack, boolean simulate) {

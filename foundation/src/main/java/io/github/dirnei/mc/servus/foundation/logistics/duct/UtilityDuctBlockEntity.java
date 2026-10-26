@@ -23,14 +23,12 @@ import io.github.dirnei.mc.servus.foundation.network.NetworkNode;
 import io.github.dirnei.mc.servus.foundation.network.NetworkType;
 import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -68,8 +66,9 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
- * A utility duct: a set of lines (Item Pipe, Power Cable, Fluid Pipe, data line), each with a mode
- * a {@link DuctControl} and a channel per side, plus item and fluid filters and priorities per side. Each
+ * A utility duct: a set of lines (Item Pipe, Power Cable, Fluid Pipe, data line), each with a {@link DuctMode},
+ * a {@link DuctRedstone} setting, an on and off switch and a channel per side, plus item and fluid filters with amounts
+ * (see {@link KeepAmounts}) and priorities per side. Each
  * present line joins its own network type, so items, energy and fluids form separate
  * graphs through the same blocks. The duct also keeps which sides carry an
  * arm per line and which arms end at an inventory or machine, synced to the
@@ -83,21 +82,26 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     public static final int FILTER_SLOTS = 9;
     public static final int MIN_PRIORITY = -9;
     public static final int MAX_PRIORITY = 9;
+    public static final int MAX_ITEM_AMOUNT = 1_000_000;
 
     private static final int SIDES = Direction.values().length;
     private static final Direction[] DIRECTIONS = Direction.values();
 
     private final EnumSet<Line> lines = EnumSet.noneOf(Line.class);
-    private final SideMode[][] modes = new SideMode[Line.VALUES.length][SIDES];
+    private final DuctMode[][] modes = new DuctMode[Line.VALUES.length][SIDES];
     /** Channel ids live under a key of their own, so sides saved on the eight fixed channels load on Default. */
     private static final String CHANNELS_KEY = "ChannelIds";
 
     private final int[][] channels = new int[Line.VALUES.length][SIDES];
     private final ItemSlots[] filters = new ItemSlots[SIDES];
+    /** Amount per item filter slot, 0 for none, and the item it was set for. */
+    private final int[][] itemAmounts = new int[SIDES][FILTER_SLOTS];
+    private final Item[][] itemAmountOwners = new Item[SIDES][FILTER_SLOTS];
     private final int[] priorities = new int[SIDES];
     private final FluidFilter[] fluidFilters = new FluidFilter[SIDES];
     private final int[] fluidPriorities = new int[SIDES];
-    private final DuctControl[][] controls = new DuctControl[Line.VALUES.length][SIDES];
+    private final DuctRedstone[][] redstone = new DuctRedstone[Line.VALUES.length][SIDES];
+    private final boolean[][] switchedOn = new boolean[Line.VALUES.length][SIDES];
     /** Whether a neighbour sends the duct a redstone signal; server side, synced. */
     private boolean powered;
     private final int[] arms = new int[Line.VALUES.length];
@@ -121,17 +125,21 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
     public UtilityDuctBlockEntity(BlockPos pos, BlockState state) {
         super(ServusLogisticsBlockEntities.UTILITY_DUCT.get(), pos, state);
-        for (SideMode[] row : modes) {
-            Arrays.fill(row, SideMode.BOTH);
+        for (DuctMode[] row : modes) {
+            Arrays.fill(row, DuctMode.IN_OUT);
         }
-        for (DuctControl[] row : controls) {
-            Arrays.fill(row, DuctControl.ALWAYS);
+        for (DuctRedstone[] row : redstone) {
+            Arrays.fill(row, DuctRedstone.IGNORE);
+        }
+        for (boolean[] row : switchedOn) {
+            Arrays.fill(row, true);
         }
         for (Direction direction : DIRECTIONS) {
             fluidFilters[direction.ordinal()] = new FluidFilter();
             filters[direction.ordinal()] = new ItemSlots(FILTER_SLOTS) {
                 @Override
                 protected void onContentsChanged(int slot) {
+                    dropStaleItemAmount(direction, slot);
                     configChanged();
                 }
             };
@@ -210,17 +218,14 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         return true;
     }
 
-    public SideMode mode(Line line, Direction side) {
+    /** The In, Out and Pull flags of a line's side. */
+    public DuctMode mode(Line line, Direction side) {
         return modes[line.ordinal()][side.ordinal()];
     }
 
-    public void setMode(Line line, Direction side, SideMode mode) {
-        if (mode == SideMode.AUTO) {
-            mode = SideMode.BOTH;
-        }
-        if (line == Line.DATA && mode != SideMode.DISABLED) {
-            mode = SideMode.BOTH;
-        }
+    /** Sets the flags of a line's side as the line can hold them, see {@link DuctMode#forLine}. */
+    public void setMode(Line line, Direction side, DuctMode mode) {
+        mode = mode.forLine(line);
         if (modes[line.ordinal()][side.ordinal()] == mode) {
             return;
         }
@@ -228,27 +233,31 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         configChanged();
     }
 
-    /** The next mode in the duct cycle: both, input, output, disabled. */
-    public static SideMode cycle(SideMode mode) {
-        return switch (mode) {
-            case BOTH, AUTO -> SideMode.INPUT;
-            case INPUT -> SideMode.OUTPUT;
-            case OUTPUT -> SideMode.DISABLED;
-            case DISABLED, PULL, PUSH -> SideMode.BOTH;
-        };
+    /** The redstone setting of a line's side; the data line always ignores redstone. */
+    public DuctRedstone redstone(Line line, Direction side) {
+        return line == Line.DATA ? DuctRedstone.IGNORE : redstone[line.ordinal()][side.ordinal()];
     }
 
-    /** The Control of a line's side; the data line is always {@link DuctControl#ALWAYS}. */
-    public DuctControl control(Line line, Direction side) {
-        return line == Line.DATA ? DuctControl.ALWAYS : controls[line.ordinal()][side.ordinal()];
-    }
-
-    /** Sets the Control of a line's side; the data line has none and ignores it. */
-    public void setControl(Line line, Direction side, DuctControl control) {
-        if (line == Line.DATA || control == null || controls[line.ordinal()][side.ordinal()] == control) {
+    /** Sets the redstone setting of a line's side; the data line has none and ignores it. */
+    public void setRedstone(Line line, Direction side, DuctRedstone setting) {
+        if (line == Line.DATA || setting == null || redstone[line.ordinal()][side.ordinal()] == setting) {
             return;
         }
-        controls[line.ordinal()][side.ordinal()] = control;
+        redstone[line.ordinal()][side.ordinal()] = setting;
+        configChanged();
+    }
+
+    /** Whether a line's side is switched on; the data line is switched through its mode instead and is always on here. */
+    public boolean isOn(Line line, Direction side) {
+        return line == Line.DATA || switchedOn[line.ordinal()][side.ordinal()];
+    }
+
+    /** Switches a line's side on or off, keeping its mode and redstone setting; the data line ignores it. */
+    public void setOn(Line line, Direction side, boolean on) {
+        if (line == Line.DATA || switchedOn[line.ordinal()][side.ordinal()] == on) {
+            return;
+        }
+        switchedOn[line.ordinal()][side.ordinal()] = on;
         configChanged();
     }
 
@@ -257,9 +266,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         return powered;
     }
 
-    /** Whether the line's side moves anything now, after its Control and the duct's redstone signal. */
+    /** Whether the line's side moves anything now: it is switched on and its redstone setting is met. */
     public boolean isActive(Line line, Direction side) {
-        return control(line, side).active(powered);
+        return redstone(line, side).active(isOn(line, side), powered);
     }
 
     /** Reads the redstone signal around the duct; tells the client when it changed. Server only. */
@@ -345,7 +354,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
      * Server only; the client reads the synced masks.
      */
     public boolean computeArm(Line line, Direction side) {
-        if (!has(line) || mode(line, side) == SideMode.DISABLED || closed(side) || !(level instanceof Level realLevel)) {
+        if (!has(line) || !mode(line, side).connects() || closed(side) || !(level instanceof Level realLevel)) {
             return false;
         }
         BlockPos neighborPos = worldPosition.relative(side);
@@ -696,6 +705,57 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         return priorities[side.ordinal()];
     }
 
+    /** The amount of an item filter slot, 0 for none or an empty slot. */
+    public int itemAmount(Direction side, int slot) {
+        return slot >= 0 && slot < FILTER_SLOTS ? itemAmounts[side.ordinal()][slot] : 0;
+    }
+
+    /** Sets the amount of a set item filter slot, kept between 0 (none) and {@link #MAX_ITEM_AMOUNT}; empty slots are ignored. */
+    public void setItemAmount(Direction side, int slot, int amount) {
+        if (slot < 0 || slot >= FILTER_SLOTS) {
+            return;
+        }
+        ItemStack entry = filters[side.ordinal()].getStackInSlot(slot);
+        int clamped = entry.isEmpty() ? 0 : Math.max(0, Math.min(MAX_ITEM_AMOUNT, amount));
+        if (itemAmounts[side.ordinal()][slot] == clamped) {
+            return;
+        }
+        itemAmounts[side.ordinal()][slot] = clamped;
+        itemAmountOwners[side.ordinal()][slot] = clamped == 0 ? null : entry.getItem();
+        configChanged();
+    }
+
+    /** The amount of the first item filter slot holding the stack's item, 0 when none does. */
+    public int itemAmountFor(Direction side, ItemStack stack) {
+        ItemSlots filter = filters[side.ordinal()];
+        for (int slot = 0; slot < FILTER_SLOTS; slot++) {
+            if (ItemStack.isSameItem(filter.getStackInSlot(slot), stack)) {
+                return itemAmounts[side.ordinal()][slot];
+            }
+        }
+        return 0;
+    }
+
+    /** How many item filter slots of the side carry an amount. */
+    public int itemAmountEntries(Direction side) {
+        int count = 0;
+        for (int amount : itemAmounts[side.ordinal()]) {
+            if (amount > 0) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /** A filter slot that was cleared or set to another item loses its amount. */
+    private void dropStaleItemAmount(Direction side, int slot) {
+        ItemStack entry = filters[side.ordinal()].getStackInSlot(slot);
+        if (entry.isEmpty() || entry.getItem() != itemAmountOwners[side.ordinal()][slot]) {
+            itemAmounts[side.ordinal()][slot] = 0;
+            itemAmountOwners[side.ordinal()][slot] = null;
+        }
+    }
+
     public void setPriority(Direction side, int priority) {
         int clamped = clampPriority(priority);
         if (priorities[side.ordinal()] == clamped) {
@@ -719,6 +779,21 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
         filter.set(slot, id);
         configChanged();
+    }
+
+    /** Sets the amount in mB of a set fluid filter slot, 0 for none; empty slots are ignored. */
+    public void setFluidAmount(Direction side, int slot, int amount) {
+        FluidFilter filter = fluidFilters[side.ordinal()];
+        int before = filter.amount(slot);
+        filter.setAmount(slot, amount);
+        if (filter.amount(slot) != before) {
+            configChanged();
+        }
+    }
+
+    /** The amount of the first fluid filter slot naming the fluid, 0 when none does. */
+    public int fluidAmountFor(Direction side, Fluid fluid) {
+        return fluidFilters[side.ordinal()].amountFor(BuiltInRegistries.FLUID.getKey(fluid).toString());
     }
 
     /** Whether the side's fluid whitelist lets the fluid through; an empty list passes every fluid. */
@@ -794,7 +869,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
     /** Fluid handler shown to the neighbour on {@code side}, null without a Fluid Pipe or when the side takes no input. */
     public ResourceHandler<FluidResource> fluidHandler(Direction side) {
-        if (!has(Line.FLUID) || side == null || closed(side) || !mode(Line.FLUID, side).allowsInsert()) {
+        if (!has(Line.FLUID) || side == null || closed(side) || !mode(Line.FLUID, side).in()) {
             return null;
         }
         return fluidHandlers.computeIfAbsent(side, s -> new DuctFluidHandler(this, s));
@@ -838,7 +913,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
     @Override
     public boolean dataSideOpen(Direction side) {
-        return has(Line.DATA) && mode(Line.DATA, side) != SideMode.DISABLED && !closed(side);
+        return has(Line.DATA) && mode(Line.DATA, side).connects() && !closed(side);
     }
 
     @Override
@@ -989,7 +1064,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         output.store("Lines", Codec.STRING.listOf(), lines.stream().map(Line::id).toList());
         saveModesAndChannels(output);
         saveFiltersAndPriorities(output);
-        saveControls(output);
+        saveRedstoneAndSwitches(output);
         if (powered) {
             output.putBoolean("Powered", true);
         }
@@ -1006,7 +1081,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
     }
 
-    /** Only modes other than both and channels other than Default are written. */
+    /** Only modes other than In and Out and channels other than Default are written. */
     private void saveModesAndChannels(ValueOutput output) {
         CompoundTag modeTag = new CompoundTag();
         CompoundTag channelTag = new CompoundTag();
@@ -1014,9 +1089,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             CompoundTag perSideModes = new CompoundTag();
             CompoundTag perSideChannels = new CompoundTag();
             for (Direction direction : DIRECTIONS) {
-                SideMode mode = mode(line, direction);
-                if (mode != SideMode.BOTH) {
-                    perSideModes.putString(direction.getSerializedName(), mode.name().toLowerCase(Locale.ROOT));
+                DuctMode mode = mode(line, direction);
+                if (mode != DuctMode.IN_OUT) {
+                    perSideModes.putString(direction.getSerializedName(), mode.key());
                 }
                 int channel = channel(line, direction);
                 if (channel != ChannelList.DEFAULT_ID) {
@@ -1075,6 +1150,43 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
         ValueIo.putTag(output, "FluidFilters", filterTag);
         ValueIo.putTag(output, "FluidPriorities", priorityTag);
+        CompoundTag itemAmountTag = new CompoundTag();
+        CompoundTag fluidAmountTag = new CompoundTag();
+        for (Direction direction : DIRECTIONS) {
+            int[] fluidAmounts = new int[FluidFilter.SLOTS];
+            for (int slot = 0; slot < FluidFilter.SLOTS; slot++) {
+                fluidAmounts[slot] = fluidFilters[direction.ordinal()].amount(slot);
+            }
+            putAmounts(itemAmountTag, direction, itemAmounts[direction.ordinal()]);
+            putAmounts(fluidAmountTag, direction, fluidAmounts);
+        }
+        ValueIo.putTag(output, "FilterAmounts", itemAmountTag);
+        ValueIo.putTag(output, "FluidFilterAmounts", fluidAmountTag);
+    }
+
+    private static void putAmounts(CompoundTag tag, Direction side, int[] amounts) {
+        if (Arrays.stream(amounts).anyMatch(amount -> amount > 0)) {
+            tag.putIntArray(side.getSerializedName(), amounts.clone());
+        }
+    }
+
+    /** Amounts load after the filters; an amount on an empty slot is dropped. */
+    private void loadAmounts(ValueInput input) {
+        CompoundTag itemAmountTag = ValueIo.getTag(input, "FilterAmounts");
+        CompoundTag fluidAmountTag = ValueIo.getTag(input, "FluidFilterAmounts");
+        for (Direction direction : DIRECTIONS) {
+            int[] items = itemAmountTag.getIntArray(direction.getSerializedName()).orElse(new int[0]);
+            int[] fluids = fluidAmountTag.getIntArray(direction.getSerializedName()).orElse(new int[0]);
+            for (int slot = 0; slot < FILTER_SLOTS; slot++) {
+                ItemStack entry = filters[direction.ordinal()].getStackInSlot(slot);
+                int amount = slot < items.length && !entry.isEmpty() ? Math.max(0, Math.min(MAX_ITEM_AMOUNT, items[slot])) : 0;
+                itemAmounts[direction.ordinal()][slot] = amount;
+                itemAmountOwners[direction.ordinal()][slot] = amount == 0 ? null : entry.getItem();
+            }
+            for (int slot = 0; slot < FluidFilter.SLOTS; slot++) {
+                fluidFilters[direction.ordinal()].setAmount(slot, slot < fluids.length ? fluids[slot] : 0);
+            }
+        }
     }
 
     /** Ids that name no registered fluid load as empty slots. */
@@ -1095,30 +1207,47 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
     }
 
-    /** Only Controls other than Always are written. */
-    private void saveControls(ValueOutput output) {
-        CompoundTag controlTag = new CompoundTag();
+    /** Only redstone settings other than Ignore and sides switched off are written. */
+    private void saveRedstoneAndSwitches(ValueOutput output) {
+        CompoundTag redstoneTag = new CompoundTag();
+        CompoundTag offTag = new CompoundTag();
         for (Line line : Line.VALUES) {
-            CompoundTag perSide = new CompoundTag();
+            CompoundTag perSideRedstone = new CompoundTag();
+            CompoundTag perSideOff = new CompoundTag();
             for (Direction direction : DIRECTIONS) {
-                DuctControl control = control(line, direction);
-                if (control != DuctControl.ALWAYS) {
-                    perSide.putInt(direction.getSerializedName(), control.id());
+                DuctRedstone setting = redstone(line, direction);
+                if (setting != DuctRedstone.IGNORE) {
+                    perSideRedstone.putInt(direction.getSerializedName(), setting.id());
+                }
+                if (!isOn(line, direction)) {
+                    perSideOff.putBoolean(direction.getSerializedName(), true);
                 }
             }
-            if (!perSide.isEmpty()) {
-                controlTag.put(line.id(), perSide);
+            if (!perSideRedstone.isEmpty()) {
+                redstoneTag.put(line.id(), perSideRedstone);
+            }
+            if (!perSideOff.isEmpty()) {
+                offTag.put(line.id(), perSideOff);
             }
         }
-        ValueIo.putTag(output, "Controls", controlTag);
+        ValueIo.putTag(output, "Redstone", redstoneTag);
+        ValueIo.putTag(output, "SwitchedOff", offTag);
     }
 
-    private void loadControls(ValueInput input) {
-        CompoundTag controlTag = ValueIo.getTag(input, "Controls");
+    /** The older "Controls" load as redstone settings, their Off as switched off with Ignore. */
+    private void loadRedstoneAndSwitches(ValueInput input) {
+        CompoundTag legacyTag = ValueIo.getTag(input, "Controls");
+        CompoundTag redstoneTag = ValueIo.getTag(input, "Redstone");
+        CompoundTag offTag = ValueIo.getTag(input, "SwitchedOff");
         for (Line line : Line.VALUES) {
-            CompoundTag perSide = controlTag.getCompoundOrEmpty(line.id());
+            CompoundTag legacy = legacyTag.getCompoundOrEmpty(line.id());
+            CompoundTag perSideRedstone = redstoneTag.getCompoundOrEmpty(line.id());
+            CompoundTag perSideOff = offTag.getCompoundOrEmpty(line.id());
             for (Direction direction : DIRECTIONS) {
-                controls[line.ordinal()][direction.ordinal()] = DuctControl.byId(perSide.getIntOr(direction.getSerializedName(), 0));
+                String key = direction.getSerializedName();
+                int legacyId = legacy.getIntOr(key, 0);
+                redstone[line.ordinal()][direction.ordinal()] = DuctRedstone.byId(perSideRedstone.getIntOr(key, legacyId));
+                switchedOn[line.ordinal()][direction.ordinal()] = !perSideOff.getBooleanOr(key, DuctRedstone.legacyOff(legacyId));
             }
         }
     }
@@ -1155,7 +1284,8 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             priorities[direction.ordinal()] = clampPriority(priorityTag.getIntOr(direction.getSerializedName(), 0));
         }
         loadFluidFilters(input);
-        loadControls(input);
+        loadAmounts(input);
+        loadRedstoneAndSwitches(input);
         powered = input.getBooleanOr("Powered", false);
         int[] savedArms = input.getIntArray("Arms").orElse(new int[0]);
         Arrays.fill(arms, 0);
@@ -1176,10 +1306,10 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
     }
 
-    /** Unknown mode names load as both. */
+    /** Missing and unknown mode names load as In and Out; names of the older mode cycle load as their flags. */
     private void loadModesAndChannels(ValueInput input) {
-        for (SideMode[] row : modes) {
-            Arrays.fill(row, SideMode.BOTH);
+        for (DuctMode[] row : modes) {
+            Arrays.fill(row, DuctMode.IN_OUT);
         }
         CompoundTag modeTag = ValueIo.getTag(input, "Modes");
         CompoundTag channelTag = ValueIo.getTag(input, CHANNELS_KEY);
@@ -1189,10 +1319,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             for (Direction direction : DIRECTIONS) {
                 String name = perSideModes.getStringOr(direction.getSerializedName(), "");
                 if (!name.isEmpty()) {
-                    try {
-                        modes[line.ordinal()][direction.ordinal()] = SideMode.valueOf(name.toUpperCase(Locale.ROOT));
-                    } catch (IllegalArgumentException ignored) {
-                    }
+                    modes[line.ordinal()][direction.ordinal()] = DuctMode.bySaved(name).forLine(line);
                 }
                 channels[line.ordinal()][direction.ordinal()] =
                         Math.max(ChannelList.DEFAULT_ID, perSideChannels.getIntOr(direction.getSerializedName(), ChannelList.DEFAULT_ID));

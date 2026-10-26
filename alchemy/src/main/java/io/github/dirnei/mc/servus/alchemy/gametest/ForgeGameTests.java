@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
@@ -137,7 +138,7 @@ public final class ForgeGameTests {
         SalamanderForgeBlockEntity forge = forge(helper, FORGE);
         forge.sideConfig().set(RelativeSide.RIGHT, SideMode.INPUT);
         UtilityDuctBlockEntity pipe = GameTestSteps.duct(helper, duct, Line.ITEM);
-        pipe.setMode(Line.ITEM, Direction.WEST, SideMode.INPUT);
+        pipe.setMode(Line.ITEM, Direction.WEST, DuctMode.IN_PULL);
         helper.succeedWhen(() -> {
             helper.assertTrue(count(chest, Items.RAW_IRON) == 0, "the pipe should empty the chest");
             int inForge = forge.inventory().getStackInSlot(SalamanderForgeBlockEntity.SLOT_INPUT).getCount()

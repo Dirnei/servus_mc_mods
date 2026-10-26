@@ -34,7 +34,7 @@ public final class DuctItemHandler extends LegacyItemHandler {
 
     @Override
     public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-        if (stack.isEmpty() || !duct.mode(Line.ITEM, side).allowsInsert() || !duct.isActive(Line.ITEM, side)) {
+        if (stack.isEmpty() || !duct.mode(Line.ITEM, side).in() || !duct.isActive(Line.ITEM, side)) {
             return stack;
         }
         BlockPos origin = duct.getBlockPos().relative(side);
