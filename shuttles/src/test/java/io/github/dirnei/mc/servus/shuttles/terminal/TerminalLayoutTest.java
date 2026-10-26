@@ -172,6 +172,16 @@ class TerminalLayoutTest {
     }
 
     @Test
+    void productionScrollbarRightOfList() {
+        Rect bar = Production.SCROLLBAR;
+        assertTrue(bar.x() - 1 >= Production.LIST.right(), "bar frame overlaps the list");
+        assertEquals(Production.LIST.y(), bar.y());
+        assertEquals(Production.LIST.h(), bar.h());
+        assertTrue(bar.right() + 1 <= Production.WIDTH && bar.y() - 1 >= 0 && bar.bottom() + 1 <= Production.HEIGHT,
+                "bar frame leaves the panel");
+    }
+
+    @Test
     void jobRowPartsApartAndInsideRow() {
         assertDisjoint(Production.jobAreas());
         assertInside(Production.jobAreas(), Production.LIST.w(), Production.JOB_HEIGHT);

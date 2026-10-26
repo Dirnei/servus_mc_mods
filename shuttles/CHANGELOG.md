@@ -10,6 +10,7 @@
 - Patterns can be Exact or Any. An Any pattern, such as sticks or a chest, crafts from whichever planks or logs the warehouse holds most of; the recipe editor has the Exact / Any button and the Patterns tab marks Any patterns.
 - The Storage Terminal has Stock and Rules tabs. Rules lists every stock rule with a search, and a carried item or a JEI drag on its add slot starts a rule for any item. A right click on an item opens one popup with Request, Craft and Rule tabs in place of the amount prompt.
 - Stock rules can refuse an item at Inbound Stations above a cap: hoppers, pipes and Pull sides deliver only up to it and the rest stays with the sender. The rule names the station that refused.
+- Scrollbars on the Production Terminal lists and the Warehouse Controller's site list.
 
 ### Changed
 - The Lumber shuttle carries a closed hold; at a tree its doors and walls fold open and a harvester crane rises out of it, grips the trunk with rollers and knives, cuts it with a chainsaw you can hear, and folds away again before it drives on.
@@ -17,6 +18,7 @@
 - A data line belongs to one warehouse. A line that reaches two warehouses is in conflict and pauses: its terminals show no stock and refuse requests, and its Packing Stations send nothing. Terminals no longer add up the stock of several warehouses.
 - Packing Stations reserve whole To storage slots before items arrive and put a slot away only once it is complete, so one shuttle takes the whole stack, and the warehouse picks the station closest to the rack. A Packing Station moves 10 items per second.
 - A Storage Terminal request takes as many Output slots as its amount needs, and Packing Stations send only what a target has room for, so a full slot no longer holds up other deliveries; the station's status names a target that is full.
+- The Storage Terminal's scrollbar looks and drags like every other list's.
 
 ### Fixed
 - The Storage Terminal's scrollbar can be dragged with the mouse.

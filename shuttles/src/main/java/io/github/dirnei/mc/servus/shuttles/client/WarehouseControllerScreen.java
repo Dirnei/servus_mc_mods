@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
+import io.github.dirnei.mc.servus.foundation.client.Scrollbar;
 import io.github.dirnei.mc.servus.foundation.picker.PickerStock;
 import io.github.dirnei.mc.servus.shuttles.controller.ControllerEnergy;
 import io.github.dirnei.mc.servus.shuttles.controller.RenameSitePayload;
@@ -20,6 +21,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
@@ -49,6 +51,8 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
     private static final int SITES_WIDTH = 120;
     private static final int SITE_ROW = 11;
     private static final int SITES_MAX = 16;
+    /** Right edge of a site row's name, left of the scrollbar. */
+    private static final int SITE_NAME_RIGHT = SITES_WIDTH - 13;
 
     private EditBox name;
     private boolean nameWasFocused;
@@ -57,6 +61,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
     private int onlineLineY = -1;
     /** Where the FE line was drawn, for its tooltip; -1 when not drawn. */
     private int energyLineY = -1;
+    private final Scrollbar sitesBar = new Scrollbar();
 
     public WarehouseControllerScreen(WarehouseControllerMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, WarehouseControllerMenu.WIDTH, WarehouseControllerMenu.IMAGE_HEIGHT);
@@ -205,7 +210,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         PanelPainter.slots(graphics, leftPos, topPos, wirelessSlot(), 1, 1);
         PanelPainter.playerInventory(graphics, leftPos, topPos, WarehouseControllerMenu.INVENTORY_Y, menu.hotbarY());
         renderMap(graphics, ClientSiteStatus.status());
-        renderSites(graphics, ClientSiteStatus.status());
+        renderSites(graphics, ClientSiteStatus.status(), mouseX, mouseY);
     }
 
     /** The site panel right of the GUI, so JEI keeps its item list clear of it. */
@@ -251,7 +256,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
     }
 
     /** The side panel: a title, then one row per site with a state mark and its name, orange when it cannot trade. */
-    private void renderSites(GuiGraphicsExtractor graphics, SiteStatusPayload status) {
+    private void renderSites(GuiGraphicsExtractor graphics, SiteStatusPayload status, int mouseX, int mouseY) {
         if (status == SiteStatusPayload.EMPTY) {
             return;
         }
@@ -271,8 +276,10 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
             graphics.text(font, Component.translatable("gui.servus_shuttles.controller.sites.none"), left + 6, topPos + 19, COLOUR_DIM, false);
             return;
         }
+        Scrollbar bar = syncSitesBar(status);
+        bar.render(graphics, mouseX, mouseY);
         for (int i = 0; i < rows; i++) {
-            SiteRow site = status.sites().get(i);
+            SiteRow site = status.sites().get(bar.offset() + i);
             int y = topPos + 18 + i * SITE_ROW;
             int mark = switch (site.remoteState()) {
                 case ONLINE -> 0xFF40B040;
@@ -280,7 +287,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
                 case UNREACHABLE -> 0xFFC03030;
             };
             graphics.fill(left + 6, y + 1, left + 12, y + 7, mark);
-            String siteName = font.plainSubstrByWidth(site.name(), SITES_WIDTH - 21);
+            String siteName = font.plainSubstrByWidth(site.name(), SITE_NAME_RIGHT - 15);
             graphics.text(font, siteName, left + 15, y, site.trade() ? COLOUR_TEXT : COLOUR_NO_TRADE, false);
         }
     }
@@ -288,11 +295,55 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
     private SiteRow siteUnder(int mouseX, int mouseY, SiteStatusPayload status) {
         int x = mouseX - sitesLeft();
         int y = mouseY - topPos - 18;
-        if (x < 0 || x >= SITES_WIDTH || y < 0) {
+        if (!status.capable() || x < 0 || x >= SITE_NAME_RIGHT || y < 0) {
             return null;
         }
         int row = y / SITE_ROW;
-        return row < Math.min(SITES_MAX, status.sites().size()) ? status.sites().get(row) : null;
+        return row < Math.min(SITES_MAX, status.sites().size()) ? status.sites().get(syncSitesBar(status).offset() + row) : null;
+    }
+
+    /** The site list's scrollbar beside the rows, set to the listed sites. */
+    private Scrollbar syncSitesBar(SiteStatusPayload status) {
+        sitesBar.setArea(sitesLeft() + SITES_WIDTH - 10, topPos + 19, Scrollbar.NARROW, panelRows(status) * SITE_ROW - 2);
+        sitesBar.setContent(status.sites().size(), SITES_MAX);
+        return sitesBar;
+    }
+
+    /** Whether the site list with its scrollbar shows. */
+    private static boolean listsSites(SiteStatusPayload status) {
+        return status != SiteStatusPayload.EMPTY && status.capable() && !status.sites().isEmpty();
+    }
+
+    @Override
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        SiteStatusPayload status = ClientSiteStatus.status();
+        if (listsSites(status) && syncSitesBar(status).mouseClicked(event.x(), event.y(), event.button())) {
+            return true;
+        }
+        return super.mouseClicked(event, doubleClick);
+    }
+
+    @Override
+    public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
+        return sitesBar.mouseDragged(event.y()) || super.mouseDragged(event, dx, dy);
+    }
+
+    @Override
+    public boolean mouseReleased(MouseButtonEvent event) {
+        return sitesBar.mouseReleased() || super.mouseReleased(event);
+    }
+
+    /** The wheel over the site panel scrolls the site list one row. */
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        SiteStatusPayload status = ClientSiteStatus.status();
+        boolean overPanel = mouseX >= sitesLeft() && mouseX < sitesLeft() + SITES_WIDTH && mouseY >= topPos
+                && mouseY < topPos + sitesHeight(status);
+        if (listsSites(status) && overPanel && scrollY != 0) {
+            syncSitesBar(status).scrollBy(scrollY > 0 ? -1 : 1);
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     private void renderMap(GuiGraphicsExtractor graphics, SiteStatusPayload status) {

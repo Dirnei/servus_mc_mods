@@ -32,7 +32,12 @@ class ListScrollTest {
     void thumbSpansTrack() {
         assertTrue(ListScroll.scrolls(11, 3));
         assertEquals(7, ListScroll.thumbLength(11, 3, 27));
-        assertEquals(2, ListScroll.thumbLength(1000, 3, 27));
+        assertEquals(6, ListScroll.thumbLength(1000, 3, 27));
+    }
+
+    @Test
+    void thumbMinimumNeverExceedsTrack() {
+        assertEquals(4, ListScroll.thumbLength(1000, 3, 4));
     }
 
     @Test
@@ -43,20 +48,52 @@ class ListScrollTest {
     }
 
     @Test
+    void grabOnThumbKeepsPoint() {
+        assertEquals(10.0, ListScroll.grabAt(30, 20, 15));
+        assertEquals(0.0, ListScroll.grabAt(20, 20, 15));
+    }
+
+    @Test
+    void grabOnTrackCentres() {
+        assertEquals(7.5, ListScroll.grabAt(80, 20, 15));
+        assertEquals(7.5, ListScroll.grabAt(35, 20, 15), "the first pixel below the thumb is track");
+    }
+
+    @Test
     void dragPositionGivesOffset() {
-        assertEquals(0, ListScroll.offsetAt(7.5, 15, 115, 20), "thumb at the top");
-        assertEquals(20, ListScroll.offsetAt(107.5, 15, 115, 20), "thumb at the bottom");
-        assertEquals(10, ListScroll.offsetAt(57.5, 15, 115, 20), "middle of the bar");
+        assertEquals(0, ListScroll.offsetFor(7.5, 7.5, 15, 115, 20), "thumb at the top");
+        assertEquals(20, ListScroll.offsetFor(107.5, 7.5, 15, 115, 20), "thumb at the bottom");
+        assertEquals(10, ListScroll.offsetFor(57.5, 7.5, 15, 115, 20), "middle of the bar");
+    }
+
+    @Test
+    void dragKeepsGrabPoint() {
+        assertEquals(0, ListScroll.offsetFor(10, 10, 15, 115, 20));
+        assertEquals(10, ListScroll.offsetFor(60, 10, 15, 115, 20));
     }
 
     @Test
     void dragOutsideTheBarClamps() {
-        assertEquals(0, ListScroll.offsetAt(-40, 15, 115, 20));
-        assertEquals(20, ListScroll.offsetAt(500, 15, 115, 20));
+        assertEquals(0, ListScroll.offsetFor(-40, 7.5, 15, 115, 20));
+        assertEquals(20, ListScroll.offsetFor(500, 7.5, 15, 115, 20));
+    }
+
+    @Test
+    void dragWithGrabClampsAtBothEnds() {
+        assertEquals(0, ListScroll.offsetFor(2, 14, 15, 115, 20));
+        assertEquals(20, ListScroll.offsetFor(114, 0, 15, 115, 20));
     }
 
     @Test
     void dragWithNothingToScrollStaysAtTop() {
-        assertEquals(0, ListScroll.offsetAt(80, 15, 115, 0));
+        assertEquals(0, ListScroll.offsetFor(80, 7.5, 15, 115, 0));
+        assertEquals(0, ListScroll.offsetFor(80, 7.5, 115, 115, 20));
+    }
+
+    @Test
+    void pixelUnits() {
+        assertEquals(81, ListScroll.thumbLength(400, 180, 180));
+        assertEquals(220, ListScroll.offsetFor(99 + 40, 40, 81, 180, 220));
+        assertEquals(99, ListScroll.thumbStart(220, 400, 180, 180));
     }
 }

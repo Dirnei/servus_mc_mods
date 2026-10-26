@@ -304,23 +304,25 @@ public final class TerminalLayout {
 
     /** The Production Terminal: title, tab bar, list; the pattern editor with the player inventory over the list. */
     public static final class Production {
-        public static final int WIDTH = 240;
+        public static final int WIDTH = 252;
         public static final int HEIGHT = 222;
         public static final int TAB_GAP = TerminalLayout.TAB_GAP;
 
-        public static final Rect TITLE = new Rect(8, 6, 224, 9);
-        public static final Rect TABS = new Rect(8, 18, 224, 12);
+        public static final Rect TITLE = new Rect(8, 6, 236, 9);
+        public static final Rect TABS = new Rect(8, 18, 236, 12);
         public static final Rect LIST = new Rect(8, 34, 224, 180);
-        public static final Rect POPUP = new Rect(40, 34, 160, 72);
-        public static final Rect INVENTORY = new Rect(40, 122, 9 * CELL, 3 * CELL);
-        public static final Rect HOTBAR = new Rect(40, 180, 9 * CELL, CELL);
+        /** The list's scrollbar track; its frame draws 1 pixel around it. */
+        public static final Rect SCROLLBAR = new Rect(236, 34, 8, 180);
+        public static final Rect POPUP = new Rect(46, 34, 160, 72);
+        public static final Rect INVENTORY = new Rect(45, 122, 9 * CELL, 3 * CELL);
+        public static final Rect HOTBAR = new Rect(45, 180, 9 * CELL, CELL);
 
         private Production() {
         }
 
         /** The areas while no editor is open. */
         public static List<Area> areas() {
-            return List.of(new Area("title", TITLE), new Area("tabs", TABS), new Area("list", LIST));
+            return List.of(new Area("title", TITLE), new Area("tabs", TABS), new Area("list", LIST), new Area("scrollbar", SCROLLBAR));
         }
 
         /** The areas while the pattern editor is open; they replace the list. */

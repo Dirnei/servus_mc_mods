@@ -13,6 +13,7 @@
 ### Changed
 - Item pickers can show an entry greyed out with a hint saying why it cannot be chosen yet.
 - A delivery to a block that takes nothing for a while ends with what arrived instead of holding up its sender.
+- One shared scrollbar for lists and pickers, draggable everywhere.
 
 ### Fixed
 - Duct sides with neither In nor Out can be connected again from the duct GUI.

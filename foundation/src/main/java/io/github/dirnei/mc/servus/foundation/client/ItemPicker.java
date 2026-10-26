@@ -138,8 +138,7 @@ public final class ItemPicker {
     private boolean open;
     private int x;
     private int y;
-    private int scroll;
-    private boolean dragging;
+    private final Scrollbar bar = new Scrollbar();
     private EditBox search;
 
     /** A picker with that popup title; {@code onPick} gets the entry the player clicks. */
@@ -198,6 +197,7 @@ public final class ItemPicker {
         if (search != null) {
             search.setPosition(x + PAD, y + TITLE_HEIGHT + PAD);
         }
+        bar.setArea(barX() + 1, listY() + 1, Scrollbar.NARROW, ROWS * ROW - 2);
     }
 
     public boolean isOpen() {
@@ -213,7 +213,7 @@ public final class ItemPicker {
     /** Opens the popup with the current choice, scrolled to it. */
     public void open() {
         open = true;
-        dragging = false;
+        bar.mouseReleased();
         search = new EditBox(Minecraft.getInstance().font, x + PAD, y + TITLE_HEIGHT + PAD, LIST_WIDTH + BAR_GAP + BAR_WIDTH, SEARCH_HEIGHT,
                 Component.translatable("gui.servus_foundation.picker.search"));
         search.setHint(Component.translatable("gui.servus_foundation.picker.search"));
@@ -222,12 +222,12 @@ public final class ItemPicker {
         search.setFocused(true);
         refilter();
         int index = indexOf(selected);
-        scroll = Math.max(0, Math.min(maxScroll(), index - ROWS / 2));
+        bar.setOffset(index - ROWS / 2);
     }
 
     public void close() {
         open = false;
-        dragging = false;
+        bar.mouseReleased();
         search = null;
         refilter();
     }
@@ -239,7 +239,7 @@ public final class ItemPicker {
             entries.add(byId.get(item.id()));
         }
         shown = entries;
-        scroll = Math.min(scroll, maxScroll());
+        bar.setContent(shown.size(), ROWS);
     }
 
     private int indexOf(String id) {
@@ -304,7 +304,7 @@ public final class ItemPicker {
         PopupPanel.bordered(graphics, lx, ly, LIST_WIDTH, ROWS * ROW, DARK, SLOT);
         int hovered = indexAt(mouseX, mouseY);
         for (int row = 0; row < ROWS; row++) {
-            int index = scroll + row;
+            int index = bar.offset() + row;
             if (index >= shown.size()) {
                 break;
             }
@@ -328,14 +328,7 @@ public final class ItemPicker {
                 graphics.fill(lx, top, lx + LIST_WIDTH, top + ROW, HOVERED);
             }
         }
-        int max = maxScroll();
-        if (max > 0) {
-            int bx = barX();
-            graphics.fill(bx, ly, bx + BAR_WIDTH, ly + ROWS * ROW, DARK);
-            int knob = knobHeight();
-            int ky = ly + (ROWS * ROW - knob) * scroll / max;
-            graphics.fill(bx + 1, ky + 1, bx + BAR_WIDTH - 1, ky + knob - 1, 0xFFDDDDDD);
-        }
+        bar.render(graphics, mouseX, mouseY);
     }
 
     /**
@@ -393,7 +386,7 @@ public final class ItemPicker {
             onPick.accept(entry);
             return true;
         }
-        if (clickBar(mouseX, mouseY)) {
+        if (bar.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
         if (!contains(mouseX, mouseY)) {
@@ -406,7 +399,7 @@ public final class ItemPicker {
         if (!open) {
             return false;
         }
-        drag(mouseY);
+        bar.mouseDragged(mouseY);
         return true;
     }
 
@@ -414,7 +407,7 @@ public final class ItemPicker {
         if (!open) {
             return false;
         }
-        dragging = false;
+        bar.mouseReleased();
         return true;
     }
 
@@ -422,7 +415,7 @@ public final class ItemPicker {
         if (!open) {
             return false;
         }
-        scroll = Math.max(0, Math.min(maxScroll(), scroll - (int) Math.signum(amount)));
+        bar.scrollBy(-(int) Math.signum(amount));
         return true;
     }
 
@@ -462,37 +455,8 @@ public final class ItemPicker {
         if (!open || mouseX < lx || mouseX >= lx + LIST_WIDTH || mouseY < ly || mouseY >= ly + ROWS * ROW) {
             return -1;
         }
-        int index = scroll + (int) ((mouseY - ly) / ROW);
+        int index = bar.offset() + (int) ((mouseY - ly) / ROW);
         return index < shown.size() ? index : -1;
-    }
-
-    private boolean clickBar(double mouseX, double mouseY) {
-        int bx = barX();
-        int ly = listY();
-        if (maxScroll() > 0 && mouseX >= bx && mouseX < bx + BAR_WIDTH && mouseY >= ly && mouseY < ly + ROWS * ROW) {
-            dragging = true;
-            drag(mouseY);
-            return true;
-        }
-        return false;
-    }
-
-    private void drag(double mouseY) {
-        if (!dragging) {
-            return;
-        }
-        int max = maxScroll();
-        int track = ROWS * ROW - knobHeight();
-        double t = track <= 0 ? 0 : (mouseY - listY() - knobHeight() / 2.0) / track;
-        scroll = Math.max(0, Math.min(max, (int) Math.round(t * max)));
-    }
-
-    private int knobHeight() {
-        return Math.max(8, ROWS * ROW * ROWS / Math.max(ROWS, shown.size()));
-    }
-
-    private int maxScroll() {
-        return Math.max(0, shown.size() - ROWS);
     }
 
     private int listX() {

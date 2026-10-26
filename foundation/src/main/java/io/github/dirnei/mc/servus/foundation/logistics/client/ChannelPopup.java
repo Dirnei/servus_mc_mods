@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.client;
 
 import io.github.dirnei.mc.servus.foundation.client.PopupPanel;
+import io.github.dirnei.mc.servus.foundation.client.Scrollbar;
 import io.github.dirnei.mc.servus.foundation.logistics.channel.Channel;
 import io.github.dirnei.mc.servus.foundation.logistics.channel.ChannelList;
 import io.github.dirnei.mc.servus.foundation.logistics.channel.ClientChannels;
@@ -65,7 +66,7 @@ public final class ChannelPopup {
     private boolean open;
     private boolean allChannels;
     private EditBox search;
-    private int scroll;
+    private final Scrollbar bar = new Scrollbar();
     private int areaLeft;
     private int areaTop;
     private int areaWidth;
@@ -89,6 +90,7 @@ public final class ChannelPopup {
             search.setPosition(x + PAD, y + SEARCH_Y);
         }
         form.setArea(x, y, WIDTH, HEIGHT, left, top, width, height);
+        bar.setArea(listX() + LIST_WIDTH + BAR_GAP + 1, listY() + 1, Scrollbar.NARROW, ROWS * ROW - 2);
     }
 
     public boolean isOpen() {
@@ -105,12 +107,13 @@ public final class ChannelPopup {
         this.line = line;
         open = true;
         allChannels = false;
-        scroll = 0;
+        bar.mouseReleased();
+        bar.setOffset(0);
         search = new EditBox(Minecraft.getInstance().font, x + PAD, y + SEARCH_Y, WIDTH - 2 * PAD, 12,
                 Component.translatable("gui.servus_foundation.picker.search"));
         search.setHint(Component.translatable("gui.servus_foundation.picker.search"));
         search.setMaxLength(ChannelList.MAX_NAME);
-        search.setResponder(text -> scroll = 0);
+        search.setResponder(text -> bar.setOffset(0));
         search.setFocused(true);
     }
 
@@ -165,10 +168,6 @@ public final class ChannelPopup {
         return y + LIST_Y;
     }
 
-    private int maxScroll(int size) {
-        return Math.max(0, size - ROWS);
-    }
-
     private int pencilX() {
         return listX() + LIST_WIDTH - 2 * (ICON_BOX + 4);
     }
@@ -186,7 +185,7 @@ public final class ChannelPopup {
         if (!PopupButtons.over(mouseX, mouseY, listX(), listY(), LIST_WIDTH, ROWS * ROW)) {
             return -1;
         }
-        int index = scroll + (int) ((mouseY - listY()) / ROW);
+        int index = bar.offset() + (int) ((mouseY - listY()) / ROW);
         return index < rows.size() ? index : -1;
     }
 
@@ -217,15 +216,16 @@ public final class ChannelPopup {
         PopupButtons.button(graphics, font, newX(), y + TOGGLE_Y, NEW_WIDTH, TOGGLE_HEIGHT, Component.translatable("gui.servus_foundation.channel.add"),
                 PopupButtons.over(mouseX, mouseY, newX(), y + TOGGLE_Y, NEW_WIDTH, TOGGLE_HEIGHT), true);
         List<Channel> rows = rows();
-        scroll = Math.min(scroll, maxScroll(rows.size()));
+        bar.setContent(rows.size(), ROWS);
+        int offset = bar.offset();
         int lx = listX();
         int ly = listY();
         PopupPanel.bordered(graphics, lx, ly, LIST_WIDTH, ROWS * ROW, PopupButtons.DARK, SLOT);
         int hovered = rowAt(rows, mouseX, mouseY);
         int current = current();
         Component tooltip = null;
-        for (int row = 0; row < ROWS && scroll + row < rows.size(); row++) {
-            Channel channel = rows.get(scroll + row);
+        for (int row = 0; row < ROWS && offset + row < rows.size(); row++) {
+            Channel channel = rows.get(offset + row);
             int top = ly + row * ROW;
             if (channel.id() == current) {
                 graphics.fill(lx, top, lx + LIST_WIDTH, top + ROW, SELECTED);
@@ -253,18 +253,11 @@ public final class ChannelPopup {
                             : Component.translatable("gui.servus_foundation.channel.in_use", uses(channel.id()));
                 }
             }
-            if (scroll + row == hovered) {
+            if (offset + row == hovered) {
                 graphics.fill(lx, top, lx + LIST_WIDTH, top + ROW, HOVERED);
             }
         }
-        int max = maxScroll(rows.size());
-        if (max > 0) {
-            int bx = lx + LIST_WIDTH + BAR_GAP;
-            graphics.fill(bx, ly, bx + BAR_WIDTH, ly + ROWS * ROW, PopupButtons.DARK);
-            int knob = Math.max(8, ROWS * ROW * ROWS / rows.size());
-            int ky = ly + (ROWS * ROW - knob) * scroll / max;
-            graphics.fill(bx + 1, ky + 1, bx + BAR_WIDTH - 1, ky + knob - 1, 0xFFDDDDDD);
-        }
+        bar.render(graphics, mouseX, mouseY);
         if (tooltip != null) {
             graphics.setTooltipForNextFrame(font, tooltip, mouseX, mouseY);
         }
@@ -280,13 +273,16 @@ public final class ChannelPopup {
         }
         double mouseX = event.x();
         double mouseY = event.y();
+        if (bar.mouseClicked(mouseX, mouseY, event.button())) {
+            return true;
+        }
         if (search.mouseClicked(event, doubleClick)) {
             search.setFocused(true);
             return true;
         }
         if (PopupButtons.over(mouseX, mouseY, x + PAD, y + TOGGLE_Y, TOGGLE_WIDTH, TOGGLE_HEIGHT)) {
             allChannels = !allChannels;
-            scroll = 0;
+            bar.setOffset(0);
             return true;
         }
         if (PopupButtons.over(mouseX, mouseY, newX(), y + TOGGLE_Y, NEW_WIDTH, TOGGLE_HEIGHT)) {
@@ -301,7 +297,7 @@ public final class ChannelPopup {
         List<Channel> rows = rows();
         int index = rowAt(rows, mouseX, mouseY);
         if (index >= 0) {
-            clickRow(rows.get(index), index - scroll, mouseX, mouseY);
+            clickRow(rows.get(index), index - bar.offset(), mouseX, mouseY);
             return true;
         }
         if (!PopupButtons.over(mouseX, mouseY, x, y, WIDTH, HEIGHT)) {
@@ -337,6 +333,8 @@ public final class ChannelPopup {
         }
         if (form.isOpen()) {
             form.mouseDragged(event);
+        } else {
+            bar.mouseDragged(event.y());
         }
         return true;
     }
@@ -347,6 +345,8 @@ public final class ChannelPopup {
         }
         if (form.isOpen()) {
             form.mouseReleased();
+        } else {
+            bar.mouseReleased();
         }
         return true;
     }
@@ -359,7 +359,8 @@ public final class ChannelPopup {
             form.mouseScrolled(amount);
             return true;
         }
-        scroll = Math.max(0, Math.min(maxScroll(rows().size()), scroll - (int) Math.signum(amount)));
+        bar.setContent(rows().size(), ROWS);
+        bar.scrollBy(-(int) Math.signum(amount));
         return true;
     }
 

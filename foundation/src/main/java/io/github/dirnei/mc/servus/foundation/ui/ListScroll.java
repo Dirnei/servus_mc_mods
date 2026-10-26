@@ -4,9 +4,13 @@ package io.github.dirnei.mc.servus.foundation.ui;
  * Scroll rules of a list that shows {@code visible} of {@code rows} rows from
  * a first row {@code offset}: the offset stays where the last page still
  * fills the list, and the scrollbar thumb spans the visible share of the
- * track. Pure, no Minecraft imports.
+ * track. Rows, lines or pixels work alike as long as all values share one
+ * unit. Pure, no Minecraft imports.
  */
 public final class ListScroll {
+
+    /** The shortest thumb, so it can still be grabbed on long lists. */
+    public static final int MIN_THUMB = 6;
 
     private ListScroll() {
     }
@@ -26,12 +30,12 @@ public final class ListScroll {
         return rows > visible;
     }
 
-    /** Length of the thumb on a track {@code track} long, at least 2. */
+    /** Length of the thumb on a track {@code track} long, at least {@link #MIN_THUMB} but never longer than the track. */
     public static int thumbLength(int rows, int visible, int track) {
         if (!scrolls(rows, visible)) {
             return track;
         }
-        return Math.max(2, track * visible / rows);
+        return Math.max(Math.min(MIN_THUMB, track), track * visible / rows);
     }
 
     /** Distance of the thumb from the top of the track. */
@@ -44,16 +48,29 @@ public final class ListScroll {
     }
 
     /**
-     * The offset, 0 to {@code maxOffset}, whose thumb, {@code thumb} long on a
-     * track {@code track} long, centres on {@code along} from the top of the
-     * track; for dragging the thumb with the mouse.
+     * Where on the thumb a press at {@code along} from the top of the track
+     * holds it: the pressed point when the press is on the thumb, else the
+     * thumb's centre, so a press on the track centres the thumb there.
      */
-    public static int offsetAt(double along, int thumb, int track, int maxOffset) {
+    public static double grabAt(double along, int thumbStart, int thumbLength) {
+        if (along >= thumbStart && along < thumbStart + thumbLength) {
+            return along - thumbStart;
+        }
+        return thumbLength / 2.0;
+    }
+
+    /**
+     * The offset, 0 to {@code maxOffset}, whose thumb, {@code thumb} long on a
+     * track {@code track} long, puts its grab point {@code grab} at
+     * {@code along} from the top of the track; for dragging the thumb with the
+     * mouse.
+     */
+    public static int offsetFor(double along, double grab, int thumb, int track, int maxOffset) {
         int free = track - thumb;
         if (maxOffset <= 0 || free <= 0) {
             return 0;
         }
-        long offset = Math.round((along - thumb / 2.0) / free * maxOffset);
+        long offset = Math.round((along - grab) / free * maxOffset);
         return (int) Math.max(0, Math.min(maxOffset, offset));
     }
 }

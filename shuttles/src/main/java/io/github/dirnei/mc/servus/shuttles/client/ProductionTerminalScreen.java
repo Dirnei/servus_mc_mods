@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.client;
 import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.foundation.client.RecipeEditorPopup;
+import io.github.dirnei.mc.servus.foundation.client.Scrollbar;
 import io.github.dirnei.mc.servus.foundation.picker.PickerStock;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.shuttles.menu.ProductionTerminalMenu;
@@ -62,6 +63,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private static final int TAB_HEIGHT = Production.TABS.h();
     private static final int LIST_Y = Production.LIST.y();
     private static final int LIST_BOTTOM = Production.LIST.bottom();
+    private static final int LIST_RIGHT = Production.LIST.right();
     private static final int PATTERN_ROW = 18;
     private static final int ROW = 10;
     private static final int CAPACITY_BAR_WIDTH = 80;
@@ -108,7 +110,8 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             new Tab("machines", this::machineLines),
             new Tab("cpus", this::cpuLines),
             new Tab("storage", this::storageLines));
-    private final int[] scrolls = new int[tabs.size()];
+    /** One scrollbar per tab, so each tab keeps its scroll position; offsets in pixels. */
+    private final List<Scrollbar> bars = tabs.stream().map(tab -> new Scrollbar()).toList();
     private final List<Line> lines = new ArrayList<>();
     private final RecipeEditorPopup popup = new RecipeEditorPopup(ProductionTerminalMenu.POPUP_X, ProductionTerminalMenu.POPUP_Y, WIDTH, HEIGHT);
     private int selected;
@@ -134,6 +137,13 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         super.init();
         ClientProduction.open(menu.terminal().getBlockPos());
         this.inventoryLabelY = Integer.MIN_VALUE;
+        Rect track = Production.SCROLLBAR;
+        bars.forEach(bar -> bar.setArea(leftPos + track.x(), topPos + track.y(), track.w(), track.h()));
+    }
+
+    /** The scrollbar of the tab on display. */
+    private Scrollbar bar() {
+        return bars.get(selected);
     }
 
     @Override
@@ -143,6 +153,8 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         graphics.fill(leftPos + MARGIN, topPos + LIST_Y - 2, leftPos + WIDTH - MARGIN, topPos + LIST_Y - 1, PanelPainter.SLOT);
         if (menu.isEditing()) {
             renderEditor(graphics, mouseX, mouseY);
+        } else {
+            bar().render(graphics, mouseX, mouseY);
         }
     }
 
@@ -270,8 +282,8 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         }
         rebuildLines();
         Line hovered = lineAt(mouseX, mouseY);
-        graphics.enableScissor(MARGIN, LIST_Y, WIDTH - MARGIN, LIST_BOTTOM);
-        int y = LIST_Y - scrolls[selected];
+        graphics.enableScissor(MARGIN, LIST_Y, LIST_RIGHT, LIST_BOTTOM);
+        int y = LIST_Y - bar().offset();
         for (Line line : lines) {
             if (y + line.height() > LIST_Y && y < LIST_BOTTOM) {
                 line.painter().paint(graphics, y, line == hovered);
@@ -316,15 +328,15 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         linesTab = selected;
         lines.clear();
         lines.addAll(tabs.get(selected).lines().get());
-        scrolls[selected] = Math.min(scrolls[selected], maxScroll());
+        bar().setContent(linesHeight(), LIST_BOTTOM - LIST_Y);
     }
 
-    private int maxScroll() {
+    private int linesHeight() {
         int total = 0;
         for (Line line : lines) {
             total += line.height();
         }
-        return Math.max(0, total - (LIST_BOTTOM - LIST_Y));
+        return total;
     }
 
     /** Text cut to a width, in list coordinates. */
@@ -340,7 +352,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     /** The light shade behind a hovered line. */
     private static void shade(GuiGraphicsExtractor graphics, int y, int height, boolean hovered) {
         if (hovered) {
-            graphics.fill(MARGIN, y, WIDTH - MARGIN, y + height, HOVER_SHADE);
+            graphics.fill(MARGIN, y, LIST_RIGHT, y + height, HOVER_SHADE);
         }
     }
 
@@ -712,7 +724,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         Component capacity = Component.translatable("gui.servus_shuttles.production.patterns_capacity", patterns.used(), patterns.total());
         result.add(new Line(14, (graphics, y, hovered) -> {
             graphics.text(font, capacity, MARGIN, y + 3, COLOUR_HEAD, false);
-            PanelPainter.bar(graphics, WIDTH - MARGIN - CAPACITY_BAR_WIDTH - 2, y + 3, CAPACITY_BAR_WIDTH, 7, patterns.used(), patterns.total(),
+            PanelPainter.bar(graphics, LIST_RIGHT - CAPACITY_BAR_WIDTH - 2, y + 3, CAPACITY_BAR_WIDTH, 7, patterns.used(), patterns.total(),
                     patterns.used() >= patterns.total() ? COLOUR_ALERT : COLOUR_TEAL, PanelPainter.DARK);
         }, null, null));
         Component add = Component.translatable("gui.servus_shuttles.production.new_pattern");
@@ -735,13 +747,13 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         Component anyTag = Component.translatable("gui.servus_shuttles.production.mode.any");
         Painter painter = (graphics, y, hovered) -> {
             if (hovered) {
-                graphics.fill(MARGIN, y, WIDTH - MARGIN, y + PATTERN_ROW, PATTERN_HOVER_SHADE);
+                graphics.fill(MARGIN, y, LIST_RIGHT, y + PATTERN_ROW, PATTERN_HOVER_SHADE);
             }
             graphics.item(row.result(), MARGIN + 4, y + 1);
-            int textRight = WIDTH - MARGIN - 2;
+            int textRight = LIST_RIGHT - 2;
             if (row.isAny()) {
                 int tagW = font.width(anyTag) + 4;
-                int tagX = WIDTH - MARGIN - 2 - tagW;
+                int tagX = LIST_RIGHT - 2 - tagW;
                 PanelPainter.bordered(graphics, tagX, y + 4, tagW, 10, PanelPainter.DARK, COLOUR_TEAL);
                 graphics.text(font, anyTag, tagX + 2, y + 5, 0xFFFFFFFF, false);
                 textRight = tagX - 2;
@@ -795,7 +807,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private Line ductLine(DuctRow duct) {
         Component line = Component.translatable("gui.servus_shuttles.production.busiest_duct", duct.name(), duct.load(), duct.bandwidth());
         int colour = PackingRow.busy(duct.load(), duct.bandwidth()) ? COLOUR_ALERT : COLOUR_DIM;
-        Painter painter = (graphics, y, hovered) -> clipped(graphics, line.getString(), MARGIN, y + 1, WIDTH - 2 * MARGIN, colour);
+        Painter painter = (graphics, y, hovered) -> clipped(graphics, line.getString(), MARGIN, y + 1, Production.LIST.w(), colour);
         Supplier<List<Component>> tooltip = () -> List.of(line,
                 Component.translatable("gui.servus_shuttles.production.machine.at", duct.pos().toShortString()));
         return new Line(ROW, painter, tooltip, null);
@@ -873,7 +885,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
 
     /** The top of a line on the panel, with the current scroll. */
     private int lineTop(Line target) {
-        int y = LIST_Y - scrolls[selected];
+        int y = LIST_Y - bar().offset();
         for (Line line : lines) {
             if (line == target) {
                 return y;
@@ -889,10 +901,10 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         }
         int x = (int) mouseX - leftPos;
         int mouse = (int) mouseY - topPos;
-        if (x < MARGIN || x >= WIDTH - MARGIN || mouse < LIST_Y || mouse >= LIST_BOTTOM) {
+        if (x < MARGIN || x >= LIST_RIGHT || mouse < LIST_Y || mouse >= LIST_BOTTOM) {
             return null;
         }
-        int y = LIST_Y - scrolls[selected];
+        int y = LIST_Y - bar().offset();
         for (Line line : lines) {
             if (mouse >= y && mouse < y + line.height()) {
                 return line;
@@ -938,9 +950,15 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             for (int i = 0; i < tabs.size(); i++) {
                 if (x >= rects.get(i).x() && x < rects.get(i).right()) {
                     selected = i;
+                    if (ClientProduction.online()) {
+                        rebuildLines();
+                    }
                     return true;
                 }
             }
+        }
+        if (bar().mouseClicked(mouseX, mouseY, event.button())) {
+            return true;
         }
         Line line = lineAt(mouseX, mouseY);
         if (line != null && line.hit() != null) {
@@ -959,8 +977,18 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         if (menu.isEditing()) {
             return true;
         }
-        scrolls[selected] = Math.max(0, Math.min(maxScroll(), scrolls[selected] - (int) (scrollY * ROW)));
+        bar().scrollBy(-(int) (scrollY * ROW));
         return true;
+    }
+
+    @Override
+    public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
+        return bar().mouseDragged(event.y()) || super.mouseDragged(event, dx, dy);
+    }
+
+    @Override
+    public boolean mouseReleased(MouseButtonEvent event) {
+        return bar().mouseReleased() || super.mouseReleased(event);
     }
 
     @Override

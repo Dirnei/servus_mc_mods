@@ -88,7 +88,7 @@ With JEI installed, the transfer button on a vanilla crafting recipe SHALL open 
 - **THEN** the centre cell shows an oak Rail with its wood, and the saved pattern takes that Rail from stock
 
 ### Requirement: Screen layout
-The Production Terminal screen SHALL show the title on its own row, the tab bar on the row below it and the list below the tab bar, so the title, the tabs and the rows never overlap; each tab SHALL be as wide as its label plus an even share of the row's spare width, so all tabs fit the row; the parts of a job row (icon, name, progress bar, step text, cancel button), of a buffer line under a job, of a machine row (icon, name, state, upkeep bar), of a CPU row (icon, name, slot bar, buffer bar, buffered items) and of a storage row (name, numbers, bar) SHALL not overlap and SHALL fit the list width; the pattern editor SHALL cover the list area with the player inventory below it, inside the panel. The panel SHALL fit a 1080p screen at the automatic GUI scale.
+The Production Terminal screen SHALL show the title on its own row, the tab bar on the row below it and the list below the tab bar, so the title, the tabs and the rows never overlap; the list's scrollbar SHALL have its own column right of the list, beside the list's full height, so no row part reaches under it; each tab SHALL be as wide as its label plus an even share of the row's spare width, so all tabs fit the row; the parts of a job row (icon, name, progress bar, step text, cancel button), of a buffer line under a job, of a machine row (icon, name, state, upkeep bar), of a CPU row (icon, name, slot bar, buffer bar, buffered items) and of a storage row (name, numbers, bar) SHALL not overlap and SHALL fit the list width; the pattern editor SHALL cover the list area and the scrollbar column with the player inventory below it, centred inside the panel. The panel SHALL fit a 1080p screen at the automatic GUI scale.
 
 #### Scenario: Title and tabs
 - **WHEN** the screen opens with all five tabs
@@ -105,6 +105,10 @@ The Production Terminal screen SHALL show the title on its own row, the tab bar 
 #### Scenario: Storage row
 - **WHEN** a zone row shows a long zone name
 - **THEN** the name is cut short before the numbers and the bar
+
+#### Scenario: Scrollbar column
+- **WHEN** a job row with its cancel button, a CPU row with its bars and a hovered pattern row show while the list scrolls
+- **THEN** the cancel button, the bars and the hover shade end left of the scrollbar and nothing overlaps it
 
 ### Requirement: Crafting tab
 The Crafting tab SHALL list every job of the formed Crafting CPUs of the line, open jobs first and then oldest first, one row each with the item icon, the amount and item name, a progress bar of the items made against the amount, the current step in plain words and a cancel button. Under an open job whose items wait in its CPU's buffer, one line per later step SHALL name the step's machine and the buffered items with their counts. A job whose outputs went to storage because the buffer was full SHALL say so under its row with the items and counts. Above the jobs a one line header SHALL count the CPUs and their slots in use; its tooltip SHALL list each CPU with its slots and waiting jobs.
@@ -230,6 +234,29 @@ The Storage tab SHALL show the warehouse the terminal's line belongs to, by site
 #### Scenario: No warehouse
 - **WHEN** the line has a CPU but no warehouse
 - **THEN** the Storage tab says that no warehouse is on the line
+
+### Requirement: List scrollbar
+The list of every tab (Crafting, Patterns, Machines, CPUs, Storage) SHALL show the shared Foundation scrollbar right of the list, for the tab on display. Its thumb SHALL show the share of the tab's rows that fits the list. Dragging the thumb, a press on the track and the mouse wheel over the list or the bar SHALL scroll the list, the wheel by the same step as before. Each tab SHALL keep its own scroll position.
+
+#### Scenario: Many jobs
+- **WHEN** the Crafting tab lists twelve jobs with buffer lines, more than the list shows
+- **THEN** a scrollbar right of the list shows the visible share, and dragging its thumb to the bottom shows the last job
+
+#### Scenario: Patterns tab
+- **WHEN** Pattern Storage holds 40 patterns and the player presses halfway down the track
+- **THEN** the list jumps to about the middle of the patterns
+
+#### Scenario: Short tab
+- **WHEN** the CPUs tab lists one CPU
+- **THEN** the scrollbar shows a greyed thumb over the whole track and the list does not move
+
+#### Scenario: Tabs keep their position
+- **WHEN** the player scrolls the Machines tab to its end, opens the Storage tab and returns to Machines
+- **THEN** Machines is still at its end and its thumb at the bottom of the track
+
+#### Scenario: Editor open
+- **WHEN** the pattern editor is open over the list
+- **THEN** no scrollbar shows and the wheel does not scroll the list behind the editor
 
 ### Requirement: Exact or Any in the recipe editor
 The recipe editor SHALL have a button beside Save that shows and switches the pattern's mode, Exact or Any. For a grid whose result changes with the items the recipe accepts the button SHALL show Exact, be greyed and say in its tooltip why Any is not possible. A new pattern SHALL start as Any when Any is possible; an existing pattern SHALL open with its own mode. The Patterns tab SHALL mark Any patterns, and their tooltip SHALL name what each Any cell accepts.

@@ -1,0 +1,37 @@
+# Tasks
+
+Builds on the code of `m8-pattern-variants`, `m8-terminal-tabs`, `m8-rule-cap`, `m8-rule-export`, `m8-station-numbers`, `m5-duct-endpoint-gui`, `m5-duct-fluid-filter` and `m5-duct-keep-amounts` as it is on main; the recipe editor and the order grid wait for `m8-shared-recipe-grid` (design D7).
+
+## 1. Pure scroll rules
+
+- [x] 1.1 In `foundation/src/main/java/io/github/dirnei/mc/servus/foundation/ui/ListScroll.java` add `MIN_THUMB = 6` and make `thumbLength` return at least `min(MIN_THUMB, track)`; in `ListScrollTest` change `thumbSpansTrack` to expect 6 for 3 of 1000 rows on 27 px and add `thumbMinimumNeverExceedsTrack` (3 of 1000 rows on a 4 px track gives 4). Verify with `gradlew :foundation:test`.
+- [x] 1.2 Add `grabAt(along, thumbStart, thumbLength)` and `offsetFor(along, grab, thumb, track, maxOffset)` to `ListScroll`, with `offsetAt` delegating to `offsetFor` with the centre as grab; add JUnit tests `grabOnThumbKeepsPoint`, `grabOnTrackCentres`, `dragKeepsGrabPoint` (pressing 10 px into a 15 px thumb at the top and moving 0 px keeps offset 0), `dragWithGrabClampsAtBothEnds`, `dragWithNothingToScrollStaysAtTop`, `pixelUnits` (total 400, visible 180, track 180: thumb 81, thumb at the bottom gives offset 220). Existing `dragPositionGivesOffset` and `dragOutsideTheBarClamps` stay green. Verify with `gradlew :foundation:test`.
+
+## 2. Shared Scrollbar widget
+
+- [x] 2.1 Create `foundation/src/main/java/io/github/dirnei/mc/servus/foundation/client/Scrollbar.java` with the API of design D1, drawing per D3 (sunken frame, raised thumb, hovered or dragged face, flat grey full thumb when nothing scrolls) and the press, drag and release handling of D5 on top of `ListScroll`; Javadoc on the class saying how a screen wires it. Verify with `gradlew :foundation:build`.
+- [x] 2.2 Move `foundation/.../client/ItemListView.java` onto `Scrollbar` (`NARROW`, always shown, text width per D4.3), add `mouseClicked`, `mouseDragged`, `mouseReleased`, and let `mouseScrolled` answer over the bar too; update its class Javadoc. Verify with `gradlew :foundation:build`.
+- [x] 2.3 Move `foundation/.../client/ItemPicker.java` onto `Scrollbar` per D4.4: remove `dragging`, `drag`, `clickBar`, `knobHeight` and the hand drawn bar, keep the public `mouseDragged` and `mouseReleased` signatures. Verify with `gradlew :foundation:build`.
+- [x] 2.4 Move `foundation/.../logistics/client/ChannelPopup.java` onto `Scrollbar` per D4.5: press on the bar in `mouseClicked`, drag in `mouseDragged` while the form is closed, end in `mouseReleased`; check `UtilityDuctScreen` forwards all three while the popup is open. Verify with `gradlew :foundation:build` and `gradlew :foundation:test`.
+
+## 3. Production Terminal
+
+- [x] 3.1 In `shuttles/src/main/java/io/github/dirnei/mc/servus/shuttles/terminal/TerminalLayout.java` (`Production`) set `WIDTH` 252, widen `TITLE` and `TABS` to 236, add `SCROLLBAR = (236, 34, 8, 180)` to `areas()`, move `POPUP` to x 46 and `INVENTORY` and `HOTBAR` to x 45. In `TerminalLayoutTest` add `productionScrollbarRightOfList` (bar right of `LIST.right()`, same top and height, inside the panel with its 1 px frame) and keep the disjoint, inside, tabs fit and 1080p width tests green; check `ProductionTerminalMenu` slot positions follow the constants. Verify with `gradlew :shuttles:test`.
+- [x] 3.2 In `shuttles/.../client/ProductionTerminalScreen.java` replace `int[] scrolls` with one `Scrollbar` per tab (`WIDE`, area `SCROLLBAR`), content the summed line heights and visible `LIST.h()`, set in `rebuildLines`; draw the bar in `extractBackground` while not editing; replace the list right edge `WIDTH - MARGIN` with `LIST.right()` (scissor, `lineAt`, hover shades, pattern Any tag, capacity bar) and `WIDTH - 2 * MARGIN` with `LIST.w()` (busiest duct); route `mouseClicked`, new `mouseDragged` and `mouseReleased` overrides, and `mouseScrolled` (10 px per notch) through the selected tab's bar. Verify with `gradlew :shuttles:build`.
+
+## 4. Storage Terminal and Outbound Station
+
+- [x] 4.1 In `shuttles/.../client/StorageTerminalScreen.java` replace `THUMB`, `draggingThumb`, `dragThumb` and `renderScrollThumb` with one `Scrollbar` (`WIDE`, area `layout.scrollbar()`) whose content and offset follow `maxScroll()`, `scrolled()` and the shown tab (Stock grid or `RulesList`), with `scrollTo` writing through it; keep the press only while no dialog is open. Forward press, drag, release and wheel to the three `craftLists` while the amount panel is open. Remove `ListScroll.offsetAt` if nothing calls it any more and fold its test into the `offsetFor` tests. Verify with `gradlew :shuttles:build` and `gradlew :foundation:test`.
+- [x] 4.2 In `shuttles/.../client/ExportPicker.java` add a `Scrollbar` (`NARROW`) per D4.6, narrow the rows and move the threshold text, and add `mouseDragged` and `mouseReleased`; in `OutboundStationScreen.java` forward drag and release while the picker is open. Verify with `gradlew :shuttles:build`.
+- [x] 4.3 In `shuttles/.../client/WarehouseControllerScreen.java` give the "Other sites" panel a `Scrollbar` (`NARROW`) per D4.7: rows from the bar's offset in `renderSites` and `siteUnder`, names cut at `SITES_WIDTH - 13`, the bar only while sites are listed, and `mouseClicked`, `mouseDragged`, `mouseReleased` and `mouseScrolled` (one row per notch over the panel) overrides. Verify with `gradlew :shuttles:build`.
+- [x] 4.4 After `m8-shared-recipe-grid`: give every scroll area of the shared recipe grid view (recipe editor and order grid) the shared `Scrollbar`, if it has one, and check the Production Terminal popup stays centred in the 252 px panel. Verify with `gradlew build`. Not needed: the shared recipe grid view has no scrolling parts.
+
+## 5. Integration
+
+- [x] 5.1 Full build and tests: `gradlew build` and `gradlew test` green for all five projects, `:foundation:runGameTestServer` and `:shuttles:runGameTestServer` green; the client start is part of the play check.
+- [x] 5.2 Play check from main, at GUI scale 2 and auto on 1080p, in each view: Production Terminal Crafting (many jobs with buffer lines), Patterns (many patterns, the Any tag and hover end left of the bar), Machines, CPUs (one CPU: greyed full thumb) and Storage tabs, tab switch keeps each position, the pattern editor centred and no bar under it; Storage Terminal grid on Stock and Rules (proportional thumb, grab without jump, track jump, drag outside the bar, greyed when the stock fits, no press while the item popup is open); amount panel From stock, To craft and Missing lists; Utility Duct item filter picker, fluid filter picker, channel popup and the channel form's icon picker; Field Head crop, sapling and tag pickers; Fluid Gantry fluid lock picker; Outbound Station Claim an export picker; Warehouse Controller "Other sites" panel with more than 16 sites and with two. In each: drag, track press, wheel over the list and over the bar, and that the bar looks the same everywhere.
+
+## Workflow follow-up
+
+- Archive after the play check sign-off. In the archive commit groom `PLAN.md`: drop "Production Terminal lists" from the Shuttles open point about the Foundation widgets, and add no open point for the Warehouse Controller sites panel, which scrolls now.
+- Add an `## Unreleased` line to `foundation/CHANGELOG.md` (Changed: one shared scrollbar for lists and pickers, draggable everywhere) and `shuttles/CHANGELOG.md` (Added: Production Terminal and Warehouse Controller site list scrollbars; Changed: Storage Terminal and Claim an export picker scrollbars).

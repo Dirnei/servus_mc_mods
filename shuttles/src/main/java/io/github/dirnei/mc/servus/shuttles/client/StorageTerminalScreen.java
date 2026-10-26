@@ -33,8 +33,8 @@ import java.util.function.Supplier;
 import io.github.dirnei.mc.servus.foundation.client.ItemListView;
 import io.github.dirnei.mc.servus.foundation.client.NumberStepper;
 import io.github.dirnei.mc.servus.foundation.client.PopupPanel;
+import io.github.dirnei.mc.servus.foundation.client.Scrollbar;
 import io.github.dirnei.mc.servus.foundation.ui.AmountSteps;
-import io.github.dirnei.mc.servus.foundation.ui.ListScroll;
 import io.github.dirnei.mc.servus.shuttles.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternEditing;
 import net.minecraft.client.Minecraft;
@@ -74,8 +74,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     private static final int CELL = TerminalLayout.CELL;
     private static final int COLOUR_TEXT = 0xFF404040;
     private static final int COLOUR_ALERT = 0xFFB03030;
-    /** Length of the grid's scrollbar thumb. */
-    private static final int THUMB = 15;
     /** The alert colour on the dark item grid. */
     private static final int COLOUR_ALERT_ON_GRID = 0xFFFF6060;
     private static final String[] CRAFT_LISTS = {"craft_from_stock", "craft_to_craft", "craft_missing"};
@@ -120,8 +118,8 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     private final Set<Integer> draggedCells = new HashSet<>();
     /** Set when a dialog took a press, so its release puts no carried stack into a slot behind it. */
     private boolean swallowRelease;
-    /** Whether the left button went down on the grid's scrollbar and still holds the thumb. */
-    private boolean draggingThumb;
+    /** The scrollbar of the shown list, the Stock grid or the Rules tab's rule rows; its offset follows {@link #scrolled()}. */
+    private final Scrollbar scrollbar = new Scrollbar();
     /** The reason Next or Start is greyed out, null while it can be pressed. */
     private String nextReason;
     private String startReason;
@@ -708,7 +706,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         } else {
             PanelPainter.slots(graphics, leftPos, topPos, layout.grid(), COLUMNS, COLUMNS * layout.rows());
         }
-        PanelPainter.inset(graphics, leftPos, topPos, layout.scrollbar());
         PanelPainter.slots(graphics, leftPos, topPos, Storage.INPUT, Storage.ROW_SLOTS, Storage.ROW_SLOTS);
         PanelPainter.slots(graphics, leftPos, topPos, Storage.OUTPUT, Storage.ROW_SLOTS, menu.outputSlots());
         tag(graphics, Storage.INPUT_TAG, true, menu.inputOpen() ? 0xFF4C9A5A : PanelPainter.SLOT);
@@ -719,7 +716,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         tag(graphics, Storage.OUTPUT_TAG, false, 0xFF4C7FB0);
         PanelPainter.slots(graphics, leftPos, topPos, Storage.INVENTORY, 9, 27);
         PanelPainter.slots(graphics, leftPos, topPos, Storage.HOTBAR, 9, 9);
-        renderScrollThumb(graphics);
+        syncScrollbar().render(graphics, mouseX, mouseY);
     }
 
     private List<Rect> terminalTabRects() {
@@ -768,23 +765,13 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         applyDialog();
     }
 
-    private boolean overScrollbar(double mouseX, double mouseY) {
-        return layout.scrollbar().contains((int) mouseX - leftPos, (int) mouseY - topPos);
-    }
-
-    /** Scrolls the shown list so the thumb centres on the mouse, as far as it scrolls. */
-    private void dragThumb(double mouseY) {
+    /** The scrollbar set to the shown list's rows and scroll. */
+    private Scrollbar syncScrollbar() {
         Rect bar = layout.scrollbar();
-        scrollTo(ListScroll.offsetAt(mouseY - topPos - bar.y(), THUMB, bar.h(), maxScroll()));
-    }
-
-    private void renderScrollThumb(GuiGraphicsExtractor graphics) {
-        int max = maxScroll();
-        Rect bar = layout.scrollbar();
-        int track = bar.h() - THUMB;
-        int thumb = topPos + bar.y() + (max == 0 ? 0 : track * Math.min(scrolled(), max) / max);
-        int thumbX = leftPos + bar.x();
-        graphics.fill(thumbX, thumb, thumbX + bar.w(), thumb + THUMB, max == 0 ? 0xFF9A9A9A : 0xFFE0E0E0);
+        scrollbar.setArea(leftPos + bar.x(), topPos + bar.y(), bar.w(), bar.h());
+        scrollbar.setContent(maxScroll() + layout.rows(), layout.rows());
+        scrollbar.setOffset(scrolled());
+        return scrollbar;
     }
 
     /** A small arrow beside a row: up into the warehouse for the input, down to the player for the output. */
@@ -1245,9 +1232,8 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             search.setFocused(true);
             return true;
         }
-        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && overScrollbar(mouseX, mouseY)) {
-            draggingThumb = true;
-            dragThumb(mouseY);
+        if (syncScrollbar().mouseClicked(mouseX, mouseY, button)) {
+            scrollTo(scrollbar.offset());
             return true;
         }
         if (rulesTab && ClientStock.online() && layout.grid().contains((int) mouseX - leftPos, (int) mouseY - topPos)) {
@@ -1272,6 +1258,10 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         double mouseX = event.x();
         double mouseY = event.y();
         if (dialog == Dialog.ITEM && popup.clickTab(font, mouseX, mouseY)) {
+            swallowRelease = true;
+            return true;
+        }
+        if (amountPanel() && craftLists.stream().anyMatch(list -> list.mouseClicked(mouseX, mouseY, event.button()))) {
             swallowRelease = true;
             return true;
         }
@@ -1372,8 +1362,11 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     /** Dragging the cursor's item over the order grid sets a ghost copy in each cell it passes. */
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
-        if (draggingThumb) {
-            dragThumb(event.y());
+        if (scrollbar.mouseDragged(event.y())) {
+            scrollTo(scrollbar.offset());
+            return true;
+        }
+        if (amountPanel() && craftLists.stream().anyMatch(list -> list.mouseDragged(event.y()))) {
             return true;
         }
         int cell = ghostCellAt(event.x(), event.y());
@@ -1393,8 +1386,9 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
-        if (draggingThumb) {
-            draggingThumb = false;
+        boolean barDragEnded = scrollbar.mouseReleased() | releaseCraftLists();
+        if (barDragEnded) {
+            swallowRelease = false;
             return true;
         }
         if (!swallowRelease) {
@@ -1406,6 +1400,15 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             getFocused().mouseReleased(event);
         }
         return true;
+    }
+
+    /** Ends a scrollbar drag in the amount panel's lists; true when one was held. */
+    private boolean releaseCraftLists() {
+        boolean ended = false;
+        for (ItemListView list : craftLists) {
+            ended |= list.mouseReleased();
+        }
+        return ended;
     }
 
     @Override

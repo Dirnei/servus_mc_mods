@@ -156,6 +156,23 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
         return panel.mouseClicked(event.x(), event.y()) || super.mouseClicked(event, doubleClick);
     }
 
+    @Override
+    public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
+        if (picker.isOpen()) {
+            picker.mouseDragged(event.y());
+            return true;
+        }
+        return super.mouseDragged(event, dx, dy);
+    }
+
+    @Override
+    public boolean mouseReleased(MouseButtonEvent event) {
+        if (picker.isOpen() && picker.mouseReleased()) {
+            return true;
+        }
+        return super.mouseReleased(event);
+    }
+
     /** Scrolling over a keep slot adjusts its amount by one, by a stack with shift. */
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
