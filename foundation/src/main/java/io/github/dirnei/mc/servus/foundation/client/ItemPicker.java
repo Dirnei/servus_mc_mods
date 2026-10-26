@@ -19,6 +19,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -62,11 +63,23 @@ public final class ItemPicker {
     private static final int DARK = 0xFF373737;
     private static final int SLOT = 0xFF8B8B8B;
 
-    /** One entry: an id (an item id, or {@link PickerList#NONE_ID}), its icon (may be empty) and its name. */
-    public record Entry(String id, ItemStack icon, Component name) {
+    /**
+     * One entry: an id (an item or fluid id, or {@link PickerList#NONE_ID}), its icon (may be empty), a fluid
+     * drawn as its texture when the icon is empty (may be empty), and its name.
+     */
+    public record Entry(String id, ItemStack icon, FluidStack fluid, Component name) {
+
+        public Entry(String id, ItemStack icon, Component name) {
+            this(id, icon, FluidStack.EMPTY, name);
+        }
 
         public static Entry none(Component name) {
             return new Entry(PickerList.NONE_ID, ItemStack.EMPTY, name);
+        }
+
+        /** An entry for a fluid, shown with its still texture in its colour. */
+        public static Entry fluid(String id, FluidStack fluid, Component name) {
+            return new Entry(id, ItemStack.EMPTY, fluid, name);
         }
 
         public boolean isNone() {
@@ -75,7 +88,29 @@ public final class ItemPicker {
 
         /** The entry's item id, or empty for the none entry or an id that does not parse. */
         public Optional<Identifier> itemId() {
+            return identifier();
+        }
+
+        /** The entry's fluid id, or empty for the none entry or an id that does not parse. */
+        public Optional<Identifier> fluidId() {
+            return identifier();
+        }
+
+        private Optional<Identifier> identifier() {
             return isNone() ? Optional.empty() : Optional.ofNullable(Identifier.tryParse(id));
+        }
+
+        /** Draws the icon, or the fluid when there is no icon, at a 16 by 16 spot. */
+        void drawIcon(GuiGraphicsExtractor graphics, int x, int y) {
+            if (!icon.isEmpty()) {
+                graphics.item(icon, x, y);
+            } else if (!fluid.isEmpty()) {
+                FluidSprites.drawIcon(graphics, fluid, x, y);
+            }
+        }
+
+        boolean hasIcon() {
+            return !icon.isEmpty() || !fluid.isEmpty();
         }
 
         /** The entry id of a stack's item; {@link PickerList#NONE_ID} for an empty stack. */
@@ -238,8 +273,8 @@ public final class ItemPicker {
         graphics.fill(buttonX + 1, buttonY + 1, right - 1, buttonY + 2, 0xFFFFFFFF);
         Entry entry = current();
         int textX = buttonX + 4;
-        if (entry != null && !entry.icon().isEmpty()) {
-            graphics.item(entry.icon(), buttonX + 1, buttonY + 1);
+        if (entry != null && entry.hasIcon()) {
+            entry.drawIcon(graphics, buttonX + 1, buttonY + 1);
             textX = buttonX + 20;
         }
         int textRight = right - 10;
@@ -278,9 +313,7 @@ public final class ItemPicker {
             if (entry.id().equals(selected)) {
                 graphics.fill(lx, top, lx + LIST_WIDTH, top + ROW, SELECTED);
             }
-            if (!entry.icon().isEmpty()) {
-                graphics.item(entry.icon(), lx + 1, top + 1);
-            }
+            entry.drawIcon(graphics, lx + 1, top + 1);
             long count = count(entry);
             int colour = count == 0 || locked.containsKey(entry.id()) ? GREY : TEXT;
             int nameRight = lx + LIST_WIDTH - 3;

@@ -168,6 +168,8 @@ public final class LogisticsDataParts {
         provider.add("gui.servus_foundation.filter", "Filter (empty = everything)");
         provider.add("gui.servus_foundation.filter_picker", "Filter item");
         provider.add("gui.servus_foundation.filter_none", "None, clear the slot");
+        provider.add("gui.servus_foundation.fluid_filter", "Fluid filter (empty = every fluid)");
+        provider.add("gui.servus_foundation.fluid_filter_picker", "Filter fluid");
         provider.add("gui.servus_foundation.priority", "Priority %s");
         provider.add("gui.servus_foundation.no_lines", "No lines");
         provider.add("gui.servus_foundation.channel.default", "Default");
@@ -203,7 +205,7 @@ public final class LogisticsDataParts {
         provider.add("message.servus_foundation.potato.powered", "powered");
         provider.add("message.servus_foundation.potato.unpowered", "unpowered");
         provider.add("message.servus_foundation.potato.paused", "%s, paused");
-        provider.add("message.servus_foundation.potato.item_side", "%s: %s, %s, %s, priority %s, %s ducts, %s in / %s out");
+        provider.add("message.servus_foundation.potato.filtered_side", "%s: %s, %s, %s, priority %s, %s filter entries, %s ducts, %s in / %s out");
         provider.add("message.servus_foundation.potato.side", "%s: %s, %s, %s, %s ducts, %s in / %s out");
         provider.add("message.servus_foundation.potato.run", "%s: %s ducts");
         provider.add("message.servus_foundation.potato.data", "%s: %s, %s items/s, %s used");

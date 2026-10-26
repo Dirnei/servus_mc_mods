@@ -1,7 +1,9 @@
 package io.github.dirnei.mc.servus.foundation.transfer;
 
+import java.util.Optional;
 import java.util.function.ToIntFunction;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.ResourceHandler;
@@ -184,6 +186,24 @@ public final class Transfer {
                 ? ResourceHandlerUtil.moveFirst(handler, item, resource -> true, Integer.MAX_VALUE, current()) != null
                 : ResourceHandlerUtil.moveFirst(item, handler, resource -> true, Integer.MAX_VALUE, current()) != null;
         return moved ? slot.getStackInSlot(0).copy() : ItemStack.EMPTY;
+    }
+
+    /** The first fluid a stack holds (a filled bucket, a tank item, any mod's container), or empty. The stack is not changed. */
+    public static Optional<Fluid> fluidOf(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return Optional.empty();
+        }
+        ResourceHandler<FluidResource> item = ItemAccess.forStack(stack).getCapability(Capabilities.Fluid.ITEM);
+        if (item == null) {
+            return Optional.empty();
+        }
+        for (int index = 0; index < item.size(); index++) {
+            FluidResource resource = item.getResource(index);
+            if (!resource.isEmpty() && item.getAmountAsLong(index) > 0) {
+                return Optional.of(resource.getFluid());
+            }
+        }
+        return Optional.empty();
     }
 
     /** Whether a stack holds or takes fluid (a bucket, a tank item); false for an empty hand. */

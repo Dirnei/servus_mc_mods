@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.foundation.client;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -31,6 +33,11 @@ public final class FluidSprites {
         }
         FluidState state = fluid.getFluid().defaultFluidState();
         return Argb.opaque(source.colorInWorld(state, state.createLegacyBlock(), level, pos));
+    }
+
+    /** Draws the fluid's still texture in its colour as a 16 by 16 GUI icon, absolute coordinates. */
+    public static void drawIcon(GuiGraphicsExtractor graphics, FluidStack fluid, int x, int y) {
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, still(fluid), x, y, 16, 16, tint(fluid));
     }
 
     /** ARGB tint of the fluid as a stack, opaque white when it has none. */

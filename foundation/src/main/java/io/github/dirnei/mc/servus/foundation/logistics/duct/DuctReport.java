@@ -21,7 +21,7 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * The chat report of the Data Potato on a duct: per present line the clicked
- * side's mode, Control, channel, priority, run size and in and out sides, or for the
+ * side's mode, Control, channel, priority and filter entries, run size and in and out sides, or for the
  * centre whether the duct is powered and the run sizes; the data line always names tier, bandwidth and
  * load. Server thread only; counts cover the loaded part of a run.
  */
@@ -62,11 +62,25 @@ public final class DuctReport {
         Component mode = Component.translatable("gui.servus_foundation.mode." + duct.mode(line, side).name().toLowerCase(Locale.ROOT));
         Component control = control(duct, line, side);
         if (line == Line.ITEM) {
-            return Component.translatable(KEY + "item_side", lineName(line), mode, control, channelName(duct, channel), duct.priority(side),
-                    runSize(duct, line), tally.in(), tally.out());
+            return Component.translatable(KEY + "filtered_side", lineName(line), mode, control, channelName(duct, channel), duct.priority(side),
+                    itemEntries(duct, side), runSize(duct, line), tally.in(), tally.out());
+        }
+        if (line == Line.FLUID) {
+            return Component.translatable(KEY + "filtered_side", lineName(line), mode, control, channelName(duct, channel), duct.fluidPriority(side),
+                    duct.fluidFilter(side).entries().size(), runSize(duct, line), tally.in(), tally.out());
         }
         return Component.translatable(KEY + "side", lineName(line), mode, control, channelName(duct, channel), runSize(duct, line),
                 tally.in(), tally.out());
+    }
+
+    private static int itemEntries(UtilityDuctBlockEntity duct, Direction side) {
+        int entries = 0;
+        for (int slot = 0; slot < UtilityDuctBlockEntity.FILTER_SLOTS; slot++) {
+            if (!duct.filter(side).getStackInSlot(slot).isEmpty()) {
+                entries++;
+            }
+        }
+        return entries;
     }
 
     /** The side's Control by name, marked paused while it keeps the side from moving anything. */

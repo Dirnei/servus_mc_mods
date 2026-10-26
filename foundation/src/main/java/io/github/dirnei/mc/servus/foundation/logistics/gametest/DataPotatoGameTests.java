@@ -67,13 +67,13 @@ public final class DataPotatoGameTests {
             List<Component> report = DuctReport.of(ducts[1], Direction.NORTH);
             helper.assertTrue(report.size() == 2, "a header and the item line, got " + report);
             assertKey(helper, report.get(0), "duct_side");
-            Object[] item = assertKey(helper, report.get(1), "item_side");
+            Object[] item = assertKey(helper, report.get(1), "filtered_side");
             helper.assertTrue(text(item[1]).equals("gui.servus_foundation.mode.output"), "the mode is Push out, got " + text(item[1]));
             helper.assertTrue(text(item[2]).equals("gui.servus_foundation.control.always"), "the Control is Always, got " + text(item[2]));
             helper.assertTrue(text(item[3]).equals("\"Iron ore\""), "the channel is \"Iron ore\", got " + text(item[3]));
             helper.assertTrue(((Component) item[3]).getStyle().getColor() != null, "the channel name is coloured");
-            helper.assertTrue(Arrays.asList(item).subList(4, 8).equals(List.of(2, 3, 2, 2)),
-                    "priority 2, 3 ducts, 2 in, 2 out, got " + Arrays.asList(item).subList(4, 8));
+            helper.assertTrue(Arrays.asList(item).subList(4, 9).equals(List.of(2, 0, 3, 2, 2)),
+                    "priority 2, no filter entries, 3 ducts, 2 in, 2 out, got " + Arrays.asList(item).subList(4, 9));
 
             List<Component> centre = DuctReport.of(ducts[1], null);
             Object[] header = assertKey(helper, centre.get(0), "duct_centre");
@@ -94,12 +94,30 @@ public final class DataPotatoGameTests {
         duct.setControl(Line.FLUID, Direction.NORTH, DuctControl.UNPOWERED);
 
         helper.runAfterDelay(5, () -> {
-            Object[] fluid = assertKey(helper, DuctReport.of(duct, Direction.NORTH).get(1), "side");
+            Object[] fluid = assertKey(helper, DuctReport.of(duct, Direction.NORTH).get(1), "filtered_side");
             Object[] paused = assertKey(helper, (Component) fluid[2], "paused");
             helper.assertTrue(text(paused[0]).equals("gui.servus_foundation.control.unpowered"),
                     "the paused Control is While unpowered, got " + text(paused[0]));
             Object[] header = assertKey(helper, DuctReport.of(duct, null).get(0), "duct_centre");
             helper.assertTrue(text(header[0]).equals(KEY + "powered"), "the centre names the duct powered, got " + text(header[0]));
+            helper.succeed();
+        });
+    }
+
+    /** A push out fluid side with fluid priority 4 and lava and water listed reports Push, priority 4 and 2 filter entries. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void potatoReportsFluidArm(GameTestHelper helper) {
+        helper.setBlock(DUCT_B.north(), Blocks.CAULDRON.defaultBlockState());
+        UtilityDuctBlockEntity duct = duct(helper, DUCT_B, Line.FLUID);
+        duct.setMode(Line.FLUID, Direction.NORTH, SideMode.OUTPUT);
+        duct.setFluidPriority(Direction.NORTH, 4);
+        duct.setFluidFilter(Direction.NORTH, 0, Fluids.LAVA);
+        duct.setFluidFilter(Direction.NORTH, 3, Fluids.WATER);
+
+        helper.runAfterDelay(5, () -> {
+            Object[] fluid = assertKey(helper, DuctReport.of(duct, Direction.NORTH).get(1), "filtered_side");
+            helper.assertTrue(text(fluid[1]).equals("gui.servus_foundation.mode.output"), "the mode is Push out, got " + text(fluid[1]));
+            helper.assertTrue(fluid[4].equals(4) && fluid[5].equals(2), "priority 4 and 2 filter entries, got " + fluid[4] + " and " + fluid[5]);
             helper.succeed();
         });
     }

@@ -3,12 +3,16 @@ package io.github.dirnei.mc.servus.foundation.logistics.client;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.client.ItemPicker;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.FluidFilter;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.ClientCableChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.SetDuctFilterPayload;
+import io.github.dirnei.mc.servus.foundation.logistics.menu.SetDuctFluidFilterPayload;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.UtilityDuctMenu;
+import io.github.dirnei.mc.servus.foundation.picker.PickerList;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -23,23 +27,27 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /**
  * The endpoint GUI of a duct: a side picker row on top, the selected side's
  * neighbour name, one tab per present line on the left edge, and the page of
  * the selected line with its mode, Control, channel and remove button; the
- * Item Pipe page adds the filter slots and the priority. The
- * Power Cable and Fluid Pipe pages have no filter or priority; the data page
- * only switches the side on or off and removes the line. A left click with an
- * empty cursor on a filter slot opens a search popup over every item for that
- * slot; the channel button opens the {@link ChannelPopup}.
+ * Item Pipe page adds the filter slots and the priority, the Fluid Pipe page
+ * the fluid filter slots and the fluid priority. The Power Cable page has no
+ * filter or priority; the data page only switches the side on or off and
+ * removes the line. A left click with an empty cursor on a filter slot opens a
+ * search popup over every item, or every fluid, for that slot; a fluid slot
+ * clicked with a fluid container takes its fluid and leaves the container as
+ * it is. The channel button opens the {@link ChannelPopup}.
  */
 public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> {
 
@@ -71,8 +79,11 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
     private final DuctSidePicker sidePicker;
     private int linesSeen = -1;
     private final ItemPicker filterPicker;
+    private final ItemPicker fluidPicker;
+    private final FluidFilterRow fluidRow;
     private final ChannelPopup channelPopup;
     private boolean filterPickerFilled;
+    private boolean fluidPickerFilled;
     /** The filter slot the open popup sets. */
     private int pickerSlot;
 
@@ -81,6 +92,9 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         this.sidePicker = new DuctSidePicker(menu.duct());
         this.filterPicker = new ItemPicker(Component.translatable("gui.servus_foundation.filter_picker"),
                 entry -> sendFilter(pickerSlot, entry.itemId()));
+        this.fluidPicker = new ItemPicker(Component.translatable("gui.servus_foundation.fluid_filter_picker"),
+                entry -> sendFluidFilter(pickerSlot, entry.fluidId()));
+        this.fluidRow = new FluidFilterRow(() -> menu.duct().fluidFilter(menu.side()));
         this.channelPopup = new ChannelPopup(menu);
         ClientCableChannels.clear();
     }
@@ -91,6 +105,8 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         this.inventoryLabelX = MARGIN;
         this.inventoryLabelY = UtilityDuctMenu.INVENTORY_Y - 11;
         filterPicker.setArea(leftPos, topPos, imageWidth, imageHeight);
+        fluidPicker.setArea(leftPos, topPos, imageWidth, imageHeight);
+        fluidRow.place(leftPos + UtilityDuctMenu.SLOT_X, topPos + UtilityDuctMenu.FILTER_Y);
         channelPopup.setArea(leftPos, topPos, imageWidth, imageHeight);
         sidePicker.place(leftPos + (imageWidth - DuctSidePicker.width()) / 2, topPos + PICKER_Y);
         rebuildButtons();
@@ -101,14 +117,28 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         ClientPacketDistributor.sendToServer(new SetDuctFilterPayload(slot, item));
     }
 
+    /** Asks the server to set a fluid filter slot to the fluid with that id; empty clears it. */
+    public void sendFluidFilter(int slot, Optional<Identifier> fluid) {
+        ClientPacketDistributor.sendToServer(new SetDuctFluidFilterPayload(slot, fluid));
+    }
+
+    private void sendFluidFilter(int slot, Fluid fluid) {
+        sendFluidFilter(slot, Optional.of(BuiltInRegistries.FLUID.getKey(fluid)));
+    }
+
     /** Whether the filter slots show, that is the Item Pipe page is selected. */
     public boolean showsFilter() {
         return shownPage == Line.ITEM;
     }
 
-    /** Whether a popup covers the GUI: the filter picker or the channel popup. */
+    /** Whether the fluid filter slots show, that is the Fluid Pipe page is selected. */
+    public boolean showsFluidFilter() {
+        return shownPage == Line.FLUID;
+    }
+
+    /** Whether a popup covers the GUI: a filter picker or the channel popup. */
     public boolean isPickerOpen() {
-        return filterPicker.isOpen() || channelPopup.isOpen();
+        return filterPicker.isOpen() || fluidPicker.isOpen() || channelPopup.isOpen();
     }
 
     /** The 16 by 16 item area of a filter slot, absolute screen coordinates. */
@@ -125,7 +155,20 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         filterPicker.open(ItemPicker.Entry.idOf(menu.getSlot(slot).getItem()));
     }
 
-    /** A left click with an empty cursor on a filter slot opens the popup and sends nothing. */
+    private void openFluidPicker(int slot) {
+        if (!fluidPickerFilled) {
+            fluidPicker.setEntries(FilterPickerEntries.fluids());
+            fluidPickerFilled = true;
+        }
+        pickerSlot = slot;
+        String current = menu.duct().fluidFilter(menu.side()).get(slot);
+        fluidPicker.open(current == null ? PickerList.NONE_ID : current);
+    }
+
+    /**
+     * A left click with an empty cursor on a filter slot opens the popup and sends nothing. On the Fluid Pipe
+     * page a shift click on an inventory item sets the first free fluid slot to its fluid and moves nothing.
+     */
     @Override
     protected void slotClicked(Slot slot, int slotId, int buttonNum, ContainerInput containerInput) {
         if (slot != null && slot.index < UtilityDuctBlockEntity.FILTER_SLOTS && shownPage == Line.ITEM
@@ -133,7 +176,26 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
             openFilterPicker(slot.index);
             return;
         }
+        if (slot != null && shownPage == Line.FLUID && containerInput == ContainerInput.QUICK_MOVE) {
+            int free = menu.duct().fluidFilter(menu.side()).firstFree();
+            Optional<Fluid> fluid = Transfer.fluidOf(slot.getItem());
+            if (free != FluidFilter.NONE && fluid.isPresent()) {
+                sendFluidFilter(free, fluid.get());
+            }
+            return;
+        }
         super.slotClicked(slot, slotId, buttonNum, containerInput);
+    }
+
+    /** Right click clears a fluid slot; a left click takes the carried container's fluid, or opens the picker with an empty cursor. */
+    private void clickFluidSlot(int slot, int button) {
+        if (button == 1) {
+            sendFluidFilter(slot, Optional.empty());
+        } else if (button == 0 && menu.getCarried().isEmpty()) {
+            openFluidPicker(slot);
+        } else if (button == 0) {
+            Transfer.fluidOf(menu.getCarried()).ifPresent(fluid -> sendFluidFilter(slot, fluid));
+        }
     }
 
     /** The present lines in tab order. */
@@ -175,15 +237,17 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
             addRenderableWidget(new ChannelButton(leftPos + MARGIN, topPos + CHANNEL_Y, imageWidth - 2 * MARGIN,
                     () -> menu.duct().channel(line, menu.side()), () -> channelPopup.open(line)));
         }
-        int removeY = line == Line.ITEM ? PRIORITY_Y : line == Line.DATA ? CHANNEL_Y : CHANNEL_Y + ChannelButton.HEIGHT + 8;
+        int removeY = line == Line.ITEM || line == Line.FLUID ? PRIORITY_Y : line == Line.DATA ? CHANNEL_Y : CHANNEL_Y + ChannelButton.HEIGHT + 8;
         Button remove = Button.builder(Component.literal("x"), button -> press(UtilityDuctMenu.BUTTON_REMOVE_LINE + line.ordinal()))
                 .bounds(leftPos + imageWidth - MARGIN - REMOVE_WIDTH, topPos + removeY, REMOVE_WIDTH, 16).build();
         remove.setTooltip(Tooltip.create(Component.translatable("gui.servus_foundation.remove." + line.id())));
         addRenderableWidget(remove);
-        if (line == Line.ITEM) {
-            addRenderableWidget(Button.builder(Component.literal("-"), button -> press(UtilityDuctMenu.BUTTON_PRIORITY_DOWN))
+        if (line == Line.ITEM || line == Line.FLUID) {
+            int down = line == Line.ITEM ? UtilityDuctMenu.BUTTON_PRIORITY_DOWN : UtilityDuctMenu.BUTTON_FLUID_PRIORITY_DOWN;
+            int up = line == Line.ITEM ? UtilityDuctMenu.BUTTON_PRIORITY_UP : UtilityDuctMenu.BUTTON_FLUID_PRIORITY_UP;
+            addRenderableWidget(Button.builder(Component.literal("-"), button -> press(down))
                     .bounds(leftPos + MARGIN, topPos + PRIORITY_Y, 16, 16).build());
-            addRenderableWidget(Button.builder(Component.literal("+"), button -> press(UtilityDuctMenu.BUTTON_PRIORITY_UP))
+            addRenderableWidget(Button.builder(Component.literal("+"), button -> press(up))
                     .bounds(leftPos + MARGIN + 76, topPos + PRIORITY_Y, 16, 16).build());
         }
     }
@@ -248,6 +312,9 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         if (filterPicker.isOpen() && shownPage != Line.ITEM) {
             filterPicker.close();
         }
+        if (fluidPicker.isOpen() && shownPage != Line.FLUID) {
+            fluidPicker.close();
+        }
         if (channelPopup.isOpen() && channelPopup.line() != shownPage) {
             channelPopup.close();
         }
@@ -256,18 +323,20 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
             channelPopup.render(guiGraphics, font, mouseX, mouseY, partialTick);
             return;
         }
-        if (filterPicker.isOpen()) {
-            super.extractRenderState(guiGraphics, -1, -1, partialTick);
-            filterPicker.renderPopup(guiGraphics, font, mouseX, mouseY, partialTick);
-            filterPicker.renderTooltip(guiGraphics, font, mouseX, mouseY);
-            return;
+        for (ItemPicker picker : List.of(filterPicker, fluidPicker)) {
+            if (picker.isOpen()) {
+                super.extractRenderState(guiGraphics, -1, -1, partialTick);
+                picker.renderPopup(guiGraphics, font, mouseX, mouseY, partialTick);
+                picker.renderTooltip(guiGraphics, font, mouseX, mouseY);
+                return;
+            }
         }
         super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         Line hovered = tabAt(mouseX, mouseY);
         if (hovered != null) {
             guiGraphics.setTooltipForNextFrame(font, Component.translatable("gui.servus_foundation.line." + hovered.id()), mouseX, mouseY);
-        } else {
-            sidePicker.renderTooltip(guiGraphics, font, mouseX, mouseY);
+        } else if (!sidePicker.renderTooltip(guiGraphics, font, mouseX, mouseY) && shownPage == Line.FLUID) {
+            fluidRow.renderTooltip(guiGraphics, font, mouseX, mouseY);
         }
     }
 
@@ -277,7 +346,7 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         renderTabs(guiGraphics);
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
         sidePicker.render(guiGraphics, menu.side(), mouseX, mouseY);
-        if (shownPage == Line.ITEM) {
+        if (shownPage == Line.ITEM || shownPage == Line.FLUID) {
             for (int i = 0; i < 9; i++) {
                 int x = leftPos + UtilityDuctMenu.SLOT_X + i * 18 - 1;
                 int y = topPos + UtilityDuctMenu.FILTER_Y - 1;
@@ -287,6 +356,9 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
                 guiGraphics.fill(x, y + 17, x + 18, y + 18, PANEL_LIGHT);
                 guiGraphics.fill(x + 17, y, x + 18, y + 18, PANEL_LIGHT);
             }
+        }
+        if (shownPage == Line.FLUID) {
+            fluidRow.render(guiGraphics, mouseX, mouseY);
         }
     }
 
@@ -300,6 +372,10 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
             guiGraphics.text(font, Component.translatable("gui.servus_foundation.filter"), MARGIN, FILTER_LABEL_Y, TEXT, false);
             guiGraphics.text(font, Component.translatable("gui.servus_foundation.priority", menu.priority()), MARGIN + 20, PRIORITY_Y + 4, TEXT, false);
         }
+        if (shownPage == Line.FLUID) {
+            guiGraphics.text(font, Component.translatable("gui.servus_foundation.fluid_filter"), MARGIN, FILTER_LABEL_Y, TEXT, false);
+            guiGraphics.text(font, Component.translatable("gui.servus_foundation.priority", menu.fluidPriority()), MARGIN + 20, PRIORITY_Y + 4, TEXT, false);
+        }
         if (shownPage == null) {
             guiGraphics.text(font, Component.translatable("gui.servus_foundation.no_lines"), MARGIN, MODE_Y + 5, TEXT, false);
         }
@@ -312,6 +388,14 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         }
         if (filterPicker.isOpen()) {
             return filterPicker.mouseClicked(event, doubleClick);
+        }
+        if (fluidPicker.isOpen()) {
+            return fluidPicker.mouseClicked(event, doubleClick);
+        }
+        int fluidSlot = shownPage == Line.FLUID ? fluidRow.slotAt(event.x(), event.y()) : FluidFilter.NONE;
+        if (fluidSlot != FluidFilter.NONE) {
+            clickFluidSlot(fluidSlot, event.button());
+            return true;
         }
         Line tab = tabAt(event.x(), event.y());
         if (tab != null) {
@@ -332,27 +416,29 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
-        return channelPopup.mouseDragged(event) || filterPicker.mouseDragged(event.x(), event.y()) || super.mouseDragged(event, dragX, dragY);
+        return channelPopup.mouseDragged(event) || filterPicker.mouseDragged(event.x(), event.y())
+                || fluidPicker.mouseDragged(event.x(), event.y()) || super.mouseDragged(event, dragX, dragY);
     }
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
-        return channelPopup.mouseReleased() || filterPicker.mouseReleased() || super.mouseReleased(event);
+        return channelPopup.mouseReleased() || filterPicker.mouseReleased() || fluidPicker.mouseReleased() || super.mouseReleased(event);
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        return channelPopup.mouseScrolled(scrollY) || filterPicker.mouseScrolled(scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        return channelPopup.mouseScrolled(scrollY) || filterPicker.mouseScrolled(scrollY) || fluidPicker.mouseScrolled(scrollY)
+                || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     /** While the popup is open every key goes to it, so typing E does not close the GUI and Escape closes only the popup. */
     @Override
     public boolean keyPressed(KeyEvent event) {
-        return channelPopup.keyPressed(event) || filterPicker.keyPressed(event) || super.keyPressed(event);
+        return channelPopup.keyPressed(event) || filterPicker.keyPressed(event) || fluidPicker.keyPressed(event) || super.keyPressed(event);
     }
 
     @Override
     public boolean charTyped(CharacterEvent event) {
-        return channelPopup.charTyped(event) || filterPicker.charTyped(event) || super.charTyped(event);
+        return channelPopup.charTyped(event) || filterPicker.charTyped(event) || fluidPicker.charTyped(event) || super.charTyped(event);
     }
 }

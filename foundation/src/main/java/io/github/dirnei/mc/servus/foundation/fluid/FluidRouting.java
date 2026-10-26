@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.foundation.fluid;
 
 import io.github.dirnei.mc.servus.foundation.flow.WaterFilling;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,10 +13,12 @@ import java.util.Map;
  * keys compared with {@code equals}. Each source offers one key; each sink
  * takes one key per pass, the first offered key it accepts in source order,
  * so a sink holding a fluid only receives that fluid and an empty sink takes
- * the first fluid offered to it. Short supply of a key is shared fairly among
- * its sinks by water filling; what a sink cannot take in its fair share (for
- * example a sink that only fills in whole buckets) is offered to the sinks
- * in order afterwards. Pure Java.
+ * the first fluid offered to it. A key's sinks are served by priority,
+ * highest first: within one priority short supply is shared fairly by water
+ * filling, and what a sink cannot take in its fair share (for example a sink
+ * that only fills in whole buckets) is offered to the sinks of that priority
+ * in order afterwards; only what is left goes to the next lower priority.
+ * Pure Java.
  */
 public final class FluidRouting {
 
@@ -49,6 +52,11 @@ public final class FluidRouting {
          * @return the amount of {@code key} accepted (or that would be accepted)
          */
         int fill(K key, int amount, boolean simulate);
+
+        /** Sinks of a higher priority are served first; default 0. */
+        default int priority() {
+            return 0;
+        }
     }
 
     /** Per key bookkeeping of one pass. */
@@ -116,29 +124,55 @@ public final class FluidRouting {
         }
     }
 
-    /** Fair shares first, then whatever a sink could not take as its share, sink by sink. */
+    /** The key's sinks by priority, highest first, each tier with what the tiers above left. */
     private static <K> int routeSupply(Supply<K> supply, List<? extends Source<K>> sources, int[] remaining,
             List<? extends Sink<K>> sinks) {
-        if (supply.sinks.isEmpty()) {
+        List<Integer> order = new ArrayList<>();
+        for (int k = 0; k < supply.sinks.size(); k++) {
+            order.add(k);
+        }
+        order.sort(Comparator.comparingInt((Integer k) -> sinks.get(supply.sinks.get(k)).priority()).reversed());
+        int moved = 0;
+        int from = 0;
+        while (from < order.size()) {
+            int priority = sinks.get(supply.sinks.get(order.get(from))).priority();
+            int to = from;
+            while (to < order.size() && sinks.get(supply.sinks.get(order.get(to))).priority() == priority) {
+                to++;
+            }
+            moved += routeTier(supply, order.subList(from, to), sources, remaining, sinks);
+            from = to;
+        }
+        return moved;
+    }
+
+    /** Fair shares first, then whatever a sink could not take as its share, sink by sink; {@code tier} indexes the supply's sinks. */
+    private static <K> int routeTier(Supply<K> supply, List<Integer> tier, List<? extends Source<K>> sources, int[] remaining,
+            List<? extends Sink<K>> sinks) {
+        long available = 0;
+        for (int index : supply.sources) {
+            available += remaining[index];
+        }
+        if (available <= 0) {
             return 0;
         }
-        int[] demand = new int[supply.sinks.size()];
+        int[] demand = new int[tier.size()];
         long totalDemand = 0;
         for (int k = 0; k < demand.length; k++) {
-            demand[k] = supply.demands.get(k);
+            demand[k] = supply.demands.get(tier.get(k));
             totalDemand += demand[k];
         }
-        int[] allocation = WaterFilling.allocate(demand, clamp(Math.min(totalDemand, supply.total)));
+        int[] allocation = WaterFilling.allocate(demand, clamp(Math.min(totalDemand, available)));
         int[] filled = new int[demand.length];
         int moved = 0;
         for (int k = 0; k < demand.length; k++) {
-            filled[k] = deliver(supply, sources, remaining, sinks.get(supply.sinks.get(k)), allocation[k]);
+            filled[k] = deliver(supply, sources, remaining, sinks.get(supply.sinks.get(tier.get(k))), allocation[k]);
             moved += filled[k];
         }
         for (int k = 0; k < demand.length; k++) {
             int wanted = demand[k] - filled[k];
             if (wanted > 0) {
-                moved += deliver(supply, sources, remaining, sinks.get(supply.sinks.get(k)), wanted);
+                moved += deliver(supply, sources, remaining, sinks.get(supply.sinks.get(tier.get(k))), wanted);
             }
         }
         return moved;

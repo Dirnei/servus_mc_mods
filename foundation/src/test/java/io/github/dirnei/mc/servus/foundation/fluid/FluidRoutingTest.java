@@ -14,6 +14,7 @@ class FluidRoutingTest {
         int amount;
         final int capacity;
         final int step;
+        int priority;
 
         Tank(String fluid, int amount, int capacity) {
             this(fluid, amount, capacity, 1);
@@ -24,6 +25,16 @@ class FluidRoutingTest {
             this.amount = amount;
             this.capacity = capacity;
             this.step = step;
+        }
+
+        Tank withPriority(int value) {
+            priority = value;
+            return this;
+        }
+
+        @Override
+        public int priority() {
+            return priority;
         }
 
         @Override
@@ -158,5 +169,58 @@ class FluidRoutingTest {
         assertEquals(0, FluidRouting.route(List.of(), List.of(sink)));
         assertEquals(0, FluidRouting.route(List.of(new Tank("water", 10, 10)), List.of()));
         assertEquals(0, sink.amount);
+    }
+
+    @Test
+    void highTierSharesFairlyAndLeavesTheRestToTheLowTier() {
+        Tank source = new Tank("water", 1000, 1000);
+        Tank highA = new Tank(null, 0, 300).withPriority(5);
+        Tank highB = new Tank(null, 0, 1000).withPriority(5);
+        Tank low = new Tank(null, 0, 1000);
+
+        assertEquals(1000, FluidRouting.route(List.of(source), List.of(low, highA, highB)));
+        assertEquals(300, highA.amount);
+        assertEquals(700, highB.amount);
+        assertEquals(0, low.amount);
+    }
+
+    @Test
+    void fairShareInsideATier() {
+        Tank source = new Tank("water", 100, 1000);
+        Tank a = new Tank(null, 0, 1000).withPriority(3);
+        Tank b = new Tank(null, 0, 1000).withPriority(3);
+
+        FluidRouting.route(List.of(source), List.of(a, b));
+
+        assertEquals(50, a.amount);
+        assertEquals(50, b.amount);
+    }
+
+    @Test
+    void fullHighTierPassesEverythingDown() {
+        Tank source = new Tank("water", 500, 1000);
+        Tank full = new Tank("water", 1000, 1000).withPriority(5);
+        Tank low = new Tank(null, 0, 1000).withPriority(-2);
+
+        assertEquals(500, FluidRouting.route(List.of(source), List.of(full, low)));
+        assertEquals(1000, full.amount);
+        assertEquals(500, low.amount);
+    }
+
+    @Test
+    void tiersFollowEachKey() {
+        Tank water = new Tank("water", 1000, 1000);
+        Tank lava = new Tank("lava", 600, 1000);
+        Tank waterHigh = new Tank("water", 0, 400).withPriority(2);
+        Tank waterLow = new Tank("water", 0, 4000);
+        Tank lavaHigh = new Tank("lava", 0, 4000).withPriority(1);
+        Tank lavaLow = new Tank("lava", 0, 4000).withPriority(-1);
+
+        FluidRouting.route(List.of(water, lava), List.of(waterLow, lavaLow, waterHigh, lavaHigh));
+
+        assertEquals(400, waterHigh.amount);
+        assertEquals(600, waterLow.amount);
+        assertEquals(600, lavaHigh.amount);
+        assertEquals(0, lavaLow.amount);
     }
 }

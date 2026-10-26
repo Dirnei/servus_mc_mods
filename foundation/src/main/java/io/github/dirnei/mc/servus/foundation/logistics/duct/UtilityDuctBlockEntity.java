@@ -32,6 +32,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
@@ -56,6 +57,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -66,7 +69,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
  * A utility duct: a set of lines (Item Pipe, Power Cable, Fluid Pipe, data line), each with a mode
- * a {@link DuctControl} and a channel per side, plus item filters and priorities per side. Each
+ * a {@link DuctControl} and a channel per side, plus item and fluid filters and priorities per side. Each
  * present line joins its own network type, so items, energy and fluids form separate
  * graphs through the same blocks. The duct also keeps which sides carry an
  * arm per line and which arms end at an inventory or machine, synced to the
@@ -92,6 +95,8 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     private final int[][] channels = new int[Line.VALUES.length][SIDES];
     private final ItemSlots[] filters = new ItemSlots[SIDES];
     private final int[] priorities = new int[SIDES];
+    private final FluidFilter[] fluidFilters = new FluidFilter[SIDES];
+    private final int[] fluidPriorities = new int[SIDES];
     private final DuctControl[][] controls = new DuctControl[Line.VALUES.length][SIDES];
     /** Whether a neighbour sends the duct a redstone signal; server side, synced. */
     private boolean powered;
@@ -123,6 +128,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             Arrays.fill(row, DuctControl.ALWAYS);
         }
         for (Direction direction : DIRECTIONS) {
+            fluidFilters[direction.ordinal()] = new FluidFilter();
             filters[direction.ordinal()] = new ItemSlots(FILTER_SLOTS) {
                 @Override
                 protected void onContentsChanged(int slot) {
@@ -699,6 +705,41 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         configChanged();
     }
 
+    /** The side's fluid whitelist; read only, change it through {@link #setFluidFilter}. */
+    public FluidFilter fluidFilter(Direction side) {
+        return fluidFilters[side.ordinal()];
+    }
+
+    /** Sets a fluid filter slot to a fluid, or clears it with null or the empty fluid. */
+    public void setFluidFilter(Direction side, int slot, Fluid fluid) {
+        String id = fluid == null || fluid == Fluids.EMPTY ? null : BuiltInRegistries.FLUID.getKey(fluid).toString();
+        FluidFilter filter = fluidFilters[side.ordinal()];
+        if (slot < 0 || slot >= FluidFilter.SLOTS || Objects.equals(filter.get(slot), id)) {
+            return;
+        }
+        filter.set(slot, id);
+        configChanged();
+    }
+
+    /** Whether the side's fluid whitelist lets the fluid through; an empty list passes every fluid. */
+    public boolean fluidFilterAllows(Direction side, Fluid fluid) {
+        return fluidFilters[side.ordinal()].allows(BuiltInRegistries.FLUID.getKey(fluid).toString());
+    }
+
+    /** The side's fluid priority, separate from its item priority. */
+    public int fluidPriority(Direction side) {
+        return fluidPriorities[side.ordinal()];
+    }
+
+    public void setFluidPriority(Direction side, int priority) {
+        int clamped = clampPriority(priority);
+        if (fluidPriorities[side.ordinal()] == clamped) {
+            return;
+        }
+        fluidPriorities[side.ordinal()] = clamped;
+        configChanged();
+    }
+
     private static int clampPriority(int priority) {
         return Math.max(MIN_PRIORITY, Math.min(MAX_PRIORITY, priority));
     }
@@ -1010,6 +1051,48 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             }
         }
         ValueIo.putTag(output, "Priorities", priorityTag);
+        saveFluidFilters(output);
+    }
+
+    /** Only sides with a set fluid slot or a fluid priority other than 0 are written. */
+    private void saveFluidFilters(ValueOutput output) {
+        CompoundTag filterTag = new CompoundTag();
+        CompoundTag priorityTag = new CompoundTag();
+        for (Direction direction : DIRECTIONS) {
+            FluidFilter filter = fluidFilters[direction.ordinal()];
+            CompoundTag slots = new CompoundTag();
+            for (int slot = 0; slot < FluidFilter.SLOTS; slot++) {
+                if (filter.get(slot) != null) {
+                    slots.putString(Integer.toString(slot), filter.get(slot));
+                }
+            }
+            if (!slots.isEmpty()) {
+                filterTag.put(direction.getSerializedName(), slots);
+            }
+            if (fluidPriorities[direction.ordinal()] != 0) {
+                priorityTag.putInt(direction.getSerializedName(), fluidPriorities[direction.ordinal()]);
+            }
+        }
+        ValueIo.putTag(output, "FluidFilters", filterTag);
+        ValueIo.putTag(output, "FluidPriorities", priorityTag);
+    }
+
+    /** Ids that name no registered fluid load as empty slots. */
+    private void loadFluidFilters(ValueInput input) {
+        CompoundTag filterTag = ValueIo.getTag(input, "FluidFilters");
+        CompoundTag priorityTag = ValueIo.getTag(input, "FluidPriorities");
+        for (Direction direction : DIRECTIONS) {
+            FluidFilter filter = fluidFilters[direction.ordinal()];
+            filter.clearAll();
+            CompoundTag slots = filterTag.getCompoundOrEmpty(direction.getSerializedName());
+            for (int slot = 0; slot < FluidFilter.SLOTS; slot++) {
+                Identifier id = Identifier.tryParse(slots.getStringOr(Integer.toString(slot), ""));
+                if (id != null && BuiltInRegistries.FLUID.containsKey(id)) {
+                    filter.set(slot, id.toString());
+                }
+            }
+            fluidPriorities[direction.ordinal()] = clampPriority(priorityTag.getIntOr(direction.getSerializedName(), 0));
+        }
     }
 
     /** Only Controls other than Always are written. */
@@ -1071,6 +1154,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             filters[direction.ordinal()].load(filterIn, direction.getSerializedName());
             priorities[direction.ordinal()] = clampPriority(priorityTag.getIntOr(direction.getSerializedName(), 0));
         }
+        loadFluidFilters(input);
         loadControls(input);
         powered = input.getBooleanOr("Powered", false);
         int[] savedArms = input.getIntArray("Arms").orElse(new int[0]);

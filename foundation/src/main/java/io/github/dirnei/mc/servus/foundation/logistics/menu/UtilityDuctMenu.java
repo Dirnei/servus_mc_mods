@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.logistics.menu;
 
+import io.github.dirnei.mc.servus.foundation.logistics.duct.FluidFilter;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
@@ -23,6 +24,8 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
@@ -30,10 +33,12 @@ import net.neoforged.neoforge.network.PacketDistributor;
  * switched to any side with a block other than a duct beside it. Per present
  * line (Item Pipe, Power Cable, Fluid Pipe) the mode, the Control, the channel
  * and a remove button (the data line only on or off and remove), for the
- * Item Pipe the side's filter as ghost slots and its priority, plus the
- * player inventory. Everything but the slots and the channel goes through
- * button ids; a filter slot is also set by item id through
- * {@link SetDuctFilterPayload}, and channels go through {@link ChannelRequests}.
+ * Item Pipe the side's filter as ghost slots and its priority, for the Fluid
+ * Pipe the side's fluid filter and fluid priority, plus the player inventory.
+ * Everything but the slots and the channel goes through button ids; a filter
+ * slot is also set by item id through {@link SetDuctFilterPayload}, a fluid
+ * filter slot only by fluid id through {@link SetDuctFluidFilterPayload}, and
+ * channels go through {@link ChannelRequests}.
  * While open, the server sends the player the side's cable channels
  * ({@link CableChannelsPayload}) once a second when they changed.
  */
@@ -49,12 +54,15 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
     public static final int BUTTON_REMOVE_LINE = 20;
     public static final int BUTTON_PRIORITY_DOWN = 30;
     public static final int BUTTON_PRIORITY_UP = 31;
+    public static final int BUTTON_FLUID_PRIORITY_DOWN = 32;
+    public static final int BUTTON_FLUID_PRIORITY_UP = 33;
     /** Side picker button: {@code BUTTON_SELECT_SIDE + direction.ordinal()}. */
     public static final int BUTTON_SELECT_SIDE = 40;
     /** Control button of a line: {@code BUTTON_CYCLE_CONTROL + line.ordinal()}. */
     public static final int BUTTON_CYCLE_CONTROL = 50;
 
     private static final int DATA_PRIORITY = 0;
+    private static final int DATA_FLUID_PRIORITY = 1;
     private static final int CABLE_SYNC_TICKS = 20;
 
     private final UtilityDuctBlockEntity duct;
@@ -73,7 +81,7 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
         this.side = side;
         this.player = playerInventory.player;
         this.access = ContainerLevelAccess.create(duct.getLevel(), duct.getBlockPos());
-        this.data = new SimpleContainerData(1);
+        this.data = new SimpleContainerData(2);
         addDataSlots(data);
         for (int i = 0; i < UtilityDuctBlockEntity.FILTER_SLOTS; i++) {
             addSlot(new GhostSlot(this::filter, i, SLOT_X + i * 18, FILTER_Y) {
@@ -84,7 +92,7 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
             });
         }
         PlayerInventorySlots.add(this::addSlot, playerInventory, SLOT_X, INVENTORY_Y);
-        data.set(DATA_PRIORITY, duct.priority(side));
+        refreshPriorities();
     }
 
     public static UtilityDuctMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -117,7 +125,7 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
         }
         if (next != side) {
             side = next;
-            data.set(DATA_PRIORITY, duct.priority(side));
+            refreshPriorities();
             sendCableChannels(true);
         }
         return true;
@@ -145,13 +153,22 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
         return data.get(DATA_PRIORITY);
     }
 
+    public int fluidPriority() {
+        return data.get(DATA_FLUID_PRIORITY);
+    }
+
+    private void refreshPriorities() {
+        data.set(DATA_PRIORITY, duct.priority(side));
+        data.set(DATA_FLUID_PRIORITY, duct.fluidPriority(side));
+    }
+
     private ItemSlots filter() {
         return duct.filter(side);
     }
 
     @Override
     public void broadcastChanges() {
-        data.set(DATA_PRIORITY, duct.priority(side));
+        refreshPriorities();
         super.broadcastChanges();
         if (--cableSyncCountdown <= 0) {
             cableSyncCountdown = CABLE_SYNC_TICKS;
@@ -213,7 +230,12 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
         }
         if (id == BUTTON_PRIORITY_DOWN || id == BUTTON_PRIORITY_UP) {
             duct.setPriority(side, duct.priority(side) + (id == BUTTON_PRIORITY_UP ? 1 : -1));
-            data.set(DATA_PRIORITY, duct.priority(side));
+            refreshPriorities();
+            return true;
+        }
+        if (id == BUTTON_FLUID_PRIORITY_DOWN || id == BUTTON_FLUID_PRIORITY_UP) {
+            duct.setFluidPriority(side, duct.fluidPriority(side) + (id == BUTTON_FLUID_PRIORITY_UP ? 1 : -1));
+            refreshPriorities();
             return true;
         }
         return false;
@@ -244,6 +266,36 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
         }
         ItemStack stack = item.flatMap(BuiltInRegistries.ITEM::getOptional).map(ItemStack::new).orElse(ItemStack.EMPTY);
         return menu.setFilter(slot, stack);
+    }
+
+    /**
+     * Sets a fluid filter slot to a fluid, or clears it with null. Does nothing
+     * when the duct has no Fluid Pipe or the slot is out of range; returns
+     * whether the slot was set.
+     */
+    public boolean setFluidFilter(int slot, Fluid fluid) {
+        if (!duct.has(Line.FLUID) || slot < 0 || slot >= FluidFilter.SLOTS) {
+            return false;
+        }
+        duct.setFluidFilter(side, slot, fluid);
+        return true;
+    }
+
+    /**
+     * Server side: sets a fluid filter slot of the endpoint GUI the player has
+     * open to the fluid with that id; an empty id clears it. Returns false and
+     * changes nothing when the player has no usable endpoint GUI open, its duct
+     * has no Fluid Pipe, the slot is out of range or the id names no fluid.
+     */
+    public static boolean setFluidFilterById(Player player, int slot, Optional<Identifier> fluid) {
+        if (!(player.containerMenu instanceof UtilityDuctMenu menu) || !menu.stillValid(player)) {
+            return false;
+        }
+        if (fluid.isEmpty()) {
+            return menu.setFluidFilter(slot, null);
+        }
+        Fluid found = BuiltInRegistries.FLUID.getOptional(fluid.get()).orElse(Fluids.EMPTY);
+        return found != Fluids.EMPTY && menu.setFluidFilter(slot, found);
     }
 
     /** A click on a filter slot: right click clears it, any other click copies the cursor (an empty cursor clears). */

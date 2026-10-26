@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.foundation.logistics.network;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.fluid.FluidRouting;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctFluidHandler;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.FluidFilter;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.network.NetworkType;
@@ -17,7 +18,10 @@ import java.util.Map;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -28,7 +32,9 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
  * The Fluid Pipe network of a set of connected utility ducts. Every tick it
  * moves fluid, per channel, from source blocks to sink blocks of the same
  * channel with {@link FluidRouting}. The pipe has no rate of its own and no
- * buffer: as much moves as the sources give and the sinks take.
+ * buffer: as much moves as the sources give and the sinks take. Sides' fluid
+ * filters decide which fluids leave and enter a block, and sinks are served
+ * by fluid priority, highest first.
  *
  * <p>Roles per tick: a pull in side's block is a source, a push out side's
  * block a sink. An in and out side's block is a sink when it accepts one of
@@ -97,6 +103,14 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
             return duct.isActive(Line.FLUID, side);
         }
 
+        boolean allows(FluidKey key) {
+            return duct.fluidFilterAllows(side, key.stack(1).getFluid());
+        }
+
+        int priority() {
+            return duct.fluidPriority(side);
+        }
+
         boolean inAndOut() {
             return mode.allowsInsert() && mode.allowsExtract();
         }
@@ -117,11 +131,19 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
         }
     }
 
-    /** An endpoint as a routing sink. */
+    /** An endpoint as a routing sink, taking only what its fluid filter passes. */
     private record Sink(FluidView handler, Endpoint endpoint) implements FluidRouting.Sink<FluidKey> {
 
         @Override
+        public int priority() {
+            return endpoint.priority();
+        }
+
+        @Override
         public int fill(FluidKey key, int amount, boolean simulate) {
+            if (!endpoint.allows(key)) {
+                return 0;
+            }
             int filled = handler.fill(key.stack(amount), simulate);
             if (!simulate && filled > 0 && endpoint.inAndOut()) {
                 endpoint.receiving = true;
@@ -171,7 +193,7 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
             }
             boolean mayGive = endpoint.mode.allowsInsert() && !endpoint.receiving;
             if (mayGive) {
-                FluidStack available = handler.drain(Integer.MAX_VALUE, true);
+                FluidStack available = offerOf(handler, endpoint.duct.fluidFilter(endpoint.side));
                 if (!available.isEmpty()) {
                     FluidKey key = FluidKey.of(available);
                     offers.put(endpoint, new Source(handler, new FluidRouting.Offer<>(key, available.getAmount())));
@@ -194,7 +216,7 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
         }
         for (Endpoint endpoint : undecided) {
             FluidView handler = endpoint.handler();
-            if (accepts(handler, offered)) {
+            if (accepts(endpoint, handler, offered)) {
                 sinks.add(new Sink(handler, endpoint));
             } else if (offers.containsKey(endpoint)) {
                 sources.add(offers.get(endpoint));
@@ -205,9 +227,31 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
         }
     }
 
-    private static boolean accepts(FluidView handler, Set<FluidKey> keys) {
+    /**
+     * What a source block would give through a side with that fluid filter, without draining: with an empty
+     * filter whatever the block gives first, otherwise the first listed fluid the block holds.
+     */
+    public static FluidStack offerOf(FluidView handler, FluidFilter filter) {
+        if (filter.isEmpty()) {
+            return handler.drain(Integer.MAX_VALUE, true);
+        }
+        for (String id : filter.entries()) {
+            Identifier parsed = Identifier.tryParse(id);
+            Fluid fluid = parsed == null ? Fluids.EMPTY : BuiltInRegistries.FLUID.getValue(parsed);
+            if (fluid == Fluids.EMPTY) {
+                continue;
+            }
+            FluidStack available = handler.drain(new FluidStack(fluid, Integer.MAX_VALUE), true);
+            if (!available.isEmpty()) {
+                return available;
+            }
+        }
+        return FluidStack.EMPTY;
+    }
+
+    private static boolean accepts(Endpoint endpoint, FluidView handler, Set<FluidKey> keys) {
         for (FluidKey key : keys) {
-            if (handler.fill(key.stack(Integer.MAX_VALUE), true) > 0) {
+            if (endpoint.allows(key) && handler.fill(key.stack(Integer.MAX_VALUE), true) > 0) {
                 return true;
             }
         }
@@ -216,8 +260,9 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
 
     /**
      * Fluid filled into a duct side by its neighbour: passed straight on to
-     * the blocks on output sides of the channel that accept it, skipping the
-     * block at {@code origin}, shared fairly. Keeps nothing.
+     * the blocks on output sides of the channel whose filter passes it and that
+     * accept it, skipping the block at {@code origin}, by fluid priority and
+     * shared fairly within one. Keeps nothing.
      *
      * @return the amount accepted (or that would be accepted)
      */
@@ -230,7 +275,8 @@ public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.E
         long room = 0;
         for (List<Endpoint> list : endpoints.values()) {
             for (Endpoint endpoint : list) {
-                if (endpoint.channel != channel || !endpoint.mode.allowsExtract() || endpoint.target.equals(origin) || !endpoint.active()) {
+                if (endpoint.channel != channel || !endpoint.mode.allowsExtract() || endpoint.target.equals(origin) || !endpoint.active()
+                        || !endpoint.allows(key)) {
                     continue;
                 }
                 FluidView handler = endpoint.handler();

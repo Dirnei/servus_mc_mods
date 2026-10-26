@@ -40,7 +40,7 @@ public final class DuctFluidHandler extends LegacyFluidHandler {
     @Override
     public int fill(FluidStack resource, boolean simulate) {
         if (resource.isEmpty() || !duct.has(Line.FLUID) || !duct.mode(Line.FLUID, side).allowsInsert()
-                || !duct.isActive(Line.FLUID, side)) {
+                || !duct.isActive(Line.FLUID, side) || !duct.fluidFilterAllows(side, resource.getFluid())) {
             return 0;
         }
         BlockPos origin = duct.getBlockPos().relative(side);
