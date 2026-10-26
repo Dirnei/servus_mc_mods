@@ -51,7 +51,7 @@ On a tree field run the Lumber shuttle SHALL drive to the nearest farm rail of t
 - **THEN** the saw part takes about 26 ticks instead of 40, while unfolding takes 30 and the topple part 80
 
 ### Requirement: Felling a tree
-Felling SHALL remove at once the tree standing on the plot: its logs connected to the trunk, diagonally too, but never another trunk standing on the plots' level; the natural leaves that none of the remaining logs holds any more; and hanging parts (vines, cocoa, hanging propagules, hanging moss) touching a removed block. Which blocks count as logs and hanging parts SHALL come from block tags. Leaves placed by a player and other blocks SHALL stay.
+Felling SHALL remove at once the tree standing on the plot: its logs connected to the trunk, diagonally too and down to the ground, but never another tree standing on a spot or square of the field: a log that touches both trees SHALL go to the trunk it grows from, so no trunk, branch or stump of the other tree is cut off and left behind; the natural leaves that none of the remaining logs holds any more; and hanging parts (vines, cocoa, hanging propagules, hanging moss, bee nests) touching a removed block. A bee nest SHALL go with the bees inside it and, like a nest broken without Silk Touch, give nothing. Which blocks count as logs and hanging parts SHALL come from block tags. Leaves placed by a player and other blocks SHALL stay.
 
 #### Scenario: An oak comes down
 - **WHEN** a Lumber shuttle fells a grown oak on a spot
@@ -64,6 +64,18 @@ Felling SHALL remove at once the tree standing on the plot: its logs connected t
 #### Scenario: Jungle vines and cocoa
 - **WHEN** a Lumber shuttle fells a jungle tree with vines and cocoa pods on its trunk
 - **THEN** the vines and the cocoa are removed with it
+
+#### Scenario: A branch into the neighbour
+- **WHEN** two oaks stand on neighbouring spots, a branch of one touches the other's trunk and the Lumber shuttle fells the field
+- **THEN** both trees come down whole, no log stays on either spot and both spots get a new sapling
+
+#### Scenario: Leaning neighbours
+- **WHEN** a field of acacias planted on every spot has grown, their leaning trunks touching each other, and the Lumber shuttle fells them
+- **THEN** every acacia comes down and no stump is left on any spot
+
+#### Scenario: Bee nest
+- **WHEN** an oak with a bee nest on its trunk is felled
+- **THEN** the nest and its bees are gone and nothing of the nest is in the cargo
 
 #### Scenario: Player leaves stay
 - **WHEN** a player placed leaves against a grown oak and the oak is felled
@@ -81,7 +93,7 @@ Every block removed by felling SHALL give the drops of its loot table rolled as 
 - **THEN** no leaf block of it stays behind to decay
 
 ### Requirement: Trees too large to fell
-A tree with more than `max_tree_logs` logs (in `field.json`, example 200) or more than `max_tree_blocks` blocks in all (example 1000) SHALL NOT be felled, and logs without natural leaves among the blocks felling would remove SHALL NOT be felled either. The head SHALL stop counting such a plot as ready to fell until a block on it changes, and the field work status SHALL say that a tree is too large to fell.
+A tree with more than `max_tree_logs` logs (in `field.json`, example 200) or more than `max_tree_blocks` blocks in all (example 1000) SHALL NOT be felled, and logs without natural leaves among the blocks felling would remove SHALL NOT be felled either, unless they touch another tree that holds the leaves. The head SHALL stop counting such a plot as ready to fell until a block on it changes, and the field work status SHALL say that a tree is too large to fell.
 
 #### Scenario: Giant tree left standing
 - **WHEN** `max_tree_logs` is 20 and a grown giant spruce of 80 logs stands on a square

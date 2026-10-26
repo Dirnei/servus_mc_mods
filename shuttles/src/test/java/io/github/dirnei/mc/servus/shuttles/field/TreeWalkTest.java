@@ -107,6 +107,61 @@ class TreeWalkTest {
         TreeWalk.Felled felled = assertInstanceOf(TreeWalk.Felled.class,
                 walk(List.of(new FieldPos(0, BASE_Y, 0)), pos -> pos.x() == 1 && pos.z() == 1, 200, 1000));
         assertFalse(felled.logs().contains(new FieldPos(1, BASE_Y, 1)), "a log on another base is never entered");
+        assertFalse(felled.logs().contains(new FieldPos(1, BASE_Y + 1, 1)), "nor the trunk above it");
+    }
+
+    @Test
+    void branchTouchingTheNeighboursTrunkLeavesItWhole() {
+        oak(0, 0, 5);
+        for (int y = BASE_Y; y < BASE_Y + 5; y++) {
+            put(2, y, 0, TreeWalk.Kind.LOG);
+        }
+        put(1, 3, 0, TreeWalk.Kind.LOG);
+        Predicate<FieldPos> neighbourBase = pos -> pos.x() == 2 && pos.z() == 0;
+        TreeWalk.Felled felled = assertInstanceOf(TreeWalk.Felled.class, walk(List.of(new FieldPos(0, BASE_Y, 0)), neighbourBase, 200, 1000));
+        for (int y = BASE_Y; y < BASE_Y + 5; y++) {
+            assertTrue(felled.logs().contains(new FieldPos(0, y, 0)), "the own trunk goes at " + y);
+            assertFalse(felled.logs().contains(new FieldPos(2, y, 0)), "the neighbour's trunk stays at " + y);
+        }
+    }
+
+    @Test
+    void neighbourKeepsTheLeanThatLeadsToItsCrown() {
+        for (int y = BASE_Y; y <= 3; y++) {
+            put(0, y, 0, TreeWalk.Kind.LOG);
+        }
+        put(2, 1, 0, TreeWalk.Kind.LOG);
+        put(2, 2, 0, TreeWalk.Kind.LOG);
+        put(1, 3, 0, TreeWalk.Kind.LOG);
+        put(1, 4, 0, TreeWalk.Kind.LOG);
+        put(1, 5, 0, TreeWalk.Kind.NATURAL_LEAVES);
+        put(0, 4, 0, TreeWalk.Kind.NATURAL_LEAVES);
+        TreeWalk.Felled felled = assertInstanceOf(TreeWalk.Felled.class,
+                walk(List.of(new FieldPos(0, BASE_Y, 0)), pos -> pos.x() == 2 && pos.z() == 0, 200, 1000));
+        assertEquals(3, felled.logs().size(), "only the own straight trunk goes, got " + felled.logs());
+        assertFalse(felled.logs().contains(new FieldPos(1, 4, 0)), "the lean the neighbour climbs to its crown stays");
+    }
+
+    @Test
+    void trunkWithoutLeavesTouchingAnotherTreeIsFelled() {
+        for (int y = BASE_Y; y <= 3; y++) {
+            put(0, y, 0, TreeWalk.Kind.LOG);
+        }
+        oak(2, 0, 5);
+        TreeWalk.Felled felled = assertInstanceOf(TreeWalk.Felled.class,
+                walk(List.of(new FieldPos(0, BASE_Y, 0)), pos -> pos.x() == 2 && pos.z() == 0, 200, 1000));
+        assertEquals(3, felled.logs().size());
+        assertTrue(felled.leaves().isEmpty(), "the neighbour keeps its leaves");
+    }
+
+    @Test
+    void trunkBelowTheBaseComesDown() {
+        oak(0, 0, 5);
+        put(0, BASE_Y - 1, 0, TreeWalk.Kind.LOG);
+        put(0, BASE_Y - 2, 0, TreeWalk.Kind.LOG);
+        TreeWalk.Felled felled = fell(0, 0);
+        assertEquals(7, felled.logs().size());
+        assertTrue(felled.logs().contains(new FieldPos(0, BASE_Y - 2, 0)), "the trunk goes down to the ground");
     }
 
     @Test

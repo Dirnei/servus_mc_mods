@@ -30,6 +30,6 @@ final class ServusShuttlesBlockTagsProvider extends BlockTagsProvider {
         tag(BlockTags.CLIMBABLE).add(ServusShuttlesBlocks.ELEVATOR.get());
         tag(TreeTags.TREE_LOGS).addTag(BlockTags.LOGS).add(Blocks.MANGROVE_ROOTS);
         tag(TreeTags.TREE_ATTACHMENTS).add(Blocks.VINE, Blocks.COCOA, Blocks.MANGROVE_PROPAGULE, Blocks.PALE_HANGING_MOSS, Blocks.MOSS_CARPET,
-                Blocks.PALE_MOSS_CARPET);
+                Blocks.PALE_MOSS_CARPET, Blocks.BEE_NEST);
     }
 }

@@ -48,6 +48,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
@@ -1098,10 +1099,17 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         return base;
     }
 
+    /** Walks the tree standing on the base plots as the world is now, within the tree size limits. */
+    public TreeWalk.Result walkTree(List<BlockPos> base) {
+        return HarvesterWork.walkTree(level, base, pos -> otherTreeBase(pos, base),
+                ShuttlesStatsManager.INSTANCE.maxTreeLogs(), ShuttlesStatsManager.INSTANCE.maxTreeBlocks());
+    }
+
     /**
      * Whether a position on the plots' level is the base of another tree: a
-     * spot or square plot of the field that does not touch the given base, so
-     * the trunk of an old tree grown over several plots still comes down whole.
+     * trunk log, not a root, on a spot or square plot of the field that does
+     * not touch the given base, so the trunk of an old tree grown over
+     * several plots still comes down whole.
      */
     public boolean otherTreeBase(BlockPos pos, Collection<BlockPos> base) {
         for (BlockPos plot : base) {
@@ -1109,7 +1117,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
                 return false;
             }
         }
-        return level != null && candidates.contains(pos) && HarvesterWork.isTreeSpot(level, pos, rules());
+        return level != null && candidates.contains(pos) && level.isLoaded(pos) && level.getBlockState(pos).is(BlockTags.LOGS)
+                && HarvesterWork.isTreeSpot(level, pos, rules());
     }
 
     /**

@@ -210,13 +210,8 @@ final class FieldRuns {
             return true;
         }
         List<BlockPos> base = head.treeBase(plot);
-        TreeWalk.Result walked = walk(head, base);
+        TreeWalk.Result walked = head.walkTree(base);
         return !(walked instanceof TreeWalk.Felled felled) || run.cargo.fits(entries(HarvesterWork.treeDrops(host.level(), felled)));
-    }
-
-    private TreeWalk.Result walk(FieldHeadBlockEntity head, List<BlockPos> base) {
-        return HarvesterWork.walkTree(host.level(), base, pos -> head.otherTreeBase(pos, base),
-                ShuttlesStatsManager.INSTANCE.maxTreeLogs(), ShuttlesStatsManager.INSTANCE.maxTreeBlocks());
     }
 
     private static List<FieldCargo.Entry<ItemKey>> entries(List<ItemStack> stacks) {
@@ -764,7 +759,7 @@ final class FieldRuns {
     private PlotResult fellTree(HarvestRun run, FieldHeadBlockEntity head, BlockPos plot, BlockPos rail) {
         ServerLevel level = host.level();
         List<BlockPos> base = head.treeBase(plot);
-        TreeWalk.Result walked = walk(head, base);
+        TreeWalk.Result walked = head.walkTree(base);
         if (!(walked instanceof TreeWalk.Felled tree)) {
             head.giveUp(base, walked instanceof TreeWalk.TooLarge);
             return PlotResult.NOTHING;

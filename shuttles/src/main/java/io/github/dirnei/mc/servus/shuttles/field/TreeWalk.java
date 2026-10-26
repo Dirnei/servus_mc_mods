@@ -2,21 +2,27 @@ package io.github.dirnei.mc.servus.shuttles.field;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
  * Which blocks felling a tree removes, from a lookup of block kinds: the logs
- * connected to the base through all 26 neighbours, never below the base and
- * never into another spot's or square's base; the natural leaves those logs
+ * connected to the base through all 26 neighbours, down to the ground too,
+ * that are nearer to this trunk than to the trunk of another spot or square,
+ * see {@link #NEIGHBOUR_REACH}; the natural leaves those logs
  * held that no other log holds within leaf reach, so nothing is left to decay;
  * and the hanging parts touching anything removed. Pure Java.
  */
 public final class TreeWalk {
+
+    /** How far from the base, in x and z, the walk looks for the trunks of other trees on the base level. */
+    public static final int NEIGHBOUR_REACH = 8;
 
     /** How far leaves reach from a log before they decay, in face steps through leaves. */
     public static final int LEAF_REACH = 6;
@@ -42,7 +48,7 @@ public final class TreeWalk {
     public record TooLarge() implements Result {
     }
 
-    /** No log on the base, or logs without natural leaves near them, such as a pillar a player stacked. */
+    /** No log on the base, or logs without natural leaves near them that touch no other tree, such as a pillar a player stacked. */
     public record NotATree() implements Result {
     }
 
@@ -60,15 +66,13 @@ public final class TreeWalk {
                               int maxLogs, int maxBlocks) {
         Map<FieldPos, Kind> seen = new HashMap<>();
         Function<FieldPos, Kind> kind = pos -> seen.computeIfAbsent(pos, kinds);
-        Set<FieldPos> logs = logs(base, kind, otherBase, maxLogs);
-        if (logs == null) {
+        Claims claims = claims(base, kind, otherBase, maxLogs);
+        if (claims.tooMany) {
             return new TooLarge();
         }
-        if (logs.isEmpty()) {
-            return new NotATree();
-        }
+        Set<FieldPos> logs = claims.own;
         Set<FieldPos> candidates = leavesWithinReach(logs, kind, Set.of());
-        if (candidates.isEmpty()) {
+        if (logs.isEmpty() || candidates.isEmpty() && !claims.touchesOther) {
             return new NotATree();
         }
         if (logs.size() + candidates.size() > maxBlocks) {
@@ -83,39 +87,122 @@ public final class TreeWalk {
         return new Felled(logs, leaves, attachments);
     }
 
-    /** The logs connected to the base logs, or null past the limit. */
-    private static Set<FieldPos> logs(Collection<FieldPos> base, Function<FieldPos, Kind> kind, Predicate<FieldPos> otherBase, int maxLogs) {
+    /**
+     * Which logs are this tree's. This tree grows from its base logs and every
+     * other tree from its base logs on the base level within
+     * {@link #NEIGHBOUR_REACH}, all at once over connected logs, and each log
+     * goes to the tree that reaches it first: by the fewest steps that do
+     * not climb, then the fewest steps sideways, then the fewest steps, the
+     * other trees on a tie. Trees grow upward, so a trunk reaches its own
+     * straight logs first, and every log left standing still hangs on
+     * another trunk.
+     */
+    private static Claims claims(Collection<FieldPos> base, Function<FieldPos, Kind> kind, Predicate<FieldPos> otherBase, int maxLogs) {
         int baseY = Integer.MAX_VALUE;
+        int minX = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int minZ = Integer.MAX_VALUE;
+        int maxZ = Integer.MIN_VALUE;
         for (FieldPos plot : base) {
             baseY = Math.min(baseY, plot.y());
+            minX = Math.min(minX, plot.x());
+            maxX = Math.max(maxX, plot.x());
+            minZ = Math.min(minZ, plot.z());
+            maxZ = Math.max(maxZ, plot.z());
         }
-        Set<FieldPos> logs = new LinkedHashSet<>();
-        ArrayDeque<FieldPos> queue = new ArrayDeque<>();
+        Claims claims = new Claims(kind, maxLogs);
         for (FieldPos plot : base) {
-            if (kind.apply(plot) == Kind.LOG && logs.add(plot)) {
-                queue.add(plot);
+            claims.offer(plot, true, 0, 0, 0);
+        }
+        if (claims.ownPending == 0) {
+            return claims;
+        }
+        for (int x = minX - NEIGHBOUR_REACH; x <= maxX + NEIGHBOUR_REACH; x++) {
+            for (int z = minZ - NEIGHBOUR_REACH; z <= maxZ + NEIGHBOUR_REACH; z++) {
+                FieldPos plot = new FieldPos(x, baseY, z);
+                if (!claims.owner.containsKey(plot) && otherBase.test(plot)) {
+                    claims.offer(plot, false, 0, 0, 0);
+                }
             }
         }
-        while (!queue.isEmpty()) {
-            FieldPos log = queue.poll();
+        while (claims.ownPending > 0 && !claims.tooMany) {
+            claims.next(baseY, otherBase);
+        }
+        return claims;
+    }
+
+    /**
+     * The logs claimed so far and by which side, the logs waiting to grow on
+     * in the order they were reached, and whether this tree touches another
+     * one: its logs then count as a tree even when the other tree's logs hold
+     * all the leaves.
+     */
+    private static final class Claims {
+
+        private record Step(FieldPos log, boolean mine, int flat, int bends, int steps) {
+        }
+
+        private static final Comparator<Step> ORDER = Comparator.comparingInt(Step::flat).thenComparingInt(Step::bends)
+                .thenComparingInt(Step::steps)
+                .thenComparing(Step::mine);
+
+        final Function<FieldPos, Kind> kind;
+        final int maxLogs;
+        final Map<FieldPos, Boolean> owner = new HashMap<>();
+        final Set<FieldPos> own = new LinkedHashSet<>();
+        final PriorityQueue<Step> queue = new PriorityQueue<>(ORDER);
+        int ownPending;
+        boolean tooMany;
+        boolean touchesOther;
+
+        Claims(Function<FieldPos, Kind> kind, int maxLogs) {
+            this.kind = kind;
+            this.maxLogs = maxLogs;
+        }
+
+        /** Queues a log for that side, reached with that many steps that do not climb, that move sideways and in all. */
+        void offer(FieldPos log, boolean mine, int flat, int bends, int steps) {
+            if (kind.apply(log) != Kind.LOG) {
+                return;
+            }
+            queue.add(new Step(log, mine, flat, bends, steps));
+            if (mine) {
+                ownPending++;
+            }
+        }
+
+        /** Claims the first waiting log not claimed yet and queues the logs touching it; a log on another base is another trunk's. */
+        void next(int baseY, Predicate<FieldPos> otherBase) {
+            Step step = queue.poll();
+            if (step.mine()) {
+                ownPending--;
+            }
+            Boolean held = owner.get(step.log());
+            if (held != null) {
+                touchesOther |= held != step.mine();
+                return;
+            }
+            owner.put(step.log(), step.mine());
+            if (step.mine()) {
+                own.add(step.log());
+                tooMany = own.size() > maxLogs;
+            }
+            FieldPos log = step.log();
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dy = -1; dy <= 1; dy++) {
                     for (int dz = -1; dz <= 1; dz++) {
                         FieldPos next = new FieldPos(log.x() + dx, log.y() + dy, log.z() + dz);
-                        if (next.y() < baseY || next.y() == baseY && otherBase.test(next) || logs.contains(next)
-                                || kind.apply(next) != Kind.LOG) {
+                        Boolean nextHeld = owner.get(next);
+                        if (nextHeld != null) {
+                            touchesOther |= nextHeld != step.mine();
                             continue;
                         }
-                        logs.add(next);
-                        if (logs.size() > maxLogs) {
-                            return null;
-                        }
-                        queue.add(next);
+                        boolean mine = step.mine() && !(next.y() == baseY && otherBase.test(next));
+                        offer(next, mine, step.flat() + (dy > 0 ? 0 : 1), step.bends() + (dx != 0 || dz != 0 ? 1 : 0), step.steps() + 1);
                     }
                 }
             }
         }
-        return logs;
     }
 
     /** The natural leaves within leaf reach of the sources, through leaves only; positions in {@code only} limit it when not empty. */

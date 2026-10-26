@@ -34,6 +34,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BoneMealItem;
 import net.minecraft.world.item.ItemStack;
@@ -42,6 +43,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.entity.BeehiveBlockEntity;
 
 /**
  * Lumber shuttles on a Trees field of the farm of {@link FarmFixtures}: dirt
@@ -579,6 +581,57 @@ public final class LumberGameTests {
                         helper.succeed();
                     });
         });
+    }
+
+    /**
+     * Two oaks on neighbouring spots, a branch of one touching the other's
+     * trunk: both come down whole, no stump stays on either spot, and both
+     * spots hold a new sapling.
+     */
+    @ServusGameTest(template = TALL, timeoutTicks = 1200)
+    public static void branchIntoNeighbourLeavesNoStump(GameTestHelper helper) {
+        BlockPos spot = spot(helper);
+        BlockPos east = spot.offset(2, 0, 0);
+        BlockPos branch = spot.offset(1, 2, 0);
+        oak(helper, east);
+        helper.setBlock(branch, Blocks.OAK_LOG.defaultBlockState());
+        FarmFixtures.Farm farm = oakField(helper, spot, roomyLumber());
+        Waits.when(helper, () -> trunkGone(helper, spot) && trunkGone(helper, east) && helper.getBlockState(spot).is(Blocks.OAK_SAPLING)
+                        && helper.getBlockState(east).is(Blocks.OAK_SAPLING) && out(helper) == 0, 1150,
+                () -> "both oaks should be felled and replanted, spot " + helper.getBlockState(spot) + ", east " + helper.getBlockState(east)
+                        + ", work " + farm.head().work() + ", out " + out(helper), () -> {
+                    helper.assertTrue(!helper.getBlockState(branch).is(BlockTags.LOGS), "the branch is gone");
+                    helper.assertTrue(HarvesterGameTests.toStorage(farm, Items.OAK_LOG) == 2 * OAK_HEIGHT + 1,
+                            "both trunks and the branch are unloaded, got " + HarvesterGameTests.toStorage(farm, Items.OAK_LOG));
+                    helper.assertTrue(noItemsLying(helper), "nothing drops");
+                    helper.succeed();
+                });
+    }
+
+    /**
+     * A bee nest on the trunk goes with the tree: the nest and the bees in it
+     * are gone and, as for a nest broken without Silk Touch, nothing of it
+     * reaches the cargo.
+     */
+    @ServusGameTest(template = TALL, timeoutTicks = 900)
+    public static void beeNestGoesWithTheTree(GameTestHelper helper) {
+        BlockPos spot = spot(helper);
+        BlockPos nest = spot.offset(1, 1, 0);
+        FarmFixtures.Farm farm = oakField(helper, spot, lumber());
+        helper.setBlock(nest, Blocks.BEE_NEST.defaultBlockState());
+        BeehiveBlockEntity hive = helper.getBlockEntity(nest, BeehiveBlockEntity.class);
+        hive.storeBee(BeehiveBlockEntity.Occupant.create(0));
+        hive.storeBee(BeehiveBlockEntity.Occupant.create(0));
+        Waits.when(helper, () -> trunkGone(helper, spot) && helper.getBlockState(spot).is(Blocks.OAK_SAPLING) && out(helper) == 0, 850,
+                () -> "the oak should be felled and replanted, out " + out(helper) + ", spot " + helper.getBlockState(spot), () -> {
+                    helper.assertTrue(helper.getBlockState(nest).isAir(), "the nest is gone, got " + helper.getBlockState(nest));
+                    helper.assertTrue(helper.getEntities(EntityType.BEE).isEmpty(), "no bee is left flying");
+                    helper.assertTrue(HarvesterGameTests.toStorage(farm, Items.BEE_NEST) == 0
+                            && HarvesterGameTests.toStorage(farm, Items.HONEYCOMB) == 0, "the nest gives nothing");
+                    helper.assertTrue(HarvesterGameTests.toStorage(farm, Items.OAK_LOG) == OAK_HEIGHT, "the logs are unloaded");
+                    helper.assertTrue(noItemsLying(helper), "nothing drops");
+                    helper.succeed();
+                });
     }
 
     /** A Mk3 Lumber shuttle with two Handling upgrades: room for two oaks' drops, and Handling that must not shorten unfolding. */
