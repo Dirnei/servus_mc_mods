@@ -37,3 +37,45 @@
 	color: var(--sl-color-gray-2);
 	font-size: var(--sl-text-sm);
 }
+
+.mod-info {
+	margin-top: 1.5rem;
+	padding: 1rem 1.25rem;
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.5rem;
+	background: var(--sl-color-gray-6);
+}
+
+.mod-info dl {
+	display: grid;
+	grid-template-columns: max-content 1fr;
+	gap: 0.5rem 1.5rem;
+	margin: 0;
+}
+
+.mod-info dt {
+	font-weight: 600;
+	color: var(--sl-color-white);
+}
+
+.mod-info dd {
+	margin: 0;
+	color: var(--sl-color-gray-2);
+}
+
+.mod-info ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+@media (max-width: 30rem) {
+	.mod-info dl {
+		grid-template-columns: 1fr;
+		gap: 0.15rem;
+	}
+
+	.mod-info dd + dt {
+		margin-top: 0.6rem;
+	}
+}

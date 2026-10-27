@@ -1,0 +1,42 @@
+---
+/** The facts of one released mod: version, ids and what it needs, shown at the end of its page. */
+interface Requirement {
+	name: string;
+	version: string;
+	href?: string;
+}
+
+interface Props {
+	version: string;
+	modId: string;
+	tag: string;
+	requires: Requirement[];
+}
+
+const { version, modId, tag, requires } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const release = `https://github.com/Dirnei/servus_mc_mods/releases/tag/${tag}`;
+const link = (href?: string) => (href?.startsWith('/') ? base + href : href);
+---
+
+<div class="mod-info not-content">
+	<dl>
+		<dt>Version</dt>
+		<dd>{version}</dd>
+		<dt>Mod id</dt>
+		<dd><code>{modId}</code></dd>
+		<dt>Minecraft</dt>
+		<dd>26.1.2</dd>
+		<dt>Requires</dt>
+		<dd>
+			<ul>
+				<li>NeoForge 26.1.2.116 or newer</li>
+				{requires.map((r) => (
+					<li>{r.href ? <a href={link(r.href)}>{r.name}</a> : r.name} {r.version}</li>
+				))}
+			</ul>
+		</dd>
+		<dt>Download</dt>
+		<dd><a href={release}>GitHub release {tag}</a></dd>
+	</dl>
+</div>

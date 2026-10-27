@@ -3,9 +3,9 @@ title: "Servus: Shuttles"
 description: A warehouse you build in the world. Racks, rails and shuttles, terminals, autocrafting and fields that farm themselves.
 ---
 
-![Servus: Shuttles icon](../../../assets/shuttles.png)
+import ModInfo from '../../../components/ModInfo.astro';
 
-**Version 0.4.0.** Mod id `servus_shuttles`. Needs Servus: Foundation 0.4.0 or newer.
+![Servus: Shuttles icon](../../../assets/shuttles.png)
 
 Shuttles lets you build a real warehouse. There are no storage disks: items sit in racks you can see, rails link the racks, and small shuttles drive along the rails to fetch and put away. Every pick and every put-away rides a shuttle, so a good layout is a fast warehouse.
 
@@ -63,3 +63,7 @@ Plain shuttles keep the Field Head's buffer stocked.
 ## Numbers
 
 Rates, slot counts, speeds and travel times live in datapack JSON under `data/<namespace>/shuttles/` (`warehouse.json`, `shuttle.json`, `rack.json`, `field.json`, `gantry.json`, `cpu.json` and more). A modpack may have changed them.
+
+## Mod info
+
+<ModInfo version="0.4.0" modId="servus_shuttles" tag="shuttles-v0.4.0" requires={[{ name: 'Servus: Foundation', version: '0.4.0 or newer', href: '/mods/foundation/' }]} />
