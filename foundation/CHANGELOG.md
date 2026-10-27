@@ -1,6 +1,6 @@
 # Servus: Foundation changelog
 
-## Unreleased
+## 0.5.0
 
 ### Added
 - Utility Duct sides open on tabs, one per side with a block, and every item, power and fluid line has its own In, Out and Pull, a redstone setting (ignore, while powered, while unpowered) and an On/Off switch per side. A trash can removes a line.

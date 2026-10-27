@@ -11,7 +11,7 @@ Foundation is the base of the Servus family. Shuttles and Alchemy both need it. 
 
 ## Tools
 
-- **Configuration Carrot**: the wrench of the family. Use it on a face to change that side. Sneak use it to pick up a block and keep its settings. On a duct it opens the side settings of that arm.
+- **Configuration Carrot**: the wrench of the family. Use it on a face to change that side. Sneak use it to pick up a block and keep its settings. On a duct it opens the duct's screen.
 - **Engineer Goggles**: worn on your head. They show side settings and ducts hidden behind facades.
 - **Data Potato**: shows how busy the data line is. Use it on a duct, a tank or a Servus storage block for a short report in chat.
 
@@ -28,7 +28,13 @@ One block that carries up to four lines side by side:
 
 Use a line item to place a duct, or use it on a duct to add that line. Each line forms its own network. Ducts work with any block of any mod that offers the standard NeoForge item, energy or fluid capability.
 
-Use the Configuration Carrot on an arm that touches a machine or chest to open its side settings. Each line has a mode per side (in and out, pull in, push out or off) and a channel. Things only move between sides on the same channel. Channels have names, colours and icons, and your team shares them. The Item Pipe also has filter slots and a priority per side.
+Use the Configuration Carrot on a duct to open its screen. It has a tab for every side that touches a block, and on each tab every line of the duct has its own settings:
+
+- **In**, **Out** and **Pull**, a redstone setting (ignore, while powered, while unpowered) and an On/Off switch.
+- A **channel**. Things only move between sides on the same channel. Channels have names, colours and icons, and your team shares them.
+- **Filters** and a **priority** on the Item Pipe and the Fluid Pipe. Right click a set item filter slot to give it an amount: keep 64 saplings in a chest, or fill a furnace up to 16 coal.
+
+A trash can on the tab removes that line from the side.
 
 Ducts can stand in water. **Facades** hide a duct behind the look of any full block: craft a block with a nugget to get six. A facade closes its face. A **Hollow Facade** (eight facades in a ring) covers the face but lets the duct through.
 
@@ -57,8 +63,10 @@ All machines face you when placed, open a screen on right click and keep their s
 - **Sink**: eight Sink blocks in a 2 by 2 by 2 cube, formed with the carrot. It voids items, fluids and FE. Chimney blocks on a top corner make it faster, and Capacity Upgrades give it a bigger buffer. Sink and Chimney take the look of the stone you craft them from.
 - **Chimney**: also works alone as decoration. The carrot picks how much it smokes.
 - **Ender Anchor**: keeps chunks loaded while it has FE. Anchor Upgrades make the area bigger, and each team has a cap on loaded chunks.
-- **Mill**: grinds Gravel into Sand. It has no power of its own: hold right click on a **Hand Crank**, or put an **Electric Motor** against it. Datapacks can add more milling recipes.
+- **Mill**: grinds stone into cobblestone, cobblestone into gravel, gravel into sand, and blocks such as glowstone, quartz, amethyst, clay and sandstone back into their pieces. It also mills sugar cane into sugar, bones into bone meal, blaze rods into powder, wool into string and flowers into dye. It has no power of its own: hold right click on a **Hand Crank**, or put an **Electric Motor** against it. Datapacks can add more milling recipes.
 - **Machine Adapter**: puts a furnace, smoker or blast furnace on the data line, so a Crafting CPU can smelt with it. See [Machine Adapter](/servus_mc_mods/developers/machine-adapter/).
+
+Machines a Shuttles warehouse works with over the data line get a number from it, such as "Furnace (Adapter #1)". The pencil in the title row of their screen gives them a name as well.
 
 ## Upgrades
 
@@ -76,4 +84,4 @@ Every Servus machine has the same side panel in its screen. Each side can be Aut
 
 ## Mod info
 
-<ModInfo version="0.4.0" modId="servus_foundation" tag="foundation-v0.4.0" requires={[]} />
+<ModInfo curseforge="servus-foundation" version="0.5.0" modId="servus_foundation" requires={[]} />

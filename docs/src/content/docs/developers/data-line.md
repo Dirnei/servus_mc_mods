@@ -3,7 +3,7 @@ title: Data line concepts
 description: Nodes, members, roles, upkeep, network events and bandwidth of the Servus Foundation data line.
 ---
 
-The data line is one of the four lines of the Foundation Utility Duct. This page explains its parts as they are in Foundation 0.4.0. Unless a package is named, the types are in `io.github.dirnei.mc.servus.foundation.data`.
+The data line is one of the four lines of the Foundation Utility Duct. This page explains its parts as they are in Foundation 0.5.0. Unless a package is named, the types are in `io.github.dirnei.mc.servus.foundation.data`.
 
 ## Nodes and the network
 
@@ -35,6 +35,7 @@ These capabilities do not make a block a member on their own, but the line uses 
 | `SUPPLIER` | `ItemSupplier` | answering upkeep requests (a warehouse) |
 | `TRANSFER_GATE` | `TransferGate` | limiting how fast items enter or leave a member |
 | `PACKET_INLET` | `ResourceHandler<ItemResource>` | the item door the data line uses, hidden from pipes and hoppers |
+| `PACKET_ENDPOINT` | `PacketEndpoint` (in `data.packet`) | granting or refusing room before items are sent (see [Deliveries](/servus_mc_mods/developers/deliveries/#the-handshake)) |
 
 `DRIVE` (interface `Drivable` in the `drive` package) is in the same class, but it belongs to the Hand Crank and Electric Motor, not to the data line.
 
@@ -57,12 +58,14 @@ Upkeep is a consumable a machine keeps stocked, such as fuel. It is never part o
 
 - `ItemStack upkeepItem()`: the item, empty for none,
 - `int upkeepLevel()`: how many to keep,
-- `int upkeepCount()`: how many the block holds right now,
+- `int upkeepCount()`: how many the block holds right now; count other items doing the same job too, such as any fuel in a fuel slot, so a slot of charcoal does not read as empty,
 - `void upkeepRequested(int amount, long until)`: an optional callback, told that a supplier will send `amount` items until game time `until`.
 
 Every `DataNetwork.UPKEEP_INTERVAL` ticks (40), the network checks its upkeep members. When one holds less than its level and has no open request, the network asks the members that expose `SUPPLIER` (lowest position first) for the difference. A supplier answers with how many it will send. The request ends when the count has risen by that much, or after `DataNetwork.UPKEEP_TIMEOUT` ticks (1200). A holder with an empty item or a level of 0 is skipped.
 
-In Shuttles 0.4.0 the Warehouse Controller and the Packing Station are suppliers. They send the items as a delivery into the face of your block that touches the duct.
+In Shuttles 0.5.0 the Warehouse Controller and the Packing Station are suppliers. They send the items as a delivery into the face of your block that touches the duct.
+
+In Shuttles 0.5.0 a data line belongs to one warehouse. A line that reaches the Warehouse Controllers or Packing Stations of two warehouses is in conflict: its CPUs start no step that needs warehouse stock, and suppliers answer 0 to upkeep, until the line reaches one warehouse again.
 
 ## Network events
 
@@ -79,6 +82,7 @@ The data line follows the Foundation network rules:
 `DataNetworks.networkAt(ServerLevel level, BlockPos pos)` returns the network of the node at `pos`, else the first network that lists `pos` as a member. On a `DataNetwork` you can call, among others:
 
 - `dataMembers()` and `dataMembers(DataRole role)`: the members, as `DataMember` records,
+- `membersRevision()`: a counter that rises whenever the members change, so you can tell whether a list you read is still current,
 - `hasMember(BlockPos)` and `reaches(BlockPos)`: whether a position is a member, or a node or member,
 - `cables()`: how many ducts carry the line,
 - `loads()` and `busiest()`: the ducts that carried items during the last second.

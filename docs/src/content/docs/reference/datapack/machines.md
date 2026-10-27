@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-Every Servus machine reads its balance numbers from a machine stats file. All numbers on this page are the values of Foundation 0.4.0 and Alchemy 0.3.0-alpha; they live in datapack JSON and modpacks can change them.
+Every Servus machine reads its balance numbers from a machine stats file. All numbers on this page are the values of Foundation 0.5.0 and Alchemy 0.4.0-alpha; they live in datapack JSON and modpacks can change them.
 
 ## File location
 

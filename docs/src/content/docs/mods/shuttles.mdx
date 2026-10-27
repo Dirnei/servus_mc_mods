@@ -23,14 +23,18 @@ Then add a way in and a way out:
 
 - **Inbound Station**: on the rail. Hoppers and pipes fill it, and shuttles put its items away.
 - **Outbound Station**: on the rail. Set keep amounts, and shuttles keep it stocked. It pushes into the machine next to it.
-- **Storage Terminal**: search your stock, request items and hand items in. It sits on a Foundation data line, together with a **Packing Station** on the rail. The Packing Station is the door between the warehouse and the data line.
+- **Storage Terminal**: search your stock, request items and hand items in. It sits on a Foundation data line, together with a **Packing Station** on the rail. The Packing Station is the door between the warehouse and the data line. A data line belongs to one warehouse: a line that reaches two warehouses pauses until you split it.
+
+Every station gets a number from its warehouse, such as "Outbound #3". Click the pencil in the title row of its screen to give it a name as well, such as "Compost Dock (Outbound #3)". Garages, elevator shafts, Field Heads, Crafting Stations and CPUs are numbered the same way, and messages, terminals and the Data Potato use these names.
 
 ## More of the warehouse
 
 - **Rail Elevator**: a shaft that carries shuttles between floors. Speed Upgrades make its car faster.
 - **Zone Label**: name a zone and give it item filters, then stamp it onto racks. Put-aways go to matching racks first.
 - **Shuttle Workshop**: builds a Mk1 shuttle into a Mk2 and a Mk2 into a Mk3. Higher tiers carry more stacks per trip. Here you also fit Speed Upgrades, Handling Upgrades and one tool.
-- **Stock rules**: in the Storage Terminal, set a minimum and a maximum for an item. When the stock drops below the minimum, the warehouse orders more from a Crafting CPU.
+- **Storage Terminal tabs**: the Stock tab shows your items, the Rules tab lists every stock rule. Right click an item for one popup to request it, craft it or set its rule.
+- **Stock rules**: set a minimum and a maximum for an item. When the stock drops below the minimum, the warehouse orders more from a Crafting CPU. A rule can also refuse the item at Inbound Stations above a cap, or ship the surplus above a threshold out through an Outbound Station.
+- **Shuttle lights**: shuttles have headlights, tail lights that show whether they drive, brake or wait, and a number plate. Use the Data Potato on a rail to see which shuttles stand there and what they wait for.
 - **Sites**: every controller is a site with a name. With **Anchor Upgrades** a far away site can wake up for a transfer. With a **Wireless Upgrade** and FE, sites of your team in the same dimension trade with each other, and the Storage Terminal can request from them.
 
 ## Autocrafting
@@ -42,6 +46,8 @@ Autocrafting runs over the Foundation data line. Machines on the line report wha
 - **Pattern Storage**: keeps crafting patterns as data, not as items.
 - **Production Terminal**: write patterns, and watch jobs, machines, CPUs and how full your storage is.
 
+A pattern is **Exact** or **Any**. An Any pattern, such as sticks, a chest or a Heavy Duty Rack, crafts from whichever planks or logs you have most of, and a request for spruce racks uses spruce planks. The Storage Terminal has the same recipe grid for one-off orders.
+
 Request something in the Storage Terminal that is not in stock, and the CPU crafts it. Alchemy machines and a furnace behind a Foundation Machine Adapter can be producers too.
 
 ## Fields
@@ -51,9 +57,14 @@ A field is farmland along a run of **Farm Rail**, served by a **Field Head** at 
 Tool modules turn a shuttle into a field worker. Fit them in the Shuttle Workshop:
 
 - **Harvester**: harvests ripe crops, tills and replants, and brings the harvest home.
+- **Lumber**: fells trees on a tree field and replants them.
 - **Spreader**: spreads fertilizer from the Field Head's buffer.
 
-Plain shuttles keep the Field Head's buffer stocked.
+Harvesters and Spreaders unload what they bring home into the Field Head, and plain shuttles keep its buffers stocked and carry the harvest into the racks.
+
+### Tree fields
+
+Set a Field Head to **Trees** and pick a sapling. It needs no water. The field plants a tree on every other plot, or 2 by 2 trees in squares with a Range Upgrade. A shuttle with the **Lumber** module fells grown trees: its hold opens, a crane with a harvester head grips the trunk and saws it, and the tree topples away from the rail. The shuttle brings the wood home and plants a new sapling.
 
 ## Fluids
 
@@ -66,4 +77,4 @@ Rates, slot counts, speeds and travel times live in datapack JSON under `data/<n
 
 ## Mod info
 
-<ModInfo version="0.4.0" modId="servus_shuttles" tag="shuttles-v0.4.0" requires={[{ name: 'Servus: Foundation', version: '0.4.0 or newer', href: '/mods/foundation/' }]} />
+<ModInfo curseforge="servus-shuttles" version="0.5.0" modId="servus_shuttles" requires={[{ name: 'Servus: Foundation', version: '0.5.0 or newer', href: '/mods/foundation/' }]} />

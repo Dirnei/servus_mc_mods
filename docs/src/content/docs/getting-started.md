@@ -5,13 +5,13 @@ description: Install the Servus mods and take your first steps.
 
 ## What you need
 
-All Servus mods run on **Minecraft 26.1.2** with **NeoForge 26.1.2.116** or newer. Put the jars into your `mods` folder.
+All Servus mods run on **Minecraft 26.1.2** with **NeoForge 26.1.2.116** or newer. Get them from CurseForge and put the jars into your `mods` folder, or add them in your launcher.
 
 | Mod | Version | Needs |
 |---|---|---|
-| Servus: Foundation | 0.4.0 | nothing else |
-| Servus: Shuttles | 0.4.0 | Servus: Foundation 0.4.0 or newer |
-| Servus: Alchemy | 0.3.0-alpha | Servus: Foundation 0.4.0 or newer, and Modonomicon |
+| <a href="https://www.curseforge.com/minecraft/mc-mods/servus-foundation" target="_blank" rel="noopener">Servus: Foundation</a> | 0.5.0 | nothing else |
+| <a href="https://www.curseforge.com/minecraft/mc-mods/servus-shuttles" target="_blank" rel="noopener">Servus: Shuttles</a> | 0.5.0 | Servus: Foundation 0.5.0 or newer |
+| <a href="https://www.curseforge.com/minecraft/mc-mods/servus-alchemy" target="_blank" rel="noopener">Servus: Alchemy</a> | 0.4.0-alpha | Servus: Foundation 0.5.0 or newer, and Modonomicon |
 
 Shuttles and Alchemy do not need each other. They work alone and together. JEI is optional; with it installed the Servus recipes show up there. Jade is optional too and shows the state of the Alchemy machines.
 
@@ -23,7 +23,7 @@ Servus: Alchemy is still an alpha. Builds can change between versions, and a few
 
 Every Servus mod uses the same two tools from Foundation:
 
-- **Configuration Carrot**: the wrench. Use it on a face of a machine to change that side, and sneak use it to pick up a block with its settings. On a duct it opens the duct's side settings.
+- **Configuration Carrot**: the wrench. Use it on a face of a machine to change that side, and sneak use it to pick up a block with its settings. On a duct it opens the duct's screen with a tab per side.
 - **Engineer Goggles**: wear them to see hidden things, such as side settings and ducts behind facades.
 
 ## Your first base

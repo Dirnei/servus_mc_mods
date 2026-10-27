@@ -9,14 +9,16 @@ interface Requirement {
 interface Props {
 	version: string;
 	modId: string;
-	tag: string;
+	/** Project slug on CurseForge, as in curseforge.com/minecraft/mc-mods/<slug>. */
+	curseforge: string;
 	requires: Requirement[];
 }
 
-const { version, modId, tag, requires } = Astro.props;
+const { version, modId, curseforge, requires } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const release = `https://github.com/Dirnei/servus_mc_mods/releases/tag/${tag}`;
-const link = (href?: string) => (href?.startsWith('/') ? base + href : href);
+const releases = 'https://github.com/Dirnei/servus_mc_mods/releases/';
+const project = `https://www.curseforge.com/minecraft/mc-mods/${curseforge}`;
+const internal = (href: string) => href.startsWith('/');
 ---
 
 <div class="mod-info not-content">
@@ -32,11 +34,21 @@ const link = (href?: string) => (href?.startsWith('/') ? base + href : href);
 			<ul>
 				<li>NeoForge 26.1.2.116 or newer</li>
 				{requires.map((r) => (
-					<li>{r.href ? <a href={link(r.href)}>{r.name}</a> : r.name} {r.version}</li>
+					<li>
+						{r.href ? (
+							internal(r.href) ? <a href={base + r.href}>{r.name}</a> : <a href={r.href} target="_blank" rel="noopener">{r.name}</a>
+						) : r.name}{' '}
+						{r.version}
+					</li>
 				))}
 			</ul>
 		</dd>
 		<dt>Download</dt>
-		<dd><a href={release}>GitHub release {tag}</a></dd>
+		<dd>
+			<ul>
+				<li><a href={project} target="_blank" rel="noopener">CurseForge</a></li>
+				<li><a href={releases} target="_blank" rel="noopener">GitHub releases</a></li>
+			</ul>
+		</dd>
 	</dl>
 </div>

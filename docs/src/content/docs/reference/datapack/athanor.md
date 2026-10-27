@@ -5,7 +5,7 @@ sidebar:
   order: 5
 ---
 
-The Athanor crafts with the item lying on it and the principles in its tanks, as far as its stage allows. Its stage comes from blocks around its build, and rituals turn those blocks into the next stage. Numbers on this page are the shipped values of Alchemy 0.3.0-alpha; they live in datapack JSON and modpacks can change them.
+The Athanor crafts with the item lying on it and the principles in its tanks, as far as its stage allows. Its stage comes from blocks around its build, and rituals turn those blocks into the next stage. Numbers on this page are the shipped values of Alchemy 0.4.0-alpha; they live in datapack JSON and modpacks can change them.
 
 ## Crafts
 

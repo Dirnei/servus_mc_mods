@@ -1,13 +1,12 @@
 # Servus: Shuttles changelog
 
-## Unreleased
+## 0.5.0
 
 ### Added
 - Inbound, Outbound and Packing Stations get a number per warehouse ("Outbound #3", "Packing #1") and an optional name typed into their title row ("Compost Dock (Outbound #3)"). The Data Potato on a station names it, its site and whether it is online.
 - Field Heads, Shuttle Garages, elevator shafts ("Lift #2"), Crafting Stations and Crafting CPUs get numbers and names too. Production Terminal rows on every tab, CPU messages and the Data Potato's shuttle report name machines by them, and a moved machine keeps its name. In chat, shuttles read green and lifts aqua.
 - Shuttles light up on the rails: white headlights in front, tail lights that show whether a shuttle drives, brakes, is held behind another or waits for the lift or power, and a number plate on both sides. The Data Potato on a rail or shaft names every shuttle there and what it waits for, following the queue and naming a deadlock.
-- Tree fields: a Field Head set to Trees plants saplings on every other plot (2x2 trees in squares with a Range Upgrade), needs no water, and a Lumber shuttle fells grown trees with their leaves, brings the wood home and replants.
-- Lumber shuttles fell trees with an arm and a saw, and the tree topples away from the rail, lands and breaks apart into the shuttle.
+- Tree fields: a Field Head set to Trees plants saplings on every other plot (2x2 trees in squares with a Range Upgrade), needs no water, and a Lumber shuttle fells grown trees with their leaves, brings the wood home and replants. At a tree its hold opens, a harvester crane rises out of it, grips the trunk and cuts it with a chainsaw you can hear, and the tree topples away from the rail into the shuttle.
 - Patterns can be Exact or Any. An Any pattern, such as sticks or a chest, crafts from whichever planks or logs the warehouse holds most of; the recipe editor has the Exact / Any button and the Patterns tab marks Any patterns.
 - The Storage Terminal has Stock and Rules tabs. Rules lists every stock rule with a search, and a carried item or a JEI drag on its add slot starts a rule for any item. A right click on an item opens one popup with Request, Craft and Rule tabs in place of the amount prompt.
 - Stock rules can refuse an item at Inbound Stations above a cap: hoppers, pipes and Pull sides deliver only up to it and the rest stays with the sender. The rule names the station that refused.
@@ -16,7 +15,6 @@
 - Heavy Duty Rack and Elevator patterns can be Any too, the material following the inputs: JEI's + gives an Any rack pattern, the Storage Terminal lists one rack that crafts from the most stocked planks, and a request for spruce racks uses or crafts spruce planks.
 
 ### Changed
-- The Lumber shuttle carries a closed hold; at a tree its doors and walls fold open and a harvester crane rises out of it, grips the trunk with rollers and knives, cuts it with a chainsaw you can hear, and folds away again before it drives on.
 - Harvesters and Spreaders unload into a To storage buffer on the Field Head, and plain shuttles put it away into the racks.
 - A data line belongs to one warehouse. A line that reaches two warehouses is in conflict and pauses: its terminals show no stock and refuse requests, and its Packing Stations send nothing. Terminals no longer add up the stock of several warehouses.
 - Packing Stations reserve whole To storage slots before items arrive and put a slot away only once it is complete, so one shuttle takes the whole stack, and the warehouse picks the station closest to the rack. A Packing Station moves 10 items per second.
@@ -25,7 +23,6 @@
 - The Production Terminal's recipe editor and the Storage Terminal's order grid share one look: both fill cells by click and drag, have Clear and the Exact / Any button, and a one-off order or a pattern saved from the order grid keeps the chosen mode.
 
 ### Fixed
-- The Storage Terminal's scrollbar can be dragged with the mouse.
 - A click anywhere in the Storage Terminal takes the focus from the search box, and JEI's recipe and usage keys work on the items in its grid.
 - Recipes that put a material into their result, such as a Heavy Duty Rack from oak planks, can be ordered and saved from the order grid, and JEI fills the grid with stocked items and their materials.
 - The Production Terminal no longer reports a Coal Generator or Burner Pump burning charcoal or another fuel as out of fuel, and shows a generator's stored energy.

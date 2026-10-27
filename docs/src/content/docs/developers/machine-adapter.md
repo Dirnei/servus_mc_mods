@@ -3,7 +3,7 @@ title: Machine Adapter
 description: Put a machine of vanilla or another mod on the Servus data line with a Machine Adapter and a datapack machine profile.
 ---
 
-Some machines come from mods that do nothing for the data line. The **Machine Adapter** of Servus: Foundation 0.4.0 makes them producers anyway. A player places the adapter against the machine, and a datapack **machine profile** tells the adapter how the machine works. No code is needed.
+Some machines come from mods that do nothing for the data line. The **Machine Adapter** of Servus: Foundation 0.5.0 makes them producers anyway. A player places the adapter against the machine, and a datapack **machine profile** tells the adapter how the machine works. No code is needed.
 
 ## In game
 
@@ -15,6 +15,8 @@ The adapter faces the block it was placed against. When a profile knows that blo
 - It keeps an upkeep item stocked in the machine's upkeep side. The first profile it meets sets the default (coal for the shipped profiles). Right click the adapter with an empty hand to change the upkeep item and the level (1 to 64).
 
 Without a profile for the faced block the adapter offers no recipes.
+
+On a Shuttles warehouse's data line the adapter gets a number, and it reads as the machine it serves: "Furnace (Adapter #1)". A name typed into the title row of its screen replaces the machine's name.
 
 ## Machine profiles
 

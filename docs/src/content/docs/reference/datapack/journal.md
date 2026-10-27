@@ -5,7 +5,7 @@ sidebar:
   order: 3
 ---
 
-Paracelsus' Journal is Alchemy's tech tree. A chapter lists tasks; when a team has done all of them, the chapter is finished for the team, every member gets the chapter's advancement and the next chapter opens. Counts on this page are the shipped values of Alchemy 0.3.0-alpha; they live in datapack JSON and modpacks can change them.
+Paracelsus' Journal is Alchemy's tech tree. A chapter lists tasks; when a team has done all of them, the chapter is finished for the team, every member gets the chapter's advancement and the next chapter opens. Counts on this page are the shipped values of Alchemy 0.4.0-alpha; they live in datapack JSON and modpacks can change them.
 
 ## File location
 
@@ -50,4 +50,4 @@ A finished chapter grants the advancement `<namespace>:journal/<chapter>`. The j
 
 ## Locked recipes
 
-A [coagulation recipe](/servus_mc_mods/reference/datapack/recipes/) may name a `chapter`; a Coagulator only lets its owner's team select it after that chapter is finished.
+A [coagulation recipe](/servus_mc_mods/reference/datapack/recipes/) may name a `chapter`; a Coagulator grows it from its seed only after its owner's team has finished that chapter.
