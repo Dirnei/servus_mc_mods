@@ -29,7 +29,6 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
-import net.neoforged.neoforge.client.event.RegisterPictureInPictureRenderersEvent;
 
 /** Client only mod bus hooks. */
 @EventBusSubscriber(modid = ServusAlchemyIds.MOD_ID, value = Dist.CLIENT)
@@ -72,19 +71,12 @@ public final class ServusAlchemyClient {
         event.registerLayerDefinition(GnomeModel.LAYER, GnomeModel::createBodyLayer);
     }
 
-    /** Dev only icon export for the docs: its renderer exists only when the iconExport run asks for it. */
-    @SubscribeEvent
-    public static void onRegisterPictureInPicture(RegisterPictureInPictureRenderersEvent event) {
-        IconExporter.registerRendererIfRequested(event);
-    }
-
     /**
-     * The dev only icon export, when the iconExport run asks for it, the Elemental Sight renderers, the sight check that
-     * lets only the sighted click gnomes, the journal task page and the calcination table.
+     * The Elemental Sight renderers, the sight check that lets only the sighted click gnomes, the journal task page and
+     * the calcination table.
      */
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
-        IconExporter.registerIfRequested();
         RevealRenderers.add(new HollowRevealRenderer());
         Gnome.watchSightWith(() -> ElementalSight.active(Minecraft.getInstance().player));
         PageRendererRegistry.registerPageRenderer(JournalTasksPage.ID, page -> new JournalTasksPageRenderer((JournalTasksPage) page));

@@ -34,7 +34,7 @@ servus_mc_mods/
   gradlew, gradle/wrapper/  Gradle wrapper
   .github/workflows/        CI: build and unit tests on every push
   openspec/                 specs and changes (OpenSpec)
-  docs/                     documentation site and Balance lab (Astro, Starlight), deployed to GitHub Pages
+  docs/                     documentation site (Astro, Starlight), deployed to GitHub Pages
   foundation/               servus_foundation
   alchemy/                  servus_alchemy
   shuttles/                 servus_shuttles
@@ -151,7 +151,7 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 |---|---|
 | M0 Repository and build | multi project Gradle with ModDevGradle, run configs, CI, the port to 26.1.2 |
 | M1 Foundations | network graph with split and merge, mailbox tick, `NetworkManager`, Configuration Carrot, config |
-| M2, M3 Factorio style factory | superseded by M9; what lived on: pumps, Sink, Ender Anchor, side config, JEI, the docs site and Balance lab |
+| M2, M3 Factorio style factory | superseded by M9; what lived on: pumps, Sink, Ender Anchor, side config, JEI, the docs site |
 | M4 Warehouse first slice | Heavy Duty Rack with sections, Warehouse Controller, terminal |
 | M5 Logistics | Utility Duct with item, power and fluid lines, side tabs with In, Out, Pull, redstone and On/Off per line, named team channels, item and fluid filters with search and JEI, keep and fill up to amounts, priorities, facades, goggles, Data Potato, Fluid Tank |
 | M6 Warehouse automation | rails, elevators with lift cars, simulated shuttles, garages with a roll-up door, Inbound Station, Zone Labels, placement assist |
@@ -163,7 +163,7 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 
 ### Open: Alchemy
 
-- **Balance pass** and the docs Balance lab on the new data, including CPU slots, buffer room and recipes.
+- **Balance pass** on the new data, including CPU slots, buffer room and recipes.
 - **Checkpoint: play it.** Is Nigredo to Albedo fun for a casual player and for a planner? Adjust before Citrinitas.
 - **Journal guidance:** new journal events `build` (a machine formed or placed) and `make` (a first item made) (`find` exists since `m12-hidden-hints`), so chapters react to what the player builds; progress per team, unlocked for every member (decided 2026-10-12).
 - **M12 Alchemy, Citrinitas and Rubedo**, as planned in `alchemy_plan.md` (decided 2026-10-15). Still open in M12:

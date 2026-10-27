@@ -206,13 +206,6 @@ neoForge {
             gameDirectory = project.file('runs/gametest')
             systemProperty 'servus.gametest.recipes', 'true'
         }
-        // Renders every item of docs/src/data/gamedata.json as an icon for the docs site, then quits.
-        iconExport {
-            client()
-            gameDirectory = project.file('runs/icons')
-            systemProperty 'servus.icons.output', project.file('docs/src/icons').absolutePath
-            systemProperty 'servus.icons.gamedata', project.file('docs/src/data/gamedata.json').absolutePath
-        }
         configureEach {
             loadedMods = allServusMods
             systemProperty 'neoforge.enabledGameTestNamespaces', allServusModIds
@@ -220,13 +213,6 @@ neoForge {
             logLevel = org.slf4j.event.Level.DEBUG
         }
     }
-}
-
-
-tasks.register('iconExport') {
-    group = 'servus'
-    description = 'Renders the item icons for the docs site (docs/src/icons).'
-    dependsOn 'runIconExport'
 }
 
 // The combined runs carry the same dev only mods as the Alchemy runs (only when Alchemy is in the build).

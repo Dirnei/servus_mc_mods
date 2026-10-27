@@ -42,7 +42,7 @@
 ## 4. Look and docs
 
 - [ ] 4.1 Add `FluidStationModels` datagen (both halves, teal band, sight glass recesses, lamp sockets, port flange) and blockstates with lamp variants. Add `FluidStationRenderer` for the sight glasses with `FluidColumn`, plus the recipe, loot, lang and pickaxe tag. List every overlapping box pair and its plane check in the task notes. Verify with `gradlew :shuttles:runData` and `gradlew :shuttles:build`.
-- [ ] 4.2 Document the Fluid Inbound in `docs/src/content/docs/mods/shuttles.md`. Run `gradlew :alchemy:runData` to refresh `gamedata.json`, then verify the docs site builds.
+- [ ] 4.2 Document the Fluid Inbound in `docs/src/content/docs/mods/shuttles.md`. Verify that the docs site builds.
 
 ## 5. Integration
 

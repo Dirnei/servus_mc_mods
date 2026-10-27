@@ -87,7 +87,7 @@
 
 - [ ] 5.1 Add `FluidRackModels` datagen (posts, beams, boards with the wood skin, glass pane, port flange) and the `FluidRackRenderer` (fluid level in steps, zone name on the port bay's top beam). Move the gantry column drawing to a shared `FluidColumn` helper used by both renderers. Add lang, loot and the pickaxe tag. List the overlapping box pairs and their plane checks in the task notes. Verify with `gradlew :shuttles:runData` and `gradlew :shuttles:build`.
 - [ ] 5.2 Controller and Production Terminal: `StorageRow` counts `fluidRacks`; the tooltips name gantries and racks; rename `storage.no_gantry` to `storage.no_fluid_storage`. Update `StorageFillGameTests` with the rack case. Verify with `gradlew :shuttles:runGameTestServer`.
-- [ ] 5.3 Document the Fluid Rack, the zone fluid filter and the tanker coupling in `docs/src/content/docs/mods/shuttles.md`. Run `gradlew :alchemy:runData` to refresh `docs/src/data/gamedata.json`, then verify the docs site builds.
+- [ ] 5.3 Document the Fluid Rack, the zone fluid filter and the tanker coupling in `docs/src/content/docs/mods/shuttles.md`. Verify that the docs site builds.
 
 ## 6. Integration
 

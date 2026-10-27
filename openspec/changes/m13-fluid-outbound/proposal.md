@@ -50,7 +50,7 @@ This change finishes the M13 Fluid logistics rewrite in PLAN.md. After the Fluid
   - `FluidGantryGameTests`, `GantryTankGameTests`, `GantryNetworkGameTests`, `GantryMenuGameTests`, `GantryFixtures` (its rail shape helper moves for `ElevatorGameTests`).
 - **Network and fleet:** `WarehouseNetwork` (gantry sets, `readFluidStores`, `tickFluids`, `restockFluids`, host methods `gantryMode`/`gantryPumping`) and `ShuttleFleet` (spout state, `pumpingIntoGantry`).
 - **Tanker tests:** `TankerFixtures` and the tanker GameTests are rebuilt on Fluid Inbound, Fluid Rack and Fluid Outbound.
-- **Other:** the lang provider, the controller and terminal screens, `ServusShuttlesCommands.fluids`, the docs (`shuttles.md`, `gamedata.json`), `PLAN.md` and `shuttles/CHANGELOG.md`.
+- **Other:** the lang provider, the controller and terminal screens, `ServusShuttlesCommands.fluids`, the docs (`shuttles.md`), `PLAN.md` and `shuttles/CHANGELOG.md`.
 
 ## Non-goals
 

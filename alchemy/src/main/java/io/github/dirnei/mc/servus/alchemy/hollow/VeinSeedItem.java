@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.alchemy.hollow;
 
-import io.github.dirnei.mc.servus.alchemy.datagen.gamedata.GameDataExportProvider;
+import io.github.dirnei.mc.servus.alchemy.IdText;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyComponents;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import java.util.Optional;
@@ -42,7 +42,7 @@ public class VeinSeedItem extends Item {
     /** The vein's name from {@code vein.<namespace>.<path>}, else its path in title case. */
     public static Component veinName(Identifier vein) {
         return Component.translatableWithFallback("vein." + vein.getNamespace() + "." + vein.getPath(),
-                GameDataExportProvider.titleCase(vein.getPath()));
+                IdText.titleCase(vein.getPath()));
     }
 
     @Override

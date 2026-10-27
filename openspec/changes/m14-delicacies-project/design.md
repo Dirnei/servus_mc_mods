@@ -29,7 +29,7 @@ The tab needs an item to show and an icon. The Pretzel is the mod's emblem and i
 Tests register through Foundation's `ServusGameTests.register(modBus, MOD_ID, classes)`, which needs the shared `empty_12x6x12` structure in the mod's own namespace, so `data/servus_delicacies/structure/empty_12x6x12.nbt` is copied from Shuttles. `DelicaciesSetupGameTests` checks that Foundation is loaded (`ModList.get().isLoaded`) and that the Delicacies tab, after `CreativeModeTabs.tryRebuildTabContents(enabledFeatures, false, registryAccess)`, lists the Pretzel. There is no pure logic yet, so there are no JUnit tests; the project has no test sources and its `test` task is skipped.
 
 ### CI, release and pack
-`build.yml` uploads `delicacies/build/libs/*.jar`. `release.yml` adds the `delicacies-v*` tag, the `CURSEFORGE_ID_DELICACIES` variable and Foundation as the required CurseForge dependency, exactly like Shuttles. `server/pack.ps1` packs the Delicacies jar. The docs game data export (`alchemy/build.gradle`, `servus.gamedata.*`) stays on the three existing mods so `docs/src/data/gamedata.json` does not change in this change.
+`build.yml` uploads `delicacies/build/libs/*.jar`. `release.yml` adds the `delicacies-v*` tag, the `CURSEFORGE_ID_DELICACIES` variable and Foundation as the required CurseForge dependency, exactly like Shuttles. `server/pack.ps1` packs the Delicacies jar.
 
 ### Settles from PLAN.md
 No open decision of PLAN.md section 5 is touched. This change writes the M14 and M15 plan from the explore of 2026-10-20 into PLAN.md.

@@ -7,7 +7,6 @@ import com.klikli_dev.modonomicon.api.datagen.research.ResearchCache;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.datagen.book.JournalBook;
 import io.github.dirnei.mc.servus.alchemy.datagen.book.JournalResearch;
-import io.github.dirnei.mc.servus.alchemy.datagen.gamedata.GameDataExportProvider;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -52,7 +51,5 @@ public final class ServusAlchemyDataGen {
         event.addProvider(new LootTableProvider(output, Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(ServusAlchemyBlockLoot::new, LootContextParamSets.BLOCK)),
                 lookup));
-        // Last: reads the recipes and the lang file written above.
-        event.addProvider(new GameDataExportProvider());
     }
 }

@@ -59,7 +59,7 @@ openspec view                      # dashboard of specs and changes
 - After each task: `gradlew build` and `gradlew test` must pass.
 - Block, GUI and worldgen behavior: launch the client run config and check it in game. GameTests where practical.
 - Do not report a task as done without a green build.
-- The docs workflow exports `docs/src/data/gamedata.json` with `gradlew :alchemy:runData` before it builds the site. The committed file is only for local docs work; run `runData` locally to refresh it.
+- The docs site in `docs/` (Astro Starlight) describes only released mod versions; check pages against the release tags. Preview it with `npm run dev` in `docs/`.
 
 ## Code style
 - Code explains itself through names and small methods. Extract a shared helper instead of copying logic.

@@ -68,7 +68,6 @@
 - [ ] 4.2 Remove the gantry count from `StorageRow`, the controller and the Production Terminal tooltips, and from `ServusShuttlesCommands.fluids`. Update `StorageFillGameTests` (stations left out). Verify with `gradlew :shuttles:runGameTestServer`.
 - [ ] 4.3 Docs:
   - in `docs/src/content/docs/mods/shuttles.md`, replace the Fluid Gantry with the Fluid Outbound and describe the full chain;
-  - run `gradlew :alchemy:runData` to refresh `gamedata.json`;
   - verify that the docs site builds.
 - [ ] 4.4 Groom PLAN.md M13: remove the gantry sentence and the Export red lamp point, and keep the other open points. Verify by reading the section.
 

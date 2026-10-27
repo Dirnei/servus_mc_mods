@@ -1,6 +1,3 @@
 node_modules/
 dist/
 .astro/
-# Written by :alchemy:runData and the icon renderer; the site no longer reads them.
-src/data/
-src/icons/

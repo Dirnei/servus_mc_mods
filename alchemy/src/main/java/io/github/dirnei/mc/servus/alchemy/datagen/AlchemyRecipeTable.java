@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.alchemy.datagen;
 
+import io.github.dirnei.mc.servus.alchemy.IdText;
 import io.github.dirnei.mc.servus.alchemy.Principles;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorRecipe;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinationDimension;
-import io.github.dirnei.mc.servus.alchemy.datagen.gamedata.GameDataExportProvider;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinSeedItem;
 import io.github.dirnei.mc.servus.alchemy.prelum.PressingRecipe;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
@@ -198,8 +198,8 @@ public final class AlchemyRecipeTable {
             Item in = vanilla(input.apply(colour.getSerializedName()));
             Item out = vanilla(residue.apply(colour.getSerializedName()));
             String inPath = BuiltInRegistries.ITEM.getKey(in).getPath();
-            rows.add(new Purify("wash_" + inPath, GameDataExportProvider.titleCase(inPath), Input.of(in), WASH_COUNT, WASH_WATER, 0,
-                    new ItemStackTemplate(out, WASH_COUNT), GameDataExportProvider.titleCase(BuiltInRegistries.ITEM.getKey(out).getPath()),
+            rows.add(new Purify("wash_" + inPath, IdText.titleCase(inPath), Input.of(in), WASH_COUNT, WASH_WATER, 0,
+                    new ItemStackTemplate(out, WASH_COUNT), IdText.titleCase(BuiltInRegistries.ITEM.getKey(out).getPath()),
                     WASH_TIME));
         }
         return new Wash(label, residueLabel, List.copyOf(rows));
@@ -276,7 +276,7 @@ public final class AlchemyRecipeTable {
 
     /** The Seed of a shipped vein, made from its raw material at the stage of that vein. */
     private static AthanorCraft seed(String vein, String inputLabel, Input input, Principles principles, int tier) {
-        return new AthanorCraft("seed_of_" + vein, inputLabel, "Seed of " + GameDataExportProvider.titleCase(vein), input, principles, tier,
+        return new AthanorCraft("seed_of_" + vein, inputLabel, "Seed of " + IdText.titleCase(vein), input, principles, tier,
                 VeinSeedItem.template(Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, vein)), 200);
     }
 
@@ -297,6 +297,6 @@ public final class AlchemyRecipeTable {
 
     /** An item's English name from its id path, for the journal's tables: caput_mortuum gives Caput Mortuum. */
     public static String label(ItemStackTemplate stack) {
-        return GameDataExportProvider.titleCase(stack.item().unwrapKey().orElseThrow().identifier().getPath());
+        return IdText.titleCase(stack.item().unwrapKey().orElseThrow().identifier().getPath());
     }
 }
