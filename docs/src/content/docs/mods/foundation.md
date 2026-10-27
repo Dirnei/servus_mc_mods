@@ -1,224 +1,73 @@
 ---
 title: "Servus: Foundation"
-description: The base every Servus mod requires. The Utility Duct, the Fluid Tank, facades, the Configuration Carrot, Engineer Goggles, side configuration and the production API.
+description: The base mod of the Servus family. The Utility Duct, the Fluid Tank, the utility machines and the tools every Servus mod shares.
 ---
 
-Servus: Foundation (`servus_foundation`) is the base of the mod family. Alchemy and Shuttles both require it and never depend on each other. It has two halves: shared code that makes the family look and behave the same, and the transport blocks every base needs.
+**Version 0.4.0.** Mod id `servus_foundation`. Needs nothing but NeoForge.
 
-Foundation loads on its own, and each content mod loads with only Foundation installed.
+Foundation is the base of the Servus family. Shuttles and Alchemy both need it. It brings the transport blocks every base needs, a handful of utility machines, and the shared tools and rules that make all Servus blocks work the same way. It also works on its own as a small pipes and utilities mod.
 
-## Items
+## Tools
 
-- **Configuration Carrot**: the wrench of the family. A carrot with a metal bar and a red tip instead of leaves. Use it on a face to cycle that side's mode, sneak use it to dismantle a block and keep its configuration. On blocks with a facing and no own handling it rotates the block.
-- **Engineer Goggles**: worn in the head slot like a helmet without armor. While worn, or while a Configuration Carrot is held, hidden things show up, such as side mode markers and ducts behind facades.
-- Every line has its own colour on the duct and on its item: Item Pipe orange, Power Cable red, Fluid Pipe blue, and the data line white, gray or black by tier.
-- **Item Pipe**: places a duct with an item line, or adds the item line to a duct that lacks it. Eight from four copper ingots, two iron ingots, two glass and a chest.
-- **Power Cable**: places a duct with an energy line, or adds it to a duct. Eight from copper ingots, redstone and glass.
-- **Fluid Pipe**: places a duct with a fluid line, or adds it to a duct. Eight from four copper ingots, two iron ingots, two glass and a bucket.
-- **Data Cable**: places a duct with the data line, or adds it to a duct. Four from two copper ingots and a redstone dust. 32 items per second, shared by both directions (simplex).
-- **Duplex Data Cable**: the data line with 32 items per second in each direction at the same time. Two from two Data Cables and a quartz.
-- **Fast Data Cable**: the data line with 128 items per second in each direction. Two from two Duplex Data Cables, a quartz and two gold ingots.
-- **Speed Upgrade**: goes into the upgrade slots of a Servus block and doubles its rate per upgrade. Redstone, gold ingots and a copper ingot.
-- **Facade**: any full block without a block entity plus one nugget of any kind (iron, gold or a mod's copper nugget) gives six facades of that block. Use one on a face of a duct to cover that face with a thin panel of the block. A facade closes the face, so ducts and machines behind it do not connect; sneak with the Configuration Carrot on it to take it off.
-- **Hollow Facade**: eight facades of one block around an empty centre give eight hollow facades. They cover a face like a facade, but the duct passes through the hole in the middle and keeps its connection.
-- **Fluid Tank**: a glass block with a copper frame that holds one fluid. Copper ingots in the corners, glass on the top, left and right edges, and any solid block in the bottom middle, which becomes the tank's floor.
-- **Machine Adapter**: makes a machine of vanilla or another mod a producer on the data line. Copper ingots around a hopper, redstone and a Data Cable over a row of planks; it shows the wood of the planks, like the Shuttles blocks.
+- **Configuration Carrot**: the wrench of the family. Use it on a face to change that side. Sneak use it to pick up a block and keep its settings. On a duct it opens the side settings of that arm.
+- **Engineer Goggles**: worn on your head. They show side settings and ducts hidden behind facades.
+- **Data Potato**: shows how busy the data line is. Use it on a duct, a tank or a Servus storage block for a short report in chat.
 
-All of them are listed in the Servus creative tab.
+## The Utility Duct
 
-## Utility Duct
+One block that carries up to four lines side by side:
 
-One block that carries up to four lines: Item Pipe, Power Cable, Fluid Pipe and the data line. It works with any block that offers the standard item, energy or fluid capability.
+| Item | Line | Moves |
+|---|---|---|
+| Item Pipe | orange | items |
+| Power Cable | red | FE |
+| Fluid Pipe | blue | fluids |
+| Data Cable | white, gray or black by tier | links machines for autocrafting |
 
-- Each line forms its own network: an item network only spans ducts with an Item Pipe, and so on.
-- Every side of every line has three switches: In (takes from the block), Out (delivers to the block) and, on the Item Pipe, Pull (also extracts items, only with In). In and Out is the default. A side with neither In nor Out does not connect.
-- Every side of every line also has a redstone setting (ignore redstone, while powered, while unpowered) and an On/Off switch. A side that is off or whose redstone setting is not met keeps its connection and moves nothing.
-- Every side of every line sits on one of eight channels, each with a fixed color. Items, energy and fluids only move between sides on the same channel.
-- **Items** inserted into a duct go round robin to outputs on the same channel, never back to where they came from. Sides with Pull extract items from their inventory at a fixed interval.
-- **Filters**: each item side has a whitelist of up to nine ghost items. An empty list passes everything.
-- **Priorities**: each item side has a priority from -9 to 9. Higher priorities are filled first.
-- **Energy** is shared evenly between receivers on a channel, up to a per tick limit.
-- **Fluids** move between blocks with no rate limit of their own; pumps set the throughput.
+Use a line item to place a duct, or use it on a duct to add that line. Each line forms its own network. Ducts work with any block of any mod that offers the standard NeoForge item, energy or fluid capability.
 
-### Endpoint GUI
+Use the Configuration Carrot on an arm that touches a machine or chest to open its side settings. Each line has a mode per side (in and out, pull in, push out or off) and a channel. Things only move between sides on the same channel. Channels have names, colours and icons, and your team shares them. The Item Pipe also has filter slots and a priority per side.
 
-Use the Configuration Carrot on any part of a duct. Tabs on top pick the side, tabs on the left the line. Each line page has small buttons for In, Out, Pull, the redstone setting and On/Off (hover them for what they do), the channel selector, and for the item and fluid lines the filter slots and the priority. The trash can in the bottom right corner takes the line out of the duct and drops it; removing the last line removes the duct. A bare hand opens nothing.
+Ducts can stand in water. **Facades** hide a duct behind the look of any full block: craft a block with a nugget to get six. A facade closes its face. A **Hollow Facade** (eight facades in a ring) covers the face but lets the duct through.
 
-### Appearance
+### The data line
 
-A duct grows thicker with its lines, and each line has its own look, so you can tell from a distance what a duct carries: the Item Pipe is a corrugated orange hose, the Fluid Pipe a blue hose with a spiral wrap and a brass sleeve, the Power Cable ribbed red rubber, and the data line a braid in its tier's colours (white, white and gray, or black with a cyan tracer). Several lines run side by side as bands. The pattern runs along the duct block by block on every side. Where a duct bends, branches or crosses, its centre is a black rubber fitting. The line items show a short stub of their line from the end, with the line's colour at the rim and what it carries in the core. An arm that ends at an inventory or machine carries a ring in its channel color. A duct with a facade renders as the facade block. While you wear Engineer Goggles or hold the carrot, facaded ducts within 32 blocks show as a translucent overlay. Sneak with the carrot to take the facade off.
+The data line moves nothing by itself. It links blocks that make or hold items, so a Shuttles warehouse and its Crafting CPU can find them without setup. It comes in three tiers:
 
-Ducts rest on what holds them up instead of floating in the middle of the block:
+| Cable | Items per second | Directions |
+|---|---|---|
+| Data Cable | 32 | shared by both directions |
+| Duplex Data Cable | 32 | 32 each way |
+| Fast Data Cable | 128 | 128 each way |
 
-- **Floor**: a duct above a full block lies on it. Ducts, bottom slabs and other partial blocks are no floor, and neither is a block the duct has an arm into.
-- **Going up**: a floor run that turns up bends cleanly: the bend lies on the floor with the run and its arm rises straight from there. A duct that feeds a machine beside it and also goes up stays in the middle of its block instead, so the run goes straight up from the connection; its arms stay straight, and a floor run joining it steps up in its own block next to it.
-- **Middle across**: ducts never move toward a wall or into a corner. Runs along a floor stay in the middle across the run, and climbs run up the middle of their blocks.
-- **Draping**: a duct with nothing under it takes the floor height of the neighbour ducts beside it, as long as they agree, so a run over the edge of a step or a short gap stays level. Only direct neighbours count: a long span stays in the middle between its two ends. The top or bottom of a climb also follows a draped neighbour beside it, so a pipe that climbs, crosses one block of air and lands on a block stays level.
-- **Steps**: where two connected ducts still sit at different heights, one of them bends up or down in the middle of its block, so the run stays joined.
-- **Endpoints**: an arm into an inventory or machine always ends in the middle of that face with its ring; a resting duct bends up to it in the middle of its block.
-- **Facades**: a duct with any facade stays in the middle of its block, so its arms pass the holes of hollow facades.
-
-The outline, collision and the carrot follow the duct where it is drawn, including its bends.
-
-### Data line
-
-The data line is the wiring for on-demand autocrafting. It never moves anything on its own; it only links blocks that make or hold items, so later Servus blocks can find them without any setup.
-
-- Ducts with the data line link to each other and form a data network.
-- A block is a member when it can make items (a Crafting Station, an Assembler), holds stock (a Warehouse Controller) or is a link on the line without either (a Packing Station, through the `servus_foundation:data_link` capability). Other mods join by exposing the same Foundation capabilities. Chests and other plain inventories are not members.
-- There are no channels, filters or priorities. In the endpoint GUI the data tab only switches a side on or off; an off side reaches no member and does not link to the next duct.
-- Right click a duct with the data line with an empty hand to see how many ducts, producers and stock members its network has, and how many items per second passed this duct during the last second out of its bandwidth ("24 of 32 items/s").
-- The data line shows its tier on the duct and on the cable item: white for the Data Cable, gray for the Duplex Data Cable, black for the Fast Data Cable. The duct body and the data line's ring at a member both take that colour.
-
-### Cable tiers and bandwidth
-
-Each tier of the data line lets a number of items per second through every duct, its bandwidth:
-
-| Tier | Items per second | Directions |
-| --- | --- | --- |
-| Data Cable | 32 | simplex: both directions share the 32 |
-| Duplex Data Cable | 32 | duplex: 32 each way at the same time |
-| Fast Data Cable | 128 | duplex: 128 each way at the same time |
-
-- Ducts of different tiers link into one data network.
-- A delivery moves no faster than the slowest duct on its path, and no faster than the Packing Station or other transfer gate at its ends. Example: a Packing Station with two Speed Upgrades (32 per second) sends over two Fast Data Cable ducts and one Data Cable duct: it moves 32 items per second; a second Packing Station on the same Data Cable duct gains nothing until that duct is a Duplex or Fast Data Cable.
-- Simplex and duplex: a Packing Station that sends 20 items per second out and receives 20 per second over the same Data Cable duct needs 40 of its 32, so both slow down to 32 together. Over a Duplex Data Cable each direction has its own 32.
-- Deliveries that cross the same duct share its bandwidth; the older delivery goes first. A delivery takes the shortest path, and among equally short paths the one with the most bandwidth. There is no detour for bandwidth.
-- Upgrade a duct in place: use a higher tier cable on it (no sneaking). The duct keeps its sides and connections, takes one cable from your hand and drops the old one. A lower or equal tier never replaces a duct; it places a new duct against the clicked face like any line item. Sneaking keeps the placement assist.
-- A broken duct drops the cable of its tier.
-- While you wear Engineer Goggles or hold the carrot, every data duct within 32 blocks shows its load over the last second through walls, as a box around the duct's center where it rests: green idle, then yellow, orange and red at its full bandwidth.
-
-### Upgrades
-
-Blocks with upgrade slots (the Packing Station, for now) accept only upgrade items, one per slot. Their rate is the base rate times the product of the multipliers of the upgrades they hold: a base of 8 with two Speed Upgrades of 2 makes 32. Upgrades drop when the block is broken. Other mods add better upgrades by registering an upgrade item (or tagging an item `servus_foundation:upgrades`) with its multiplier in `upgrades.json`.
-
-### Packets
-
-When a Servus block asks for a delivery, the data line carries the items as packets. Nothing else ever sends them.
-
-- The data line is instant: items do not travel and distance does not matter. Each tick a delivery moves as many items as the source has, the target takes and the transfer gates on both ends allow.
-- A transfer gate is a member that limits how fast items enter or leave it, through the `servus_foundation:transfer_gate` capability. The Packing Station is one: it is the border between the warehouse and the data line and converts 10 items per second in each direction. Machine to machine, machine to terminal and controller to member deliveries pass no gate and are limited only by what the target takes.
-- A packet endpoint is a member that answers before items are sent to it, through the `servus_foundation:packet_endpoint` capability: the sender offers an item and an amount, the endpoint reserves room and grants an amount, or refuses with a reason. The delivery then sends only what was granted and frees the rest of the room when it ends. A grant no delivery takes up and that takes no item for `grant_hold_ticks` (1200, in `data/servus_foundation/data/packets.json`) ends by itself. The Packing Station is one, for items going into storage.
-- Items wait at their source, never on the line: a move takes items out of the source only as far as the target accepts them. A stack a block hands over that does not fit is offered again every `retry_interval` ticks.
-- Items go into the target's inventory on the side that touches the duct.
-- When a duct is broken and no route is left, the delivery fails and what it has not moved stays at the source. A handed over stack goes back to the source, else into the target, else onto the ground. Items are never lost.
-- Ops can test it with `/servus_foundation data move <from> <to> <item> <count>`.
-
-## Machine Adapter
-
-Place the adapter against a machine; it faces the block it was placed on. When a machine profile knows that block, the adapter joins the data line as a producer:
-
-- It reports the machine's recipes, for a furnace every smelting recipe with its cooking time, so the Crafting CPU can plan with them.
-- Packets with ingredients go into the machine's ingredient side, and the CPU takes the results out of its output side.
-- **Upkeep** is kept apart from recipes: the adapter keeps an item, coal by default, at a level in the machine, 16 by default (see Upkeep below). An order for 64 stone only ever asks for cobblestone. Right click the adapter with an empty hand to change the upkeep item (ghost slot) and the level.
-- Without a profile the adapter offers nothing.
-
-Profiles live in `data/<namespace>/machine_profiles/*.json`. Foundation ships the furnace, smoker and blast furnace:
-
-```json
-{
-  "blocks": ["minecraft:furnace"],
-  "recipe_type": "minecraft:smelting",
-  "sides": {"top": "ingredients", "bottom": "output", "back": "upkeep", "left": "upkeep", "right": "upkeep", "front": "off"},
-  "upkeep": {"item": "minecraft:coal", "level": 16}
-}
-```
-
-Sides are relative to the machine's facing; sides left out are off. A profile only covers recipes with a single ingredient. Modpacks can add profiles for other machines.
-
-## Upkeep
-
-Upkeep is a consumable a machine keeps stocked, such as its fuel. A block names its upkeep item, the level to keep and how many it holds through the `servus_foundation:upkeep` capability, and becomes an upkeep member of the data line, so the duct shows a data arm toward it. Every 40 ticks the data line looks at its upkeep members: when one holds less than its level and has no request on its way, the line asks a supplier on it (a Warehouse Controller or Packing Station, lowest position first) for the difference. What the member gains counts against the request; a request that is not complete after 1200 ticks is given up and asked again. Upkeep is never part of an order. The Machine Adapter, the Burner Pump, the Coal Generator and the Alchemy burner machines use it.
+Use a higher tier cable on a duct to upgrade it in place. Right click a data duct with an empty hand to see its network and its load. Other mods can join the data line; see the [developer guide](/servus_mc_mods/developers/).
 
 ## Fluid Tank
 
-Touching tank blocks that fill a complete rectangular box form one tank with a shared content. The lowest layer shows the floor block the tank was crafted with; sides and top are glass. Broken blocks keep their floor. A group that is not a full box works as single block tanks until it is. Buckets work on every face, and an empty hand shows what the tank holds. A broken block keeps its share of the fluid in its item.
+A glass tank with a copper frame. Tanks that touch and fill a whole box become one big tank. Buckets work on every face. The block you craft into its bottom becomes the tank's floor.
 
 ## Machines
 
-Foundation ships the utility machines every base needs, all crafted at a crafting table without research. They follow the same machine rules as every Servus machine: they face the player, open a GUI, push output into touching inventories and keep their configuration when dismantled with the carrot. Numbers are datapack defaults (`data/servus_foundation/machine/`).
+All machines face you when placed, open a screen on right click and keep their settings when you pick them up with the carrot.
 
-- **Coal Generator**: burns furnace fuel for 40 FE per tick; one coal lasts 20 seconds. Pushes energy into touching consumers. When its buffer is full it banks the fire, keeping the rest of the burn, and goes dark until the buffer drops below half; its GUI says when it restarts and marks that level on the energy bar. A dark steel cube with a chimney on top, two blocks tall: it needs room above when placed and breaks as one; the fire window glows and the chimney smokes while it burns. Energy leaves through every face of the cube but its top, and fuel goes in through the cube's sides as set with the carrot; the chimney connects to nothing. A generator placed before it got its chimney has to be placed again. Iron, copper and a furnace.
-- **Burner Pump** and **Electric Pump**: stand on an infinite water source (a source block with at least two source neighbours) and fill a 4,000 mB buffer without using the water up, 250 mB or 500 mB per second. A full pump stops, keeping the rest of its burn, and starts again once the buffer drops below half; the GUI says why a pump stands still and marks the restart level on the gauge. Both are small beam engines two blocks tall: they need room above when placed, break as one, and give water, and take fuel or FE, only through the back and the two sides of the lower half, into a Fluid Pipe or a Fluid Tank. The Burner Pump rocks its beam and smokes while it burns. The Electric Pump has a motor with copper windings below and a crank wheel above, on an axle held by a bearing on the cap; a drive belt on the back runs from the motor pulley up to the crank axle, and the wheel drives the beam through a con rod while a fan spins behind its grille and a spark jumps at the motor now and then. Both splash at the well on each stroke. The Electric Pump is a Burner Pump with iron, copper and redstone; an Electric Pump placed before it became two blocks tall has to be placed again.
-- **Sink** and **Chimney**: eight Sink blocks in a 2x2x2 cube, formed by clicking one side with the Configuration Carrot, void items, fluids and FE. Items and fluids go into a buffer first: one row of 7 slots and one 8,000 mB tank, plus one more row and tank for each Capacity Upgrade in the three slots on the GUI's side tab. Hoppers, pipes, the Utility Duct and buckets fill it through every outer face but the front, and are refused only when it is full; each tank holds one fluid. Once a second the Sink voids one batch at its chimney rate, from the first slot and the first tank on: at the base rate 4 items and 1,000 mB. The slots the next batch takes from glow like embers, and you can take items back out by hand before their batch; automation can never pull anything out. FE is destroyed at once, 100 FE per tick at the base rate. A Capacity Upgrade only comes out while the last open row and tank are empty. Breaking any Sink block voids the buffer and drops the upgrades. Chimney blocks stacked on a top corner raise the rate; from 5 blocks on every batch voids the whole buffer and FE has no limit. Rates per chimney height (`items_per_second`, `fluid_per_second`, `energy_per_tick`), `slots_per_row`, `tank_capacity` and `upgrade_slots` are in `data/servus_foundation/sink/sink.json`. Both are made from any stone of the tag `servus_foundation:stones` (bricks, stone bricks, cobblestone, deepslate, tuff, sandstone, quartz and their full block forms; datapacks can add more): eight Sink blocks from eight stones around iron bars, six Chimney blocks from six stones in two columns. A block shows the stone it was crafted from (the kind used most) on every face that was bricks, keeps it when mined or dismantled and names it in its tooltip; the iron frame, grate and fan stay as they are. A Sink forms only when all eight blocks share one stone, otherwise the carrot names the stones it found; the stone changes nothing about the rates. Chimneys on a Sink may mix stones. A Chimney column that does not stand on a formed Sink is a chimney for houses: click any of its blocks with the carrot to step the smoke of the whole column (off, thin, cosy, signal), and sneak click to step when it smokes (always, while powered, while unpowered); a redstone signal on any block of the column counts. Only the top block smokes. A Chimney placed on a column takes its settings; a new column starts off and always. On a formed Sink the carrot changes nothing and the Sink controls the smoke; the settings come back when the Sink is broken. The carrot never dismantles a Chimney.
-- **Ender Anchor**: keeps a square of chunks loaded while powered: its own chunk alone, 3 by 3 with one Anchor Upgrade and 5 by 5 with two (two slots in its GUI). Four arrows in the GUI shift the square one chunk at a time as long as the anchor's own chunk stays inside; an arrow that would leave that limit is greyed out, and taking an upgrade out pulls the square back. It costs 10 FE per tick for every chunk of the square (250 FE per tick for 5 by 5), whether or not another anchor holds the same chunks, and holds 20,000 FE. The team cap counts chunks: at most 49 chunks per team (`maxLoadedChunksPerTeam` in `servus_foundation-common.toml`), counting every chunk held by the team's active anchors and woken warehouse sites once. An anchor that would go over the cap stays inactive with "team limit reached" and loads nothing; an active anchor that grows over the cap lets go of its whole square. The GUI shows the area size, the status, the team's load ("Team: 14 / 49 chunks") and a **Show range** toggle: while it is on, you (and only you) see the square's chunk borders as a purple band at the anchor's height with a purple column at each corner. The toggle is off whenever the game starts. Upgrades drop when the anchor is broken and stay in it, together with the offset, when it is dismantled with the carrot. It works the same when FTB Chunks is installed; a pack that wants FTB Chunks to be the only chunk loader sets `enderAnchorRespectsFtbChunks` to true (off by default), and anchors then stay inactive with "Inactive: use FTB Chunks". Obsidian panels in a dark steel frame, a chunk grid on the sides and an ender eye on the front: the eye is shut while the anchor holds no chunk (no power, team limit, FTB Chunks or no owner), opens when it becomes active, blinks now and then and follows the nearest player in front of it, and purple particles drift around it while active. An ender pearl, iron, copper, redstone and two obsidian in the bottom corners.
-- **Mill**: grinds what a milling recipe takes. Out of the box it grinds Stone down to Cobblestone, Gravel and Sand, Sandstone back into Sand, turns Glowstone, Quartz, Amethyst and Clay blocks back into their pieces and any Wool into String, and gives more than crafting for Sugar Cane, Bones, Blaze Rods and flowers (twice the dye). Ores and gems are not milled. Other mods add their own recipes (wheat to flour, malt to grist). It has no power of its own: it grinds only while a Hand Crank or an Electric Motor drives it, and keeps its progress while nothing does. Input and output slots with a progress arrow and the side panel; the top, back and sides take items in, the bottom pushes the result into a chest below, and the chute on the front is fixed to push the result into the block in front and takes nothing in. Drive goes in through the back and the two sides. A heavy iron base, a steel housing with an iron grinding wheel and a brass hub that turns while it mills, a steel hopper with a brass rim on top and a steel chute out of the front. A hopper, a grindstone and five iron ingots.
-- **Hand Crank**: goes onto the back or a side of a block that takes drive, such as the Mill, and nowhere else; it drops off when that block goes. Hold right click on it and it turns steadily, about one turn every 0.8 seconds, with the Mill's grinding wheel turning along: every full turn gives the Mill 25 work, spread over the turn, and costs a little hunger (0.1 exhaustion), but only while the Mill has something to grind. Gravel to Sand takes 200 work, about six seconds of cranking. Let go and the crank and the wheel coast to a stop like a flywheel in about a second; coasting grinds nothing. A heavy iron flange and bearing with a turning arm and a wooden handle. Two iron ingots and a stick.
-- **Electric Motor**: drives the block its shaft points at: placed against a side that takes drive the shaft faces it, otherwise it points away from you. Power goes in only through the back, into an 8,000 FE buffer. While the driven block has work it spends 20 FE per tick for 5 work (Gravel to Sand in two seconds); idle it spends nothing. Its one upgrade slot takes the Speed Upgrade, which doubles both the work and the FE per tick, so a Sand still costs 800 FE. The Electric Pump's motor on iron feet: steel body with copper windings, a terminal box on top, a fan behind a round grille on the back and a shaft with a coupling on the front; coupling and fan turn and sparks jump at the shaft while it works, and coast to a stop when it stops. Iron, copper, redstone and a Power Cable. A crank and a motor may drive the same Mill from two sides.
-- **Anchor Upgrade**: widens an Ender Anchor's square by one ring of chunks, and in a Shuttles Warehouse Controller lets the site wake. An Ender Anchor in the middle with an ender pearl above, iron ingots at the sides and redstone below. Only Anchor Upgrades fit the anchor's slots, one per slot; hoppers and ducts do not reach them.
+- **Coal Generator**: burns furnace fuel into 40 FE per tick. It stops when its buffer is full and starts again below half.
+- **Burner Pump** and **Electric Pump**: stand on an infinite water source and fill a buffer without using the water up. The Burner Pump burns fuel, the Electric Pump runs on FE.
+- **Sink**: eight Sink blocks in a 2 by 2 by 2 cube, formed with the carrot. It voids items, fluids and FE. Chimney blocks on a top corner make it faster, and Capacity Upgrades give it a bigger buffer. Sink and Chimney take the look of the stone you craft them from.
+- **Chimney**: also works alone as decoration. The carrot picks how much it smokes.
+- **Ender Anchor**: keeps chunks loaded while it has FE. Anchor Upgrades make the area bigger, and each team has a cap on loaded chunks.
+- **Mill**: grinds Gravel into Sand. It has no power of its own: hold right click on a **Hand Crank**, or put an **Electric Motor** against it. Datapacks can add more milling recipes.
+- **Machine Adapter**: puts a furnace, smoker or blast furnace on the data line, so a Crafting CPU can smelt with it. See [Machine Adapter](/servus_mc_mods/developers/machine-adapter/).
 
-## Side configuration
+## Upgrades
 
-Every machine and station uses the same side setup. A side has one of these modes:
+- **Speed Upgrade**: doubles the rate of a block with upgrade slots, such as the Packing Station or the Electric Motor.
+- **Capacity Upgrade**: gives a block more room, such as the Sink or the Fluid Gantry.
+- **Anchor Upgrade**: makes the Ender Anchor's area bigger and lets a Shuttles warehouse site wake up.
 
-| Mode | Behavior |
-|---|---|
-| Auto | Insert and extract, and the block pushes its output. The default. |
-| Input | Insertion only. |
-| Output | Extraction only, nothing is pushed. |
-| Both | Insertion and extraction. |
-| Pull | Insertion, and the block pulls from the neighbor. |
-| Push | Extraction, and the block pushes to the neighbor. |
-| Off | Nothing. |
+## Side settings
 
-Sides are relative (front, back, left, right, top, bottom), so a configuration survives rotation. Blocks may support only some modes. The GUI shows a side panel left of the container, and the block draws a colored frame on every face that is not in its default mode. With the carrot or goggles, every face shows its frame and an arrow glyph.
-
-Blocks with several tanks, such as the Calciner and the Coagulator, have a second layer for fluids. Their side panel shows two tabs above the grid, Items (a chest) and Fluids (a bucket). In the Fluids tab every side is Off, All fluids, or one of the block's tanks, drawn in that fluid's colour. A side set to a tank offers only that tank, so a pipe arm on it carries one fluid; output tanks also push into a touching tank on their sides. All fluids is the default and behaves like a block without layers. Fixed sides stay Off.
-
-The Configuration Carrot carries a layer, Items by default. Right click the air with it to switch between Items and Fluids; its tooltip names the layer. A click on a face cycles that face in the carrot's layer, and while a carrot set to Fluids is in hand the faces show the Fluids layer in the tanks' colours.
-
-## Shared systems
-
-- **Network graph and manager**: ducts, tanks, rails and warehouses are connected graphs that merge and split on placement and removal. Nothing scans blocks every tick.
-- **Tick mailbox**: network events are queued and handled once per server tick, in order.
-- **Energy distribution**: fair sharing of FE between sources and sinks, used by the Power Cable.
-- **Teams**: every player has a team id. Without a team mod it is the player's own id. Research and Ender Anchor limits are per team.
-- **Production and stock API**: the capabilities `servus_foundation:production`, `servus_foundation:stock_provider` and `servus_foundation:stock_sink`, plus a pure order planner, and `servus_foundation:supplier` and `servus_foundation:upkeep` for keeping machines stocked. This is how a Shuttles warehouse learns what a Alchemy machine can make without the two mods knowing each other.
-
-## Datapack values
-
-Transfer rates live in `data/servus_foundation/duct/utility_duct.json`, the tank size in `data/servus_foundation/tank/fluid_tank.json`, the retry interval of deliveries in `data/servus_foundation/data/packets.json`, the data cable tiers in `data/servus_foundation/data/cable_tiers.json` the upgrade multipliers in `data/servus_foundation/data/upgrades.json` and the drive numbers of the Hand Crank and the Electric Motor in `data/servus_foundation/drive/` (see [Machine stats](/servus_mc_mods/reference/datapack/machines/)). Files of other namespaces under `data/<namespace>/data/` add tiers and upgrades. Current values, which modpacks can change:
-
-```json
-{
-  "items_per_tick": 16,
-  "items_per_pull": 8,
-  "pull_interval": 8,
-  "energy_per_tick": 512
-}
-```
-
-```json
-{
-  "capacity_per_block": 16000
-}
-```
-
-```json
-{
-  "retry_interval": 20
-}
-```
-
-```json
-{
-  "servus_foundation:data_cable": { "items_per_second": 32, "duplex": false },
-  "servus_foundation:duplex_data_cable": { "items_per_second": 32, "duplex": true },
-  "servus_foundation:fast_data_cable": { "items_per_second": 128, "duplex": true }
-}
-```
-
-```json
-{
-  "servus_foundation:speed_upgrade": { "speed_multiplier": 2 }
-}
-```
+Every Servus machine has the same side panel in its screen. Each side can be Auto, Input, Output, Both, Pull, Push or Off, relative to the block's front, so the settings survive turning it. Blocks with several tanks also have a Fluids layer, where a side can be tied to one tank. Right click the air with the carrot to switch it between the Items and Fluids layer.
 
 ## Config
 
-The common config `config/servus_foundation-common.toml` has `wrenchRotatesBlocks` (default true), which decides whether the carrot rotates foreign blocks that have a facing.
-
-## How it connects
-
-- [Alchemy](/servus_mc_mods/mods/alchemy/) machines use the side panel and the carrot, report their recipes through the production capability, and use ducts as their pipes and cables.
-- [Shuttles](/servus_mc_mods/mods/shuttles/) warehouses use the network graph, the stock capabilities and the order planner. Ducts can move items in and out of any storage block that exposes an item handler.
+`config/servus_foundation-common.toml` holds, among others, the team chunk cap of the Ender Anchor (`maxLoadedChunksPerTeam`), whether anchors give way to FTB Chunks (`enderAnchorRespectsFtbChunks`) and whether the carrot may turn blocks of other mods (`wrenchRotatesBlocks`).

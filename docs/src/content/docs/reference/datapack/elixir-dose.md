@@ -5,7 +5,7 @@ sidebar:
   order: 8
 ---
 
-The dose makes the poison: every drink of an elixir rolls a chance to poison the drinker. Elemental Sight is given whether the roll poisons or not. Numbers on this page are current values; they live in datapack JSON and modpacks can change them.
+The dose makes the poison: every drink of an elixir rolls a chance to poison the drinker. Elemental Sight is given whether the roll poisons or not. Numbers on this page are the shipped values of Alchemy 0.3.0-alpha; they live in datapack JSON and modpacks can change them.
 
 ```
 data/<namespace>/servus_alchemy/elixir_dose/<name>.json

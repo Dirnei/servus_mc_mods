@@ -5,7 +5,7 @@ sidebar:
   order: 7
 ---
 
-A gnome at work in a Gnome Hollow digs faster for a while after a gift it likes. Gifts are optional: without one it digs at its vein's `yield_ticks`. Numbers on this page are current values; they live in datapack JSON and modpacks can change them.
+A gnome at work in a Gnome Hollow digs faster for a while after a gift it likes. Gifts are optional: without one it digs at its vein's `yield_ticks`. Numbers on this page are the shipped values of Alchemy 0.3.0-alpha; they live in datapack JSON and modpacks can change them.
 
 ```
 data/<namespace>/servus_alchemy/gnome_gift/<name>.json

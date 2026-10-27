@@ -5,7 +5,7 @@ sidebar:
   order: 6
 ---
 
-A vein is what a Gnome Hollow grows. Numbers on this page are current values; they live in datapack JSON and modpacks can change them.
+A vein is what a Gnome Hollow grows. Numbers on this page are the shipped values of Alchemy 0.3.0-alpha; they live in datapack JSON and modpacks can change them.
 
 ```
 data/<namespace>/servus_alchemy/vein/<name>.json

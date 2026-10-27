@@ -1,11 +1,11 @@
 ---
 title: Recipes
-description: The calcination, coagulation and pressing recipe formats of Servus Alchemy and the milling recipe format of Servus Foundation.
+description: The calcination, purification, coagulation and pressing recipe formats of Servus Alchemy and the milling recipe format of Servus Foundation.
 sidebar:
   order: 4
 ---
 
-Servus Alchemy adds these recipe types, among others: `servus_alchemy:calcination` for the Calciner, `servus_alchemy:coagulation` for the Coagulator and `servus_alchemy:pressing` for the Prelum. Servus Foundation adds `servus_foundation:milling` for the Mill. Times and amounts on this page are current values; they live in datapack JSON and modpacks can change them.
+Servus Alchemy 0.3.0-alpha adds `servus_alchemy:calcination` for the Calciner, `servus_alchemy:purification` for the Purifier, `servus_alchemy:coagulation` for the Coagulator and `servus_alchemy:pressing` for the Prelum. The Athanor's `servus_alchemy:athanor` recipes are on the [Athanor](/servus_mc_mods/reference/datapack/athanor/) page. Servus Foundation 0.4.0 adds `servus_foundation:milling` for the Mill. Times and amounts on this page are the shipped values; they live in datapack JSON and modpacks can change them.
 
 ## File location
 
@@ -13,11 +13,11 @@ Servus Alchemy adds these recipe types, among others: `servus_alchemy:calcinatio
 data/<namespace>/recipe/<path>.json
 ```
 
-These are ordinary Minecraft recipes, so they live in the normal `recipe` folder and are reloaded with `/reload`. The built in ones use the subfolders `calcination/` and `coagulation/`, which gives ids like `servus_alchemy:coagulation/salt_crystal`. Overriding a built in recipe works by using the same path.
+These are ordinary Minecraft recipes, so they live in the normal `recipe` folder and are reloaded with `/reload`. The built in ones use subfolders named after their type, such as `calcination/` and `coagulation/`, which gives ids like `servus_alchemy:coagulation/salt_crystal`. Overriding a built in recipe works by using the same path.
 
 ## Principles
 
-Both recipe types write principle amounts the same way: an object with `salt`, `sulfur` and `mercury` in mB. A missing key is 0.
+Recipes write principle amounts the same way: an object with `salt`, `sulfur` and `mercury` in mB. A missing key is 0.
 
 ```json
 {"salt": 100, "mercury": 10}
@@ -29,10 +29,10 @@ Both recipe types write principle amounts the same way: an object with `salt`, `
 |---|---|---|---|
 | `type` | string | required | `servus_alchemy:calcination` |
 | `input` | sized ingredient | required | One `item` or `tag` with a `count` (default 1). |
-| `output` | principles | required | What one cycle puts into the Calciner's tanks. |
+| `output` | principles | required | What one cycle makes. Sulfur and Mercury go into the Calciner's Fluid Tanks; Salt collects in the Ash Pan as Ash. |
 | `time` | int | 80 | Ticks per cycle. |
 
-An item without a calcination recipe is refused by the Calciner.
+An item without a calcination recipe is refused by the Calciner. The Ash Pan holds Salt in mB and gives it out as Ash: one Ash for the Salt that one Ash makes in the first purification recipe that takes Ash (100 mB with the shipped recipe, and 100 mB when no recipe takes Ash).
 
 Built in calcination recipes (80 ticks each):
 
@@ -53,6 +53,25 @@ Built in calcination recipes (80 ticks each):
 | `raw_materials` | `#c:raw_materials` | 150 | 0 | 50 |
 | `redstone` | `#c:dusts/redstone` | 0 | 0 | 100 |
 | `bones` | `#c:bones` | 100 | 0 | 0 |
+
+## Purification
+
+The Purifier washes an item with water into Salt and may leave a residue. It needs no power and no fuel.
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| `type` | string | required | `servus_alchemy:purification` |
+| `input` | sized ingredient | required | One `item` or `tag` with a `count` (default 1). |
+| `water` | int | required | mB of water one cycle takes. |
+| `salt` | int | required | mB of Salt one cycle makes. |
+| `residue` | item stack | none | `id` and `count` (default 1) of what is left in the Residue Crock. |
+| `time` | int | 40 | Ticks per cycle. |
+
+Built in purification recipe:
+
+| Recipe | Input | Water | Salt | Residue | Time |
+|---|---|---|---|---|---|
+| `ash` | 4 `servus_alchemy:ash` | 400 | 400 | 1 Caput Mortuum | 160 |
 
 ## Coagulation
 
@@ -114,25 +133,8 @@ The Mill runs `servus_foundation:milling` recipes. It has no power of its own: a
 
 An item without a milling recipe is refused by the Mill. Any mod or datapack can add milling recipes under `data/<namespace>/recipe/`.
 
-Built in milling recipes, each from 1 input:
+Built in milling recipe:
 
 | Recipe | Input | Result | Work |
 |---|---|---|---|
 | `servus_foundation:milling/sand` | Gravel | 1 Sand | 200 |
-| `servus_foundation:milling/cobblestone` | Stone | 1 Cobblestone | 100 |
-| `servus_foundation:milling/cobbled_deepslate` | Deepslate | 1 Cobbled Deepslate | 100 |
-| `servus_foundation:milling/gravel` | `#c:cobblestones/normal` | 1 Gravel | 200 |
-| `servus_foundation:milling/gravel_from_deepslate` | `#c:cobblestones/deepslate` | 1 Gravel | 200 |
-| `servus_foundation:milling/sand_from_sandstone` | `#c:sandstone/uncolored_blocks` | 4 Sand | 200 |
-| `servus_foundation:milling/red_sand` | `#c:sandstone/red_blocks` | 4 Red Sand | 200 |
-| `servus_foundation:milling/sugar` | `#c:crops/sugar_cane` | 2 Sugar | 100 |
-| `servus_foundation:milling/glowstone_dust` | Glowstone | 4 Glowstone Dust | 100 |
-| `servus_foundation:milling/bone_meal` | `#c:bones` | 4 Bone Meal | 100 |
-| `servus_foundation:milling/blaze_powder` | `#c:rods/blaze` | 3 Blaze Powder | 200 |
-| `servus_foundation:milling/string` | `#minecraft:wool` | 4 String | 100 |
-| `servus_foundation:milling/clay_ball` | Clay | 4 Clay Ball | 100 |
-| `servus_foundation:milling/quartz` | Block of Quartz | 4 Nether Quartz | 200 |
-| `servus_foundation:milling/amethyst_shard` | Block of Amethyst | 4 Amethyst Shard | 200 |
-| `servus_foundation:milling/<dye>_from_<flower>` | every flower vanilla crafts into a dye | twice the vanilla dye count | 100 |
-
-The flowers give 2 dye each, and the tall ones (Lilac, Peony, Rose Bush, Sunflower, Pitcher Plant) give 4. The Golden Dandelion has no milling recipe. No two built in recipes take the same item, and ores, raw ores and gems have none.

@@ -1,36 +1,40 @@
 ---
 title: Servus Mods
-description: Factory, logistics and warehouse mods for Minecraft 1.21.1 on NeoForge.
+description: Ducts, a warehouse you build in the world and Paracelsus' alchemy. A mod family for Minecraft 26.1.2 on NeoForge.
 template: splash
 hero:
   title: Servus Mods
-  tagline: Paracelsus' alchemy, bundled ducts and a warehouse you build in the world. A mod family for Minecraft 1.21.1 on NeoForge.
+  tagline: Ducts, a warehouse you build in the world and Paracelsus' alchemy. A mod family for Minecraft 26.1.2 on NeoForge.
   actions:
     - text: Getting started
       link: /servus_mc_mods/getting-started/
       icon: right-arrow
-    - text: Balance lab
-      link: /servus_mc_mods/lab/
-      icon: setting
+    - text: For developers
+      link: /servus_mc_mods/developers/
+      icon: seti:java
       variant: minimal
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## The mods
+## The released mods
 
 <CardGrid>
-	<Card title="Servus: Foundation" icon="puzzle">
-		The base every Servus mod needs: the Utility Duct for items, energy and fluids, the Fluid Tank, facades, side configuration, the Configuration Carrot, Engineer Goggles and the production and stock API. [Read more](/servus_mc_mods/mods/foundation/)
+	<Card title="Servus: Foundation 0.4.0" icon="puzzle">
+		The base every Servus mod needs. The Utility Duct carries items, power, fluids and the data line in one block. Plus the Fluid Tank, pumps, the Coal Generator, the Sink, the Ender Anchor and the Mill. [Read more](/servus_mc_mods/mods/foundation/)
 	</Card>
-	<Card title="Servus: Alchemy" icon="setting">
-		Alchemy after Paracelsus: the Calciner splits matter into Salt, Sulfur and Mercury, the Coagulator makes new things from them. [Read more](/servus_mc_mods/mods/alchemy/)
+	<Card title="Servus: Shuttles 0.4.0" icon="list-format">
+		A warehouse you can walk through: racks, rails and shuttles that fetch and put away. Terminals, stock rules, autocrafting and fields that farm themselves. [Read more](/servus_mc_mods/mods/shuttles/)
 	</Card>
-	<Card title="Servus: Shuttles" icon="list-format">
-		A real warehouse: heavy duty racks, rails, shuttles, a storage terminal, zones and work orders that feed your machines. [Read more](/servus_mc_mods/mods/shuttles/)
+	<Card title="Servus: Alchemy 0.3.0 (alpha)" icon="star">
+		Alchemy after Paracelsus. Burn matter into Salt, Sulfur and Mercury, join them into new things, and grow ore veins with gnomes. [Read more](/servus_mc_mods/mods/alchemy/)
 	</Card>
 </CardGrid>
 
-## Built for modpacks
+## For modpacks
 
-Recipes and machine balance numbers live in datapack JSON. The [datapack reference](/servus_mc_mods/reference/datapack/machines/) lists every field, and the [Balance lab](/servus_mc_mods/lab/) lets you try new numbers before you ship them.
+Recipes and balance numbers live in datapack JSON. The [datapack reference](/servus_mc_mods/reference/datapack/machines/) lists the formats and the shipped values.
+
+## For mod developers
+
+Machines of other mods can join the Servus data line, so a Shuttles warehouse can stock them and its Crafting CPU can order from them. The [developer guide](/servus_mc_mods/developers/) shows how, and the Machine Adapter covers machines whose mod does nothing.

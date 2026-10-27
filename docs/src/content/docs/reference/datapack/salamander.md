@@ -5,7 +5,7 @@ sidebar:
   order: 9
 ---
 
-A salamander takes Gold Ingots: a wild one may be befriended by them, a befriended one digests them into Sal Ammoniac. Numbers on this page are current values; they live in datapack JSON and modpacks can change them.
+A salamander takes Gold Ingots: a wild one may be befriended by them, a befriended one digests them into Sal Ammoniac. Numbers on this page are the shipped values of Alchemy 0.3.0-alpha; they live in datapack JSON and modpacks can change them.
 
 ```
 data/<namespace>/servus_alchemy/salamander_temper/<name>.json

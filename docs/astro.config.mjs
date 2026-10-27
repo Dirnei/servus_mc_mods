@@ -1,5 +1,4 @@
 // @ts-check
-import preact from '@astrojs/preact';
 import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
 
@@ -9,26 +8,27 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'Servus Mods',
-			description: 'Documentation and Balance lab for the Servus mod family for Minecraft 1.21.1 on NeoForge.',
+			description:
+				'Player guide, datapack reference and data line API for the Servus mods for Minecraft 26.1.2 on NeoForge.',
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/Dirnei/servus_mc_mods' }],
-			customCss: ['./src/styles/lab.css'],
 			sidebar: [
 				{ label: 'Start', items: [{ slug: 'getting-started' }] },
 				{
 					label: 'Mods',
+					items: [{ slug: 'mods/foundation' }, { slug: 'mods/shuttles' }, { slug: 'mods/alchemy' }],
+				},
+				{
+					label: 'Developers',
 					items: [
-						{ slug: 'mods/foundation' },
-						{ slug: 'mods/alchemy' },
-						{ slug: 'mods/shuttles' },
+						{ slug: 'developers' },
+						{ slug: 'developers/data-line' },
+						{ slug: 'developers/join-the-data-line' },
+						{ slug: 'developers/deliveries' },
+						{ slug: 'developers/machine-adapter' },
 					],
 				},
 				{ label: 'Datapack reference', items: [{ autogenerate: { directory: 'reference/datapack' } }] },
-				{
-					label: 'Balance lab',
-					items: [{ slug: 'lab' }, { slug: 'lab/chains' }, { slug: 'lab/recipes' }, { slug: 'lab/research' }],
-				},
 			],
 		}),
-		preact(),
 	],
 });
