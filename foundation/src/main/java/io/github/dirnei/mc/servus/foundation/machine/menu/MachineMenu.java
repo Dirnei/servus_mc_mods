@@ -167,7 +167,7 @@ public abstract class MachineMenu extends AbstractContainerMenu implements Machi
         return SideMode.byOrdinal(data.get(MachineBlockEntity.DATA_SIDE_FIRST + side.ordinal()));
     }
 
-    /** The Fluids layer value of a side as synced to the client. */
+    /** The packed Fluids side as synced to the client, see {@link io.github.dirnei.mc.servus.foundation.side.FluidSides#packed}. */
     public int fluidSide(RelativeSide side) {
         return data.get(MachineBlockEntity.DATA_FLUID_SIDE_FIRST + side.ordinal());
     }
@@ -175,17 +175,7 @@ public abstract class MachineMenu extends AbstractContainerMenu implements Machi
     @Override
 
     public boolean clickMenuButton(Player player, int id) {
-        RelativeSide side = SideConfigMenus.sideOf(id);
-        if (side != null) {
-            machine.cycleSide(side);
-            return true;
-        }
-        RelativeSide fluidSide = SideConfigMenus.fluidSideOf(id);
-        if (fluidSide != null && machine.fluidSides() != null) {
-            machine.cycleFluidSide(fluidSide);
-            return true;
-        }
-        return false;
+        return SideConfigMenus.click(machine, id);
     }
 
     @Override

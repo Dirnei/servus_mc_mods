@@ -5,7 +5,6 @@ import io.github.dirnei.mc.servus.foundation.side.FluidSides;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideLayer;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import io.github.dirnei.mc.servus.foundation.side.SideTank;
 import java.util.List;
 import java.util.Locale;
 import net.minecraft.core.BlockPos;
@@ -51,9 +50,9 @@ public final class SideConfigWrench {
         Direction face = context.getClickedFace();
         RelativeSide side = blockEntity.relativeSide(face);
         Component message;
-        if (ConfigurationCarrotItem.layer(context.getItemInHand()) == SideLayer.FLUIDS && blockEntity.fluidSides() != null) {
-            int value = blockEntity.cycleFluidSide(side);
-            message = fluidMessage(side, value, blockEntity.sideTanks());
+        if (blockEntity.layerFor(ConfigurationCarrotItem.layer(context.getItemInHand())) == SideLayer.FLUIDS) {
+            SideMode mode = blockEntity.cycleFluidMode(side);
+            message = fluidMessage(side, mode, blockEntity.fluidSides().tank(side), blockEntity.sideTankLabels());
         } else {
             message = message(side, blockEntity.cycleSide(side));
         }
@@ -75,16 +74,12 @@ public final class SideConfigWrench {
         return Component.translatable("gui.servus_foundation.side_layer." + layer.key());
     }
 
-    /** The name of a Fluids layer value: Off, All fluids, or the tank's name. */
-    public static Component fluidName(int value, List<SideTank> tanks) {
-        if (value == FluidSides.OFF) {
-            return Component.translatable("gui.servus_foundation.side_mode.off");
-        }
-        int tank = value - FluidSides.TANK_FIRST;
-        if (value == FluidSides.ALL || tank < 0 || tank >= tanks.size()) {
+    /** The name of a tank choice: All, or the tank's label. */
+    public static Component tankName(int tank, List<TankLabel> labels) {
+        if (tank == FluidSides.ALL || tank < 0 || tank >= labels.size()) {
             return Component.translatable("gui.servus_foundation.fluid_side.all");
         }
-        return Component.translatable(tanks.get(tank).key());
+        return labels.get(tank).name();
     }
 
     /** "Left: Input" for the action bar and the panel tooltip. */
@@ -92,8 +87,8 @@ public final class SideConfigWrench {
         return Component.translatable("gui.servus_foundation.side_line", sideName(side), modeName(mode));
     }
 
-    /** "Left: Salt" for the Fluids layer. */
-    public static Component fluidMessage(RelativeSide side, int value, List<SideTank> tanks) {
-        return Component.translatable("gui.servus_foundation.side_line", sideName(side), fluidName(value, tanks));
+    /** "Left: Push, Water" for the Fluids layer. */
+    public static Component fluidMessage(RelativeSide side, SideMode mode, int tank, List<TankLabel> labels) {
+        return Component.translatable("gui.servus_foundation.fluid_side_line", sideName(side), modeName(mode), tankName(tank, labels));
     }
 }

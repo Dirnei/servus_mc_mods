@@ -1,11 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.side;
 
 /**
- * One tank a block offers in its Fluids layer.
+ * One tank a block offers in its Fluids layer. Its name and colour come from the block
+ * entity, since they follow the tank's content.
  *
- * @param key   translation key of the tank's name, for example the fluid type's description id
- * @param color ARGB colour the side panel and the markers use for sides set to this tank
- * @param input whether the tank takes fluid in (an input tank) or gives it out (an output tank)
+ * @param role which way sides may move fluid through the tank
  */
-public record SideTank(String key, int color, boolean input) {
+public record SideTank(TankRole role) {
+
+    public static final SideTank ANY = new SideTank(TankRole.ANY);
 }

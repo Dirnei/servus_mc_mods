@@ -31,6 +31,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import io.github.dirnei.mc.servus.foundation.naming.NamedMachines;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
@@ -58,7 +60,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     /** The machine's {@link MachineStatus} ordinal for its GUI status line, or a status of its own (the Ender Anchor). */
     public static final int DATA_STATUS = 6;
     public static final int DATA_SIDE_FIRST = 7;
-    /** The six Fluids layer values; 0 for machines without a Fluids layer. */
+    /** The six packed Fluids layer sides (see {@link FluidSides#packed}); 0 for machines without a Fluids layer. */
     public static final int DATA_FLUID_SIDE_FIRST = DATA_SIDE_FIRST + 6;
     public static final int DATA_COUNT = DATA_FLUID_SIDE_FIRST + 6;
     /**
@@ -80,6 +82,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     protected final ItemSlots inventory;
     private final SideConfig sideConfig = new SideConfig();
     private FluidSides fluidSides;
+    private List<Fluid> tankLabels = List.of();
     private final LegacyItemHandler autoHandler = new SideHandler(null);
     private final Map<Direction, LegacyItemHandler> sideHandlers = new EnumMap<>(Direction.class);
     private final ContainerData data = new ContainerData() {
@@ -265,36 +268,56 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         return mode;
     }
 
-    /** The tanks of the Fluids layer; machines with several tanks override. Must not depend on instance state. */
+    /** The tanks of the Fluids layer; machines with several tanks override. */
     @Override
     public List<SideTank> sideTanks() {
         return List.of();
     }
 
+    /** The modes a Fluids side may take; the first one is the default. */
+    protected List<SideMode> fluidModes() {
+        return SideConfig.MACHINE_MODES;
+    }
+
     @Override
     public FluidSides fluidSides() {
         if (fluidSides == null && !sideTanks().isEmpty()) {
-            fluidSides = new FluidSides(sideTanks().size());
+            fluidSides = new FluidSides(sideTanks().size(), fluidModes(), fluidModes().getFirst());
             fluidSides.lock(RelativeSide.FRONT);
         }
         return fluidSides;
     }
 
     @Override
-    public int cycleFluidSide(RelativeSide side) {
+    public Fluid sideTankFluid(int tank) {
+        return level != null && level.isClientSide() ? SidedBlockEntity.labelFluid(tankLabels, tank) : tankFluid(tank);
+    }
+
+    /** The fluid behind a tank's label on the server; machines with tanks override. */
+    protected Fluid tankFluid(int tank) {
+        return Fluids.EMPTY;
+    }
+
+    @Override
+    public SideMode cycleFluidMode(RelativeSide side) {
+        FluidSides sides = fluidSides();
+        if (sides == null) {
+            return SideMode.DISABLED;
+        }
+        SideMode mode = sides.cycleMode(side);
+        sidesChanged();
+        return mode;
+    }
+
+    @Override
+    public int cycleFluidTank(RelativeSide side) {
         FluidSides sides = fluidSides();
         if (sides == null) {
             return FluidSides.ALL;
         }
-        int value = sides.cycle(side);
+        int tank = sides.cycleTank(side);
         sidesChanged();
-        return value;
-    }
-
-    /** Whether the Fluids layer lets {@code tank} through the world face {@code absolute}; true without a Fluids layer. */
-    public boolean fluidSideExposes(Direction absolute, int tank) {
-        FluidSides sides = fluidSides();
-        return sides == null || absolute == null || sides.exposes(relativeSide(absolute), tank);
+        return tank;
     }
 
     /** After a side mode changed: save, refresh neighbour capability caches and show the markers. */
@@ -323,7 +346,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         }
         if (index >= DATA_FLUID_SIDE_FIRST && index < DATA_FLUID_SIDE_FIRST + 6) {
             FluidSides sides = fluidSides();
-            return sides == null ? 0 : sides.value(RelativeSide.byOrdinal(index - DATA_FLUID_SIDE_FIRST));
+            return sides == null ? 0 : sides.packed(RelativeSide.byOrdinal(index - DATA_FLUID_SIDE_FIRST));
         }
         return switch (index) {
             case DATA_PROGRESS -> progress;
@@ -339,7 +362,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         } else if (index >= DATA_FLUID_SIDE_FIRST && index < DATA_FLUID_SIDE_FIRST + 6) {
             FluidSides sides = fluidSides();
             if (sides != null) {
-                sides.set(RelativeSide.byOrdinal(index - DATA_FLUID_SIDE_FIRST), value);
+                sides.setPacked(RelativeSide.byOrdinal(index - DATA_FLUID_SIDE_FIRST), value);
             }
         } else if (index == DATA_PROGRESS) {
             progress = value;
@@ -486,6 +509,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         if (sides != null) {
             sides.fromBytes(ValueIo.getBytes(input, "FluidSides"));
         }
+        tankLabels = SidedBlockEntity.readTankLabels(input);
         NamedMachines.load(this, input);
     }
 
@@ -498,6 +522,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         if (sides != null) {
             tag.putIntArray("FluidSides", ValueIo.toInts(sides.toBytes()));
         }
+        writeTankLabels(tag);
         NamedMachines.writeUpdate(this, tag);
         return tag;
     }

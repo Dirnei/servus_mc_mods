@@ -109,8 +109,9 @@ public class MachineScreen extends NamedMachineScreen<MachineMenu> {
         if (showsSidePanel()) {
             panel.placeBeside(leftPos, topPos);
             if (menu.machine().fluidSides() != null) {
-                panel.enableFluids(menu::fluidSide, menu.machine().sideTanks(), side -> menu.machine().fluidSides().isLocked(side),
-                        side -> clickButton(SideConfigMenus.buttonOf(SideLayer.FLUIDS, side)));
+                panel.enableFluids(menu::fluidSide, menu.machine()::sideTankLabels, side -> menu.machine().fluidSides().isLocked(side),
+                        side -> clickButton(SideConfigMenus.buttonOf(SideLayer.FLUIDS, side)),
+                        side -> clickButton(SideConfigMenus.buttonOfTank(side)));
             }
         }
         fluidGauge.place(leftPos + FLUID_X, topPos + FLUID_Y);
@@ -203,7 +204,7 @@ public class MachineScreen extends NamedMachineScreen<MachineMenu> {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (showsSidePanel() && panel.mouseClicked(event.x(), event.y())) {
+        if (showsSidePanel() && panel.mouseClicked(event.x(), event.y(), event.button())) {
             return true;
         }
         return super.mouseClicked(event, doubleClick);

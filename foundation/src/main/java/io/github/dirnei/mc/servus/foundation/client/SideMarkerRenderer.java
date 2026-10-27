@@ -3,13 +3,13 @@ package io.github.dirnei.mc.servus.foundation.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.foundation.block.SidedBlockEntity;
+import io.github.dirnei.mc.servus.foundation.block.TankLabel;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Reveal;
 import io.github.dirnei.mc.servus.foundation.side.FluidSides;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideLayer;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import io.github.dirnei.mc.servus.foundation.side.SideTank;
 import java.util.Arrays;
 import java.util.List;
 import net.minecraft.client.Minecraft;
@@ -30,8 +30,9 @@ import org.jspecify.annotations.Nullable;
 /**
  * Draws the side modes on the block while the player holds the carrot or
  * wears the goggles: a frame in the mode colour and a glyph on every face.
- * A carrot set to Fluids shows the Fluids layer instead: tank sides framed in
- * the tank's colour, All sides in a neutral blue, Off sides bare.
+ * A carrot set to Fluids, or a block with only a Fluids layer, shows the Fluids
+ * layer instead: the mode's glyph in the mode colour, framed in the colour of the
+ * side's tank, or the All colour on All.
  */
 public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity>
         implements BlockEntityRenderer<T, SideMarkerRenderer.State> {
@@ -45,6 +46,7 @@ public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity>
     public static final class State extends BlockEntityRenderState {
         final SideMode[] modes = new SideMode[6];
         final int[] colors = new int[6];
+        final int[] frames = new int[6];
     }
 
     public SideMarkerRenderer(BlockEntityRendererProvider.Context context) {
@@ -73,9 +75,9 @@ public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity>
             return;
         }
         Player player = Minecraft.getInstance().player;
-        FluidSides fluids = blockEntity.fluidSides();
-        if (fluids != null && player != null && ConfigurationCarrotItem.heldLayer(player) == SideLayer.FLUIDS) {
-            extractFluids(blockEntity, fluids, state);
+        SideLayer held = player == null ? null : ConfigurationCarrotItem.heldLayer(player);
+        if (blockEntity.layerFor(held == null ? SideLayer.ITEMS : held) == SideLayer.FLUIDS) {
+            extractFluids(blockEntity, blockEntity.fluidSides(), state);
             return;
         }
         for (Direction direction : Direction.values()) {
@@ -85,20 +87,21 @@ public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity>
             SideMode mode = blockEntity.sideMode(direction);
             state.modes[direction.ordinal()] = mode;
             state.colors[direction.ordinal()] = SideConfigPanel.color(mode);
+            state.frames[direction.ordinal()] = SideConfigPanel.color(mode);
         }
     }
 
     private void extractFluids(T blockEntity, FluidSides fluids, State state) {
-        List<SideTank> tanks = blockEntity.sideTanks();
+        List<TankLabel> labels = blockEntity.sideTankLabels();
         for (Direction direction : Direction.values()) {
             RelativeSide side = blockEntity.relativeSide(direction);
-            if (fluids.isLocked(side) || fluids.isOff(side)) {
+            if (fluids.isLocked(side)) {
                 continue;
             }
-            int value = fluids.value(side);
-            int tank = fluids.tank(side);
-            state.colors[direction.ordinal()] = SideConfigPanel.fluidColor(value, tanks);
-            state.modes[direction.ordinal()] = tank < 0 ? SideMode.AUTO : tanks.get(tank).input() ? SideMode.PULL : SideMode.PUSH;
+            SideMode mode = fluids.mode(side);
+            state.modes[direction.ordinal()] = mode;
+            state.colors[direction.ordinal()] = SideConfigPanel.color(mode);
+            state.frames[direction.ordinal()] = SideConfigPanel.tankColor(fluids.tank(side), labels);
         }
     }
 
@@ -106,6 +109,7 @@ public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity>
     public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         SideMode[] modes = state.modes.clone();
         int[] colors = state.colors.clone();
+        int[] frames = state.frames.clone();
         boolean any = false;
         for (SideMode mode : modes) {
             any |= mode != null;
@@ -121,7 +125,7 @@ public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity>
                     continue;
                 }
                 Face face = new Face(direction);
-                face.frame(buffer, matrix, colors[direction.ordinal()]);
+                face.frame(buffer, matrix, frames[direction.ordinal()]);
                 face.glyph(buffer, matrix, mode, colors[direction.ordinal()]);
             }
         });

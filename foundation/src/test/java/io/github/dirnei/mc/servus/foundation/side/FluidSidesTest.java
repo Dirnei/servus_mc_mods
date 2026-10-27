@@ -10,74 +10,107 @@ import org.junit.jupiter.api.Test;
 
 class FluidSidesTest {
 
+    private static FluidSides inbound(int tanks) {
+        return new FluidSides(tanks, SideConfig.INBOUND_MODES, SideMode.INPUT);
+    }
+
     @Test
-    void defaultIsAll() {
-        FluidSides sides = new FluidSides(3);
+    void defaultsAreFallbackOnAll() {
+        FluidSides sides = inbound(3);
         for (RelativeSide side : RelativeSide.values()) {
-            assertTrue(sides.isAll(side));
-            assertTrue(sides.exposes(side, 0) && sides.exposes(side, 2));
+            assertEquals(SideMode.INPUT, sides.mode(side));
+            assertEquals(FluidSides.ALL, sides.tank(side));
+            assertTrue(sides.reaches(side, 0) && sides.reaches(side, 2));
         }
         assertTrue(sides.isDefault());
     }
 
     @Test
-    void cycleRunsOffAllTanksOff() {
-        FluidSides sides = new FluidSides(3);
-        sides.set(RelativeSide.LEFT, FluidSides.OFF);
-        List<Integer> seen = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            seen.add(sides.cycle(RelativeSide.LEFT));
+    void modeCycleWrapsAndKeepsTank() {
+        FluidSides sides = inbound(3);
+        sides.setTank(RelativeSide.LEFT, 1);
+        List<SideMode> seen = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            seen.add(sides.cycleMode(RelativeSide.LEFT));
         }
-        assertEquals(List.of(FluidSides.ALL, 2, 3, 4, FluidSides.OFF), seen);
+        assertEquals(List.of(SideMode.PULL, SideMode.DISABLED, SideMode.INPUT), seen);
+        assertEquals(1, sides.tank(RelativeSide.LEFT));
     }
 
     @Test
-    void tankSideExposesOnlyItsTank() {
-        FluidSides sides = new FluidSides(3);
-        sides.set(RelativeSide.TOP, FluidSides.TANK_FIRST + 1);
-        assertEquals(1, sides.tank(RelativeSide.TOP));
-        assertTrue(sides.exposes(RelativeSide.TOP, 1));
-        assertFalse(sides.exposes(RelativeSide.TOP, 0));
+    void tankCycleRunsAllThroughTanksAndKeepsMode() {
+        FluidSides sides = inbound(3);
+        sides.setMode(RelativeSide.BACK, SideMode.PULL);
+        List<Integer> seen = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            seen.add(sides.cycleTank(RelativeSide.BACK));
+        }
+        assertEquals(List.of(0, 1, 2, FluidSides.ALL), seen);
+        assertEquals(SideMode.PULL, sides.mode(RelativeSide.BACK));
+    }
+
+    @Test
+    void tankSideReachesOnlyItsTank() {
+        FluidSides sides = inbound(3);
+        sides.setTank(RelativeSide.TOP, 1);
+        assertTrue(sides.reaches(RelativeSide.TOP, 1));
+        assertFalse(sides.reaches(RelativeSide.TOP, 0));
         assertFalse(sides.isDefault());
     }
 
     @Test
-    void lockedSideStaysOff() {
-        FluidSides sides = new FluidSides(3);
-        sides.lock(RelativeSide.FRONT);
-        assertEquals(FluidSides.OFF, sides.cycle(RelativeSide.FRONT));
-        sides.set(RelativeSide.FRONT, FluidSides.ALL);
-        assertTrue(sides.isOff(RelativeSide.FRONT));
-        assertTrue(sides.isDefault());
+    void unsupportedModeFallsBack() {
+        FluidSides sides = inbound(2);
+        sides.setMode(RelativeSide.RIGHT, SideMode.PUSH);
+        assertEquals(SideMode.INPUT, sides.mode(RelativeSide.RIGHT));
     }
 
     @Test
-    void encodingRoundTrip() {
-        FluidSides sides = new FluidSides(3);
-        sides.set(RelativeSide.LEFT, FluidSides.TANK_FIRST);
-        sides.set(RelativeSide.RIGHT, FluidSides.OFF);
-        FluidSides copy = new FluidSides(3);
+    void lockedSideStaysOffOnAll() {
+        FluidSides sides = inbound(3);
+        sides.lock(RelativeSide.FRONT);
+        sides.setMode(RelativeSide.FRONT, SideMode.PULL);
+        sides.setTank(RelativeSide.FRONT, 2);
+        sides.cycleMode(RelativeSide.FRONT);
+        sides.cycleTank(RelativeSide.FRONT);
+        byte[] bytes = new byte[6];
+        bytes[RelativeSide.FRONT.ordinal()] = (byte) FluidSides.pack(SideMode.PULL, 1);
+        sides.fromBytes(bytes);
+        assertTrue(sides.isLocked(RelativeSide.FRONT));
+        assertEquals(SideMode.DISABLED, sides.mode(RelativeSide.FRONT));
+        assertEquals(FluidSides.ALL, sides.tank(RelativeSide.FRONT));
+    }
+
+    @Test
+    void encodingRoundTrips() {
+        FluidSides sides = inbound(15);
+        sides.setMode(RelativeSide.LEFT, SideMode.PULL);
+        sides.setTank(RelativeSide.LEFT, 14);
+        sides.setMode(RelativeSide.BACK, SideMode.DISABLED);
+        sides.setTank(RelativeSide.TOP, 0);
+        FluidSides copy = inbound(15);
         copy.fromBytes(sides.toBytes());
         for (RelativeSide side : RelativeSide.values()) {
-            assertEquals(sides.value(side), copy.value(side));
+            assertEquals(sides.mode(side), copy.mode(side));
+            assertEquals(sides.tank(side), copy.tank(side));
         }
     }
 
     @Test
     void unknownTankDecodesToAll() {
-        FluidSides many = new FluidSides(3);
-        many.set(RelativeSide.LEFT, FluidSides.TANK_FIRST + 2);
-        FluidSides few = new FluidSides(1);
-        few.fromBytes(many.toBytes());
-        assertTrue(few.isAll(RelativeSide.LEFT));
-        few.fromBytes(new byte[0]);
-        assertTrue(few.isDefault());
+        FluidSides sides = inbound(2);
+        byte[] bytes = new byte[6];
+        bytes[RelativeSide.LEFT.ordinal()] = (byte) FluidSides.pack(SideMode.PULL, 7);
+        sides.fromBytes(bytes);
+        assertEquals(SideMode.PULL, sides.mode(RelativeSide.LEFT));
+        assertEquals(FluidSides.ALL, sides.tank(RelativeSide.LEFT));
     }
 
     @Test
-    void layerNextWraps() {
-        assertEquals(SideLayer.FLUIDS, SideLayer.ITEMS.next());
-        assertEquals(SideLayer.ITEMS, SideLayer.FLUIDS.next());
-        assertEquals(SideLayer.ITEMS, SideLayer.byName("nonsense"));
+    void missingBytesBecomeDefault() {
+        FluidSides sides = inbound(2);
+        sides.setMode(RelativeSide.LEFT, SideMode.PULL);
+        sides.fromBytes(new byte[0]);
+        assertTrue(sides.isDefault());
     }
 }
