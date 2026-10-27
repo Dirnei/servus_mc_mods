@@ -54,6 +54,12 @@ public class HeavyRackRecipe extends ShapedRecipe {
     @Override
     public ItemStack assemble(CraftingInput input) {
         ItemStack result = super.assemble(input);
+        rememberWood(input, result);
+        return result;
+    }
+
+    /** Sets the wood the planks in the grid pick, read in order, on the crafted rack. */
+    public static void rememberWood(CraftingInput input, ItemStack result) {
         List<String> planks = new ArrayList<>();
         for (int i = 0; i < input.size(); i++) {
             ItemStack stack = input.getItem(i);
@@ -65,7 +71,6 @@ public class HeavyRackRecipe extends ShapedRecipe {
         if (wood != null) {
             result.set(ServusShuttlesComponents.RACK_WOOD.get(), Identifier.parse(wood));
         }
-        return result;
     }
 
     @Override

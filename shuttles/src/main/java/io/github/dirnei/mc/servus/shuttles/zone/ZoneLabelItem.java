@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.zone;
 
+import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlock;
+import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import net.minecraft.network.chat.Component;
@@ -41,7 +43,11 @@ public class ZoneLabelItem extends Item {
             return InteractionResult.SUCCESS;
         }
         if (!level.isClientSide()) {
-            node.setZone(clear ? null : definition);
+            if (node instanceof FluidRackBlockEntity) {
+                FluidRackBlock.stampSection(level, context.getClickedPos(), clear ? null : definition);
+            } else {
+                node.setZone(clear ? null : definition);
+            }
             if (player != null) {
                 Component message = node.zone().isEmpty()
                         ? Component.translatable("message.servus_shuttles.zone_label.cleared")

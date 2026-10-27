@@ -593,7 +593,7 @@ public final class ServusShuttlesCommands {
         return sites.size();
     }
 
-    /** The warehouse's fluid stock per fluid, then every Fluid Gantry with its mode and both tanks. */
+    /** The warehouse's fluid stock per fluid, then every Fluid Gantry with its mode and both tanks, then every Fluid Rack section. */
     private static int fluids(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
         CommandSourceStack source = context.getSource();
@@ -623,6 +623,13 @@ public final class ServusShuttlesCommands {
                         .append(tank.lock().map(fluid -> new FluidStack(fluid, 1).getHoverName().getString()).orElse("Any"));
             }
             say(source, line.toString());
+        }
+        List<WarehouseNetwork.TankView> racks = warehouse.rackViews();
+        say(source, racks.isEmpty() ? "No Fluid Racks" : "Fluid Rack sections:");
+        for (WarehouseNetwork.TankView rack : racks) {
+            say(source, "  - port " + rack.ref().pos().toShortString() + ", zone " + (rack.zone().isEmpty() ? "none" : rack.zone()) + "; "
+                    + (rack.fluid().isEmpty() ? "empty" : rack.fluid().getHoverName().getString() + " " + rack.fluid().getAmount())
+                    + " / " + rack.capacity() + " mB");
         }
         return totals.size();
     }

@@ -1,13 +1,14 @@
 package io.github.dirnei.mc.servus.shuttles.shuttle;
 
 import io.github.dirnei.mc.servus.foundation.graph.NodePos;
-import io.github.dirnei.mc.servus.shuttles.gantry.TankRef;
+import io.github.dirnei.mc.servus.shuttles.gantry.FluidStoreRef;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleProfile;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
 
@@ -62,10 +63,14 @@ final class Shuttle {
     /** The path whose segments up to paidThrough are paid for. */
     ShuttleMotion paidFor;
     int paidThrough = -1;
-    /** The gantry tank whose spout pumps into or out of the shuttle during its stop, else null. */
-    TankRef pumping;
-    /** Whether that spout pumps into the gantry rather than into the shuttle. */
+    /** The fluid store the shuttle pumps into or out of during its stop, else null. */
+    FluidStoreRef pumping;
+    /** Whether it pumps into the store rather than into the shuttle. */
     boolean pumpingIntoGantry;
+    /** The side the coupling slides out toward while the shuttle pumps at a Fluid Rack's port, else null. */
+    Direction couplingSide;
+    /** How many ticks that stop lasts in all. */
+    int couplingTicks;
     /** The wait of a shuttle restored from a save until its path's chunks have loaded; null once it goes on. */
     Settle restoring;
     /** Why a shuttle parked in its garage with cargo found no rack, or null while it is not parked so. */
@@ -175,9 +180,9 @@ final class Shuttle {
         /** The fluid a tanker run carries. */
         FluidStack fluid = FluidStack.EMPTY;
         /** The tank a tanker run's fluid goes to next; starts as the job's target. */
-        TankRef fluidTarget;
+        FluidStoreRef fluidTarget;
         /** Tanks the fluid was offered to on this run. */
-        final Set<TankRef> tried = new HashSet<>();
+        final Set<FluidStoreRef> tried = new HashSet<>();
         /** The racks whose slots are locked for this load's cargo, in the order the shuttle visits them. */
         final List<BlockPos> stops = new ArrayList<>();
         /** Whether the cargo goes into storage: a loaded put-away, or a pick whose destination did not take it. */

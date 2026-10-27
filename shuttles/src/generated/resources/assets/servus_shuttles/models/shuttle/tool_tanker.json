@@ -952,6 +952,142 @@
         14.25,
         10
       ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.7999997,
+            1.3999996
+          ]
+        },
+        "east": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            1.3999996,
+            1.3999996
+          ]
+        },
+        "north": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.7999997,
+            1.3999996
+          ]
+        },
+        "south": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.7999997,
+            1.3999996
+          ]
+        },
+        "up": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.7999997,
+            1.3999996
+          ]
+        },
+        "west": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            1.3999996,
+            1.3999996
+          ]
+        }
+      },
+      "from": [
+        3.9,
+        12.3,
+        4.8
+      ],
+      "to": [
+        4.7,
+        13.7,
+        6.2
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.8000002,
+            1.3999996
+          ]
+        },
+        "east": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            1.3999996,
+            1.3999996
+          ]
+        },
+        "north": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.8000002,
+            1.3999996
+          ]
+        },
+        "south": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.8000002,
+            1.3999996
+          ]
+        },
+        "up": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            0.8000002,
+            1.3999996
+          ]
+        },
+        "west": {
+          "texture": "#heavy_rack_iron",
+          "uv": [
+            0,
+            0,
+            1.3999996,
+            1.3999996
+          ]
+        }
+      },
+      "from": [
+        11.3,
+        12.3,
+        4.8
+      ],
+      "to": [
+        12.1,
+        13.7,
+        6.2
+      ]
     }
   ],
   "textures": {

@@ -115,7 +115,7 @@ public final class ProductionView {
     /** How full a warehouse is, named after its site; empty name without a controller. */
     public static StorageRow storage(WarehouseNetwork warehouse) {
         String name = warehouse.controller().map(WarehouseControllerBlockEntity::displayName).orElse("");
-        return StorageRow.of(name, warehouse.storageFill(), warehouse.storageGantries().size());
+        return StorageRow.of(name, warehouse.storageFill(), warehouse.storageGantries().size(), warehouse.rackViews().size());
     }
 
     /** Every loaded Packing Station of the line with its rate use per direction, by position. */

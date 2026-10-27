@@ -5,64 +5,76 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Where a tanker brings a fluid: the Storage gantry tanks with room for it,
- * in the order they are tried. Tanks locked to the fluid come first, then
- * tanks on Any holding it, then empty tanks on Any; within one rank the
- * shorter way wins. Fluid that runs on the way into a tank counts as if it
- * were in it already, so an empty tank a run brings lava to holds lava. Pure
- * Java; {@code K} is a fluid key compared with {@code equals}, {@code T} names a tank.
+ * Where a tanker brings a fluid: the fluid stores (Storage gantry tanks and
+ * Fluid Rack sections) with room for it, in the order they are tried. Stores
+ * that prefer the fluid come first (a tank locked to it, a rack zoned for
+ * it), then stores holding it, then empty stores that accept it; within one
+ * rank the shorter way wins. Pure Java; {@code T} names a store.
  */
 public final class FluidRouting {
 
     /**
-     * One Storage tank the fluid could go to.
+     * One fluid store as routing sees it for one fluid.
      *
-     * @param id          names the tank
-     * @param tank        its lock, content, amount and capacity
-     * @param incoming    what runs on their way will put into it
-     * @param incomingKey the fluid those runs bring, null when none is on its way
-     * @param distance    how far it is from the source, in rail steps
+     * @param id        names the store
+     * @param preferred whether it prefers the fluid: locked or zoned to it
+     * @param holds     whether it holds the fluid, or runs on their way bring it
+     * @param accepts   whether it takes the fluid at all: its lock or zone allows it and it holds nothing else
+     * @param room      what it still takes once every run on its way arrived
+     * @param cost      how far it is from the source, in rail steps
      */
-    public record Candidate<K, T>(T id, GantryTanks.Tank<K> tank, int incoming, K incomingKey, int distance) {
+    public record Candidate<T>(T id, boolean preferred, boolean holds, boolean accepts, int room, int cost) {
 
-        /** The tank as it will be once every run on its way arrived. */
-        GantryTanks.Tank<K> planned() {
-            K content = tank.isEmpty() ? incomingKey : tank.content();
-            int amount = (tank.isEmpty() ? 0 : tank.amount()) + Math.max(0, incoming);
-            return new GantryTanks.Tank<>(tank.lock(), amount > 0 ? content : null, amount, tank.capacity());
+        /**
+         * The candidate for {@code key}, with fluid that runs on the way into
+         * the store counted as if it were in it already, so an empty store a
+         * run brings lava to holds lava. {@code K} is a fluid key compared
+         * with {@code equals}; a null content or incoming key means none.
+         *
+         * @param allowed     whether its lock or zone lets the key in
+         * @param content     the fluid held, null when empty
+         * @param amount      how much it holds
+         * @param capacity    how much it may hold
+         * @param incoming    what runs on their way will put into it
+         * @param incomingKey the fluid those runs bring
+         */
+        public static <K, T> Candidate<T> of(T id, K key, boolean preferred, boolean allowed, K content, int amount, int capacity,
+                                             int incoming, K incomingKey, int cost) {
+            int planned = (content == null ? 0 : Math.max(0, amount)) + Math.max(0, incoming);
+            K plannedContent = content != null && amount > 0 ? content : incomingKey;
+            K held = planned > 0 ? plannedContent : null;
+            boolean holds = held != null && held.equals(key);
+            return new Candidate<>(id, preferred, holds, allowed && (held == null || holds), Math.max(0, capacity - planned), cost);
         }
     }
 
-    /** A tank with room for the fluid and how much room it has. */
+    /** A store with room for the fluid and how much room it has. */
     public record Target<T>(T id, int room) {
     }
 
     private FluidRouting() {
     }
 
-    /** The tanks that take {@code key} with room left, best first. */
-    public static <K, T> List<Target<T>> targets(List<Candidate<K, T>> candidates, K key) {
-        record Ranked<K, T>(Candidate<K, T> candidate, int rank, int room) {
-        }
-        List<Ranked<K, T>> ranked = new ArrayList<>();
-        for (Candidate<K, T> candidate : candidates) {
-            GantryTanks.Tank<K> planned = candidate.planned();
-            if (planned.room() > 0 && planned.accepts(key)) {
-                ranked.add(new Ranked<>(candidate, rank(planned), planned.room()));
+    /** The candidates that accept the fluid with room left, best first. */
+    public static <T> List<Target<T>> targets(List<Candidate<T>> candidates) {
+        List<Candidate<T>> ranked = new ArrayList<>();
+        for (Candidate<T> candidate : candidates) {
+            if (candidate.room() > 0 && candidate.accepts()) {
+                ranked.add(candidate);
             }
         }
-        ranked.sort(Comparator.<Ranked<K, T>>comparingInt(Ranked::rank).thenComparingInt(entry -> entry.candidate().distance()));
+        ranked.sort(Comparator.<Candidate<T>>comparingInt(FluidRouting::rank).thenComparingInt(Candidate::cost));
         List<Target<T>> targets = new ArrayList<>(ranked.size());
-        for (Ranked<K, T> entry : ranked) {
-            targets.add(new Target<>(entry.candidate().id(), entry.room()));
+        for (Candidate<T> candidate : ranked) {
+            targets.add(new Target<>(candidate.id(), candidate.room()));
         }
         return targets;
     }
 
-    private static int rank(GantryTanks.Tank<?> tank) {
-        if (tank.lock() != null) {
+    private static int rank(Candidate<?> candidate) {
+        if (candidate.preferred()) {
             return 0;
         }
-        return tank.isEmpty() ? 2 : 1;
+        return candidate.holds() ? 1 : 2;
     }
 }

@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.rack;
 
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
+import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rack.RackClimb.Box;
 import io.github.dirnei.mc.servus.shuttles.rack.RackClimb.Contact;
 import net.minecraft.core.BlockPos;
@@ -15,7 +16,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * Lets players climb the exposed sides of a Heavy Duty Rack like a ladder.
+ * Lets players climb the exposed sides of a Heavy Duty Rack or a Fluid Rack like a ladder.
  * The rack is a full cube, so the vanilla ladder hook, which only asks the
  * block the player stands in, never sees it. This runs at the tail of the
  * player tick instead: when a vertical face of the player's box rests on a
@@ -63,7 +64,7 @@ public final class RackClimbing {
         for (Contact contact : RackClimb.contacts(box, TOLERANCE)) {
             cursor.set(contact.cellX(), contact.cellY(), contact.cellZ());
             BlockState state = level.getBlockState(cursor);
-            if (!(state.getBlock() instanceof HeavyRackBlock)) {
+            if (!(state.getBlock() instanceof HeavyRackBlock || state.getBlock() instanceof FluidRackBlock)) {
                 continue;
             }
             Direction facing = state.getValue(HeavyRackBlock.FACING);

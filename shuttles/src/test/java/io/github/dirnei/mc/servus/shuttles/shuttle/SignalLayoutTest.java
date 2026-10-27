@@ -248,5 +248,11 @@ class SignalLayoutTest {
         parts.add(box(4.3, 4.05, 2.6, 11.7, TankerLook.CAP_TOP, 13.4));
         parts.add(box(TankerLook.GLASS_LEFT, 11.75, 6, 4.6, 14.25, 10));
         parts.add(box(11.4, 11.75, 6, TankerLook.GLASS_RIGHT, 14.25, 10));
+        double y0 = TankerLook.COUPLING_Y - TankerLook.COLLAR_HALF;
+        double y1 = TankerLook.COUPLING_Y + TankerLook.COLLAR_HALF;
+        double z0 = TankerLook.COUPLING_Z - TankerLook.COLLAR_HALF;
+        double z1 = TankerLook.COUPLING_Z + TankerLook.COLLAR_HALF;
+        parts.add(box(TankerLook.COLLAR_X0, y0, z0, TankerLook.COLLAR_X1, y1, z1));
+        parts.add(box(16 - TankerLook.COLLAR_X1, y0, z0, 16 - TankerLook.COLLAR_X0, y1, z1));
     }
 }

@@ -21,6 +21,7 @@
   "site_snapshot_interval": 100,
   "fluid_check_interval": 40,
   "tanker_min_load": 1000,
+  "tanker_pump_ticks": 40,
   "free_slot_bucket": 0.25,
   "follow_gap": 1.0,
   "travel_costs": { "rail_block": 7, "corner": 5, "lift_block": 10, "lift_handover": 20, "stop": 14, "lift_wait_per_job": 50, "traffic_per_shuttle": 4 }

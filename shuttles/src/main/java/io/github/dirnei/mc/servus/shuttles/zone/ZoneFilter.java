@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.zone;
 
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
@@ -19,6 +20,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.material.Fluid;
 
 /**
  * What a zone takes: filter items and item tag ids. Stored on the Zone Label
@@ -60,6 +62,19 @@ public record ZoneFilter(List<ItemStack> items, List<String> tags) {
             }
         }
         return new PutAwayPlan.Filter<>(keys, new HashSet<>(tags));
+    }
+
+    /**
+     * The fluids of the filled fluid containers among the items, for example
+     * water for a water bucket: what the zone means on a Fluid Rack. Items
+     * holding no fluid and tags are left out.
+     */
+    public Set<Fluid> fluids() {
+        Set<Fluid> fluids = new LinkedHashSet<>();
+        for (ItemStack stack : items) {
+            Transfer.fluidOf(stack).ifPresent(fluids::add);
+        }
+        return fluids;
     }
 
     /** Item names for display. */

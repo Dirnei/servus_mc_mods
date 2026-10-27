@@ -616,7 +616,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         return Component.translatable("gui.servus_shuttles.storage.slots", PickerStock.shortCount(used), PickerStock.shortCount(total)).getString();
     }
 
-    /** A warehouse: its name, its slots and a bar; the tooltip counts its rack bays and Storage gantries. */
+    /** A warehouse: its name, its slots and a bar; the tooltip counts its rack bays, Storage gantries and Fluid Rack sections. */
     private Line storageHeader(StorageRow warehouse) {
         String name = warehouse.name().isEmpty() ? Component.translatable("gui.servus_shuttles.storage.warehouse").getString() : warehouse.name();
         String numbers = warehouse.total() > 0 ? slots(warehouse.used(), warehouse.total()) : "";
@@ -631,7 +631,8 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         };
         return new Line(Production.STORAGE_HEADER_HEIGHT, painter, () -> List.of(Component.literal(name),
                 Component.translatable("gui.servus_shuttles.storage.bays", warehouse.bays()),
-                Component.translatable("gui.servus_shuttles.storage.gantries", warehouse.gantries())), null);
+                Component.translatable("gui.servus_shuttles.storage.gantries", warehouse.gantries()),
+                Component.translatable("gui.servus_shuttles.storage.fluid_racks", warehouse.fluidRacks())), null);
     }
 
     /** A zone or the fluids of a warehouse, indented under its header, with numbers and a bar when there is a total. */

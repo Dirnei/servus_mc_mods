@@ -6,13 +6,13 @@ import java.util.List;
 
 /**
  * How a tanker restocks a kept Export gantry tank: how much is missing, how
- * much one run brings and which Storage tank it comes from. Pure Java;
- * {@code T} names a tank.
+ * much one run brings and which fluid store it comes from. Pure Java;
+ * {@code T} names a store.
  */
 public final class FluidRestockPlan {
 
     /**
-     * One Storage tank holding the fluid.
+     * One fluid store holding the fluid: a Storage gantry tank or a Fluid Rack section.
      *
      * @param id       names the tank
      * @param free     its amount minus what runs already take from it

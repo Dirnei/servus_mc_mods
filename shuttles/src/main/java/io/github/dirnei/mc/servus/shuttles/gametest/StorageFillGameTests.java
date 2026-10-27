@@ -16,14 +16,16 @@ import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.storage.StorageFill;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
+import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
 
-/** How full a warehouse is: rack slots in use with locks, zones, Storage gantries, and the controller GUI's row. */
+/** How full a warehouse is: rack slots in use with locks, zones, Storage gantries, Fluid Racks, and the controller GUI's row. */
 public final class StorageFillGameTests {
 
     private static final BlockPos ORIGIN = new BlockPos(3, 1, 4);
@@ -96,6 +98,27 @@ public final class StorageFillGameTests {
             helper.assertTrue(capacity > 2L * imports.tank(0).getCapacity(), "the Capacity Upgrade raises the Storage gantry's tanks");
             helper.assertTrue(WarehouseControllerMenu.status(controller).storage().gantries() == 1, "the controller GUI counts one gantry");
             helper.succeed();
+        });
+    }
+
+    /** A docked three bay Fluid Rack section counts its water against three bays' capacity, and the controller GUI counts it. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void fluidRackSectionCounts(GameTestHelper helper) {
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, CONTROLLER);
+        GantryFixtures.railAlongZ(helper, RAIL.getX(), 2, 9);
+        BlockPos[] bays = {new BlockPos(3, 1, 4), new BlockPos(3, 1, 5), new BlockPos(3, 1, 6)};
+        FluidRackFixtures.row(helper, Direction.EAST, bays);
+        helper.runAfterDelay(2, () -> {
+            FluidRackFixtures.fill(helper, bays[0], Fluids.WATER, 12000);
+            long capacity = 3L * ShuttlesStatsManager.INSTANCE.fluidRackCapacityPerBay();
+            Waits.when(helper, () -> {
+                StorageFill.Report report = fill(controller.network().orElseThrow());
+                return report.fluid() == 12000 && report.fluidCapacity() == capacity;
+            }, 60, () -> "12000 of " + capacity + " mB should count, got " + fill(controller.network().orElseThrow()), () -> {
+                StorageRow row = WarehouseControllerMenu.status(controller).storage();
+                helper.assertTrue(row.fluidRacks() == 1 && row.gantries() == 0, "the controller GUI counts one section and no gantry, got " + row);
+                helper.succeed();
+            });
         });
     }
 

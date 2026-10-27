@@ -6,7 +6,7 @@ import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.network.WarehouseConnectionRule.NodeKind;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -150,13 +150,14 @@ public class RailBlock extends ConnectableBlock implements PotatoInspectable {
         return false;
     }
 
-    /** Whether the neighbour holds a rail up: an elevator segment, a heavy rack whose front faces the rail, or a standing rail. */
+    /** Whether the neighbour holds a rail up: an elevator segment, a rack or a Fluid Rack port whose front faces the rail, or a standing rail. */
     private static boolean isAnchor(LevelReader level, BlockPos neighborPos, Direction direction) {
         Block block = level.getBlockState(neighborPos).getBlock();
         return block instanceof ElevatorBlock
                 || block instanceof RailBlock && canSupportRigidBlock(level, neighborPos.below())
-                || level.getBlockEntity(neighborPos) instanceof HeavyRackBlockEntity rack
-                && rack.acceptsRail(Conversions.toSide(direction.getOpposite()));
+                || level.getBlockEntity(neighborPos) instanceof StorageNodeBlockEntity node
+                && (node.kind() == NodeKind.RACK || node.kind() == NodeKind.FLUID_RACK)
+                && node.acceptsRail(Conversions.toSide(direction.getOpposite()));
     }
 
     /** Standing on a floor, hung on an anchor or free; only meaningful for a position that holds a rail. */

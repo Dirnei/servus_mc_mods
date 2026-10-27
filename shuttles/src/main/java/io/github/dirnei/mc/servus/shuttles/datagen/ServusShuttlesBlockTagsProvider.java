@@ -21,7 +21,7 @@ final class ServusShuttlesBlockTagsProvider extends BlockTagsProvider {
         tag(BlockTags.MINEABLE_WITH_AXE).add(ServusShuttlesBlocks.STORAGE_TERMINAL.get()).add(ServusShuttlesBlocks.CRAFTING_STATION.get())
                 .add(ServusShuttlesBlocks.SHUTTLE_WORKSHOP.get());
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ServusShuttlesBlocks.WAREHOUSE_CONTROLLER.get()).add(ServusShuttlesBlocks.RAIL.get())
-                .add(ServusShuttlesBlocks.ELEVATOR.get()).add(ServusShuttlesBlocks.HEAVY_RACK.get())
+                .add(ServusShuttlesBlocks.ELEVATOR.get()).add(ServusShuttlesBlocks.HEAVY_RACK.get()).add(ServusShuttlesBlocks.FLUID_RACK.get())
                 .add(ServusShuttlesBlocks.INBOUND_STATION.get()).add(ServusShuttlesBlocks.PACKING_STATION.get()).add(ServusShuttlesBlocks.SHUTTLE_GARAGE.get())
                 .add(ServusShuttlesBlocks.OUTBOUND_STATION.get()).add(ServusShuttlesBlocks.CRAFTING_CPU.get())
                 .add(ServusShuttlesBlocks.CPU_BUFFER.get())

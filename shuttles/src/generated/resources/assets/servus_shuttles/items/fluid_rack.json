@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "servus_shuttles:rack_wood",
+    "model": "servus_shuttles:item/fluid_rack"
+  }
+}

@@ -45,6 +45,7 @@ final class ServusShuttlesBlockStateProvider extends BlockStateProvider {
         fieldHead(ServusShuttlesBlocks.FIELD_HEAD.get(), "field_head");
         ElevatorModels.elevator(this, ServusShuttlesBlocks.ELEVATOR.get(), "elevator");
         HeavyRackModels.rack(this, ServusShuttlesBlocks.HEAVY_RACK.get(), "heavy_rack");
+        FluidRackModels.rack(this, ServusShuttlesBlocks.FLUID_RACK.get(), "fluid_rack");
         station(ServusShuttlesBlocks.INBOUND_STATION.get(), "inbound_station");
         station(ServusShuttlesBlocks.PACKING_STATION.get(), "packing_station");
         garage(ServusShuttlesBlocks.SHUTTLE_GARAGE.get(), "shuttle_garage");

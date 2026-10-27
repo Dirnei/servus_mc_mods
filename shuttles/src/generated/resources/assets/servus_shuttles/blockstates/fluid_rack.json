@@ -1,0 +1,234 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_core"
+      },
+      "when": {
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_post_left"
+      },
+      "when": {
+        "facing": "north",
+        "left": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_ext_left"
+      },
+      "when": {
+        "facing": "north",
+        "left": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_post_right"
+      },
+      "when": {
+        "facing": "north",
+        "right": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_ext_right"
+      },
+      "when": {
+        "facing": "north",
+        "right": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_port"
+      },
+      "when": {
+        "facing": "north",
+        "port": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_core",
+        "y": 90
+      },
+      "when": {
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_post_left",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "left": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_ext_left",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "left": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_post_right",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "right": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_ext_right",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "right": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_port",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "port": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_core",
+        "y": 180
+      },
+      "when": {
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_post_left",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "left": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_ext_left",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "left": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_post_right",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "right": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_ext_right",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "right": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_port",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "port": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_core",
+        "y": 270
+      },
+      "when": {
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_post_left",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "left": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_ext_left",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "left": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_post_right",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "right": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_ext_right",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "right": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/fluid_rack_port",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "port": "true"
+      }
+    }
+  ]
+}

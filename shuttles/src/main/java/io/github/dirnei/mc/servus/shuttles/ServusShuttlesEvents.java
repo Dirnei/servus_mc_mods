@@ -65,6 +65,9 @@ public final class ServusShuttlesEvents {
             // A rack is a chest for hoppers and pipes only while no rail docks to its section.
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusShuttlesBlockEntities.HEAVY_RACK.get(),
                     (rack, side) -> rack.standalone() ? rack.items() : null);
+            // A Fluid Rack section is a tank for pipes only while no rail stands in front of its port.
+            event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusShuttlesBlockEntities.FLUID_RACK.get(),
+                    (rack, side) -> rack.standalone() ? rack.sectionHandler() : null);
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusShuttlesBlockEntities.INBOUND_STATION.get(),
                     (station, side) -> station.handlerFor(side));
             event.registerBlockEntity(ServusFoundationCapabilities.PACKET_ENDPOINT, ServusShuttlesBlockEntities.INBOUND_STATION.get(),

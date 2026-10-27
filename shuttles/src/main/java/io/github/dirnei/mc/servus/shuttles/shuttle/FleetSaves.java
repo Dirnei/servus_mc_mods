@@ -6,7 +6,7 @@ import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.shuttles.field.FieldCargo;
 import io.github.dirnei.mc.servus.shuttles.field.FieldKind;
-import io.github.dirnei.mc.servus.shuttles.gantry.TankRef;
+import io.github.dirnei.mc.servus.shuttles.gantry.FluidStoreRef;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.shuttle.Shuttle.Load;
 import java.util.ArrayList;
@@ -240,11 +240,11 @@ public final class FleetSaves {
             tag.put("Fluid", saveFluid(load.fluid, registries));
         }
         if (load.fluidTarget != null) {
-            tag.put("FluidTarget", saveTank(load.fluidTarget));
+            tag.put("FluidTarget", saveStore(load.fluidTarget));
         }
         ListTag tried = new ListTag();
-        for (TankRef tank : load.tried) {
-            tried.add(saveTank(tank));
+        for (FluidStoreRef store : load.tried) {
+            tried.add(saveStore(store));
         }
         tag.put("Tried", tried);
         long[] stops = new long[load.stops.size()];
@@ -270,10 +270,10 @@ public final class FleetSaves {
         if (tag.contains("Fluid")) {
             load.fluid = loadFluid(tag.get("Fluid"), registries);
         }
-        load.fluidTarget = tag.contains("FluidTarget") ? loadTank(tag.getCompoundOrEmpty("FluidTarget")) : null;
+        load.fluidTarget = tag.contains("FluidTarget") ? loadStore(tag.getCompoundOrEmpty("FluidTarget")) : null;
         ListTag tried = tag.getListOrEmpty("Tried");
         for (int i = 0; i < tried.size(); i++) {
-            load.tried.add(loadTank(tried.getCompoundOrEmpty(i)));
+            load.tried.add(loadStore(tried.getCompoundOrEmpty(i)));
         }
         if (tag.contains("Stops")) {
             load.stops.clear();
@@ -432,15 +432,15 @@ public final class FleetSaves {
         return FluidStack.OPTIONAL_CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE), tag).result().orElse(FluidStack.EMPTY);
     }
 
-    private static CompoundTag saveTank(TankRef tank) {
+    private static CompoundTag saveStore(FluidStoreRef store) {
         CompoundTag tag = new CompoundTag();
-        tag.putLong("Gantry", tank.gantry().asLong());
-        tag.putInt("Tank", tank.tank());
+        tag.putLong("Store", store.pos().asLong());
+        tag.putInt("Tank", store.tank());
         return tag;
     }
 
-    private static TankRef loadTank(CompoundTag tag) {
-        return new TankRef(pos(tag, "Gantry"), tag.getIntOr("Tank", 0));
+    private static FluidStoreRef loadStore(CompoundTag tag) {
+        return new FluidStoreRef(pos(tag, "Store"), tag.getIntOr("Tank", 0));
     }
 
     private static BlockPos pos(CompoundTag tag, String key) {

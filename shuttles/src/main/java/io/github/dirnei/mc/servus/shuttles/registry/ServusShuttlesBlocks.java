@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlock;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlock;
+import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rail.ElevatorBlock;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
@@ -89,6 +90,13 @@ public final class ServusShuttlesBlocks {
                     .noOcclusion());
 
     public static final DeferredBlock<HeavyRackBlock> HEAVY_RACK = BLOCKS.registerBlock("heavy_rack", HeavyRackBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_ORANGE)
+                    .strength(3.0F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion());
+
+    public static final DeferredBlock<FluidRackBlock> FLUID_RACK = BLOCKS.registerBlock("fluid_rack", FluidRackBlock::new,
             () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_ORANGE)
                     .strength(3.0F)

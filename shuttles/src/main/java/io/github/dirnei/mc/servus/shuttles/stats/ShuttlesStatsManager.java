@@ -90,7 +90,10 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final int DEFAULT_GANTRY_CAPACITY_PER_UPGRADE = 16000;
     public static final int DEFAULT_GANTRY_UPGRADE_SLOTS = 4;
     public static final int DEFAULT_GANTRY_LEVEL_STEPS = 32;
-    public static final int DEFAULT_GANTRY_PUMP_TICKS = 40;
+    public static final int DEFAULT_TANKER_PUMP_TICKS = 40;
+    public static final int DEFAULT_FLUID_RACK_CAPACITY_PER_BAY = 16000;
+    public static final int DEFAULT_FLUID_RACK_BAYS_PER_SECTION = 3;
+    public static final int DEFAULT_FLUID_RACK_LEVEL_STEPS = 16;
     public static final int DEFAULT_FLUID_CHECK_INTERVAL = 40;
     public static final int DEFAULT_TANKER_MIN_LOAD = 1000;
 
@@ -107,6 +110,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private static final Identifier FIELD = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "field");
     private static final Identifier POWER = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "power");
     private static final Identifier GANTRY = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "gantry");
+    private static final Identifier FLUID_RACK = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "fluid_rack");
 
     public static final ShuttlesStatsManager INSTANCE = new ShuttlesStatsManager();
 
@@ -180,7 +184,10 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private volatile int gantryCapacityPerUpgrade = DEFAULT_GANTRY_CAPACITY_PER_UPGRADE;
     private volatile int gantryUpgradeSlots = DEFAULT_GANTRY_UPGRADE_SLOTS;
     private volatile int gantryLevelSteps = DEFAULT_GANTRY_LEVEL_STEPS;
-    private volatile int gantryPumpTicks = DEFAULT_GANTRY_PUMP_TICKS;
+    private volatile int tankerPumpTicks = DEFAULT_TANKER_PUMP_TICKS;
+    private volatile int fluidRackCapacityPerBay = DEFAULT_FLUID_RACK_CAPACITY_PER_BAY;
+    private volatile int fluidRackBaysPerSection = DEFAULT_FLUID_RACK_BAYS_PER_SECTION;
+    private volatile int fluidRackLevelSteps = DEFAULT_FLUID_RACK_LEVEL_STEPS;
     private volatile int fluidCheckInterval = DEFAULT_FLUID_CHECK_INTERVAL;
     private volatile int tankerMinLoad = DEFAULT_TANKER_MIN_LOAD;
     private volatile TravelWeights travelWeights = TravelWeights.DEFAULT;
@@ -263,7 +270,10 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         gantryCapacityPerUpgrade = countField(files.get(GANTRY), "capacity_per_upgrade", DEFAULT_GANTRY_CAPACITY_PER_UPGRADE);
         gantryUpgradeSlots = countField(files.get(GANTRY), "upgrade_slots", DEFAULT_GANTRY_UPGRADE_SLOTS);
         gantryLevelSteps = intField(files.get(GANTRY), "level_steps", DEFAULT_GANTRY_LEVEL_STEPS);
-        gantryPumpTicks = intField(files.get(GANTRY), "pump_ticks", DEFAULT_GANTRY_PUMP_TICKS);
+        tankerPumpTicks = intField(files.get(WAREHOUSE), "tanker_pump_ticks", DEFAULT_TANKER_PUMP_TICKS);
+        fluidRackCapacityPerBay = intField(files.get(FLUID_RACK), "capacity_per_bay", DEFAULT_FLUID_RACK_CAPACITY_PER_BAY);
+        fluidRackBaysPerSection = intField(files.get(FLUID_RACK), "bays_per_section", DEFAULT_FLUID_RACK_BAYS_PER_SECTION);
+        fluidRackLevelSteps = intField(files.get(FLUID_RACK), "level_steps", DEFAULT_FLUID_RACK_LEVEL_STEPS);
         fluidCheckInterval = intField(files.get(WAREHOUSE), "fluid_check_interval", DEFAULT_FLUID_CHECK_INTERVAL);
         tankerMinLoad = countField(files.get(WAREHOUSE), "tanker_min_load", DEFAULT_TANKER_MIN_LOAD);
         travelWeights = travelWeights(files.get(WAREHOUSE));
@@ -723,9 +733,24 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         return gantryLevelSteps;
     }
 
-    /** Ticks a tanker stops under a gantry to take or put fluid, before Handling. */
-    public int gantryPumpTicks() {
-        return gantryPumpTicks;
+    /** Ticks a tanker stops at a fluid store to take or put fluid, before Handling. */
+    public int tankerPumpTicks() {
+        return tankerPumpTicks;
+    }
+
+    /** mB one Fluid Rack bay adds to its section's tank. */
+    public int fluidRackCapacityPerBay() {
+        return fluidRackCapacityPerBay;
+    }
+
+    /** Bays a Fluid Rack section may hold. */
+    public int fluidRackBaysPerSection() {
+        return fluidRackBaysPerSection;
+    }
+
+    /** Steps in which clients learn the fill of a Fluid Rack section. */
+    public int fluidRackLevelSteps() {
+        return fluidRackLevelSteps;
     }
 
     /** Ticks between two looks of a warehouse at its Import gantries. */

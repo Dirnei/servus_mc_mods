@@ -4,6 +4,7 @@
     "servus_shuttles:rail",
     "servus_shuttles:elevator",
     "servus_shuttles:heavy_rack",
+    "servus_shuttles:fluid_rack",
     "servus_shuttles:inbound_station",
     "servus_shuttles:packing_station",
     "servus_shuttles:shuttle_garage",

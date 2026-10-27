@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import net.minecraft.util.LightCoordsUtil;
@@ -63,6 +64,7 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
     /** Gap between a sight glass frame and the fluid drawn on it, in model pixels. */
     private static final float GLASS_GAP = 0.02F;
     private static final Identifier STEEL = Identifier.fromNamespaceAndPath("servus_foundation", "block/electric_pump_steel");
+    private static final Identifier COPPER = Identifier.withDefaultNamespace("block/copper_block");
     private static final int ALL_FACES = (1 << Direction.values().length) - 1;
     /** The most ticks the shutter moves between two frames, so a garage seen again does not run through a whole cycle at once. */
     private static final double MAX_SHUTTER_STEP = 20;
@@ -151,6 +153,7 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
             RenderSubmit.item(poseStack, collector, cart, ItemDisplayContext.NONE, level, 0, light);
         }
         view.glass().ifPresent(glass -> sightGlass(glass, level, railPos, poseStack, collector, light));
+        view.coupling().ifPresent(coupling -> coupling(coupling, elapsed, yaw, poseStack, collector, light));
         Vec3 centre = new Vec3(pos[0] + 0.5, pos[1] + FLOOR + 0.5 * SHUTTLE_SCALE, pos[2] + 0.5);
         ShuttleSignals.draw(poseStack, collector, cart, view, elapsed, level.getGameTime(), felling.isPresent(), centre, light);
         String tool = ShuttleModules.of(cart).toolSpec().map(ModuleSpec::id).orElse("");
@@ -256,6 +259,52 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
             window.quad(consumer, pose, Direction.WEST, sprite, color, lit);
             window.quad(consumer, pose, Direction.EAST, sprite, color, lit);
         });
+        poseStack.popPose();
+    }
+
+    /**
+     * The tanker's coupling slid out of the tank side that faces the Fluid
+     * Rack, its copper head and the steel tube behind it, eased out and back
+     * in over the stop; drawn in the item's model space. Stowed, the head sits
+     * inside the collar of the model and is not drawn.
+     */
+    private static void coupling(ShuttleView.Coupling coupling, double elapsed, double yaw, PoseStack poseStack, SubmitNodeCollector collector,
+                                 int light) {
+        float out = TankerLook.reach() * TankerLook.extension(coupling.ticks(), (float) (coupling.elapsed() + elapsed));
+        if (out <= 0) {
+            return;
+        }
+        double radians = Math.toRadians(yaw);
+        Direction side = coupling.side();
+        boolean right = side.getStepX() * Math.cos(radians) - side.getStepZ() * Math.sin(radians) > 0;
+        TextureAtlas atlas = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS);
+        poseStack.pushPose();
+        // The item is drawn around its centre, so its model space starts half a block down and back.
+        poseStack.translate(-0.5, -0.5, -0.5);
+        couplingPart(right, TankerLook.HEAD_X0 - out, TankerLook.HEAD_X1 - out, TankerLook.HEAD_HALF, atlas.getSprite(COPPER), poseStack,
+                collector, light);
+        float tubeOuter = TankerLook.HEAD_X0 + 0.3F - out;
+        if (tubeOuter < TankerLook.TUBE_INNER) {
+            couplingPart(right, tubeOuter, TankerLook.TUBE_INNER, TankerLook.TUBE_HALF, atlas.getSprite(STEEL), poseStack, collector, light);
+        }
+        poseStack.popPose();
+    }
+
+    /**
+     * One square part of the coupling from model x {@code x0} to {@code x1}
+     * on the left side, mirrored to the right one. It is drawn from its own
+     * corner, so its faces take the sprite's corner even where the part
+     * reaches past the shuttle's block.
+     */
+    private static void couplingPart(boolean right, float x0, float x1, float half, TextureAtlasSprite sprite, PoseStack poseStack,
+                                     SubmitNodeCollector collector, int light) {
+        float px = 1 / 16F;
+        float from = right ? 16 - x1 : x0;
+        FluidBox part = new FluidBox(0, 0, 0, (x1 - x0) * px, 2 * half * px, 2 * half * px);
+        poseStack.pushPose();
+        poseStack.translate(from * px, (TankerLook.COUPLING_Y - half) * px, (TankerLook.COUPLING_Z - half) * px);
+        collector.submitCustomGeometry(poseStack, Sheets.cutoutBlockSheet(),
+                (pose, consumer) -> part.draw(consumer, pose, ALL_FACES, sprite, 0xFFFFFFFF, light));
         poseStack.popPose();
     }
 

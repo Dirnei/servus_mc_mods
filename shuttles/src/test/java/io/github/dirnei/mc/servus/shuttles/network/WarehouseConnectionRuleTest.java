@@ -53,6 +53,21 @@ class WarehouseConnectionRuleTest {
     }
 
     @Test
+    void fluidRackLinksOnlyToRailsAndItsOwnSection() {
+        assertTrue(WarehouseConnectionRule.railOnly(NodeKind.FLUID_RACK));
+        for (Side side : Side.ALL) {
+            assertTrue(WarehouseConnectionRule.accepts(NodeKind.FLUID_RACK, side, NodeKind.RAIL));
+            assertTrue(WarehouseConnectionRule.accepts(NodeKind.RAIL, side, NodeKind.FLUID_RACK));
+            assertTrue(WarehouseConnectionRule.accepts(NodeKind.FLUID_RACK, side, NodeKind.FLUID_RACK));
+            for (NodeKind other : new NodeKind[] {NodeKind.STOCK, NodeKind.STATION, NodeKind.GARAGE, NodeKind.RACK, NodeKind.GANTRY,
+                    NodeKind.ELEVATOR}) {
+                assertFalse(WarehouseConnectionRule.accepts(NodeKind.FLUID_RACK, side, other));
+                assertFalse(WarehouseConnectionRule.accepts(other, side, NodeKind.FLUID_RACK));
+            }
+        }
+    }
+
+    @Test
     void stationLinksOnlyToRails() {
         for (Side side : Side.ALL) {
             assertTrue(WarehouseConnectionRule.accepts(NodeKind.STATION, side, NodeKind.RAIL));

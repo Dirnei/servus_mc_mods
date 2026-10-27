@@ -15,6 +15,7 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -34,6 +35,12 @@ public final class ServusShuttlesComponents {
             COMPONENTS.registerComponentType("rack_wood", builder -> builder
                     .persistent(Identifier.CODEC)
                     .networkSynchronized(Identifier.STREAM_CODEC));
+
+    /** The share of its section's fluid a Fluid Rack bay held, carried by its dropped item. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<SimpleFluidContent>> RACK_FLUID =
+            COMPONENTS.registerComponentType("rack_fluid", builder -> builder
+                    .persistent(SimpleFluidContent.CODEC)
+                    .networkSynchronized(SimpleFluidContent.STREAM_CODEC));
 
     /** The patterns a Pattern Storage keeps, carried by its dropped item. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<StoredPatterns>> PATTERNS =

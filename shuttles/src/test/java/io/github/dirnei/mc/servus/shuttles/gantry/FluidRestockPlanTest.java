@@ -44,6 +44,14 @@ class FluidRestockPlanTest {
     }
 
     @Test
+    void rackSourcePickedByMostFreeFluid() {
+        List<FluidRestockPlan.Source<String>> sources = FluidRestockPlan.sources(List.of(
+                new FluidRestockPlan.Source<>("gantryTank", 6000, 1),
+                new FluidRestockPlan.Source<>("rackSection", 20000, 12)));
+        assertEquals(List.of("rackSection", "gantryTank"), sources.stream().map(FluidRestockPlan.Source::id).toList());
+    }
+
+    @Test
     void nearerWinsOnTie() {
         List<FluidRestockPlan.Source<String>> sources = FluidRestockPlan.sources(List.of(
                 new FluidRestockPlan.Source<>("far", 5000, 7),

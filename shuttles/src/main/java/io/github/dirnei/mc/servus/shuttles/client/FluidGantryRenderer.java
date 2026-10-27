@@ -47,7 +47,6 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
@@ -158,7 +157,7 @@ public final class FluidGantryRenderer extends LiveBlockEntityRenderer<FluidGant
                                SubmitNodeCollector collector) {
         TextureAtlasSprite sprite = FluidSprites.still(fluid);
         int color = level instanceof BlockAndTintGetter tinted ? FluidSprites.tint(tinted, beam, fluid) : FluidSprites.tint(fluid);
-        int light = glowing(LevelRenderer.getLightCoords(level, beam), fluid);
+        int light = FluidColumn.glowing(LevelRenderer.getLightCoords(level, beam), fluid);
         float length = (top - bottom) / 16;
         float start = Mth.frac(-flow * FLOW_PER_TICK);
         collector.submitCustomGeometry(poseStack, Sheets.translucentBlockSheet(), (pose, consumer) -> {
@@ -210,26 +209,18 @@ public final class FluidGantryRenderer extends LiveBlockEntityRenderer<FluidGant
         if (fluid.isEmpty() || fill <= 0) {
             return;
         }
-        TextureAtlasSprite sprite = FluidSprites.still(fluid);
-        int color = level instanceof BlockAndTintGetter tinted ? FluidSprites.tint(tinted, leg, fluid) : FluidSprites.tint(fluid);
-        int light = glowing(LevelRenderer.getLightCoords(level, leg.above()), fluid);
         float in = FLUID_INSET * PX;
         float bottom = (PLINTH_TOP + FLUID_GAP) * PX;
         float top = bottom + ((1 + (CAP_BOTTOM - FLUID_GAP) * PX) - bottom) * fill;
+        BlockPos lightAt = leg.above();
         if (top <= 1) {
-            FluidBox box = new FluidBox(in, bottom, in, 1 - in, top, 1 - in);
-            collector.submitCustomGeometry(poseStack, Sheets.translucentBlockSheet(),
-                    (pose, consumer) -> box.draw(consumer, pose, ALL, sprite, color, light));
+            FluidColumn.box(level, leg, lightAt, fluid, new FluidBox(in, bottom, in, 1 - in, top, 1 - in), ALL, poseStack, collector);
             return;
         }
-        FluidBox lower = new FluidBox(in, bottom, in, 1 - in, 1, 1 - in);
-        FluidBox upper = new FluidBox(in, 0, in, 1 - in, top - 1, 1 - in);
-        collector.submitCustomGeometry(poseStack, Sheets.translucentBlockSheet(),
-                (pose, consumer) -> lower.draw(consumer, pose, SIDES_AND_DOWN, sprite, color, light));
+        FluidColumn.box(level, leg, lightAt, fluid, new FluidBox(in, bottom, in, 1 - in, 1, 1 - in), SIDES_AND_DOWN, poseStack, collector);
         poseStack.pushPose();
         poseStack.translate(0, 1, 0);
-        collector.submitCustomGeometry(poseStack, Sheets.translucentBlockSheet(),
-                (pose, consumer) -> upper.draw(consumer, pose, ALL & ~DOWN, sprite, color, light));
+        FluidColumn.box(level, leg, lightAt, fluid, new FluidBox(in, 0, in, 1 - in, top - 1, 1 - in), ALL & ~DOWN, poseStack, collector);
         poseStack.popPose();
     }
 
@@ -237,7 +228,7 @@ public final class FluidGantryRenderer extends LiveBlockEntityRenderer<FluidGant
     private static void plates(Level level, BlockPos upperLeg, FluidStack lock, PoseStack poseStack, SubmitNodeCollector collector) {
         TextureAtlasSprite sprite = FluidSprites.still(lock);
         int color = FluidSprites.tint(lock);
-        int light = glowing(LevelRenderer.getLightCoords(level, upperLeg), lock);
+        int light = FluidColumn.glowing(LevelRenderer.getLightCoords(level, upperLeg), lock);
         float texel = (PLATE_X1 - PLATE_X0) / 16;
         float x0 = (PLATE_X0 + WINDOW_U0 * texel) * PX;
         float x1 = (PLATE_X0 + WINDOW_U1 * texel) * PX;
@@ -253,12 +244,6 @@ public final class FluidGantryRenderer extends LiveBlockEntityRenderer<FluidGant
             front.quad(consumer, pose, Direction.NORTH, sprite, color, light);
         });
         poseStack.popPose();
-    }
-
-    /** The light at the leg, at least the fluid's own glow. */
-    private static int glowing(int packedLight, FluidStack fluid) {
-        int glow = fluid.getFluidType().getLightLevel(fluid);
-        return LightCoordsUtil.pack(Math.max(LightCoordsUtil.block(packedLight), glow), LightCoordsUtil.sky(packedLight));
     }
 
     /** The whole frame, three blocks across the rail and two tall. */

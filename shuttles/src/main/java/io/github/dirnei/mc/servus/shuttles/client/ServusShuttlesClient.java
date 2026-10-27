@@ -56,6 +56,7 @@ public final class ServusShuttlesClient {
         event.registerBlockEntityRenderer(ServusShuttlesBlockEntities.SHUTTLE_GARAGE.get(), ShuttleGarageRenderer::new);
         event.registerBlockEntityRenderer(ServusShuttlesBlockEntities.ELEVATOR.get(), ElevatorRenderer::new);
         event.registerBlockEntityRenderer(ServusShuttlesBlockEntities.FLUID_GANTRY.get(), FluidGantryRenderer::new);
+        event.registerBlockEntityRenderer(ServusShuttlesBlockEntities.FLUID_RACK.get(), FluidRackRenderer::new);
     }
 
     /** The Shuttle Workshop draws its shuttle large as a picture in picture. */
@@ -82,12 +83,13 @@ public final class ServusShuttlesClient {
         HarvesterLook.register(event);
     }
 
-    /** Wraps every rack block state model so the boards show the rack's wood. */
+    /** Wraps every Heavy Duty Rack and Fluid Rack block state model so the boards show the rack's wood. */
     @SubscribeEvent
     public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
         Map<BlockState, BlockStateModel> models = event.getBakingResult().blockStateModels();
         for (Map.Entry<BlockState, BlockStateModel> entry : models.entrySet()) {
-            if (entry.getKey().is(ServusShuttlesBlocks.HEAVY_RACK.get()) && !(entry.getValue() instanceof MaterialModel)) {
+            boolean rack = entry.getKey().is(ServusShuttlesBlocks.HEAVY_RACK.get()) || entry.getKey().is(ServusShuttlesBlocks.FLUID_RACK.get());
+            if (rack && !(entry.getValue() instanceof MaterialModel)) {
                 entry.setValue(new MaterialModel(entry.getValue(), RACK_SKIN));
             }
         }

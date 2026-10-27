@@ -134,8 +134,9 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         } else if (!status.storage().equals(StorageRow.EMPTY) && overStorageLine(0, x, y)) {
             graphics.setComponentTooltipForNextFrame(font, itemsTooltip(status.storage()), mouseX, mouseY);
         } else if (!status.storage().equals(StorageRow.EMPTY) && overStorageLine(1, x, y)) {
-            graphics.setComponentTooltipForNextFrame(font, List.of(Component.translatable("gui.servus_shuttles.storage.gantries",
-                    status.storage().gantries())), mouseX, mouseY);
+            graphics.setComponentTooltipForNextFrame(font, List.of(
+                    Component.translatable("gui.servus_shuttles.storage.gantries", status.storage().gantries()),
+                    Component.translatable("gui.servus_shuttles.storage.fluid_racks", status.storage().fluidRacks())), mouseX, mouseY);
         } else if (overStatusLine(onlineLineY, x, y) && !status.summary().getString().isEmpty()) {
             graphics.setTooltipForNextFrame(font, font.split(status.summary(), 200), mouseX, mouseY);
         }
@@ -370,7 +371,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
                     PickerStock.shortCount(storage.fluidCapacity())), y, storage.fluid(), storage.fluidCapacity(),
                     storage.fluidFull() ? COLOUR_BAD : BAR_FLUIDS);
         } else {
-            graphics.text(font, Component.translatable("gui.servus_shuttles.storage.no_gantry"), 8, y, COLOUR_DIM, false);
+            graphics.text(font, Component.translatable("gui.servus_shuttles.storage.no_fluid_storage"), 8, y, COLOUR_DIM, false);
         }
     }
 

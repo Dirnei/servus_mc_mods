@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rail.ElevatorBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlockEntity;
@@ -66,6 +67,8 @@ public final class ServusShuttlesBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<HeavyRackBlockEntity>> HEAVY_RACK =
             BLOCK_ENTITIES.register("heavy_rack", () -> new BlockEntityType<>(HeavyRackBlockEntity::new, ServusShuttlesBlocks.HEAVY_RACK.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FluidRackBlockEntity>> FLUID_RACK =
+            BLOCK_ENTITIES.register("fluid_rack", () -> new BlockEntityType<>(FluidRackBlockEntity::new, ServusShuttlesBlocks.FLUID_RACK.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FieldHeadBlockEntity>> FIELD_HEAD =
             BLOCK_ENTITIES.register("field_head", () -> new BlockEntityType<>(FieldHeadBlockEntity::new, ServusShuttlesBlocks.FIELD_HEAD.get()));

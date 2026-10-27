@@ -2,6 +2,5 @@
   "tank_capacity": 16000,
   "capacity_per_upgrade": 16000,
   "upgrade_slots": 4,
-  "level_steps": 32,
-  "pump_ticks": 40
+  "level_steps": 32
 }

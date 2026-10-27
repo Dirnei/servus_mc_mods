@@ -1,0 +1,43 @@
+{
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#copper"
+        },
+        "east": {
+          "texture": "#copper"
+        },
+        "north": {
+          "texture": "#copper"
+        },
+        "south": {
+          "texture": "#copper"
+        },
+        "up": {
+          "texture": "#copper"
+        },
+        "west": {
+          "texture": "#copper"
+        }
+      },
+      "from": [
+        5,
+        10.900001,
+        0
+      ],
+      "to": [
+        11,
+        13.900001,
+        1.5
+      ]
+    }
+  ],
+  "textures": {
+    "board": "servus_shuttles:block/heavy_rack_board",
+    "copper": "minecraft:block/copper_block",
+    "glass": "servus_foundation:block/fluid_tank_glass",
+    "iron": "servus_shuttles:block/heavy_rack_iron",
+    "particle": "servus_shuttles:block/heavy_rack_iron"
+  }
+}

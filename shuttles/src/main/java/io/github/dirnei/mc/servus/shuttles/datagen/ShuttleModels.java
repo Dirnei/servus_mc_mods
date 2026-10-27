@@ -293,8 +293,10 @@ final class ShuttleModels {
      * bands stand 0.2 proud of it, their three boxes staggered the same way;
      * two iron saddles carry it down to the chassis; a copper filler cap sits
      * on top; a blackened iron sight glass frame on each side holds the window
-     * the renderer fills. Everything stays within x 4.2 to 11.8 and below
-     * {@link TankerLook#CAP_TOP}, inside the body and under the block top.
+     * the renderer fills; a blackened iron collar on each side, between the
+     * front band and the frame, holds the coupling the renderer slides out.
+     * Everything stays within x 3.9 to 12.1 and below {@link
+     * TankerLook#CAP_TOP}, inside the body and under the block top.
      */
     private static void tanker(BlockStateProvider provider) {
         BlockModelBuilder model = model(provider, "tool_tanker", STEEL);
@@ -312,6 +314,12 @@ final class ShuttleModels {
         box(model, 7, 16.3F, 7, 9, TankerLook.CAP_TOP, 9, "minecraft:block/copper_block");
         box(model, TankerLook.GLASS_LEFT, 11.75F, 6, 4.6F, 14.25F, 10, DARK_IRON);
         box(model, 11.4F, 11.75F, 6, TankerLook.GLASS_RIGHT, 14.25F, 10, DARK_IRON);
+        float y0 = TankerLook.COUPLING_Y - TankerLook.COLLAR_HALF;
+        float y1 = TankerLook.COUPLING_Y + TankerLook.COLLAR_HALF;
+        float z0 = TankerLook.COUPLING_Z - TankerLook.COLLAR_HALF;
+        float z1 = TankerLook.COUPLING_Z + TankerLook.COLLAR_HALF;
+        box(model, TankerLook.COLLAR_X0, y0, z0, TankerLook.COLLAR_X1, y1, z1, DARK_IRON);
+        box(model, 16 - TankerLook.COLLAR_X1, y0, z0, 16 - TankerLook.COLLAR_X0, y1, z1, DARK_IRON);
     }
 
     private static Identifier part(BlockStateProvider provider, String name) {

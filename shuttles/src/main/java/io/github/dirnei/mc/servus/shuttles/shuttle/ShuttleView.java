@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.shuttle;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -17,11 +18,26 @@ import net.neoforged.neoforge.fluids.FluidStack;
  * tier, upgrades and tool; a tanker carrying fluid shows it in its sight glass.
  * A shuttle behind another in its lane carries the point it must stay behind;
  * an unfolded Lumber shuttle carries the tree it fells and its felling phase.
- * The signal tells why it drives or stands, for its tail lights.
+ * The signal tells why it drives or stands, for its tail lights. A tanker
+ * pumping at a Fluid Rack's port carries its coupling.
  */
 public record ShuttleView(List<BlockPos> path, int segment, float progress, Drive drive, ItemStack cargo, Optional<BlockPos> lift,
                           ItemStack shuttle, Optional<SightGlass> glass, Optional<Lead> lead, Optional<Felling> felling,
-                          StandReason.Kind signal) {
+                          StandReason.Kind signal, Optional<Coupling> coupling) {
+
+    /**
+     * A tanker stopped at a Fluid Rack's port: the side its coupling slides
+     * out toward, how many ticks the stop lasts and how many of them had
+     * passed at the sync. Clients slide the coupling out and back in on their own.
+     */
+    public record Coupling(Direction side, int ticks, int elapsed) {
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, Coupling> STREAM_CODEC = StreamCodec.composite(
+                Direction.STREAM_CODEC, Coupling::side,
+                ByteBufCodecs.VAR_INT, Coupling::ticks,
+                ByteBufCodecs.VAR_INT, Coupling::elapsed,
+                Coupling::new);
+    }
 
     /**
      * A Lumber shuttle unfolded at a rail: the base log of the tree its head
@@ -104,6 +120,7 @@ public record ShuttleView(List<BlockPos> path, int segment, float progress, Driv
             ByteBufCodecs.optional(Lead.STREAM_CODEC), ShuttleView::lead,
             ByteBufCodecs.optional(Felling.STREAM_CODEC), ShuttleView::felling,
             ByteBufCodecs.VAR_INT.map(StandReason.Kind::byId, StandReason.Kind::ordinal), ShuttleView::signal,
+            ByteBufCodecs.optional(Coupling.STREAM_CODEC), ShuttleView::coupling,
             ShuttleView::new);
 
     public boolean moving() {

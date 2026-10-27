@@ -20,6 +20,8 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add(ServusShuttlesBlocks.ELEVATOR.get(), "Rail Elevator");
         add(ServusShuttlesBlocks.HEAVY_RACK.get(), "Heavy Duty Rack");
         add("tooltip.servus_shuttles.heavy_rack.wood", "Wood: %s");
+        add(ServusShuttlesBlocks.FLUID_RACK.get(), "Fluid Rack");
+        add("tooltip.servus_shuttles.fluid_rack.fluid", "%s: %s mB");
         add(ServusShuttlesBlocks.INBOUND_STATION.get(), "Inbound Station");
         add(ServusShuttlesBlocks.PACKING_STATION.get(), "Packing Station");
         add(ServusShuttlesBlocks.SHUTTLE_GARAGE.get(), "Shuttle Garage");
@@ -142,9 +144,10 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.storage.items", "Items: %s / %s slots");
         add("gui.servus_shuttles.storage.fluids", "Fluids: %s / %s mB");
         add("gui.servus_shuttles.storage.no_racks", "Items: no racks");
-        add("gui.servus_shuttles.storage.no_gantry", "Fluids: no Storage gantry");
+        add("gui.servus_shuttles.storage.no_fluid_storage", "Fluids: no fluid storage");
         add("gui.servus_shuttles.storage.bays", "%s rack bays");
         add("gui.servus_shuttles.storage.gantries", "%s Storage gantries");
+        add("gui.servus_shuttles.storage.fluid_racks", "%s Fluid Rack sections");
         add("gui.servus_shuttles.storage.full_zones", "Full: %s");
         add("gui.servus_shuttles.storage.no_zone", "(no zone)");
         add("gui.servus_shuttles.storage.slots", "%s / %s");
@@ -699,6 +702,13 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("message.servus_shuttles.potato.rack_slots_full", "%s bays: %s / %s slots used, full");
         add("message.servus_shuttles.potato.rack_empty", "Empty");
         add("message.servus_shuttles.potato.rack_item", "%s: %s");
+        add("message.servus_shuttles.potato.fluid_rack_zone", "Fluid Rack section, zone: %s");
+        add("message.servus_shuttles.potato.fluid_rack_no_zone", "Fluid Rack section, no zone");
+        add("message.servus_shuttles.potato.fluid_rack_bays", "%s bays");
+        add("message.servus_shuttles.potato.fluid_rack_fluid", "%s: %s of %s mB");
+        add("message.servus_shuttles.potato.fluid_rack_empty", "Empty, holds %s mB");
+        add("message.servus_shuttles.potato.fluid_rack_docked", "Docked: only tankers serve it");
+        add("message.servus_shuttles.potato.fluid_rack_standalone", "Not docked: pipes fill and drain it");
         add("message.servus_shuttles.potato.gantry_mode", "Fluid Gantry, %s");
         add("message.servus_shuttles.potato.station_site", "Site: %s");
         add("message.servus_shuttles.potato.station_online", "Online");

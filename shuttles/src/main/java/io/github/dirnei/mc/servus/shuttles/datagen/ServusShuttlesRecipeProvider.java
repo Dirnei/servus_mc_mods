@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.datagen;
 
 import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
+import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackRecipe;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackRecipe;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +25,7 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import io.github.dirnei.mc.servus.foundation.datagen.MaterialRecipes;
@@ -161,7 +163,18 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .define('I', Items.IRON_INGOT)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_iron_ingot", has(Items.IRON_INGOT))
-                .save(heavyRack(output, registries));
+                .save(woodRecipe(output, HeavyRackRecipe::new));
+
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.FLUID_RACK.get(), 2)
+                .pattern("IGI")
+                .pattern("GCG")
+                .pattern("IPI")
+                .define('I', Items.IRON_INGOT)
+                .define('G', Items.GLASS)
+                .define('C', Items.COPPER_INGOT)
+                .define('P', ItemTags.PLANKS)
+                .unlockedBy("has_glass", has(Items.GLASS))
+                .save(woodRecipe(output, FluidRackRecipe::new));
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.CRAFTING_STATION.get())
                 .pattern("ITI")
@@ -342,8 +355,14 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .save(output);
     }
 
-    /** Saves a shaped recipe as the rack recipe, which remembers the planks' wood. */
-    private static RecipeOutput heavyRack(RecipeOutput output, HolderLookup.Provider registries) {
+    /** Builds a rack recipe from the parts of a shaped one. */
+    private interface WoodRecipeFactory {
+        Recipe<?> create(Recipe.CommonInfo commonInfo, CraftingRecipe.CraftingBookInfo bookInfo, ShapedRecipePattern pattern,
+                         ItemStackTemplate result);
+    }
+
+    /** Saves a shaped recipe as a rack recipe, which remembers the planks' wood. */
+    private static RecipeOutput woodRecipe(RecipeOutput output, WoodRecipeFactory factory) {
         return new RecipeOutput() {
             @Override
             public void accept(ResourceKey<Recipe<?>> id, Recipe<?> recipe, @Nullable AdvancementHolder advancement,
@@ -351,7 +370,7 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 ShapedRecipe shaped = (ShapedRecipe) recipe;
                 ShapedCraftingRecipeDisplay display = (ShapedCraftingRecipeDisplay) shaped.display().getFirst();
                 ItemStackTemplate result = ((SlotDisplay.ItemStackSlotDisplay) display.result()).stack();
-                output.accept(id, new HeavyRackRecipe(new Recipe.CommonInfo(shaped.showNotification()),
+                output.accept(id, factory.create(new Recipe.CommonInfo(shaped.showNotification()),
                         new CraftingRecipe.CraftingBookInfo(shaped.category(), shaped.group()), shaped.pattern, result),
                         advancement, conditions);
             }
