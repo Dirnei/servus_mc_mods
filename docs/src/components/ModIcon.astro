@@ -1,0 +1,16 @@
+---
+/** A mod icon inlined into the page, so it shows with the first paint instead of loading afterwards. */
+interface Props {
+	mod: 'foundation' | 'shuttles' | 'alchemy';
+	/** Pixel size of the inlined file: 192 for the top of a mod page, 112 for a home page card. */
+	size: 112 | 192;
+	alt?: string;
+	class?: string;
+}
+
+const icons = import.meta.glob<string>('../assets/icons/*.webp', { query: '?inline', import: 'default', eager: true });
+const { mod, size, alt = '', class: className } = Astro.props;
+const src = icons[`../assets/icons/${mod}-${size}.webp`];
+---
+
+<img src={src} alt={alt} width={size} height={size} class={className} />

@@ -1,12 +1,12 @@
 ---
 title: Servus!
-description: Ducts, a warehouse you build in the world and Paracelsus' alchemy. A mod family for Minecraft 26.1.2 on NeoForge.
+description: 'Bavarian for hello, Latin for "at your service". A mod family for Minecraft 26.1.2 on NeoForge.'
 template: splash
 hero:
   title: Servus!
   image:
     file: ../../assets/servus.png
-  tagline: A mod family for Minecraft 26.1.2 on NeoForge that serves us. If you dont know Servus is Bavarian for Hello!
+  tagline: 'Bavarian for hello, Latin for "at your service". A mod family for Minecraft 26.1.2 on NeoForge.'
   actions:
     - text: Getting started
       link: /servus_mc_mods/getting-started/
@@ -16,16 +16,13 @@ hero:
       variant: minimal
 ---
 
-import { Image } from 'astro:assets';
-import foundation from '../../assets/foundation.png';
-import shuttles from '../../assets/shuttles.png';
-import alchemy from '../../assets/alchemy.png';
+import ModIcon from '../../components/ModIcon.astro';
 
 ## The released mods
 
 <div class="mod-cards">
 	<a class="mod-card" href="/servus_mc_mods/mods/foundation/">
-		<Image src={foundation} alt="" width={112} height={112} />
+		<ModIcon mod="foundation" size={112} />
 		<div>
 			<strong>Servus: Foundation</strong>
 			<span class="mod-version">0.5.0</span>
@@ -33,7 +30,7 @@ import alchemy from '../../assets/alchemy.png';
 		</div>
 	</a>
 	<a class="mod-card" href="/servus_mc_mods/mods/shuttles/">
-		<Image src={shuttles} alt="" width={112} height={112} />
+		<ModIcon mod="shuttles" size={112} />
 		<div>
 			<strong>Servus: Shuttles</strong>
 			<span class="mod-version">0.5.0</span>
@@ -41,7 +38,7 @@ import alchemy from '../../assets/alchemy.png';
 		</div>
 	</a>
 	<a class="mod-card" href="/servus_mc_mods/mods/alchemy/">
-		<Image src={alchemy} alt="" width={112} height={112} />
+		<ModIcon mod="alchemy" size={112} />
 		<div>
 			<strong>Servus: Alchemy</strong>
 			<span class="mod-version">0.4.0 alpha</span>

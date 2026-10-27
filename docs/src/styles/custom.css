@@ -52,16 +52,10 @@
 
 .sl-markdown-content :is(h1, h2, h3, h4, h5, h6),
 h1#_top,
-.hero h1,
-.site-title {
+.hero h1 {
 	font-family: var(--servus-font-heading);
 	font-weight: 600;
 	letter-spacing: -0.01em;
-}
-
-.site-title {
-	font-size: var(--sl-text-2xl);
-	color: var(--sl-color-white);
 }
 
 /* Body text and inline elements */
@@ -87,7 +81,7 @@ h1#_top,
 
 /* Mod icon at the top of a mod page */
 
-.sl-markdown-content img[alt$=' icon'] {
+.sl-markdown-content .mod-page-icon {
 	float: right;
 	width: 96px;
 	height: auto;
@@ -95,7 +89,7 @@ h1#_top,
 }
 
 @media (max-width: 40rem) {
-	.sl-markdown-content img[alt$=' icon'] {
+	.sl-markdown-content .mod-page-icon {
 		width: 64px;
 		margin-left: 1rem;
 	}

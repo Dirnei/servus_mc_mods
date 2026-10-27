@@ -8,7 +8,7 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'Servus',
-			logo: { src: './src/assets/servus.png' },
+			components: { SiteTitle: './src/components/SiteTitle.astro' },
 			favicon: '/favicon.png',
 			customCss: ['./src/styles/custom.css'],
 			head: [
