@@ -3,6 +3,8 @@ title: "Servus: Foundation"
 description: The base mod of the Servus family. The Utility Duct, the Fluid Tank, the utility machines and the tools every Servus mod shares.
 ---
 
+![Servus: Foundation icon](../../../assets/foundation.png)
+
 **Version 0.4.0.** Mod id `servus_foundation`. Needs nothing but NeoForge.
 
 Foundation is the base of the Servus family. Shuttles and Alchemy both need it. It brings the transport blocks every base needs, a handful of utility machines, and the shared tools and rules that make all Servus blocks work the same way. It also works on its own as a small pipes and utilities mod.

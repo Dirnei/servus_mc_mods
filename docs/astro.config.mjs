@@ -8,6 +8,9 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'Servus Mods',
+			logo: { src: './src/assets/servus.png' },
+			favicon: '/favicon.png',
+			customCss: ['./src/styles/custom.css'],
 			description:
 				'Player guide, datapack reference and data line API for the Servus mods for Minecraft 26.1.2 on NeoForge.',
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/Dirnei/servus_mc_mods' }],

@@ -3,6 +3,8 @@ title: "Servus: Shuttles"
 description: A warehouse you build in the world. Racks, rails and shuttles, terminals, autocrafting and fields that farm themselves.
 ---
 
+![Servus: Shuttles icon](../../../assets/shuttles.png)
+
 **Version 0.4.0.** Mod id `servus_shuttles`. Needs Servus: Foundation 0.4.0 or newer.
 
 Shuttles lets you build a real warehouse. There are no storage disks: items sit in racks you can see, rails link the racks, and small shuttles drive along the rails to fetch and put away. Every pick and every put-away rides a shuttle, so a good layout is a fast warehouse.

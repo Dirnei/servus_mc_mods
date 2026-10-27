@@ -7,6 +7,8 @@ sidebar:
     variant: caution
 ---
 
+![Servus: Alchemy icon](../../../assets/alchemy.png)
+
 **Version 0.3.0-alpha.** Mod id `servus_alchemy`. Needs Servus: Foundation 0.4.0 or newer and Modonomicon.
 
 :::caution[Alpha]

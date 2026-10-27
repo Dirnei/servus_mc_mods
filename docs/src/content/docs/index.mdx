@@ -4,6 +4,8 @@ description: Ducts, a warehouse you build in the world and Paracelsus' alchemy. 
 template: splash
 hero:
   title: Servus Mods
+  image:
+    file: ../../assets/servus.png
   tagline: Ducts, a warehouse you build in the world and Paracelsus' alchemy. A mod family for Minecraft 26.1.2 on NeoForge.
   actions:
     - text: Getting started
@@ -15,21 +17,36 @@ hero:
       variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import foundation from '../../assets/foundation.png';
+import shuttles from '../../assets/shuttles.png';
+import alchemy from '../../assets/alchemy.png';
 
 ## The released mods
 
-<CardGrid>
-	<Card title="Servus: Foundation 0.4.0" icon="puzzle">
-		The base every Servus mod needs. The Utility Duct carries items, power, fluids and the data line in one block. Plus the Fluid Tank, pumps, the Coal Generator, the Sink, the Ender Anchor and the Mill. [Read more](/servus_mc_mods/mods/foundation/)
-	</Card>
-	<Card title="Servus: Shuttles 0.4.0" icon="list-format">
-		A warehouse you can walk through: racks, rails and shuttles that fetch and put away. Terminals, stock rules, autocrafting and fields that farm themselves. [Read more](/servus_mc_mods/mods/shuttles/)
-	</Card>
-	<Card title="Servus: Alchemy 0.3.0 (alpha)" icon="star">
-		Alchemy after Paracelsus. Burn matter into Salt, Sulfur and Mercury, join them into new things, and grow ore veins with gnomes. [Read more](/servus_mc_mods/mods/alchemy/)
-	</Card>
-</CardGrid>
+<div class="mod-cards">
+	<a class="mod-card" href="/servus_mc_mods/mods/foundation/">
+		<Image src={foundation} alt="" width={144} height={144} />
+		<div>
+			<strong>Servus: Foundation 0.4.0</strong>
+			<p>The base every Servus mod needs. The Utility Duct carries items, power, fluids and the data line in one block. Plus the Fluid Tank, pumps, the Coal Generator, the Sink, the Ender Anchor and the Mill.</p>
+		</div>
+	</a>
+	<a class="mod-card" href="/servus_mc_mods/mods/shuttles/">
+		<Image src={shuttles} alt="" width={144} height={144} />
+		<div>
+			<strong>Servus: Shuttles 0.4.0</strong>
+			<p>A warehouse you can walk through: racks, rails and shuttles that fetch and put away. Terminals, stock rules, autocrafting and fields that farm themselves.</p>
+		</div>
+	</a>
+	<a class="mod-card" href="/servus_mc_mods/mods/alchemy/">
+		<Image src={alchemy} alt="" width={144} height={144} />
+		<div>
+			<strong>Servus: Alchemy 0.3.0 (alpha)</strong>
+			<p>Alchemy after Paracelsus. Burn matter into Salt, Sulfur and Mercury, join them into new things, and grow ore veins with gnomes.</p>
+		</div>
+	</a>
+</div>
 
 ## For modpacks
 
