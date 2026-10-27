@@ -96,6 +96,10 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final int DEFAULT_FLUID_RACK_LEVEL_STEPS = 16;
     public static final int DEFAULT_FLUID_CHECK_INTERVAL = 40;
     public static final int DEFAULT_TANKER_MIN_LOAD = 1000;
+    public static final int DEFAULT_FLUID_STATION_TANKS = 3;
+    public static final int DEFAULT_FLUID_STATION_TANK_CAPACITY = 8000;
+    /** The most tanks a fluid station GUI fits. */
+    public static final int MAX_FLUID_STATION_TANKS = 6;
 
     private static final double DEFAULT_FREE_SLOT_BUCKET = 0.25;
     private static final double DEFAULT_FOLLOW_GAP = 1.0;
@@ -190,6 +194,8 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private volatile int fluidRackLevelSteps = DEFAULT_FLUID_RACK_LEVEL_STEPS;
     private volatile int fluidCheckInterval = DEFAULT_FLUID_CHECK_INTERVAL;
     private volatile int tankerMinLoad = DEFAULT_TANKER_MIN_LOAD;
+    private volatile int fluidStationTanks = DEFAULT_FLUID_STATION_TANKS;
+    private volatile int fluidStationTankCapacity = DEFAULT_FLUID_STATION_TANK_CAPACITY;
     private volatile TravelWeights travelWeights = TravelWeights.DEFAULT;
     private volatile double freeSlotBucket = DEFAULT_FREE_SLOT_BUCKET;
     private volatile double followGap = DEFAULT_FOLLOW_GAP;
@@ -276,6 +282,9 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         fluidRackLevelSteps = intField(files.get(FLUID_RACK), "level_steps", DEFAULT_FLUID_RACK_LEVEL_STEPS);
         fluidCheckInterval = intField(files.get(WAREHOUSE), "fluid_check_interval", DEFAULT_FLUID_CHECK_INTERVAL);
         tankerMinLoad = countField(files.get(WAREHOUSE), "tanker_min_load", DEFAULT_TANKER_MIN_LOAD);
+        fluidStationTanks = Math.clamp(intField(files.get(WAREHOUSE), "fluid_station_tanks", DEFAULT_FLUID_STATION_TANKS), 1,
+                MAX_FLUID_STATION_TANKS);
+        fluidStationTankCapacity = intField(files.get(WAREHOUSE), "fluid_station_tank_capacity", DEFAULT_FLUID_STATION_TANK_CAPACITY);
         travelWeights = travelWeights(files.get(WAREHOUSE));
         freeSlotBucket = Math.min(1.0, doubleField(files.get(WAREHOUSE), "free_slot_bucket", DEFAULT_FREE_SLOT_BUCKET));
         followGap = doubleField(files.get(WAREHOUSE), "follow_gap", DEFAULT_FOLLOW_GAP);
@@ -761,6 +770,16 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     /** mB an Import gantry tank holds before a tanker run starts for it, unless it is full. */
     public int tankerMinLoad() {
         return tankerMinLoad;
+    }
+
+    /** Buffer tanks of a Fluid Inbound or Fluid Outbound, 1 to {@link #MAX_FLUID_STATION_TANKS}. */
+    public int fluidStationTanks() {
+        return fluidStationTanks;
+    }
+
+    /** mB each buffer tank of a fluid station holds. */
+    public int fluidStationTankCapacity() {
+        return fluidStationTankCapacity;
     }
 
     /** Travel time weights of rail paths, from {@code travel_costs} in {@code warehouse.json}. */

@@ -657,6 +657,17 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.zone_label.tags", "Tags");
         add("gui.servus_shuttles.zone_label.tags_hint", "tags, comma separated, for example c:ores");
         fluidGantry();
+        fluidInbound();
+    }
+
+    private void fluidInbound() {
+        add(ServusShuttlesBlocks.FLUID_INBOUND.get(), "Fluid Inbound");
+        add("message.servus_shuttles.fluid_station.no_room", "No room: the station is two blocks tall");
+        add("message.servus_shuttles.fluid_station.no_footing", "The station needs solid ground");
+        add("gui.servus_shuttles.fluid_station.state.no_room", "No fluid store has room for %s: it waits here");
+        add("gui.servus_shuttles.fluid_station.state.no_tanker", "No Tanker shuttle reaches this station: the fluid waits here");
+        add("message.servus_shuttles.potato.fluid_station_tank", "Tank %s: %s, %s of %s mB");
+        add("message.servus_shuttles.potato.fluid_station_empty", "Tank %s: empty, holds %s mB");
     }
 
     private void fluidGantry() {

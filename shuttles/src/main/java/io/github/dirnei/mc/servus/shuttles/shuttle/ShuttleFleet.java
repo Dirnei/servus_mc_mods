@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.shuttle;
 import io.github.dirnei.mc.servus.foundation.graph.NodePos;
 import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork.FluidKey;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
-import io.github.dirnei.mc.servus.shuttles.gantry.GantryMode;
+import io.github.dirnei.mc.servus.shuttles.gantry.FluidRole;
 import io.github.dirnei.mc.servus.shuttles.gantry.FluidStoreRef;
 import io.github.dirnei.mc.servus.shuttles.garage.GarageShutter;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
@@ -148,11 +148,15 @@ public final class ShuttleFleet {
         long available(ItemKey key);
 
         /**
-         * The mode of the fluid store: its gantry's mode, or Storage for a
-         * Fluid Rack section of this warehouse whose port is still there;
-         * empty when none is loaded there.
+         * The role of the fluid store: by its gantry's mode, Storage for a
+         * Fluid Rack section of this warehouse whose port is still there,
+         * Import for a tank of a Fluid Inbound of this warehouse; empty when
+         * none is loaded there.
          */
-        Optional<GantryMode> fluidStoreMode(FluidStoreRef store);
+        Optional<FluidRole> fluidStoreRole(FluidStoreRef store);
+
+        /** Whether a tanker docks its coupling into a port at that store rather than stopping under a gantry's spout. */
+        boolean fluidStoreDocks(FluidStoreRef store);
 
         /** Takes up to max of the fluid out of a store; empty when it holds another fluid. */
         FluidStack drainFluidStore(FluidStoreRef store, FluidKey key, int max);
@@ -1373,20 +1377,20 @@ public final class ShuttleFleet {
     private boolean holdForPump(Shuttle shuttle, FluidJob job) {
         Load load = shuttle.loads.get(0);
         FluidStoreRef store = shuttle.leg == Leg.TO_TARGET ? load.fluidTarget : job.sourceRef();
-        GantryMode wanted = switch (shuttle.leg) {
-            case TO_SOURCE -> job.sourceMode();
-            case TO_TARGET -> store == null ? null : job.targetMode(store);
+        FluidRole wanted = switch (shuttle.leg) {
+            case TO_SOURCE -> job.sourceRole();
+            case TO_TARGET -> store == null ? null : job.targetRole(store);
             default -> null;
         };
-        Optional<GantryMode> mode = store == null ? Optional.empty() : host.fluidStoreMode(store);
-        if (mode.isEmpty() || wanted != null && mode.get() != wanted) {
+        Optional<FluidRole> role = store == null ? Optional.empty() : host.fluidStoreRole(store);
+        if (role.isEmpty() || wanted != null && role.get() != wanted) {
             return false;
         }
         shuttle.stopAt = shuttle.motion;
         shuttle.stop = ShuttleTiers.workTicks(ShuttlesStatsManager.INSTANCE.tankerPumpTicks(), shuttle.profile.handling());
         shuttle.pumping = store;
         shuttle.pumpingIntoGantry = shuttle.leg != Leg.TO_SOURCE;
-        if (store.isRack()) {
+        if (host.fluidStoreDocks(store)) {
             BlockPos rail = Conversions.toBlockPos(shuttle.motion.currentNode());
             BlockPos port = store.pos();
             shuttle.couplingSide = Direction.getNearest(port.getX() - rail.getX(), 0, port.getZ() - rail.getZ(), null);
@@ -1402,7 +1406,7 @@ public final class ShuttleFleet {
     /** Raises the spout of the gantry the shuttle pumped at, or pulls its coupling in, if any. */
     private void endPumping(Shuttle shuttle) {
         if (shuttle.pumping != null) {
-            if (!shuttle.pumping.isRack()) {
+            if (shuttle.couplingSide == null) {
                 host.gantryPumping(shuttle.pumping.pos(), shuttle.pumping.tank(), shuttle.pumpingIntoGantry, FluidStack.EMPTY, false);
             }
             shuttle.pumping = null;
@@ -1724,7 +1728,7 @@ public final class ShuttleFleet {
         Load load = shuttle.loads.get(0);
         switch (shuttle.leg) {
             case TO_SOURCE -> {
-                if (host.fluidStoreMode(job.sourceRef()).orElse(null) == job.sourceMode()) {
+                if (host.fluidStoreRole(job.sourceRef()).orElse(null) == job.sourceRole()) {
                     load.fluid = host.drainFluidStore(job.sourceRef(), job.key(), Math.min(job.amount(), shuttle.profile.fluidCapacity()));
                 }
                 deliverFluid(shuttle, load, job, job.source());
@@ -1732,7 +1736,7 @@ public final class ShuttleFleet {
             case TO_TARGET -> {
                 FluidStoreRef target = load.fluidTarget;
                 load.tried.add(target);
-                if (host.fluidStoreMode(target).orElse(null) == job.targetMode(target)) {
+                if (host.fluidStoreRole(target).orElse(null) == job.targetRole(target)) {
                     load.fluid = host.fillFluidStore(target, load.fluid);
                 }
                 deliverFluid(shuttle, load, job, target.pos());
@@ -1761,7 +1765,7 @@ public final class ShuttleFleet {
             return;
         }
         List<FluidStoreRef> order = new ArrayList<>();
-        if (load.fluidTarget != null && host.fluidStoreMode(load.fluidTarget).orElse(null) == job.targetMode(load.fluidTarget)) {
+        if (load.fluidTarget != null && host.fluidStoreRole(load.fluidTarget).orElse(null) == job.targetRole(load.fluidTarget)) {
             order.add(load.fluidTarget);
         }
         order.addAll(host.fluidTargets(job.key(), at));
@@ -1772,7 +1776,7 @@ public final class ShuttleFleet {
             }
         }
         load.fluidTarget = null;
-        if (!job.returnsToSource() || host.fluidStoreMode(job.sourceRef()).isEmpty() || !go(shuttle, Leg.TO_STATION, host.dockRails(Conversions.toNodePos(job.source())))) {
+        if (!job.returnsToSource() || host.fluidStoreRole(job.sourceRef()).isEmpty() || !go(shuttle, Leg.TO_STATION, host.dockRails(Conversions.toNodePos(job.source())))) {
             shuttle.loads.clear();
             goHome(shuttle);
         }

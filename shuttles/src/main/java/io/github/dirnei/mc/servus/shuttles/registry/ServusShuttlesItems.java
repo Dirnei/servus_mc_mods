@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.material.MaterialBlockItem;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerItem;
 import io.github.dirnei.mc.servus.shuttles.controller.WirelessUpgradeItem;
+import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationItem;
 import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryItem;
 import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackItem;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackItem;
@@ -101,10 +102,13 @@ public final class ServusShuttlesItems {
     public static final DeferredItem<FluidGantryItem> FLUID_GANTRY = ITEMS.registerItem("fluid_gantry",
             properties -> new FluidGantryItem(ServusShuttlesBlocks.FLUID_GANTRY.get(), properties),
             () -> new Item.Properties().useBlockDescriptionPrefix().stacksTo(16));
+    public static final DeferredItem<FluidStationItem> FLUID_INBOUND = ITEMS.registerItem("fluid_inbound",
+            properties -> new FluidStationItem(ServusShuttlesBlocks.FLUID_INBOUND.get(), properties),
+            () -> new Item.Properties().useBlockDescriptionPrefix().stacksTo(16));
     public static final DeferredItem<ZoneLabelItem> ZONE_LABEL = ITEMS.registerItem("zone_label", ZoneLabelItem::new, () -> new Item.Properties().stacksTo(1));
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(HEAVY_RACK, WAREHOUSE_CONTROLLER, WIRELESS_UPGRADE, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, FLUID_GANTRY, FLUID_RACK, CRAFTING_STATION, CRAFTING_CPU, CPU_BUFFER, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE_WORKSHOP, SHUTTLE_MK1, SHUTTLE_MK2, SHUTTLE_MK3, HANDLING_UPGRADE, HARVESTER, SPREADER, LUMBER, TANKER, FARM_RAIL, FIELD_HEAD, RANGE_UPGRADE, ZONE_LABEL);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(HEAVY_RACK, WAREHOUSE_CONTROLLER, WIRELESS_UPGRADE, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, FLUID_GANTRY, FLUID_INBOUND, FLUID_RACK, CRAFTING_STATION, CRAFTING_CPU, CPU_BUFFER, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE_WORKSHOP, SHUTTLE_MK1, SHUTTLE_MK2, SHUTTLE_MK3, HANDLING_UPGRADE, HARVESTER, SPREADER, LUMBER, TANKER, FARM_RAIL, FIELD_HEAD, RANGE_UPGRADE, ZONE_LABEL);
 
     private ServusShuttlesItems() {
     }

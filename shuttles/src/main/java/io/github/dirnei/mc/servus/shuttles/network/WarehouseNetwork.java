@@ -33,7 +33,10 @@ import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.gantry.FluidPutAwayPlan;
 import io.github.dirnei.mc.servus.shuttles.gantry.FluidRestockPlan;
 import io.github.dirnei.mc.servus.shuttles.gantry.FluidRouting;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
+import io.github.dirnei.mc.servus.shuttles.gantry.FluidRole;
 import io.github.dirnei.mc.servus.shuttles.gantry.GantryMode;
+import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.gantry.FluidStoreRef;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.index.WarehouseIndex;
@@ -181,6 +184,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final Set<BlockPos> pendingGantries = new LinkedHashSet<>();
     /** Fluid Rack bays of this warehouse. */
     private final Set<BlockPos> fluidRacks = new LinkedHashSet<>();
+    /** Fluid stations, by their lower half; never part of the fluid stock. */
+    private final Set<BlockPos> fluidStations = new LinkedHashSet<>();
     /** Fluid Rack bays whose section changed; their section is read again on the next tick. */
     private final Set<BlockPos> pendingRacks = new LinkedHashSet<>();
     /** The fluid stock: every tank of a Storage gantry and every Fluid Rack section. */
@@ -270,6 +275,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         } else if (node.kind() == WarehouseConnectionRule.NodeKind.FLUID_RACK) {
             fluidRacks.add(blockPos);
             pendingRacks.add(blockPos);
+        } else if (node.kind() == WarehouseConnectionRule.NodeKind.FLUID_STATION) {
+            fluidStations.add(blockPos);
         } else {
             connectors.add(blockPos);
             if (node.kind() == WarehouseConnectionRule.NodeKind.ELEVATOR) {
@@ -325,6 +332,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             pendingRacks.remove(blockPos);
             dropRack(blockPos);
         }
+        fluidStations.remove(blockPos);
         List<HeldLoad> heldHere = held.remove(blockPos);
         if (forGood && heldHere != null && level != null) {
             for (HeldLoad load : heldHere) {
@@ -375,6 +383,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         pendingGantries.addAll(that.gantries);
         fluidRacks.addAll(that.fluidRacks);
         pendingRacks.addAll(that.fluidRacks);
+        fluidStations.addAll(that.fluidStations);
         that.held.forEach((pos, loads) -> held.computeIfAbsent(pos, p -> new ArrayList<>()).addAll(loads));
         zones.absorb(that.zones);
         that.sources.forEach(pos -> {
@@ -407,6 +416,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         fluidRacks.clear();
         pendingRacks.clear();
         rackViews.clear();
+        fluidStations.clear();
         held.clear();
         pendingStations.clear();
         blockedStations.clear();
@@ -703,7 +713,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /**
      * A rack is reached only through the rails in front of the bays of its
      * section, a Fluid Rack only through the rail in front of its section's
-     * port, a Field Head through the farm rail beside it, any other block
+     * port, a fluid station only through the rail in front of its lower
+     * half, a Field Head through the farm rail beside it, any other block
      * through every travel node touching it.
      */
     @Override
@@ -737,6 +748,13 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             BlockPos rail = head.headRail();
             if (rail != null && isTravelNode(Conversions.toNodePos(rail))) {
                 result.add(Conversions.toNodePos(rail));
+            }
+            return result;
+        }
+        if (loaded(pos) instanceof FluidStationBlockEntity station) {
+            NodePos rail = Conversions.toNodePos(station.railPos());
+            if (isTravelNode(rail)) {
+                result.add(rail);
             }
             return result;
         }
@@ -2374,64 +2392,108 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /**
-     * Queues a tanker run for each Import gantry tank holding fluid that has
-     * no run yet, holds the min load or is full, and has a Storage tank with
-     * room for it, when a Tanker shuttle reaches both gantries. Then restocks
-     * kept Export tanks by {@link #restockFluids}. Last it sets every gantry's
-     * lamp: red for an Import gantry whose fluid has no room or no Tanker and
-     * for an Export gantry whose kept fluid no Storage tank holds, orange
-     * while a run for it is queued or under way, else green.
+     * One tank tankers empty on put-away runs, an Import gantry tank or a
+     * Fluid Inbound tank, with what it holds and its capacity.
+     */
+    private record FluidSource(FluidStoreRef ref, FluidStack fluid, int capacity) {
+    }
+
+    /** The put-away sources: the tanks of the Import gantries as last read, then the Fluid Inbound tanks as they are now. */
+    private List<FluidSource> putAwaySources() {
+        List<FluidSource> sources = new ArrayList<>();
+        for (BlockPos pos : gantries()) {
+            for (TankView view : tankViews(pos)) {
+                if (view.mode() == GantryMode.IMPORT) {
+                    sources.add(new FluidSource(view.ref(), view.fluid(), view.capacity()));
+                }
+            }
+        }
+        for (BlockPos pos : fluidStations()) {
+            if (loaded(pos) instanceof FluidStationBlockEntity station && station.role() == FluidRole.IMPORT) {
+                for (int tank = 0; tank < station.tankCount(); tank++) {
+                    FluidSlot slot = station.tank(tank);
+                    sources.add(new FluidSource(new FluidStoreRef(pos, tank), slot.getFluid().copy(), slot.getCapacity()));
+                }
+            }
+        }
+        return sources;
+    }
+
+    /**
+     * Queues a tanker run for each put-away source holding fluid that has
+     * no run yet, holds the min load or is full, and has a fluid store with
+     * room for it, when a Tanker shuttle reaches both. Then restocks kept
+     * Export tanks by {@link #restockFluids}. Last it sets the lamps: red
+     * for a source whose fluid has no room or no Tanker and for an Export
+     * gantry whose kept fluid no fluid store holds; orange while a run for it
+     * is queued or under way, and on a Fluid Inbound also while a tank holds
+     * fluid; else green.
      */
     private void tickFluids() {
-        if (status() != Status.ONLINE || gantries.isEmpty()) {
+        if (status() != Status.ONLINE || gantries.isEmpty() && fluidStations.isEmpty()) {
             return;
         }
         int capacity = fleet.tankerCapacity();
         Map<BlockPos, Boolean> reach = new HashMap<>();
         Map<BlockPos, Fluid> noRooms = new HashMap<>();
         Set<BlockPos> noTankers = new HashSet<>();
-        List<BlockPos> all = gantries();
-        for (BlockPos pos : all) {
-            Fluid noRoom = null;
-            boolean noTanker = false;
-            for (TankView view : tankViews(pos)) {
-                if (view.mode() != GantryMode.IMPORT || view.fluid().isEmpty() || fleet.hasFluidRun(view.ref())) {
-                    continue;
-                }
-                if (capacity <= 0 || !reach.computeIfAbsent(pos, fleet::tankerReaches)) {
-                    noTanker = true;
-                    continue;
-                }
-                FluidKey key = FluidKey.of(view.fluid());
-                List<FluidRouting.Target<FluidStoreRef>> targets = routeFluid(key, pos, reach);
-                if (targets.isEmpty()) {
-                    noRoom = noRoom == null ? view.fluid().getFluid() : noRoom;
-                    continue;
-                }
-                int held = view.fluid().getAmount();
-                int amount = FluidPutAwayPlan.amount(held - fleet.fluidQueuedFrom(view.ref()), held >= view.capacity(), tankerMinLoad(),
-                        capacity, targets.getFirst().room());
-                if (amount > 0) {
-                    FluidStoreRef target = targets.getFirst().id();
-                    fleet.requestFluid(new FluidJob(nextJobId(), pos, view.ref().tank(), target.pos(), target.tank(), key, amount,
-                            FluidJob.Purpose.PUT_AWAY));
-                }
+        Set<BlockPos> holding = new HashSet<>();
+        for (FluidSource source : putAwaySources()) {
+            BlockPos pos = source.ref().pos();
+            if (source.fluid().isEmpty()) {
+                continue;
             }
-            if (noRoom != null) {
-                noRooms.put(pos, noRoom);
-            } else if (noTanker) {
+            holding.add(pos);
+            if (fleet.hasFluidRun(source.ref())) {
+                continue;
+            }
+            if (capacity <= 0 || !reach.computeIfAbsent(pos, fleet::tankerReaches)) {
                 noTankers.add(pos);
+                continue;
+            }
+            FluidKey key = FluidKey.of(source.fluid());
+            List<FluidRouting.Target<FluidStoreRef>> targets = routeFluid(key, pos, reach);
+            if (targets.isEmpty()) {
+                noRooms.putIfAbsent(pos, source.fluid().getFluid());
+                continue;
+            }
+            int held = source.fluid().getAmount();
+            int amount = FluidPutAwayPlan.amount(held - fleet.fluidQueuedFrom(source.ref()), held >= source.capacity(), tankerMinLoad(),
+                    capacity, targets.getFirst().room());
+            if (amount > 0) {
+                FluidStoreRef target = targets.getFirst().id();
+                fleet.requestFluid(new FluidJob(nextJobId(), pos, source.ref().tank(), target.pos(), target.tank(), key, amount,
+                        FluidJob.Purpose.PUT_AWAY));
             }
         }
+        noTankers.removeAll(noRooms.keySet());
+        List<BlockPos> all = gantries();
         Map<BlockPos, Fluid> missing = restockFluids(all, capacity, reach);
         for (BlockPos pos : all) {
             if (loaded(pos) instanceof FluidGantryBlockEntity gantry) {
                 boolean blocked = noRooms.containsKey(pos) || noTankers.contains(pos) || missing.containsKey(pos);
-                StorageNodeBlocks.Activity activity = blocked ? StorageNodeBlocks.Activity.BLOCKED
-                        : fleet.hasFluidRunAt(pos) ? StorageNodeBlocks.Activity.WORKING : StorageNodeBlocks.Activity.IDLE;
-                gantry.setActivity(activity, noRooms.get(pos), noTankers.contains(pos), missing.get(pos));
+                gantry.setFluidActivity(new FluidActivity(lamp(blocked, fleet.hasFluidRunAt(pos)), noRooms.get(pos), noTankers.contains(pos),
+                        missing.get(pos)));
             }
         }
+        for (BlockPos pos : fluidStations()) {
+            if (loaded(pos) instanceof FluidStationBlockEntity station) {
+                boolean blocked = noRooms.containsKey(pos) || noTankers.contains(pos);
+                station.setFluidActivity(new FluidActivity(lamp(blocked, holding.contains(pos) || fleet.hasFluidRunAt(pos)), noRooms.get(pos),
+                        noTankers.contains(pos), null));
+            }
+        }
+    }
+
+    private static StorageNodeBlocks.Activity lamp(boolean blocked, boolean working) {
+        return blocked ? StorageNodeBlocks.Activity.BLOCKED : working ? StorageNodeBlocks.Activity.WORKING : StorageNodeBlocks.Activity.IDLE;
+    }
+
+    /** The fluid stations of this warehouse, by their lower half, in a stable order. */
+    public List<BlockPos> fluidStations() {
+        List<BlockPos> list = new ArrayList<>(fluidStations);
+        list.sort(Comparator.comparingLong(BlockPos::asLong));
+        return list;
     }
 
     /** A fluid store a restock run could take fluid from, with that fluid. */
@@ -2577,13 +2639,28 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     @Override
-    public Optional<GantryMode> fluidStoreMode(FluidStoreRef store) {
+    public Optional<FluidRole> fluidStoreRole(FluidStoreRef store) {
         if (store.isRack()) {
             return fluidRacks.contains(store.pos()) && loaded(store.pos()) instanceof FluidRackBlockEntity rack && rack.isPort()
-                    ? Optional.of(GantryMode.STORAGE) : Optional.empty();
+                    ? Optional.of(FluidRole.STORAGE) : Optional.empty();
+        }
+        FluidStationBlockEntity station = station(store);
+        if (station != null) {
+            return Optional.of(station.role());
         }
         return gantries.contains(store.pos()) && loaded(store.pos()) instanceof FluidGantryBlockEntity entity
-                ? Optional.of(entity.mode()) : Optional.empty();
+                ? Optional.of(FluidRole.of(entity.mode())) : Optional.empty();
+    }
+
+    @Override
+    public boolean fluidStoreDocks(FluidStoreRef store) {
+        return store.isRack() || fluidStations.contains(store.pos());
+    }
+
+    /** The fluid station of this warehouse a store names, when it is loaded and has that tank; else null. */
+    private @Nullable FluidStationBlockEntity station(FluidStoreRef store) {
+        return fluidStations.contains(store.pos()) && loaded(store.pos()) instanceof FluidStationBlockEntity station
+                && store.tank() >= 0 && store.tank() < station.tankCount() ? station : null;
     }
 
     @Override
@@ -2594,6 +2671,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
             pendingRacks.add(store.pos());
             return rack.sectionHandler().drain(key.stack(max), false);
+        }
+        FluidStationBlockEntity station = station(store);
+        if (station != null) {
+            FluidStack held = station.tank(store.tank()).getFluid();
+            return held.isEmpty() || !FluidKey.of(held).equals(key) ? FluidStack.EMPTY : station.tank(store.tank()).drain(max, false);
         }
         if (!(loaded(store.pos()) instanceof FluidGantryBlockEntity entity)) {
             return FluidStack.EMPTY;
@@ -2618,6 +2700,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
             filled = rack.sectionHandler().fill(stack, false);
             pendingRacks.add(store.pos());
+        } else if (station(store) != null) {
+            filled = station(store).tank(store.tank()).fill(stack, false);
         } else {
             if (!(loaded(store.pos()) instanceof FluidGantryBlockEntity entity)) {
                 return stack;

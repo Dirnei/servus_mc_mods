@@ -173,4 +173,15 @@ class WarehouseConnectionRuleTest {
             }
         }
     }
+
+    @Test
+    void fluidStationsLinkOnlyToRails() {
+        assertTrue(WarehouseConnectionRule.railOnly(NodeKind.FLUID_STATION));
+        for (Side side : Side.ALL) {
+            for (NodeKind kind : NodeKind.values()) {
+                assertEquals(kind == NodeKind.RAIL, WarehouseConnectionRule.accepts(NodeKind.FLUID_STATION, side, kind),
+                        "fluid station to " + kind + " on " + side);
+            }
+        }
+    }
 }

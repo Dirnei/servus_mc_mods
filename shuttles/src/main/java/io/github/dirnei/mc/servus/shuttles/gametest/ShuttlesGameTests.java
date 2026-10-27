@@ -24,6 +24,8 @@ public final class ShuttlesGameTests {
             FleetPersistenceGameTests.class,
             FieldLookGameTests.class,
             FluidGantryGameTests.class,
+            FluidInboundGameTests.class,
+            FluidInboundTankerGameTests.class,
             FluidRackGameTests.class,
             FluidRackTankerGameTests.class,
             GantryTankGameTests.class,

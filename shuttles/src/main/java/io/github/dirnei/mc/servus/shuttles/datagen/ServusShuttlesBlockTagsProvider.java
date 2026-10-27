@@ -26,7 +26,8 @@ final class ServusShuttlesBlockTagsProvider extends BlockTagsProvider {
                 .add(ServusShuttlesBlocks.OUTBOUND_STATION.get()).add(ServusShuttlesBlocks.CRAFTING_CPU.get())
                 .add(ServusShuttlesBlocks.CPU_BUFFER.get())
                 .add(ServusShuttlesBlocks.PRODUCTION_TERMINAL.get()).add(ServusShuttlesBlocks.PATTERN_STORAGE.get())
-                .add(ServusShuttlesBlocks.FARM_RAIL.get()).add(ServusShuttlesBlocks.FIELD_HEAD.get());
+                .add(ServusShuttlesBlocks.FARM_RAIL.get()).add(ServusShuttlesBlocks.FIELD_HEAD.get())
+                .add(ServusShuttlesBlocks.FLUID_INBOUND.get());
         tag(BlockTags.CLIMBABLE).add(ServusShuttlesBlocks.ELEVATOR.get());
         tag(TreeTags.TREE_LOGS).addTag(BlockTags.LOGS).add(Blocks.MANGROVE_ROOTS);
         tag(TreeTags.TREE_ATTACHMENTS).add(Blocks.VINE, Blocks.COCOA, Blocks.MANGROVE_PROPAGULE, Blocks.PALE_HANGING_MOSS, Blocks.MOSS_CARPET,

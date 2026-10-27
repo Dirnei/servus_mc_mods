@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "D": "minecraft:cyan_dye",
+    "I": "minecraft:iron_ingot",
+    "T": "servus_foundation:fluid_tank"
+  },
+  "pattern": [
+    "IDI",
+    "ITI",
+    "ICI"
+  ],
+  "result": {
+    "id": "servus_shuttles:fluid_inbound"
+  }
+}

@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.registry;
 
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.menu.FieldHeadMenu;
+import io.github.dirnei.mc.servus.shuttles.menu.FluidInboundMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.PackingStationMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.InboundStationMenu;
@@ -66,6 +67,9 @@ public final class ServusShuttlesMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<FluidGantryMenu>> FLUID_GANTRY =
             MENUS.register("fluid_gantry", () -> IMenuTypeExtension.create(FluidGantryMenu::fromNetwork));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<FluidInboundMenu>> FLUID_INBOUND =
+            MENUS.register("fluid_inbound", () -> IMenuTypeExtension.create(FluidInboundMenu::fromNetwork));
 
     private ServusShuttlesMenus() {
     }

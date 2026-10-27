@@ -156,6 +156,18 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_fluid_tank", has(ServusLogisticsItems.FLUID_TANK.get()))
                 .save(output);
 
+        // The Fluid Inbound: a Fluid Tank for its buffer, iron for the steel body, copper for the port, cyan dye for the band.
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.FLUID_INBOUND.get())
+                .pattern("IDI")
+                .pattern("ITI")
+                .pattern("ICI")
+                .define('I', Items.IRON_INGOT)
+                .define('D', Items.CYAN_DYE)
+                .define('C', Items.COPPER_INGOT)
+                .define('T', ServusLogisticsItems.FLUID_TANK.get())
+                .unlockedBy("has_fluid_tank", has(ServusLogisticsItems.FLUID_TANK.get()))
+                .save(output);
+
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.HEAVY_RACK.get(), 3)
                 .pattern("I I")
                 .pattern("PPP")

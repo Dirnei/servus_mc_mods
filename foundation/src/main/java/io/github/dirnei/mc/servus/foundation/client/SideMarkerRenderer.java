@@ -47,6 +47,11 @@ public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity>
         final SideMode[] modes = new SideMode[6];
         final int[] colors = new int[6];
         final int[] frames = new int[6];
+
+        /** Draws nothing on that face this frame, for blocks drawing one layer over two blocks. */
+        public void hide(Direction face) {
+            modes[face.ordinal()] = null;
+        }
     }
 
     public SideMarkerRenderer(BlockEntityRendererProvider.Context context) {

@@ -73,6 +73,7 @@ final class ServusShuttlesBlockStateProvider extends BlockStateProvider {
         simpleBlockItem(ServusShuttlesBlocks.SHUTTLE_WORKSHOP.get(), workshop);
         ShuttleModels.shuttle(this);
         GantryModels.gantry(this, ServusShuttlesBlocks.FLUID_GANTRY.get(), "fluid_gantry");
+        FluidStationModels.station(this, ServusShuttlesBlocks.FLUID_INBOUND.get(), "fluid_inbound");
     }
 
     /**

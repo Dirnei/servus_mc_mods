@@ -6,6 +6,8 @@ import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 import io.github.dirnei.mc.servus.foundation.upgrade.CapacityUpgradeSlots;
 import io.github.dirnei.mc.servus.shuttles.menu.FluidGantryMenu;
+import io.github.dirnei.mc.servus.shuttles.network.FluidActivity;
+import io.github.dirnei.mc.servus.shuttles.network.FluidActivityHolder;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
@@ -52,7 +54,7 @@ import org.jspecify.annotations.Nullable;
  * capacity_per_upgrade} per upgrade. When the block goes away the gantry
  * drops one item that keeps all of it, unless a creative player broke it.
  */
-public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements MenuProvider {
+public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements MenuProvider, FluidActivityHolder {
 
     private static final String[] TANK_KEYS = {"Left", "Right"};
     private static final String[] LOCK_KEYS = {"LeftLock", "RightLock"};
@@ -85,12 +87,8 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
     private @Nullable Shown sent;
     /** Client: what the columns show, as the server last sent it. */
     private Shown shown = Shown.EMPTY;
-    /** Server: the fluid of an Import tank that no Storage tank has room for, null when none waits. */
-    private @Nullable Fluid noRoom;
-    /** Server: whether an Import tank holds fluid that no Tanker shuttle comes for. */
-    private boolean noTanker;
-    /** Server: the fluid a kept Export tank lacks that no Storage tank holds, null when none is missing. */
-    private @Nullable Fluid missing;
+    /** Server: the lamp and why it is red, as the warehouse last set it. */
+    private FluidActivity activity = FluidActivity.IDLE;
 
     /** What clients draw: each column's fluid and fill step out of {@code steps}, and the spout. */
     private record Shown(Fluid left, int leftStep, Fluid right, int rightStep, int steps, @Nullable Fluid leftLock,
@@ -196,36 +194,39 @@ public class FluidGantryBlockEntity extends StorageNodeBlockEntity implements Me
 
     /**
      * Sets what the gantry's activity lamp shows and why it is red: the fluid
-     * that no Storage tank has room for, no Tanker shuttle at all, or the
-     * fluid a kept Export tank lacks that no Storage tank holds. Set by the
-     * warehouse, never by the player.
+     * of an Import tank that no fluid store has room for, no Tanker shuttle at
+     * all, or the fluid a kept Export tank lacks that no fluid store holds.
      */
-    public void setActivity(StorageNodeBlocks.Activity activity, @Nullable Fluid noRoom, boolean noTanker, @Nullable Fluid missing) {
-        this.noRoom = noRoom;
-        this.noTanker = noTanker;
-        this.missing = missing;
+    @Override
+    public void setFluidActivity(FluidActivity activity) {
+        this.activity = activity;
         if (level == null || level.isClientSide()) {
             return;
         }
         BlockState state = getBlockState();
-        if (state.hasProperty(StorageNodeBlocks.ACTIVITY) && state.getValue(StorageNodeBlocks.ACTIVITY) != activity) {
-            level.setBlock(worldPosition, state.setValue(StorageNodeBlocks.ACTIVITY, activity), Block.UPDATE_CLIENTS);
+        if (state.hasProperty(StorageNodeBlocks.ACTIVITY) && state.getValue(StorageNodeBlocks.ACTIVITY) != activity.lamp()) {
+            level.setBlock(worldPosition, state.setValue(StorageNodeBlocks.ACTIVITY, activity.lamp()), Block.UPDATE_CLIENTS);
         }
     }
 
-    /** The fluid that waits because no Storage tank has room for it, null when none does. */
-    public @Nullable Fluid noRoom() {
-        return noRoom;
+    @Override
+    public FluidActivity fluidActivity() {
+        return activity;
     }
 
-    /** The fluid a kept Export tank lacks that no Storage tank holds, null when none is missing. */
+    /** The fluid that waits because no fluid store has room for it, null when none does. */
+    public @Nullable Fluid noRoom() {
+        return activity.noRoom();
+    }
+
+    /** The fluid a kept Export tank lacks that no fluid store holds, null when none is missing. */
     public @Nullable Fluid missing() {
-        return missing;
+        return activity.missing();
     }
 
     /** Whether fluid waits because no Tanker shuttle comes for it. */
     public boolean noTanker() {
-        return noTanker;
+        return activity.noTanker();
     }
 
     /** Switches the mode; the beam's sign follows and pipes beside the legs look again. */
