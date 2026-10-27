@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.registry;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.menu.FieldHeadMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.FluidInboundMenu;
+import io.github.dirnei.mc.servus.shuttles.menu.FluidOutboundMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.PackingStationMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.InboundStationMenu;
@@ -14,7 +15,6 @@ import io.github.dirnei.mc.servus.shuttles.menu.CraftingStationMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.ElevatorMenu;
-import io.github.dirnei.mc.servus.shuttles.menu.FluidGantryMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
@@ -65,11 +65,11 @@ public final class ServusShuttlesMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<FieldHeadMenu>> FIELD_HEAD =
             MENUS.register("field_head", () -> IMenuTypeExtension.create(FieldHeadMenu::fromNetwork));
 
-    public static final DeferredHolder<MenuType<?>, MenuType<FluidGantryMenu>> FLUID_GANTRY =
-            MENUS.register("fluid_gantry", () -> IMenuTypeExtension.create(FluidGantryMenu::fromNetwork));
 
     public static final DeferredHolder<MenuType<?>, MenuType<FluidInboundMenu>> FLUID_INBOUND =
             MENUS.register("fluid_inbound", () -> IMenuTypeExtension.create(FluidInboundMenu::fromNetwork));
+    public static final DeferredHolder<MenuType<?>, MenuType<FluidOutboundMenu>> FLUID_OUTBOUND =
+            MENUS.register("fluid_outbound", () -> IMenuTypeExtension.create(FluidOutboundMenu::fromNetwork));
 
     private ServusShuttlesMenus() {
     }

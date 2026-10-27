@@ -39,8 +39,8 @@ public final class ServusShuttlesClient {
         event.register(ServusShuttlesMenus.FIELD_HEAD.get(), FieldHeadScreen::new);
         event.register(ServusShuttlesMenus.PACKING_STATION.get(), PackingStationScreen::new);
         event.register(ServusShuttlesMenus.ELEVATOR.get(), ElevatorScreen::new);
-        event.register(ServusShuttlesMenus.FLUID_GANTRY.get(), FluidGantryScreen::new);
         event.register(ServusShuttlesMenus.FLUID_INBOUND.get(), FluidInboundScreen::new);
+        event.register(ServusShuttlesMenus.FLUID_OUTBOUND.get(), FluidOutboundScreen::new);
         event.register(ServusShuttlesMenus.WAREHOUSE_CONTROLLER.get(), WarehouseControllerScreen::new);
         event.register(ServusShuttlesMenus.OUTBOUND_STATION.get(), OutboundStationScreen::new);
         event.register(ServusShuttlesMenus.CRAFTING_STATION.get(), CraftingStationScreen::new);
@@ -56,9 +56,9 @@ public final class ServusShuttlesClient {
         event.registerBlockEntityRenderer(ServusShuttlesBlockEntities.HEAVY_RACK.get(), HeavyRackRenderer::new);
         event.registerBlockEntityRenderer(ServusShuttlesBlockEntities.SHUTTLE_GARAGE.get(), ShuttleGarageRenderer::new);
         event.registerBlockEntityRenderer(ServusShuttlesBlockEntities.ELEVATOR.get(), ElevatorRenderer::new);
-        event.registerBlockEntityRenderer(ServusShuttlesBlockEntities.FLUID_GANTRY.get(), FluidGantryRenderer::new);
         event.registerBlockEntityRenderer(ServusShuttlesBlockEntities.FLUID_RACK.get(), FluidRackRenderer::new);
         event.registerBlockEntityRenderer(ServusShuttlesBlockEntities.FLUID_INBOUND.get(), FluidStationRenderer::new);
+        event.registerBlockEntityRenderer(ServusShuttlesBlockEntities.FLUID_OUTBOUND.get(), FluidStationRenderer::new);
     }
 
     /** The Shuttle Workshop draws its shuttle large as a picture in picture. */

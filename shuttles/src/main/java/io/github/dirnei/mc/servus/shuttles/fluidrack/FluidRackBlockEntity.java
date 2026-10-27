@@ -4,7 +4,7 @@ import io.github.dirnei.mc.servus.foundation.block.BlockEntityItems;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
-import io.github.dirnei.mc.servus.shuttles.gantry.GantryLook;
+import io.github.dirnei.mc.servus.shuttles.fluid.FluidLevel;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseEvent;
@@ -148,7 +148,7 @@ public class FluidRackBlockEntity extends StorageNodeBlockEntity {
         }
         FluidRackSectionHandler.Content content = handler.content();
         int steps = ShuttlesStatsManager.INSTANCE.fluidRackLevelSteps();
-        return new Shown(content.fluid().getFluid(), GantryLook.level(content.fluid().getAmount(), content.capacity(), steps), steps);
+        return new Shown(content.fluid().getFluid(), FluidLevel.step(content.fluid().getAmount(), content.capacity(), steps), steps);
     }
 
     /** Client: the fluid the glass front shows, empty when it shows none. */

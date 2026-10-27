@@ -5,8 +5,6 @@ import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwo
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlock;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidInboundBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.gantry.GantryMode;
 import io.github.dirnei.mc.servus.shuttles.menu.FluidInboundMenu;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks.Activity;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
@@ -173,12 +171,12 @@ public final class FluidInboundTankerGameTests {
         });
     }
 
-    /** While a tanker pumps at the station its view carries the coupling toward it; the target gantry takes no coupling. */
+    /** While a tanker pumps at the station and at the rack west of the rail, its view carries the coupling toward them. */
     @ServusGameTest(timeoutTicks = RUN + 20)
     public static void couplingAtStation(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
         FluidInboundBlockEntity station = station(helper);
-        FluidGantryBlockEntity storage = TankerFixtures.gantry(helper, TankerFixtures.FAR, GantryMode.STORAGE);
+        BlockPos[] bays = racks(helper);
         FluidStationFixtures.fill(station, 0, Fluids.WATER, 4000);
         BlockPos garage = helper.absolutePos(TankerFixtures.GARAGE);
         List<Direction> seen = new ArrayList<>();
@@ -186,8 +184,8 @@ public final class FluidInboundTankerGameTests {
             for (ShuttleView view : TankerFixtures.network(helper).shuttleViews(garage)) {
                 view.coupling().map(ShuttleView.Coupling::side).ifPresent(seen::add);
             }
-            return TankerFixtures.total(storage) == 4000 && TankerFixtures.out(helper) == 0;
-        }, RUN, () -> "the water reaches the Storage gantry", () -> {
+            return FluidRackFixtures.amount(helper, bays[0]) == 4000 && TankerFixtures.out(helper) == 0;
+        }, RUN, () -> "the water reaches the rack", () -> {
             helper.assertTrue(!seen.isEmpty() && seen.stream().allMatch(side -> side == FRONT.getOpposite()),
                     "the coupling slid out toward the station, west of the rail, got " + seen);
             helper.assertTrue(station.isEmpty(), "the station is empty");

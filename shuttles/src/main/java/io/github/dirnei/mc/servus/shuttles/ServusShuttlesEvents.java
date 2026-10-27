@@ -6,7 +6,6 @@ import io.github.dirnei.mc.servus.shuttles.packing.WarehouseSupplier;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlock;
-import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlock;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import net.minecraft.network.chat.Component;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
@@ -60,12 +59,9 @@ public final class ServusShuttlesEvents {
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusShuttlesBlockEntities.FIELD_HEAD.get(),
                     (head, side) -> head.fluidHandler());
-            // Every leg of a Fluid Gantry answers for the master, by its mode.
-            event.registerBlock(Capabilities.Fluid.BLOCK, (level, pos, state, entity, side) -> FluidGantryBlock.pipeHandler(level, pos, state),
-                    ServusShuttlesBlocks.FLUID_GANTRY.get());
             // Both halves of a fluid station answer for its Fluids layer; the faces between them are inside the block.
             event.registerBlock(Capabilities.Fluid.BLOCK, (level, pos, state, entity, side) -> FluidStationBlock.sideHandler(level, pos, state, side),
-                    ServusShuttlesBlocks.FLUID_INBOUND.get());
+                    ServusShuttlesBlocks.FLUID_INBOUND.get(), ServusShuttlesBlocks.FLUID_OUTBOUND.get());
             // A rack is a chest for hoppers and pipes only while no rail docks to its section.
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusShuttlesBlockEntities.HEAVY_RACK.get(),
                     (rack, side) -> rack.standalone() ? rack.items() : null);

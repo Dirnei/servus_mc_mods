@@ -15,10 +15,9 @@ import io.github.dirnei.mc.servus.foundation.transfer.FluidSideBlock;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidSideMover;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
-import io.github.dirnei.mc.servus.shuttles.gantry.FluidRole;
-import io.github.dirnei.mc.servus.shuttles.gantry.GantryLook;
+import io.github.dirnei.mc.servus.shuttles.fluid.FluidRole;
+import io.github.dirnei.mc.servus.shuttles.fluid.FluidLevel;
 import io.github.dirnei.mc.servus.shuttles.network.FluidActivity;
-import io.github.dirnei.mc.servus.shuttles.network.FluidActivityHolder;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseConnectionRule.NodeKind;
@@ -50,6 +49,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -62,7 +62,7 @@ import org.jspecify.annotations.Nullable;
  * sits, and its tanks are never stock. Clients learn each tank's fluid and
  * its fill in {@code level_steps} of {@code fluid_rack.json}, and only when that changes.
  */
-public abstract class FluidStationBlockEntity extends StorageNodeBlockEntity implements FluidSideBlock, MenuProvider, FluidActivityHolder {
+public abstract class FluidStationBlockEntity extends StorageNodeBlockEntity implements FluidSideBlock, MenuProvider {
 
     private static final String TANK = "Tank";
     private static final String FLUID_SIDES = "FluidSides";
@@ -96,7 +96,8 @@ public abstract class FluidStationBlockEntity extends StorageNodeBlockEntity imp
         int count = stats.fluidStationTanks();
         List<FluidSlot> slots = new ArrayList<>(count);
         for (int tank = 0; tank < count; tank++) {
-            slots.add(new FluidSlot(stats.fluidStationTankCapacity()) {
+            int index = tank;
+            slots.add(new FluidSlot(stats.fluidStationTankCapacity(), stack -> tankTakes(index, stack)) {
                 @Override
                 protected void onContentsChanged() {
                     contentsChanged();
@@ -116,6 +117,16 @@ public abstract class FluidStationBlockEntity extends StorageNodeBlockEntity imp
 
     /** What the station's tanks are for on a tanker run. */
     public abstract FluidRole role();
+
+    /** Whether a tank takes this fluid at all, by hand, from a side or from a tanker; any fluid by default. */
+    protected boolean tankTakes(int tank, FluidStack stack) {
+        return true;
+    }
+
+    @Override
+    public boolean sideTankAccepts(int tank, FluidResource fluid) {
+        return tankTakes(tank, fluid.toStack(1));
+    }
 
     /** The buffer tanks in index order. */
     public List<FluidSlot> tanks() {
@@ -204,7 +215,7 @@ public abstract class FluidStationBlockEntity extends StorageNodeBlockEntity imp
     }
 
     /** After a side changed: save, refresh the capability caches of both halves and show the markers. */
-    private void sidesChanged() {
+    protected void sidesChanged() {
         setChanged();
         if (level != null && !level.isClientSide()) {
             level.invalidateCapabilities(worldPosition);
@@ -237,7 +248,7 @@ public abstract class FluidStationBlockEntity extends StorageNodeBlockEntity imp
         List<Integer> fill = new ArrayList<>(tanks.size());
         for (FluidSlot tank : tanks) {
             fluids.add(tank.getFluid().getFluid());
-            fill.add(GantryLook.level(tank.getFluidAmount(), tank.getCapacity(), steps));
+            fill.add(FluidLevel.step(tank.getFluidAmount(), tank.getCapacity(), steps));
         }
         return new Shown(List.copyOf(fluids), List.copyOf(fill), steps);
     }
@@ -258,14 +269,14 @@ public abstract class FluidStationBlockEntity extends StorageNodeBlockEntity imp
         return tank < shown.fill().size() ? (float) shown.fill().get(tank) / Math.max(1, shown.steps()) : 0;
     }
 
-    /** Server: pulls through Pull sides at {@code push_interval}, from the neighbours of both halves. */
+    /** Server: moves fluid through Push and Pull sides at {@code push_interval}, with the neighbours of both halves. */
     public static void serverTick(Level level, BlockPos pos, BlockState state, FluidStationBlockEntity station) {
         int interval = ShuttlesStatsManager.INSTANCE.pushInterval();
         FluidSideMover.tick(level, pos, station, interval);
         FluidSideMover.tick(level, station.upperPos(), station, interval);
     }
 
-    @Override
+    /** Sets the activity lamp and the reasons the GUI names; server side, set by the warehouse only. */
     public void setFluidActivity(FluidActivity activity) {
         this.activity = activity;
         if (level == null || level.isClientSide()) {
@@ -278,7 +289,7 @@ public abstract class FluidStationBlockEntity extends StorageNodeBlockEntity imp
         }
     }
 
-    @Override
+    /** The lamp and reasons as the warehouse last set them. */
     public FluidActivity fluidActivity() {
         return activity;
     }

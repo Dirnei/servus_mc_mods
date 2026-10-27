@@ -1,12 +1,17 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.gantry.GantryMode;
+import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlock;
+import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidInboundBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidOutboundBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleModules;
+import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
+import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
+import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -18,17 +23,22 @@ import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
  * A warehouse for tanker runs in GameTests: the controller north of a north
- * to south rail on x 4 from z 2 to 11, a garage east of the rail at z 3 and
- * room for gantries over the rail at z 5, 7 and 9. Positions are relative to the test.
+ * to south rail on x 4 from z 2 to 11 and a garage east of the rail at z 3.
+ * The Fluid Inbound and the Fluid Outbound stand east of the rail facing it,
+ * at z 5 and z 7; Fluid Rack sections of one bay stand west of it facing it,
+ * at z 8 and z 10. Positions are relative to the test.
  */
 final class TankerFixtures {
 
     static final BlockPos CONTROLLER = new BlockPos(4, 1, 1);
     static final BlockPos GARAGE = new BlockPos(5, 1, 3);
-    /** Rails a gantry stands over: the Import one first, then two for Storage. */
-    static final BlockPos IMPORT = new BlockPos(4, 1, 5);
-    static final BlockPos NEAR = new BlockPos(4, 1, 7);
-    static final BlockPos FAR = new BlockPos(4, 1, 9);
+    static final BlockPos INBOUND = new BlockPos(5, 1, 5);
+    static final BlockPos OUTBOUND = new BlockPos(5, 1, 7);
+    /** The port bays of the two one bay sections, the nearer one first. */
+    static final BlockPos NEAR = new BlockPos(3, 1, 8);
+    static final BlockPos FAR = new BlockPos(3, 1, 10);
+    /** The way the stations east of the rail face. */
+    static final Direction STATION_FRONT = Direction.WEST;
 
     private TankerFixtures() {
     }
@@ -36,7 +46,7 @@ final class TankerFixtures {
     /** The controller, the rail and an empty garage. */
     static ShuttleGarageBlockEntity warehouse(GameTestHelper helper) {
         WarehouseFixtures.controller(helper, CONTROLLER);
-        GantryFixtures.railAlongZ(helper, CONTROLLER.getX(), 2, 11);
+        RailFixtures.railAlongZ(helper, CONTROLLER.getX(), 2, 11);
         return WarehouseFixtures.garage(helper, GARAGE, Direction.EAST, 0);
     }
 
@@ -54,25 +64,66 @@ final class TankerFixtures {
         return shuttle;
     }
 
-    /** A gantry over the rail at {@code rail} in that mode. */
-    static FluidGantryBlockEntity gantry(GameTestHelper helper, BlockPos rail, GantryMode mode) {
-        FluidGantryBlockEntity gantry = GantryFixtures.place(helper, rail);
-        gantry.setMode(mode);
-        return gantry;
+    /** The Fluid Inbound at {@link #INBOUND}. */
+    static FluidInboundBlockEntity inbound(GameTestHelper helper) {
+        return FluidStationFixtures.place(helper, INBOUND, STATION_FRONT);
     }
 
-    /** Fills a tank of the gantry with that much of the fluid, as a pipe or a bucket would. */
-    static void fill(FluidGantryBlockEntity gantry, int tank, Fluid fluid, int amount) {
-        gantry.tank(tank).fill(new FluidStack(fluid, amount), false);
+    /** A Fluid Inbound east of the rail at {@code pos}, facing it. */
+    static FluidInboundBlockEntity inbound(GameTestHelper helper, BlockPos pos) {
+        return FluidStationFixtures.place(helper, pos, STATION_FRONT);
     }
 
-    static int amount(FluidGantryBlockEntity gantry, int tank) {
-        return gantry.tank(tank).getFluidAmount();
+    /** The Fluid Outbound at {@link #OUTBOUND}, keeping {@code amount} mB of the fluid in its first tank. */
+    static FluidOutboundBlockEntity outbound(GameTestHelper helper, Fluid fluid, int amount) {
+        return outbound(helper, OUTBOUND, fluid, amount);
     }
 
-    /** What both tanks of the gantry hold together. */
-    static int total(FluidGantryBlockEntity gantry) {
-        return amount(gantry, 0) + amount(gantry, 1);
+    /** A Fluid Outbound east of the rail at {@code pos}, keeping {@code amount} mB of the fluid in its first tank. */
+    static FluidOutboundBlockEntity outbound(GameTestHelper helper, BlockPos pos, Fluid fluid, int amount) {
+        FluidOutboundBlockEntity station = FluidStationFixtures.outbound(helper, pos, STATION_FRONT);
+        station.setKeepFluid(0, fluid);
+        station.stepKeep(0, amount);
+        return station;
+    }
+
+    /** A Fluid Rack section of one bay at {@code bay}, west of the rail and facing it; it settles on the next tick. */
+    static void rack(GameTestHelper helper, BlockPos bay) {
+        FluidRackFixtures.place(helper, bay, Direction.EAST, FluidRackFixtures.item());
+    }
+
+    /** Zones the section of the bay at {@code bay} for that fluid's bucket. */
+    static void zone(GameTestHelper helper, BlockPos bay, Item bucket) {
+        FluidRackBlock.stampSection(helper.getLevel(), helper.absolutePos(bay),
+                new ZoneDefinition("Zone", new ZoneFilter(List.of(new ItemStack(bucket)), List.of())));
+    }
+
+    /** Fills a tank of the station with that much of the fluid, as a pipe or a bucket would. */
+    static void fill(FluidStationBlockEntity station, int tank, Fluid fluid, int amount) {
+        station.tank(tank).fill(new FluidStack(fluid, amount), false);
+    }
+
+    static int amount(FluidStationBlockEntity station, int tank) {
+        return station.tank(tank).getFluidAmount();
+    }
+
+    /** What all tanks of the station hold together. */
+    static int total(FluidStationBlockEntity station) {
+        int total = 0;
+        for (int tank = 0; tank < station.tankCount(); tank++) {
+            total += amount(station, tank);
+        }
+        return total;
+    }
+
+    /** Fills the section of the bay at {@code bay} as a pipe would. */
+    static void fill(GameTestHelper helper, BlockPos bay, Fluid fluid, int amount) {
+        FluidRackFixtures.fill(helper, bay, fluid, amount);
+    }
+
+    /** What the section of the bay at {@code bay} holds. */
+    static int amount(GameTestHelper helper, BlockPos bay) {
+        return FluidRackFixtures.amount(helper, bay);
     }
 
     static WarehouseNetwork network(GameTestHelper helper) {

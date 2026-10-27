@@ -15,6 +15,7 @@
     "servus_shuttles:pattern_storage",
     "servus_shuttles:farm_rail",
     "servus_shuttles:field_head",
-    "servus_shuttles:fluid_inbound"
+    "servus_shuttles:fluid_inbound",
+    "servus_shuttles:fluid_outbound"
   ]
 }

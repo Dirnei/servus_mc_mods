@@ -50,7 +50,7 @@ import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
  * tanker coupling's height reaching into the body, and two lamps in iron
  * sockets. The upper half is a steel body behind {@link FluidStationLook#SLOT_DEPTH}
  * deep window slots, with corner posts and a band in the station's colour
- * at the top. The window row for each tank count (sill, header, steel fins
+ * at the top: teal on the Fluid Inbound, amber on the Fluid Outbound. The window row for each tank count (sill, header, steel fins
  * and a glass pane per window) is a standalone model the renderer draws.
  *
  * <p>Faces where two parts meet are left out on both sides, so no two faces
@@ -68,7 +68,9 @@ final class FluidStationModels {
     private static final Identifier STEEL = Identifier.fromNamespaceAndPath("servus_foundation", "block/electric_pump_steel");
     private static final Identifier GLASS = Identifier.fromNamespaceAndPath("servus_foundation", "block/fluid_tank_glass");
     private static final Identifier COPPER = Identifier.withDefaultNamespace("block/copper_block");
-    private static final Identifier BAND = Identifier.withDefaultNamespace("block/cyan_concrete");
+    /** The bands that tell the stations apart: teal on the Fluid Inbound, amber on the Fluid Outbound. */
+    static final Identifier INBOUND_BAND = Identifier.withDefaultNamespace("block/cyan_concrete");
+    static final Identifier OUTBOUND_BAND = Identifier.withDefaultNamespace("block/orange_concrete");
     private static final Identifier LAMP_DARK = Identifier.withDefaultNamespace("block/gray_concrete");
     private static final Identifier LAMP_CONNECTED = Identifier.withDefaultNamespace("block/light_blue_concrete");
     private static final Identifier LAMP_IDLE = Identifier.withDefaultNamespace("block/lime_concrete");
@@ -93,14 +95,15 @@ final class FluidStationModels {
         }
     }
 
-    static void station(BlockStateProvider provider, Block block, String name) {
-        Identifier iron = provider.modLoc("block/heavy_rack_iron");
-        BlockModelBuilder lower = model(provider, name + "_lower", iron, lower());
-        BlockModelBuilder upper = model(provider, name + "_upper", iron, upper());
+    /** The block states, the halves, the lamps and the item of one station, with its band. */
+    static void station(BlockStateProvider provider, Block block, String name, Identifier band) {
+        Identifier iron = iron(provider);
+        BlockModelBuilder lower = model(provider, name + "_lower", iron, band, lower());
+        BlockModelBuilder upper = model(provider, name + "_upper", iron, band, upper());
         MultiPartBlockStateBuilder builder = provider.getMultipartBuilder(block);
         List<BlockModelBuilder> lamps = new ArrayList<>();
         for (String lamp : new String[] {"off", "idle", "working", "blocked"}) {
-            lamps.add(model(provider, name + "_lamps_" + lamp, iron, lamps(lamp)));
+            lamps.add(model(provider, name + "_lamps_" + lamp, iron, band, lamps(lamp)));
         }
         for (Direction facing : Direction.Plane.HORIZONTAL) {
             int angle = ModelRotations.rotationY(facing);
@@ -117,10 +120,18 @@ final class FluidStationModels {
                         .condition(StorageNodeBlocks.ONLINE, true).condition(StorageNodeBlocks.ACTIVITY, activity);
             }
         }
+        item(provider, name, iron, band);
+    }
+
+    /** The window row for every tank count, shared by all stations and drawn by the renderer. */
+    static void windowRows(BlockStateProvider provider) {
         for (int tanks = 1; tanks <= ShuttlesStatsManager.MAX_FLUID_STATION_TANKS; tanks++) {
-            model(provider, FluidStationLook.windowModel(tanks), iron, windows(tanks));
+            model(provider, FluidStationLook.windowModel(tanks), iron(provider), INBOUND_BAND, windows(tanks));
         }
-        item(provider, name, iron);
+    }
+
+    private static Identifier iron(BlockStateProvider provider) {
+        return provider.modLoc("block/heavy_rack_iron");
     }
 
     /** Body, corner posts, plinth, port flange and lamp sockets. */
@@ -190,15 +201,15 @@ final class FluidStationModels {
         return boxes;
     }
 
-    private static BlockModelBuilder base(BlockStateProvider provider, String model, Identifier iron) {
+    private static BlockModelBuilder base(BlockStateProvider provider, String model, Identifier iron, Identifier band) {
         return provider.models().withExistingParent(model, "minecraft:block/block")
                 .texture("particle", STEEL).texture("steel", STEEL).texture("iron", iron).texture("glass", GLASS)
-                .texture("copper", COPPER).texture("band", BAND).texture("dark", LAMP_DARK).texture("connected", LAMP_CONNECTED)
+                .texture("copper", COPPER).texture("band", band).texture("dark", LAMP_DARK).texture("connected", LAMP_CONNECTED)
                 .texture("idle", LAMP_IDLE).texture("working", LAMP_WORKING).texture("blocked", LAMP_BLOCKED);
     }
 
-    private static BlockModelBuilder model(BlockStateProvider provider, String model, Identifier iron, List<Box> boxes) {
-        BlockModelBuilder builder = base(provider, model, iron);
+    private static BlockModelBuilder model(BlockStateProvider provider, String model, Identifier iron, Identifier band, List<Box> boxes) {
+        BlockModelBuilder builder = base(provider, model, iron, band);
         boxes.forEach(box -> element(builder, box, 0));
         return builder;
     }
@@ -230,8 +241,8 @@ final class FluidStationModels {
     }
 
     /** Both halves with dark lamps and three windows for the item, scaled down in the hand and the GUI. */
-    private static void item(BlockStateProvider provider, String name, Identifier iron) {
-        BlockModelBuilder whole = base(provider, name + "_item", iron);
+    private static void item(BlockStateProvider provider, String name, Identifier iron, Identifier band) {
+        BlockModelBuilder whole = base(provider, name + "_item", iron, band);
         lower().forEach(box -> element(whole, box, 0));
         lamps("off").forEach(box -> element(whole, box, 0));
         upper().forEach(box -> element(whole, box, 16));

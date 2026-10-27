@@ -50,7 +50,6 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.fluids.FluidStack;
 
 /** {@code /servus_warehouse info|zones <pos>} and {@code take <pos> <item> <count>} for the network at a storage block. */
 @EventBusSubscriber(modid = ServusShuttlesIds.MOD_ID)
@@ -593,7 +592,7 @@ public final class ServusShuttlesCommands {
         return sites.size();
     }
 
-    /** The warehouse's fluid stock per fluid, then every Fluid Gantry with its mode and both tanks, then every Fluid Rack section. */
+    /** The warehouse's fluid stock per fluid, then every Fluid Rack section. */
     private static int fluids(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
         CommandSourceStack source = context.getSource();
@@ -607,22 +606,6 @@ public final class ServusShuttlesCommands {
         for (Map.Entry<FluidKey, Long> entry : totals) {
             say(source, "  - " + entry.getKey().stack(1).getHoverName().getString() + ": " + entry.getValue() + " mB in "
                     + warehouse.fluidIndex().sourcesHolding(entry.getKey()).size() + " tanks");
-        }
-        List<BlockPos> gantries = warehouse.gantries();
-        say(source, gantries.isEmpty() ? "No Fluid Gantries" : "Fluid Gantries:");
-        for (BlockPos gantry : gantries) {
-            StringBuilder line = new StringBuilder("  - ").append(gantry.toShortString());
-            List<WarehouseNetwork.TankView> tanks = warehouse.tankViews(gantry);
-            if (!tanks.isEmpty()) {
-                line.append(", ").append(lower(tanks.getFirst().mode()));
-            }
-            for (WarehouseNetwork.TankView tank : tanks) {
-                line.append(tank.ref().tank() == 0 ? "; left " : "; right ")
-                        .append(tank.fluid().isEmpty() ? "empty" : tank.fluid().getHoverName().getString() + " " + tank.fluid().getAmount())
-                        .append(" / ").append(tank.capacity()).append(" mB, lock ")
-                        .append(tank.lock().map(fluid -> new FluidStack(fluid, 1).getHoverName().getString()).orElse("Any"));
-            }
-            say(source, line.toString());
         }
         List<WarehouseNetwork.TankView> racks = warehouse.rackViews();
         say(source, racks.isEmpty() ? "No Fluid Racks" : "Fluid Rack sections:");

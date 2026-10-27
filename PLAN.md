@@ -212,7 +212,7 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - Shuttles meeting head on pass through each other; passing places or one way aisles if play tests ask for them.
 - A way to unload a shuttle parked with cargo by hand; today only Recall empties it, dropping the cargo at the garage.
 - Stock reserved by open work orders in the terminal's requestable count, if play tests ask for it (today only locked picks lower it).
-- Field Head amounts and Fluid Gantry keep steps on the Foundation widgets.
+- Field Head amounts and Fluid Outbound keep steps on the Foundation widgets.
 - Field kinds beyond crops and trees: Crimson and Warped fungi on nylium first.
 - Mangrove tree fields: lumber fields do not plant or fell mangroves with their roots yet.
 - SEND and KEEP rules between sites in the controller GUI (the local min/max stock rules join the same list) and an In transit view.
@@ -228,13 +228,12 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 
 ### Open: M13 Fluid logistics
 
-Shuttles carry fluids between Fluid Gantries (built 2026-10-20). Still open in M13:
+Tanker shuttles carry fluids from Fluid Inbounds to Fluid Racks and from Fluid Racks to Fluid Outbounds. Still open in M13:
 
 - Fluids in the Storage Terminal.
 - Water runs to Field Heads.
 - Fluids in requests, stock rules and work orders.
 - A redstone tank sensor.
-- An Export gantry that no Tanker shuttle reaches shows no red lamp yet (Import gantries do).
 
 ---
 

@@ -89,8 +89,7 @@ public class RailBlock extends ConnectableBlock implements PotatoInspectable {
         if (neighborState.getBlock() instanceof RailBlock || neighborState.getBlock() instanceof ElevatorBlock) {
             return true;
         }
-        return docksTo(level, neighborPos, direction)
-                && level.getBlockEntity(neighborPos) instanceof StorageNodeBlockEntity node && node.bendsRail();
+        return docksTo(level, neighborPos, direction);
     }
 
     /** Whether the neighbour is a storage block, station or garage that takes a rail on the side facing this rail. */

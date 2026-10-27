@@ -144,18 +144,6 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_rail", has(ServusShuttlesItems.RAIL.get()))
                 .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
-        // The Fluid Gantry: two Fluid Tanks for the legs, a copper ingot for the spout, the rail it stands over.
-        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.FLUID_GANTRY.get())
-                .pattern("ICI")
-                .pattern("T T")
-                .pattern("IRI")
-                .define('I', Items.IRON_INGOT)
-                .define('C', Items.COPPER_INGOT)
-                .define('T', ServusLogisticsItems.FLUID_TANK.get())
-                .define('R', ServusShuttlesItems.RAIL.get())
-                .unlockedBy("has_fluid_tank", has(ServusLogisticsItems.FLUID_TANK.get()))
-                .save(output);
-
         // The Fluid Inbound: a Fluid Tank for its buffer, iron for the steel body, copper for the port, cyan dye for the band.
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.FLUID_INBOUND.get())
                 .pattern("IDI")
@@ -163,6 +151,18 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .pattern("ICI")
                 .define('I', Items.IRON_INGOT)
                 .define('D', Items.CYAN_DYE)
+                .define('C', Items.COPPER_INGOT)
+                .define('T', ServusLogisticsItems.FLUID_TANK.get())
+                .unlockedBy("has_fluid_tank", has(ServusLogisticsItems.FLUID_TANK.get()))
+                .save(output);
+
+        // The Fluid Outbound: the Fluid Inbound's pattern with orange dye for its amber band.
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.FLUID_OUTBOUND.get())
+                .pattern("IDI")
+                .pattern("ITI")
+                .pattern("ICI")
+                .define('I', Items.IRON_INGOT)
+                .define('D', Items.ORANGE_DYE)
                 .define('C', Items.COPPER_INGOT)
                 .define('T', ServusLogisticsItems.FLUID_TANK.get())
                 .unlockedBy("has_fluid_tank", has(ServusLogisticsItems.FLUID_TANK.get()))

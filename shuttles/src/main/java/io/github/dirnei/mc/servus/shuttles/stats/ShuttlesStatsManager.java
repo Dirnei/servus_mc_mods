@@ -86,10 +86,6 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final int DEFAULT_MAX_TREE_BLOCKS = 1000;
     public static final int DEFAULT_HARVEST_LIMIT = 0;
     public static final int DEFAULT_FERTILIZE_BELOW = 0;
-    public static final int DEFAULT_GANTRY_TANK_CAPACITY = 16000;
-    public static final int DEFAULT_GANTRY_CAPACITY_PER_UPGRADE = 16000;
-    public static final int DEFAULT_GANTRY_UPGRADE_SLOTS = 4;
-    public static final int DEFAULT_GANTRY_LEVEL_STEPS = 32;
     public static final int DEFAULT_TANKER_PUMP_TICKS = 40;
     public static final int DEFAULT_FLUID_RACK_CAPACITY_PER_BAY = 16000;
     public static final int DEFAULT_FLUID_RACK_BAYS_PER_SECTION = 3;
@@ -113,7 +109,6 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private static final Identifier SHUTTLE = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "shuttle");
     private static final Identifier FIELD = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "field");
     private static final Identifier POWER = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "power");
-    private static final Identifier GANTRY = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "gantry");
     private static final Identifier FLUID_RACK = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "fluid_rack");
 
     public static final ShuttlesStatsManager INSTANCE = new ShuttlesStatsManager();
@@ -184,10 +179,6 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private volatile int maxTreeBlocks = DEFAULT_MAX_TREE_BLOCKS;
     private volatile int harvestLimit = DEFAULT_HARVEST_LIMIT;
     private volatile int fertilizeBelow = DEFAULT_FERTILIZE_BELOW;
-    private volatile int gantryTankCapacity = DEFAULT_GANTRY_TANK_CAPACITY;
-    private volatile int gantryCapacityPerUpgrade = DEFAULT_GANTRY_CAPACITY_PER_UPGRADE;
-    private volatile int gantryUpgradeSlots = DEFAULT_GANTRY_UPGRADE_SLOTS;
-    private volatile int gantryLevelSteps = DEFAULT_GANTRY_LEVEL_STEPS;
     private volatile int tankerPumpTicks = DEFAULT_TANKER_PUMP_TICKS;
     private volatile int fluidRackCapacityPerBay = DEFAULT_FLUID_RACK_CAPACITY_PER_BAY;
     private volatile int fluidRackBaysPerSection = DEFAULT_FLUID_RACK_BAYS_PER_SECTION;
@@ -272,10 +263,6 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         maxTreeBlocks = intField(files.get(FIELD), "max_tree_blocks", DEFAULT_MAX_TREE_BLOCKS);
         harvestLimit = countField(files.get(FIELD), "harvest_limit", DEFAULT_HARVEST_LIMIT);
         fertilizeBelow = countField(files.get(FIELD), "fertilize_below", DEFAULT_FERTILIZE_BELOW);
-        gantryTankCapacity = intField(files.get(GANTRY), "tank_capacity", DEFAULT_GANTRY_TANK_CAPACITY);
-        gantryCapacityPerUpgrade = countField(files.get(GANTRY), "capacity_per_upgrade", DEFAULT_GANTRY_CAPACITY_PER_UPGRADE);
-        gantryUpgradeSlots = countField(files.get(GANTRY), "upgrade_slots", DEFAULT_GANTRY_UPGRADE_SLOTS);
-        gantryLevelSteps = intField(files.get(GANTRY), "level_steps", DEFAULT_GANTRY_LEVEL_STEPS);
         tankerPumpTicks = intField(files.get(WAREHOUSE), "tanker_pump_ticks", DEFAULT_TANKER_PUMP_TICKS);
         fluidRackCapacityPerBay = intField(files.get(FLUID_RACK), "capacity_per_bay", DEFAULT_FLUID_RACK_CAPACITY_PER_BAY);
         fluidRackBaysPerSection = intField(files.get(FLUID_RACK), "bays_per_section", DEFAULT_FLUID_RACK_BAYS_PER_SECTION);
@@ -722,26 +709,6 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         return shuttleTiers;
     }
 
-    /** mB a Fluid Gantry tank holds without Capacity Upgrades. */
-    public int gantryTankCapacity() {
-        return gantryTankCapacity;
-    }
-
-    /** mB each Capacity Upgrade adds to both tanks of a gantry. */
-    public int gantryCapacityPerUpgrade() {
-        return gantryCapacityPerUpgrade;
-    }
-
-    /** Capacity Upgrade slots of a gantry. */
-    public int gantryUpgradeSlots() {
-        return gantryUpgradeSlots;
-    }
-
-    /** Steps in which clients learn the fill of a gantry tank column. */
-    public int gantryLevelSteps() {
-        return gantryLevelSteps;
-    }
-
     /** Ticks a tanker stops at a fluid store to take or put fluid, before Handling. */
     public int tankerPumpTicks() {
         return tankerPumpTicks;
@@ -762,12 +729,12 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         return fluidRackLevelSteps;
     }
 
-    /** Ticks between two looks of a warehouse at its Import gantries. */
+    /** Ticks between two looks of a warehouse at its fluid stations. */
     public int fluidCheckInterval() {
         return fluidCheckInterval;
     }
 
-    /** mB an Import gantry tank holds before a tanker run starts for it, unless it is full. */
+    /** mB a Fluid Inbound tank holds before a tanker run starts for it, unless it is full. */
     public int tankerMinLoad() {
         return tankerMinLoad;
     }

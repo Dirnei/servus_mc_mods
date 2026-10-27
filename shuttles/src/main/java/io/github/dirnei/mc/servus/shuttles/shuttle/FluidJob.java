@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.shuttle;
 
 import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork.FluidKey;
-import io.github.dirnei.mc.servus.shuttles.gantry.FluidRole;
-import io.github.dirnei.mc.servus.shuttles.gantry.FluidStoreRef;
+import io.github.dirnei.mc.servus.shuttles.fluid.FluidRole;
+import io.github.dirnei.mc.servus.shuttles.fluid.FluidStoreRef;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.JobNeeds;
 import net.minecraft.core.BlockPos;
 
@@ -12,9 +12,9 @@ import net.minecraft.core.BlockPos;
  * put-away brings what is still left back to its source, a restock loses it.
  *
  * @param id         the job's id, unique in the world
- * @param source     the master of the gantry the fluid comes from, the port bay of a Fluid Rack section or the lower half of a Fluid Inbound
- * @param sourceTank its tank: 0 left and 1 right on a gantry, the tank index on a Fluid Inbound, or {@link FluidStoreRef#RACK}
- * @param target     the master of the gantry or the port bay of the section the fluid goes to first
+ * @param source     the port bay of a Fluid Rack section or the lower half of a fluid station
+ * @param sourceTank its tank: the tank index on a fluid station, or {@link FluidStoreRef#RACK}
+ * @param target     the port bay of the section or the lower half of the station the fluid goes to first
  * @param targetTank its tank
  * @param key        the fluid
  * @param amount     how much at most; a shuttle that carries less takes less

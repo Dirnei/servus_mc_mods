@@ -6,7 +6,7 @@ import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.shuttles.field.FieldCargo;
 import io.github.dirnei.mc.servus.shuttles.field.FieldKind;
-import io.github.dirnei.mc.servus.shuttles.gantry.FluidStoreRef;
+import io.github.dirnei.mc.servus.shuttles.fluid.FluidStoreRef;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.shuttle.Shuttle.Load;
 import java.util.ArrayList;

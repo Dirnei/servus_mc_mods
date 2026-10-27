@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.fluidstation;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.side.TankRole;
-import io.github.dirnei.mc.servus.shuttles.gantry.FluidRole;
+import io.github.dirnei.mc.servus.shuttles.fluid.FluidRole;
 import io.github.dirnei.mc.servus.shuttles.menu.FluidInboundMenu;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
 import net.minecraft.core.BlockPos;

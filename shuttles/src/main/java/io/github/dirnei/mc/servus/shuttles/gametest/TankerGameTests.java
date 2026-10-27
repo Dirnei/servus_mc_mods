@@ -1,8 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.gantry.GantryMode;
+import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidInboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
@@ -69,17 +68,17 @@ public final class TankerGameTests {
         });
     }
 
-    /** A shuttle without a Tanker never collects from an Import gantry. */
+    /** A shuttle without a Tanker never collects from a Fluid Inbound. */
     @ServusGameTest(timeoutTicks = 200)
     public static void toolessShuttleTakesNoTankerRun(GameTestHelper helper) {
         ShuttleGarageBlockEntity garage = TankerFixtures.warehouse(helper);
         garage.shuttles().setStackInSlot(0, new ItemStack(ServusShuttlesItems.SHUTTLE_MK1.get()));
-        FluidGantryBlockEntity source = TankerFixtures.gantry(helper, TankerFixtures.IMPORT, GantryMode.IMPORT);
-        FluidGantryBlockEntity target = TankerFixtures.gantry(helper, TankerFixtures.FAR, GantryMode.STORAGE);
+        FluidInboundBlockEntity source = TankerFixtures.inbound(helper);
+        TankerFixtures.rack(helper, TankerFixtures.FAR);
         TankerFixtures.fill(source, 0, Fluids.WATER, 2000);
         helper.runAfterDelay(150, () -> {
-            helper.assertTrue(TankerFixtures.amount(source, 0) == 2000, "the water stays in the Import gantry");
-            helper.assertTrue(TankerFixtures.total(target) == 0, "the Storage gantry gets nothing");
+            helper.assertTrue(TankerFixtures.amount(source, 0) == 2000, "the water stays in the Inbound");
+            helper.assertTrue(TankerFixtures.amount(helper, TankerFixtures.FAR) == 0, "the rack gets nothing");
             helper.assertTrue(TankerFixtures.out(helper) == 0, "the shuttle stays home");
             helper.succeed();
         });

@@ -146,7 +146,6 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.storage.no_racks", "Items: no racks");
         add("gui.servus_shuttles.storage.no_fluid_storage", "Fluids: no fluid storage");
         add("gui.servus_shuttles.storage.bays", "%s rack bays");
-        add("gui.servus_shuttles.storage.gantries", "%s Storage gantries");
         add("gui.servus_shuttles.storage.fluid_racks", "%s Fluid Rack sections");
         add("gui.servus_shuttles.storage.full_zones", "Full: %s");
         add("gui.servus_shuttles.storage.no_zone", "(no zone)");
@@ -388,7 +387,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("subtitles.servus_shuttles.crane.down", "Crane folds in");
         add("subtitles.servus_shuttles.hold.walls_up", "Stabilizers rise");
         add("subtitles.servus_shuttles.hold.doors_shut", "Hold doors shut");
-        add("tooltip.servus_shuttles.module.tanker", "Carries fluids between Fluid Gantries; tanker runs only");
+        add("tooltip.servus_shuttles.module.tanker", "Carries fluids from Fluid Inbounds to Fluid Racks and from Fluid Racks to Fluid Outbounds; tanker runs only");
         add(ServusShuttlesItems.ZONE_LABEL.get(), "Zone Label");
         add("gui.servus_shuttles.production.pattern_recipe", "%s %s from %s");
         add("message.servus_shuttles.pattern_storage.count", "%s of %s patterns");
@@ -656,57 +655,31 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.zone_label.items", "Items this zone takes");
         add("gui.servus_shuttles.zone_label.tags", "Tags");
         add("gui.servus_shuttles.zone_label.tags_hint", "tags, comma separated, for example c:ores");
-        fluidGantry();
-        fluidInbound();
+        fluidStations();
+        tooltipsAndReports();
     }
 
-    private void fluidInbound() {
+    private void fluidStations() {
         add(ServusShuttlesBlocks.FLUID_INBOUND.get(), "Fluid Inbound");
+        add(ServusShuttlesBlocks.FLUID_OUTBOUND.get(), "Fluid Outbound");
         add("message.servus_shuttles.fluid_station.no_room", "No room: the station is two blocks tall");
         add("message.servus_shuttles.fluid_station.no_footing", "The station needs solid ground");
         add("gui.servus_shuttles.fluid_station.state.no_room", "No fluid store has room for %s: it waits here");
         add("gui.servus_shuttles.fluid_station.state.no_tanker", "No Tanker shuttle reaches this station: the fluid waits here");
         add("message.servus_shuttles.potato.fluid_station_tank", "Tank %s: %s, %s of %s mB");
         add("message.servus_shuttles.potato.fluid_station_empty", "Tank %s: empty, holds %s mB");
+        add("message.servus_shuttles.potato.fluid_station_keeps", ", keeps %s mB of %s");
+        add("message.servus_shuttles.potato.fluid_station_keeps_nothing", ", keeps nothing");
+        add("gui.servus_shuttles.fluid_station.state.missing", "No Fluid Rack holds %s: the kept tank is not restocked");
+        add("gui.servus_shuttles.fluid_outbound.keep_cell", "Keeps %s. Click with an empty hand to keep nothing");
+        add("gui.servus_shuttles.fluid_outbound.keep_cell.empty",
+                "Keeps nothing. Click with a filled bucket or tank to keep its fluid here; tankers restock it to the amount below");
+        add("gui.servus_shuttles.fluid_outbound.keep_amount", "%s B");
     }
 
-    private void fluidGantry() {
-        add(ServusShuttlesBlocks.FLUID_GANTRY.get(), "Fluid Gantry");
-        add("message.servus_shuttles.fluid_gantry.needs_rail", "The Fluid Gantry goes on a Warehouse Rail");
-        add("message.servus_shuttles.fluid_gantry.needs_straight_rail", "The Fluid Gantry needs a straight rail: no curve, crossing or dock across it");
-        add("message.servus_shuttles.fluid_gantry.no_room", "No room: the gantry needs both sides of the rail and the space above, two blocks tall");
-        add("message.servus_shuttles.fluid_gantry.no_footing", "Both legs of the gantry need solid ground");
-        add("message.servus_shuttles.fluid_gantry.no_rail_room", "No room for the gantry's rail: the space on top of the block is taken");
+    private void tooltipsAndReports() {
         add("tooltip.servus_shuttles.warehouse_controller.site", "Site: %s");
         add("tooltip.servus_shuttles.warehouse_controller.energy", "%s FE stored");
-        add("tooltip.servus_shuttles.fluid_gantry.tank_0", "Left tank: %s");
-        add("tooltip.servus_shuttles.fluid_gantry.tank_1", "Right tank: %s");
-        add("tooltip.servus_shuttles.fluid_gantry.amount", "%s, %s mB");
-        add("tooltip.servus_shuttles.fluid_gantry.empty", "empty");
-        add("tooltip.servus_shuttles.fluid_gantry.mode", "Mode: %s");
-        add("gui.servus_shuttles.fluid_gantry.mode.storage", "Storage");
-        add("gui.servus_shuttles.fluid_gantry.mode.import", "Import");
-        add("gui.servus_shuttles.fluid_gantry.mode.export", "Export");
-        add("gui.servus_shuttles.fluid_gantry.mode_button", "Mode: %s");
-        add("gui.servus_shuttles.fluid_gantry.mode_button.tooltip", "Storage keeps fluid stock for the warehouse; Import and Export are docks for pipes. Click to switch.");
-        add("gui.servus_shuttles.fluid_gantry.tank_0", "Left");
-        add("gui.servus_shuttles.fluid_gantry.tank_1", "Right");
-        add("gui.servus_shuttles.fluid_gantry.lock_picker", "Lock this tank to");
-        add("gui.servus_shuttles.fluid_gantry.lock_any", "Any fluid");
-        add("gui.servus_shuttles.fluid_gantry.lock_content", "Lock to content");
-        add("gui.servus_shuttles.fluid_gantry.upgrades", "Capacity Upgrades");
-        add("gui.servus_shuttles.fluid_gantry.upgrades.tooltip", "Each Capacity Upgrade makes both tanks bigger. One comes out only while the tanks would still fit without it.");
-        add("gui.servus_shuttles.fluid_gantry.state.storage", "Storage: fluid stock of the warehouse, no pipes reach the tanks");
-        add("gui.servus_shuttles.fluid_gantry.state.import", "Import: pipes fill the tanks and get nothing back");
-        add("gui.servus_shuttles.fluid_gantry.state.export", "Export: pipes drain the tanks and put nothing in");
-        add("gui.servus_shuttles.fluid_gantry.state.mismatch", "%s tank holds %s but is locked to %s: it takes no more");
-        add("gui.servus_shuttles.fluid_gantry.state.upgrade_refused", "This upgrade cannot come out: the content would no longer fit");
-        add("gui.servus_shuttles.fluid_gantry.state.no_room", "No Storage tank has room for %s: it waits here");
-        add("gui.servus_shuttles.fluid_gantry.state.missing", "No Storage tank holds %s: the kept tank is not restocked");
-        add("gui.servus_shuttles.fluid_gantry.keep", "Keep: %s B");
-        add("gui.servus_shuttles.fluid_gantry.keep.tooltip", "Tanker shuttles fill this tank from Storage gantries up to the keep level. Steps of 1 B and 10 B.");
-        add("gui.servus_shuttles.fluid_gantry.keep.needs_lock", "Lock this tank to a fluid to keep a level in it.");
-        add("gui.servus_shuttles.fluid_gantry.state.no_tanker", "No Tanker shuttle reaches this gantry: the fluid waits here");
         add("message.servus_shuttles.potato.rack_zone", "Rack section, zone: %s");
         add("message.servus_shuttles.potato.rack_no_zone", "Rack section, no zone");
         add("message.servus_shuttles.potato.rack_slots", "%s bays: %s / %s slots used");
@@ -720,12 +693,9 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("message.servus_shuttles.potato.fluid_rack_empty", "Empty, holds %s mB");
         add("message.servus_shuttles.potato.fluid_rack_docked", "Docked: only tankers serve it");
         add("message.servus_shuttles.potato.fluid_rack_standalone", "Not docked: pipes fill and drain it");
-        add("message.servus_shuttles.potato.gantry_mode", "Fluid Gantry, %s");
         add("message.servus_shuttles.potato.station_site", "Site: %s");
         add("message.servus_shuttles.potato.station_online", "Online");
         add("message.servus_shuttles.potato.station_offline", "Offline: %s");
-        add("message.servus_shuttles.potato.gantry_tank", "%s tank: %s, lock: %s");
-        add("message.servus_shuttles.potato.gantry_any", "Any");
         add("message.servus_shuttles.potato.shuttle_line", "%s: %s");
         add("message.servus_shuttles.potato.shuttle_chain", "  then %s: %s");
         add("message.servus_shuttles.potato.shuttle_cycle", "  These shuttles wait for each other");

@@ -25,11 +25,11 @@ import io.github.dirnei.mc.servus.shuttles.field.FieldSupplyStockPayload;
 import io.github.dirnei.mc.servus.shuttles.field.FieldWorkerPayload;
 import io.github.dirnei.mc.servus.shuttles.field.SetFieldAmountPayload;
 import io.github.dirnei.mc.servus.shuttles.field.TreeFallPayload;
-import io.github.dirnei.mc.servus.shuttles.gantry.SetGantryLockPayload;
+import io.github.dirnei.mc.servus.shuttles.fluidstation.SetFluidKeepPayload;
 import io.github.dirnei.mc.servus.shuttles.garage.GarageStrandedPayload;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotLocksPayload;
 import io.github.dirnei.mc.servus.shuttles.menu.FieldHeadMenu;
-import io.github.dirnei.mc.servus.shuttles.menu.FluidGantryMenu;
+import io.github.dirnei.mc.servus.shuttles.menu.FluidOutboundMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.LockedMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.ProductionTerminalMenu;
@@ -121,8 +121,8 @@ public final class ServusShuttlesPayloads {
                 (player, menu, payload) -> menu.setName(payload.name()));
         toMenu(registrar, SetLabelTagsPayload.TYPE, SetLabelTagsPayload.STREAM_CODEC, ZoneLabelMenu.class,
                 (player, menu, payload) -> menu.setTags(payload.line()));
-        toMenu(registrar, SetGantryLockPayload.TYPE, SetGantryLockPayload.STREAM_CODEC, FluidGantryMenu.class,
-                (player, menu, payload) -> menu.setLock(payload.tank(), payload.kind(), payload.fluid()));
+        toMenu(registrar, SetFluidKeepPayload.TYPE, SetFluidKeepPayload.STREAM_CODEC, FluidOutboundMenu.class,
+                (player, menu, payload) -> menu.setKeepFromCarried(payload.tank()));
         registerTerminalRequests(registrar);
     }
 

@@ -3,6 +3,8 @@ package io.github.dirnei.mc.servus.shuttles.gametest;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidInboundBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidOutboundBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -24,7 +26,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
-/** Fluid Inbounds for GameTests. Positions are relative to the test; a station's position is its lower half. */
+/** Fluid Inbounds and Fluid Outbounds for GameTests. Positions are relative to the test; a station's position is its lower half. */
 final class FluidStationFixtures {
 
     private FluidStationFixtures() {
@@ -32,6 +34,10 @@ final class FluidStationFixtures {
 
     static ItemStack item() {
         return new ItemStack(ServusShuttlesItems.FLUID_INBOUND.get());
+    }
+
+    static ItemStack outboundItem() {
+        return new ItemStack(ServusShuttlesItems.FLUID_OUTBOUND.get());
     }
 
     /** Uses the station item at {@code pos} as a player looking at its front would, so its front faces {@code facing}. */
@@ -51,6 +57,17 @@ final class FluidStationFixtures {
         return station(helper, pos);
     }
 
+    /** Stone under {@code pos} and a Fluid Outbound item used there; returns the placed station. */
+    static FluidOutboundBlockEntity outbound(GameTestHelper helper, BlockPos pos, Direction facing, ItemStack stack) {
+        WarehouseFixtures.stone(helper, pos.below());
+        use(helper, pos, facing, stack);
+        return helper.getBlockEntity(pos, FluidOutboundBlockEntity.class);
+    }
+
+    static FluidOutboundBlockEntity outbound(GameTestHelper helper, BlockPos pos, Direction facing) {
+        return outbound(helper, pos, facing, outboundItem());
+    }
+
     static FluidInboundBlockEntity place(GameTestHelper helper, BlockPos pos, Direction facing) {
         return place(helper, pos, facing, item());
     }
@@ -60,12 +77,12 @@ final class FluidStationFixtures {
     }
 
     /** Fills a tank of the station with that much of the fluid, as a test setup. */
-    static void fill(FluidInboundBlockEntity station, int tank, Fluid fluid, int amount) {
+    static void fill(FluidStationBlockEntity station, int tank, Fluid fluid, int amount) {
         station.tank(tank).fill(new FluidStack(fluid, amount), false);
     }
 
     /** Sets a side's mode and tank choice by cycling, as panel clicks do. */
-    static void setSide(FluidInboundBlockEntity station, RelativeSide side, SideMode mode, int tank) {
+    static void setSide(FluidStationBlockEntity station, RelativeSide side, SideMode mode, int tank) {
         while (station.fluidSides().mode(side) != mode) {
             station.cycleFluidMode(side);
         }
@@ -78,9 +95,10 @@ final class FluidStationFixtures {
         return helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), side);
     }
 
-    /** The Fluid Inbound items lying within two blocks of {@code pos}. */
+    /** The Fluid Inbound and Fluid Outbound items lying within two blocks of {@code pos}. */
     static List<ItemStack> dropped(GameTestHelper helper, BlockPos pos) {
         return helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(pos)).inflate(2)).stream()
-                .map(ItemEntity::getItem).filter(stack -> stack.is(ServusShuttlesItems.FLUID_INBOUND.get())).toList();
+                .map(ItemEntity::getItem)
+                .filter(stack -> stack.is(ServusShuttlesItems.FLUID_INBOUND.get()) || stack.is(ServusShuttlesItems.FLUID_OUTBOUND.get())).toList();
     }
 }

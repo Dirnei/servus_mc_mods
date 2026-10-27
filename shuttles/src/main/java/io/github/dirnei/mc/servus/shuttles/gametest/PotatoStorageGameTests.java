@@ -5,8 +5,6 @@ import io.github.dirnei.mc.servus.foundation.gametest.PlayerClicks;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.gantry.FluidGantryBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.gantry.GantryMode;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.outbound.OutboundStationBlockEntity;
@@ -28,7 +26,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
 
-/** The Data Potato on storage: the section report of a rack, the tank report of a Fluid Gantry and the station report. */
+/** The Data Potato on storage: the section report of a rack and the station report. */
 public final class PotatoStorageGameTests {
 
     private static final String KEY = "message.servus_shuttles.potato.";
@@ -101,43 +99,6 @@ public final class PotatoStorageGameTests {
         helper.assertTrue(none[0].equals(1) && none[1].equals(0) && none[2].equals(bay), "1 bay, 0 of " + bay + ", got " + List.of(none));
         args(helper, chat.get(2), "rack_empty");
         helper.assertTrue(empty.isEmpty(), "the bay stays empty");
-        helper.succeed();
-    }
-
-    /** A Storage gantry with one upgrade, water locked left and an empty right tank on Any, clicked on the beam and on a leg. */
-    @ServusGameTest(timeoutTicks = 60)
-    public static void potatoReportsGantry(GameTestHelper helper) {
-        GantryFixtures.railAlongZ(helper, RAIL.getX(), 2, 6);
-        FluidGantryBlockEntity gantry = GantryFixtures.place(helper, RAIL);
-        gantry.upgrades().setStackInSlot(0, new ItemStack(ServusFoundationItems.CAPACITY_UPGRADE.get()));
-        gantry.setLock(0, Fluids.WATER);
-        gantry.tank(0).fill(new FluidStack(Fluids.WATER, 12000), false);
-        int capacity = gantry.tank(0).getCapacity();
-
-        List<Component> chat = new ArrayList<>();
-        BlockPos beam = RAIL.above();
-        ServerPlayer player = potatoPlayer(helper, beam, chat);
-        PlayerClicks.use(helper, player, beam);
-        helper.assertTrue(chat.size() == 3, "mode and two tanks, got " + chat);
-        helper.assertTrue(text(args(helper, chat.get(0), "gantry_mode")[0]).equals("gui.servus_shuttles.fluid_gantry.mode.storage"), "the mode is Storage");
-        Object[] left = args(helper, chat.get(1), "gantry_tank");
-        Object[] content = ((TranslatableContents) ((Component) left[1]).getContents()).getArgs();
-        helper.assertTrue(content[1].equals(12000) && content[2].equals(capacity), "left holds 12,000 of " + capacity + ", got " + List.of(content));
-        helper.assertTrue(text(left[2]).equals(Fluids.WATER.getFluidType().getDescriptionId()), "left is locked to water, got " + text(left[2]));
-        Object[] right = args(helper, chat.get(2), "gantry_tank");
-        helper.assertTrue(((TranslatableContents) ((Component) right[1]).getContents()).getKey().equals("message.servus_foundation.fluid_tank.empty"),
-                "the right tank is empty");
-        helper.assertTrue(text(right[2]).equals(KEY + "gantry_any"), "the right tank is on Any");
-        helper.assertTrue(player.containerMenu == player.inventoryMenu, "no GUI opens from the beam");
-
-        chat.clear();
-        BlockPos leg = RAIL.east();
-        ServerPlayer legPlayer = potatoPlayer(helper, leg, chat);
-        PlayerClicks.use(helper, legPlayer, leg);
-        helper.assertTrue(chat.size() == 3, "a leg gives the same report, got " + chat);
-        helper.assertTrue(legPlayer.containerMenu == legPlayer.inventoryMenu, "no GUI opens from a leg");
-        helper.assertTrue(gantry.mode() == GantryMode.STORAGE && gantry.lock(0) == Fluids.WATER && gantry.lock(1) == null
-                && gantry.tank(0).getFluidAmount() == 12000, "nothing changed");
         helper.succeed();
     }
 

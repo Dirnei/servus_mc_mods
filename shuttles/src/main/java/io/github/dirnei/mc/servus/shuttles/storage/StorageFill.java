@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * How full a warehouse is: rack slots in use against all rack slots, per
- * zone, and the fluid in its Storage gantries against their capacity. Pure Java.
+ * zone, and the fluid in its Fluid Rack sections against their capacity. Pure Java.
  */
 public final class StorageFill {
 
@@ -29,7 +29,7 @@ public final class StorageFill {
     public record Bay(String zoneKey, String zoneName, int used, int total) {
     }
 
-    /** One Storage gantry tank: mB held and mB it holds at most. */
+    /** One Fluid Rack section: mB held and mB it holds at most. */
     public record Tank(long amount, long capacity) {
     }
 
@@ -56,9 +56,9 @@ public final class StorageFill {
      * @param items         slots in use and total over all bays
      * @param bays          how many rack bays count
      * @param zones         one row per zone and one for unzoned bays, full first, then the fullest
-     * @param fluid         mB in the Storage gantries
+     * @param fluid         mB in the Fluid Rack sections
      * @param fluidCapacity mB they hold at most
-     * @param tanks         how many tanks count
+     * @param tanks         how many sections count
      */
     public record Report(Row items, int bays, List<Row> zones, long fluid, long fluidCapacity, int tanks) {
 

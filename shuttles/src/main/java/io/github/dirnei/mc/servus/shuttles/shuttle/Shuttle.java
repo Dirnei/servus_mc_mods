@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.shuttle;
 
 import io.github.dirnei.mc.servus.foundation.graph.NodePos;
-import io.github.dirnei.mc.servus.shuttles.gantry.FluidStoreRef;
+import io.github.dirnei.mc.servus.shuttles.fluid.FluidStoreRef;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleProfile;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -65,9 +65,7 @@ final class Shuttle {
     int paidThrough = -1;
     /** The fluid store the shuttle pumps into or out of during its stop, else null. */
     FluidStoreRef pumping;
-    /** Whether it pumps into the store rather than into the shuttle. */
-    boolean pumpingIntoGantry;
-    /** The side the coupling slides out toward while the shuttle pumps at a Fluid Rack's port, else null. */
+    /** The side the coupling slides out toward while the shuttle pumps at a fluid store's port, else null. */
     Direction couplingSide;
     /** How many ticks that stop lasts in all. */
     int couplingTicks;

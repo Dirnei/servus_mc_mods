@@ -3,8 +3,8 @@ package io.github.dirnei.mc.servus.shuttles.shuttle;
 import io.github.dirnei.mc.servus.foundation.graph.NodePos;
 import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork.FluidKey;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
-import io.github.dirnei.mc.servus.shuttles.gantry.FluidRole;
-import io.github.dirnei.mc.servus.shuttles.gantry.FluidStoreRef;
+import io.github.dirnei.mc.servus.shuttles.fluid.FluidRole;
+import io.github.dirnei.mc.servus.shuttles.fluid.FluidStoreRef;
 import io.github.dirnei.mc.servus.shuttles.garage.GarageShutter;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.power.StepPower;
@@ -148,15 +148,12 @@ public final class ShuttleFleet {
         long available(ItemKey key);
 
         /**
-         * The role of the fluid store: by its gantry's mode, Storage for a
-         * Fluid Rack section of this warehouse whose port is still there,
-         * Import for a tank of a Fluid Inbound of this warehouse; empty when
-         * none is loaded there.
+         * The role of the fluid store: Storage for a Fluid Rack section of
+         * this warehouse whose port is still there, Import for a tank of a
+         * Fluid Inbound and Export for a tank of a Fluid Outbound of this
+         * warehouse; empty when none is loaded there.
          */
         Optional<FluidRole> fluidStoreRole(FluidStoreRef store);
-
-        /** Whether a tanker docks its coupling into a port at that store rather than stopping under a gantry's spout. */
-        boolean fluidStoreDocks(FluidStoreRef store);
 
         /** Takes up to max of the fluid out of a store; empty when it holds another fluid. */
         FluidStack drainFluidStore(FluidStoreRef store, FluidKey key, int max);
@@ -166,9 +163,6 @@ public final class ShuttleFleet {
 
         /** The fluid stores a Tanker reaches with room for the fluid, best first by preference, then by the way from that position. */
         List<FluidStoreRef> fluidTargets(FluidKey key, BlockPos from);
-
-        /** A tanker's stop under a gantry tank starts or ends; the spout pumps into the gantry or out of it while on. */
-        void gantryPumping(BlockPos gantry, int tank, boolean intoGantry, FluidStack fluid, boolean on);
 
         /** Draws FE from the warehouse's controller: paid in full or refused. */
         default boolean drawPower(long amount) {
@@ -780,9 +774,9 @@ public final class ShuttleFleet {
         syncPending = true;
     }
 
-    /** Whether some Tanker shuttle in a garage with a rail can drive to the rail under that gantry, lifts allowed. */
-    public boolean tankerReaches(BlockPos gantry) {
-        return reachable(host.dockRails(Conversions.toNodePos(gantry)), JobNeeds.TANKER);
+    /** Whether some Tanker shuttle in a garage with a rail can drive to the rail in front of that store, lifts allowed. */
+    public boolean tankerReaches(BlockPos store) {
+        return reachable(host.dockRails(Conversions.toNodePos(store)), JobNeeds.TANKER);
     }
 
     /** The most fluid one Tanker shuttle of a garage with a rail carries, 0 without any. */
@@ -814,15 +808,15 @@ public final class ShuttleFleet {
         return any[0];
     }
 
-    /** Whether a tanker run is queued or under way that takes fluid out of that gantry or brings fluid to it. */
-    public boolean hasFluidRunAt(BlockPos gantry) {
-        if (sumQueued(job -> job instanceof FluidJob fluid && (fluid.source().equals(gantry) || fluid.target().equals(gantry)) ? 1 : 0) > 0) {
+    /** Whether a tanker run is queued or under way that takes fluid out of that store or brings fluid to it. */
+    public boolean hasFluidRunAt(BlockPos store) {
+        if (sumQueued(job -> job instanceof FluidJob fluid && (fluid.source().equals(store) || fluid.target().equals(store)) ? 1 : 0) > 0) {
             return true;
         }
         for (Shuttle shuttle : shuttles()) {
             for (Load load : shuttle.loads) {
                 if (load.job instanceof FluidJob fluid
-                        && (fluid.source().equals(gantry) || load.fluidTarget != null && load.fluidTarget.pos().equals(gantry))) {
+                        && (fluid.source().equals(store) || load.fluidTarget != null && load.fluidTarget.pos().equals(store))) {
                     return true;
                 }
             }
@@ -1370,9 +1364,9 @@ public final class ShuttleFleet {
 
     /**
      * Starts a tanker's stop at the fluid store of its leg, {@code
-     * tanker_pump_ticks} shortened by Handling: under a gantry the spout
-     * lowers, at a Fluid Rack's port the shuttle slides its coupling out
-     * toward the rack. A store that no longer serves the leg gets no stop.
+     * tanker_pump_ticks} shortened by Handling, the shuttle sliding its
+     * coupling out toward the store's port. A store that no longer serves
+     * the leg gets no stop.
      */
     private boolean holdForPump(Shuttle shuttle, FluidJob job) {
         Load load = shuttle.loads.get(0);
@@ -1389,28 +1383,17 @@ public final class ShuttleFleet {
         shuttle.stopAt = shuttle.motion;
         shuttle.stop = ShuttleTiers.workTicks(ShuttlesStatsManager.INSTANCE.tankerPumpTicks(), shuttle.profile.handling());
         shuttle.pumping = store;
-        shuttle.pumpingIntoGantry = shuttle.leg != Leg.TO_SOURCE;
-        if (host.fluidStoreDocks(store)) {
-            BlockPos rail = Conversions.toBlockPos(shuttle.motion.currentNode());
-            BlockPos port = store.pos();
-            shuttle.couplingSide = Direction.getNearest(port.getX() - rail.getX(), 0, port.getZ() - rail.getZ(), null);
-            shuttle.couplingTicks = shuttle.stop;
-        } else {
-            host.gantryPumping(store.pos(), store.tank(), shuttle.pumpingIntoGantry,
-                    load.fluid.isEmpty() ? job.key().stack(1000) : load.fluid.copy(), true);
-        }
+        BlockPos rail = Conversions.toBlockPos(shuttle.motion.currentNode());
+        BlockPos port = store.pos();
+        shuttle.couplingSide = Direction.getNearest(port.getX() - rail.getX(), 0, port.getZ() - rail.getZ(), null);
+        shuttle.couplingTicks = shuttle.stop;
         syncPending = true;
         return true;
     }
 
-    /** Raises the spout of the gantry the shuttle pumped at, or pulls its coupling in, if any. */
+    /** Ends the shuttle's stop at a fluid store and pulls its coupling in, if any. */
     private void endPumping(Shuttle shuttle) {
-        if (shuttle.pumping != null) {
-            if (shuttle.couplingSide == null) {
-                host.gantryPumping(shuttle.pumping.pos(), shuttle.pumping.tank(), shuttle.pumpingIntoGantry, FluidStack.EMPTY, false);
-            }
-            shuttle.pumping = null;
-        }
+        shuttle.pumping = null;
         if (shuttle.couplingSide != null) {
             shuttle.couplingSide = null;
             syncPending = true;

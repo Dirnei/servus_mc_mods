@@ -200,7 +200,7 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
     public final boolean docksRail() {
         NodeKind kind = kind();
         return kind == NodeKind.STOCK || kind == NodeKind.STATION || kind == NodeKind.GARAGE || kind == NodeKind.RACK
-                || kind == NodeKind.GANTRY || kind == NodeKind.FLUID_RACK || kind == NodeKind.FLUID_STATION;
+                || kind == NodeKind.FLUID_RACK || kind == NodeKind.FLUID_STATION;
     }
 
     /**
@@ -209,15 +209,6 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
      */
     public boolean showsDock() {
         return docksRail();
-    }
-
-    /**
-     * Whether a rail that links to this node turns toward it, as an arm or a
-     * dock piece. A node the rail runs straight through, such as a Fluid
-     * Gantry, says no.
-     */
-    public boolean bendsRail() {
-        return true;
     }
 
     /**

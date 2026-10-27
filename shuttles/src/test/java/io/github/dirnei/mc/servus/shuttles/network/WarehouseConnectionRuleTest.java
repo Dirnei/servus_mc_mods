@@ -59,7 +59,7 @@ class WarehouseConnectionRuleTest {
             assertTrue(WarehouseConnectionRule.accepts(NodeKind.FLUID_RACK, side, NodeKind.RAIL));
             assertTrue(WarehouseConnectionRule.accepts(NodeKind.RAIL, side, NodeKind.FLUID_RACK));
             assertTrue(WarehouseConnectionRule.accepts(NodeKind.FLUID_RACK, side, NodeKind.FLUID_RACK));
-            for (NodeKind other : new NodeKind[] {NodeKind.STOCK, NodeKind.STATION, NodeKind.GARAGE, NodeKind.RACK, NodeKind.GANTRY,
+            for (NodeKind other : new NodeKind[] {NodeKind.STOCK, NodeKind.STATION, NodeKind.GARAGE, NodeKind.RACK,
                     NodeKind.ELEVATOR}) {
                 assertFalse(WarehouseConnectionRule.accepts(NodeKind.FLUID_RACK, side, other));
                 assertFalse(WarehouseConnectionRule.accepts(other, side, NodeKind.FLUID_RACK));
@@ -113,19 +113,6 @@ class WarehouseConnectionRuleTest {
     }
 
     @Test
-    void gantryLinksOnlyToRails() {
-        assertTrue(WarehouseConnectionRule.railOnly(NodeKind.GANTRY));
-        for (Side side : Side.ALL) {
-            assertTrue(WarehouseConnectionRule.accepts(NodeKind.GANTRY, side, NodeKind.RAIL));
-            for (NodeKind other : NodeKind.values()) {
-                if (other != NodeKind.RAIL) {
-                    assertFalse(WarehouseConnectionRule.accepts(NodeKind.GANTRY, side, other), other + " " + side);
-                }
-            }
-        }
-    }
-
-    @Test
     void ruleIsSymmetric() {
         for (NodeKind a : NodeKind.values()) {
             for (NodeKind b : NodeKind.values()) {
@@ -167,7 +154,7 @@ class WarehouseConnectionRuleTest {
     @Test
     void controllerNeverLinksToShuttleServedBlocks() {
         for (Side side : Side.ALL) {
-            for (NodeKind kind : new NodeKind[] {NodeKind.RACK, NodeKind.STATION, NodeKind.GARAGE, NodeKind.GANTRY}) {
+            for (NodeKind kind : new NodeKind[] {NodeKind.RACK, NodeKind.STATION, NodeKind.GARAGE}) {
                 assertFalse(WarehouseConnectionRule.accepts(NodeKind.STOCK, side, kind), "controller to " + kind);
                 assertFalse(WarehouseConnectionRule.accepts(kind, side, NodeKind.STOCK), kind + " to controller");
             }

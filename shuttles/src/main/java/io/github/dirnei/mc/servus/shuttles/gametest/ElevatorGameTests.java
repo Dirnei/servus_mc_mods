@@ -596,7 +596,7 @@ public final class ElevatorGameTests {
     private static void railRun(GameTestHelper helper) {
         WarehouseFixtures.railRow(helper, 2, 6, ON_RAIL.getZ());
         for (int x = 2; x <= 6; x++) {
-            GantryFixtures.shape(helper, new BlockPos(x, 1, ON_RAIL.getZ()));
+            RailFixtures.shape(helper, new BlockPos(x, 1, ON_RAIL.getZ()));
         }
         helper.getBlockEntity(ON_RAIL, RailBlockEntity.class).materialSlot().set(SPRUCE);
     }

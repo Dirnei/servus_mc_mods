@@ -2,8 +2,8 @@ package io.github.dirnei.mc.servus.shuttles.shuttle.module;
 
 /**
  * The look of the Tanker tool in shuttle model pixels, shared by its model,
- * the sight glass and coupling the shuttle renderer draws, the gantry spout
- * that lowers onto its cap and the Fluid Rack port its coupling docks into.
+ * the sight glass and coupling the shuttle renderer draws, and the ports
+ * of Fluid Racks and fluid stations its coupling docks into.
  * The shuttle is drawn at {@link #SCALE} around the block centre with model
  * y 0 on the rail heads at block pixel {@link #FLOOR}. Pure Java.
  */
@@ -45,12 +45,7 @@ public final class TankerLook {
     private TankerLook() {
     }
 
-    /** The cap's top in pixels of the rail's block. */
-    public static float capTopInBlock() {
-        return FLOOR + SCALE * CAP_TOP;
-    }
-
-    /** The coupling's centre height in pixels of the rail's block, where a Fluid Rack's port sits. */
+    /** The coupling's centre height in pixels of the rail's block, where a fluid store's port sits. */
     public static float couplingYInBlock() {
         return FLOOR + SCALE * COUPLING_Y;
     }

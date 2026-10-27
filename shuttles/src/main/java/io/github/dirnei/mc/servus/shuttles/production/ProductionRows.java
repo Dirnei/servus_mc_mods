@@ -344,15 +344,14 @@ public final class ProductionRows {
      * @param used          rack slots in use
      * @param total         all rack slots
      * @param zones         one row per zone and one for unzoned racks, full first, then the fullest
-     * @param gantries      Storage gantries that count
      * @param fluidRacks    Fluid Rack sections that count
-     * @param fluid         mB in their tanks and sections
-     * @param fluidCapacity mB their tanks and sections hold at most
+     * @param fluid         mB in their sections
+     * @param fluidCapacity mB their sections hold at most
      */
-    public record StorageRow(String name, int bays, long used, long total, List<ZoneRow> zones, int gantries, int fluidRacks, long fluid,
+    public record StorageRow(String name, int bays, long used, long total, List<ZoneRow> zones, int fluidRacks, long fluid,
                              long fluidCapacity) {
 
-        public static final StorageRow EMPTY = new StorageRow("", 0, 0, 0, List.of(), 0, 0, 0, 0);
+        public static final StorageRow EMPTY = new StorageRow("", 0, 0, 0, List.of(), 0, 0, 0);
 
         public static final StreamCodec<ByteBuf, StorageRow> STREAM_CODEC = StreamCodec.of(
                 (buf, row) -> {
@@ -361,7 +360,6 @@ public final class ProductionRows {
                     ByteBufCodecs.VAR_LONG.encode(buf, row.used());
                     ByteBufCodecs.VAR_LONG.encode(buf, row.total());
                     ZoneRow.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, row.zones());
-                    ByteBufCodecs.VAR_INT.encode(buf, row.gantries());
                     ByteBufCodecs.VAR_INT.encode(buf, row.fluidRacks());
                     ByteBufCodecs.VAR_LONG.encode(buf, row.fluid());
                     ByteBufCodecs.VAR_LONG.encode(buf, row.fluidCapacity());
@@ -369,12 +367,12 @@ public final class ProductionRows {
                 buf -> new StorageRow(ByteBufCodecs.STRING_UTF8.decode(buf), ByteBufCodecs.VAR_INT.decode(buf),
                         ByteBufCodecs.VAR_LONG.decode(buf), ByteBufCodecs.VAR_LONG.decode(buf),
                         ZoneRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf), ByteBufCodecs.VAR_INT.decode(buf),
-                        ByteBufCodecs.VAR_INT.decode(buf), ByteBufCodecs.VAR_LONG.decode(buf), ByteBufCodecs.VAR_LONG.decode(buf)));
+                        ByteBufCodecs.VAR_LONG.decode(buf), ByteBufCodecs.VAR_LONG.decode(buf)));
 
-        /** The row of a warehouse named {@code name} with this fill and this many Storage gantries and Fluid Rack sections. */
-        public static StorageRow of(String name, StorageFill.Report report, int gantries, int fluidRacks) {
+        /** The row of a warehouse named {@code name} with this fill and this many Fluid Rack sections. */
+        public static StorageRow of(String name, StorageFill.Report report, int fluidRacks) {
             List<ZoneRow> zones = report.zones().stream().map(zone -> new ZoneRow(zone.name(), zone.used(), zone.total())).toList();
-            return new StorageRow(name, report.bays(), report.items().used(), report.items().total(), zones, gantries, fluidRacks,
+            return new StorageRow(name, report.bays(), report.items().used(), report.items().total(), zones, fluidRacks,
                     report.fluid(), report.fluidCapacity());
         }
 
