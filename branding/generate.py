@@ -54,5 +54,29 @@ shuttles='''  <g stroke="ACCENT" stroke-width="12" stroke-linecap="round" opacit
   <g fill="ACCENT"><circle cx="214" cy="346" r="10"/><circle cx="348" cy="346" r="10"/></g>'''
 servus='''  <path d="M330 150 c-30 -34 -150 -40 -152 30 c-2 76 156 60 156 140 c0 74 -128 76 -168 30" fill="none" stroke="CREAM" stroke-width="52" stroke-linecap="round"/>
   <path d="M330 150 c-30 -34 -150 -40 -152 30 c-2 76 156 60 156 140 c0 74 -128 76 -168 30" fill="none" stroke="ACCENT" stroke-width="14" stroke-linecap="round"/>'''
-for name,(b1,b2,acc,body) in {'foundation':('#2c3a4a','#1a222c','#d47a3a',foundation),'alchemy':('#3d2c55','#1f1630','#e8b23a',alchemy),'shuttles':('#1f4a46','#112624','#3cc4b0',shuttles),'servus':('#3a3530','#1e1b18','#c9a24a',servus)}.items():
+delicacies='''  <g fill="none" stroke="CREAM" stroke-width="12" stroke-linecap="round" opacity="0.85">
+    <path d="M206 176 c-18 -20 18 -36 0 -58 c-10 -12 -4 -22 4 -28"/>
+    <path d="M256 168 c-18 -20 18 -36 0 -58 c-10 -12 -4 -22 4 -28"/>
+    <path d="M306 176 c-18 -20 18 -36 0 -58 c-10 -12 -4 -22 4 -28"/>
+  </g>
+  <path d="M144 338 a112 112 0 0 1 224 0 z" fill="CREAM" stroke="#3a1a14" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M184 300 a76 76 0 0 1 52 -66" fill="none" stroke="ACCENT" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="256" cy="214" r="18" fill="ACCENT" stroke="#3a1a14" stroke-width="10"/>
+  <rect x="104" y="336" width="304" height="28" rx="14" fill="CREAM" stroke="#3a1a14" stroke-width="10"/>
+  <rect x="176" y="372" width="160" height="18" rx="9" fill="ACCENT"/>'''
+brewery='''  <g transform="translate(-20 0)">
+    <path d="M320 222 h30 a44 44 0 0 1 44 44 v54 a44 44 0 0 1 -44 44 h-30" fill="none" stroke="#2e1f0c" stroke-width="44"/>
+    <path d="M320 222 h30 a44 44 0 0 1 44 44 v54 a44 44 0 0 1 -44 44 h-30" fill="none" stroke="CREAM" stroke-width="24"/>
+    <rect x="150" y="176" width="176" height="234" rx="22" fill="ACCENT" stroke="#2e1f0c" stroke-width="10"/>
+    <g stroke="CREAM" stroke-width="10" stroke-linecap="round" opacity="0.45">
+      <line x1="192" y1="228" x2="192" y2="372"/><line x1="238" y1="228" x2="238" y2="372"/><line x1="284" y1="228" x2="284" y2="372"/>
+    </g>
+    <g fill="CREAM" opacity="0.8"><circle cx="214" cy="330" r="7"/><circle cx="262" cy="294" r="5"/><circle cx="300" cy="350" r="6"/></g>
+    <g fill="CREAM" stroke="#2e1f0c" stroke-width="8">
+      <circle cx="170" cy="176" r="30"/><circle cx="214" cy="160" r="38"/><circle cx="262" cy="166" r="34"/><circle cx="304" cy="174" r="30"/>
+    </g>
+    <g fill="CREAM"><circle cx="170" cy="176" r="26"/><circle cx="214" cy="160" r="34"/><circle cx="262" cy="166" r="30"/><circle cx="304" cy="174" r="26"/>
+      <rect x="146" y="170" width="184" height="42"/><rect x="252" y="200" width="22" height="44" rx="11"/></g>
+  </g>'''
+for name,(b1,b2,acc,body) in {'foundation':('#2c3a4a','#1a222c','#d47a3a',foundation),'alchemy':('#3d2c55','#1f1630','#e8b23a',alchemy),'shuttles':('#1f4a46','#112624','#3cc4b0',shuttles),'delicacies':('#5a2a24','#2a1310','#e86a3a',delicacies),'brewery':('#4a3318','#22170a','#f2a93b',brewery),'servus':('#3a3530','#1e1b18','#c9a24a',servus)}.items():
     open(f'{out}/{name}.svg','w',newline='\n').write(frame(b1,b2,acc,body))
