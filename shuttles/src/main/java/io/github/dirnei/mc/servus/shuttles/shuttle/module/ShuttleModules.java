@@ -14,24 +14,26 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The tool and upgrade counts of a shuttle, kept as a data component on the
+ * The tool, upgrade counts and Muffler of a shuttle, kept as a data component on the
  * shuttle item. Items compare by identity, so the record's equality is the
  * component's. A shuttle without any carries no component at all.
  */
-public record ShuttleModules(Optional<Item> tool, int speed, int handling) {
+public record ShuttleModules(Optional<Item> tool, int speed, int handling, boolean muffled) {
 
-    public static final ShuttleModules EMPTY = new ShuttleModules(Optional.empty(), 0, 0);
+    public static final ShuttleModules EMPTY = new ShuttleModules(Optional.empty(), 0, 0, false);
 
     public static final Codec<ShuttleModules> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("tool").forGetter(ShuttleModules::tool),
             Codec.INT.optionalFieldOf("speed", 0).forGetter(ShuttleModules::speed),
-            Codec.INT.optionalFieldOf("handling", 0).forGetter(ShuttleModules::handling)
+            Codec.INT.optionalFieldOf("handling", 0).forGetter(ShuttleModules::handling),
+            Codec.BOOL.optionalFieldOf("muffled", false).forGetter(ShuttleModules::muffled)
     ).apply(instance, ShuttleModules::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ShuttleModules> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.optional(ByteBufCodecs.registry(Registries.ITEM)), ShuttleModules::tool,
             ByteBufCodecs.VAR_INT, ShuttleModules::speed,
             ByteBufCodecs.VAR_INT, ShuttleModules::handling,
+            ByteBufCodecs.BOOL, ShuttleModules::muffled,
             ShuttleModules::new);
 
     public ShuttleModules {
@@ -39,20 +41,29 @@ public record ShuttleModules(Optional<Item> tool, int speed, int handling) {
         handling = Math.max(0, handling);
     }
 
+    /** Modules without a Muffler. */
+    public ShuttleModules(Optional<Item> tool, int speed, int handling) {
+        this(tool, speed, handling, false);
+    }
+
     public int count(Kind kind) {
         return kind == Kind.SPEED ? speed : handling;
     }
 
     public ShuttleModules withCount(Kind kind, int count) {
-        return kind == Kind.SPEED ? new ShuttleModules(tool, count, handling) : new ShuttleModules(tool, speed, count);
+        return kind == Kind.SPEED ? new ShuttleModules(tool, count, handling, muffled) : new ShuttleModules(tool, speed, count, muffled);
     }
 
     public ShuttleModules withTool(Optional<Item> next) {
-        return new ShuttleModules(next, speed, handling);
+        return new ShuttleModules(next, speed, handling, muffled);
+    }
+
+    public ShuttleModules withMuffled(boolean next) {
+        return new ShuttleModules(tool, speed, handling, next);
     }
 
     public boolean isEmpty() {
-        return tool.isEmpty() && speed == 0 && handling == 0;
+        return tool.isEmpty() && speed == 0 && handling == 0 && !muffled;
     }
 
     /** The spec of the fitted tool. */

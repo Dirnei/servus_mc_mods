@@ -5,9 +5,13 @@
 ### Added
 - Fluid Rack: bays join into sections of up to three that share one tank behind a glass front. A Zone Label zones a section, and a fluid container in the label makes it take only that fluid. Tankers dock into one port per section, and rails hang along every bay.
 - Fluid Inbound and Fluid Outbound: an Inbound or Outbound Station on top of a Fluid Tank, in the station's wood, with one tank you can see from every side. A swing hose arm docks onto the Tanker's filler cap. The Outbound keeps a fluid picked from a searchable list.
+- Shuttles rumble quietly as they drive, with a dull wheel click and a loose rattle now and then. Only the few nearest moving shuttles sound at once.
+- Muffler: install it into a shuttle in the Shuttle Workshop, or put it into a Shuttle Garage's new Muffler slot to muffle every shuttle of that garage. A muffled shuttle sounds damped and much quieter.
 
 ### Changed
 - A rail can hang one block past a rail held by a rack, a shaft or a floor.
+- The Shuttle Workshop turns the shuttle slowly in its large view, and you can turn it by dragging.
+- Build now and Build by hand are one Build button that starts the build by hand; while it runs the button reads Skip and finishes the build at once, keeping the old name plate.
 - Removed the Fluid Gantry: empty your gantries before updating, placed gantries and their fluid are lost.
 
 ## 0.5.0

@@ -7,11 +7,15 @@ import net.minecraft.sounds.SoundEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-/** The sounds of Shuttles: the Lumber shuttle's chainsaw and its hold and crane folding out and in. */
+/** The sounds of Shuttles: the drive of a moving shuttle, the Lumber shuttle's chainsaw and its hold and crane folding out and in. */
 public final class ServusShuttlesSounds {
 
     public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(Registries.SOUND_EVENT, ServusShuttlesIds.MOD_ID);
 
+    /** A shuttle drives, looped while it moves. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> SHUTTLE_DRIVE = register("shuttle.drive");
+    /** A muffled shuttle drives: the same loop damped and quieter. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> SHUTTLE_DRIVE_MUFFLED = register("shuttle.drive_muffled");
     /** The chainsaw idles, looped, while the crane is out and the chain does not cut. */
     public static final DeferredHolder<SoundEvent, SoundEvent> CHAINSAW_IDLE = register("chainsaw.idle");
     /** The chainsaw revs up and cuts while the bar swings across the log. */

@@ -312,9 +312,10 @@ public final class ShuttleFleet {
      * same keeps it; an emptied slot loses it; a shuttle that does something
      * else now is recalled first.
      */
-    public void adoptGarage(BlockPos pos, List<ItemStack> slots, boolean active) {
+    public void adoptGarage(BlockPos pos, List<ItemStack> slots, boolean active, boolean muffled) {
         Garage garage = garages.computeIfAbsent(pos, Garage::new);
         garage.active = active;
+        garage.muffled = muffled;
         refreshHome(garage);
         ShuttleTiers tiers = ShuttlesStatsManager.INSTANCE.shuttleTiers();
         for (Shuttle shuttle : new ArrayList<>(garage.shuttles)) {
@@ -2440,9 +2441,15 @@ public final class ShuttleFleet {
     private void send() {
         for (Garage garage : garages.values()) {
             PacketDistributor.sendToPlayersTrackingChunk(host.level(), ChunkPos.containing(garage.pos),
-                    new ShuttleSyncPayload(garage.pos, views(garage.pos)));
+                    syncPayload(garage.pos));
         }
         lifts.sendAll();
+    }
+
+    /** What clients get of one garage: its shuttles as they draw them and whether its Muffler muffles them. */
+    public ShuttleSyncPayload syncPayload(BlockPos garagePos) {
+        Garage garage = garages.get(garagePos);
+        return new ShuttleSyncPayload(garagePos, views(garagePos), garage != null && garage.muffled);
     }
 
     /**

@@ -76,5 +76,51 @@
       }
     ],
     "subtitle": "subtitles.servus_shuttles.hold.walls_up"
+  },
+  "shuttle.drive": {
+    "sounds": [
+      {
+        "attenuation_distance": 10,
+        "name": "servus_shuttles:shuttle_drive_1",
+        "stream": true,
+        "volume": 0.25
+      },
+      {
+        "attenuation_distance": 10,
+        "name": "servus_shuttles:shuttle_drive_2",
+        "stream": true,
+        "volume": 0.25
+      },
+      {
+        "attenuation_distance": 10,
+        "name": "servus_shuttles:shuttle_drive_3",
+        "stream": true,
+        "volume": 0.25
+      }
+    ],
+    "subtitle": "subtitles.servus_shuttles.shuttle.drive"
+  },
+  "shuttle.drive_muffled": {
+    "sounds": [
+      {
+        "attenuation_distance": 10,
+        "name": "servus_shuttles:shuttle_drive_muffled_1",
+        "stream": true,
+        "volume": 0.08
+      },
+      {
+        "attenuation_distance": 10,
+        "name": "servus_shuttles:shuttle_drive_muffled_2",
+        "stream": true,
+        "volume": 0.08
+      },
+      {
+        "attenuation_distance": 10,
+        "name": "servus_shuttles:shuttle_drive_muffled_3",
+        "stream": true,
+        "volume": 0.08
+      }
+    ],
+    "subtitle": "subtitles.servus_shuttles.shuttle.drive_muffled"
   }
 }

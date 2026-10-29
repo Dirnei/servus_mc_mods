@@ -76,6 +76,7 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.Shafts;
 import io.github.dirnei.mc.servus.shuttles.shuttle.Shafts.Shaft;
 import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleFleet;
 import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleJob;
+import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleSyncPayload;
 import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleView;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.JobNeeds;
 import io.github.dirnei.mc.servus.shuttles.site.SiteChunks;
@@ -262,7 +263,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             pendingStations.add(blockPos);
         } else if (node instanceof ShuttleGarageBlockEntity garage) {
             garages.add(blockPos);
-            fleet.adoptGarage(blockPos, garage.slots(), garage.isActive());
+            fleet.adoptGarage(blockPos, garage.slots(), garage.isActive(), garage.muffled());
         } else if (node.kind() == WarehouseConnectionRule.NodeKind.FLUID_RACK) {
             fluidRacks.add(blockPos);
             pendingRacks.add(blockPos);
@@ -485,9 +486,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
-    /** A garage's shuttles or pause state changed. */
+    /** A garage's shuttles, pause state or Muffler changed. */
     public void garageChanged(ShuttleGarageBlockEntity garage) {
-        fleet.adoptGarage(garage.getBlockPos(), garage.slots(), garage.isActive());
+        fleet.adoptGarage(garage.getBlockPos(), garage.slots(), garage.isActive(), garage.muffled());
     }
 
     /** Brings every shuttle of the garage inside; cargo drops at the garage and unloaded jobs are queued again. */
@@ -528,6 +529,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** The shuttles of one garage as clients draw them. */
     public List<ShuttleView> shuttleViews(BlockPos garage) {
         return fleet.views(garage);
+    }
+
+    /** What clients get of one garage: its shuttles and whether its Muffler muffles them. */
+    public ShuttleSyncPayload shuttleSync(BlockPos garage) {
+        return fleet.syncPayload(garage);
     }
 
     /** The Data Potato's report of the shuttles on the rail or elevator segment at pos. */

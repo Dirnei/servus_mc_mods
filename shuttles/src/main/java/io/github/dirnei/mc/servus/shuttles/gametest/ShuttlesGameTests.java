@@ -63,6 +63,7 @@ public final class ShuttlesGameTests {
             ShuttleCornerGameTests.class,
             ShuttleGameTests.class,
             ShuttleModuleGameTests.class,
+            ShuttleMufflerGameTests.class,
             ShuttleNumberGameTests.class,
             ShuttleTrafficGameTests.class,
             SiteWakeGameTests.class,

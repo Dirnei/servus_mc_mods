@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.client.NamedMachineScreen;
 import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.menu.ShuttleGarageMenu;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -12,8 +13,9 @@ import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 
-/** A centred row of shuttle slots, a count line, the player inventory. */
+/** A centred row of shuttle slots, a count line, the buttons next to the Muffler slot, the player inventory. */
 public class ShuttleGarageScreen extends NamedMachineScreen<ShuttleGarageMenu> {
 
     private static final Identifier TEXTURE =
@@ -26,6 +28,9 @@ public class ShuttleGarageScreen extends NamedMachineScreen<ShuttleGarageMenu> {
     private static final int COLOUR_STRANDED = 0x80B03030;
     private static final int STRANDED_Y = 18;
     private static final int LINE_WIDTH = 160;
+    private static final int BUTTON_WIDTH = 64;
+    /** The Muffler drawn faintly in the empty Muffler slot. */
+    private static final int COLOUR_GHOST = 0xA08B8B8B;
 
     private Button toggle;
 
@@ -39,9 +44,9 @@ public class ShuttleGarageScreen extends NamedMachineScreen<ShuttleGarageMenu> {
         this.inventoryLabelY = ShuttleGarageMenu.INVENTORY_Y - 11;
         addRenderableWidget(Button.builder(Component.translatable("gui.servus_shuttles.garage.recall"),
                         button -> MenuButtons.press(minecraft, menu, ShuttleGarageMenu.BUTTON_RECALL))
-                .bounds(leftPos + 8, topPos + BUTTONS_Y, 76, 14).build());
+                .bounds(leftPos + 8, topPos + BUTTONS_Y, BUTTON_WIDTH, 14).build());
         toggle = addRenderableWidget(Button.builder(Component.empty(), button -> MenuButtons.press(minecraft, menu, ShuttleGarageMenu.BUTTON_TOGGLE))
-                .bounds(leftPos + 92, topPos + BUTTONS_Y, 76, 14).build());
+                .bounds(leftPos + 12 + BUTTON_WIDTH, topPos + BUTTONS_Y, BUTTON_WIDTH, 14).build());
     }
 
     @Override
@@ -57,10 +62,16 @@ public class ShuttleGarageScreen extends NamedMachineScreen<ShuttleGarageMenu> {
         for (int slot = 0; slot < menu.capacity(); slot++) {
             PanelPainter.sunken(graphics, leftPos + menu.slotX(slot) - 1, topPos + ShuttleGarageMenu.SLOTS_Y - 1, 18, 18);
         }
+        PanelPainter.sunken(graphics, leftPos + ShuttleGarageMenu.MUFFLER_X - 1, topPos + ShuttleGarageMenu.MUFFLER_Y - 1, 18, 18);
     }
 
     @Override
     protected void extractSlots(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        if (!menu.getSlot(menu.mufflerSlot()).hasItem()) {
+            graphics.item(new ItemStack(ServusShuttlesItems.MUFFLER.get()), ShuttleGarageMenu.MUFFLER_X, ShuttleGarageMenu.MUFFLER_Y);
+            graphics.fill(ShuttleGarageMenu.MUFFLER_X, ShuttleGarageMenu.MUFFLER_Y, ShuttleGarageMenu.MUFFLER_X + 16,
+                    ShuttleGarageMenu.MUFFLER_Y + 16, COLOUR_GHOST);
+        }
         super.extractSlots(graphics, mouseX, mouseY);
         for (int slot = 0; slot < menu.capacity(); slot++) {
             if (menu.stranded(slot)) {
@@ -77,6 +88,12 @@ public class ShuttleGarageScreen extends NamedMachineScreen<ShuttleGarageMenu> {
         int y = mouseY - topPos;
         if (!stranded.isEmpty() && x >= 8 && x < 8 + LINE_WIDTH && y >= STRANDED_Y && y < STRANDED_Y + 9) {
             graphics.setComponentTooltipForNextFrame(font, stranded, mouseX, mouseY);
+            return;
+        }
+        if (menu.getCarried().isEmpty() && !menu.getSlot(menu.mufflerSlot()).hasItem() && x >= ShuttleGarageMenu.MUFFLER_X
+                && x < ShuttleGarageMenu.MUFFLER_X + 16 && y >= ShuttleGarageMenu.MUFFLER_Y && y < ShuttleGarageMenu.MUFFLER_Y + 16) {
+            graphics.setTooltipForNextFrame(font, font.split(Component.translatable("gui.servus_shuttles.garage.muffler.tooltip"), 160),
+                    mouseX, mouseY);
             return;
         }
         super.extractTooltip(graphics, mouseX, mouseY);

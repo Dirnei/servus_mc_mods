@@ -9,11 +9,18 @@ import net.neoforged.neoforge.common.data.SoundDefinition;
 import net.neoforged.neoforge.common.data.SoundDefinitionsProvider;
 
 /**
- * Shuttles' sounds.json: the chainsaw from our own recordings under
- * {@code sounds/}, and the Lumber hold and crane as heavier, lower pitched
+ * Shuttles' sounds.json: the shuttle drive and the chainsaw from our own
+ * recordings under {@code sounds/}, and the Lumber hold and crane as heavier, lower pitched
  * vanilla door and piston sounds.
  */
 final class ServusShuttlesSoundsProvider extends SoundDefinitionsProvider {
+
+    /** How many takes of the drive loop there are; each play picks one, so shuttles side by side are out of step. */
+    private static final int DRIVE_TAKES = 3;
+    /** Blocks within which a shuttle's drive is heard. */
+    private static final int DRIVE_RANGE = 10;
+    private static final double DRIVE_VOLUME = 0.25;
+    private static final double DRIVE_MUFFLED_VOLUME = 0.08;
 
     ServusShuttlesSoundsProvider(PackOutput output) {
         super(output, ServusShuttlesIds.MOD_ID);
@@ -21,6 +28,8 @@ final class ServusShuttlesSoundsProvider extends SoundDefinitionsProvider {
 
     @Override
     public void registerSounds() {
+        drive(ServusShuttlesSounds.SHUTTLE_DRIVE, "shuttle.drive", "shuttle_drive_", DRIVE_VOLUME);
+        drive(ServusShuttlesSounds.SHUTTLE_DRIVE_MUFFLED, "shuttle.drive_muffled", "shuttle_drive_muffled_", DRIVE_MUFFLED_VOLUME);
         add(ServusShuttlesSounds.CHAINSAW_IDLE, definition()
                 .subtitle("subtitles.servus_shuttles.chainsaw.idle")
                 .with(sound(ServusShuttlesIds.MOD_ID + ":chainsaw_idle_loop")));
@@ -36,6 +45,15 @@ final class ServusShuttlesSoundsProvider extends SoundDefinitionsProvider {
         lowered(ServusShuttlesSounds.CRANE_DOWN, "crane.down", "minecraft:block.piston.contract", 0.6);
         lowered(ServusShuttlesSounds.HOLD_WALLS_UP, "hold.walls_up", "minecraft:block.iron_door.open", 0.55);
         lowered(ServusShuttlesSounds.HOLD_DOORS_SHUT, "hold.doors_shut", "minecraft:block.iron_trapdoor.close", 0.7);
+    }
+
+    /** A drive loop: every take streamed at the volume and heard within {@link #DRIVE_RANGE}. */
+    private void drive(Holder<SoundEvent> sound, String name, String file, double volume) {
+        SoundDefinition definition = definition().subtitle("subtitles.servus_shuttles." + name);
+        for (int take = 1; take <= DRIVE_TAKES; take++) {
+            definition.with(sound(ServusShuttlesIds.MOD_ID + ":" + file + take).stream().volume(volume).attenuationDistance(DRIVE_RANGE));
+        }
+        add(sound, definition);
     }
 
     /** A sound that plays a vanilla sound event at a lower pitch, under its own subtitle. */

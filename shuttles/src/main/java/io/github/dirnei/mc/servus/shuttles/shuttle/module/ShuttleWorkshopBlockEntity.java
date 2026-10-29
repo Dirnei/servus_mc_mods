@@ -130,7 +130,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MaterialH
         return handBuild && HandBuild.done(buildStep(), steps().size());
     }
 
-    /** Starts a build by hand when Build now would work; locks the shuttle and the supplies. */
+    /** Starts a build by hand when every supply is here; locks the shuttle and the supplies. */
     public boolean startHandBuild() {
         if (handBuild || !canBuild()) {
             return false;
@@ -162,20 +162,31 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MaterialH
     }
 
     /**
-     * Finishes a build by hand whose steps are all done: the tier build of
-     * Build now, then the name plate. An empty name keeps the old plate.
+     * Finishes a build by hand whose steps are all done: the tier build, then
+     * the name plate. An empty name keeps the old plate.
      */
     public boolean engrave(String name) {
-        if (!handDone()) {
-            return false;
-        }
-        endHandBuild();
-        if (!buildNow()) {
+        if (!handDone() || !finishHandBuild()) {
             return false;
         }
         ItemStack built = shuttle.getStackInSlot(0).copy();
         ShuttleItem.engrave(built, NamePlate.clean(name));
         shuttle.setStackInSlot(0, built);
+        return true;
+    }
+
+    /** Finishes a running build by hand at once, on any step or at the name, keeping the old plate. */
+    public boolean skip() {
+        return handBuild && finishHandBuild();
+    }
+
+    /** Ends the build by hand and builds the next tier; false, with the build still running, when a supply is short. */
+    private boolean finishHandBuild() {
+        if (!canBuild()) {
+            return false;
+        }
+        endHandBuild();
+        build();
         return true;
     }
 
@@ -212,7 +223,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MaterialH
         return held.isEmpty() ? List.of() : ShuttlesStatsManager.INSTANCE.shuttleTiers().nextBuild(ShuttleItem.tier(held));
     }
 
-    /** Whether Build now would work: a shuttle below the top tier and every supply of its sheet here. */
+    /** Whether a build can start: a shuttle below the top tier and every supply of its sheet here. */
     public boolean canBuild() {
         ItemStack held = shuttle.getStackInSlot(0);
         return !held.isEmpty() && ShuttleItem.ofTier(ShuttleItem.tier(held) + 1) != null
@@ -220,15 +231,11 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MaterialH
     }
 
     /**
-     * Builds the next tier at once: takes exactly the sheet's supplies and puts
-     * the next tier's shuttle, with every component of the old one, in its place.
-     *
-     * @return false when the build is not ready
+     * Builds the next tier: takes exactly the sheet's supplies and puts the
+     * next tier's shuttle, with every component of the old one, in its place.
+     * The caller has checked {@link #canBuild}.
      */
-    public boolean buildNow() {
-        if (handBuild || !canBuild()) {
-            return false;
-        }
+    private void build() {
         for (Map.Entry<String, Integer> need : ShuttleBuild.needs(sheet()).entrySet()) {
             int left = need.getValue();
             for (int i = 0; i < supplies.getSlots() && left > 0; i++) {
@@ -240,7 +247,6 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MaterialH
         }
         ItemStack held = shuttle.getStackInSlot(0);
         shuttle.setStackInSlot(0, held.transmuteCopy(ShuttleItem.ofTier(ShuttleItem.tier(held) + 1), 1));
-        return true;
     }
 
     /**

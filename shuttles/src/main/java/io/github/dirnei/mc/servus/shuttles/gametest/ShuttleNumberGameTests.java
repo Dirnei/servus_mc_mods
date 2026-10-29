@@ -76,7 +76,7 @@ public final class ShuttleNumberGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.getInventory().setItem(0, mk1());
         ShuttleGarageMenu menu = new ShuttleGarageMenu(1, player.getInventory(), garage);
-        menu.quickMoveStack(player, garage.capacity() + 27);
+        menu.quickMoveStack(player, menu.inventoryStart() + 27);
         helper.assertTrue(numberIn(garage, 0).isPresent(), "the shift clicked shuttle has a number");
         helper.succeed();
     }
@@ -157,7 +157,8 @@ public final class ShuttleNumberGameTests {
         numbered.set(ServusShuttlesComponents.SHUTTLE_NUMBER.get(), 5);
         workshop.shuttle().setStackInSlot(0, numbered);
         ShuttleModuleGameTests.supplyFor(workshop, 2);
-        helper.assertTrue(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_NOW), "Build now builds a Mk2");
+        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD);
+        helper.assertTrue(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_SKIP), "Skip builds a Mk2");
         ItemStack mk2 = workshop.shuttle().getStackInSlot(0);
         helper.assertTrue(mk2.is(ServusShuttlesItems.SHUTTLE_MK2.get()) && ShuttleItem.number(mk2).equals(OptionalInt.of(5)),
                 "the Mk2 is still shuttle 5, got " + ShuttleItem.number(mk2));

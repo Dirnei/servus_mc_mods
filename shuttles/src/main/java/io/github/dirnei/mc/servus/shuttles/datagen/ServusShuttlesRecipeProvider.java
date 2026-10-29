@@ -282,6 +282,15 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_shuttle", has(ServusShuttlesItems.SHUTTLE_MK1.get()))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusShuttlesItems.MUFFLER.get())
+                .pattern(" W ")
+                .pattern("WIW")
+                .pattern(" W ")
+                .define('W', ItemTags.WOOL)
+                .define('I', Items.IRON_INGOT)
+                .unlockedBy("has_shuttle", has(ServusShuttlesItems.SHUTTLE_MK1.get()))
+                .save(output);
+
         ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusShuttlesItems.WIRELESS_UPGRADE.get())
                 .pattern(" C ")
                 .pattern("IEI")

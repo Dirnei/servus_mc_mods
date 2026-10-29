@@ -24,6 +24,7 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.module.ModuleSpec;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleModules;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.texture.TextureAtlas;
@@ -99,11 +100,19 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
         double openness = 0;
         if (fleet != null) {
             boolean open = false;
-            for (ShuttleView view : fleet.views()) {
-                open |= drawShuttle(garage, view, now - fleet.receivedTick(), now, poseStack, collector);
+            List<ShuttleView> views = fleet.views();
+            double elapsed = now - fleet.receivedTick();
+            for (int i = 0; i < views.size(); i++) {
+                ShuttleView view = views.get(i);
+                Placed placed = place(view, elapsed, now);
+                boolean muffled = muffled(view, fleet.muffled());
+                open |= drawShuttle(garage, view, placed, elapsed, muffled, poseStack, collector);
+                driveSound(garage, view, i, muffled, placed);
             }
             for (ClientShuttles.Parked parked : fleet.parked()) {
-                open |= drawShuttle(garage, parked.view(), now - parked.receivedTick(), now, poseStack, collector);
+                double parkedFor = now - parked.receivedTick();
+                open |= drawShuttle(garage, parked.view(), place(parked.view(), parkedFor, now), parkedFor,
+                        muffled(parked.view(), fleet.muffled()), poseStack, collector);
             }
             double ticks = Double.isNaN(fleet.shutterTime) ? 0 : Math.clamp(now - fleet.shutterTime, 0, MAX_SHUTTER_STEP);
             fleet.shutterTime = now;
@@ -117,22 +126,42 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
     }
 
     /**
-     * Draws one shuttle where it is after driving the elapsed ticks since its
-     * view arrived; true when it wants the shutter open.
+     * Where a shuttle is: {@code at} on its path as {@link ShuttleGlide#at}
+     * gives it, its block position {@code pos} and its speed in blocks per tick.
      */
-    private static boolean drawShuttle(ShuttleGarageBlockEntity garage, ShuttleView view, double elapsed, double now, PoseStack poseStack,
-                                       SubmitNodeCollector collector) {
-        Level level = garage.getLevel();
-        BlockPos origin = garage.getBlockPos();
+    private record Placed(double[] at, double[] pos, double speed) {
+    }
+
+    /**
+     * Where the shuttle is after driving the elapsed ticks since its view
+     * arrived. Riding a lift car, its height and speed are the car's.
+     */
+    private static Placed place(ShuttleView view, double elapsed, double now) {
         double[] at = ShuttleGlide.at(view, elapsed);
         double[] pos = position(view.path(), at);
+        double speed = at[2];
         if (view.lift().isPresent()) {
-            // Riding: the car carries the shuttle, so its height comes from the car.
             ClientLifts.Lift lift = ClientLifts.lift(view.lift().get());
             if (lift != null) {
                 pos[1] = lift.yAt(now);
+                speed = Math.abs(pos[1] - lift.yAt(now - 1));
             }
         }
+        return new Placed(at, pos, speed);
+    }
+
+    /** Whether a Muffler in the shuttle or in its garage muffles it. */
+    private static boolean muffled(ShuttleView view, boolean garageMuffled) {
+        return garageMuffled || ShuttleModules.of(view.shuttle()).muffled();
+    }
+
+    /** Draws one shuttle where it is placed; true when it wants the shutter open. A muffled Lumber shuttle fells in silence. */
+    private static boolean drawShuttle(ShuttleGarageBlockEntity garage, ShuttleView view, Placed placed, double elapsed, boolean muffled,
+                                       PoseStack poseStack, SubmitNodeCollector collector) {
+        Level level = garage.getLevel();
+        BlockPos origin = garage.getBlockPos();
+        double[] at = placed.at();
+        double[] pos = placed.pos();
         double yaw = heading(view.path(), at);
         BlockPos railPos = BlockPos.containing(pos[0], pos[1], pos[2]);
         int light = LevelRenderer.getLightCoords(level, railPos.above());
@@ -148,7 +177,7 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
         Optional<ShuttleView.Felling> felling = view.felling().filter(fell -> fellsWith(cart));
         if (felling.isPresent()) {
             ShuttleView.Felling fell = felling.get();
-            harvester(cart, fell, level, pos, yaw, fell.elapsed() + elapsed, poseStack, collector, light);
+            harvester(cart, fell, level, pos, yaw, fell.elapsed() + elapsed, muffled, poseStack, collector, light);
         } else {
             RenderSubmit.item(poseStack, collector, cart, ItemDisplayContext.NONE, level, 0, light);
         }
@@ -168,6 +197,18 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
                 at[0] + at[1], view.drive().top());
     }
 
+    /**
+     * Reports the shuttle at the view's index to {@link ShuttleSounds}: where
+     * its middle is, its speed and whether it is muffled.
+     */
+    private static void driveSound(ShuttleGarageBlockEntity garage, ShuttleView view, int index, boolean muffled, Placed placed) {
+        ItemStack cart = view.shuttle();
+        OptionalInt number = ShuttleItem.number(cart);
+        ShuttleSounds.Key key = new ShuttleSounds.Key(garage.getBlockPos(), number.isPresent() ? number.getAsInt() : -1 - index);
+        double[] pos = placed.pos();
+        ShuttleSounds.update(garage.getLevel(), key, pos[0] + 0.5, pos[1] + FLOOR + 0.5 * SHUTTLE_SCALE, pos[2] + 0.5, placed.speed(), muffled);
+    }
+
     /** Whether the shuttle carries the Lumber module, which unfolds its hold and crane at a rail where it fells. */
     private static boolean fellsWith(ItemStack cart) {
         return ShuttleModules.of(cart).toolSpec().map(ModuleSpec::id).filter(ModuleSpec.LUMBER::equals).isPresent();
@@ -179,7 +220,7 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
      * shuttle model's pixels first.
      */
     private static void harvester(ItemStack cart, ShuttleView.Felling felling, Level level, double[] pos, double yaw, double ticksIn,
-                                  PoseStack poseStack, SubmitNodeCollector collector, int light) {
+                                  boolean muffled, PoseStack poseStack, SubmitNodeCollector collector, int light) {
         BlockPos trunk = felling.trunk();
         double dx = trunk.getX() - pos[0];
         double dz = trunk.getZ() - pos[2];
@@ -201,8 +242,10 @@ public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarage
         double[] sawAt = {pos[0] + 0.5 + sawX * Math.cos(radians) + sawZ * Math.sin(radians), pos[1] + FLOOR + saw[1] / toPixels,
                 pos[2] + 0.5 - sawX * Math.sin(radians) + sawZ * Math.cos(radians)};
         double[] holdAt = {pos[0] + 0.5, pos[1] + FLOOR + HOLD_SOUND_HEIGHT, pos[2] + 0.5};
-        HarvesterSounds.update(level, BlockPos.containing(pos[0], pos[1], pos[2]), trunk, HarvesterLook.part(felling),
-                HarvesterLook.moment(felling, ticksIn), sawAt, holdAt);
+        if (!muffled) {
+            HarvesterSounds.update(level, BlockPos.containing(pos[0], pos[1], pos[2]), trunk, HarvesterLook.part(felling),
+                    HarvesterLook.moment(felling, ticksIn), sawAt, holdAt);
+        }
     }
 
     /**

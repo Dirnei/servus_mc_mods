@@ -12,7 +12,7 @@ import net.minecraft.core.BlockPos;
 /**
  * Client side: the last known shuttles per garage and when they arrived, the
  * shuttles that drove into the garage and are still drawn there until the
- * shutter is down, and the shutter's openness.
+ * shutter is down, the shutter's openness and whether the garage is muffled.
  */
 public final class ClientShuttles {
 
@@ -26,14 +26,16 @@ public final class ClientShuttles {
         private final List<ShuttleView> views;
         private final long receivedTick;
         private final List<Parked> parked;
+        private final boolean muffled;
         /** How far the shutter is open, 0 shut to 1 open, and the client time it was last moved; NaN before. */
         double openness;
         double shutterTime = Double.NaN;
 
-        Fleet(List<ShuttleView> views, long receivedTick, List<Parked> parked) {
+        Fleet(List<ShuttleView> views, long receivedTick, List<Parked> parked, boolean muffled) {
             this.views = views;
             this.receivedTick = receivedTick;
             this.parked = parked;
+            this.muffled = muffled;
         }
 
         public List<ShuttleView> views() {
@@ -47,6 +49,11 @@ public final class ClientShuttles {
         /** Shuttles that came home and are drawn inside until the shutter is down. */
         public List<Parked> parked() {
             return parked;
+        }
+
+        /** Whether a Muffler in the garage muffles all its shuttles. */
+        public boolean muffled() {
+            return muffled;
         }
     }
 
@@ -79,7 +86,7 @@ public final class ClientShuttles {
         if (payload.shuttles().stream().anyMatch(view -> view.path().getFirst().equals(garage) && view.segment() == 0)) {
             parked.clear();
         }
-        Fleet fleet = new Fleet(payload.shuttles(), now, parked);
+        Fleet fleet = new Fleet(payload.shuttles(), now, parked, payload.muffled());
         if (old != null) {
             fleet.openness = old.openness;
             fleet.shutterTime = old.shutterTime;

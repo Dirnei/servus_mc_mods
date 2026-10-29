@@ -10,12 +10,12 @@ import net.minecraft.world.item.ItemStack;
 /**
  * What goes into a shuttle through the workshop's install slot: the
  * Foundation Speed Upgrade and the Handling Upgrade as counts, tool modules
- * as the one tool.
+ * as the one tool, and the Muffler.
  */
 public final class ShuttleUpgrades {
 
     /** What an item does to a shuttle. */
-    public enum Install { SPEED, HANDLING, TOOL, NONE }
+    public enum Install { SPEED, HANDLING, TOOL, MUFFLER, NONE }
 
     private ShuttleUpgrades() {
     }
@@ -29,6 +29,9 @@ public final class ShuttleUpgrades {
         }
         if (stack.is(ServusShuttlesItems.HANDLING_UPGRADE.get())) {
             return Install.HANDLING;
+        }
+        if (stack.is(ServusShuttlesItems.MUFFLER.get())) {
+            return Install.MUFFLER;
         }
         return stack.getItem() instanceof ShuttleModuleItem ? Install.TOOL : Install.NONE;
     }
@@ -47,7 +50,7 @@ public final class ShuttleUpgrades {
         return kind == Kind.SPEED ? ServusFoundationItems.SPEED_UPGRADE.get() : ServusShuttlesItems.HANDLING_UPGRADE.get();
     }
 
-    /** How many of the stack the shuttle takes now by these stats: up to the max for counts, one tool. */
+    /** How many of the stack the shuttle takes now by these stats: up to the max for counts, one tool, one Muffler while it has none. */
     public static int room(ItemStack shuttle, ItemStack stack, ShuttleTiers tiers) {
         if (!ShuttleItem.isShuttle(shuttle)) {
             return 0;
@@ -55,6 +58,9 @@ public final class ShuttleUpgrades {
         Install install = kind(stack);
         if (install == Install.TOOL) {
             return ShuttleModules.of(shuttle).tool().filter(stack::is).isPresent() ? 0 : 1;
+        }
+        if (install == Install.MUFFLER) {
+            return ShuttleModules.of(shuttle).muffled() ? 0 : 1;
         }
         return counted(install).map(kind -> tiers.room(ShuttleItem.tier(shuttle), kind, ShuttleModules.of(shuttle).count(kind)))
                 .orElse(0);

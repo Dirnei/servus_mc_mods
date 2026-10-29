@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
 import io.github.dirnei.mc.servus.shuttles.garage.GarageStrandedPayload;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
 import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleFleet;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleItem;
@@ -27,13 +28,16 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /**
- * One slot per shuttle place above the player inventory. The slot of a
- * shuttle that is out on a job cannot be emptied until it is back.
+ * One slot per shuttle place above the player inventory, and the Muffler
+ * slot. The slot of a shuttle that is out on a job cannot be emptied until
+ * it is back.
  */
 public class ShuttleGarageMenu extends AbstractContainerMenu implements MachineNameMenu {
 
     public static final int SLOTS_Y = 30;
     public static final int INVENTORY_Y = 96;
+    public static final int MUFFLER_X = 152;
+    public static final int MUFFLER_Y = 63;
     public static final int BUTTON_RECALL = 1;
     public static final int BUTTON_TOGGLE = 2;
     private static final int COLUMNS = 9;
@@ -42,6 +46,7 @@ public class ShuttleGarageMenu extends AbstractContainerMenu implements MachineN
     private final ContainerLevelAccess access;
     private final Player player;
     private final int capacity;
+    private final int mufflerSlot;
     private final int inventoryStart;
     private final DataSlot out = DataSlot.standalone();
     private final DataSlot active = DataSlot.standalone();
@@ -66,6 +71,18 @@ public class ShuttleGarageMenu extends AbstractContainerMenu implements MachineN
                 }
             });
         }
+        mufflerSlot = slots.size();
+        addSlot(new ResourceHandlerSlot(garage.muffler(), garage.muffler()::set, 0, MUFFLER_X, MUFFLER_Y) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return stack.is(ServusShuttlesItems.MUFFLER.get());
+            }
+
+            @Override
+            public int getMaxStackSize() {
+                return 1;
+            }
+        });
         inventoryStart = slots.size();
         PlayerInventorySlots.add(this::addSlot, playerInventory, 8, INVENTORY_Y);
         addDataSlot(out);
@@ -101,6 +118,11 @@ public class ShuttleGarageMenu extends AbstractContainerMenu implements MachineN
 
     public int inventoryStart() {
         return inventoryStart;
+    }
+
+    /** The menu index of the Muffler slot. */
+    public int mufflerSlot() {
+        return mufflerSlot;
     }
 
     /** Shuttles of this garage out on a job, as last synced. */
@@ -180,7 +202,10 @@ public class ShuttleGarageMenu extends AbstractContainerMenu implements MachineN
         return strandedSlots.contains(slot);
     }
 
-    /** Shift click: a Shuttle item in the inventory goes into a free place, a garage slot goes back to the inventory. */
+    /**
+     * Shift click: a Shuttle item in the inventory goes into a free place, a
+     * Muffler into the Muffler slot, and a garage slot goes back to the inventory.
+     */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         if (index < 0 || index >= slots.size()) {
@@ -193,16 +218,17 @@ public class ShuttleGarageMenu extends AbstractContainerMenu implements MachineN
         ItemStack stack = slot.getItem();
         ItemStack original = stack.copy();
         boolean moved;
-        if (index < capacity) {
-            if (locked(index)) {
+        if (index < inventoryStart) {
+            if (index < capacity && locked(index)) {
                 return ItemStack.EMPTY;
             }
             moved = moveItemStackTo(stack, inventoryStart, slots.size(), true);
-        } else {
-            if (!ShuttleItem.isShuttle(stack)) {
-                return ItemStack.EMPTY;
-            }
+        } else if (ShuttleItem.isShuttle(stack)) {
             moved = moveItemStackTo(stack, 0, capacity, false);
+        } else if (stack.is(ServusShuttlesItems.MUFFLER.get())) {
+            moved = moveItemStackTo(stack, mufflerSlot, mufflerSlot + 1, false);
+        } else {
+            return ItemStack.EMPTY;
         }
         if (!moved) {
             return ItemStack.EMPTY;

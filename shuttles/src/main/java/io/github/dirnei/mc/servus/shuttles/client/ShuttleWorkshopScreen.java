@@ -29,6 +29,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -36,11 +37,13 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * The shuttle and install slots, the shuttle's tier with its upgrades and
- * tool, each with a button that takes one out, the next tier's build sheet
- * with what is in and what is missing, the supply slots and Build now. On
- * the right a work panel shows the shuttle large; a build by hand plays its
- * steps there, and after the last one the panel asks for the name plate.
+ * The shuttle and install slots, the shuttle's tier with its upgrades, tool
+ * and Muffler, each with a button that takes one out, the next tier's build sheet
+ * with what is in and what is missing, the supply slots and Build, which
+ * reads Skip while a build runs. On the right a work panel shows the shuttle
+ * large, turning slowly or by a mouse drag; a build swings it to the work
+ * angle and plays its steps there, and after the last one the panel asks for
+ * the name plate.
  */
 public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorkshopMenu> {
 
@@ -74,12 +77,25 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
     private static final int NAME_Y = 148;
     private static final int ENGRAVE_Y = 164;
     private static final int PANEL_BUTTON_Y = 180;
+    /** How fast the idle shuttle turns, in degrees per second: one turn in ten seconds. */
+    private static final float TURN_SPEED = 36.0F;
+    /** Degrees the shuttle turns per GUI pixel of a mouse drag. */
+    private static final float DRAG_TURN = 1.5F;
+    /** The yaw a build by hand plays its steps at; the step spots are drawn for this view. */
+    private static final float WORK_YAW = 0.0F;
+    /** Seconds in which the swing to the work angle closes most of the way; it is done after about four of them. */
+    private static final float SWING_TIME = 0.075F;
+    /** The longest frame the turn takes into account, so a stalled frame does not jump the shuttle. */
+    private static final float MAX_FRAME = 0.1F;
+    private static final Component BUILD = Component.translatable("gui.servus_shuttles.workshop.build");
+    private static final Component SKIP = Component.translatable("gui.servus_shuttles.workshop.skip");
 
     private Button removeSpeed;
     private Button removeHandling;
     private Button removeTool;
-    private Button buildNow;
-    private Button byHand;
+    private Button removeMuffler;
+    /** Build while no build runs, Skip while one does. */
+    private Button build;
     private Button cancel;
     private Button engrave;
     private EditBox name;
@@ -91,6 +107,12 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
     private WeldBoard weld;
     /** The step whose completion was sent last, so each step is reported once. */
     private int reported = -1;
+    /** The large shuttle's turn about its upright axis, in degrees. */
+    private float yaw = WORK_YAW;
+    /** When {@link #yaw} was last moved on, in milliseconds; 0 before the first frame. */
+    private long turnedAt;
+    /** Whether the player is turning the shuttle by dragging the board. */
+    private boolean turning;
 
     public ShuttleWorkshopScreen(ShuttleWorkshopMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, 320, 204);
@@ -104,10 +126,9 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         removeSpeed = addRenderableWidget(removeButton(infoY, ShuttleWorkshopMenu.BUTTON_REMOVE_SPEED));
         removeHandling = addRenderableWidget(removeButton(infoY + LINE, ShuttleWorkshopMenu.BUTTON_REMOVE_HANDLING));
         removeTool = addRenderableWidget(removeButton(infoY + 2 * LINE, ShuttleWorkshopMenu.BUTTON_REMOVE_TOOL));
-        buildNow = addRenderableWidget(Button.builder(Component.translatable("gui.servus_shuttles.workshop.build_now"),
-                        button -> press(ShuttleWorkshopMenu.BUTTON_BUILD_NOW))
+        removeMuffler = addRenderableWidget(removeButton(infoY + 3 * LINE, ShuttleWorkshopMenu.BUTTON_REMOVE_MUFFLER));
+        build = addRenderableWidget(Button.builder(BUILD, button -> press(menu.building() ? ShuttleWorkshopMenu.BUTTON_SKIP : ShuttleWorkshopMenu.BUTTON_BUILD))
                 .bounds(leftPos + 120, topPos + ShuttleWorkshopMenu.SUPPLY_Y - 2, 50, 20).build());
-        byHand = addRenderableWidget(panelButton("gui.servus_shuttles.workshop.by_hand", ShuttleWorkshopMenu.BUTTON_BUILD_BY_HAND));
         cancel = addRenderableWidget(panelButton("gui.servus_shuttles.workshop.cancel", ShuttleWorkshopMenu.BUTTON_CANCEL));
         name = new EditBox(font, leftPos + BOARD_X, topPos + NAME_Y, BOARD_W, 12, Component.translatable("gui.servus_shuttles.workshop.name"));
         name.setMaxLength(NamePlate.MAX);
@@ -152,14 +173,15 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         removeSpeed.visible = present;
         removeHandling.visible = present;
         removeTool.visible = present;
+        removeMuffler.visible = present;
         removeSpeed.active = !building && modules.speed() > 0;
         removeHandling.active = !building && modules.handling() > 0;
         removeTool.active = !building && modules.tool().isPresent();
+        removeMuffler.active = !building && modules.muffled();
         boolean sheet = present && !menu.sheet().isEmpty();
-        buildNow.visible = sheet && !building;
-        buildNow.active = menu.canBuild();
-        byHand.visible = sheet && !building;
-        byHand.active = menu.canBuild();
+        build.visible = sheet;
+        build.active = building || menu.canBuild();
+        build.setMessage(building ? SKIP : BUILD);
         cancel.visible = building;
         boolean naming = building && done();
         name.visible = naming;
@@ -226,15 +248,34 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         int boardTop = topPos + BOARD_Y;
         PanelPainter.bordered(graphics, boardLeft, boardTop, BOARD_W, BOARD_H, PanelPainter.DARK, COLOUR_BOARD);
         ItemStack shuttle = menu.shuttle();
+        turn();
         if (!shuttle.isEmpty()) {
             GuiLargeItemRenderState.submit(graphics, shuttle, boardLeft, boardTop, boardLeft + BOARD_W, boardTop + BOARD_H,
-                    16 * MODEL_SCALE);
+                    16 * MODEL_SCALE, yaw);
         }
         if (menu.building() && !done()) {
             graphics.pose().pushMatrix();
             graphics.pose().translate(boardLeft, boardTop);
             drawBoard(graphics, mouseX - boardLeft, mouseY - boardTop);
             graphics.pose().popMatrix();
+        }
+    }
+
+    /**
+     * Moves the yaw on by the time since the last frame: during a build it
+     * swings to the work angle and holds there, otherwise it turns slowly
+     * unless the player is dragging it.
+     */
+    private void turn() {
+        long now = Util.getMillis();
+        float seconds = turnedAt == 0 ? 0 : Math.min(MAX_FRAME, (now - turnedAt) / 1000.0F);
+        turnedAt = now;
+        if (menu.building()) {
+            turning = false;
+            float off = Mth.wrapDegrees(WORK_YAW - yaw);
+            yaw = Math.abs(off) < 0.5F ? WORK_YAW : yaw + off * (1 - (float) Math.exp(-seconds / SWING_TIME));
+        } else if (!turning) {
+            yaw = Mth.wrapDegrees(yaw + TURN_SPEED * seconds);
         }
     }
 
@@ -337,16 +378,40 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         if (event.button() == 0 && onBoard(event.x(), event.y()) && play(boardX(event.x()), boardY(event.y()), true)) {
             return true;
         }
+        if (event.button() == 0 && onView(event.x(), event.y())) {
+            turning = true;
+            return true;
+        }
         return super.mouseClicked(event, doubleClick);
     }
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+        if (event.button() == 0 && turning) {
+            yaw = Mth.wrapDegrees(yaw + (float) dragX * DRAG_TURN);
+            return true;
+        }
         if (event.button() == 0 && weld != null && onBoard(event.x(), event.y())) {
             play(boardX(event.x()), boardY(event.y()), false);
             return true;
         }
         return super.mouseDragged(event, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(MouseButtonEvent event) {
+        if (event.button() == 0 && turning) {
+            turning = false;
+            return true;
+        }
+        return super.mouseReleased(event);
+    }
+
+    /** Whether the mouse is over the large shuttle while no build runs, where a drag turns it. */
+    private boolean onView(double mouseX, double mouseY) {
+        double x = mouseX - leftPos - BOARD_X;
+        double y = mouseY - topPos - BOARD_Y;
+        return !menu.building() && !menu.shuttle().isEmpty() && x >= 0 && y >= 0 && x < BOARD_W && y < BOARD_H;
     }
 
     private int boardX(double mouseX) {
@@ -435,7 +500,7 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         drawSheet(graphics, tier);
     }
 
-    /** The tier's stacks, the upgrade counts against their maxes, and the tool. */
+    /** The tier's stacks, the upgrade counts against their maxes, the tool and whether it is muffled. */
     private void drawShuttleInfo(GuiGraphicsExtractor graphics, int tier, ShuttleModules modules) {
         ShuttleTiers.Tier stats = menu.tiers().tier(tier);
         int y = ShuttleWorkshopMenu.SHUTTLE_Y;
@@ -450,6 +515,9 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         Component tool = modules.tool().map(item -> (Component) Component.translatable(item.getDescriptionId()))
                 .orElse(Component.translatable("gui.servus_shuttles.workshop.no_tool"));
         graphics.text(font, font.plainSubstrByWidth(Component.translatable("gui.servus_shuttles.workshop.tool", tool).getString(), SHEET_X - INFO_X - 4),
+                INFO_X, y, COLOUR_TEXT, false);
+        y += LINE;
+        graphics.text(font, Component.translatable(modules.muffled() ? "gui.servus_shuttles.workshop.muffled" : "gui.servus_shuttles.workshop.not_muffled"),
                 INFO_X, y, COLOUR_TEXT, false);
     }
 

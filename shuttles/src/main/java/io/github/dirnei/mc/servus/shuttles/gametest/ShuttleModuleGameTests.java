@@ -157,9 +157,9 @@ public final class ShuttleModuleGameTests {
         helper.succeed();
     }
 
-    /** Build now waits for every supply, then turns Mk1 into Mk2 with its upgrades and tool and leaves extras. */
+    /** Build waits for every supply; Skip then turns Mk1 into Mk2 with its upgrades and tool and leaves extras. */
     @ServusGameTest
-    public static void buildNowNeedsSuppliesAndKeepsUpgrades(GameTestHelper helper) {
+    public static void buildAndSkipNeedSuppliesAndKeepUpgrades(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ShuttleWorkshopMenu menu = workshop(helper, player);
         ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
@@ -172,9 +172,10 @@ public final class ShuttleModuleGameTests {
             workshop.supplies().setStackInSlot(slot++, new ItemStack(item, amount));
         }
         helper.assertFalse(menu.canBuild(), "one supply is short");
-        helper.assertFalse(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_NOW), "Build now does nothing while short");
+        helper.assertFalse(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD), "Build is off while short");
         workshop.supplies().getStackInSlot(0).grow(5);
-        helper.assertTrue(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_NOW), "Build now builds once complete");
+        helper.assertTrue(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD), "Build starts once complete");
+        helper.assertTrue(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_SKIP), "Skip finishes the build");
         ItemStack built = menu.shuttle();
         helper.assertTrue(built.is(ServusShuttlesItems.SHUTTLE_MK2.get()), "the shuttle is a Mk2 now");
         ShuttleModules modules = ShuttleModules.of(built);
@@ -325,14 +326,14 @@ public final class ShuttleModuleGameTests {
         ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
         workshop.shuttle().setStackInSlot(0, shuttle(ServusShuttlesItems.SHUTTLE_MK1.get(), 1, 0, Optional.empty()));
         supplyFor(workshop, 2);
-        helper.assertTrue(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_BY_HAND), "a build by hand starts");
+        helper.assertTrue(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD), "a build by hand starts");
         helper.assertTrue(menu.building(), "the menu sees the build");
         helper.assertTrue(workshop.supplies().extractItem(0, 1, true).isEmpty(), "supplies are locked");
         helper.assertFalse(menu.slots.get(ShuttleWorkshopMenu.SUPPLY_START).mayPickup(player), "the supply slot is locked");
         helper.assertFalse(menu.slots.get(ShuttleWorkshopMenu.SHUTTLE_SLOT).mayPickup(player), "the shuttle slot is locked");
         helper.assertTrue(menu.install(speedUpgrades(1)) == 0, "no upgrade goes in during a build");
         helper.assertFalse(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_REMOVE_SPEED), "no upgrade comes out during a build");
-        helper.assertFalse(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_NOW), "Build now is off during a build");
+        helper.assertFalse(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD), "Build does not start a second build");
         helper.assertTrue(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_CANCEL), "Cancel ends the build");
         helper.assertFalse(workshop.handBuild(), "no build runs after Cancel");
         helper.assertTrue(workshop.shuttle().getStackInSlot(0).is(ServusShuttlesItems.SHUTTLE_MK1.get()), "the shuttle stays a Mk1");
@@ -350,7 +351,7 @@ public final class ShuttleModuleGameTests {
         ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
         workshop.shuttle().setStackInSlot(0, new ItemStack(ServusShuttlesItems.SHUTTLE_MK1.get()));
         supplyFor(workshop, 2);
-        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_BY_HAND);
+        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD);
         int total = workshop.steps().size();
         helper.assertTrue(total >= 2, "the sheet has steps, got " + total);
         menu.reportStep(2);
@@ -365,7 +366,7 @@ public final class ShuttleModuleGameTests {
         helper.succeed();
     }
 
-    /** Engrave finishes the build like Build now and puts the cleaned name on the new shuttle. */
+    /** Engrave finishes the build like Skip and puts the cleaned name on the new shuttle. */
     @ServusGameTest
     public static void engraveFinishesWithPlate(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -373,7 +374,7 @@ public final class ShuttleModuleGameTests {
         ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
         workshop.shuttle().setStackInSlot(0, shuttle(ServusShuttlesItems.SHUTTLE_MK1.get(), 2, 1, Optional.of(ServusShuttlesItems.HARVESTER.get())));
         supplyFor(workshop, 2);
-        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_BY_HAND);
+        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD);
         playAllSteps(menu, workshop);
         helper.assertTrue(workshop.handDone(), "every step is done");
         menu.engrave("§cBerta");
@@ -388,9 +389,9 @@ public final class ShuttleModuleGameTests {
         helper.succeed();
     }
 
-    /** Build now keeps a plate; a new build by hand replaces it, and an empty name keeps it. */
+    /** Skip keeps a plate; a new build by hand replaces it, and an empty name keeps it. */
     @ServusGameTest
-    public static void buildNowKeepsPlate(GameTestHelper helper) {
+    public static void skipKeepsPlate(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ShuttleWorkshopMenu menu = workshop(helper, player);
         ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
@@ -398,7 +399,8 @@ public final class ShuttleModuleGameTests {
         ShuttleItem.engrave(named, "Berta");
         workshop.shuttle().setStackInSlot(0, named);
         supplyFor(workshop, 3);
-        helper.assertTrue(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_NOW), "Build now builds a Mk3");
+        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD);
+        helper.assertTrue(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_SKIP), "Skip builds a Mk3");
         ItemStack mk3 = workshop.shuttle().getStackInSlot(0);
         helper.assertTrue(mk3.is(ServusShuttlesItems.SHUTTLE_MK3.get()) && ShuttleItem.plate(mk3).equals(Optional.of("Berta")),
                 "the Mk3 keeps Berta");
@@ -407,7 +409,7 @@ public final class ShuttleModuleGameTests {
         ShuttleItem.engrave(mk1, "Berta");
         workshop.shuttle().setStackInSlot(0, mk1);
         supplyFor(workshop, 2);
-        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_BY_HAND);
+        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD);
         playAllSteps(menu, workshop);
         menu.engrave("Kurt");
         helper.assertTrue(ShuttleItem.plate(workshop.shuttle().getStackInSlot(0)).equals(Optional.of("Kurt")),
@@ -417,12 +419,70 @@ public final class ShuttleModuleGameTests {
         ShuttleItem.engrave(again, "Berta");
         workshop.shuttle().setStackInSlot(0, again);
         supplyFor(workshop, 2);
-        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_BY_HAND);
+        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD);
         playAllSteps(menu, workshop);
         menu.engrave("   ");
         ItemStack kept = workshop.shuttle().getStackInSlot(0);
         helper.assertTrue(kept.is(ServusShuttlesItems.SHUTTLE_MK2.get()) && ShuttleItem.plate(kept).equals(Optional.of("Berta")),
                 "an empty name finishes the build and keeps the old plate");
+        helper.succeed();
+    }
+
+    /** Skip on the first step makes the Mk2 at once with the sheet's supplies used and no name to type. */
+    @ServusGameTest
+    public static void skipOnFirstStepFinishes(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ShuttleWorkshopMenu menu = workshop(helper, player);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
+        workshop.shuttle().setStackInSlot(0, shuttle(ServusShuttlesItems.SHUTTLE_MK1.get(), 1, 2, Optional.of(ServusShuttlesItems.HARVESTER.get())));
+        supplyFor(workshop, 2);
+        helper.assertTrue(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD), "Build starts the build");
+        helper.assertTrue(workshop.buildStep() == 0, "on step 1");
+        helper.assertTrue(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_SKIP), "Skip is taken on step 1");
+        ItemStack built = workshop.shuttle().getStackInSlot(0);
+        helper.assertTrue(built.is(ServusShuttlesItems.SHUTTLE_MK2.get()), "the shuttle is a Mk2 now");
+        ShuttleModules modules = ShuttleModules.of(built);
+        helper.assertTrue(modules.speed() == 1 && modules.handling() == 2 && modules.tool().isPresent(), "counts and tool stay");
+        helper.assertFalse(workshop.handBuild() || workshop.handDone(), "the build is over and no name is asked for");
+        for (int i = 0; i < workshop.supplies().getSlots(); i++) {
+            helper.assertTrue(workshop.supplies().getStackInSlot(i).isEmpty(), "supply slot " + i + " is used up");
+        }
+        helper.succeed();
+    }
+
+    /** Skip at the name prompt finishes the build and keeps the shuttle's old plate. */
+    @ServusGameTest
+    public static void skipAtNamePromptKeepsPlate(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ShuttleWorkshopMenu menu = workshop(helper, player);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
+        ItemStack named = new ItemStack(ServusShuttlesItems.SHUTTLE_MK1.get());
+        ShuttleItem.engrave(named, "Berta");
+        workshop.shuttle().setStackInSlot(0, named);
+        supplyFor(workshop, 2);
+        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD);
+        playAllSteps(menu, workshop);
+        helper.assertTrue(workshop.handDone(), "the name is asked for");
+        helper.assertTrue(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_SKIP), "Skip is taken at the name prompt");
+        ItemStack built = workshop.shuttle().getStackInSlot(0);
+        helper.assertTrue(built.is(ServusShuttlesItems.SHUTTLE_MK2.get()) && ShuttleItem.plate(built).equals(Optional.of("Berta")),
+                "the Mk2 keeps Berta, got " + ShuttleItem.plate(built));
+        helper.assertFalse(workshop.handBuild(), "the build is over");
+        helper.succeed();
+    }
+
+    /** Skip without a running build changes nothing, even with every supply there. */
+    @ServusGameTest
+    public static void skipWithoutBuildDoesNothing(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ShuttleWorkshopMenu menu = workshop(helper, player);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
+        workshop.shuttle().setStackInSlot(0, new ItemStack(ServusShuttlesItems.SHUTTLE_MK1.get()));
+        supplyFor(workshop, 2);
+        helper.assertFalse(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_SKIP), "Skip is refused without a build");
+        helper.assertTrue(workshop.shuttle().getStackInSlot(0).is(ServusShuttlesItems.SHUTTLE_MK1.get()), "the shuttle stays a Mk1");
+        helper.assertTrue(workshop.canBuild(), "every supply is still there");
+        helper.assertFalse(workshop.handBuild(), "no build was started");
         helper.succeed();
     }
 
@@ -434,7 +494,7 @@ public final class ShuttleModuleGameTests {
         ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
         workshop.shuttle().setStackInSlot(0, new ItemStack(ServusShuttlesItems.SHUTTLE_MK1.get()));
         supplyFor(workshop, 2);
-        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_BY_HAND);
+        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD);
         menu.reportStep(0);
         menu.reportStep(1);
         CompoundTag saved = workshop.saveWithoutMetadata(helper.getLevel().registryAccess());
@@ -454,7 +514,7 @@ public final class ShuttleModuleGameTests {
         ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
         workshop.shuttle().setStackInSlot(0, new ItemStack(ServusShuttlesItems.SHUTTLE_MK1.get()));
         supplyFor(workshop, 2);
-        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_BY_HAND);
+        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD);
         menu.reportStep(0);
         ItemStack edited = workshop.shuttle().getStackInSlot(0).copy();
         ShuttleModules.set(edited, ShuttleModules.of(edited).withCount(ShuttleTiers.Kind.SPEED, 1));

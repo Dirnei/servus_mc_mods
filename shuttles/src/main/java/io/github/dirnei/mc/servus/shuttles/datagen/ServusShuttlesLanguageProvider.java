@@ -133,6 +133,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add(ServusShuttlesItems.SHUTTLE_MK2.get(), "Shuttle Mk2");
         add(ServusShuttlesItems.SHUTTLE_MK3.get(), "Shuttle Mk3");
         add(ServusShuttlesItems.HANDLING_UPGRADE.get(), "Handling Upgrade");
+        add(ServusShuttlesItems.MUFFLER.get(), "Muffler");
         add(ServusShuttlesItems.RANGE_UPGRADE.get(), "Range Upgrade");
         add(ServusShuttlesItems.WIRELESS_UPGRADE.get(), "Wireless Upgrade");
         add("item.servus_shuttles.wireless_upgrade.tooltip",
@@ -345,11 +346,14 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.workshop.handling", "Handling %s/%s");
         add("gui.servus_shuttles.workshop.tool", "Tool: %s");
         add("gui.servus_shuttles.workshop.no_tool", "none");
+        add("gui.servus_shuttles.workshop.muffled", "Muffled");
+        add("gui.servus_shuttles.garage.muffler.tooltip", "Muffler slot: a Muffler here muffles every shuttle of this garage");
+        add("gui.servus_shuttles.workshop.not_muffled", "Not muffled");
         add("gui.servus_shuttles.workshop.supplies", "Supplies");
         add("gui.servus_shuttles.workshop.next", "Mk%s needs");
         add("gui.servus_shuttles.workshop.top_tier", "Top tier");
-        add("gui.servus_shuttles.workshop.build_now", "Build now");
-        add("gui.servus_shuttles.workshop.by_hand", "Build by hand");
+        add("gui.servus_shuttles.workshop.build", "Build");
+        add("gui.servus_shuttles.workshop.skip", "Skip");
         add("gui.servus_shuttles.workshop.cancel", "Cancel");
         add("gui.servus_shuttles.workshop.step", "Step %s of %s");
         add("gui.servus_shuttles.workshop.step.bolts", "Tighten the glowing bolt");
@@ -374,10 +378,13 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("tooltip.servus_shuttles.shuttle.tool", "Tool: %s");
         add("tooltip.servus_shuttles.shuttle.speed", "Speed upgrades: %s");
         add("tooltip.servus_shuttles.shuttle.handling", "Handling upgrades: %s");
+        add("tooltip.servus_shuttles.shuttle.muffled", "Muffled");
         add("tooltip.servus_shuttles.module.tool", "Tool module for a shuttle");
         add("tooltip.servus_shuttles.module.harvester", "Harvests, tills and plants fields; field work only");
         add("tooltip.servus_shuttles.module.spreader", "Spreads fertilizer on growing crops; field work only");
         add("tooltip.servus_shuttles.module.lumber", "Fells trees and plants saplings on tree fields; field work only");
+        add("subtitles.servus_shuttles.shuttle.drive", "Shuttle rumbles");
+        add("subtitles.servus_shuttles.shuttle.drive_muffled", "Muffled shuttle rumbles");
         add("subtitles.servus_shuttles.chainsaw.idle", "Chainsaw idles");
         add("subtitles.servus_shuttles.chainsaw.cut", "Chainsaw cuts");
         add("subtitles.servus_shuttles.chainsaw.stop", "Chainsaw stops");

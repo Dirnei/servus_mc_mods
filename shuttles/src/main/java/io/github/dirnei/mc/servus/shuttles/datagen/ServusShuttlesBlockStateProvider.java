@@ -55,6 +55,7 @@ final class ServusShuttlesBlockStateProvider extends BlockStateProvider {
         cpu(ServusShuttlesBlocks.CPU_BUFFER.get(), "crafting_cpu_buffer");
         itemModels().basicItem(ServusShuttlesItems.ZONE_LABEL.get());
         itemModels().basicItem(ServusShuttlesItems.HANDLING_UPGRADE.get());
+        itemModels().basicItem(ServusShuttlesItems.MUFFLER.get());
         itemModels().basicItem(ServusShuttlesItems.RANGE_UPGRADE.get());
         itemModels().basicItem(ServusShuttlesItems.WIRELESS_UPGRADE.get());
         itemModels().basicItem(ServusShuttlesItems.HARVESTER.get());

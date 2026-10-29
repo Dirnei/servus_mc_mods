@@ -46,6 +46,7 @@ import net.neoforged.neoforge.model.data.ModelData;
  * Keeps shuttles as items, one per slot, and sends them out through its
  * back onto the rail. The live shuttles are data on the network's fleet;
  * this only holds the items and tells the network what each slot's shuttle can do.
+ * A Muffler in its own slot muffles every shuttle of the garage.
  */
 public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements MaterialHolder, MenuProvider, NamedMachine {
 
@@ -68,6 +69,24 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
             if (level instanceof ServerLevel server) {
                 ShuttleItem.numberIfMissing(server, getStackInSlot(slot));
             }
+            setChanged();
+            network().ifPresent(network -> network.garageChanged(ShuttleGarageBlockEntity.this));
+        }
+    };
+
+    private final ItemSlots muffler = new ItemSlots(1) {
+        @Override
+        public int getSlotLimit(int slot) {
+            return 1;
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return stack.is(ServusShuttlesItems.MUFFLER.get());
+        }
+
+        @Override
+        protected void onContentsChanged(int slot) {
             setChanged();
             network().ifPresent(network -> network.garageChanged(ShuttleGarageBlockEntity.this));
         }
@@ -134,6 +153,16 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
         return shuttles;
     }
 
+    /** The Muffler slot: one Muffler, nothing else. */
+    public ItemSlots muffler() {
+        return muffler;
+    }
+
+    /** Whether a Muffler muffles every shuttle of this garage. */
+    public boolean muffled() {
+        return !muffler.getStackInSlot(0).isEmpty();
+    }
+
     public int capacity() {
         return shuttles.getSlots();
     }
@@ -194,9 +223,10 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
         return false;
     }
 
-    /** Drops every shuttle item at the garage, for when the block is destroyed anyway. */
-    public void dropShuttles(Level level, BlockPos pos) {
+    /** Drops every shuttle item and the Muffler at the garage, for when the block is destroyed anyway. */
+    public void dropContents(Level level, BlockPos pos) {
         shuttles.dropAll(level, pos);
+        muffler.dropAll(level, pos);
     }
 
     @Override
@@ -221,6 +251,7 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
         HolderLookup.Provider registries = ValueIo.registries(this);
         materialSlot.save(output);
         tag.put("ShuttleItems", shuttles.serializeNBT(registries));
+        tag.put("Muffler", muffler.serializeNBT(registries));
         output.putBoolean("Active", active);
         output.store(tag);
     }
@@ -232,6 +263,9 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
         HolderLookup.Provider registries = input.lookup();
         materialSlot.load(input);
         active = !tag.contains("Active") || input.getBooleanOr("Active", false);
+        if (tag.contains("Muffler")) {
+            muffler.fillFrom(registries, tag.getCompoundOrEmpty("Muffler"));
+        }
         if (tag.contains("ShuttleItems")) {
             shuttles.fillFrom(registries, tag.getCompoundOrEmpty("ShuttleItems"));
         } else if (tag.contains("Shuttles")) {
@@ -284,12 +318,12 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
         return materialSlot.modelData();
     }
 
-    /** Drops the shuttle items on the server when the block is removed. */
+    /** Drops the shuttle items and the Muffler on the server when the block is removed. */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
         if (level != null) {
-            dropShuttles(level, pos);
+            dropContents(level, pos);
         }
     }
 

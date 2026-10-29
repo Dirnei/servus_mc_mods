@@ -19,6 +19,8 @@ final class Garage {
     final NodePos inside;
     NodePos home;
     boolean active = true;
+    /** Whether the garage holds a Muffler, sent to clients with its shuttles. */
+    boolean muffled;
     final List<Shuttle> shuttles = new ArrayList<>();
 
     Garage(BlockPos pos) {

@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.machine.menu.QuickMoves;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleBuild;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleItem;
@@ -34,9 +35,9 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /**
- * The Shuttle Workshop: the shuttle slot, the install slot that puts upgrades
- * and tools into it, the supply slots for the next tier's build, and buttons
- * that take upgrades out or build now. The tier stats come with the opening
+ * The Shuttle Workshop: the shuttle slot, the install slot that puts upgrades,
+ * tools and the Muffler into it, the supply slots for the next tier's build, and buttons
+ * that take upgrades out, build, skip and cancel. The tier stats come with the opening
  * so the client knows the maxes and the build sheets.
  */
 public class ShuttleWorkshopMenu extends AbstractContainerMenu {
@@ -57,9 +58,10 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
     public static final int BUTTON_REMOVE_SPEED = 0;
     public static final int BUTTON_REMOVE_HANDLING = 1;
     public static final int BUTTON_REMOVE_TOOL = 2;
-    public static final int BUTTON_BUILD_NOW = 3;
-    public static final int BUTTON_BUILD_BY_HAND = 4;
+    public static final int BUTTON_SKIP = 3;
+    public static final int BUTTON_BUILD = 4;
     public static final int BUTTON_CANCEL = 5;
+    public static final int BUTTON_REMOVE_MUFFLER = 6;
 
     /** The tier stats as the server knows them, for the client's labels. */
     public static final StreamCodec<RegistryFriendlyByteBuf, ShuttleTiers> TIERS_CODEC = StreamCodec.of(
@@ -266,7 +268,7 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
         }
     }
 
-    /** Whether Build now would work, as far as this side can tell. */
+    /** Whether Build would start, as far as this side can tell. */
     public boolean canBuild() {
         ItemStack held = shuttle();
         return !held.isEmpty() && ShuttleItem.ofTier(ShuttleItem.tier(held) + 1) != null
@@ -285,7 +287,8 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
 
     /**
      * Installs as much of the stack as the shuttle takes and shrinks it by
-     * that. A tool that is replaced goes to the player on the server.
+     * that: counts up to the max, one tool, one Muffler while it has none.
+     * A tool that is replaced goes to the player on the server.
      *
      * @return how many were installed
      */
@@ -305,6 +308,8 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
         Optional<Kind> kind = ShuttleUpgrades.counted(install);
         if (kind.isPresent()) {
             ShuttleModules.set(edited, modules.withCount(kind.get(), modules.count(kind.get()) + count));
+        } else if (install == ShuttleUpgrades.Install.MUFFLER) {
+            ShuttleModules.set(edited, modules.withMuffled(true));
         } else {
             modules.tool().ifPresent(old -> giveBack(new ItemStack(old)));
             ShuttleModules.set(edited, modules.withTool(Optional.of(stack.getItem())));
@@ -347,22 +352,37 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
         return true;
     }
 
+    /** Takes the Muffler out of the shuttle and gives it to the player. */
+    private boolean removeMuffler() {
+        ItemStack held = shuttle();
+        ShuttleModules modules = ShuttleModules.of(held);
+        if (held.isEmpty() || building() || !modules.muffled()) {
+            return false;
+        }
+        ItemStack edited = held.copy();
+        ShuttleModules.set(edited, modules.withMuffled(false));
+        giveBack(new ItemStack(ServusShuttlesItems.MUFFLER.get()));
+        shuttle.setStackInSlot(0, edited);
+        return true;
+    }
+
     @Override
     public boolean clickMenuButton(Player player, int id) {
         return switch (id) {
             case BUTTON_REMOVE_SPEED -> remove(Optional.of(Kind.SPEED));
             case BUTTON_REMOVE_HANDLING -> remove(Optional.of(Kind.HANDLING));
             case BUTTON_REMOVE_TOOL -> remove(Optional.empty());
-            case BUTTON_BUILD_NOW -> workshop != null && workshop.buildNow();
-            case BUTTON_BUILD_BY_HAND -> workshop != null && workshop.startHandBuild();
+            case BUTTON_REMOVE_MUFFLER -> removeMuffler();
+            case BUTTON_SKIP -> workshop != null && workshop.skip();
+            case BUTTON_BUILD -> workshop != null && workshop.startHandBuild();
             case BUTTON_CANCEL -> workshop != null && workshop.cancelHandBuild();
             default -> false;
         };
     }
 
     /**
-     * Shift click: a shuttle goes into the shuttle slot, an upgrade or tool
-     * the shuttle takes is installed, other items go to the supplies, and
+     * Shift click: a shuttle goes into the shuttle slot, an upgrade, tool or
+     * Muffler the shuttle takes is installed, other items go to the supplies, and
      * anything in the workshop back to the inventory.
      */
     @Override

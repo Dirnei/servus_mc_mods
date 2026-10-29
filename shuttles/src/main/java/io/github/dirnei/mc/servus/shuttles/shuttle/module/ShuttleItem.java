@@ -128,5 +128,8 @@ public class ShuttleItem extends Item {
         if (modules.handling() > 0) {
             tooltip.accept(Component.translatable("tooltip.servus_shuttles.shuttle.handling", modules.handling()).withStyle(ChatFormatting.GRAY));
         }
+        if (modules.muffled()) {
+            tooltip.accept(Component.translatable("tooltip.servus_shuttles.shuttle.muffled").withStyle(ChatFormatting.GRAY));
+        }
     }
 }
