@@ -664,13 +664,13 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add(ServusShuttlesBlocks.FLUID_OUTBOUND.get(), "Fluid Outbound");
         add("message.servus_shuttles.fluid_station.no_room", "No room: the station is two blocks tall");
         add("message.servus_shuttles.fluid_station.no_footing", "The station needs solid ground");
-        add("gui.servus_shuttles.fluid_station.state.no_room", "No fluid store has room for %s: it waits here");
-        add("gui.servus_shuttles.fluid_station.state.no_tanker", "No Tanker shuttle reaches this station: the fluid waits here");
+        add("gui.servus_shuttles.fluid_station.state.no_room", "No room for %s");
+        add("gui.servus_shuttles.fluid_station.state.no_tanker", "No Tanker available");
         add("message.servus_shuttles.potato.fluid_station_tank", "Tank: %s, %s of %s mB");
         add("message.servus_shuttles.potato.fluid_station_empty", "Tank: empty, holds %s mB");
         add("message.servus_shuttles.potato.fluid_station_keeps", ", keeps %s mB of %s");
         add("message.servus_shuttles.potato.fluid_station_keeps_nothing", ", keeps nothing");
-        add("gui.servus_shuttles.fluid_station.state.missing", "No Fluid Rack holds %s: the tank is not restocked");
+        add("gui.servus_shuttles.fluid_station.state.missing", "%s missing");
         add("gui.servus_shuttles.fluid_outbound.keep_picker", "Keep fluid");
         add("gui.servus_shuttles.fluid_outbound.keep_none", "Keep nothing");
         add("gui.servus_shuttles.fluid_outbound.keep_amount", "%s B");
