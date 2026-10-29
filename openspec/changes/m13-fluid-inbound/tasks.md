@@ -53,6 +53,13 @@
   - watch a tanker dock and carry the fluid to a Fluid Rack;
   - check the lamps, the sight glasses, the markers on both halves, and flicker from several angles.
 
+## 6. Play check decisions: one tank, the item station on a tank, wood
+
+- [x] 6.1 One tank. Remove `fluid_station_tanks` (`ShuttlesStatsManager` field, clamp, `MAX_FLUID_STATION_TANKS`, `DEFAULT_FLUID_STATION_TANKS`) and raise `fluid_station_tank_capacity` to 16000 in `warehouse.json`. `FluidStationBlockEntity` keeps one `FluidSlot` (`tank()`), one side tank and one shown fluid; buckets use the tank directly (`FluidStationHandler` goes); `FluidStationReport` prints one line; `FluidStoreRef.station(pos)` names it; `WarehouseNetwork.putAwaySources` and the station checks drop the tank loops. `FluidStationMenu`, `FluidInboundMenu`, `FluidStationScreen`, `FluidInboundScreen`: one centred gauge, no tank numbers, no tank count in `writeOpening`. Update `FluidInboundGameTests` (one tank, a second fluid refused, Pull, potato line) and the tanker GameTests. Verify with `gradlew :shuttles:test`, `gradlew :shuttles:build` and `gradlew :shuttles:runGameTestServer`.
+- [x] 6.2 Wood. Register both stations with `Material.register(..., MaterialKind.WOOD)` in `ServusShuttles`; give `FluidStationBlockEntity` a `MaterialSlot` (save, update tag, implicit components, model data); add `FluidStationTopBlockEntity` (upper half, a copy of the wood for its model) and register it; `FluidStationItem` extends `MaterialBlockItem`. Add the GameTest: a birch station dropped and placed again is birch on both halves and keeps its water and sides. Verify with `gradlew :shuttles:build` and `gradlew :shuttles:runGameTestServer`.
+- [x] 6.3 Recipe and lamps. The recipe is an Inbound Station on top of a Fluid Tank as a wood material recipe (`ServusShuttlesRecipeProvider.fluidStation`), which keeps the station item's wood. `FluidStationBlockEntity.setBlockState` copies `ONLINE` and `ACTIVITY` to the upper half. Add GameTests: a spruce Inbound Station over a Fluid Tank gives a spruce Fluid Inbound (`BlockStyleGameTests`), the upper half shows the lamp state. Verify with `gradlew :shuttles:runData` and `gradlew :shuttles:runGameTestServer`.
+- [x] 6.4 Look (concept H). `FluidStationModels`: the shared tank model `fluid_station_tank` (iron frame, floor, glass on four sides), the multipart block state with the Inbound Station models on the upper half by lamp state, and the item model (tank plus station cube). `FluidStationLook` for the tank; `FluidStationRenderer` draws the fluid in the lower half with four sides and top. Drop the window row models and the steel halves. List every overlapping box pair and its plane check in the task notes. Verify with `gradlew :shuttles:runData` and `gradlew :shuttles:build`.
+
 ## Workflow follow-up
 
 - Stacked after `m13-fluid-side-modes` and `m13-fluid-rack`, and before `m13-fluid-outbound`.
@@ -88,3 +95,32 @@
   - Two stations side by side meet only with their outer faces at the block edge, facing opposite ways.
   - Coupling: the tanker's head stops 0.005 short of the block edge where the flange's front lies.
 - In game play check for the user: place a Fluid Inbound on a floor and against a wall (refusal message), feed it from an Electric Pump through a duct on the back of either half and from a Fluid Tank on a Pull side; set sides with the panel (left click mode, right click tank) and the carrot on both halves; watch a Tanker dock its coupling into the port and carry the fluid to a Fluid Rack; check both lamps (offline dark, green, orange, red with the GUI naming the reason), the sight glasses following each tank, the markers on both halves, the item model in hand and GUI, and flicker on every part from several angles, also while the coupling moves.
+
+## Implementation notes (play check revision)
+
+- Build, unit tests (foundation 550, shuttles 955) and all GameTests (shuttles 1080, foundation 253) are green after 6.1 to 6.4.
+- Several look directions were tried during this revision (a family wood frame with a dye coloured belt, then the tank half telling the stations apart, then a swivel hub); the user settled on concept H, the item station on a glass tank, and dropped the dye. Nothing of the earlier directions is left in code or specs.
+- Names and decisions that differ from the tasks:
+  - Buckets use the tank itself (`FluidSlot` is a `ResourceHandler<FluidResource>`), so `FluidStationHandler` was deleted.
+  - `FluidStoreRef.station(pos)` names the station's tank with index `STATION` (0); the network checks that index.
+  - `FluidStationBlockEntity.setBlockState` copies `ONLINE` and `ACTIVITY` to the upper half, because the upper half shows the Inbound or Outbound Station front and the lamp state is set on the lower half only.
+  - The recipe needs no class of its own: a plain wood `MaterialRecipe` already takes the wood an ingredient carries (the item station's `servus_foundation:material` component).
+  - `TankerRunGameTests.fullInboundTankGoesBelowMinLoad` and `runsOnTheWayCountAgainstRoom` now fill the one tank; the second tank's assertions went. `TankerRestockGameTests.restockLeftoverBackToRack` keeps at the capacity, so 3 B still go back to the rack with 16,000 mB tanks.
+  - PLAN.md M13 gained the open point for the swing hose arm.
+- 6.4 overlapping box pairs of `fluid_station_tank` (the upper half is the item station's own full cube model, unchanged):
+  - post and post: apart (corners 0 to 2 and 14 to 16), no shared plane.
+  - post and bar: bars run from 2 to 14 and end at the posts' inner faces; bars have no end faces, so the post face there is the only face. No overlap.
+  - bar and bar: bottom and top bars along x and along z meet only at the posts, never each other.
+  - bottom bar and floor (2 to 14, y 0 to 2): they meet at the bars' inner sides, which the bars do not show; the floor shows only its top and bottom, at y 2 and 0, next to (not over) the bars' tops and bottoms.
+  - glass pane and post, bar or floor: panes stop 0.05 short of every frame part and show only their broad faces in the middle of the frame depth (z or x 0.95 to 1.05 and 14.95 to 15.05). No shared plane.
+  - pane and pane: the side panes run z 2.05 to 13.95 and the front and back panes x 2.05 to 13.95, so they never touch.
+  - fluid and frame or glass: the fluid stands 1.15 inside the outer faces (0.1 inside the panes), from y 2.1 up to at most 13.9, so its faces lie on no frame, floor or glass plane; its corners pass inside the posts.
+  - lower half top and upper half bottom: the tank shows no face at y 16 (posts and top bars show no top), so the upper cube's bottom face is the only face on that plane.
+- Tanker coupling: there is no port on a station now. The tanker still stops on the rail in front of the lower half and its side coupling still slides toward the tank while it pumps; the hose arm change replaces that look.
+- In game play check for the user:
+  - craft a spruce Inbound Station over a Fluid Tank and a birch Outbound Station over a Fluid Tank; the item shows the wood in hand and GUI;
+  - place both: the upper half is the item station in its wood, the lower half a glass tank; break one and place it again (wood, tank and sides kept);
+  - fill with water and lava: the fluid rises in steps behind the glass on all four sides, seen from every angle; no flicker on the frame, glass or fluid;
+  - the lamps on the upper front: dark offline, green, orange while a tanker runs, red with the GUI reason;
+  - the GUI with one gauge, the side panel without tank chips (right click on a cell does nothing, tooltip "Side: Mode");
+  - a tanker stopping in front of the station, its coupling sliding toward the tank.

@@ -16,7 +16,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 /**
  * Draws fluid held in a tank as a translucent box with the fluid's still
  * texture, its tint at a block and at least its own glow; shared by the
- * fluid stations' sight glasses and the Fluid Rack's glass front.
+ * fluid stations' tanks and the Fluid Rack's glass front.
  */
 final class FluidColumn {
 

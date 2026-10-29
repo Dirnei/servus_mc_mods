@@ -53,6 +53,10 @@
   Change `SideMarkerRenderer` to draw the mode glyph with the label colour frame, and the Fluids layer for goggles on fluids-only blocks. Verify with `gradlew :foundation:build`.
 - [x] 3.3 Change `SideConfigWrench` to cycle the mode of the block's only layer when it lacks the carrot's layer, and to report mode and tank on the Fluids layer. Add lang strings for "Tank %s" and the "Side: Mode, Tank" line in the Foundation language provider. Verify with `gradlew :foundation:runData` and `gradlew :foundation:build`.
 
+## 3b. One tank
+
+- [x] 3.4 Give a block with one tank no tank choice: `FluidSides.cycleTank` keeps All and `hasTankChoice()` in `foundation/.../side/FluidSides.java`; `SideConfigPanel` draws no chip and ignores a right click on a Fluids cell for a one tank block; `SideConfigWrench.fluidMessage` names side and mode only for it. Add the `FluidSidesTest` case "a one tank layer keeps All when the tank is cycled". Verify with `gradlew :foundation:test` and `gradlew :foundation:build`.
+
 ## 4. Docs and integration
 
 - [ ] 4.1 Update the side configuration section of `docs/src/content/docs/mods/foundation.md`: Fluids sides have modes and a tank, a right click picks the tank, and the carrot cycles the mode. Verify that the docs site builds (`npm run build` in `docs/`). (Deferred to release: docs describe released versions only.)

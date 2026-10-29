@@ -87,8 +87,11 @@ public final class SideConfigWrench {
         return Component.translatable("gui.servus_foundation.side_line", sideName(side), modeName(mode));
     }
 
-    /** "Left: Push, Water" for the Fluids layer. */
+    /** "Left: Push, Water" for the Fluids layer; "Left: Push" for a block with one tank, which has no tank choice. */
     public static Component fluidMessage(RelativeSide side, SideMode mode, int tank, List<TankLabel> labels) {
+        if (labels.size() <= 1) {
+            return message(side, mode);
+        }
         return Component.translatable("gui.servus_foundation.fluid_side_line", sideName(side), modeName(mode), tankName(tank, labels));
     }
 }

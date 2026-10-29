@@ -6,24 +6,24 @@ PLAN.md M13 Fluid logistics replaces the Fluid Gantry with blocks built like the
 
 ## What Changes
 
-- **Fluid Inbound station.** A two blocks high steel station with a facing. Its front faces the rail, and it has a teal band.
-  - It has a buffer of `fluid_station_tanks` tanks (in `warehouse.json`, example 3) of `fluid_station_tank_capacity` mB each (example 8,000), each tank holding one fluid.
-  - Its side configuration is the Foundation Fluids layer (from `m13-fluid-side-modes`): Input, Pull or Off per side, and All or one tank per side. Input on All is the default and the front is fixed.
+- **Fluid Inbound station.** A two blocks high station with a facing: an Inbound Station, in its wood, on a glass tank. Its front faces the rail.
+  - It has one buffer tank of `fluid_station_tank_capacity` mB (in `warehouse.json`, example 16,000), holding one fluid at a time. The lower half is that tank, glass on all four sides in an iron frame; the upper half is the Inbound Station block with its lamps. There is no port: tankers stop in front of the station, and a hose arm comes later.
+  - Its side configuration is the Foundation Fluids layer (from `m13-fluid-side-modes`): Input, Pull or Off per side. With one tank there is no tank choice. Input is the default and the front is fixed.
   - A Pull side takes fluid from the neighbour at the push interval.
-- **Joining the warehouse.** The station joins the warehouse only through a rail in front of its lower block. Its copper port sits there, at tanker coupling height.
-- **Tanker put-away.** Every buffer tank is a source of tanker put-away runs, with the same rules as an Import gantry tank: at least `tanker_min_load`, or full, and a fluid store with room. The tanker docks its coupling into the port.
+- **Joining the warehouse.** The station joins the warehouse only through a rail in front of its lower block, where tankers stop.
+- **Tanker put-away.** The buffer tank is a source of tanker put-away runs, with the same rules as an Import gantry tank: at least `tanker_min_load`, or full, and a fluid store with room. The tanker stops in front of the station.
 - **Lamps and GUI.**
   - A connection lamp and an activity lamp, as on the Inbound Station: green when empty, orange while runs are queued or under way, red when a tank has no room anywhere or no Tanker reaches the station.
-  - A GUI with a gauge per tank, the Fluids side panel and a state line that names the waiting fluid and why.
-- **By hand and inspect.** Buckets work by hand both ways. The Data Potato prints the tanks.
-- **Obtainable.** The station is craftable and keeps its tanks and sides when dismantled with the carrot.
+  - A GUI with one gauge, the Fluids side panel and a state line that names the waiting fluid and why.
+- **By hand and inspect.** Buckets work by hand both ways. The Data Potato prints the tank.
+- **Obtainable.** An Inbound Station on top of a Fluid Tank gives a Fluid Inbound in the station's wood. It keeps its tank, sides and wood when broken or dismantled with the carrot.
 - **Gantry.** Import gantries keep working until `m13-fluid-outbound` removes the gantry.
 
 ## Capabilities
 
 ### New Capabilities
 
-- `shuttles/fluid-inbound`: the Fluid Inbound block, its buffer, sides, pull, network join, port, lamps, GUI, buckets, inspect and look.
+- `shuttles/fluid-inbound`: the Fluid Inbound block, its buffer, sides, pull, network join, lamps, GUI, buckets, inspect, look and recipe.
 
 ### Modified Capabilities
 
@@ -45,7 +45,8 @@ PLAN.md M13 Fluid logistics replaces the Fluid Gantry with blocks built like the
   - `FluidStoreRef` for station tanks.
 - `ShuttleFleet`: coupling at station stops.
 - `ServusShuttlesEvents`: the fluid capability per half and face, through `FluidSideHandler`.
-- `ShuttlesStatsManager`: `fluid_station_tanks`, `fluid_station_tank_capacity`.
+- `ShuttlesStatsManager`: `fluid_station_tank_capacity`.
+- Wood: `Material.register` for the stations, a wood material recipe, and a small block entity on the upper half that carries the wood for its model.
 - Wiring: registries, datagen models and blockstates, lang, recipe, loot, docs.
 - GameTests: a new `FluidInboundGameTests`, plus updates to `TankerRunGameTests` and `TankerLampGameTests`.
 
@@ -54,4 +55,3 @@ PLAN.md M13 Fluid logistics replaces the Fluid Gantry with blocks built like the
 - The Fluid Outbound and the removal of the Fluid Gantry (`m13-fluid-outbound`).
 - Fluid filters per tank or per side.
 - Rails on other faces than the front of the lower block.
-- A wood choice for fluid stations: they are steel.

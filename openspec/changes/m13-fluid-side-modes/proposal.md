@@ -11,6 +11,7 @@ The Fluid Gantry is being replaced by a Fluid Inbound, a Fluid Outbound and a Fl
 - Foundation gets a shared fluid side handler and a shared pull and push routine that every block with a Fluids layer uses. A side set to Off offers nothing, and a fixed side offers no fluid capability.
 - Tank labels follow the tank: its name and colour come from the fluid it holds or is set to keep, and from "Tank 1", "Tank 2" in a neutral colour while it is empty and unset.
 - The side panel draws a Fluids cell in the mode's colour with a small corner chip for the tank (an "A" chip for All, otherwise the tank's colour). A left click cycles the mode and a right click cycles the tank. The tooltip names the side, the mode and the tank.
+- A block with only one tank offers no tank choice: its sides reach that tank, the cells show no chip, a right click does nothing, and the tooltip and the carrot name only the side and the mode.
 - The Configuration Carrot on the Fluids layer cycles the mode of a face. The tank is chosen in the GUI, because sneak with the carrot stays dismantle.
 - A block may have only a Fluids layer. Its panel then shows no tabs, and the carrot cycles that layer whatever layer it is set to.
 - Fluids markers on the block use the mode's glyph and the tank's colour for the frame.

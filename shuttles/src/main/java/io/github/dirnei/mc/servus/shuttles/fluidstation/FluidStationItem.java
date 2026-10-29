@@ -1,11 +1,11 @@
 package io.github.dirnei.mc.servus.shuttles.fluidstation;
 
+import io.github.dirnei.mc.servus.foundation.material.MaterialBlockItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -14,10 +14,10 @@ import org.jspecify.annotations.Nullable;
 /**
  * The item of a two blocks high fluid station. It places only when both
  * spaces are free and the block below has a solid top, and tells the player
- * why not otherwise. The placed station takes over the tanks and sides the
- * item kept as block entity data.
+ * why not otherwise. The placed station takes over the tank and sides the
+ * item kept as block entity data, its wood and its colour.
  */
-public class FluidStationItem extends BlockItem {
+public class FluidStationItem extends MaterialBlockItem {
 
     public FluidStationItem(Block block, Properties properties) {
         super(block, properties);

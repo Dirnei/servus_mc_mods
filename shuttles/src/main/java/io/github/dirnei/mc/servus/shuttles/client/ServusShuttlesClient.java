@@ -83,7 +83,6 @@ public final class ServusShuttlesClient {
     @SubscribeEvent
     public static void onRegisterStandalone(ModelEvent.RegisterStandalone event) {
         HarvesterLook.register(event);
-        FluidStationRenderer.register(event);
     }
 
     /** Wraps every Heavy Duty Rack and Fluid Rack block state model so the boards show the rack's wood. */

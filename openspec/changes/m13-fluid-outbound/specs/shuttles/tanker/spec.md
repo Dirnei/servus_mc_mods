@@ -16,7 +16,7 @@ The Tanker SHALL be a craftable tool module (example: a Fluid Tank, two buckets 
 - **THEN** the Tanker shuttle rides the lift car to bring the fluid up
 
 ### Requirement: Fluid put-away runs
-Every `fluid_check_interval` ticks (in `data/<ns>/shuttles/warehouse.json`, example 40) an online warehouse SHALL look at each tank of its Fluid Inbounds. For a tank, the free fluid SHALL be its amount minus what tanker runs already queued or under way will take from it. The warehouse SHALL queue one tanker run for that tank when no run for it is queued or under way, the free fluid is at least `tanker_min_load` (in `warehouse.json`, example 1000 mB) or the tank is full, the warehouse has a Tanker shuttle that reaches the station, and a Fluid Rack section has room for the fluid. The run SHALL take the least of the free fluid, the fluid capacity of the shuttle that takes it, and the room of the chosen section.
+Every `fluid_check_interval` ticks (in `data/<ns>/shuttles/warehouse.json`, example 40) an online warehouse SHALL look at the tank of each of its Fluid Inbounds. For a tank, the free fluid SHALL be its amount minus what tanker runs already queued or under way will take from it. The warehouse SHALL queue one tanker run for that tank when no run for it is queued or under way, the free fluid is at least `tanker_min_load` (in `warehouse.json`, example 1000 mB) or the tank is full, the warehouse has a Tanker shuttle that reaches the station, and a Fluid Rack section has room for the fluid. The run SHALL take the least of the free fluid, the fluid capacity of the shuttle that takes it, and the room of the chosen section.
 
 #### Scenario: Pipe fills, tanker collects
 - **WHEN** a pump fills a Fluid Inbound tank with 2000 mB of water and the warehouse has an empty, unzoned Fluid Rack section
@@ -32,7 +32,7 @@ Every `fluid_check_interval` ticks (in `data/<ns>/shuttles/warehouse.json`, exam
 
 #### Scenario: From a Fluid Inbound
 - **WHEN** a Fluid Inbound tank holds 2000 mB of lava and a Fluid Rack section is empty and unzoned
-- **THEN** a Tanker shuttle takes the lava at the station's port and brings it into the rack
+- **THEN** a Tanker shuttle takes the lava in front of the station and brings it into the rack
 
 ### Requirement: Target tank by lock
 The target of a fluid put-away SHALL be chosen among the Fluid Rack sections of the warehouse that a Tanker shuttle reaches, in this order: zoned sections whose filter lists the fluid, with room; then general sections (unzoned, or zoned without fluids in the filter) holding the fluid, with room; then empty general sections. Room SHALL be the section's capacity minus its amount minus what runs already on their way will put into it. Within one rank the section with the shortest way from the source SHALL be chosen.
@@ -65,7 +65,7 @@ When a Fluid Inbound tank holds fluid and no Fluid Rack section of the warehouse
 - **THEN** no tanker drives, the station's lamp is red and a duct feeding more lava backs up once the tanks are full
 
 ### Requirement: Tanker run
-On a tanker run the shuttle SHALL drive to the rail in front of the source's port, stop there for `tanker_pump_ticks` (in `warehouse.json`, example 40) shortened by Handling like other stops, and take the run's fluid out of the source, as much as it still holds up to the run's amount. It SHALL then drive to the rail in front of the target's port, stop the same way and put the fluid into the target. Fluid that does not fit there SHALL go to the next Fluid Rack section with room by the target order; when none has room, the rest SHALL go back into the source as far as it has room and what still does not fit SHALL be lost. Then the shuttle SHALL go home. The warehouse's fluid stock SHALL follow every transfer.
+On a tanker run the shuttle SHALL drive to the source's stop (the rail in front of a Fluid Rack section's port or of a Fluid Inbound's lower half), stop there for `tanker_pump_ticks` (in `warehouse.json`, example 40) shortened by Handling like other stops, and take the run's fluid out of the source, as much as it still holds up to the run's amount. It SHALL then drive to the target's stop, stop the same way and put the fluid into the target. Fluid that does not fit there SHALL go to the next Fluid Rack section with room by the target order; when none has room, the rest SHALL go back into the source as far as it has room and what still does not fit SHALL be lost. Then the shuttle SHALL go home. The warehouse's fluid stock SHALL follow every transfer.
 
 #### Scenario: Partial pick
 - **WHEN** a run for 4000 mB arrives and the source tank holds only 2500 mB because a player emptied part of it by bucket meanwhile
@@ -106,7 +106,7 @@ A Tanker shuttle SHALL show a steel tank lying along its body with two bands, a 
 - **THEN** its couplings sit flush in the tank's sides
 
 ### Requirement: Export restock runs
-Every `fluid_check_interval` ticks an online warehouse SHALL look at each tank of its Fluid Outbounds that keeps a fluid with an amount above 0. Its have SHALL be its amount plus what tanker runs queued or under way will bring to it. When the have is below the keep amount, no run for that tank is queued or under way, the warehouse has a Tanker shuttle that reaches the station, and Fluid Rack sections hold the fluid, the warehouse SHALL queue one tanker run that takes the least of the missing amount, the shuttle's fluid capacity and what the chosen source section holds beyond what runs already on their way will take from it. Runs below `tanker_min_load` SHALL wait unless they fill the missing amount completely.
+Every `fluid_check_interval` ticks an online warehouse SHALL look at the tank of each of its Fluid Outbounds that keeps a fluid with an amount above 0. Its have SHALL be its amount plus what tanker runs queued or under way will bring to it. When the have is below the keep amount, no run for that tank is queued or under way, the warehouse has a Tanker shuttle that reaches the station, and Fluid Rack sections hold the fluid, the warehouse SHALL queue one tanker run that takes the least of the missing amount, the shuttle's fluid capacity and what the chosen source section holds beyond what runs already on their way will take from it. Runs below `tanker_min_load` SHALL wait unless they fill the missing amount completely.
 
 #### Scenario: Pipe drains, tanker restocks
 - **WHEN** a Fluid Outbound tank keeps 8 B of water, holds 2 B and a Fluid Rack section holds 20 B of water
@@ -132,14 +132,14 @@ The source of a restock run SHALL be the Fluid Rack section holding the fluid th
 - **THEN** no restock run is queued and the station's lamp is red
 
 ### Requirement: Restock run
-A restock run SHALL drive to the rail in front of the source section's port, take the run's fluid (as much as the source still holds up to the run's amount), drive to the rail in front of the Fluid Outbound's port and put it into the kept tank as far as it has room. Fluid that does not fit SHALL go back to a Fluid Rack section by the target order of fluid put-aways, and what still does not fit SHALL be lost. Then the shuttle SHALL go home. Removal, rail loss, garage loss and recall SHALL end a restock run like a fluid put-away run.
+A restock run SHALL drive to the rail in front of the source section's port, take the run's fluid (as much as the source still holds up to the run's amount), drive to the rail in front of the Fluid Outbound's lower half and put it into the kept tank as far as it has room. Fluid that does not fit SHALL go back to a Fluid Rack section by the target order of fluid put-aways, and what still does not fit SHALL be lost. Then the shuttle SHALL go home. Removal, rail loss, garage loss and recall SHALL end a restock run like a fluid put-away run.
 
 #### Scenario: Kept tank filled meanwhile
 - **WHEN** a restock run arrives with 4 B but a player meanwhile poured 3 B into the Fluid Outbound tank by bucket
 - **THEN** the tanker puts in what fits and brings the rest back to a Fluid Rack
 
 ### Requirement: Coupling at a port
-A Tanker shuttle that stops to take or put fluid at a Fluid Rack, a Fluid Inbound or a Fluid Outbound SHALL stand on the rail in front of its port and SHALL slide a telescopic coupling out of its tank's side toward the block until it meets the port, keep it there while it pumps and pull it back in before it drives on. The block itself SHALL not move. Its glass SHALL follow the transfer. Clients SHALL learn the stop's start and end, not every tick of it.
+A Tanker shuttle that stops to take or put fluid at a Fluid Rack SHALL stand on the rail in front of its port and SHALL slide a telescopic coupling out of its tank's side toward the block until it meets the port, keep it there while it pumps and pull it back in before it drives on. At a Fluid Inbound or a Fluid Outbound, which have no port, it SHALL stand on the rail in front of the station's lower half and pump the same way; its coupling MAY slide out toward the station's tank there too. The block itself SHALL not move. Its glass SHALL follow the transfer. Clients SHALL learn the stop's start and end, not every tick of it.
 
 #### Scenario: Docking at a rack
 - **WHEN** a tanker stops at the port of a Fluid Rack section to put water into it
@@ -151,14 +151,14 @@ A Tanker shuttle that stops to take or put fluid at a Fluid Rack, a Fluid Inboun
 
 #### Scenario: Docking at a Fluid Inbound
 - **WHEN** a tanker stops at a Fluid Inbound to take water
-- **THEN** its coupling slides into the station's port, the station's sight glass falls and the tanker's sight glass rises
+- **THEN** it stands in front of the station's lower half, the fluid behind the station's glass falls and the tanker's sight glass rises
 
 #### Scenario: Docking at a Fluid Outbound
 - **WHEN** a tanker stops at a Fluid Outbound to restock lava
-- **THEN** its coupling slides into the station's port and the lava sight glass of the kept tank rises
+- **THEN** it stands in front of the station's lower half and the lava behind the station's glass rises
 
 ## REMOVED Requirements
 
 ### Requirement: Spout and stream
-**Reason**: The Fluid Gantry and its spout are removed; the tanker's coupling docks into fixed ports instead.
+**Reason**: The Fluid Gantry and its spout are removed; the tanker's coupling docks into the ports of Fluid Racks instead.
 **Migration**: See "Coupling at a port".

@@ -22,6 +22,7 @@ import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.ShapedRecipe;
@@ -144,29 +145,9 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_rail", has(ServusShuttlesItems.RAIL.get()))
                 .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
-        // The Fluid Inbound: a Fluid Tank for its buffer, iron for the steel body, copper for the port, cyan dye for the band.
-        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.FLUID_INBOUND.get())
-                .pattern("IDI")
-                .pattern("ITI")
-                .pattern("ICI")
-                .define('I', Items.IRON_INGOT)
-                .define('D', Items.CYAN_DYE)
-                .define('C', Items.COPPER_INGOT)
-                .define('T', ServusLogisticsItems.FLUID_TANK.get())
-                .unlockedBy("has_fluid_tank", has(ServusLogisticsItems.FLUID_TANK.get()))
-                .save(output);
-
-        // The Fluid Outbound: the Fluid Inbound's pattern with orange dye for its amber band.
-        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.FLUID_OUTBOUND.get())
-                .pattern("IDI")
-                .pattern("ITI")
-                .pattern("ICI")
-                .define('I', Items.IRON_INGOT)
-                .define('D', Items.ORANGE_DYE)
-                .define('C', Items.COPPER_INGOT)
-                .define('T', ServusLogisticsItems.FLUID_TANK.get())
-                .unlockedBy("has_fluid_tank", has(ServusLogisticsItems.FLUID_TANK.get()))
-                .save(output);
+        // The fluid stations: the item station on a Fluid Tank; the station's wood carries over.
+        fluidStation(ServusShuttlesItems.FLUID_INBOUND.get(), ServusShuttlesItems.INBOUND_STATION.get());
+        fluidStation(ServusShuttlesItems.FLUID_OUTBOUND.get(), ServusShuttlesItems.OUTBOUND_STATION.get());
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.HEAVY_RACK.get(), 3)
                 .pattern("I I")
@@ -374,6 +355,17 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
     }
 
     /** Saves a shaped recipe as a rack recipe, which remembers the planks' wood. */
+    /** A fluid station: its item station on top of a Fluid Tank, as a wood material recipe that takes the station's wood. */
+    private void fluidStation(Item fluidStation, Item itemStation) {
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, fluidStation)
+                .pattern("S")
+                .pattern("T")
+                .define('S', itemStation)
+                .define('T', ServusLogisticsItems.FLUID_TANK.get())
+                .unlockedBy("has_fluid_tank", has(ServusLogisticsItems.FLUID_TANK.get()))
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
+    }
+
     private static RecipeOutput woodRecipe(RecipeOutput output, WoodRecipeFactory factory) {
         return new RecipeOutput() {
             @Override

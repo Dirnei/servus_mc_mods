@@ -18,7 +18,7 @@ The gantry footprint is listed in the agent survey recorded in the proposal's Im
 ## Goals / Non-Goals
 
 **Goals:**
-- The Fluid Outbound on the shared station base, with a keep row and restock from Fluid Racks.
+- The Fluid Outbound on the shared station base, with a keep and restock from Fluid Racks.
 - The Fluid Gantry fully gone from code, data, assets, tests, docs and specs.
 - The tanker test suite rebuilt on the new blocks with the same coverage.
 
@@ -32,21 +32,25 @@ The gantry footprint is listed in the agent survey recorded in the proposal's Im
 
 `FluidOutboundBlockEntity extends FluidStationBlockEntity`:
 - `fluidSides` is `OUTBOUND_MODES`, with fallback Off and BACK set to PUSH in the constructor, as `OutboundStationBlockEntity` does;
-- each tank has a `FluidKeep(fluid, amount)`;
+- its one tank has a `FluidKeep(fluid, amount)`;
 - the tank's `FluidSlot` validator is "the keep fluid is set and equal";
 - `sideTankFluid(i)` returns the content, otherwise the keep fluid, so the panel chip shows what the tank is for.
 
 Push and Output sides drain through `FluidSideHandler`, which refuses fills because the modes allow none. `FluidSideMover` pushes on Push sides.
 
-Keeps are saved as `"Keeps"` (fluid id and amount per tank), kept on the dropped item and synced in the update tag for the sight glass labels.
+The keep is saved as `"KeepFluid"` and `"KeepAmount"`, kept on the dropped item, and read by the side panel label.
 
-### Keep row in the GUI
+### Keep cell in the GUI
 
-- `FluidOutboundMenu` has three ghost keep cells.
+- `FluidOutboundMenu` has one ghost keep cell above the gauge.
   - Clicking a cell with a cursor stack that is a filled container reads its fluid through `Capabilities.Fluid.ITEM` on a copy and sends `SetFluidKeepPayload(tank, fluid, amount)`. An empty cursor clears the cell.
   - The step buttons use the Foundation number stepper widget that the gantry keep steps use today, at -1 B, +1 B, -10 B and +10 B.
 - The server clamps the amount to `[0, capacity]`.
 - The gauge draws a keep mark as the gantry gauge does.
+
+### Look and recipe
+
+The Fluid Outbound shares the tank, the wood and the lamp copying of the Fluid Inbound (`m13-fluid-inbound` design: Look, Wood, Recipe), with the Outbound Station's block models as its upper half. Its recipe is an Outbound Station on top of a Fluid Tank, a wood material recipe that keeps the station's wood.
 
 ### Restock targets
 
@@ -112,7 +116,7 @@ The same APIs as `m13-fluid-inbound`. In addition:
   - `FluidRestockPlanTest` and `FluidRoutingTest`, moved, with a rack-only sources case;
   - a `FluidKeepTest` for amount clamping and the "takes only its keep fluid" predicate.
 - **GameTests (`FluidOutboundGameTests`):**
-  - placement and the break that keeps the keep row;
+  - placement and the break that keeps the keep;
   - the keep fluid guards the tank;
   - a cleared keep keeps its content;
   - Push into a Fluid Tank;
@@ -122,7 +126,7 @@ The same APIs as `m13-fluid-inbound`. In addition:
   - the restock lamp: missing, no tanker, green when met;
   - buckets and the potato.
 - **Ported tanker suites:** they cover put-away, restock, reroute, recall and lift.
-- **Manual play check:** the whole chain pump, Inbound, tanker, Rack, tanker, Outbound, machine; the amber band; the coupling at the Outbound; flicker.
+- **Manual play check:** the whole chain pump, Inbound, tanker, Rack, tanker, Outbound, machine; the Outbound Station on the tank; the tanker stop at the Outbound; flicker.
 
 ## Risks / Trade-offs
 

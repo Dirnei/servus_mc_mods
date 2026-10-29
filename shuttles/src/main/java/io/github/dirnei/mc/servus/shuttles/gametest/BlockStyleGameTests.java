@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.material.Material;
 import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
@@ -74,6 +75,22 @@ public final class BlockStyleGameTests {
                 Items.BIRCH_PLANKS, Items.BIRCH_PLANKS, Items.BIRCH_PLANKS));
         helper.assertTrue(result.is(ServusShuttlesItems.STORAGE_TERMINAL.get()), "a Storage Terminal");
         helper.assertTrue(BIRCH.equals(result.get(MaterialContent.MATERIAL.get())), "birch planks give birch, got " + result.get(MaterialContent.MATERIAL.get()));
+        helper.succeed();
+    }
+
+    /** A spruce Inbound Station on a Fluid Tank gives a spruce Fluid Inbound, a spruce Outbound Station a spruce Fluid Outbound. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void fluidStationTakesTheStationsWood(GameTestHelper helper) {
+        for (Item[] pair : new Item[][] {{ServusShuttlesItems.INBOUND_STATION.get(), ServusShuttlesItems.FLUID_INBOUND.get()},
+                {ServusShuttlesItems.OUTBOUND_STATION.get(), ServusShuttlesItems.FLUID_OUTBOUND.get()}}) {
+            ItemStack station = new ItemStack(pair[0]);
+            station.set(MaterialContent.MATERIAL.get(), SPRUCE);
+            String recipe = BuiltInRegistries.ITEM.getKey(pair[1]).getPath();
+            ItemStack result = craft(helper, recipe, 1, 2, List.of(station, new ItemStack(ServusLogisticsItems.FLUID_TANK.get())));
+            helper.assertTrue(result.is(pair[1]) && result.getCount() == 1, "one " + recipe + ", got " + result);
+            helper.assertTrue(SPRUCE.equals(result.get(MaterialContent.MATERIAL.get())), recipe + " is spruce, got "
+                    + result.get(MaterialContent.MATERIAL.get()));
+        }
         helper.succeed();
     }
 

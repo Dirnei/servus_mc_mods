@@ -1,16 +1,14 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "servus_foundation:material_shaped",
   "category": "misc",
   "key": {
-    "C": "minecraft:copper_ingot",
-    "D": "minecraft:orange_dye",
-    "I": "minecraft:iron_ingot",
+    "S": "servus_shuttles:outbound_station",
     "T": "servus_foundation:fluid_tank"
   },
+  "kind": "wood",
   "pattern": [
-    "IDI",
-    "ITI",
-    "ICI"
+    "S",
+    "T"
   ],
   "result": {
     "id": "servus_shuttles:fluid_outbound"

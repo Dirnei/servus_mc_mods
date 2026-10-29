@@ -666,11 +666,11 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("message.servus_shuttles.fluid_station.no_footing", "The station needs solid ground");
         add("gui.servus_shuttles.fluid_station.state.no_room", "No fluid store has room for %s: it waits here");
         add("gui.servus_shuttles.fluid_station.state.no_tanker", "No Tanker shuttle reaches this station: the fluid waits here");
-        add("message.servus_shuttles.potato.fluid_station_tank", "Tank %s: %s, %s of %s mB");
-        add("message.servus_shuttles.potato.fluid_station_empty", "Tank %s: empty, holds %s mB");
+        add("message.servus_shuttles.potato.fluid_station_tank", "Tank: %s, %s of %s mB");
+        add("message.servus_shuttles.potato.fluid_station_empty", "Tank: empty, holds %s mB");
         add("message.servus_shuttles.potato.fluid_station_keeps", ", keeps %s mB of %s");
         add("message.servus_shuttles.potato.fluid_station_keeps_nothing", ", keeps nothing");
-        add("gui.servus_shuttles.fluid_station.state.missing", "No Fluid Rack holds %s: the kept tank is not restocked");
+        add("gui.servus_shuttles.fluid_station.state.missing", "No Fluid Rack holds %s: the tank is not restocked");
         add("gui.servus_shuttles.fluid_outbound.keep_cell", "Keeps %s. Click with an empty hand to keep nothing");
         add("gui.servus_shuttles.fluid_outbound.keep_cell.empty",
                 "Keeps nothing. Click with a filled bucket or tank to keep its fluid here; tankers restock it to the amount below");

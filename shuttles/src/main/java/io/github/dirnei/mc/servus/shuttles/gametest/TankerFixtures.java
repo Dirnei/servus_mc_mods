@@ -82,8 +82,8 @@ final class TankerFixtures {
     /** A Fluid Outbound east of the rail at {@code pos}, keeping {@code amount} mB of the fluid in its first tank. */
     static FluidOutboundBlockEntity outbound(GameTestHelper helper, BlockPos pos, Fluid fluid, int amount) {
         FluidOutboundBlockEntity station = FluidStationFixtures.outbound(helper, pos, STATION_FRONT);
-        station.setKeepFluid(0, fluid);
-        station.stepKeep(0, amount);
+        station.setKeepFluid(fluid);
+        station.stepKeep(amount);
         return station;
     }
 
@@ -98,22 +98,14 @@ final class TankerFixtures {
                 new ZoneDefinition("Zone", new ZoneFilter(List.of(new ItemStack(bucket)), List.of())));
     }
 
-    /** Fills a tank of the station with that much of the fluid, as a pipe or a bucket would. */
-    static void fill(FluidStationBlockEntity station, int tank, Fluid fluid, int amount) {
-        station.tank(tank).fill(new FluidStack(fluid, amount), false);
+    /** Fills the station's tank with that much of the fluid, as a pipe or a bucket would. */
+    static void fill(FluidStationBlockEntity station, Fluid fluid, int amount) {
+        station.tank().fill(new FluidStack(fluid, amount), false);
     }
 
-    static int amount(FluidStationBlockEntity station, int tank) {
-        return station.tank(tank).getFluidAmount();
-    }
-
-    /** What all tanks of the station hold together. */
-    static int total(FluidStationBlockEntity station) {
-        int total = 0;
-        for (int tank = 0; tank < station.tankCount(); tank++) {
-            total += amount(station, tank);
-        }
-        return total;
+    /** What the station's tank holds. */
+    static int amount(FluidStationBlockEntity station) {
+        return station.tank().getFluidAmount();
     }
 
     /** Fills the section of the bay at {@code bay} as a pipe would. */

@@ -50,6 +50,16 @@ class FluidSidesTest {
     }
 
     @Test
+    void oneTankLayerKeepsAllWhenTheTankIsCycled() {
+        FluidSides sides = inbound(1);
+        assertFalse(sides.hasTankChoice());
+        assertEquals(FluidSides.ALL, sides.cycleTank(RelativeSide.BACK));
+        assertEquals(FluidSides.ALL, sides.tank(RelativeSide.BACK));
+        assertTrue(sides.reaches(RelativeSide.BACK, 0));
+        assertTrue(sides.isDefault());
+    }
+
+    @Test
     void tankSideReachesOnlyItsTank() {
         FluidSides sides = inbound(3);
         sides.setTank(RelativeSide.TOP, 1);

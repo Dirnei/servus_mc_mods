@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.menu.FluidOutboundMenu;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks.Activity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
+import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.Locale;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
@@ -52,17 +53,16 @@ public final class TankerRestockGameTests {
     public static void outboundRestockedFromRacks(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
         FluidOutboundBlockEntity outbound = TankerFixtures.outbound(helper, Fluids.WATER, 8000);
-        TankerFixtures.fill(outbound, 0, Fluids.WATER, 2000);
+        TankerFixtures.fill(outbound, Fluids.WATER, 2000);
         TankerFixtures.rack(helper, TankerFixtures.NEAR);
         TankerFixtures.rack(helper, TankerFixtures.FAR);
         helper.runAfterDelay(2, () -> {
             TankerFixtures.fill(helper, TankerFixtures.FAR, Fluids.WATER, 16000);
             TankerFixtures.fill(helper, TankerFixtures.NEAR, Fluids.WATER, 4000);
-            Waits.when(helper, () -> TankerFixtures.amount(outbound, 0) == 8000 && TankerFixtures.out(helper) == 0, 2 * RUN,
-                    () -> "the kept tank is filled to 8000 mB, got " + TankerFixtures.amount(outbound, 0), () -> {
+            Waits.when(helper, () -> TankerFixtures.amount(outbound) == 8000 && TankerFixtures.out(helper) == 0, 2 * RUN,
+                    () -> "the kept tank is filled to 8000 mB, got " + TankerFixtures.amount(outbound), () -> {
                 int stored = TankerFixtures.amount(helper, TankerFixtures.NEAR) + TankerFixtures.amount(helper, TankerFixtures.FAR);
                 helper.assertTrue(stored == 14000, "6000 mB left the racks, they hold " + stored);
-                helper.assertTrue(TankerFixtures.amount(outbound, 1) == 0, "the second tank keeps nothing and gets nothing");
                 helper.assertTrue(lamp(helper, Activity.IDLE), "the lamp is green once the keep is met");
                 helper.succeed();
             });
@@ -75,7 +75,7 @@ public final class TankerRestockGameTests {
         ShuttleGarageBlockEntity garage = TankerFixtures.withTanker(helper);
         garage.shuttles().setStackInSlot(1, TankerFixtures.tanker(ServusShuttlesItems.SHUTTLE_MK1.get()));
         FluidOutboundBlockEntity outbound = TankerFixtures.outbound(helper, Fluids.WATER, 8000);
-        TankerFixtures.fill(outbound, 0, Fluids.WATER, 2000);
+        TankerFixtures.fill(outbound, Fluids.WATER, 2000);
         TankerFixtures.rack(helper, TankerFixtures.FAR);
         helper.runAfterDelay(2, () -> {
             TankerFixtures.fill(helper, TankerFixtures.FAR, Fluids.WATER, 16000);
@@ -83,10 +83,10 @@ public final class TankerRestockGameTests {
             boolean[] orange = {false};
             Waits.when(helper, () -> {
                 most[0] = Math.max(most[0], TankerFixtures.out(helper));
-                most[1] = Math.max(most[1], TankerFixtures.amount(outbound, 0));
+                most[1] = Math.max(most[1], TankerFixtures.amount(outbound));
                 orange[0] |= TankerFixtures.out(helper) > 0 && lamp(helper, Activity.WORKING);
-                return TankerFixtures.amount(outbound, 0) == 8000 && TankerFixtures.out(helper) == 0;
-            }, 2 * RUN, () -> "the kept tank is filled to 8000 mB, got " + TankerFixtures.amount(outbound, 0), () -> {
+                return TankerFixtures.amount(outbound) == 8000 && TankerFixtures.out(helper) == 0;
+            }, 2 * RUN, () -> "the kept tank is filled to 8000 mB, got " + TankerFixtures.amount(outbound), () -> {
                 helper.assertTrue(most[0] == 1, "only one tanker drove at a time, got " + most[0]);
                 helper.assertTrue(most[1] == 8000, "the tank never held more than its keep, got " + most[1]);
                 helper.assertTrue(orange[0], "the lamp was orange while a run went");
@@ -102,18 +102,18 @@ public final class TankerRestockGameTests {
     public static void restockBelowMinLoadWaits(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
         FluidOutboundBlockEntity outbound = TankerFixtures.outbound(helper, Fluids.WATER, 8000);
-        TankerFixtures.fill(outbound, 0, Fluids.WATER, 2000);
+        TankerFixtures.fill(outbound, Fluids.WATER, 2000);
         TankerFixtures.rack(helper, TankerFixtures.FAR);
         helper.runAfterDelay(2, () -> {
             TankerFixtures.network(helper).setTankerMinLoadForTests(3000);
             TankerFixtures.fill(helper, TankerFixtures.FAR, Fluids.WATER, 1500);
             helper.runAfterDelay(150, () -> {
-                helper.assertTrue(TankerFixtures.amount(outbound, 0) == 2000, "the kept tank still holds 2000 mB");
+                helper.assertTrue(TankerFixtures.amount(outbound) == 2000, "the kept tank still holds 2000 mB");
                 helper.assertTrue(TankerFixtures.out(helper) == 0 && TankerFixtures.network(helper).queuedJobs() == 0, "no run is queued");
                 helper.assertTrue(!lamp(helper, Activity.BLOCKED), "a rack holds water, so the lamp is not red");
-                outbound.stepKeep(0, -5000);
-                Waits.when(helper, () -> TankerFixtures.amount(outbound, 0) == 3000 && TankerFixtures.out(helper) == 0, RUN,
-                        () -> "a 1000 mB run that fills the tank goes, got " + TankerFixtures.amount(outbound, 0), () -> {
+                outbound.stepKeep(-5000);
+                Waits.when(helper, () -> TankerFixtures.amount(outbound) == 3000 && TankerFixtures.out(helper) == 0, RUN,
+                        () -> "a 1000 mB run that fills the tank goes, got " + TankerFixtures.amount(outbound), () -> {
                     helper.assertTrue(TankerFixtures.amount(helper, TankerFixtures.FAR) == 500, "the rack gave 1000 mB, it holds "
                             + TankerFixtures.amount(helper, TankerFixtures.FAR));
                     helper.succeed();
@@ -166,9 +166,9 @@ public final class TankerRestockGameTests {
         TankerFixtures.rack(helper, TankerFixtures.FAR);
         Waits.when(helper, () -> lamp(helper, Activity.BLOCKED), 120, () -> "the lamp turns red first", () -> {
             TankerFixtures.fill(helper, TankerFixtures.FAR, Fluids.LAVA, 6000);
-            Waits.when(helper, () -> TankerFixtures.amount(outbound, 0) == 4000 && TankerFixtures.out(helper) == 0
+            Waits.when(helper, () -> TankerFixtures.amount(outbound) == 4000 && TankerFixtures.out(helper) == 0
                             && lamp(helper, Activity.IDLE), RUN,
-                    () -> "the lava comes and the lamp turns green, got " + TankerFixtures.amount(outbound, 0), () -> {
+                    () -> "the lava comes and the lamp turns green, got " + TankerFixtures.amount(outbound), () -> {
                 helper.assertTrue(TankerFixtures.amount(helper, TankerFixtures.FAR) == 2000, "the rack gave 4000 mB of lava");
                 helper.succeed();
             });
@@ -185,8 +185,8 @@ public final class TankerRestockGameTests {
             TankerFixtures.fill(helper, TankerFixtures.FAR, Fluids.WATER, 4000);
             Waits.when(helper, () -> TankerFixtures.out(helper) == 1, RUN, () -> "a tanker drives out", () -> {
                 FluidRackFixtures.bay(helper, TankerFixtures.FAR).sectionHandler().drain(1500, false);
-                Waits.when(helper, () -> TankerFixtures.amount(outbound, 0) == 2500 && TankerFixtures.out(helper) == 0, RUN,
-                        () -> "the tanker brings the 2500 mB left, got " + TankerFixtures.amount(outbound, 0), () -> {
+                Waits.when(helper, () -> TankerFixtures.amount(outbound) == 2500 && TankerFixtures.out(helper) == 0, RUN,
+                        () -> "the tanker brings the 2500 mB left, got " + TankerFixtures.amount(outbound), () -> {
                     helper.assertTrue(TankerFixtures.amount(helper, TankerFixtures.FAR) == 0, "the rack is empty");
                     helper.succeed();
                 });
@@ -198,16 +198,17 @@ public final class TankerRestockGameTests {
     @ServusGameTest(timeoutTicks = RUN + 20)
     public static void restockLeftoverBackToRack(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
-        FluidOutboundBlockEntity outbound = TankerFixtures.outbound(helper, Fluids.WATER, 8000);
-        TankerFixtures.fill(outbound, 0, Fluids.WATER, 4000);
+        int capacity = ShuttlesStatsManager.INSTANCE.fluidStationTankCapacity();
+        FluidOutboundBlockEntity outbound = TankerFixtures.outbound(helper, Fluids.WATER, capacity);
+        TankerFixtures.fill(outbound, Fluids.WATER, capacity - 4000);
         TankerFixtures.rack(helper, TankerFixtures.FAR);
         helper.runAfterDelay(2, () -> {
             TankerFixtures.fill(helper, TankerFixtures.FAR, Fluids.WATER, 10000);
             Waits.when(helper, () -> TankerFixtures.out(helper) == 1, RUN, () -> "a tanker drives out", () -> {
-                TankerFixtures.fill(outbound, 0, Fluids.WATER, 3000);
-                Waits.when(helper, () -> TankerFixtures.amount(outbound, 0) == 8000 && TankerFixtures.out(helper) == 0
+                TankerFixtures.fill(outbound, Fluids.WATER, 3000);
+                Waits.when(helper, () -> TankerFixtures.amount(outbound) == capacity && TankerFixtures.out(helper) == 0
                                 && TankerFixtures.amount(helper, TankerFixtures.FAR) == 9000, RUN,
-                        () -> "1000 mB go in and 3000 mB back to the rack, Outbound " + TankerFixtures.amount(outbound, 0)
+                        () -> "1000 mB go in and 3000 mB back to the rack, Outbound " + TankerFixtures.amount(outbound)
                                 + ", rack " + TankerFixtures.amount(helper, TankerFixtures.FAR), helper::succeed);
             });
         });
@@ -240,11 +241,11 @@ public final class TankerRestockGameTests {
         TankerFixtures.withTanker(helper);
         FluidOutboundBlockEntity outbound = TankerFixtures.outbound(helper, Fluids.WATER, 4000);
         FluidInboundBlockEntity source = TankerFixtures.inbound(helper);
-        TankerFixtures.fill(source, 0, Fluids.WATER, 8000);
+        TankerFixtures.fill(source, Fluids.WATER, 8000);
         Waits.when(helper, () -> lamp(helper, Activity.BLOCKED), 120, () -> "the Outbound's lamp turns red", () -> {
             helper.assertTrue(saysMissing(stateLine(helper, outbound), "water"), "the state line says water is missing");
             helper.assertTrue(TankerFixtures.out(helper) == 0, "no tanker drives");
-            helper.assertTrue(TankerFixtures.amount(source, 0) == 8000 && TankerFixtures.amount(outbound, 0) == 0, "the water stays in the Inbound");
+            helper.assertTrue(TankerFixtures.amount(source) == 8000 && TankerFixtures.amount(outbound) == 0, "the water stays in the Inbound");
             helper.succeed();
         });
     }

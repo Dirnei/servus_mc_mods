@@ -79,6 +79,11 @@
   - the coupling at all three port kinds, from several angles, for flicker;
   - that an old world with a gantry loads (the gantry is gone, and nothing crashes).
 
+## 6. Play check decisions: one tank, the item station on a tank, wood
+
+- [x] 6.1 One keep. `FluidOutboundBlockEntity` keeps one `FluidKeep` (`keep()`, `setKeepFluid`, `stepKeep`), saved as `KeepFluid` and `KeepAmount`; `FluidOutboundMenu` and `FluidOutboundScreen` show one keep cell, one gauge with its mark and one set of step buttons; `SetFluidKeepPayload` carries no tank; the potato line adds the keep. Update `FluidOutboundGameTests` (keep, cleared keep, push, output, keep payload, clamp at 16,000 mB, bucket, potato) and `TankerRestockGameTests`. Verify with `gradlew :shuttles:build` and `gradlew :shuttles:runGameTestServer`.
+- [x] 6.2 Recipe and look. The recipe is an Outbound Station on top of a Fluid Tank as a wood material recipe; the upper half uses the Outbound Station models by lamp state on the shared tank (`FluidStationModels`). Add to the recipe GameTest that a spruce Outbound Station over a Fluid Tank gives a spruce Fluid Outbound. Verify with `gradlew :shuttles:runData`, `gradlew :shuttles:build` and `gradlew :shuttles:runGameTestServer`.
+
 ## Workflow follow-up
 
 - Stacked last, after `m13-fluid-side-modes`, `m13-fluid-rack` and `m13-fluid-inbound`.
@@ -112,3 +117,9 @@
   - lamps: green when every keep is met, orange while runs go, red with the GUI line for a fluid missing from the racks and for no Tanker;
   - the tanker's coupling at all three port kinds, from several angles and while it slides, for flicker;
   - an old world with a Fluid Gantry loads without a crash and the gantry is gone.
+
+## Implementation notes (play check revision)
+
+- 6.1 and 6.2 are built together with `m13-fluid-inbound` 6.1 to 6.4 (shared base, models and tests); build, unit tests and all GameTests are green, see the notes there.
+- The upper half is the Outbound Station's own models by lamp state on the shared `fluid_station_tank`; its plane check is the one listed in `m13-fluid-inbound` tasks.md.
+- The play check notes above (orange dye, amber band) are outdated; the play check list of `m13-fluid-inbound` covers both stations now.

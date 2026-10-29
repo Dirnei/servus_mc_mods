@@ -26,6 +26,13 @@ Besides its mode, each Fluids side SHALL reach either All tanks or exactly one o
 - **WHEN** a block fixes its front Fluids side and a duct with a fluid line is placed against the front
 - **THEN** the duct finds no fluid endpoint there
 
+### Requirement: No tank choice with one tank
+A block with only one tank SHALL offer no tank choice: its Fluids sides SHALL reach that tank, the side panel SHALL show no tank chip on its cells, a right click on a Fluids cell SHALL do nothing, and the tooltip and the carrot SHALL name the side and the mode only.
+
+#### Scenario: One tank, no choice
+- **WHEN** a player opens the GUI of a block with one tank whose back is Push and right clicks the back cell
+- **THEN** the back cell shows no tank chip, nothing changes, and the tooltip reads "Back: Push"
+
 ### Requirement: Tank direction limits a side
 A block MAY declare a tank fill only or drain only. A side SHALL then allow on that tank only what both its mode and the tank allow: a side on Both reaching a drain only tank SHALL drain it and refuse to fill it, and a Push side SHALL never push from a fill only tank.
 

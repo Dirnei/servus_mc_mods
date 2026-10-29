@@ -75,9 +75,9 @@ public final class TankerGameTests {
         garage.shuttles().setStackInSlot(0, new ItemStack(ServusShuttlesItems.SHUTTLE_MK1.get()));
         FluidInboundBlockEntity source = TankerFixtures.inbound(helper);
         TankerFixtures.rack(helper, TankerFixtures.FAR);
-        TankerFixtures.fill(source, 0, Fluids.WATER, 2000);
+        TankerFixtures.fill(source, Fluids.WATER, 2000);
         helper.runAfterDelay(150, () -> {
-            helper.assertTrue(TankerFixtures.amount(source, 0) == 2000, "the water stays in the Inbound");
+            helper.assertTrue(TankerFixtures.amount(source) == 2000, "the water stays in the Inbound");
             helper.assertTrue(TankerFixtures.amount(helper, TankerFixtures.FAR) == 0, "the rack gets nothing");
             helper.assertTrue(TankerFixtures.out(helper) == 0, "the shuttle stays home");
             helper.succeed();

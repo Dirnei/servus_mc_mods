@@ -76,18 +76,15 @@ final class FluidStationFixtures {
         return helper.getBlockEntity(pos, FluidInboundBlockEntity.class);
     }
 
-    /** Fills a tank of the station with that much of the fluid, as a test setup. */
-    static void fill(FluidStationBlockEntity station, int tank, Fluid fluid, int amount) {
-        station.tank(tank).fill(new FluidStack(fluid, amount), false);
+    /** Fills the station's tank with that much of the fluid, as a test setup. */
+    static void fill(FluidStationBlockEntity station, Fluid fluid, int amount) {
+        station.tank().fill(new FluidStack(fluid, amount), false);
     }
 
-    /** Sets a side's mode and tank choice by cycling, as panel clicks do. */
-    static void setSide(FluidStationBlockEntity station, RelativeSide side, SideMode mode, int tank) {
+    /** Sets a side's mode by cycling, as panel clicks do. */
+    static void setSide(FluidStationBlockEntity station, RelativeSide side, SideMode mode) {
         while (station.fluidSides().mode(side) != mode) {
             station.cycleFluidMode(side);
-        }
-        while (station.fluidSides().tank(side) != tank) {
-            station.cycleFluidTank(side);
         }
     }
 

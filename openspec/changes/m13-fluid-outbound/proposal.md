@@ -6,17 +6,18 @@ This change finishes the M13 Fluid logistics rewrite in PLAN.md. After the Fluid
 
 ## What Changes
 
-- **Fluid Outbound station:** two blocks high like the Fluid Inbound, with an amber band.
-  - The same buffer of `fluid_station_tanks` tanks of `fluid_station_tank_capacity` mB.
-  - A keep row: per tank, a fluid and an amount, set in the GUI with a filled container and -1 B, +1 B, -10 B and +10 B buttons. A tank with a keep fluid takes only that fluid.
-  - Fluid sides Push, Output or Off with All or one tank. The back defaults to Push on All, the other sides to Off, and the front is fixed.
+- **Fluid Outbound station:** two blocks high like the Fluid Inbound: an Outbound Station, in its wood, on a glass tank. Neither station has a port; a hose arm comes later.
+  - The same single buffer tank of `fluid_station_tank_capacity` mB.
+  - A keep: a fluid and an amount, set in the GUI with a filled container and -1 B, +1 B, -10 B and +10 B buttons. A tank with a keep fluid takes only that fluid.
+  - Fluid sides Push, Output or Off, with no tank choice for the one tank. The back defaults to Push, the other sides to Off, and the front is fixed.
   - A Push side pushes into the neighbour at the push interval.
-  - It joins only through the rail in front of its lower half, where its port is.
+  - It joins only through the rail in front of its lower half, where tankers stop.
 - **Restock by tanker:** every `fluid_check_interval` the warehouse restocks each kept tank from Fluid Racks, with the rules of today's Export restock runs. The tanker docks its coupling into the port.
 - **Lamps and GUI:**
   - Activity lamp: green when every keep is met, orange while runs are on their way, red when a fluid is missing from storage or no Tanker reaches the station.
-  - GUI: keep row, gauges, the Fluids side panel and a state line.
-  - Buckets work by hand, and the Data Potato prints the tanks and keeps.
+  - GUI: keep cell, one gauge, the Fluids side panel and a state line.
+  - Buckets work by hand, and the Data Potato prints the tank and its keep.
+- **Recipe:** an Outbound Station on top of a Fluid Tank, keeping the station's wood.
 - **BREAKING: the Fluid Gantry is removed.** That covers the block, the item, the recipe, `gantry.json`, its GUI, renderer, textures, lang, GameTests and the spout animation. A gantry placed in an existing world disappears with its fluid. The changelog tells players to empty their gantries before they update.
 - **Tanker wording:** its sources are Fluid Inbounds, its stores are Fluid Racks and its restock targets are Fluid Outbounds. "Spout and stream" goes. The tanker's tooltip names the new blocks.
 - **Other specs:**
@@ -28,7 +29,7 @@ This change finishes the M13 Fluid logistics rewrite in PLAN.md. After the Fluid
 
 ### New Capabilities
 
-- `shuttles/fluid-outbound`: the Fluid Outbound block, its keep row, tanks, sides, push, network join, restock lamp, GUI, buckets, inspect and look.
+- `shuttles/fluid-outbound`: the Fluid Outbound block, its keep, tank, sides, push, network join, restock lamp, GUI, buckets, inspect, look and recipe.
 
 ### Modified Capabilities
 

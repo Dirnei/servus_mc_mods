@@ -17,7 +17,7 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 
 /**
- * The GUI shared by the fluid stations: a gauge per tank, the state line,
+ * The GUI shared by the fluid stations: the tank's gauge, the state line,
  * the player inventory and the Fluids side panel on the left. The state
  * line shows only while the warehouse is offline or the station waits.
  */
@@ -28,7 +28,7 @@ public abstract class FluidStationScreen<M extends FluidStationMenu> extends Abs
     private static final int MARGIN = 8;
     private static final int STATE_ROWS = 2;
 
-    private final FluidGauge[] gauges;
+    private final FluidGauge gauge = new FluidGauge(FluidStationMenu.GAUGE_WIDTH, FluidStationMenu.GAUGE_HEIGHT);
     private final SideConfigPanel panel = SideConfigPanel.fluidsOnly();
     private final int gaugeY;
     private final int stateY;
@@ -37,10 +37,6 @@ public abstract class FluidStationScreen<M extends FluidStationMenu> extends Abs
         super(menu, playerInventory, title, FluidStationMenu.WIDTH, imageHeight);
         this.gaugeY = gaugeY;
         this.stateY = stateY;
-        gauges = new FluidGauge[menu.tanks()];
-        for (int tank = 0; tank < gauges.length; tank++) {
-            gauges[tank] = new FluidGauge(FluidStationMenu.GAUGE_WIDTH, FluidStationMenu.GAUGE_HEIGHT);
-        }
         ClientStationState.clear();
     }
 
@@ -48,9 +44,7 @@ public abstract class FluidStationScreen<M extends FluidStationMenu> extends Abs
     protected void init() {
         super.init();
         inventoryLabelY = menu.inventoryY() - 11;
-        for (int tank = 0; tank < gauges.length; tank++) {
-            gauges[tank].place(leftPos + menu.gaugeX(tank), topPos + gaugeY);
-        }
+        gauge.place(leftPos + menu.gaugeX(), topPos + gaugeY);
         panel.placeBeside(leftPos, topPos);
         panel.enableFluids(menu::fluidSide, menu::tankLabels, side -> side == RelativeSide.FRONT,
                 side -> MenuButtons.press(minecraft, menu, SideConfigMenus.buttonOf(SideLayer.FLUIDS, side)),
@@ -60,9 +54,7 @@ public abstract class FluidStationScreen<M extends FluidStationMenu> extends Abs
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
-        for (int tank = 0; tank < gauges.length; tank++) {
-            gauges[tank].renderTooltip(graphics, font, menu.fluid(tank), menu.capacity(), mouseX, mouseY);
-        }
+        gauge.renderTooltip(graphics, font, menu.fluid(), menu.capacity(), mouseX, mouseY);
         panel.renderTooltip(graphics, font, mouseX, mouseY);
     }
 
@@ -70,9 +62,7 @@ public abstract class FluidStationScreen<M extends FluidStationMenu> extends Abs
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
         PanelPainter.panel(graphics, leftPos, topPos, imageWidth, imageHeight);
-        for (int tank = 0; tank < gauges.length; tank++) {
-            gauges[tank].render(graphics, menu.fluid(tank), menu.capacity());
-        }
+        gauge.render(graphics, menu.fluid(), menu.capacity());
         PanelPainter.playerInventory(graphics, leftPos, topPos, menu.inventoryY(), menu.hotbarY());
         panel.render(graphics, font, mouseX, mouseY);
     }

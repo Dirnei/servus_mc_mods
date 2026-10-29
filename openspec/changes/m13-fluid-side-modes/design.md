@@ -6,7 +6,7 @@ Foundation's side configuration has two layers. The Items layer (`SideConfig`, `
 
 No block uses the layer today. The Calciner and the Coagulator used it (commit 713b729bc) and moved to fixed ports later. `MachineBlockEntity.fluidSideExposes` has no callers. No fluid capability reads the layer, and nothing pushes or pulls fluid by side. The layer can therefore change shape without a migration (see the "nothing is BREAKING before a first release" rule of this repo).
 
-The first users come in `m13-fluid-inbound` (Input, Pull, Off) and `m13-fluid-outbound` (Push, Output, Off), each with three tanks that hold any fluid.
+The first users come in `m13-fluid-inbound` (Input, Pull, Off) and `m13-fluid-outbound` (Push, Output, Off), each with one tank that holds any fluid (three tanks until the play check of those changes decided on one).
 
 ## Goals / Non-Goals
 
@@ -79,6 +79,10 @@ APIs: NeoForge `Capabilities.Fluid.BLOCK`, `ResourceHandler<FluidResource>`, and
 - `hasItemsLayer()` defaults to true. A fluids-only block returns false, and its `sideConfig()` may return a config whose sides are all locked Off.
 - `cycleFluidSide(side)` becomes `cycleFluidMode(side)`, and `cycleFluidTank(side)` is added. Both mark changed, invalidate capabilities and send a block update, like `cycleSide`.
 - `fluidSides()` and `sideTanks()` stay. `sideTanks()` may depend on instance state now, because labels moved out.
+
+### One tank: no tank choice
+
+A block with a single tank has nothing to choose. `FluidSides.cycleTank` keeps All when the layer has one tank or none, and `FluidSides.hasTankChoice()` says whether a choice exists. The panel draws the corner chip only when the block has more than one tank label and ignores a right click on a Fluids cell otherwise. `SideConfigWrench.fluidMessage` names only the side and the mode for such a block, so the panel tooltip and the carrot read "Back: Push". All still reaches the single tank, so nothing else changes.
 
 ### Menu buttons, panel, carrot, markers
 

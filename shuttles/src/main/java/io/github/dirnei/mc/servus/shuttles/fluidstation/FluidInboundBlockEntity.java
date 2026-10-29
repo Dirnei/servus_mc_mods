@@ -13,8 +13,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * The Fluid Inbound's tanks: sides take fluid in on Input or Pull and give
- * none back, Input on All by default; every tank is a source of tanker put-away runs.
+ * The Fluid Inbound's tank: sides take fluid in on Input or Pull and give
+ * none back, Input by default; the tank is a source of tanker put-away runs.
  */
 public class FluidInboundBlockEntity extends FluidStationBlockEntity {
 

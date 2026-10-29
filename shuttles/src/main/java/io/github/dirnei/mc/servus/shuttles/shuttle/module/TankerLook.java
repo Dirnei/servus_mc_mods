@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.shuttle.module;
 /**
  * The look of the Tanker tool in shuttle model pixels, shared by its model,
  * the sight glass and coupling the shuttle renderer draws, and the ports
- * of Fluid Racks and fluid stations its coupling docks into.
+ * of Fluid Racks its coupling docks into.
  * The shuttle is drawn at {@link #SCALE} around the block centre with model
  * y 0 on the rail heads at block pixel {@link #FLOOR}. Pure Java.
  */

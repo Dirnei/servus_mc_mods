@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import org.jspecify.annotations.Nullable;
 
-/** The Fluid Outbound: tankers keep its buffer tanks stocked from the warehouse's Fluid Racks, and its sides hand the fluid out. */
+/** The Fluid Outbound: tankers keep its buffer tank stocked from the warehouse's Fluid Racks, and its sides hand the fluid out. */
 public class FluidOutboundBlock extends FluidStationBlock {
 
     public static final MapCodec<FluidOutboundBlock> CODEC = simpleCodec(FluidOutboundBlock::new);

@@ -5,25 +5,30 @@ import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
-import io.github.dirnei.mc.servus.foundation.side.FluidSides;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidInboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationBlock;
+import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationTopBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.material.Fluids;
@@ -35,14 +40,15 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 /**
  * The Fluid Inbound as a block: placing and breaking both halves, the drop
- * keeping tanks and sides, the Fluids sides of both halves, buckets and the
- * potato. Stations here face north, so a player in front sees east on the
+ * keeping tank, sides and wood, the one tank, the Fluids sides of both
+ * halves, the lamps on the upper half, buckets and the potato. Stations here face north, so a player in front sees east on the
  * left; the station's back is south.
  */
 public final class FluidInboundGameTests {
 
     private static final Direction FRONT = Direction.NORTH;
     private static final BlockPos STATION = new BlockPos(4, 1, 4);
+    private static final Identifier BIRCH = BuiltInRegistries.BLOCK.getKey(Blocks.BIRCH_PLANKS);
 
     private FluidInboundGameTests() {
     }
@@ -64,7 +70,7 @@ public final class FluidInboundGameTests {
         helper.assertTrue(lower.getValue(FluidStationBlock.FACING) == FRONT && upper.getValue(FluidStationBlock.FACING) == FRONT,
                 "both halves face the player");
         FluidInboundBlockEntity station = FluidStationFixtures.station(helper, STATION);
-        helper.assertTrue(station.tankCount() == ShuttlesStatsManager.INSTANCE.fluidStationTanks(), "the station has the configured tanks");
+        helper.assertTrue(station.sideSlots().size() == 1 && station.tank().getCapacity() == capacity(), "the station has one tank of the configured capacity");
         helper.succeed();
     }
 
@@ -99,22 +105,29 @@ public final class FluidInboundGameTests {
         });
     }
 
-    /** The dropped item keeps 6000 mB of water and a Pull side on tank 2; placed again, the station has both back. */
+    /** A birch station dropped with 6000 mB of water and a Pull side; placed again, the station has water, side and birch back on both halves. */
     @ServusGameTest(timeoutTicks = 60)
-    public static void dropKeepsTanksAndSides(GameTestHelper helper) {
-        FluidInboundBlockEntity station = FluidStationFixtures.place(helper, STATION, FRONT);
-        FluidStationFixtures.fill(station, 0, Fluids.WATER, 6000);
-        FluidStationFixtures.setSide(station, RelativeSide.LEFT, SideMode.PULL, 1);
+    public static void dropKeepsTankSidesAndWood(GameTestHelper helper) {
+        ItemStack birch = FluidStationFixtures.item();
+        birch.set(MaterialContent.MATERIAL.get(), BIRCH);
+        FluidInboundBlockEntity station = FluidStationFixtures.place(helper, STATION, FRONT, birch);
+        helper.assertTrue(BIRCH.equals(station.materialSlot().raw()), "the placed station is birch");
+        FluidStationFixtures.fill(station, Fluids.WATER, 6000);
+        FluidStationFixtures.setSide(station, RelativeSide.LEFT, SideMode.PULL);
         helper.destroyBlock(STATION.above());
         helper.runAfterDelay(1, () -> {
             List<ItemStack> drops = FluidStationFixtures.dropped(helper, STATION);
             helper.assertTrue(drops.size() == 1, "one item drops, got " + drops);
+            helper.assertTrue(BIRCH.equals(drops.getFirst().get(MaterialContent.MATERIAL.get())), "the drop keeps birch");
             BlockPos again = new BlockPos(8, 1, 8);
             FluidInboundBlockEntity placed = FluidStationFixtures.place(helper, again, FRONT, drops.getFirst().copy());
-            helper.assertTrue(placed.tank(0).getFluid().is(Fluids.WATER) && placed.tank(0).getFluidAmount() == 6000,
-                    "the placed station holds 6000 mB of water in tank 1, got " + placed.tank(0).getFluid());
-            helper.assertTrue(placed.fluidSides().mode(RelativeSide.LEFT) == SideMode.PULL && placed.fluidSides().tank(RelativeSide.LEFT) == 1,
-                    "the left side is Pull on tank 2 again");
+            helper.assertTrue(placed.tank().getFluid().is(Fluids.WATER) && placed.tank().getFluidAmount() == 6000,
+                    "the placed station holds 6000 mB of water, got " + placed.tank().getFluid());
+            helper.assertTrue(placed.fluidSides().mode(RelativeSide.LEFT) == SideMode.PULL, "the left side is Pull again");
+            helper.assertTrue(BIRCH.equals(placed.materialSlot().raw()), "the lower half is birch again");
+            helper.assertTrue(helper.getBlockEntity(again.above(), FluidStationTopBlockEntity.class).materialSlot().raw() != null
+                    && BIRCH.equals(helper.getBlockEntity(again.above(), FluidStationTopBlockEntity.class).materialSlot().raw()),
+                    "the upper half shows birch too");
             helper.succeed();
         });
     }
@@ -123,7 +136,7 @@ public final class FluidInboundGameTests {
     @ServusGameTest(timeoutTicks = 40)
     public static void carrotDismantles(GameTestHelper helper) {
         FluidInboundBlockEntity station = FluidStationFixtures.place(helper, STATION, FRONT);
-        FluidStationFixtures.fill(station, 1, Fluids.WATER, 3000);
+        FluidStationFixtures.fill(station, Fluids.WATER, 3000);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);
         GameTestSteps.useCarrot(helper, player, STATION.above(), FRONT);
@@ -135,41 +148,52 @@ public final class FluidInboundGameTests {
         });
     }
 
-    /** Water and then lava piped into the back of the upper half on All land in tanks 1 and 2, and nothing comes back out. */
+    /** Water piped into the back of the upper half fills the one tank; lava after it is refused, and nothing comes back out. */
     @ServusGameTest(timeoutTicks = 40)
-    public static void inputFillsTwoFluidsIntoTwoTanks(GameTestHelper helper) {
+    public static void oneTankRefusesSecondFluid(GameTestHelper helper) {
         FluidInboundBlockEntity station = FluidStationFixtures.place(helper, STATION, FRONT);
         ResourceHandler<FluidResource> back = FluidStationFixtures.capability(helper, STATION.above(), FRONT.getOpposite());
         helper.assertTrue(back != null, "the back of the upper half takes pipes");
         helper.assertTrue(Transfer.fill(back, new FluidStack(Fluids.WATER, 2000), false) == 2000, "the water goes in");
-        helper.assertTrue(Transfer.fill(back, new FluidStack(Fluids.LAVA, 1000), false) == 1000, "the lava goes in");
-        helper.assertTrue(station.tank(0).getFluid().is(Fluids.WATER) && station.tank(0).getFluidAmount() == 2000, "tank 1 holds the water");
-        helper.assertTrue(station.tank(1).getFluid().is(Fluids.LAVA) && station.tank(1).getFluidAmount() == 1000, "tank 2 holds the lava");
+        helper.assertTrue(Transfer.fill(back, new FluidStack(Fluids.LAVA, 1000), false) == 0, "the lava is refused");
+        helper.assertTrue(station.tank().getFluid().is(Fluids.WATER) && station.tank().getFluidAmount() == 2000, "the tank holds the water");
         helper.assertTrue(Transfer.drain(back, 1000, false).isEmpty(), "the duct gets nothing back");
         helper.succeed();
     }
 
-    /** The left side on Pull for tank 2 takes lava from a Fluid Tank beside the lower half into tank 2 only. */
+    /** The left side on Pull takes lava from a Fluid Tank beside the lower half. */
     @ServusGameTest(timeoutTicks = 60)
-    public static void pullFillsOnlyChosenTank(GameTestHelper helper) {
+    public static void pullTakesFromFluidTank(GameTestHelper helper) {
         FluidInboundBlockEntity station = FluidStationFixtures.place(helper, STATION, FRONT);
-        FluidStationFixtures.setSide(station, RelativeSide.LEFT, SideMode.PULL, 1);
+        FluidStationFixtures.setSide(station, RelativeSide.LEFT, SideMode.PULL);
         BlockPos left = STATION.relative(FRONT.getClockWise());
         helper.setBlock(left, ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
         Transfer.fill(FluidStationFixtures.capability(helper, left, Direction.UP), new FluidStack(Fluids.LAVA, 4000), false);
-        Waits.when(helper, () -> station.tank(1).getFluidAmount() == 4000, 40,
-                () -> "tank 2 pulls the lava, holds " + station.tank(1).getFluidAmount(), () -> {
-            helper.assertTrue(station.tank(1).getFluid().is(Fluids.LAVA), "tank 2 holds lava");
-            helper.assertTrue(station.tank(0).isEmpty() && station.tank(2).isEmpty(), "the other tanks stay empty");
+        Waits.when(helper, () -> station.tank().getFluidAmount() == 4000, 40,
+                () -> "the station pulls the lava, holds " + station.tank().getFluidAmount(), () -> {
+            helper.assertTrue(station.tank().getFluid().is(Fluids.LAVA), "the tank holds lava");
             helper.succeed();
         });
+    }
+
+    /** The upper half takes over the lower half's lamp state, so the item station front shows it. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void upperHalfShowsLamps(GameTestHelper helper) {
+        FluidStationFixtures.place(helper, STATION, FRONT);
+        BlockState lower = helper.getBlockState(STATION);
+        helper.setBlock(STATION, lower.setValue(StorageNodeBlocks.ONLINE, true).setValue(StorageNodeBlocks.ACTIVITY,
+                StorageNodeBlocks.Activity.BLOCKED));
+        BlockState upper = helper.getBlockState(STATION.above());
+        helper.assertTrue(upper.getValue(StorageNodeBlocks.ONLINE) && upper.getValue(StorageNodeBlocks.ACTIVITY) == StorageNodeBlocks.Activity.BLOCKED,
+                "the upper half shows the lamps, got " + upper);
+        helper.succeed();
     }
 
     /** A side on Off keeps its duct's arm but takes no fluid. */
     @ServusGameTest(timeoutTicks = 40)
     public static void offSideStaysConnected(GameTestHelper helper) {
         FluidInboundBlockEntity station = FluidStationFixtures.place(helper, STATION, FRONT);
-        FluidStationFixtures.setSide(station, RelativeSide.RIGHT, SideMode.DISABLED, FluidSides.ALL);
+        FluidStationFixtures.setSide(station, RelativeSide.RIGHT, SideMode.DISABLED);
         Direction right = FRONT.getCounterClockWise();
         BlockPos duct = STATION.relative(right);
         GameTestSteps.duct(helper, duct, Line.FLUID);
@@ -202,8 +226,8 @@ public final class FluidInboundGameTests {
     @ServusGameTest(timeoutTicks = 40)
     public static void ductOnPullDrainsNothing(GameTestHelper helper) {
         FluidInboundBlockEntity station = FluidStationFixtures.place(helper, STATION, FRONT);
-        FluidStationFixtures.setSide(station, RelativeSide.LEFT, SideMode.PULL, FluidSides.ALL);
-        FluidStationFixtures.fill(station, 0, Fluids.WATER, 5000);
+        FluidStationFixtures.setSide(station, RelativeSide.LEFT, SideMode.PULL);
+        FluidStationFixtures.fill(station, Fluids.WATER, 5000);
         Direction left = FRONT.getClockWise();
         for (BlockPos half : List.of(STATION, STATION.above())) {
             ResourceHandler<FluidResource> side = FluidStationFixtures.capability(helper, half, left);
@@ -211,17 +235,17 @@ public final class FluidInboundGameTests {
             helper.assertTrue(Transfer.drain(side, 1000, false).isEmpty(), "nothing drains out of " + half);
             helper.assertTrue(Transfer.drain(side, new FluidStack(Fluids.WATER, 1000), false).isEmpty(), "no water drains out of " + half);
         }
-        helper.assertTrue(station.tank(0).getFluidAmount() == 5000, "the water stays");
+        helper.assertTrue(station.tank().getFluidAmount() == 5000, "the water stays");
         helper.succeed();
     }
 
-    /** A water bucket on an empty station fills tank 1 and leaves an empty bucket; the empty bucket takes it back. */
+    /** A water bucket on an empty station fills the tank and leaves an empty bucket; the empty bucket takes it back. */
     @ServusGameTest(timeoutTicks = 40)
     public static void bucketFillsEmptyStation(GameTestHelper helper) {
         FluidInboundBlockEntity station = FluidStationFixtures.place(helper, STATION, FRONT);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         useBucket(helper, player, new ItemStack(Items.WATER_BUCKET), STATION.above());
-        helper.assertTrue(station.tank(0).getFluid().is(Fluids.WATER) && station.tank(0).getFluidAmount() == 1000, "tank 1 holds 1000 mB of water");
+        helper.assertTrue(station.tank().getFluid().is(Fluids.WATER) && station.tank().getFluidAmount() == 1000, "the tank holds 1000 mB of water");
         helper.assertTrue(player.getMainHandItem().is(Items.BUCKET), "the player holds an empty bucket");
         useBucket(helper, player, player.getMainHandItem(), STATION);
         helper.assertTrue(station.isEmpty(), "the bucket took the water back");
@@ -229,22 +253,18 @@ public final class FluidInboundGameTests {
         helper.succeed();
     }
 
-    /** The potato names tank 1 with 6000 of 8000 mB of water and tanks 2 and 3 empty. */
+    /** The potato names the tank with 6000 mB of water of its capacity in one line. */
     @ServusGameTest(timeoutTicks = 40)
-    public static void potatoReportsTanks(GameTestHelper helper) {
+    public static void potatoReportsTank(GameTestHelper helper) {
         FluidInboundBlockEntity station = FluidStationFixtures.place(helper, STATION, FRONT);
-        FluidStationFixtures.fill(station, 0, Fluids.WATER, 6000);
+        FluidStationFixtures.fill(station, Fluids.WATER, 6000);
         BlockPos upper = helper.absolutePos(STATION.above());
         BlockState state = helper.getLevel().getBlockState(upper);
         List<Component> report = ((FluidStationBlock) state.getBlock()).potatoReport(helper.getLevel(), upper, state, Vec3.atCenterOf(upper));
-        helper.assertTrue(report.size() == station.tankCount(), "one line per tank, got " + report.size());
+        helper.assertTrue(report.size() == 1, "one line, got " + report.size());
         helper.assertTrue(key(report.getFirst()).equals("message.servus_shuttles.potato.fluid_station_tank")
-                && args(report.getFirst())[2].equals(6000) && args(report.getFirst())[3].equals(capacity()), "tank 1 has 6000 of its capacity");
-        for (Component line : report.subList(1, report.size())) {
-            helper.assertTrue(key(line).equals("message.servus_shuttles.potato.fluid_station_empty") && args(line)[1].equals(capacity()),
-                    "the other tanks are empty: " + line.getString());
-        }
-        helper.assertTrue(station.tank(0).getFluidAmount() == 6000, "the potato changes nothing");
+                && args(report.getFirst())[1].equals(6000) && args(report.getFirst())[2].equals(capacity()), "the tank has 6000 of its capacity");
+        helper.assertTrue(station.tank().getFluidAmount() == 6000, "the potato changes nothing");
         helper.succeed();
     }
 

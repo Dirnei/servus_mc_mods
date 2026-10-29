@@ -43,7 +43,8 @@ public final class ServusShuttles {
                 ServusShuttlesBlocks.INBOUND_STATION, ServusShuttlesBlocks.OUTBOUND_STATION, ServusShuttlesBlocks.STORAGE_TERMINAL,
                 ServusShuttlesBlocks.PRODUCTION_TERMINAL, ServusShuttlesBlocks.PATTERN_STORAGE, ServusShuttlesBlocks.CRAFTING_STATION,
                 ServusShuttlesBlocks.WAREHOUSE_CONTROLLER, ServusShuttlesBlocks.SHUTTLE_GARAGE, ServusShuttlesBlocks.FIELD_HEAD,
-                ServusShuttlesBlocks.RAIL, ServusShuttlesBlocks.FARM_RAIL, ServusShuttlesBlocks.SHUTTLE_WORKSHOP, ServusShuttlesBlocks.ELEVATOR)) {
+                ServusShuttlesBlocks.RAIL, ServusShuttlesBlocks.FARM_RAIL, ServusShuttlesBlocks.SHUTTLE_WORKSHOP, ServusShuttlesBlocks.ELEVATOR,
+                ServusShuttlesBlocks.FLUID_INBOUND, ServusShuttlesBlocks.FLUID_OUTBOUND)) {
             Material.register(block.getId(), MaterialKind.WOOD);
         }
         // The pattern editor matches crafting grids on the client too.

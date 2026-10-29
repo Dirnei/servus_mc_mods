@@ -1,230 +1,142 @@
 package io.github.dirnei.mc.servus.shuttles.datagen;
 
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.ACTIVITY_LAMP_X;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.BAND_BOTTOM;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.CONNECTION_LAMP_X;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.FIN;
+import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.FRAME;
+import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.GLASS_HALF;
 import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.GLASS_INSET;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.GLASS_Z0;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.GLASS_Z1;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.HEADER_BOTTOM;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.LAMP_WIDTH;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.LAMP_Y0;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.LAMP_Y1;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.LENS_Z;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.LOWER_FRONT;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.PORT_DEPTH;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.PORT_HALF;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.PORT_HALF_WIDTH;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.POST;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.SILL_TOP;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.SLOT_DEPTH;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.SLOT_X0;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.SLOT_X1;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.SOCKET_RIM;
-import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.SOCKET_Z;
+import static io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook.GLASS_PLANE;
 
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ItemModelBuilder;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelRotations;
 import io.github.dirnei.mc.servus.foundation.datagen.model.MultiPartBlockStateBuilder;
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationBlock;
-import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
-import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 /**
- * Datagen for the fluid stations, built facing north with the front at z 0.
- * The lower half is a steel body set back {@link FluidStationLook#LOWER_FRONT}
- * behind two corner posts and a plinth, with the copper port flange at a
- * tanker coupling's height reaching into the body, and two lamps in iron
- * sockets. The upper half is a steel body behind {@link FluidStationLook#SLOT_DEPTH}
- * deep window slots, with corner posts and a band in the station's colour
- * at the top: teal on the Fluid Inbound, amber on the Fluid Outbound. The window row for each tank count (sill, header, steel fins
- * and a glass pane per window) is a standalone model the renderer draws.
+ * Datagen for the fluid stations. The lower half is the tank, shared by
+ * both stations: iron posts and bars on its twelve edges, a glass pane on
+ * each side and an iron floor, open at the top to the bottom of the upper
+ * half. The upper half is the item station's block model as it is, the
+ * Inbound Station's on the Fluid Inbound and the Outbound Station's on the
+ * Fluid Outbound, in its dark, idle, working and blocked front.
  *
- * <p>Faces where two parts meet are left out on both sides, so no two faces
- * share a plane where they overlap: the tops of the lower parts and the
- * bottoms of the upper body, band and posts; the backs of the posts,
- * plinth, sockets, lenses, sill, header and fins against the bodies; the
- * inner sides of the posts, plinth, band, sill, header and outer fins
- * against each other; the band box's front and bottom. The port flange
- * passes through the lower body's front, the lenses stand 0.2 in front of
- * their sockets, the glass stands {@link FluidStationLook#GLASS_INSET} off
- * the fins, sill and header, and the fluid 0.1 off every wall and behind the glass.
+ * <p>Only faces that can be seen are written: posts show their outer and
+ * inner sides and their bottom, bars their outer side, their bottom on the
+ * station's bottom and the face toward the glass; nothing faces up into the
+ * upper half's bottom. Parts that touch meet at their edges, so no two
+ * faces share a plane where they overlap. Panes stand {@link
+ * io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationLook#GLASS_INSET}
+ * off the frame and the floor and have only their two broad faces.
  */
 final class FluidStationModels {
 
-    private static final Identifier STEEL = Identifier.fromNamespaceAndPath("servus_foundation", "block/electric_pump_steel");
+    private static final String TANK = "fluid_station_tank";
     private static final Identifier GLASS = Identifier.fromNamespaceAndPath("servus_foundation", "block/fluid_tank_glass");
-    private static final Identifier COPPER = Identifier.withDefaultNamespace("block/copper_block");
-    /** The bands that tell the stations apart: teal on the Fluid Inbound, amber on the Fluid Outbound. */
-    static final Identifier INBOUND_BAND = Identifier.withDefaultNamespace("block/cyan_concrete");
-    static final Identifier OUTBOUND_BAND = Identifier.withDefaultNamespace("block/orange_concrete");
-    private static final Identifier LAMP_DARK = Identifier.withDefaultNamespace("block/gray_concrete");
-    private static final Identifier LAMP_CONNECTED = Identifier.withDefaultNamespace("block/light_blue_concrete");
-    private static final Identifier LAMP_IDLE = Identifier.withDefaultNamespace("block/lime_concrete");
-    private static final Identifier LAMP_WORKING = Identifier.withDefaultNamespace("block/orange_concrete");
-    private static final Identifier LAMP_BLOCKED = Identifier.withDefaultNamespace("block/red_concrete");
-    private static final Set<Direction> FRONT_SIDES_TOP_BOTTOM = EnumSet.of(Direction.NORTH, Direction.EAST, Direction.WEST, Direction.UP,
-            Direction.DOWN);
+    private static final float IN = FRAME;
+    private static final float OUT = 16 - FRAME;
 
     private FluidStationModels() {
     }
 
-    /** One box in pixels, the faces it has and the texture key of each; {@code light} above 0 draws it bright. */
-    private record Box(float x0, float y0, float z0, float x1, float y1, float z1, Set<Direction> faces, String texture, String top,
-                       int light) {
-
-        Box(float x0, float y0, float z0, float x1, float y1, float z1, Set<Direction> faces, String texture) {
-            this(x0, y0, z0, x1, y1, z1, faces, texture, texture, 0);
-        }
-
-        String texture(Direction face) {
-            return face == Direction.UP ? top : texture;
-        }
+    /** One box in pixels with the texture key its faces use and the faces it has. */
+    private record Box(float x0, float y0, float z0, float x1, float y1, float z1, String texture, List<Direction> faces) {
     }
 
-    /** The block states, the halves, the lamps and the item of one station, with its band. */
-    static void station(BlockStateProvider provider, Block block, String name, Identifier band) {
-        Identifier iron = iron(provider);
-        BlockModelBuilder lower = model(provider, name + "_lower", iron, band, lower());
-        BlockModelBuilder upper = model(provider, name + "_upper", iron, band, upper());
+    private static Box box(float x0, float y0, float z0, float x1, float y1, float z1, String texture, Direction... faces) {
+        return new Box(x0, y0, z0, x1, y1, z1, texture, List.of(faces));
+    }
+
+    /** The tank model both stations share. */
+    static void tank(BlockStateProvider provider) {
+        BlockModelBuilder builder = provider.models().withExistingParent(TANK, "minecraft:block/block")
+                .texture("particle", iron(provider)).texture("iron", iron(provider)).texture("glass", GLASS);
+        tankBoxes().forEach(box -> element(builder, box, 0));
+    }
+
+    /**
+     * The block states and the item of one station: the tank below, the item
+     * station {@code itemStation} above, its front lamps by the station's lamp state.
+     */
+    static void station(BlockStateProvider provider, FluidStationBlock block, String name, String itemStation) {
+        ModelFile tank = new ModelFile.UncheckedModelFile(provider.modLoc("block/" + TANK));
+        ModelFile dark = stationModel(provider, itemStation, "");
         MultiPartBlockStateBuilder builder = provider.getMultipartBuilder(block);
-        List<BlockModelBuilder> lamps = new ArrayList<>();
-        for (String lamp : new String[] {"off", "idle", "working", "blocked"}) {
-            lamps.add(model(provider, name + "_lamps_" + lamp, iron, band, lamps(lamp)));
-        }
+        builder.part().modelFile(tank).addModel().condition(FluidStationBlock.HALF, DoubleBlockHalf.LOWER);
         for (Direction facing : Direction.Plane.HORIZONTAL) {
             int angle = ModelRotations.rotationY(facing);
-            builder.part().modelFile(lower).rotationY(angle).addModel()
-                    .condition(FluidStationBlock.FACING, facing).condition(FluidStationBlock.HALF, DoubleBlockHalf.LOWER);
-            builder.part().modelFile(upper).rotationY(angle).addModel()
-                    .condition(FluidStationBlock.FACING, facing).condition(FluidStationBlock.HALF, DoubleBlockHalf.UPPER);
-            builder.part().modelFile(lamps.get(0)).rotationY(angle).addModel()
-                    .condition(FluidStationBlock.FACING, facing).condition(FluidStationBlock.HALF, DoubleBlockHalf.LOWER)
+            builder.part().modelFile(dark).rotationY(angle).addModel()
+                    .condition(FluidStationBlock.FACING, facing).condition(FluidStationBlock.HALF, DoubleBlockHalf.UPPER)
                     .condition(StorageNodeBlocks.ONLINE, false);
             for (StorageNodeBlocks.Activity activity : StorageNodeBlocks.Activity.values()) {
-                builder.part().modelFile(lamps.get(1 + activity.ordinal())).rotationY(angle).addModel()
-                        .condition(FluidStationBlock.FACING, facing).condition(FluidStationBlock.HALF, DoubleBlockHalf.LOWER)
+                ModelFile lit = stationModel(provider, itemStation, "_" + activity.getSerializedName());
+                builder.part().modelFile(lit).rotationY(angle).addModel()
+                        .condition(FluidStationBlock.FACING, facing).condition(FluidStationBlock.HALF, DoubleBlockHalf.UPPER)
                         .condition(StorageNodeBlocks.ONLINE, true).condition(StorageNodeBlocks.ACTIVITY, activity);
             }
         }
-        item(provider, name, iron, band);
+        item(provider, name, itemStation);
     }
 
-    /** The window row for every tank count, shared by all stations and drawn by the renderer. */
-    static void windowRows(BlockStateProvider provider) {
-        for (int tanks = 1; tanks <= ShuttlesStatsManager.MAX_FLUID_STATION_TANKS; tanks++) {
-            model(provider, FluidStationLook.windowModel(tanks), iron(provider), INBOUND_BAND, windows(tanks));
-        }
+    /** An item station block model as the item station's own datagen writes it. */
+    private static ModelFile stationModel(BlockStateProvider provider, String itemStation, String suffix) {
+        return new ModelFile.UncheckedModelFile(provider.modLoc("block/" + itemStation + suffix));
     }
 
     private static Identifier iron(BlockStateProvider provider) {
         return provider.modLoc("block/heavy_rack_iron");
     }
 
-    /** Body, corner posts, plinth, port flange and lamp sockets. */
-    private static List<Box> lower() {
+    /** Posts, bars, the floor and the glass of the tank. */
+    private static List<Box> tankBoxes() {
         List<Box> boxes = new ArrayList<>();
-        boxes.add(new Box(0, 0, LOWER_FRONT, 16, 16, 16, EnumSet.of(Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST,
-                Direction.DOWN), "#steel"));
-        boxes.add(new Box(0, 0, 0, POST, 16, LOWER_FRONT, EnumSet.of(Direction.NORTH, Direction.EAST, Direction.WEST, Direction.DOWN), "#steel"));
-        boxes.add(new Box(16 - POST, 0, 0, 16, 16, LOWER_FRONT, EnumSet.of(Direction.NORTH, Direction.EAST, Direction.WEST, Direction.DOWN),
-                "#steel"));
-        boxes.add(new Box(POST, 0, 0, 16 - POST, 1, LOWER_FRONT, EnumSet.of(Direction.NORTH, Direction.UP, Direction.DOWN), "#steel"));
-        float portY = FluidStationLook.portY();
-        boxes.add(new Box(8 - PORT_HALF_WIDTH, portY - PORT_HALF, 0, 8 + PORT_HALF_WIDTH, portY + PORT_HALF, PORT_DEPTH,
-                FRONT_SIDES_TOP_BOTTOM, "#copper"));
-        for (float x : new float[] {CONNECTION_LAMP_X, ACTIVITY_LAMP_X}) {
-            boxes.add(new Box(x - SOCKET_RIM, LAMP_Y0 - SOCKET_RIM, SOCKET_Z, x + LAMP_WIDTH + SOCKET_RIM, LAMP_Y1 + SOCKET_RIM, LOWER_FRONT,
-                    FRONT_SIDES_TOP_BOTTOM, "#iron"));
-        }
-        return boxes;
-    }
-
-    /** The two lenses; dark while offline, else the connection lamp lit and the activity lamp in its colour. */
-    private static List<Box> lamps(String lamp) {
-        boolean online = !lamp.equals("off");
-        int light = online ? 15 : 0;
-        return List.of(
-                new Box(CONNECTION_LAMP_X, LAMP_Y0, LENS_Z, CONNECTION_LAMP_X + LAMP_WIDTH, LAMP_Y1, SOCKET_Z, FRONT_SIDES_TOP_BOTTOM,
-                        online ? "#connected" : "#dark", online ? "#connected" : "#dark", light),
-                new Box(ACTIVITY_LAMP_X, LAMP_Y0, LENS_Z, ACTIVITY_LAMP_X + LAMP_WIDTH, LAMP_Y1, SOCKET_Z, FRONT_SIDES_TOP_BOTTOM,
-                        "#" + lamp, "#" + lamp, light));
-    }
-
-    /** Body behind the window slots, the band box on it, the front band and the corner posts. */
-    private static List<Box> upper() {
-        List<Box> boxes = new ArrayList<>();
-        boxes.add(new Box(0, 0, SLOT_DEPTH, 16, BAND_BOTTOM, 16, EnumSet.of(Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST),
-                "#steel"));
-        boxes.add(new Box(0, BAND_BOTTOM, SLOT_DEPTH, 16, 16, 16, EnumSet.of(Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.UP),
-                "#band", "#steel", 0));
-        boxes.add(new Box(POST, BAND_BOTTOM, 0, 16 - POST, 16, SLOT_DEPTH, EnumSet.of(Direction.NORTH, Direction.UP), "#band", "#steel", 0));
-        boxes.add(new Box(0, 0, 0, POST, 16, SLOT_DEPTH, EnumSet.of(Direction.NORTH, Direction.WEST, Direction.UP), "#steel"));
-        boxes.add(new Box(16 - POST, 0, 0, 16, 16, SLOT_DEPTH, EnumSet.of(Direction.NORTH, Direction.EAST, Direction.UP), "#steel"));
-        return boxes;
-    }
-
-    /** Sill, header, a steel fin beside every window and a glass pane in each, for that many tanks. */
-    private static List<Box> windows(int tanks) {
-        List<Box> boxes = new ArrayList<>();
-        boxes.add(new Box(SLOT_X0, 0, 0, SLOT_X1, SILL_TOP, SLOT_DEPTH, EnumSet.of(Direction.NORTH, Direction.UP, Direction.DOWN), "#steel"));
-        boxes.add(new Box(SLOT_X0, HEADER_BOTTOM, 0, SLOT_X1, BAND_BOTTOM, SLOT_DEPTH, EnumSet.of(Direction.NORTH, Direction.DOWN), "#steel"));
-        for (int fin = 0; fin <= tanks; fin++) {
-            float x0 = fin == tanks ? SLOT_X1 - FIN : FluidStationLook.windowX0(tanks, fin) - FIN;
-            Set<Direction> faces = EnumSet.of(Direction.NORTH);
-            if (fin > 0) {
-                faces.add(Direction.WEST);
+        float[] edges = {0, OUT};
+        for (float x : edges) {
+            for (float z : edges) {
+                Direction xOut = x == 0 ? Direction.WEST : Direction.EAST;
+                Direction zOut = z == 0 ? Direction.NORTH : Direction.SOUTH;
+                boxes.add(box(x, 0, z, x + FRAME, 16, z + FRAME, "#iron", xOut, zOut, xOut.getOpposite(), zOut.getOpposite(), Direction.DOWN));
             }
-            if (fin < tanks) {
-                faces.add(Direction.EAST);
-            }
-            boxes.add(new Box(x0, SILL_TOP, 0, x0 + FIN, HEADER_BOTTOM, SLOT_DEPTH, faces, "#steel"));
         }
-        for (int window = 0; window < tanks; window++) {
-            boxes.add(new Box(FluidStationLook.windowX0(tanks, window) + GLASS_INSET, SILL_TOP + GLASS_INSET, GLASS_Z0,
-                    FluidStationLook.windowX1(tanks, window) - GLASS_INSET, HEADER_BOTTOM - GLASS_INSET, GLASS_Z1,
-                    EnumSet.of(Direction.NORTH, Direction.SOUTH), "#glass"));
+        for (float y : edges) {
+            boolean bottom = y == 0;
+            Direction inward = bottom ? Direction.UP : Direction.DOWN;
+            for (float z : edges) {
+                Direction zOut = z == 0 ? Direction.NORTH : Direction.SOUTH;
+                boxes.add(bottom ? box(IN, y, z, OUT, y + FRAME, z + FRAME, "#iron", zOut, Direction.DOWN, inward)
+                        : box(IN, y, z, OUT, y + FRAME, z + FRAME, "#iron", zOut, inward));
+            }
+            for (float x : edges) {
+                Direction xOut = x == 0 ? Direction.WEST : Direction.EAST;
+                boxes.add(bottom ? box(x, y, IN, x + FRAME, y + FRAME, OUT, "#iron", xOut, Direction.DOWN, inward)
+                        : box(x, y, IN, x + FRAME, y + FRAME, OUT, "#iron", xOut, inward));
+            }
+        }
+        boxes.add(box(IN, 0, IN, OUT, FRAME, OUT, "#iron", Direction.UP, Direction.DOWN));
+        float g0 = IN + GLASS_INSET;
+        float g1 = OUT - GLASS_INSET;
+        for (float plane : new float[] {GLASS_PLANE, 16 - GLASS_PLANE}) {
+            boxes.add(box(g0, g0, plane - GLASS_HALF, g1, g1, plane + GLASS_HALF, "#glass", Direction.NORTH, Direction.SOUTH));
+            boxes.add(box(plane - GLASS_HALF, g0, g0, plane + GLASS_HALF, g1, g1, "#glass", Direction.WEST, Direction.EAST));
         }
         return boxes;
-    }
-
-    private static BlockModelBuilder base(BlockStateProvider provider, String model, Identifier iron, Identifier band) {
-        return provider.models().withExistingParent(model, "minecraft:block/block")
-                .texture("particle", STEEL).texture("steel", STEEL).texture("iron", iron).texture("glass", GLASS)
-                .texture("copper", COPPER).texture("band", band).texture("dark", LAMP_DARK).texture("connected", LAMP_CONNECTED)
-                .texture("idle", LAMP_IDLE).texture("working", LAMP_WORKING).texture("blocked", LAMP_BLOCKED);
-    }
-
-    private static BlockModelBuilder model(BlockStateProvider provider, String model, Identifier iron, Identifier band, List<Box> boxes) {
-        BlockModelBuilder builder = base(provider, model, iron, band);
-        boxes.forEach(box -> element(builder, box, 0));
-        return builder;
     }
 
     /** One element moved up by {@code dy}; explicit UVs keep a moved element's texture where it is in its own block. */
-    private static void element(BlockModelBuilder builder, Box box, float dy) {
-        ModelBuilder<BlockModelBuilder>.ElementBuilder element = builder.element()
-                .from(box.x0(), box.y0() + dy, box.z0()).to(box.x1(), box.y1() + dy, box.z1());
+    private static void element(ModelBuilder<?> builder, Box box, float dy) {
+        var element = builder.element().from(box.x0(), box.y0() + dy, box.z0()).to(box.x1(), box.y1() + dy, box.z1());
         for (Direction direction : box.faces()) {
-            ModelBuilder<BlockModelBuilder>.ElementBuilder.FaceBuilder face = element.face(direction).texture(box.texture(direction));
             float[] uv = uv(box, direction);
-            face.uvs(uv[0], uv[1], uv[2], uv[3]);
-        }
-        if (box.light() > 0) {
-            element.lightEmission(box.light());
+            element.face(direction).texture(box.texture()).uvs(uv[0], uv[1], uv[2], uv[3]);
         }
     }
 
@@ -240,15 +152,31 @@ final class FluidStationModels {
         };
     }
 
-    /** Both halves with dark lamps and three windows for the item, scaled down in the hand and the GUI. */
-    private static void item(BlockStateProvider provider, String name, Identifier iron, Identifier band) {
-        BlockModelBuilder whole = base(provider, name + "_item", iron, band);
-        lower().forEach(box -> element(whole, box, 0));
-        lamps("off").forEach(box -> element(whole, box, 0));
-        upper().forEach(box -> element(whole, box, 16));
-        windows(ShuttlesStatsManager.DEFAULT_FLUID_STATION_TANKS).forEach(box -> element(whole, box, 16));
-        provider.itemModels().withExistingParent(name, provider.modLoc("block/" + name + "_item"))
-                .transforms()
+    /**
+     * The item: the tank with the item station on top, its boards under its
+     * overlay textures like {@code LayeredModels}, scaled down in the hand and
+     * the GUI. As a material block item it shows the stack's wood.
+     */
+    private static void item(BlockStateProvider provider, String name, String itemStation) {
+        ItemModelBuilder builder = provider.itemModels().withExistingParent(name, "minecraft:block/block")
+                .texture("particle", iron(provider)).texture("iron", iron(provider)).texture("glass", GLASS)
+                .texture("board", MaterialKind.WOOD.placeholder())
+                .texture("front", provider.modLoc("block/" + itemStation + "_front"))
+                .texture("side", provider.modLoc("block/" + itemStation + "_side"))
+                .texture("top", provider.modLoc("block/" + itemStation + "_top"));
+        tankBoxes().forEach(box -> element(builder, box, 0));
+        for (String layer : new String[] {"#board", null}) {
+            var element = builder.element().from(0, 16, 0).to(16, 32, 16);
+            for (Direction direction : Direction.values()) {
+                String texture = layer != null ? layer : switch (direction) {
+                    case NORTH -> "#front";
+                    case UP, DOWN -> "#top";
+                    default -> "#side";
+                };
+                element.face(direction).texture(texture).uvs(0, 0, 16, 16);
+            }
+        }
+        builder.transforms()
                 .transform(ItemDisplayContext.GUI).rotation(30, 225, 0).translation(0, -3, 0).scale(0.4F).end()
                 .transform(ItemDisplayContext.GROUND).rotation(0, 0, 0).translation(0, 2, 0).scale(0.2F).end()
                 .transform(ItemDisplayContext.FIXED).rotation(0, 0, 0).translation(0, -3, 0).scale(0.4F).end()

@@ -72,9 +72,9 @@ final class ServusShuttlesBlockStateProvider extends BlockStateProvider {
         simpleBlock(ServusShuttlesBlocks.SHUTTLE_WORKSHOP.get(), workshop);
         simpleBlockItem(ServusShuttlesBlocks.SHUTTLE_WORKSHOP.get(), workshop);
         ShuttleModels.shuttle(this);
-        FluidStationModels.station(this, ServusShuttlesBlocks.FLUID_INBOUND.get(), "fluid_inbound", FluidStationModels.INBOUND_BAND);
-        FluidStationModels.station(this, ServusShuttlesBlocks.FLUID_OUTBOUND.get(), "fluid_outbound", FluidStationModels.OUTBOUND_BAND);
-        FluidStationModels.windowRows(this);
+        FluidStationModels.tank(this);
+        FluidStationModels.station(this, ServusShuttlesBlocks.FLUID_INBOUND.get(), "fluid_inbound", "inbound_station");
+        FluidStationModels.station(this, ServusShuttlesBlocks.FLUID_OUTBOUND.get(), "fluid_outbound", "outbound_station");
     }
 
     /**

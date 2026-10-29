@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.DataPotatoItem;
 import io.github.dirnei.mc.servus.foundation.item.PotatoInspectable;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
+import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidSideHandler;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
@@ -43,10 +44,13 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A fluid station two blocks high: the {@link DoubleBlockHalf#LOWER} half
- * keeps the block entity, the upper half forwards clicks, buckets, the
- * potato and the carrot to it. Either half going away takes the other with
- * it, and the lower half drops the item that keeps the tanks and sides.
- * Its front faces the player who placed it; the lamps are the lower half's.
+ * is the tank and keeps the station's block entity; the upper half is the
+ * item station it was crafted from, forwards clicks, buckets, the potato and
+ * the carrot to it and only keeps a copy of the wood for its model. Either
+ * half going away takes the other with it, and the lower half drops the item
+ * that keeps the tank, sides and wood. Its front faces the player who placed
+ * it; the lamps on the upper front follow the lower half's lamp state, which
+ * the station copies up.
  */
 public abstract class FluidStationBlock extends BaseEntityBlock implements Wrenchable, PotatoInspectable {
 
@@ -68,8 +72,8 @@ public abstract class FluidStationBlock extends BaseEntityBlock implements Wrenc
     protected abstract FluidStationBlockEntity createStation(BlockPos pos, BlockState state);
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return state.getValue(HALF) == DoubleBlockHalf.LOWER ? createStation(pos, state) : null;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return state.getValue(HALF) == DoubleBlockHalf.LOWER ? createStation(pos, state) : new FluidStationTopBlockEntity(pos, state);
     }
 
     @Override
@@ -120,11 +124,16 @@ public abstract class FluidStationBlock extends BaseEntityBlock implements Wrenc
         return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
+    /** Places the upper half and gives it the wood the item brought. */
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity by, ItemStack stack) {
         super.setPlacedBy(level, pos, state, by, stack);
         level.setBlock(pos.above(), state.setValue(HALF, DoubleBlockHalf.UPPER), Block.UPDATE_ALL);
+        if (level.getBlockEntity(pos.above()) instanceof FluidStationTopBlockEntity top) {
+            top.materialSlot().set(stack.get(MaterialContent.MATERIAL.get()));
+        }
     }
+
 
     /** A half whose other half is gone turns into air, so a station never stays half built. */
     @Override
@@ -155,7 +164,7 @@ public abstract class FluidStationBlock extends BaseEntityBlock implements Wrenc
         return PushReaction.BLOCK;
     }
 
-    /** A fluid container fills or empties the tanks by hand; the carrot and the potato pass to their own handling. */
+    /** A fluid container fills or empties the tank by hand; the carrot and the potato pass to their own handling. */
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                           InteractionHand hand, BlockHitResult hitResult) {
@@ -166,7 +175,7 @@ public abstract class FluidStationBlock extends BaseEntityBlock implements Wrenc
             FluidStationBlockEntity station = station(level, pos);
             if (!level.isClientSide() && station != null) {
                 // ItemAccess keeps the container of a creative player, like a vanilla bucket.
-                FluidUtil.interactWithFluidHandler(player, hand, pos, station.manualHandler());
+                FluidUtil.interactWithFluidHandler(player, hand, pos, station.tank());
             }
             return InteractionResult.SUCCESS;
         }

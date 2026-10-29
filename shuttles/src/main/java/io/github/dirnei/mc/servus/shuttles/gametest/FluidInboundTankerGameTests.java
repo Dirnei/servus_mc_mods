@@ -81,7 +81,7 @@ public final class FluidInboundTankerGameTests {
     public static void notStock(GameTestHelper helper) {
         TankerFixtures.warehouse(helper);
         FluidInboundBlockEntity station = station(helper);
-        FluidStationFixtures.fill(station, 0, Fluids.WATER, 8000);
+        FluidStationFixtures.fill(station, Fluids.WATER, 8000);
         helper.runAfterDelay(60, () -> {
             helper.assertTrue(TankerFixtures.network(helper).fluidStations().contains(helper.absolutePos(STATION)), "the station is listed");
             helper.assertTrue(TankerFixtures.network(helper).fluidIndex().count(WATER) == 0, "the water is no stock");
@@ -113,12 +113,12 @@ public final class FluidInboundTankerGameTests {
         helper.runAfterDelay(2, () -> {
             FluidRackBlock.stampSection(helper.getLevel(), helper.absolutePos(bays[0]),
                     new ZoneDefinition("Cooling", new ZoneFilter(List.of(new ItemStack(Items.WATER_BUCKET)), List.of())));
-            FluidStationFixtures.fill(station, 0, Fluids.LAVA, 2000);
+            FluidStationFixtures.fill(station, Fluids.LAVA, 2000);
             Waits.when(helper, () -> WarehouseFixtures.blocked(helper, STATION), 150, () -> "the station's lamp turns red", () -> {
                 helper.assertTrue(station.fluidActivity().noRoom() == Fluids.LAVA, "the station names lava as without room");
                 helper.assertTrue(waitingKey(helper, station).equals("gui.servus_shuttles.fluid_station.state.no_room"), "the GUI says there is no room");
                 helper.assertTrue(TankerFixtures.out(helper) == 0 && TankerFixtures.network(helper).queuedJobs() == 0, "no tanker drives");
-                helper.assertTrue(station.tank(0).getFluidAmount() == 2000, "the lava stays in the station");
+                helper.assertTrue(station.tank().getFluidAmount() == 2000, "the lava stays in the station");
                 helper.succeed();
             });
         });
@@ -130,7 +130,7 @@ public final class FluidInboundTankerGameTests {
         TankerFixtures.warehouse(helper);
         FluidInboundBlockEntity station = station(helper);
         racks(helper);
-        FluidStationFixtures.fill(station, 0, Fluids.WATER, 2000);
+        FluidStationFixtures.fill(station, Fluids.WATER, 2000);
         Waits.when(helper, () -> WarehouseFixtures.blocked(helper, STATION), 150, () -> "the station's lamp turns red", () -> {
             helper.assertTrue(station.fluidActivity().noTanker(), "the station waits for a tanker");
             helper.assertTrue(waitingKey(helper, station).equals("gui.servus_shuttles.fluid_station.state.no_tanker"), "the GUI says no tanker comes");
@@ -144,7 +144,7 @@ public final class FluidInboundTankerGameTests {
         TankerFixtures.withTanker(helper);
         FluidInboundBlockEntity station = station(helper);
         racks(helper);
-        FluidStationFixtures.fill(station, 0, Fluids.WATER, 300);
+        FluidStationFixtures.fill(station, Fluids.WATER, 300);
         helper.runAfterDelay(120, () -> {
             helper.assertTrue(WarehouseFixtures.activity(helper, STATION) == Activity.WORKING, "the lamp is orange, got "
                     + WarehouseFixtures.activity(helper, STATION));
@@ -159,7 +159,7 @@ public final class FluidInboundTankerGameTests {
         TankerFixtures.withTanker(helper);
         FluidInboundBlockEntity station = station(helper);
         BlockPos[] bays = racks(helper);
-        FluidStationFixtures.fill(station, 0, Fluids.WATER, 4000);
+        FluidStationFixtures.fill(station, Fluids.WATER, 4000);
         Waits.when(helper, () -> TankerFixtures.out(helper) == 1, RUN, () -> "a tanker drives out", () -> {
             helper.destroyBlock(STATION);
             Waits.when(helper, () -> TankerFixtures.out(helper) == 0, RUN, () -> "the tanker comes home", () -> {
@@ -177,7 +177,7 @@ public final class FluidInboundTankerGameTests {
         TankerFixtures.withTanker(helper);
         FluidInboundBlockEntity station = station(helper);
         BlockPos[] bays = racks(helper);
-        FluidStationFixtures.fill(station, 0, Fluids.WATER, 4000);
+        FluidStationFixtures.fill(station, Fluids.WATER, 4000);
         BlockPos garage = helper.absolutePos(TankerFixtures.GARAGE);
         List<Direction> seen = new ArrayList<>();
         Waits.when(helper, () -> {

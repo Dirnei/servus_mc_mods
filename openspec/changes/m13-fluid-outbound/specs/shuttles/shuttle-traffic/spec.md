@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: A standing shuttle holds the shuttles behind it
-A shuttle that stands on a rail, for its stop at a bay, station or fluid port, for field work at a plot, for the lift car, for a deck or for power, SHALL hold every shuttle that would share its lane there: they stop the follow gap behind it and drive on once it has left. Shuttles that pass it with an opposite heading or across its lane SHALL NOT wait.
+A shuttle that stands on a rail, for its stop at a bay, station, fluid station or fluid port, for field work at a plot, for the lift car, for a deck or for power, SHALL hold every shuttle that would share its lane there: they stop the follow gap behind it and drive on once it has left. Shuttles that pass it with an opposite heading or across its lane SHALL NOT wait.
 
 #### Scenario: Waiting behind a loading shuttle
 - **WHEN** a shuttle stands at a bay for its stop and another shuttle comes along the same aisle in the same direction

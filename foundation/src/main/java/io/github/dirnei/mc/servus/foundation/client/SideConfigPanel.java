@@ -236,10 +236,15 @@ public final class SideConfigPanel {
             graphics.fill(cx, cy, cx + CELL, cy + CELL, side == hovered && !fixed ? 0xFFFFFFFF : 0xFF555555);
             graphics.fill(cx + 1, cy + 1, cx + CELL - 1, cy + CELL - 1, fixed ? 0xFF6E6E6E : cellColor(side));
             graphics.text(font, side.name().substring(0, 1), cx + 4, cy + 3, fixed ? 0xFF9A9A9A : 0xFF202020, false);
-            if (showsFluids() && !fixed) {
+            if (showsFluids() && !fixed && hasTankChoice(tankLabels)) {
                 renderTankChip(graphics, font, cx, cy, fluidTank(side), tankLabels);
             }
         }
+    }
+
+    /** Whether the block's sides choose a tank: a block with one tank has no choice, so its cells carry no chip. */
+    private static boolean hasTankChoice(List<TankLabel> tankLabels) {
+        return tankLabels.size() > 1;
     }
 
     /** A small square in the bottom right of a cell: the label colour of the tank, or an "A" for All. */
@@ -301,7 +306,9 @@ public final class SideConfigPanel {
         if (!showsFluids()) {
             click.accept(side);
         } else if (button == RIGHT_BUTTON) {
-            tankClick.accept(side);
+            if (hasTankChoice(labels.get())) {
+                tankClick.accept(side);
+            }
         } else {
             fluidClick.accept(side);
         }

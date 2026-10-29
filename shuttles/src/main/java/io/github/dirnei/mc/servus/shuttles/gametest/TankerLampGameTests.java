@@ -28,13 +28,13 @@ public final class TankerLampGameTests {
         TankerFixtures.rack(helper, TankerFixtures.FAR);
         helper.runAfterDelay(2, () -> {
             TankerFixtures.zone(helper, TankerFixtures.FAR, Items.WATER_BUCKET);
-            TankerFixtures.fill(source, 0, Fluids.LAVA, 2000);
+            TankerFixtures.fill(source, Fluids.LAVA, 2000);
             Waits.when(helper, () -> lamp(helper, Activity.BLOCKED), 120, () -> "the lamp turns red first", () -> {
                 helper.assertTrue(TankerFixtures.out(helper) == 0 && TankerFixtures.network(helper).queuedJobs() == 0, "no tanker drives");
                 FluidRackBlock.stampSection(helper.getLevel(), helper.absolutePos(TankerFixtures.FAR), null);
                 Waits.when(helper, () -> TankerFixtures.amount(helper, TankerFixtures.FAR) == 2000 && lamp(helper, Activity.IDLE), RUN,
                         () -> "the lava goes to the unzoned section and the lamp turns green", () -> {
-                    helper.assertTrue(TankerFixtures.total(source) == 0, "the Inbound is empty");
+                    helper.assertTrue(TankerFixtures.amount(source) == 0, "the Inbound is empty");
                     helper.succeed();
                 });
             });
@@ -47,7 +47,7 @@ public final class TankerLampGameTests {
         TankerFixtures.withTanker(helper);
         FluidInboundBlockEntity source = TankerFixtures.inbound(helper);
         TankerFixtures.rack(helper, TankerFixtures.FAR);
-        TankerFixtures.fill(source, 0, Fluids.WATER, 2000);
+        TankerFixtures.fill(source, Fluids.WATER, 2000);
         Waits.when(helper, () -> TankerFixtures.out(helper) == 1, RUN, () -> "a tanker drives out", () -> {
             helper.assertTrue(lamp(helper, Activity.WORKING), "the Inbound's lamp is orange");
             Waits.when(helper, () -> TankerFixtures.out(helper) == 0 && lamp(helper, Activity.IDLE), RUN,

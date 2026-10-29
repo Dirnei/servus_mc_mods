@@ -24,9 +24,9 @@ import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The Fluid Outbound's GUI: per tank a keep cell, its gauge with a mark at
- * the keep amount, the amount and four step buttons; the Fluids side panel,
- * the state line and the player inventory. Keeps are synced as data slots
+ * The Fluid Outbound's GUI: the keep cell, the gauge with a mark at the keep
+ * amount, the amount and four step buttons; the Fluids side panel, the
+ * state line and the player inventory. The keep is synced as data slots
  * after the shared ones. A keep cell click comes by {@link SetFluidKeepPayload},
  * the steps are menu buttons {@link #keepButton}.
  */
@@ -43,67 +43,60 @@ public class FluidOutboundMenu extends FluidStationMenu {
     public static final int STATE_Y = BUTTONS_Y + 2 * (BUTTON_HEIGHT + 1) + 3;
     public static final int INVENTORY_Y = STATE_Y + 22;
     public static final int IMAGE_HEIGHT = INVENTORY_Y + PlayerInventorySlots.HOTBAR_OFFSET + 18 + 6;
-    private static final int MAX_PITCH = 44;
+    private static final int PITCH = 44;
 
     private static final int DATA_KEEP_FLUID = DATA_EXTRA;
-    private static final int DATA_KEEP_AMOUNT = DATA_KEEP_FLUID + MAX_TANKS;
-    private static final int EXTRA_COUNT = 3 * MAX_TANKS;
+    private static final int DATA_KEEP_AMOUNT = DATA_KEEP_FLUID + 1;
+    private static final int EXTRA_COUNT = 3;
 
-    /** Server side: the station's own tanks and keeps. */
+    /** Server side: the station's own tank and keep. */
     public FluidOutboundMenu(int containerId, Inventory playerInventory, FluidOutboundBlockEntity station) {
-        this(containerId, playerInventory, ContainerLevelAccess.create(station.getLevel(), station.getBlockPos()), station.tankCount(),
+        this(containerId, playerInventory, ContainerLevelAccess.create(station.getLevel(), station.getBlockPos()),
                 serverData(station, EXTRA_COUNT, index -> keepData(station, index)), station);
     }
 
-    private FluidOutboundMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access, int tanks, ContainerData data,
+    private FluidOutboundMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access, ContainerData data,
                               @Nullable FluidStationBlockEntity station) {
-        super(ServusShuttlesMenus.FLUID_OUTBOUND.get(), containerId, playerInventory, access, tanks, data, station, pitch(tanks), INVENTORY_Y);
+        super(ServusShuttlesMenus.FLUID_OUTBOUND.get(), containerId, playerInventory, access, data, station, PITCH, INVENTORY_Y);
     }
 
-    /** Client side: the server writes the station's position and its tank count, see {@link FluidStationBlockEntity#writeOpening}. */
+    /** Client side: the server writes the station's position, see {@link FluidStationBlockEntity#writeOpening}. */
     public static FluidOutboundMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
         BlockPos pos = buf.readBlockPos();
-        int tanks = buf.readVarInt();
         return new FluidOutboundMenu(containerId, playerInventory, ContainerLevelAccess.create(playerInventory.player.level(), pos),
-                tanks, new SimpleContainerData(DATA_EXTRA + EXTRA_COUNT), null);
-    }
-
-    /** The column width: as wide as fits, at most {@link #MAX_PITCH}. */
-    private static int pitch(int tanks) {
-        return Math.min(MAX_PITCH, (WIDTH - 16) / Math.max(1, tanks));
+                new SimpleContainerData(DATA_EXTRA + EXTRA_COUNT), null);
     }
 
     private static int keepData(FluidOutboundBlockEntity station, int index) {
-        if (index < DATA_KEEP_AMOUNT) {
-            Fluid fluid = station.keep(index - DATA_KEEP_FLUID).fluid();
+        if (index == DATA_KEEP_FLUID) {
+            Fluid fluid = station.keep().fluid();
             return fluid == null ? 0 : BuiltInRegistries.FLUID.getId(fluid) + 1;
         }
-        int tank = (index - DATA_KEEP_AMOUNT) / 2;
-        return half(station.keep(tank).amount(), (index - DATA_KEEP_AMOUNT) % 2);
+        return half(station.keep().amount(), index - DATA_KEEP_AMOUNT);
     }
 
-    /** What a tank keeps, as synced. */
-    public FluidKeep<Fluid> keep(int tank) {
-        int id = data(DATA_KEEP_FLUID + tank);
-        return id <= 0 ? FluidKeep.none() : new FluidKeep<>(BuiltInRegistries.FLUID.byId(id - 1), whole(DATA_KEEP_AMOUNT + tank * 2));
+    /** What the tank keeps, as synced. */
+    public FluidKeep<Fluid> keep() {
+        int id = data(DATA_KEEP_FLUID);
+        return id <= 0 ? FluidKeep.none() : new FluidKeep<>(BuiltInRegistries.FLUID.byId(id - 1), whole(DATA_KEEP_AMOUNT));
     }
 
-    /** A tank's label names what it holds, else what it keeps. */
+    /** The tank's label names what it holds, else what it keeps. */
     @Override
-    protected Fluid labelFluid(int tank) {
-        Fluid held = super.labelFluid(tank);
-        Fluid kept = keep(tank).fluid();
+    protected Fluid labelFluid() {
+        Fluid held = super.labelFluid();
+        Fluid kept = keep().fluid();
         return held != Fluids.EMPTY || kept == null ? held : kept;
     }
 
-    /** The left edge of a tank's keep cell, centred in its column. */
-    public int cellX(int tank) {
-        return columnX(tank) + (pitch() - CELL_SIZE) / 2;
+    /** The left edge of the keep cell, centred in the column. */
+    public int cellX() {
+        return columnX() + (pitch() - CELL_SIZE) / 2;
     }
 
-    /** The button id that steps a tank's keep by {@code KEEP_STEPS[step]}. */
-    public static int keepButton(int tank, int step) {
-        return tank * KEEP_STEPS.length + step;
+    /** The button id that steps the keep by {@code KEEP_STEPS[step]}. */
+    public static int keepButton(int step) {
+        return step;
     }
 
     @Override
@@ -116,29 +109,29 @@ public class FluidOutboundMenu extends FluidStationMenu {
         if (super.clickMenuButton(player, id)) {
             return true;
         }
-        if (!(station() instanceof FluidOutboundBlockEntity outbound) || id < 0 || id >= tanks() * KEEP_STEPS.length) {
+        if (!(station() instanceof FluidOutboundBlockEntity outbound) || id < 0 || id >= KEEP_STEPS.length) {
             return false;
         }
-        outbound.stepKeep(id / KEEP_STEPS.length, KEEP_STEPS[id % KEEP_STEPS.length]);
+        outbound.stepKeep(KEEP_STEPS[id]);
         return true;
     }
 
     /**
-     * Server: a keep cell was clicked. The fluid of the container on the
-     * cursor becomes the tank's keep fluid, the container stays; an empty
-     * cursor clears the keep, any other item does nothing.
+     * Server: the keep cell was clicked. The fluid of the container on the
+     * cursor becomes the keep fluid, the container stays; an empty cursor
+     * clears the keep, any other item does nothing.
      */
-    public void setKeepFromCarried(int tank) {
-        if (!(station() instanceof FluidOutboundBlockEntity outbound) || tank < 0 || tank >= outbound.tankCount()) {
+    public void setKeepFromCarried() {
+        if (!(station() instanceof FluidOutboundBlockEntity outbound)) {
             return;
         }
         ItemStack carried = getCarried();
         if (carried.isEmpty()) {
-            outbound.setKeepFluid(tank, null);
+            outbound.setKeepFluid(null);
             return;
         }
         Optional<Fluid> fluid = Transfer.fluidOf(carried);
-        fluid.ifPresent(found -> outbound.setKeepFluid(tank, found));
+        fluid.ifPresent(outbound::setKeepFluid);
     }
 
     @Override

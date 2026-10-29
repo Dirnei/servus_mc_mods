@@ -2,263 +2,193 @@
   "multipart": [
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lower"
+        "model": "servus_shuttles:block/fluid_station_tank"
       },
       "when": {
-        "facing": "north",
         "half": "lower"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_upper"
+        "model": "servus_shuttles:block/inbound_station"
       },
       "when": {
         "facing": "north",
-        "half": "upper"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_off"
-      },
-      "when": {
-        "facing": "north",
-        "half": "lower",
+        "half": "upper",
         "online": "false"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_idle"
+        "model": "servus_shuttles:block/inbound_station_idle"
       },
       "when": {
         "activity": "idle",
         "facing": "north",
-        "half": "lower",
+        "half": "upper",
         "online": "true"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_working"
+        "model": "servus_shuttles:block/inbound_station_working"
       },
       "when": {
         "activity": "working",
         "facing": "north",
-        "half": "lower",
+        "half": "upper",
         "online": "true"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_blocked"
+        "model": "servus_shuttles:block/inbound_station_blocked"
       },
       "when": {
         "activity": "blocked",
         "facing": "north",
-        "half": "lower",
+        "half": "upper",
         "online": "true"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lower",
+        "model": "servus_shuttles:block/inbound_station",
         "y": 90
       },
       "when": {
         "facing": "east",
-        "half": "lower"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_upper",
-        "y": 90
-      },
-      "when": {
-        "facing": "east",
-        "half": "upper"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_off",
-        "y": 90
-      },
-      "when": {
-        "facing": "east",
-        "half": "lower",
+        "half": "upper",
         "online": "false"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_idle",
+        "model": "servus_shuttles:block/inbound_station_idle",
         "y": 90
       },
       "when": {
         "activity": "idle",
         "facing": "east",
-        "half": "lower",
+        "half": "upper",
         "online": "true"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_working",
+        "model": "servus_shuttles:block/inbound_station_working",
         "y": 90
       },
       "when": {
         "activity": "working",
         "facing": "east",
-        "half": "lower",
+        "half": "upper",
         "online": "true"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_blocked",
+        "model": "servus_shuttles:block/inbound_station_blocked",
         "y": 90
       },
       "when": {
         "activity": "blocked",
         "facing": "east",
-        "half": "lower",
+        "half": "upper",
         "online": "true"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lower",
+        "model": "servus_shuttles:block/inbound_station",
         "y": 180
       },
       "when": {
         "facing": "south",
-        "half": "lower"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_upper",
-        "y": 180
-      },
-      "when": {
-        "facing": "south",
-        "half": "upper"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_off",
-        "y": 180
-      },
-      "when": {
-        "facing": "south",
-        "half": "lower",
+        "half": "upper",
         "online": "false"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_idle",
+        "model": "servus_shuttles:block/inbound_station_idle",
         "y": 180
       },
       "when": {
         "activity": "idle",
         "facing": "south",
-        "half": "lower",
+        "half": "upper",
         "online": "true"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_working",
+        "model": "servus_shuttles:block/inbound_station_working",
         "y": 180
       },
       "when": {
         "activity": "working",
         "facing": "south",
-        "half": "lower",
+        "half": "upper",
         "online": "true"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_blocked",
+        "model": "servus_shuttles:block/inbound_station_blocked",
         "y": 180
       },
       "when": {
         "activity": "blocked",
         "facing": "south",
-        "half": "lower",
+        "half": "upper",
         "online": "true"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lower",
+        "model": "servus_shuttles:block/inbound_station",
         "y": 270
       },
       "when": {
         "facing": "west",
-        "half": "lower"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_upper",
-        "y": 270
-      },
-      "when": {
-        "facing": "west",
-        "half": "upper"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_off",
-        "y": 270
-      },
-      "when": {
-        "facing": "west",
-        "half": "lower",
+        "half": "upper",
         "online": "false"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_idle",
+        "model": "servus_shuttles:block/inbound_station_idle",
         "y": 270
       },
       "when": {
         "activity": "idle",
         "facing": "west",
-        "half": "lower",
+        "half": "upper",
         "online": "true"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_working",
+        "model": "servus_shuttles:block/inbound_station_working",
         "y": 270
       },
       "when": {
         "activity": "working",
         "facing": "west",
-        "half": "lower",
+        "half": "upper",
         "online": "true"
       }
     },
     {
       "apply": {
-        "model": "servus_shuttles:block/fluid_inbound_lamps_blocked",
+        "model": "servus_shuttles:block/inbound_station_blocked",
         "y": 270
       },
       "when": {
         "activity": "blocked",
         "facing": "west",
-        "half": "lower",
+        "half": "upper",
         "online": "true"
       }
     }

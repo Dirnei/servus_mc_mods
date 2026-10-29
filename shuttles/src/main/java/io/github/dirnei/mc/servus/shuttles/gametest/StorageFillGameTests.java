@@ -85,17 +85,17 @@ public final class StorageFillGameTests {
         FluidRackFixtures.place(helper, bay, Direction.EAST, FluidRackFixtures.item());
         FluidInboundBlockEntity inbound = FluidStationFixtures.place(helper, new BlockPos(5, 1, 5), Direction.WEST);
         FluidOutboundBlockEntity outbound = FluidStationFixtures.outbound(helper, SECOND.east(), Direction.WEST);
-        outbound.setKeepFluid(0, Fluids.WATER);
+        outbound.setKeepFluid(Fluids.WATER);
         helper.runAfterDelay(2, () -> {
             FluidRackFixtures.fill(helper, bay, Fluids.WATER, 3000);
-            inbound.tank(0).fill(new FluidStack(Fluids.WATER, 5000), false);
-            outbound.tank(0).fill(new FluidStack(Fluids.WATER, 4000), false);
+            inbound.tank().fill(new FluidStack(Fluids.WATER, 5000), false);
+            outbound.tank().fill(new FluidStack(Fluids.WATER, 4000), false);
             long capacity = ShuttlesStatsManager.INSTANCE.fluidRackCapacityPerBay();
             Waits.when(helper, () -> {
                 StorageFill.Report report = fill(controller.network().orElseThrow());
                 return report.fluid() == 3000 && report.fluidCapacity() == capacity;
             }, 60, () -> "3000 of " + capacity + " mB should count, got " + fill(controller.network().orElseThrow()), () -> {
-                helper.assertTrue(outbound.tank(0).getFluidAmount() == 4000 && inbound.tank(0).getFluidAmount() == 5000, "the stations hold water");
+                helper.assertTrue(outbound.tank().getFluidAmount() == 4000 && inbound.tank().getFluidAmount() == 5000, "the stations hold water");
                 helper.assertTrue(WarehouseControllerMenu.status(controller).storage().fluidRacks() == 1, "the controller GUI counts one section");
                 helper.succeed();
             });

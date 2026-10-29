@@ -2303,7 +2303,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return false;
     }
 
-    /** One tank tankers empty on put-away runs, a Fluid Inbound tank, with what it holds and its capacity. */
+    /** One tank tankers empty on put-away runs, a Fluid Inbound's tank, with what it holds and its capacity. */
     private record FluidSource(FluidStoreRef ref, FluidStack fluid, int capacity) {
     }
 
@@ -2312,10 +2312,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         List<FluidSource> sources = new ArrayList<>();
         for (BlockPos pos : fluidStations()) {
             if (loaded(pos) instanceof FluidStationBlockEntity station && station.role() == FluidRole.IMPORT) {
-                for (int tank = 0; tank < station.tankCount(); tank++) {
-                    FluidSlot slot = station.tank(tank);
-                    sources.add(new FluidSource(new FluidStoreRef(pos, tank), slot.getFluid().copy(), slot.getCapacity()));
-                }
+                FluidSlot slot = station.tank();
+                sources.add(new FluidSource(FluidStoreRef.station(pos), slot.getFluid().copy(), slot.getCapacity()));
             }
         }
         return sources;
@@ -2395,11 +2393,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /**
-     * Queues a restock run for each kept Fluid Outbound tank below its keep
+     * Queues a restock run for each Fluid Outbound whose tank is below its keep
      * amount with no run on its way, from the Fluid Rack section a Tanker
      * reaches with the most free fluid. Adds the Outbounds that lack fluid
      * and that no Tanker reaches to {@code noTankers}, and returns, per
-     * Outbound, the first kept fluid that no reachable section holds.
+     * Outbound, the kept fluid that no reachable section holds.
      */
     private Map<BlockPos, Fluid> restockFluids(int capacity, Map<BlockPos, Boolean> reach, Set<BlockPos> noTankers) {
         Map<BlockPos, Fluid> missing = new HashMap<>();
@@ -2407,39 +2405,37 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (!(loaded(pos) instanceof FluidOutboundBlockEntity station)) {
                 continue;
             }
-            for (int tank = 0; tank < station.tankCount(); tank++) {
-                FluidKeep<Fluid> keep = station.keep(tank);
-                FluidStack held = station.tank(tank).getFluid();
-                FluidStoreRef ref = new FluidStoreRef(pos, tank);
-                Fluid kept = keep.fluid();
-                if (keep.target() <= 0 || kept == null || !held.isEmpty() && !keep.accepts(held.getFluid()) || fleet.hasFluidRunTo(ref)) {
-                    continue;
-                }
-                int lacking = FluidRestockPlan.missing(keep.target(), held.getAmount(), fleet.fluidIncomingTo(ref));
-                if (lacking <= 0) {
-                    continue;
-                }
-                if (capacity <= 0 || !reach.computeIfAbsent(pos, fleet::tankerReaches)) {
-                    noTankers.add(pos);
-                    continue;
-                }
-                FluidKey wanted = held.isEmpty() ? null : FluidKey.of(held);
-                List<FluidRestockPlan.Source<RestockSource>> sources = restockSources(pos, kept, wanted, reach);
-                if (sources.isEmpty()) {
-                    missing.putIfAbsent(pos, kept);
-                    continue;
-                }
-                List<FluidRestockPlan.Source<RestockSource>> ranked = FluidRestockPlan.sources(sources);
-                if (ranked.isEmpty()) {
-                    continue;
-                }
-                FluidRestockPlan.Source<RestockSource> source = ranked.getFirst();
-                int amount = FluidRestockPlan.amount(lacking, tankerMinLoad(), capacity, source.free());
-                if (amount > 0) {
-                    FluidStoreRef from = source.id().ref();
-                    fleet.requestFluid(new FluidJob(nextJobId(), from.pos(), from.tank(), pos, tank, source.id().key(), amount,
-                            FluidJob.Purpose.RESTOCK));
-                }
+            FluidKeep<Fluid> keep = station.keep();
+            FluidStack held = station.tank().getFluid();
+            FluidStoreRef ref = FluidStoreRef.station(pos);
+            Fluid kept = keep.fluid();
+            if (keep.target() <= 0 || kept == null || !held.isEmpty() && !keep.accepts(held.getFluid()) || fleet.hasFluidRunTo(ref)) {
+                continue;
+            }
+            int lacking = FluidRestockPlan.missing(keep.target(), held.getAmount(), fleet.fluidIncomingTo(ref));
+            if (lacking <= 0) {
+                continue;
+            }
+            if (capacity <= 0 || !reach.computeIfAbsent(pos, fleet::tankerReaches)) {
+                noTankers.add(pos);
+                continue;
+            }
+            FluidKey wanted = held.isEmpty() ? null : FluidKey.of(held);
+            List<FluidRestockPlan.Source<RestockSource>> sources = restockSources(pos, kept, wanted, reach);
+            if (sources.isEmpty()) {
+                missing.putIfAbsent(pos, kept);
+                continue;
+            }
+            List<FluidRestockPlan.Source<RestockSource>> ranked = FluidRestockPlan.sources(sources);
+            if (ranked.isEmpty()) {
+                continue;
+            }
+            FluidRestockPlan.Source<RestockSource> source = ranked.getFirst();
+            int amount = FluidRestockPlan.amount(lacking, tankerMinLoad(), capacity, source.free());
+            if (amount > 0) {
+                FluidStoreRef from = source.id().ref();
+                fleet.requestFluid(new FluidJob(nextJobId(), from.pos(), from.tank(), pos, ref.tank(), source.id().key(), amount,
+                        FluidJob.Purpose.RESTOCK));
             }
         }
         return missing;
@@ -2549,10 +2545,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return station == null ? Optional.empty() : Optional.of(station.role());
     }
 
-    /** The fluid station of this warehouse a store names, when it is loaded and has that tank; else null. */
+    /** The fluid station of this warehouse a store names, when it is loaded; else null. */
     private @Nullable FluidStationBlockEntity station(FluidStoreRef store) {
-        return fluidStations.contains(store.pos()) && loaded(store.pos()) instanceof FluidStationBlockEntity station
-                && store.tank() >= 0 && store.tank() < station.tankCount() ? station : null;
+        return store.tank() == FluidStoreRef.STATION && fluidStations.contains(store.pos())
+                && loaded(store.pos()) instanceof FluidStationBlockEntity station ? station : null;
     }
 
     @Override
@@ -2568,8 +2564,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (station == null) {
             return FluidStack.EMPTY;
         }
-        FluidStack held = station.tank(store.tank()).getFluid();
-        return held.isEmpty() || !FluidKey.of(held).equals(key) ? FluidStack.EMPTY : station.tank(store.tank()).drain(max, false);
+        FluidStack held = station.tank().getFluid();
+        return held.isEmpty() || !FluidKey.of(held).equals(key) ? FluidStack.EMPTY : station.tank().drain(max, false);
     }
 
     @Override
@@ -2585,7 +2581,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             filled = rack.sectionHandler().fill(stack, false);
             pendingRacks.add(store.pos());
         } else if (station(store) != null) {
-            filled = station(store).tank(store.tank()).fill(stack, false);
+            filled = station(store).tank().fill(stack, false);
         } else {
             return stack;
         }

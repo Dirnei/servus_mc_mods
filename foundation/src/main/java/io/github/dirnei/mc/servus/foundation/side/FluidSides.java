@@ -94,9 +94,14 @@ public final class FluidSides {
         return next;
     }
 
-    /** Advances the tank choice All, 0 .. n-1, All, keeping the mode, and returns it; a locked side stays. */
+    /** Whether a side can choose a tank: only with more than one tank, since All already reaches a single one. */
+    public boolean hasTankChoice() {
+        return tanks > 1;
+    }
+
+    /** Advances the tank choice All, 0 .. n-1, All, keeping the mode, and returns it; a locked side and a layer without a choice stay. */
     public int cycleTank(RelativeSide side) {
-        if (locked.contains(side)) {
+        if (locked.contains(side) || !hasTankChoice()) {
             return tank(side);
         }
         int next = tank(side) + 1 >= tanks ? ALL : tank(side) + 1;

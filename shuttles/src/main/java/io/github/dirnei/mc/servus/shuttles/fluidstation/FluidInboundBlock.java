@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import org.jspecify.annotations.Nullable;
 
-/** The Fluid Inbound: pumps and pipes fill its buffer tanks, tankers carry the fluid to the warehouse's fluid stores. */
+/** The Fluid Inbound: pumps and pipes fill its buffer tank, tankers carry the fluid to the warehouse's fluid stores. */
 public class FluidInboundBlock extends FluidStationBlock {
 
     public static final MapCodec<FluidInboundBlock> CODEC = simpleCodec(FluidInboundBlock::new);
