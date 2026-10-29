@@ -20,6 +20,14 @@ public interface PlacementAssist {
     /** Whether the block at {@code pos} continues the run of this item. */
     boolean isRun(Level level, BlockPos pos, ItemStack stack);
 
+    /**
+     * Whether the block at {@code pos} continues the run that a sneak click on
+     * the block at {@code start} began; by default where the run began does not matter.
+     */
+    default boolean isRun(Level level, BlockPos start, BlockPos pos, ItemStack stack) {
+        return isRun(level, pos, stack);
+    }
+
     /** The walk direction for a click on a block that starts a walk. */
     Direction direction(Level level, BlockHitResult hit, ItemStack stack);
 }

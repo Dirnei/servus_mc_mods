@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.foundation.item.DataPotatoItem;
 import io.github.dirnei.mc.servus.foundation.item.PotatoInspectable;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.shuttles.rail.RailFacings;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -28,7 +29,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * A warehouse station block: faces the player who placed it, shows whether it
+ * A warehouse station block: turns its front to a rail when placed (see
+ * {@link RailFacings}), else to the player, shows whether it
  * is online and what it is doing, leaves the carrot click to the wrench and
  * reports its label to the Data Potato.
  */
@@ -49,7 +51,7 @@ public abstract class StationBlock extends BaseEntityBlock implements Wrenchable
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        return defaultBlockState().setValue(FACING, RailFacings.frontToRail(context, RailFacings.ANY_RAIL));
     }
 
     @Override

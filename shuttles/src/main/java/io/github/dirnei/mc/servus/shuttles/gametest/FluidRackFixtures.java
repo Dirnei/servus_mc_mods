@@ -44,12 +44,14 @@ final class FluidRackFixtures {
     }
 
     /**
-     * Places the rack item at {@code pos} as a player looking at its front
-     * would, so its front faces {@code facing}; the section settles on the next tick.
+     * Places the rack item at {@code pos} as a sneaking player looking at its
+     * front would, so its front faces {@code facing} whatever rail stands beside
+     * it, unless a Fluid Rack below decides; the section settles on the next tick.
      */
     static void place(GameTestHelper helper, BlockPos pos, Direction facing, ItemStack stack) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(facing.getOpposite().toYRot());
+        player.setShiftKeyDown(true);
         BlockPos absolute = helper.absolutePos(pos);
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
         stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,

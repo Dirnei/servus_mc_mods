@@ -49,7 +49,7 @@ public final class PlacementAssists {
         BlockPos start = hit.getBlockPos();
         Player player = context.getPlayer();
         Optional<RunWalk.Cell> cell = RunWalk.walk(cell(start), cell(direction),
-                c -> assist.isRun(level, pos(c), context.getItemInHand()),
+                c -> assist.isRun(level, start, pos(c), context.getItemInHand()),
                 c -> {
                     BlockPos pos = pos(c);
                     Target target = new Target(pos, direction);

@@ -24,4 +24,9 @@ public class AssistedBlockItem extends BlockItem implements AssistedItem {
     public InteractionResult place(BlockPlaceContext context) {
         return PlacementAssists.place(context, assist, super::place);
     }
+
+    /** Places like a plain block item, without the assist, for items that place several blocks for one click. */
+    protected InteractionResult placeWithoutAssist(BlockPlaceContext context) {
+        return super.place(context);
+    }
 }

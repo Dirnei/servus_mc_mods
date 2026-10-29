@@ -321,16 +321,16 @@ public final class HeavyRackGameTests {
         helper.succeed();
     }
 
-    /** With a rack in hand, the side of a rack takes a new rack; the front opens the GUI instead. */
+    /** With a rack in hand, the side and the front of a rack both take a new rack. */
     @ServusGameTest(timeoutTicks = 100)
-    public static void rackPlacesAgainstRackSide(GameTestHelper helper) {
+    public static void rackPlacesAgainstRackSideAndFront(GameTestHelper helper) {
         WarehouseFixtures.rack(helper, FG_RACK, Direction.NORTH);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(0.0F);
         useRackOn(helper, player, FG_RACK, Direction.EAST);
         helper.assertTrue(helper.getBlockState(FG_RACK.east()).getBlock() instanceof HeavyRackBlock, "clicking the side places a rack beside it");
         useRackOn(helper, player, FG_RACK, Direction.NORTH);
-        helper.assertTrue(!(helper.getBlockState(FG_RACK.north()).getBlock() instanceof HeavyRackBlock), "clicking the front opens the rack instead of placing");
+        helper.assertTrue(helper.getBlockState(FG_RACK.north()).getBlock() instanceof HeavyRackBlock, "clicking the front places a rack in front of it");
         helper.succeed();
     }
 

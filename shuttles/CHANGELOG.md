@@ -6,9 +6,13 @@
 - Fluid Rack: bays join into sections of up to three that share one tank behind a glass front. A Zone Label zones a section, and a fluid container in the label makes it take only that fluid. Tankers dock into one port per section, and rails hang along every bay.
 - Fluid Inbound and Fluid Outbound: an Inbound or Outbound Station on top of a Fluid Tank, in the station's wood, with one tank you can see from every side. A swing hose arm docks onto the Tanker's filler cap. The Outbound keeps a fluid picked from a searchable list.
 - Shuttles rumble quietly as they drive, with a dull wheel click and a loose rattle now and then. Only the few nearest moving shuttles sound at once.
-- Muffler: install it into a shuttle in the Shuttle Workshop, or put it into a Shuttle Garage's new Muffler slot to muffle every shuttle of that garage. A muffled shuttle sounds damped and much quieter.
+- Muffler: install it into a shuttle in the Shuttle Workshop, or put it into a Shuttle Garage's new Muffler slot to muffle every shuttle of that garage. A muffled shuttle sounds damped and much quieter, and a muffled Lumber shuttle fells in silence.
+- Rack layers: clicking the top of a rack with racks in hand places a rack on every bay of its section at once, using one rack per bay.
+- Sneaking while looking at a rack with a rack of its kind in hand extends its row sideways or its column upwards, with the placement ghost and arrow.
 
 ### Changed
+- Inbound, Outbound and Packing Stations, Fluid Inbound and Fluid Outbound, Heavy Duty and Fluid Racks and the Warehouse Controller turn their front to a rail beside them when placed, the Field Head to a Farm Rail. A Field Head is not placed beside a Warehouse Rail alone. A rack placed against a rack takes its facing. Sneak while placing to face a block towards you, the garage included.
+- A rack or a Warehouse Rail in hand places against a rack instead of opening the rack's GUI.
 - A rail can hang one block past a rail held by a rack, a shaft or a floor.
 - The Shuttle Workshop turns the shuttle slowly in its large view, and you can turn it by dragging.
 - Build now and Build by hand are one Build button that starts the build by hand; while it runs the button reads Skip and finishes the build at once, keeping the old name plate.

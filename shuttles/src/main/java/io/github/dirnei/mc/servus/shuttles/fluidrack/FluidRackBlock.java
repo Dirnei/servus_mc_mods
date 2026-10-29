@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork.FluidKey;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.rack.RackFacing;
 import io.github.dirnei.mc.servus.shuttles.rack.RackRow;
 import io.github.dirnei.mc.servus.shuttles.rack.RackSection;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
@@ -171,10 +172,7 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockPos pos = context.getClickedPos();
         BlockGetter level = context.getLevel();
-        BlockState below = level.getBlockState(pos.below());
-        Direction facing = below.getBlock() instanceof FluidRackBlock
-                ? below.getValue(FACING)
-                : context.getHorizontalDirection().getOpposite();
+        Direction facing = RackFacing.of(context, block -> block instanceof FluidRackBlock);
         BlockState state = defaultBlockState().setValue(FACING, facing);
         ItemStack stack = context.getItemInHand();
         Identifier wood = FluidRackBlockEntity.woodOf(stack);

@@ -671,6 +671,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add(ServusShuttlesBlocks.FLUID_OUTBOUND.get(), "Fluid Outbound");
         add("message.servus_shuttles.fluid_station.no_room", "No room: the station is two blocks tall");
         add("message.servus_shuttles.fluid_station.no_footing", "The station needs solid ground");
+        add("message.servus_shuttles.field_head.needs_farm_rail", "The Field Head works on a Farm Rail");
         add("gui.servus_shuttles.fluid_station.state.no_room", "No room for %s");
         add("gui.servus_shuttles.fluid_station.state.no_tanker", "No Tanker available");
         add("message.servus_shuttles.potato.fluid_station_tank", "Tank: %s, %s of %s mB");

@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import io.github.dirnei.mc.servus.shuttles.menu.WarehouseControllerMenu;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.shuttles.rail.RailFacings;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -52,7 +53,7 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        return defaultBlockState().setValue(FACING, RailFacings.frontToRail(context, RailFacings.ANY_RAIL));
     }
 
     @Override

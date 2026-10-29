@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.rack;
 
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesTags;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.block.BlockEntityItems;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
@@ -148,10 +149,7 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockPos pos = context.getClickedPos();
         BlockGetter level = context.getLevel();
-        BlockState below = level.getBlockState(pos.below());
-        Direction facing = below.getBlock() instanceof HeavyRackBlock
-                ? below.getValue(FACING)
-                : context.getHorizontalDirection().getOpposite();
+        Direction facing = RackFacing.of(context, block -> block instanceof HeavyRackBlock);
         BlockState state = defaultBlockState().setValue(FACING, facing);
         Identifier wood = HeavyRackBlockEntity.woodOf(context.getItemInHand());
         int max = ShuttlesStatsManager.INSTANCE.rackBaysPerSection();
@@ -256,7 +254,7 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
             // Only the front opens the rack; elsewhere the held item acts, which places blocks.
             return InteractionResult.PASS;
         }
-        return InteractionResult.TRY_WITH_EMPTY_HAND;
+        return ServusShuttlesTags.placesOnRack(stack) ? InteractionResult.PASS : InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override

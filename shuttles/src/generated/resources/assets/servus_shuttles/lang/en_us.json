@@ -601,6 +601,7 @@
   "message.servus_shuttles.cpu.too_small": "Not formed: every side of a CPU needs at least 2 blocks",
   "message.servus_shuttles.farm_rail.axe_worn": "The field has %s rails: the axe needs %s durability",
   "message.servus_shuttles.farm_rail.too_large": "This field is too large to scrape",
+  "message.servus_shuttles.field_head.needs_farm_rail": "The Field Head works on a Farm Rail",
   "message.servus_shuttles.fluid_station.no_footing": "The station needs solid ground",
   "message.servus_shuttles.fluid_station.no_room": "No room: the station is two blocks tall",
   "message.servus_shuttles.garage.occupied": "Take the shuttles out of the garage first",

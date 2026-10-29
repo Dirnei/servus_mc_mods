@@ -40,10 +40,14 @@ final class FluidStationFixtures {
         return new ItemStack(ServusShuttlesItems.FLUID_OUTBOUND.get());
     }
 
-    /** Uses the station item at {@code pos} as a player looking at its front would, so its front faces {@code facing}. */
+    /**
+     * Uses the station item at {@code pos} as a sneaking player looking at its front would, so its front faces
+     * {@code facing} whatever rail stands beside it.
+     */
     static InteractionResult use(GameTestHelper helper, BlockPos pos, Direction facing, ItemStack stack) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(facing.getOpposite().toYRot());
+        player.setShiftKeyDown(true);
         BlockPos absolute = helper.absolutePos(pos);
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
         return stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,

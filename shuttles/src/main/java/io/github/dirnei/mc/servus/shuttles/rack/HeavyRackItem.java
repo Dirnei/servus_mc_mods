@@ -1,20 +1,34 @@
 package io.github.dirnei.mc.servus.shuttles.rack;
 
+import io.github.dirnei.mc.servus.foundation.placement.AssistedBlockItem;
 import net.minecraft.world.item.component.TooltipDisplay;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;
 
-/** The rack item; its tooltip names the planks it was crafted from. */
-public class HeavyRackItem extends BlockItem {
+/** The rack item; its tooltip names the planks it was crafted from. A top click places a layer, a sneak click extends the row. */
+public class HeavyRackItem extends AssistedBlockItem {
 
     public HeavyRackItem(Block block, Properties properties) {
-        super(block, properties);
+        super(block, RackAssist.HEAVY, properties);
+    }
+
+    /** A layer over the clicked section, or over the column's top section on a sneak click up (see {@link RackLayer}), else one rack through the assist. */
+    @Override
+    public InteractionResult place(BlockPlaceContext context) {
+        if (!context.getLevel().isClientSide()
+                && (RackLayer.place(context, getBlock().defaultBlockState(), HeavyRackBlock::section, this::placeWithoutAssist)
+                || RackLayer.placeUpColumn(context, placementAssist(), getBlock().defaultBlockState(), HeavyRackBlock::section,
+                this::placeWithoutAssist))) {
+            return InteractionResult.CONSUME;
+        }
+        return super.place(context);
     }
 
     @Override

@@ -2,15 +2,10 @@ package io.github.dirnei.mc.servus.shuttles.garage;
 
 import io.github.dirnei.mc.servus.foundation.naming.NamedMachines;
 import com.mojang.serialization.MapCodec;
-import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
-import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
-import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
-import java.util.EnumSet;
-import java.util.Optional;
-import java.util.Set;
+import io.github.dirnei.mc.servus.shuttles.rail.RailFacings;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -57,32 +52,12 @@ public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
         builder.add(FACING, StorageNodeBlocks.ONLINE, StorageNodeBlocks.ACTIVITY);
     }
 
+    /** The doorway turns to a rail by {@link RailFacings}, so the front faces away from it; else the front faces the player. */
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        Side doorway = GarageFacing.doorway(clickedRail(context), railsBeside(context), Conversions.toSide(context.getHorizontalDirection()));
-        return defaultBlockState().setValue(FACING, Conversions.toDirection(doorway).getOpposite());
-    }
-
-    /** The side towards the rail whose side face the player clicked to place the garage. */
-    private static Optional<Side> clickedRail(BlockPlaceContext context) {
-        Direction towardsRail = context.getClickedFace().getOpposite();
-        if (!towardsRail.getAxis().isHorizontal()) {
-            return Optional.empty();
-        }
-        BlockPos clicked = context.getClickedPos().relative(towardsRail);
-        return context.getLevel().getBlockState(clicked).getBlock() instanceof RailBlock
-                ? Optional.of(Conversions.toSide(towardsRail))
-                : Optional.empty();
-    }
-
-    private static Set<Side> railsBeside(BlockPlaceContext context) {
-        Set<Side> sides = EnumSet.noneOf(Side.class);
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            if (context.getLevel().getBlockState(context.getClickedPos().relative(direction)).getBlock() instanceof RailBlock) {
-                sides.add(Conversions.toSide(direction));
-            }
-        }
-        return sides;
+        Direction facing = RailFacings.railSide(context, RailFacings.ANY_RAIL).map(Direction::getOpposite)
+                .orElse(context.getHorizontalDirection().getOpposite());
+        return defaultBlockState().setValue(FACING, facing);
     }
 
     @Override

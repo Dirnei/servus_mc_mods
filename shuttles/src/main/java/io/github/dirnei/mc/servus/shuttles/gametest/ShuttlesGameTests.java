@@ -57,7 +57,10 @@ public final class ShuttlesGameTests {
             PipeAccessGameTests.class,
             ProductionTerminalGameTests.class,
             RackDockGameTests.class,
+            RackLayerGameTests.class,
+            RackPlacementGameTests.class,
             RailCorrosionGameTests.class,
+            RailFacingGameTests.class,
             RailLookGameTests.class,
             RailPlacementGameTests.class,
             ShuttleCornerGameTests.class,
@@ -86,6 +89,7 @@ public final class ShuttlesGameTests {
             TerminalRequestGameTests.class,
             TerminalSpeedGameTests.class,
             WarehouseLinkGameTests.class,
+            WarehousePartsGameTests.class,
             WarehousePowerGameTests.class,
             ZoneGameTests.class);
 

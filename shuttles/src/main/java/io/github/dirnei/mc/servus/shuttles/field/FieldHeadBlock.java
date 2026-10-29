@@ -3,6 +3,8 @@ package io.github.dirnei.mc.servus.shuttles.field;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.shuttles.menu.FieldHeadMenu;
+import io.github.dirnei.mc.servus.shuttles.rail.RailFacings;
+import java.util.function.Predicate;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -20,6 +22,9 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.network.chat.Component;
+import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -31,8 +36,8 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * One per field, beside a farm rail: takes water from a pipe, waters the field
- * and watches its crops. Its front faces the player who placed it and shows
- * the ripe share bar ({@link #RIPE}, see {@link FieldHeadLook}).
+ * and watches its crops. Its front turns to a Farm Rail when placed, else to
+ * the player, and shows the ripe share bar ({@link #RIPE}, see {@link FieldHeadLook}).
  */
 public class FieldHeadBlock extends BaseEntityBlock {
 
@@ -46,6 +51,8 @@ public class FieldHeadBlock extends BaseEntityBlock {
     /** The head has a problem: the ripe share bar is drawn full and red, whatever its {@link #RIPE} step. */
     public static final BooleanProperty PROBLEM = BooleanProperty.create("problem");
 
+    private static final Predicate<Block> FARM_RAIL = block -> block instanceof FarmRailBlock;
+
     public FieldHeadBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(RIPE, FieldHeadLook.EMPTY).setValue(CORRODED, false).setValue(PROBLEM, false));
@@ -56,9 +63,29 @@ public class FieldHeadBlock extends BaseEntityBlock {
         builder.add(FACING, RIPE, CORRODED, PROBLEM);
     }
 
+    /** Null beside a Warehouse Rail with no Farm Rail, telling the player the head works on a Farm Rail. */
     @Override
-    public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
+        if (onWarehouseRailOnly(context)) {
+            Player player = context.getPlayer();
+            if (player != null && !context.getLevel().isClientSide()) {
+                player.sendOverlayMessage(Component.translatable("message.servus_shuttles.field_head.needs_farm_rail"));
+            }
+            return null;
+        }
+        return defaultBlockState().setValue(FACING, RailFacings.frontToRail(context, FARM_RAIL));
+    }
+
+    private static boolean onWarehouseRailOnly(BlockPlaceContext context) {
+        boolean warehouseRail = false;
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            Block block = context.getLevel().getBlockState(context.getClickedPos().relative(direction)).getBlock();
+            if (FARM_RAIL.test(block)) {
+                return false;
+            }
+            warehouseRail |= block instanceof RailBlock;
+        }
+        return warehouseRail;
     }
 
     @Override

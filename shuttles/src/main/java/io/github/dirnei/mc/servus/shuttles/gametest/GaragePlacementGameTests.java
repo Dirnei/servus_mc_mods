@@ -7,20 +7,12 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.GameType;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 
 /** A placed garage turns its doorway (the side opposite its front) towards a rail at hand. */
 public final class GaragePlacementGameTests {
 
     private static final BlockPos GARAGE = new BlockPos(3, 1, 3);
-    /** Yaw of a player looking north. */
-    private static final float NORTH = 180;
 
     private GaragePlacementGameTests() {
     }
@@ -68,6 +60,16 @@ public final class GaragePlacementGameTests {
         helper.succeed();
     }
 
+    /** Sneaking skips the rail beside it: the front faces the player, so the doorway faces north. */
+    @ServusGameTest
+    public static void sneakingGarageFacesThePlayer(GameTestHelper helper) {
+        floor(helper);
+        WarehouseFixtures.rail(helper, GARAGE.west());
+        Placing.onTop(helper, new ItemStack(ServusShuttlesItems.SHUTTLE_GARAGE.get()), GARAGE.below(), Direction.NORTH, true);
+        assertDoorway(helper, Direction.NORTH);
+        helper.succeed();
+    }
+
     /** No rail beside it: the front faces the player as before. */
     @ServusGameTest
     public static void noRailFacesThePlayer(GameTestHelper helper) {
@@ -102,15 +104,7 @@ public final class GaragePlacementGameTests {
 
     /** A player looking north uses a garage item on that face of the clicked block. */
     private static void place(GameTestHelper helper, BlockPos clicked, Direction face) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        Vec3 away = Vec3.atCenterOf(helper.absolutePos(new BlockPos(3, 1, 8)));
-        player.snapTo(away);
-        player.setYRot(NORTH);
-        ItemStack stack = new ItemStack(ServusShuttlesItems.SHUTTLE_GARAGE.get());
-        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        BlockPos absolute = helper.absolutePos(clicked);
-        Vec3 hit = Vec3.atCenterOf(absolute).relative(face, 0.5);
-        stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, new BlockHitResult(hit, face, absolute, false)));
+        Placing.use(helper, new ItemStack(ServusShuttlesItems.SHUTTLE_GARAGE.get()), clicked, face, Direction.NORTH, false);
     }
 
     private static void assertDoorway(GameTestHelper helper, Direction doorway) {

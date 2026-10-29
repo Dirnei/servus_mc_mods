@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidSideHandler;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.shuttles.rail.RailFacings;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -48,8 +49,8 @@ import org.jspecify.annotations.Nullable;
  * item station it was crafted from, forwards clicks, buckets, the potato and
  * the carrot to it and only keeps a copy of the wood for its model. Either
  * half going away takes the other with it, and the lower half drops the item
- * that keeps the tank, sides and wood. Its front faces the player who placed
- * it; the lamps on the upper front follow the lower half's lamp state, which
+ * that keeps the tank, sides and wood. Its front turns to a rail beside the
+ * lower half when placed, else to the player; the lamps on the upper front follow the lower half's lamp state, which
  * the station copies up.
  */
 public abstract class FluidStationBlock extends BaseEntityBlock implements Wrenchable, PotatoInspectable {
@@ -121,7 +122,7 @@ public abstract class FluidStationBlock extends BaseEntityBlock implements Wrenc
         if (FluidStationItem.refusal(context) != null) {
             return null;
         }
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        return defaultBlockState().setValue(FACING, RailFacings.frontToRail(context, RailFacings.ANY_RAIL));
     }
 
     /** Places the upper half and gives it the wood the item brought. */
