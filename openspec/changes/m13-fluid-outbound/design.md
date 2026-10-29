@@ -130,7 +130,7 @@ The same APIs as `m13-fluid-inbound`. In addition:
   - the restock lamp: missing, no tanker, green when met;
   - buckets and the potato.
 - **Ported tanker suites:** they cover put-away, restock, reroute, recall and lift.
-- **Manual play check:** the whole chain pump, Inbound, tanker, Rack, tanker, Outbound, machine; the Outbound Station on the tank; the tanker stop at the Outbound; flicker.
+- **Manual play check:** the whole chain pump, Inbound, tanker, Rack, tanker, Outbound, machine; the Outbound Station on the tank; the tanker stop at the Outbound with the hose arm; flicker.
 
 ## Risks / Trade-offs
 

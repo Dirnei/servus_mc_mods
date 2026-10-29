@@ -113,6 +113,21 @@ The upper half SHALL be the Inbound Station block as it is, with its front, side
 - **WHEN** the Fluid Inbound's activity lamp turns red
 - **THEN** the Inbound Station front of its upper half shows the blocked lamp
 
+### Requirement: Swing hose arm
+A swing hose arm (copper stub and swivel, steel boom, dark hose, copper head) SHALL sit on the front where the halves meet, the boom upright against the upper half at rest. For a Tanker shuttle's stop in front, the boom SHALL swing down level over the rail, the hose SHALL lower the head onto the filler cap, and both SHALL go back up by the stop's end, or from where they are when it ends early. The arm SHALL reach into neither station nor tanker; the look's rules SHALL hold while it moves.
+
+#### Scenario: Arm docks onto the tanker
+- **WHEN** a Tanker shuttle stops in front of a Fluid Inbound to take water
+- **THEN** the station's boom swings down over the rail, its head lowers onto the tanker's filler cap, and the arm stands upright again when the tanker drives on
+
+#### Scenario: Arm at rest
+- **WHEN** no tanker stands in front of a Fluid Inbound
+- **THEN** its boom stands upright against the front of the upper half
+
+#### Scenario: Recall during a stop
+- **WHEN** the tanker's garage recalls its shuttles while the arm's head sits on the filler cap
+- **THEN** the arm goes back up from there without jumping
+
 ### Requirement: Fluid Inbound is obtainable
 The Fluid Inbound SHALL be crafted shaped from an Inbound Station on top of a Fluid Tank, one above the other, and SHALL keep the wood of that Inbound Station. The creative tab and the recipe viewer SHALL list it.
 

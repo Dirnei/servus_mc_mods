@@ -139,7 +139,7 @@ A restock run SHALL drive to the rail in front of the source section's port, tak
 - **THEN** the tanker puts in what fits and brings the rest back to a Fluid Rack
 
 ### Requirement: Coupling at a port
-A Tanker shuttle that stops to take or put fluid at a Fluid Rack SHALL stand on the rail in front of its port and SHALL slide a telescopic coupling out of its tank's side toward the block until it meets the port, keep it there while it pumps and pull it back in before it drives on. At a Fluid Inbound or a Fluid Outbound, which have no port, it SHALL stand on the rail in front of the station's lower half and pump the same way; its coupling MAY slide out toward the station's tank there too. The block itself SHALL not move. Its glass SHALL follow the transfer. Clients SHALL learn the stop's start and end, not every tick of it.
+A Tanker shuttle that stops to take or put fluid at a Fluid Rack SHALL stand on the rail in front of its port and SHALL slide a telescopic coupling out of its tank's side toward the block until it meets the port, keep it there while it pumps and pull it back in before it drives on. At a Fluid Inbound or a Fluid Outbound, which have no port, it SHALL stand on the rail in front of the station's lower half and pump for the same time; its coupling SHALL stay in, and the station's swing hose arm SHALL dock onto its filler cap instead. The rack SHALL not move. Its glass SHALL follow the transfer. Clients SHALL learn the stop's start and end, not every tick of it, for the coupling and for the station's arm.
 
 #### Scenario: Docking at a rack
 - **WHEN** a tanker stops at the port of a Fluid Rack section to put water into it
@@ -151,11 +151,11 @@ A Tanker shuttle that stops to take or put fluid at a Fluid Rack SHALL stand on 
 
 #### Scenario: Docking at a Fluid Inbound
 - **WHEN** a tanker stops at a Fluid Inbound to take water
-- **THEN** it stands in front of the station's lower half, the fluid behind the station's glass falls and the tanker's sight glass rises
+- **THEN** it stands in front of the station's lower half, its coupling stays in, the station's arm docks onto its filler cap, the fluid behind the station's glass falls and the tanker's sight glass rises
 
 #### Scenario: Docking at a Fluid Outbound
 - **WHEN** a tanker stops at a Fluid Outbound to restock lava
-- **THEN** it stands in front of the station's lower half and the lava behind the station's glass rises
+- **THEN** it stands in front of the station's lower half, its coupling stays in, the station's arm docks onto its filler cap and the lava behind the station's glass rises
 
 ## REMOVED Requirements
 

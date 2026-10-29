@@ -29,7 +29,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
  * The Fluid Inbound in a warehouse: it joins only through the rail in front
  * of its lower half, is no stock, is a source of tanker put-away runs, shows
  * red lamps for no room and no tanker, sends a tanker home empty when it
- * breaks during a run, and takes the tanker's coupling at its port. The
+ * breaks during a run, and docks its hose arm onto a stopped tanker. The
  * station and Fluid Racks stand west of the {@link TankerFixtures} rail facing east.
  */
 public final class FluidInboundTankerGameTests {
@@ -171,23 +171,34 @@ public final class FluidInboundTankerGameTests {
         });
     }
 
-    /** While a tanker pumps at the station and at the rack west of the rail, its view carries the coupling toward them. */
+    /**
+     * While a tanker pumps at the station, the station's hose arm is out and
+     * the tanker shows no coupling; at the rack west of the rail its coupling
+     * slides out toward the rack. The arm is back up after the run.
+     */
     @ServusGameTest(timeoutTicks = RUN + 20)
-    public static void couplingAtStation(GameTestHelper helper) {
+    public static void armAtStationCouplingAtRack(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
         FluidInboundBlockEntity station = station(helper);
         BlockPos[] bays = racks(helper);
         FluidStationFixtures.fill(station, Fluids.WATER, 4000);
         BlockPos garage = helper.absolutePos(TankerFixtures.GARAGE);
         List<Direction> seen = new ArrayList<>();
+        boolean[] armSeen = {false};
         Waits.when(helper, () -> {
             for (ShuttleView view : TankerFixtures.network(helper).shuttleViews(garage)) {
                 view.coupling().map(ShuttleView.Coupling::side).ifPresent(seen::add);
+                if (station.armOut() && view.coupling().isPresent()) {
+                    helper.fail("a tanker shows its coupling while the station's arm is docked");
+                }
             }
+            armSeen[0] |= station.armOut();
             return FluidRackFixtures.amount(helper, bays[0]) == 4000 && TankerFixtures.out(helper) == 0;
         }, RUN, () -> "the water reaches the rack", () -> {
+            helper.assertTrue(armSeen[0], "the station's arm docked onto the tanker");
             helper.assertTrue(!seen.isEmpty() && seen.stream().allMatch(side -> side == FRONT.getOpposite()),
-                    "the coupling slid out toward the station, west of the rail, got " + seen);
+                    "the coupling slid out only toward the rack, west of the rail, got " + seen);
+            helper.assertTrue(!station.armOut(), "the arm is back up");
             helper.assertTrue(station.isEmpty(), "the station is empty");
             helper.succeed();
         });

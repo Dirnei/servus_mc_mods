@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Coupling at a port
-A Tanker shuttle that stops to take or put fluid at a Fluid Rack SHALL stand on the rail in front of its port and SHALL slide a telescopic coupling out of its tank's side toward the block until it meets the port, keep it there while it pumps and pull it back in before it drives on. At a Fluid Inbound, which has no port, it SHALL stand on the rail in front of the station's lower half and pump the same way; its coupling MAY slide out toward the station's tank there too. The block itself SHALL not move. Its glass SHALL follow the transfer. Clients SHALL learn the stop's start and end, not every tick of it.
+A Tanker shuttle that stops to take or put fluid at a Fluid Rack SHALL stand on the rail in front of its port and SHALL slide a telescopic coupling out of its tank's side toward the block until it meets the port, keep it there while it pumps and pull it back in before it drives on. At a Fluid Inbound, which has no port, it SHALL stand on the rail in front of the station's lower half and pump for the same time; its coupling SHALL stay in, and the station's swing hose arm SHALL dock onto its filler cap instead. The rack SHALL not move. Its glass SHALL follow the transfer. Clients SHALL learn the stop's start and end, not every tick of it, for the coupling and for the station's arm.
 
 #### Scenario: Docking at a rack
 - **WHEN** a tanker stops at the port of a Fluid Rack section to put water into it
@@ -13,7 +13,7 @@ A Tanker shuttle that stops to take or put fluid at a Fluid Rack SHALL stand on 
 
 #### Scenario: Docking at a Fluid Inbound
 - **WHEN** a tanker stops at a Fluid Inbound to take water
-- **THEN** it stands in front of the station's lower half, the fluid behind the station's glass falls and the tanker's sight glass rises
+- **THEN** it stands in front of the station's lower half, its coupling stays in, the station's arm docks onto its filler cap, the fluid behind the station's glass falls and the tanker's sight glass rises
 
 ### Requirement: Fluid put-away runs
 Every `fluid_check_interval` ticks (in `data/<ns>/shuttles/warehouse.json`, example 40) an online warehouse SHALL look at each tank of its Import gantries and the tank of each of its Fluid Inbounds. For a tank, the free fluid SHALL be its amount minus what tanker runs already queued or under way will take from it. The warehouse SHALL queue one tanker run for that tank when no run for it is queued or under way, the free fluid is at least `tanker_min_load` (in `warehouse.json`, example 1000 mB) or the tank is full, the warehouse has a Tanker shuttle that reaches the source, and a fluid store (a Storage gantry tank or a Fluid Rack section) has room for the fluid. The run SHALL take the least of the free fluid, the fluid capacity of the shuttle that takes it, and the room of the chosen target.

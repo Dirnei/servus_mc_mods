@@ -60,6 +60,24 @@
 - [x] 6.3 Recipe and lamps. The recipe is an Inbound Station on top of a Fluid Tank as a wood material recipe (`ServusShuttlesRecipeProvider.fluidStation`), which keeps the station item's wood. `FluidStationBlockEntity.setBlockState` copies `ONLINE` and `ACTIVITY` to the upper half. Add GameTests: a spruce Inbound Station over a Fluid Tank gives a spruce Fluid Inbound (`BlockStyleGameTests`), the upper half shows the lamp state. Verify with `gradlew :shuttles:runData` and `gradlew :shuttles:runGameTestServer`.
 - [x] 6.4 Look (concept H). `FluidStationModels`: the shared tank model `fluid_station_tank` (iron frame, floor, glass on four sides), the multipart block state with the Inbound Station models on the upper half by lamp state, and the item model (tank plus station cube). `FluidStationLook` for the tank; `FluidStationRenderer` draws the fluid in the lower half with four sides and top. Drop the window row models and the steel halves. List every overlapping box pair and its plane check in the task notes. Verify with `gradlew :shuttles:runData` and `gradlew :shuttles:build`.
 
+## 7. Swing hose arm (option A)
+
+- [x] 7.1 Add `StationArmLook` (pure) in `shuttles/.../fluidstation/`: the arm's geometry, `swing`, `lower`, `angle`, `headTop`, `hoseDrop`, `capTop` and `endedEarly`. Add `StationArmLookTest` with these cases:
+  - swings down, lowers, holds and goes back over a 40 tick stop;
+  - the hose moves only while the boom lies level;
+  - a short stop never lowers the hose;
+  - an early end goes back from where the arm is;
+  - the angle runs from upright to level;
+  - the docked head sits around the filler cap;
+  - the arm stays in front of the station and clear of the stub;
+  - the raised arm clears the tanker;
+  - no shared planes between the parts.
+
+  Verify with `gradlew :shuttles:test`.
+- [x] 7.2 Dock sync. `FluidStationBlockEntity`: `dockArm(ticks)`, `undockArm()`, `armOut()`, `armTicks()`, `armElapsed(partialTick)`, the start and length in the update tag, one block update at the start and at an early end. `ShuttleFleet.Host` gains `dockStationArm` and `undockStationArm` (default no-ops), `WarehouseNetwork` forwards them to the station; `ShuttleFleet.holdForPump` sets the coupling only at racks and docks the station's arm otherwise, `endPumping` undocks it. Update the GameTests: `FluidInboundTankerGameTests.armAtStationCouplingAtRack` (was `couplingAtStation`: the station's arm is out, no coupling while it is, the coupling only toward the rack), `FluidRackTankerGameTests.couplingWhilePumpingAtRack` (coupling only toward the rack, the Inbound's arm docked), and add `FluidInboundGameTests.armDocksAndEndsEarly`. Verify with `gradlew :shuttles:runGameTestServer`.
+- [x] 7.3 Look. `FluidStationRenderer` draws the stub, swivel, boom, hose and head from `StationArmLook`, turned by the facing, the boom about the swivel, with steel, copper and `heavy_rack_iron` on every face, lit by the block in front of the upper half; the render box reaches over the rail. List every overlapping box pair and its plane check in design.md. Verify with `gradlew :shuttles:build`.
+- [x] 7.4 Specs and plan: the Fluid Inbound and Fluid Outbound look requirements gain the arm, the tanker's `Coupling at a port` keeps the coupling in at stations (both tanker deltas), and the PLAN.md M13 arm point goes. Verify with `openspec validate m13-fluid-inbound` and `openspec validate m13-fluid-outbound`.
+
 ## Workflow follow-up
 
 - Stacked after `m13-fluid-side-modes` and `m13-fluid-rack`, and before `m13-fluid-outbound`.
@@ -124,3 +142,17 @@
   - the lamps on the upper front: dark offline, green, orange while a tanker runs, red with the GUI reason;
   - the GUI with one gauge, the side panel without tank chips (right click on a cell does nothing, tooltip "Side: Mode");
   - a tanker stopping in front of the station, its coupling sliding toward the tank.
+
+## Implementation notes (hose arm)
+
+- The arm is option A of `temp/fluid-station-wood.html`; its final geometry, timing, sync and plane check are in design.md (Hose arm at the station). The coupling note and the last play check line above are outdated: at a station the coupling stays in and the arm docks.
+- Differences from the mockup: the pivot is at y 19, not 18, because the real filler cap (15.84) stands higher than the mockup's and the hose drop would be 0.6 px; the swivel is 1.25 out of the front so it does not reach into the upper half; the hose and head turn with the boom while it swings (the head rides under the boom, on the rail side when upright) and the hose only lowers once the boom lies level.
+- Everything of the arm is drawn by `FluidStationRenderer`, the stub and swivel included, so the block models and the item model stay unchanged (the item shows no arm).
+- The arm's state is not saved: a station unloaded mid stop shows the arm up when it loads again.
+- Build, unit tests (foundation 550, shuttles 965, alchemy 267, delicacies 87, brewery 72) and all GameTests (shuttles 1084, foundation 253) are green.
+- In game play check for the user:
+  - the arm at rest stands upright against the upper half's front of a Fluid Inbound and a Fluid Outbound, facing each of the four ways;
+  - a tanker stop: the boom swings down (about 0.4 s), the head lowers onto the filler cap (about 0.3 s), the fluid moves, the head rises and the boom swings up before the tanker drives on; the tanker's side coupling stays in;
+  - at a Fluid Rack the coupling still slides into the port;
+  - recall the garage during a stop: the arm goes back up from where it is;
+  - flicker on the stub, swivel, boom, hose and head from several angles, at rest and while moving; nothing pokes into the station or the tanker.

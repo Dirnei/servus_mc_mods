@@ -234,7 +234,6 @@ Tanker shuttles carry fluids from Fluid Inbounds to Fluid Racks and from Fluid R
 - Water runs to Field Heads.
 - Fluids in requests, stock rules and work orders.
 - A redstone tank sensor.
-- A swing hose arm on the Fluid Inbound and the Fluid Outbound that docks onto the tanker's filler cap. The stations have no port; until then a tanker stops in front of the lower half and its side coupling slides toward the tank.
 
 ---
 

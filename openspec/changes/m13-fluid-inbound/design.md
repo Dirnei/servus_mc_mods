@@ -68,9 +68,34 @@ The marker renderer (`SideMarkerRenderer`) draws on both halves. The upper half 
 - `FluidJob` keeps `Purpose.PUT_AWAY`. Its `sourceMode()`/`targetMode()` (`GantryMode`) are replaced by a `kind` of the ref. That generalisation is needed for the Outbound and the gantry removal anyway.
 - The lamp states reuse the gantry's three reasons (no room, missing, no tanker). They move to a shared `FluidActivity` record set on any `FluidActivityHolder`, which both the gantry and the station implement.
 
-### Coupling at the station
+### Hose arm at the station
 
-`holdForPump` sets `shuttle.coupling` for station stops as for rack stops (`m13-fluid-rack`). The side is the direction from the rail to the station. Since the play check the stations have no port: the coupling still slides out toward the lower tank half, and the hose arm change replaces that look.
+`holdForPump` sets the tanker's coupling only for rack stops (`store.isRack()`). For a station stop it calls the new `ShuttleFleet.Host.dockStationArm(store, ticks)` with the stop's length, and `endPumping` calls `undockStationArm(store)` with the store it remembered in `shuttle.pumping`. Both are default no-ops on `Host`; `WarehouseNetwork` forwards them to the loaded `FluidStationBlockEntity` (`station(store)`), on the server thread inside the fleet tick. The shuttle view carries no coupling at a station.
+
+Sync, like the tanker coupling: the station keeps `armStart` (game time) and `armTicks`, not saved. `dockArm` sets both, `undockArm` shortens `armTicks` with `StationArmLook.endedEarly` when the stop ends before its time (recall, rail or garage loss), so the arm goes back from where it is as fast as it came out. Each sends one block update (`sendBlockUpdated`); `getUpdateTag` carries `ArmStart` and `ArmTicks`, `loadAdditional` reads them. A stop that ends on time changes nothing and sends nothing. `armOut()` (server and client) is true from the dock until the arm stands up again. Clients compute the pose in `FluidStationRenderer.extractRenderState` from `level.getGameTime() + partialTick - armStart`; there is no client tick logic.
+
+Timing (`StationArmLook`, pure, JUnit `StationArmLookTest`): with `r` the ticks to the nearer end of the stop, the boom's swing is `ease(r / 8)` (0.4 s), the hose's drop `ease((r - 8) / 6)` (0.3 s), with smoothstep easing. The hose moves only while the boom lies level. A stop of 16 ticks or less (Handling can shorten `tanker_pump_ticks` of 40) swings down and up without lowering the hose fully.
+
+Geometry in block pixels of the lower half for a station facing north, `out` from the front face toward the rail; the renderer turns it by the facing (`Axis.YP` by `180 - facing.toYRot()`):
+- copper stub: x 7.4 to 8.6, y 15 to 18, out 0.65 to 1.85;
+- copper swivel: x 6.7 to 9.3, y 17.8 to 20.2, out 0.05 to 2.45 (pivot y 19, out 1.25);
+- steel boom, turned about the pivot (`Axis.XP` by 90 upright to 0 level): x 7.3 to 8.7, 1.4 px square, from 0.5 behind the pivot to 7.45 in front of it;
+- dark hose (`heavy_rack_iron`): x 7.55 to 8.45, 0.9 px square, at 6.75 along the boom, from 0.5 under the boom's axis (inside the boom) down 0.3 into the head;
+- copper head: x 6.9 to 9.1, 2.2 px square, 1.2 high, 0.05 under the boom when raised.
+Level, the hose hangs over the rail block's centre (out 8), where the tanker's filler cap is (x and z 7.2 to 8.8, top at `TankerLook.FLOOR + SCALE * CAP_TOP` = 15.84). The hose drops 1.61 px, so the head's bottom ends at 15.44, around the cap and 0.24 above the tank's top (15.2). The pivot sits at y 19 rather than the mockup's 18: at 18 the drop would be 0.61 px, too small to see, since the real cap stands higher than the mockup's. Upright, the boom reaches y 26.45 against the upper half's front and the head sits 2.0 to 3.2 out, on the rail side. Nothing reaches into the station: the nearest point during the swing is 0.40 out (the boom's back corner at 45 degrees), and the boom's lowest point, 18.15, stays above the stub. Raised, the head's bottom (17.05) clears the cap, so the swing never touches the tanker.
+
+Textures: steel `servus_foundation:block/electric_pump_steel` for the boom, vanilla `copper_block` for stub, swivel and head (as the tanker's cap and coupling head), `heavy_rack_iron` for the hose, on every face. Each part is drawn as a `FluidBox` from its own corner with `Sheets.cutoutBlockSheet()`, lit by the block in front of the upper half. The render box reaches 0.75 block over the rail.
+
+Plane check (no two faces share a plane where they overlap):
+- stub and swivel: x 7.4/8.6 against 6.7/9.3, y 15/18 against 17.8/20.2, out 0.65/1.85 against 0.05/2.45; the stub's top lies inside the swivel;
+- boom and swivel: x 7.3/8.7 against 6.7/9.3; upright, the boom's sides at out 0.55/1.95 and its back end at y 18.5; level, its sides at y 18.3/19.7 and its back end at out 0.75; in between its faces are not axis aligned; its back end lies inside the swivel;
+- boom and stub: x 7.3/8.7 against 7.4/8.6, and they never overlap (boom lowest 18.15 above the stub's top 18);
+- hose and boom: x 7.55/8.45 against 7.3/8.7; the hose's top lies inside the boom; its ends along the boom (6.3/7.2) against the boom's ends (-0.5/7.45);
+- head and boom: x 6.9/9.1 against 7.3/8.7, a 0.05 gap between the head's top and the boom's bottom, the head's ends along the boom (5.65/7.85) against the boom's end at 7.45;
+- head and hose: x differ, the hose's bottom lies inside the head;
+- arm and station: the front face is at out 0; the nearest arm face is the swivel's back at 0.05;
+- head and tanker cap: x and z 6.9/9.1 against 7.2/8.8, the head's bottom 15.44 against the cap's 15.04 and top 15.84; the cap's top lies inside the head;
+- no part is drawn more than once.
 
 ### GUI
 
@@ -85,7 +110,7 @@ Decided in the play check (mockup `temp/fluid-station-wood.html`, concept H, aft
 - **Lamps:** the lamp state is set on the lower half (the network's `pushLamps` and `setFluidActivity`). `FluidStationBlockEntity.setBlockState`, which the chunk calls whenever the lower half's state changes with the block entity kept, copies `ONLINE` and `ACTIVITY` up to the upper half (`UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE`), so the item station front shows them.
 - **Lower half:** `fluid_station_tank`, shared by both stations: iron posts and bars (`heavy_rack_iron`, 2 px) on the twelve edges, an iron floor, a glass pane on each side in the middle of the frame depth, open at the top to the bottom of the upper half. No board shows through the glass. `FluidStationRenderer` draws the fluid inside the panes with the shared `FluidColumn` helper (`m13-fluid-rack`) in `level_steps` from `fluid_rack.json`, with four sides and its top.
 - **Item:** one item model per station with the tank boxes and the item station cube on top (board layer under the station's overlay textures, like `LayeredModels`), as a material item model of the wood kind.
-- **No port:** neither station has a port; a later change adds a hose arm. A tanker still stops on the rail in front of the lower half and pumps as before; its side coupling still slides out toward the tank. The tanker and its coupling stay unchanged, since Fluid Racks use them.
+- **No port, a hose arm:** neither station has a port. A tanker stops on the rail in front of the lower half and pumps as before, its side coupling stays in, and the station's swing hose arm (option A of the mockup, see Hose arm at the station) docks onto its filler cap. The tanker and its coupling stay unchanged at Fluid Racks.
 
 Plane check of `fluid_station_tank`: posts span y 0 to 16 and show their outer and inner sides and their bottom, never their top (the upper half's bottom face lies there). Bars meet the posts at x or z 2 and 14 and show no end faces; bottom bars show their side, bottom and top, top bars their side and bottom. The floor (2 to 14, y 0 to 2) shows up and down and meets the bottom bars at their inner sides, which they do not show. Panes stand 0.05 off posts, bars and floor and show only their broad faces; the fluid stands 1.15 inside the outer faces, 0.1 inside the panes, and above the floor. No two faces share a plane where they overlap.
 
@@ -111,7 +136,7 @@ This settles the M13 fluid inbound dock:
 - the item station on a glass tank, in the item station's wood;
 - the item station side modes on the Fluids layer;
 - a rail only at the front of the lower half;
-- no port: tankers stop in front of the lower half until the hose arm change.
+- no port: tankers stop in front of the lower half and the station's swing hose arm docks onto their filler cap.
 
 ## NeoForge APIs
 
@@ -122,7 +147,7 @@ This settles the M13 fluid inbound dock:
 
 ## Pure and Minecraft parts
 
-- **Pure:** nothing new. The side rules are covered by `FluidSidesTest` and `FluidSideRulesTest` from `m13-fluid-side-modes`, and the planner by `FluidPutAwayPlanTest`.
+- **Pure:** `StationArmLook` with `StationArmLookTest` (swing and hose timing, early end, the docked head around the cap, clearances and plane gaps). The side rules are covered by `FluidSidesTest` and `FluidSideRulesTest` from `m13-fluid-side-modes`, and the planner by `FluidPutAwayPlanTest`.
 - **GameTests (`FluidInboundGameTests`):**
   - placement, the no-room refusal, and breaking either half;
   - the drop keeping the tank and sides;
@@ -138,7 +163,7 @@ This settles the M13 fluid inbound dock:
   - buckets;
   - a source broken mid run.
 - **GameTests for the play check decisions:** the drop keeping the wood on both halves, the recipe taking the station's wood, the one tank refusing a second fluid, and the upper half showing the lamp state.
-- **Manual play check:** the glass and fluid from every side, the wood on both halves and the item, the lamps on the upper front, the tanker stop in front of the station, markers on both halves, and flicker.
+- **Manual play check:** the glass and fluid from every side, the wood on both halves and the item, the lamps on the upper front, the tanker stop in front of the station with the hose arm docking onto its cap, markers on both halves, and flicker.
 
 ## Risks / Trade-offs
 

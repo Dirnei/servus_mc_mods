@@ -64,7 +64,8 @@ import org.jspecify.annotations.Nullable;
  * warehouse only through the rail in front of it, where its port sits, and
  * its tank is never stock. It remembers the wood it was crafted from and
  * copies its lamp state to the upper half, whose front shows it. Clients learn the tank's fluid and its fill
- * in {@code level_steps} of {@code fluid_rack.json}, and only when that changes.
+ * in {@code level_steps} of {@code fluid_rack.json}, and only when that changes. When a tanker stops in front,
+ * the hose arm docks onto its filler cap: clients learn the stop's start and length and animate the arm themselves.
  */
 public abstract class FluidStationBlockEntity extends StorageNodeBlockEntity implements FluidSideBlock, MenuProvider, MaterialHolder {
 
@@ -73,6 +74,8 @@ public abstract class FluidStationBlockEntity extends StorageNodeBlockEntity imp
     private static final String SHOWN_FLUID = "ShownFluid";
     private static final String SHOWN_STEP = "ShownStep";
     private static final String STEPS = "Steps";
+    private static final String ARM_START = "ArmStart";
+    private static final String ARM_TICKS = "ArmTicks";
 
     private final FluidSlot tank;
     private final List<SideTank> sideTanks;
@@ -88,6 +91,9 @@ public abstract class FluidStationBlockEntity extends StorageNodeBlockEntity imp
     private @Nullable Shown sent;
     /** Client: what the glass shows, as the server last sent it. */
     private Shown shown = new Shown(Fluids.EMPTY, 0, 1);
+    /** The hose arm's current stop: the game time it began and its length in ticks; not saved, sent to clients at start and end. */
+    private long armStart;
+    private int armTicks;
 
     /** What clients draw: the tank's fluid and its fill step out of {@code steps}. */
     private record Shown(Fluid fluid, int step, int steps) {
@@ -236,6 +242,52 @@ public abstract class FluidStationBlockEntity extends StorageNodeBlockEntity imp
         return (float) shown.step() / Math.max(1, shown.steps());
     }
 
+    /**
+     * Server: a tanker stopped in front of the station for {@code ticks}
+     * ticks; the hose arm swings down onto its filler cap and goes back up
+     * by the end of the stop. Clients learn the start and the length.
+     */
+    public void dockArm(int ticks) {
+        if (level == null) {
+            return;
+        }
+        armStart = level.getGameTime();
+        armTicks = Math.max(0, ticks);
+        sendArm();
+    }
+
+    /** Server: the tanker's stop ended; an arm still out goes back up from where it is, see {@link StationArmLook#endedEarly}. */
+    public void undockArm() {
+        if (level == null) {
+            return;
+        }
+        int ticks = StationArmLook.endedEarly(armTicks, level.getGameTime() - armStart);
+        if (ticks != armTicks) {
+            armTicks = ticks;
+            sendArm();
+        }
+    }
+
+    private void sendArm() {
+        BlockState state = getBlockState();
+        level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+    }
+
+    /** Whether the hose arm is out of its upright rest: from a tanker's dock until it stands up again. */
+    public boolean armOut() {
+        return level != null && armTicks > 0 && level.getGameTime() - armStart < armTicks;
+    }
+
+    /** The length in ticks of the arm's current or last stop. */
+    public int armTicks() {
+        return armTicks;
+    }
+
+    /** Ticks since the arm's current or last stop began, with the partial tick. */
+    public float armElapsed(float partialTick) {
+        return level == null ? 0 : level.getGameTime() - armStart + partialTick;
+    }
+
     /** Server: moves fluid through Push and Pull sides at {@code push_interval}, with the neighbours of both halves. */
     public static void serverTick(Level level, BlockPos pos, BlockState state, FluidStationBlockEntity station) {
         int interval = ShuttlesStatsManager.INSTANCE.pushInterval();
@@ -353,6 +405,8 @@ public abstract class FluidStationBlockEntity extends StorageNodeBlockEntity imp
         tankLabels = SidedBlockEntity.readTankLabels(input);
         input.read(SHOWN_FLUID, BuiltInRegistries.FLUID.byNameCodec()).ifPresent(fluid ->
                 shown = new Shown(fluid, input.getIntOr(SHOWN_STEP, 0), input.getIntOr(STEPS, 1)));
+        armStart = input.getLongOr(ARM_START, 0);
+        armTicks = input.getIntOr(ARM_TICKS, 0);
     }
 
     @Override
@@ -366,6 +420,8 @@ public abstract class FluidStationBlockEntity extends StorageNodeBlockEntity imp
         tag.store(SHOWN_FLUID, BuiltInRegistries.FLUID.byNameCodec(), now.fluid());
         tag.putInt(SHOWN_STEP, now.step());
         tag.putInt(STEPS, now.steps());
+        tag.putLong(ARM_START, armStart);
+        tag.putInt(ARM_TICKS, armTicks);
         return tag;
     }
 

@@ -2545,6 +2545,22 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return station == null ? Optional.empty() : Optional.of(station.role());
     }
 
+    @Override
+    public void dockStationArm(FluidStoreRef store, int ticks) {
+        FluidStationBlockEntity station = station(store);
+        if (station != null) {
+            station.dockArm(ticks);
+        }
+    }
+
+    @Override
+    public void undockStationArm(FluidStoreRef store) {
+        FluidStationBlockEntity station = station(store);
+        if (station != null) {
+            station.undockArm();
+        }
+    }
+
     /** The fluid station of this warehouse a store names, when it is loaded; else null. */
     private @Nullable FluidStationBlockEntity station(FluidStoreRef store) {
         return store.tank() == FluidStoreRef.STATION && fluidStations.contains(store.pos())

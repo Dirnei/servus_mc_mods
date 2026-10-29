@@ -19,6 +19,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.Identifier;
@@ -41,7 +42,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 /**
  * The Fluid Inbound as a block: placing and breaking both halves, the drop
  * keeping tank, sides and wood, the one tank, the Fluids sides of both
- * halves, the lamps on the upper half, buckets and the potato. Stations here face north, so a player in front sees east on the
+ * halves, the lamps on the upper half, buckets, the potato and the hose arm's dock. Stations here face north, so a player in front sees east on the
  * left; the station's back is south.
  */
 public final class FluidInboundGameTests {
@@ -266,6 +267,33 @@ public final class FluidInboundGameTests {
                 && args(report.getFirst())[1].equals(6000) && args(report.getFirst())[2].equals(capacity()), "the tank has 6000 of its capacity");
         helper.assertTrue(station.tank().getFluidAmount() == 6000, "the potato changes nothing");
         helper.succeed();
+    }
+
+    /**
+     * A 40 tick dock sends the arm out with its start and length in the
+     * update tag; ended about 5 ticks in, the arm goes back over as many
+     * ticks and then stands up again.
+     */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void armDocksAndEndsEarly(GameTestHelper helper) {
+        FluidInboundBlockEntity station = FluidStationFixtures.place(helper, STATION, FRONT);
+        helper.assertTrue(!station.armOut(), "a placed station's arm stands up");
+        station.dockArm(40);
+        long start = helper.getLevel().getGameTime();
+        CompoundTag tag = station.getUpdateTag(helper.getLevel().registryAccess());
+        helper.assertTrue(tag.getIntOr("ArmTicks", 0) == 40 && tag.getLongOr("ArmStart", -1) == start, "clients learn the start and length, got " + tag);
+        helper.assertTrue(station.armOut(), "the arm is out");
+        helper.runAfterDelay(5, () -> {
+            long elapsed = helper.getLevel().getGameTime() - start;
+            station.undockArm();
+            helper.assertTrue(station.armTicks() == 2 * elapsed,
+                    "ended " + elapsed + " ticks in, the arm is back twice that after the dock, got " + station.armTicks());
+            helper.assertTrue(station.armOut(), "the arm is still on its way back");
+            helper.runAfterDelay((int) elapsed + 2, () -> {
+                helper.assertTrue(!station.armOut(), "the arm stands up again");
+                helper.succeed();
+            });
+        });
     }
 
     private static String key(Component line) {

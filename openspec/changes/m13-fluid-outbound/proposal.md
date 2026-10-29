@@ -6,7 +6,7 @@ This change finishes the M13 Fluid logistics rewrite in PLAN.md. After the Fluid
 
 ## What Changes
 
-- **Fluid Outbound station:** two blocks high like the Fluid Inbound: an Outbound Station, in its wood, on a glass tank. Neither station has a port; a hose arm comes later.
+- **Fluid Outbound station:** two blocks high like the Fluid Inbound: an Outbound Station, in its wood, on a glass tank. Neither station has a port; the swing hose arm of the Fluid Inbound docks onto the tanker's filler cap.
   - The same single buffer tank of `fluid_station_tank_capacity` mB.
   - A keep: a fluid and an amount, set in the GUI with a filled container and -1 B, +1 B, -10 B and +10 B buttons. A tank with a keep fluid takes only that fluid.
   - Fluid sides Push, Output or Off, with no tank choice for the one tank. The back defaults to Push, the other sides to Off, and the front is fixed.

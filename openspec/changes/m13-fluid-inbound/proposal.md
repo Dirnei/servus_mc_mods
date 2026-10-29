@@ -7,7 +7,7 @@ PLAN.md M13 Fluid logistics replaces the Fluid Gantry with blocks built like the
 ## What Changes
 
 - **Fluid Inbound station.** A two blocks high station with a facing: an Inbound Station, in its wood, on a glass tank. Its front faces the rail.
-  - It has one buffer tank of `fluid_station_tank_capacity` mB (in `warehouse.json`, example 16,000), holding one fluid at a time. The lower half is that tank, glass on all four sides in an iron frame; the upper half is the Inbound Station block with its lamps. There is no port: tankers stop in front of the station, and a hose arm comes later.
+  - It has one buffer tank of `fluid_station_tank_capacity` mB (in `warehouse.json`, example 16,000), holding one fluid at a time. The lower half is that tank, glass on all four sides in an iron frame; the upper half is the Inbound Station block with its lamps. There is no port: tankers stop in front of the station and a swing hose arm on its front docks onto their filler cap.
   - Its side configuration is the Foundation Fluids layer (from `m13-fluid-side-modes`): Input, Pull or Off per side. With one tank there is no tank choice. Input is the default and the front is fixed.
   - A Pull side takes fluid from the neighbour at the push interval.
 - **Joining the warehouse.** The station joins the warehouse only through a rail in front of its lower block, where tankers stop.

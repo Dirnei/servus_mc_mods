@@ -131,6 +131,10 @@
 - The upper half is the Outbound Station's own models by lamp state on the shared `fluid_station_tank`; its plane check is the one listed in `m13-fluid-inbound` tasks.md.
 - The play check notes above (orange dye, amber band) are outdated; the play check list of `m13-fluid-inbound` covers both stations now.
 
+## Implementation notes (hose arm)
+
+- The swing hose arm is built in `m13-fluid-inbound` 7.1 to 7.4 on the shared station base and renderer, so the Fluid Outbound has it too; this change's look requirement and its `shuttles/tanker` delta (`Coupling at a port`) say so.
+
 ## Implementation notes (keep picker)
 
 - The keep cell went back to the gantry's searchable dropdown at the user's request. The removed `FluidLockEntries` is not restored: the picker lists source fluids from the new Foundation `PickerEntries`, which the duct fluid filter picker now shares, so fluids show their still texture rather than a bucket and fluids without a bucket are listed too.

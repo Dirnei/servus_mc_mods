@@ -99,7 +99,11 @@ Using the Data Potato on either half SHALL print one line for the tank: its flui
 - **THEN** the chat shows one line: water 5,200 of 16,000 mB, keeping 8,000 mB of water
 
 ### Requirement: Fluid Outbound look
-The station SHALL look like the Fluid Inbound with the Outbound Station block as its upper half: its front, sides, top and wood, its front lamps showing the station's state. The lower half SHALL be the same glass tank in the iron frame, filled to its share in steps. The texture and plane rules of the Fluid Inbound SHALL hold.
+The station SHALL look like the Fluid Inbound with the Outbound Station block as its upper half: its front, sides, top and wood, its front lamps showing the station's state. The lower half SHALL be the same glass tank in the iron frame, filled to its share in steps, with the same swing hose arm on its front that docks onto a stopped tanker's filler cap as on the Fluid Inbound. The texture and plane rules of the Fluid Inbound SHALL hold.
+
+#### Scenario: Arm restocks
+- **WHEN** a Tanker shuttle stops in front of a Fluid Outbound to restock lava
+- **THEN** the station's boom swings down, its head lowers onto the tanker's filler cap, the lava behind the glass rises, and the arm goes back up before the tanker drives on
 
 #### Scenario: Tell them apart
 - **WHEN** a player sees a Fluid Inbound and a Fluid Outbound side by side

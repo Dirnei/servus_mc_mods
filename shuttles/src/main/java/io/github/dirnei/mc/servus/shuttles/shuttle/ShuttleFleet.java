@@ -155,6 +155,14 @@ public final class ShuttleFleet {
          */
         Optional<FluidRole> fluidStoreRole(FluidStoreRef store);
 
+        /** A tanker stopped at a fluid station's store for {@code ticks} ticks: the station's hose arm docks onto it. */
+        default void dockStationArm(FluidStoreRef store, int ticks) {
+        }
+
+        /** The tanker's stop at a fluid station's store ended, maybe early: the station's hose arm goes back up. */
+        default void undockStationArm(FluidStoreRef store) {
+        }
+
         /** Takes up to max of the fluid out of a store; empty when it holds another fluid. */
         FluidStack drainFluidStore(FluidStoreRef store, FluidKey key, int max);
 
@@ -1364,9 +1372,10 @@ public final class ShuttleFleet {
 
     /**
      * Starts a tanker's stop at the fluid store of its leg, {@code
-     * tanker_pump_ticks} shortened by Handling, the shuttle sliding its
-     * coupling out toward the store's port. A store that no longer serves
-     * the leg gets no stop.
+     * tanker_pump_ticks} shortened by Handling: at a Fluid Rack the shuttle
+     * slides its coupling out toward the port, at a fluid station the
+     * station's hose arm docks onto its filler cap. A store that no longer
+     * serves the leg gets no stop.
      */
     private boolean holdForPump(Shuttle shuttle, FluidJob job) {
         Load load = shuttle.loads.get(0);
@@ -1383,17 +1392,25 @@ public final class ShuttleFleet {
         shuttle.stopAt = shuttle.motion;
         shuttle.stop = ShuttleTiers.workTicks(ShuttlesStatsManager.INSTANCE.tankerPumpTicks(), shuttle.profile.handling());
         shuttle.pumping = store;
-        BlockPos rail = Conversions.toBlockPos(shuttle.motion.currentNode());
-        BlockPos port = store.pos();
-        shuttle.couplingSide = Direction.getNearest(port.getX() - rail.getX(), 0, port.getZ() - rail.getZ(), null);
-        shuttle.couplingTicks = shuttle.stop;
+        if (store.isRack()) {
+            BlockPos rail = Conversions.toBlockPos(shuttle.motion.currentNode());
+            BlockPos port = store.pos();
+            shuttle.couplingSide = Direction.getNearest(port.getX() - rail.getX(), 0, port.getZ() - rail.getZ(), null);
+            shuttle.couplingTicks = shuttle.stop;
+        } else {
+            host.dockStationArm(store, shuttle.stop);
+        }
         syncPending = true;
         return true;
     }
 
-    /** Ends the shuttle's stop at a fluid store and pulls its coupling in, if any. */
+    /** Ends the shuttle's stop at a fluid store: pulls its coupling in, or sends the station's arm back up. */
     private void endPumping(Shuttle shuttle) {
+        FluidStoreRef store = shuttle.pumping;
         shuttle.pumping = null;
+        if (store != null && !store.isRack()) {
+            host.undockStationArm(store);
+        }
         if (shuttle.couplingSide != null) {
             shuttle.couplingSide = null;
             syncPending = true;

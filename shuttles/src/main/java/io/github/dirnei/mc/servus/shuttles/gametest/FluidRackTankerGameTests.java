@@ -240,8 +240,9 @@ public final class FluidRackTankerGameTests {
 
     /**
      * While a tanker pumps at a section's port its view carries the coupling
-     * toward the rack, west of the rail, as it did toward the Inbound east of
-     * it; it is gone after the stop.
+     * toward the rack, west of the rail; at the Inbound east of it the
+     * station's hose arm docks instead and no coupling slides out. The
+     * coupling is gone after the stop.
      */
     @ServusGameTest(timeoutTicks = RUN + 20)
     public static void couplingWhilePumpingAtRack(GameTestHelper helper) {
@@ -252,15 +253,17 @@ public final class FluidRackTankerGameTests {
         TankerFixtures.fill(source, Fluids.WATER, 4000);
         BlockPos garage = helper.absolutePos(TankerFixtures.GARAGE);
         List<Direction> seen = new ArrayList<>();
+        boolean[] armSeen = {false};
         Waits.when(helper, () -> {
             for (ShuttleView view : TankerFixtures.network(helper).shuttleViews(garage)) {
                 view.coupling().map(ShuttleView.Coupling::side).ifPresent(seen::add);
             }
+            armSeen[0] |= source.armOut();
             return FluidRackFixtures.amount(helper, bays[0]) == 4000;
         }, RUN, () -> "the water reaches the rack", () -> {
-            helper.assertTrue(seen.contains(Direction.WEST) && seen.contains(Direction.EAST)
-                            && seen.stream().allMatch(side -> side == Direction.WEST || side == Direction.EAST),
-                    "the coupling slid out toward the Inbound and the rack, got " + seen);
+            helper.assertTrue(armSeen[0], "the Inbound's hose arm docked onto the tanker");
+            helper.assertTrue(seen.contains(Direction.WEST) && seen.stream().allMatch(side -> side == Direction.WEST),
+                    "the coupling slid out only toward the rack, got " + seen);
             Optional<ShuttleView> coupled = TankerFixtures.network(helper).shuttleViews(garage).stream()
                     .filter(view -> view.coupling().isPresent()).findFirst();
             helper.assertTrue(coupled.isEmpty(), "no shuttle shows a coupling once the stop is over");
