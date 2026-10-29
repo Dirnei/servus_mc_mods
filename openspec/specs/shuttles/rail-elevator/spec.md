@@ -210,7 +210,7 @@ The elevator item SHALL use the placement assist for sneak clicks: a sneak click
 - **THEN** a segment is placed on the stone as with any block
 
 ### Requirement: Floors join through a shaft
-Every elevator segment SHALL be a node of the warehouse network. Segments SHALL link to the segments directly above and below them, to rails beside them and to a Warehouse Controller beside them, so rails on different floors linked by a shaft form one warehouse and a controller touching a shaft from the side belongs to it. A segment SHALL NOT link to a controller directly above or below it. A storage block, station, garage or Fluid Gantry touching a segment SHALL NOT join the warehouse through that segment; only rails carry their membership. A controller beside a segment SHALL NOT change how the segment looks, and shuttles SHALL NOT drive into the controller.
+Every elevator segment SHALL be a node of the warehouse network. Segments SHALL link to the segments directly above and below them, to rails beside them and to a Warehouse Controller beside them, so rails on different floors linked by a shaft form one warehouse and a controller touching a shaft from the side belongs to it. A segment SHALL NOT link to a controller directly above or below it. A storage block, Fluid Rack, station, fluid station or garage touching a segment SHALL NOT join the warehouse through that segment; only rails carry their membership. A controller beside a segment SHALL NOT change how the segment looks, and shuttles SHALL NOT drive into the controller.
 
 #### Scenario: Two floors one controller
 - **WHEN** a rack faces a rail on the ground floor, the rail meets a shaft, and three segments up another rail leads to a controller, and a terminal reaches the warehouse over the data line

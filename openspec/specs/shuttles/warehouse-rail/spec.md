@@ -7,7 +7,7 @@ The Warehouse Rail is the wiring of the mid game warehouse: a floor rail that li
 ## Requirements
 
 ### Requirement: Free rails bridge short gaps
-Free rails that link to each other SHALL form a gap. The span of a gap SHALL be its number of free rails plus the number of hung rails linked to them. A gap SHALL hold when its span is at most the maximum span (for example 3, set in the warehouse datapack config) and it links to at least two hung rails. A gap that does not hold SHALL collapse: its free rails and the hung rails linked to them drop as items. A gap SHALL be checked again when a rail is placed into it or beside it, when a rail, anchor or floor block it relies on is removed, and when one of its rails loses its floor. Gaps SHALL NOT be checked every tick.
+Free rails that link to each other SHALL form a gap. The span of a gap SHALL be its number of free rails plus the number of hung rails linked to them. A gap SHALL hold when its span is at most the maximum span (for example 3, set in the warehouse datapack config) and it links to at least two hung rails. A gap of a single free rail SHALL also hold when it links to one hung rail, an overhang of one. A gap that does not hold SHALL collapse: its free rails and the hung rails linked to them drop as items. A gap SHALL be checked again when a rail is placed into it or beside it, when a rail, anchor or floor block it relies on is removed, and when one of its rails loses its floor. Gaps SHALL NOT be checked every tick.
 
 #### Scenario: Bridge between two elevators
 - **WHEN** two elevator shafts stand with a three block gap between them and the player fills it with three rails, one at each shaft first and the middle one last
@@ -22,12 +22,16 @@ Free rails that link to each other SHALL form a gap. The span of a gap SHALL be 
 - **THEN** all four rails drop as items
 
 #### Scenario: Four block gap cannot be bridged
-- **WHEN** two racks face each other across a four block gap with a rail hung on each front and the player places a rail beside one of them
-- **THEN** that rail and the hung rail it touches drop as items
+- **WHEN** two racks face each other across a four block gap with a rail hung on each front, and the player places a rail beside one of them and then a rail beside the other
+- **THEN** the first rail stays as an overhang, and the second closes a gap of span four, so all four rails drop as items
+
+#### Scenario: Overhang of one
+- **WHEN** a rail hangs on a rack front and the player places a free rail beside it that touches nothing else
+- **THEN** both rails stay
 
 #### Scenario: Overhang collapses
-- **WHEN** a rail hangs on a rack front and the player places a free rail beside it that touches nothing else
-- **THEN** both rails drop as items
+- **WHEN** a rail hangs on a rack front with one free rail beyond it, and the player places a second free rail beyond that
+- **THEN** both free rails and the hung rail drop as items
 
 #### Scenario: Bridge between floors
 - **WHEN** two standing rails end at a drop three blocks wide and the player hangs a rail off each and then fills the middle
@@ -222,7 +226,7 @@ The rail recipe SHALL take planks, and the crafted rails SHALL carry the wood of
 - **THEN** every rail of the run shows birch sleepers
 
 ### Requirement: Only rails join blocks to a warehouse
-Every block that shuttles serve SHALL join a warehouse only through a rail on one of the faces where it takes rails, and SHALL NOT join or pass on a warehouse by touching controllers, other storage blocks or each other. The faces are: a Heavy Duty Rack's front (and the bays of its own section), every side of an Inbound Station, Outbound Station and Packing Station, the back of a Shuttle Garage, and the inner faces of a Fluid Gantry's legs toward the rail it stands over. The Warehouse Controller SHALL link to touching rails on any side and to a touching controller; no other block SHALL join a warehouse by touching it.
+Every block that shuttles serve SHALL join a warehouse only through a rail on one of the faces where it takes rails, and SHALL NOT join or pass on a warehouse by touching controllers, other storage blocks or each other. The faces are: a Heavy Duty Rack's front (and the bays of its own section), the front of a Fluid Rack section's port bay (and the bays of its own section), every side of an Inbound Station, Outbound Station and Packing Station, the front of a Fluid Inbound's and a Fluid Outbound's lower half, and the back of a Shuttle Garage. The Warehouse Controller SHALL link to touching rails on any side and to a touching controller; no other block SHALL join a warehouse by touching it.
 
 #### Scenario: Station pressed against the controller
 - **WHEN** an Inbound Station touches the controller of an online warehouse and no rail touches the station
@@ -233,8 +237,8 @@ Every block that shuttles serve SHALL join a warehouse only through a rail on on
 - **THEN** the chest is not part of the warehouse and its items are not listed
 
 #### Scenario: Gantry over a rail
-- **WHEN** a Fluid Gantry stands over a rail of a warehouse and its outer leg face touches another warehouse's rail
-- **THEN** the gantry belongs only to the warehouse of the rail between its legs
+- **WHEN** a Fluid Inbound has a rail of one warehouse in front of its lower half and a rail of another warehouse touching its side
+- **THEN** the station belongs only to the warehouse of the rail in front of it
 
 ### Requirement: Rails stand or hang
 The Warehouse Rail SHALL be a flat block in the bottom of its block space, one block wide, with a selection shape a few pixels high so players walk over it. A rail with a block with a solid top under it SHALL be standing. A rail without one SHALL be hung when one of its horizontal neighbours is an anchor and free otherwise. An anchor SHALL be the front side of a Heavy Duty Rack, any side of a Rail Elevator segment or a standing rail; controllers, terminals, stations and garages SHALL NOT be anchors. Standing and hung rails SHALL hold on their own. A rail SHALL be placeable on any block with a solid top, and in open air only when one of its horizontal neighbours is an anchor or another rail. Hung and free rails SHALL look the same as standing rails.

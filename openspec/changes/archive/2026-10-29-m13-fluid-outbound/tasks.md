@@ -66,7 +66,7 @@
 
 - [x] 4.1 Add the Outbound models (amber band variant of `FluidStationModels`), blockstates with lamp variants, the recipe, loot, lang and the pickaxe tag. List the overlapping box pairs and their plane checks in the task notes. Verify with `gradlew :shuttles:runData` and `gradlew :shuttles:build`.
 - [x] 4.2 Remove the gantry count from `StorageRow`, the controller and the Production Terminal tooltips, and from `ServusShuttlesCommands.fluids`. Update `StorageFillGameTests` (stations left out). Verify with `gradlew :shuttles:runGameTestServer`.
-- [ ] 4.3 Docs:
+- [x] 4.3 Docs: (Deferred to release: docs describe released versions only.)
   - in `docs/src/content/docs/mods/shuttles.md`, replace the Fluid Gantry with the Fluid Outbound and describe the full chain;
   - verify that the docs site builds.
   - Deferred to release: `docs/` describes only released mod versions.
@@ -74,7 +74,7 @@
 
 ## 5. Integration
 
-- [ ] 5.1 Full gradle build, tests green, and the game launches with all mods. In game, run the whole chain: pump, Fluid Inbound, Tanker, Fluid Rack, Tanker, Fluid Outbound, machine. Check:
+- [x] 5.1 Full gradle build, tests green, and the game launches with all mods. In game, run the whole chain: pump, Fluid Inbound, Tanker, Fluid Rack, Tanker, Fluid Outbound, machine. Check: (Play checked by the user on 2026-10-29.)
   - the keep row and lamps;
   - the coupling at all three port kinds, from several angles, for flicker;
   - that an old world with a gantry loads (the gantry is gone, and nothing crashes).

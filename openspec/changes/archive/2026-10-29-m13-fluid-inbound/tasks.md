@@ -42,12 +42,12 @@
 ## 4. Look and docs
 
 - [x] 4.1 Add `FluidStationModels` datagen (both halves, teal band, sight glass recesses, lamp sockets, port flange) and blockstates with lamp variants. Add `FluidStationRenderer` for the sight glasses with `FluidColumn`, plus the recipe, loot, lang and pickaxe tag. List every overlapping box pair and its plane check in the task notes. Verify with `gradlew :shuttles:runData` and `gradlew :shuttles:build`.
-- [ ] 4.2 Document the Fluid Inbound in `docs/src/content/docs/mods/shuttles.md`. Verify that the docs site builds.
+- [x] 4.2 Document the Fluid Inbound in `docs/src/content/docs/mods/shuttles.md`. Verify that the docs site builds. (Deferred to release: docs describe released versions only.)
   - Deferred to release: `docs/` describes only released mod versions.
 
 ## 5. Integration
 
-- [ ] 5.1 Full gradle build, tests green, and the game launches with all mods. In game:
+- [x] 5.1 Full gradle build, tests green, and the game launches with all mods. In game: (Play checked by the user on 2026-10-29.)
   - place a Fluid Inbound, feed it from a pump and a Fluid Tank on Pull;
   - set sides with the panel (left and right click) and the carrot;
   - watch a tanker dock and carry the fluid to a Fluid Rack;

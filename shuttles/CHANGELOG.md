@@ -1,5 +1,15 @@
 # Servus: Shuttles changelog
 
+## Unreleased
+
+### Added
+- Fluid Rack: bays join into sections of up to three that share one tank behind a glass front. A Zone Label zones a section, and a fluid container in the label makes it take only that fluid. Tankers dock into one port per section, and rails hang along every bay.
+- Fluid Inbound and Fluid Outbound: an Inbound or Outbound Station on top of a Fluid Tank, in the station's wood, with one tank you can see from every side. A swing hose arm docks onto the Tanker's filler cap. The Outbound keeps a fluid picked from a searchable list.
+
+### Changed
+- A rail can hang one block past a rail held by a rack, a shaft or a floor.
+- Removed the Fluid Gantry: empty your gantries before updating, placed gantries and their fluid are lost.
+
 ## 0.5.0
 
 ### Added

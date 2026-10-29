@@ -174,7 +174,7 @@ A controller with at least one Anchor Upgrade whose site spans more chunks than 
 - **THEN** its lamp is red and the GUI says the warehouse has no power
 
 ### Requirement: Controller GUI
-Right clicking a controller with an empty hand SHALL open its GUI with the site name as title, a name field, the online state with the warehouse summary as its tooltip, the chunk count and capacity, a chunk map, the storage lines, the Anchor Upgrade slots, the Wireless Upgrade slot, the FE stored with the capacity, the "Other sites" panel and the player inventory. The chunk map SHALL draw every chunk of the span as a square around the controller's chunk, mark the controller's chunk, and draw in red while over capacity. The storage lines SHALL sit between the map row and the upgrade row: an Items line with the rack slots in use and the total, and a Fluids line with the mB in the Storage gantries and their capacity, each with a bar below it that turns to the alert colour when full. A warehouse without racks SHALL say so on the Items line, one without Storage gantries on the Fluids line, both without a bar. The Items tooltip SHALL name the number of rack bays and the full zones; the Fluids tooltip SHALL name the number of Storage gantries. While the controller is not online the storage lines SHALL be left out. The GUI SHALL refresh while open and SHALL close when the player leaves reach.
+Right clicking a controller with an empty hand SHALL open its GUI with the site name as title, a name field, the online state with the warehouse summary as its tooltip, the chunk count and capacity, a chunk map, the storage lines, the Anchor Upgrade slots, the Wireless Upgrade slot, the FE stored with the capacity, the "Other sites" panel and the player inventory. The chunk map SHALL draw every chunk of the span as a square around the controller's chunk, mark the controller's chunk, and draw in red while over capacity. The storage lines SHALL sit between the map row and the upgrade row: an Items line with the rack slots in use and the total, and a Fluids line with the mB in the Fluid Rack sections and their capacity, each with a bar below it that turns to the alert colour when full. A warehouse without racks SHALL say so on the Items line, one without Fluid Racks on the Fluids line, both without a bar. The Items tooltip SHALL name the number of rack bays and the full zones; the Fluids tooltip SHALL name the number of Fluid Rack sections. While the controller is not online the storage lines SHALL be left out. The GUI SHALL refresh while open and SHALL close when the player leaves reach.
 
 #### Scenario: Map
 - **WHEN** a site spans its own chunk and the chunk to the east
@@ -185,7 +185,7 @@ Right clicking a controller with an empty hand SHALL open its GUI with the site 
 - **THEN** the GUI shows 12,000 of 100,000 FE and the value follows while FE arrives
 
 #### Scenario: Storage shown
-- **WHEN** a warehouse has 412 of 729 rack slots in use and 24,000 of 96,000 mB in its Storage gantries and a player opens its controller GUI
+- **WHEN** a warehouse has 412 of 729 rack slots in use and 24,000 of 96,000 mB in its Fluid Racks and a player opens its controller GUI
 - **THEN** the GUI shows Items 412 / 729 slots and Fluids 24k / 96k mB, each with a bar
 
 #### Scenario: Storage follows
@@ -197,8 +197,12 @@ Right clicking a controller with an empty hand SHALL open its GUI with the site 
 - **THEN** the tooltip names the rack bays and lists Ores as full
 
 #### Scenario: No gantry
-- **WHEN** a warehouse has racks but no Storage gantry
-- **THEN** the Fluids line says there is no Storage gantry and shows no bar
+- **WHEN** a warehouse has racks but no Fluid Rack
+- **THEN** the Fluids line says there is no fluid storage and shows no bar
+
+#### Scenario: Fluid Racks in the tooltip
+- **WHEN** a warehouse has two Fluid Rack sections and the player hovers the Fluids line
+- **THEN** the tooltip names 2 Fluid Rack sections
 
 ### Requirement: Controller shows the wake
 While its site is awake by a wake, the controller's activity lamp SHALL be orange, unless the site is over capacity or in the no power state (red). The controller GUI SHALL show a wake line: awake for a transfer, staying awake for the grace time with the seconds left, or waiting to wake with the reason; nothing while the site is not being woken.

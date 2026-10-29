@@ -20,17 +20,6 @@ A warehouse SHALL count its item room in Heavy Duty Rack slots: the slots of all
 - **WHEN** an Inbound Station of the warehouse holds 9 stacks in its buffer
 - **THEN** the item fill and total are the same as without the station
 
-### Requirement: Fluid room in Storage gantries
-A warehouse SHALL count its fluid room as the mB in the tanks of its Storage gantries against their capacity, each tank's capacity as its Capacity Upgrades make it. Import and Export gantries SHALL NOT count.
-
-#### Scenario: Two Storage gantries
-- **WHEN** a warehouse has two Storage gantries with tanks of 16,000 mB each and holds 24,000 mB of water
-- **THEN** its fluid fill is 24,000 of 64,000 mB
-
-#### Scenario: Import gantry left out
-- **WHEN** an Import gantry of the warehouse holds 8,000 mB of lava
-- **THEN** the fluid fill and capacity do not change
-
 ### Requirement: Fill per zone
 The item fill SHALL break down per zone: one row per zone name the warehouse's racks carry, with the slots in use and the total of the racks of that zone, and one "(no zone)" row for racks without a zone. The rows SHALL be ordered full first, then by the share in use from the fullest down, then by name, the "(no zone)" row after zones of the same share. A zone counts as full when all its slots are in use. Zone rows SHALL add up to the warehouse's item fill.
 
@@ -48,3 +37,14 @@ Counting the slots in use, adding up bays and tanks, and ordering the zone rows 
 #### Scenario: Unit tested
 - **WHEN** the unit tests run
 - **THEN** they cover in use counting with locks, zone rows and their order, and the fluid sum
+
+### Requirement: Fluid room in Fluid Racks
+A warehouse SHALL count its fluid room as the mB in its Fluid Rack sections against their capacity, each section's capacity as its bays make it. Fluid Inbounds and Fluid Outbounds SHALL NOT count.
+
+#### Scenario: Fluid Rack counts
+- **WHEN** a warehouse has one docked three bay Fluid Rack section of 16,000 mB per bay holding 12,000 mB of water
+- **THEN** its fluid fill is 12,000 of 48,000 mB
+
+#### Scenario: Stations left out
+- **WHEN** a Fluid Inbound of the warehouse holds 8,000 mB of lava
+- **THEN** the fluid fill and capacity do not change

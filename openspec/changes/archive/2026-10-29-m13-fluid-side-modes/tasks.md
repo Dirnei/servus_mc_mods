@@ -59,8 +59,8 @@
 
 ## 4. Docs and integration
 
-- [ ] 4.1 Update the side configuration section of `docs/src/content/docs/mods/foundation.md`: Fluids sides have modes and a tank, a right click picks the tank, and the carrot cycles the mode. Verify that the docs site builds (`npm run build` in `docs/`). (Deferred to release: docs describe released versions only.)
-- [ ] 4.2 Full gradle build, tests green, and the game launches with all mods. Open a machine GUI and check that the Items side panel looks and works as before. (Build, unit tests and Foundation GameTests green; game launch and machine GUI check left for the user play check.)
+- [x] 4.1 Update the side configuration section of `docs/src/content/docs/mods/foundation.md`: Fluids sides have modes and a tank, a right click picks the tank, and the carrot cycles the mode. Verify that the docs site builds (`npm run build` in `docs/`). (Deferred to release: docs describe released versions only.)
+- [x] 4.2 Full gradle build, tests green, and the game launches with all mods. Open a machine GUI and check that the Items side panel looks and works as before. (Build, unit tests and Foundation GameTests green; game launch and machine GUI check left for the user play check.) (Play checked by the user on 2026-10-29.)
 
 ## Workflow follow-up
 

@@ -120,13 +120,13 @@
   - Port flange (x 5 to 11, y 10.9 to 13.9, z 0 to 1.5) passes through the front glass: the glass faces at z 0.9 and 1.1 lie inside the flange, whose faces are at z 0 and 1.5.
   - Fluid drawn by the renderer: x 2.1 to 13.9 (to the block edge where a bay joins, with no side face there), y 1.1 to at most 14.9, z 1.2 to 14.9: 0.1 off the posts, floor, top, back board and back posts and 0.1 behind the glass; the flange's back face (z 1.5) lies inside the fluid box, not on a face.
 - [x] 5.2 Controller and Production Terminal: `StorageRow` counts `fluidRacks`; the tooltips name gantries and racks; rename `storage.no_gantry` to `storage.no_fluid_storage`. Update `StorageFillGameTests` with the rack case. Verify with `gradlew :shuttles:runGameTestServer`.
-- [ ] 5.3 Document the Fluid Rack, the zone fluid filter and the tanker coupling in `docs/src/content/docs/mods/shuttles.md`. Verify that the docs site builds.
+- [x] 5.3 Document the Fluid Rack, the zone fluid filter and the tanker coupling in `docs/src/content/docs/mods/shuttles.md`. Verify that the docs site builds. (Deferred to release: docs describe released versions only.)
 
   Deferred to release: `docs/` describes only released mod versions.
 
 ## 6. Integration
 
-- [ ] 6.1 Full gradle build, tests green, and the game launches with all mods. In game:
+- [x] 6.1 Full gradle build, tests green, and the game launches with all mods. In game: (Play checked by the user on 2026-10-29.)
   - build a three bay section and a stacked row;
   - stamp a zone;
   - fill one rack by bucket and one by tanker from an Import gantry;
