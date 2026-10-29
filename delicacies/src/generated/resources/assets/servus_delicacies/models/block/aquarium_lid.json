@@ -1,0 +1,86 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "east": {
+          "cullface": "east",
+          "texture": "#side",
+          "uv": [
+            0,
+            12,
+            16,
+            16
+          ]
+        },
+        "north": {
+          "cullface": "north",
+          "texture": "#side",
+          "uv": [
+            0,
+            12,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "cullface": "south",
+          "texture": "#side",
+          "uv": [
+            0,
+            12,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#top"
+        },
+        "west": {
+          "cullface": "west",
+          "texture": "#side",
+          "uv": [
+            0,
+            12,
+            16,
+            16
+          ]
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        4,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#light"
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        4,
+        16
+      ]
+    }
+  ],
+  "textures": {
+    "light": "servus_delicacies:block/aquarium_lid_light_off",
+    "particle": "servus_delicacies:block/aquarium_lid_top",
+    "side": "servus_delicacies:block/aquarium_lid_side",
+    "top": "servus_delicacies:block/aquarium_lid_top"
+  }
+}

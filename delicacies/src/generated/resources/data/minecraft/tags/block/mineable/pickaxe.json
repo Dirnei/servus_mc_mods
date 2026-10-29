@@ -4,6 +4,8 @@
     "servus_delicacies:pot",
     "servus_delicacies:pan",
     "servus_delicacies:baking_oven",
-    "servus_delicacies:fermenting_crock"
+    "servus_delicacies:fermenting_crock",
+    "servus_delicacies:aquarium_floor",
+    "servus_delicacies:aquarium_lid"
   ]
 }

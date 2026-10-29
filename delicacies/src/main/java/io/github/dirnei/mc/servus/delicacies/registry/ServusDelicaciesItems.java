@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.delicacies.registry;
 
 import io.github.dirnei.mc.servus.delicacies.ServusDelicaciesIds;
+import io.github.dirnei.mc.servus.delicacies.aquarium.AquariumLidItem;
 import io.github.dirnei.mc.servus.delicacies.crop.CropKind;
 import io.github.dirnei.mc.servus.delicacies.food.DelicaciesFoodItem;
 import io.github.dirnei.mc.servus.delicacies.teller.MealKind;
@@ -118,6 +119,12 @@ public final class ServusDelicaciesItems {
     /** What each ripe crop gives; for a self planting crop this is its planting item. */
     public static final Map<CropKind, DeferredItem<? extends Item>> HARVEST = harvestItems();
 
+    public static final DeferredItem<BlockItem> AQUARIUM_FLOOR = ITEMS.registerSimpleBlockItem(ServusDelicaciesBlocks.AQUARIUM_FLOOR);
+    public static final DeferredItem<AquariumLidItem> AQUARIUM_LID = ITEMS.registerItem("aquarium_lid",
+            properties -> new AquariumLidItem(ServusDelicaciesBlocks.AQUARIUM_LID.get(), properties.useBlockDescriptionPrefix()));
+    /** The aquarium parts, whose item models are their block models. */
+    public static final List<DeferredItem<? extends Item>> AQUARIUM_ITEMS = List.of(AQUARIUM_FLOOR, AQUARIUM_LID);
+
     /** Every Delicacies item in the order the creative tab lists it. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = creativeTabOrder();
 
@@ -198,6 +205,9 @@ public final class ServusDelicaciesItems {
         order.add(BAKING_OVEN);
         order.add(CUTTING_BOARD);
         order.add(FERMENTING_CROCK);
+        order.add(AQUARIUM_FLOOR);
+        order.add(AQUARIUM_LID);
+        order.add(DelicaciesFluids.MURKY_WATER_BUCKET);
         order.add(KITCHEN_KNIFE);
         order.add(CHOPPED_ONION);
         order.add(SHREDDED_CABBAGE);

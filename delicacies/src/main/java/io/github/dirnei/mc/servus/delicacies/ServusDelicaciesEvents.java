@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.delicacies;
 
+import io.github.dirnei.mc.servus.delicacies.aquarium.AquariumStatsManager;
 import io.github.dirnei.mc.servus.delicacies.firebox.DelicaciesCapabilities;
 import io.github.dirnei.mc.servus.delicacies.firebox.HeatingStatsManager;
 import io.github.dirnei.mc.servus.delicacies.kitchen.KitchenStatsManager;
@@ -21,6 +22,7 @@ public final class ServusDelicaciesEvents {
     public static void onAddReloadListeners(AddServerReloadListenersEvent event) {
         event.addListener(KitchenStatsManager.LISTENER_ID, KitchenStatsManager.INSTANCE);
         event.addListener(HeatingStatsManager.LISTENER_ID, HeatingStatsManager.INSTANCE);
+        event.addListener(AquariumStatsManager.LISTENER_ID, AquariumStatsManager.INSTANCE);
     }
 
     @SubscribeEvent
@@ -45,5 +47,11 @@ public final class ServusDelicaciesEvents {
                 (crock, side) -> crock.itemCapability());
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusDelicaciesBlockEntities.FERMENTING_CROCK.get(),
                 (crock, side) -> crock.fluidCapability());
+        event.registerBlockEntity(Capabilities.Item.BLOCK, ServusDelicaciesBlockEntities.AQUARIUM_PART.get(),
+                (part, side) -> part.itemCapability());
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusDelicaciesBlockEntities.AQUARIUM_PART.get(),
+                (part, side) -> part.fluidCapability());
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, ServusDelicaciesBlockEntities.AQUARIUM_PART.get(),
+                (part, side) -> part.energyCapability(side));
     }
 }

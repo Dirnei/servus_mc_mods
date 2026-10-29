@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "D": "minecraft:glowstone_dust"
+  },
+  "pattern": [
+    "CCC",
+    "DDD"
+  ],
+  "result": {
+    "count": 6,
+    "id": "servus_delicacies:aquarium_lid"
+  }
+}

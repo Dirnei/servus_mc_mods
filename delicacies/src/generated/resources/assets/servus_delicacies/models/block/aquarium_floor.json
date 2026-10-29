@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "minecraft:block/cut_copper",
+    "east": "servus_delicacies:block/aquarium_floor_side",
+    "north": "servus_delicacies:block/aquarium_floor_side",
+    "particle": "servus_delicacies:block/aquarium_floor_side",
+    "south": "servus_delicacies:block/aquarium_floor_side",
+    "up": "servus_delicacies:block/aquarium_floor_top",
+    "west": "servus_delicacies:block/aquarium_floor_side"
+  }
+}

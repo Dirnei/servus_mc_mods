@@ -24,6 +24,8 @@ public final class KitchenTags {
     public static final TagKey<Item> CHEESE = common("foods/cheese");
     /** {@code c:flours/mustard}: ground mustard seed. */
     public static final TagKey<Item> MUSTARD_FLOUR = common("flours/mustard");
+    /** {@code c:fish_feed}: what aquarium fish eat. */
+    public static final TagKey<Item> FISH_FEED = common("fish_feed");
 
     private KitchenTags() {
     }

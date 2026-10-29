@@ -77,6 +77,27 @@ final class ServusDelicaciesRecipeProvider extends RecipeProvider {
         meatDishes();
         sides();
         teller();
+        aquarium();
+    }
+
+    /** The Aquarium Floor from copper around gravel and kelp, the Lid from copper over glowstone dust. */
+    private void aquarium() {
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.BUILDING_BLOCKS, ServusDelicaciesItems.AQUARIUM_FLOOR.get(), 2)
+                .pattern("CKC")
+                .pattern("CGC")
+                .pattern("CCC")
+                .define('C', Items.COPPER_INGOT)
+                .define('K', Items.KELP)
+                .define('G', Items.GRAVEL)
+                .unlockedBy("has_kelp", has(Items.KELP))
+                .save(output);
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.BUILDING_BLOCKS, ServusDelicaciesItems.AQUARIUM_LID.get(), 6)
+                .pattern("CCC")
+                .pattern("DDD")
+                .define('C', Items.COPPER_INGOT)
+                .define('D', Items.GLOWSTONE_DUST)
+                .unlockedBy("has_copper", has(Items.COPPER_INGOT))
+                .save(output);
     }
 
     /** The Plate and the plated meals; the Weissbier breakfast only loads with Servus: Brewery. */

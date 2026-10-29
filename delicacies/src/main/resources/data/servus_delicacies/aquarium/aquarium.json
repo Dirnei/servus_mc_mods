@@ -1,0 +1,19 @@
+{
+  "cycle_ticks": 1200,
+  "water_per_fish": 4000,
+  "breed_rate": 0.12,
+  "feed_per_fish": 0.1,
+  "starve_after": 3,
+  "starve_loss": 0.05,
+  "dirt_per_fish": 0.5,
+  "dirt_per_feed": 1,
+  "dirt_per_bucket": 10,
+  "dying_below": 0.2,
+  "dirty_loss": 0.1,
+  "filter_rate": 40,
+  "fe_per_tank_block": 2,
+  "fe_per_lid": 1,
+  "energy_buffer_ticks": 4,
+  "keep_default": 8,
+  "drawn_cap": 16
+}

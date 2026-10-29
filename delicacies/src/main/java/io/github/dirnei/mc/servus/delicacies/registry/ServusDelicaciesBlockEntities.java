@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.delicacies.registry;
 
 import io.github.dirnei.mc.servus.delicacies.ServusDelicaciesIds;
+import io.github.dirnei.mc.servus.delicacies.aquarium.AquariumPartBlockEntity;
 import io.github.dirnei.mc.servus.delicacies.board.CuttingBoardBlockEntity;
 import io.github.dirnei.mc.servus.delicacies.cooking.BakingOvenBlockEntity;
 import io.github.dirnei.mc.servus.delicacies.cooking.PanBlockEntity;
@@ -38,6 +39,11 @@ public final class ServusDelicaciesBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FermentingCrockBlockEntity>> FERMENTING_CROCK =
             register("fermenting_crock", FermentingCrockBlockEntity::new, ServusDelicaciesBlocks.FERMENTING_CROCK);
+
+    /** Both aquarium parts, Floor and Lid. */
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AquariumPartBlockEntity>> AQUARIUM_PART =
+            BLOCK_ENTITIES.register("aquarium_part", () -> new BlockEntityType<>(AquariumPartBlockEntity::new,
+                    ServusDelicaciesBlocks.AQUARIUM_FLOOR.get(), ServusDelicaciesBlocks.AQUARIUM_LID.get()));
 
     private ServusDelicaciesBlockEntities() {
     }

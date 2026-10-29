@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "servus_delicacies:block/aquarium_lid"
+    },
+    "lit=true": {
+      "model": "servus_delicacies:block/aquarium_lid_lit"
+    }
+  }
+}

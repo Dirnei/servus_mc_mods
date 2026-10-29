@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.delicacies.registry;
 
 import io.github.dirnei.mc.servus.delicacies.ServusDelicaciesIds;
+import io.github.dirnei.mc.servus.delicacies.aquarium.AquariumFloorBlock;
+import io.github.dirnei.mc.servus.delicacies.aquarium.AquariumLidBlock;
 import io.github.dirnei.mc.servus.delicacies.crop.CropKind;
 import io.github.dirnei.mc.servus.delicacies.crop.DelicaciesCropBlock;
 import io.github.dirnei.mc.servus.delicacies.board.CuttingBoardBlock;
@@ -94,6 +96,23 @@ public final class ServusDelicaciesBlocks {
     public static final DeferredBlock<PlateBlock> PLATE = BLOCKS.registerBlock("plate", PlateBlock::new, ServusDelicaciesBlocks::tableware);
     /** One block per plated meal. */
     public static final Map<MealKind, DeferredBlock<MealBlock>> MEALS = mealBlocks();
+
+    /** The Aquarium Floor, a copper cabinet with a gravel top under a Fluid Tank. */
+    public static final DeferredBlock<AquariumFloorBlock> AQUARIUM_FLOOR = BLOCKS.registerBlock("aquarium_floor", AquariumFloorBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_ORANGE)
+                    .strength(3.0F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.COPPER));
+
+    /** The Aquarium Lid, a copper slab whose light panel glows into the tank while powered. */
+    public static final DeferredBlock<AquariumLidBlock> AQUARIUM_LID = BLOCKS.registerBlock("aquarium_lid", AquariumLidBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_ORANGE)
+                    .strength(3.0F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.COPPER)
+                    .lightLevel(AquariumLidBlock::lightLevel));
 
     private ServusDelicaciesBlocks() {
     }

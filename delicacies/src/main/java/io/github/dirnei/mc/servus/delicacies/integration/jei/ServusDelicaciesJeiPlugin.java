@@ -6,12 +6,14 @@ import io.github.dirnei.mc.servus.delicacies.cooking.BakingRecipe;
 import io.github.dirnei.mc.servus.delicacies.cooking.PanRecipe;
 import io.github.dirnei.mc.servus.delicacies.cooking.PotRecipe;
 import io.github.dirnei.mc.servus.delicacies.crock.FermentingRecipe;
+import io.github.dirnei.mc.servus.delicacies.registry.DelicaciesFluids;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesItems;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesRecipes;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
@@ -21,6 +23,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
 
 /** Shows the pot, pan, baking and cutting recipes and how to slice the placed loaf in JEI. Only loaded when JEI is present. */
 @JeiPlugin
@@ -66,6 +70,13 @@ public final class ServusDelicaciesJeiPlugin implements IModPlugin {
         registration.addRecipes(FERMENTING, ServusRecipes.all(minecraft.level, ServusDelicaciesRecipes.FERMENTING.get()));
         registration.addIngredientInfo(ServusDelicaciesItems.LEBERKAESE.get(),
                 Component.translatable("gui." + ServusDelicaciesIds.MOD_ID + ".jei.leberkaese_info"));
+        registration.addIngredientInfo(ServusDelicaciesItems.AQUARIUM_FLOOR.get(),
+                Component.translatable("gui." + ServusDelicaciesIds.MOD_ID + ".jei.aquarium_floor_info"));
+        registration.addIngredientInfo(ServusDelicaciesItems.AQUARIUM_LID.get(),
+                Component.translatable("gui." + ServusDelicaciesIds.MOD_ID + ".jei.aquarium_lid_info"));
+        Component murky = Component.translatable("gui." + ServusDelicaciesIds.MOD_ID + ".jei.murky_water_info");
+        registration.addIngredientInfo(new FluidStack(DelicaciesFluids.MURKY_WATER.get(), FluidType.BUCKET_VOLUME), NeoForgeTypes.FLUID_STACK, murky);
+        registration.addIngredientInfo(DelicaciesFluids.MURKY_WATER_BUCKET.get(), murky);
     }
 
     @Override

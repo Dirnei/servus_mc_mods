@@ -49,6 +49,7 @@ final class ServusDelicaciesItemTagsProvider extends ItemTagsProvider {
         ServusDelicaciesItems.SIDE_FOODS.forEach(food -> tag(Tags.Items.FOODS).add(food.get()));
         ServusDelicaciesItems.BOWL_FOODS.forEach(food -> tag(Tags.Items.FOODS_SOUP).add(food.get()));
         tag(KitchenTags.CHEESE).add(ServusDelicaciesItems.CHEESE.get());
+        tag(KitchenTags.FISH_FEED).addTag(Tags.Items.SEEDS);
         meatDishes();
         teller();
     }

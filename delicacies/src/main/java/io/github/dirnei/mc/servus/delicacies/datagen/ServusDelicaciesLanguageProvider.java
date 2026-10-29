@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.delicacies.datagen;
 
 import io.github.dirnei.mc.servus.delicacies.ServusDelicaciesIds;
 import io.github.dirnei.mc.servus.delicacies.crop.CropKind;
+import io.github.dirnei.mc.servus.delicacies.registry.DelicaciesFluids;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesBlocks;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesEffects;
 import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesItems;
@@ -30,6 +31,47 @@ final class ServusDelicaciesLanguageProvider extends LanguageProvider {
         sides();
         teller();
         heating();
+        aquarium();
+    }
+
+    /** The aquarium parts, Murky Water, the carrot and bucket messages, the GUI and the JEI pages. */
+    private void aquarium() {
+        add(ServusDelicaciesBlocks.AQUARIUM_FLOOR.get(), "Aquarium Floor");
+        add(ServusDelicaciesBlocks.AQUARIUM_LID.get(), "Aquarium Lid");
+        add("fluid_type." + ServusDelicaciesIds.MOD_ID + "." + DelicaciesFluids.MURKY_WATER_ID, "Murky Water");
+        add(DelicaciesFluids.MURKY_WATER_BLOCK.get(), "Murky Water");
+        add(DelicaciesFluids.MURKY_WATER_BUCKET.get(), "Murky Water Bucket");
+        add("aquarium." + ServusDelicaciesIds.MOD_ID + ".species.cod", "Cod");
+        add("aquarium." + ServusDelicaciesIds.MOD_ID + ".species.salmon", "Salmon");
+        String message = "message." + ServusDelicaciesIds.MOD_ID + ".aquarium.";
+        add(message + "formed", "Aquarium formed: %s by %s by %s");
+        add(message + "no_tank", "No Fluid Tank rests on this part");
+        add(message + "floor_missing", "Aquarium Floor blocks must cover the whole bottom of the tank");
+        add(message + "lid_missing", "The lid does not cover the tank: lay an Aquarium Lid on every column");
+        add(message + "not_water", "The tank must hold water or nothing");
+        add(message + "status", "Aquarium %s by %s by %s: %s of %s fish, water %s%%");
+        add(message + "loose", "Not part of an aquarium");
+        add(message + "form_first", "Form the aquarium with the Configuration Carrot first");
+        add(message + "other_species", "This aquarium keeps %s");
+        add(message + "full", "The aquarium is full");
+        add(message + "empty", "There is no fish to catch");
+        String gui = "gui." + ServusDelicaciesIds.MOD_ID + ".aquarium";
+        add(gui, "Aquarium");
+        add(gui + ".no_fish", "No fish");
+        add(gui + ".fullness", "%s, %s%% full");
+        add(gui + ".stock", "%s of %s fish");
+        add(gui + ".water_powered", "Water %s%%, powered");
+        add(gui + ".water_unpowered", "Water %s%%, no power");
+        add(gui + ".feed", "Feed");
+        add(gui + ".filter", "Filter");
+        add(gui + ".catch", "Catch");
+        add(gui + ".keep", "Keep");
+        add(gui + ".auto_catch_on", "Auto catch: On");
+        add(gui + ".auto_catch_off", "Auto catch: Off");
+        String jei = "gui." + ServusDelicaciesIds.MOD_ID + ".jei.";
+        add(jei + "aquarium_floor_info", "Lay Aquarium Floor blocks under every column of a Fluid Tank of water and Aquarium Lids on top, then use the Configuration Carrot on a part. Pour cod or salmon in with a fish bucket; seeds in the feed slot, a Carbon Filter and FE through the floor keep them breeding. Fish above the keep level land in the catch slots.");
+        add(jei + "aquarium_lid_info", "Covers the top of an aquarium's tank. A stack used on the tank's top lays a lid on every column at once. Glows while the aquarium has power.");
+        add(jei + "murky_water_info", "Water drained through an aquarium part. It takes the dirt of the fish with it; fresh water poured in keeps the aquarium clean.");
     }
 
     /** The Plate, the plated meals and Properly Full. */

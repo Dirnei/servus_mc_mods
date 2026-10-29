@@ -101,7 +101,8 @@ final class ServusDelicaciesBlockLoot extends BlockLootSubProvider {
     private static List<Block> kitchenBlocks() {
         return List.of(ServusDelicaciesBlocks.STOVE_TILE.get(), ServusDelicaciesBlocks.POT.get(), ServusDelicaciesBlocks.PAN.get(),
                 ServusDelicaciesBlocks.BAKING_OVEN.get(), ServusDelicaciesBlocks.CUTTING_BOARD.get(),
-                ServusDelicaciesBlocks.FERMENTING_CROCK.get());
+                ServusDelicaciesBlocks.FERMENTING_CROCK.get(), ServusDelicaciesBlocks.AQUARIUM_FLOOR.get(),
+                ServusDelicaciesBlocks.AQUARIUM_LID.get());
     }
 
     @Override
