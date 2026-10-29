@@ -6,11 +6,15 @@ The Fluid Outbound is where fluids leave the warehouse: it keeps a configured fl
 ## Requirements
 
 ### Requirement: Two blocks high station
-The Fluid Outbound SHALL be placed, broken and dismantled like the Fluid Inbound: one item placing a station two blocks high facing the player when both spaces are free and the block below has a solid top, both halves removed together, and one dropped item that keeps the tank, the keep, the side configuration and the wood and brings them back when placed.
+The Fluid Outbound SHALL be placed, broken and dismantled like the Fluid Inbound: one item placing a station two blocks high, facing a rail or else the player by the same rule, when both spaces are free and the block below has a solid top, both halves removed together, and one dropped item that keeps the tank, the keep, the side configuration and the wood and brings them back when placed.
 
 #### Scenario: Break keeps the keep
 - **WHEN** a Fluid Outbound keeping 8,000 mB of water is broken and placed again
 - **THEN** it still keeps 8,000 mB of water and holds what it held
+
+#### Scenario: Placed beside a rail
+- **WHEN** a player looking north places a Fluid Outbound with a rail only on the west side of its lower half
+- **THEN** its front faces west, towards the rail
 
 ### Requirement: Buffer tank and keep
 A Fluid Outbound SHALL have one tank of `fluid_station_tank_capacity` mB (in `warehouse.json`, example 16,000). The tank SHALL have a keep entry: a fluid, or none, and an amount from 0 up to the tank's capacity. A tank with a keep fluid SHALL take only that fluid. A tank without a keep fluid SHALL take nothing and SHALL keep what it already holds until it is drained.

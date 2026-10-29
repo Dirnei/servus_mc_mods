@@ -347,15 +347,23 @@ How far a field reaches to each side of its farm rails SHALL be the radius of it
 - **THEN** the head and both upgrades drop
 
 ### Requirement: Field Head wood and facing
-The Field Head SHALL look like a station: board panels in the wood of its recipe under the station iron frame. Its recipe SHALL take planks, the crafted item SHALL carry the wood picked from them, a placed head SHALL show that wood, and the drop of a broken head SHALL carry it again. The head SHALL have a horizontal facing, and its front SHALL face the player who places it.
+The Field Head SHALL look like a station: board panels in the wood of its recipe under the station iron frame. Its recipe SHALL take planks, the crafted item SHALL carry the wood picked from them, a placed head SHALL show that wood, and the drop of a broken head SHALL carry it again. The head SHALL have a horizontal facing. On placement its front, with the ripe share bar, SHALL turn to a Farm Rail by the shared rail facing rule (see `shuttles/rail-facing`), and SHALL face the player when no Farm Rail decides it or the player sneaks. The facing SHALL NOT change which Farm Rail the head serves: it serves one on any side as before.
 
 #### Scenario: Wood from the recipe
 - **WHEN** a player crafts a Field Head with birch planks
 - **THEN** the item names birch as its wood, the placed head shows birch boards, and breaking it drops a Field Head with birch
 
 #### Scenario: Front faces the player
-- **WHEN** a player looking north places a Field Head
+- **WHEN** a player looking north places a Field Head with no Farm Rail beside it
 - **THEN** the head's front faces south, toward the player
+
+#### Scenario: Front faces the farm rail
+- **WHEN** a player looking north places a Field Head just south of a Farm Rail
+- **THEN** the head's front and its ripe share bar face north, toward the rail
+
+#### Scenario: Sneak placed head still serves
+- **WHEN** a player sneaks and places a Field Head with its back to a Farm Rail
+- **THEN** the front faces the player and the head serves the field of that rail
 
 ### Requirement: Ripe share bar
 The front of the Field Head SHALL show a ripe share bar in its lower panel: a small dark window that fills from the left with wheat gold in a few steps as the ripe share of the planted plots approaches the head's harvest threshold, and that is full and green while a harvest is due. The ripe share shown SHALL be empty when nothing is ripe or the head serves no field. The head SHALL change the ripe share shown only when its ripe count, planted count, crop, harvest only mode or threshold changes, never by looking at the field per tick. While the head has a problem, the same problems that put a red marker on a tab of its GUI (it serves no field, its work status is a warning such as no controller, no crop, no Harvester shuttle or no way to the field, the field is dry or corroded, or the fertilizing is held up), the bar SHALL be full and red instead, so the player sees it without opening the GUI; once the problem is gone the bar SHALL show the ripe share again. The head SHALL notice problems that come from the warehouse (controller, shuttles, the way to the field) within about a second, by asking its warehouse now and then, not by looking at the field.

@@ -44,7 +44,7 @@
 ## 7. Wrap up
 
 - [x] 7.1 Add Unreleased lines to `shuttles/CHANGELOG.md`: Changed stations, racks and the Field Head turn to the rail when placed (sneak to face yourself); Added rack layer on a section top click and sneak row extension; Changed blocks in hand place against warehouse blocks instead of opening their GUI. Run `gradlew build`.
-- [ ] 7.2 Full `gradlew build` and `gradlew test` green, the game launches with all mods; play check with the user: build a small warehouse from the aisle without sneaking, a rack wall with layers and the row assist, a Field Head beside a Farm Rail, sneak placements, garage unchanged.
+- [x] 7.2 Full `gradlew build` and `gradlew test` green, the game launches with all mods; play check with the user: build a small warehouse from the aisle without sneaking, a rack wall with layers and the row assist, a Field Head beside a Farm Rail, sneak placements, garage unchanged. (Play checked by the user on 2026-10-29.)
   - Note: `build`, `test`, `:shuttles:runGameTestServer` (1126) and `:foundation:runGameTestServer` (253) are green; the play check with the user is open.
 
 ## Workflow follow-up

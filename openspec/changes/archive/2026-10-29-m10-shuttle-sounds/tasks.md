@@ -49,7 +49,7 @@
 ## 10. Play check and wrap up
 
 - [x] 10.1 Add Unreleased lines to `shuttles/CHANGELOG.md`: Added drive sound and Muffler (shuttle and garage); Changed workshop shuttle turns, Build now and Build by hand are one Build button with Skip. Run `gradlew build`.
-- [ ] 10.2 Full `gradlew build` and `gradlew test` green, the game launches with all mods; play check with the user: loudness and range against a vanilla minecart, ten shuttles with only four sounding, both Muffler places, turntable and drag, Build then Skip, Build through all steps and Engrave. Tune volume numbers in the sounds provider if asked and rebuild.
+- [x] 10.2 Full `gradlew build` and `gradlew test` green, the game launches with all mods; play check with the user: loudness and range against a vanilla minecart, ten shuttles with only four sounding, both Muffler places, turntable and drag, Build then Skip, Build through all steps and Engrave. Tune volume numbers in the sounds provider if asked and rebuild. (Play checked by the user on 2026-10-29.)
 
 ## Workflow follow-up
 

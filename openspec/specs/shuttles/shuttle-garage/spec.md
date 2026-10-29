@@ -112,6 +112,8 @@ The garage's back SHALL have an open doorway, 12 by 12 pixels with the rail runn
 - otherwise, when exactly one warehouse rail lies beside it, the doorway SHALL face that rail;
 - otherwise the front SHALL face the player who placed it, like other storage blocks.
 
+This is the shared rail facing rule (see `shuttles/rail-facing`); a garage placed while sneaking SHALL skip it and face its front to the player.
+
 #### Scenario: Placed from the aisle
 - **WHEN** a player standing in the aisle places a garage against the aisle's rail
 - **THEN** the doorway faces the rail behind the garage and the lamp faces the player
@@ -134,6 +136,10 @@ The garage's back SHALL have an open doorway, 12 by 12 pixels with the rail runn
 
 #### Scenario: No rail beside it
 - **WHEN** a player looking north places a garage on the floor with no rail beside it
+- **THEN** the front faces the player, so the doorway faces north
+
+#### Scenario: Sneaking skips the rail
+- **WHEN** a player looking north sneaks and places a garage on the floor with a rail only on its west side
 - **THEN** the front faces the player, so the doorway faces north
 
 #### Scenario: Carrot turns it after placement
@@ -183,3 +189,22 @@ A parked shuttle SHALL try again when room may have appeared (a rack joins, a zo
 #### Scenario: Room appears
 - **WHEN** a new rack joins the warehouse while a shuttle is parked with 44 cobblestone
 - **THEN** the shuttle drives out, puts the 44 cobblestone into the new rack and the garage lamp is no longer red
+
+### Requirement: Garage Muffler slot
+The garage GUI SHALL have one Muffler slot that takes only a Muffler, one item. While it holds a Muffler, every shuttle of the garage SHALL be muffled, inside or out on a job. The Muffler SHALL be saved with the garage, SHALL drop as an item when the garage is broken or dismantled with the Configuration Carrot. The Muffler slot SHALL never hold a shuttle, and taking the Muffler out SHALL always be allowed.
+
+#### Scenario: Put a Muffler in
+- **WHEN** a player puts a Muffler into the garage's Muffler slot
+- **THEN** every shuttle of the garage plays the damped drive sound
+
+#### Scenario: Only a Muffler fits
+- **WHEN** a player tries to put a Speed Upgrade into the Muffler slot
+- **THEN** it does not go in
+
+#### Scenario: Saved with the garage
+- **WHEN** a garage with a Muffler is reloaded with the world
+- **THEN** it still holds the Muffler and its shuttles are still muffled
+
+#### Scenario: Broken empty garage
+- **WHEN** a player breaks an empty garage that holds a Muffler
+- **THEN** the garage and the Muffler drop as items
