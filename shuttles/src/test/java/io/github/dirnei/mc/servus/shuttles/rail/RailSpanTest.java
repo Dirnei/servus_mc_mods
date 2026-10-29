@@ -79,11 +79,19 @@ class RailSpanTest {
     }
 
     @Test
-    void overhangFromAHungRailFalls() {
+    void overhangOfOneFromAHungRailHolds() {
         line("HF");
         Verdict<String> verdict = check("r1");
+        assertTrue(verdict.holds());
+        assertTrue(verdict.drop().isEmpty());
+    }
+
+    @Test
+    void overhangOfTwoFromAHungRailFalls() {
+        line("HFF");
+        Verdict<String> verdict = check("r2");
         assertFalse(verdict.holds());
-        assertEquals(Set.of("r0", "r1"), verdict.drop());
+        assertEquals(Set.of("r0", "r1", "r2"), verdict.drop());
     }
 
     @Test

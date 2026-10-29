@@ -11,7 +11,8 @@ Players found the Fluid Gantry hard to understand: one frame with two tanks, thr
   - Each section holds one fluid in one shared tank of `capacity_per_bay` per bay (in the new `data/<ns>/shuttles/fluid_rack.json`, example 16,000 mB). A glass front shows the fluid level.
   - It has the blackened iron frame, the boards in the crafting wood and the ladder sides of the item rack.
 - **No GUI.** A bucket by hand fills or empties the section. The Data Potato prints a report.
-- **One port per section:** on the centre bay of three, on the left bay of two (seen from the front), and on the only bay of one. A section joins the warehouse only through a rail in front of its port bay, and rails dock onto that bay's front only.
+- **One port per section:** on the centre bay of three, on the left bay of two (seen from the front), and on the only bay of one. A section joins the warehouse only through a rail in front of its port bay, and rails dock onto that bay's front only. Every bay's front holds up a hung rail, so rails run along the whole section.
+- **Rail overhang:** one free rail may hang one block past a hung rail, so a rail run along a rack front reaches one past its end.
 - **Pipe access:** a section with no rail in front of its port is a plain tank for pipes on every side of every bay. A docked section is reached only by Tankers.
 - **Zone Label:**
   - Stamping one bay zones the whole section and shows the zone name on its top beam.
@@ -38,6 +39,7 @@ Players found the Fluid Gantry hard to understand: one frame with two tanks, thr
   - The stop time moves to `warehouse.json`.
 - `shuttles/storage-fill`: fluid room counts Fluid Rack sections.
 - `shuttles/warehouse-controller`: the Fluids line and its tooltip count Fluid Racks.
+- `shuttles/warehouse-rail`: a single free rail holds with one hung rail beside it, an overhang of one.
 
 ## Impact
 

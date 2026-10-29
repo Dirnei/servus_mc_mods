@@ -205,6 +205,27 @@ public final class FluidRackGameTests {
         });
     }
 
+    /** Rails hang in front of every bay of a raised section; only the port bay's rail docks. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void railsHangAlongRaisedSection(GameTestHelper helper) {
+        BlockPos[] bays = {new BlockPos(3, 4, 3), new BlockPos(4, 4, 3), new BlockPos(5, 4, 3)};
+        FluidRackFixtures.row(helper, FRONT, bays);
+        helper.runAfterDelay(2, () -> {
+            for (BlockPos bay : bays) {
+                WarehouseFixtures.rail(helper, bay.relative(FRONT));
+            }
+            helper.runAfterDelay(5, () -> {
+                for (int i = 0; i < bays.length; i++) {
+                    BlockPos rail = bays[i].relative(FRONT);
+                    helper.assertTrue(helper.getBlockState(rail).getBlock() instanceof RailBlock, "rail " + i + " should hang");
+                    helper.assertTrue(helper.getBlockState(rail).getValue(RailBlock.dock(FRONT.getOpposite())) == (i == 1),
+                            "only the middle rail docks");
+                }
+                helper.succeed();
+            });
+        });
+    }
+
     /** A water bucket on the front fills the section and leaves an empty bucket; the empty bucket takes it back. */
     @ServusGameTest(timeoutTicks = 40)
     public static void bucketFillsAndEmpties(GameTestHelper helper) {

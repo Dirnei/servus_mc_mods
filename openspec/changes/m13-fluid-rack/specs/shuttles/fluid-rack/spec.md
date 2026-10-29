@@ -60,6 +60,13 @@ A Fluid Rack section SHALL be a stock holding member of the warehouse network on
 - **WHEN** a three bay section has a rail of an online warehouse only in front of its left bay
 - **THEN** the rail shows no dock, the section is not part of the warehouse and its fluid is not stock
 
+### Requirement: Every bay holds a rail
+Every bay SHALL hold up a rail hung on its front as the Heavy Duty Rack does, so rails hang along the whole section. Only the port bay SHALL dock.
+
+#### Scenario: Rails hang along the section
+- **WHEN** a three bay section stands raised with air below its front and a player places rails in front of all three bays
+- **THEN** all three rails stay and only the middle rail shows a dock
+
 ### Requirement: Sections are fluid stock
 Every Fluid Rack section that belongs to a warehouse SHALL be part of its fluid stock, next to Storage gantry tanks: the warehouse SHALL know per section its zone, fluid, amount and capacity. A change of a section (by bucket, by shuttle, by a pipe while standalone, by a bay joining or leaving) SHALL reach the warehouse within a second, without polling every tick.
 

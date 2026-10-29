@@ -221,6 +221,13 @@ public class FluidRackBlockEntity extends StorageNodeBlockEntity {
                 && side == Conversions.toSide(state.getValue(FluidRackBlock.FACING));
     }
 
+    /** Every bay holds a rail on its front, so rails run along the whole section. */
+    @Override
+    public boolean holdsRail(Side side) {
+        BlockState state = level == null ? getBlockState() : level.getBlockState(worldPosition);
+        return state.getBlock() instanceof FluidRackBlock && side == Conversions.toSide(state.getValue(FluidRackBlock.FACING));
+    }
+
     /** Another Fluid Rack is linked only when this bay joins towards it and both face the same way. */
     @Override
     public boolean linksTowards(Side side, StorageNodeBlockEntity neighbour) {

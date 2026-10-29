@@ -10,8 +10,9 @@ import java.util.function.Function;
  * Whether a gap of free rails holds. Free rails that link to each other form a
  * gap; its span is the free rails plus the hung rails linked to them, its
  * holds are the standing and hung rails linked to them. A gap holds when the
- * span stays within the limit and it has at least two holds; otherwise its
- * free rails and the hung rails linked to them fall.
+ * span stays within the limit and it has at least two holds, or when it is a
+ * single free rail with one hold (an overhang of one); otherwise its free
+ * rails and the hung rails linked to them fall.
  */
 public final class RailSpan {
 
@@ -57,7 +58,8 @@ public final class RailSpan {
                 }
             }
         }
-        if (hung.size() + standing.size() >= 2) {
+        int holds = hung.size() + standing.size();
+        if (holds >= 2 || free.size() == 1 && holds == 1) {
             return new Verdict<>(true, Set.of());
         }
         return new Verdict<>(false, drop(free, hung));

@@ -52,6 +52,7 @@ The section is found with `RackSection.bays(...)` on the new block's flags. It i
 ### Port and network membership
 
 - `acceptsRail(side)`: the front side, and only while the bay is the port bay (`PORT`).
+- `holdsRail(side)`, new on `StorageNodeBlockEntity` and `acceptsRail` by default: the front side of any bay. `RailBlock.isAnchor` asks `holdsRail`, so rails hang along the whole section, while docking, links and the pipe lock stay on `acceptsRail`.
 - When `PORT` changes on a section change, the old and new port bays call `refreshLinks()`. The rail at the old port then loses its dock arm.
 - `WarehouseConnectionRule`:
   - `FLUID_RACK` is `railOnly` and links to `RAIL` and to `FLUID_RACK` within its section, through `linksTowards`, as `RACK` does;
@@ -81,6 +82,11 @@ The accepts check is "the lock or the zone allows it". `readGantries()` becomes 
 3. empty and accepting.
 
 `FluidRestockPlan.sources` takes the same views. `GantryTanks` stays for the gantry's own lock rules until the gantry goes.
+
+### Rail overhang of one
+
+- The play check found that a rail run along a rack front could not reach one block past the rack's end, since that rail is free and a gap needs two holds.
+- `RailSpan.check`: a gap of exactly one free rail also holds with a single hold. This applies to any hung rail, so a floor run reaches two blocks past a ledge (one hung off the standing rail, one free) and an elevator segment takes one rail beyond its hung rail.
 
 ### Tanker stop and coupling
 

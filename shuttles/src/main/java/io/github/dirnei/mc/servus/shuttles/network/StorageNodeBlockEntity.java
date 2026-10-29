@@ -191,6 +191,11 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         return true;
     }
 
+    /** Whether a rail on that side hangs on this node; the sides it docks on by default. */
+    public boolean holdsRail(Side side) {
+        return acceptsRail(side);
+    }
+
     /** What this node is for linking: stock holding blocks by default. */
     public NodeKind kind() {
         return NodeKind.STOCK;

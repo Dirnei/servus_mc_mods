@@ -143,7 +143,7 @@ public final class RailPlacementGameTests {
         });
     }
 
-    /** In a four block gap the first free rail drops with the hung rail it touches; the far hung rail stays. */
+    /** In a four block gap one free rail stays as an overhang; a rail off the other side closes the gap and drops all four. */
     @ServusGameTest(timeoutTicks = 40)
     public static void fourBlockGapCannotBeBridged(GameTestHelper helper) {
         hangRack(helper, 1, 2, Direction.EAST);
@@ -152,10 +152,15 @@ public final class RailPlacementGameTests {
         hangRail(helper, 5, 2);
         helper.runAfterDelay(3, () -> {
             hangRail(helper, 3, 2);
-            helper.runAfterDelay(5, () -> {
-                helper.assertFalse(railAt(helper, 2, 2) || railAt(helper, 3, 2), "the overhang should drop");
-                helper.assertTrue(railAt(helper, 5, 2), "the far hung rail should stay");
-                helper.succeed();
+            helper.runAfterDelay(3, () -> {
+                helper.assertTrue(railAt(helper, 2, 2) && railAt(helper, 3, 2), "the first rail should stay as an overhang");
+                hangRail(helper, 4, 2);
+                helper.runAfterDelay(5, () -> {
+                    for (int x = 2; x <= 5; x++) {
+                        helper.assertFalse(railAt(helper, x, 2), "rail " + x + " should drop with the gap");
+                    }
+                    helper.succeed();
+                });
             });
         });
     }
@@ -188,17 +193,26 @@ public final class RailPlacementGameTests {
         });
     }
 
-    /** A free rail beside a hung rail and nothing else drops both. */
+    /** A row hung along three racks reaches one free rail past their end; a second one drops both and the last hung rail. */
     @ServusGameTest(timeoutTicks = 40)
-    public static void overhangCollapses(GameTestHelper helper) {
-        hangRack(helper, 1, 2, Direction.EAST);
-        hangRail(helper, 2, 2);
+    public static void overhangOfOneHolds(GameTestHelper helper) {
+        for (int x = 1; x <= 3; x++) {
+            hangRack(helper, x, 2, Direction.SOUTH);
+            hangRail(helper, x, 3);
+        }
         helper.runAfterDelay(3, () -> {
-            helper.assertTrue(railAt(helper, 2, 2), "the hung rail should stay on its own");
-            hangRail(helper, 3, 2);
-            helper.runAfterDelay(5, () -> {
-                helper.assertFalse(railAt(helper, 2, 2) || railAt(helper, 3, 2), "the overhang should drop both rails");
-                helper.succeed();
+            hangRail(helper, 4, 3);
+            helper.runAfterDelay(3, () -> {
+                for (int x = 1; x <= 4; x++) {
+                    helper.assertTrue(railAt(helper, x, 3), "rail " + x + " should stay");
+                }
+                hangRail(helper, 5, 3);
+                helper.runAfterDelay(5, () -> {
+                    helper.assertFalse(railAt(helper, 3, 3) || railAt(helper, 4, 3) || railAt(helper, 5, 3),
+                            "a second overhang should drop both free rails and the hung rail");
+                    helper.assertTrue(railAt(helper, 1, 3) && railAt(helper, 2, 3), "the other hung rails should stay");
+                    helper.succeed();
+                });
             });
         });
     }
@@ -333,7 +347,7 @@ public final class RailPlacementGameTests {
         });
     }
 
-    /** Sneak extending a lone hung rail into the air drops both, as a hand placed overhang would. */
+    /** Sneak extending a lone hung rail into the air twice drops all three, as hand placed overhangs would. */
     @ServusGameTest(timeoutTicks = 40)
     public static void sneakRailOverhangCollapses(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -342,8 +356,11 @@ public final class RailPlacementGameTests {
         helper.runAfterDelay(3, () -> {
             sneakRail(helper, player, new BlockPos(2, HANG_Y, 2), Direction.UP, 0.9, 0.5);
             helper.assertTrue(railAt(helper, 3, 2), "the rail should be placed beyond the hung rail");
+            sneakRail(helper, player, new BlockPos(2, HANG_Y, 2), Direction.UP, 0.9, 0.5);
+            helper.assertTrue(railAt(helper, 4, 2), "the second rail should be placed beyond the first");
             helper.runAfterDelay(5, () -> {
-                helper.assertFalse(railAt(helper, 2, 2) || railAt(helper, 3, 2), "the overhang should drop both rails");
+                helper.assertFalse(railAt(helper, 2, 2) || railAt(helper, 3, 2) || railAt(helper, 4, 2),
+                        "the double overhang should drop all three rails");
                 helper.succeed();
             });
         });

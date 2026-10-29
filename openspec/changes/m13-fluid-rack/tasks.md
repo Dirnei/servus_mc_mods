@@ -103,6 +103,12 @@
     - head and tube (y 12.55 to 13.45, z 5.05 to 5.95, x from head x0 + 0.3 to 4.4): the tube's y and z faces are 0.2 inside the head's and 0.25 inside the collar's; its ends lie inside the head and inside the collar (x 4.4 matches no other face).
     - while sliding, the head's two x faces pass the collar's x 3.9 plane, the band's x 4.3 plane and the frame's x 4.2 and 4.6 planes for a single frame each; they never rest there. Extended, the head's outer face ends 0.005 px short of the block edge, the rack's front plane.
 
+- [x] 4.4 Rails along the rack:
+  - add `StorageNodeBlockEntity.holdsRail(side)` (default `acceptsRail`), override it in `FluidRackBlockEntity` for the front of any bay, and use it in `RailBlock.isAnchor`;
+  - in `RailSpan.check`, let a gap of a single free rail hold with one hold.
+
+  Add `RailSpanTest` cases: a lone free rail beside one hung rail holds; two free rails with one hold fall; a four block gap between two hung rails still falls. Add GameTests: rails hang in front of all three bays of a raised fluid section with one dock; a rail one past a raised Heavy Duty Rack's end stays; a second rail beyond it drops all three. Verify with `gradlew :shuttles:build`, `gradlew :shuttles:test` and `gradlew :shuttles:runGameTestServer`.
+
 ## 5. Look, controller, docs
 
 - [x] 5.1 Add `FluidRackModels` datagen (posts, beams, boards with the wood skin, glass pane, port flange) and the `FluidRackRenderer` (fluid level in steps, zone name on the port bay's top beam). Move the gantry column drawing to a shared `FluidColumn` helper used by both renderers. Add lang, loot and the pickaxe tag. List the overlapping box pairs and their plane checks in the task notes. Verify with `gradlew :shuttles:runData` and `gradlew :shuttles:build`.
