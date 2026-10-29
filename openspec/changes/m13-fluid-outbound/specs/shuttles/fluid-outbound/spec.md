@@ -22,16 +22,31 @@ A Fluid Outbound SHALL have one tank of `fluid_station_tank_capacity` mB (in `wa
 - **WHEN** the tank holds 3,000 mB of lava and its keep fluid is cleared
 - **THEN** the lava stays in the tank and can still be drained, and nothing new goes in
 
-### Requirement: Keep cell in the GUI
-The GUI SHALL show one keep cell above the tank's gauge. Clicking the cell with a filled fluid container on the cursor SHALL set that fluid as the keep fluid without using the container; clicking it with an empty cursor SHALL clear it. Buttons under the gauge SHALL change the keep amount by -1 B, +1 B, -10 B and +10 B, limited to 0 and the tank's capacity.
+### Requirement: Keep row in the GUI
+Above the gauge the GUI SHALL show a keep fluid picker: a button with the keep fluid and its icon, or "Keep nothing", opening a popup with a search field over "Keep nothing" and every registered source fluid with its icon. A pick SHALL set the keep fluid; "Keep nothing" SHALL clear it. While the popup is open nothing else SHALL react. Buttons under the gauge SHALL step the keep amount by -1 B, +1 B, -10 B and +10 B within 0 and the capacity.
 
 #### Scenario: Set a keep
-- **WHEN** a player clicks the keep cell with a water bucket on the cursor and then presses +1 B eight times
-- **THEN** the station keeps 8,000 mB of water and the player still holds the water bucket
+- **WHEN** a player opens the picker, types "wat", picks Water and then presses +1 B eight times
+- **THEN** the station keeps 8,000 mB of water
+
+#### Scenario: Keep nothing
+- **WHEN** the station keeps water and the player picks "Keep nothing"
+- **THEN** the station keeps nothing and the step buttons do nothing
 
 #### Scenario: Limited to the capacity
 - **WHEN** a keep stands at 16,000 mB in a tank of 16,000 mB and the player presses +10 B
 - **THEN** it stays at 16,000 mB
+
+### Requirement: Keep fluid from a container or by id
+A click on the picker button with a filled fluid container on the cursor SHALL keep that container's fluid, leave the container on the cursor and open no popup. The server SHALL ignore a pick that names no registered source fluid.
+
+#### Scenario: Container shortcut
+- **WHEN** a player clicks the picker button with a lava bucket on the cursor
+- **THEN** the station keeps lava, no popup opens and the player still holds the lava bucket
+
+#### Scenario: Unknown fluid refused
+- **WHEN** the server gets a pick naming a fluid id that is not registered
+- **THEN** the keep stays as it was
 
 ### Requirement: Fluid sides hand fluid out
 The station SHALL have only a Fluids side layer with the modes Push, Output and Off, shared by both halves as on the Fluid Inbound, the back on Push by default, the other sides Off, and the front fixed. With one tank, every Fluids side SHALL reach that tank and offer no tank choice. Push and Output sides SHALL let neighbours drain the tank and SHALL refuse fills; a Push side SHALL push into the neighbour at `push_interval`, fluid the neighbour refuses staying in the tank.
@@ -63,7 +78,7 @@ The station SHALL carry a connection lamp lit only while a rail links it to an o
 - **THEN** the lamp is red and the GUI says no Tanker shuttle reaches it
 
 ### Requirement: Station GUI
-Right clicking either half with an empty hand or an item other than a fluid container, the Data Potato and the carrot SHALL open a GUI with the keep cell, one gauge with a mark at the keep amount, the side panel with only the Fluids layer, the state line and the player inventory.
+Right clicking either half with an empty hand or an item other than a fluid container, the Data Potato and the carrot SHALL open a GUI with the keep fluid picker, one gauge with a mark at the keep amount, the side panel with only the Fluids layer, the state line and the player inventory.
 
 #### Scenario: Keep mark
 - **WHEN** the station keeps 8,000 mB of water and holds 5,200 mB

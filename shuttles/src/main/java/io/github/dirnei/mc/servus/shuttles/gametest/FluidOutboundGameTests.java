@@ -9,14 +9,19 @@ import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidKeep;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidOutboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationBlock;
+import io.github.dirnei.mc.servus.shuttles.fluidstation.SetFluidKeepPayload;
 import io.github.dirnei.mc.servus.shuttles.menu.FluidOutboundMenu;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
+import io.netty.buffer.Unpooled;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -35,7 +40,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 /**
  * The Fluid Outbound as a block: placing, the drop keeping the keep,
  * the tank guarded by its keep fluid, sides that hand fluid out and take
- * none in, not being stock, the keep cell in the GUI, buckets and the potato.
+ * none in, not being stock, the keep picker payload, buckets and the potato.
  * Stations here face north, so a player in front sees east on the left; the
  * station's back is south.
  */
@@ -196,23 +201,49 @@ public final class FluidOutboundGameTests {
         });
     }
 
-    /** A water bucket on the cursor sets the keep and stays on the cursor; eight +1 B make 8000 mB. */
+    /** Picking water sets the keep; eight +1 B make 8000 mB; picking nothing clears it and keeps the amount at 0. */
     @ServusGameTest(timeoutTicks = 40)
-    public static void keepSetByCellWithBucket(GameTestHelper helper) {
+    public static void keepSetByPicker(GameTestHelper helper) {
         FluidOutboundBlockEntity station = place(helper);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         FluidOutboundMenu menu = new FluidOutboundMenu(1, player.getInventory(), station);
-        menu.setCarried(new ItemStack(Items.WATER_BUCKET));
-        menu.setKeepFromCarried();
+        helper.assertTrue(menu.pickKeep(Optional.of(Identifier.withDefaultNamespace("water"))), "water is a keepable fluid");
         for (int press = 0; press < 8; press++) {
             menu.clickMenuButton(player, FluidOutboundMenu.keepButton(PLUS_ONE));
         }
         helper.assertTrue(station.keep().equals(new FluidKeep<>(Fluids.WATER, 8000)), "the station keeps 8000 mB of water, got " + station.keep());
-        helper.assertTrue(menu.getCarried().is(Items.WATER_BUCKET), "the water bucket stays on the cursor");
         helper.assertTrue(menu.keep().equals(station.keep()), "the menu shows the keep");
-        menu.setCarried(ItemStack.EMPTY);
-        menu.setKeepFromCarried();
-        helper.assertTrue(!station.keep().isSet(), "an empty cursor clears the keep");
+        helper.assertTrue(menu.pickKeep(Optional.empty()), "nothing is a valid pick");
+        helper.assertTrue(!station.keep().isSet(), "picking nothing clears the keep, got " + station.keep());
+        helper.succeed();
+    }
+
+    /** An id that names no fluid, or a flowing fluid, is refused and leaves the keep as it was. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void unknownKeepFluidRefused(GameTestHelper helper) {
+        FluidOutboundBlockEntity station = place(helper);
+        station.setKeepFluid(Fluids.WATER);
+        station.stepKeep(4000);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        FluidOutboundMenu menu = new FluidOutboundMenu(1, player.getInventory(), station);
+        FluidKeep<Fluid> before = station.keep();
+        helper.assertTrue(!menu.pickKeep(Optional.of(Identifier.fromNamespaceAndPath("servus_test", "no_such_fluid"))), "an unknown id is refused");
+        helper.assertTrue(!menu.pickKeep(Optional.of(Identifier.withDefaultNamespace("flowing_lava"))), "a flowing fluid is refused");
+        helper.assertTrue(!menu.pickKeep(Optional.of(Identifier.withDefaultNamespace("empty"))), "the empty fluid is refused");
+        helper.assertTrue(station.keep().equals(before), "the keep stays " + before + ", got " + station.keep());
+        helper.succeed();
+    }
+
+    /** The payload carries the fluid id through its codec unchanged, and nothing as nothing. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void keepPayloadRoundTrip(GameTestHelper helper) {
+        for (SetFluidKeepPayload payload : List.of(new SetFluidKeepPayload(Optional.of(Identifier.withDefaultNamespace("water"))),
+                new SetFluidKeepPayload(Optional.empty()))) {
+            RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
+            SetFluidKeepPayload.STREAM_CODEC.encode(buf, payload);
+            SetFluidKeepPayload decoded = SetFluidKeepPayload.STREAM_CODEC.decode(buf);
+            helper.assertTrue(decoded.equals(payload), "the payload " + payload + " comes back as " + decoded);
+        }
         helper.succeed();
     }
 

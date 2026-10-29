@@ -15,7 +15,7 @@ This change finishes the M13 Fluid logistics rewrite in PLAN.md. After the Fluid
 - **Restock by tanker:** every `fluid_check_interval` the warehouse restocks each kept tank from Fluid Racks, with the rules of today's Export restock runs. The tanker docks its coupling into the port.
 - **Lamps and GUI:**
   - Activity lamp: green when every keep is met, orange while runs are on their way, red when a fluid is missing from storage or no Tanker reaches the station.
-  - GUI: keep cell, one gauge, the Fluids side panel and a state line.
+  - GUI: a keep fluid picker with search, one gauge, the Fluids side panel and a state line.
   - Buckets work by hand, and the Data Potato prints the tank and its keep.
 - **Recipe:** an Outbound Station on top of a Fluid Tank, keeping the station's wood.
 - **BREAKING: the Fluid Gantry is removed.** That covers the block, the item, the recipe, `gantry.json`, its GUI, renderer, textures, lang, GameTests and the spout animation. A gantry placed in an existing world disappears with its fluid. The changelog tells players to empty their gantries before they update.

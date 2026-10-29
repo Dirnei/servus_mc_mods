@@ -40,11 +40,14 @@ Push and Output sides drain through `FluidSideHandler`, which refuses fills beca
 
 The keep is saved as `"KeepFluid"` and `"KeepAmount"`, kept on the dropped item, and read by the side panel label.
 
-### Keep cell in the GUI
+### Keep picker in the GUI
 
-- `FluidOutboundMenu` has one ghost keep cell above the gauge.
-  - Clicking a cell with a cursor stack that is a filled container reads its fluid through `Capabilities.Fluid.ITEM` on a copy and sends `SetFluidKeepPayload(tank, fluid, amount)`. An empty cursor clears the cell.
-  - The step buttons use the Foundation number stepper widget that the gantry keep steps use today, at -1 B, +1 B, -10 B and +10 B.
+- `FluidOutboundScreen` has Foundation's `ItemPicker` above the gauge (110 by 18 px, centred), as the removed gantry lock picker had.
+  - Its entries are "Keep nothing" (the picker's none entry) and `PickerEntries.sourceFluids()`: every registered source fluid but empty, drawn with its still texture. `PickerEntries` is a new public Foundation helper; the duct fluid filter picker builds from it too, so both list the same fluids with the same name fallback.
+  - A pick sends `SetFluidKeepPayload(Optional<Identifier> fluid)`, empty for "Keep nothing". The server (`FluidOutboundMenu.pickKeep`) clears the keep on empty and otherwise looks the id up with `keepableFluid`: a registered fluid that is not empty and is a source. Any other id changes nothing.
+  - Shortcut: a left click on the picker button while the cursor holds a filled fluid container reads the fluid on the client with `Transfer.fluidOf` (`Capabilities.Fluid.ITEM`) and sends its id in the same payload, so the server validates it the same way. The container stays on the cursor.
+  - While the popup is open the screen hands every mouse and key event to the picker and draws the rest with the mouse at `-1, -1`, as the gantry screen did.
+  - The step buttons are plain buttons at -1 B, +1 B, -10 B and +10 B.
 - The server clamps the amount to `[0, capacity]`.
 - The gauge draws a keep mark as the gantry gauge does.
 
@@ -107,8 +110,9 @@ Released Shuttles versions (0.2.0 and 0.3.0) ship the gantry. After this change 
 ## NeoForge APIs
 
 The same APIs as `m13-fluid-inbound`. In addition:
-- `Capabilities.Fluid.ITEM` reads the keep fluid from the cursor stack;
-- `CustomPacketPayload` with `StreamCodec` for `SetFluidKeepPayload`, registered in `ServusShuttlesPayloads` like `KeepSlotPayload`.
+- `Capabilities.Fluid.ITEM` reads the shortcut fluid from the cursor stack on the client;
+- `CustomPacketPayload` with `StreamCodec` (`ByteBufCodecs.optional(Identifier.STREAM_CODEC)`) for `SetFluidKeepPayload`, registered in `ServusShuttlesPayloads` like `KeepSlotPayload`;
+- `BuiltInRegistries.FLUID.getOptional` and `Fluid.isSource` validate a picked id.
 
 ## Pure and Minecraft parts
 

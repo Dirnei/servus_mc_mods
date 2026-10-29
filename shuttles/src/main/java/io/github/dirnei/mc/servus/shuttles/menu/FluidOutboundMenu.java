@@ -1,7 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.menu;
 
 import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
-import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidKeep;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidOutboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationBlockEntity;
@@ -12,31 +11,33 @@ import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.SimpleContainerData;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The Fluid Outbound's GUI: the keep cell, the gauge with a mark at the keep
- * amount, the amount and four step buttons; the Fluids side panel, the
- * state line and the player inventory. The keep is synced as data slots
- * after the shared ones. A keep cell click comes by {@link SetFluidKeepPayload},
- * the steps are menu buttons {@link #keepButton}.
+ * The Fluid Outbound's GUI: the keep fluid picker, the gauge with a mark at
+ * the keep amount, the amount and four step buttons; the Fluids side panel,
+ * the state line and the player inventory. The keep is synced as data slots
+ * after the shared ones. A pick comes by {@link SetFluidKeepPayload}, the
+ * steps are menu buttons {@link #keepButton}.
  */
 public class FluidOutboundMenu extends FluidStationMenu {
 
     /** The keep steps in mB, in the order of the buttons: the upper row, then the lower row. */
     public static final int[] KEEP_STEPS = {-1000, 1000, -10000, 10000};
-    public static final int CELL_SIZE = 18;
-    public static final int CELL_Y = 17;
-    public static final int GAUGE_Y = CELL_Y + CELL_SIZE + 2;
+    public static final int PICKER_WIDTH = 110;
+    public static final int PICKER_HEIGHT = 18;
+    public static final int PICKER_X = (WIDTH - PICKER_WIDTH) / 2;
+    public static final int PICKER_Y = 17;
+    public static final int GAUGE_Y = PICKER_Y + PICKER_HEIGHT + 2;
     public static final int AMOUNT_Y = GAUGE_Y + GAUGE_HEIGHT + 3;
     public static final int BUTTONS_Y = AMOUNT_Y + 11;
     public static final int BUTTON_HEIGHT = 11;
@@ -89,11 +90,6 @@ public class FluidOutboundMenu extends FluidStationMenu {
         return held != Fluids.EMPTY || kept == null ? held : kept;
     }
 
-    /** The left edge of the keep cell, centred in the column. */
-    public int cellX() {
-        return columnX() + (pitch() - CELL_SIZE) / 2;
-    }
-
     /** The button id that steps the keep by {@code KEEP_STEPS[step]}. */
     public static int keepButton(int step) {
         return step;
@@ -117,21 +113,28 @@ public class FluidOutboundMenu extends FluidStationMenu {
     }
 
     /**
-     * Server: the keep cell was clicked. The fluid of the container on the
-     * cursor becomes the keep fluid, the container stays; an empty cursor
-     * clears the keep, any other item does nothing.
+     * Server: the player picked a keep fluid. Empty clears the keep; an id
+     * that names no registered source fluid changes nothing.
+     *
+     * @return whether the keep was set or cleared
      */
-    public void setKeepFromCarried() {
+    public boolean pickKeep(Optional<Identifier> id) {
         if (!(station() instanceof FluidOutboundBlockEntity outbound)) {
-            return;
+            return false;
         }
-        ItemStack carried = getCarried();
-        if (carried.isEmpty()) {
+        if (id.isEmpty()) {
             outbound.setKeepFluid(null);
-            return;
+            return true;
         }
-        Optional<Fluid> fluid = Transfer.fluidOf(carried);
+        Optional<Fluid> fluid = keepableFluid(id.get());
         fluid.ifPresent(outbound::setKeepFluid);
+        return fluid.isPresent();
+    }
+
+    /** The registered source fluid with that id, the only fluids a station can keep. */
+    public static Optional<Fluid> keepableFluid(Identifier id) {
+        return BuiltInRegistries.FLUID.getOptional(id)
+                .filter(fluid -> fluid != Fluids.EMPTY && fluid.isSource(fluid.defaultFluidState()));
     }
 
     @Override

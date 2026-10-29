@@ -84,6 +84,13 @@
 - [x] 6.1 One keep. `FluidOutboundBlockEntity` keeps one `FluidKeep` (`keep()`, `setKeepFluid`, `stepKeep`), saved as `KeepFluid` and `KeepAmount`; `FluidOutboundMenu` and `FluidOutboundScreen` show one keep cell, one gauge with its mark and one set of step buttons; `SetFluidKeepPayload` carries no tank; the potato line adds the keep. Update `FluidOutboundGameTests` (keep, cleared keep, push, output, keep payload, clamp at 16,000 mB, bucket, potato) and `TankerRestockGameTests`. Verify with `gradlew :shuttles:build` and `gradlew :shuttles:runGameTestServer`.
 - [x] 6.2 Recipe and look. The recipe is an Outbound Station on top of a Fluid Tank as a wood material recipe; the upper half uses the Outbound Station models by lamp state on the shared tank (`FluidStationModels`). Add to the recipe GameTest that a spruce Outbound Station over a Fluid Tank gives a spruce Fluid Outbound. Verify with `gradlew :shuttles:runData`, `gradlew :shuttles:build` and `gradlew :shuttles:runGameTestServer`.
 
+## 7. Keep picker
+
+- [x] 7.1 Add `foundation/.../client/PickerEntries` (`sourceFluids()`, `nameOr`) and build `FilterPickerEntries` on it. Verify with `gradlew :foundation:build`.
+- [x] 7.2 `SetFluidKeepPayload` carries `Optional<Identifier>`; `FluidOutboundMenu.pickKeep` clears on empty and sets only a registered source fluid (`keepableFluid`); `ServusShuttlesPayloads` calls it. Remove `setKeepFromCarried`. Verify with `gradlew :shuttles:compileJava`.
+- [x] 7.3 `FluidOutboundScreen`: replace the keep cell with an `ItemPicker` ("Keep nothing" plus `PickerEntries.sourceFluids()`), the filled container shortcut on the picker button, every input to the open popup only. Lang keys `keep_picker` and `keep_none` replace `keep_cell` and `keep_cell.empty` in `ServusShuttlesLanguageProvider`. Verify with `gradlew :shuttles:runData` and `gradlew :shuttles:build`.
+- [x] 7.4 `FluidOutboundGameTests`: `keepSetByPicker` (water, then nothing clears), `unknownKeepFluidRefused` (unknown id, `flowing_lava`, `empty`), `keepPayloadRoundTrip` (codec with and without an id), replacing `keepSetByCellWithBucket`. Verify with `gradlew :shuttles:runGameTestServer`.
+
 ## Workflow follow-up
 
 - Stacked last, after `m13-fluid-side-modes`, `m13-fluid-rack` and `m13-fluid-inbound`.
@@ -96,7 +103,7 @@
 
 - Build and unit tests are green (foundation 549, shuttles 955, alchemy 267, delicacies 87, brewery 72), and all 1078 GameTests pass, 12 of them in the new `FluidOutboundGameTests`. 5.1 waits for the in game play check.
 - Names and decisions that differ from the design:
-  - The keep cell click sends `SetFluidKeepPayload(tank)` only; the server reads the fluid from the cursor stack itself (`Transfer.fluidOf`, which uses `Capabilities.Fluid.ITEM`), so the client never names the fluid. The amount steps are menu buttons (`FluidOutboundMenu.keepButton`), not part of the payload.
+  - (Replaced by the keep picker in 7.) The keep cell click sends `SetFluidKeepPayload(tank)` only; the server reads the fluid from the cursor stack itself (`Transfer.fluidOf`, which uses `Capabilities.Fluid.ITEM`), so the client never names the fluid. The amount steps are menu buttons (`FluidOutboundMenu.keepButton`), not part of the payload.
   - Foundation has no number stepper widget (the gantry drew its own buttons), so the -1 B, +1 B, -10 B and +10 B buttons are plain buttons in a 2 by 2 grid under each gauge. The PLAN.md point on Foundation widgets for keep steps now names the Fluid Outbound.
   - `FluidKeep<K>` is a generic record (fluid or null, amount) with `clamp`, `step`, `accepts`, `withFluid` and `target`.
   - The station base gained `tankTakes(tank, stack)`, used as each `FluidSlot`'s validator and by `sideTankAccepts`, so buckets, sides and tankers all respect the keep fluid. The Outbound's tanks are `TankRole.ANY`: its modes (Push, Output, Off) already allow no fill from a side, and buckets by hand must fill.
@@ -123,3 +130,8 @@
 - 6.1 and 6.2 are built together with `m13-fluid-inbound` 6.1 to 6.4 (shared base, models and tests); build, unit tests and all GameTests are green, see the notes there.
 - The upper half is the Outbound Station's own models by lamp state on the shared `fluid_station_tank`; its plane check is the one listed in `m13-fluid-inbound` tasks.md.
 - The play check notes above (orange dye, amber band) are outdated; the play check list of `m13-fluid-inbound` covers both stations now.
+
+## Implementation notes (keep picker)
+
+- The keep cell went back to the gantry's searchable dropdown at the user's request. The removed `FluidLockEntries` is not restored: the picker lists source fluids from the new Foundation `PickerEntries`, which the duct fluid filter picker now shares, so fluids show their still texture rather than a bucket and fluids without a bucket are listed too.
+- Play check: open the picker, search, pick Water and "Keep nothing"; click the picker button with a lava bucket on the cursor (keeps lava, no popup, bucket stays); with the popup open the step buttons, side panel and slots do not react.

@@ -122,7 +122,7 @@ public final class ServusShuttlesPayloads {
         toMenu(registrar, SetLabelTagsPayload.TYPE, SetLabelTagsPayload.STREAM_CODEC, ZoneLabelMenu.class,
                 (player, menu, payload) -> menu.setTags(payload.line()));
         toMenu(registrar, SetFluidKeepPayload.TYPE, SetFluidKeepPayload.STREAM_CODEC, FluidOutboundMenu.class,
-                (player, menu, payload) -> menu.setKeepFromCarried());
+                (player, menu, payload) -> menu.pickKeep(payload.fluid()));
         registerTerminalRequests(registrar);
     }
 

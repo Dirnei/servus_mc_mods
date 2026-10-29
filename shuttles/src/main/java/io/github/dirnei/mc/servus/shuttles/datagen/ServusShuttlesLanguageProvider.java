@@ -671,9 +671,8 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("message.servus_shuttles.potato.fluid_station_keeps", ", keeps %s mB of %s");
         add("message.servus_shuttles.potato.fluid_station_keeps_nothing", ", keeps nothing");
         add("gui.servus_shuttles.fluid_station.state.missing", "No Fluid Rack holds %s: the tank is not restocked");
-        add("gui.servus_shuttles.fluid_outbound.keep_cell", "Keeps %s. Click with an empty hand to keep nothing");
-        add("gui.servus_shuttles.fluid_outbound.keep_cell.empty",
-                "Keeps nothing. Click with a filled bucket or tank to keep its fluid here; tankers restock it to the amount below");
+        add("gui.servus_shuttles.fluid_outbound.keep_picker", "Keep fluid");
+        add("gui.servus_shuttles.fluid_outbound.keep_none", "Keep nothing");
         add("gui.servus_shuttles.fluid_outbound.keep_amount", "%s B");
     }
 
