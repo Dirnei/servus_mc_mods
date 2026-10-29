@@ -48,6 +48,11 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
         add("item.servus_foundation.capacity_upgrade.tooltip", "Gives a block more room in capacity upgrade slots");
         add(ServusFoundationItems.HEATING_ELEMENT.get(), "Heating Element");
         add("item.servus_foundation.heating_element.tooltip", "Right click a firebox with it: it runs on FE instead of fuel");
+        add(ServusFoundationItems.CHARCOAL_POWDER.get(), "Charcoal Powder");
+        add(ServusFoundationItems.ACTIVATED_CHARCOAL.get(), "Activated Charcoal");
+        add(ServusFoundationItems.CARBON_FILTER.get(), "Carbon Filter");
+        add(ServusFoundationItems.SPENT_FILTER.get(), "Spent Filter");
+        add("tooltip.servus_foundation.filter.points", "Filter: %s / %s");
         add("message.servus_foundation.data_cable.summary", "Data network: %s cables, %s producers, %s stock");
         add("message.servus_foundation.data_cable.summary_load", "Data network: %s cables, %s producers, %s stock; this duct %s of %s items/s");
         add("commands.servus_foundation.data.move.started", "Delivery %s started: %s %s");

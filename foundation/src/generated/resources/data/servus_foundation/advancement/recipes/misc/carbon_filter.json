@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_activated_charcoal": {
+      "conditions": {
+        "items": [
+          {
+            "items": "servus_foundation:activated_charcoal"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "servus_foundation:carbon_filter"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_activated_charcoal"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "servus_foundation:carbon_filter"
+    ]
+  }
+}

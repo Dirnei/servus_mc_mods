@@ -1,0 +1,9 @@
+{
+  "values": [
+    "#c:crops/wheat",
+    {
+      "id": "#c:flours",
+      "required": false
+    }
+  ]
+}

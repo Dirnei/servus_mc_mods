@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.foundation.datagen;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.mill.MillingRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import java.util.List;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -73,6 +74,7 @@ final class MillingRecipes {
         mill(output, "clay_ball", Ingredient.of(Items.CLAY), Items.CLAY_BALL, 4, QUICK);
         mill(output, "quartz", Ingredient.of(Items.QUARTZ_BLOCK), Items.QUARTZ, 4, SLOW);
         mill(output, "amethyst_shard", Ingredient.of(Items.AMETHYST_BLOCK), Items.AMETHYST_SHARD, 4, SLOW);
+        mill(output, "charcoal_powder", Ingredient.of(Items.CHARCOAL), ServusFoundationItems.CHARCOAL_POWDER.get(), 2, QUICK);
         for (Flower flower : FLOWERS) {
             mill(output, path(flower.dye()) + "_from_" + path(flower.flower()), Ingredient.of(flower.flower()),
                     flower.dye(), 2 * flower.vanillaCount(), QUICK);

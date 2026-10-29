@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.logistics.datagen.LogisticsDataParts;
@@ -12,8 +13,13 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CookingBookCategory;
+import net.minecraft.world.item.crafting.Ingredient;
+import io.github.dirnei.mc.servus.foundation.filter.FilterTags;
 
 final class ServusFoundationRecipeProvider extends RecipeProvider {
 
@@ -100,6 +106,8 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_glass", has(Items.GLASS))
                 .save(output);
 
+        filterRecipes();
+
         LogisticsDataParts.recipes(output, items, this::has);
         MachineDataParts.recipes(output, registries, items, this::has);
 
@@ -114,5 +122,20 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_data_cable", has(ServusLogisticsItems.DATA_CABLE.get()))
                 .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
+    }
+
+    /** Charcoal Powder activated in the Blast Furnace only, and the Carbon Filter bound with starch. */
+    private void filterRecipes() {
+        SimpleCookingRecipeBuilder.blasting(Ingredient.of(ServusFoundationItems.CHARCOAL_POWDER.get()), RecipeCategory.MISC,
+                        CookingBookCategory.MISC, ServusFoundationItems.ACTIVATED_CHARCOAL.get(), 0.1F, 100)
+                .unlockedBy("has_charcoal_powder", has(ServusFoundationItems.CHARCOAL_POWDER.get()))
+                .save(output, ServusFoundationIds.MOD_ID + ":activated_charcoal_from_blasting");
+
+        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.MISC, ServusFoundationItems.CARBON_FILTER.get())
+                .requires(ServusFoundationItems.ACTIVATED_CHARCOAL.get(), 2)
+                .requires(FilterTags.FILTER_BINDERS)
+                .requires(Items.PAPER)
+                .unlockedBy("has_activated_charcoal", has(ServusFoundationItems.ACTIVATED_CHARCOAL.get()))
+                .save(output);
     }
 }

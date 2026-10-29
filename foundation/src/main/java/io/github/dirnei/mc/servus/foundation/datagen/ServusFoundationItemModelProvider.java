@@ -22,6 +22,10 @@ final class ServusFoundationItemModelProvider extends ItemModelProvider {
         basicItem(ServusFoundationItems.CAPACITY_UPGRADE.get());
         basicItem(ServusFoundationItems.HEATING_ELEMENT.get());
         basicItem(MachineContent.ANCHOR_UPGRADE.get());
+        basicItem(ServusFoundationItems.CHARCOAL_POWDER.get());
+        basicItem(ServusFoundationItems.ACTIVATED_CHARCOAL.get());
+        basicItem(ServusFoundationItems.CARBON_FILTER.get());
+        basicItem(ServusFoundationItems.SPENT_FILTER.get());
         LogisticsDataParts.itemModels(this);
     }
 }

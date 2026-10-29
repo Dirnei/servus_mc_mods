@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.filter.FilterTags;
 import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.upgrade.Upgrades;
@@ -8,6 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.ItemTagsProvider;
 
 /** Item tags: the upgrades other mods can join and the stones of the stone material kind. */
@@ -20,6 +22,7 @@ final class ServusFoundationItemTagsProvider extends ItemTagsProvider {
     @Override
     protected void addTags(HolderLookup.Provider provider) {
         tag(Upgrades.TAG).add(ServusFoundationItems.SPEED_UPGRADE.get());
+        tag(FilterTags.FILTER_BINDERS).addTag(Tags.Items.CROPS_WHEAT).addOptionalTag(FilterTags.FLOURS);
         tag(MaterialKind.STONES).add(
                 Items.BRICKS,
                 Items.STONE, Items.SMOOTH_STONE, Items.STONE_BRICKS, Items.MOSSY_STONE_BRICKS, Items.CRACKED_STONE_BRICKS,

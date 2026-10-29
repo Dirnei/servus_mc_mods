@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.registry;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.filter.FilterItem;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.DataPotatoItem;
 import io.github.dirnei.mc.servus.foundation.item.GogglesItem;
@@ -29,6 +30,12 @@ public final class ServusFoundationItems {
 
     public static final DeferredItem<HeatingElementItem> HEATING_ELEMENT =
             ITEMS.registerItem("heating_element", HeatingElementItem::new, () -> new Item.Properties().stacksTo(16));
+
+    public static final DeferredItem<Item> CHARCOAL_POWDER = ITEMS.registerSimpleItem("charcoal_powder");
+    public static final DeferredItem<Item> ACTIVATED_CHARCOAL = ITEMS.registerSimpleItem("activated_charcoal");
+    public static final DeferredItem<FilterItem> CARBON_FILTER =
+            ITEMS.registerItem("carbon_filter", FilterItem::new, () -> new Item.Properties().stacksTo(16));
+    public static final DeferredItem<Item> SPENT_FILTER = ITEMS.registerSimpleItem("spent_filter");
 
     private ServusFoundationItems() {
     }

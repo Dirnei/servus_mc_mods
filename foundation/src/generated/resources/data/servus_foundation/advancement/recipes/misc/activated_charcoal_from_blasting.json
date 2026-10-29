@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_charcoal_powder": {
+      "conditions": {
+        "items": [
+          {
+            "items": "servus_foundation:charcoal_powder"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "servus_foundation:activated_charcoal_from_blasting"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_charcoal_powder"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "servus_foundation:activated_charcoal_from_blasting"
+    ]
+  }
+}

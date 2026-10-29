@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "cookingtime": 100,
+  "experience": 0.1,
+  "ingredient": "servus_foundation:charcoal_powder",
+  "result": {
+    "id": "servus_foundation:activated_charcoal"
+  }
+}

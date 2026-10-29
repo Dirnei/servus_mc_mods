@@ -40,6 +40,12 @@ public final class ServusFoundationComponents {
                     .persistent(UUIDUtil.CODEC)
                     .networkSynchronized(UUIDUtil.STREAM_CODEC));
 
+    /** The used points of a filter; missing means fresh, so fresh filters stack. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> FILTER_USED =
+            COMPONENTS.registerComponentType("filter_used", builder -> builder
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT));
+
     private ServusFoundationComponents() {
     }
 }

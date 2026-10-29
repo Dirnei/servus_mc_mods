@@ -1,0 +1,8 @@
+{
+  "values": {
+    "servus_foundation:carbon_filter": {
+      "points": 512,
+      "spent": "servus_foundation:spent_filter"
+    }
+  }
+}

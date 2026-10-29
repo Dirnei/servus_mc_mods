@@ -33,6 +33,10 @@ public final class ServusFoundationCreativeTabs {
                         output.accept(ServusFoundationItems.SPEED_UPGRADE.get());
                         output.accept(ServusFoundationItems.CAPACITY_UPGRADE.get());
                         output.accept(ServusFoundationItems.HEATING_ELEMENT.get());
+                        output.accept(ServusFoundationItems.CHARCOAL_POWDER.get());
+                        output.accept(ServusFoundationItems.ACTIVATED_CHARCOAL.get());
+                        output.accept(ServusFoundationItems.CARBON_FILTER.get());
+                        output.accept(ServusFoundationItems.SPENT_FILTER.get());
                     })
                     .build());
 

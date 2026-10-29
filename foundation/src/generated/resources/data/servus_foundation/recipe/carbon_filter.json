@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "servus_foundation:activated_charcoal",
+    "servus_foundation:activated_charcoal",
+    "#servus_foundation:filter_binders",
+    "minecraft:paper"
+  ],
+  "result": {
+    "id": "servus_foundation:carbon_filter"
+  }
+}

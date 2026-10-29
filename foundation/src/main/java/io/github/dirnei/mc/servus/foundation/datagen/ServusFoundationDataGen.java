@@ -33,6 +33,7 @@ public final class ServusFoundationDataGen {
         event.addProvider(new ServusFoundationBlockTagsProvider(output, lookup));
         event.addProvider(new ServusFoundationItemTagsProvider(output, lookup));
         event.addProvider(new ServusFoundationRecipeProvider.Runner(output, lookup));
+        event.addProvider(new ServusFoundationDataMapProvider(output, lookup));
         event.addProvider(new LootTableProvider(output, Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(ServusLogisticsBlockLoot::new, LootContextParamSets.BLOCK),
                         new LootTableProvider.SubProviderEntry(AdapterBlockLoot::new, LootContextParamSets.BLOCK),
