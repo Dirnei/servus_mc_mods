@@ -7,7 +7,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-/** The sounds of Shuttles: the drive of a moving shuttle, the Lumber shuttle's chainsaw and its hold and crane folding out and in. */
+/** The sounds of Shuttles: the drive of a moving shuttle, the Lumber shuttle's chainsaw, its hold and crane folding out and in, and the handheld. */
 public final class ServusShuttlesSounds {
 
     public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(Registries.SOUND_EVENT, ServusShuttlesIds.MOD_ID);
@@ -34,6 +34,13 @@ public final class ServusShuttlesSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> HOLD_WALLS_UP = register("hold.walls_up");
     /** The hold's lid doors close. */
     public static final DeferredHolder<SoundEvent, SoundEvent> HOLD_DOORS_SHUT = register("hold.doors_shut");
+
+    /** The handheld scanned a bay; its pitch rises along a sweep. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> HANDHELD_BEEP = register("handheld.beep");
+    /** The handheld's scan changed nothing or found nothing. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> HANDHELD_BUZZ = register("handheld.buzz");
+    /** The handheld switched its mode. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> HANDHELD_CLICK = register("handheld.click");
 
     private ServusShuttlesSounds() {
     }

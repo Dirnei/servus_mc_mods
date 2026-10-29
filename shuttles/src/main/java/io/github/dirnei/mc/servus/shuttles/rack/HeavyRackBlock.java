@@ -12,7 +12,7 @@ import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
-import io.github.dirnei.mc.servus.shuttles.zone.ZoneLabelItem;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -249,7 +249,7 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (stack.getItem() instanceof ConfigurationCarrotItem || stack.getItem() instanceof ZoneLabelItem
+        if (stack.getItem() instanceof ConfigurationCarrotItem || stack.getItem() instanceof HandheldItem
                 || stack.getItem() instanceof DataPotatoItem || hitResult.getDirection() != state.getValue(FACING)) {
             // Only the front opens the rack; elsewhere the held item acts, which places blocks.
             return InteractionResult.PASS;

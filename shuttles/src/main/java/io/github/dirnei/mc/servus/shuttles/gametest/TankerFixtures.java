@@ -9,7 +9,6 @@ import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleModules;
-import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
 import java.util.List;
 import java.util.Optional;
@@ -95,7 +94,7 @@ final class TankerFixtures {
     /** Zones the section of the bay at {@code bay} for that fluid's bucket. */
     static void zone(GameTestHelper helper, BlockPos bay, Item bucket) {
         FluidRackBlock.stampSection(helper.getLevel(), helper.absolutePos(bay),
-                new ZoneDefinition("Zone", new ZoneFilter(List.of(new ItemStack(bucket)), List.of())));
+                ZoneFixtures.zone(helper, "Zone", new ZoneFilter(List.of(new ItemStack(bucket)), List.of())));
     }
 
     /** Fills the station's tank with that much of the fluid, as a pipe or a bucket would. */

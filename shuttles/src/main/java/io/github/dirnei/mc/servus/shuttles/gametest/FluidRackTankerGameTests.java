@@ -7,7 +7,6 @@ import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidInboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidOutboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
 import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleView;
-import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,11 +51,11 @@ public final class FluidRackTankerGameTests {
         return TankerFixtures.network(helper).fluidIndex().count(WATER);
     }
 
-    private static ZoneDefinition waterZone() {
-        return new ZoneDefinition("Cooling", new ZoneFilter(List.of(new ItemStack(Items.WATER_BUCKET)), List.of()));
+    private static int waterZone(GameTestHelper helper) {
+        return ZoneFixtures.zone(helper, "Cooling", new ZoneFilter(List.of(new ItemStack(Items.WATER_BUCKET)), List.of()));
     }
 
-    private static void zone(GameTestHelper helper, BlockPos bay, ZoneDefinition zone) {
+    private static void zone(GameTestHelper helper, BlockPos bay, int zone) {
         FluidRackBlock.stampSection(helper.getLevel(), helper.absolutePos(bay), zone);
     }
 
@@ -185,7 +184,7 @@ public final class FluidRackTankerGameTests {
         BlockPos far = new BlockPos(3, 1, 11);
         FluidRackFixtures.row(helper, FRONT, near, far);
         helper.runAfterDelay(2, () -> {
-            zone(helper, far, waterZone());
+            zone(helper, far, waterZone(helper));
             TankerFixtures.fill(source, Fluids.WATER, 2000);
             Waits.when(helper, () -> FluidRackFixtures.amount(helper, far) == 2000 && TankerFixtures.out(helper) == 0, RUN,
                     () -> "the water reaches the zoned section, got " + FluidRackFixtures.amount(helper, far), () -> {
@@ -203,7 +202,7 @@ public final class FluidRackTankerGameTests {
         BlockPos[] bays = bays(7, 9);
         FluidRackFixtures.row(helper, FRONT, bays);
         helper.runAfterDelay(2, () -> {
-            zone(helper, bays[0], waterZone());
+            zone(helper, bays[0], waterZone(helper));
             TankerFixtures.fill(source, Fluids.LAVA, 2000);
             Waits.when(helper, () -> source.fluidActivity().noRoom() == Fluids.LAVA, 150, () -> "the Inbound names lava as without room", () -> {
                 helper.assertTrue(TankerFixtures.out(helper) == 0 && TankerFixtures.network(helper).queuedJobs() == 0, "no run is queued");
@@ -223,7 +222,7 @@ public final class FluidRackTankerGameTests {
         BlockPos[] bays = bays(9, 11);
         FluidRackFixtures.row(helper, FRONT, bays);
         helper.runAfterDelay(2, () -> {
-            zone(helper, bays[0], waterZone());
+            zone(helper, bays[0], waterZone(helper));
             TankerFixtures.fill(source, Fluids.WATER, 4000);
             Waits.when(helper, () -> TankerFixtures.out(helper) == 1 && TankerFixtures.amount(source) == 0, RUN,
                     () -> "the tanker loads the water", () -> {

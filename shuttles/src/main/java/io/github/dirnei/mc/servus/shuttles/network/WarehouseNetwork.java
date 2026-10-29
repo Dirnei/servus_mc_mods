@@ -89,6 +89,8 @@ import io.github.dirnei.mc.servus.shuttles.terminal.RuleRow;
 import io.github.dirnei.mc.servus.shuttles.zone.PutAwayPlan;
 import io.github.dirnei.mc.servus.shuttles.zone.PutAwayRank;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
+import io.github.dirnei.mc.servus.shuttles.zone.LocationCode;
+import io.github.dirnei.mc.servus.shuttles.zone.Zones;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -161,7 +163,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final Set<NodePos> elevators = new HashSet<>();
     private Map<NodePos, Shaft> shaftFloors = Map.of();
     private boolean shaftsDirty;
-    private final WarehouseZones zones = new WarehouseZones();
+    private final WarehouseZones zones = new WarehouseZones(this::zoneById);
+    /** Every stock block, rack bays and Fluid Rack bays, which carry a location code. */
+    private final Set<BlockPos> codedBays = new HashSet<>();
+    /** Set when the controller or a bay joined or left; the bays' codes are pushed on the next tick. */
+    private boolean codesDirty;
     /** Set when a zone or room changed; stations with waiting stacks retry on the next tick. */
     private boolean zonesDirty;
     /** Inbound, outbound and Packing Stations. */
@@ -256,8 +262,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (node instanceof HeavyRackBlockEntity rack) {
                 reservedOut.set(blockPos, rack.items().outLocked());
             }
-            zones.set(blockPos, node.zoneDefinition());
+            zones.set(blockPos, node.zoneId());
             zonesDirty = true;
+            codedBays.add(blockPos);
+            codesDirty = true;
         } else if (node.kind() == WarehouseConnectionRule.NodeKind.STATION) {
             stations.add(blockPos);
             pendingStations.add(blockPos);
@@ -267,6 +275,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         } else if (node.kind() == WarehouseConnectionRule.NodeKind.FLUID_RACK) {
             fluidRacks.add(blockPos);
             pendingRacks.add(blockPos);
+            codedBays.add(blockPos);
+            codesDirty = true;
         } else if (node.kind() == WarehouseConnectionRule.NodeKind.FLUID_STATION) {
             fluidStations.add(blockPos);
         } else {
@@ -284,6 +294,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             controllers++;
             controllerPos = blockPos;
             renumberAll();
+            codesDirty = true;
         }
         membershipChanged(node);
         restoreState(node, blockPos);
@@ -309,6 +320,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             machinesToNumber.addAll(namedMembers);
         }
         zones.remove(blockPos);
+        codedBays.remove(blockPos);
         dropSource(blockPos);
         if (forGood && node instanceof HeavyRackBlockEntity) {
             brokenSources.add(blockPos);
@@ -336,6 +348,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 controllerPos = null;
             }
             renumberAll();
+            codesDirty = true;
         }
         membershipChanged(node);
     }
@@ -372,6 +385,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         fluidStations.addAll(that.fluidStations);
         that.held.forEach((pos, loads) -> held.computeIfAbsent(pos, p -> new ArrayList<>()).addAll(loads));
         zones.absorb(that.zones);
+        codedBays.addAll(that.codedBays);
+        codesDirty = true;
         that.sources.forEach(pos -> {
             sources.add(pos);
             index.update(pos, that.index.snapshot(pos));
@@ -407,6 +422,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         machinesToNumber.clear();
         numberedLine = null;
         zones.clear();
+        codedBays.clear();
         dirtyQueue.clear();
         dirtySet.clear();
         pollOrder.clear();
@@ -651,18 +667,46 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return StorageFill.of(bays, tanks);
     }
 
-    /** Stock blocks per zone key, sorted by key. */
+    /** Stock blocks per zone name, sorted by name. */
     public Map<String, Integer> zoneBlockCounts() {
         return zones.blockCounts();
     }
 
-    /** One zone as its blocks carry it: the union of their filters. */
+    /** Loaded rack bays and Fluid Rack bays per zone id. */
+    public Map<Integer, Integer> zoneBlockCountsById() {
+        Map<Integer, Integer> counts = zones.blockCountsById();
+        for (BlockPos pos : fluidRacks) {
+            if (loaded(pos) instanceof StorageNodeBlockEntity bay && bay.zoneDefinition() != null) {
+                counts.merge(bay.zoneId(), 1, Integer::sum);
+            }
+        }
+        return counts;
+    }
+
+    /** One zone with its filter and how many blocks of this warehouse are in it; the key is the zone id as text. */
     public record ZoneSummary(String key, String display, int blocks, List<String> items, List<String> tags) {
     }
 
-    /** Every zone of the warehouse, sorted by key. */
+    /** Every zone of the warehouse, sorted by name. */
     public List<ZoneSummary> zoneSummaries() {
         return zones.summaries();
+    }
+
+    /** The zone with that id as the server knows it, null for no zone or a deleted one. */
+    private ZoneDefinition zoneById(int id) {
+        return Zones.definition(level, id);
+    }
+
+    /** Gives every loaded bay its location code relative to the single controller, or none without one. */
+    private void pushCodes() {
+        codesDirty = false;
+        BlockPos controller = status() == Status.ONLINE ? controllerPos : null;
+        for (BlockPos pos : codedBays) {
+            if (loaded(pos) instanceof StorageNodeBlockEntity node) {
+                node.setLocationCode(controller == null ? "" : LocationCode.of(pos.getX() - controller.getX(),
+                        pos.getY() - controller.getY(), pos.getZ() - controller.getZ()));
+            }
+        }
     }
 
     @Override
@@ -1690,9 +1734,12 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
         } else if (event instanceof WarehouseEvent.ZoneChanged zoned) {
             if (loaded(zoned.pos()) instanceof StorageNodeBlockEntity node && node.holdsStock()) {
-                zones.set(zoned.pos(), node.zoneDefinition());
+                zones.set(zoned.pos(), node.zoneId());
                 zonesDirty = true;
             }
+        } else if (event instanceof WarehouseEvent.ZonesEdited) {
+            zonesDirty = true;
+            pendingRacks.addAll(fluidRacks);
         }
     }
 
@@ -1790,6 +1837,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         if (lampsDirty) {
             pushLamps();
+        }
+        if (codesDirty) {
+            pushCodes();
         }
         if (controllers == 1) {
             tickController();

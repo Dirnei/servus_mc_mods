@@ -11,7 +11,6 @@ import io.github.dirnei.mc.servus.shuttles.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
-import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,14 +37,14 @@ public final class PotatoStorageGameTests {
     }
 
     /**
-     * A section of three stamped "Ores" with cobblestone over 29 slots, 40 iron ore and one empty slot a put-away
+     * A section of three in zone "Ores" with cobblestone over 29 slots, 40 iron ore and one empty slot a put-away
      * locked reports its zone, 31 slots in use and its top items.
      */
     @ServusGameTest(timeoutTicks = 40)
     public static void potatoReportsRackSection(GameTestHelper helper) {
         HeavyRackBlockEntity[] bays = section(helper, 2, 3);
         for (HeavyRackBlockEntity bay : bays) {
-            bay.setZone(new ZoneDefinition("Ores", ZoneFilter.EMPTY));
+            bay.setZone(ZoneFixtures.zone(helper, "Ores", ZoneFilter.EMPTY));
         }
         for (int slot = 0; slot < 27; slot++) {
             bays[0].items().setStackInSlot(slot, new ItemStack(Items.COBBLESTONE, 64));

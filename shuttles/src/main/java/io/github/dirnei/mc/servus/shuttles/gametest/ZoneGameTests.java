@@ -4,40 +4,36 @@ import io.github.dirnei.mc.servus.foundation.block.BlockEntityItems;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
-import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
-import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.zone.PutAwayPlan;
-import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
+import io.github.dirnei.mc.servus.shuttles.zone.WarehouseZoneData;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
+import io.github.dirnei.mc.servus.shuttles.zone.ZoneList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.InteractionHand;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.storage.TagValueOutput;
 
-/** Zone labels and put-away by zone. */
+/** Team zones, bays pointing at them, location codes and put-away by zone. */
 public final class ZoneGameTests {
 
-    private static final BlockPos ZL_OTHER = new BlockPos(2, 1, 9);
     private static final BlockPos ZL_RACK = new BlockPos(2, 1, 7);
     private static final BlockPos IZ_CONTROLLER = new BlockPos(6, 1, 10);
     private static final BlockPos IZ_ORES = new BlockPos(4, 1, 10);
@@ -48,125 +44,8 @@ public final class ZoneGameTests {
     private ZoneGameTests() {
     }
 
-    /** Uses the held label on the block's north face. */
-    private static void useLabel(GameTestHelper helper, Player player, ItemStack label, BlockPos pos) {
-        BlockPos absolute = helper.absolutePos(pos);
-        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute).add(0, 0, -0.5), Direction.NORTH, absolute, false);
-        player.setItemInHand(InteractionHand.MAIN_HAND, label);
-        label.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
-    }
-
-    private static ItemStack label(String name, ZoneFilter filter) {
-        ItemStack label = new ItemStack(ServusShuttlesItems.ZONE_LABEL.get());
-        if (name != null) {
-            label.set(DataComponents.CUSTOM_NAME, Component.literal(name));
-        }
-        if (filter != null) {
-            label.set(ServusShuttlesComponents.ZONE_FILTER.get(), filter);
-        }
-        return label;
-    }
-
-    /** A named label copies name and filter onto racks, a restamp replaces, sneaking clears, an unnamed label does nothing, and the label stays. */
-    @ServusGameTest(timeoutTicks = 100)
-    public static void zoneLabelStampsAndClears(GameTestHelper helper) {
-        WarehouseFixtures.rack(helper, ZL_OTHER, Direction.NORTH);
-        WarehouseFixtures.rack(helper, ZL_RACK, Direction.NORTH);
-        HeavyRackBlockEntity crate = helper.getBlockEntity(ZL_OTHER, HeavyRackBlockEntity.class);
-        HeavyRackBlockEntity rack = helper.getBlockEntity(ZL_RACK, HeavyRackBlockEntity.class);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-
-        ItemStack unnamed = label(null, new ZoneFilter(List.of(), List.of("c:ores")));
-        useLabel(helper, player, unnamed, ZL_OTHER);
-        helper.assertTrue(crate.zone().isEmpty(), "an unnamed label must not zone the rack");
-        helper.assertTrue(crate.isEmpty(), "the label must not be inserted into the rack");
-
-        ItemStack aisle = label(" Aisle 3 ", new ZoneFilter(List.of(), List.of("c:ores")));
-        useLabel(helper, player, aisle, ZL_OTHER);
-        useLabel(helper, player, aisle, ZL_RACK);
-        helper.assertTrue(crate.zone().equals("Aisle 3"), "first rack zone should be trimmed to Aisle 3, was '" + crate.zone() + "'");
-        helper.assertTrue(rack.zone().equals("Aisle 3"), "rack zone should be Aisle 3, was '" + rack.zone() + "'");
-        helper.assertTrue(crate.zoneKey().equals("aisle 3"), "zone key should be lower case");
-        helper.assertTrue(crate.zoneFilter().tags().equals(List.of("c:ores")), "the first rack should carry the label's tags, had " + crate.zoneFilter().tags());
-        helper.assertTrue(rack.getDisplayName().getString().endsWith("(Aisle 3)"), "rack title should carry the zone, was " + rack.getDisplayName().getString());
-        helper.assertTrue(!aisle.isEmpty() && aisle.getCount() == 1, "the label must not be consumed");
-
-        ItemStack food = label("Food", new ZoneFilter(List.of(new ItemStack(Items.BREAD)), List.of()));
-        useLabel(helper, player, food, ZL_RACK);
-        helper.assertTrue(rack.zone().equals("Food"), "restamp should replace the zone");
-        helper.assertTrue(rack.zoneFilter().items().size() == 1 && rack.zoneFilter().items().get(0).is(Items.BREAD), "restamp should replace the filter");
-
-        player.setShiftKeyDown(true);
-        useLabel(helper, player, food, ZL_OTHER);
-        player.setShiftKeyDown(false);
-        helper.assertTrue(crate.zone().isEmpty() && crate.zoneFilter().isEmpty(), "sneak click should clear the zone");
-
-        ItemStack drop = new ItemStack(ServusShuttlesBlocks.HEAVY_RACK.get());
-        BlockEntityItems.saveToItem(rack, drop, helper.getLevel().registryAccess());
-        helper.setBlock(ZL_RACK, Blocks.AIR.defaultBlockState());
-        WarehouseFixtures.rack(helper, ZL_RACK, Direction.NORTH);
-        BlockItem.updateCustomBlockEntityTag(helper.getLevel(), player, helper.absolutePos(ZL_RACK), drop);
-        HeavyRackBlockEntity placed = helper.getBlockEntity(ZL_RACK, HeavyRackBlockEntity.class);
-        helper.assertTrue(placed.zone().equals("Food"), "a dismantled and placed rack keeps its zone, was '" + placed.zone() + "'");
-        helper.assertTrue(placed.zoneFilter().items().size() == 1, "a dismantled and placed rack keeps its filter");
-        helper.succeed();
-    }
-
-    /** A named label zones nothing on the controller; on a rack it zones the rack. */
-    @ServusGameTest(timeoutTicks = 40)
-    public static void zoneLabelOnlyOnRacks(GameTestHelper helper) {
-        BlockPos controllerPos = new BlockPos(5, 1, 9);
-        WarehouseFixtures.controller(helper, controllerPos);
-        WarehouseFixtures.rack(helper, ZL_RACK, Direction.NORTH);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack ores = label("Ores", new ZoneFilter(List.of(), List.of("c:ores")));
-        useLabel(helper, player, ores, controllerPos);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(controllerPos, WarehouseControllerBlockEntity.class);
-        helper.assertTrue(controller.zone().isEmpty() && controller.zoneFilter().isEmpty(), "the controller takes no zone, got '" + controller.zone() + "'");
-        useLabel(helper, player, ores, ZL_RACK);
-        HeavyRackBlockEntity rack = helper.getBlockEntity(ZL_RACK, HeavyRackBlockEntity.class);
-        helper.assertTrue(rack.zone().equals("Ores") && rack.zoneFilter().tags().equals(List.of("c:ores")), "the rack takes the zone, got '" + rack.zone() + "'");
-        helper.succeed();
-    }
-
-    /** The label menu names the label, parses tags and takes ghost items; the result stamps. */
-    @ServusGameTest(timeoutTicks = 100)
-    public static void zoneLabelMenuEditsDefinition(GameTestHelper helper) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ServusShuttlesItems.ZONE_LABEL.get()));
-        ZoneLabelMenu menu = new ZoneLabelMenu(1, player.getInventory(), InteractionHand.MAIN_HAND);
-        helper.assertTrue(ZoneDefinition.of(player.getItemInHand(InteractionHand.MAIN_HAND)) == null, "a fresh label defines no zone");
-
-        menu.setName("  Ores ");
-        menu.setTags("c:ores, #minecraft:logs, not a tag!!");
-        menu.setCarried(new ItemStack(Items.BREAD, 5));
-        menu.clicked(0, 0, ContainerInput.PICKUP, player);
-        ItemStack labelStack = player.getItemInHand(InteractionHand.MAIN_HAND);
-        ZoneDefinition definition = ZoneDefinition.of(labelStack);
-        helper.assertTrue(definition != null && definition.name().equals("Ores"), "the label should be named Ores");
-        helper.assertTrue(definition.filter().tags().equals(List.of("c:ores", "minecraft:logs")), "tags should be parsed and cleaned, were " + definition.filter().tags());
-        helper.assertTrue(definition.filter().items().size() == 1 && definition.filter().items().get(0).is(Items.BREAD)
-                && definition.filter().items().get(0).getCount() == 1, "the ghost slot should put one bread on the label");
-        helper.assertTrue(menu.getCarried().getCount() == 5, "the cursor keeps its bread");
-        helper.assertTrue(labelStack.getHoverName().getString().equals("Ores"), "the item shows the zone name");
-
-        menu.setCarried(ItemStack.EMPTY);
-        menu.clicked(0, 0, ContainerInput.PICKUP, player);
-        helper.assertTrue(ZoneDefinition.of(player.getItemInHand(InteractionHand.MAIN_HAND)).filter().items().isEmpty(), "an empty cursor clears the ghost slot");
-
-        menu.setName("");
-        helper.assertTrue(ZoneDefinition.of(player.getItemInHand(InteractionHand.MAIN_HAND)) == null, "a blank name unnames the label");
-        menu.setName("Ores");
-
-        HeavyRackBlockEntity crate = WarehouseFixtures.rack(helper, ZL_OTHER, Direction.NORTH);
-        useLabel(helper, player, player.getItemInHand(InteractionHand.MAIN_HAND), ZL_OTHER);
-        helper.assertTrue(crate.zone().equals("Ores") && crate.zoneFilter().tags().equals(List.of("c:ores", "minecraft:logs")),
-                "the edited label should stamp name and tags, got " + crate.zone() + " " + crate.zoneFilter().tags());
-        helper.succeed();
-    }
-
-    private static ZoneDefinition zone(String name, List<ItemStack> items, List<String> tags) {
-        return new ZoneDefinition(name, new ZoneFilter(items, tags));
+    private static int zone(GameTestHelper helper, String name, List<ItemStack> items, List<String> tags) {
+        return ZoneFixtures.zone(helper, name, new ZoneFilter(items, tags));
     }
 
     /** Stores a stack the way a shuttle put-away routes it, straight into each chosen rack; returns what found no room. */
@@ -180,6 +59,63 @@ public final class ZoneGameTests {
             left = network.insertAt(target.get(), left);
         }
         return left;
+    }
+
+    /** The saved form of the team zones reads back the same zones, ids and counter. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void zonesSurviveSaveAndLoad(GameTestHelper helper) {
+        WarehouseZoneData data = WarehouseZoneData.get(helper.getLevel().getServer());
+        UUID team = UUID.randomUUID();
+        int id = data.create(team, "Ores", 1, new ZoneFilter(List.of(new ItemStack(Items.RAW_IRON)), List.of("c:ores")))
+                .orElseThrow().id();
+        RegistryOps<Tag> ops = helper.getLevel().registryAccess().createSerializationContext(NbtOps.INSTANCE);
+        Tag saved = WarehouseZoneData.CODEC.encodeStart(ops, data).getOrThrow();
+        WarehouseZoneData loaded = WarehouseZoneData.CODEC.parse(ops, saved).getOrThrow();
+        ZoneList.Zone<ZoneFilter> zone = loaded.list().get(id);
+        helper.assertTrue(zone != null && zone.name().equals("Ores") && zone.team().equals(team) && zone.colour() == 1,
+                "the zone reads back with name, team and colour, got " + zone);
+        helper.assertTrue(zone.filter().tags().equals(List.of("c:ores")) && zone.filter().items().size() == 1
+                && zone.filter().items().get(0).is(Items.RAW_IRON), "the filter reads back, got " + zone.filter());
+        helper.assertTrue(loaded.list().nextId() == data.list().nextId(), "the id counter reads back");
+        helper.succeed();
+    }
+
+    /** A bay keeps its zone id through the carrot dismantle and place cycle, and shows the zone in its title. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void dismantleKeepsZone(GameTestHelper helper) {
+        HeavyRackBlockEntity rack = WarehouseFixtures.rack(helper, ZL_RACK, Direction.NORTH);
+        int food = zone(helper, "Food", List.of(new ItemStack(Items.BREAD)), List.of());
+        rack.setZone(food);
+        helper.assertTrue(rack.zone().equals("Food") && rack.getDisplayName().getString().endsWith("(Food)"),
+                "the rack shows its zone, got " + rack.getDisplayName().getString());
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack drop = new ItemStack(ServusShuttlesBlocks.HEAVY_RACK.get());
+        BlockEntityItems.saveToItem(rack, drop, helper.getLevel().registryAccess());
+        helper.setBlock(ZL_RACK, Blocks.AIR.defaultBlockState());
+        WarehouseFixtures.rack(helper, ZL_RACK, Direction.NORTH);
+        BlockItem.updateCustomBlockEntityTag(helper.getLevel(), player, helper.absolutePos(ZL_RACK), drop);
+        HeavyRackBlockEntity placed = helper.getBlockEntity(ZL_RACK, HeavyRackBlockEntity.class);
+        helper.assertTrue(placed.zoneId() == food && placed.zone().equals("Food"), "the placed rack is in Food, got '" + placed.zone() + "'");
+        helper.assertTrue(placed.zoneFilter().items().size() == 1, "the placed rack applies the zone's filter");
+        helper.succeed();
+    }
+
+    /** A rack saved with a zone stamped by a Zone Label of an earlier version loads unzoned. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void oldStampedZoneLoadsUnzoned(GameTestHelper helper) {
+        HeavyRackBlockEntity rack = WarehouseFixtures.rack(helper, ZL_RACK, Direction.NORTH);
+        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, helper.getLevel().registryAccess());
+        rack.saveCustomOnly(output);
+        output.child("Zone").putString("Name", "Ores");
+        ItemStack old = new ItemStack(ServusShuttlesBlocks.HEAVY_RACK.get());
+        BlockItem.setBlockEntityData(old, rack.getType(), output);
+        helper.setBlock(ZL_RACK, Blocks.AIR.defaultBlockState());
+        WarehouseFixtures.rack(helper, ZL_RACK, Direction.NORTH);
+        BlockItem.updateCustomBlockEntityTag(helper.getLevel(), helper.makeMockPlayer(GameType.SURVIVAL), helper.absolutePos(ZL_RACK), old);
+        HeavyRackBlockEntity placed = helper.getBlockEntity(ZL_RACK, HeavyRackBlockEntity.class);
+        helper.assertTrue(placed.zoneId() == ZoneList.NONE && placed.zoneDefinition() == null && placed.zone().isEmpty(),
+                "the old stamped zone is dropped, got '" + placed.zone() + "'");
+        helper.succeed();
     }
 
     /** Put-away follows the zones: exact items beat tags, filtered racks refuse other items, unzoned racks catch full zones. */
@@ -197,14 +133,17 @@ public final class ZoneGameTests {
         HeavyRackBlockEntity plain = helper.getBlockEntity(IZ_PLAIN, HeavyRackBlockEntity.class);
         HeavyRackBlockEntity spare = helper.getBlockEntity(IZ_SPARE, HeavyRackBlockEntity.class);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(IZ_CONTROLLER, WarehouseControllerBlockEntity.class);
-        ores.setZone(zone("Ores", List.of(), List.of("c:ores")));
-        iron.setZone(zone("Iron", List.of(new ItemStack(Items.IRON_ORE)), List.of()));
+        String oresName = "Ores " + UUID.randomUUID().toString().substring(0, 6);
+        String ironName = "Iron " + UUID.randomUUID().toString().substring(0, 6);
+        ores.setZone(zone(helper, oresName, List.of(), List.of("c:ores")));
+        iron.setZone(zone(helper, ironName, List.of(new ItemStack(Items.IRON_ORE)), List.of()));
         plain.items().insertItem(0, new ItemStack(Items.BREAD, 1), false);
 
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = controller.network().orElseThrow();
             helper.assertTrue(network.status() == WarehouseNetwork.Status.ONLINE, "warehouse should be online");
-            helper.assertTrue(network.zoneBlockCounts().equals(Map.of("ores", 1, "iron", 1)), "two zones with one block each, got " + network.zoneBlockCounts());
+            helper.assertTrue(network.zoneBlockCounts().equals(Map.of(oresName, 1, ironName, 1)),
+                    "two zones with one block each, got " + network.zoneBlockCounts());
 
             ItemStack left = store(network, new ItemStack(Items.IRON_ORE, 10));
             helper.assertTrue(left.isEmpty(), "iron ore should fit");
@@ -237,12 +176,84 @@ public final class ZoneGameTests {
         });
     }
 
+    /** Editing a zone's filter changes put-away at once, without touching the bay. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void editedFilterAppliesAtOnce(GameTestHelper helper) {
+        for (int x = 4; x <= 6; x++) {
+            WarehouseFixtures.railOnStone(helper, new BlockPos(x, 1, 9));
+        }
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, IZ_CONTROLLER);
+        HeavyRackBlockEntity zoned = WarehouseFixtures.rack(helper, IZ_ORES, Direction.NORTH);
+        HeavyRackBlockEntity plain = WarehouseFixtures.rack(helper, IZ_PLAIN, Direction.NORTH);
+        int ores = zone(helper, "Ores", List.of(), List.of("c:ores"));
+        zoned.setZone(ores);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = controller.network().orElseThrow();
+            helper.assertTrue(network.putAwayTarget(new ItemStack(Items.COPPER_ORE), pos -> true).equals(Optional.of(zoned.getBlockPos())),
+                    "copper ore goes to the Ores bay while the zone takes c:ores");
+            WarehouseZoneData.get(helper.getLevel().getServer()).edit(ores, "Ores", 0,
+                    new ZoneFilter(List.of(new ItemStack(Items.IRON_ORE)), List.of()));
+            helper.assertTrue(network.putAwayTarget(new ItemStack(Items.COPPER_ORE), pos -> true).equals(Optional.of(plain.getBlockPos())),
+                    "after the edit copper ore goes to the unzoned bay");
+            helper.assertTrue(network.putAwayTarget(new ItemStack(Items.IRON_ORE), pos -> true).equals(Optional.of(zoned.getBlockPos())),
+                    "iron ore goes to the Ores bay");
+            helper.succeed();
+        });
+    }
+
+    /** Deleting a zone unzones its bays: they show no zone and take any item. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void deletedZoneUnzonesBays(GameTestHelper helper) {
+        for (int x = 4; x <= 6; x++) {
+            WarehouseFixtures.railOnStone(helper, new BlockPos(x, 1, 9));
+        }
+        WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, IZ_CONTROLLER);
+        HeavyRackBlockEntity zoned = WarehouseFixtures.rack(helper, IZ_ORES, Direction.NORTH);
+        int bulk = zone(helper, "Bulk", List.of(new ItemStack(Items.COBBLESTONE)), List.of());
+        zoned.setZone(bulk);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = controller.network().orElseThrow();
+            helper.assertTrue(network.putAwayTarget(new ItemStack(Items.BREAD), pos -> true).isEmpty(), "the Bulk bay refuses bread");
+            WarehouseZoneData.get(helper.getLevel().getServer()).delete(bulk);
+            helper.assertTrue(zoned.zone().isEmpty() && zoned.zoneDefinition() == null, "the bay shows no zone");
+            helper.assertTrue(network.putAwayTarget(new ItemStack(Items.BREAD), pos -> true).equals(Optional.of(zoned.getBlockPos())),
+                    "the unzoned bay takes bread");
+            helper.succeed();
+        });
+    }
+
+    /**
+     * A bay's code is its offset from the controller; without a controller it
+     * has none, and a controller placed one block further east gives it a new one.
+     */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void locationCodesFollowController(GameTestHelper helper) {
+        BlockPos rackPos = new BlockPos(4, 1, 1);
+        BlockPos first = new BlockPos(4, 1, 9);
+        BlockPos moved = new BlockPos(5, 1, 9);
+        for (int z = 2; z <= 8; z++) {
+            WarehouseFixtures.railOnStone(helper, new BlockPos(4, 1, z));
+        }
+        WarehouseFixtures.railOnStone(helper, new BlockPos(5, 1, 8));
+        HeavyRackBlockEntity rack = WarehouseFixtures.rack(helper, rackPos, Direction.SOUTH);
+        WarehouseFixtures.controller(helper, first);
+        Waits.when(helper, () -> rack.locationCode().equals("N8.E0+0"), 20, () -> "the bay reads N8.E0+0, got '" + rack.locationCode() + "'", () -> {
+            helper.setBlock(first, Blocks.AIR.defaultBlockState());
+            Waits.when(helper, () -> rack.locationCode().isEmpty(), 20, () -> "without a controller the bay has no code, got '"
+                    + rack.locationCode() + "'", () -> {
+                WarehouseFixtures.controller(helper, moved);
+                Waits.when(helper, () -> rack.locationCode().equals("N8.W1+0"), 20,
+                        () -> "after the move the bay reads N8.W1+0, got '" + rack.locationCode() + "'", helper::succeed);
+            });
+        });
+    }
+
     /** With its zone full and no unzoned storage the stack waits with a red lamp, and leaves once an unzoned rack appears. */
     @ServusGameTest(timeoutTicks = 400)
     public static void stationBacksUpWhenZoneFull(GameTestHelper helper) {
         MiniWarehouse warehouse = MiniWarehouse.build(helper, new BlockPos(3, 1, 4));
         HeavyRackBlockEntity full = warehouse.rack();
-        full.setZone(zone("Ores", List.of(), List.of("c:ores")));
+        full.setZone(zone(helper, "Ores", List.of(), List.of("c:ores")));
         WarehouseFixtures.fill(full, Items.IRON_ORE);
         InboundStationBlockEntity station = warehouse.withInbound();
         BlockPos stationPos = warehouse.inboundPos();

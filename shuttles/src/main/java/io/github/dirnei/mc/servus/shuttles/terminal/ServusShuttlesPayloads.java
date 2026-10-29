@@ -37,7 +37,21 @@ import io.github.dirnei.mc.servus.shuttles.menu.ShuttleGarageMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.WarehouseControllerMenu;
-import io.github.dirnei.mc.servus.shuttles.menu.ZoneLabelMenu;
+import io.github.dirnei.mc.servus.shuttles.menu.HandheldMenu;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldActions;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldFindPayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldFindResultPayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoPayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoRequest;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMenuStatePayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldModePayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldScanPayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldZoneActionPayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldZonePayload;
+import io.github.dirnei.mc.servus.shuttles.zone.ZoneListPayload;
+import io.github.dirnei.mc.servus.shuttles.client.ClientHandheld;
+import io.github.dirnei.mc.servus.shuttles.client.ClientZones;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.outbound.KeepSlotPayload;
 import io.github.dirnei.mc.servus.shuttles.packing.PackingStatusPayload;
@@ -50,8 +64,6 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleSyncPayload;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.EngraveShuttlePayload;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleBuildStepPayload;
 import io.github.dirnei.mc.servus.shuttles.station.StationStatePayload;
-import io.github.dirnei.mc.servus.shuttles.zone.SetLabelNamePayload;
-import io.github.dirnei.mc.servus.shuttles.zone.SetLabelTagsPayload;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -117,10 +129,7 @@ public final class ServusShuttlesPayloads {
                 (player, menu, payload) -> menu.claim(payload.slot(), payload.item()));
         toMenu(registrar, RenameSitePayload.TYPE, RenameSitePayload.STREAM_CODEC, WarehouseControllerMenu.class,
                 (player, menu, payload) -> menu.rename(payload.name()));
-        toMenu(registrar, SetLabelNamePayload.TYPE, SetLabelNamePayload.STREAM_CODEC, ZoneLabelMenu.class,
-                (player, menu, payload) -> menu.setName(payload.name()));
-        toMenu(registrar, SetLabelTagsPayload.TYPE, SetLabelTagsPayload.STREAM_CODEC, ZoneLabelMenu.class,
-                (player, menu, payload) -> menu.setTags(payload.line()));
+        registerHandheld(registrar);
         toMenu(registrar, SetFluidKeepPayload.TYPE, SetFluidKeepPayload.STREAM_CODEC, FluidOutboundMenu.class,
                 (player, menu, payload) -> menu.pickKeep(payload.fluid()));
         registerTerminalRequests(registrar);
@@ -164,6 +173,42 @@ public final class ServusShuttlesPayloads {
                 menu.acceptStranded(payload);
             }
         });
+    }
+
+    /** The team zone list and everything the handheld, its panel and its GUI send and receive. */
+    private static void registerHandheld(PayloadRegistrar registrar) {
+        registrar.playToClient(ZoneListPayload.TYPE, ZoneListPayload.STREAM_CODEC, (payload, context) -> ClientZones.update(payload));
+        registrar.playToClient(HandheldScanPayload.TYPE, HandheldScanPayload.STREAM_CODEC, (payload, context) -> ClientHandheld.scanned(payload));
+        registrar.playToClient(HandheldFindResultPayload.TYPE, HandheldFindResultPayload.STREAM_CODEC,
+                (payload, context) -> ClientHandheld.found(payload));
+        registrar.playToClient(HandheldInfoPayload.TYPE, HandheldInfoPayload.STREAM_CODEC, (payload, context) -> ClientHandheld.info(payload));
+        registrar.playToClient(HandheldMenuStatePayload.TYPE, HandheldMenuStatePayload.STREAM_CODEC, (payload, context) -> {
+            if (context.player().containerMenu instanceof HandheldMenu menu) {
+                menu.acceptState(payload);
+            }
+        });
+        registrar.playToServer(HandheldModePayload.TYPE, HandheldModePayload.STREAM_CODEC, (payload, context) -> {
+            if (context.player() instanceof ServerPlayer player && player.getMainHandItem().getItem() instanceof HandheldItem) {
+                HandheldActions.stepMode(player, player.getMainHandItem(), payload.step());
+            }
+        });
+        registrar.playToServer(HandheldInfoRequest.TYPE, HandheldInfoRequest.STREAM_CODEC, (payload, context) -> {
+            if (context.player() instanceof ServerPlayer player) {
+                HandheldActions.answerInfo(player, payload.pos());
+            }
+        });
+        toMenu(registrar, HandheldZonePayload.TYPE, HandheldZonePayload.STREAM_CODEC, HandheldMenu.class,
+                (player, menu, payload) -> menu.save(player, payload.id(), payload.name(), payload.colour(), payload.filter()));
+        toMenu(registrar, HandheldZoneActionPayload.TYPE, HandheldZoneActionPayload.STREAM_CODEC, HandheldMenu.class,
+                (player, menu, payload) -> {
+                    if (payload.delete()) {
+                        menu.delete(player, payload.id());
+                    } else {
+                        menu.pick(player, payload.id());
+                    }
+                });
+        toMenu(registrar, HandheldFindPayload.TYPE, HandheldFindPayload.STREAM_CODEC, HandheldMenu.class,
+                (player, menu, payload) -> menu.find(player, payload.item()));
     }
 
     /** What the Storage Terminal screen sends: requests, crafts, rules, sites and the order grid. */

@@ -45,6 +45,9 @@ final class ServusShuttlesSoundsProvider extends SoundDefinitionsProvider {
         lowered(ServusShuttlesSounds.CRANE_DOWN, "crane.down", "minecraft:block.piston.contract", 0.6);
         lowered(ServusShuttlesSounds.HOLD_WALLS_UP, "hold.walls_up", "minecraft:block.iron_door.open", 0.55);
         lowered(ServusShuttlesSounds.HOLD_DOORS_SHUT, "hold.doors_shut", "minecraft:block.iron_trapdoor.close", 0.7);
+        lowered(ServusShuttlesSounds.HANDHELD_BEEP, "handheld.beep", "minecraft:block.note_block.bit", 1.0);
+        lowered(ServusShuttlesSounds.HANDHELD_BUZZ, "handheld.buzz", "minecraft:block.note_block.didgeridoo", 0.6);
+        lowered(ServusShuttlesSounds.HANDHELD_CLICK, "handheld.click", "minecraft:block.stone_button.click_on", 1.8);
     }
 
     /** A drive loop: every take streamed at the volume and heard within {@link #DRIVE_RANGE}. */
@@ -56,7 +59,7 @@ final class ServusShuttlesSoundsProvider extends SoundDefinitionsProvider {
         add(sound, definition);
     }
 
-    /** A sound that plays a vanilla sound event at a lower pitch, under its own subtitle. */
+    /** A sound that plays a vanilla sound event at another pitch, under its own subtitle. */
     private void lowered(Holder<SoundEvent> sound, String name, String vanilla, double pitch) {
         add(sound, definition()
                 .subtitle("subtitles.servus_shuttles." + name)

@@ -13,7 +13,6 @@ import io.github.dirnei.mc.servus.shuttles.production.ProductionRows.StorageRow;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.storage.StorageFill;
-import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import net.minecraft.core.BlockPos;
@@ -48,7 +47,7 @@ public final class StorageFillGameTests {
         HeavyRackBlockEntity rack = warehouse.rack();
         int slots = rack.items().getSlots();
         rack.items().lock(slots - 1, new SlotLock(SlotLock.Kind.IN, ItemKey.of(new ItemStack(Items.STONE)), 64, FOREIGN_JOB));
-        rack.setZone(new ZoneDefinition("Ores", ZoneFilter.EMPTY));
+        rack.setZone(ZoneFixtures.zone(helper, "Ores", ZoneFilter.EMPTY));
         InboundStationBlockEntity station = warehouse.withInbound();
         helper.assertTrue(Transfer.insertItem(station.intake(), new ItemStack(Items.GRAVEL, 64), false).isEmpty(), "the station takes gravel");
         Waits.when(helper, () -> fill(warehouse.network()).items().used() == 4, 60,

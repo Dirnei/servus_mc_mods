@@ -5,13 +5,10 @@ import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlock;
 import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
-import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -92,14 +89,6 @@ final class FluidRackFixtures {
         // GameTestHelper.relativePos turns an unrotated test by half a turn, so the offset is taken by hand.
         BlockPos origin = helper.absolutePos(BlockPos.ZERO);
         return FluidRackBlock.section(helper.getLevel(), helper.absolutePos(pos)).stream().map(bay -> bay.subtract(origin)).toList();
-    }
-
-    /** A Zone Label with that name and filter. */
-    static ItemStack label(String name, ZoneFilter filter) {
-        ItemStack label = new ItemStack(ServusShuttlesItems.ZONE_LABEL.get());
-        label.set(DataComponents.CUSTOM_NAME, Component.literal(name));
-        label.set(ServusShuttlesComponents.ZONE_FILTER.get(), filter);
-        return label;
     }
 
     /** The Fluid Rack items lying within two blocks of {@code pos}. */

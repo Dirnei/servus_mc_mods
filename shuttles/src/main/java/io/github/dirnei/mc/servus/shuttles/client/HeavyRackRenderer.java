@@ -8,14 +8,14 @@ import com.mojang.math.Axis;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import java.util.List;
-import net.minecraft.client.Minecraft;
+import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
-/** Stands the rack's sample on its two shelf boards inside the frame, two items per level, no counts. */
+/** Stands the rack's sample on its two shelf boards inside the frame, two items per level, no counts, under the beam label. */
 public class HeavyRackRenderer extends LiveBlockEntityRenderer<HeavyRackBlockEntity> {
 
     private static final float ITEM_SCALE = 0.33F;
@@ -24,8 +24,6 @@ public class HeavyRackRenderer extends LiveBlockEntityRenderer<HeavyRackBlockEnt
     private static final double[] SHELF_TOPS = {1.0 / 16.0, 9.0 / 16.0};
     private static final double BACK = -0.05;
     private static final float YAW = 20.0F;
-    private static final double ZONE_Y = 0.93;
-    private static final float ZONE_SCALE = 0.008F;
 
     public HeavyRackRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -34,7 +32,8 @@ public class HeavyRackRenderer extends LiveBlockEntityRenderer<HeavyRackBlockEnt
     protected void render(HeavyRackBlockEntity rack, float partialTick, PoseStack poseStack, SubmitNodeCollector collector,
                           int packedLight) {
         List<ItemStack> sample = rack.displayed();
-        if (rack.getLevel() == null || (sample.isEmpty() && rack.zone().isEmpty())) {
+        ZoneDefinition zone = rack.zoneDefinition();
+        if (rack.getLevel() == null || (sample.isEmpty() && zone == null && rack.locationCode().isEmpty())) {
             return;
         }
         Direction facing = rack.getBlockState().getValue(HeavyRackBlock.FACING);
@@ -46,9 +45,7 @@ public class HeavyRackRenderer extends LiveBlockEntityRenderer<HeavyRackBlockEnt
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         // Now x runs to the aisle viewer's right, y up and plus z towards the aisle.
 
-        if (!rack.zone().isEmpty()) {
-            ZoneLabelText.draw(rack.zone(), poseStack, collector, Minecraft.getInstance().font, 0.0, ZONE_Y, 0.5 + 0.004, ZONE_SCALE, light);
-        }
+        RackBeamLabel.draw(poseStack, collector, zone, rack.locationCode(), light);
 
         int shown = Math.min(sample.size(), COLUMNS.length * SHELF_TOPS.length);
         for (int i = 0; i < shown; i++) {

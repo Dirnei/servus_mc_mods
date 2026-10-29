@@ -6,11 +6,11 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import io.github.dirnei.mc.servus.foundation.client.RenderSubmit;
 
 /** Draws a zone name as a small centred line of text in the renderer's current face space. */
-final class ZoneLabelText {
+final class ZoneText {
 
     private static final int COLOUR = 0xFFF3C0;
 
-    private ZoneLabelText() {
+    private ZoneText() {
     }
 
     /**

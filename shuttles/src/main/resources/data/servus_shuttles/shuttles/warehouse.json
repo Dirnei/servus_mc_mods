@@ -25,5 +25,6 @@
   "fluid_station_tank_capacity": 16000,
   "free_slot_bucket": 0.25,
   "follow_gap": 1.0,
+  "handheld_find_glow_seconds": 8,
   "travel_costs": { "rail_block": 7, "corner": 5, "lift_block": 10, "lift_handover": 20, "stop": 14, "lift_wait_per_job": 50, "traffic_per_shuttle": 4 }
 }

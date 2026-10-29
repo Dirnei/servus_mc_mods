@@ -9,8 +9,12 @@ public sealed interface WarehouseEvent {
     record Dirty(BlockPos pos) implements WarehouseEvent {
     }
 
-    /** The node at {@code pos} was stamped into another zone or cleared. */
+    /** The node at {@code pos} was put into another zone or cleared. */
     record ZoneChanged(BlockPos pos) implements WarehouseEvent {
+    }
+
+    /** A team zone was created, edited or deleted: zone filters and names may differ now. */
+    record ZonesEdited() implements WarehouseEvent {
     }
 
     /** The Inbound Station at {@code station} took less of the item than offered because of its rule's cap. */

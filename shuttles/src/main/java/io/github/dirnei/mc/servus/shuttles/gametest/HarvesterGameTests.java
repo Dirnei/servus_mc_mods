@@ -29,7 +29,6 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleModules;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
 import java.util.List;
 import java.util.Optional;
@@ -403,7 +402,7 @@ public final class HarvesterGameTests {
         FarmFixtures.Farm farm = farm(helper, harvester());
         FarmFixtures.carrier(farm);
         HeavyRackBlockEntity zoned = WarehouseFixtures.rack(helper, SECOND_RACK, Direction.NORTH);
-        zoned.setZone(new ZoneDefinition("Grain", new ZoneFilter(List.of(new ItemStack(Items.WHEAT)), List.of())));
+        zoned.setZone(ZoneFixtures.zone(helper, "Grain", new ZoneFilter(List.of(new ItemStack(Items.WHEAT)), List.of())));
         helper.runAfterDelay(2, () -> {
             farm.head().setHarvestOnly(true);
             Waits.when(helper, () -> helper.getBlockState(plot).isAir() && out(helper) == 0, 550,
@@ -641,7 +640,7 @@ public final class HarvesterGameTests {
         helper.setBlock(new BlockPos(3, 3, 3), ServusShuttlesBlocks.RAIL.get().defaultBlockState());
         BlockPos upstairs = new BlockPos(3, 3, 4);
         HeavyRackBlockEntity zoned = WarehouseFixtures.rack(helper, upstairs, Direction.NORTH);
-        zoned.setZone(new ZoneDefinition("Grain", new ZoneFilter(List.of(new ItemStack(Items.WHEAT)), List.of())));
+        zoned.setZone(ZoneFixtures.zone(helper, "Grain", new ZoneFilter(List.of(new ItemStack(Items.WHEAT)), List.of())));
         BlockPos[] wheat = new BlockPos[1];
         FieldHeadBlockEntity head = shaftField(helper, 1, wheat);
         helper.runAfterDelay(2, () -> {

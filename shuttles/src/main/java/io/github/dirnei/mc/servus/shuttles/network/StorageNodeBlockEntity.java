@@ -11,7 +11,8 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
-import java.util.Objects;
+import io.github.dirnei.mc.servus.shuttles.zone.ZoneList;
+import io.github.dirnei.mc.servus.shuttles.zone.Zones;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -29,8 +30,13 @@ import org.jspecify.annotations.Nullable;
 /** Base of every block that takes part in a warehouse network. */
 public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageNodeBlockEntity> {
 
-    /** The zone copied onto this block by a Zone Label, or null when unzoned. */
-    private ZoneDefinition zone;
+    private static final String ZONE_ID = "ZoneId";
+    private static final String CODE = "Code";
+
+    /** The id of the team zone this block is in, {@link ZoneList#NONE} when unzoned. */
+    private int zoneId;
+    /** The location code relative to the warehouse's controller, empty without one. */
+    private String locationCode = "";
     /** What the warehouse keeps of this node while the node is in no network: shuttles, queue or held loads. */
     private CompoundTag warehouseState = new CompoundTag();
     private boolean leavingForGood;
@@ -39,24 +45,43 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         super(type, pos, state);
     }
 
+    /** The id of this block's zone, {@link ZoneList#NONE} when unzoned; a deleted zone's id reads as unzoned once resolved. */
+    public int zoneId() {
+        return zoneId;
+    }
+
+    /** The zone resolved through the team zones of this side, or null when unzoned or the zone was deleted. */
+    public @Nullable ZoneDefinition zoneDefinition() {
+        return Zones.definition(level, zoneId);
+    }
+
     /** The zone name for display, empty when unzoned. */
     public String zone() {
+        ZoneDefinition zone = zoneDefinition();
         return zone == null ? "" : zone.name();
-    }
-
-    /** The zone key for grouping, empty when unzoned. */
-    public String zoneKey() {
-        return zone == null ? "" : zone.key();
-    }
-
-    /** The zone as stamped, or null. */
-    public ZoneDefinition zoneDefinition() {
-        return zone;
     }
 
     /** The filter this block applies; empty for unzoned blocks and name only zones. */
     public ZoneFilter zoneFilter() {
+        ZoneDefinition zone = zoneDefinition();
         return zone == null ? ZoneFilter.EMPTY : zone.filter();
+    }
+
+    /** The bay's location code relative to its warehouse's controller, empty without a controller. */
+    public String locationCode() {
+        return locationCode;
+    }
+
+    /** Sets the location code and syncs it to clients when it changed. Server side, called by the warehouse. */
+    public void setLocationCode(String code) {
+        if (code.equals(locationCode)) {
+            return;
+        }
+        locationCode = code;
+        if (level != null && !level.isClientSide()) {
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
     }
 
     /**
@@ -67,17 +92,17 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         return null;
     }
 
-    /** Whether a Zone Label may stamp this node: stock blocks that are not the controller or terminal. */
+    /** Whether the handheld may put this node into a zone: rack bays, not the controller or terminal. */
     public boolean zonable() {
         return false;
     }
 
-    /** Stamps the zone (null clears), syncs clients and tells the network. */
-    public void setZone(ZoneDefinition definition) {
-        if (Objects.equals(definition, zone)) {
+    /** Puts the block into the zone with that id ({@link ZoneList#NONE} clears), syncs clients and tells the network. */
+    public void setZone(int id) {
+        if (id == zoneId) {
             return;
         }
-        zone = definition;
+        zoneId = id;
         setChanged();
         if (level != null && !level.isClientSide()) {
             BlockState state = getBlockState();
@@ -86,10 +111,15 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         }
     }
 
-    /** Writes the zone into a tag; shared by save and update tags. */
-    protected void writeZone(CompoundTag tag, HolderLookup.Provider registries) {
-        if (zone != null) {
-            tag.put("Zone", zone.save(registries));
+    /** Writes the zone id and the location code into an update tag. */
+    protected void writeZone(CompoundTag tag) {
+        writeZoneId(tag);
+        tag.putString(CODE, locationCode);
+    }
+
+    private void writeZoneId(CompoundTag tag) {
+        if (zoneId != ZoneList.NONE) {
+            tag.putInt(ZONE_ID, zoneId);
         }
     }
 
@@ -97,8 +127,7 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         CompoundTag tag = new CompoundTag();
-        HolderLookup.Provider registries = ValueIo.registries(this);
-        writeZone(tag, registries);
+        writeZoneId(tag);
         CompoundTag state = isInNetwork() ? network().map(network -> network.saveState(this)).orElse(warehouseState) : warehouseState;
         if (!state.isEmpty()) {
             tag.put("Warehouse", state);
@@ -111,8 +140,8 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
-        HolderLookup.Provider registries = input.lookup();
-        zone = tag.contains("Zone") ? ZoneDefinition.load(tag.getCompoundOrEmpty("Zone"), registries) : null;
+        zoneId = tag.getIntOr(ZONE_ID, ZoneList.NONE);
+        locationCode = tag.getStringOr(CODE, "");
         warehouseState = tag.getCompoundOrEmpty("Warehouse");
         NamedMachines.load(this, input);
     }

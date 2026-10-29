@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "D": "minecraft:red_dye",
+    "G": "minecraft:glass_pane",
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone",
+    "Y": "minecraft:yellow_dye"
+  },
+  "pattern": [
+    "RDR",
+    "YGY",
+    "IRI"
+  ],
+  "result": {
+    "id": "servus_shuttles:handheld"
+  }
+}

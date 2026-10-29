@@ -347,7 +347,7 @@ public class FluidRackBlockEntity extends StorageNodeBlockEntity {
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        writeZone(tag, registries);
+        writeZone(tag);
         if (wood != null) {
             tag.putString(MATERIAL, wood.toString());
         }

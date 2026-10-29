@@ -9,7 +9,6 @@ import io.github.dirnei.mc.servus.shuttles.menu.FluidInboundMenu;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks.Activity;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
 import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleView;
-import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
 import java.util.ArrayList;
 import java.util.List;
@@ -112,7 +111,7 @@ public final class FluidInboundTankerGameTests {
         BlockPos[] bays = racks(helper);
         helper.runAfterDelay(2, () -> {
             FluidRackBlock.stampSection(helper.getLevel(), helper.absolutePos(bays[0]),
-                    new ZoneDefinition("Cooling", new ZoneFilter(List.of(new ItemStack(Items.WATER_BUCKET)), List.of())));
+                    ZoneFixtures.zone(helper, "Cooling", new ZoneFilter(List.of(new ItemStack(Items.WATER_BUCKET)), List.of())));
             FluidStationFixtures.fill(station, Fluids.LAVA, 2000);
             Waits.when(helper, () -> WarehouseFixtures.blocked(helper, STATION), 150, () -> "the station's lamp turns red", () -> {
                 helper.assertTrue(station.fluidActivity().noRoom() == Fluids.LAVA, "the station names lava as without room");

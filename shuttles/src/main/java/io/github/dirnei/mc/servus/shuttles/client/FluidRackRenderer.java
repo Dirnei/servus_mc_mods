@@ -61,7 +61,7 @@ public final class FluidRackRenderer extends LiveBlockEntityRenderer<FluidRackBl
             poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - facing.toYRot()));
             poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
             // Now x runs to the aisle viewer's right, y up and plus z towards the aisle.
-            ZoneLabelText.draw(rack.zone(), poseStack, collector, Minecraft.getInstance().font, 0.0, ZONE_Y, 0.5 + 0.004, ZONE_SCALE,
+            ZoneText.draw(rack.zone(), poseStack, collector, Minecraft.getInstance().font, 0.0, ZONE_Y, 0.5 + 0.004, ZONE_SCALE,
                     LevelRenderer.getLightCoords(level, rack.getBlockPos().relative(facing)));
             poseStack.popPose();
         }

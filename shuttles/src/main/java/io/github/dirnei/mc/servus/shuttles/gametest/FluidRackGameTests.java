@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
+import io.github.dirnei.mc.servus.shuttles.zone.ZoneList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -269,7 +270,6 @@ public final class FluidRackGameTests {
         helper.runAfterDelay(2, () -> {
             FluidRackFixtures.fill(helper, rack, Fluids.LAVA, 12000);
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-            player.setShiftKeyDown(true);
             GameTestSteps.useCarrot(helper, player, rack, FRONT);
             helper.assertTrue(helper.getBlockState(rack).isAir(), "the bay is gone");
             List<ItemStack> drops = FluidRackFixtures.dropped(helper, rack);
@@ -305,19 +305,18 @@ public final class FluidRackGameTests {
         });
     }
 
-    /** A label used on the right bay zones all three bays; sneaking with a label clears the whole section. */
+    /** A handheld scan of one bay zones all three bays; a scan with No zone active clears the whole section. */
     @ServusGameTest(timeoutTicks = 40)
-    public static void stampZonesSectionAndSneakClears(GameTestHelper helper) {
+    public static void scanZonesSectionAndNoZoneClears(GameTestHelper helper) {
         BlockPos[] bays = three(3);
         FluidRackFixtures.row(helper, FRONT, bays);
         helper.runAfterDelay(2, () -> {
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-            GameTestSteps.useOn(helper, player, FluidRackFixtures.label("Cooling", ZoneFilter.EMPTY), bays[0], FRONT);
+            GameTestSteps.useOn(helper, player, ZoneFixtures.handheld(helper, "Cooling", ZoneFilter.EMPTY), bays[0], FRONT);
             for (BlockPos bay : bays) {
                 helper.assertTrue(FluidRackFixtures.bay(helper, bay).zone().equals("Cooling"), "every bay is in Cooling, " + bay + " is not");
             }
-            player.setShiftKeyDown(true);
-            GameTestSteps.useOn(helper, player, FluidRackFixtures.label("Other", ZoneFilter.EMPTY), bays[2], FRONT);
+            GameTestSteps.useOn(helper, player, ZoneFixtures.handheld(ZoneList.NONE), bays[2], FRONT);
             for (BlockPos bay : bays) {
                 helper.assertTrue(FluidRackFixtures.bay(helper, bay).zone().isEmpty(), "every bay is unzoned again, " + bay + " is not");
             }
@@ -333,7 +332,7 @@ public final class FluidRackGameTests {
         FluidRackFixtures.place(helper, first, FRONT, FluidRackFixtures.item());
         helper.runAfterDelay(2, () -> {
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-            GameTestSteps.useOn(helper, player, FluidRackFixtures.label("Cooling", ZoneFilter.EMPTY), first, FRONT);
+            GameTestSteps.useOn(helper, player, ZoneFixtures.handheld(helper, "Cooling", ZoneFilter.EMPTY), first, FRONT);
             FluidRackFixtures.place(helper, second, FRONT, FluidRackFixtures.item());
             helper.runAfterDelay(2, () -> {
                 helper.assertTrue(FluidRackFixtures.section(helper, first).size() == 2, "the bays joined");
@@ -351,7 +350,7 @@ public final class FluidRackGameTests {
         helper.runAfterDelay(2, () -> {
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
             GameTestSteps.useOn(helper, player,
-                    FluidRackFixtures.label("Cooling", new ZoneFilter(List.of(new ItemStack(Items.WATER_BUCKET)), List.of())), rack, FRONT);
+                    ZoneFixtures.handheld(helper, "Cooling", new ZoneFilter(List.of(new ItemStack(Items.WATER_BUCKET)), List.of())), rack, FRONT);
             useBucket(helper, player, new ItemStack(Items.LAVA_BUCKET), rack);
             helper.assertTrue(FluidRackFixtures.content(helper, rack).isEmpty(), "the section takes no lava");
             helper.assertTrue(player.getMainHandItem().is(Items.LAVA_BUCKET), "the player keeps the lava bucket");
@@ -369,7 +368,7 @@ public final class FluidRackGameTests {
         helper.runAfterDelay(2, () -> {
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
             GameTestSteps.useOn(helper, player,
-                    FluidRackFixtures.label("Back", new ZoneFilter(List.of(new ItemStack(Items.BREAD)), List.of("c:ores"))), rack, FRONT);
+                    ZoneFixtures.handheld(helper, "Back", new ZoneFilter(List.of(new ItemStack(Items.BREAD)), List.of("c:ores"))), rack, FRONT);
             FluidRackBlockEntity bay = FluidRackFixtures.bay(helper, rack);
             helper.assertTrue(bay.zone().equals("Back") && bay.zoneFluids().isEmpty(), "the zone lists no fluids");
             helper.assertTrue(FluidRackFixtures.fill(helper, rack, Fluids.LAVA, 2000) == 2000, "the section takes lava");

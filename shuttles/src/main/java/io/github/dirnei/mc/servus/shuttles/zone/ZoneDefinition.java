@@ -1,52 +1,21 @@
 package io.github.dirnei.mc.servus.shuttles.zone;
 
-import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.item.ItemStack;
-
 /**
- * A zone as a label defines it and a block carries it: a display name and a filter.
+ * A team zone as bays and the warehouse see it: its id, name, colour and filter.
  *
- * @param name   the name as typed, never blank
+ * @param id     never {@link ZoneList#NONE}
+ * @param name   the name as typed, trimmed
+ * @param colour a dye colour index from 0 to 15
  * @param filter what the zone takes; empty means anything
  */
-public record ZoneDefinition(String name, ZoneFilter filter) {
+public record ZoneDefinition(int id, String name, int colour, ZoneFilter filter) {
 
-    public ZoneDefinition {
-        name = ZoneNames.display(name);
-    }
-
-    /** The key zones are grouped by. */
+    /** The key zones are grouped by: the id as text. */
     public String key() {
-        return ZoneNames.key(name);
+        return Integer.toString(id);
     }
 
-    /** The zone a Zone Label carries, or null when the label has no name. */
-    public static ZoneDefinition of(ItemStack label) {
-        if (!label.has(DataComponents.CUSTOM_NAME)) {
-            return null;
-        }
-        String name = ZoneNames.display(label.getHoverName().getString());
-        if (name.isEmpty()) {
-            return null;
-        }
-        return new ZoneDefinition(name, label.getOrDefault(ServusShuttlesComponents.ZONE_FILTER.get(), ZoneFilter.EMPTY));
-    }
-
-    public CompoundTag save(HolderLookup.Provider registries) {
-        CompoundTag tag = filter.save(registries);
-        tag.putString("Name", name);
-        return tag;
-    }
-
-    /** Reads a zone, or null when the tag has no name. */
-    public static ZoneDefinition load(CompoundTag tag, HolderLookup.Provider registries) {
-        String name = ZoneNames.display(tag.getStringOr("Name", ""));
-        if (name.isEmpty()) {
-            return null;
-        }
-        return new ZoneDefinition(name, ZoneFilter.load(tag, registries));
+    public static ZoneDefinition of(ZoneList.Zone<ZoneFilter> zone) {
+        return new ZoneDefinition(zone.id(), zone.name(), zone.colour(), zone.filter());
     }
 }

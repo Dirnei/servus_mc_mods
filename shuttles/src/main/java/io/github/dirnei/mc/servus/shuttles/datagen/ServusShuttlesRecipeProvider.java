@@ -14,7 +14,6 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
-import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.CraftingRecipe;
@@ -27,7 +26,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
-import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import io.github.dirnei.mc.servus.foundation.datagen.MaterialRecipes;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
@@ -224,10 +222,16 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_chest", has(Items.CHEST))
                 .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
-        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.TOOLS, ServusShuttlesItems.ZONE_LABEL.get())
-                .requires(Items.PAPER)
-                .requires(Tags.Items.DYES)
-                .unlockedBy("has_paper", has(Items.PAPER))
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusShuttlesItems.HANDHELD.get())
+                .pattern("RDR")
+                .pattern("YGY")
+                .pattern("IRI")
+                .define('R', Items.REDSTONE)
+                .define('D', Items.RED_DYE)
+                .define('Y', Items.YELLOW_DYE)
+                .define('G', Items.GLASS_PANE)
+                .define('I', Items.IRON_INGOT)
+                .unlockedBy("has_redstone", has(Items.REDSTONE))
                 .save(output);
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusShuttlesItems.SHUTTLE_MK1.get())

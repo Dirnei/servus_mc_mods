@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.shuttles.zone;
 
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -10,11 +9,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -23,8 +17,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 
 /**
- * What a zone takes: filter items and item tag ids. Stored on the Zone Label
- * as a data component and copied onto stamped blocks.
+ * What a zone takes: filter items and item tag ids. Kept with the team zone
+ * and applied by every bay that points at it.
  *
  * @param items one item stacks, empty entries left out
  * @param tags  item tag ids such as {@code c:ores}
@@ -116,38 +110,5 @@ public record ZoneFilter(List<ItemStack> items, List<String> tags) {
             }
         }
         return List.copyOf(parsed);
-    }
-
-    /** The filter as NBT, for block entities. */
-    public CompoundTag save(HolderLookup.Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        ListTag itemList = new ListTag();
-        for (ItemStack stack : items) {
-            if (!stack.isEmpty()) {
-                itemList.add(ValueIo.saveStack(registries, stack));
-            }
-        }
-        tag.put("Items", itemList);
-        ListTag tagList = new ListTag();
-        for (String id : tags) {
-            tagList.add(StringTag.valueOf(id));
-        }
-        tag.put("Tags", tagList);
-        return tag;
-    }
-
-    public static ZoneFilter load(CompoundTag tag, HolderLookup.Provider registries) {
-        List<ItemStack> items = new ArrayList<>();
-        for (Tag entry : tag.getListOrEmpty("Items")) {
-            ItemStack stack = ValueIo.parseStack(registries, (CompoundTag) entry);
-            if (!stack.isEmpty()) {
-                items.add(stack);
-            }
-        }
-        List<String> tags = new ArrayList<>();
-        for (Tag entry : tag.getListOrEmpty("Tags")) {
-            tags.add(entry.asString().orElse(""));
-        }
-        return new ZoneFilter(items, tags);
     }
 }

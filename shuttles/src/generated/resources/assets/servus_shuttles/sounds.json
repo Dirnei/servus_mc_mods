@@ -37,6 +37,35 @@
     ],
     "subtitle": "subtitles.servus_shuttles.crane.up"
   },
+  "handheld.beep": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.note_block.bit"
+      }
+    ],
+    "subtitle": "subtitles.servus_shuttles.handheld.beep"
+  },
+  "handheld.buzz": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.note_block.didgeridoo",
+        "pitch": 0.6
+      }
+    ],
+    "subtitle": "subtitles.servus_shuttles.handheld.buzz"
+  },
+  "handheld.click": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.stone_button.click_on",
+        "pitch": 1.8
+      }
+    ],
+    "subtitle": "subtitles.servus_shuttles.handheld.click"
+  },
   "hold.doors_open": {
     "sounds": [
       {

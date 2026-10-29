@@ -33,7 +33,7 @@ public final class ServusShuttlesClient {
         event.register(ServusShuttlesMenus.STORAGE_TERMINAL.get(), StorageTerminalScreen::new);
         event.register(ServusShuttlesMenus.HEAVY_RACK.get(), HeavyRackScreen::new);
         event.register(ServusShuttlesMenus.INBOUND_STATION.get(), InboundStationScreen::new);
-        event.register(ServusShuttlesMenus.ZONE_LABEL.get(), ZoneLabelScreen::new);
+        event.register(ServusShuttlesMenus.HANDHELD.get(), HandheldScreen::new);
         event.register(ServusShuttlesMenus.SHUTTLE_GARAGE.get(), ShuttleGarageScreen::new);
         event.register(ServusShuttlesMenus.SHUTTLE_WORKSHOP.get(), ShuttleWorkshopScreen::new);
         event.register(ServusShuttlesMenus.FIELD_HEAD.get(), FieldHeadScreen::new);

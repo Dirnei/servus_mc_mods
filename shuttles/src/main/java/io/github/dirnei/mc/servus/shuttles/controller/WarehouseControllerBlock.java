@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.controller;
 import io.github.dirnei.mc.servus.foundation.block.BlockEntityItems;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import io.github.dirnei.mc.servus.shuttles.menu.WarehouseControllerMenu;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks;
@@ -69,7 +70,7 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (stack.getItem() instanceof ConfigurationCarrotItem) {
+        if (stack.getItem() instanceof ConfigurationCarrotItem || stack.getItem() instanceof HandheldItem) {
             return InteractionResult.PASS;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;

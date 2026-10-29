@@ -3,12 +3,18 @@
 ## Unreleased
 
 ### Added
-- Fluid Rack: bays join into sections of up to three that share one tank behind a glass front. A Zone Label zones a section, and a fluid container in the label makes it take only that fluid. Tankers dock into one port per section, and rails hang along every bay.
+- Fluid Rack: bays join into sections of up to three that share one tank behind a glass front. The Handheld zones a whole section at once, and a fluid container in the zone's filter makes it take only that fluid. Tankers dock into one port per section, and rails hang along every bay.
 - Fluid Inbound and Fluid Outbound: an Inbound or Outbound Station on top of a Fluid Tank, in the station's wood, with one tank you can see from every side. A swing hose arm docks onto the Tanker's filler cap. The Outbound keeps a fluid picked from a searchable list.
 - Shuttles rumble quietly as they drive, with a dull wheel click and a loose rattle now and then. Only the few nearest moving shuttles sound at once.
 - Muffler: install it into a shuttle in the Shuttle Workshop, or put it into a Shuttle Garage's new Muffler slot to muffle every shuttle of that garage. A muffled shuttle sounds damped and much quieter, and a muffled Lumber shuttle fells in silence.
 - Rack layers: clicking the top of a rack with racks in hand places a rack on every bay of its section at once, using one rack per bay.
 - Sneaking while looking at a rack with a rack of its kind in hand extends its row sideways or its column upwards, with the placement ghost and arrow.
+- Handheld HH-1: a warehouse scanner with a yellow bumper and a green screen. Sneak and scroll switches between ZONE, FIND and INFO, and while you hold it a screen panel shows the mode and the location code of the bay you aim at.
+- Team zones: each team keeps one list of zones with a name, a colour and a filter, made and edited in the Handheld's GUI. Renaming, recolouring or refiltering a zone applies to every bay in it at once, and deleting a zone unzones its bays.
+- ZONE mode: right click a rack bay to put it into the active zone, hold the button to sweep along a row, sneak to take the whole section. Every scan beeps and flashes the bay.
+- FIND mode: scan a Warehouse Controller to bind the Handheld, then pick an item in its GUI or scan a bay, and every bay holding the item glows through walls for a few seconds.
+- INFO mode: the panel shows the zone, filter, slots in use and top items of the bay you aim at; right click pins a bay.
+- Location codes: every rack bay of a warehouse with a controller has a code from the controller, such as N12.E5+2, shown on a barcode sticker on the bay's top beam. Zoned bays show a stripe in the zone's colour next to the zone name.
 
 ### Changed
 - Inbound, Outbound and Packing Stations, Fluid Inbound and Fluid Outbound, Heavy Duty and Fluid Racks and the Warehouse Controller turn their front to a rail beside them when placed, the Field Head to a Farm Rail. A Field Head is not placed beside a Warehouse Rail alone. A rack placed against a rack takes its facing. Sneak while placing to face a block towards you, the garage included.
@@ -17,6 +23,9 @@
 - The Shuttle Workshop turns the shuttle slowly in its large view, and you can turn it by dragging.
 - Build now and Build by hand are one Build button that starts the build by hand; while it runs the button reads Skip and finishes the build at once, keeping the old name plate.
 - Removed the Fluid Gantry: empty your gantries before updating, placed gantries and their fluid are lost.
+
+### Removed
+- Zone Label: zones are now set with the Handheld. Labels in inventories disappear, and racks zoned with a label load without a zone, so set your zones again with the Handheld.
 
 ## 0.5.0
 

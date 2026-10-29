@@ -3,7 +3,10 @@ package io.github.dirnei.mc.servus.shuttles.registry;
 import io.github.dirnei.mc.servus.shuttles.pattern.StoredPatterns;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleModules;
-import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBinding;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMode;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
 import java.util.HashMap;
@@ -23,11 +26,35 @@ public final class ServusShuttlesComponents {
     public static final DeferredRegister.DataComponents COMPONENTS =
             DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, ServusShuttlesIds.MOD_ID);
 
-    /** The filter a Zone Label stamps onto blocks; its name is the vanilla custom name. */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ZoneFilter>> ZONE_FILTER =
-            COMPONENTS.registerComponentType("zone_filter", builder -> builder
-                    .persistent(ZoneFilter.CODEC)
-                    .networkSynchronized(ZoneFilter.STREAM_CODEC));
+    /** The handheld's mode; missing means ZONE. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<HandheldMode>> HANDHELD_MODE =
+            COMPONENTS.registerComponentType("handheld_mode", builder -> builder
+                    .persistent(HandheldMode.CODEC)
+                    .networkSynchronized(HandheldMode.STREAM_CODEC));
+
+    /** The handheld's active zone id, 0 for "No zone"; missing means none was chosen. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> HANDHELD_ZONE =
+            COMPONENTS.registerComponentType("handheld_zone", builder -> builder
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    /** The warehouse controller the handheld is bound to. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<HandheldBinding>> HANDHELD_BINDING =
+            COMPONENTS.registerComponentType("handheld_binding", builder -> builder
+                    .persistent(HandheldBinding.CODEC)
+                    .networkSynchronized(HandheldBinding.STREAM_CODEC));
+
+    /** The item the handheld last searched for in FIND. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ItemStack>> HANDHELD_FIND =
+            COMPONENTS.registerComponentType("handheld_find", builder -> builder
+                    .persistent(ItemStack.CODEC)
+                    .networkSynchronized(ItemStack.STREAM_CODEC));
+
+    /** The bay the handheld keeps showing in INFO. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<BlockPos>> HANDHELD_PIN =
+            COMPONENTS.registerComponentType("handheld_pin", builder -> builder
+                    .persistent(BlockPos.CODEC)
+                    .networkSynchronized(BlockPos.STREAM_CODEC));
 
     /** The planks block a Heavy Duty Rack was crafted from; missing means oak. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Identifier>> RACK_WOOD =

@@ -13,11 +13,10 @@ import io.github.dirnei.mc.servus.shuttles.rack.RackRow;
 import io.github.dirnei.mc.servus.shuttles.rack.RackSection;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
-import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
-import io.github.dirnei.mc.servus.shuttles.zone.ZoneLabelItem;
+import io.github.dirnei.mc.servus.shuttles.zone.ZoneList;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -270,25 +269,23 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
 
     /** Gives every bay the zone of the first other zoned bay, else the zone of {@code placed}. */
     private static void shareZone(List<FluidRackBlockEntity> bays, @Nullable FluidRackBlockEntity placed) {
-        ZoneDefinition zone = null;
+        int zone = ZoneList.NONE;
         for (FluidRackBlockEntity bay : bays) {
             if (bay != placed && bay.zoneDefinition() != null) {
-                zone = bay.zoneDefinition();
+                zone = bay.zoneId();
                 break;
             }
         }
-        if (zone == null && placed != null) {
-            zone = placed.zoneDefinition();
+        if (zone == ZoneList.NONE && placed != null && placed.zoneDefinition() != null) {
+            zone = placed.zoneId();
         }
         for (FluidRackBlockEntity bay : bays) {
-            if (!Objects.equals(bay.zoneDefinition(), zone)) {
-                bay.setZone(zone);
-            }
+            bay.setZone(zone);
         }
     }
 
-    /** Stamps every bay of the section at that position with the zone, or clears it with null. */
-    public static void stampSection(Level level, BlockPos pos, @Nullable ZoneDefinition zone) {
+    /** Puts every bay of the section at that position into the zone with that id, or clears it with {@link ZoneList#NONE}. */
+    public static void stampSection(Level level, BlockPos pos, int zone) {
         for (FluidRackBlockEntity bay : bays(level, pos)) {
             bay.setZone(zone);
         }
@@ -330,7 +327,7 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                           Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (stack.getItem() instanceof ConfigurationCarrotItem || stack.getItem() instanceof ZoneLabelItem
+        if (stack.getItem() instanceof ConfigurationCarrotItem || stack.getItem() instanceof HandheldItem
                 || stack.getItem() instanceof DataPotatoItem || hitResult.getDirection() != state.getValue(FACING)
                 || !Transfer.isFluidContainer(stack)) {
             return InteractionResult.PASS;

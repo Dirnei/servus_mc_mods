@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "servus_shuttles:item/zone_label"
+    "model": "servus_shuttles:item/handheld"
   }
 }
