@@ -211,7 +211,8 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 
 ### Open: Shuttles
 
-- Handheld Request: send the STOCK basket of the Handheld to a station (Outbound or Packing Station) as one request.
+- Handheld orders to a Parcel Locker (`m11-handheld-link`): REQUEST on the Handheld's STOCK screen sends its basket as one order to the player's Parcel Locker. The locker is a yellow block group: a shuttle dock block on the rail, a screen block on top and columns of S, M and L boxes beside it (example 3, 6 and 9 stacks, datapack JSON) in fixed column layouts. Boxes belong to the orderer; scanning the screen with the Handheld opens them, an empty hand opens a plain GUI. Uncollected parcels go back to the racks after one in-game day (configurable). Range by Handheld model: HH-1 near the site, HH-2 the whole dimension, HH-3 every dimension; far orders need the site kept awake by a Chunk Loader Upgrade, else the Handheld says the site is asleep. Mockup: `temp/warehouse-handheld.html` (Parcel Locker scene).
+- Direct Delivery upgrade for the Handheld (`m11-direct-delivery`): orders go straight into the player's inventory or a terminal instead of the Parcel Locker.
 - Lift deadlock from a player report: a shuttle crossing a shaft on its deck keeps the car from folding that deck, and when the shuttle it waits behind waits for that car, nothing moves. Needs its own change with a GameTest; the Data Potato on the rails names the chain.
 - Shuttles meeting head on pass through each other; passing places or one way aisles if play tests ask for them.
 - A way to unload a shuttle parked with cargo by hand; today only Recall empties it, dropping the cargo at the garage.
@@ -220,7 +221,6 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - Field kinds beyond crops and trees: Crimson and Warped fungi on nylium first.
 - Mangrove tree fields: lumber fields do not plant or fell mangroves with their roots yet.
 - SEND and KEEP rules between sites in the controller GUI (the local min/max stock rules join the same list) and an In transit view.
-- Wireless Terminal with range tiers.
 - Stock rules in a mined Warehouse Controller item, if the play tests ask for them (today only the carrot dismantle keeps them; name and FE travel both ways).
 - Outbound dock: delivery by teleport or by courier drone to a landing pad.
 - Garage doorway lower than the spoiler and the loading arm: the Mk3 spoiler and the Handling crane reach past the 12 pixel opening; a taller doorway or parts that duck under it.
