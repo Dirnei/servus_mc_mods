@@ -255,6 +255,7 @@
   "gui.servus_shuttles.handheld.view.info": "INFO",
   "gui.servus_shuttles.handheld.view.new_zone": "NEW ZONE",
   "gui.servus_shuttles.handheld.view.zones": "ZONES",
+  "gui.servus_shuttles.handheld.whole_warehouse": "ALL",
   "gui.servus_shuttles.lock.in": "Reserved: %s brings %s %s",
   "gui.servus_shuttles.lock.in_pipe": "Reserved: pipe brings %s more %s",
   "gui.servus_shuttles.lock.in_waiting": "Reserved: brings %s %s, waiting for a shuttle",

@@ -75,11 +75,11 @@ final class BasketAmountPopup {
         return stepper != null;
     }
 
-    /** Opens on {@code amount} of the item; {@code editing} for a basket entry, else to add it. */
-    void open(Font font, ItemStack stack, int amount, boolean editing) {
+    /** Opens on {@code amount} of the item, at most {@code max}; {@code editing} for a basket entry, else to add it. */
+    void open(Font font, ItemStack stack, int amount, int max, boolean editing) {
         item = stack.copyWithCount(1);
         this.editing = editing;
-        stepper = new NumberStepper(font, item.getHoverName(), AmountSteps.MIN, AmountSteps.MAX, item::getMaxStackSize, value -> { },
+        stepper = new NumberStepper(font, item.getHoverName(), AmountSteps.MIN, Math.clamp(max, AmountSteps.MIN, AmountSteps.MAX), item::getMaxStackSize, value -> { },
                 1, 10, AmountSteps.STACK);
         stepper.setValue(amount);
         left = Button.builder(Component.translatable(KEY + (editing ? "basket_remove" : "basket_cancel")), b -> pressLeft())

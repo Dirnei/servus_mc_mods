@@ -1,10 +1,12 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
 import io.github.dirnei.mc.servus.foundation.client.ItemPicker;
+import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.foundation.client.PickerEntries;
 import io.github.dirnei.mc.servus.foundation.logistics.channel.ChannelColours;
 import io.github.dirnei.mc.servus.foundation.picker.PickerList;
 import io.github.dirnei.mc.servus.foundation.picker.TagSearch;
+import io.github.dirnei.mc.servus.foundation.ui.AmountSteps;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.handheld.Basket;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBasketPayload;
@@ -231,8 +233,11 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             case FIND -> {
                 addButton(LEFT, "basket_clear", () -> !basket().isEmpty(),
                         () -> ClientPacketDistributor.sendToServer(HandheldBasketPayload.clear()));
-                addButton(LEFT + font.width(Component.translatable(KEY + "basket_clear")) + 10, "relocate",
-                        () -> !basket().isEmpty() && menu.bound(), this::relocate);
+                int relocateX = LEFT + font.width(Component.translatable(KEY + "basket_clear")) + 10;
+                addButton(relocateX, "relocate", () -> !basket().isEmpty() && menu.bound(), this::relocate);
+                addButton(relocateX + font.width(Component.translatable(KEY + "relocate")) + 10, "whole_warehouse",
+                        () -> !menu.shelf().isEmpty() && menu.bound(),
+                        () -> MenuButtons.press(minecraft, menu, HandheldMenu.WHOLE_WAREHOUSE_BUTTON));
             }
             default -> {
             }
@@ -629,10 +634,14 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             basketFullUntil = Util.getMillis() + NOTE_MS;
             return;
         }
+        int room = held(item) - basket().amount(ItemKey.of(item));
+        if (room <= 0) {
+            return;
+        }
         if (shift) {
-            ClientPacketDistributor.sendToServer(HandheldBasketPayload.add(item, item.getMaxStackSize()));
+            ClientPacketDistributor.sendToServer(HandheldBasketPayload.add(item, Math.min(item.getMaxStackSize(), room)));
         } else {
-            amountPopup.open(font, item, item.getMaxStackSize(), false);
+            amountPopup.open(font, item, Math.min(item.getMaxStackSize(), room), room, false);
         }
     }
 
@@ -643,8 +652,19 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
             ClientPacketDistributor.sendToServer(HandheldBasketPayload.remove(item));
         } else {
-            amountPopup.open(font, item, entry.amount(), true);
+            amountPopup.open(font, item, entry.amount(), Math.max(entry.amount(), held(item)), true);
         }
+    }
+
+    /** How many of the item the FIND list shows, at most {@link AmountSteps#MAX}; 0 when the list does not show it. */
+    private int held(ItemStack item) {
+        ItemKey key = ItemKey.of(item);
+        for (int i = 0; i < menu.stock().size(); i++) {
+            if (ItemKey.of(menu.stock().get(i)).equals(key)) {
+                return (int) Math.min(AmountSteps.MAX, menu.stockCounts().get(i));
+            }
+        }
+        return 0;
     }
 
     /** Add raises an entry already in the basket; Save on an entry sets its amount. */

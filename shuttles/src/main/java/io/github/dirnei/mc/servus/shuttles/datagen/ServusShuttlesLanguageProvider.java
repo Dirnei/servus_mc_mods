@@ -443,6 +443,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.handheld.basket_full", "BASKET FULL");
         add("gui.servus_shuttles.handheld.basket_clear", "CLEAR");
         add("gui.servus_shuttles.handheld.relocate", "RELOCATE");
+        add("gui.servus_shuttles.handheld.whole_warehouse", "ALL");
         add("gui.servus_shuttles.handheld.basket_add_title", "Add %s");
         add("gui.servus_shuttles.handheld.basket_edit_title", "%s in the basket");
         add("gui.servus_shuttles.handheld.basket_add", "Add");

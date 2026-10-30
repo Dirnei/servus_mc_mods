@@ -17,13 +17,14 @@ PLAN.md has no item for this yet; it extends the Warehouse Handheld of milestone
   - on success the shelf flashes green, a beep plays, the handheld leaves pick target mode and shuttles carry the items from the other shelves to the target shelf, one stack per trip, like terminal picks.
 - Switching the handheld's mode (sneak scroll or a softkey) leaves pick target mode and keeps the basket. A Fluid Rack, a bay of another warehouse or a block that is no rack is refused with a buzz.
 
+- **Play check revision**: two baskets. The warehouse basket (whole warehouse view, no Relocate) is kept for a later Request. The shelf basket (scanned shelf view) is emptied when the list leaves the shelf; Relocate stashes it and empties it, and the items move only from that shelf.
+
 ## Non-goals
 
 - The **Request** action that sends the basket to a terminal or station; the basket is built so a later change can add it.
 - Relocating fluids or onto Fluid Racks.
 - Moving stock between warehouses or sites.
 - Saved baskets with names, or more than one basket per handheld.
-- Picking the source shelves by hand; the warehouse chooses them.
 
 ## Capabilities
 

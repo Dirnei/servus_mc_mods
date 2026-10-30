@@ -47,6 +47,9 @@ public class HandheldMenu extends AbstractContainerMenu {
     private final UUID team;
     private Map<Integer, Integer> shelfCounts = Map.of();
     private boolean bound;
+    /** The button that switches FIND from a scanned shelf back to the whole warehouse. */
+    public static final int WHOLE_WAREHOUSE_BUTTON = 0;
+
     private @Nullable BlockPos shelfBay;
     private String shelf = "";
     private List<ItemStack> stock = List.of();
@@ -209,6 +212,30 @@ public class HandheldMenu extends AbstractContainerMenu {
         }
         List<String> tags = ZoneFilter.parseTags(String.join(",", filter.tags()));
         return new ZoneFilter(items, tags.subList(0, Math.min(ZoneFilter.SLOTS, tags.size())));
+    }
+
+    /** Server: shows the bound warehouse's stock in FIND instead of the scanned shelf's. */
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        if (id != WHOLE_WAREHOUSE_BUTTON || !(player instanceof ServerPlayer serverPlayer)) {
+            return false;
+        }
+        shelfBay = null;
+        sendState(serverPlayer);
+        return true;
+    }
+
+    /**
+     * Also syncs the player's inventory: this menu has no slots, and the server
+     * only syncs the open menu, so edits of the held handheld (basket, zone)
+     * would not reach the screen until it closes.
+     */
+    @Override
+    public void broadcastChanges() {
+        super.broadcastChanges();
+        if (player instanceof ServerPlayer) {
+            player.inventoryMenu.broadcastChanges();
+        }
     }
 
     @Override

@@ -24,7 +24,19 @@
 - [x] 4.1 FIND screen in `client/HandheldScreen`: basket row under the stock list with icons and short counts, amount popup on the Foundation `NumberStepper` for a stock item or a basket cell, shift click adds a stack, right click removes, Clear and Relocate buttons (Relocate disabled without entries or binding), basket full note. Verify: `gradlew :shuttles:build`, in game: build, edit and clear a basket.
   - Note: left click on a stock item adds it to the basket (popup, shift click a stack), right click lights up its shelves; the popup is the shuttles `BasketAmountPopup`, because the Foundation `AmountPopup` is package private and has Clear and Save only.
 - [x] 4.2 Panel in `client/HandheldHud`: in pick target mode shows `PICK TARGET`, the entry count and the aimed shelf code. Verify: `gradlew :shuttles:build`, in game: panel after Relocate and after a mode switch.
-- [ ] 4.3 Full gradle build, tests green, game launches with all mods; play check: build a basket, Relocate, scan a target shelf, shuttles fill it, zone refusal, no room refusal, mode switch keeps the basket. Verify: `gradlew build` and `gradlew test` green, client starts from main.
+- [x] 4.4 Play check fixes on main: the menu also syncs the player inventory so basket edits show at once (`menu/HandheldMenu.broadcastChanges`); amounts capped at the listed stock (`client/BasketAmountPopup`, `client/HandheldScreen`); ALL button back to the whole warehouse (`HandheldMenu.clickMenuButton`, lang). Verify: `gradlew :shuttles:build` and GameTests green.
+
+## 5. Two baskets and a stashed relocation
+
+- [ ] 5.1 Components `HANDHELD_SHELF_BASKET` (bay pos plus basket) and `HANDHELD_RELOCATION` (source bay pos plus entries) in `registry/ServusShuttlesComponents` with codecs and equals/hashCode (no `ItemStack` as component type); `HandheldActions.setMode` clears the shelf basket, the relocation and the flag. Verify: `gradlew :shuttles:build`.
+- [ ] 5.2 `handheld/HandheldRelocation` and `menu/HandheldMenu`: basket edits go to the basket of the shown list; ALL, a FIND scan of another shelf and opening the GUI on another shelf empty the shelf basket; Relocate only from the shelf view, stashes into `HANDHELD_RELOCATION` and empties the shelf basket; the target scan uses the stash and clears it on success. Verify: `gradlew :shuttles:build`.
+- [ ] 5.3 `network/WarehouseNetwork.relocate`: picks only from the source shelf's bays; the source shelf as target is refused; shortfall from the source shelf. Verify: `gradlew :shuttles:build`.
+- [ ] 5.4 `client/HandheldScreen`: the basket row shows the basket of the shown list; Relocate only in the shelf view; panel entry count from the stash (`client/HandheldHud`). Verify: `gradlew :shuttles:build`.
+- [ ] 5.5 GameTests in `gametest/HandheldRelocateGameTests`: warehouse basket kept over ALL and mode switch, shelf basket emptied by ALL, by another shelf scan and by a mode switch, kept over a GUI close; Relocate empties the shelf basket; relocation takes only from the source shelf; source shelf refused as target; shortfall from the source; mode switch drops the relocation. Adapt the tests of the old behaviour. Verify: `gradlew :shuttles:runGameTestServer` green.
+
+## 6. Verify
+
+- [ ] 6.1 Full gradle build, tests green, game launches with all mods; play check: build a basket, Relocate, scan a target shelf, shuttles fill it, zone refusal, no room refusal, shelf basket emptied by ALL and mode switch, warehouse basket kept, items only from the source shelf. Verify: `gradlew build` and `gradlew test` green, client starts from main.
 
 ## Workflow follow-up
 
