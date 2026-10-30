@@ -35,9 +35,16 @@
 - [x] 5.4 `client/HandheldScreen`: the basket row shows the basket of the shown list; Relocate only in the shelf view; panel entry count from the stash (`client/HandheldHud`). Verify: `gradlew :shuttles:build`.
 - [x] 5.5 GameTests in `gametest/HandheldRelocateGameTests`: warehouse basket kept over ALL and mode switch, shelf basket emptied by ALL, by another shelf scan and by a mode switch, kept over a GUI close; Relocate empties the shelf basket; relocation takes only from the source shelf; source shelf refused as target; shortfall from the source; mode switch drops the relocation. Adapt the tests of the old behaviour. Verify: `gradlew :shuttles:runGameTestServer` green.
 
+## 7. FIND and INFO merged, STOCK added
+
+- [ ] 7.1 `handheld/HandheldMode`: ZONE, INFO, STOCK, codec reads "find" as INFO; `HandheldActions` scan per mode (INFO scans and opens the GUI, STOCK switches to INFO and scans, target scan first in INFO), `setMode` as before. Verify: `gradlew :shuttles:build`.
+- [ ] 7.2 `menu/HandheldMenu` and `handheld/HandheldRelocation`: shelf view from the last INFO scan, warehouse view in STOCK, baskets by screen, Relocate only from INFO on a Heavy Duty Rack shelf; remove the ALL button and `clickMenuButton`. Verify: `gradlew :shuttles:build`.
+- [ ] 7.3 `client/HandheldScreen`, `client/HandheldHud`, `client/ClientHandheld`: INFO screen with readout lines, item grid, shelf basket, Clear and Relocate (fluid shelf readout only); STOCK screen with list, warehouse basket and Clear; right click finds in both; softkeys ZONE, INFO, STOCK; panel per mode. Lang via `datagen/ServusShuttlesLanguageProvider` (remove FIND and ALL keys). Verify: `gradlew :shuttles:runData` and `:shuttles:build`.
+- [ ] 7.4 GameTests in `gametest/HandheldGameTests` and `gametest/HandheldRelocateGameTests`: mode order and wrap, "find" loads as INFO, STOCK scan switches to INFO, INFO scan opens the shelf view, find from the INFO list, Relocate refused in STOCK; adapt every test that used FIND. Verify: `gradlew :shuttles:runGameTestServer` green.
+
 ## 6. Verify
 
-- [ ] 6.1 Full gradle build, tests green, game launches with all mods; play check: build a basket, Relocate, scan a target shelf, shuttles fill it, zone refusal, no room refusal, shelf basket emptied by ALL and mode switch, warehouse basket kept, items only from the source shelf. Verify: `gradlew build` and `gradlew test` green, client starts from main.
+- [ ] 6.1 Full gradle build, tests green, game launches with all mods; play check: build a basket, Relocate, scan a target shelf, shuttles fill it, zone refusal, no room refusal, modes ZONE, INFO, STOCK, INFO basket emptied by another scan and a mode switch, STOCK basket kept, items only from the source shelf. Verify: `gradlew build` and `gradlew test` green, client starts from main.
 
 ## Workflow follow-up
 

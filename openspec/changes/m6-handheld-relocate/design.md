@@ -33,6 +33,14 @@ The play check split the basket by the list it belongs to:
 - Relocate (only in the shelf view, with entries and a binding) copies the shelf basket and its bay into a new component `HANDHELD_RELOCATION` (source bay plus entries), empties the shelf basket and sets pick target mode. `setMode` removes `HANDHELD_RELOCATION` with the flag. A successful target scan removes it; a refusal keeps it.
 - Source: `WarehouseNetwork.relocate` gets the source shelf and plans picks only from its bays; the target equal to the source shelf is refused as `NOT_A_TARGET`. Shortfall is what the source shelf no longer holds. The pure `BasketFit` is unchanged.
 
+### FIND and INFO merged, STOCK added (play check)
+The modes become ZONE, INFO, STOCK (`HandheldMode`: FIND goes, STOCK is new, order ZONE, INFO, STOCK for sneak scroll and softkeys). The mode codec reads the old name "find" as INFO, so test worlds keep their handhelds.
+- INFO: a bay scan beeps, flashes, stores the readout (as INFO did) and opens the GUI on that shelf (as the FIND scan did). The INFO screen shows the readout lines (code, zone, filter, slots) above the item grid of the shelf, the shelf basket below, and the Clear and Relocate buttons. A Fluid Rack shelf shows its fluid readout with no grid, basket or buttons. The menu's shelf view comes from the last scan, not from a separate FIND scan state.
+- STOCK: the warehouse stock list, the warehouse basket and Clear. A bay scan in STOCK switches to INFO (`setMode`) and runs the INFO scan.
+- Right click on an item in either list is the find (`HandheldActions.find`, glow, panel); left click adds to the basket of that screen. The panel in STOCK shows the binding and the last find; in INFO the last scan.
+- The ALL button and `HandheldMenu.clickMenuButton` go: STOCK is the warehouse view. Pick target mode lives in INFO (set by Relocate there); a target scan is checked before the INFO scan.
+- The shelf basket is emptied by a scan of another shelf and by `setMode`, as before.
+
 ### Pick target mode is a flag, not a mode
 `HANDHELD_PICK_TARGET` is set only in FIND. `setMode` clears it, so sneak scroll and the softkeys leave it. `HandheldActions.scan` in FIND checks the flag first: set means target scan, unset means the FIND scan of today. The server side of the basket, Relocate and the target scan lives in `HandheldRelocation`. A right click in pick target mode on a block that is no rack bay buzzes instead of opening the GUI; a click into the air still opens it. The panel shows `PICK TARGET` and the entry count in place of the FIND lines.
 Alternative: a fourth `HandheldMode`. Rejected: it would join the sneak scroll cycle and the softkeys, and a mode the player cannot pick directly is confusing.

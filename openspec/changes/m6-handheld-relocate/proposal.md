@@ -19,6 +19,8 @@ PLAN.md has no item for this yet; it extends the Warehouse Handheld of milestone
 
 - **Play check revision**: two baskets. The warehouse basket (whole warehouse view, no Relocate) is kept for a later Request. The shelf basket (scanned shelf view) is emptied when the list leaves the shelf; Relocate stashes it and empties it, and the items move only from that shelf.
 
+- **Modes revised in the play check**: FIND and INFO merge into INFO (scan a shelf, see and basket its contents, Relocate), and a new STOCK mode lists the whole warehouse with its own basket. Finding is a right click on an item in either list; a scan in STOCK jumps to INFO.
+
 ## Non-goals
 
 - The **Request** action that sends the basket to a terminal or station; the basket is built so a later change can add it.
