@@ -34,8 +34,9 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
  * handheld is in either hand: a green LCD in a dark body with a yellow
  * bumper. The top line shows the mode and the location code of the shelf
  * aimed at; the lines below show what the mode describes. INFO shows the
- * last scanned shelf, never the one only aimed at. In pick target mode FIND
- * says to scan the target shelf and shows the basket's size and the shelf aimed at.
+ * last scanned shelf, never the one only aimed at; STOCK shows the binding
+ * and the last find. In pick target mode INFO says to scan the target shelf
+ * and shows the relocation's size and the shelf aimed at.
  */
 @EventBusSubscriber(modid = ServusShuttlesIds.MOD_ID, value = Dist.CLIENT)
 public final class HandheldHud {
@@ -92,8 +93,8 @@ public final class HandheldHud {
         StorageNodeBlockEntity aimed = ClientHandheld.aimedBay();
         List<Line> lines = switch (mode) {
             case ZONE -> zoneLines(handheld, aimed);
-            case FIND -> HandheldRelocation.pickingTarget(handheld) ? pickTargetLines(handheld, aimed) : findLines(handheld);
-            case INFO -> infoLines();
+            case INFO -> HandheldRelocation.pickingTarget(handheld) ? pickTargetLines(handheld, aimed) : infoLines();
+            case STOCK -> stockLines(handheld);
         };
         draw(graphics, minecraft.font, mode, aimed, lines);
     }
@@ -167,7 +168,7 @@ public final class HandheldHud {
         return lines;
     }
 
-    private static List<Line> findLines(ItemStack handheld) {
+    private static List<Line> stockLines(ItemStack handheld) {
         List<Line> lines = new ArrayList<>();
         HandheldBinding binding = handheld.get(ServusShuttlesComponents.HANDHELD_BINDING.get());
         if (binding == null) {
@@ -178,7 +179,7 @@ public final class HandheldHud {
         lines.add(Line.dim(binding.name()));
         HandheldFindResultPayload found = ClientHandheld.lastFind();
         if (found == null) {
-            lines.add(Line.of(tr("find_hint")));
+            lines.add(Line.of(tr("stock_hint")));
             return lines;
         }
         lines.add(Line.of(found.item().getHoverName().getString()));

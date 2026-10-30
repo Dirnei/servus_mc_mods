@@ -13,16 +13,14 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * Server to client, for the open handheld GUI: how many loaded shelves each
- * zone has, and the FIND list: the stock of the bound warehouse, or of the
- * scanned shelf when a FIND scan opened the GUI, largest first.
+ * zone has, and the STOCK list: the stock of the bound warehouse, largest first.
  *
  * @param shelfCounts loaded shelves per zone id
  * @param bound       whether the handheld is bound to a warehouse that still has its controller
- * @param shelf       the location code of the scanned shelf the list shows, empty for the whole warehouse
  * @param items       one of each stored item
- * @param counts      how many of each the list's warehouse or shelf holds
+ * @param counts      how many of each the warehouse holds
  */
-public record HandheldMenuStatePayload(Map<Integer, Integer> shelfCounts, boolean bound, String shelf, List<ItemStack> items,
+public record HandheldMenuStatePayload(Map<Integer, Integer> shelfCounts, boolean bound, List<ItemStack> items,
                                        List<Long> counts) implements CustomPacketPayload {
 
     public static final Type<HandheldMenuStatePayload> TYPE =
@@ -31,7 +29,6 @@ public record HandheldMenuStatePayload(Map<Integer, Integer> shelfCounts, boolea
     public static final StreamCodec<RegistryFriendlyByteBuf, HandheldMenuStatePayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.map(HashMap::new, ByteBufCodecs.VAR_INT, ByteBufCodecs.VAR_INT), HandheldMenuStatePayload::shelfCounts,
             ByteBufCodecs.BOOL, HandheldMenuStatePayload::bound,
-            ByteBufCodecs.STRING_UTF8, HandheldMenuStatePayload::shelf,
             ItemStack.STREAM_CODEC.apply(ByteBufCodecs.list()), HandheldMenuStatePayload::items,
             ByteBufCodecs.VAR_LONG.apply(ByteBufCodecs.list()), HandheldMenuStatePayload::counts,
             HandheldMenuStatePayload::new);

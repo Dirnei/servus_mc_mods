@@ -22,7 +22,7 @@ import net.minecraft.world.phys.AABB;
 
 /**
  * What the client knows for the handheld's panel and effects: shelves
- * flashing after a scan, shelves glowing after a FIND, and the last FIND and
+ * flashing after a scan, shelves glowing after a find, and the last find and
  * INFO answers. A shelf is drawn as one box, the union of its bays.
  */
 public final class ClientHandheld {
@@ -117,7 +117,7 @@ public final class ClientHandheld {
         return FLASHES;
     }
 
-    /** The shelves glowing after a FIND, empty once the glow time has passed. */
+    /** The shelves glowing after a find, empty once the glow time has passed. */
     public static List<AABB> glowing(long now) {
         if (now > glowUntil) {
             glowing = List.of();
@@ -125,7 +125,7 @@ public final class ClientHandheld {
         return glowing;
     }
 
-    /** The last FIND answer, or null. */
+    /** The last find answer, or null. */
     public static HandheldFindResultPayload lastFind() {
         return found;
     }

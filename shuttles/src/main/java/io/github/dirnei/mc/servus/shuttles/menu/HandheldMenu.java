@@ -3,12 +3,13 @@ package io.github.dirnei.mc.servus.shuttles.menu;
 import io.github.dirnei.mc.servus.foundation.team.Teams;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldActions;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBasketPayload;
-import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMenuStatePayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMode;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldRelocation;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
 import io.github.dirnei.mc.servus.shuttles.zone.ShelfZones;
@@ -29,18 +30,19 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The handheld's GUI: the team's zone list with the zone form, the bound
- * warehouse's stock for FIND, or a scanned shelf's when a FIND scan opened
- * it, and the last INFO readout. It holds no slots;
+ * The handheld's GUI: the team's zone list with the zone form in ZONE, the
+ * last scanned shelf with its shelf basket in INFO, and the bound
+ * warehouse's stock with the warehouse basket in STOCK. It holds no slots;
  * the zone form picks its filter in an item picker.
  */
 public class HandheldMenu extends AbstractContainerMenu {
 
-    /** How many stock rows the FIND list gets at most. */
+    /** How many stock rows the STOCK list gets at most. */
     private static final int STOCK_LIMIT = 500;
 
     private final InteractionHand hand;
@@ -48,25 +50,14 @@ public class HandheldMenu extends AbstractContainerMenu {
     private final UUID team;
     private Map<Integer, Integer> shelfCounts = Map.of();
     private boolean bound;
-    /** The button that switches FIND from a scanned shelf back to the whole warehouse. */
-    public static final int WHOLE_WAREHOUSE_BUTTON = 0;
-
-    private @Nullable BlockPos shelfBay;
-    private String shelf = "";
     private List<ItemStack> stock = List.of();
     private List<Long> stockCounts = List.of();
 
     public HandheldMenu(int containerId, Inventory playerInventory, InteractionHand hand, UUID team) {
-        this(containerId, playerInventory, hand, team, null);
-    }
-
-    /** Server: a GUI whose FIND list shows the shelf of {@code shelfBay}, or the bound warehouse when it is null. */
-    public HandheldMenu(int containerId, Inventory playerInventory, InteractionHand hand, UUID team, @Nullable BlockPos shelfBay) {
         super(ServusShuttlesMenus.HANDHELD.get(), containerId);
         this.hand = hand;
         this.player = playerInventory.player;
         this.team = team;
-        this.shelfBay = shelfBay;
     }
 
     public static HandheldMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -102,11 +93,7 @@ public class HandheldMenu extends AbstractContainerMenu {
         return bound;
     }
 
-    /** The code of the scanned shelf the FIND list shows, empty when it shows the whole warehouse. */
-    public String shelf() {
-        return shelf;
-    }
-
+    /** The bound warehouse's stock for STOCK, largest first. */
     public List<ItemStack> stock() {
         return stock;
     }
@@ -119,25 +106,16 @@ public class HandheldMenu extends AbstractContainerMenu {
     public void acceptState(HandheldMenuStatePayload payload) {
         shelfCounts = Map.copyOf(payload.shelfCounts());
         bound = payload.bound();
-        shelf = payload.shelf();
         stock = List.copyOf(payload.items());
         stockCounts = List.copyOf(payload.counts());
     }
 
-    /** Server: sends shelf counts, the FIND list of the bound warehouse or the scanned shelf, and the last INFO readout. */
+    /** Server: sends shelf counts, the stock of the bound warehouse, and the last INFO readout. */
     public void sendState(ServerPlayer player) {
         Optional<WarehouseNetwork> network = HandheldActions.boundNetwork(player.level().getServer(), handheld());
         List<ItemStack> items = new ArrayList<>();
         List<Long> counts = new ArrayList<>();
-        HandheldInfoPayload scanned = shelfBay == null ? null : HandheldActions.info(player.level(), shelfBay);
-        if (scanned == null) {
-            shelfBay = null;
-        }
-        if (scanned != null) {
-            items.addAll(scanned.top());
-            counts.addAll(scanned.counts());
-        }
-        network.filter(warehouse -> scanned == null).ifPresent(warehouse -> {
+        network.ifPresent(warehouse -> {
             List<Map.Entry<ItemKey, Long>> entries = new ArrayList<>(warehouse.index().entries());
             entries.sort(Map.Entry.<ItemKey, Long>comparingByValue().reversed());
             for (Map.Entry<ItemKey, Long> entry : entries.subList(0, Math.min(STOCK_LIMIT, entries.size()))) {
@@ -146,12 +124,8 @@ public class HandheldMenu extends AbstractContainerMenu {
             }
         });
         PacketDistributor.sendToPlayer(player, new HandheldMenuStatePayload(HandheldActions.loadedShelfCounts(player.level().getServer()),
-                network.isPresent(), scanned == null ? "" : shelfCode(scanned), items, counts));
+                network.isPresent(), items, counts));
         HandheldActions.resendInfo(player, handheld());
-    }
-
-    private static String shelfCode(HandheldInfoPayload scanned) {
-        return scanned.code().isEmpty() ? "-" : scanned.code();
     }
 
     /** Server: makes a zone of the player's team, or "No zone" for 0, the active one. */
@@ -182,26 +156,45 @@ public class HandheldMenu extends AbstractContainerMenu {
         sendState(player);
     }
 
-    /** Server: FIND for an item picked in the list. */
+    /** Server: finds an item picked in the INFO or STOCK list. */
     public void find(ServerPlayer player, ItemStack item) {
         if (!item.isEmpty()) {
             HandheldActions.find(player, handheld(), ItemKey.of(item));
         }
     }
 
-    /** Server: the key of the scanned shelf the FIND list shows, or null when it shows the whole warehouse. */
+    /**
+     * Server: the key of the Heavy Duty Rack shelf INFO shows, the shelf of
+     * the last scanned bay; null outside INFO or when that bay is gone.
+     */
     public @Nullable BlockPos shelfKey() {
-        return shelfBay == null ? null : ShelfZones.key(player.level(), shelfBay);
+        BlockPos pin = handheld().get(ServusShuttlesComponents.HANDHELD_PIN.get());
+        Level level = player.level();
+        if (HandheldActions.mode(handheld()) != HandheldMode.INFO || pin == null || !level.isLoaded(pin)
+                || !(level.getBlockEntity(pin) instanceof HeavyRackBlockEntity)) {
+            return null;
+        }
+        return ShelfZones.key(level, pin);
     }
 
-    /** Server: an edit of the basket of the list shown, the shelf basket or the warehouse basket. */
+    /** Server: an edit of the basket of the screen shown, the shelf basket in INFO or the warehouse basket in STOCK. */
     public void editBasket(Player player, HandheldBasketPayload payload) {
-        HandheldRelocation.edit(player, handheld(), shelfKey(), payload);
+        switch (HandheldActions.mode(handheld())) {
+            case STOCK -> HandheldRelocation.edit(player, handheld(), null, payload);
+            case INFO -> {
+                BlockPos shelf = shelfKey();
+                if (shelf != null) {
+                    HandheldRelocation.edit(player, handheld(), shelf, payload);
+                }
+            }
+            case ZONE -> {
+            }
+        }
     }
 
     /**
-     * Server: Relocate from the shown shelf stashes its basket, puts the handheld into pick target mode and closes
-     * the GUI; refused for the whole warehouse, without entries or without binding.
+     * Server: Relocate from the shelf INFO shows stashes its basket, puts the handheld into pick target mode and
+     * closes the GUI; refused outside INFO, without entries or without binding.
      *
      * @return whether pick target mode started
      */
@@ -229,20 +222,6 @@ public class HandheldMenu extends AbstractContainerMenu {
         }
         List<String> tags = ZoneFilter.parseTags(String.join(",", filter.tags()));
         return new ZoneFilter(items, tags.subList(0, Math.min(ZoneFilter.SLOTS, tags.size())));
-    }
-
-    /** Server: shows the bound warehouse's stock in FIND instead of the scanned shelf's, and empties the shelf basket. */
-    @Override
-    public boolean clickMenuButton(Player player, int id) {
-        if (id != WHOLE_WAREHOUSE_BUTTON) {
-            return false;
-        }
-        shelfBay = null;
-        HandheldRelocation.leaveShelf(handheld());
-        if (player instanceof ServerPlayer serverPlayer) {
-            sendState(serverPlayer);
-        }
-        return true;
     }
 
     /**

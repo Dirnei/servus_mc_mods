@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
+import com.google.gson.JsonPrimitive;
+import com.mojang.serialization.JsonOps;
 import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
@@ -10,11 +12,13 @@ import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMode;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldModePayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.SweepTracker;
+import io.github.dirnei.mc.servus.shuttles.menu.HandheldMenu;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
+import io.github.dirnei.mc.servus.shuttles.zone.ShelfZones;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneList;
 import java.util.List;
@@ -33,7 +37,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-/** The handheld: ZONE scans of whole shelves, sweeps, the rack GUI staying shut, binding, FIND and INFO per shelf, softkeys. */
+/** The handheld: ZONE scans of whole shelves, sweeps, the rack GUI staying shut, binding, finds, INFO and STOCK scans, softkeys. */
 public final class HandheldGameTests {
 
     private static final BlockPos RACK = new BlockPos(3, 1, 5);
@@ -195,16 +199,36 @@ public final class HandheldGameTests {
         helper.succeed();
     }
 
-    /** A softkey's payload switches straight to its mode; a scroll payload steps on from the current one. */
+    /** A softkey's payload switches straight to its mode; a scroll payload steps on in the order ZONE, INFO, STOCK and wraps. */
     @ServusGameTest(timeoutTicks = 20)
     public static void modePayloadSetsTheMode(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack handheld = ZoneFixtures.handheld(HandheldMode.ZONE);
         player.setItemInHand(InteractionHand.MAIN_HAND, handheld);
+        HandheldActions.applyMode(player, HandheldModePayload.step(1));
+        helper.assertTrue(HandheldActions.mode(handheld) == HandheldMode.INFO, "a scroll from ZONE goes to INFO, got " + HandheldActions.mode(handheld));
+        HandheldActions.applyMode(player, HandheldModePayload.step(1));
+        helper.assertTrue(HandheldActions.mode(handheld) == HandheldMode.STOCK, "a scroll from INFO goes to STOCK, got " + HandheldActions.mode(handheld));
+        HandheldActions.applyMode(player, HandheldModePayload.step(1));
+        helper.assertTrue(HandheldActions.mode(handheld) == HandheldMode.ZONE, "a scroll from STOCK wraps to ZONE, got " + HandheldActions.mode(handheld));
+        HandheldActions.applyMode(player, HandheldModePayload.step(-1));
+        helper.assertTrue(HandheldActions.mode(handheld) == HandheldMode.STOCK, "a scroll back from ZONE wraps to STOCK, got " + HandheldActions.mode(handheld));
         HandheldActions.applyMode(player, HandheldModePayload.to(HandheldMode.INFO));
         helper.assertTrue(HandheldActions.mode(handheld) == HandheldMode.INFO, "the softkey sets INFO, got " + HandheldActions.mode(handheld));
-        HandheldActions.applyMode(player, HandheldModePayload.step(1));
-        helper.assertTrue(HandheldActions.mode(handheld) == HandheldMode.ZONE, "a scroll from INFO wraps to ZONE, got " + HandheldActions.mode(handheld));
+        helper.succeed();
+    }
+
+    /** A handheld saved in the old FIND mode loads in INFO; the other modes load by their names. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void findLoadsAsInfo(GameTestHelper helper) {
+        HandheldMode find = HandheldMode.CODEC.parse(JsonOps.INSTANCE, new JsonPrimitive("find")).getOrThrow();
+        helper.assertTrue(find == HandheldMode.INFO, "find loads as INFO, got " + find);
+        for (HandheldMode mode : HandheldMode.values()) {
+            HandheldMode loaded = HandheldMode.CODEC.parse(JsonOps.INSTANCE, HandheldMode.CODEC.encodeStart(JsonOps.INSTANCE, mode).getOrThrow())
+                    .getOrThrow();
+            helper.assertTrue(loaded == mode, mode + " loads as itself, got " + loaded);
+        }
+        helper.assertTrue(HandheldMode.CODEC.parse(JsonOps.INSTANCE, new JsonPrimitive("nonsense")).isError(), "an unknown name is an error");
         helper.succeed();
     }
 
@@ -223,7 +247,7 @@ public final class HandheldGameTests {
     @ServusGameTest(timeoutTicks = 60)
     public static void bindAndLoseController(GameTestHelper helper) {
         warehouse(helper);
-        ItemStack handheld = ZoneFixtures.handheld(HandheldMode.FIND);
+        ItemStack handheld = ZoneFixtures.handheld(HandheldMode.STOCK);
         GameTestSteps.useOn(helper, helper.makeMockPlayer(GameType.SURVIVAL), handheld, CONTROLLER, Direction.NORTH);
         HandheldBinding binding = handheld.get(ServusShuttlesComponents.HANDHELD_BINDING.get());
         helper.assertTrue(binding != null && binding.controller().pos().equals(helper.absolutePos(CONTROLLER)),
@@ -259,7 +283,35 @@ public final class HandheldGameTests {
         });
     }
 
-    /** An INFO scan beeps on the shelf, keeps the bay as the last scanned one and reports the shelf over all its bays. */
+    /** An item of a scanned shelf's INFO list is found on every shelf holding it, the scanned one and the others. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void findFromTheInfoList(GameTestHelper helper) {
+        warehouse(helper);
+        WarehouseFixtures.stock(helper, BREAD_A, new ItemStack(Items.BREAD, 10));
+        WarehouseFixtures.stock(helper, BREAD_C, new ItemStack(Items.BREAD, 3));
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
+        ItemKey bread = ItemKey.of(new ItemStack(Items.BREAD));
+        Waits.when(helper, () -> controller.network().map(network -> network.index().count(bread) == 13).orElse(false), 60,
+                () -> "the warehouse indexes the bread", () -> {
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            ItemStack handheld = ZoneFixtures.handheld(HandheldMode.INFO);
+            HandheldActions.bind(player, handheld, controller);
+            player.setItemInHand(InteractionHand.MAIN_HAND, handheld);
+            HandheldActions.scan(player, handheld, rack(helper, BREAD_A));
+            HandheldInfoPayload info = HandheldActions.info(helper.getLevel(), handheld.get(ServusShuttlesComponents.HANDHELD_PIN.get()));
+            helper.assertTrue(info != null && info.top().size() == 1 && info.top().getFirst().is(Items.BREAD), "the INFO list shows the bread");
+            HandheldActions.Found found = HandheldActions.found(controller.network().orElseThrow(), ItemKey.of(info.top().getFirst()));
+            BlockPos scanned = ShelfZones.key(helper.getLevel(), helper.absolutePos(BREAD_A));
+            helper.assertTrue(found.shelves().size() == 2 && found.shelves().contains(scanned) && found.total() == 13,
+                    "the find names the scanned shelf and the other one, got " + found.shelves());
+            helper.succeed();
+        });
+    }
+
+    /**
+     * An INFO scan beeps on the shelf, keeps the bay as the last scanned one, shows that shelf in the GUI and reports
+     * the shelf over all its bays.
+     */
     @ServusGameTest(timeoutTicks = 20)
     public static void infoScanReportsTheShelf(GameTestHelper helper) {
         WarehouseFixtures.northShelf(helper, SHELF);
@@ -271,9 +323,12 @@ public final class HandheldGameTests {
         WarehouseFixtures.stock(helper, SHELF[0], raw.copy(), raw.copy(), raw.copy());
         WarehouseFixtures.stock(helper, SHELF[1], raw.copy(), raw.copy(), new ItemStack(Items.COBBLESTONE, 5));
         ItemStack handheld = ZoneFixtures.handheld(HandheldMode.INFO);
-        GameTestSteps.useOn(helper, helper.makeMockPlayer(GameType.SURVIVAL), handheld, SHELF[2], Direction.NORTH);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        GameTestSteps.useOn(helper, player, handheld, SHELF[2], Direction.NORTH);
         helper.assertTrue(helper.absolutePos(SHELF[2]).equals(handheld.get(ServusShuttlesComponents.HANDHELD_PIN.get())),
                 "the scanned bay is kept as the last scanned one");
+        HandheldMenu menu = new HandheldMenu(0, player.getInventory(), InteractionHand.MAIN_HAND, player.getUUID());
+        helper.assertTrue(ShelfZones.key(helper.getLevel(), helper.absolutePos(SHELF[2])).equals(menu.shelfKey()), "the GUI shows the scanned shelf, got " + menu.shelfKey());
         HandheldInfoPayload info = HandheldActions.info(helper.getLevel(), helper.absolutePos(SHELF[2]));
         int slots = rack(helper, SHELF[0]).items().getSlots() * SHELF.length;
         helper.assertTrue(info != null && info.zoneId() == ores, "the answer names the zone");

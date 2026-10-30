@@ -48,7 +48,7 @@ public final class HandheldRelocation {
         return basket == null ? Basket.empty() : basket.basket();
     }
 
-    /** The warehouse basket, or the shelf basket when the FIND list shows a shelf. */
+    /** The shelf basket for the INFO screen, else the warehouse basket of the STOCK screen. */
     public static Basket<ItemKey> basket(ItemStack handheld, boolean shelfShown) {
         return shelfShown ? shelfBasket(handheld) : basket(handheld);
     }
@@ -74,7 +74,7 @@ public final class HandheldRelocation {
         }
     }
 
-    /** The FIND list now shows the shelf with that key: a shelf basket of another shelf is emptied. */
+    /** INFO scanned the shelf with that key: a shelf basket of another shelf is emptied. */
     public static void enterShelf(ItemStack handheld, BlockPos shelf) {
         ShelfBasket basket = handheld.get(ServusShuttlesComponents.HANDHELD_SHELF_BASKET.get());
         if (basket != null && !basket.shelf().equals(shelf)) {
@@ -82,7 +82,7 @@ public final class HandheldRelocation {
         }
     }
 
-    /** The FIND list left the scanned shelf: the shelf basket is emptied. */
+    /** The handheld left the scanned shelf: the shelf basket is emptied. */
     public static void leaveShelf(ItemStack handheld) {
         handheld.remove(ServusShuttlesComponents.HANDHELD_SHELF_BASKET.get());
     }
@@ -99,10 +99,10 @@ public final class HandheldRelocation {
     }
 
     /**
-     * Applies a basket edit from the FIND screen to the basket of the list it
-     * shows; a new item for a full basket is refused with a note.
+     * Applies a basket edit from the INFO or STOCK screen to the basket of the
+     * list it shows; a new item for a full basket is refused with a note.
      *
-     * @param shelf the key of the shelf the list shows, null for the whole warehouse
+     * @param shelf the key of the shelf INFO shows, null for the warehouse list of STOCK
      */
     public static void edit(Player player, ItemStack handheld, @Nullable BlockPos shelf, HandheldBasketPayload payload) {
         Basket<ItemKey> basket = shelf == null ? basket(handheld) : shelfBasketOf(handheld, shelf);
@@ -146,16 +146,16 @@ public final class HandheldRelocation {
     }
 
     /**
-     * Relocate from the shelf the FIND list shows: when the handheld is in
-     * FIND, bound to a warehouse and the shelf basket holds an entry, the
-     * shelf basket becomes the relocation, is emptied, and pick target mode starts.
+     * Relocate from the shelf INFO shows: when the handheld is in INFO, bound
+     * to a warehouse and the shelf basket holds an entry, the shelf basket
+     * becomes the relocation, is emptied, and pick target mode starts.
      *
-     * @param shelf the key of the shelf the list shows
+     * @param shelf the key of the shelf INFO shows
      * @return whether pick target mode started, so the caller closes the GUI
      */
     public static boolean relocate(Player player, ItemStack handheld, BlockPos shelf) {
         Basket<ItemKey> basket = shelfBasketOf(handheld, shelf);
-        if (HandheldActions.mode(handheld) != HandheldMode.FIND || basket.isEmpty()
+        if (HandheldActions.mode(handheld) != HandheldMode.INFO || basket.isEmpty()
                 || HandheldActions.boundNetwork(player.level().getServer(), handheld).isEmpty()) {
             return false;
         }

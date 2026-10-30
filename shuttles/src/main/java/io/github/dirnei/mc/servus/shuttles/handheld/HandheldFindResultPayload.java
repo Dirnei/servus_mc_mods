@@ -11,7 +11,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Server to client: the answer to a FIND. The client makes the shelves glow
+ * Server to client: the answer to a find. The client makes the shelves glow
  * for {@code glowTicks} and shows item, total and codes on the panel.
  *
  * @param item      one of the item searched for

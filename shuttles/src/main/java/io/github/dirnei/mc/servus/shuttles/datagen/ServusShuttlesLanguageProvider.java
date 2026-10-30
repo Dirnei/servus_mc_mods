@@ -416,8 +416,8 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.handheld.view.zones", "ZONES");
         add("gui.servus_shuttles.handheld.view.new_zone", "NEW ZONE");
         add("gui.servus_shuttles.handheld.view.edit_zone", "EDIT ZONE");
-        add("gui.servus_shuttles.handheld.view.find", "FIND");
         add("gui.servus_shuttles.handheld.view.info", "INFO");
+        add("gui.servus_shuttles.handheld.view.stock", "STOCK");
         add("gui.servus_shuttles.handheld.search_hint", "search");
         add("gui.servus_shuttles.handheld.name", "NAME");
         add("gui.servus_shuttles.handheld.name_hint", "zone name");
@@ -435,8 +435,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.handheld.takes_anything", "takes anything");
         add("gui.servus_shuttles.handheld.not_bound", "NOT BOUND");
         add("gui.servus_shuttles.handheld.bind_hint", "Scan a Warehouse Controller");
-        add("gui.servus_shuttles.handheld.find_empty", "Nothing stored");
-        add("gui.servus_shuttles.handheld.find_shelf", "Shelf %s");
+        add("gui.servus_shuttles.handheld.stock_empty", "Nothing stored");
         add("gui.servus_shuttles.handheld.basket", "BASKET %s/%s");
         add("gui.servus_shuttles.handheld.shelf_basket", "SHELF %s/%s");
         add("gui.servus_shuttles.handheld.basket_hint_stock", "Click: add  R: find");
@@ -444,7 +443,6 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.handheld.basket_full", "BASKET FULL");
         add("gui.servus_shuttles.handheld.basket_clear", "CLEAR");
         add("gui.servus_shuttles.handheld.relocate", "RELOCATE");
-        add("gui.servus_shuttles.handheld.whole_warehouse", "ALL");
         add("gui.servus_shuttles.handheld.basket_add_title", "Add %s");
         add("gui.servus_shuttles.handheld.basket_edit_title", "%s in the basket");
         add("gui.servus_shuttles.handheld.basket_add", "Add");
@@ -455,7 +453,6 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.handheld.info.slots", "SLOTS %s/%s");
         add("gui.servus_shuttles.handheld.info.fluid", "%s/%s mB");
         add("gui.servus_shuttles.handheld.info.mb", "%s mB");
-        add("gui.servus_shuttles.handheld.info.top", "CONTENTS");
         add("gui.servus_shuttles.handheld.info.empty", "Empty");
         add("gui.servus_shuttles.handheld.problem.empty", "Give the zone a name");
         add("gui.servus_shuttles.handheld.problem.too_long", "The name is too long");
@@ -466,7 +463,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("hud.servus_shuttles.handheld.shelf", "This shelf");
         add("hud.servus_shuttles.handheld.not_bound", "Not bound");
         add("hud.servus_shuttles.handheld.bind_hint", "Scan a controller");
-        add("hud.servus_shuttles.handheld.find_hint", "Right click an item in the GUI or scan a shelf");
+        add("hud.servus_shuttles.handheld.stock_hint", "Right click an item in the GUI to find it");
         add("hud.servus_shuttles.handheld.pick_target", "PICK TARGET");
         add("hud.servus_shuttles.handheld.pick_target_hint", "Scan the target shelf");
         add("hud.servus_shuttles.handheld.basket_entries", "Basket: %s entries");

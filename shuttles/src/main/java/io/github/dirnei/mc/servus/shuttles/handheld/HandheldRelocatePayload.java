@@ -6,7 +6,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
-/** Client to server, the Relocate button of the FIND screen: close the GUI and wait for the target shelf. */
+/** Client to server, the Relocate button of the INFO screen: close the GUI and wait for the target shelf. */
 public record HandheldRelocatePayload() implements CustomPacketPayload {
 
     public static final HandheldRelocatePayload INSTANCE = new HandheldRelocatePayload();

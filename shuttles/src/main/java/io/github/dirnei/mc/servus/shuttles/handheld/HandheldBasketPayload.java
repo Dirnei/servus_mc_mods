@@ -9,8 +9,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Client to server, from the handheld GUI's FIND screen: edit the basket of
- * the open handheld. {@code item} is empty for {@link Op#CLEAR}, {@code amount}
+ * Client to server, from the handheld GUI's INFO or STOCK screen: edit the
+ * basket of that screen. {@code item} is empty for {@link Op#CLEAR}, {@code amount}
  * is unused for {@link Op#REMOVE} and {@link Op#CLEAR}.
  */
 public record HandheldBasketPayload(Op op, ItemStack item, int amount) implements CustomPacketPayload {

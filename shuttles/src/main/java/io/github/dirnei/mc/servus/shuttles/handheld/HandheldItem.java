@@ -27,7 +27,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import org.jspecify.annotations.Nullable;
 
 /**
  * The warehouse handheld: scans rack bays in its mode, also beyond the normal
@@ -78,15 +77,15 @@ public class HandheldItem extends Item {
             }
         }
         if (player instanceof ServerPlayer serverPlayer) {
-            openGui(serverPlayer, hand, null);
+            openGui(serverPlayer, hand);
         }
         return InteractionResult.SUCCESS;
     }
 
-    /** Opens the handheld's GUI; its FIND list shows the shelf of {@code shelfBay}, or the bound warehouse when null. */
-    static void openGui(ServerPlayer player, InteractionHand hand, @Nullable BlockPos shelfBay) {
+    /** Opens the handheld's GUI on the screen of its mode; INFO shows the last scanned shelf. */
+    static void openGui(ServerPlayer player, InteractionHand hand) {
         UUID team = Teams.teamOf(player);
-        player.openMenu(new SimpleMenuProvider((id, inventory, p) -> new HandheldMenu(id, inventory, hand, team, shelfBay),
+        player.openMenu(new SimpleMenuProvider((id, inventory, p) -> new HandheldMenu(id, inventory, hand, team),
                 Component.translatable("gui.servus_shuttles.handheld.title")), buf -> HandheldMenu.write(buf, hand, team));
         if (player.containerMenu instanceof HandheldMenu menu) {
             menu.sendState(player);

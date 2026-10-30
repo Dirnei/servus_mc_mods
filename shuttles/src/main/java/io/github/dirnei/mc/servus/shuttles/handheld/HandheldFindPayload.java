@@ -7,7 +7,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
-/** Client to server, from the handheld GUI's FIND list: light up every bay of the bound warehouse holding this item. */
+/** Client to server, from an item list of the handheld GUI: light up every bay of the bound warehouse holding this item. */
 public record HandheldFindPayload(ItemStack item) implements CustomPacketPayload {
 
     public static final Type<HandheldFindPayload> TYPE =

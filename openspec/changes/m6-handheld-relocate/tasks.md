@@ -37,10 +37,11 @@
 
 ## 7. FIND and INFO merged, STOCK added
 
-- [ ] 7.1 `handheld/HandheldMode`: ZONE, INFO, STOCK, codec reads "find" as INFO; `HandheldActions` scan per mode (INFO scans and opens the GUI, STOCK switches to INFO and scans, target scan first in INFO), `setMode` as before. Verify: `gradlew :shuttles:build`.
-- [ ] 7.2 `menu/HandheldMenu` and `handheld/HandheldRelocation`: shelf view from the last INFO scan, warehouse view in STOCK, baskets by screen, Relocate only from INFO on a Heavy Duty Rack shelf; remove the ALL button and `clickMenuButton`. Verify: `gradlew :shuttles:build`.
-- [ ] 7.3 `client/HandheldScreen`, `client/HandheldHud`, `client/ClientHandheld`: INFO screen with readout lines, item grid, shelf basket, Clear and Relocate (fluid shelf readout only); STOCK screen with list, warehouse basket and Clear; right click finds in both; softkeys ZONE, INFO, STOCK; panel per mode. Lang via `datagen/ServusShuttlesLanguageProvider` (remove FIND and ALL keys). Verify: `gradlew :shuttles:runData` and `:shuttles:build`.
-- [ ] 7.4 GameTests in `gametest/HandheldGameTests` and `gametest/HandheldRelocateGameTests`: mode order and wrap, "find" loads as INFO, STOCK scan switches to INFO, INFO scan opens the shelf view, find from the INFO list, Relocate refused in STOCK; adapt every test that used FIND. Verify: `gradlew :shuttles:runGameTestServer` green.
+- [x] 7.1 `handheld/HandheldMode`: ZONE, INFO, STOCK, codec reads "find" as INFO; `HandheldActions` scan per mode (INFO scans and opens the GUI, STOCK switches to INFO and scans, target scan first in INFO), `setMode` as before. Verify: `gradlew :shuttles:build`.
+- [x] 7.2 `menu/HandheldMenu` and `handheld/HandheldRelocation`: shelf view from the last INFO scan, warehouse view in STOCK, baskets by screen, Relocate only from INFO on a Heavy Duty Rack shelf; remove the ALL button and `clickMenuButton`. Verify: `gradlew :shuttles:build`.
+- [x] 7.3 `client/HandheldScreen`, `client/HandheldHud`, `client/ClientHandheld`: INFO screen with readout lines, item grid, shelf basket, Clear and Relocate (fluid shelf readout only); STOCK screen with list, warehouse basket and Clear; right click finds in both; softkeys ZONE, INFO, STOCK; panel per mode. Lang via `datagen/ServusShuttlesLanguageProvider` (remove FIND and ALL keys). Verify: `gradlew :shuttles:runData` and `:shuttles:build`.
+- [x] 7.4 GameTests in `gametest/HandheldGameTests` and `gametest/HandheldRelocateGameTests`: mode order and wrap, "find" loads as INFO, STOCK scan switches to INFO, INFO scan opens the shelf view, find from the INFO list, Relocate refused in STOCK; adapt every test that used FIND. Verify: `gradlew :shuttles:runGameTestServer` green.
+  - Note: the menu always carries the warehouse stock; the INFO screen draws the shelf from the last INFO readout, and the shelf view is the last scanned bay (`HANDHELD_PIN`) while the handheld is in INFO. GameTests run with mock players, which open no GUI and get no packets, so the find from a list is covered by `HandheldActions.found` for an item of the INFO readout.
 
 ## 6. Verify
 

@@ -27,7 +27,7 @@ import org.joml.Vector3fc;
  * The handheld's effects in the world: a red scan line from the hand to the
  * aimed bay while use is held, a fading green or red box over a scanned
  * shelf, and a yellow tint with an outline, seen through blocks, over the
- * shelves a FIND lit up while a handheld is in hand. Each effect covers a
+ * shelves a find lit up while a handheld is in hand. Each effect covers a
  * whole shelf as one box.
  *
  * <p>No two faces share a plane where they overlap: a flash stands

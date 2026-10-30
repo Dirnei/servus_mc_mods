@@ -52,7 +52,7 @@ public final class ServusShuttlesComponents {
                     .persistent(BlockPos.CODEC)
                     .networkSynchronized(BlockPos.STREAM_CODEC));
 
-    /** The basket of the scanned shelf the FIND list shows; missing means empty. */
+    /** The basket of the scanned shelf INFO shows; missing means empty. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ShelfBasket>> HANDHELD_SHELF_BASKET =
             COMPONENTS.registerComponentType("handheld_shelf_basket", builder -> builder
                     .persistent(ShelfBasket.CODEC)
@@ -64,7 +64,7 @@ public final class ServusShuttlesComponents {
                     .persistent(ShelfBasket.CODEC)
                     .networkSynchronized(ShelfBasket.STREAM_CODEC));
 
-    /** The handheld's warehouse basket, shown while FIND lists the whole warehouse; missing means empty. */
+    /** The handheld's warehouse basket, shown in STOCK; missing means empty. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<BasketEntry>>> HANDHELD_BASKET =
             COMPONENTS.registerComponentType("handheld_basket", builder -> builder
                     .persistent(BasketEntry.LIST_CODEC)

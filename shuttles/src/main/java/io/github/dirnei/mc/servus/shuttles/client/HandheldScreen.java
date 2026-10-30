@@ -1,7 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
 import io.github.dirnei.mc.servus.foundation.client.ItemPicker;
-import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.foundation.client.PickerEntries;
 import io.github.dirnei.mc.servus.foundation.logistics.channel.ChannelColours;
 import io.github.dirnei.mc.servus.foundation.picker.PickerList;
@@ -56,13 +55,14 @@ import org.lwjgl.glfw.GLFW;
  * mode; three softkeys below it switch the mode. ZONE lists the team's zones
  * (choose the active one, new, edit, delete with a second click when loaded
  * shelves use it) and opens the zone form, whose filter is picked in the item
- * picker with {@code #} tag search. FIND lists the bound warehouse's stock,
- * or a scanned shelf's, above the basket of that list: a click on a stock
- * item adds it to the basket through an amount popup (shift click adds a
- * stack), a right click lights up its shelves; a click on a basket cell edits
- * its amount, a right click removes it; Relocate, shown only for a scanned
- * shelf, waits for the target shelf. INFO shows the last scanned shelf.
- * Item icons on the screen are tinted green, the hovered one keeps its colours.
+ * picker with {@code #} tag search. INFO shows the readout of the last
+ * scanned shelf above its items and the shelf basket, with Clear and
+ * Relocate, which waits for the target shelf; a Fluid Rack shelf shows only
+ * its readout. STOCK lists the bound warehouse's stock above the warehouse
+ * basket, with Clear. In both lists a click on an item adds it to the basket
+ * through an amount popup (shift click adds a stack), a right click lights up
+ * its shelves; a click on a basket cell edits its amount, a right click
+ * removes it.
  */
 public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
 
@@ -94,10 +94,9 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
     private static final int CELL = 19;
     private static final float COUNT_SCALE = 0.75F;
     private static final int GRID_COLUMNS = 9;
-    private static final int GRID_ROWS = 6;
-    /** Stock rows in FIND, fewer than the INFO grid to leave room for the basket. */
-    private static final int FIND_ROWS = 4;
-    private static final int BASKET_LABEL_Y = LIST_Y + FIND_ROWS * CELL + 3;
+    /** Stock rows in STOCK, leaving room for the basket below. */
+    private static final int STOCK_ROWS = 4;
+    private static final int BASKET_LABEL_Y = LIST_Y + STOCK_ROWS * CELL + 3;
     private static final int BASKET_Y = BASKET_LABEL_Y + 10;
     /** How long the basket full note stays. */
     private static final long NOTE_MS = 2500;
@@ -114,14 +113,23 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
     private static final int KEY_LIT_TEXT = 0xFF1D1404;
     private static final int GLOW_RGB = 0x8DFF9A;
     private static final double GLOW_PERIOD_MS = 4200;
-    private static final HandheldMode[] SOFTKEYS = {HandheldMode.ZONE, HandheldMode.FIND, HandheldMode.INFO};
+    private static final HandheldMode[] SOFTKEYS = {HandheldMode.ZONE, HandheldMode.INFO, HandheldMode.STOCK};
     private static List<ItemPicker.Entry> itemEntries;
 
     private enum View {
         ZONES,
         FORM,
-        FIND,
-        INFO
+        INFO,
+        STOCK
+    }
+
+    /** An item grid on the screen: its top, how many rows show, and its items with their counts. */
+    private record Grid(int y, int rows, List<ItemStack> items, List<Long> counts) {
+
+        /** How many rows the grid can scroll down. */
+        int scrollLines() {
+            return (items.size() + GRID_COLUMNS - 1) / GRID_COLUMNS - rows;
+        }
     }
 
     /** A text button on the CRT: inverted while hovered, dim while it cannot be used, gone while not shown. */
@@ -161,16 +169,16 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
     private static View viewOf(HandheldMode mode) {
         return switch (mode) {
             case ZONE -> View.ZONES;
-            case FIND -> View.FIND;
             case INFO -> View.INFO;
+            case STOCK -> View.STOCK;
         };
     }
 
     private HandheldMode modeOf(View view) {
         return switch (view) {
             case ZONES, FORM -> HandheldMode.ZONE;
-            case FIND -> HandheldMode.FIND;
             case INFO -> HandheldMode.INFO;
+            case STOCK -> HandheldMode.STOCK;
         };
     }
 
@@ -221,7 +229,7 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         view = next;
         scroll = 0;
         confirmDelete = ZoneList.NONE;
-        search.visible = view == View.ZONES || view == View.FIND && findListShown();
+        search.visible = view == View.ZONES || view == View.STOCK && menu.bound();
         search.setValue("");
         name.visible = view == View.FORM;
         buttons.clear();
@@ -235,25 +243,30 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
                 addButton(LEFT, "save", () -> problem().isEmpty(), this::saveForm);
                 addButton(LEFT + 44, "cancel", () -> true, () -> show(View.ZONES));
             }
-            case FIND -> {
-                addButton(LEFT, "basket_clear", () -> !basket().isEmpty(),
-                        () -> ClientPacketDistributor.sendToServer(HandheldBasketPayload.clear()));
-                int wholeX = LEFT + font.width(Component.translatable(KEY + "basket_clear")) + 10;
-                addButton(wholeX, "whole_warehouse", () -> !menu.shelf().isEmpty() && menu.bound(),
-                        () -> MenuButtons.press(minecraft, menu, HandheldMenu.WHOLE_WAREHOUSE_BUTTON));
-                Component relocate = Component.translatable(KEY + "relocate");
-                buttons.add(new CrtButton(wholeX + font.width(Component.translatable(KEY + "whole_warehouse")) + 10, BUTTON_Y,
-                        () -> relocate, this::shelfShown, () -> !basket().isEmpty() && menu.bound(), this::relocate));
+            case INFO -> {
+                addClearButton();
+                int relocateX = LEFT + font.width(Component.translatable(KEY + "basket_clear")) + 10;
+                addButton(relocateX, "relocate", this::basketShown, () -> !basket().isEmpty() && menu.bound(),
+                        () -> ClientPacketDistributor.sendToServer(HandheldRelocatePayload.INSTANCE));
             }
-            default -> {
-            }
+            case STOCK -> addClearButton();
         }
         setFocused(view == View.FORM ? name : search.visible ? search : null);
     }
 
     private void addButton(int x, String key, BooleanSupplier active, Runnable press) {
+        addButton(x, key, () -> true, active, press);
+    }
+
+    private void addButton(int x, String key, BooleanSupplier shown, BooleanSupplier active, Runnable press) {
         Component label = Component.translatable(KEY + key);
-        buttons.add(new CrtButton(x, BUTTON_Y, () -> label, () -> true, active, press));
+        buttons.add(new CrtButton(x, BUTTON_Y, () -> label, shown, active, press));
+    }
+
+    /** Clear for the basket of the screen, shown with the basket. */
+    private void addClearButton() {
+        addButton(LEFT, "basket_clear", this::basketShown, () -> !basket().isEmpty(),
+                () -> ClientPacketDistributor.sendToServer(HandheldBasketPayload.clear()));
     }
 
     /** Delete, or the second click's question with the number of loaded shelves in the zone. */
@@ -347,8 +360,8 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        if (view == View.FIND) {
-            search.visible = findListShown();
+        if (view == View.STOCK) {
+            search.visible = menu.bound();
         }
         boolean popupOpen = picker.isOpen() || amountPopup.isOpen();
         int mx = popupOpen ? -1 : mouseX;
@@ -377,8 +390,8 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         switch (view) {
             case ZONES -> drawZones(graphics, mouseX, mouseY);
             case FORM -> drawForm(graphics, mouseX, mouseY);
-            case FIND -> drawFind(graphics, mouseX, mouseY);
             case INFO -> drawInfo(graphics, mouseX, mouseY);
+            case STOCK -> drawStock(graphics, mouseX, mouseY);
         }
         for (CrtButton button : buttons) {
             if (button.shown().getAsBoolean()) {
@@ -556,46 +569,139 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         graphics.text(font, addLabel(), bx + 3, by + 1, hovered ? LCD : active ? LCD_TEXT : LCD_DIM, false);
     }
 
-    private void drawFind(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+    private void drawStock(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         HandheldBinding binding = menu.handheld().get(ServusShuttlesComponents.HANDHELD_BINDING.get());
-        String scope = !menu.shelf().isEmpty() ? Component.translatable(KEY + "find_shelf", menu.shelf()).getString()
-                : binding == null ? "" : binding.name();
-        drawBar(graphics, Component.translatable(KEY + "view.find"), scope);
-        if (!findListShown()) {
+        drawBar(graphics, Component.translatable(KEY + "view.stock"), binding == null ? "" : binding.name());
+        if (!menu.bound()) {
             graphics.centeredText(font, Component.translatable(KEY + "not_bound"), x(SCREEN_X + SCREEN_W / 2), y(SCREEN_Y + 60), LCD_TEXT);
             graphics.centeredText(font, Component.translatable(KEY + "bind_hint"), x(SCREEN_X + SCREEN_W / 2), y(SCREEN_Y + 74), LCD_DIM);
             return;
         }
         graphics.fill(x(LEFT), y(TOP + 9), x(RIGHT), y(TOP + 10), LCD_LINE);
-        List<Integer> shown = stockRows();
-        if (shown.isEmpty()) {
-            graphics.text(font, Component.translatable(KEY + "find_empty"), x(LEFT), y(LIST_Y + 2), LCD_DIM, false);
+        grid().ifPresent(grid -> {
+            if (grid.items().isEmpty()) {
+                graphics.text(font, Component.translatable(KEY + "stock_empty"), x(LEFT), y(LIST_Y + 2), LCD_DIM, false);
+            }
+            drawGrid(graphics, grid, mouseX, mouseY);
+        });
+        drawBasket(graphics, mouseX, mouseY);
+    }
+
+    /** The readout of the last scanned shelf: zone and slots, the zone's filter, then its items and the shelf basket. */
+    private void drawInfo(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        HandheldInfoPayload info = ClientHandheld.lastInfo();
+        drawBar(graphics, Component.translatable(KEY + "view.info"), info == null || info.code().isEmpty() ? "" : info.code());
+        if (info == null) {
+            graphics.text(font, Component.translatable(KEY + "info.scan_hint"), x(LEFT), y(TOP + 1), LCD_DIM, false);
+            return;
         }
-        for (int cell = 0; cell < GRID_COLUMNS * FIND_ROWS; cell++) {
+        int line = y(TOP + 1);
+        String amount = (info.fluid() ? Component.translatable(KEY + "info.fluid", info.used(), info.total())
+                : Component.translatable(KEY + "info.slots", info.used(), info.total())).getString();
+        graphics.text(font, amount, x(RIGHT) - font.width(amount), line, LCD_TEXT, false);
+        int nameWidth = CONTENT_W - font.width(amount) - 6;
+        ZoneDefinition zone = ClientZones.definition(info.zoneId());
+        if (zone == null) {
+            graphics.text(font, font.plainSubstrByWidth(Component.translatable(KEY + "no_zone").getString(), nameWidth), x(LEFT), line, LCD_TEXT, false);
+        } else {
+            graphics.fill(x(LEFT) + 1, line, x(LEFT) + 8, line + 7, ChannelColours.argb(zone.colour()));
+            graphics.text(font, font.plainSubstrByWidth(zone.name(), nameWidth - 11), x(LEFT) + 11, line, LCD_TEXT, false);
+            graphics.text(font, font.plainSubstrByWidth(filterSummary(zone.filter()), CONTENT_W), x(LEFT), line + ROW, LCD_DIM, false);
+        }
+        int top = y(infoGridY(info));
+        graphics.fill(x(LEFT), top - 3, x(RIGHT), top - 2, LCD_LINE);
+        if (info.top().isEmpty()) {
+            graphics.text(font, Component.translatable(KEY + "info.empty"), x(LEFT), top + 4, LCD_DIM, false);
+        }
+        if (info.fluid()) {
+            for (int i = 0; i < info.top().size(); i++) {
+                int rowY = top + i * CELL;
+                ItemStack stack = info.top().get(i);
+                graphics.fakeItem(stack, x(LEFT), rowY);
+                String count = Component.translatable(KEY + "info.mb", info.counts().get(i)).getString();
+                String itemName = font.plainSubstrByWidth(stack.getHoverName().getString(), CONTENT_W - 24 - font.width(count));
+                graphics.text(font, itemName, x(LEFT) + 20, rowY + 5, LCD_TEXT, false);
+                graphics.text(font, count, x(RIGHT) - font.width(count), rowY + 5, LCD_TEXT, false);
+            }
+            return;
+        }
+        grid().ifPresent(grid -> drawGrid(graphics, grid, mouseX, mouseY));
+        drawBasket(graphics, mouseX, mouseY);
+    }
+
+    /** Where the INFO item grid starts: below the zone line, and the filter line when zoned. */
+    private static int infoGridY(HandheldInfoPayload info) {
+        boolean zoned = ClientZones.definition(info.zoneId()) != null;
+        return TOP + 1 + ROW + (zoned ? ROW : 0) + 4;
+    }
+
+    /** The scanned item shelf INFO shows, or null before a scan and for a Fluid Rack shelf. */
+    private static HandheldInfoPayload shownShelf() {
+        HandheldInfoPayload info = ClientHandheld.lastInfo();
+        return info == null || info.fluid() ? null : info;
+    }
+
+    /** The item grid of the screen: the scanned shelf's items in INFO, the warehouse stock matching the search in STOCK. */
+    private Optional<Grid> grid() {
+        if (view == View.STOCK && menu.bound()) {
+            List<ItemStack> items = new ArrayList<>();
+            List<Long> counts = new ArrayList<>();
+            for (int index : stockRows()) {
+                items.add(menu.stock().get(index));
+                counts.add(menu.stockCounts().get(index));
+            }
+            return Optional.of(new Grid(LIST_Y, STOCK_ROWS, items, counts));
+        }
+        HandheldInfoPayload info = shownShelf();
+        if (view == View.INFO && info != null) {
+            int top = infoGridY(info);
+            return Optional.of(new Grid(top, (BASKET_LABEL_Y - 3 - top) / CELL, info.top(), info.counts()));
+        }
+        return Optional.empty();
+    }
+
+    private void drawGrid(GuiGraphicsExtractor graphics, Grid grid, int mouseX, int mouseY) {
+        for (int cell = 0; cell < GRID_COLUMNS * grid.rows(); cell++) {
             int index = scroll * GRID_COLUMNS + cell;
-            if (index >= shown.size()) {
+            if (index >= grid.items().size()) {
                 break;
             }
-            int stock = shown.get(index);
             int sx = x(LEFT + (cell % GRID_COLUMNS) * CELL);
-            int sy = y(LIST_Y + (cell / GRID_COLUMNS) * CELL);
+            int sy = y(grid.y() + (cell / GRID_COLUMNS) * CELL);
             boolean hovered = inside(mouseX, mouseY, sx, sy, CELL - 1, CELL - 1);
             if (hovered) {
                 graphics.fill(sx, sy, sx + CELL - 1, sy + CELL - 1, LCD_HOVER);
             }
             graphics.outline(sx, sy, CELL - 1, CELL - 1, hovered ? LCD_TEXT : LCD_LINE);
-            ItemStack item = menu.stock().get(stock);
-            graphics.fakeItem(item, sx + 1, sy + 1);
-            drawCount(graphics, CompactCount.slot(menu.stockCounts().get(stock)), sx + CELL - 1, sy + CELL - 1);
+            graphics.fakeItem(grid.items().get(index), sx + 1, sy + 1);
+            drawCount(graphics, CompactCount.slot(grid.counts().get(index)), sx + CELL - 1, sy + CELL - 1);
         }
-        drawBasket(graphics, mouseX, mouseY);
     }
 
-    /** The basket under the stock list: a label with the entry count and the click hint, then one cell per entry. */
+    /** The index into the grid's items of the cell under the mouse, or -1. */
+    private int hoveredCell(Grid grid, double mouseX, double mouseY) {
+        int column = (int) Math.floor((mouseX - x(LEFT)) / CELL);
+        int row = (int) Math.floor((mouseY - y(grid.y())) / CELL);
+        if (column < 0 || column >= GRID_COLUMNS || row < 0 || row >= grid.rows()) {
+            return -1;
+        }
+        int index = (scroll + row) * GRID_COLUMNS + column;
+        return index < grid.items().size() ? index : -1;
+    }
+
+    /** The item of the grid cell under the mouse. */
+    private Optional<ItemStack> hoveredGridItem(double mouseX, double mouseY) {
+        return grid().flatMap(grid -> {
+            int index = hoveredCell(grid, mouseX, mouseY);
+            return index < 0 ? Optional.empty() : Optional.of(grid.items().get(index));
+        });
+    }
+
+    /** The basket under the list: a label with the entry count and the click hint, then one cell per entry. */
     private void drawBasket(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         Basket<ItemKey> basket = basket();
         graphics.fill(x(LEFT), y(BASKET_LABEL_Y - 2), x(RIGHT), y(BASKET_LABEL_Y - 1), LCD_LINE);
-        Component label = Component.translatable(KEY + (shelfShown() ? "shelf_basket" : "basket"), basket.size(), Basket.MAX_ENTRIES);
+        Component label = Component.translatable(KEY + (view == View.INFO ? "shelf_basket" : "basket"), basket.size(), Basket.MAX_ENTRIES);
         graphics.text(font, label, x(LEFT), y(BASKET_LABEL_Y), LCD_DIM, false);
         boolean full = Util.getMillis() < basketFullUntil;
         Component hint = full ? Component.translatable(KEY + "basket_full")
@@ -618,27 +724,27 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         }
     }
 
-    /** The basket of the list shown: the shelf basket for a scanned shelf, else the warehouse basket. */
+    /** The basket of the screen: the shelf basket in INFO, the warehouse basket in STOCK. */
     private Basket<ItemKey> basket() {
-        return HandheldRelocation.basket(menu.handheld(), shelfShown());
+        return HandheldRelocation.basket(menu.handheld(), view == View.INFO);
     }
 
-    /** Whether the FIND list shows a scanned shelf rather than the whole warehouse. */
-    private boolean shelfShown() {
-        return !menu.shelf().isEmpty();
+    /** Whether the screen shows a basket: INFO on a scanned item shelf, or STOCK of a bound handheld. */
+    private boolean basketShown() {
+        return view == View.INFO ? shownShelf() != null : view == View.STOCK && menu.bound();
     }
 
     /** The index of the basket entry under the mouse, or -1. */
     private int hoveredBasket(double mouseX, double mouseY) {
-        if (view != View.FIND || !findListShown() || mouseY < y(BASKET_Y) || mouseY >= y(BASKET_Y + CELL - 1) || mouseX < x(LEFT)) {
+        if (!basketShown() || mouseY < y(BASKET_Y) || mouseY >= y(BASKET_Y + CELL - 1) || mouseX < x(LEFT)) {
             return -1;
         }
         int index = (int) ((mouseX - x(LEFT)) / CELL);
         return index < basket().size() ? index : -1;
     }
 
-    /** A stock cell clicked: left opens the amount popup (shift adds a stack at once), right lights up the item's shelves. */
-    private void clickStock(ItemStack item, int button, boolean shift) {
+    /** A list item clicked: left opens the amount popup (shift adds a stack at once), right lights up the item's shelves. */
+    private void clickListItem(ItemStack item, int button, boolean shift) {
         if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
             ClientPacketDistributor.sendToServer(new HandheldFindPayload(item));
             onClose();
@@ -670,12 +776,14 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         }
     }
 
-    /** How many of the item the FIND list shows, at most {@link AmountSteps#MAX}; 0 when the list does not show it. */
+    /** How many of the item the screen's list shows, at most {@link AmountSteps#MAX}; 0 when the list does not show it. */
     private int held(ItemStack item) {
         ItemKey key = ItemKey.of(item);
-        for (int i = 0; i < menu.stock().size(); i++) {
-            if (ItemKey.of(menu.stock().get(i)).equals(key)) {
-                return (int) Math.min(AmountSteps.MAX, menu.stockCounts().get(i));
+        List<ItemStack> items = view == View.STOCK ? menu.stock() : shownShelf() == null ? List.of() : shownShelf().top();
+        List<Long> counts = view == View.STOCK ? menu.stockCounts() : shownShelf() == null ? List.of() : shownShelf().counts();
+        for (int i = 0; i < items.size(); i++) {
+            if (ItemKey.of(items.get(i)).equals(key)) {
+                return (int) Math.min(AmountSteps.MAX, counts.get(i));
             }
         }
         return 0;
@@ -684,15 +792,6 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
     /** Add raises an entry already in the basket; Save on an entry sets its amount. */
     private void confirmAmount(ItemStack item, int amount, boolean editing) {
         ClientPacketDistributor.sendToServer(editing ? HandheldBasketPayload.set(item, amount) : HandheldBasketPayload.add(item, amount));
-    }
-
-    private void relocate() {
-        ClientPacketDistributor.sendToServer(HandheldRelocatePayload.INSTANCE);
-    }
-
-    /** Whether FIND shows a list: a scanned shelf's contents, or the bound warehouse's stock. */
-    private boolean findListShown() {
-        return menu.bound() || !menu.shelf().isEmpty();
     }
 
     /** A stack count in small CRT text, its bottom right corner at the given point. */
@@ -704,89 +803,6 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         graphics.pose().popMatrix();
     }
 
-    private void drawInfo(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        HandheldInfoPayload info = ClientHandheld.lastInfo();
-        drawBar(graphics, Component.translatable(KEY + "view.info"), info == null || info.code().isEmpty() ? "" : info.code());
-        if (info == null) {
-            graphics.text(font, Component.translatable(KEY + "info.scan_hint"), x(LEFT), y(TOP + 1), LCD_DIM, false);
-            return;
-        }
-        int line = y(TOP + 1);
-        ZoneDefinition zone = ClientZones.definition(info.zoneId());
-        if (zone == null) {
-            graphics.text(font, Component.translatable(KEY + "no_zone"), x(LEFT), line, LCD_TEXT, false);
-        } else {
-            graphics.fill(x(LEFT) + 1, line, x(LEFT) + 8, line + 7, ChannelColours.argb(zone.colour()));
-            graphics.text(font, zone.name(), x(LEFT) + 11, line, LCD_TEXT, false);
-            line += ROW;
-            graphics.text(font, font.plainSubstrByWidth(filterSummary(zone.filter()), CONTENT_W), x(LEFT), line, LCD_DIM, false);
-        }
-        line = y(infoAmountY(info));
-        Component amount = info.fluid() ? Component.translatable(KEY + "info.fluid", info.used(), info.total())
-                : Component.translatable(KEY + "info.slots", info.used(), info.total());
-        graphics.text(font, amount, x(LEFT), line, LCD_TEXT, false);
-        line += ROW + 2;
-        graphics.text(font, Component.translatable(KEY + "info.top"), x(LEFT), line, LCD_DIM, false);
-        graphics.fill(x(LEFT), line + 9, x(RIGHT), line + 10, LCD_LINE);
-        line = y(infoRowsY(info));
-        if (info.top().isEmpty()) {
-            graphics.text(font, Component.translatable(KEY + "info.empty"), x(LEFT), line + 4, LCD_DIM, false);
-        }
-        if (info.fluid()) {
-            for (int i = 0; i < info.top().size(); i++) {
-                int rowY = line + i * CELL;
-                ItemStack stack = info.top().get(i);
-                graphics.fakeItem(stack, x(LEFT), rowY);
-                String count = Component.translatable(KEY + "info.mb", info.counts().get(i)).getString();
-                String itemName = font.plainSubstrByWidth(stack.getHoverName().getString(), CONTENT_W - 24 - font.width(count));
-                graphics.text(font, itemName, x(LEFT) + 20, rowY + 5, LCD_TEXT, false);
-                graphics.text(font, count, x(RIGHT) - font.width(count), rowY + 5, LCD_TEXT, false);
-            }
-            return;
-        }
-        for (int cell = 0; cell < GRID_COLUMNS * infoGridRows(info); cell++) {
-            int index = scroll * GRID_COLUMNS + cell;
-            if (index >= info.top().size()) {
-                break;
-            }
-            int sx = x(LEFT + (cell % GRID_COLUMNS) * CELL);
-            int sy = line + (cell / GRID_COLUMNS) * CELL;
-            boolean hovered = inside(mouseX, mouseY, sx, sy, CELL - 1, CELL - 1);
-            if (hovered) {
-                graphics.fill(sx, sy, sx + CELL - 1, sy + CELL - 1, LCD_HOVER);
-            }
-            graphics.outline(sx, sy, CELL - 1, CELL - 1, hovered ? LCD_TEXT : LCD_LINE);
-            graphics.fakeItem(info.top().get(index), sx + 1, sy + 1);
-            drawCount(graphics, CompactCount.slot(info.counts().get(index)), sx + CELL - 1, sy + CELL - 1);
-        }
-    }
-
-    /** How many grid rows the INFO grid can scroll down. */
-    private static int infoScrollLines() {
-        HandheldInfoPayload info = ClientHandheld.lastInfo();
-        if (info == null || info.fluid()) {
-            return 0;
-        }
-        return (info.top().size() + GRID_COLUMNS - 1) / GRID_COLUMNS - infoGridRows(info);
-    }
-
-    /** How many grid rows of a scanned shelf's items fit on the screen below the readout. */
-    private static int infoGridRows(HandheldInfoPayload info) {
-        return Math.max(1, (SCREEN_Y + SCREEN_H - 3 - infoRowsY(info)) / CELL);
-    }
-
-    /** The index of the scanned shelf's item under the mouse in the INFO grid, or -1. */
-    private int hoveredInfoItem(HandheldInfoPayload info, double mouseX, double mouseY) {
-        int column = (int) Math.floor((mouseX - x(LEFT)) / CELL);
-        int row = (int) Math.floor((mouseY - y(infoRowsY(info))) / CELL);
-        if (column < 0 || column >= GRID_COLUMNS || row < 0 || row >= infoGridRows(info)) {
-            return -1;
-        }
-        int index = (scroll + row) * GRID_COLUMNS + column;
-        return index < info.top().size() ? index : -1;
-    }
-
-
     /** Indices into the menu's stock that match the search, largest first. */
     private List<Integer> stockRows() {
         String query = search.getValue().trim().toLowerCase(Locale.ROOT);
@@ -797,20 +813,6 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             }
         }
         return rows;
-    }
-
-    private Optional<Integer> hoveredStock(double mouseX, double mouseY) {
-        if (view != View.FIND || !findListShown()) {
-            return Optional.empty();
-        }
-        int column = (int) Math.floor((mouseX - x(LEFT)) / CELL);
-        int row = (int) Math.floor((mouseY - y(LIST_Y)) / CELL);
-        if (column < 0 || column >= GRID_COLUMNS || row < 0 || row >= FIND_ROWS) {
-            return Optional.empty();
-        }
-        List<Integer> shown = stockRows();
-        int index = (scroll + row) * GRID_COLUMNS + column;
-        return index < shown.size() ? Optional.of(shown.get(index)) : Optional.empty();
     }
 
     private int hoveredFilterItem(double mouseX, double mouseY) {
@@ -831,11 +833,11 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         return column < 2 && row < FORM_TAG_ROWS && index < filterTags.size() ? index : -1;
     }
 
-    /** The item under the mouse for its tooltip: a stock cell, a filter item or an INFO row. */
+    /** The item under the mouse for its tooltip: a grid cell, a basket entry, a filter item or a scanned fluid. */
     private Optional<ItemStack> hoveredItem(double mouseX, double mouseY) {
-        Optional<Integer> stock = hoveredStock(mouseX, mouseY);
-        if (stock.isPresent()) {
-            return Optional.of(menu.stock().get(stock.get()));
+        Optional<ItemStack> cell = hoveredGridItem(mouseX, mouseY);
+        if (cell.isPresent()) {
+            return cell;
         }
         int entry = hoveredBasket(mouseX, mouseY);
         if (entry >= 0) {
@@ -846,27 +848,11 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             return Optional.of(filterItems.get(filter));
         }
         HandheldInfoPayload info = ClientHandheld.lastInfo();
-        if (view == View.INFO && info != null && !info.top().isEmpty()) {
-            if (info.fluid()) {
-                return inside(mouseX, mouseY, x(LEFT), y(infoRowsY(info)), 16, 16) ? Optional.of(info.top().getFirst()) : Optional.empty();
-            }
-            int index = hoveredInfoItem(info, mouseX, mouseY);
-            if (index >= 0) {
-                return Optional.of(info.top().get(index));
-            }
+        if (view == View.INFO && info != null && info.fluid() && !info.top().isEmpty()
+                && inside(mouseX, mouseY, x(LEFT), y(infoGridY(info)), 16, 16)) {
+            return Optional.of(info.top().getFirst());
         }
         return Optional.empty();
-    }
-
-    /** Where the INFO readout's slots line sits: below the zone, and its filter when zoned. */
-    private static int infoAmountY(HandheldInfoPayload info) {
-        boolean zoned = ClientZones.definition(info.zoneId()) != null;
-        return TOP + 1 + (zoned ? ROW : 0) + ROW + 2;
-    }
-
-    /** Where the INFO readout's item rows start, below the slots line and the label over them. */
-    private static int infoRowsY(HandheldInfoPayload info) {
-        return infoAmountY(info) + 2 * ROW + 3;
     }
 
     private static boolean inside(double mouseX, double mouseY, int x, int y, int w, int h) {
@@ -912,10 +898,10 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             case FORM -> {
                 return clickForm(mouseX, mouseY);
             }
-            case FIND -> {
-                Optional<Integer> stock = hoveredStock(mouseX, mouseY);
-                if (stock.isPresent()) {
-                    clickStock(menu.stock().get(stock.get()), event.button(), event.hasShiftDown());
+            case INFO, STOCK -> {
+                Optional<ItemStack> item = hoveredGridItem(mouseX, mouseY);
+                if (item.isPresent()) {
+                    clickListItem(item.get(), event.button(), event.hasShiftDown());
                     return true;
                 }
                 int entry = hoveredBasket(mouseX, mouseY);
@@ -925,10 +911,8 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
                 }
                 return false;
             }
-            default -> {
-                return false;
-            }
         }
+        return false;
     }
 
     private boolean clickZones(double mouseX, double mouseY) {
@@ -986,9 +970,8 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         }
         int lines = switch (view) {
             case ZONES -> zoneRows().size() + 1 - ZONE_ROWS;
-            case FIND -> (stockRows().size() + GRID_COLUMNS - 1) / GRID_COLUMNS - FIND_ROWS;
-            case INFO -> infoScrollLines();
-            default -> 0;
+            case INFO, STOCK -> grid().map(Grid::scrollLines).orElse(0);
+            case FORM -> 0;
         };
         if (lines > 0 && inside(mouseX, mouseY, x(SCREEN_X), y(SCREEN_Y), SCREEN_W, SCREEN_H)) {
             scroll = Math.max(0, Math.min(lines, scroll - (int) Math.signum(scrollY)));

@@ -9,7 +9,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
 /**
- * Basket entries that belong to one rack shelf: the shelf basket of the FIND
+ * Basket entries that belong to one rack shelf: the shelf basket of the INFO
  * screen, or a stashed relocation that takes its items from that shelf.
  *
  * @param shelf   the shelf's key, its leftmost bay

@@ -513,7 +513,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         return rackPotatoTopItems;
     }
 
-    /** How long the bays a handheld FIND points at glow, in seconds. */
+    /** How long the shelves a handheld find points at glow, in seconds. */
     public int handheldFindGlowSeconds() {
         return handheldFindGlowSeconds;
     }

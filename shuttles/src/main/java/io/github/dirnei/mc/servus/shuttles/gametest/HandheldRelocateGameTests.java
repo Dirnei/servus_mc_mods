@@ -102,9 +102,9 @@ public final class HandheldRelocateGameTests {
         return rack(helper, TARGET[0]).items().locked().isEmpty() && rack(helper, TARGET[1]).items().locked().isEmpty();
     }
 
-    /** A FIND handheld bound to the controller. */
+    /** An INFO handheld bound to the controller. */
     private static ItemStack boundHandheld(Player player, WarehouseControllerBlockEntity controller) {
-        ItemStack handheld = ZoneFixtures.handheld(HandheldMode.FIND);
+        ItemStack handheld = ZoneFixtures.handheld(HandheldMode.INFO);
         HandheldActions.bind(player, handheld, controller);
         return handheld;
     }
@@ -125,10 +125,15 @@ public final class HandheldRelocateGameTests {
         return handheld;
     }
 
-    /** A handheld GUI of the player's main hand handheld whose FIND list shows the shelf of {@code bay}, or the warehouse for null. */
-    private static HandheldMenu menu(GameTestHelper helper, Player player, @Nullable BlockPos bay) {
-        return new HandheldMenu(0, player.getInventory(), InteractionHand.MAIN_HAND, player.getUUID(),
-                bay == null ? null : helper.absolutePos(bay));
+    /** A handheld GUI of the player's main hand handheld. */
+    private static HandheldMenu menu(Player player) {
+        return new HandheldMenu(0, player.getInventory(), InteractionHand.MAIN_HAND, player.getUUID());
+    }
+
+    /** Puts the handheld into INFO with {@code bay} as the last scanned bay, as an INFO scan does. */
+    private static void scanned(GameTestHelper helper, ItemStack handheld, BlockPos bay) {
+        handheld.set(ServusShuttlesComponents.HANDHELD_MODE.get(), HandheldMode.INFO);
+        handheld.set(ServusShuttlesComponents.HANDHELD_PIN.get(), helper.absolutePos(bay));
     }
 
     private static Relocation relocate(GameTestHelper helper, WarehouseControllerBlockEntity controller, BlockPos source,
@@ -146,7 +151,7 @@ public final class HandheldRelocateGameTests {
     @ServusGameTest(timeoutTicks = 20)
     public static void payloadsBuildABasket(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack handheld = ZoneFixtures.handheld(HandheldMode.FIND);
+        ItemStack handheld = ZoneFixtures.handheld(HandheldMode.STOCK);
         fill(player, handheld, null, stacks(Items.COBBLESTONE, 128), stacks(Items.BREAD, 64), stacks(Items.BREAD, 32));
         Basket<ItemKey> basket = HandheldRelocation.basket(handheld);
         helper.assertTrue(basket.size() == 2 && basket.amount(COBBLESTONE) == 128 && basket.amount(BREAD) == 96,
@@ -170,40 +175,50 @@ public final class HandheldRelocateGameTests {
     }
 
     /**
-     * The GUI edits the basket of the list it shows. The shelf basket stays over a scan of its own shelf and is emptied
-     * by a scan of another shelf and by ALL; the warehouse basket stays over all of it.
+     * The GUI edits the basket of its screen: the warehouse basket in STOCK, the scanned shelf's basket in INFO,
+     * nothing in ZONE. A scan in STOCK switches to INFO and shows that shelf. The shelf basket is emptied by a scan of
+     * another shelf and by a mode switch; the warehouse basket stays over all of it.
      */
     @ServusGameTest(timeoutTicks = 20)
-    public static void shelfBasketFollowsTheList(GameTestHelper helper) {
+    public static void basketsFollowTheScreen(GameTestHelper helper) {
         WarehouseFixtures.rack(helper, SOURCE_A, Direction.NORTH);
         WarehouseFixtures.rack(helper, SOURCE_B, Direction.NORTH);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack handheld = ZoneFixtures.handheld(HandheldMode.FIND);
+        ItemStack handheld = ZoneFixtures.handheld(HandheldMode.STOCK);
         player.setItemInHand(InteractionHand.MAIN_HAND, handheld);
-        menu(helper, player, null).editBasket(player, HandheldBasketPayload.add(stacks(Items.APPLE, 1), 5));
-        HandheldMenu shelfMenu = menu(helper, player, SOURCE_A);
-        shelfMenu.editBasket(player, HandheldBasketPayload.add(stacks(Items.BREAD, 1), 10));
+        HandheldMenu menu = menu(player);
+        menu.editBasket(player, HandheldBasketPayload.add(stacks(Items.APPLE, 1), 5));
         List<String> failures = new ArrayList<>();
-        if (HandheldRelocation.shelfBasket(handheld).amount(BREAD) != 10 || HandheldRelocation.basket(handheld).amount(BREAD) != 0) {
-            failures.add("the shelf GUI should add bread to the shelf basket only");
+        if (menu.shelfKey() != null) {
+            failures.add("STOCK should show no shelf");
         }
         HandheldActions.scan(player, handheld, rack(helper, SOURCE_A));
+        if (HandheldActions.mode(handheld) != HandheldMode.INFO || !shelfKey(helper, SOURCE_A).equals(menu.shelfKey())) {
+            failures.add("a scan in STOCK should switch to INFO on the scanned shelf, got " + HandheldActions.mode(handheld) + " " + menu.shelfKey());
+        }
+        menu.editBasket(player, HandheldBasketPayload.add(stacks(Items.BREAD, 1), 10));
+        if (HandheldRelocation.shelfBasket(handheld).amount(BREAD) != 10 || HandheldRelocation.basket(handheld).amount(BREAD) != 0) {
+            failures.add("INFO should add bread to the shelf basket only");
+        }
+        HandheldRelocation.enterShelf(handheld, shelfKey(helper, SOURCE_A));
         if (HandheldRelocation.shelfBasket(handheld).amount(BREAD) != 10) {
             failures.add("a scan of the same shelf should keep the shelf basket");
         }
         HandheldActions.scan(player, handheld, rack(helper, SOURCE_B));
-        if (!HandheldRelocation.shelfBasket(handheld).isEmpty()) {
-            failures.add("a scan of another shelf should empty the shelf basket");
+        if (!HandheldRelocation.shelfBasket(handheld).isEmpty() || !shelfKey(helper, SOURCE_B).equals(menu.shelfKey())) {
+            failures.add("a scan of another shelf should show it and empty the shelf basket");
         }
-        shelfMenu.editBasket(player, HandheldBasketPayload.add(stacks(Items.BREAD, 1), 10));
-        shelfMenu.clickMenuButton(player, HandheldMenu.WHOLE_WAREHOUSE_BUTTON);
+        menu.editBasket(player, HandheldBasketPayload.add(stacks(Items.BREAD, 1), 10));
+        HandheldActions.applyMode(player, HandheldModePayload.to(HandheldMode.STOCK));
         if (!HandheldRelocation.shelfBasket(handheld).isEmpty()) {
-            failures.add("ALL should empty the shelf basket");
+            failures.add("a switch to STOCK should empty the shelf basket");
         }
-        shelfMenu.editBasket(player, HandheldBasketPayload.add(stacks(Items.COAL, 1), 3));
+        menu.editBasket(player, HandheldBasketPayload.add(stacks(Items.COAL, 1), 3));
+        HandheldActions.applyMode(player, HandheldModePayload.to(HandheldMode.ZONE));
+        menu.editBasket(player, HandheldBasketPayload.add(stacks(Items.STICK, 1), 1));
         Basket<ItemKey> warehouse = HandheldRelocation.basket(handheld);
-        if (warehouse.amount(key(Items.APPLE)) != 5 || warehouse.amount(key(Items.COAL)) != 3) {
-            failures.add("after ALL the GUI should edit the warehouse basket, which keeps its apples, got " + warehouse);
+        if (warehouse.size() != 2 || warehouse.amount(key(Items.APPLE)) != 5 || warehouse.amount(key(Items.COAL)) != 3) {
+            failures.add("STOCK should edit the warehouse basket, which keeps its apples, and ZONE nothing, got " + warehouse);
         }
         helper.assertTrue(failures.isEmpty(), String.join(", ", failures));
         helper.succeed();
@@ -213,7 +228,7 @@ public final class HandheldRelocateGameTests {
     @ServusGameTest(timeoutTicks = 20)
     public static void modeSwitchDropsTheRelocationAndKeepsTheWarehouseBasket(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack handheld = ZoneFixtures.handheld(HandheldMode.FIND);
+        ItemStack handheld = ZoneFixtures.handheld(HandheldMode.INFO);
         player.setItemInHand(InteractionHand.MAIN_HAND, handheld);
         BlockPos shelf = helper.absolutePos(SOURCE_A);
         fill(player, handheld, null, stacks(Items.BREAD, 64));
@@ -221,7 +236,7 @@ public final class HandheldRelocateGameTests {
         handheld.set(ServusShuttlesComponents.HANDHELD_RELOCATION.get(), ShelfBasket.of(shelf, Basket.<ItemKey>empty().add(COBBLESTONE, 9)));
         handheld.set(ServusShuttlesComponents.HANDHELD_PICK_TARGET.get(), true);
         HandheldActions.applyMode(player, HandheldModePayload.step(1));
-        helper.assertTrue(HandheldActions.mode(handheld) == HandheldMode.INFO, "the handheld is in INFO");
+        helper.assertTrue(HandheldActions.mode(handheld) == HandheldMode.STOCK, "the handheld is in STOCK");
         helper.assertTrue(!HandheldRelocation.pickingTarget(handheld), "pick target mode ended");
         helper.assertTrue(HandheldRelocation.relocation(handheld) == null, "the relocation is dropped");
         helper.assertTrue(HandheldRelocation.shelfBasket(handheld).isEmpty(), "the shelf basket is empty");
@@ -230,8 +245,8 @@ public final class HandheldRelocateGameTests {
     }
 
     /**
-     * Relocate needs the shelf view, shelf basket entries and a binding; it stashes the shelf basket as the
-     * relocation and empties it.
+     * Relocate needs INFO on a scanned shelf, shelf basket entries and a binding; it stashes the shelf basket as the
+     * relocation and empties it. STOCK never relocates.
      */
     @ServusGameTest(timeoutTicks = 120)
     public static void relocateNeedsAShelfBasketAndABinding(GameTestHelper helper) {
@@ -242,19 +257,23 @@ public final class HandheldRelocateGameTests {
             ItemStack empty = boundHandheld(player, controller);
             helper.assertTrue(!HandheldRelocation.relocate(player, empty, shelf) && !HandheldRelocation.pickingTarget(empty),
                     "an empty shelf basket does not relocate");
-            ItemStack unbound = ZoneFixtures.handheld(HandheldMode.FIND);
+            ItemStack unbound = ZoneFixtures.handheld(HandheldMode.INFO);
             fill(player, unbound, shelf, stacks(Items.BREAD, 64));
             helper.assertTrue(!HandheldRelocation.relocate(player, unbound, shelf) && !HandheldRelocation.pickingTarget(unbound),
                     "an unbound handheld does not relocate");
-            ItemStack warehouseOnly = boundHandheld(player, controller);
-            player.setItemInHand(InteractionHand.MAIN_HAND, warehouseOnly);
-            fill(player, warehouseOnly, null, stacks(Items.BREAD, 64));
-            helper.assertTrue(!menu(helper, player, null).relocate(player) && !HandheldRelocation.pickingTarget(warehouseOnly),
-                    "the warehouse view does not relocate");
+            ItemStack stock = boundHandheld(player, controller);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stock);
+            scanned(helper, stock, SOURCE_A);
+            fill(player, stock, null, stacks(Items.BREAD, 64));
+            fill(player, stock, shelf, stacks(Items.BREAD, 64));
+            stock.set(ServusShuttlesComponents.HANDHELD_MODE.get(), HandheldMode.STOCK);
+            helper.assertTrue(!menu(player).relocate(player) && !HandheldRelocation.relocate(player, stock, shelf)
+                    && !HandheldRelocation.pickingTarget(stock), "STOCK does not relocate");
             ItemStack ready = boundHandheld(player, controller);
             player.setItemInHand(InteractionHand.MAIN_HAND, ready);
+            scanned(helper, ready, SOURCE_A);
             fill(player, ready, shelf, stacks(Items.BREAD, 64), stacks(Items.APPLE, 2));
-            helper.assertTrue(menu(helper, player, SOURCE_A).relocate(player) && HandheldRelocation.pickingTarget(ready),
+            helper.assertTrue(menu(player).relocate(player) && HandheldRelocation.pickingTarget(ready),
                     "a bound handheld with shelf basket entries waits for the target");
             ShelfBasket relocation = HandheldRelocation.relocation(ready);
             helper.assertTrue(relocation != null && relocation.shelf().equals(shelf) && relocation.entries().size() == 2,

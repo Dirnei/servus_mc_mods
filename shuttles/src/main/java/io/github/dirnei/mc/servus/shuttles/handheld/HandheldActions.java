@@ -38,8 +38,8 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * What the handheld does on the server: bind, scan a shelf in ZONE, FIND and
- * INFO, and the answers for the panel. Every scan covers the whole shelf of
+ * What the handheld does on the server: bind, scan a shelf in ZONE, INFO and
+ * STOCK, find an item, and the answers for the panel. Every scan covers the whole shelf of
  * the clicked bay; a held sweep counts shelves, keyed by their leftmost bay.
  */
 public final class HandheldActions {
@@ -56,14 +56,14 @@ public final class HandheldActions {
         return handheld.getOrDefault(ServusShuttlesComponents.HANDHELD_MODE.get(), HandheldMode.ZONE);
     }
 
-    /** Steps the mode, and drops a binding whose controller is gone so FIND says so. */
+    /** Steps the mode, and drops a binding whose controller is gone so STOCK says so. */
     public static void stepMode(Player player, ItemStack handheld, int step) {
         setMode(player, handheld, mode(handheld).step(step));
     }
 
     /**
      * Switches to that mode, ends pick target mode with its relocation, empties
-     * the shelf basket, and drops a binding whose controller is gone so FIND says so.
+     * the shelf basket, and drops a binding whose controller is gone so STOCK says so.
      */
     public static void setMode(Player player, ItemStack handheld, HandheldMode mode) {
         handheld.set(ServusShuttlesComponents.HANDHELD_MODE.get(), mode);
@@ -126,14 +126,17 @@ public final class HandheldActions {
         }
         switch (mode(handheld)) {
             case ZONE -> assign(player, handheld, bay, index);
-            case FIND -> {
+            case INFO -> {
                 if (HandheldRelocation.pickingTarget(handheld)) {
                     HandheldRelocation.scanTarget(player, handheld, bay);
                 } else {
-                    findFromBay(player, handheld, bay);
+                    infoScan(player, handheld, bay);
                 }
             }
-            case INFO -> infoScan(player, handheld, bay);
+            case STOCK -> {
+                setMode(player, handheld, HandheldMode.INFO);
+                infoScan(player, handheld, bay);
+            }
         }
         return index;
     }
@@ -189,21 +192,7 @@ public final class HandheldActions {
         return bay.locationCode().isEmpty() ? "--" : bay.locationCode();
     }
 
-    /**
-     * FIND by scanning a bay: flashes its shelf and opens the GUI with the
-     * shelf's contents in the FIND list; a shelf basket of another shelf is emptied.
-     */
-    static void findFromBay(Player player, ItemStack handheld, StorageNodeBlockEntity bay) {
-        List<BlockPos> shelf = shelfOf(bay);
-        HandheldRelocation.enterShelf(handheld, shelf.getFirst());
-        send(player, new HandheldScanPayload(shelf, true, 0));
-        if (player instanceof ServerPlayer serverPlayer) {
-            InteractionHand hand = player.getItemInHand(InteractionHand.MAIN_HAND) == handheld ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
-            HandheldItem.openGui(serverPlayer, hand, bay.getBlockPos());
-        }
-    }
-
-    /** FIND: every loaded shelf of the bound warehouse holding the item glows on the player's screen. */
+    /** Find: every loaded shelf of the bound warehouse holding the item glows on the player's screen. */
     public static void find(Player player, ItemStack handheld, ItemKey key) {
         Optional<WarehouseNetwork> network = boundNetwork(player.level().getServer(), handheld);
         if (network.isEmpty()) {
@@ -230,15 +219,25 @@ public final class HandheldActions {
         return new Found(network.index().count(key), List.copyOf(shelves.keySet()), List.copyOf(shelves.values()));
     }
 
-    /** INFO: flashes the shelf, keeps the bay as the last scanned one and sends what the shelf holds. */
+    /**
+     * INFO: flashes the shelf, keeps the bay as the last scanned one, sends
+     * what the shelf holds and opens the GUI on it; a shelf basket of another
+     * shelf is emptied.
+     */
     static void infoScan(Player player, ItemStack handheld, StorageNodeBlockEntity bay) {
         HandheldInfoPayload info = info(bay.getLevel(), bay.getBlockPos());
         if (info == null) {
             return;
         }
+        List<BlockPos> shelf = shelfOf(bay);
+        HandheldRelocation.enterShelf(handheld, shelf.getFirst());
         handheld.set(ServusShuttlesComponents.HANDHELD_PIN.get(), bay.getBlockPos());
-        send(player, new HandheldScanPayload(shelfOf(bay), true, 0));
+        send(player, new HandheldScanPayload(shelf, true, 0));
         send(player, info);
+        if (player instanceof ServerPlayer serverPlayer) {
+            InteractionHand hand = player.getItemInHand(InteractionHand.MAIN_HAND) == handheld ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+            HandheldItem.openGui(serverPlayer, hand);
+        }
     }
 
     /** Sends the INFO readout of the last scanned bay again, when it is still a loaded bay. */
