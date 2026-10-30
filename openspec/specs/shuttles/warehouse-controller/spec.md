@@ -174,7 +174,7 @@ A controller with at least one Anchor Upgrade whose site spans more chunks than 
 - **THEN** its lamp is red and the GUI says the warehouse has no power
 
 ### Requirement: Controller GUI
-Right clicking a controller with an empty hand SHALL open its GUI with the site name as title, a name field, the online state with the warehouse summary as its tooltip, the chunk count and capacity, a chunk map, the storage lines, the Anchor Upgrade slots, the Wireless Upgrade slot, the FE stored with the capacity, the "Other sites" panel and the player inventory. The chunk map SHALL draw every chunk of the span as a square around the controller's chunk, mark the controller's chunk, and draw in red while over capacity. The storage lines SHALL sit between the map row and the upgrade row: an Items line with the rack slots in use and the total, and a Fluids line with the mB in the Fluid Rack sections and their capacity, each with a bar below it that turns to the alert colour when full. A warehouse without racks SHALL say so on the Items line, one without Fluid Racks on the Fluids line, both without a bar. The Items tooltip SHALL name the number of rack bays and the full zones; the Fluids tooltip SHALL name the number of Fluid Rack sections. While the controller is not online the storage lines SHALL be left out. The GUI SHALL refresh while open and SHALL close when the player leaves reach.
+Right clicking a controller with an empty hand SHALL open its GUI with the site name as title, a name field, the online state with the warehouse summary as its tooltip, the chunk count and capacity, a chunk map, the storage lines, the Anchor Upgrade slots, the Wireless Upgrade slot, the FE stored with the capacity, the "Other sites" panel and the player inventory. The chunk map SHALL draw every chunk of the span as a square around the controller's chunk, mark the controller's chunk, and draw in red while over capacity. The storage lines SHALL sit between the map row and the upgrade row: an Items line with the rack slots in use and the total, and a Fluids line with the mB in the Fluid Rack shelves and their capacity, each with a bar below it that turns to the alert colour when full. A warehouse without racks SHALL say so on the Items line, one without Fluid Racks on the Fluids line, both without a bar. The Items tooltip SHALL name the number of rack bays and the full zones; the Fluids tooltip SHALL name the number of Fluid Rack shelves. While the controller is not online the storage lines SHALL be left out. The GUI SHALL refresh while open and SHALL close when the player leaves reach.
 
 #### Scenario: Map
 - **WHEN** a site spans its own chunk and the chunk to the east
@@ -201,8 +201,8 @@ Right clicking a controller with an empty hand SHALL open its GUI with the site 
 - **THEN** the Fluids line says there is no fluid storage and shows no bar
 
 #### Scenario: Fluid Racks in the tooltip
-- **WHEN** a warehouse has two Fluid Rack sections and the player hovers the Fluids line
-- **THEN** the tooltip names 2 Fluid Rack sections
+- **WHEN** a warehouse has two Fluid Rack shelves and the player hovers the Fluids line
+- **THEN** the tooltip names 2 Fluid Rack shelves
 
 ### Requirement: Controller shows the wake
 While its site is awake by a wake, the controller's activity lamp SHALL be orange, unless the site is over capacity or in the no power state (red). The controller GUI SHALL show a wake line: awake for a transfer, staying awake for the grace time with the seconds left, or waiting to wake with the reason; nothing while the site is not being woken.
@@ -254,7 +254,7 @@ The network SHALL answer counts per item from its index. Items SHALL leave and e
 - **THEN** the bread stays in the station and the station says it needs a shuttle
 
 ### Requirement: Sources are the warehouse's own racks
-The index SHALL include only the storage nodes of the network that hold stock, which are the Heavy Duty Racks joined through a rail in front of a bay of their section. No other block SHALL be a source: inventories touching a rack, the controller, a rail, a station or any other member (vanilla chests, inventories of other mods, Servus blocks such as the Storage Terminal or the Crafting Station) SHALL never be discovered, indexed, put-away targets or sources for picks. Connector nodes such as rails SHALL NOT be sources.
+The index SHALL include only the storage nodes of the network that hold stock, which are the Heavy Duty Racks joined through a rail in front of a bay of their shelf. No other block SHALL be a source: inventories touching a rack, the controller, a rail, a station or any other member (vanilla chests, inventories of other mods, Servus blocks such as the Storage Terminal or the Crafting Station) SHALL never be discovered, indexed, put-away targets or sources for picks. Connector nodes such as rails SHALL NOT be sources.
 
 #### Scenario: Chest beside the controller
 - **WHEN** a chest with 10 bread is placed next to the controller of an online network

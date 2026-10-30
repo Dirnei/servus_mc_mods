@@ -20,7 +20,7 @@ A shuttle SHALL NOT come closer than the follow gap (`follow_gap` in `data/<ns>/
 - **THEN** it catches up, brakes, and follows the Mk1 one block behind at the Mk1's speed until their ways part
 
 #### Scenario: Two shuttles to the same rack
-- **WHEN** two shuttles leave for two bays of the same rack section, one right after the other
+- **WHEN** two shuttles leave for two bays of the same rack shelf, one right after the other
 - **THEN** the second drives behind the first and never overlaps it
 
 ### Requirement: Opposite headings pass

@@ -57,7 +57,7 @@ Right click on a bay goes through `HandheldItem.useOn`. Vanilla repeats `startUs
 ### GUI drawn as the device (revised after the first play check, 2026-10-30)
 The first build showed a plain container window on a Zones tab, which did not read as the handheld or as FIND. `client/HandheldScreen` now draws the device from `textures/gui/handheld.png` (generated like the other GUI textures): dark steel body, yellow rubber bumper with a darker rim, red scan window, the brand line "HH-1" and a green LED. The CRT is drawn in code over the screen area: fill `#0f1f12`, text `#8dff9a`, labels `#3f8a4a`, a tiled scanline texture (`textures/gui/handheld_scanlines.png`, every third row dark at about 18 % alpha), a vignette texture darkening the edges, and a faint glow whose alpha drifts a few percent over a few seconds (no hard flicker). Text uses the vanilla font in those colours.
 
-Item icons on the CRT: the GUI renders items through the 26.1 render state, so there is no per item colour multiplier. Each icon is drawn normally and then covered by a square of `#0f1f12` at about 55 % alpha plus `#8dff9a` at about 25 %, which reads as a green phosphor icon; the hovered or selected item skips the overlay and shows in its own colours.
+Item icons on the CRT are drawn in their own colours (a green overlay was tried and dropped in the play check, 2026-10-30). Counts in item cells use `CompactCount.slot` (999, 8k, 8.5k, 1.2M) drawn at 0.75 scale in the CRT text colour at the cell's bottom right.
 
 The screen opens on the view of the handheld's mode (ZONE list, FIND list, INFO readout); the old Zones and Find tab buttons go. Three softkeys under the screen (ZONE, FIND, INFO, the current one lit) send `HandheldModePayload(step, Optional<HandheldMode> target)`, and switch the view at once; the server side is `HandheldActions.applyMode`, which switches the handheld of the open GUI, else the one in the main hand. The menu holds no player inventory any more. On the CRT, New, Edit, Delete, Save, Cancel and Add are text buttons drawn on the screen (inverted while hovered), and the search and name lines are borderless green edit boxes. The textures come from `tools/handheld-textures/gen.py`: `handheld.png` (device and softkey sprites), `handheld_scanlines.png` and `handheld_vignette.png`.
 
@@ -128,7 +128,6 @@ Pure with JUnit: `ZoneList` (names, uniqueness, ordering, search, resolve), `Loc
 - [Codes change when the controller moves] → Intended; the code is relative by design. A shelf's code can also jump to another of its bays when the controller moves or the shelf loses its code bay; the sticker moves with it.
 - [The zone id is stored per bay but must be equal across a shelf] → One writer (`ShelfZones.set`) and the join rule keep it uniform; GameTests cover join, split and layer.
 - [Renaming `section` touches many files and GameTest names] → Done as one mechanical task with no behaviour change, after the shelf behaviour is green, so a failing test points at one or the other.
-- [The green overlay on icons is an approximation, not a true tint] → Reads as phosphor at icon size; the hovered item in full colour keeps items recognisable.
 - [Text on the beam gets crowded with a long zone name and a code] → Names are capped at 24 characters and cut with an ellipsis on the beam; the full name is in the GUI title and the panel.
 
 ## Migration Plan

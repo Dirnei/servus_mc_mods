@@ -20,4 +20,26 @@ final class CompactCount {
         }
         return count / 1_000_000 + "M";
     }
+
+    /** A count short enough for an item slot: as is up to 999, then k and M with one decimal below 10 and none above. */
+    static String slot(long count) {
+        if (count < 1_000) {
+            return Long.toString(count);
+        }
+        if (count < 1_000_000) {
+            return scaled(count, 1_000, "k");
+        }
+        if (count < 1_000_000_000) {
+            return scaled(count, 1_000_000, "M");
+        }
+        return scaled(count, 1_000_000_000, "G");
+    }
+
+    private static String scaled(long count, long unit, String suffix) {
+        long tenths = count * 10 / unit;
+        if (tenths < 100 && tenths % 10 != 0) {
+            return tenths / 10 + "." + tenths % 10 + suffix;
+        }
+        return tenths / 10 + suffix;
+    }
 }

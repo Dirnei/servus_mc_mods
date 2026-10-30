@@ -38,6 +38,8 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 public final class HandheldHud {
 
     private static final String KEY = "hud.servus_shuttles.handheld.";
+    /** How many of a scanned shelf's items the panel lists; the GUI lists them all. */
+    private static final int INFO_ITEMS = 3;
     private static final int BUMPER = 0xFFE0A325;
     private static final int BUMPER_EDGE = 0xFF6B4A0C;
     private static final int BODY = 0xFF2E333B;
@@ -190,7 +192,7 @@ public final class HandheldHud {
             lines.add(Line.dim(HandheldScreen.filterSummary(zone.filter())));
         }
         lines.add(Line.of(info.fluid() ? tr("fluid", info.used(), info.total()) : tr("slots", info.used(), info.total())));
-        for (int i = 0; i < info.top().size(); i++) {
+        for (int i = 0; i < Math.min(INFO_ITEMS, info.top().size()); i++) {
             String count = info.fluid() ? tr("mb", info.counts().get(i)) : Long.toString(info.counts().get(i));
             lines.add(Line.of(info.top().get(i).getHoverName().getString() + " " + count));
         }

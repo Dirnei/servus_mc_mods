@@ -39,10 +39,10 @@ Counting the slots in use, adding up bays and tanks, and ordering the zone rows 
 - **THEN** they cover in use counting with locks, zone rows and their order, and the fluid sum
 
 ### Requirement: Fluid room in Fluid Racks
-A warehouse SHALL count its fluid room as the mB in its Fluid Rack sections against their capacity, each section's capacity as its bays make it. Fluid Inbounds and Fluid Outbounds SHALL NOT count.
+A warehouse SHALL count its fluid room as the mB in its Fluid Rack shelves against their capacity, each shelf's capacity as its bays make it. Fluid Inbounds and Fluid Outbounds SHALL NOT count.
 
 #### Scenario: Fluid Rack counts
-- **WHEN** a warehouse has one docked three bay Fluid Rack section of 16,000 mB per bay holding 12,000 mB of water
+- **WHEN** a warehouse has one docked three bay Fluid Rack shelf of 16,000 mB per bay holding 12,000 mB of water
 - **THEN** its fluid fill is 12,000 of 48,000 mB
 
 #### Scenario: Stations left out

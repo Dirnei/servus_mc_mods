@@ -6,7 +6,6 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleModules;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBinding;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMode;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.item.ItemStack;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
 import java.util.HashMap;
@@ -43,12 +42,6 @@ public final class ServusShuttlesComponents {
             COMPONENTS.registerComponentType("handheld_binding", builder -> builder
                     .persistent(HandheldBinding.CODEC)
                     .networkSynchronized(HandheldBinding.STREAM_CODEC));
-
-    /** The item the handheld last searched for in FIND. */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ItemStack>> HANDHELD_FIND =
-            COMPONENTS.registerComponentType("handheld_find", builder -> builder
-                    .persistent(ItemStack.CODEC)
-                    .networkSynchronized(ItemStack.STREAM_CODEC));
 
     /** The bay the handheld keeps showing in INFO. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<BlockPos>> HANDHELD_PIN =

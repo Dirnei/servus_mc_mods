@@ -428,11 +428,12 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.handheld.not_bound", "NOT BOUND");
         add("gui.servus_shuttles.handheld.bind_hint", "Scan a Warehouse Controller");
         add("gui.servus_shuttles.handheld.find_empty", "Nothing stored");
+        add("gui.servus_shuttles.handheld.find_shelf", "Shelf %s");
         add("gui.servus_shuttles.handheld.info.scan_hint", "Scan a shelf in INFO mode");
         add("gui.servus_shuttles.handheld.info.slots", "SLOTS %s/%s");
         add("gui.servus_shuttles.handheld.info.fluid", "%s/%s mB");
         add("gui.servus_shuttles.handheld.info.mb", "%s mB");
-        add("gui.servus_shuttles.handheld.info.top", "HELD MOST");
+        add("gui.servus_shuttles.handheld.info.top", "CONTENTS");
         add("gui.servus_shuttles.handheld.info.empty", "Empty");
         add("gui.servus_shuttles.handheld.problem.empty", "Give the zone a name");
         add("gui.servus_shuttles.handheld.problem.too_long", "The name is too long");

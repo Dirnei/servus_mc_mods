@@ -8,7 +8,6 @@ import io.github.dirnei.mc.servus.shuttles.menu.HandheldMenu;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
-import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rack.ShelfFill;
 import io.github.dirnei.mc.servus.shuttles.rack.ShelfStock;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
@@ -31,6 +30,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -47,7 +47,6 @@ public final class HandheldActions {
     private static final String MESSAGE = "message.servus_shuttles.handheld.";
     /** Ticks without a scan after which a held sweep ends. */
     private static final int SWEEP_QUIET_TICKS = 10;
-    private static final int INFO_TOP_ITEMS = 3;
     private static final SweepTracker<UUID, BlockPos> SWEEPS = new SweepTracker<>(SWEEP_QUIET_TICKS);
 
     private HandheldActions() {
@@ -179,20 +178,13 @@ public final class HandheldActions {
         return bay.locationCode().isEmpty() ? "--" : bay.locationCode();
     }
 
-    /** FIND by scanning a bay: searches for the item its shelf holds most. */
+    /** FIND by scanning a bay: flashes its shelf and opens the GUI with the shelf's contents in the FIND list. */
     static void findFromBay(Player player, ItemStack handheld, StorageNodeBlockEntity bay) {
-        ItemKey top = bay instanceof HeavyRackBlockEntity ? topItem(bay) : null;
-        if (top == null) {
-            send(player, new HandheldScanPayload(shelfOf(bay), false, 0));
-            return;
+        send(player, new HandheldScanPayload(shelfOf(bay), true, 0));
+        if (player instanceof ServerPlayer serverPlayer) {
+            InteractionHand hand = player.getItemInHand(InteractionHand.MAIN_HAND) == handheld ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+            HandheldItem.openGui(serverPlayer, hand, bay.getBlockPos());
         }
-        find(player, handheld, top);
-    }
-
-    private static ItemKey topItem(StorageNodeBlockEntity bay) {
-        List<ShelfFill.Entry<ItemKey>> top = ShelfStock.of(bay.getLevel(), bay.getBlockPos(), 1)
-                .map(stock -> stock.fill().top()).orElse(List.of());
-        return top.isEmpty() ? null : top.getFirst().key();
     }
 
     /** FIND: every loaded shelf of the bound warehouse holding the item glows on the player's screen. */
@@ -202,7 +194,6 @@ public final class HandheldActions {
             player.sendOverlayMessage(Component.translatable(MESSAGE + "not_bound"));
             return;
         }
-        handheld.set(ServusShuttlesComponents.HANDHELD_FIND.get(), key.stack(1));
         Found found = found(network.get(), key);
         int glowTicks = ShuttlesStatsManager.INSTANCE.handheldFindGlowSeconds() * 20;
         send(player, new HandheldFindResultPayload(key.stack(1), found.total(), found.shelves(), found.codes(), glowTicks));
@@ -243,7 +234,7 @@ public final class HandheldActions {
         }
     }
 
-    /** INFO: what the shelf of the bay at {@code pos} holds, or null when there is no bay. Changes nothing. */
+    /** INFO: everything the shelf of the bay at {@code pos} holds, largest first, or null when there is no bay. Changes nothing. */
     public static HandheldInfoPayload info(Level level, BlockPos pos) {
         if (!level.isLoaded(pos) || !(level.getBlockEntity(pos) instanceof StorageNodeBlockEntity bay) || !bay.zonable()) {
             return null;
@@ -257,7 +248,7 @@ public final class HandheldActions {
             List<Long> counts = fluid.isEmpty() ? List.of() : List.of((long) fluid.getAmount());
             return new HandheldInfoPayload(pos, code, zone, fluid.getAmount(), content.capacity(), top, counts, true);
         }
-        Optional<ShelfStock> stock = ShelfStock.of(level, pos, INFO_TOP_ITEMS);
+        Optional<ShelfStock> stock = ShelfStock.of(level, pos, Integer.MAX_VALUE);
         if (stock.isEmpty()) {
             return null;
         }

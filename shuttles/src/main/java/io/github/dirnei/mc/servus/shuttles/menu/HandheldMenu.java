@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.menu;
 
 import io.github.dirnei.mc.servus.foundation.team.Teams;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldActions;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMenuStatePayload;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,10 +27,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The handheld's GUI: the team's zone list with the zone form, the bound
- * warehouse's stock for FIND and the last INFO readout. It holds no slots;
+ * warehouse's stock for FIND, or a scanned shelf's when a FIND scan opened
+ * it, and the last INFO readout. It holds no slots;
  * the zone form picks its filter in an item picker.
  */
 public class HandheldMenu extends AbstractContainerMenu {
@@ -41,14 +45,22 @@ public class HandheldMenu extends AbstractContainerMenu {
     private final UUID team;
     private Map<Integer, Integer> shelfCounts = Map.of();
     private boolean bound;
+    private @Nullable BlockPos shelfBay;
+    private String shelf = "";
     private List<ItemStack> stock = List.of();
     private List<Long> stockCounts = List.of();
 
     public HandheldMenu(int containerId, Inventory playerInventory, InteractionHand hand, UUID team) {
+        this(containerId, playerInventory, hand, team, null);
+    }
+
+    /** Server: a GUI whose FIND list shows the shelf of {@code shelfBay}, or the bound warehouse when it is null. */
+    public HandheldMenu(int containerId, Inventory playerInventory, InteractionHand hand, UUID team, @Nullable BlockPos shelfBay) {
         super(ServusShuttlesMenus.HANDHELD.get(), containerId);
         this.hand = hand;
         this.player = playerInventory.player;
         this.team = team;
+        this.shelfBay = shelfBay;
     }
 
     public static HandheldMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -84,6 +96,11 @@ public class HandheldMenu extends AbstractContainerMenu {
         return bound;
     }
 
+    /** The code of the scanned shelf the FIND list shows, empty when it shows the whole warehouse. */
+    public String shelf() {
+        return shelf;
+    }
+
     public List<ItemStack> stock() {
         return stock;
     }
@@ -96,16 +113,22 @@ public class HandheldMenu extends AbstractContainerMenu {
     public void acceptState(HandheldMenuStatePayload payload) {
         shelfCounts = Map.copyOf(payload.shelfCounts());
         bound = payload.bound();
+        shelf = payload.shelf();
         stock = List.copyOf(payload.items());
         stockCounts = List.copyOf(payload.counts());
     }
 
-    /** Server: sends shelf counts, the bound warehouse's stock and the last INFO readout. */
+    /** Server: sends shelf counts, the FIND list of the bound warehouse or the scanned shelf, and the last INFO readout. */
     public void sendState(ServerPlayer player) {
         Optional<WarehouseNetwork> network = HandheldActions.boundNetwork(player.level().getServer(), handheld());
         List<ItemStack> items = new ArrayList<>();
         List<Long> counts = new ArrayList<>();
-        network.ifPresent(warehouse -> {
+        HandheldInfoPayload scanned = shelfBay == null ? null : HandheldActions.info(player.level(), shelfBay);
+        if (scanned != null) {
+            items.addAll(scanned.top());
+            counts.addAll(scanned.counts());
+        }
+        network.filter(warehouse -> scanned == null).ifPresent(warehouse -> {
             List<Map.Entry<ItemKey, Long>> entries = new ArrayList<>(warehouse.index().entries());
             entries.sort(Map.Entry.<ItemKey, Long>comparingByValue().reversed());
             for (Map.Entry<ItemKey, Long> entry : entries.subList(0, Math.min(STOCK_LIMIT, entries.size()))) {
@@ -114,8 +137,12 @@ public class HandheldMenu extends AbstractContainerMenu {
             }
         });
         PacketDistributor.sendToPlayer(player, new HandheldMenuStatePayload(HandheldActions.loadedShelfCounts(player.level().getServer()),
-                network.isPresent(), items, counts));
+                network.isPresent(), scanned == null ? "" : shelfCode(scanned), items, counts));
         HandheldActions.resendInfo(player, handheld());
+    }
+
+    private static String shelfCode(HandheldInfoPayload scanned) {
+        return scanned.code().isEmpty() ? "-" : scanned.code();
     }
 
     /** Server: makes a zone of the player's team, or "No zone" for 0, the active one. */

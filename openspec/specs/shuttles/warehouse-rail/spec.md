@@ -226,7 +226,7 @@ The rail recipe SHALL take planks, and the crafted rails SHALL carry the wood of
 - **THEN** every rail of the run shows birch sleepers
 
 ### Requirement: Only rails join blocks to a warehouse
-Every block that shuttles serve SHALL join a warehouse only through a rail on one of the faces where it takes rails, and SHALL NOT join or pass on a warehouse by touching controllers, other storage blocks or each other. The faces are: a Heavy Duty Rack's front (and the bays of its own section), the front of a Fluid Rack section's port bay (and the bays of its own section), every side of an Inbound Station, Outbound Station and Packing Station, the front of a Fluid Inbound's and a Fluid Outbound's lower half, and the back of a Shuttle Garage. The Warehouse Controller SHALL link to touching rails on any side and to a touching controller; no other block SHALL join a warehouse by touching it.
+Every block that shuttles serve SHALL join a warehouse only through a rail on one of the faces where it takes rails, and SHALL NOT join or pass on a warehouse by touching controllers, other storage blocks or each other. The faces are: a Heavy Duty Rack's front (and the bays of its own shelf), the front of a Fluid Rack shelf's port bay (and the bays of its own shelf), every side of an Inbound Station, Outbound Station and Packing Station, the front of a Fluid Inbound's and a Fluid Outbound's lower half, and the back of a Shuttle Garage. The Warehouse Controller SHALL link to touching rails on any side and to a touching controller; no other block SHALL join a warehouse by touching it.
 
 #### Scenario: Station pressed against the controller
 - **WHEN** an Inbound Station touches the controller of an online warehouse and no rail touches the station

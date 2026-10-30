@@ -1,10 +1,9 @@
-# Spec Delta
+# shuttles/handheld Specification
 
 ## Purpose
-
 The Warehouse Handheld is the player's WMS tool: one scanner item that assigns zones to rack shelves, finds stock in a warehouse and shows what a shelf holds, with modes that later changes extend.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Handheld item
 The Handheld HH-1 SHALL be a Shuttles item that stacks to 1, crafted from vanilla materials and redstone, and shown in the Shuttles creative tab. Its look SHALL be a dark steel scanner with a yellow rubber bumper, a red scan window and a green screen.
@@ -23,6 +22,17 @@ The handheld SHALL work on shelves: a shelf is the bays of a Heavy Duty Rack or 
 #### Scenario: Any bay stands for its shelf
 - **WHEN** a player scans the left bay and then the right bay of a shelf of three in INFO mode
 - **THEN** both scans show the same code, zone and contents
+
+### Requirement: Scan range
+Every right click scan of a shelf SHALL reach farther than a normal block click, up to a range from data (example 16 blocks), and SHALL see through warehouse rails and elevator shafts to the shelf behind them; the panel and the scan line SHALL aim the same way.
+
+#### Scenario: Scan from afar
+- **WHEN** a player in ZONE mode with "Ores" active right clicks a bay 10 blocks away
+- **THEN** that bay's shelf is in "Ores"
+
+#### Scenario: Through a rail
+- **WHEN** a rail runs between the player and an upper shelf of a high rack and the player scans that shelf
+- **THEN** the shelf behind the rail is scanned, not the rail
 
 ### Requirement: Modes
 The handheld SHALL be in one of the modes ZONE, FIND or INFO, kept on the item. A new handheld SHALL be in ZONE. Scrolling the mouse wheel while sneaking with the handheld in the main hand SHALL switch to the next or previous mode, wrap around, play a short click and SHALL NOT change the selected hotbar slot.
@@ -66,15 +76,15 @@ Right clicking the air with the handheld SHALL open its GUI on the screen of its
 - **THEN** scanning a shelf in ZONE mode clears that shelf's zone
 
 ### Requirement: Handheld GUI looks like the device
-The GUI SHALL be drawn as the handheld itself: a dark steel body inside a yellow rubber bumper, a red scan window and a brand line "HH-1" with a green LED at the top, and a green CRT screen holding the mode's content. The screen SHALL show dark green background, light green text and dim green labels, with scanlines, a dark inner vignette and a faint glow. Item icons on the screen SHALL be tinted green; the hovered or selected item SHALL show in its own colours.
+The GUI SHALL be drawn as the handheld itself: a dark steel body inside a yellow rubber bumper, a red scan window and a brand line "HH-1" with a green LED at the top, and a green CRT screen holding the mode's content. The screen SHALL show dark green background, light green text and dim green labels, with scanlines, a dark inner vignette and a faint glow. Item icons on the screen SHALL show in their own colours, and stack counts in item cells SHALL be short (for example 8k) in small green text.
 
 #### Scenario: CRT screen
 - **WHEN** a player opens the handheld GUI
 - **THEN** the content sits on a green screen with scanlines inside the yellow bumpered device
 
-#### Scenario: Hovered item in colour
-- **WHEN** the player hovers bread in the FIND list
-- **THEN** bread shows in its own colours while the other icons stay green
+#### Scenario: Short counts
+- **WHEN** the FIND list shows 8,000 cobblestone
+- **THEN** its cell shows the cobblestone icon in its own colours and the count 8k in small green text
 
 ### Requirement: Mode softkeys
 The device SHALL show one softkey per mode (ZONE, FIND, INFO) below the screen. Clicking a softkey SHALL switch the handheld to that mode, like sneak scrolling does, and show that mode's screen. The softkey of the current mode SHALL be lit.
@@ -129,26 +139,37 @@ Right clicking a Warehouse Controller with the handheld SHALL bind the handheld 
 - **THEN** the panel says the handheld is not bound
 
 ### Requirement: FIND mode
-The FIND screen SHALL list the items stored in the bound warehouse with their counts, largest first, with a search line. Picking an item, or right clicking a bay in FIND mode to take its shelf's most held item, SHALL colour every loaded shelf of the bound warehouse holding that item, a tint and an outline over all its bays, seen through blocks, for some seconds (example 8). The panel SHALL show the item, its total and each holding shelf's code once.
+The FIND screen SHALL list the items stored in the bound warehouse with their counts, largest first, with a search line. Picking an item in the list SHALL colour every loaded shelf of the bound warehouse holding that item, a tint and an outline over all its bays, seen through blocks, for some seconds (example 8), while the handheld is in hand. The panel SHALL show the item, its total and each holding shelf's code once.
 
 #### Scenario: Pick from the list
 - **WHEN** the bound warehouse holds bread in two bays of one shelf and in one bay of another shelf and the player picks bread on the FIND screen
 - **THEN** both shelves are tinted and outlined as a whole, seen through the walls, and the panel shows bread, its total and the two shelf codes
 
-#### Scenario: Scan a bay
-- **WHEN** a player in FIND mode right clicks a bay of a shelf holding mostly cobblestone
-- **THEN** every shelf of the bound warehouse holding cobblestone is tinted and outlined
-
-#### Scenario: Empty shelf
-- **WHEN** a player in FIND mode right clicks a bay of an empty shelf
-- **THEN** nothing is tinted and a low buzz plays
+#### Scenario: Glow only in hand
+- **WHEN** shelves glow after a FIND and the player switches to another hotbar slot
+- **THEN** no shelf is tinted until the handheld is in hand again
 
 #### Scenario: Glow ends
 - **WHEN** the glow time has passed
 - **THEN** no shelf is tinted or outlined any more
 
+### Requirement: FIND scan shows the shelf
+Right clicking a bay in FIND mode SHALL flash its shelf and open the GUI with the FIND list showing only what that shelf holds and the shelf's code in the title.
+
+#### Scenario: Scan a shelf
+- **WHEN** a player in FIND mode right clicks a bay of the shelf `N8.W3+0` holding cobblestone and bread
+- **THEN** the shelf flashes and the GUI opens with "Shelf N8.W3+0" in the title and only cobblestone and bread in the list
+
+#### Scenario: Empty shelf
+- **WHEN** a player in FIND mode right clicks a bay of an empty shelf
+- **THEN** the GUI opens with the shelf's code and an empty list
+
 ### Requirement: INFO mode
-INFO SHALL show a shelf only after it is scanned; aiming shows nothing about its contents. Right clicking a bay in INFO mode SHALL scan its shelf with a beep and a flash, and the panel and the INFO screen SHALL show, until the next scan, the shelf's code, zone or none, zone filter, slots in use against all its slots, and the items held most across its bays with counts; for a Fluid Rack shelf its fluid and amount against its capacity. The readout SHALL change nothing.
+INFO SHALL show a shelf only after it is scanned; aiming shows nothing about its contents. Right clicking a bay in INFO mode SHALL scan its shelf with a beep and a flash. Until the next scan the panel and the INFO screen SHALL show its code, zone, zone filter, slots in use and its items with counts, or a Fluid Rack shelf's fluid and amount; the panel lists the items held most, the INFO screen all of them. The readout SHALL change nothing.
+
+#### Scenario: GUI shows the whole shelf
+- **WHEN** a player scans a shelf holding 12 different items and opens the GUI
+- **THEN** the INFO screen shows all 12 items with their counts, while the panel lists only the few held most
 
 #### Scenario: Aim shows nothing
 - **WHEN** a player in INFO mode aims at a bay without clicking

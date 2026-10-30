@@ -80,6 +80,19 @@ public final class HandheldGameTests {
     /** A right click at a shelf beyond the normal reach but within the scan range zones it. */
     @ServusGameTest(timeoutTicks = 20)
     public static void scanReachesBeyondTheNormalReach(GameTestHelper helper) {
+        scanFromAfar(helper, "a scan from 8 blocks");
+    }
+
+    /** A rail and an elevator shaft between the player and the shelf do not stop the scan. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void scanSeesThroughRailsAndElevators(GameTestHelper helper) {
+        helper.setBlock(RACK.east(1), ServusShuttlesBlocks.RAIL.get());
+        helper.setBlock(RACK.east(3), ServusShuttlesBlocks.ELEVATOR.get());
+        scanFromAfar(helper, "a scan through a rail and an elevator");
+    }
+
+    /** Zones the rack at {@link #RACK} with a right click into the air from 8 blocks east of it. */
+    private static void scanFromAfar(GameTestHelper helper, String what) {
         HeavyRackBlockEntity bay = WarehouseFixtures.rack(helper, RACK, Direction.NORTH);
         int ores = ZoneFixtures.zone(helper, "Ores", ZoneFilter.EMPTY);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -88,7 +101,7 @@ public final class HandheldGameTests {
         player.lookAt(EntityAnchorArgument.Anchor.EYES, Vec3.atCenterOf(helper.absolutePos(RACK)));
         player.setItemInHand(InteractionHand.MAIN_HAND, ZoneFixtures.handheld(ores));
         player.getMainHandItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-        helper.assertTrue(bay.zoneId() == ores, "a scan from 8 blocks zones the shelf, got '" + bay.zone() + "'");
+        helper.assertTrue(bay.zoneId() == ores, what + " zones the shelf, got '" + bay.zone() + "'");
         helper.succeed();
     }
 
