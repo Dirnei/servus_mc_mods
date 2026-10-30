@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidKeep;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidOutboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationBlock;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.SetFluidKeepPayload;
+import io.github.dirnei.mc.servus.shuttles.fluidstation.SetFluidLevelPayload;
 import io.github.dirnei.mc.servus.shuttles.menu.FluidOutboundMenu;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.netty.buffer.Unpooled;
@@ -43,7 +44,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 /**
  * The Fluid Outbound as a block: placing, the drop keeping the keep,
  * the tank guarded by its keep fluid, sides that hand fluid out and take
- * none in, not being stock, the keep picker payload, buckets and the potato.
+ * none in, not being stock, the keep picker and level payloads, buckets and the potato.
  * Stations here face north, so a player in front sees east on the left; the
  * station's back is south.
  */
@@ -51,10 +52,6 @@ public final class FluidOutboundGameTests {
 
     private static final Direction FRONT = Direction.NORTH;
     private static final BlockPos STATION = new BlockPos(4, 1, 4);
-    private static final int MINUS_ONE = 0;
-    private static final int PLUS_ONE = 1;
-    private static final int MINUS_TEN = 2;
-    private static final int PLUS_TEN = 3;
 
     private FluidOutboundGameTests() {
     }
@@ -93,13 +90,14 @@ public final class FluidOutboundGameTests {
     @ServusGameTest(timeoutTicks = 60)
     public static void breakKeepsKeep(GameTestHelper helper) {
         FluidOutboundBlockEntity station = keeping(helper, Fluids.WATER, 5000);
-        station.stepKeep(8000);
+        station.setKeepAmount(8000);
         helper.destroyBlock(STATION.above());
         helper.runAfterDelay(1, () -> {
             List<ItemStack> drops = FluidStationFixtures.dropped(helper, STATION);
             helper.assertTrue(drops.size() == 1, "one item drops, got " + drops);
             FluidOutboundBlockEntity placed = FluidStationFixtures.outbound(helper, new BlockPos(8, 1, 8), FRONT, drops.getFirst().copy());
-            helper.assertTrue(placed.keep().equals(new FluidKeep<>(Fluids.WATER, 8000)), "it still keeps 8000 mB of water, got " + placed.keep());
+            helper.assertTrue(placed.keep().equals(new FluidKeep<>(Fluids.WATER, 8000, 1000)),
+                    "it still keeps 8000 mB of water, got " + placed.keep());
             helper.assertTrue(placed.tank().getFluidAmount() == 5000, "it still holds 5000 mB");
             helper.assertTrue(placed.fluidSides().mode(RelativeSide.BACK) == SideMode.PUSH, "the back still pushes");
             helper.succeed();
@@ -110,8 +108,8 @@ public final class FluidOutboundGameTests {
     @ServusGameTest(timeoutTicks = 60)
     public static void restockLevelSurvivesBreak(GameTestHelper helper) {
         FluidOutboundBlockEntity station = keeping(helper, Fluids.WATER, 2000);
-        station.stepKeep(8000);
-        station.stepRestock(-5000);
+        station.setKeepAmount(8000);
+        station.setRestockAt(3000);
         station.setRestocking(true);
         CompoundTag tag = station.saveWithFullMetadata(helper.getLevel().registryAccess());
         FluidOutboundBlockEntity reloaded = new FluidOutboundBlockEntity(station.getBlockPos(), station.getBlockState());
@@ -128,50 +126,98 @@ public final class FluidOutboundGameTests {
         });
     }
 
-    /** A station saved before restock levels existed restocks at its keep amount. */
+    /** A station saved before restock levels existed restocks at one bucket, and at its keep when that is less. */
     @ServusGameTest(timeoutTicks = 20)
     public static void oldSaveRestocksAtKeep(GameTestHelper helper) {
         FluidOutboundBlockEntity station = place(helper);
         station.setKeepFluid(Fluids.WATER);
-        station.stepKeep(6000);
-        station.stepRestock(-4000);
+        station.setKeepAmount(6000);
+        station.setRestockAt(4000);
+        FluidOutboundBlockEntity reloaded = reloadedWithoutRestockLevel(helper, station);
+        helper.assertTrue(reloaded.keep().equals(new FluidKeep<>(Fluids.WATER, 6000, 1000)),
+                "the old save restocks at 1000 mB, got " + reloaded.keep());
+        helper.assertTrue(!reloaded.restocking(), "the old save is not restocking");
+        station.setKeepAmount(500);
+        helper.assertTrue(reloadedWithoutRestockLevel(helper, station).keep().equals(new FluidKeep<>(Fluids.WATER, 500, 500)),
+                "an old keep of 500 mB restocks at 500 mB");
+        helper.succeed();
+    }
+
+    private static FluidOutboundBlockEntity reloadedWithoutRestockLevel(GameTestHelper helper, FluidOutboundBlockEntity station) {
         CompoundTag tag = station.saveWithFullMetadata(helper.getLevel().registryAccess());
         tag.remove("RestockAt");
         tag.remove("Restocking");
         FluidOutboundBlockEntity reloaded = new FluidOutboundBlockEntity(station.getBlockPos(), station.getBlockState());
         reloaded.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), tag));
-        helper.assertTrue(reloaded.keep().equals(new FluidKeep<>(Fluids.WATER, 6000, 6000)),
-                "the old save restocks at its keep of 6000 mB, got " + reloaded.keep());
-        helper.assertTrue(!reloaded.restocking(), "the old save is not restocking");
+        return reloaded;
+    }
+
+    /** A station keeping 8 B and restocking at 6 B: a restock level of 10 B pushes the keep up to 10 B. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void levelPayloadPushesKeepUp(GameTestHelper helper) {
+        FluidOutboundMenu menu = keepingLevels(helper, 8000, 6000);
+        menu.setLevel(true, 10000);
+        helper.assertTrue(menu.keep().equals(new FluidKeep<>(Fluids.WATER, 10000, 10000)),
+                "the keep goes up with the restock level, got " + menu.keep());
         helper.succeed();
     }
 
-    /** The restock buttons step the restock level within 0 and the keep and leave the keep alone; a lower keep pulls it down. */
-    @ServusGameTest(timeoutTicks = 40)
-    public static void restockButtonsStepWithinKeep(GameTestHelper helper) {
+    /** A station keeping 8 B and restocking at 6 B: a keep of 4 B drags the restock level down to 4 B. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void levelPayloadDragsRestockDown(GameTestHelper helper) {
+        FluidOutboundMenu menu = keepingLevels(helper, 8000, 6000);
+        menu.setLevel(false, 4000);
+        helper.assertTrue(menu.keep().equals(new FluidKeep<>(Fluids.WATER, 4000, 4000)),
+                "the restock level comes down with the keep, got " + menu.keep());
+        menu.setLevel(true, 2000);
+        helper.assertTrue(menu.keep().equals(new FluidKeep<>(Fluids.WATER, 4000, 2000)), "a lower restock level leaves the keep alone");
+        helper.succeed();
+    }
+
+    /** The menu of a station keeping water at those levels, set by the level payload's handler. */
+    private static FluidOutboundMenu keepingLevels(GameTestHelper helper, int keep, int restockAt) {
         FluidOutboundBlockEntity station = place(helper);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        FluidOutboundMenu menu = new FluidOutboundMenu(1, player.getInventory(), station);
-        menu.clickMenuButton(player, FluidOutboundMenu.restockButton(PLUS_ONE));
-        helper.assertTrue(station.keep().restockAt() == 0, "no keep fluid, no restock level");
         station.setKeepFluid(Fluids.WATER);
-        station.stepKeep(8000);
-        menu.clickMenuButton(player, FluidOutboundMenu.restockButton(PLUS_ONE));
-        helper.assertTrue(station.keep().restockAt() == 8000, "the restock level stays at the keep, got " + station.keep().restockAt());
-        for (int press = 0; press < 4; press++) {
-            menu.clickMenuButton(player, FluidOutboundMenu.restockButton(MINUS_ONE));
-        }
-        helper.assertTrue(station.keep().equals(new FluidKeep<>(Fluids.WATER, 8000, 4000)),
-                "four -1 B make a restock level of 4000 mB under the keep of 8000 mB, got " + station.keep());
-        helper.assertTrue(menu.keep().equals(station.keep()), "the menu shows the restock level");
-        menu.clickMenuButton(player, FluidOutboundMenu.restockButton(MINUS_TEN));
-        helper.assertTrue(station.keep().restockAt() == 0, "the restock level stops at 0, got " + station.keep().restockAt());
-        station.stepRestock(6000);
-        for (int press = 0; press < 4; press++) {
-            menu.clickMenuButton(player, FluidOutboundMenu.keepButton(MINUS_ONE));
-        }
-        helper.assertTrue(station.keep().equals(new FluidKeep<>(Fluids.WATER, 4000, 4000)),
-                "a keep lowered to 4000 mB pulls the restock level of 6000 mB down, got " + station.keep());
+        FluidOutboundMenu menu = new FluidOutboundMenu(1, helper.makeMockPlayer(GameType.SURVIVAL).getInventory(), station);
+        menu.setLevel(false, keep);
+        menu.setLevel(true, restockAt);
+        helper.assertTrue(station.keep().equals(new FluidKeep<>(Fluids.WATER, keep, restockAt)), "the station keeps the levels set");
+        return menu;
+    }
+
+    /** A station that kept nothing keeps the full tank of water from a pick, restocked from 1 B; lava then keeps the levels. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void newKeepStartsFull(GameTestHelper helper) {
+        FluidOutboundBlockEntity station = place(helper);
+        int capacity = station.tank().getCapacity();
+        FluidOutboundMenu menu = new FluidOutboundMenu(1, helper.makeMockPlayer(GameType.SURVIVAL).getInventory(), station);
+        menu.pickKeep(Optional.of(Identifier.withDefaultNamespace("water")));
+        helper.assertTrue(station.keep().equals(new FluidKeep<>(Fluids.WATER, capacity, 1000)),
+                "a new keep is the full " + capacity + " mB restocked at 1000 mB, got " + station.keep());
+        menu.setLevel(false, 8000);
+        menu.setLevel(true, 2000);
+        menu.pickKeep(Optional.of(Identifier.withDefaultNamespace("lava")));
+        helper.assertTrue(station.keep().equals(new FluidKeep<>(Fluids.LAVA, 8000, 2000)), "lava keeps the levels, got " + station.keep());
+        helper.succeed();
+    }
+
+    /** Levels above the tank's capacity stop at it, and without a keep fluid the payload does nothing. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void levelPayloadLimitedToCapacity(GameTestHelper helper) {
+        FluidOutboundBlockEntity station = place(helper);
+        int capacity = station.tank().getCapacity();
+        FluidOutboundMenu menu = new FluidOutboundMenu(1, helper.makeMockPlayer(GameType.SURVIVAL).getInventory(), station);
+        menu.setLevel(false, 4000);
+        menu.setLevel(true, 2000);
+        helper.assertTrue(station.keep().equals(FluidKeep.none()), "no keep fluid, no levels, got " + station.keep());
+        station.setKeepFluid(Fluids.WATER);
+        menu.setLevel(false, 40000);
+        helper.assertTrue(station.keep().amount() == capacity, "the keep stops at the capacity " + capacity + ", got " + station.keep());
+        menu.setLevel(true, 40000);
+        helper.assertTrue(station.keep().equals(new FluidKeep<>(Fluids.WATER, capacity, capacity)),
+                "the restock level stops at the capacity too, got " + station.keep());
+        menu.setLevel(true, -1000);
+        helper.assertTrue(station.keep().restockAt() == 0, "and at 0 below, got " + station.keep());
         helper.succeed();
     }
 
@@ -275,17 +321,16 @@ public final class FluidOutboundGameTests {
         });
     }
 
-    /** Picking water sets the keep; eight +1 B make 8000 mB; picking nothing clears it and keeps the amount at 0. */
+    /** Picking water sets the keep; a keep of 8 B makes 8000 mB; picking nothing clears it. */
     @ServusGameTest(timeoutTicks = 40)
     public static void keepSetByPicker(GameTestHelper helper) {
         FluidOutboundBlockEntity station = place(helper);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         FluidOutboundMenu menu = new FluidOutboundMenu(1, player.getInventory(), station);
         helper.assertTrue(menu.pickKeep(Optional.of(Identifier.withDefaultNamespace("water"))), "water is a keepable fluid");
-        for (int press = 0; press < 8; press++) {
-            menu.clickMenuButton(player, FluidOutboundMenu.keepButton(PLUS_ONE));
-        }
-        helper.assertTrue(station.keep().equals(new FluidKeep<>(Fluids.WATER, 8000)), "the station keeps 8000 mB of water, got " + station.keep());
+        menu.setLevel(false, 8000);
+        helper.assertTrue(station.keep().equals(new FluidKeep<>(Fluids.WATER, 8000, 1000)),
+                "the station keeps 8000 mB of water, got " + station.keep());
         helper.assertTrue(menu.keep().equals(station.keep()), "the menu shows the keep");
         helper.assertTrue(menu.pickKeep(Optional.empty()), "nothing is a valid pick");
         helper.assertTrue(!station.keep().isSet(), "picking nothing clears the keep, got " + station.keep());
@@ -297,7 +342,7 @@ public final class FluidOutboundGameTests {
     public static void unknownKeepFluidRefused(GameTestHelper helper) {
         FluidOutboundBlockEntity station = place(helper);
         station.setKeepFluid(Fluids.WATER);
-        station.stepKeep(4000);
+        station.setKeepAmount(4000);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         FluidOutboundMenu menu = new FluidOutboundMenu(1, player.getInventory(), station);
         FluidKeep<Fluid> before = station.keep();
@@ -321,20 +366,16 @@ public final class FluidOutboundGameTests {
         helper.succeed();
     }
 
-    /** At the tank's capacity +10 B keeps it there, and the steps do nothing without a keep fluid. */
-    @ServusGameTest(timeoutTicks = 40)
-    public static void stepsClampedToCapacity(GameTestHelper helper) {
-        FluidOutboundBlockEntity station = place(helper);
-        int capacity = station.tank().getCapacity();
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        FluidOutboundMenu menu = new FluidOutboundMenu(1, player.getInventory(), station);
-        menu.clickMenuButton(player, FluidOutboundMenu.keepButton(PLUS_TEN));
-        helper.assertTrue(station.keep().amount() == 0, "no keep fluid, no amount");
-        station.setKeepFluid(Fluids.WATER);
-        for (int press = 0; press <= capacity / 10000; press++) {
-            menu.clickMenuButton(player, FluidOutboundMenu.keepButton(PLUS_TEN));
+    /** The level payload carries which level and the mB through its codec unchanged. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void levelPayloadRoundTrip(GameTestHelper helper) {
+        for (SetFluidLevelPayload payload : List.of(new SetFluidLevelPayload(false, 8000), new SetFluidLevelPayload(true, 0),
+                new SetFluidLevelPayload(true, 16000))) {
+            RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
+            SetFluidLevelPayload.STREAM_CODEC.encode(buf, payload);
+            SetFluidLevelPayload decoded = SetFluidLevelPayload.STREAM_CODEC.decode(buf);
+            helper.assertTrue(decoded.equals(payload), "the payload " + payload + " comes back as " + decoded);
         }
-        helper.assertTrue(station.keep().amount() == capacity, "the keep stops at the capacity " + capacity + ", got " + station.keep().amount());
         helper.succeed();
     }
 
@@ -353,8 +394,8 @@ public final class FluidOutboundGameTests {
     @ServusGameTest(timeoutTicks = 40)
     public static void potatoReportsKeeps(GameTestHelper helper) {
         FluidOutboundBlockEntity station = keeping(helper, Fluids.WATER, 5200);
-        station.stepKeep(8000);
-        station.stepRestock(-4000);
+        station.setKeepAmount(8000);
+        station.setRestockAt(4000);
         BlockPos lower = helper.absolutePos(STATION);
         BlockState state = helper.getLevel().getBlockState(lower);
         List<Component> report = ((FluidStationBlock) state.getBlock()).potatoReport(helper.getLevel(), lower, state, Vec3.atCenterOf(lower));

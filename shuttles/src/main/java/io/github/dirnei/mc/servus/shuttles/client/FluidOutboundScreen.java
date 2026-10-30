@@ -1,19 +1,20 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
 import io.github.dirnei.mc.servus.foundation.client.ItemPicker;
-import io.github.dirnei.mc.servus.foundation.client.MenuButtons;
 import io.github.dirnei.mc.servus.foundation.client.PickerEntries;
 import io.github.dirnei.mc.servus.foundation.picker.PickerList;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import io.github.dirnei.mc.servus.shuttles.fluid.FluidRestockPlan;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidKeep;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.SetFluidKeepPayload;
+import io.github.dirnei.mc.servus.shuttles.fluidstation.SetFluidLevelPayload;
 import io.github.dirnei.mc.servus.shuttles.menu.FluidOutboundMenu;
+import io.github.dirnei.mc.servus.shuttles.menu.FluidStationMenu;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -23,25 +24,44 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import org.jspecify.annotations.Nullable;
+import org.lwjgl.glfw.GLFW;
 
 /**
  * The Fluid Outbound GUI: the shared station GUI with the keep fluid picker
- * above the gauge, marks on the gauge at the keep amount and the restock
- * level, and below it the keep amount and the restock level, each with -1 B,
- * +1 B, -10 B and +10 B buttons. Clicking the picker with a
- * filled fluid container on the cursor keeps that container's fluid. While
- * the picker's popup is open nothing below it reacts.
+ * above a tall gauge. A white arrow left of the gauge points at the keep
+ * amount, an orange one right of it at the restock level; dragging an arrow
+ * or turning the wheel over it sets its level in whole buckets, and a typed
+ * field on each side sets it too. Clicking the picker with a filled fluid
+ * container on the cursor keeps that container's fluid. While the picker's
+ * popup is open nothing below it reacts.
  */
 public class FluidOutboundScreen extends FluidStationScreen<FluidOutboundMenu> {
 
-    private static final int COLOUR_KEEP_MARK = 0xFFFFFFFF;
-    private static final int COLOUR_RESTOCK_MARK = 0xFFFFA040;
-    private static final String[] STEP_LABELS = {"-1", "+1", "-10", "+10"};
+    private static final int COLOUR_KEEP = 0xFFFFFFFF;
+    private static final int COLOUR_RESTOCK = 0xFFFFA040;
+    private static final int COLOUR_ARROW_EDGE = 0xFF373737;
+    private static final int BUCKET = FluidRestockPlan.BUCKET;
+    private static final int ARROW_WIDTH = 6;
+    private static final int ARROW_HEIGHT = 8;
+    private static final int ARROW_GAP = 2;
+    private static final int FIELD_WIDTH = 26;
+    private static final int FIELD_HEIGHT = 12;
+    private static final int MARGIN = 8;
+    private static final int UNIT_GAP = 3;
+    /** Ticks a sent level shows before the synced one wins again. */
+    private static final int ANSWER_TICKS = 20;
     private static List<ItemPicker.Entry> entries;
 
     private final ItemPicker picker = new ItemPicker(Component.translatable("gui.servus_shuttles.fluid_outbound.keep_picker"),
             entry -> sendKeep(entry.fluidId()));
-    private final Button[] stepButtons = new Button[2 * FluidOutboundMenu.KEEP_STEPS.length];
+    private final List<AmountField> fields = new ArrayList<>();
+    /** The level an arrow is dragged for: true restock, false keep, null while no arrow is dragged. */
+    private @Nullable Boolean dragging;
+    private int dragValue;
+    /** The keep as last sent, shown until the server's answer arrives. */
+    private @Nullable FluidKeep<Fluid> sent;
+    private int answerTicks;
 
     public FluidOutboundScreen(FluidOutboundMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, FluidOutboundMenu.IMAGE_HEIGHT, FluidOutboundMenu.GAUGE_Y, FluidOutboundMenu.STATE_Y);
@@ -68,27 +88,130 @@ public class FluidOutboundScreen extends FluidStationScreen<FluidOutboundMenu> {
         super.init();
         picker.setButton(leftPos + FluidOutboundMenu.PICKER_X, topPos + FluidOutboundMenu.PICKER_Y, FluidOutboundMenu.PICKER_WIDTH);
         picker.setArea(leftPos, topPos, imageWidth, imageHeight);
-        int steps = FluidOutboundMenu.KEEP_STEPS.length;
-        for (int step = 0; step < steps; step++) {
-            stepButtons[step] = addStepButton(step, FluidOutboundMenu.keepButton(step), FluidOutboundMenu.BUTTONS_Y);
-            stepButtons[steps + step] = addStepButton(step, FluidOutboundMenu.restockButton(step), FluidOutboundMenu.RESTOCK_BUTTONS_Y);
-        }
+        fields.clear();
+        fields.add(addField(false));
+        fields.add(addField(true));
     }
 
-    /** One step button in the two by two block whose top is at {@code top}. */
-    private Button addStepButton(int step, int id, int top) {
-        int width = (menu.pitch() - 6) / 2;
-        int x = leftPos + menu.columnX() + 2 + (step % 2) * (width + 2);
-        int y = topPos + top + (step / 2) * (FluidOutboundMenu.BUTTON_HEIGHT + 1);
-        return addRenderableWidget(Button.builder(Component.literal(STEP_LABELS[step]),
-                button -> MenuButtons.press(minecraft, menu, id)).bounds(x, y, width, FluidOutboundMenu.BUTTON_HEIGHT).build());
+    /** The typed field of one level, in whole buckets, centred in its side of the gauge. */
+    private AmountField addField(boolean restock) {
+        int x = leftPos + sideCentre(restock) - (FIELD_WIDTH + UNIT_GAP + font.width(unit())) / 2;
+        int y = topPos + fieldY();
+        AmountField field = new AmountField(font, x, y, FIELD_WIDTH, FIELD_HEIGHT,
+                value -> (int) Math.clamp(value, 0, menu.capacity() / BUCKET), label(restock),
+                () -> level(shown(), restock) / BUCKET, value -> sendLevel(restock, (int) value * BUCKET));
+        addRenderableWidget(field.box());
+        return field;
+    }
+
+    private static Component label(boolean restock) {
+        return Component.translatable(restock ? "gui.servus_shuttles.fluid_outbound.restock" : "gui.servus_shuttles.fluid_outbound.keep");
+    }
+
+    private static Component unit() {
+        return Component.translatable("gui.servus_shuttles.fluid_outbound.buckets");
+    }
+
+    private int fieldY() {
+        return FluidOutboundMenu.GAUGE_Y + (FluidOutboundMenu.OUTBOUND_GAUGE_HEIGHT - FIELD_HEIGHT) / 2 + 5;
+    }
+
+    /** The middle of the free space left of the keep arrow or right of the restock arrow. */
+    private int sideCentre(boolean restock) {
+        if (restock) {
+            int left = arrowX(true) + ARROW_WIDTH + ARROW_GAP;
+            return (left + imageWidth - MARGIN) / 2;
+        }
+        return (MARGIN + arrowX(false) - ARROW_GAP) / 2;
+    }
+
+    /** The left edge of an arrow, relative to the GUI: left of the gauge for the keep, right of it for the restock level. */
+    private int arrowX(boolean restock) {
+        return restock ? menu.gaugeX() + FluidStationMenu.GAUGE_WIDTH + 1 + ARROW_GAP : menu.gaugeX() - 1 - ARROW_GAP - ARROW_WIDTH;
+    }
+
+    private static int level(FluidKeep<Fluid> keep, boolean restock) {
+        return restock ? keep.restockLevel() : keep.target();
+    }
+
+    private FluidKeep<Fluid> moved(FluidKeep<Fluid> keep, boolean restock, int millibuckets) {
+        return restock ? keep.withRestockAt(millibuckets, menu.capacity()) : keep.withAmount(millibuckets, menu.capacity());
+    }
+
+    /** The keep as the GUI shows it: dragged, else just sent, else as synced. */
+    private FluidKeep<Fluid> shown() {
+        FluidKeep<Fluid> synced = menu.keep();
+        if (dragging != null && synced.isSet()) {
+            return moved(synced, dragging, dragValue);
+        }
+        if (sent != null && answerTicks > 0 && !sent.equals(synced) && sent.fluid() == synced.fluid()) {
+            return sent;
+        }
+        sent = null;
+        return synced;
+    }
+
+    private void sendLevel(boolean restock, int millibuckets) {
+        FluidKeep<Fluid> keep = shown();
+        if (!keep.isSet()) {
+            return;
+        }
+        sent = moved(keep, restock, millibuckets);
+        answerTicks = ANSWER_TICKS;
+        ClientPacketDistributor.sendToServer(new SetFluidLevelPayload(restock, millibuckets));
+    }
+
+    /** The y of the gauge row at {@code millibuckets}, relative to the GUI. */
+    private int levelY(int millibuckets) {
+        int capacity = Math.max(1, menu.capacity());
+        int height = FluidOutboundMenu.OUTBOUND_GAUGE_HEIGHT;
+        int bottom = FluidOutboundMenu.GAUGE_Y + height;
+        return Math.min(bottom - 1, bottom - (int) Math.clamp((long) millibuckets * height / capacity, 0, height));
+    }
+
+    /** The whole buckets at the gauge row under {@code mouseY}, within 0 and the capacity. */
+    private int valueAt(double mouseY) {
+        int height = FluidOutboundMenu.OUTBOUND_GAUGE_HEIGHT;
+        double fromBottom = topPos + FluidOutboundMenu.GAUGE_Y + height - mouseY;
+        long buckets = Math.round(fromBottom * menu.capacity() / height / BUCKET);
+        return (int) Math.clamp(buckets, 0, menu.capacity() / BUCKET) * BUCKET;
+    }
+
+    /** The arrow under the mouse: true restock, false keep, null for none or without a keep fluid. */
+    private @Nullable Boolean arrowAt(double mouseX, double mouseY) {
+        FluidKeep<Fluid> keep = shown();
+        if (!keep.isSet() || menu.capacity() <= 0) {
+            return null;
+        }
+        for (boolean restock : new boolean[] {true, false}) {
+            double x = mouseX - leftPos - arrowX(restock);
+            double y = mouseY - topPos - levelY(level(keep, restock));
+            if (x >= -1 && x < ARROW_WIDTH + 1 && y >= -ARROW_HEIGHT / 2.0 - 1 && y < ARROW_HEIGHT / 2.0 + 1) {
+                return restock;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        if (answerTicks > 0) {
+            answerTicks--;
+        }
+        boolean set = menu.keep().isSet();
+        for (AmountField field : fields) {
+            field.box().active = set;
+            field.box().setEditable(set);
+            if (!set && field.isFocused()) {
+                clearFieldFocus();
+            }
+            field.tick();
+        }
     }
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        for (Button button : stepButtons) {
-            button.active = menu.keep().isSet();
-        }
         Fluid kept = menu.keep().fluid();
         picker.setSelected(kept == null ? PickerList.NONE_ID : BuiltInRegistries.FLUID.getKey(kept).toString());
         if (picker.isOpen()) {
@@ -105,44 +228,48 @@ public class FluidOutboundScreen extends FluidStationScreen<FluidOutboundMenu> {
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
         picker.renderButton(graphics, font, mouseX, mouseY);
-        FluidKeep<Fluid> keep = menu.keep();
-        if (keep.isSet()) {
-            renderMark(graphics, keep.restockLevel(), COLOUR_RESTOCK_MARK);
-            renderMark(graphics, keep.target(), COLOUR_KEEP_MARK);
+        FluidKeep<Fluid> keep = shown();
+        if (keep.isSet() && menu.capacity() > 0) {
+            renderLevel(graphics, keep.restockLevel(), true, COLOUR_RESTOCK);
+            renderLevel(graphics, keep.target(), false, COLOUR_KEEP);
         }
     }
 
-    /** A line across the gauge at {@code millibuckets}. */
-    private void renderMark(GuiGraphicsExtractor graphics, int millibuckets, int colour) {
-        int capacity = menu.capacity();
-        if (capacity <= 0) {
-            return;
+    /** A mark across the gauge at {@code millibuckets} and the arrow pointing at it. */
+    private void renderLevel(GuiGraphicsExtractor graphics, int millibuckets, boolean restock, int colour) {
+        int y = topPos + levelY(millibuckets);
+        int gaugeX = leftPos + menu.gaugeX();
+        graphics.fill(gaugeX, y, gaugeX + FluidStationMenu.GAUGE_WIDTH, y + 1, colour);
+        int x = leftPos + arrowX(restock);
+        renderArrow(graphics, x, y, restock, 1, COLOUR_ARROW_EDGE);
+        renderArrow(graphics, x, y, restock, 0, colour);
+    }
+
+    /**
+     * A triangle {@link #ARROW_WIDTH} wide and {@link #ARROW_HEIGHT} tall with
+     * its tip on row {@code tipY}: pointing right when it sits left of the
+     * gauge, left otherwise. {@code grow} widens it by pixels for an edge.
+     */
+    private static void renderArrow(GuiGraphicsExtractor graphics, int x, int tipY, boolean pointsLeft, int grow, int colour) {
+        for (int column = -grow; column < ARROW_WIDTH + grow; column++) {
+            int fromTip = pointsLeft ? column : ARROW_WIDTH - 1 - column;
+            int half = Math.max(0, fromTip) * ARROW_HEIGHT / (2 * ARROW_WIDTH) + grow;
+            graphics.fill(x + column, tipY - half, x + column + 1, tipY + half + 1, colour);
         }
-        int height = FluidOutboundMenu.GAUGE_HEIGHT;
-        int bottom = topPos + FluidOutboundMenu.GAUGE_Y + height;
-        int y = Math.min(bottom - 1, bottom - (int) Math.min(height, (long) millibuckets * height / capacity));
-        int x = leftPos + menu.gaugeX();
-        graphics.fill(x, y, x + FluidOutboundMenu.GAUGE_WIDTH, y + 1, colour);
     }
 
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.extractLabels(graphics, mouseX, mouseY);
-        FluidKeep<Fluid> keep = menu.keep();
-        centredLabel(graphics, Component.translatable("gui.servus_shuttles.fluid_outbound.keep_amount", buckets(keep.target())),
-                FluidOutboundMenu.AMOUNT_Y);
-        centredLabel(graphics, Component.translatable("gui.servus_shuttles.fluid_outbound.restock_at", buckets(keep.restockLevel())),
-                FluidOutboundMenu.RESTOCK_Y);
-    }
-
-    private void centredLabel(GuiGraphicsExtractor graphics, Component text, int y) {
-        int x = menu.columnX() + (menu.pitch() - font.width(text)) / 2;
-        graphics.text(font, text, x, y, COLOUR_TEXT, false);
-    }
-
-    /** An amount in buckets: whole buckets plain, else with one decimal. */
-    private static String buckets(int millibuckets) {
-        return millibuckets % 1000 == 0 ? Integer.toString(millibuckets / 1000) : String.format(Locale.ROOT, "%.1f", millibuckets / 1000.0);
+        int labelY = fieldY() - 11;
+        int unitY = fieldY() + (FIELD_HEIGHT - 8) / 2;
+        for (boolean restock : new boolean[] {false, true}) {
+            Component label = label(restock);
+            int centre = sideCentre(restock);
+            graphics.text(font, label, centre - font.width(label) / 2, labelY, COLOUR_TEXT, false);
+            int unitX = centre - (FIELD_WIDTH + UNIT_GAP + font.width(unit())) / 2 + FIELD_WIDTH + UNIT_GAP;
+            graphics.text(font, unit(), unitX, unitY, COLOUR_TEXT, false);
+        }
     }
 
     private boolean overPicker(double mouseX, double mouseY) {
@@ -151,10 +278,31 @@ public class FluidOutboundScreen extends FluidStationScreen<FluidOutboundMenu> {
         return x >= 0 && x < FluidOutboundMenu.PICKER_WIDTH && y >= 0 && y < FluidOutboundMenu.PICKER_HEIGHT;
     }
 
+    private @Nullable AmountField focusedField() {
+        for (AmountField field : fields) {
+            if (field.isFocused()) {
+                return field;
+            }
+        }
+        return null;
+    }
+
+    /** Takes the keyboard from the typed fields; a field that had it sends its number at the next tick. */
+    private void clearFieldFocus() {
+        setFocused(null);
+        for (AmountField field : fields) {
+            field.box().setFocused(false);
+        }
+    }
+
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (picker.isOpen()) {
             return picker.mouseClicked(event, doubleClick);
+        }
+        AmountField focused = focusedField();
+        if (focused != null && !focused.box().isMouseOver(event.x(), event.y())) {
+            clearFieldFocus();
         }
         if (overPicker(event.x(), event.y())) {
             Optional<Fluid> carried = Transfer.fluidOf(menu.getCarried());
@@ -163,31 +311,88 @@ public class FluidOutboundScreen extends FluidStationScreen<FluidOutboundMenu> {
                 return true;
             }
         }
+        Boolean arrow = event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT ? arrowAt(event.x(), event.y()) : null;
+        if (arrow != null) {
+            dragValue = valueAt(event.y());
+            dragging = arrow;
+            return true;
+        }
         return picker.mouseClicked(event, doubleClick) || super.mouseClicked(event, doubleClick);
     }
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
-        return picker.mouseDragged(event.x(), event.y()) || super.mouseDragged(event, dragX, dragY);
+        if (picker.isOpen()) {
+            return picker.mouseDragged(event.x(), event.y());
+        }
+        if (dragging != null) {
+            dragValue = valueAt(event.y());
+            return true;
+        }
+        return super.mouseDragged(event, dragX, dragY);
     }
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
-        return picker.mouseReleased() || super.mouseReleased(event);
+        if (picker.isOpen()) {
+            return picker.mouseReleased();
+        }
+        if (dragging != null) {
+            boolean restock = dragging;
+            dragging = null;
+            sendLevel(restock, dragValue);
+            return true;
+        }
+        return super.mouseReleased(event);
     }
 
+    /** The wheel over an arrow steps its level by a bucket, with shift by ten. */
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        return picker.mouseScrolled(scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        if (picker.isOpen()) {
+            return picker.mouseScrolled(scrollY);
+        }
+        Boolean arrow = dragging == null && scrollY != 0 ? arrowAt(mouseX, mouseY) : null;
+        if (arrow != null) {
+            int step = (Minecraft.getInstance().hasShiftDown() ? 10 : 1) * BUCKET * (int) Math.signum(scrollY);
+            int current = level(shown(), arrow) / BUCKET * BUCKET;
+            sendLevel(arrow, (int) Math.clamp((long) current + step, 0, menu.capacity()));
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
+    /** A typed field keeps every key but Escape, so E does not close the GUI; Enter sends its number. */
     @Override
     public boolean keyPressed(KeyEvent event) {
-        return picker.keyPressed(event) || super.keyPressed(event);
+        if (picker.keyPressed(event)) {
+            return true;
+        }
+        AmountField focused = focusedField();
+        if (focused != null && event.key() != GLFW.GLFW_KEY_ESCAPE) {
+            if (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) {
+                focused.commit();
+                clearFieldFocus();
+                return true;
+            }
+            if (focused.box().keyPressed(event) || focused.box().canConsumeInput()) {
+                return true;
+            }
+        }
+        return super.keyPressed(event);
     }
 
     @Override
     public boolean charTyped(CharacterEvent event) {
         return picker.charTyped(event) || super.charTyped(event);
+    }
+
+    @Override
+    public void removed() {
+        AmountField focused = focusedField();
+        if (focused != null) {
+            focused.commit();
+        }
+        super.removed();
     }
 }

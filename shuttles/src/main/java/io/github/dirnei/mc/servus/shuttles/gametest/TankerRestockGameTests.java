@@ -111,7 +111,7 @@ public final class TankerRestockGameTests {
                 helper.assertTrue(TankerFixtures.amount(outbound) == 2000, "the kept tank still holds 2000 mB");
                 helper.assertTrue(TankerFixtures.out(helper) == 0 && TankerFixtures.network(helper).queuedJobs() == 0, "no run is queued");
                 helper.assertTrue(!lamp(helper, Activity.BLOCKED), "a rack holds water, so the lamp is not red");
-                outbound.stepKeep(-5000);
+                outbound.setKeepAmount(3000);
                 Waits.when(helper, () -> TankerFixtures.amount(outbound) == 3000 && TankerFixtures.out(helper) == 0, RUN,
                         () -> "a 1000 mB run that fills the tank goes, got " + TankerFixtures.amount(outbound), () -> {
                     helper.assertTrue(TankerFixtures.amount(helper, TankerFixtures.FAR) == 500, "the rack gave 1000 mB, it holds "
@@ -127,7 +127,7 @@ public final class TankerRestockGameTests {
     public static void restockWaitsForTheLevel(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
         FluidOutboundBlockEntity outbound = TankerFixtures.outbound(helper, Fluids.WATER, 8000);
-        outbound.stepRestock(-4000);
+        outbound.setRestockAt(4000);
         TankerFixtures.fill(outbound, Fluids.WATER, 5000);
         TankerFixtures.rack(helper, TankerFixtures.FAR);
         helper.runAfterDelay(2, () -> {
@@ -150,7 +150,7 @@ public final class TankerRestockGameTests {
         ShuttleGarageBlockEntity garage = TankerFixtures.warehouse(helper);
         garage.shuttles().setStackInSlot(0, TankerFixtures.tanker(ServusShuttlesItems.SHUTTLE_MK2.get()));
         FluidOutboundBlockEntity outbound = TankerFixtures.outbound(helper, Fluids.WATER, 16000);
-        outbound.stepRestock(-14000);
+        outbound.setRestockAt(2000);
         TankerFixtures.fill(outbound, Fluids.WATER, 2000);
         TankerFixtures.rack(helper, TankerFixtures.FAR);
         helper.runAfterDelay(2, () -> {

@@ -10,9 +10,10 @@ This refines PLAN.md M13 Fluid logistics (Fluid Racks to Fluid Outbounds by Tank
 
 - Restock runs carry whole buckets only: a run's amount is rounded down to a multiple of 1,000 mB, and no run starts for less than one bucket.
 - The Fluid Outbound's keep gets a restock level, from 0 up to the keep amount. A restock starts when the tank's have (amount plus what runs on the way bring) falls below the restock level, and runs keep coming until less than one bucket is missing to the keep amount.
-- The GUI gets a second amount, "Restock below", with its own -1 B, +1 B, -10 B, +10 B buttons and a second mark on the gauge.
+- The GUI drops the step buttons: a taller gauge with a white arrow for the keep and an orange arrow for the restock level, dragged or wheeled, and a fixed typing field on each side.
+- The restock level pushes the keep up and the keep drags the restock level down. A new keep starts at the full tank with a restock level of 1 B.
 - The Data Potato line names the restock level.
-- A new keep and an old saved station start with the restock level at the keep amount, so they behave like today apart from whole buckets.
+- A station saved before this change loads with a restock level of 1 B.
 
 ## Capabilities
 
@@ -34,6 +35,6 @@ None.
 ## Impact
 
 - `shuttles/.../fluidstation/FluidKeep.java` (restock level), `FluidOutboundBlockEntity.java` (save, steps, restocking flag), `FluidStationReport.java`.
-- `shuttles/.../fluid/FluidRestockPlan.java` (whole buckets, start rule), `network/WarehouseNetwork.java` (`restockFluids`).
+- `shuttles/.../fluid/FluidRestockPlan.java` (whole buckets, start rule), `network/WarehouseNetwork.java` (`restockFluids`), a new `SetFluidLevelPayload`.
 - `shuttles/.../menu/FluidOutboundMenu.java`, `client/FluidOutboundScreen.java`, lang provider.
 - Unit tests `FluidKeepTest`, `FluidRestockPlanTest`; GameTests in `TankerRestockGameTests`, `FluidOutboundGameTests`.

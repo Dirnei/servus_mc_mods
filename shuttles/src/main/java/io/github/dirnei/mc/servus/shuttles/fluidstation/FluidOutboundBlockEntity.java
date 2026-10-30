@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.side.TankRole;
+import io.github.dirnei.mc.servus.shuttles.fluid.FluidRestockPlan;
 import io.github.dirnei.mc.servus.shuttles.fluid.FluidRole;
 import io.github.dirnei.mc.servus.shuttles.menu.FluidOutboundMenu;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
@@ -53,22 +54,25 @@ public class FluidOutboundBlockEntity extends FluidStationBlockEntity {
         return keep;
     }
 
-    /** Keeps that fluid at the amount kept before, or nothing when the fluid is null or empty. */
+    /**
+     * Keeps that fluid at the levels kept before, full from one bucket when
+     * nothing was kept, or nothing when the fluid is null or empty.
+     */
     public void setKeepFluid(@Nullable Fluid fluid) {
-        setKeep(keep.withFluid(fluid == null || fluid == Fluids.EMPTY ? null : fluid));
+        setKeep(keep.withFluid(fluid == null || fluid == Fluids.EMPTY ? null : fluid, tank().getCapacity()));
     }
 
-    /** Steps the keep amount by {@code delta} mB, limited to 0 and the tank's capacity; nothing without a keep fluid. */
-    public void stepKeep(int delta) {
+    /** Sets the keep amount within 0 and the capacity; a higher restock level comes down with it. Nothing without a keep fluid. */
+    public void setKeepAmount(int millibuckets) {
         if (keep.isSet()) {
-            setKeep(keep.step(delta, tank().getCapacity()));
+            setKeep(keep.withAmount(millibuckets, tank().getCapacity()));
         }
     }
 
-    /** Steps the restock level by {@code delta} mB, limited to 0 and the keep amount; nothing without a keep fluid. */
-    public void stepRestock(int delta) {
+    /** Sets the restock level within 0 and the capacity; a lower keep amount goes up with it. Nothing without a keep fluid. */
+    public void setRestockAt(int millibuckets) {
         if (keep.isSet()) {
-            setKeep(keep.stepRestock(delta));
+            setKeep(keep.withRestockAt(millibuckets, tank().getCapacity()));
         }
     }
 
@@ -132,7 +136,7 @@ public class FluidOutboundBlockEntity extends FluidStationBlockEntity {
                 .filter(found -> found != Fluids.EMPTY).orElse(null);
         int amount = input.getIntOr(KEEP_AMOUNT, 0);
         keep = fluid == null ? FluidKeep.none()
-                : new FluidKeep<>(fluid, amount, input.getIntOr(RESTOCK_AT, amount)).clamp(tank().getCapacity());
+                : new FluidKeep<>(fluid, amount, input.getIntOr(RESTOCK_AT, FluidRestockPlan.BUCKET)).clamp(tank().getCapacity());
         restocking = input.getBooleanOr(RESTOCKING, false);
     }
 }

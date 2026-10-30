@@ -78,11 +78,15 @@ final class TankerFixtures {
         return outbound(helper, OUTBOUND, fluid, amount);
     }
 
-    /** A Fluid Outbound east of the rail at {@code pos}, keeping {@code amount} mB of the fluid in its first tank. */
+    /**
+     * A Fluid Outbound east of the rail at {@code pos}, keeping {@code amount}
+     * mB of the fluid in its first tank and restocking as soon as a bucket is missing.
+     */
     static FluidOutboundBlockEntity outbound(GameTestHelper helper, BlockPos pos, Fluid fluid, int amount) {
         FluidOutboundBlockEntity station = FluidStationFixtures.outbound(helper, pos, STATION_FRONT);
         station.setKeepFluid(fluid);
-        station.stepKeep(amount);
+        station.setKeepAmount(amount);
+        station.setRestockAt(amount);
         return station;
     }
 

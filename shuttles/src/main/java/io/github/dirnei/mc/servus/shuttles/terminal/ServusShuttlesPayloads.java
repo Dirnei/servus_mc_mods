@@ -26,6 +26,7 @@ import io.github.dirnei.mc.servus.shuttles.field.FieldWorkerPayload;
 import io.github.dirnei.mc.servus.shuttles.field.SetFieldAmountPayload;
 import io.github.dirnei.mc.servus.shuttles.field.TreeFallPayload;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.SetFluidKeepPayload;
+import io.github.dirnei.mc.servus.shuttles.fluidstation.SetFluidLevelPayload;
 import io.github.dirnei.mc.servus.shuttles.garage.GarageStrandedPayload;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotLocksPayload;
 import io.github.dirnei.mc.servus.shuttles.menu.FieldHeadMenu;
@@ -132,6 +133,8 @@ public final class ServusShuttlesPayloads {
         registerHandheld(registrar);
         toMenu(registrar, SetFluidKeepPayload.TYPE, SetFluidKeepPayload.STREAM_CODEC, FluidOutboundMenu.class,
                 (player, menu, payload) -> menu.pickKeep(payload.fluid()));
+        toMenu(registrar, SetFluidLevelPayload.TYPE, SetFluidLevelPayload.STREAM_CODEC, FluidOutboundMenu.class,
+                (player, menu, payload) -> menu.setLevel(payload.restock(), payload.millibuckets()));
         registerTerminalRequests(registrar);
     }
 

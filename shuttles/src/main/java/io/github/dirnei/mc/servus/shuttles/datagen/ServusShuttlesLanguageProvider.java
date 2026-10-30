@@ -754,8 +754,9 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.fluid_station.state.missing", "%s missing");
         add("gui.servus_shuttles.fluid_outbound.keep_picker", "Keep fluid");
         add("gui.servus_shuttles.fluid_outbound.keep_none", "Keep nothing");
-        add("gui.servus_shuttles.fluid_outbound.keep_amount", "%s B");
-        add("gui.servus_shuttles.fluid_outbound.restock_at", "Restock at %s B");
+        add("gui.servus_shuttles.fluid_outbound.keep", "Keep");
+        add("gui.servus_shuttles.fluid_outbound.restock", "Restock");
+        add("gui.servus_shuttles.fluid_outbound.buckets", "B");
     }
 
     private void tooltipsAndReports() {

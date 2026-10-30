@@ -264,7 +264,7 @@ public class FieldHeadScreen extends NamedMachineScreen<FieldHeadMenu> {
         fertilizeUp = stepButton("+", FERTILIZE_Y - 2, STEP_UP_X, FieldHeadMenu.BUTTON_FERTILIZE_UP);
         amountFields.clear();
         for (FieldAmount amount : FieldAmount.values()) {
-            AmountField field = new AmountField(font, leftPos + amountX(amount), topPos + amountY(amount), AMOUNT_BOX_W, AMOUNT_BOX_H, amount,
+            AmountField field = new AmountField(font, leftPos + amountX(amount), topPos + amountY(amount), AMOUNT_BOX_W, AMOUNT_BOX_H, amount::clamp,
                     Component.translatable(amountKey(amount)), () -> headAmount(amount),
                     value -> ClientPacketDistributor.sendToServer(new SetFieldAmountPayload(menu.headPos(), amount.ordinal(), value)));
             amountFields.add(field);

@@ -21,6 +21,13 @@
 - [x] 4.1 `shuttles/.../gametest/TankerRestockGameTests.java`: `restockWaitsForTheLevel`, `refillGoesOnAboveTheLevel`, `runsCarryWholeBuckets`, `lessThanABucketInTheRackIsNoRun`; fix existing restock tests whose amounts are not whole buckets. Run `:shuttles:runGameTestServer`.
 - [x] 4.2 `shuttles/.../gametest/FluidOutboundGameTests.java`: `restockLevelSurvivesBreak`, `oldSaveRestocksAtKeep`, `restockButtonsStepWithinKeep`, report line with the restock level. Run `:shuttles:runGameTestServer`.
 
-## 5. Verify
+## 5. Arrows and typed levels (play check feedback)
 
-- [ ] 5.1 Full `gradlew build`, all tests and GameTests green, the game launches with all mods; play check: set a restock level, drain the tank with a pipe, watch tankers start at the level, bring whole buckets and fill back to the keep.
+- [x] 5.1 `shuttles/.../fluidstation/FluidKeep.java`: `withAmount` drags the restock level down, `withRestockAt` pushes the amount up, `withFluid` from none starts full with 1 B, drop the follow rule and the step methods; old saves load with 1 B. JUnit in `FluidKeepTest`: `restockPushesKeepUp`, `keepDragsRestockDown`, `newKeepStartsFullAtOneBucket`, `changedFluidKeepsLevels`, `levelsStayWithinCapacity`; remove the tests of the dropped rules. Run `:shuttles:test`.
+- [x] 5.2 `shuttles/.../fluidstation/SetFluidLevelPayload.java` (new), `terminal/ServusShuttlesPayloads.java`, `menu/FluidOutboundMenu.java`, `FluidOutboundBlockEntity.java`: the level payload and its server handling; remove the step button ids. Run `:shuttles:compileJava`.
+- [x] 5.3 `shuttles/.../client/FluidOutboundScreen.java`, `FluidStationScreen.java`/`FluidOutboundMenu.java` layout: 80 px gauge, the two arrows with drag and wheel, the two fixed fields, no step buttons; lang for "Keep" and "Restock" via `ServusShuttlesLanguageProvider`. Run `:shuttles:runData` and `:shuttles:build`.
+- [x] 5.4 GameTests in `FluidOutboundGameTests.java`: `levelPayloadPushesKeepUp`, `levelPayloadDragsRestockDown`, `newKeepStartsFull`, `levelPayloadLimitedToCapacity`, payload codec round trip; adapt `oldSaveRestocksAtKeep` to 1 B and replace `restockButtonsStepWithinKeep`. Run `:shuttles:runGameTestServer`.
+
+## 6. Verify
+
+- [ ] 6.1 Full `gradlew build`, all tests and GameTests green, the game launches with all mods; play check: drag and type both levels, check push and drag, drain the tank with a pipe, watch tankers start at the level, bring whole buckets and fill back to the keep.

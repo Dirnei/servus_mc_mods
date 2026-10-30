@@ -151,6 +151,11 @@ public abstract class FluidStationMenu extends AbstractContainerMenu {
         return columnX() + (pitch - GAUGE_WIDTH) / 2;
     }
 
+    /** The height of the gauge. */
+    public int gaugeHeight() {
+        return GAUGE_HEIGHT;
+    }
+
     public int inventoryY() {
         return inventoryY;
     }

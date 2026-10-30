@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidKeep;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidOutboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.SetFluidKeepPayload;
+import io.github.dirnei.mc.servus.shuttles.fluidstation.SetFluidLevelPayload;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
 import java.util.Optional;
@@ -13,7 +14,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.SimpleContainerData;
@@ -23,29 +23,22 @@ import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The Fluid Outbound's GUI: the keep fluid picker, the gauge with marks at
- * the keep amount and the restock level, the keep amount and the restock
- * level each with four step buttons; the Fluids side panel, the state line
- * and the player inventory. The keep is synced as data slots after the shared
- * ones. A pick comes by {@link SetFluidKeepPayload}, the steps are menu
- * buttons {@link #keepButton} and {@link #restockButton}.
+ * The Fluid Outbound's GUI: the keep fluid picker, a tall gauge with marks
+ * and arrows at the keep amount and the restock level, a typed field for each
+ * beside it; the Fluids side panel, the state line and the player inventory.
+ * The keep is synced as data slots after the shared ones. A pick comes by
+ * {@link SetFluidKeepPayload}, a level by {@link SetFluidLevelPayload}.
  */
 public class FluidOutboundMenu extends FluidStationMenu {
 
-    /** The keep and restock steps in mB, in the order of the buttons: the upper row, then the lower row. */
-    public static final int[] KEEP_STEPS = {-1000, 1000, -10000, 10000};
     public static final int PICKER_WIDTH = 110;
     public static final int PICKER_HEIGHT = 18;
     public static final int PICKER_X = (WIDTH - PICKER_WIDTH) / 2;
     public static final int PICKER_Y = 17;
-    public static final int GAUGE_Y = PICKER_Y + PICKER_HEIGHT + 2;
-    public static final int AMOUNT_Y = GAUGE_Y + GAUGE_HEIGHT + 3;
-    public static final int BUTTONS_Y = AMOUNT_Y + 11;
-    public static final int BUTTON_HEIGHT = 11;
-    public static final int RESTOCK_Y = BUTTONS_Y + 2 * (BUTTON_HEIGHT + 1) + 2;
-    public static final int RESTOCK_BUTTONS_Y = RESTOCK_Y + 11;
-    public static final int STATE_Y = RESTOCK_BUTTONS_Y + 2 * (BUTTON_HEIGHT + 1) + 3;
-    public static final int INVENTORY_Y = STATE_Y + 22;
+    public static final int GAUGE_Y = PICKER_Y + PICKER_HEIGHT + 3;
+    public static final int OUTBOUND_GAUGE_HEIGHT = 80;
+    public static final int STATE_Y = GAUGE_Y + OUTBOUND_GAUGE_HEIGHT + 5;
+    public static final int INVENTORY_Y = STATE_Y + 30;
     public static final int IMAGE_HEIGHT = INVENTORY_Y + PlayerInventorySlots.HOTBAR_OFFSET + 18 + 6;
     private static final int PITCH = 44;
 
@@ -98,14 +91,9 @@ public class FluidOutboundMenu extends FluidStationMenu {
         return held != Fluids.EMPTY || kept == null ? held : kept;
     }
 
-    /** The button id that steps the keep by {@code KEEP_STEPS[step]}. */
-    public static int keepButton(int step) {
-        return step;
-    }
-
-    /** The button id that steps the restock level by {@code KEEP_STEPS[step]}. */
-    public static int restockButton(int step) {
-        return KEEP_STEPS.length + step;
+    @Override
+    public int gaugeHeight() {
+        return OUTBOUND_GAUGE_HEIGHT;
     }
 
     @Override
@@ -113,20 +101,19 @@ public class FluidOutboundMenu extends FluidStationMenu {
         return "gui.servus_shuttles.fluid_station.state.missing";
     }
 
-    @Override
-    public boolean clickMenuButton(Player player, int id) {
-        if (super.clickMenuButton(player, id)) {
-            return true;
+    /**
+     * Server: the player set the restock level or the keep amount. Limited to
+     * the tank's capacity, the other level moves along; nothing without a keep fluid.
+     */
+    public void setLevel(boolean restock, int millibuckets) {
+        if (!(station() instanceof FluidOutboundBlockEntity outbound)) {
+            return;
         }
-        if (!(station() instanceof FluidOutboundBlockEntity outbound) || id < 0 || id >= 2 * KEEP_STEPS.length) {
-            return false;
-        }
-        if (id < KEEP_STEPS.length) {
-            outbound.stepKeep(KEEP_STEPS[id]);
+        if (restock) {
+            outbound.setRestockAt(millibuckets);
         } else {
-            outbound.stepRestock(KEEP_STEPS[id - KEEP_STEPS.length]);
+            outbound.setKeepAmount(millibuckets);
         }
-        return true;
     }
 
     /**

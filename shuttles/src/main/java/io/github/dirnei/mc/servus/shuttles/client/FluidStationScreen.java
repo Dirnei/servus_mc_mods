@@ -28,13 +28,14 @@ public abstract class FluidStationScreen<M extends FluidStationMenu> extends Abs
     private static final int MARGIN = 8;
     private static final int STATE_ROWS = 2;
 
-    private final FluidGauge gauge = new FluidGauge(FluidStationMenu.GAUGE_WIDTH, FluidStationMenu.GAUGE_HEIGHT);
+    private final FluidGauge gauge;
     private final SideConfigPanel panel = SideConfigPanel.fluidsOnly();
     private final int gaugeY;
     private final int stateY;
 
     protected FluidStationScreen(M menu, Inventory playerInventory, Component title, int imageHeight, int gaugeY, int stateY) {
         super(menu, playerInventory, title, FluidStationMenu.WIDTH, imageHeight);
+        this.gauge = new FluidGauge(FluidStationMenu.GAUGE_WIDTH, menu.gaugeHeight());
         this.gaugeY = gaugeY;
         this.stateY = stateY;
         ClientStationState.clear();

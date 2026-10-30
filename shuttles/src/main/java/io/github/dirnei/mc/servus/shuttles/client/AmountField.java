@@ -3,15 +3,17 @@ package io.github.dirnei.mc.servus.shuttles.client;
 import io.github.dirnei.mc.servus.shuttles.field.FieldAmount;
 import java.util.function.IntSupplier;
 import java.util.function.LongConsumer;
+import java.util.function.LongToIntFunction;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 
 /**
- * A digits only number field for one {@link FieldAmount}. It sends its number
- * when it loses focus or {@link #commit()} is called, and otherwise shows the
- * value the head keeps, but never while the player types in it. The owning
- * screen calls {@link #tick()} every client tick.
+ * A digits only number field for a value a block keeps, such as a
+ * {@link FieldAmount}. It sends its number, limited by {@code clamp}, when it
+ * loses focus or {@link #commit()} is called, and otherwise shows the value
+ * the block keeps, but never while the player types in it. The owning screen
+ * calls {@link #tick()} every client tick.
  */
 final class AmountField {
 
@@ -21,7 +23,7 @@ final class AmountField {
     private static final int ANSWER_TICKS = 20;
 
     private final EditBox box;
-    private final FieldAmount amount;
+    private final LongToIntFunction clamp;
     private final IntSupplier headValue;
     private final LongConsumer send;
     private boolean wasFocused;
@@ -29,9 +31,9 @@ final class AmountField {
     private int sent = -1;
     private int answerTicks;
 
-    AmountField(Font font, int x, int y, int width, int height, FieldAmount amount, Component name, IntSupplier headValue,
+    AmountField(Font font, int x, int y, int width, int height, LongToIntFunction clamp, Component name, IntSupplier headValue,
                 LongConsumer send) {
-        this.amount = amount;
+        this.clamp = clamp;
         this.headValue = headValue;
         this.send = send;
         this.box = new EditBox(font, x, y, width, height, name);
@@ -63,7 +65,7 @@ final class AmountField {
     /** Clamps the typed number, shows it and sends it when it differs from the head's value. */
     void commit() {
         wasFocused = false;
-        int value = amount.clamp(FieldAmount.parse(box.getValue()));
+        int value = clamp.applyAsInt(FieldAmount.parse(box.getValue()));
         box.setValue(String.valueOf(value));
         if (value != headValue.getAsInt()) {
             send.accept(value);
