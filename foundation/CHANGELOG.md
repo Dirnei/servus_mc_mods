@@ -4,6 +4,7 @@
 
 ### Added
 - The Carbon Filter: mill Charcoal into Charcoal Powder, activate it in a Blast Furnace and craft it with wheat or flour and Paper. Machines of other Servus mods wear it down; a worn out filter becomes a Spent Filter that composts.
+- Item pickers can search item tags: type `#` to list tags with their item count, Tab completes the top hit, and hovering a tag shows some of its items.
 - Fluid sides of machines have modes (Input, Pull or Off, and Push, Output or Off) and reach all tanks or one picked tank; a right click on a side cell picks the tank, and a block with one tank offers no tank choice.
 
 ### Changed

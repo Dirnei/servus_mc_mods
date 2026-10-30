@@ -5,6 +5,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import io.github.dirnei.mc.servus.foundation.picker.PickerList;
 import io.github.dirnei.mc.servus.foundation.picker.PickerStock;
+import io.github.dirnei.mc.servus.foundation.picker.TagSearch;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,9 +16,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.lwjgl.glfw.GLFW;
@@ -37,6 +40,10 @@ import org.lwjgl.glfw.GLFW;
  * first, stopping when they return true. While {@link #isOpen()} the screen
  * should pass {@code -1, -1} as the mouse to {@code super.extractRenderState}
  * and skip its own tooltips.
+ *
+ * <p>With {@link #setTagSearch} on, a search starting with {@code #} lists the
+ * client's item tags instead; their entry ids are {@code #namespace:path}, and
+ * Tab completes the search to the top hit.
  *
  * <p>Without a button: skip {@link #setButton} and {@link #renderButton} and
  * open the popup with {@link #open(String)} from the screen's own click, for
@@ -62,6 +69,7 @@ public final class ItemPicker {
     private static final int HOVERED = 0x60FFFFFF;
     private static final int DARK = 0xFF373737;
     private static final int SLOT = 0xFF8B8B8B;
+    private static final int TAG_TOOLTIP_ITEMS = 6;
 
     /**
      * One entry: an id (an item or fluid id, or {@link PickerList#NONE_ID}), its icon (may be empty), a fluid
@@ -128,6 +136,9 @@ public final class ItemPicker {
     private Map<String, Long> stock;
     private Component zeroHint = Component.empty();
     private Map<String, Component> locked = Map.of();
+    private boolean tagSearch;
+    private final Map<String, Entry> tagsById = new HashMap<>();
+    private final Map<String, List<Item>> tagItems = new HashMap<>();
     private int buttonX;
     private int buttonY;
     private int buttonWidth;
@@ -179,6 +190,11 @@ public final class ItemPicker {
         locked = Map.copyOf(hints);
     }
 
+    /** Turns the {@code #} tag search on or off; off, {@code #} is searched like any other text. */
+    public void setTagSearch(boolean on) {
+        tagSearch = on;
+    }
+
     /** Where the button sits, absolute; 18 pixels tall. */
     public void setButton(int x, int y, int width) {
         buttonX = x;
@@ -220,6 +236,9 @@ public final class ItemPicker {
         search.setMaxLength(50);
         search.setResponder(text -> refilter());
         search.setFocused(true);
+        if (tagSearch) {
+            loadTags();
+        }
         refilter();
         int index = indexOf(selected);
         bar.setOffset(index - ROWS / 2);
@@ -232,9 +251,38 @@ public final class ItemPicker {
         refilter();
     }
 
+    private void loadTags() {
+        tagsById.clear();
+        tagItems.clear();
+        BuiltInRegistries.ITEM.getTags().forEach(tag -> {
+            String id = TagSearch.PREFIX + tag.key().location();
+            List<Item> items = tag.stream().map(Holder::value).toList();
+            tagItems.put(id, items);
+            ItemStack icon = items.isEmpty() ? ItemStack.EMPTY : new ItemStack(items.getFirst());
+            tagsById.put(id, new Entry(id, icon, Component.literal(id)));
+        });
+    }
+
+    private boolean inTagMode() {
+        return tagSearch && search != null && TagSearch.isTagQuery(search.getValue());
+    }
+
+    private List<String> tagHits() {
+        List<String> names = tagsById.keySet().stream().map(id -> id.substring(TagSearch.PREFIX.length())).toList();
+        return TagSearch.search(names, search.getValue());
+    }
+
     private void refilter() {
         String query = search == null ? "" : search.getValue();
         List<Entry> entries = new ArrayList<>();
+        if (inTagMode()) {
+            for (String hit : tagHits()) {
+                entries.add(tagsById.get(TagSearch.PREFIX + hit));
+            }
+            shown = entries;
+            bar.setContent(shown.size(), ROWS);
+            return;
+        }
         for (PickerList.Item item : PickerList.ranked(PickerList.filter(sorted, query), locked.keySet(), stock)) {
             entries.add(byId.get(item.id()));
         }
@@ -251,8 +299,12 @@ public final class ItemPicker {
         return -1;
     }
 
-    /** The stock of an entry, or -1 when no count is shown for it. */
+    /** The stock of an entry, the item count of a tag entry, or -1 when no count is shown for it. */
     private long count(Entry entry) {
+        List<Item> items = tagItems.get(entry.id());
+        if (items != null) {
+            return items.size();
+        }
         if (stock == null || entry.isNone()) {
             return -1;
         }
@@ -349,6 +401,16 @@ public final class ItemPicker {
         }
         List<Component> lines = new ArrayList<>();
         lines.add(entry.name());
+        List<Item> items = tagItems.get(entry.id());
+        if (items != null) {
+            items.stream().limit(TAG_TOOLTIP_ITEMS)
+                    .forEach(item -> lines.add(new ItemStack(item).getHoverName().copy().withColor(0xA0A0A0)));
+            if (items.size() > TAG_TOOLTIP_ITEMS) {
+                lines.add(Component.literal("...").withColor(0xA0A0A0));
+            }
+            graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
+            return true;
+        }
         Component lockHint = locked.get(entry.id());
         if (lockHint != null) {
             lines.add(lockHint.copy().withColor(0xA04000));
@@ -427,6 +489,13 @@ public final class ItemPicker {
         }
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             close();
+            return true;
+        }
+        if (keyCode == GLFW.GLFW_KEY_TAB && inTagMode()) {
+            List<String> hits = tagHits();
+            if (!hits.isEmpty()) {
+                search.setValue(TagSearch.PREFIX + hits.getFirst());
+            }
             return true;
         }
         search.keyPressed(event);
