@@ -209,6 +209,7 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 
 ### Open: Shuttles
 
+- Handheld Request: send the STOCK basket of the Handheld to a station (Outbound or Packing Station) as one request.
 - Lift deadlock from a player report: a shuttle crossing a shaft on its deck keeps the car from folding that deck, and when the shuttle it waits behind waits for that car, nothing moves. Needs its own change with a GameTest; the Data Potato on the rails names the chain.
 - Shuttles meeting head on pass through each other; passing places or one way aisles if play tests ask for them.
 - A way to unload a shuttle parked with cargo by hand; today only Recall empties it, dropping the cargo at the garage.

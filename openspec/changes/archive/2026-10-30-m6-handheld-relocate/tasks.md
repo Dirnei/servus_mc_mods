@@ -45,7 +45,7 @@
 
 ## 6. Verify
 
-- [ ] 6.1 Full gradle build, tests green, game launches with all mods; play check: build a basket, Relocate, scan a target shelf, shuttles fill it, zone refusal, no room refusal, modes ZONE, INFO, STOCK, INFO basket emptied by another scan and a mode switch, STOCK basket kept, items only from the source shelf. Verify: `gradlew build` and `gradlew test` green, client starts from main.
+- [x] 6.1 Full gradle build, tests green, game launches with all mods; play check: build a basket, Relocate, scan a target shelf, shuttles fill it, zone refusal, no room refusal, modes ZONE, INFO, STOCK, INFO basket emptied by another scan and a mode switch, STOCK basket kept, items only from the source shelf. Verify: `gradlew build` and `gradlew test` green, client starts from main.
 
 ## Workflow follow-up
 
