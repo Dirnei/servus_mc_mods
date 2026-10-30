@@ -239,7 +239,10 @@ public class AquariumPartBlockEntity extends BlockEntity {
         return masterOffset == null ? null : worldPosition.offset(masterOffset);
     }
 
-    /** The master's tick: the tank box check, the power and, once due, the cycle. */
+    /**
+     * The master's tick: the tank box check, the power and, once due, the cycle. The cycle waits while the tank has no
+     * network, since the tank then reports one block's water.
+     */
     void serverTick() {
         if (level == null || !isMaster() || box == null) {
             return;
@@ -256,7 +259,7 @@ public class AquariumPartBlockEntity extends BlockEntity {
             shownLit = state.lastTickPowered();
             showLit(shownLit);
         }
-        if (due) {
+        if (due && network().isPresent()) {
             runCycle(state.takePoweredShare());
         }
     }
