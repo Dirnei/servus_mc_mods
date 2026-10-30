@@ -20,11 +20,13 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jspecify.annotations.Nullable;
 
 /**
- * The handheld's basket and relocation on the server: edits of the basket,
- * Relocate putting the handheld into pick target mode, and the scan of the
- * target shelf that starts the shuttles.
+ * The handheld's baskets and relocation on the server: edits of the
+ * warehouse basket and the shelf basket, Relocate stashing the shelf basket
+ * and putting the handheld into pick target mode, and the scan of the target
+ * shelf that starts the shuttles.
  */
 public final class HandheldRelocation {
 
@@ -35,9 +37,25 @@ public final class HandheldRelocation {
     private HandheldRelocation() {
     }
 
-    /** The handheld's basket; empty when it has none. */
+    /** The handheld's warehouse basket; empty when it has none. */
     public static Basket<ItemKey> basket(ItemStack handheld) {
         return BasketEntry.toBasket(handheld.getOrDefault(ServusShuttlesComponents.HANDHELD_BASKET.get(), List.of()));
+    }
+
+    /** The basket of the scanned shelf; empty when it has none. */
+    public static Basket<ItemKey> shelfBasket(ItemStack handheld) {
+        ShelfBasket basket = handheld.get(ServusShuttlesComponents.HANDHELD_SHELF_BASKET.get());
+        return basket == null ? Basket.empty() : basket.basket();
+    }
+
+    /** The warehouse basket, or the shelf basket when the FIND list shows a shelf. */
+    public static Basket<ItemKey> basket(ItemStack handheld, boolean shelfShown) {
+        return shelfShown ? shelfBasket(handheld) : basket(handheld);
+    }
+
+    /** The relocation of pick target mode, or null when there is none. */
+    public static @Nullable ShelfBasket relocation(ItemStack handheld) {
+        return handheld.get(ServusShuttlesComponents.HANDHELD_RELOCATION.get());
     }
 
     private static void setBasket(ItemStack handheld, Basket<ItemKey> basket) {
@@ -48,59 +66,109 @@ public final class HandheldRelocation {
         }
     }
 
+    private static void setShelfBasket(ItemStack handheld, BlockPos shelf, Basket<ItemKey> basket) {
+        if (basket.isEmpty()) {
+            handheld.remove(ServusShuttlesComponents.HANDHELD_SHELF_BASKET.get());
+        } else {
+            handheld.set(ServusShuttlesComponents.HANDHELD_SHELF_BASKET.get(), ShelfBasket.of(shelf, basket));
+        }
+    }
+
+    /** The FIND list now shows the shelf with that key: a shelf basket of another shelf is emptied. */
+    public static void enterShelf(ItemStack handheld, BlockPos shelf) {
+        ShelfBasket basket = handheld.get(ServusShuttlesComponents.HANDHELD_SHELF_BASKET.get());
+        if (basket != null && !basket.shelf().equals(shelf)) {
+            leaveShelf(handheld);
+        }
+    }
+
+    /** The FIND list left the scanned shelf: the shelf basket is emptied. */
+    public static void leaveShelf(ItemStack handheld) {
+        handheld.remove(ServusShuttlesComponents.HANDHELD_SHELF_BASKET.get());
+    }
+
     /** Whether the handheld waits for the target shelf of a relocation. */
     public static boolean pickingTarget(ItemStack handheld) {
         return handheld.getOrDefault(ServusShuttlesComponents.HANDHELD_PICK_TARGET.get(), false);
     }
 
-    /** Ends pick target mode; the basket stays. */
+    /** Ends pick target mode and drops the relocation; the baskets stay. */
     public static void stopPickingTarget(ItemStack handheld) {
         handheld.remove(ServusShuttlesComponents.HANDHELD_PICK_TARGET.get());
-    }
-
-    /** Applies a basket edit from the FIND screen; a new item for a full basket is refused with a note. */
-    public static void edit(Player player, ItemStack handheld, HandheldBasketPayload payload) {
-        Basket<ItemKey> basket = basket(handheld);
-        if (payload.op() == HandheldBasketPayload.Op.CLEAR) {
-            setBasket(handheld, basket.clear());
-            return;
-        }
-        if (payload.item().isEmpty()) {
-            return;
-        }
-        ItemKey key = ItemKey.of(payload.item());
-        switch (payload.op()) {
-            case ADD -> {
-                if (!basket.canAdd(key)) {
-                    player.sendOverlayMessage(Component.translatable(MESSAGE + "basket_full"));
-                    return;
-                }
-                setBasket(handheld, basket.add(key, payload.amount()));
-            }
-            case SET -> setBasket(handheld, basket.set(key, payload.amount()));
-            case REMOVE -> setBasket(handheld, basket.remove(key));
-        }
+        handheld.remove(ServusShuttlesComponents.HANDHELD_RELOCATION.get());
     }
 
     /**
-     * Relocate: puts the handheld into pick target mode when it is in FIND,
-     * bound to a warehouse and its basket holds an entry.
+     * Applies a basket edit from the FIND screen to the basket of the list it
+     * shows; a new item for a full basket is refused with a note.
      *
+     * @param shelf the key of the shelf the list shows, null for the whole warehouse
+     */
+    public static void edit(Player player, ItemStack handheld, @Nullable BlockPos shelf, HandheldBasketPayload payload) {
+        Basket<ItemKey> basket = shelf == null ? basket(handheld) : shelfBasketOf(handheld, shelf);
+        Basket<ItemKey> edited = edited(player, basket, payload);
+        if (edited.equals(basket)) {
+            return;
+        }
+        if (shelf == null) {
+            setBasket(handheld, edited);
+        } else {
+            setShelfBasket(handheld, shelf, edited);
+        }
+    }
+
+    /** The shelf basket when it belongs to that shelf, else empty. */
+    private static Basket<ItemKey> shelfBasketOf(ItemStack handheld, BlockPos shelf) {
+        ShelfBasket basket = handheld.get(ServusShuttlesComponents.HANDHELD_SHELF_BASKET.get());
+        return basket != null && basket.shelf().equals(shelf) ? basket.basket() : Basket.empty();
+    }
+
+    private static Basket<ItemKey> edited(Player player, Basket<ItemKey> basket, HandheldBasketPayload payload) {
+        if (payload.op() == HandheldBasketPayload.Op.CLEAR) {
+            return basket.clear();
+        }
+        if (payload.item().isEmpty()) {
+            return basket;
+        }
+        ItemKey key = ItemKey.of(payload.item());
+        return switch (payload.op()) {
+            case ADD -> {
+                if (!basket.canAdd(key)) {
+                    player.sendOverlayMessage(Component.translatable(MESSAGE + "basket_full"));
+                    yield basket;
+                }
+                yield basket.add(key, payload.amount());
+            }
+            case SET -> basket.set(key, payload.amount());
+            case REMOVE -> basket.remove(key);
+            case CLEAR -> basket.clear();
+        };
+    }
+
+    /**
+     * Relocate from the shelf the FIND list shows: when the handheld is in
+     * FIND, bound to a warehouse and the shelf basket holds an entry, the
+     * shelf basket becomes the relocation, is emptied, and pick target mode starts.
+     *
+     * @param shelf the key of the shelf the list shows
      * @return whether pick target mode started, so the caller closes the GUI
      */
-    public static boolean relocate(Player player, ItemStack handheld) {
-        if (HandheldActions.mode(handheld) != HandheldMode.FIND || basket(handheld).isEmpty()
+    public static boolean relocate(Player player, ItemStack handheld, BlockPos shelf) {
+        Basket<ItemKey> basket = shelfBasketOf(handheld, shelf);
+        if (HandheldActions.mode(handheld) != HandheldMode.FIND || basket.isEmpty()
                 || HandheldActions.boundNetwork(player.level().getServer(), handheld).isEmpty()) {
             return false;
         }
+        handheld.set(ServusShuttlesComponents.HANDHELD_RELOCATION.get(), ShelfBasket.of(shelf, basket));
+        leaveShelf(handheld);
         handheld.set(ServusShuttlesComponents.HANDHELD_PICK_TARGET.get(), true);
         return true;
     }
 
     /**
-     * Pick target mode: relocates the basket onto the shelf of the scanned bay.
-     * Success flashes the shelf green and ends pick target mode; a refusal
-     * flashes it red and keeps it.
+     * Pick target mode: relocates the stashed relocation from its source
+     * shelf onto the shelf of the scanned bay. Success flashes the shelf
+     * green and ends pick target mode; a refusal flashes it red and keeps it.
      */
     public static void scanTarget(Player player, ItemStack handheld, StorageNodeBlockEntity bay) {
         List<BlockPos> shelf = ShelfZones.shelf(bay.getLevel(), bay.getBlockPos());
@@ -109,15 +177,17 @@ public final class HandheldRelocation {
             refuse(player, shelf, Component.translatable(MESSAGE + "not_bound"));
             return;
         }
-        if (!(bay instanceof HeavyRackBlockEntity)) {
+        ShelfBasket stash = relocation(handheld);
+        if (!(bay instanceof HeavyRackBlockEntity) || stash == null) {
             refuse(player, shelf, Component.translatable(MESSAGE + "relocate_not_target"));
             return;
         }
         Map<ItemKey, Integer> wanted = new LinkedHashMap<>();
-        for (Basket.Entry<ItemKey> entry : basket(handheld).entries()) {
+        for (Basket.Entry<ItemKey> entry : stash.basket().entries()) {
             wanted.put(entry.key(), entry.amount());
         }
-        Relocation relocation = network.get().relocate(shelf, wanted);
+        List<BlockPos> source = ShelfZones.shelf(bay.getLevel(), stash.shelf());
+        Relocation relocation = network.get().relocate(source, shelf, wanted);
         String code = bay.locationCode().isEmpty() ? "--" : bay.locationCode();
         switch (relocation.outcome()) {
             case STARTED -> {

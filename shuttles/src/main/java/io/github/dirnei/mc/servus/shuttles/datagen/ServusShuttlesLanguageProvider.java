@@ -407,7 +407,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("message.servus_shuttles.handheld.relocate_started", "%s  Shuttles are on their way");
         add("message.servus_shuttles.handheld.relocate_nothing", "%s  Nothing to move");
         add("message.servus_shuttles.handheld.relocate_no_room", "%s  No room on this shelf");
-        add("message.servus_shuttles.handheld.relocate_not_target", "Scan a Heavy Duty Rack shelf of the bound warehouse");
+        add("message.servus_shuttles.handheld.relocate_not_target", "Scan another Heavy Duty Rack shelf of the bound warehouse");
         add("message.servus_shuttles.handheld.relocate_offline", "The bound warehouse is offline");
         add("message.servus_shuttles.handheld.relocate_refused", "Zone refuses: %s");
         add("message.servus_shuttles.handheld.relocate_short", "Short: %s");
@@ -438,6 +438,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.handheld.find_empty", "Nothing stored");
         add("gui.servus_shuttles.handheld.find_shelf", "Shelf %s");
         add("gui.servus_shuttles.handheld.basket", "BASKET %s/%s");
+        add("gui.servus_shuttles.handheld.shelf_basket", "SHELF %s/%s");
         add("gui.servus_shuttles.handheld.basket_hint_stock", "Click: add  R: find");
         add("gui.servus_shuttles.handheld.basket_hint_entry", "Click: amount  R: remove");
         add("gui.servus_shuttles.handheld.basket_full", "BASKET FULL");

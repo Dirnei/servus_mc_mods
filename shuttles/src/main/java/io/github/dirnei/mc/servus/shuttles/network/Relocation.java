@@ -16,11 +16,11 @@ public record Relocation(Outcome outcome, List<Item> items) {
         STARTED,
         /** The warehouse is offline. */
         OFFLINE,
-        /** The shelf is not a Heavy Duty Rack shelf of this warehouse. */
+        /** The shelf is not a Heavy Duty Rack shelf of this warehouse, or it is the source shelf. */
         NOT_A_TARGET,
         /** The shelf cannot take everything that would move, so nothing does. */
         NO_ROOM,
-        /** Every item was refused by the zone filter or has no stock outside the shelf. */
+        /** Every item was refused by the zone filter or has no stock on the source shelf. */
         NOTHING_TO_MOVE
     }
 

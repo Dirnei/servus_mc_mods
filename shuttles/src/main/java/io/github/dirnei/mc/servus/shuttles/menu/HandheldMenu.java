@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
+import io.github.dirnei.mc.servus.shuttles.zone.ShelfZones;
 import io.github.dirnei.mc.servus.shuttles.zone.WarehouseZoneData;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneList;
@@ -129,6 +130,9 @@ public class HandheldMenu extends AbstractContainerMenu {
         List<ItemStack> items = new ArrayList<>();
         List<Long> counts = new ArrayList<>();
         HandheldInfoPayload scanned = shelfBay == null ? null : HandheldActions.info(player.level(), shelfBay);
+        if (scanned == null) {
+            shelfBay = null;
+        }
         if (scanned != null) {
             items.addAll(scanned.top());
             counts.addAll(scanned.counts());
@@ -185,16 +189,29 @@ public class HandheldMenu extends AbstractContainerMenu {
         }
     }
 
-    /** Server: an edit of the handheld's basket. */
-    public void editBasket(ServerPlayer player, HandheldBasketPayload payload) {
-        HandheldRelocation.edit(player, handheld(), payload);
+    /** Server: the key of the scanned shelf the FIND list shows, or null when it shows the whole warehouse. */
+    public @Nullable BlockPos shelfKey() {
+        return shelfBay == null ? null : ShelfZones.key(player.level(), shelfBay);
     }
 
-    /** Server: Relocate puts the handheld into pick target mode and closes the GUI; refused without entries or binding. */
-    public void relocate(ServerPlayer player) {
-        if (HandheldRelocation.relocate(player, handheld())) {
-            player.closeContainer();
+    /** Server: an edit of the basket of the list shown, the shelf basket or the warehouse basket. */
+    public void editBasket(Player player, HandheldBasketPayload payload) {
+        HandheldRelocation.edit(player, handheld(), shelfKey(), payload);
+    }
+
+    /**
+     * Server: Relocate from the shown shelf stashes its basket, puts the handheld into pick target mode and closes
+     * the GUI; refused for the whole warehouse, without entries or without binding.
+     *
+     * @return whether pick target mode started
+     */
+    public boolean relocate(Player player) {
+        BlockPos shelf = shelfKey();
+        if (shelf == null || !HandheldRelocation.relocate(player, handheld(), shelf)) {
+            return false;
         }
+        player.closeContainer();
+        return true;
     }
 
     private static boolean ownZone(ServerPlayer player, int id) {
@@ -214,14 +231,17 @@ public class HandheldMenu extends AbstractContainerMenu {
         return new ZoneFilter(items, tags.subList(0, Math.min(ZoneFilter.SLOTS, tags.size())));
     }
 
-    /** Server: shows the bound warehouse's stock in FIND instead of the scanned shelf's. */
+    /** Server: shows the bound warehouse's stock in FIND instead of the scanned shelf's, and empties the shelf basket. */
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        if (id != WHOLE_WAREHOUSE_BUTTON || !(player instanceof ServerPlayer serverPlayer)) {
+        if (id != WHOLE_WAREHOUSE_BUTTON) {
             return false;
         }
         shelfBay = null;
-        sendState(serverPlayer);
+        HandheldRelocation.leaveShelf(handheld());
+        if (player instanceof ServerPlayer serverPlayer) {
+            sendState(serverPlayer);
+        }
         return true;
     }
 

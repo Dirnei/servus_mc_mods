@@ -1475,24 +1475,25 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /**
-     * Moves items from the other shelves of this warehouse onto a Heavy Duty
-     * Rack shelf, by shuttle picks of up to a stack. Items the shelf's zone
-     * filter does not take are refused; an amount is an upper bound, stock
-     * on the shelf itself never counts. Room for every load is checked
-     * before anything starts: when the shelf cannot take them all, nothing
-     * moves and no lock is placed.
+     * Moves items from one shelf of this warehouse onto a Heavy Duty Rack
+     * shelf, by shuttle picks of up to a stack. Items the target's zone
+     * filter does not take are refused; an amount is an upper bound, only
+     * what the source shelf holds counts. Room for every load is checked
+     * before anything starts: when the target cannot take them all, nothing
+     * moves and no lock is placed. The source shelf is no target.
      *
+     * @param source every bay of the shelf the items come from
      * @param shelf  every bay of the target shelf
      * @param wanted how many of each item, in the order to report them
      */
-    public Relocation relocate(List<BlockPos> shelf, Map<ItemKey, Integer> wanted) {
+    public Relocation relocate(List<BlockPos> source, List<BlockPos> shelf, Map<ItemKey, Integer> wanted) {
         if (status() != Status.ONLINE) {
             return Relocation.refused(Relocation.Outcome.OFFLINE);
         }
         List<LockedSlots> bays = new ArrayList<>();
         for (BlockPos pos : shelf) {
             LockedSlots slots = rackSlots(pos);
-            if (slots == null) {
+            if (slots == null || source.contains(pos)) {
                 return Relocation.refused(Relocation.Outcome.NOT_A_TARGET);
             }
             bays.add(slots);
@@ -1509,7 +1510,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 items.add(new Relocation.Item(key, amount, 0, true));
                 return;
             }
-            RequestPlan.Plan<BlockPos> plan = plan(key, amount, destination, reachable);
+            List<RequestPlan.Stock<BlockPos>> stock = stockOf(key, destination).stream()
+                    .filter(entry -> source.contains(entry.source())).toList();
+            RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(amount, key.stack(1).getMaxStackSize(), reachable, stock);
             for (RequestPlan.Job<BlockPos> job : plan.jobs()) {
                 loads.add(new RelocationLoad(key, job.source(), job.count()));
             }

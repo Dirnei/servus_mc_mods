@@ -56,11 +56,12 @@ import org.lwjgl.glfw.GLFW;
  * mode; three softkeys below it switch the mode. ZONE lists the team's zones
  * (choose the active one, new, edit, delete with a second click when loaded
  * shelves use it) and opens the zone form, whose filter is picked in the item
- * picker with {@code #} tag search. FIND lists the bound warehouse's stock
- * above the basket: a click on a stock item adds it to the basket through an
- * amount popup (shift click adds a stack), a right click lights up its
- * shelves; a click on a basket cell edits its amount, a right click removes
- * it; Relocate waits for the target shelf. INFO shows the last scanned shelf.
+ * picker with {@code #} tag search. FIND lists the bound warehouse's stock,
+ * or a scanned shelf's, above the basket of that list: a click on a stock
+ * item adds it to the basket through an amount popup (shift click adds a
+ * stack), a right click lights up its shelves; a click on a basket cell edits
+ * its amount, a right click removes it; Relocate, shown only for a scanned
+ * shelf, waits for the target shelf. INFO shows the last scanned shelf.
  * Item icons on the screen are tinted green, the hovered one keeps its colours.
  */
 public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
@@ -123,8 +124,12 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         INFO
     }
 
-    /** A text button on the CRT: inverted while hovered, dim while it cannot be used. */
-    private record CrtButton(int x, int y, Supplier<Component> label, BooleanSupplier active, Runnable press) {
+    /** A text button on the CRT: inverted while hovered, dim while it cannot be used, gone while not shown. */
+    private record CrtButton(int x, int y, Supplier<Component> label, BooleanSupplier shown, BooleanSupplier active, Runnable press) {
+
+        boolean usable() {
+            return shown.getAsBoolean() && active.getAsBoolean();
+        }
     }
 
     private View view;
@@ -224,7 +229,7 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             case ZONES -> {
                 addButton(LEFT, "new", () -> true, () -> openForm(ZoneList.NONE));
                 addButton(LEFT + 40, "edit", () -> activeTeamZone() != null, this::editActive);
-                buttons.add(new CrtButton(LEFT + 80, BUTTON_Y, this::deleteLabel, () -> activeTeamZone() != null, this::deleteActive));
+                buttons.add(new CrtButton(LEFT + 80, BUTTON_Y, this::deleteLabel, () -> true, () -> activeTeamZone() != null, this::deleteActive));
             }
             case FORM -> {
                 addButton(LEFT, "save", () -> problem().isEmpty(), this::saveForm);
@@ -233,11 +238,12 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             case FIND -> {
                 addButton(LEFT, "basket_clear", () -> !basket().isEmpty(),
                         () -> ClientPacketDistributor.sendToServer(HandheldBasketPayload.clear()));
-                int relocateX = LEFT + font.width(Component.translatable(KEY + "basket_clear")) + 10;
-                addButton(relocateX, "relocate", () -> !basket().isEmpty() && menu.bound(), this::relocate);
-                addButton(relocateX + font.width(Component.translatable(KEY + "relocate")) + 10, "whole_warehouse",
-                        () -> !menu.shelf().isEmpty() && menu.bound(),
+                int wholeX = LEFT + font.width(Component.translatable(KEY + "basket_clear")) + 10;
+                addButton(wholeX, "whole_warehouse", () -> !menu.shelf().isEmpty() && menu.bound(),
                         () -> MenuButtons.press(minecraft, menu, HandheldMenu.WHOLE_WAREHOUSE_BUTTON));
+                Component relocate = Component.translatable(KEY + "relocate");
+                buttons.add(new CrtButton(wholeX + font.width(Component.translatable(KEY + "whole_warehouse")) + 10, BUTTON_Y,
+                        () -> relocate, this::shelfShown, () -> !basket().isEmpty() && menu.bound(), this::relocate));
             }
             default -> {
             }
@@ -247,7 +253,7 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
 
     private void addButton(int x, String key, BooleanSupplier active, Runnable press) {
         Component label = Component.translatable(KEY + key);
-        buttons.add(new CrtButton(x, BUTTON_Y, () -> label, active, press));
+        buttons.add(new CrtButton(x, BUTTON_Y, () -> label, () -> true, active, press));
     }
 
     /** Delete, or the second click's question with the number of loaded shelves in the zone. */
@@ -375,7 +381,9 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             case INFO -> drawInfo(graphics, mouseX, mouseY);
         }
         for (CrtButton button : buttons) {
-            drawButton(graphics, button, mouseX, mouseY);
+            if (button.shown().getAsBoolean()) {
+                drawButton(graphics, button, mouseX, mouseY);
+            }
         }
     }
 
@@ -587,7 +595,7 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
     private void drawBasket(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         Basket<ItemKey> basket = basket();
         graphics.fill(x(LEFT), y(BASKET_LABEL_Y - 2), x(RIGHT), y(BASKET_LABEL_Y - 1), LCD_LINE);
-        Component label = Component.translatable(KEY + "basket", basket.size(), Basket.MAX_ENTRIES);
+        Component label = Component.translatable(KEY + (shelfShown() ? "shelf_basket" : "basket"), basket.size(), Basket.MAX_ENTRIES);
         graphics.text(font, label, x(LEFT), y(BASKET_LABEL_Y), LCD_DIM, false);
         boolean full = Util.getMillis() < basketFullUntil;
         Component hint = full ? Component.translatable(KEY + "basket_full")
@@ -610,8 +618,14 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         }
     }
 
+    /** The basket of the list shown: the shelf basket for a scanned shelf, else the warehouse basket. */
     private Basket<ItemKey> basket() {
-        return HandheldRelocation.basket(menu.handheld());
+        return HandheldRelocation.basket(menu.handheld(), shelfShown());
+    }
+
+    /** Whether the FIND list shows a scanned shelf rather than the whole warehouse. */
+    private boolean shelfShown() {
+        return !menu.shelf().isEmpty();
     }
 
     /** The index of the basket entry under the mouse, or -1. */
@@ -877,7 +891,7 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         }
         for (CrtButton button : List.copyOf(buttons)) {
             Component label = button.label().get();
-            if (button.active().getAsBoolean() && inside(mouseX, mouseY, x(button.x()), y(button.y()) - 1, font.width(label) + 6, 11)) {
+            if (button.usable() && inside(mouseX, mouseY, x(button.x()), y(button.y()) - 1, font.width(label) + 6, 11)) {
                 button.press().run();
                 return true;
             }

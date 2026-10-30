@@ -61,10 +61,14 @@ public final class HandheldActions {
         setMode(player, handheld, mode(handheld).step(step));
     }
 
-    /** Switches to that mode, ends pick target mode, and drops a binding whose controller is gone so FIND says so. */
+    /**
+     * Switches to that mode, ends pick target mode with its relocation, empties
+     * the shelf basket, and drops a binding whose controller is gone so FIND says so.
+     */
     public static void setMode(Player player, ItemStack handheld, HandheldMode mode) {
         handheld.set(ServusShuttlesComponents.HANDHELD_MODE.get(), mode);
         HandheldRelocation.stopPickingTarget(handheld);
+        HandheldRelocation.leaveShelf(handheld);
         boundNetwork(player.level().getServer(), handheld);
     }
 
@@ -185,9 +189,14 @@ public final class HandheldActions {
         return bay.locationCode().isEmpty() ? "--" : bay.locationCode();
     }
 
-    /** FIND by scanning a bay: flashes its shelf and opens the GUI with the shelf's contents in the FIND list. */
+    /**
+     * FIND by scanning a bay: flashes its shelf and opens the GUI with the
+     * shelf's contents in the FIND list; a shelf basket of another shelf is emptied.
+     */
     static void findFromBay(Player player, ItemStack handheld, StorageNodeBlockEntity bay) {
-        send(player, new HandheldScanPayload(shelfOf(bay), true, 0));
+        List<BlockPos> shelf = shelfOf(bay);
+        HandheldRelocation.enterShelf(handheld, shelf.getFirst());
+        send(player, new HandheldScanPayload(shelf, true, 0));
         if (player instanceof ServerPlayer serverPlayer) {
             InteractionHand hand = player.getItemInHand(InteractionHand.MAIN_HAND) == handheld ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
             HandheldItem.openGui(serverPlayer, hand, bay.getBlockPos());

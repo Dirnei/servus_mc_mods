@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.shuttles.handheld.HandheldFindResultPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMode;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldRelocation;
+import io.github.dirnei.mc.servus.shuttles.handheld.ShelfBasket;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
@@ -158,7 +159,8 @@ public final class HandheldHud {
         List<Line> lines = new ArrayList<>();
         lines.add(Line.of(tr("pick_target")));
         lines.add(Line.dim(tr("pick_target_hint")));
-        lines.add(Line.of(tr("basket_entries", HandheldRelocation.basket(handheld).size())));
+        ShelfBasket relocation = HandheldRelocation.relocation(handheld);
+        lines.add(Line.of(tr("basket_entries", relocation == null ? 0 : relocation.entries().size())));
         String code = aimed == null || aimed.locationCode().isEmpty() ? NO_CODE : aimed.locationCode();
         lines.add(Line.of(tr("target", code)));
         lines.add(Line.dim(tr("pick_target_leave")));

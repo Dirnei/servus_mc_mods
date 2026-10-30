@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleModules;
 import io.github.dirnei.mc.servus.shuttles.handheld.BasketEntry;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBinding;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMode;
+import io.github.dirnei.mc.servus.shuttles.handheld.ShelfBasket;
 import net.minecraft.core.BlockPos;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
@@ -51,7 +52,19 @@ public final class ServusShuttlesComponents {
                     .persistent(BlockPos.CODEC)
                     .networkSynchronized(BlockPos.STREAM_CODEC));
 
-    /** The handheld's FIND basket; missing means empty. */
+    /** The basket of the scanned shelf the FIND list shows; missing means empty. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ShelfBasket>> HANDHELD_SHELF_BASKET =
+            COMPONENTS.registerComponentType("handheld_shelf_basket", builder -> builder
+                    .persistent(ShelfBasket.CODEC)
+                    .networkSynchronized(ShelfBasket.STREAM_CODEC));
+
+    /** The relocation the handheld carries in pick target mode: its source shelf and entries. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ShelfBasket>> HANDHELD_RELOCATION =
+            COMPONENTS.registerComponentType("handheld_relocation", builder -> builder
+                    .persistent(ShelfBasket.CODEC)
+                    .networkSynchronized(ShelfBasket.STREAM_CODEC));
+
+    /** The handheld's warehouse basket, shown while FIND lists the whole warehouse; missing means empty. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<BasketEntry>>> HANDHELD_BASKET =
             COMPONENTS.registerComponentType("handheld_basket", builder -> builder
                     .persistent(BasketEntry.LIST_CODEC)
