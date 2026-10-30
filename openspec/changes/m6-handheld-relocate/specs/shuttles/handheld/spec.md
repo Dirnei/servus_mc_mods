@@ -136,6 +136,17 @@ Whether a basket fits on a shelf SHALL be decided by pure logic without Minecraf
 
 ## MODIFIED Requirements
 
+### Requirement: Handheld item
+The Handheld HH-1 SHALL be a Shuttles item that stacks to 1, crafted from redstone, a diamond, Data Cable, a glass pane, copper and Power Cable, and shown in the Shuttles creative tab. Its look SHALL be a dark steel scanner with a yellow rubber bumper, a red scan window and a green screen.
+
+#### Scenario: Crafting
+- **WHEN** a player crafts redstone, diamond, redstone over Data Cable, glass pane, Data Cable over copper ingot, Power Cable, copper ingot
+- **THEN** the result is one Handheld HH-1
+
+#### Scenario: Does not stack
+- **WHEN** a player picks up a second handheld
+- **THEN** it takes its own slot
+
 ### Requirement: Modes
 The handheld SHALL be in one of the modes ZONE, INFO or STOCK, kept on the item; a handheld saved in the old FIND mode SHALL load in INFO. A new handheld SHALL be in ZONE. Scrolling the mouse wheel while sneaking with the handheld in the main hand SHALL switch to the next or previous mode, wrap around, play a short click and SHALL NOT change the selected hotbar slot.
 

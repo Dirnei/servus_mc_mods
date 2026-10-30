@@ -224,13 +224,14 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusShuttlesItems.HANDHELD.get())
                 .pattern("RDR")
-                .pattern("YGY")
-                .pattern("IRI")
+                .pattern("CGC")
+                .pattern("IPI")
                 .define('R', Items.REDSTONE)
-                .define('D', Items.RED_DYE)
-                .define('Y', Items.YELLOW_DYE)
+                .define('D', Items.DIAMOND)
+                .define('C', ServusLogisticsItems.DATA_CABLE.get())
                 .define('G', Items.GLASS_PANE)
-                .define('I', Items.IRON_INGOT)
+                .define('I', Items.COPPER_INGOT)
+                .define('P', ServusLogisticsItems.POWER_CABLE.get())
                 .unlockedBy("has_redstone", has(Items.REDSTONE))
                 .save(output);
 
