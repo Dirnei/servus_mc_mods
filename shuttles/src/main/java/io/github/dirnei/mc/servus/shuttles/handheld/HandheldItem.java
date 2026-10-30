@@ -71,6 +71,11 @@ public class HandheldItem extends Item {
                 HandheldActions.scan(player, player.getItemInHand(hand), bay);
                 return InteractionResult.SUCCESS;
             }
+            BlockHitResult hit = aim(player);
+            if (hit.getType() == HitResult.Type.BLOCK && HandheldRelocation.pickingTarget(player.getItemInHand(hand))) {
+                HandheldRelocation.refuseBlock(player, hit.getBlockPos());
+                return InteractionResult.SUCCESS;
+            }
         }
         if (player instanceof ServerPlayer serverPlayer) {
             openGui(serverPlayer, hand, null);

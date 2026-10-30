@@ -31,6 +31,7 @@ public final class ShuttlesGameTests {
             GarageDoorwayGameTests.class,
             GaragePlacementGameTests.class,
             HandheldGameTests.class,
+            HandheldRelocateGameTests.class,
             HarvesterGameTests.class,
             HeavyRackGameTests.class,
             InboundBatchingGameTests.class,

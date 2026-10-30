@@ -3,12 +3,14 @@ package io.github.dirnei.mc.servus.shuttles.registry;
 import io.github.dirnei.mc.servus.shuttles.pattern.StoredPatterns;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleModules;
+import io.github.dirnei.mc.servus.shuttles.handheld.BasketEntry;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBinding;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMode;
 import net.minecraft.core.BlockPos;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.core.UUIDUtil;
@@ -48,6 +50,18 @@ public final class ServusShuttlesComponents {
             COMPONENTS.registerComponentType("handheld_pin", builder -> builder
                     .persistent(BlockPos.CODEC)
                     .networkSynchronized(BlockPos.STREAM_CODEC));
+
+    /** The handheld's FIND basket; missing means empty. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<BasketEntry>>> HANDHELD_BASKET =
+            COMPONENTS.registerComponentType("handheld_basket", builder -> builder
+                    .persistent(BasketEntry.LIST_CODEC)
+                    .networkSynchronized(BasketEntry.LIST_STREAM_CODEC));
+
+    /** Set while the handheld waits for the target shelf of a relocation; missing means not waiting. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> HANDHELD_PICK_TARGET =
+            COMPONENTS.registerComponentType("handheld_pick_target", builder -> builder
+                    .persistent(Codec.BOOL)
+                    .networkSynchronized(ByteBufCodecs.BOOL));
 
     /** The planks block a Heavy Duty Rack was crafted from; missing means oak. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Identifier>> RACK_WOOD =

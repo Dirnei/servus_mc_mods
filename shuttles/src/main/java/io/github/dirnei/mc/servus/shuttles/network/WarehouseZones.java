@@ -87,6 +87,20 @@ final class WarehouseZones {
         return PutAwayPlan.tiers(key, filtered, WarehouseZones::tagsOf);
     }
 
+    /**
+     * Whether the put-away rule lets the key into the block: a block without a
+     * filter is general storage and takes anything, a filtered one only what
+     * its filter matches by item or tag.
+     */
+    boolean takes(BlockPos pos, ItemKey key) {
+        ZoneDefinition zone = zoneOf(pos);
+        if (zone == null || zone.filter().isEmpty()) {
+            return true;
+        }
+        PutAwayPlan.Filter<ItemKey> filter = zone.filter().toPure();
+        return filter.match(key, filter.tags().isEmpty() ? Set.of() : tagsOf(key)) != PutAwayPlan.Match.NONE;
+    }
+
     /** The zone name of the first block that matched, or null when none did. */
     String matchedZone(PutAwayPlan.Tiers<BlockPos> tiers) {
         String exact = firstZoneName(tiers.exact());

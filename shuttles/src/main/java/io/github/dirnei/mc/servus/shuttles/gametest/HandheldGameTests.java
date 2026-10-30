@@ -12,7 +12,6 @@ import io.github.dirnei.mc.servus.shuttles.handheld.HandheldModePayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.SweepTracker;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
-import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
@@ -30,7 +29,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -51,16 +49,6 @@ public final class HandheldGameTests {
 
     private static HeavyRackBlockEntity rack(GameTestHelper helper, BlockPos pos) {
         return helper.getBlockEntity(pos, HeavyRackBlockEntity.class);
-    }
-
-    /** Heavy Duty Racks facing north joined into one shelf, from west to east. */
-    private static void joinedShelf(GameTestHelper helper, BlockPos... bays) {
-        BlockState base = ServusShuttlesBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH);
-        for (int i = 0; i < bays.length; i++) {
-            helper.setBlock(bays[i], base.setValue(HeavyRackBlock.LEFT, i > 0).setValue(HeavyRackBlock.RIGHT, i < bays.length - 1));
-        }
-        helper.assertTrue(HeavyRackBlock.shelf(helper.getLevel(), helper.absolutePos(bays[0])).size() == bays.length,
-                "the bays form one shelf of " + bays.length);
     }
 
     /** A scan puts a shelf from one zone into the active one, and a scan with No zone clears it. */
@@ -108,7 +96,7 @@ public final class HandheldGameTests {
     /** A scan of a shelf already in the active zone changes nothing. */
     @ServusGameTest(timeoutTicks = 20)
     public static void scanOfZonedShelfChangesNothing(GameTestHelper helper) {
-        joinedShelf(helper, SHELF);
+        WarehouseFixtures.northShelf(helper, SHELF);
         int ores = ZoneFixtures.zone(helper, "Ores", ZoneFilter.EMPTY);
         for (BlockPos pos : SHELF) {
             rack(helper, pos).setZone(ores);
@@ -146,7 +134,7 @@ public final class HandheldGameTests {
     }
 
     private static void scanShelf(GameTestHelper helper, boolean sneaking) {
-        joinedShelf(helper, SHELF);
+        WarehouseFixtures.northShelf(helper, SHELF);
         int food = ZoneFixtures.zone(helper, "Food", ZoneFilter.EMPTY);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(sneaking);
@@ -162,7 +150,7 @@ public final class HandheldGameTests {
     public static void sweepCountsShelves(GameTestHelper helper) {
         BlockPos[] first = {new BlockPos(2, 1, 5), new BlockPos(3, 1, 5)};
         BlockPos second = new BlockPos(6, 1, 5);
-        joinedShelf(helper, first);
+        WarehouseFixtures.northShelf(helper, first);
         WarehouseFixtures.rack(helper, second, Direction.NORTH);
         int bulk = ZoneFixtures.zone(helper, "Bulk", ZoneFilter.EMPTY);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -225,7 +213,7 @@ public final class HandheldGameTests {
             WarehouseFixtures.railOnStone(helper, new BlockPos(x, 1, 9));
         }
         WarehouseFixtures.controller(helper, CONTROLLER);
-        joinedShelf(helper, BREAD_A, BREAD_B);
+        WarehouseFixtures.northShelf(helper, BREAD_A, BREAD_B);
         for (BlockPos pos : List.of(BREAD_C, COBBLE)) {
             WarehouseFixtures.rack(helper, pos, Direction.NORTH);
         }
@@ -274,7 +262,7 @@ public final class HandheldGameTests {
     /** An INFO scan beeps on the shelf, keeps the bay as the last scanned one and reports the shelf over all its bays. */
     @ServusGameTest(timeoutTicks = 20)
     public static void infoScanReportsTheShelf(GameTestHelper helper) {
-        joinedShelf(helper, SHELF);
+        WarehouseFixtures.northShelf(helper, SHELF);
         int ores = ZoneFixtures.zone(helper, "Ores", ZoneFilter.EMPTY);
         for (BlockPos pos : SHELF) {
             rack(helper, pos).setZone(ores);

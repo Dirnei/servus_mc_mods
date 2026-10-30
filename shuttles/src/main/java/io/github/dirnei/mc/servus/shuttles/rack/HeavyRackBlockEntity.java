@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.shuttles.lock.LockHolder;
 import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import io.github.dirnei.mc.servus.shuttles.menu.HeavyRackMenu;
+import io.github.dirnei.mc.servus.shuttles.network.DeliveryTarget;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseConnectionRule;
@@ -50,7 +51,7 @@ import net.neoforged.neoforge.model.data.ModelProperty;
  * Chest sized inventory of a rack bay. Clients only receive the sample: the
  * item types the rack holds the most of, computed on the server.
  */
-public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements MenuProvider, LockHolder {
+public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements MenuProvider, LockHolder, DeliveryTarget {
 
     private static final int SYNC_INTERVAL = 10;
 
@@ -188,6 +189,12 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
     }
 
     public LockedSlots items() {
+        return items;
+    }
+
+    /** Relocation picks land in the bay's own slots. */
+    @Override
+    public LockedSlots deliveries() {
         return items;
     }
 

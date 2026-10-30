@@ -61,6 +61,16 @@ public final class WarehouseFixtures {
         return helper.getBlockEntity(pos, HeavyRackBlockEntity.class);
     }
 
+    /** Heavy Duty Racks facing north joined into one shelf, the bays given from west to east. */
+    public static void northShelf(GameTestHelper helper, BlockPos... bays) {
+        BlockState base = ServusShuttlesBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH);
+        for (int i = 0; i < bays.length; i++) {
+            helper.setBlock(bays[i], base.setValue(HeavyRackBlock.LEFT, i > 0).setValue(HeavyRackBlock.RIGHT, i < bays.length - 1));
+        }
+        helper.assertTrue(HeavyRackBlock.shelf(helper.getLevel(), helper.absolutePos(bays[0])).size() == bays.length,
+                "the bays form one shelf of " + bays.length);
+    }
+
     /** A Shuttle Garage facing {@code facing} with {@code shuttles} Mk1 shuttles inside; its rail goes behind it. */
     public static ShuttleGarageBlockEntity garage(GameTestHelper helper, BlockPos pos, Direction facing, int shuttles) {
         helper.setBlock(pos, ServusShuttlesBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, facing));

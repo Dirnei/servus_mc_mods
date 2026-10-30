@@ -6,14 +6,19 @@ import io.github.dirnei.mc.servus.foundation.logistics.channel.ChannelColours;
 import io.github.dirnei.mc.servus.foundation.picker.PickerList;
 import io.github.dirnei.mc.servus.foundation.picker.TagSearch;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
+import io.github.dirnei.mc.servus.shuttles.handheld.Basket;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBasketPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBinding;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldFindPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMode;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldModePayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldRelocatePayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldRelocation;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldZoneActionPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldZonePayload;
 import io.github.dirnei.mc.servus.shuttles.menu.HandheldMenu;
+import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
@@ -49,8 +54,11 @@ import org.lwjgl.glfw.GLFW;
  * mode; three softkeys below it switch the mode. ZONE lists the team's zones
  * (choose the active one, new, edit, delete with a second click when loaded
  * shelves use it) and opens the zone form, whose filter is picked in the item
- * picker with {@code #} tag search. FIND lists the bound warehouse's stock;
- * picking an item lights up its shelves. INFO shows the last scanned shelf.
+ * picker with {@code #} tag search. FIND lists the bound warehouse's stock
+ * above the basket: a click on a stock item adds it to the basket through an
+ * amount popup (shift click adds a stack), a right click lights up its
+ * shelves; a click on a basket cell edits its amount, a right click removes
+ * it; Relocate waits for the target shelf. INFO shows the last scanned shelf.
  * Item icons on the screen are tinted green, the hovered one keeps its colours.
  */
 public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
@@ -84,6 +92,12 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
     private static final float COUNT_SCALE = 0.75F;
     private static final int GRID_COLUMNS = 9;
     private static final int GRID_ROWS = 6;
+    /** Stock rows in FIND, fewer than the INFO grid to leave room for the basket. */
+    private static final int FIND_ROWS = 4;
+    private static final int BASKET_LABEL_Y = LIST_Y + FIND_ROWS * CELL + 3;
+    private static final int BASKET_Y = BASKET_LABEL_Y + 10;
+    /** How long the basket full note stays. */
+    private static final long NOTE_MS = 2500;
     private static final int SWATCH = 11;
     private static final int TAG_ROW = 10;
     private static final int TAG_COLUMN = CONTENT_W / 2;
@@ -124,12 +138,17 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
     private final List<String> filterTags = new ArrayList<>();
     /** The zone whose delete waits for a second click, 0 for none. */
     private int confirmDelete;
+    private final BasketAmountPopup amountPopup;
+    /** Until when the basket full note shows, in milliseconds. */
+    private long basketFullUntil;
 
     public HandheldScreen(HandheldMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, WIDTH, HEIGHT);
         view = viewOf(menu.handheld().getOrDefault(ServusShuttlesComponents.HANDHELD_MODE.get(), HandheldMode.ZONE));
         picker = new ItemPicker(Component.translatable(KEY + "picker"), this::addToFilter);
         picker.setTagSearch(true);
+        amountPopup = new BasketAmountPopup(this::confirmAmount,
+                item -> ClientPacketDistributor.sendToServer(HandheldBasketPayload.remove(item)));
     }
 
     private static View viewOf(HandheldMode mode) {
@@ -159,6 +178,8 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         name = addRenderableWidget(crtBox(nameX, TOP, RIGHT - nameX, ZoneList.MAX_NAME, "name_hint"));
         picker.setEntries(itemEntries());
         picker.setArea(leftPos, topPos, imageWidth, imageHeight);
+        amountPopup.setArea(leftPos, topPos, imageWidth, imageHeight);
+        amountPopup.close();
         show(view);
     }
 
@@ -206,6 +227,12 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             case FORM -> {
                 addButton(LEFT, "save", () -> problem().isEmpty(), this::saveForm);
                 addButton(LEFT + 44, "cancel", () -> true, () -> show(View.ZONES));
+            }
+            case FIND -> {
+                addButton(LEFT, "basket_clear", () -> !basket().isEmpty(),
+                        () -> ClientPacketDistributor.sendToServer(HandheldBasketPayload.clear()));
+                addButton(LEFT + font.width(Component.translatable(KEY + "basket_clear")) + 10, "relocate",
+                        () -> !basket().isEmpty() && menu.bound(), this::relocate);
             }
             default -> {
             }
@@ -312,10 +339,15 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         if (view == View.FIND) {
             search.visible = findListShown();
         }
-        int mx = picker.isOpen() ? -1 : mouseX;
-        int my = picker.isOpen() ? -1 : mouseY;
+        boolean popupOpen = picker.isOpen() || amountPopup.isOpen();
+        int mx = popupOpen ? -1 : mouseX;
+        int my = popupOpen ? -1 : mouseY;
         super.extractRenderState(graphics, mx, my, partialTick);
         drawCrtOverlay(graphics);
+        if (amountPopup.isOpen()) {
+            amountPopup.render(graphics, font, mouseX, mouseY, partialTick);
+            return;
+        }
         if (picker.isOpen()) {
             picker.renderPopup(graphics, font, mouseX, mouseY, partialTick);
             picker.renderTooltip(graphics, font, mouseX, mouseY);
@@ -526,7 +558,7 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         if (shown.isEmpty()) {
             graphics.text(font, Component.translatable(KEY + "find_empty"), x(LEFT), y(LIST_Y + 2), LCD_DIM, false);
         }
-        for (int cell = 0; cell < GRID_COLUMNS * GRID_ROWS; cell++) {
+        for (int cell = 0; cell < GRID_COLUMNS * FIND_ROWS; cell++) {
             int index = scroll * GRID_COLUMNS + cell;
             if (index >= shown.size()) {
                 break;
@@ -543,6 +575,85 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             graphics.fakeItem(item, sx + 1, sy + 1);
             drawCount(graphics, CompactCount.slot(menu.stockCounts().get(stock)), sx + CELL - 1, sy + CELL - 1);
         }
+        drawBasket(graphics, mouseX, mouseY);
+    }
+
+    /** The basket under the stock list: a label with the entry count and the click hint, then one cell per entry. */
+    private void drawBasket(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        Basket<ItemKey> basket = basket();
+        graphics.fill(x(LEFT), y(BASKET_LABEL_Y - 2), x(RIGHT), y(BASKET_LABEL_Y - 1), LCD_LINE);
+        Component label = Component.translatable(KEY + "basket", basket.size(), Basket.MAX_ENTRIES);
+        graphics.text(font, label, x(LEFT), y(BASKET_LABEL_Y), LCD_DIM, false);
+        boolean full = Util.getMillis() < basketFullUntil;
+        Component hint = full ? Component.translatable(KEY + "basket_full")
+                : Component.translatable(KEY + (hoveredBasket(mouseX, mouseY) >= 0 ? "basket_hint_entry" : "basket_hint_stock"));
+        String cut = font.plainSubstrByWidth(hint.getString(), CONTENT_W - font.width(label) - 6);
+        graphics.text(font, cut, x(RIGHT) - font.width(cut), y(BASKET_LABEL_Y), full ? LCD_TEXT : LCD_DIM, false);
+        for (int i = 0; i < Basket.MAX_ENTRIES; i++) {
+            int sx = x(LEFT + i * CELL);
+            int sy = y(BASKET_Y);
+            boolean hovered = i < basket.size() && inside(mouseX, mouseY, sx, sy, CELL - 1, CELL - 1);
+            if (hovered) {
+                graphics.fill(sx, sy, sx + CELL - 1, sy + CELL - 1, LCD_HOVER);
+            }
+            graphics.outline(sx, sy, CELL - 1, CELL - 1, hovered ? LCD_TEXT : LCD_LINE);
+            if (i < basket.size()) {
+                Basket.Entry<ItemKey> entry = basket.entries().get(i);
+                graphics.fakeItem(entry.key().stack(1), sx + 1, sy + 1);
+                drawCount(graphics, CompactCount.slot(entry.amount()), sx + CELL - 1, sy + CELL - 1);
+            }
+        }
+    }
+
+    private Basket<ItemKey> basket() {
+        return HandheldRelocation.basket(menu.handheld());
+    }
+
+    /** The index of the basket entry under the mouse, or -1. */
+    private int hoveredBasket(double mouseX, double mouseY) {
+        if (view != View.FIND || !findListShown() || mouseY < y(BASKET_Y) || mouseY >= y(BASKET_Y + CELL - 1) || mouseX < x(LEFT)) {
+            return -1;
+        }
+        int index = (int) ((mouseX - x(LEFT)) / CELL);
+        return index < basket().size() ? index : -1;
+    }
+
+    /** A stock cell clicked: left opens the amount popup (shift adds a stack at once), right lights up the item's shelves. */
+    private void clickStock(ItemStack item, int button, boolean shift) {
+        if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            ClientPacketDistributor.sendToServer(new HandheldFindPayload(item));
+            onClose();
+            return;
+        }
+        if (!basket().canAdd(ItemKey.of(item))) {
+            basketFullUntil = Util.getMillis() + NOTE_MS;
+            return;
+        }
+        if (shift) {
+            ClientPacketDistributor.sendToServer(HandheldBasketPayload.add(item, item.getMaxStackSize()));
+        } else {
+            amountPopup.open(font, item, item.getMaxStackSize(), false);
+        }
+    }
+
+    /** A basket cell clicked: left edits its amount, right removes it. */
+    private void clickBasket(int index, int button) {
+        Basket.Entry<ItemKey> entry = basket().entries().get(index);
+        ItemStack item = entry.key().stack(1);
+        if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            ClientPacketDistributor.sendToServer(HandheldBasketPayload.remove(item));
+        } else {
+            amountPopup.open(font, item, entry.amount(), true);
+        }
+    }
+
+    /** Add raises an entry already in the basket; Save on an entry sets its amount. */
+    private void confirmAmount(ItemStack item, int amount, boolean editing) {
+        ClientPacketDistributor.sendToServer(editing ? HandheldBasketPayload.set(item, amount) : HandheldBasketPayload.add(item, amount));
+    }
+
+    private void relocate() {
+        ClientPacketDistributor.sendToServer(HandheldRelocatePayload.INSTANCE);
     }
 
     /** Whether FIND shows a list: a scanned shelf's contents, or the bound warehouse's stock. */
@@ -655,12 +766,12 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
     }
 
     private Optional<Integer> hoveredStock(double mouseX, double mouseY) {
-        if (view != View.FIND || !menu.bound()) {
+        if (view != View.FIND || !findListShown()) {
             return Optional.empty();
         }
         int column = (int) Math.floor((mouseX - x(LEFT)) / CELL);
         int row = (int) Math.floor((mouseY - y(LIST_Y)) / CELL);
-        if (column < 0 || column >= GRID_COLUMNS || row < 0 || row >= GRID_ROWS) {
+        if (column < 0 || column >= GRID_COLUMNS || row < 0 || row >= FIND_ROWS) {
             return Optional.empty();
         }
         List<Integer> shown = stockRows();
@@ -691,6 +802,10 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         Optional<Integer> stock = hoveredStock(mouseX, mouseY);
         if (stock.isPresent()) {
             return Optional.of(menu.stock().get(stock.get()));
+        }
+        int entry = hoveredBasket(mouseX, mouseY);
+        if (entry >= 0) {
+            return Optional.of(basket().entries().get(entry).key().stack(1));
         }
         int filter = hoveredFilterItem(mouseX, mouseY);
         if (filter >= 0) {
@@ -726,6 +841,9 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (amountPopup.isOpen()) {
+            return amountPopup.mouseClicked(event, doubleClick);
+        }
         if (picker.isOpen()) {
             return picker.mouseClicked(event, doubleClick);
         }
@@ -744,13 +862,15 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
                 return true;
             }
         }
-        if (clickView(mouseX, mouseY)) {
+        if (clickView(event)) {
             return true;
         }
         return super.mouseClicked(event, doubleClick);
     }
 
-    private boolean clickView(double mouseX, double mouseY) {
+    private boolean clickView(MouseButtonEvent event) {
+        double mouseX = event.x();
+        double mouseY = event.y();
         switch (view) {
             case ZONES -> {
                 return clickZones(mouseX, mouseY);
@@ -761,8 +881,12 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             case FIND -> {
                 Optional<Integer> stock = hoveredStock(mouseX, mouseY);
                 if (stock.isPresent()) {
-                    ClientPacketDistributor.sendToServer(new HandheldFindPayload(menu.stock().get(stock.get())));
-                    onClose();
+                    clickStock(menu.stock().get(stock.get()), event.button(), event.hasShiftDown());
+                    return true;
+                }
+                int entry = hoveredBasket(mouseX, mouseY);
+                if (entry >= 0) {
+                    clickBasket(entry, event.button());
                     return true;
                 }
                 return false;
@@ -823,12 +947,12 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (picker.mouseScrolled(scrollY)) {
+        if (amountPopup.mouseScrolled(mouseX, mouseY, scrollY) || picker.mouseScrolled(scrollY)) {
             return true;
         }
         int lines = switch (view) {
             case ZONES -> zoneRows().size() + 1 - ZONE_ROWS;
-            case FIND -> (stockRows().size() + GRID_COLUMNS - 1) / GRID_COLUMNS - GRID_ROWS;
+            case FIND -> (stockRows().size() + GRID_COLUMNS - 1) / GRID_COLUMNS - FIND_ROWS;
             case INFO -> infoScrollLines();
             default -> 0;
         };
@@ -841,7 +965,7 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        if (picker.keyPressed(event)) {
+        if (amountPopup.keyPressed(event) || picker.keyPressed(event)) {
             return true;
         }
         if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
@@ -856,6 +980,12 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
 
     @Override
     public boolean charTyped(CharacterEvent event) {
-        return picker.charTyped(event) || super.charTyped(event);
+        return amountPopup.charTyped(event) || picker.charTyped(event) || super.charTyped(event);
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        amountPopup.tick();
     }
 }

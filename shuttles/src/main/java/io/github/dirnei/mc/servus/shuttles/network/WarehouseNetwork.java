@@ -40,6 +40,7 @@ import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluid.FluidStoreRef;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.index.WarehouseIndex;
+import io.github.dirnei.mc.servus.shuttles.lock.BasketFit;
 import io.github.dirnei.mc.servus.shuttles.lock.LockHolder;
 import io.github.dirnei.mc.servus.shuttles.index.ReservationTally;
 import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
@@ -95,6 +96,7 @@ import io.github.dirnei.mc.servus.shuttles.zone.Zones;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1085,12 +1087,16 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return stock;
     }
 
-    /** The unlocked stock of the key per rack, with the travel cost between each rack and the destination. */
+    /**
+     * The unlocked stock of the key per rack, with the travel cost between
+     * each rack and the destination; a rack destination's own shelf is never a source.
+     */
     private List<RequestPlan.Stock<BlockPos>> stockOf(ItemKey key, BlockPos destination) {
         RailCosts.Search<NodePos> costs = fleet.costsFrom(dockRails(Conversions.toNodePos(destination)));
+        List<BlockPos> ownShelf = isRack(destination) ? HeavyRackBlock.shelf(level, destination) : List.of();
         List<RequestPlan.Stock<BlockPos>> stock = new ArrayList<>();
         for (BlockPos pos : stockAt(key).keySet()) {
-            LockedSlots slots = rackSlots(pos);
+            LockedSlots slots = ownShelf.contains(pos) ? null : rackSlots(pos);
             int count = slots == null ? 0 : slots.available(key);
             if (count > 0) {
                 double cost = costs.costToAny(dockRails(Conversions.toNodePos(pos)));
@@ -1466,6 +1472,100 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             readyToSend(pick);
             fleet.requestPick(pick);
         }
+    }
+
+    /**
+     * Moves items from the other shelves of this warehouse onto a Heavy Duty
+     * Rack shelf, by shuttle picks of up to a stack. Items the shelf's zone
+     * filter does not take are refused; an amount is an upper bound, stock
+     * on the shelf itself never counts. Room for every load is checked
+     * before anything starts: when the shelf cannot take them all, nothing
+     * moves and no lock is placed.
+     *
+     * @param shelf  every bay of the target shelf
+     * @param wanted how many of each item, in the order to report them
+     */
+    public Relocation relocate(List<BlockPos> shelf, Map<ItemKey, Integer> wanted) {
+        if (status() != Status.ONLINE) {
+            return Relocation.refused(Relocation.Outcome.OFFLINE);
+        }
+        List<LockedSlots> bays = new ArrayList<>();
+        for (BlockPos pos : shelf) {
+            LockedSlots slots = rackSlots(pos);
+            if (slots == null) {
+                return Relocation.refused(Relocation.Outcome.NOT_A_TARGET);
+            }
+            bays.add(slots);
+        }
+        if (bays.isEmpty()) {
+            return Relocation.refused(Relocation.Outcome.NOT_A_TARGET);
+        }
+        BlockPos destination = shelf.getFirst();
+        boolean reachable = fleet.canReach(destination);
+        List<RelocationLoad> loads = new ArrayList<>();
+        List<Relocation.Item> items = new ArrayList<>();
+        wanted.forEach((key, amount) -> {
+            if (!zones.takes(destination, key)) {
+                items.add(new Relocation.Item(key, amount, 0, true));
+                return;
+            }
+            RequestPlan.Plan<BlockPos> plan = plan(key, amount, destination, reachable);
+            for (RequestPlan.Job<BlockPos> job : plan.jobs()) {
+                loads.add(new RelocationLoad(key, job.source(), job.count()));
+            }
+            items.add(new Relocation.Item(key, amount, plan.planned(), false));
+        });
+        if (loads.isEmpty()) {
+            return new Relocation(Relocation.Outcome.NOTHING_TO_MOVE, items);
+        }
+        List<SlotFill.Slot<ItemKey>> states = new ArrayList<>();
+        List<Integer> bayOfSlot = new ArrayList<>();
+        for (int bay = 0; bay < bays.size(); bay++) {
+            states.addAll(bays.get(bay).states());
+            bayOfSlot.addAll(Collections.nCopies(bays.get(bay).getSlots(), bay));
+        }
+        List<BasketFit.Move<ItemKey>> moves = loads.stream().map(load -> new BasketFit.Move<>(load.key(), load.count())).toList();
+        Optional<List<List<SlotFill.Part>>> placed = BasketFit.place(states, moves, key -> key.stack(1).getMaxStackSize());
+        if (placed.isEmpty()) {
+            return new Relocation(Relocation.Outcome.NO_ROOM, items);
+        }
+        for (int i = 0; i < loads.size(); i++) {
+            startRelocationLoad(loads.get(i), placed.get().get(i), shelf, bays, bayOfSlot);
+        }
+        return new Relocation(Relocation.Outcome.STARTED, items);
+    }
+
+    /** One planned load of a relocation: up to a stack of the key from one source. */
+    private record RelocationLoad(ItemKey key, BlockPos source, int count) {
+    }
+
+    /**
+     * Queues one pick per target bay the load's slots lie in: it locks the
+     * source now and IN locks exactly the slots the fit placed it in.
+     *
+     * @param parts     where the load goes, by slot over the whole shelf
+     * @param bayOfSlot the bay index of each slot over the whole shelf
+     */
+    private void startRelocationLoad(RelocationLoad load, List<SlotFill.Part> parts, List<BlockPos> shelf, List<LockedSlots> bays,
+                                     List<Integer> bayOfSlot) {
+        Map<Integer, List<SlotFill.Part>> perBay = new LinkedHashMap<>();
+        for (SlotFill.Part part : parts) {
+            int bay = bayOfSlot.get(part.slot());
+            int firstSlot = bayOfSlot.indexOf(bay);
+            perBay.computeIfAbsent(bay, b -> new ArrayList<>()).add(new SlotFill.Part(part.slot() - firstSlot, part.count()));
+        }
+        LockedSlots source = rackSlots(load.source());
+        perBay.forEach((bay, bayParts) -> {
+            int id = nextJobId();
+            int taken = source == null ? 0 : source.lockOut(id, load.key(), SlotFill.total(bayParts));
+            if (taken <= 0) {
+                return;
+            }
+            for (SlotFill.Part part : bayParts) {
+                bays.get(bay).lock(part.slot(), new SlotLock(SlotLock.Kind.IN, load.key(), part.count(), id));
+            }
+            fleet.requestPick(new PickJob(id, 0, load.key(), taken, load.source(), shelf.get(bay)));
+        });
     }
 
     @Override

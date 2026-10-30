@@ -39,6 +39,8 @@ import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.WarehouseControllerMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.HandheldMenu;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldActions;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBasketPayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldRelocatePayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldFindPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldFindResultPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoPayload;
@@ -199,6 +201,10 @@ public final class ServusShuttlesPayloads {
                 });
         toMenu(registrar, HandheldFindPayload.TYPE, HandheldFindPayload.STREAM_CODEC, HandheldMenu.class,
                 (player, menu, payload) -> menu.find(player, payload.item()));
+        toMenu(registrar, HandheldBasketPayload.TYPE, HandheldBasketPayload.STREAM_CODEC, HandheldMenu.class,
+                (player, menu, payload) -> menu.editBasket(player, payload));
+        toMenu(registrar, HandheldRelocatePayload.TYPE, HandheldRelocatePayload.STREAM_CODEC, HandheldMenu.class,
+                (player, menu, payload) -> menu.relocate(player));
     }
 
     /** What the Storage Terminal screen sends: requests, crafts, rules, sites and the order grid. */

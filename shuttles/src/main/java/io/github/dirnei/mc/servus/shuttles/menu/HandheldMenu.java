@@ -2,9 +2,11 @@ package io.github.dirnei.mc.servus.shuttles.menu;
 
 import io.github.dirnei.mc.servus.foundation.team.Teams;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldActions;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBasketPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMenuStatePayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldRelocation;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
@@ -177,6 +179,18 @@ public class HandheldMenu extends AbstractContainerMenu {
     public void find(ServerPlayer player, ItemStack item) {
         if (!item.isEmpty()) {
             HandheldActions.find(player, handheld(), ItemKey.of(item));
+        }
+    }
+
+    /** Server: an edit of the handheld's basket. */
+    public void editBasket(ServerPlayer player, HandheldBasketPayload payload) {
+        HandheldRelocation.edit(player, handheld(), payload);
+    }
+
+    /** Server: Relocate puts the handheld into pick target mode and closes the GUI; refused without entries or binding. */
+    public void relocate(ServerPlayer player) {
+        if (HandheldRelocation.relocate(player, handheld())) {
+            player.closeContainer();
         }
     }
 

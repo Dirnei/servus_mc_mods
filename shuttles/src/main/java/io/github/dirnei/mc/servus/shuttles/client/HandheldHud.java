@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBinding;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldFindResultPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMode;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldRelocation;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
@@ -32,7 +33,8 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
  * handheld is in either hand: a green LCD in a dark body with a yellow
  * bumper. The top line shows the mode and the location code of the shelf
  * aimed at; the lines below show what the mode describes. INFO shows the
- * last scanned shelf, never the one only aimed at.
+ * last scanned shelf, never the one only aimed at. In pick target mode FIND
+ * says to scan the target shelf and shows the basket's size and the shelf aimed at.
  */
 @EventBusSubscriber(modid = ServusShuttlesIds.MOD_ID, value = Dist.CLIENT)
 public final class HandheldHud {
@@ -89,7 +91,7 @@ public final class HandheldHud {
         StorageNodeBlockEntity aimed = ClientHandheld.aimedBay();
         List<Line> lines = switch (mode) {
             case ZONE -> zoneLines(handheld, aimed);
-            case FIND -> findLines(handheld);
+            case FIND -> HandheldRelocation.pickingTarget(handheld) ? pickTargetLines(handheld, aimed) : findLines(handheld);
             case INFO -> infoLines();
         };
         draw(graphics, minecraft.font, mode, aimed, lines);
@@ -148,6 +150,18 @@ public final class HandheldHud {
             lines.add(Line.dim(tr("shelf")));
             lines.add(shelfZone == null ? Line.of(tr("no_zone")) : new Line(shelfZone.name(), false, ChannelColours.argb(shelfZone.colour())));
         }
+        return lines;
+    }
+
+    /** Pick target mode: what to do, how many entries move and the shelf the scan would take. */
+    private static List<Line> pickTargetLines(ItemStack handheld, StorageNodeBlockEntity aimed) {
+        List<Line> lines = new ArrayList<>();
+        lines.add(Line.of(tr("pick_target")));
+        lines.add(Line.dim(tr("pick_target_hint")));
+        lines.add(Line.of(tr("basket_entries", HandheldRelocation.basket(handheld).size())));
+        String code = aimed == null || aimed.locationCode().isEmpty() ? NO_CODE : aimed.locationCode();
+        lines.add(Line.of(tr("target", code)));
+        lines.add(Line.dim(tr("pick_target_leave")));
         return lines;
     }
 

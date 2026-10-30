@@ -61,9 +61,10 @@ public final class HandheldActions {
         setMode(player, handheld, mode(handheld).step(step));
     }
 
-    /** Switches to that mode, and drops a binding whose controller is gone so FIND says so. */
+    /** Switches to that mode, ends pick target mode, and drops a binding whose controller is gone so FIND says so. */
     public static void setMode(Player player, ItemStack handheld, HandheldMode mode) {
         handheld.set(ServusShuttlesComponents.HANDHELD_MODE.get(), mode);
+        HandheldRelocation.stopPickingTarget(handheld);
         boundNetwork(player.level().getServer(), handheld);
     }
 
@@ -121,7 +122,13 @@ public final class HandheldActions {
         }
         switch (mode(handheld)) {
             case ZONE -> assign(player, handheld, bay, index);
-            case FIND -> findFromBay(player, handheld, bay);
+            case FIND -> {
+                if (HandheldRelocation.pickingTarget(handheld)) {
+                    HandheldRelocation.scanTarget(player, handheld, bay);
+                } else {
+                    findFromBay(player, handheld, bay);
+                }
+            }
             case INFO -> infoScan(player, handheld, bay);
         }
         return index;
