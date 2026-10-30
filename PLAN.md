@@ -187,6 +187,8 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - `m14-sides`: Sauerkraut, Red Cabbage, Bread Dumpling, Potato Dumpling, potato salad.
 - `m14-teller`: plated meals with portions and a meal buff (Roast Pork with two dumplings and red cabbage, Schnitzel with potato salad, the Weisswurst breakfast; its Weissbier only when Brewery is installed).
 - Later: Obatzda, Radler (needs Brewery), Biergarten furniture.
+- Murky Water processing: clean the aquarium's Murky Water back into water, with dirt or compost as a by-product; decide whether it lives in Delicacies, Foundation or the planned mod that shares the Carbon Filter. Today it only goes into a Sink.
+- More aquarium species: carp and trout, and Steckerlfisch as a dish.
 
 ### Open: M15 Brewery
 
