@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "facing=east,formed=false,piece=corner": {
+      "model": "servus_alchemy:block/bed_hatch",
+      "y": 90
+    },
+    "facing=east,formed=false,piece=edge": {
+      "model": "servus_alchemy:block/bed_hatch",
+      "y": 90
+    },
+    "facing=east,formed=true,piece=corner": {
+      "model": "servus_alchemy:block/bed_hatch",
+      "y": 90
+    },
+    "facing=east,formed=true,piece=edge": {
+      "model": "servus_alchemy:block/bed_hatch",
+      "y": 90
+    },
+    "facing=north,formed=false,piece=corner": {
+      "model": "servus_alchemy:block/bed_hatch"
+    },
+    "facing=north,formed=false,piece=edge": {
+      "model": "servus_alchemy:block/bed_hatch"
+    },
+    "facing=north,formed=true,piece=corner": {
+      "model": "servus_alchemy:block/bed_hatch"
+    },
+    "facing=north,formed=true,piece=edge": {
+      "model": "servus_alchemy:block/bed_hatch"
+    },
+    "facing=south,formed=false,piece=corner": {
+      "model": "servus_alchemy:block/bed_hatch",
+      "y": 180
+    },
+    "facing=south,formed=false,piece=edge": {
+      "model": "servus_alchemy:block/bed_hatch",
+      "y": 180
+    },
+    "facing=south,formed=true,piece=corner": {
+      "model": "servus_alchemy:block/bed_hatch",
+      "y": 180
+    },
+    "facing=south,formed=true,piece=edge": {
+      "model": "servus_alchemy:block/bed_hatch",
+      "y": 180
+    },
+    "facing=west,formed=false,piece=corner": {
+      "model": "servus_alchemy:block/bed_hatch",
+      "y": 270
+    },
+    "facing=west,formed=false,piece=edge": {
+      "model": "servus_alchemy:block/bed_hatch",
+      "y": 270
+    },
+    "facing=west,formed=true,piece=corner": {
+      "model": "servus_alchemy:block/bed_hatch",
+      "y": 270
+    },
+    "facing=west,formed=true,piece=edge": {
+      "model": "servus_alchemy:block/bed_hatch",
+      "y": 270
+    }
+  }
+}

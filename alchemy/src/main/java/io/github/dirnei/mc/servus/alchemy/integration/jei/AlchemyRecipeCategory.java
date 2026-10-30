@@ -72,8 +72,13 @@ abstract class AlchemyRecipeCategory<R extends AlchemyRecipe> implements IRecipe
 
     @Override
     public void draw(RecipeHolder<R> holder, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
-        arrow.draw(guiGraphics, arrowX, SLOT_Y);
+        drawArrow(guiGraphics);
         text(guiGraphics, Component.literal(String.format("%.1f s", holder.value().time() / 20.0)), arrowX, TIME_Y);
+    }
+
+    /** The animated arrow between the input and the result. */
+    final void drawArrow(GuiGraphicsExtractor guiGraphics) {
+        arrow.draw(guiGraphics, arrowX, SLOT_Y);
     }
 
     static void text(GuiGraphicsExtractor guiGraphics, Component text, int x, int y) {

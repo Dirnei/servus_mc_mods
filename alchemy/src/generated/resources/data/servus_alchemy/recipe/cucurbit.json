@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "minecraft:glass_bottle",
+    "C": "minecraft:cut_copper",
+    "T": "minecraft:terracotta"
+  },
+  "pattern": [
+    " C ",
+    "TBT",
+    "TTT"
+  ],
+  "result": {
+    "id": "servus_alchemy:cucurbit"
+  }
+}

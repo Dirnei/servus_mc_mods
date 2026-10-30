@@ -21,6 +21,9 @@ import io.github.dirnei.mc.servus.alchemy.purifier.CatchBasinBlock;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierBlock;
 import io.github.dirnei.mc.servus.alchemy.purifier.ResidueCrockBlock;
 import io.github.dirnei.mc.servus.alchemy.structure.CopperDuctBlock;
+import io.github.dirnei.mc.servus.alchemy.venter.BedHatchBlock;
+import io.github.dirnei.mc.servus.alchemy.venter.CucurbitBlock;
+import io.github.dirnei.mc.servus.alchemy.venter.DungBedBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import net.minecraft.world.level.block.Block;
@@ -67,6 +70,19 @@ public final class ServusAlchemyBlocks {
     /** The Residue Crock below the other plank of the Purifier, where the Caput Mortuum falls. */
     public static final DeferredBlock<ResidueCrockBlock> RESIDUE_CROCK = BLOCKS.registerBlock("residue_crock", ResidueCrockBlock::new,
             () -> BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_ORANGE).strength(1.25F, 4.2F).sound(SoundType.STONE).noOcclusion());
+
+    /** The Cucurbit, the sealed terracotta gourd in the middle of the Venter Equinus. */
+    public static final DeferredBlock<CucurbitBlock> CUCURBIT = BLOCKS.registerBlock("cucurbit", CucurbitBlock::new,
+            () -> BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_ORANGE).strength(1.25F, 4.2F).sound(SoundType.DECORATED_POT)
+                    .noOcclusion());
+
+    /** A Dung Bed, the spruce and straw frame of the Venter Equinus. */
+    public static final DeferredBlock<DungBedBlock> DUNG_BED = BLOCKS.registerBlock("dung_bed", DungBedBlock::new,
+            () -> wood());
+
+    /** The Bed Hatch in the front wall of the Venter Equinus, where the Humus is taken out. */
+    public static final DeferredBlock<BedHatchBlock> BED_HATCH = BLOCKS.registerBlock("bed_hatch", BedHatchBlock::new,
+            () -> wood());
 
     /** A Principle Vat of the Coagulator build. */
     public static final DeferredBlock<VatBlock> VAT = BLOCKS.registerBlock("principle_vat", VatBlock::new,

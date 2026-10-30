@@ -22,6 +22,7 @@ public final class AlchemyMachineDefaults {
         add("coagulator", "crafter", List.of("servus_alchemy:coagulation"), alchemy(4000));
         add("athanor", "crafter", List.of("servus_alchemy:athanor"), alchemy(4000));
         add("purifier", "crafter", List.of("servus_alchemy:purification"), alchemy(4000));
+        add("venter_equinus", "crafter", List.of("servus_alchemy:putrefaction"), store(256));
         add("gnome_hollow", "crafter", List.of(), hollow(4000, 64));
         add("principle_dropper", "crafter", List.of(), dropper(20, 25, 3000));
         add("salamander_forge", "crafter", List.of("minecraft:smelting"), forge(100));
@@ -53,6 +54,11 @@ public final class AlchemyMachineDefaults {
      */
     private static MachineStats forge(int workTicks) {
         return new MachineStats(workTicks, 0, 0, 1, 0, 1, 0, 0, 0, 0, "", 0, 0);
+    }
+
+    /** An unpowered alchemy machine without tanks that holds {@code items} items of its input. */
+    private static MachineStats store(int items) {
+        return new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, 0, 0, "", 0, items);
     }
 
     /** An unpowered alchemy machine: recipe time decides the cycle, each principle tank holds {@code tank} mB. */

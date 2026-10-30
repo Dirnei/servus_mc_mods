@@ -1,6 +1,8 @@
 {
   "values": [
     "servus_alchemy:purifier",
-    "servus_alchemy:catch_basin"
+    "servus_alchemy:catch_basin",
+    "servus_alchemy:dung_bed",
+    "servus_alchemy:bed_hatch"
   ]
 }

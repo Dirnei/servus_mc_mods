@@ -15,6 +15,7 @@ import io.github.dirnei.mc.servus.alchemy.gametest.HomunculusGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.HollowGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.PrelumGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.PurifierGameTests;
+import io.github.dirnei.mc.servus.alchemy.gametest.VenterGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.RitualGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.SalamanderGameTests;
 import io.github.dirnei.mc.servus.alchemy.hint.HintSounds;
@@ -64,13 +65,14 @@ public final class ServusAlchemy {
                 AlchemyGameTests.class, CalcinerGameTests.class, PurifierGameTests.class, CoagulatorGameTests.class, HollowGameTests.class,
                 DropperGameTests.class, SalamanderGameTests.class, ForgeGameTests.class,
                 HomunculusGameTests.class, PrelumGameTests.class, HintGameTests.class, GnomeGameTests.class, RitualGameTests.class,
-                MachineNameGameTests.class));
+                MachineNameGameTests.class, VenterGameTests.class));
         GameTestRecipes.registerWhenTesting();
         ServusRecipes.syncToClients(ServusAlchemyRecipes.CALCINATION);
         ServusRecipes.syncToClients(ServusAlchemyRecipes.COAGULATION);
         ServusRecipes.syncToClients(ServusAlchemyRecipes.ATHANOR);
         ServusRecipes.syncToClients(ServusAlchemyRecipes.PURIFICATION);
         ServusRecipes.syncToClients(ServusAlchemyRecipes.PRESSING);
+        ServusRecipes.syncToClients(ServusAlchemyRecipes.PUTREFACTION);
         LOGGER.info("Servus: Alchemy loaded");
     }
 }

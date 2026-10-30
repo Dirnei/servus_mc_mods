@@ -22,6 +22,10 @@ import io.github.dirnei.mc.servus.alchemy.purifier.PurifierBlock;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierSideBlock;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierStructure;
+import io.github.dirnei.mc.servus.alchemy.venter.CucurbitBlock;
+import io.github.dirnei.mc.servus.alchemy.venter.VenterEquinusBlockEntity;
+import io.github.dirnei.mc.servus.alchemy.venter.VenterFrameBlock;
+import io.github.dirnei.mc.servus.alchemy.venter.VenterStructure;
 import io.github.dirnei.mc.servus.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import java.util.List;
@@ -62,6 +66,8 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
         BLOCKS.forEach(block -> registration.registerBlockDataProvider(CalcinerProvider.INSTANCE, block));
         registration.registerBlockDataProvider(PurifierProvider.INSTANCE, PurifierBlock.class);
         registration.registerBlockDataProvider(PurifierProvider.INSTANCE, PurifierSideBlock.class);
+        registration.registerBlockDataProvider(VenterProvider.INSTANCE, CucurbitBlock.class);
+        registration.registerBlockDataProvider(VenterProvider.INSTANCE, VenterFrameBlock.class);
         registration.registerBlockDataProvider(AthanorProvider.INSTANCE, AthanorBlock.class);
         registration.registerBlockDataProvider(HollowProvider.INSTANCE, GnomeHollowBlock.class);
     }
@@ -74,6 +80,9 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
         BLOCKS.forEach(block -> registration.registerBlockComponent(calciner, block));
         registration.registerBlockComponent(purifier, PurifierBlock.class);
         registration.registerBlockComponent(purifier, PurifierSideBlock.class);
+        IBlockComponentProvider venter = new ClientProvider(VenterProvider.UID, VenterProvider.INSTANCE::appendTooltip);
+        registration.registerBlockComponent(venter, CucurbitBlock.class);
+        registration.registerBlockComponent(venter, VenterFrameBlock.class);
         registration.registerBlockComponent(new ClientProvider(AthanorProvider.UID, AthanorProvider.INSTANCE::appendTooltip), AthanorBlock.class);
         registration.registerBlockComponent(new ClientProvider(HollowProvider.UID, HollowProvider.INSTANCE::appendTooltip), GnomeHollowBlock.class);
         registration.addRayTraceCallback((hit, accessor, original) -> {
@@ -276,6 +285,48 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
                 return "gnome_waits";
             }
             return ripe ? "gnome" : "gnome_tends";
+        }
+
+        @Override
+        public Identifier getUid() {
+            return UID;
+        }
+    }
+
+    /** The Venter Equinus, from its Cucurbit or any block of its frame: rot, straw, warmth, progress and what waits in the hatch. */
+    private enum VenterProvider implements IServerDataProvider<BlockAccessor> {
+        INSTANCE;
+
+        private static final Identifier UID = Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "venter_equinus");
+
+        @Override
+        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+            BlockPos cucurbit = VenterStructure.cucurbitOf(accessor.getBlockState(), accessor.getPosition()).orElse(accessor.getPosition());
+            if (!(accessor.getLevel().getBlockEntity(cucurbit) instanceof VenterEquinusBlockEntity venter)) {
+                return;
+            }
+            CompoundTag tag = new CompoundTag();
+            tag.putInt("Rot", venter.rotCount());
+            tag.putInt("RotCapacity", venter.rotCapacity());
+            tag.putInt("Bales", venter.bales());
+            tag.putInt("BaleCapacity", venter.baleCapacity());
+            tag.putInt("Warmth", venter.warmthPercent());
+            tag.putInt("Progress", venter.progressPercent());
+            PurifierBlockEntity.Shown.of(venter.hatchStack()).write(tag, "Hatch");
+            data.put("Venter", tag);
+        }
+
+        void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            CompoundTag data = accessor.getServerData();
+            if (!data.contains("Venter")) {
+                return;
+            }
+            CompoundTag tag = data.getCompoundOrEmpty("Venter");
+            tooltip.add(Component.translatable("jade.servus_alchemy.venter.rot", tag.getIntOr("Rot", 0), tag.getIntOr("RotCapacity", 0)));
+            tooltip.add(Component.translatable("jade.servus_alchemy.venter.straw", tag.getIntOr("Bales", 0), tag.getIntOr("BaleCapacity", 0)));
+            tooltip.add(Component.translatable("jade.servus_alchemy.venter.warmth", tag.getIntOr("Warmth", 0)));
+            tooltip.add(Component.translatable("jade.servus_alchemy.calciner.progress", tag.getIntOr("Progress", 0)));
+            PurifierProvider.itemLine(tooltip, PurifierBlockEntity.Shown.read(tag, "Hatch"));
         }
 
         @Override

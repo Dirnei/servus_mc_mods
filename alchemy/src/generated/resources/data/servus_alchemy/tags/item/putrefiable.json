@@ -1,0 +1,11 @@
+{
+  "values": [
+    "minecraft:rotten_flesh",
+    "minecraft:spider_eye",
+    "minecraft:poisonous_potato",
+    "minecraft:brown_mushroom",
+    "minecraft:red_mushroom",
+    "#c:crops",
+    "#minecraft:leaves"
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "variants": {
+    "facing=east,formed=false,piece=corner": {
+      "model": "servus_alchemy:block/dung_bed"
+    },
+    "facing=east,formed=false,piece=edge": {
+      "model": "servus_alchemy:block/dung_bed"
+    },
+    "facing=east,formed=true,piece=corner": {
+      "model": "servus_alchemy:block/dung_bed_corner",
+      "y": 90
+    },
+    "facing=east,formed=true,piece=edge": {
+      "model": "servus_alchemy:block/dung_bed_edge",
+      "y": 90
+    },
+    "facing=north,formed=false,piece=corner": {
+      "model": "servus_alchemy:block/dung_bed"
+    },
+    "facing=north,formed=false,piece=edge": {
+      "model": "servus_alchemy:block/dung_bed"
+    },
+    "facing=north,formed=true,piece=corner": {
+      "model": "servus_alchemy:block/dung_bed_corner"
+    },
+    "facing=north,formed=true,piece=edge": {
+      "model": "servus_alchemy:block/dung_bed_edge"
+    },
+    "facing=south,formed=false,piece=corner": {
+      "model": "servus_alchemy:block/dung_bed"
+    },
+    "facing=south,formed=false,piece=edge": {
+      "model": "servus_alchemy:block/dung_bed"
+    },
+    "facing=south,formed=true,piece=corner": {
+      "model": "servus_alchemy:block/dung_bed_corner",
+      "y": 180
+    },
+    "facing=south,formed=true,piece=edge": {
+      "model": "servus_alchemy:block/dung_bed_edge",
+      "y": 180
+    },
+    "facing=west,formed=false,piece=corner": {
+      "model": "servus_alchemy:block/dung_bed"
+    },
+    "facing=west,formed=false,piece=edge": {
+      "model": "servus_alchemy:block/dung_bed"
+    },
+    "facing=west,formed=true,piece=corner": {
+      "model": "servus_alchemy:block/dung_bed_corner",
+      "y": 270
+    },
+    "facing=west,formed=true,piece=edge": {
+      "model": "servus_alchemy:block/dung_bed_edge",
+      "y": 270
+    }
+  }
+}

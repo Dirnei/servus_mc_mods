@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.alchemy.gnome.GnomeKind;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinSeedItem;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.journal.ParacelsusJournalItem;
+import io.github.dirnei.mc.servus.alchemy.venter.GrassSeedItem;
 import java.util.List;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -30,6 +31,9 @@ public final class ServusAlchemyItems {
     public static final DeferredItem<BlockItem> PURIFIER = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.PURIFIER);
     public static final DeferredItem<BlockItem> CATCH_BASIN = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.CATCH_BASIN);
     public static final DeferredItem<BlockItem> RESIDUE_CROCK = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.RESIDUE_CROCK);
+    public static final DeferredItem<BlockItem> CUCURBIT = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.CUCURBIT);
+    public static final DeferredItem<BlockItem> DUNG_BED = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.DUNG_BED);
+    public static final DeferredItem<BlockItem> BED_HATCH = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.BED_HATCH);
     public static final DeferredItem<BlockItem> COAGULATOR = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.COAGULATOR);
     public static final DeferredItem<BlockItem> VAT = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.VAT);
     public static final DeferredItem<BlockItem> ATHANOR = ITEMS.registerSimpleBlockItem(ServusAlchemyBlocks.ATHANOR);
@@ -57,6 +61,10 @@ public final class ServusAlchemyItems {
     public static final DeferredItem<QuoteItem> BRIMSTONE = ITEMS.registerItem("brimstone", QuoteItem::new);
     /** Red ore of Mercury, washed out of Redstone Dust by the Purifier. */
     public static final DeferredItem<QuoteItem> CINNABAR = ITEMS.registerItem("cinnabar", QuoteItem::new);
+    /** The rotted life the Venter Equinus makes out of rot. */
+    public static final DeferredItem<QuoteItem> HUMUS = ITEMS.registerItem("humus", QuoteItem::new);
+    /** Made on the Athanor; it turns Dirt into a Grass Block. */
+    public static final DeferredItem<GrassSeedItem> GRASS_SEED = ITEMS.registerItem("grass_seed", GrassSeedItem::new);
     /** The seed of a metal from the Athanor; a gnome plants it in his Hollow. */
     public static final DeferredItem<VeinSeedItem> SEED = ITEMS.registerItem("seed", VeinSeedItem::new);
 
@@ -83,9 +91,9 @@ public final class ServusAlchemyItems {
 
     /** Items shown in the Servus creative tab, in order. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(PARACELSUS_JOURNAL, CALCINER, FIREBOX, ASH_PAN,
-            ALEMBIC, RECEIVER, SULFUR_HOOD, COPPER_DUCT, PURIFIER, CATCH_BASIN, RESIDUE_CROCK, COAGULATOR, VAT, ATHANOR, GNOME_HOLLOW,
+            ALEMBIC, RECEIVER, SULFUR_HOOD, COPPER_DUCT, PURIFIER, CATCH_BASIN, RESIDUE_CROCK, CUCURBIT, DUNG_BED, BED_HATCH, COAGULATOR, VAT, ATHANOR, GNOME_HOLLOW,
             PRINCIPLE_DROPPER, ASH, CAPUT_MORTUUM, SALT_CRYSTAL, SALT_CRYSTAL_BLOCK, SULFUR, QUICKSILVER,
-            KANDIS, BRIMSTONE, CINNABAR,
+            KANDIS, BRIMSTONE, CINNABAR, HUMUS, GRASS_SEED,
             SAL_AMMONIAC, IGNIS_PERPETUUS, SALAMANDER_FORGE, RECEPTACULUM, SEALED_FLASK, PRELUM_SCREW, PRELUM, SALAMANDER_SPAWN_EGG,
             MINER_GNOME_SPAWN_EGG, LANTERN_GNOME_SPAWN_EGG, HOUSE_GNOME_SPAWN_EGG, TINY_PICKAXE, RED_FELT_SCRAP, SALT_OFFERING);
 

@@ -14,6 +14,8 @@ import io.github.dirnei.mc.servus.alchemy.datagen.AlchemyRecipeTable;
 import io.github.dirnei.mc.servus.alchemy.datagen.ServusAlchemyMultiblockProvider;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
+import io.github.dirnei.mc.servus.alchemy.venter.PutrefactionText;
+import io.github.dirnei.mc.servus.alchemy.venter.PutrefactionWork;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +40,7 @@ final class WorkshopCategory extends CategoryProvider {
         return new String[] {
                 "_______________________",
                 "___p___c___u___o___a___",
-                "_______f_______________",
+                "_______f___n___________",
                 "___________________s___",
                 "___________________e___",
                 "_________________k_h___",
@@ -53,6 +55,7 @@ final class WorkshopCategory extends CategoryProvider {
         BookEntryModel principles = add(principles().generate('p'));
         BookEntryModel calciner = add(calciner().generate('c').withParent(principles));
         BookEntryModel purifier = add(purifier().generate('u').withParent(calciner));
+        add(venterEquinus().generate('n').withParent(purifier));
         BookEntryModel coagulator = add(coagulator().generate('o').withParent(purifier));
         BookEntryModel athanor = add(athanor().generate('a').withParent(coagulator));
         add(pipes().generate('f').withParent(calciner));
@@ -165,6 +168,43 @@ final class WorkshopCategory extends CategoryProvider {
                 washes.add(PurificationText.kindLine(first.count(), wash.label(), first.water(), wash.residueLabel()));
             });
             e.list("washes", "What It Washes", washes);
+        });
+    }
+
+    private WorkshopEntry venterEquinus() {
+        String mod = ServusAlchemyIds.MOD_ID + ":";
+        return new WorkshopEntry(this, "venter_equinus", "The Venter Equinus", "Putrefy rot into Humus in a warm straw bed",
+                ServusAlchemyItems.CUCURBIT.get(), e -> {
+            e.spotlight("machine", ServusAlchemyItems.CUCURBIT.get(), "The Venter Equinus",
+                    "A sealed gourd bedded in warm straw. What goes in as rot comes out as Humus, the black earth of living things.");
+            e.multiblock("build", ServusAlchemyMultiblockProvider.VENTER_EQUINUS, "The Venter Equinus",
+                    "The Cucurbit in the middle, the Bed Hatch in the middle of one side and Dung Beds all around. The hatch side "
+                            + "is the front. Press Visualize, then click the ground.");
+            e.crafting("recipe", mod + "cucurbit", "The Cucurbit, a gourd of terracotta with a copper seal.");
+            e.crafting("recipe_bed", mod + "dung_bed", "Dung Beds, four at once.");
+            e.crafting("recipe_hatch", mod + "bed_hatch", "The Bed Hatch.");
+            e.text("belly", "The Horse's Belly",
+                    "Every stable boy knows dung is warm in January. The old masters knew more: seal a gourd, bury it to the neck in the "
+                            + "horse's belly, the venter equinus, and wait forty days. Or forty nights, I forget which, the wine forgets "
+                            + "for me.\n\nWhat will not rot will not live again. I have buried other gourds there. Not tonight. "
+                            + "Tonight, turnip peels.");
+            e.text("rot_and_straw", "Rot and Straw",
+                    "Use this journal on the Cucurbit to bring the bed together. Give the gourd rot by hand or by pipe, and lay Hay "
+                            + "Bales into the Dung Beds by hand or by pipe, one bale for each block of the frame. Take the Humus from the "
+                            + "hatch with an empty hand, or let a hopper or a pipe pull it out.\n\n"
+                            + "The more straw, the warmer the bed and the faster the rot. An empty bed only slows it, and the straw rots "
+                            + "away only while the gourd works. Sneak with an empty hand on the Cucurbit to take the rot back.");
+            e.list("rots", "What Rots", AlchemyRecipeTable.putrefaction().stream()
+                    .map(row -> PutrefactionText.line(row.count(), row.label(), row.result().count(), row.resultLabel(),
+                            PutrefactionWork.ticksAt(row.time(), row.coldTime(), 1000) / 20,
+                            PutrefactionWork.ticksAt(row.time(), row.coldTime(), 0) / 20))
+                    .toList());
+            List<String> dirt = new ArrayList<>(AlchemyRecipeTable.dirtMixing().stream()
+                    .map(row -> PutrefactionText.mixLine(row.parts().stream().map(part -> part.count() + " " + part.label()).toList(),
+                            row.water(), row.result().count(), row.resultLabel()))
+                    .toList());
+            dirt.add("The Athanor makes Grass Seed to green the Dirt.");
+            e.list("dirt", "Dirt for the Mixer", dirt);
         });
     }
 

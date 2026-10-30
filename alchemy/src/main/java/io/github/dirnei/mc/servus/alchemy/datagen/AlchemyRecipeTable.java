@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.alchemy.hollow.VeinSeedItem;
 import io.github.dirnei.mc.servus.alchemy.prelum.PressingRecipe;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
+import io.github.dirnei.mc.servus.alchemy.venter.PutrefactionRecipe;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +30,7 @@ import net.neoforged.neoforge.common.Tags;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The calcination, purification, coagulation and Athanor recipes Alchemy ships, in one table that both
+ * The calcination, purification, putrefaction, coagulation and Athanor recipes Alchemy ships, in one table that both
  * the recipe provider and the journal's Workshop read, so the book always lists the shipped
  * recipes. Every row carries an English label for the book. The numbers are datapack examples.
  */
@@ -108,6 +109,19 @@ public final class AlchemyRecipeTable {
 
     /** One pressing at the Prelum: a counted item pressed into one result. */
     public record Press(String name, String label, Input input, int count, ItemStackTemplate result, int time) {
+    }
+
+    /** One putrefaction in the Venter Equinus: a counted batch of rot into a result, warm and cold times in ticks. */
+    public record Putrefy(String name, String label, Input input, int count, ItemStackTemplate result, String resultLabel,
+                          int time, int coldTime) {
+    }
+
+    /** One item of a mixing recipe: what, how many, and its English name for the book. */
+    public record MixPart(Input input, int count, String label) {
+    }
+
+    /** One mixing recipe for Foundation's Mixer: the items, the mB of water, the result and the work it takes. */
+    public record Mix(String name, List<MixPart> parts, int water, ItemStackTemplate result, String resultLabel, int work) {
     }
 
     private AlchemyRecipeTable() {
@@ -223,6 +237,28 @@ public final class AlchemyRecipeTable {
                 new ItemStackTemplate(Items.NETHERITE_SCRAP), PressingRecipe.DEFAULT_TIME));
     }
 
+    /** What the Venter Equinus putrefies: any rot into Humus. */
+    public static List<Putrefy> putrefaction() {
+        return List.of(new Putrefy("humus", "rot", Input.of(PutrefactionRecipe.PUTREFIABLE), 8,
+                new ItemStackTemplate(ServusAlchemyItems.HUMUS.get()), "Humus", 1200, 4800));
+    }
+
+    /** The work of a quick mixing, as the Mixer's own Mud and Coarse Dirt take. */
+    private static final int MIX_WORK = 100;
+    private static final int MIX_WATER = 250;
+
+    /** Dirt from the Mixer: in bulk with Humus, or a little with Bone Meal. */
+    public static List<Mix> dirtMixing() {
+        MixPart clay = new MixPart(Input.of(Items.CLAY_BALL), 1, "Clay Ball");
+        return List.of(
+                new Mix("dirt_from_humus", List.of(new MixPart(Input.of(Tags.Items.SANDS), 4, "Sand"), clay,
+                        new MixPart(Input.of(ServusAlchemyItems.HUMUS.get()), 1, "Humus")), MIX_WATER,
+                        new ItemStackTemplate(Items.DIRT, 8), "Dirt", MIX_WORK),
+                new Mix("dirt_from_bone_meal", List.of(new MixPart(Input.of(Tags.Items.SANDS), 2, "Sand"), clay,
+                        new MixPart(Input.of(Items.BONE_MEAL), 1, "Bone Meal")), MIX_WATER,
+                        new ItemStackTemplate(Items.DIRT, 2), "Dirt", MIX_WORK));
+    }
+
     /** What the Coagulator makes from the principles; no metal in Nigredo. */
     public static List<Coagulate> coagulation() {
         return List.of(
@@ -250,6 +286,8 @@ public final class AlchemyRecipeTable {
                         new Principles(1000, 0, 0), 0, new ItemStackTemplate(ServusAlchemyItems.SALT_CRYSTAL_BLOCK.get()), AthanorRecipe.DEFAULT_TIME),
                 new AthanorCraft("blaze_powder", "Gunpowder", "Blaze Powder", Input.of(Items.GUNPOWDER),
                         new Principles(0, 200, 0), 0, new ItemStackTemplate(Items.BLAZE_POWDER), AthanorRecipe.DEFAULT_TIME),
+                new AthanorCraft("grass_seed", "Wheat Seeds", "Grass Seed", Input.of(Items.WHEAT_SEEDS),
+                        new Principles(0, 20, 20), 0, new ItemStackTemplate(ServusAlchemyItems.GRASS_SEED.get()), AthanorRecipe.DEFAULT_TIME),
                 new AthanorCraft("experience_bottle", "Glass Bottle", "Bottle o' Enchanting", Input.of(Items.GLASS_BOTTLE),
                         new Principles(50, 0, 100), 1, new ItemStackTemplate(Items.EXPERIENCE_BOTTLE), AthanorRecipe.DEFAULT_TIME),
                 new AthanorCraft("elixir_of_sight", "Quicksilver", "Elixir of Sight", Input.of(ServusAlchemyItems.QUICKSILVER.get()),

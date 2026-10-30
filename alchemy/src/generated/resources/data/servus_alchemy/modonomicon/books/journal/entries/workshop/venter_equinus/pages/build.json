@@ -1,0 +1,12 @@
+{
+  "type": "modonomicon:multiblock",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "build",
+  "multiblock_id": "servus_alchemy:venter_equinus",
+  "multiblock_name": "book.servus_alchemy.journal.workshop.venter_equinus.build.title",
+  "show_visualize_button": true,
+  "sort_number": 1,
+  "text": "book.servus_alchemy.journal.workshop.venter_equinus.build.text"
+}

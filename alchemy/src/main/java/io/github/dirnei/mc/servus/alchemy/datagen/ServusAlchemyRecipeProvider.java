@@ -8,6 +8,8 @@ import io.github.dirnei.mc.servus.alchemy.coagulator.SeedIndex;
 import io.github.dirnei.mc.servus.alchemy.prelum.PressingRecipe;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurificationRecipe;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
+import io.github.dirnei.mc.servus.alchemy.venter.PutrefactionRecipe;
+import io.github.dirnei.mc.servus.foundation.machine.mixer.MixingRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +28,9 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
+import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
 
 final class ServusAlchemyRecipeProvider extends RecipeProvider {
 
@@ -60,6 +64,26 @@ final class ServusAlchemyRecipeProvider extends RecipeProvider {
         coagulation(output);
         athanor(output);
         pressing(output);
+        putrefaction(output);
+        mixing(output);
+    }
+
+    /** Dirt for Foundation's Mixer, from the shared table the journal lists. */
+    private void mixing(RecipeOutput output) {
+        for (AlchemyRecipeTable.Mix row : AlchemyRecipeTable.dirtMixing()) {
+            List<SizedIngredient> ingredients = row.parts().stream()
+                    .map(part -> new SizedIngredient(part.input().ingredient(items), part.count())).toList();
+            output.accept(key("mixing/" + row.name()), new MixingRecipe(ingredients,
+                    Optional.of(SizedFluidIngredient.of(Fluids.WATER, row.water())), row.result(), row.work()), null);
+        }
+    }
+
+    /** What the Venter Equinus putrefies, from the shared table the journal lists. */
+    private void putrefaction(RecipeOutput output) {
+        for (AlchemyRecipeTable.Putrefy row : AlchemyRecipeTable.putrefaction()) {
+            output.accept(key("putrefaction/" + row.name()), new PutrefactionRecipe(new SizedIngredient(row.input().ingredient(items), row.count()),
+                    row.result(), row.time(), row.coldTime()), null);
+        }
     }
 
     /** What the Prelum presses, from the shared table the journal lists. */
@@ -194,6 +218,34 @@ final class ServusAlchemyRecipeProvider extends RecipeProvider {
                 .define('B', Items.BRICK)
                 .define('X', Items.BARREL)
                 .unlockedBy("has_brick", has(Items.BRICK))
+                .save(output);
+
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusAlchemyItems.CUCURBIT.get())
+                .pattern(" C ")
+                .pattern("TBT")
+                .pattern("TTT")
+                .define('C', Items.CUT_COPPER)
+                .define('T', Items.TERRACOTTA)
+                .define('B', Items.GLASS_BOTTLE)
+                .unlockedBy("has_terracotta", has(Items.TERRACOTTA))
+                .save(output);
+
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusAlchemyItems.DUNG_BED.get(), 4)
+                .pattern("LPL")
+                .pattern("PHP")
+                .define('L', Items.SPRUCE_LOG)
+                .define('P', Items.SPRUCE_PLANKS)
+                .define('H', Items.HAY_BLOCK)
+                .unlockedBy("has_hay_block", has(Items.HAY_BLOCK))
+                .save(output);
+
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusAlchemyItems.BED_HATCH.get())
+                .pattern("PTP")
+                .pattern("PNP")
+                .define('P', Items.SPRUCE_PLANKS)
+                .define('T', Items.OAK_TRAPDOOR)
+                .define('N', Items.IRON_NUGGET)
+                .unlockedBy("has_spruce_planks", has(Items.SPRUCE_PLANKS))
                 .save(output);
 
         ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusAlchemyItems.FIREBOX.get())

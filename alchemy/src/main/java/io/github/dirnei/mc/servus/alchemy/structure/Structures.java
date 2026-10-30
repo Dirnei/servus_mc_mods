@@ -44,6 +44,11 @@ public final class Structures {
         return pos(origin, facing.offset(right, up));
     }
 
+    /** The position {@code right} and {@code forward} from {@code origin} on its level, for a front facing {@code facing}. */
+    public static BlockPos groundPos(BlockPos origin, int right, int forward, Facing facing) {
+        return pos(origin, facing.ground(right, forward));
+    }
+
     public static BlockPos pos(BlockPos origin, Offset offset) {
         return origin.offset(offset.x(), offset.y(), offset.z());
     }

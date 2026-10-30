@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.alchemy.purifier.PurifierSideBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.PrincipleDropperTubes;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import io.github.dirnei.mc.servus.alchemy.structure.CopperDuctBlock;
+import io.github.dirnei.mc.servus.alchemy.venter.VenterFrameBlock;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
@@ -71,6 +72,7 @@ final class AlchemyModels {
         shell();
         duct();
         purifier();
+        venter();
         coagulator();
         vat();
         dropper();
@@ -353,6 +355,108 @@ final class AlchemyModels {
         states.simpleBlockItem(vatBlock, vat);
         side(ServusAlchemyBlocks.CATCH_BASIN.get(), catchBasin("catch_basin", false), catchBasin("catch_basin_formed", true));
         side(ServusAlchemyBlocks.RESIDUE_CROCK.get(), residueCrock("residue_crock", false), residueCrock("residue_crock_formed", true));
+    }
+
+    /**
+     * The Venter Equinus: a terracotta Cucurbit with a cut copper seal, and spruce frame pieces that join into one bed with
+     * four log posts and plank walls, the Bed Hatch in the middle of the front wall. Unformed, a Dung Bed is a small bed of
+     * its own. The straw and the dung mats of the formed bed are drawn by the Cucurbit's renderer. The boxes and their
+     * overlap check are listed in the m9-venter-equinus design.
+     */
+    private void venter() {
+        ModelFile cucurbit = cucurbit();
+        states.getVariantBuilder(ServusAlchemyBlocks.CUCURBIT.get()).forAllStates(state -> ConfiguredModel.builder().modelFile(cucurbit).build());
+        states.simpleBlockItem(ServusAlchemyBlocks.CUCURBIT.get(), cucurbit);
+
+        ModelFile plain = dungBed();
+        ModelFile edge = bedEdge();
+        ModelFile corner = bedCorner();
+        Block bed = ServusAlchemyBlocks.DUNG_BED.get();
+        states.getVariantBuilder(bed).forAllStates(state -> !state.getValue(VenterFrameBlock.FORMED)
+                ? ConfiguredModel.builder().modelFile(plain).build()
+                : ConfiguredModel.builder()
+                        .modelFile(state.getValue(VenterFrameBlock.PIECE) == VenterFrameBlock.FramePiece.CORNER ? corner : edge)
+                        .rotationY(ModelRotations.rotationY(state.getValue(VenterFrameBlock.FACING))).build());
+        states.simpleBlockItem(bed, plain);
+
+        ModelFile hatch = bedHatch();
+        Block hatchBlock = ServusAlchemyBlocks.BED_HATCH.get();
+        states.getVariantBuilder(hatchBlock).forAllStates(state -> ConfiguredModel.builder().modelFile(hatch)
+                .rotationY(ModelRotations.rotationY(state.getValue(VenterFrameBlock.FACING))).build());
+        states.simpleBlockItem(hatchBlock, hatch);
+    }
+
+    /** The sealed gourd: a foot, a wide body, a shoulder, a neck and the cut copper seal, taller than its block. */
+    private ModelFile cucurbit() {
+        BlockModelBuilder model = builder("cucurbit")
+                .texture("clay", states.mcLoc("block/terracotta")).texture("seal", states.mcLoc(CUT_COPPER))
+                .texture("particle", states.mcLoc("block/terracotta"));
+        clampedBox(model, 4, 0, 4, 12, 2, 12, "#clay");
+        clampedBox(model, 1, 2, 1, 15, 20, 15, "#clay");
+        clampedBox(model, 3, 20, 3, 13, 23, 13, "#clay");
+        clampedBox(model, 6, 23, 6, 10, 28, 10, "#clay");
+        clampedBox(model, 5.5F, 28, 5.5F, 10.5F, 30, 10.5F, "#seal");
+        return model;
+    }
+
+    private BlockModelBuilder bedModel(String name) {
+        return builder(name)
+                .texture("log", states.mcLoc("block/spruce_log")).texture("log_top", states.mcLoc("block/spruce_log_top"))
+                .texture("planks", states.mcLoc("block/spruce_planks")).texture("particle", states.mcLoc("block/spruce_planks"));
+    }
+
+    /** A spruce log post from the ground up to {@code top}, with the log's rings on its ends. */
+    private static void post(BlockModelBuilder model, float x1, float z1, float x2, float z2, float top) {
+        model.element().from(x1, 0, z1).to(x2, top, z2)
+                .allFaces((direction, face) -> face.texture(direction.getAxis() == Direction.Axis.Y ? "#log_top" : "#log")).end();
+    }
+
+    /** A wall of the formed bed along its north side, from post to post across the whole block. */
+    private ModelFile bedEdge() {
+        BlockModelBuilder model = bedModel("dung_bed_edge");
+        box(model, 0, 0, 0.5F, 16, 12, 2.5F, "#planks");
+        return model;
+    }
+
+    /** The north-west corner of the formed bed: a post and the two walls that start at its faces. */
+    private ModelFile bedCorner() {
+        BlockModelBuilder model = bedModel("dung_bed_corner");
+        post(model, 0, 0, 3, 3, 14);
+        box(model, 3, 0, 0.5F, 16, 12, 2.5F, "#planks");
+        box(model, 0.5F, 0, 3, 2.5F, 12, 16, "#planks");
+        return model;
+    }
+
+    /** A Dung Bed on its own: four posts, four walls, straw inside and a dung mat on it. */
+    private ModelFile dungBed() {
+        BlockModelBuilder model = bedModel("dung_bed")
+                .texture("hay_top", states.mcLoc("block/hay_block_top")).texture("hay", states.mcLoc("block/hay_block_side"))
+                .texture("mat", states.mcLoc("block/packed_mud"));
+        for (float x : new float[] {0, 13}) {
+            for (float z : new float[] {0, 13}) {
+                post(model, x, z, x + 3, z + 3, 14);
+            }
+        }
+        box(model, 3, 0, 0.5F, 13, 12, 2.5F, "#planks");
+        box(model, 3, 0, 13.5F, 13, 12, 15.5F, "#planks");
+        box(model, 0.5F, 0, 3, 2.5F, 12, 13, "#planks");
+        box(model, 13.5F, 0, 3, 15.5F, 12, 13, "#planks");
+        model.element().from(2.55F, 0.05F, 2.55F).to(13.45F, 10, 13.45F)
+                .allFaces((direction, face) -> face.texture(direction.getAxis() == Direction.Axis.Y ? "#hay_top" : "#hay")).end();
+        box(model, 5, 10.05F, 6, 10, 10.55F, 11, "#mat");
+        return model;
+    }
+
+    /** The front wall with the oak hatch and its steel handle; the hatch and the handle have no back face against the wall. */
+    private ModelFile bedHatch() {
+        BlockModelBuilder model = bedModel("bed_hatch")
+                .texture("hatch", states.mcLoc("block/oak_planks")).texture("steel", STEEL);
+        box(model, 0, 0, 0.5F, 16, 12, 2.5F, "#planks");
+        model.element().from(4, 3, 0).to(12, 10, 0.5F)
+                .allFacesExcept((direction, face) -> face.texture("#hatch"), Set.of(Direction.SOUTH)).end();
+        model.element().from(6.5F, 6, -1).to(9.5F, 7, 0)
+                .allFacesExcept((direction, face) -> face.uvs(0, 0, 3, 1).texture("#steel"), Set.of(Direction.SOUTH)).end();
+        return model;
     }
 
     private void side(Block block, ModelFile plain, ModelFile formed) {

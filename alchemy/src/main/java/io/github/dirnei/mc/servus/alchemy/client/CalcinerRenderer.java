@@ -33,6 +33,8 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.function.Supplier;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -195,20 +197,38 @@ public final class CalcinerRenderer extends BufferedBlockEntityRenderer<Calciner
      */
     static void drawBox(VertexConsumer consumer, PoseStack.Pose pose, float x0, float y0, float z0, float x1, float y1, float z1,
                         TextureAtlasSprite sprite, int color, int light) {
+        drawFaces(consumer, pose, x0, y0, z0, x1, y1, z1, sprite, color, light, EnumSet.allOf(Direction.class));
+    }
+
+    /** Like {@link #drawBox}, drawing only the faces in {@code faces}. */
+    static void drawFaces(VertexConsumer consumer, PoseStack.Pose pose, float x0, float y0, float z0, float x1, float y1, float z1,
+                          TextureAtlasSprite sprite, int color, int light, Set<Direction> faces) {
         float top = sprite.getV(1 - y1);
         float bottom = sprite.getV(1 - y0);
-        quad(consumer, pose, x0, y1, z0, x0, y1, z1, x1, y1, z1, x1, y1, z0,
-                sprite.getU(x0), sprite.getV(z0), sprite.getU(x1), sprite.getV(z1), color, light, Direction.UP);
-        quad(consumer, pose, x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1,
-                sprite.getU(z0), sprite.getV(x0), sprite.getU(z1), sprite.getV(x1), color, light, Direction.DOWN);
-        quad(consumer, pose, x1, y1, z0, x1, y0, z0, x0, y0, z0, x0, y1, z0,
-                sprite.getU(1 - x1), top, sprite.getU(1 - x0), bottom, color, light, Direction.NORTH);
-        quad(consumer, pose, x0, y1, z1, x0, y0, z1, x1, y0, z1, x1, y1, z1,
-                sprite.getU(x0), top, sprite.getU(x1), bottom, color, light, Direction.SOUTH);
-        quad(consumer, pose, x0, y1, z0, x0, y0, z0, x0, y0, z1, x0, y1, z1,
-                sprite.getU(z0), top, sprite.getU(z1), bottom, color, light, Direction.WEST);
-        quad(consumer, pose, x1, y1, z1, x1, y0, z1, x1, y0, z0, x1, y1, z0,
-                sprite.getU(1 - z1), top, sprite.getU(1 - z0), bottom, color, light, Direction.EAST);
+        if (faces.contains(Direction.UP)) {
+            quad(consumer, pose, x0, y1, z0, x0, y1, z1, x1, y1, z1, x1, y1, z0,
+                    sprite.getU(x0), sprite.getV(z0), sprite.getU(x1), sprite.getV(z1), color, light, Direction.UP);
+        }
+        if (faces.contains(Direction.DOWN)) {
+            quad(consumer, pose, x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1,
+                    sprite.getU(z0), sprite.getV(x0), sprite.getU(z1), sprite.getV(x1), color, light, Direction.DOWN);
+        }
+        if (faces.contains(Direction.NORTH)) {
+            quad(consumer, pose, x1, y1, z0, x1, y0, z0, x0, y0, z0, x0, y1, z0,
+                    sprite.getU(1 - x1), top, sprite.getU(1 - x0), bottom, color, light, Direction.NORTH);
+        }
+        if (faces.contains(Direction.SOUTH)) {
+            quad(consumer, pose, x0, y1, z1, x0, y0, z1, x1, y0, z1, x1, y1, z1,
+                    sprite.getU(x0), top, sprite.getU(x1), bottom, color, light, Direction.SOUTH);
+        }
+        if (faces.contains(Direction.WEST)) {
+            quad(consumer, pose, x0, y1, z0, x0, y0, z0, x0, y0, z1, x0, y1, z1,
+                    sprite.getU(z0), top, sprite.getU(z1), bottom, color, light, Direction.WEST);
+        }
+        if (faces.contains(Direction.EAST)) {
+            quad(consumer, pose, x1, y1, z1, x1, y0, z1, x1, y0, z0, x1, y1, z0,
+                    sprite.getU(1 - z1), top, sprite.getU(1 - z0), bottom, color, light, Direction.EAST);
+        }
     }
 
     private static void quad(VertexConsumer consumer, PoseStack.Pose pose,

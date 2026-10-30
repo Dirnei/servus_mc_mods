@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "N": "minecraft:iron_nugget",
+    "P": "minecraft:spruce_planks",
+    "T": "minecraft:oak_trapdoor"
+  },
+  "pattern": [
+    "PTP",
+    "PNP"
+  ],
+  "result": {
+    "id": "servus_alchemy:bed_hatch"
+  }
+}

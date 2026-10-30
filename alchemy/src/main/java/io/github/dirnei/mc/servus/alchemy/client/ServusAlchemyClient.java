@@ -49,6 +49,7 @@ public final class ServusAlchemyClient {
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.CALCINER.get(), CalcinerRenderer::new);
         event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.PURIFIER.get(), PurifierRenderer::new);
+        event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.VENTER_EQUINUS.get(), VenterRenderer::new);
         event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.COAGULATOR.get(), CoagulatorRenderer::new);
         event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.ATHANOR.get(), AthanorRenderer::new);
         event.registerBlockEntityRenderer(ServusAlchemyBlockEntities.VAS_HERMETICUM.get(), VasRenderer::new);

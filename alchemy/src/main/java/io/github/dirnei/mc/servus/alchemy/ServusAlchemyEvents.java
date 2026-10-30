@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.alchemy.coagulator.CoagulatorStructure;
 import io.github.dirnei.mc.servus.alchemy.hollow.ClientVeins;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinSeedItem;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierStructure;
+import io.github.dirnei.mc.servus.alchemy.venter.VenterStructure;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
@@ -50,6 +51,7 @@ public final class ServusAlchemyEvents {
             registerCalciner(event);
             registerCoagulator(event);
             registerAthanor(event);
+            registerVenter(event);
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusAlchemyBlockEntities.SALAMANDER_FORGE.get(),
                     (forge, side) -> forge.itemCapability(side));
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusAlchemyBlockEntities.SALAMANDER_FORGE.get(),
@@ -76,6 +78,16 @@ public final class ServusAlchemyEvents {
                     ServusAlchemyBlocks.CATCH_BASIN.get());
             event.registerBlock(Capabilities.Item.BLOCK, (level, pos, state, entity, side) -> PurifierStructure.crockHandler(level, pos, state),
                     ServusAlchemyBlocks.RESIDUE_CROCK.get());
+        }
+
+        /** Rot goes into the Cucurbit, bedding into the Dung Beds, and the Humus comes out of the Bed Hatch. */
+        private static void registerVenter(RegisterCapabilitiesEvent event) {
+            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusAlchemyBlockEntities.VENTER_EQUINUS.get(),
+                    (venter, side) -> venter.formed() ? venter.rotPort() : null);
+            event.registerBlock(Capabilities.Item.BLOCK, (level, pos, state, entity, side) -> VenterStructure.bedHandler(level, pos, state),
+                    ServusAlchemyBlocks.DUNG_BED.get());
+            event.registerBlock(Capabilities.Item.BLOCK, (level, pos, state, entity, side) -> VenterStructure.hatchHandler(level, pos, state),
+                    ServusAlchemyBlocks.BED_HATCH.get());
         }
 
         /** The Calciner structure has fixed ports by position, not by side. */

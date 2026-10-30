@@ -26,4 +26,14 @@ public enum Facing {
     public Offset offset(int right, int up) {
         return new Offset(right * rightX(), up, right * rightZ());
     }
+
+    /** The offset {@code right} to the player's right and {@code forward} toward a front facing this way, on the build's level. */
+    public Offset ground(int right, int forward) {
+        return new Offset(right * rightX() + forward * dx, 0, right * rightZ() + forward * dz);
+    }
+
+    /** This facing turned clockwise, seen from above, by {@code quarters} quarter turns. */
+    public Facing turned(int quarters) {
+        return values()[Math.floorMod(ordinal() + quarters, 4)];
+    }
 }

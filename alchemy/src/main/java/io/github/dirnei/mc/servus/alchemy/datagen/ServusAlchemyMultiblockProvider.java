@@ -14,6 +14,8 @@ import io.github.dirnei.mc.servus.alchemy.coagulator.CoagulatorLayout;
 import io.github.dirnei.mc.servus.alchemy.coagulator.CoagulatorStructure;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierLayout;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierStructure;
+import io.github.dirnei.mc.servus.alchemy.venter.VenterLayout;
+import io.github.dirnei.mc.servus.alchemy.venter.VenterStructure;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -36,6 +38,8 @@ public final class ServusAlchemyMultiblockProvider extends MultiblockProvider {
     public static final Identifier PURIFIER = Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "purifier");
     /** The id of the Coagulator schematic. */
     public static final Identifier COAGULATOR = Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "coagulator");
+    /** The id of the Venter Equinus schematic. */
+    public static final Identifier VENTER_EQUINUS = Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "venter_equinus");
 
     private static final String AIR = "minecraft:air";
 
@@ -51,6 +55,7 @@ public final class ServusAlchemyMultiblockProvider extends MultiblockProvider {
         calciner();
         coagulator();
         purifier();
+        venter();
         athanors();
     }
 
@@ -98,6 +103,18 @@ public final class ServusAlchemyMultiblockProvider extends MultiblockProvider {
         }
         purifier.tag('0', BlockTags.LOGS, () -> Blocks.OAK_LOG);
         add(PURIFIER, purifier.build(false, 1));
+    }
+
+    /** The bed lies flat in one layer; the Cucurbit is its middle, the anchor, so the bed lies on the clicked ground. */
+    private void venter() {
+        DenseMultiblockBuilder venter = new DenseMultiblockBuilder();
+        venter.layer(VenterLayout.patternRows().stream()
+                .map(row -> row.replace(VenterLayout.Role.CUCURBIT.symbol(), '0'))
+                .toArray(String[]::new));
+        venter.block('0', () -> VenterStructure.shown(VenterLayout.Role.CUCURBIT));
+        venter.block(VenterLayout.Role.HATCH.symbol(), () -> VenterStructure.shown(VenterLayout.Role.HATCH));
+        venter.block(VenterLayout.Role.BED.symbol(), () -> VenterStructure.shown(VenterLayout.Role.BED));
+        add(VENTER_EQUINUS, venter.build(false, 1));
     }
 
     /**

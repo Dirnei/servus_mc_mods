@@ -44,6 +44,7 @@ public final class ServusAlchemyDataGen {
 
         event.addProvider(new ServusAlchemyBlockTagsProvider(output, lookup));
         event.addProvider(new ServusAlchemyItemTagsProvider(output, lookup));
+        event.addProvider(new ServusAlchemyDataMapProvider(output, lookup));
         event.addProvider(new ServusAlchemyBiomeTagsProvider(output, lookup));
         event.addProvider(new ServusAlchemyRecipeProvider.Runner(output, lookup));
         event.addProvider(new ServusAlchemyMultiblockProvider(output));

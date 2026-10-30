@@ -19,9 +19,11 @@ final class ServusAlchemyBlockTagsProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
-        tag(BlockTags.MINEABLE_WITH_AXE).add(ServusAlchemyBlocks.PURIFIER.get()).add(ServusAlchemyBlocks.CATCH_BASIN.get());
+        tag(BlockTags.MINEABLE_WITH_AXE).add(ServusAlchemyBlocks.PURIFIER.get()).add(ServusAlchemyBlocks.CATCH_BASIN.get())
+                .add(ServusAlchemyBlocks.DUNG_BED.get()).add(ServusAlchemyBlocks.BED_HATCH.get());
         tag(BlockTags.MINEABLE_WITH_PICKAXE)
                 .add(ServusAlchemyBlocks.RESIDUE_CROCK.get())
+                .add(ServusAlchemyBlocks.CUCURBIT.get())
                 .add(ServusAlchemyBlocks.CALCINER.get())
                 .add(ServusAlchemyBlocks.FIREBOX.get())
                 .add(ServusAlchemyBlocks.ASH_PAN.get())

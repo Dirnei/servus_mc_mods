@@ -1,0 +1,14 @@
+{
+  "type": "servus_alchemy:athanor",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:wheat_seeds"
+  },
+  "principles": {
+    "mercury": 20,
+    "sulfur": 20
+  },
+  "result": {
+    "id": "servus_alchemy:grass_seed"
+  }
+}

@@ -73,6 +73,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -642,6 +643,78 @@ public final class AlchemyGameTests {
                 helper.assertTrue(athanor.principles().get(Principle.SULFUR) == 0, "the Sulfur is burned");
             });
         });
+    }
+
+    /** Wheat Seeds with Sulfur and Mercury become a Grass Seed on a bare Athanor. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void athanorMakesGrassSeedAtNigredo(GameTestHelper helper) {
+        AthanorBlockEntity athanor = athanor(helper);
+        helper.runAfterDelay(2, () -> {
+            pour(helper, new Principles(0, 20, 20));
+            athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.WHEAT_SEEDS));
+            helper.succeedWhen(() -> {
+                helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).is(ServusAlchemyItems.GRASS_SEED.get()),
+                        "a Grass Seed should be made");
+                helper.assertTrue(athanor.principles().get(Principle.SULFUR) == 0 && athanor.principles().get(Principle.MERCURY) == 0,
+                        "the Sulfur and the Mercury are burned");
+            });
+        });
+    }
+
+    /** Uses the Grass Seeds a player holds on the top of the block at {@code pos} and returns the seeds left in the hand. */
+    private static ItemStack sowGrass(GameTestHelper helper, BlockPos pos) {
+        Player player = CalcinerGameTests.player(helper, new ItemStack(ServusAlchemyItems.GRASS_SEED.get(), 3));
+        BlockPos absolute = helper.absolutePos(pos);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute).add(0, 0.5, 0), Direction.UP, absolute, false);
+        player.getItemInHand(InteractionHand.MAIN_HAND).useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+        return player.getItemInHand(InteractionHand.MAIN_HAND);
+    }
+
+    /** A Grass Seed on Dirt with air above turns it into a Grass Block and is used up. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void grassSeedGreensDirt(GameTestHelper helper) {
+        BlockPos dirt = new BlockPos(2, 1, 2);
+        helper.setBlock(dirt, Blocks.DIRT);
+        helper.setBlock(dirt.above(), Blocks.AIR);
+        ItemStack left = sowGrass(helper, dirt);
+        helper.assertBlockPresent(Blocks.GRASS_BLOCK, dirt);
+        helper.assertTrue(left.getCount() == 2, "one seed is used, " + left.getCount() + " left");
+        helper.succeed();
+    }
+
+    /** Under Stone grass cannot live: the Dirt stays and the seed is kept. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void grassSeedKeptUnderStone(GameTestHelper helper) {
+        BlockPos dirt = new BlockPos(2, 1, 2);
+        helper.setBlock(dirt, Blocks.DIRT);
+        helper.setBlock(dirt.above(), Blocks.STONE);
+        ItemStack left = sowGrass(helper, dirt);
+        helper.assertBlockPresent(Blocks.DIRT, dirt);
+        helper.assertTrue(left.getCount() == 3, "the seeds are kept");
+        helper.succeed();
+    }
+
+    /** Coarse Dirt is no Dirt for the Grass Seed. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void grassSeedIgnoresCoarseDirt(GameTestHelper helper) {
+        BlockPos dirt = new BlockPos(2, 1, 2);
+        helper.setBlock(dirt, Blocks.COARSE_DIRT);
+        helper.setBlock(dirt.above(), Blocks.AIR);
+        ItemStack left = sowGrass(helper, dirt);
+        helper.assertBlockPresent(Blocks.COARSE_DIRT, dirt);
+        helper.assertTrue(left.getCount() == 3, "the seeds are kept");
+        helper.succeed();
+    }
+
+    /** Neither the Grass Seed nor Humus goes into the Calciner. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void calcinerRefusesGrassSeedAndHumus(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = CalcinerGameTests.formed(helper, CalcinerGameTests.CALCINER, Direction.NORTH);
+        for (ItemStack stack : List.of(new ItemStack(ServusAlchemyItems.GRASS_SEED.get()), new ItemStack(ServusAlchemyItems.HUMUS.get()))) {
+            helper.assertTrue(!calciner.calcinable(stack), stack + " should not be calcinable");
+            helper.assertTrue(calciner.insertInput(stack).getCount() == 1, "the Calciner should refuse " + stack);
+        }
+        helper.succeed();
     }
 
     /** The Salt Crystal ring makes the Athanor Albedo and allows the Albedo craft; a gap brings it back to Nigredo. */

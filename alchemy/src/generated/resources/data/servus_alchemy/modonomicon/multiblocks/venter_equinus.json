@@ -1,0 +1,24 @@
+{
+  "type": "modonomicon:dense",
+  "mapping": {
+    "0": {
+      "type": "modonomicon:block",
+      "block": "servus_alchemy:cucurbit"
+    },
+    "D": {
+      "type": "modonomicon:block",
+      "block": "servus_alchemy:dung_bed"
+    },
+    "H": {
+      "type": "modonomicon:block",
+      "block": "servus_alchemy:bed_hatch"
+    }
+  },
+  "pattern": [
+    [
+      "DDD",
+      "D0D",
+      "DHD"
+    ]
+  ]
+}

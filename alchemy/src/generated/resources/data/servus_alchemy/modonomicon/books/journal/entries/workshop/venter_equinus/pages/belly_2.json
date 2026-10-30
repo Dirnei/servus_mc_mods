@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "belly_2",
+  "show_title_separator": true,
+  "sort_number": 6,
+  "text": "book.servus_alchemy.journal.workshop.venter_equinus.belly_2.text",
+  "title": ""
+}

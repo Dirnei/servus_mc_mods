@@ -1,0 +1,26 @@
+{
+  "type": "servus_foundation:mixing",
+  "fluid": {
+    "amount": 250,
+    "ingredient": "minecraft:water"
+  },
+  "ingredients": [
+    {
+      "count": 4,
+      "ingredient": "#c:sands"
+    },
+    {
+      "count": 1,
+      "ingredient": "minecraft:clay_ball"
+    },
+    {
+      "count": 1,
+      "ingredient": "servus_alchemy:humus"
+    }
+  ],
+  "result": {
+    "count": 8,
+    "id": "minecraft:dirt"
+  },
+  "work": 100
+}

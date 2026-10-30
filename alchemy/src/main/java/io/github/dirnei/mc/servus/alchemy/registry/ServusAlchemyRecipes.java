@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.athanor.AthanorRecipe;
 import io.github.dirnei.mc.servus.alchemy.prelum.PressingRecipe;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurificationRecipe;
+import io.github.dirnei.mc.servus.alchemy.venter.PutrefactionRecipe;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -54,6 +55,13 @@ public final class ServusAlchemyRecipes {
             RECIPE_TYPES.register("pressing", () -> RecipeType.simple(PRESSING_ID));
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<PressingRecipe>> PRESSING_SERIALIZER =
             RECIPE_SERIALIZERS.register("pressing", () -> PressingRecipe.SERIALIZER);
+
+    public static final Identifier PUTREFACTION_ID =
+            Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "putrefaction");
+    public static final DeferredHolder<RecipeType<?>, RecipeType<PutrefactionRecipe>> PUTREFACTION =
+            RECIPE_TYPES.register("putrefaction", () -> RecipeType.simple(PUTREFACTION_ID));
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<PutrefactionRecipe>> PUTREFACTION_SERIALIZER =
+            RECIPE_SERIALIZERS.register("putrefaction", () -> PutrefactionRecipe.SERIALIZER);
 
     private ServusAlchemyRecipes() {
     }

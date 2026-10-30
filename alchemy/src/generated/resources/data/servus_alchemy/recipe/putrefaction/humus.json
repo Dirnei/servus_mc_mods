@@ -1,0 +1,12 @@
+{
+  "type": "servus_alchemy:putrefaction",
+  "cold_time": 4800,
+  "input": {
+    "count": 8,
+    "ingredient": "#servus_alchemy:putrefiable"
+  },
+  "result": {
+    "id": "servus_alchemy:humus"
+  },
+  "time": 1200
+}

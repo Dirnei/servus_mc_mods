@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "H": "minecraft:hay_block",
+    "L": "minecraft:spruce_log",
+    "P": "minecraft:spruce_planks"
+  },
+  "pattern": [
+    "LPL",
+    "PHP"
+  ],
+  "result": {
+    "count": 4,
+    "id": "servus_alchemy:dung_bed"
+  }
+}

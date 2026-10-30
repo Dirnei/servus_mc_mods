@@ -11,6 +11,8 @@ import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyEntities;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
+import io.github.dirnei.mc.servus.alchemy.venter.VenterLayout;
+import io.github.dirnei.mc.servus.alchemy.venter.VenterStructure;
 import java.util.Map;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.Block;
@@ -72,6 +74,15 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add(ServusAlchemyBlocks.PURIFIER.get(), "Purifier");
         add(ServusAlchemyBlocks.CATCH_BASIN.get(), "Catch Basin");
         add(ServusAlchemyBlocks.RESIDUE_CROCK.get(), "Residue Crock");
+        add(ServusAlchemyBlocks.CUCURBIT.get(), "Cucurbit");
+        add(ServusAlchemyBlocks.DUNG_BED.get(), "Dung Bed");
+        add(ServusAlchemyBlocks.BED_HATCH.get(), "Bed Hatch");
+        add("message.servus_alchemy.venter_equinus.formed", "The Venter Equinus is ready.");
+        add("message.servus_alchemy.venter_equinus.missing",
+                "The Venter Equinus is not complete: %s needed %s. The Venter Equinus page of Paracelsus' Journal shows the build.");
+        for (VenterLayout.Cell cell : VenterLayout.cells()) {
+            add(VenterStructure.placementKey(cell), VenterLayout.placement(cell));
+        }
         add("message.servus_alchemy.purifier.formed", "The Purifier is ready.");
         add("message.servus_alchemy.purifier.missing",
                 "The Purifier is not complete: %s needed %s. The Purifier page of Paracelsus' Journal shows the build.");
@@ -140,6 +151,12 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("jade.servus_alchemy.calciner.empty", "none");
         add("config.jade.plugin_servus_alchemy.calciner", "Calciner");
         add("config.jade.plugin_servus_alchemy.purifier", "Purifier");
+        add("config.jade.plugin_servus_alchemy.venter_equinus", "Venter Equinus");
+        add("jade.servus_alchemy.venter.rot", "Rot: %s / %s");
+        add("jade.servus_alchemy.venter.straw", "Straw: %s / %s");
+        add("jade.servus_alchemy.venter.warmth", "Warmth: %s%%");
+        add("gui.servus_alchemy.jei.putrefaction", "Putrefaction");
+        add("gui.servus_alchemy.jei.putrefaction.times", "%s s warm, %s s cold");
         add("config.jade.plugin_servus_alchemy.athanor", "Athanor");
         add("config.jade.plugin_servus_alchemy.gnome_hollow", "Gnome Hollow");
         add("jade.servus_alchemy.athanor.stage", "Stage: %s");
@@ -295,6 +312,12 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add(ServusAlchemyItems.CINNABAR.get(), "Cinnabar");
         add(ServusAlchemyItems.CINNABAR.get().getDescriptionId() + ".quote",
                 "Red as dragon's blood, and quick silver hides inside.");
+        add(ServusAlchemyItems.HUMUS.get(), "Humus");
+        add(ServusAlchemyItems.HUMUS.get().getDescriptionId() + ".quote",
+                "What rotted in the warm belly comes out black and sweet smelling. All life goes back to this, and comes again from it.");
+        add(ServusAlchemyItems.GRASS_SEED.get(), "Grass Seed");
+        add(ServusAlchemyItems.GRASS_SEED.get().getDescriptionId() + ".quote",
+                "Sow it on bare earth and the earth remembers it was a meadow.");
         add(ServusAlchemyItems.SAL_AMMONIAC.get(), "Sal Ammoniac");
         add(ServusAlchemyItems.SAL_AMMONIAC.get().getDescriptionId() + ".quote",
                 "The salamander gives back what it eats, only better. Do not tell the goldsmiths.");

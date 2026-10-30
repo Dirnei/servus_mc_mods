@@ -1,0 +1,52 @@
+{
+  "variants": {
+    "facing=east,formed=false,working=false": {
+      "model": "servus_alchemy:block/cucurbit"
+    },
+    "facing=east,formed=false,working=true": {
+      "model": "servus_alchemy:block/cucurbit"
+    },
+    "facing=east,formed=true,working=false": {
+      "model": "servus_alchemy:block/cucurbit"
+    },
+    "facing=east,formed=true,working=true": {
+      "model": "servus_alchemy:block/cucurbit"
+    },
+    "facing=north,formed=false,working=false": {
+      "model": "servus_alchemy:block/cucurbit"
+    },
+    "facing=north,formed=false,working=true": {
+      "model": "servus_alchemy:block/cucurbit"
+    },
+    "facing=north,formed=true,working=false": {
+      "model": "servus_alchemy:block/cucurbit"
+    },
+    "facing=north,formed=true,working=true": {
+      "model": "servus_alchemy:block/cucurbit"
+    },
+    "facing=south,formed=false,working=false": {
+      "model": "servus_alchemy:block/cucurbit"
+    },
+    "facing=south,formed=false,working=true": {
+      "model": "servus_alchemy:block/cucurbit"
+    },
+    "facing=south,formed=true,working=false": {
+      "model": "servus_alchemy:block/cucurbit"
+    },
+    "facing=south,formed=true,working=true": {
+      "model": "servus_alchemy:block/cucurbit"
+    },
+    "facing=west,formed=false,working=false": {
+      "model": "servus_alchemy:block/cucurbit"
+    },
+    "facing=west,formed=false,working=true": {
+      "model": "servus_alchemy:block/cucurbit"
+    },
+    "facing=west,formed=true,working=false": {
+      "model": "servus_alchemy:block/cucurbit"
+    },
+    "facing=west,formed=true,working=true": {
+      "model": "servus_alchemy:block/cucurbit"
+    }
+  }
+}

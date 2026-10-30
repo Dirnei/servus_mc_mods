@@ -14,6 +14,7 @@ import io.github.dirnei.mc.servus.alchemy.hint.AncientHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.PrincipleDropperBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.purifier.PurifierBlockEntity;
+import io.github.dirnei.mc.servus.alchemy.venter.VenterEquinusBlockEntity;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
@@ -44,6 +45,8 @@ public final class ServusAlchemyBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PurifierBlockEntity>> PURIFIER =
             register("purifier", PurifierBlockEntity::new, ServusAlchemyBlocks.PURIFIER);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VenterEquinusBlockEntity>> VENTER_EQUINUS =
+            register("venter_equinus", VenterEquinusBlockEntity::new, ServusAlchemyBlocks.CUCURBIT);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SalamanderForgeBlockEntity>> SALAMANDER_FORGE =
             register("salamander_forge", SalamanderForgeBlockEntity::new, ServusAlchemyBlocks.SALAMANDER_FORGE);
