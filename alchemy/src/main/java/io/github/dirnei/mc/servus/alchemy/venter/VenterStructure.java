@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.alchemy.venter;
 
+import io.github.dirnei.mc.servus.alchemy.AlchemyDataMaps;
+import io.github.dirnei.mc.servus.alchemy.journal.ParacelsusJournalItem;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlocks;
 import io.github.dirnei.mc.servus.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.alchemy.structure.FormingEffect;
@@ -13,7 +15,10 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -159,6 +164,48 @@ public final class VenterStructure {
                 .filter(VenterEquinusBlockEntity.class::isInstance)
                 .map(VenterEquinusBlockEntity.class::cast)
                 .filter(VenterEquinusBlockEntity::formed);
+    }
+
+    /**
+     * A click with an item on any block of the bed: the Journal forms it, and on a formed bed bedding is laid in
+     * and rot goes into the Cucurbit, wherever the player clicks.
+     */
+    public static InteractionResult use(ItemStack stack, Level level, BlockPos pos, BlockState state, Player player, InteractionHand hand) {
+        if (stack.getItem() instanceof ParacelsusJournalItem) {
+            Optional<BlockPos> cucurbit = cucurbitToForm(level, pos, state);
+            if (cucurbit.isEmpty()) {
+                return InteractionResult.TRY_WITH_EMPTY_HAND;
+            }
+            if (!level.isClientSide()) {
+                tryForm(level, cucurbit.get(), player);
+            }
+            return InteractionResult.SUCCESS;
+        }
+        Optional<VenterEquinusBlockEntity> venter = formedCucurbit(level, pos, state);
+        boolean bedding = AlchemyDataMaps.warmth(stack) > 0;
+        if (venter.isEmpty() || !bedding && !venter.get().putrefiable(stack)) {
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
+        }
+        if (!level.isClientSide()) {
+            player.setItemInHand(hand, bedding ? venter.get().layBedding(stack) : venter.get().insertRot(stack));
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    /** The Cucurbit a Journal click forms: the clicked one, or the Cucurbit beside a clicked Dung Bed or Bed Hatch. */
+    private static Optional<BlockPos> cucurbitToForm(Level level, BlockPos pos, BlockState state) {
+        if (state.getBlock() instanceof CucurbitBlock) {
+            return Optional.of(pos);
+        }
+        if (state.getBlock() instanceof VenterFrameBlock && state.getValue(VenterFrameBlock.FORMED)) {
+            return cucurbitOf(state, pos);
+        }
+        for (BlockPos near : BlockPos.betweenClosed(pos.offset(-1, 0, -1), pos.offset(1, 0, 1))) {
+            if (level.getBlockState(near).getBlock() instanceof CucurbitBlock) {
+                return Optional.of(near.immutable());
+            }
+        }
+        return Optional.empty();
     }
 
     /** The bedding insert only view of a formed Dung Bed. */

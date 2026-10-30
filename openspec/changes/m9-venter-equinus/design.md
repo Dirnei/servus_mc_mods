@@ -82,7 +82,7 @@ Shipped, written by datagen as `recipe/putrefaction/humus.json`:
   "time": 1200, "cold_time": 4800 }
 ```
 
-The rule for choosing: recipes in id order, the first whose ingredient matches at least its count in the store. A running batch remembers its recipe id. The Cucurbit accepts any item that any putrefaction recipe's ingredient takes. With the shipped data that is the `servus_alchemy:putrefiable` tag: Rotten Flesh, Spider Eye, Poisonous Potato, Brown and Red Mushroom, `#c:crops`, `#minecraft:leaves`, written by `ServusAlchemyItemTagsProvider`.
+The rule for choosing: recipes in id order, the first whose ingredient matches at least its count in the store. A running batch remembers its recipe id. The Cucurbit accepts any item that any putrefaction recipe's ingredient takes. With the shipped data that is the `servus_alchemy:putrefiable` tag: Rotten Flesh, Spider Eye, Poisonous Potato, Brown and Red Mushroom, the `c:crops/*` sub tags except wheat, `#minecraft:leaves`, written by `ServusAlchemyItemTagsProvider`.
 
 ### Bedding and warmth
 - Bedding is a data map `servus_alchemy:bedding` on items, value `{"warmth": <work ticks>}` (codec `Bedding(int warmth)`, synced so Jade and JEI can name it), in a new `alchemy/AlchemyDataMaps` registered on `RegisterDataMapTypesEvent`. Shipped by a new `ServusAlchemyDataMapProvider`: `minecraft:hay_block` with 6,000.
@@ -124,10 +124,10 @@ The rule for choosing: recipes in id order, the first whose ingredient matches a
   - the hatch: `SlotPort.extractOnly(hatch, 0)`.
 - Registration in `ServusAlchemyEvents.registerVenter`: `Capabilities.Item.BLOCK` by block entity on the Cucurbit while formed; by block on `DUNG_BED` (`VenterStructure.bedHandler`) and on `BED_HATCH` (`VenterStructure.hatchHandler`), both null unless formed and their Cucurbit is formed.
 - Hand use:
-  - the Cucurbit takes accepted rot from the hand, and sneaking with an empty hand drains the store to the player (`PlayerItems.give`) and resets progress;
-  - a Dung Bed takes bedding from the hand up to the room left;
+  - every block of the bed, through `VenterStructure.use`, takes bedding (laid up to the room left) and accepted rot (into the Cucurbit) from the hand;
+  - sneaking with an empty hand on the Cucurbit drains the store to the player (`PlayerItems.give`) and resets progress;
   - the Bed Hatch gives the hatch slot to an empty hand.
-  - A Journal on the Cucurbit forms. Anything else passes.
+  - A Journal on the Cucurbit or on a frame block forms; a loose frame block forms the Cucurbit among its eight neighbours. Anything else passes.
 
 ### Grass Seed
 - `alchemy/venter/GrassSeedItem extends QuoteItem` overrides `Item.useOn(UseOnContext)` (verified in the 26.1.2 source of `BoneMealItem.useOn`).
@@ -163,7 +163,7 @@ The rule for choosing: recipes in id order, the first whose ingredient matches a
   - Sulfur rises by 20 at the cost of 220 Salt and 30 Mercury, and the Sand is consumed. A lossy converter, not a source.
 - Grass Seed: the Grass Block it makes is in `#minecraft:dirt` like the Dirt it replaces, so the value does not change. The seed costs a Wheat Seed (10/30/30) and 20 Sulfur and 20 Mercury, and gives nothing back.
 - Humus and Grass Seed stay out of `servus_alchemy:putrefiable`, so nothing rots back into itself.
-- Hay Bales are not putrefiable. Wheat is, through `c:crops`. 8 Wheat give a Humus; 9 Wheat give a Hay Bale that warms 6,000 ticks, about five Humus at full speed. Both are fine uses of a farm.
+- Hay Bales and Wheat are not putrefiable: Wheat is the straw that insulates the bed, so the tag takes the `c:crops/*` sub tags except `c:crops/wheat`. 9 Wheat give a Hay Bale that warms 6,000 ticks, about five Humus at full speed.
 
 ### Look
 Model space: the front faces north, and the player's right is west (-x). Textures:

@@ -22,7 +22,7 @@ Alchemy SHALL add the item Humus. Only the Venter Equinus SHALL make it; it SHAL
 - **THEN** the only way shown to make it is the Putrefaction category
 
 ### Requirement: Putrefiable rot
-Alchemy SHALL ship the item tag `servus_alchemy:putrefiable` for the rot the Cucurbit takes. The shipped tag SHALL hold Rotten Flesh, Spider Eye, Poisonous Potato, Brown and Red Mushroom, the crops (`c:crops`) and the leaves (`minecraft:leaves`). A datapack MAY add or remove items.
+Alchemy SHALL ship the item tag `servus_alchemy:putrefiable` for the rot the Cucurbit takes. The shipped tag SHALL hold Rotten Flesh, Spider Eye, Poisonous Potato, Brown and Red Mushroom, the crops of `c:crops` except Wheat, which goes into Hay Bales for the bed, and the leaves (`minecraft:leaves`). A datapack MAY add or remove items.
 
 #### Scenario: Flesh is rot
 - **WHEN** a player uses Rotten Flesh on the Cucurbit of a formed Venter Equinus
@@ -62,11 +62,15 @@ The Venter Equinus SHALL be a bed of 3 by 3 blocks on one level: the Cucurbit in
 - **THEN** they see the rows `D D D`, `D C D`, `D H D` (D Dung Bed, C Cucurbit, H Bed Hatch)
 
 ### Requirement: Forming the Venter Equinus
-Right clicking the Cucurbit with Paracelsus' Journal SHALL check the bed in each of the four horizontal facings and form it in the first that matches, making the player its owner, and SHALL NOT open the book. When nothing matches it SHALL name the first missing block of the best facing and where it belongs. The Configuration Carrot SHALL NOT form, turn or dismantle any block of the build.
+Right clicking the Cucurbit, a Dung Bed or the Bed Hatch with Paracelsus' Journal SHALL check the bed in each of the four horizontal facings and form it in the first that matches, making the player its owner, and SHALL NOT open the book. When nothing matches it SHALL name the first missing block of the best facing and where it belongs. The Configuration Carrot SHALL NOT form, turn or dismantle any block of the build.
 
 #### Scenario: Formed
 - **WHEN** a player right clicks the Cucurbit of a complete bed with the Journal
 - **THEN** the bed forms and the player sees "The Venter Equinus is ready."
+
+#### Scenario: Form from the frame
+- **WHEN** a player right clicks a Dung Bed of a complete bed with the Journal
+- **THEN** the bed forms as from the Cucurbit
 
 #### Scenario: Any side may be the front
 - **WHEN** the Bed Hatch stands east of the Cucurbit and Dung Beds fill the other cells
@@ -141,7 +145,7 @@ A formed Venter Equinus SHALL take only putrefiable items through the item capab
 - **THEN** the hatch takes nothing
 
 ### Requirement: The Venter Equinus by hand
-On a formed Venter Equinus, using putrefiable items on the Cucurbit SHALL put in as many as fit; using bedding on a Dung Bed SHALL lay in as many as the bed has room for; an empty hand on the Bed Hatch SHALL give the Humus; sneaking with an empty hand on the Cucurbit SHALL give the rot back and reset the batch. The Venter Equinus SHALL have no GUI.
+On a formed Venter Equinus, using putrefiable items on any of its blocks SHALL put them into the Cucurbit as many as fit; using bedding on any of its blocks SHALL lay in as many as the bed has room for; an empty hand on the Bed Hatch SHALL give the Humus; sneaking with an empty hand on the Cucurbit SHALL give the rot back and reset the batch. The Venter Equinus SHALL have no GUI.
 
 #### Scenario: Rot by hand
 - **WHEN** a player holding 16 Spider Eyes uses them on the Cucurbit of a formed bed with an empty Cucurbit
@@ -150,6 +154,10 @@ On a formed Venter Equinus, using putrefiable items on the Cucurbit SHALL put in
 #### Scenario: Hay by hand
 - **WHEN** a player holding 10 Hay Bales uses them on a Dung Bed of a formed bed without straw
 - **THEN** 8 Hay Bales go into the bed and the player keeps 2
+
+#### Scenario: Anywhere on the bed
+- **WHEN** a player uses Rotten Flesh on the Bed Hatch and a Hay Bale on the Cucurbit of a formed bed
+- **THEN** the Rotten Flesh goes into the Cucurbit and the Hay Bale into the straw
 
 #### Scenario: Humus by hand
 - **WHEN** a player uses the Bed Hatch with an empty hand and the hatch holds 5 Humus

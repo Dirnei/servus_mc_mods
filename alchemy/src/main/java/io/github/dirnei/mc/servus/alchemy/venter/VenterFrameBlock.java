@@ -5,7 +5,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -13,6 +18,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -62,6 +68,13 @@ public abstract class VenterFrameBlock extends Block {
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return state.getValue(FORMED) ? FORMED_SHAPE : plainShape(state);
+    }
+
+    /** The Journal forms the bed; bedding and rot go in, as on every block of the bed. */
+    @Override
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                          Player player, InteractionHand hand, BlockHitResult hitResult) {
+        return VenterStructure.use(stack, level, pos, state, player, hand);
     }
 
     @Override

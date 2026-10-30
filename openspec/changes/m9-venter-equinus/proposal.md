@@ -15,7 +15,7 @@ PLAN.md milestone: Alchemy, Nigredo (M9 prefix), the "Venter Equinus" open point
   - seven **Dung Beds** on the other cells (spruce posts and walls with straw).
 
   Formed, the frame pieces join into one bed with four corner posts and continuous walls. The Cucurbit stands bedded in the straw. Unformed, each block shows a plain model of its own.
-- Putrefaction: rot (item tag `servus_alchemy:putrefiable`: Rotten Flesh, Spider Eye, Poisonous Potato, mushrooms, crops, leaves) goes into the Cucurbit by hand or by item pipe. Humus comes out of the Bed Hatch, by an empty hand or by a pipe or hopper that pulls. Nothing automated inserts at the hatch. The work is slow and runs in big batches.
+- Putrefaction: rot (item tag `servus_alchemy:putrefiable`: Rotten Flesh, Spider Eye, Poisonous Potato, mushrooms, crops except Wheat, leaves) goes into the Cucurbit by hand or by item pipe. Humus comes out of the Bed Hatch, by an empty hand or by a pipe or hopper that pulls. Nothing automated inserts at the hatch. The work is slow and runs in big batches.
   - The recipe is a datapack recipe of type `servus_alchemy:putrefaction`: a counted ingredient, the result, the time in a warm bed and the time in a cold bed. Example: 8 rot give 1 Humus in 60 s in fresh straw, or 240 s in an empty bed.
   - The Cucurbit holds a large store of rot (machine stats, example 256 items) and the hatch holds one stack of Humus.
   - No power, no fuel, no GUI.

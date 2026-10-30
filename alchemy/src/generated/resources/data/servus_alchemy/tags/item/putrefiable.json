@@ -5,7 +5,15 @@
     "minecraft:poisonous_potato",
     "minecraft:brown_mushroom",
     "minecraft:red_mushroom",
-    "#c:crops",
+    "#c:crops/beetroot",
+    "#c:crops/cactus",
+    "#c:crops/carrot",
+    "#c:crops/cocoa_bean",
+    "#c:crops/melon",
+    "#c:crops/nether_wart",
+    "#c:crops/potato",
+    "#c:crops/pumpkin",
+    "#c:crops/sugar_cane",
     "#minecraft:leaves"
   ]
 }

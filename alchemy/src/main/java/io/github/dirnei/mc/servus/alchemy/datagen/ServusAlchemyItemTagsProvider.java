@@ -24,6 +24,8 @@ final class ServusAlchemyItemTagsProvider extends ItemTagsProvider {
         tag(OldGnome.TRACES).add(ServusAlchemyItems.TINY_PICKAXE.get(), ServusAlchemyItems.RED_FELT_SCRAP.get(),
                 ServusAlchemyItems.SALT_OFFERING.get());
         tag(PutrefactionRecipe.PUTREFIABLE).add(Items.ROTTEN_FLESH, Items.SPIDER_EYE, Items.POISONOUS_POTATO, Items.BROWN_MUSHROOM,
-                Items.RED_MUSHROOM).addTag(Tags.Items.CROPS).addTag(ItemTags.LEAVES);
+                Items.RED_MUSHROOM).addTags(Tags.Items.CROPS_BEETROOT, Tags.Items.CROPS_CACTUS, Tags.Items.CROPS_CARROT, Tags.Items.CROPS_COCOA_BEAN,
+                        Tags.Items.CROPS_MELON, Tags.Items.CROPS_NETHER_WART, Tags.Items.CROPS_POTATO, Tags.Items.CROPS_PUMPKIN,
+                        Tags.Items.CROPS_SUGAR_CANE, ItemTags.LEAVES);
     }
 }

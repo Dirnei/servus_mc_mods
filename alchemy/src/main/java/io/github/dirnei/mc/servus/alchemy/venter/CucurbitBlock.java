@@ -2,7 +2,6 @@ package io.github.dirnei.mc.servus.alchemy.venter;
 
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.alchemy.PlayerItems;
-import io.github.dirnei.mc.servus.alchemy.journal.ParacelsusJournalItem;
 import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -93,26 +92,11 @@ public class CucurbitBlock extends BaseEntityBlock {
                 : createTickerHelper(type, ServusAlchemyBlockEntities.VENTER_EQUINUS.get(), VenterEquinusBlockEntity::serverTick);
     }
 
-    /** The Journal forms the bed; rot goes into the gourd of a formed bed. */
+    /** The Journal forms the bed; bedding and rot go in, as on every block of the bed. */
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                           Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (!(level.getBlockEntity(pos) instanceof VenterEquinusBlockEntity venter)) {
-            return InteractionResult.TRY_WITH_EMPTY_HAND;
-        }
-        if (stack.getItem() instanceof ParacelsusJournalItem) {
-            if (!level.isClientSide()) {
-                VenterStructure.tryForm(level, pos, player);
-            }
-            return InteractionResult.SUCCESS;
-        }
-        if (!state.getValue(FORMED) || !venter.putrefiable(stack)) {
-            return InteractionResult.TRY_WITH_EMPTY_HAND;
-        }
-        if (!level.isClientSide()) {
-            player.setItemInHand(hand, venter.insertRot(stack));
-        }
-        return InteractionResult.SUCCESS;
+        return VenterStructure.use(stack, level, pos, state, player, hand);
     }
 
     /** Sneaking with an empty hand takes the rot back and starts the batch over. */

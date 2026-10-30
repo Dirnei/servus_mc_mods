@@ -338,6 +338,36 @@ public final class VenterGameTests {
         helper.succeed();
     }
 
+    /** The Journal forms the bed from a Dung Bed and from the Bed Hatch too. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void journalFormsFromAnyBlock(GameTestHelper helper) {
+        for (BlockPos clicked : List.of(bed(), hatch())) {
+            build(helper, Facing.NORTH);
+            CalcinerGameTests.use(helper, CalcinerGameTests.player(helper, new ItemStack(ServusAlchemyItems.PARACELSUS_JOURNAL.get())), clicked);
+            assertFormed(helper, true);
+            for (Cell cell : VenterLayout.cells()) {
+                helper.setBlock(VenterStructure.pos(CUCURBIT, cell, Facing.NORTH), Blocks.AIR);
+            }
+        }
+        helper.succeed();
+    }
+
+    /** Rot and Hay Bales go in wherever on the bed the player clicks; Wheat is no rot. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void rotAndHayAnywhereOnTheBed(GameTestHelper helper) {
+        VenterEquinusBlockEntity venter = venter(helper);
+        Player player = CalcinerGameTests.player(helper, flesh(8));
+        CalcinerGameTests.use(helper, player, hatch());
+        helper.assertTrue(venter.rotCount() == 8, "Rotten Flesh on the hatch goes into the Cucurbit, " + venter.rotCount());
+        player.setItemInHand(InteractionHand.MAIN_HAND, hay(3));
+        CalcinerGameTests.use(helper, player, CUCURBIT);
+        helper.assertTrue(venter.bales() == 3, "Hay Bales on the Cucurbit go into the straw, " + venter.bales());
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.WHEAT, 4));
+        CalcinerGameTests.use(helper, player, bed());
+        helper.assertTrue(venter.rotCount() == 8 && player.getItemInHand(InteractionHand.MAIN_HAND).getCount() == 4, "Wheat is no rot");
+        helper.succeed();
+    }
+
     /** Sneaking with an empty hand on the Cucurbit gives the rot back. */
     @ServusGameTest(timeoutTicks = 20)
     public static void sneakTakesRotBack(GameTestHelper helper) {
