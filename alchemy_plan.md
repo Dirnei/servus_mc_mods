@@ -27,7 +27,7 @@ Numbers are examples. The real ones live in datapack JSON.
 
 | Stage | Verb | Made in this stage | New | Athanor ring to reach the next stage |
 |---|---|---|---|---|
-| Nigredo | break down | Clay, Bone Meal | Calciner, Purifier, Coagulator, Athanor | Salt Crystal Block |
+| Nigredo | break down | Clay, Bone Meal, Humus, Dirt | Calciner, Purifier, Coagulator, Athanor, Venter Equinus | Salt Crystal Block |
 | Albedo | grow | Iron, Copper | Gnome Hollow, Elixir of Sight, Gnomes | Amethyst Shard |
 | Citrinitas | smelt | Gold, Redstone, Diamond | Principle Dropper, Salamander (Salamander Forge, Receptaculum), trip to the Nether | Crying Obsidian |
 | Rubedo | purify | Netherite | Prelum, trip to the End | none, the end goal |
@@ -40,8 +40,8 @@ Numbers are examples. The real ones live in datapack JSON.
 ```
 
 ### Nigredo: break down
-- Built today: Calciner, Purifier, Coagulator, Athanor.
-- Products: Clay, Bone Meal and the first goods from the principles.
+- Built today: Calciner, Purifier, Coagulator, Athanor, Venter Equinus.
+- Products: Clay, Bone Meal, Humus and Dirt from the Mixer, and the first goods from the principles.
 - Caput Mortuum from the Purifier piles up with no use until Rubedo.
 - Ring: Salt Crystal Blocks.
 

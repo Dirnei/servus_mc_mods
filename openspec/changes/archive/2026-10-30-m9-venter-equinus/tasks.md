@@ -65,7 +65,7 @@ Apply after `m14-mixer` is archived (group 9 needs Foundation's `MixingRecipe`).
 ## 10. Integration
 
 - [x] 10.1 Run the full `gradlew build` and `gradlew test` and the alchemy GameTests, all green; commit the `gradlew :alchemy:runData` output. The game launches with all mods.
-- [ ] 10.2 Play check in game by the user from main:
+- [x] 10.2 Play check in game by the user from main:
   - the bed forms with the hatch on any side;
   - the frame reads as one bed, and nothing flickers from any angle while the straw level drops;
   - rot and Hay Bales go in by hand and pipe, and Humus comes out of the hatch;

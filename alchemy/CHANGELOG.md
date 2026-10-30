@@ -1,5 +1,12 @@
 # Servus: Alchemy changelog
 
+## Unreleased
+
+### Added
+- The Venter Equinus: a warm straw bed whose Cucurbit putrefies rot into Humus. Form it with the Journal and fill it by clicking any of its blocks.
+- Grass Seed from the Athanor turns Dirt into Grass.
+- Dirt from Sand, Clay and Humus or Bone Meal in the Mixer.
+
 ## 0.4.0-alpha
 
 ### Added
