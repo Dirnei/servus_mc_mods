@@ -76,11 +76,16 @@ public class HandheldItem extends Item {
         return InteractionResult.SUCCESS;
     }
 
-    /** The zonable bay the player looks at within the scan range, or null. */
-    public static StorageNodeBlockEntity aimedBay(Player player) {
+    /** The block the player looks at within the scan range; a miss when there is none. */
+    public static BlockHitResult aim(Player player) {
         Vec3 eye = player.getEyePosition();
         Vec3 end = eye.add(player.getViewVector(1.0F).scale(ShuttlesStatsManager.INSTANCE.handheldScanRange()));
-        BlockHitResult hit = player.level().clip(new ClipContext(eye, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
+        return player.level().clip(new ClipContext(eye, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
+    }
+
+    /** The zonable bay the player looks at within the scan range, or null. */
+    public static StorageNodeBlockEntity aimedBay(Player player) {
+        BlockHitResult hit = aim(player);
         if (hit.getType() != HitResult.Type.BLOCK) {
             return null;
         }

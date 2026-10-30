@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
 import java.util.List;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -14,7 +15,6 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -27,7 +27,8 @@ import org.joml.Vector3fc;
  * The handheld's effects in the world: a red scan line from the hand to the
  * aimed bay while use is held, a fading green or red box over a scanned
  * shelf, and a yellow tint with an outline, seen through blocks, over the
- * shelves a FIND lit up. Each effect covers a whole shelf as one box.
+ * shelves a FIND lit up while a handheld is in hand. Each effect covers a
+ * whole shelf as one box.
  *
  * <p>No two faces share a plane where they overlap: a flash stands
  * {@link #FLASH_OFFSET} off the shelf's faces, the tint {@link #TINT_OUT} and
@@ -70,8 +71,9 @@ public final class HandheldRenderer {
         }
         long now = level.getGameTime();
         List<ClientHandheld.Flash> flashes = ClientHandheld.flashes(now);
-        List<AABB> glowing = ClientHandheld.glowing(now);
-        BlockHitResult laserHit = laserTarget(minecraft, player);
+        boolean holding = !ClientHandheld.held(player).isEmpty();
+        List<AABB> glowing = holding ? ClientHandheld.glowing(now) : List.of();
+        BlockHitResult laserHit = holding ? laserTarget(minecraft, player) : null;
         if (flashes.isEmpty() && glowing.isEmpty() && laserHit == null) {
             return;
         }
@@ -105,14 +107,12 @@ public final class HandheldRenderer {
         }
     }
 
-    /** The bay the scan line points at: use is held with a handheld and the crosshair is on a bay. */
+    /** Where the scan line points: use is held and the player aims at a bay within the scan range. */
     private static BlockHitResult laserTarget(Minecraft minecraft, LocalPlayer player) {
-        if (!minecraft.options.keyUse.isDown() || ClientHandheld.held(player).isEmpty()
-                || !(minecraft.hitResult instanceof BlockHitResult hit) || hit.getType() != HitResult.Type.BLOCK
-                || ClientHandheld.aimedBay() == null) {
+        if (!minecraft.options.keyUse.isDown() || ClientHandheld.aimedBay() == null) {
             return null;
         }
-        return hit;
+        return HandheldItem.aim(player);
     }
 
     /** The six faces of the box, seen from outside. */
