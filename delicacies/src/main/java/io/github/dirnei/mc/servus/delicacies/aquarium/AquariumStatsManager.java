@@ -49,6 +49,7 @@ public final class AquariumStatsManager extends SimpleJsonResourceReloadListener
                 decimal(json, "feed_per_fish"), integer(json, "starve_after"), decimal(json, "starve_loss"),
                 decimal(json, "dirt_per_fish"), decimal(json, "dirt_per_feed"), decimal(json, "dirt_per_bucket"),
                 decimal(json, "dying_below"), decimal(json, "dirty_loss"), integer(json, "filter_rate"),
+                integer(json, "filter_buckets"), integer(json, "murky_per_dirt"), integer(json, "murky_capacity"),
                 integer(json, "fe_per_tank_block"), integer(json, "fe_per_lid"), integer(json, "energy_buffer_ticks"),
                 integer(json, "keep_default"), integer(json, "drawn_cap"));
     }

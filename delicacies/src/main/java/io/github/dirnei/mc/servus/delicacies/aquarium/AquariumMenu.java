@@ -31,6 +31,8 @@ public class AquariumMenu extends AbstractContainerMenu {
     public static final int FEED_X = 8;
     public static final int FILTER_X = 34;
     public static final int CATCH_X = 116;
+    public static final int MURKY_X = 66;
+    public static final int MURKY_WIDTH = 40;
     public static final int INVENTORY_Y = 116;
 
     private static final int DATA_STOCK = 0;
@@ -40,7 +42,9 @@ public class AquariumMenu extends AbstractContainerMenu {
     private static final int DATA_KEEP = 4;
     private static final int DATA_AUTO_CATCH = 5;
     private static final int DATA_SPECIES = 6;
-    private static final int DATA_COUNT = 7;
+    private static final int DATA_MURKY = 7;
+    private static final int DATA_MURKY_CAPACITY = 8;
+    private static final int DATA_COUNT = 9;
     /** Container data travels as shorts. */
     private static final int MAX_DATA = Short.MAX_VALUE;
     /** The master sits in a corner of a possibly large aquarium, so the GUI stays open farther than a chest's. */
@@ -121,6 +125,15 @@ public class AquariumMenu extends AbstractContainerMenu {
         return data.get(DATA_AUTO_CATCH) == 1;
     }
 
+    /** mB of Murky Water waiting to be drained. */
+    public int murky() {
+        return data.get(DATA_MURKY);
+    }
+
+    public int murkyCapacity() {
+        return data.get(DATA_MURKY_CAPACITY);
+    }
+
     public @Nullable FishSpecies species() {
         return FishSpecies.byOrdinal(data.get(DATA_SPECIES) - 1);
     }
@@ -137,6 +150,8 @@ public class AquariumMenu extends AbstractContainerMenu {
         data.set(DATA_KEEP, Math.min(MAX_DATA, state.keep(AquariumStatsManager.INSTANCE.stats())));
         data.set(DATA_AUTO_CATCH, state.autoCatch() ? 1 : 0);
         data.set(DATA_SPECIES, state.species() == null ? 0 : state.species().ordinal() + 1);
+        data.set(DATA_MURKY, Math.min(MAX_DATA, state.murky()));
+        data.set(DATA_MURKY_CAPACITY, Math.min(MAX_DATA, AquariumStatsManager.INSTANCE.stats().murkyCapacity()));
     }
 
     @Override

@@ -10,15 +10,16 @@ class AquariumCycleTest {
     private static final AquariumStats STATS = AquariumStats.DEFAULTS;
     private static final double EPSILON = 1e-6;
 
-    /** A powered, fed, clean aquarium with room for {@code capacity} fish and no catch. */
+    /** A powered, fed aquarium without dirt or filter, with room for {@code capacity} fish and no catch. */
     private static AquariumCycle.Input clean(double stock, int capacity) {
-        return new AquariumCycle.Input(stock, (long) capacity * STATS.waterPerFish(), 0, 64, 0, 512, 1, 0, false, 0);
+        return new AquariumCycle.Input(stock, (long) capacity * STATS.waterPerFish(), 0, 64, 0, 0, 1, 0, false, 0, 8000);
     }
 
     @Test
     void growsTowardCapacity() {
         AquariumCycle.Output out = AquariumCycle.run(clean(20, 100), STATS);
-        assertEquals(21.92, out.stock(), 1e-3);
+        double quality = AquariumCycle.quality(20 * STATS.dirtPerFish() + 2 * STATS.dirtPerFeed(), 400_000, STATS);
+        assertEquals(20 + STATS.breedRate() * quality * 20 * 0.8, out.stock(), EPSILON);
         assertEquals(0, out.died(), EPSILON);
     }
 
@@ -36,7 +37,7 @@ class AquariumCycleTest {
 
     @Test
     void unfedFishDoNotGrow() {
-        AquariumCycle.Input in = new AquariumCycle.Input(20, 100L * STATS.waterPerFish(), 0, 0, 0, 0, 1, 0, false, 0);
+        AquariumCycle.Input in = new AquariumCycle.Input(20, 100L * STATS.waterPerFish(), 0, 0, 0, 0, 1, 0, false, 0, 8000);
         AquariumCycle.Output out = AquariumCycle.run(in, STATS);
         assertEquals(20, out.stock(), EPSILON);
         assertEquals(1, out.unfedCycles());
@@ -45,7 +46,7 @@ class AquariumCycleTest {
 
     @Test
     void starvingAfterTheLimitLosesAShare() {
-        AquariumCycle.Input in = new AquariumCycle.Input(40, 100L * STATS.waterPerFish(), 0, 0, 3, 0, 1, 0, false, 0);
+        AquariumCycle.Input in = new AquariumCycle.Input(40, 100L * STATS.waterPerFish(), 0, 0, 3, 0, 1, 0, false, 0, 8000);
         AquariumCycle.Output out = AquariumCycle.run(in, STATS);
         assertEquals(4, out.unfedCycles());
         assertEquals(38, out.stock(), EPSILON);
@@ -54,7 +55,7 @@ class AquariumCycleTest {
 
     @Test
     void fishAndFeedAddDirt() {
-        AquariumCycle.Input in = new AquariumCycle.Input(32, 128_000, 0, 64, 0, 0, 0, 0, false, 0);
+        AquariumCycle.Input in = new AquariumCycle.Input(32, 128_000, 0, 64, 0, 0, 0, 0, false, 0, 8000);
         AquariumCycle.Output out = AquariumCycle.run(in, STATS);
         assertEquals(4, out.feedUsed());
         assertEquals(32 * 0.5 + 4, out.dirt(), EPSILON);
@@ -72,7 +73,7 @@ class AquariumCycleTest {
     void dirtyWaterKillsAShare() {
         long water = 400_000;
         double dirt = water / 1000.0 * STATS.dirtPerBucket() * 0.85 - 50 * 0.5 - 5;
-        AquariumCycle.Input in = new AquariumCycle.Input(50, water, dirt, 64, 0, 0, 0, 0, false, 0);
+        AquariumCycle.Input in = new AquariumCycle.Input(50, water, dirt, 64, 0, 0, 0, 0, false, 0, 8000);
         AquariumCycle.Output out = AquariumCycle.run(in, STATS);
         assertEquals(0.15, out.quality(), 1e-3);
         assertEquals(45, out.stock(), EPSILON);
@@ -80,7 +81,7 @@ class AquariumCycleTest {
 
     @Test
     void drainingClampsToTheNewCapacity() {
-        AquariumCycle.Input in = new AquariumCycle.Input(60, 120_000, 0, 64, 0, 0, 1, 0, false, 0);
+        AquariumCycle.Input in = new AquariumCycle.Input(60, 120_000, 0, 64, 0, 0, 1, 0, false, 0, 8000);
         AquariumCycle.Output out = AquariumCycle.run(in, STATS);
         assertEquals(30, out.stock(), EPSILON);
         assertEquals(30, out.died(), EPSILON);
@@ -88,7 +89,7 @@ class AquariumCycleTest {
 
     @Test
     void noWaterKillsAll() {
-        AquariumCycle.Input in = new AquariumCycle.Input(12, 0, 0, 64, 0, 0, 1, 0, false, 0);
+        AquariumCycle.Input in = new AquariumCycle.Input(12, 0, 0, 64, 0, 0, 1, 0, false, 0, 8000);
         AquariumCycle.Output out = AquariumCycle.run(in, STATS);
         assertEquals(0, out.stock(), EPSILON);
         assertEquals(12, out.died(), EPSILON);
@@ -96,27 +97,63 @@ class AquariumCycleTest {
 
     @Test
     void filterCleansUpToItsRateAndReportsWear() {
-        AquariumCycle.Input light = new AquariumCycle.Input(24, 400_000, 0, 64, 0, 512, 1, 0, false, 0);
+        AquariumCycle.Input light = new AquariumCycle.Input(24, 400_000, 0, 64, 0, 512, 1, 0, false, 0, 8000);
         AquariumCycle.Output out = AquariumCycle.run(light, STATS);
         assertEquals(15, out.filterUsed());
         assertEquals(0, out.dirt(), EPSILON);
         assertEquals(1, out.quality(), EPSILON);
 
-        AquariumCycle.Input heavy = new AquariumCycle.Input(24, 400_000, 100, 64, 0, 512, 1, 0, false, 0);
+        AquariumCycle.Input heavy = new AquariumCycle.Input(24, 16_000, 100, 64, 0, 512, 1, 0, false, 0, 8000);
         AquariumCycle.Output worn = AquariumCycle.run(heavy, STATS);
         assertEquals(40, worn.filterUsed());
         assertEquals(75, worn.dirt(), EPSILON);
     }
 
     @Test
+    void filterRateGrowsWithTheTank() {
+        assertEquals(40, AquariumCycle.filterLimit(4_000, STATS), EPSILON);
+        assertEquals(40, AquariumCycle.filterLimit(16_000, STATS), EPSILON);
+        assertEquals(100, AquariumCycle.filterLimit(40_000, STATS), EPSILON);
+        AquariumCycle.Input big = new AquariumCycle.Input(24, 64_000, 500, 64, 0, 512, 1, 0, false, 0, 100_000);
+        assertEquals(160, AquariumCycle.run(big, STATS).filterUsed());
+    }
+
+    @Test
+    void cleanedDirtTurnsTankWaterIntoMurkyWater() {
+        AquariumCycle.Input in = new AquariumCycle.Input(4, 16_000, 100, 64, 0, 512, 1, 0, false, 0, 8000);
+        AquariumCycle.Output out = AquariumCycle.run(in, STATS);
+        assertEquals(40 * STATS.murkyPerDirt(), out.murkyMade());
+        double left = 100 + 4 * STATS.dirtPerFish() + 1 * STATS.dirtPerFeed() - 40;
+        assertEquals(AquariumCycle.quality(left, 15_000, STATS), out.quality(), EPSILON);
+    }
+
+    @Test
+    void fullMurkyTankStopsTheFilter() {
+        AquariumCycle.Input full = new AquariumCycle.Input(24, 16_000, 100, 64, 0, 512, 1, 0, false, 0, 0);
+        AquariumCycle.Output out = AquariumCycle.run(full, STATS);
+        assertEquals(0, out.filterUsed());
+        assertEquals(0, out.murkyMade());
+        AquariumCycle.Input almost = new AquariumCycle.Input(24, 16_000, 100, 64, 0, 512, 1, 0, false, 0, 260);
+        assertEquals(10, AquariumCycle.run(almost, STATS).filterUsed());
+    }
+
+    @Test
+    void noFilterLetsTheQualitySink() {
+        AquariumCycle.Input in = new AquariumCycle.Input(24, 16_000, 0, 64, 0, 0, 1, 0, false, 0, 8000);
+        AquariumCycle.Output out = AquariumCycle.run(in, STATS);
+        assertEquals(0, out.murkyMade());
+        assertTrue(out.quality() < 1);
+    }
+
+    @Test
     void filterSpendsNoMoreThanItHasLeft() {
-        AquariumCycle.Input in = new AquariumCycle.Input(24, 400_000, 100, 64, 0, 10, 1, 0, false, 0);
+        AquariumCycle.Input in = new AquariumCycle.Input(24, 400_000, 100, 64, 0, 10, 1, 0, false, 0, 8000);
         assertEquals(10, AquariumCycle.run(in, STATS).filterUsed());
     }
 
     @Test
     void noPowerStopsBreedingAndCleaningButNotFeedingOrDirt() {
-        AquariumCycle.Input in = new AquariumCycle.Input(20, 400_000, 0, 64, 0, 512, 0, 0, false, 0);
+        AquariumCycle.Input in = new AquariumCycle.Input(20, 400_000, 0, 64, 0, 512, 0, 0, false, 0, 8000);
         AquariumCycle.Output out = AquariumCycle.run(in, STATS);
         assertEquals(20, out.stock(), EPSILON);
         assertEquals(0, out.filterUsed());
@@ -126,15 +163,16 @@ class AquariumCycleTest {
 
     @Test
     void halfPowerHalvesBreedingAndCleaning() {
-        AquariumCycle.Input in = new AquariumCycle.Input(20, 400_000, 100, 64, 0, 512, 0.5, 0, false, 0);
+        AquariumCycle.Input in = new AquariumCycle.Input(20, 400_000, 0, 64, 0, 0, 0.5, 0, false, 0, 8000);
         AquariumCycle.Output out = AquariumCycle.run(in, STATS);
-        assertEquals(20, out.filterUsed());
         assertTrue(out.stock() > 20 && out.stock() < 21.92);
+        AquariumCycle.Input dirty = new AquariumCycle.Input(4, 16_000, 100, 64, 0, 512, 0.5, 0, false, 0, 8000);
+        assertEquals(20, AquariumCycle.run(dirty, STATS).filterUsed());
     }
 
     @Test
     void catchTakesWholeFishAboveTheKeepLevel() {
-        AquariumCycle.Input in = new AquariumCycle.Input(20, 400_000, 0, 64, 0, 0, 0, 8, true, 64);
+        AquariumCycle.Input in = new AquariumCycle.Input(20, 400_000, 0, 64, 0, 0, 0, 8, true, 64, 8000);
         AquariumCycle.Output out = AquariumCycle.run(in, STATS);
         assertEquals(12, out.caught());
         assertEquals(8, out.stock(), EPSILON);
@@ -142,7 +180,7 @@ class AquariumCycleTest {
 
     @Test
     void catchIsLimitedByRoom() {
-        AquariumCycle.Input in = new AquariumCycle.Input(20, 400_000, 0, 64, 0, 0, 0, 8, true, 5);
+        AquariumCycle.Input in = new AquariumCycle.Input(20, 400_000, 0, 64, 0, 0, 0, 8, true, 5, 8000);
         AquariumCycle.Output out = AquariumCycle.run(in, STATS);
         assertEquals(5, out.caught());
         assertEquals(15, out.stock(), EPSILON);
@@ -150,7 +188,7 @@ class AquariumCycleTest {
 
     @Test
     void autoCatchOffKeepsEveryFish() {
-        AquariumCycle.Input in = new AquariumCycle.Input(20, 400_000, 0, 64, 0, 0, 0, 8, false, 64);
+        AquariumCycle.Input in = new AquariumCycle.Input(20, 400_000, 0, 64, 0, 0, 0, 8, false, 64, 8000);
         AquariumCycle.Output out = AquariumCycle.run(in, STATS);
         assertEquals(0, out.caught());
         assertEquals(20, out.stock(), EPSILON);

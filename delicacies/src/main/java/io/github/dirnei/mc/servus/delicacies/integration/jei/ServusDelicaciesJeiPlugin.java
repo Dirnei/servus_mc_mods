@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.delicacies.integration.jei;
 
 import io.github.dirnei.mc.servus.delicacies.ServusDelicaciesIds;
 import io.github.dirnei.mc.servus.delicacies.board.CuttingRecipe;
+import io.github.dirnei.mc.servus.delicacies.client.AquariumScreen;
 import io.github.dirnei.mc.servus.delicacies.cooking.BakingRecipe;
 import io.github.dirnei.mc.servus.delicacies.cooking.PanRecipe;
 import io.github.dirnei.mc.servus.delicacies.cooking.PotRecipe;
@@ -12,12 +13,17 @@ import io.github.dirnei.mc.servus.delicacies.registry.ServusDelicaciesRecipes;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.gui.builder.IClickableIngredientFactory;
+import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.runtime.IClickableIngredient;
+import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import java.util.Optional;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -44,6 +50,19 @@ public final class ServusDelicaciesJeiPlugin implements IModPlugin {
     @Override
     public Identifier getPluginUid() {
         return UID;
+    }
+
+    @Override
+    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
+        registration.addGuiContainerHandler(AquariumScreen.class, new IGuiContainerHandler<AquariumScreen>() {
+            @Override
+            public Optional<? extends IClickableIngredient<?>> getClickableIngredientUnderMouse(IClickableIngredientFactory factory,
+                                                                                              AquariumScreen screen, double mouseX,
+                                                                                              double mouseY) {
+                return screen.murkyGaugeAt(mouseX, mouseY)
+                        .flatMap(gauge -> factory.createBuilder(NeoForgeTypes.FLUID_STACK, gauge.stack()).buildWithArea(gauge.area()));
+            }
+        });
     }
 
     @Override

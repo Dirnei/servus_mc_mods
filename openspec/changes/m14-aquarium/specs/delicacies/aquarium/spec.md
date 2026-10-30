@@ -121,7 +121,7 @@ Each cycle every fish SHALL eat feed from data (example 0.1 items per fish), tak
 Each cycle the fish SHALL add dirt (example 0.5 per fish) and eaten feed SHALL add dirt (example 1 per item). Quality SHALL be one minus the dirt over the water in buckets times the dirt a bucket holds at zero quality (example 10). Quality SHALL slow breeding in proportion, and below a threshold (example 20%) the aquarium SHALL lose a share of its fish each cycle (example 10%).
 
 #### Scenario: Crowded tank gets dirty
-- **WHEN** a 128 bucket aquarium with 32 fish has no filter and no water exchange
+- **WHEN** a 128 bucket aquarium with 32 fish has no filter
 - **THEN** its quality drops by about 1.5% per cycle
 
 #### Scenario: Dirty water kills
@@ -129,25 +129,40 @@ Each cycle the fish SHALL add dirt (example 0.5 per fish) and eaten feed SHALL a
 - **THEN** it holds 45 fish afterwards
 
 ### Requirement: Carbon Filter
-The filter slot SHALL accept only items the Foundation filter API can clean with. Each powered cycle the filter SHALL remove dirt up to its rate from data (example 40) and wear by the dirt it removed. A worn out filter SHALL be replaced by its spent item, which moves to the catch slots.
+The filter slot SHALL accept only items the Foundation filter API can clean with. Each powered cycle the filter SHALL remove dirt up to its rate from data (example 40 for every 16 buckets of water, at least 40) and wear by the dirt it removed. A worn out filter SHALL be replaced by its spent item, which moves to the catch slots. Without a filter no dirt SHALL leave the water.
 
 #### Scenario: Filter keeps a light stock clean
 - **WHEN** an aquarium makes 14 dirt per cycle and holds a fresh Carbon Filter
 - **THEN** its quality stays at 100% and the filter loses 14 durability per cycle
+
+#### Scenario: Filter rate grows with the tank
+- **WHEN** a 64 bucket aquarium with a fresh Carbon Filter holds 500 dirt
+- **THEN** the filter removes 160 dirt that cycle
 
 #### Scenario: Filter wears out
 - **WHEN** the filter's last durability is used
 - **THEN** the filter slot is empty and a spent filter lies in a catch slot
 
 ### Requirement: Murky Water
-Delicacies SHALL add the fluid Murky Water with a bucket. Draining an aquarium through a part SHALL take water from its tank and hand it out as Murky Water, removing dirt in the same share as the water drained. Draining the tank through its glass SHALL remove water but no dirt. Water filled in through a part or the glass SHALL dilute the dirt.
+Delicacies SHALL add the fluid Murky Water with a bucket. An aquarium SHALL hold Murky Water in its own tank that is not drawn in the world (example 8,000 mB) and shown as a gauge in the GUI. For every dirt point the filter removes, the aquarium SHALL move water from its tank into that Murky Water tank (example 25 mB). The filter SHALL remove no more dirt than the room in the Murky Water tank allows.
 
-#### Scenario: Exchange through a part
-- **WHEN** a pipe drains 10 buckets through a Floor block of a 100 bucket aquarium with 200 dirt
-- **THEN** the pipe receives 10,000 mB of Murky Water and the aquarium keeps 180 dirt
+#### Scenario: The filter makes Murky Water
+- **WHEN** the filter of a 192 bucket aquarium removes 12 dirt in a cycle
+- **THEN** the tank holds 300 mB less water and the aquarium holds 300 mB more Murky Water
+
+#### Scenario: Full Murky Water tank stops the filter
+- **WHEN** an aquarium's Murky Water tank is full at a cycle
+- **THEN** the filter removes no dirt and the quality falls
+
+### Requirement: Draining the aquarium
+Draining a part SHALL hand out only the aquarium's Murky Water and never the tank's water. Draining the tank through its glass SHALL remove water but no dirt. Water filled in through a part or the glass SHALL dilute the dirt.
+
+#### Scenario: Parts drain only Murky Water
+- **WHEN** a pipe drains 10 buckets through a Floor block of an aquarium holding 3,000 mB of Murky Water
+- **THEN** the pipe receives 3,000 mB of Murky Water and the tank's water and dirt are unchanged
 
 #### Scenario: Draining the glass does not clean
-- **WHEN** 10 buckets are drained through the tank glass of the same aquarium
+- **WHEN** 10 buckets are drained through the tank glass of a 100 bucket aquarium with 200 dirt
 - **THEN** it keeps 200 dirt in 90 buckets and its quality drops
 
 #### Scenario: Parts refuse other fluids

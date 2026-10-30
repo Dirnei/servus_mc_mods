@@ -40,16 +40,15 @@ Starting from the clicked part: a Floor finds the tank block above it, a Lid the
 - Unforming drops the slots and `floor(stock)` raw fish at the master.
 
 ### Cycle (pure: `aquarium/AquariumCycle`)
-Input record: stock, capacity, dirt, water buckets, feed available, unfed cycles, filter durability left, powered share (0..1), keep level, auto catch, catch room, stats. Output record: new stock, dirt, feed used, unfed cycles, filter points used, fish caught, fish died. Order per cycle:
-1. capacity = water mB / `water_per_fish`.
-2. feed: need = ceil(whole fish x `feed_per_fish`) items; fed when available >= need (or stock 0). Unfed fish eat nothing that cycle.
+Input record: stock, water mB, dirt, feed available, unfed cycles, filter durability left, powered share (0..1), keep level, auto catch, catch room, Murky Water room. Output record: new stock, dirt, feed used, unfed cycles, filter points used, fish caught, fish died, quality, Murky Water made. Order per cycle:
+1. feed: need = ceil(whole fish x `feed_per_fish`) items; fed when available >= need (or stock 0). Unfed fish eat nothing that cycle.
 3. dirt += stock x `dirt_per_fish` + eaten x `dirt_per_feed`.
-4. filter (only for the powered share): cleaned = min(dirt, `filter_rate` x share, durability).
-5. quality = 1 - dirt / (buckets x `dirt_per_bucket`), clamped 0..1.
+4. filter (only for the powered share): limit = `filter_rate` x max(1, buckets / `filter_buckets`); cleaned = min(dirt, limit x share, durability, Murky room / `murky_per_dirt`, water / `murky_per_dirt`). Murky made = cleaned x `murky_per_dirt`; that much water leaves the tank.
+5. capacity = remaining water / `water_per_fish`; quality = 1 - dirt / (buckets x `dirt_per_bucket`), clamped 0..1.
 6. deaths: no water, all; quality < `dying_below`, `dirty_loss`; unfed cycles > `starve_after`, `starve_loss`; then clamp to capacity.
 7. growth when fed, stock >= 2, quality >= `dying_below`: stock += `breed_rate` x quality x share x stock x (1 - stock / capacity).
 8. catch when auto catch: floor(stock) - keep, limited by catch room.
-Water exchange is not part of the cycle: the part's fluid handler drains water as Murky Water at once and removes `dirt x drained / water` (pure helper `AquariumWater.dirtTaken`). Draining through the glass needs no code: dirt stays, the water shrinks, quality falls.
+The master drains the Murky made from the tank through `TankNetwork.drain` and adds what came out to its Murky Water amount (`AquariumMasterState.murky`, saved, cleared on unform: Murky Water is lost with the aquarium). Dirt leaves only through the filter. Draining through the glass needs no code: dirt stays, the water shrinks, quality falls. The Murky Water tank has no block or model of its own.
 
 ### Power
 `MachineEnergyStorage` buffer on the master (size from data, example 4 x the cost per tick), offered as `Capabilities.Energy.BLOCK` on every Floor part of a formed aquarium. Cost per tick = tank blocks x `fe_per_tank_block` + lid slabs x `fe_per_lid` (pure `AquariumPower.cost`). Each tick: draw the cost if stored, count powered ticks; the cycle gets powered ticks / cycle ticks as its share, then the counters reset. The lit state of the lid follows "powered last tick", synced as a block state property `LIT` on Lid slabs (light emission 12 when lit), changed only when it flips.
@@ -58,7 +57,7 @@ Water exchange is not part of the cycle: the part's fluid handler drains water a
 Raw fish go into the catch slots first; a worn out filter then moves there too, and stays in the filter slot (cleaning nothing) until a catch slot has room. Pouring a fish of the other species into an aquarium with no whole fish starts the new species at one fish.
 
 ### Item and fluid handlers
-One `ResourceHandler<ItemResource>` per aquarium on the master, offered by every part: slot 0 feed (insert, `c:fish_feed` only), slot 1 filter (insert, filter API items only), slots 2 to 4 catch (extract only). One `ResourceHandler<FluidResource>`: insert water only (fills the tank through `TankNetwork.fill`), extract only Murky Water (drains water from the tank, hands out the same amount of Murky Water, removes dirt). Capabilities registered in `RegisterCapabilitiesEvent` for both part block entities; unformed parts return null.
+One `ResourceHandler<ItemResource>` per aquarium on the master, offered by every part: slot 0 feed (insert, `c:fish_feed` only), slot 1 filter (insert, filter API items only), slots 2 to 4 catch (extract only). One `ResourceHandler<FluidResource>`: insert water only (fills the tank through `TankNetwork.fill`), extract only Murky Water from the master's Murky Water amount (one tank, capacity `murky_capacity`); the tank's water never leaves through a part. Capabilities registered in `RegisterCapabilitiesEvent` for both part block entities; unformed parts return null.
 
 ### Buckets
 `useItemOn` of both parts: fish bucket (`Items.COD_BUCKET`, `Items.SALMON_BUCKET`), water bucket, else the GUI. A fish bucket on the tank glass is caught by a `PlayerInteractEvent.RightClickBlock` listener (`AquariumTankClicks`), since the tank block is Foundation's: it walks down the tank column to the Floor below and pours into that aquarium, cancelling the tank's own bucket use. The species is an enum `FishSpecies { COD, SALMON }` with bucket, raw fish item and model layer; new species are a later change.
@@ -68,7 +67,7 @@ The rules repeat `FluidTankItem`'s layer placement in Delicacies, since this cha
 `AquariumLidItem.useOn`: on the top face of a tank block, not sneaking, uses `boxAt` for the footprint above `maxY`; same rules as `FluidTankItem` (enough items or creative, all spots free), else normal slab placement.
 
 ### GUI
-`AquariumMenu` (first Delicacies menu, registered with `IMenuTypeExtension.create`, opened with the master position) with the 5 slots plus player inventory, status synced through `ContainerData` (stock x 10, capacity, quality in tenths, powered, keep level, auto catch, species). `AquariumScreen` draws the status lines, the auto catch toggle and the keep level with the Foundation one line number stepper. Changes go to the server as `AquariumSettingsPayload(pos, autoCatch, keep)`.
+`AquariumMenu` (first Delicacies menu, registered with `IMenuTypeExtension.create`, opened with the master position) with the 5 slots plus player inventory, status synced through `ContainerData` (stock, capacity, quality, powered, keep level, auto catch, species, Murky Water and its capacity). `AquariumScreen` draws the status lines, a Murky Water `FluidGauge` between the filter and catch slots (tooltip with amount; the JEI plugin's `IGuiContainerHandler` makes it a clickable `NeoForgeTypes.FLUID_STACK` ingredient), the auto catch toggle and the keep level with the Foundation one line number stepper. Changes go to the server as `AquariumSettingsPayload(pos, autoCatch, keep)`.
 
 ### Rendering
 - `AquariumRenderer` on the master's block entity. Its render state carries tank box, water height (tank content over capacity times height), species, drawn count, quality, deaths since last frame, game time.
@@ -87,12 +86,13 @@ Z-fighting check (CLAUDE.md models and textures):
 - Lid model: one box 0..16 x 0..4 x 0..16 drawn as two elements of the same box with disjoint faces: the body has the top and the four sides, the panel only the down face (light emission 15 in the lit model), so the panel glows without the rest and no face is drawn twice. The top face carries no cullface, since it lies at 4 px, not on the block edge. Floor model: one cube. Fish models are vanilla.
 
 ### Data
-`data/servus_delicacies/aquarium/aquarium.json`, loaded by `AquariumStatsManager` (a `SimpleJsonResourceReloadListener` like `KitchenStatsManager`; its 17 optional fields are read from the JSON object by hand, one more than a record codec group takes). The drawn cap is synced to clients in the master's update tag:
+`data/servus_delicacies/aquarium/aquarium.json`, loaded by `AquariumStatsManager` (a `SimpleJsonResourceReloadListener` like `KitchenStatsManager`; its 20 optional fields are read from the JSON object by hand, one more than a record codec group takes). The drawn cap is synced to clients in the master's update tag:
 ```
 { "cycle_ticks": 1200, "water_per_fish": 4000, "breed_rate": 0.12,
   "feed_per_fish": 0.1, "starve_after": 3, "starve_loss": 0.05,
   "dirt_per_fish": 0.5, "dirt_per_feed": 1, "dirt_per_bucket": 10,
   "dying_below": 0.2, "dirty_loss": 0.1, "filter_rate": 40,
+  "filter_buckets": 16, "murky_per_dirt": 25, "murky_capacity": 8000,
   "fe_per_tank_block": 2, "fe_per_lid": 1, "energy_buffer_ticks": 4,
   "keep_default": 8, "drawn_cap": 16 }
 ```
@@ -103,10 +103,10 @@ Tag `c:fish_feed` (new `KitchenTags.FISH_FEED`) holds `#c:seeds` from datagen.
 - Aquarium Lid x6: `C C C / D D D` with copper ingots and glowstone dust.
 
 ### Settled decisions from the explore
-Both layers required; light only looks; power all or nothing per tick with the powered share scaling breeding and cleaning; one species; buckets on parts; capacity from water; dirt only leaves through parts; Carbon Filter in the aquarium; Murky Water in Delicacies; feed through `c:fish_feed`.
+Both layers required; light only looks; power all or nothing per tick with the powered share scaling breeding and cleaning; one species; buckets on parts; capacity from water; dirt only leaves through the filter, as Murky Water in a hidden tank; Carbon Filter in the aquarium; Murky Water in Delicacies; feed through `c:fish_feed`.
 
 ### Pure versus Minecraft
-Pure Java with JUnit: `AquariumCycle`, `AquariumWater`, `AquariumPower`, `AquariumLook`, `FishPath`, `AquariumStats` defaults. GameTests: forming and refusals, unforming drops, buckets, capability slots and fluid exchange, power cost, a forced cycle with growth and catch, lid layer placement. Manual play check: rendering, light, GUI.
+Pure Java with JUnit: `AquariumCycle`, `AquariumPower`, `AquariumLook`, `FishPath`, `AquariumStats` defaults. GameTests: forming and refusals, unforming drops, buckets, capability slots and fluid exchange, power cost, a forced cycle with growth and catch, lid layer placement. Manual play check: rendering, light, GUI.
 
 ## Risks / Trade-offs
 

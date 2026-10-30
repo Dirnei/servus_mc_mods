@@ -1,7 +1,8 @@
 package io.github.dirnei.mc.servus.delicacies.aquarium;
 
 /**
- * One cycle of an aquarium: feeding, dirt, the filter, quality, deaths, growth and the catch, in that order. Pure Java.
+ * One cycle of an aquarium: feeding, dirt, the filter, quality, deaths, growth and the catch, in that order. The filter
+ * turns the tank water holding the dirt it cleans into Murky Water. Pure Java.
  */
 public final class AquariumCycle {
 
@@ -18,9 +19,10 @@ public final class AquariumCycle {
      * @param keep         fish the catch leaves in the aquarium
      * @param autoCatch    whether fish above {@code keep} are caught
      * @param catchRoom    raw fish the catch slots still take
+     * @param murkyRoom    mB of Murky Water the aquarium still holds
      */
     public record Input(double stock, long water, double dirt, int feed, int unfedCycles, int filterLeft,
-                        double poweredShare, int keep, boolean autoCatch, int catchRoom) {
+                        double poweredShare, int keep, boolean autoCatch, int catchRoom, int murkyRoom) {
     }
 
     /**
@@ -34,9 +36,10 @@ public final class AquariumCycle {
      * @param caught      fish moved into the catch slots as raw fish
      * @param died        fish that died, fractions included
      * @param quality     water quality after the filter, 0 to 1
+     * @param murkyMade   mB of tank water the filter turned into Murky Water
      */
     public record Output(double stock, double dirt, int feedUsed, int unfedCycles, int filterUsed, int caught, double died,
-                         double quality) {
+                         double quality, int murkyMade) {
     }
 
     private AquariumCycle() {
@@ -56,13 +59,18 @@ public final class AquariumCycle {
         return Math.max(0, Math.min(1, 1 - dirt / holds));
     }
 
+    /** Dirt a filter may clean in one fully powered cycle: the filter rate for every started {@code filterBuckets} of water. */
+    public static double filterLimit(long water, AquariumStats stats) {
+        double buckets = Math.max(0, water) / 1000.0;
+        return stats.filterRate() * Math.max(1, buckets / stats.filterBuckets());
+    }
+
     /** The feed items {@code stock} fish eat in one cycle. */
     public static int feedNeeded(double stock, AquariumStats stats) {
         return (int) Math.ceil(Math.floor(stock) * stats.feedPerFish() - 1e-9);
     }
 
     public static Output run(Input in, AquariumStats stats) {
-        int capacity = capacity(in.water(), stats);
         double share = Math.max(0, Math.min(1, in.poweredShare()));
         double stock = Math.max(0, in.stock());
 
@@ -73,14 +81,18 @@ public final class AquariumCycle {
 
         double dirt = Math.max(0, in.dirt()) + Math.floor(stock) * stats.dirtPerFish() + eaten * stats.dirtPerFeed();
 
-        int filterUsed = (int) Math.ceil(Math.min(dirt, stats.filterRate() * share) - 1e-9);
-        filterUsed = Math.max(0, Math.min(filterUsed, in.filterLeft()));
+        int filterUsed = (int) Math.ceil(Math.min(dirt, filterLimit(in.water(), stats) * share) - 1e-9);
+        long murkyLimit = Math.min(Math.max(0, in.murkyRoom()), Math.max(0, in.water())) / stats.murkyPerDirt();
+        filterUsed = (int) Math.max(0, Math.min(Math.min(filterUsed, in.filterLeft()), murkyLimit));
         dirt = Math.max(0, dirt - filterUsed);
+        int murkyMade = filterUsed * stats.murkyPerDirt();
+        long water = Math.max(0, in.water()) - murkyMade;
 
-        double quality = quality(dirt, in.water(), stats);
+        int capacity = capacity(water, stats);
+        double quality = quality(dirt, water, stats);
 
         double before = stock;
-        if (in.water() <= 0) {
+        if (water <= 0) {
             stock = 0;
         } else {
             if (quality < stats.dyingBelow()) {
@@ -103,6 +115,6 @@ public final class AquariumCycle {
             caught = (int) Math.max(0, Math.min(Math.floor(stock) - in.keep(), in.catchRoom()));
             stock -= caught;
         }
-        return new Output(stock, dirt, eaten, unfed, filterUsed, caught, died, quality);
+        return new Output(stock, dirt, eaten, unfed, filterUsed, caught, died, quality, murkyMade);
     }
 }

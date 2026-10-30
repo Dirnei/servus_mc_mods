@@ -4,20 +4,26 @@ import io.github.dirnei.mc.servus.delicacies.aquarium.AquariumLook;
 import io.github.dirnei.mc.servus.delicacies.aquarium.AquariumMenu;
 import io.github.dirnei.mc.servus.delicacies.aquarium.AquariumSettingsPayload;
 import io.github.dirnei.mc.servus.delicacies.aquarium.FishSpecies;
+import io.github.dirnei.mc.servus.delicacies.registry.DelicaciesFluids;
+import io.github.dirnei.mc.servus.foundation.client.FluidGauge;
 import io.github.dirnei.mc.servus.foundation.client.InlineStepper;
+import java.util.Optional;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.lwjgl.glfw.GLFW;
 
 /**
  * The aquarium GUI: species and fullness, stock and capacity, water quality and power, the feed, filter and catch
- * slots, the auto catch switch and the keep level. Drawn without a texture: a plain panel with slot frames.
+ * slots, the Murky Water gauge, the auto catch switch and the keep level. Drawn without a texture: a plain panel with
+ * slot frames.
  */
 public class AquariumScreen extends AbstractContainerScreen<AquariumMenu> {
 
@@ -32,6 +38,7 @@ public class AquariumScreen extends AbstractContainerScreen<AquariumMenu> {
     private static final int TOGGLE_WIDTH = 80;
     private static final int KEEP_X = 116;
 
+    private final FluidGauge murky = new FluidGauge(AquariumMenu.MURKY_WIDTH, 16);
     private Button autoCatch;
     private InlineStepper keep;
     private boolean shownAutoCatch;
@@ -54,6 +61,25 @@ public class AquariumScreen extends AbstractContainerScreen<AquariumMenu> {
         keep.setValue(menu.keep());
         shownKeep = menu.keep();
         shownAutoCatch = menu.autoCatch();
+        murky.place(leftPos + AquariumMenu.MURKY_X, topPos + AquariumMenu.SLOT_Y);
+    }
+
+    private FluidStack murkyStack() {
+        return menu.murky() <= 0 ? FluidStack.EMPTY : new FluidStack(DelicaciesFluids.MURKY_WATER.get(), menu.murky());
+    }
+
+    /** The Murky Water gauge's fluid and screen area while the mouse is over it, for JEI. */
+    public Optional<MurkyGauge> murkyGaugeAt(double mouseX, double mouseY) {
+        FluidStack stack = murkyStack();
+        if (stack.isEmpty() || !murky.isHovering(mouseX, mouseY)) {
+            return Optional.empty();
+        }
+        return Optional.of(new MurkyGauge(stack, new Rect2i(leftPos + AquariumMenu.MURKY_X, topPos + AquariumMenu.SLOT_Y,
+                AquariumMenu.MURKY_WIDTH, 16)));
+    }
+
+    /** The Murky Water the gauge shows and where it is drawn. */
+    public record MurkyGauge(FluidStack stack, Rect2i area) {
     }
 
     private void send(boolean autoCatchOn, int keepLevel) {
@@ -98,6 +124,14 @@ public class AquariumScreen extends AbstractContainerScreen<AquariumMenu> {
     }
 
     @Override
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+        if (menu.getCarried().isEmpty()) {
+            murky.renderTooltip(graphics, font, murkyStack(), menu.murkyCapacity(), mouseX, mouseY);
+        }
+    }
+
+    @Override
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
         int x = leftPos;
@@ -116,6 +150,7 @@ public class AquariumScreen extends AbstractContainerScreen<AquariumMenu> {
             graphics.fill(sx + 1, sy + 17, sx + 18, sy + 18, LIGHT);
             graphics.fill(sx + 17, sy + 1, sx + 18, sy + 18, LIGHT);
         }
+        murky.render(graphics, murkyStack(), menu.murkyCapacity());
     }
 
     @Override
@@ -134,6 +169,7 @@ public class AquariumScreen extends AbstractContainerScreen<AquariumMenu> {
         graphics.text(font, Component.translatable("gui.servus_delicacies.aquarium.feed"), AquariumMenu.FEED_X, labelY, TEXT, false);
         graphics.text(font, Component.translatable("gui.servus_delicacies.aquarium.filter"), AquariumMenu.FILTER_X, labelY, TEXT, false);
         graphics.text(font, Component.translatable("gui.servus_delicacies.aquarium.catch"), AquariumMenu.CATCH_X, labelY, TEXT, false);
+        graphics.text(font, Component.translatable("gui.servus_delicacies.aquarium.murky"), AquariumMenu.MURKY_X, labelY, TEXT, false);
         graphics.text(font, Component.translatable("gui.servus_delicacies.aquarium.keep"), KEEP_X - font.width(
                 Component.translatable("gui.servus_delicacies.aquarium.keep")) - 4, SETTINGS_Y + 4, TEXT, false);
     }

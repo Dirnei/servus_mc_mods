@@ -17,7 +17,10 @@ import java.util.Optional;
  * @param dirtPerBucket     dirt one bucket of water holds at zero quality
  * @param dyingBelow        quality below which fish die
  * @param dirtyLoss         share of the stock lost per cycle in dirty water
- * @param filterRate        dirt a filter removes per powered cycle
+ * @param filterRate        dirt a filter removes per powered cycle in an aquarium of up to {@code filterBuckets} buckets
+ * @param filterBuckets     buckets of water one {@code filterRate} serves; bigger aquariums clean that much more per cycle
+ * @param murkyPerDirt      mB of tank water one cleaned dirt point turns into Murky Water
+ * @param murkyCapacity     mB of Murky Water the aquarium holds; the filter stops while it is full
  * @param fePerTankBlock    FE per tick for each tank block
  * @param fePerLid          FE per tick for each lid slab
  * @param energyBufferTicks ticks of power the buffer holds
@@ -26,17 +29,18 @@ import java.util.Optional;
  */
 public record AquariumStats(int cycleTicks, int waterPerFish, double breedRate, double feedPerFish, int starveAfter,
                             double starveLoss, double dirtPerFish, double dirtPerFeed, double dirtPerBucket, double dyingBelow,
-                            double dirtyLoss, int filterRate, int fePerTankBlock, int fePerLid, int energyBufferTicks,
+                            double dirtyLoss, int filterRate, int filterBuckets, int murkyPerDirt, int murkyCapacity, int fePerTankBlock, int fePerLid, int energyBufferTicks,
                             int keepDefault, int drawnCap) {
 
     public static final AquariumStats DEFAULTS = new AquariumStats(1200, 4000, 0.12, 0.1, 3, 0.05, 0.5, 1, 10, 0.2, 0.1,
-            40, 2, 1, 4, 8, 16);
+            40, 16, 25, 8000, 2, 1, 4, 8, 16);
 
     /** Partial stats as written in JSON; {@link AquariumStatsManager#CODEC} reads them. */
     public record Partial(Optional<Integer> cycleTicks, Optional<Integer> waterPerFish, Optional<Double> breedRate,
                           Optional<Double> feedPerFish, Optional<Integer> starveAfter, Optional<Double> starveLoss,
                           Optional<Double> dirtPerFish, Optional<Double> dirtPerFeed, Optional<Double> dirtPerBucket,
                           Optional<Double> dyingBelow, Optional<Double> dirtyLoss, Optional<Integer> filterRate,
+                          Optional<Integer> filterBuckets, Optional<Integer> murkyPerDirt, Optional<Integer> murkyCapacity,
                           Optional<Integer> fePerTankBlock, Optional<Integer> fePerLid, Optional<Integer> energyBufferTicks,
                           Optional<Integer> keepDefault, Optional<Integer> drawnCap) {
 
@@ -54,6 +58,9 @@ public record AquariumStats(int cycleTicks, int waterPerFish, double breedRate, 
                     share(dyingBelow.orElse(defaults.dyingBelow())),
                     share(dirtyLoss.orElse(defaults.dirtyLoss())),
                     Math.max(0, filterRate.orElse(defaults.filterRate())),
+                    Math.max(1, filterBuckets.orElse(defaults.filterBuckets())),
+                    Math.max(1, murkyPerDirt.orElse(defaults.murkyPerDirt())),
+                    Math.max(0, murkyCapacity.orElse(defaults.murkyCapacity())),
                     Math.max(0, fePerTankBlock.orElse(defaults.fePerTankBlock())),
                     Math.max(0, fePerLid.orElse(defaults.fePerLid())),
                     Math.max(1, energyBufferTicks.orElse(defaults.energyBufferTicks())),

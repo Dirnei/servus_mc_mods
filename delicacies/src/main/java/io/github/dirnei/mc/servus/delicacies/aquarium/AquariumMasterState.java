@@ -34,6 +34,7 @@ public final class AquariumMasterState {
     private double stock;
     private double dirt;
     private int unfedCycles;
+    private int murky;
     private boolean autoCatch = true;
     private int keep = -1;
     private int ticks;
@@ -95,6 +96,17 @@ public final class AquariumMasterState {
         return dirt;
     }
 
+    /** mB of Murky Water the filter made that wait to be drained. */
+    public int murky() {
+        return murky;
+    }
+
+    /** Sets the Murky Water held, for GameTests and the cycle. */
+    public void setMurky(int murky) {
+        this.murky = Math.max(0, murky);
+        onChanged.run();
+    }
+
     public int unfedCycles() {
         return unfedCycles;
     }
@@ -131,9 +143,13 @@ public final class AquariumMasterState {
         onChanged.run();
     }
 
-    /** Takes {@code amount} of dirt out with drained water. */
-    void takeDirt(double amount) {
-        setDirt(dirt - amount);
+    /** Drains up to {@code amount} mB of Murky Water; returns what was drained. */
+    int takeMurky(int amount, boolean simulate) {
+        int taken = Math.max(0, Math.min(amount, murky));
+        if (!simulate && taken > 0) {
+            setMurky(murky - taken);
+        }
+        return taken;
     }
 
     /**
@@ -237,6 +253,7 @@ public final class AquariumMasterState {
         stock = 0;
         dirt = 0;
         unfedCycles = 0;
+        murky = 0;
         autoCatch = true;
         keep = -1;
         ticks = 0;
@@ -253,6 +270,7 @@ public final class AquariumMasterState {
         output.putDouble("Stock", stock);
         output.putDouble("Dirt", dirt);
         output.putInt("Unfed", unfedCycles);
+        output.putInt("Murky", murky);
         output.putBoolean("AutoCatch", autoCatch);
         output.putInt("Keep", keep);
         output.putInt("Ticks", ticks);
@@ -267,6 +285,7 @@ public final class AquariumMasterState {
         stock = input.getDoubleOr("Stock", 0);
         dirt = input.getDoubleOr("Dirt", 0);
         unfedCycles = input.getIntOr("Unfed", 0);
+        murky = input.getIntOr("Murky", 0);
         autoCatch = input.getBooleanOr("AutoCatch", true);
         keep = input.getIntOr("Keep", -1);
         ticks = input.getIntOr("Ticks", 0);

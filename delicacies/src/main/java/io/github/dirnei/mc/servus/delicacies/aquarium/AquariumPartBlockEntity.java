@@ -23,6 +23,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -169,7 +170,7 @@ public class AquariumPartBlockEntity extends BlockEntity {
         return box == null ? 0 : AquariumPower.cost((int) box.volume(), box.blocksPerLayer(), stats());
     }
 
-    private static AquariumStats stats() {
+    static AquariumStats stats() {
         return AquariumStatsManager.INSTANCE.stats();
     }
 
@@ -293,15 +294,27 @@ public class AquariumPartBlockEntity extends BlockEntity {
         AquariumCycle.Input input = new AquariumCycle.Input(state.stock(), water, state.dirt(),
                 state.slots().getStackInSlot(AquariumMasterState.FEED_SLOT).getCount(), state.unfedCycles(),
                 Filters.pointsLeft(state.slots().getStackInSlot(AquariumMasterState.FILTER_SLOT)),
-                poweredShare, state.keep(stats), state.autoCatch(), state.catchRoom());
+                poweredShare, state.keep(stats), state.autoCatch(), state.catchRoom(),
+                Math.max(0, stats.murkyCapacity() - state.murky()));
         AquariumCycle.Output out = AquariumCycle.run(input, stats);
         state.apply(out);
+        turnWaterMurky(out.murkyMade());
         if (out.died() >= 0.5) {
             deathMark++;
             lastDied = (int) Math.round(out.died());
         }
         sendUpdate();
         return out;
+    }
+
+    /** Moves {@code amount} mB of water out of the tank into the Murky Water the filter made. */
+    private void turnWaterMurky(int amount) {
+        Optional<TankNetwork> network = network();
+        if (amount <= 0 || network.isEmpty()) {
+            return;
+        }
+        FluidStack drained = network.get().drain(Conversions.toNodePos(tankPos()), new FluidStack(Fluids.WATER, amount), false);
+        state.setMurky(state.murky() + drained.getAmount());
     }
 
     private void showLit(boolean lit) {

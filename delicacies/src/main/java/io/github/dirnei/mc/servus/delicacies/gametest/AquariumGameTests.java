@@ -354,6 +354,8 @@ public final class AquariumGameTests {
             AquariumCycle.Output out = master.runCycle(1);
             int left = Filters.pointsLeft(master.state().slots().getStackInSlot(AquariumMasterState.FILTER_SLOT));
             helper.assertTrue(out.filterUsed() == 12 && left == 500, "the filter cleans 12 dirt and has 500 left, got " + left);
+            helper.assertTrue(master.state().murky() == 300 && master.water() == 191_700,
+                    "300 mB of tank water turn into Murky Water, murky " + master.state().murky() + ", water " + master.water());
             ItemStack worn = new ItemStack(ServusFoundationItems.CARBON_FILTER.get());
             worn.set(ServusFoundationComponents.FILTER_USED.get(), 510);
             master.state().slots().setStackInSlot(AquariumMasterState.FILTER_SLOT, worn);
@@ -361,6 +363,20 @@ public final class AquariumGameTests {
             helper.assertTrue(master.state().slots().getStackInSlot(AquariumMasterState.FILTER_SLOT).isEmpty(), "the filter slot is empty");
             helper.assertTrue(master.state().slots().getStackInSlot(AquariumMasterState.FIRST_CATCH_SLOT).is(ServusFoundationItems.SPENT_FILTER.get()),
                     "a Spent Filter lies in the catch");
+        });
+    }
+
+    @ServusGameTest(timeoutTicks = 40)
+    public static void fullMurkyTankStopsTheFilter(GameTestHelper helper) {
+        formed(helper, 192_000, master -> {
+            master.state().setStock(FishSpecies.COD, 20);
+            master.state().slots().setStackInSlot(AquariumMasterState.FEED_SLOT, new ItemStack(Items.WHEAT_SEEDS, 64));
+            master.state().slots().setStackInSlot(AquariumMasterState.FILTER_SLOT, new ItemStack(ServusFoundationItems.CARBON_FILTER.get()));
+            master.state().setCatch(false, 8);
+            master.state().setMurky(AquariumStatsManager.INSTANCE.stats().murkyCapacity());
+            AquariumCycle.Output out = master.runCycle(1);
+            helper.assertTrue(out.filterUsed() == 0 && master.water() == 192_000, "a full Murky tank stops the filter, used " + out.filterUsed());
+            helper.assertTrue(master.state().dirt() > 0, "the dirt stays in the water");
         });
     }
 
@@ -416,16 +432,18 @@ public final class AquariumGameTests {
     }
 
     @ServusGameTest(timeoutTicks = 40)
-    public static void drainingThroughAPartTakesDirt(GameTestHelper helper) {
+    public static void partsDrainOnlyTheMurkyWater(GameTestHelper helper) {
         formed(helper, 100_000, master -> {
             master.state().setDirt(200);
+            master.state().setMurky(3000);
             FluidView part = FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(MASTER), Direction.DOWN));
             helper.assertTrue(part != null, "a formed floor offers fluids");
             FluidStack out = part.drain(10_000, false);
-            helper.assertTrue(out.getFluid().isSame(DelicaciesFluids.MURKY_WATER.get()) && out.getAmount() == 10_000,
-                    "10 buckets of Murky Water come out, got " + out.getAmount());
-            helper.assertTrue(Math.abs(master.state().dirt() - 180) < 1e-6, "180 dirt stay, got " + master.state().dirt());
-            helper.assertTrue(master.water() == 90_000, "90 buckets of water stay, got " + master.water());
+            helper.assertTrue(out.getFluid().isSame(DelicaciesFluids.MURKY_WATER.get()) && out.getAmount() == 3000,
+                    "the 3 buckets of Murky Water come out, got " + out.getAmount());
+            helper.assertTrue(part.drain(1000, false).isEmpty(), "nothing more comes out");
+            helper.assertTrue(Math.abs(master.state().dirt() - 200) < 1e-6, "the dirt stays, got " + master.state().dirt());
+            helper.assertTrue(master.water() == 100_000, "the tank water stays, got " + master.water());
             helper.assertTrue(part.fill(new FluidStack(Fluids.LAVA, 1000), false) == 0, "lava is refused");
             helper.assertTrue(part.fill(new FluidStack(Fluids.WATER, 1000), false) == 1000, "water goes in");
         });

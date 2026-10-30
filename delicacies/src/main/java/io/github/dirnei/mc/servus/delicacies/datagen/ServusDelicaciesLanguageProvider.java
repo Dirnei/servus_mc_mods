@@ -65,13 +65,14 @@ final class ServusDelicaciesLanguageProvider extends LanguageProvider {
         add(gui + ".feed", "Feed");
         add(gui + ".filter", "Filter");
         add(gui + ".catch", "Catch");
+        add(gui + ".murky", "Murky");
         add(gui + ".keep", "Keep");
         add(gui + ".auto_catch_on", "Auto catch: On");
         add(gui + ".auto_catch_off", "Auto catch: Off");
         String jei = "gui." + ServusDelicaciesIds.MOD_ID + ".jei.";
-        add(jei + "aquarium_floor_info", "Lay Aquarium Floor blocks under every column of a Fluid Tank of water and Aquarium Lids on top, then use the Configuration Carrot on a part. Pour cod or salmon in with a fish bucket; seeds in the feed slot, a Carbon Filter and FE through the floor keep them breeding. Fish above the keep level land in the catch slots.");
+        add(jei + "aquarium_floor_info", "Lay Aquarium Floor blocks under every column of a Fluid Tank of water and Aquarium Lids on top, then use the Configuration Carrot on a part. Pour cod or salmon in with a fish bucket, on a part or the tank; seeds in the feed slot, a Carbon Filter and FE through the floor keep them breeding. Fish above the keep level land in the catch slots. The filter turns dirty water into Murky Water; drain it through a part, or the filter stops when its tank is full.");
         add(jei + "aquarium_lid_info", "Covers the top of an aquarium's tank. A stack used on the tank's top lays a lid on every column at once. Glows while the aquarium has power.");
-        add(jei + "murky_water_info", "Water drained through an aquarium part. It takes the dirt of the fish with it; fresh water poured in keeps the aquarium clean.");
+        add(jei + "murky_water_info", "Made by an aquarium's Carbon Filter from the water holding the dirt it cleaned. Drain it through an aquarium part; top the tank up with fresh water.");
     }
 
     /** The Plate, the plated meals and Properly Full. */
