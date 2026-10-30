@@ -113,6 +113,11 @@ public record MachineStats(int workTicks, int energyPerTick, int energyCapacity,
         return new MachineStats(workTicks, energyPerTick, energyCapacity, 1, 0, recipeSlots, 0, 0, 0, 0, "", 0, 0);
     }
 
+    /** A driven machine with one tank of {@code fluidCapacity} mB and no balance numbers of its own besides. */
+    public static MachineStats fluidHolder(int fluidCapacity) {
+        return new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, fluidCapacity, 0, "", 0, 0);
+    }
+
     public static MachineStats burnerPump(int workTicks, int fluidPerCycle, int fluidCapacity, int minSourceNeighbours) {
         return new MachineStats(workTicks, 0, 0, 1, 0, 1, 0, fluidPerCycle, fluidCapacity, minSourceNeighbours,
                 DEFAULT_UPKEEP_ITEM, DEFAULT_UPKEEP_LEVEL, 0, DEFAULT_RESTART_BELOW);

@@ -1,0 +1,17 @@
+{
+  "type": "servus_foundation:mixing",
+  "fluid": {
+    "amount": 250,
+    "ingredient": "minecraft:water"
+  },
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": "minecraft:dirt"
+    }
+  ],
+  "result": {
+    "id": "minecraft:mud"
+  },
+  "work": 100
+}

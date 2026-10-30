@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:cauldron",
+    "I": "minecraft:iron_ingot",
+    "S": "minecraft:stick"
+  },
+  "pattern": [
+    " S ",
+    "ICI",
+    "III"
+  ],
+  "result": {
+    "id": "servus_foundation:mixer"
+  }
+}

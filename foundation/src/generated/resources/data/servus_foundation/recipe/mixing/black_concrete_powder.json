@@ -1,0 +1,22 @@
+{
+  "type": "servus_foundation:mixing",
+  "ingredients": [
+    {
+      "count": 4,
+      "ingredient": "minecraft:sand"
+    },
+    {
+      "count": 4,
+      "ingredient": "minecraft:gravel"
+    },
+    {
+      "count": 1,
+      "ingredient": "minecraft:black_dye"
+    }
+  ],
+  "result": {
+    "count": 8,
+    "id": "minecraft:black_concrete_powder"
+  },
+  "work": 200
+}

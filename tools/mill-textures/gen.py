@@ -1,4 +1,4 @@
-"""Generates the textures of the Mill, the Hand Crank and the Electric Motor.
+"""Generates the textures of the Mill, the Mixer, the Hand Crank and the Electric Motor.
 
 This script is the source of these files; edit the patterns here, not the PNGs.
 
@@ -15,7 +15,10 @@ Written into foundation/src/main/resources/assets/servus_foundation/textures/:
 - block/mill_chute.png: steel with the chute's dark mouth where the chute's front face maps (x 6..10, y 11.5..14.5)
 - block/electric_motor_grille.png: the motor's round back grille with see-through gaps in front of the fan;
   the grille box shows pixels 4 to 12 of it
+- block/mixer_mix.png: the dry mix surface in the Mixer's tub
+- block/mixer_port.png: brass with the fluid port's dark mouth where the port's back face maps (x 6.75..9.25, y 6.5..9.5)
 - gui/mill.png: the burner machine screen with the input slot moved down beside the arrow, fuel and flame gone
+- gui/mixer.png: the Mill screen with a 2x2 grid of input slots and a fluid gauge frame right of the output
 - gui/electric_motor.png: the coal generator screen with its slot moved to the middle as the upgrade slot, flame gone
 """
 import os
@@ -193,6 +196,32 @@ def chute(steel):
     return img
 
 
+def mixer_mix():
+    """The dry mix in the Mixer's tub: grainy grey brown, a few lighter grains and darker clods."""
+    ramp = [hexc(h) for h in ('#4a4038', '#5e544a', '#72675b', '#877c6e', '#9c9283')]
+    img = speckled(ramp, 2, 11, dark=0.25, light=0.2)
+    for y in range(SIZE):
+        for x in range(SIZE):
+            n = noise(x, y, 23)
+            if n < 0.06:
+                img[y][x] = ramp[0]
+            elif n > 0.95:
+                img[y][x] = ramp[4]
+    return img
+
+
+def mixer_port():
+    """The port stub's back face shows pixels 6.75 to 9.25 across and 6.5 to 9.5 down: a brass lip round a dark mouth."""
+    img = brass()
+    frame(img, 6, 6, 9, 9, BRASS[1])
+    for x in range(6, 10):
+        img[6][x] = BRASS[3]
+    for y in range(7, 9):
+        for x in range(7, 9):
+            img[y][x] = IRON[0] if y == 8 else IRON[1]
+    return img
+
+
 def motor_grille(steel):
     """Shown on the grille box's back, pixels 4..11: a round grille of slats with open gaps and a brass bearing."""
     img = copy(steel)
@@ -241,6 +270,30 @@ def mill_gui():
     return img
 
 
+def stretched_slot(slot, width, height):
+    """The 18 x 18 slot frame stretched to width x height: edges and corners kept, the middle row and column repeated."""
+    def source(at, size):
+        return 0 if at == 0 else 17 if at == size - 1 else 8
+    return [[slot[source(y, height)][source(x, width)] for x in range(width)] for y in range(height)]
+
+
+def paste(img, part, x0, y0):
+    for y, row in enumerate(part):
+        img[y0 + y][x0:x0 + len(row)] = row
+
+
+def mixer_gui():
+    """The Mill screen with its input slot replaced by a 2x2 grid of inputs and a gauge frame right of the output."""
+    img = gui_from('mill')
+    background = img[40][40]
+    slot = [img[34 + y][55:55 + 18] for y in range(18)]
+    clear(img, 55, 34, 72, 51, background)
+    for dx, dy in ((33, 25), (51, 25), (33, 43), (51, 43)):
+        paste(img, slot, dx, dy)
+    paste(img, stretched_slot(slot, 18, 54), 147, 16)
+    return img
+
+
 def motor_gui():
     img = gui_from('coal_generator')
     background = img[40][40]
@@ -274,10 +327,13 @@ def main():
         'block/mill_hopper_top.png': hopper_top(),
         'block/mill_chute.png': chute(steel),
         'block/electric_motor_grille.png': motor_grille(steel),
+        'block/mixer_mix.png': mixer_mix(),
+        'block/mixer_port.png': mixer_port(),
     }
     for name, img in blocks.items():
         write(name, img)
     write('gui/mill.png', mill_gui())
+    write('gui/mixer.png', mixer_gui())
     write('gui/electric_motor.png', motor_gui())
     if '--preview' in sys.argv:
         preview(sys.argv[sys.argv.index('--preview') + 1], list(blocks.values()))

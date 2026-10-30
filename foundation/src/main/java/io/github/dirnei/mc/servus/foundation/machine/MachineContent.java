@@ -22,6 +22,10 @@ import io.github.dirnei.mc.servus.foundation.machine.mill.MillBlock;
 import io.github.dirnei.mc.servus.foundation.machine.mill.MillBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.mill.MillMenu;
 import io.github.dirnei.mc.servus.foundation.machine.mill.MillingRecipe;
+import io.github.dirnei.mc.servus.foundation.machine.mixer.MixerBlock;
+import io.github.dirnei.mc.servus.foundation.machine.mixer.MixerBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.mixer.MixerMenu;
+import io.github.dirnei.mc.servus.foundation.machine.mixer.MixingRecipe;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpBlock;
@@ -130,6 +134,19 @@ public final class MachineContent {
             blockEntity("mill", MillBlockEntity::new, MILL);
     public static final DeferredHolder<MenuType<?>, MenuType<MillMenu>> MILL_MENU = menu("mill", MillMenu::fromNetwork);
 
+    public static final Identifier MIXING_ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "mixing");
+    public static final DeferredHolder<RecipeType<?>, RecipeType<MixingRecipe>> MIXING =
+            RECIPE_TYPES.register("mixing", () -> RecipeType.simple(MIXING_ID));
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<MixingRecipe>> MIXING_SERIALIZER =
+            RECIPE_SERIALIZERS.register("mixing", () -> MixingRecipe.SERIALIZER);
+
+    public static final DeferredBlock<MixerBlock> MIXER =
+            BLOCKS.registerBlock("mixer", MixerBlock::new, () -> unlitMachine().noOcclusion().pushReaction(PushReaction.BLOCK));
+    public static final DeferredItem<BlockItem> MIXER_ITEM = ITEMS.registerSimpleBlockItem(MIXER);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MixerBlockEntity>> MIXER_ENTITY =
+            blockEntity("mixer", MixerBlockEntity::new, MIXER);
+    public static final DeferredHolder<MenuType<?>, MenuType<MixerMenu>> MIXER_MENU = menu("mixer", MixerMenu::fromNetwork);
+
     public static final DeferredBlock<HandCrankBlock> HAND_CRANK =
             BLOCKS.registerBlock("hand_crank", HandCrankBlock::new, () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL).strength(1.5F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.DESTROY));
@@ -169,7 +186,7 @@ public final class MachineContent {
     /** Creative tab order of Foundation's machines. */
     public static List<DeferredItem<? extends Item>> creativeTabOrder() {
         return List.of(BURNER_PUMP_ITEM, ELECTRIC_PUMP_ITEM, COAL_GENERATOR_ITEM, ENDER_ANCHOR_ITEM, ANCHOR_UPGRADE, SINK_ITEM, CHIMNEY_ITEM,
-                MILL_ITEM, HAND_CRANK_ITEM, ELECTRIC_MOTOR_ITEM);
+                MILL_ITEM, MIXER_ITEM, HAND_CRANK_ITEM, ELECTRIC_MOTOR_ITEM);
     }
 
     /** Stone blocks of the Sink family: like vanilla bricks. */

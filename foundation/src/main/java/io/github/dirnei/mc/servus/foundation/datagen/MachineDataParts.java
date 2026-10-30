@@ -34,6 +34,7 @@ final class MachineDataParts {
         SinkModels.chimney(provider);
         SinkModels.sinkFan(provider);
         MillModels.mill(provider);
+        MixerModels.mixer(provider);
         DriveModels.handCrank(provider);
         DriveModels.electricMotor(provider);
     }
@@ -41,7 +42,7 @@ final class MachineDataParts {
     /** Blocks that drop themselves and are mined with a pickaxe. */
     static List<Block> selfDropping() {
         return List.of(MachineContent.COAL_GENERATOR.get(), MachineContent.BURNER_PUMP.get(), MachineContent.ELECTRIC_PUMP.get(),
-                MachineContent.ENDER_ANCHOR.get(), MachineContent.MILL.get(),
+                MachineContent.ENDER_ANCHOR.get(), MachineContent.MILL.get(), MachineContent.MIXER.get(),
                 MachineContent.HAND_CRANK.get(), MachineContent.ELECTRIC_MOTOR.get());
     }
 
@@ -86,10 +87,13 @@ final class MachineDataParts {
                 "On: while FTB Chunks is installed, Ender Anchors stay inactive and warehouse sites do not wake. Off (default): both work next to FTB Chunks");
         provider.add(MachineContent.SINK.get(), "Sink");
         provider.add(MachineContent.MILL.get(), "Mill");
+        provider.add(MachineContent.MIXER.get(), "Mixer");
         provider.add(MachineContent.HAND_CRANK.get(), "Hand Crank");
         provider.add(MachineContent.ELECTRIC_MOTOR.get(), "Electric Motor");
         provider.add("gui.servus_foundation.jei.milling", "Milling");
         provider.add("gui.servus_foundation.jei.milling.work", "%s work");
+        provider.add("gui.servus_foundation.jei.mixing", "Mixing");
+        provider.add("gui.servus_foundation.jei.mixing.work", "%s work");
         provider.add(MachineContent.CHIMNEY.get(), "Chimney");
         provider.add("gui.servus_foundation.sink.chimney", "Chimney");
         provider.add("gui.servus_foundation.sink.height", "Chimney height: %s");
@@ -232,6 +236,17 @@ final class MachineDataParts {
                 .unlockedBy("has_power_cable", has.apply(ServusLogisticsItems.POWER_CABLE.get()))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.MIXER_ITEM.get())
+                .pattern(" S ")
+                .pattern("ICI")
+                .pattern("III")
+                .define('S', Items.STICK)
+                .define('C', Items.CAULDRON)
+                .define('I', Items.IRON_INGOT)
+                .unlockedBy("has_cauldron", has.apply(Items.CAULDRON))
+                .save(output);
+
         MillingRecipes.recipes(output, items);
+        MixingRecipes.recipes(output);
     }
 }

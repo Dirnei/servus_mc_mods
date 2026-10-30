@@ -45,7 +45,7 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 
 /**
- * Shows the Mill's milling recipes in JEI, and Foundation's special crafting recipes as example recipes, since JEI cannot
+ * Shows the Mill's milling and the Mixer's mixing recipes in JEI, and Foundation's special crafting recipes as example recipes, since JEI cannot
  * read recipes without fixed ingredients, and lets items dragged from JEI set duct
  * filter slots. Only loaded when JEI is present.
  */
@@ -83,11 +83,13 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
         registration.addRecipeCategories(new MillingRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
+        registration.addRecipeCategories(new MixingRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(new ItemStack(MachineContent.MILL_ITEM.get()), MillingRecipeCategory.TYPE);
+        registration.addRecipeCatalyst(new ItemStack(MachineContent.MIXER_ITEM.get()), MixingRecipeCategory.TYPE);
     }
 
     @Override
@@ -95,6 +97,7 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level != null) {
             registration.addRecipes(MillingRecipeCategory.TYPE, ServusRecipes.all(minecraft.level, MachineContent.MILLING.get()));
+            registration.addRecipes(MixingRecipeCategory.TYPE, ServusRecipes.all(minecraft.level, MachineContent.MIXING.get()));
         }
         // Any solid full block is a floor; the slot cycles through these examples.
         Ingredient floors = Ingredient.of(Items.STONE_BRICKS, Items.COBBLESTONE, Items.COPPER_BLOCK, Items.SMOOTH_STONE,

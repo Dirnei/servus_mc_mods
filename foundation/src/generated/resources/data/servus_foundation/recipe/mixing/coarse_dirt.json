@@ -1,0 +1,18 @@
+{
+  "type": "servus_foundation:mixing",
+  "ingredients": [
+    {
+      "count": 2,
+      "ingredient": "minecraft:dirt"
+    },
+    {
+      "count": 2,
+      "ingredient": "minecraft:gravel"
+    }
+  ],
+  "result": {
+    "count": 4,
+    "id": "minecraft:coarse_dirt"
+  },
+  "work": 100
+}

@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.sink.SinkStatsManager;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidSideHandler;
 import net.minecraft.core.Direction;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -70,6 +71,12 @@ public final class MachineEvents {
                     (mill, side) -> mill.itemCapability(side));
             event.registerBlockEntity(ServusFoundationCapabilities.DRIVE, MachineContent.MILL_ENTITY.get(),
                     (mill, side) -> mill.drive(side));
+            event.registerBlockEntity(Capabilities.Item.BLOCK, MachineContent.MIXER_ENTITY.get(),
+                    (mixer, side) -> mixer.itemCapability(side));
+            event.registerBlockEntity(Capabilities.Fluid.BLOCK, MachineContent.MIXER_ENTITY.get(),
+                    (mixer, side) -> FluidSideHandler.of(mixer, side));
+            event.registerBlockEntity(ServusFoundationCapabilities.DRIVE, MachineContent.MIXER_ENTITY.get(),
+                    (mixer, side) -> mixer.drive(side));
             event.registerBlockEntity(Capabilities.Energy.BLOCK, MachineContent.ELECTRIC_MOTOR_ENTITY.get(),
                     (motor, side) -> motor.energyStorage(side));
             event.registerBlockEntity(Capabilities.Item.BLOCK, MachineContent.SINK_ENTITY.get(),

@@ -1,0 +1,276 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "east": {
+          "texture": "#brass",
+          "uv": [
+            6.5,
+            0,
+            9.5,
+            1
+          ]
+        },
+        "north": {
+          "texture": "#brass",
+          "uv": [
+            6.5,
+            0,
+            9.5,
+            1
+          ]
+        },
+        "south": {
+          "texture": "#brass",
+          "uv": [
+            6.5,
+            0,
+            9.5,
+            1
+          ]
+        },
+        "up": {
+          "texture": "#brass",
+          "uv": [
+            6.5,
+            6.5,
+            9.5,
+            9.5
+          ]
+        },
+        "west": {
+          "texture": "#brass",
+          "uv": [
+            6.5,
+            0,
+            9.5,
+            1
+          ]
+        }
+      },
+      "from": [
+        6.5,
+        15,
+        6.5
+      ],
+      "to": [
+        9.5,
+        16,
+        9.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#steel",
+          "uv": [
+            7.25,
+            7.25,
+            8.75,
+            8.75
+          ]
+        },
+        "east": {
+          "texture": "#steel",
+          "uv": [
+            7.25,
+            1.1000004,
+            8.75,
+            9.5
+          ]
+        },
+        "north": {
+          "texture": "#steel",
+          "uv": [
+            7.25,
+            1.1000004,
+            8.75,
+            9.5
+          ]
+        },
+        "south": {
+          "texture": "#steel",
+          "uv": [
+            7.25,
+            1.1000004,
+            8.75,
+            9.5
+          ]
+        },
+        "up": {
+          "texture": "#steel",
+          "uv": [
+            7.25,
+            7.25,
+            8.75,
+            8.75
+          ]
+        },
+        "west": {
+          "texture": "#steel",
+          "uv": [
+            7.25,
+            1.1000004,
+            8.75,
+            9.5
+          ]
+        }
+      },
+      "from": [
+        7.25,
+        6.5,
+        7.25
+      ],
+      "to": [
+        8.75,
+        14.9,
+        8.75
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#heavy",
+          "uv": [
+            3.5,
+            7.5,
+            12.5,
+            8.5
+          ]
+        },
+        "east": {
+          "texture": "#heavy",
+          "uv": [
+            7.5,
+            6,
+            8.5,
+            10
+          ]
+        },
+        "north": {
+          "texture": "#heavy",
+          "uv": [
+            3.5,
+            6,
+            12.5,
+            10
+          ]
+        },
+        "south": {
+          "texture": "#heavy",
+          "uv": [
+            3.5,
+            6,
+            12.5,
+            10
+          ]
+        },
+        "up": {
+          "texture": "#heavy",
+          "uv": [
+            3.5,
+            7.5,
+            12.5,
+            8.5
+          ]
+        },
+        "west": {
+          "texture": "#heavy",
+          "uv": [
+            7.5,
+            6,
+            8.5,
+            10
+          ]
+        }
+      },
+      "from": [
+        3.5,
+        6,
+        7.5
+      ],
+      "to": [
+        12.5,
+        10,
+        8.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#heavy",
+          "uv": [
+            7.5,
+            3.5,
+            8.5,
+            12.5
+          ]
+        },
+        "east": {
+          "texture": "#heavy",
+          "uv": [
+            3.5,
+            6.005,
+            12.5,
+            9.995
+          ]
+        },
+        "north": {
+          "texture": "#heavy",
+          "uv": [
+            7.5,
+            6.005,
+            8.5,
+            9.995
+          ]
+        },
+        "south": {
+          "texture": "#heavy",
+          "uv": [
+            7.5,
+            6.005,
+            8.5,
+            9.995
+          ]
+        },
+        "up": {
+          "texture": "#heavy",
+          "uv": [
+            7.5,
+            3.5,
+            8.5,
+            12.5
+          ]
+        },
+        "west": {
+          "texture": "#heavy",
+          "uv": [
+            3.5,
+            6.005,
+            12.5,
+            9.995
+          ]
+        }
+      },
+      "from": [
+        7.5,
+        6.005,
+        3.5
+      ],
+      "to": [
+        8.5,
+        9.995,
+        12.5
+      ]
+    }
+  ],
+  "textures": {
+    "brass": "servus_foundation:block/brass",
+    "chute": "servus_foundation:block/mill_chute",
+    "heavy": "servus_foundation:block/heavy_iron",
+    "particle": "servus_foundation:block/electric_pump_steel",
+    "port": "servus_foundation:block/mixer_port",
+    "steel": "servus_foundation:block/electric_pump_steel"
+  }
+}
