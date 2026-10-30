@@ -207,11 +207,11 @@ While an aquarium is formed and powered, its lid panels SHALL glow into the wate
 - **THEN** its lid panels glow again
 
 ### Requirement: Aquarium GUI
-Using any part of a formed aquarium with an empty hand or any item other than a bucket SHALL open its GUI. The GUI SHALL show the species, fullness in percent, stock and capacity, water quality, whether it is powered, the feed, filter and catch slots, the auto catch switch and the keep level.
+Using any part of a formed aquarium with an empty hand or any item other than a bucket SHALL open its GUI. The GUI SHALL show the stock against the capacity as a bar, the water quality as a meter marking where fish start dying, whether it is powered, the feed, filter and catch slots, the auto catch switch and the keep level. Species, fullness and exact numbers SHALL show in tooltips. An empty feed, filter or catch slot SHALL show a faded item of what belongs there and name it in a tooltip.
 
 #### Scenario: Opening from the lid
 - **WHEN** a player right clicks a Lid slab of a formed aquarium with an empty hand
-- **THEN** the aquarium GUI opens and shows, for example, "Cod", 30% full, 24 of 80, water 92%, powered
+- **THEN** the aquarium GUI opens with the fish bar about a third full showing 24 / 80, the quality meter at 92% and a lit power bolt; hovering the fish bar shows "Cod, 30% full"
 
 #### Scenario: Keep level in the GUI
 - **WHEN** the player raises the keep level from 8 to 18

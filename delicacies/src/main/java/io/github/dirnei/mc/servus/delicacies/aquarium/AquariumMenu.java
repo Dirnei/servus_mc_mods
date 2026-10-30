@@ -44,7 +44,8 @@ public class AquariumMenu extends AbstractContainerMenu {
     private static final int DATA_SPECIES = 6;
     private static final int DATA_MURKY = 7;
     private static final int DATA_MURKY_CAPACITY = 8;
-    private static final int DATA_COUNT = 9;
+    private static final int DATA_DYING_BELOW = 9;
+    private static final int DATA_COUNT = 10;
     /** Container data travels as shorts. */
     private static final int MAX_DATA = Short.MAX_VALUE;
     /** The master sits in a corner of a possibly large aquarium, so the GUI stays open farther than a chest's. */
@@ -134,6 +135,11 @@ public class AquariumMenu extends AbstractContainerMenu {
         return data.get(DATA_MURKY_CAPACITY);
     }
 
+    /** The water quality in percent below which fish die. */
+    public int dyingBelowPercent() {
+        return data.get(DATA_DYING_BELOW);
+    }
+
     public @Nullable FishSpecies species() {
         return FishSpecies.byOrdinal(data.get(DATA_SPECIES) - 1);
     }
@@ -152,6 +158,7 @@ public class AquariumMenu extends AbstractContainerMenu {
         data.set(DATA_SPECIES, state.species() == null ? 0 : state.species().ordinal() + 1);
         data.set(DATA_MURKY, Math.min(MAX_DATA, state.murky()));
         data.set(DATA_MURKY_CAPACITY, Math.min(MAX_DATA, AquariumStatsManager.INSTANCE.stats().murkyCapacity()));
+        data.set(DATA_DYING_BELOW, (int) Math.round(AquariumStatsManager.INSTANCE.stats().dyingBelow() * 100));
     }
 
     @Override
