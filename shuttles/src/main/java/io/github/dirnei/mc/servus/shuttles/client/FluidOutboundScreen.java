@@ -26,20 +26,22 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /**
  * The Fluid Outbound GUI: the shared station GUI with the keep fluid picker
- * above the gauge, a mark on the gauge at the keep amount, the amount below
- * it and the -1 B, +1 B, -10 B and +10 B buttons. Clicking the picker with a
+ * above the gauge, marks on the gauge at the keep amount and the restock
+ * level, and below it the keep amount and the restock level, each with -1 B,
+ * +1 B, -10 B and +10 B buttons. Clicking the picker with a
  * filled fluid container on the cursor keeps that container's fluid. While
  * the picker's popup is open nothing below it reacts.
  */
 public class FluidOutboundScreen extends FluidStationScreen<FluidOutboundMenu> {
 
     private static final int COLOUR_KEEP_MARK = 0xFFFFFFFF;
+    private static final int COLOUR_RESTOCK_MARK = 0xFFFFA040;
     private static final String[] STEP_LABELS = {"-1", "+1", "-10", "+10"};
     private static List<ItemPicker.Entry> entries;
 
     private final ItemPicker picker = new ItemPicker(Component.translatable("gui.servus_shuttles.fluid_outbound.keep_picker"),
             entry -> sendKeep(entry.fluidId()));
-    private final Button[] stepButtons = new Button[FluidOutboundMenu.KEEP_STEPS.length];
+    private final Button[] stepButtons = new Button[2 * FluidOutboundMenu.KEEP_STEPS.length];
 
     public FluidOutboundScreen(FluidOutboundMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, FluidOutboundMenu.IMAGE_HEIGHT, FluidOutboundMenu.GAUGE_Y, FluidOutboundMenu.STATE_Y);
@@ -66,14 +68,20 @@ public class FluidOutboundScreen extends FluidStationScreen<FluidOutboundMenu> {
         super.init();
         picker.setButton(leftPos + FluidOutboundMenu.PICKER_X, topPos + FluidOutboundMenu.PICKER_Y, FluidOutboundMenu.PICKER_WIDTH);
         picker.setArea(leftPos, topPos, imageWidth, imageHeight);
-        int width = (menu.pitch() - 6) / 2;
-        for (int step = 0; step < stepButtons.length; step++) {
-            int id = FluidOutboundMenu.keepButton(step);
-            int x = leftPos + menu.columnX() + 2 + (step % 2) * (width + 2);
-            int y = topPos + FluidOutboundMenu.BUTTONS_Y + (step / 2) * (FluidOutboundMenu.BUTTON_HEIGHT + 1);
-            stepButtons[step] = addRenderableWidget(Button.builder(Component.literal(STEP_LABELS[step]),
-                    button -> MenuButtons.press(minecraft, menu, id)).bounds(x, y, width, FluidOutboundMenu.BUTTON_HEIGHT).build());
+        int steps = FluidOutboundMenu.KEEP_STEPS.length;
+        for (int step = 0; step < steps; step++) {
+            stepButtons[step] = addStepButton(step, FluidOutboundMenu.keepButton(step), FluidOutboundMenu.BUTTONS_Y);
+            stepButtons[steps + step] = addStepButton(step, FluidOutboundMenu.restockButton(step), FluidOutboundMenu.RESTOCK_BUTTONS_Y);
         }
+    }
+
+    /** One step button in the two by two block whose top is at {@code top}. */
+    private Button addStepButton(int step, int id, int top) {
+        int width = (menu.pitch() - 6) / 2;
+        int x = leftPos + menu.columnX() + 2 + (step % 2) * (width + 2);
+        int y = topPos + top + (step / 2) * (FluidOutboundMenu.BUTTON_HEIGHT + 1);
+        return addRenderableWidget(Button.builder(Component.literal(STEP_LABELS[step]),
+                button -> MenuButtons.press(minecraft, menu, id)).bounds(x, y, width, FluidOutboundMenu.BUTTON_HEIGHT).build());
     }
 
     @Override
@@ -97,28 +105,39 @@ public class FluidOutboundScreen extends FluidStationScreen<FluidOutboundMenu> {
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
         picker.renderButton(graphics, font, mouseX, mouseY);
-        renderKeepMark(graphics, menu.keep());
+        FluidKeep<Fluid> keep = menu.keep();
+        if (keep.isSet()) {
+            renderMark(graphics, keep.restockLevel(), COLOUR_RESTOCK_MARK);
+            renderMark(graphics, keep.target(), COLOUR_KEEP_MARK);
+        }
     }
 
-    /** The line across the gauge at the keep amount. */
-    private void renderKeepMark(GuiGraphicsExtractor graphics, FluidKeep<Fluid> keep) {
+    /** A line across the gauge at {@code millibuckets}. */
+    private void renderMark(GuiGraphicsExtractor graphics, int millibuckets, int colour) {
         int capacity = menu.capacity();
-        if (keep.target() <= 0 || capacity <= 0) {
+        if (capacity <= 0) {
             return;
         }
         int height = FluidOutboundMenu.GAUGE_HEIGHT;
         int bottom = topPos + FluidOutboundMenu.GAUGE_Y + height;
-        int y = Math.min(bottom - 1, bottom - (int) Math.min(height, (long) keep.target() * height / capacity));
+        int y = Math.min(bottom - 1, bottom - (int) Math.min(height, (long) millibuckets * height / capacity));
         int x = leftPos + menu.gaugeX();
-        graphics.fill(x, y, x + FluidOutboundMenu.GAUGE_WIDTH, y + 1, COLOUR_KEEP_MARK);
+        graphics.fill(x, y, x + FluidOutboundMenu.GAUGE_WIDTH, y + 1, colour);
     }
 
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.extractLabels(graphics, mouseX, mouseY);
-        Component amount = Component.translatable("gui.servus_shuttles.fluid_outbound.keep_amount", buckets(menu.keep().target()));
-        int x = menu.columnX() + (menu.pitch() - font.width(amount)) / 2;
-        graphics.text(font, amount, x, FluidOutboundMenu.AMOUNT_Y, COLOUR_TEXT, false);
+        FluidKeep<Fluid> keep = menu.keep();
+        centredLabel(graphics, Component.translatable("gui.servus_shuttles.fluid_outbound.keep_amount", buckets(keep.target())),
+                FluidOutboundMenu.AMOUNT_Y);
+        centredLabel(graphics, Component.translatable("gui.servus_shuttles.fluid_outbound.restock_at", buckets(keep.restockLevel())),
+                FluidOutboundMenu.RESTOCK_Y);
+    }
+
+    private void centredLabel(GuiGraphicsExtractor graphics, Component text, int y) {
+        int x = menu.columnX() + (menu.pitch() - font.width(text)) / 2;
+        graphics.text(font, text, x, y, COLOUR_TEXT, false);
     }
 
     /** An amount in buckets: whole buckets plain, else with one decimal. */

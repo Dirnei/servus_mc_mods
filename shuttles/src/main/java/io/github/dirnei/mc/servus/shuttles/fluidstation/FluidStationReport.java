@@ -9,7 +9,8 @@ import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
  * The chat report of the Data Potato on a fluid station: one line for the
- * tank, on a Fluid Outbound followed by what it keeps. Server thread only.
+ * tank, on a Fluid Outbound followed by what it keeps and its restock level.
+ * Server thread only.
  */
 public final class FluidStationReport {
 
@@ -32,6 +33,6 @@ public final class FluidStationReport {
     private static Component keeps(FluidKeep<Fluid> keep) {
         Fluid fluid = keep.fluid();
         return fluid == null ? Component.translatable(KEY + "keeps_nothing")
-                : Component.translatable(KEY + "keeps", keep.amount(), new FluidStack(fluid, 1).getHoverName());
+                : Component.translatable(KEY + "keeps_restock", keep.amount(), new FluidStack(fluid, 1).getHoverName(), keep.restockAt());
     }
 }

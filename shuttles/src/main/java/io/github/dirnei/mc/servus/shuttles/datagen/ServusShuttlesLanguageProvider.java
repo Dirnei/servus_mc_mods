@@ -749,12 +749,13 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.fluid_station.state.no_tanker", "No Tanker available");
         add("message.servus_shuttles.potato.fluid_station_tank", "Tank: %s, %s of %s mB");
         add("message.servus_shuttles.potato.fluid_station_empty", "Tank: empty, holds %s mB");
-        add("message.servus_shuttles.potato.fluid_station_keeps", ", keeps %s mB of %s");
+        add("message.servus_shuttles.potato.fluid_station_keeps_restock", ", keeps %s mB of %s, restocks at %s mB");
         add("message.servus_shuttles.potato.fluid_station_keeps_nothing", ", keeps nothing");
         add("gui.servus_shuttles.fluid_station.state.missing", "%s missing");
         add("gui.servus_shuttles.fluid_outbound.keep_picker", "Keep fluid");
         add("gui.servus_shuttles.fluid_outbound.keep_none", "Keep nothing");
         add("gui.servus_shuttles.fluid_outbound.keep_amount", "%s B");
+        add("gui.servus_shuttles.fluid_outbound.restock_at", "Restock at %s B");
     }
 
     private void tooltipsAndReports() {

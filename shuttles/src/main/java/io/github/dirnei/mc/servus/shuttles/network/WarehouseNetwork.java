@@ -2583,8 +2583,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /**
-     * Queues a restock run for each Fluid Outbound whose tank is below its keep
-     * amount with no run on its way, from the Fluid Rack shelf a Tanker
+     * Updates whether each Fluid Outbound restocks and queues a whole bucket
+     * restock run for each one that does with no run on its way, from the Fluid Rack shelf a Tanker
      * reaches with the most free fluid. Adds the Outbounds that lack fluid
      * and that no Tanker reaches to {@code noTankers}, and returns, per
      * Outbound, the kept fluid that no reachable shelf holds.
@@ -2599,10 +2599,13 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             FluidStack held = station.tank().getFluid();
             FluidStoreRef ref = FluidStoreRef.station(pos);
             Fluid kept = keep.fluid();
-            if (keep.target() <= 0 || kept == null || !held.isEmpty() && !keep.accepts(held.getFluid()) || fleet.hasFluidRunTo(ref)) {
+            int incoming = fleet.fluidIncomingTo(ref);
+            int have = held.getAmount() + Math.max(0, incoming);
+            station.setRestocking(FluidRestockPlan.restocking(station.restocking(), have, keep.restockLevel(), keep.target()));
+            if (!station.restocking() || kept == null || !held.isEmpty() && !keep.accepts(held.getFluid()) || fleet.hasFluidRunTo(ref)) {
                 continue;
             }
-            int lacking = FluidRestockPlan.missing(keep.target(), held.getAmount(), fleet.fluidIncomingTo(ref));
+            int lacking = FluidRestockPlan.missing(keep.target(), held.getAmount(), incoming);
             if (lacking <= 0) {
                 continue;
             }

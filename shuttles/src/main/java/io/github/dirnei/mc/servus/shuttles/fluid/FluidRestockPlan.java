@@ -21,6 +21,9 @@ public final class FluidRestockPlan {
     public record Source<T>(T id, int free, int distance) {
     }
 
+    /** One bucket in mB; restock runs carry whole buckets only. */
+    public static final int BUCKET = 1000;
+
     private FluidRestockPlan() {
     }
 
@@ -30,8 +33,25 @@ public final class FluidRestockPlan {
     }
 
     /**
-     * The amount of the run, 0 when no run should start. A run below the min
-     * load waits unless it fills the missing amount completely.
+     * Whether the kept tank restocks: it starts once its have is at or below
+     * the restock level and goes on while at least one bucket is missing to
+     * the keep amount.
+     *
+     * @param was       whether it restocked at the last check
+     * @param have      its amount plus what runs on the way bring
+     * @param restockAt the restock level
+     * @param keep      the keep amount
+     */
+    public static boolean restocking(boolean was, int have, int restockAt, int keep) {
+        if (keep <= 0) {
+            return false;
+        }
+        return have <= restockAt || was && keep - have >= BUCKET;
+    }
+
+    /**
+     * The amount of the run in whole buckets, 0 when no run should start. A
+     * run below the min load waits unless it brings every whole bucket missing.
      *
      * @param missing         what the kept tank lacks
      * @param minLoad         the smallest run worth a trip
@@ -42,8 +62,12 @@ public final class FluidRestockPlan {
         if (missing <= 0 || shuttleCapacity <= 0 || sourceFree <= 0) {
             return 0;
         }
-        int amount = Math.min(missing, Math.min(shuttleCapacity, sourceFree));
-        return amount < minLoad && amount < missing ? 0 : amount;
+        int amount = wholeBuckets(Math.min(missing, Math.min(shuttleCapacity, sourceFree)));
+        return amount < minLoad && amount < wholeBuckets(missing) ? 0 : amount;
+    }
+
+    private static int wholeBuckets(int amount) {
+        return amount / BUCKET * BUCKET;
     }
 
     /** The sources with free fluid, the one with the most first, then the nearer one. */

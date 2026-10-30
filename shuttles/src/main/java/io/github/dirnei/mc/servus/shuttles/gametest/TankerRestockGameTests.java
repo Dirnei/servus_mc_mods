@@ -122,6 +122,86 @@ public final class TankerRestockGameTests {
         });
     }
 
+    /** A tank keeping 8 B with a restock level of 4 B waits at 5 B and, drained to 4 B, is filled back to 8 B. */
+    @ServusGameTest(timeoutTicks = 150 + RUN + 20)
+    public static void restockWaitsForTheLevel(GameTestHelper helper) {
+        TankerFixtures.withTanker(helper);
+        FluidOutboundBlockEntity outbound = TankerFixtures.outbound(helper, Fluids.WATER, 8000);
+        outbound.stepRestock(-4000);
+        TankerFixtures.fill(outbound, Fluids.WATER, 5000);
+        TankerFixtures.rack(helper, TankerFixtures.FAR);
+        helper.runAfterDelay(2, () -> {
+            TankerFixtures.fill(helper, TankerFixtures.FAR, Fluids.WATER, 16000);
+            helper.runAfterDelay(150, () -> {
+                helper.assertTrue(TankerFixtures.amount(outbound) == 5000, "above the restock level the tank still holds 5000 mB");
+                helper.assertTrue(TankerFixtures.out(helper) == 0 && TankerFixtures.network(helper).queuedJobs() == 0, "no run is queued");
+                helper.assertTrue(lamp(helper, Activity.IDLE), "the lamp is green above the restock level");
+                outbound.tank().drain(1000, false);
+                Waits.when(helper, () -> TankerFixtures.amount(outbound) == 8000 && TankerFixtures.out(helper) == 0, RUN,
+                        () -> "drained to the restock level, the tank is filled to 8000 mB, got " + TankerFixtures.amount(outbound),
+                        helper::succeed);
+            });
+        });
+    }
+
+    /** A tank keeping 16 B with a restock level of 2 B and a Mk2 Tanker of 8 B gets a second run though it is above 2 B after the first. */
+    @ServusGameTest(timeoutTicks = 2 * RUN + 20)
+    public static void refillGoesOnAboveTheLevel(GameTestHelper helper) {
+        ShuttleGarageBlockEntity garage = TankerFixtures.warehouse(helper);
+        garage.shuttles().setStackInSlot(0, TankerFixtures.tanker(ServusShuttlesItems.SHUTTLE_MK2.get()));
+        FluidOutboundBlockEntity outbound = TankerFixtures.outbound(helper, Fluids.WATER, 16000);
+        outbound.stepRestock(-14000);
+        TankerFixtures.fill(outbound, Fluids.WATER, 2000);
+        TankerFixtures.rack(helper, TankerFixtures.FAR);
+        helper.runAfterDelay(2, () -> {
+            TankerFixtures.fill(helper, TankerFixtures.FAR, Fluids.WATER, 16000);
+            Waits.when(helper, () -> TankerFixtures.amount(outbound) == 16000 && TankerFixtures.out(helper) == 0, 2 * RUN,
+                    () -> "the tank is filled to its keep of 16000 mB, got " + TankerFixtures.amount(outbound), () -> {
+                helper.assertTrue(TankerFixtures.amount(helper, TankerFixtures.FAR) == 2000, "14000 mB left the rack, it holds "
+                        + TankerFixtures.amount(helper, TankerFixtures.FAR));
+                helper.assertTrue(!outbound.restocking(), "the restock is over");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** A tank keeping 8 B and holding 6250 mB gets one run of 1000 mB and then none for the 750 mB left. */
+    @ServusGameTest(timeoutTicks = RUN + 150 + 20)
+    public static void runsCarryWholeBuckets(GameTestHelper helper) {
+        TankerFixtures.withTanker(helper);
+        FluidOutboundBlockEntity outbound = TankerFixtures.outbound(helper, Fluids.WATER, 8000);
+        TankerFixtures.fill(outbound, Fluids.WATER, 6250);
+        TankerFixtures.rack(helper, TankerFixtures.FAR);
+        helper.runAfterDelay(2, () -> {
+            TankerFixtures.fill(helper, TankerFixtures.FAR, Fluids.WATER, 16000);
+            Waits.when(helper, () -> TankerFixtures.amount(outbound) == 7250 && TankerFixtures.out(helper) == 0, RUN,
+                    () -> "a run brings one bucket, got " + TankerFixtures.amount(outbound), () -> helper.runAfterDelay(150, () -> {
+                helper.assertTrue(TankerFixtures.amount(outbound) == 7250, "no run brings the 750 mB left, got " + TankerFixtures.amount(outbound));
+                helper.assertTrue(TankerFixtures.out(helper) == 0 && TankerFixtures.network(helper).queuedJobs() == 0, "no run is queued");
+                helper.assertTrue(TankerFixtures.amount(helper, TankerFixtures.FAR) == 15000, "the rack gave 1000 mB, it holds "
+                        + TankerFixtures.amount(helper, TankerFixtures.FAR));
+                helper.succeed();
+            }));
+        });
+    }
+
+    /** The only shelf with water holds 600 mB: no run is queued. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void lessThanABucketInTheRackIsNoRun(GameTestHelper helper) {
+        TankerFixtures.withTanker(helper);
+        FluidOutboundBlockEntity outbound = TankerFixtures.outbound(helper, Fluids.WATER, 4000);
+        TankerFixtures.rack(helper, TankerFixtures.FAR);
+        helper.runAfterDelay(2, () -> {
+            TankerFixtures.fill(helper, TankerFixtures.FAR, Fluids.WATER, 600);
+            helper.runAfterDelay(150, () -> {
+                helper.assertTrue(TankerFixtures.amount(outbound) == 0, "the kept tank stays empty");
+                helper.assertTrue(TankerFixtures.out(helper) == 0 && TankerFixtures.network(helper).queuedJobs() == 0, "no run is queued");
+                helper.assertTrue(TankerFixtures.amount(helper, TankerFixtures.FAR) == 600, "the 600 mB stay in the rack");
+                helper.succeed();
+            });
+        });
+    }
+
     /** No shelf holds lava: no tanker drives, the lamp is red and the GUI says lava is missing from storage. */
     @ServusGameTest(timeoutTicks = 200)
     public static void missingStockRedLamp(GameTestHelper helper) {
@@ -175,7 +255,7 @@ public final class TankerRestockGameTests {
         });
     }
 
-    /** The source was drained to 2500 mB before the tanker came: it takes those and brings them. */
+    /** The source was drained to 2000 mB before the tanker came: it takes those and brings them. */
     @ServusGameTest(timeoutTicks = RUN + 20)
     public static void restockPartialPick(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
@@ -184,9 +264,9 @@ public final class TankerRestockGameTests {
         helper.runAfterDelay(2, () -> {
             TankerFixtures.fill(helper, TankerFixtures.FAR, Fluids.WATER, 4000);
             Waits.when(helper, () -> TankerFixtures.out(helper) == 1, RUN, () -> "a tanker drives out", () -> {
-                FluidRackFixtures.bay(helper, TankerFixtures.FAR).shelfHandler().drain(1500, false);
-                Waits.when(helper, () -> TankerFixtures.amount(outbound) == 2500 && TankerFixtures.out(helper) == 0, RUN,
-                        () -> "the tanker brings the 2500 mB left, got " + TankerFixtures.amount(outbound), () -> {
+                FluidRackFixtures.bay(helper, TankerFixtures.FAR).shelfHandler().drain(2000, false);
+                Waits.when(helper, () -> TankerFixtures.amount(outbound) == 2000 && TankerFixtures.out(helper) == 0, RUN,
+                        () -> "the tanker brings the 2000 mB left, got " + TankerFixtures.amount(outbound), () -> {
                     helper.assertTrue(TankerFixtures.amount(helper, TankerFixtures.FAR) == 0, "the rack is empty");
                     helper.succeed();
                 });

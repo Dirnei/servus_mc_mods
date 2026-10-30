@@ -17,11 +17,13 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -31,6 +33,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -48,7 +51,9 @@ public final class FluidOutboundGameTests {
 
     private static final Direction FRONT = Direction.NORTH;
     private static final BlockPos STATION = new BlockPos(4, 1, 4);
+    private static final int MINUS_ONE = 0;
     private static final int PLUS_ONE = 1;
+    private static final int MINUS_TEN = 2;
     private static final int PLUS_TEN = 3;
 
     private FluidOutboundGameTests() {
@@ -99,6 +104,75 @@ public final class FluidOutboundGameTests {
             helper.assertTrue(placed.fluidSides().mode(RelativeSide.BACK) == SideMode.PUSH, "the back still pushes");
             helper.succeed();
         });
+    }
+
+    /** The dropped item keeps a restock level of 3000 mB under a keep of 8000 mB and the restocking flag. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void restockLevelSurvivesBreak(GameTestHelper helper) {
+        FluidOutboundBlockEntity station = keeping(helper, Fluids.WATER, 2000);
+        station.stepKeep(8000);
+        station.stepRestock(-5000);
+        station.setRestocking(true);
+        CompoundTag tag = station.saveWithFullMetadata(helper.getLevel().registryAccess());
+        FluidOutboundBlockEntity reloaded = new FluidOutboundBlockEntity(station.getBlockPos(), station.getBlockState());
+        reloaded.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), tag));
+        helper.assertTrue(reloaded.restocking(), "a reload in the middle of a refill goes on refilling");
+        helper.destroyBlock(STATION.above());
+        helper.runAfterDelay(1, () -> {
+            List<ItemStack> drops = FluidStationFixtures.dropped(helper, STATION);
+            helper.assertTrue(drops.size() == 1, "one item drops, got " + drops);
+            FluidOutboundBlockEntity placed = FluidStationFixtures.outbound(helper, new BlockPos(8, 1, 8), FRONT, drops.getFirst().copy());
+            helper.assertTrue(placed.keep().equals(new FluidKeep<>(Fluids.WATER, 8000, 3000)),
+                    "it still keeps 8000 mB of water and restocks at 3000 mB, got " + placed.keep());
+            helper.succeed();
+        });
+    }
+
+    /** A station saved before restock levels existed restocks at its keep amount. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void oldSaveRestocksAtKeep(GameTestHelper helper) {
+        FluidOutboundBlockEntity station = place(helper);
+        station.setKeepFluid(Fluids.WATER);
+        station.stepKeep(6000);
+        station.stepRestock(-4000);
+        CompoundTag tag = station.saveWithFullMetadata(helper.getLevel().registryAccess());
+        tag.remove("RestockAt");
+        tag.remove("Restocking");
+        FluidOutboundBlockEntity reloaded = new FluidOutboundBlockEntity(station.getBlockPos(), station.getBlockState());
+        reloaded.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), tag));
+        helper.assertTrue(reloaded.keep().equals(new FluidKeep<>(Fluids.WATER, 6000, 6000)),
+                "the old save restocks at its keep of 6000 mB, got " + reloaded.keep());
+        helper.assertTrue(!reloaded.restocking(), "the old save is not restocking");
+        helper.succeed();
+    }
+
+    /** The restock buttons step the restock level within 0 and the keep and leave the keep alone; a lower keep pulls it down. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void restockButtonsStepWithinKeep(GameTestHelper helper) {
+        FluidOutboundBlockEntity station = place(helper);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        FluidOutboundMenu menu = new FluidOutboundMenu(1, player.getInventory(), station);
+        menu.clickMenuButton(player, FluidOutboundMenu.restockButton(PLUS_ONE));
+        helper.assertTrue(station.keep().restockAt() == 0, "no keep fluid, no restock level");
+        station.setKeepFluid(Fluids.WATER);
+        station.stepKeep(8000);
+        menu.clickMenuButton(player, FluidOutboundMenu.restockButton(PLUS_ONE));
+        helper.assertTrue(station.keep().restockAt() == 8000, "the restock level stays at the keep, got " + station.keep().restockAt());
+        for (int press = 0; press < 4; press++) {
+            menu.clickMenuButton(player, FluidOutboundMenu.restockButton(MINUS_ONE));
+        }
+        helper.assertTrue(station.keep().equals(new FluidKeep<>(Fluids.WATER, 8000, 4000)),
+                "four -1 B make a restock level of 4000 mB under the keep of 8000 mB, got " + station.keep());
+        helper.assertTrue(menu.keep().equals(station.keep()), "the menu shows the restock level");
+        menu.clickMenuButton(player, FluidOutboundMenu.restockButton(MINUS_TEN));
+        helper.assertTrue(station.keep().restockAt() == 0, "the restock level stops at 0, got " + station.keep().restockAt());
+        station.stepRestock(6000);
+        for (int press = 0; press < 4; press++) {
+            menu.clickMenuButton(player, FluidOutboundMenu.keepButton(MINUS_ONE));
+        }
+        helper.assertTrue(station.keep().equals(new FluidKeep<>(Fluids.WATER, 4000, 4000)),
+                "a keep lowered to 4000 mB pulls the restock level of 6000 mB down, got " + station.keep());
+        helper.succeed();
     }
 
     /** The tank keeps water: a lava bucket puts nothing in, a water bucket fills it. */
@@ -275,11 +349,12 @@ public final class FluidOutboundGameTests {
         helper.succeed();
     }
 
-    /** The potato names the tank with 5200 mB of water keeping 8000 mB of water, in one line. */
+    /** The potato names the tank with 5200 mB of water keeping 8000 mB of water and restocking at 4000 mB, in one line. */
     @ServusGameTest(timeoutTicks = 40)
     public static void potatoReportsKeeps(GameTestHelper helper) {
         FluidOutboundBlockEntity station = keeping(helper, Fluids.WATER, 5200);
         station.stepKeep(8000);
+        station.stepRestock(-4000);
         BlockPos lower = helper.absolutePos(STATION);
         BlockState state = helper.getLevel().getBlockState(lower);
         List<Component> report = ((FluidStationBlock) state.getBlock()).potatoReport(helper.getLevel(), lower, state, Vec3.atCenterOf(lower));
@@ -287,8 +362,9 @@ public final class FluidOutboundGameTests {
         Component first = report.getFirst();
         helper.assertTrue(key(first).equals("message.servus_shuttles.potato.fluid_station_tank") && args(first)[1].equals(5200),
                 "the tank holds 5200 mB: " + first.getString());
-        helper.assertTrue(keyOfKeep(first).equals("message.servus_shuttles.potato.fluid_station_keeps") && argsOfKeep(first)[0].equals(8000),
-                "the tank keeps 8000 mB: " + first.getString());
+        helper.assertTrue(keyOfKeep(first).equals("message.servus_shuttles.potato.fluid_station_keeps_restock")
+                        && argsOfKeep(first)[0].equals(8000) && argsOfKeep(first)[2].equals(4000),
+                "the tank keeps 8000 mB and restocks at 4000 mB: " + first.getString());
         helper.assertTrue(station.tank().getFluidAmount() == 5200, "the potato changes nothing");
         helper.succeed();
     }

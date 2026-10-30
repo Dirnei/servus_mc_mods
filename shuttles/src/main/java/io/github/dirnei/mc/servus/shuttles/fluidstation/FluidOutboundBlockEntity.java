@@ -23,7 +23,8 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The Fluid Outbound's tank keeps a fluid and an amount that tankers restock
- * it to from the warehouse's Fluid Racks, and takes only that fluid. Sides
+ * it to from the warehouse's Fluid Racks once it drops to its restock level,
+ * and takes only that fluid. Sides
  * hand fluid out on Push or Output and take none in; the back pushes by
  * default. A tank whose keep is cleared keeps what it holds until it is drained.
  */
@@ -31,8 +32,11 @@ public class FluidOutboundBlockEntity extends FluidStationBlockEntity {
 
     private static final String KEEP_FLUID = "KeepFluid";
     private static final String KEEP_AMOUNT = "KeepAmount";
+    private static final String RESTOCK_AT = "RestockAt";
+    private static final String RESTOCKING = "Restocking";
 
     private FluidKeep<Fluid> keep = FluidKeep.none();
+    private boolean restocking;
 
     public FluidOutboundBlockEntity(BlockPos pos, BlockState state) {
         super(ServusShuttlesBlockEntities.FLUID_OUTBOUND.get(), pos, state, SideConfig.OUTBOUND_MODES, SideMode.DISABLED, TankRole.ANY);
@@ -58,6 +62,26 @@ public class FluidOutboundBlockEntity extends FluidStationBlockEntity {
     public void stepKeep(int delta) {
         if (keep.isSet()) {
             setKeep(keep.step(delta, tank().getCapacity()));
+        }
+    }
+
+    /** Steps the restock level by {@code delta} mB, limited to 0 and the keep amount; nothing without a keep fluid. */
+    public void stepRestock(int delta) {
+        if (keep.isSet()) {
+            setKeep(keep.stepRestock(delta));
+        }
+    }
+
+    /** Whether the tank restocks: from its restock level until less than a bucket is missing to its keep. */
+    public boolean restocking() {
+        return restocking;
+    }
+
+    /** Marks whether the tank restocks; the warehouse sets it at every fluid check. */
+    public void setRestocking(boolean restocking) {
+        if (this.restocking != restocking) {
+            this.restocking = restocking;
+            setChanged();
         }
     }
 
@@ -96,7 +120,9 @@ public class FluidOutboundBlockEntity extends FluidStationBlockEntity {
         if (keep.isSet()) {
             output.putString(KEEP_FLUID, BuiltInRegistries.FLUID.getKey(keep.fluid()).toString());
             output.putInt(KEEP_AMOUNT, keep.amount());
+            output.putInt(RESTOCK_AT, keep.restockAt());
         }
+        output.putBoolean(RESTOCKING, restocking);
     }
 
     @Override
@@ -104,6 +130,9 @@ public class FluidOutboundBlockEntity extends FluidStationBlockEntity {
         super.loadAdditional(input);
         Fluid fluid = input.getString(KEEP_FLUID).map(Identifier::tryParse).flatMap(BuiltInRegistries.FLUID::getOptional)
                 .filter(found -> found != Fluids.EMPTY).orElse(null);
-        keep = fluid == null ? FluidKeep.none() : new FluidKeep<>(fluid, input.getIntOr(KEEP_AMOUNT, 0)).clamp(tank().getCapacity());
+        int amount = input.getIntOr(KEEP_AMOUNT, 0);
+        keep = fluid == null ? FluidKeep.none()
+                : new FluidKeep<>(fluid, amount, input.getIntOr(RESTOCK_AT, amount)).clamp(tank().getCapacity());
+        restocking = input.getBooleanOr(RESTOCKING, false);
     }
 }

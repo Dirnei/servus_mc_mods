@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.fluid;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -21,10 +23,41 @@ class FluidRestockPlanTest {
     }
 
     @Test
-    void belowMinLoadWaitsUnlessItFills() {
-        assertEquals(500, FluidRestockPlan.amount(500, 1000, 4000, 20000));
-        assertEquals(0, FluidRestockPlan.amount(6000, 1000, 4000, 500));
-        assertEquals(1000, FluidRestockPlan.amount(6000, 1000, 4000, 1000));
+    void runsCarryWholeBuckets() {
+        assertEquals(1000, FluidRestockPlan.amount(1750, 1000, 4000, 20000));
+        assertEquals(3000, FluidRestockPlan.amount(6000, 1000, 3500, 20000));
+        assertEquals(2000, FluidRestockPlan.amount(6000, 1000, 4000, 2999));
+    }
+
+    @Test
+    void lessThanABucketIsNoRun() {
+        assertEquals(0, FluidRestockPlan.amount(750, 0, 4000, 20000));
+        assertEquals(0, FluidRestockPlan.amount(6000, 0, 4000, 600));
+        assertEquals(0, FluidRestockPlan.amount(6000, 0, 900, 20000));
+    }
+
+    @Test
+    void minLoadWaitsUnlessAllWholeBucketsCome() {
+        assertEquals(2000, FluidRestockPlan.amount(2500, 4000, 8000, 20000));
+        assertEquals(0, FluidRestockPlan.amount(6000, 4000, 8000, 2000));
+        assertEquals(4000, FluidRestockPlan.amount(6000, 4000, 8000, 4000));
+    }
+
+    @Test
+    void restockStartsAtTheLevel() {
+        assertFalse(FluidRestockPlan.restocking(false, 5000, 4000, 8000));
+        assertTrue(FluidRestockPlan.restocking(false, 4000, 4000, 8000));
+        assertTrue(FluidRestockPlan.restocking(false, 0, 0, 8000));
+        assertTrue(FluidRestockPlan.restocking(false, 7000, 8000, 8000));
+        assertFalse(FluidRestockPlan.restocking(true, 0, 0, 0));
+    }
+
+    @Test
+    void restockGoesOnUntilLessThanABucketIsMissing() {
+        assertTrue(FluidRestockPlan.restocking(true, 10000, 2000, 16000));
+        assertTrue(FluidRestockPlan.restocking(true, 15000, 2000, 16000));
+        assertFalse(FluidRestockPlan.restocking(true, 15001, 2000, 16000));
+        assertFalse(FluidRestockPlan.restocking(false, 10000, 2000, 16000));
     }
 
     @Test
