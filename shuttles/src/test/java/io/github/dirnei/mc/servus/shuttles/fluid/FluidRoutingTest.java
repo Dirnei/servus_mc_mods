@@ -17,7 +17,7 @@ class FluidRoutingTest {
         return Candidate.of(id, WATER, WATER.equals(lock), lock == null || lock.equals(WATER), content, amount, CAP, 0, null, distance);
     }
 
-    /** A rack section: preferred when its zone lists the fluid, allowed when it lists it or lists no fluids. */
+    /** A rack shelf: preferred when its zone lists the fluid, allowed when it lists it or lists no fluids. */
     private static Candidate<String> rack(String id, List<String> zoneFluids, String content, int amount, int capacity, int distance) {
         return Candidate.of(id, WATER, zoneFluids.contains(WATER), zoneFluids.isEmpty() || zoneFluids.contains(WATER), content, amount,
                 capacity, 0, null, distance);

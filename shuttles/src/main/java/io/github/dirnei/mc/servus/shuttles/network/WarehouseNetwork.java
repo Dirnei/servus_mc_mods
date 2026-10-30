@@ -57,7 +57,7 @@ import io.github.dirnei.mc.servus.shuttles.packing.PackingStationChoice;
 import io.github.dirnei.mc.servus.shuttles.packing.WirelessIncoming;
 import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlock;
 import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackSectionHandler;
+import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackShelfHandler;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.shuttle.CounterData;
@@ -189,11 +189,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final Set<BlockPos> fluidRacks = new LinkedHashSet<>();
     /** Fluid stations, by their lower half; never part of the fluid stock. */
     private final Set<BlockPos> fluidStations = new LinkedHashSet<>();
-    /** Fluid Rack bays whose section changed; their section is read again on the next tick. */
+    /** Fluid Rack bays whose shelf changed; their shelf is read again on the next tick. */
     private final Set<BlockPos> pendingRacks = new LinkedHashSet<>();
-    /** The fluid stock: every Fluid Rack section. */
+    /** The fluid stock: every Fluid Rack shelf. */
     private final WarehouseIndex<FluidStoreRef, FluidKey> fluidIndex = new WarehouseIndex<>();
-    /** What every Fluid Rack section holds as last read, by its port bay. */
+    /** What every Fluid Rack shelf holds as last read, by its port bay. */
     private final Map<BlockPos, TankView> rackViews = new HashMap<>();
     /** Held loads per destination. */
     private final Map<BlockPos, List<HeldLoad>> held = new HashMap<>();
@@ -651,7 +651,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     /**
      * How full the warehouse is: rack slots in use per zone as the stock poll
-     * last read them, and the fluid in its Fluid Rack sections.
+     * last read them, and the fluid in its Fluid Rack shelves.
      */
     public StorageFill.Report storageFill() {
         List<StorageFill.Bay> bays = new ArrayList<>(rackFill.size());
@@ -732,7 +732,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     /**
      * A rack is reached only through the rails in front of the bays of its
-     * section, a Fluid Rack only through the rail in front of its section's
+     * shelf, a Fluid Rack only through the rail in front of its shelf's
      * port, a fluid station only through the rail in front of its lower
      * half, a Field Head through the farm rail beside it, any other block
      * through every travel node touching it.
@@ -746,7 +746,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         BlockState state = level.getBlockState(pos);
         if (state.getBlock() instanceof HeavyRackBlock) {
-            for (BlockPos bay : HeavyRackBlock.section(level, pos)) {
+            for (BlockPos bay : HeavyRackBlock.shelf(level, pos)) {
                 NodePos front = Conversions.toNodePos(bay.relative(level.getBlockState(bay).getValue(HeavyRackBlock.FACING)));
                 if (isTravelNode(front)) {
                     result.add(front);
@@ -1744,7 +1744,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /**
-     * One Fluid Rack section as last read: its port bay, its zone and the
+     * One Fluid Rack shelf as last read: its port bay, its zone and the
      * fluids the zone lists, what it holds and its capacity.
      */
     public record TankView(FluidStoreRef ref, String zone, Set<Fluid> zoneFluids, FluidStack fluid, int capacity) {
@@ -1753,40 +1753,40 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             return new TankView(ref, zone, Set.copyOf(zoneFluids), fluid, capacity);
         }
 
-        /** Whether the section prefers this fluid: its zone lists it. */
+        /** Whether the shelf prefers this fluid: its zone lists it. */
         public boolean preferred(Fluid fluid) {
             return zoneFluids.contains(fluid);
         }
 
-        /** Whether the section's zone lets this fluid in, whatever it holds. */
+        /** Whether the shelf's zone lets this fluid in, whatever it holds. */
         public boolean allows(Fluid fluid) {
             return zoneFluids.isEmpty() || zoneFluids.contains(fluid);
         }
     }
 
-    /** Reads every pending Fluid Rack section again. */
+    /** Reads every pending Fluid Rack shelf again. */
     private void readFluidStores() {
         for (BlockPos pos : List.copyOf(pendingRacks)) {
             pendingRacks.remove(pos);
-            readRackSection(pos);
+            readRackShelf(pos);
         }
     }
 
     /**
-     * Reads the section of the Fluid Rack bay at {@code pos}: its port bay
-     * becomes the section's store; every other bay of it, and the bay itself
-     * when it left the section, stops being one.
+     * Reads the shelf of the Fluid Rack bay at {@code pos}: its port bay
+     * becomes the shelf's store; every other bay of it, and the bay itself
+     * when it left the shelf, stops being one.
      */
-    private void readRackSection(BlockPos pos) {
+    private void readRackShelf(BlockPos pos) {
         if (level == null || !level.isLoaded(pos)) {
             return;
         }
-        List<BlockPos> section = FluidRackBlock.section(level, pos);
+        List<BlockPos> shelf = FluidRackBlock.shelf(level, pos);
         BlockPos port = FluidRackBlock.port(level, pos);
-        if (!section.contains(pos)) {
+        if (!shelf.contains(pos)) {
             dropRack(pos);
         }
-        for (BlockPos bay : section) {
+        for (BlockPos bay : shelf) {
             if (!bay.equals(port)) {
                 dropRack(bay);
             }
@@ -1794,7 +1794,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (port == null || !fluidRacks.contains(port) || !(loaded(port) instanceof FluidRackBlockEntity rack)) {
             return;
         }
-        FluidRackSectionHandler.Content content = rack.sectionHandler().content();
+        FluidRackShelfHandler.Content content = rack.shelfHandler().content();
         FluidStoreRef ref = FluidStoreRef.rack(port);
         FluidStack fluid = content.fluid().copy();
         rackViews.put(port, TankView.rack(ref, rack.zone(), rack.zoneFluids(), fluid, content.capacity()));
@@ -1807,19 +1807,19 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
-    /** The fluid stock: the Fluid Rack sections, per fluid. */
+    /** The fluid stock: the Fluid Rack shelves, per fluid. */
     public WarehouseIndex<FluidStoreRef, FluidKey> fluidIndex() {
         return fluidIndex;
     }
 
-    /** The Fluid Rack sections of this warehouse as last read, by their port bay in a stable order. */
+    /** The Fluid Rack shelves of this warehouse as last read, by their port bay in a stable order. */
     public List<TankView> rackViews() {
         List<TankView> list = new ArrayList<>(rackViews.values());
         list.sort(Comparator.comparingLong(view -> view.ref().pos().asLong()));
         return list;
     }
 
-    /** Every store that holds fluid stock: the Fluid Rack sections. */
+    /** Every store that holds fluid stock: the Fluid Rack shelves. */
     public List<TankView> fluidStores() {
         return rackViews();
     }
@@ -2450,10 +2450,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     /**
      * Queues a restock run for each Fluid Outbound whose tank is below its keep
-     * amount with no run on its way, from the Fluid Rack section a Tanker
+     * amount with no run on its way, from the Fluid Rack shelf a Tanker
      * reaches with the most free fluid. Adds the Outbounds that lack fluid
      * and that no Tanker reaches to {@code noTankers}, and returns, per
-     * Outbound, the kept fluid that no reachable section holds.
+     * Outbound, the kept fluid that no reachable shelf holds.
      */
     private Map<BlockPos, Fluid> restockFluids(int capacity, Map<BlockPos, Boolean> reach, Set<BlockPos> noTankers) {
         Map<BlockPos, Fluid> missing = new HashMap<>();
@@ -2498,7 +2498,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /**
-     * The Fluid Rack sections a Tanker reaches by rail from the Fluid
+     * The Fluid Rack shelves a Tanker reaches by rail from the Fluid
      * Outbound at {@code to} that hold the fluid, with the same key as the kept tank's
      * content when it holds any; their free fluid leaves out what runs already take.
      */
@@ -2630,7 +2630,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 return FluidStack.EMPTY;
             }
             pendingRacks.add(store.pos());
-            return rack.sectionHandler().drain(key.stack(max), false);
+            return rack.shelfHandler().drain(key.stack(max), false);
         }
         FluidStationBlockEntity station = station(store);
         if (station == null) {
@@ -2650,7 +2650,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (!(loaded(store.pos()) instanceof FluidRackBlockEntity rack)) {
                 return stack;
             }
-            filled = rack.sectionHandler().fill(stack, false);
+            filled = rack.shelfHandler().fill(stack, false);
             pendingRacks.add(store.pos());
         } else if (station(store) != null) {
             filled = station(store).tank().fill(stack, false);
@@ -2859,7 +2859,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             case MULTIPLE_CONTROLLERS -> "offline, more than one controller";
         };
         return Component.literal("Warehouse #" + id() + ": " + state + ", " + size() + " nodes, " + connectors.size() + " connectors, " + sources.size()
-                + " sources, " + stations.size() + " stations, " + garages.size() + " garages, " + fluidStations.size() + " fluid stations, " + rackViews.size() + " fluid sections, " + index.typeCount() + " item types, " + index.totalItems() + " items, " + fleet.summary()
+                + " sources, " + stations.size() + " stations, " + garages.size() + " garages, " + fluidStations.size() + " fluid stations, " + rackViews.size() + " fluid shelves, " + index.typeCount() + " item types, " + index.totalItems() + " items, " + fleet.summary()
                 + (status() == Status.ONLINE && noPower() ? ", no power" : ""));
     }
 

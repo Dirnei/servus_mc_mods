@@ -25,14 +25,14 @@ public class FluidRackItem extends AssistedBlockItem {
     }
 
     /**
-     * A layer over the clicked section first when the item carries no fluid
+     * A layer over the clicked shelf first when the item carries no fluid
      * (see {@link RackLayer}), else one rack, sneak clicks through the row assist.
      */
     @Override
     public InteractionResult place(BlockPlaceContext context) {
         if (!context.getLevel().isClientSide() && FluidRackBlockEntity.fluidOf(context.getItemInHand()).isEmpty()
-                && (RackLayer.place(context, getBlock().defaultBlockState(), FluidRackBlock::section, this::placeWithoutAssist)
-                || RackLayer.placeUpColumn(context, placementAssist(), getBlock().defaultBlockState(), FluidRackBlock::section,
+                && (RackLayer.place(context, getBlock().defaultBlockState(), FluidRackBlock::shelf, this::placeWithoutAssist)
+                || RackLayer.placeUpColumn(context, placementAssist(), getBlock().defaultBlockState(), FluidRackBlock::shelf,
                 this::placeWithoutAssist))) {
             return InteractionResult.CONSUME;
         }

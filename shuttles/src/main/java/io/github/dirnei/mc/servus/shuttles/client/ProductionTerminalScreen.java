@@ -616,7 +616,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         return Component.translatable("gui.servus_shuttles.storage.slots", PickerStock.shortCount(used), PickerStock.shortCount(total)).getString();
     }
 
-    /** A warehouse: its name, its slots and a bar; the tooltip counts its rack bays and Fluid Rack sections. */
+    /** A warehouse: its name, its slots and a bar; the tooltip counts its rack bays and Fluid Rack shelves. */
     private Line storageHeader(StorageRow warehouse) {
         String name = warehouse.name().isEmpty() ? Component.translatable("gui.servus_shuttles.storage.warehouse").getString() : warehouse.name();
         String numbers = warehouse.total() > 0 ? slots(warehouse.used(), warehouse.total()) : "";

@@ -62,12 +62,12 @@ public final class ServusShuttlesEvents {
             // Both halves of a fluid station answer for its Fluids layer; the faces between them are inside the block.
             event.registerBlock(Capabilities.Fluid.BLOCK, (level, pos, state, entity, side) -> FluidStationBlock.sideHandler(level, pos, state, side),
                     ServusShuttlesBlocks.FLUID_INBOUND.get(), ServusShuttlesBlocks.FLUID_OUTBOUND.get());
-            // A rack is a chest for hoppers and pipes only while no rail docks to its section.
+            // A rack is a chest for hoppers and pipes only while no rail docks to its shelf.
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusShuttlesBlockEntities.HEAVY_RACK.get(),
                     (rack, side) -> rack.standalone() ? rack.items() : null);
-            // A Fluid Rack section is a tank for pipes only while no rail stands in front of its port.
+            // A Fluid Rack shelf is a tank for pipes only while no rail stands in front of its port.
             event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusShuttlesBlockEntities.FLUID_RACK.get(),
-                    (rack, side) -> rack.standalone() ? rack.sectionHandler() : null);
+                    (rack, side) -> rack.standalone() ? rack.shelfHandler() : null);
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusShuttlesBlockEntities.INBOUND_STATION.get(),
                     (station, side) -> station.handlerFor(side));
             event.registerBlockEntity(ServusFoundationCapabilities.PACKET_ENDPOINT, ServusShuttlesBlockEntities.INBOUND_STATION.get(),

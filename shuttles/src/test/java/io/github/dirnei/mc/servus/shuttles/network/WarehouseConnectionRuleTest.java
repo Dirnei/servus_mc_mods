@@ -53,7 +53,7 @@ class WarehouseConnectionRuleTest {
     }
 
     @Test
-    void fluidRackLinksOnlyToRailsAndItsOwnSection() {
+    void fluidRackLinksOnlyToRailsAndItsOwnShelf() {
         assertTrue(WarehouseConnectionRule.railOnly(NodeKind.FLUID_RACK));
         for (Side side : Side.ALL) {
             assertTrue(WarehouseConnectionRule.accepts(NodeKind.FLUID_RACK, side, NodeKind.RAIL));

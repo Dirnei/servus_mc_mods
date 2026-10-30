@@ -14,7 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 
-/** A top click on a rack with racks in hand places a layer over the clicked section. */
+/** A top click on a rack with racks in hand places a layer over the clicked shelf. */
 public final class RackLayerGameTests {
 
     private static final int Z = 3;
@@ -23,9 +23,9 @@ public final class RackLayerGameTests {
     private RackLayerGameTests() {
     }
 
-    /** Ten racks on the middle of a section of three: three racks on top, one section facing north, seven left. */
+    /** Ten racks on the middle of a shelf of three: three racks on top, one shelf facing north, seven left. */
     @ServusGameTest
-    public static void layerCoversASectionOfThree(GameTestHelper helper) {
+    public static void layerCoversAShelfOfThree(GameTestHelper helper) {
         RackPlacementGameTests.floor(helper);
         heavyRow(helper, 2, 4);
         ItemStack stack = heavyRacks(10);
@@ -34,8 +34,8 @@ public final class RackLayerGameTests {
         for (int x = 2; x <= 4; x++) {
             helper.assertBlockProperty(new BlockPos(x, 2, Z), HeavyRackBlock.FACING, Direction.NORTH);
         }
-        List<BlockPos> section = HeavyRackBlock.section(helper.getLevel(), helper.absolutePos(MIDDLE.above()));
-        helper.assertTrue(section.size() == 3, "the layer forms one section of three, got " + section.size());
+        List<BlockPos> shelf = HeavyRackBlock.shelf(helper.getLevel(), helper.absolutePos(MIDDLE.above()));
+        helper.assertTrue(shelf.size() == 3, "the layer forms one shelf of three, got " + shelf.size());
         helper.succeed();
     }
 
@@ -53,12 +53,12 @@ public final class RackLayerGameTests {
             }
         }
         helper.assertTrue(stack.getCount() == 4, "six racks are used, left " + stack.getCount());
-        List<BlockPos> section = HeavyRackBlock.section(helper.getLevel(), helper.absolutePos(new BlockPos(3, 3, Z)));
-        helper.assertTrue(section.size() == 3, "the top layer forms one section of three, got " + section.size());
+        List<BlockPos> shelf = HeavyRackBlock.shelf(helper.getLevel(), helper.absolutePos(new BlockPos(3, 3, Z)));
+        helper.assertTrue(shelf.size() == 3, "the top layer forms one shelf of three, got " + shelf.size());
         helper.succeed();
     }
 
-    /** Two racks for a section of three place one rack on the clicked bay. */
+    /** Two racks for a shelf of three place one rack on the clicked bay. */
     @ServusGameTest
     public static void tooFewRacksPlaceOne(GameTestHelper helper) {
         RackPlacementGameTests.floor(helper);
@@ -69,7 +69,7 @@ public final class RackLayerGameTests {
         helper.succeed();
     }
 
-    /** A block over one bay of the section: one rack on the clicked bay. */
+    /** A block over one bay of the shelf: one rack on the clicked bay. */
     @ServusGameTest
     public static void takenSpotPlacesOne(GameTestHelper helper) {
         RackPlacementGameTests.floor(helper);
@@ -83,12 +83,12 @@ public final class RackLayerGameTests {
         helper.succeed();
     }
 
-    /** Two sections of three side by side: a click on the left one layers only that one. */
+    /** Two shelves of three side by side: a click on the left one layers only that one. */
     @ServusGameTest
-    public static void onlyTheClickedSectionGetsALayer(GameTestHelper helper) {
+    public static void onlyTheClickedShelfGetsALayer(GameTestHelper helper) {
         RackPlacementGameTests.floor(helper);
         heavyRow(helper, 2, 7);
-        helper.assertTrue(HeavyRackBlock.section(helper.getLevel(), helper.absolutePos(MIDDLE)).size() == 3, "the row splits into sections of three");
+        helper.assertTrue(HeavyRackBlock.shelf(helper.getLevel(), helper.absolutePos(MIDDLE)).size() == 3, "the row splits into shelves of three");
         ItemStack stack = heavyRacks(10);
         Placing.onTop(helper, stack, MIDDLE, Direction.SOUTH, false);
         helper.assertTrue(stack.getCount() == 7, "three racks are used, left " + stack.getCount());
@@ -98,7 +98,7 @@ public final class RackLayerGameTests {
         helper.succeed();
     }
 
-    /** A layer of three empty Fluid Racks over a section of three has its port above the port below. */
+    /** A layer of three empty Fluid Racks over a shelf of three has its port above the port below. */
     @ServusGameTest
     public static void fluidLayerPortAbovePort(GameTestHelper helper) {
         RackPlacementGameTests.floor(helper);
@@ -109,7 +109,7 @@ public final class RackLayerGameTests {
             Placing.onTop(helper, stack, MIDDLE, Direction.SOUTH, false);
             helper.assertTrue(stack.isEmpty(), "three Fluid Racks are used, left " + stack.getCount());
             helper.runAfterDelay(2, () -> {
-                helper.assertTrue(FluidRackFixtures.section(helper, MIDDLE.above()).size() == 3, "the layer forms one section of three");
+                helper.assertTrue(FluidRackFixtures.shelf(helper, MIDDLE.above()).size() == 3, "the layer forms one shelf of three");
                 for (int x = 2; x <= 4; x++) {
                     BlockPos below = new BlockPos(x, 1, Z);
                     helper.assertTrue(FluidRackFixtures.port(helper, below) == FluidRackFixtures.port(helper, below.above()),
@@ -144,7 +144,7 @@ public final class RackLayerGameTests {
         helper.assertBlockNotPresent(ServusShuttlesBlocks.HEAVY_RACK.get(), new BlockPos(4, 2, Z));
     }
 
-    /** Heavy Duty Racks placed by hand from x {@code fromX} to {@code toX}, facing north, so their sections form as in play. */
+    /** Heavy Duty Racks placed by hand from x {@code fromX} to {@code toX}, facing north, so their shelves form as in play. */
     private static void heavyRow(GameTestHelper helper, int fromX, int toX) {
         for (int x = fromX; x <= toX; x++) {
             Placing.onTop(helper, heavyRacks(1), new BlockPos(x, 0, Z), Direction.SOUTH, false);

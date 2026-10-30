@@ -43,7 +43,7 @@ final class FluidRackFixtures {
     /**
      * Places the rack item at {@code pos} as a sneaking player looking at its
      * front would, so its front faces {@code facing} whatever rail stands beside
-     * it, unless a Fluid Rack below decides; the section settles on the next tick.
+     * it, unless a Fluid Rack below decides; the shelf settles on the next tick.
      */
     static void place(GameTestHelper helper, BlockPos pos, Direction facing, ItemStack stack) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -66,29 +66,29 @@ final class FluidRackFixtures {
         return helper.getBlockEntity(pos, FluidRackBlockEntity.class);
     }
 
-    /** What the section of the bay at {@code pos} holds in all. */
+    /** What the shelf of the bay at {@code pos} holds in all. */
     static FluidStack content(GameTestHelper helper, BlockPos pos) {
-        return bay(helper, pos).sectionHandler().content().fluid();
+        return bay(helper, pos).shelfHandler().content().fluid();
     }
 
     static int amount(GameTestHelper helper, BlockPos pos) {
         return content(helper, pos).getAmount();
     }
 
-    /** Fills the section of the bay at {@code pos} as a pipe would; returns what went in. */
+    /** Fills the shelf of the bay at {@code pos} as a pipe would; returns what went in. */
     static int fill(GameTestHelper helper, BlockPos pos, Fluid fluid, int amount) {
-        return Transfer.fill(bay(helper, pos).sectionHandler(), new FluidStack(fluid, amount), false);
+        return Transfer.fill(bay(helper, pos).shelfHandler(), new FluidStack(fluid, amount), false);
     }
 
     static boolean port(GameTestHelper helper, BlockPos pos) {
         return helper.getBlockState(pos).getValue(FluidRackBlock.PORT);
     }
 
-    /** The section of the bay at {@code pos}, relative to the test, from left to right as seen from the front. */
-    static List<BlockPos> section(GameTestHelper helper, BlockPos pos) {
+    /** The shelf of the bay at {@code pos}, relative to the test, from left to right as seen from the front. */
+    static List<BlockPos> shelf(GameTestHelper helper, BlockPos pos) {
         // GameTestHelper.relativePos turns an unrotated test by half a turn, so the offset is taken by hand.
         BlockPos origin = helper.absolutePos(BlockPos.ZERO);
-        return FluidRackBlock.section(helper.getLevel(), helper.absolutePos(pos)).stream().map(bay -> bay.subtract(origin)).toList();
+        return FluidRackBlock.shelf(helper.getLevel(), helper.absolutePos(pos)).stream().map(bay -> bay.subtract(origin)).toList();
     }
 
     /** The Fluid Rack items lying within two blocks of {@code pos}. */

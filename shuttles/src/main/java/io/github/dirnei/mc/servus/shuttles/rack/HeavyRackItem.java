@@ -19,12 +19,12 @@ public class HeavyRackItem extends AssistedBlockItem {
         super(block, RackAssist.HEAVY, properties);
     }
 
-    /** A layer over the clicked section, or over the column's top section on a sneak click up (see {@link RackLayer}), else one rack through the assist. */
+    /** A layer over the clicked shelf, or over the column's top shelf on a sneak click up (see {@link RackLayer}), else one rack through the assist. */
     @Override
     public InteractionResult place(BlockPlaceContext context) {
         if (!context.getLevel().isClientSide()
-                && (RackLayer.place(context, getBlock().defaultBlockState(), HeavyRackBlock::section, this::placeWithoutAssist)
-                || RackLayer.placeUpColumn(context, placementAssist(), getBlock().defaultBlockState(), HeavyRackBlock::section,
+                && (RackLayer.place(context, getBlock().defaultBlockState(), HeavyRackBlock::shelf, this::placeWithoutAssist)
+                || RackLayer.placeUpColumn(context, placementAssist(), getBlock().defaultBlockState(), HeavyRackBlock::shelf,
                 this::placeWithoutAssist))) {
             return InteractionResult.CONSUME;
         }

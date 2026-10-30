@@ -23,7 +23,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
- * Fluid Rack sections in a warehouse: stock only through the port's rail,
+ * Fluid Rack shelves in a warehouse: stock only through the port's rail,
  * the stock following buckets, the fluids command, tanker put-aways and
  * restocks with racks, zones ranking and refusing fluids, a run whose rack
  * breaks, and the coupling a tanker slides into the port. Racks stand west
@@ -56,10 +56,10 @@ public final class FluidRackTankerGameTests {
     }
 
     private static void zone(GameTestHelper helper, BlockPos bay, int zone) {
-        FluidRackBlock.stampSection(helper.getLevel(), helper.absolutePos(bay), zone);
+        FluidRackBlock.stampShelf(helper.getLevel(), helper.absolutePos(bay), zone);
     }
 
-    /** A rail only in front of a bay without the port leaves the section out; a rail at the port makes it stock. */
+    /** A rail only in front of a bay without the port leaves the shelf out; a rail at the port makes it stock. */
     @ServusGameTest(timeoutTicks = 100)
     public static void stockOnlyThroughPortRail(GameTestHelper helper) {
         WarehouseFixtures.controller(helper, TankerFixtures.CONTROLLER);
@@ -70,10 +70,10 @@ public final class FluidRackTankerGameTests {
             FluidRackFixtures.fill(helper, bays[1], Fluids.WATER, 5000);
             helper.runAfterDelay(20, () -> {
                 helper.assertTrue(!helper.getBlockState(bays[0].east()).getValue(RailBlock.dock(Direction.WEST)), "the rail shows no dock");
-                helper.assertTrue(water(helper) == 0, "the section is no stock, got " + water(helper));
-                helper.assertTrue(TankerFixtures.network(helper).rackViews().isEmpty(), "no section is listed");
+                helper.assertTrue(water(helper) == 0, "the shelf is no stock, got " + water(helper));
+                helper.assertTrue(TankerFixtures.network(helper).rackViews().isEmpty(), "no shelf is listed");
                 WarehouseFixtures.railOnStone(helper, bays[1].east());
-                Waits.when(helper, () -> water(helper) == 5000, 40, () -> "the section counts once its port has a rail, got " + water(helper), () -> {
+                Waits.when(helper, () -> water(helper) == 5000, 40, () -> "the shelf counts once its port has a rail, got " + water(helper), () -> {
                     helper.assertTrue(helper.getBlockState(bays[1].east()).getValue(RailBlock.dock(Direction.WEST)), "the rail docks to the port");
                     helper.succeed();
                 });
@@ -81,7 +81,7 @@ public final class FluidRackTankerGameTests {
         });
     }
 
-    /** Water filled into a docked section, as a bucket does, reaches the warehouse's stock. */
+    /** Water filled into a docked shelf, as a bucket does, reaches the warehouse's stock. */
     @ServusGameTest(timeoutTicks = 100)
     public static void bucketReachesStock(GameTestHelper helper) {
         TankerFixtures.warehouse(helper);
@@ -94,7 +94,7 @@ public final class FluidRackTankerGameTests {
         });
     }
 
-    /** The fluids command adds the water of two sections, leaves a Fluid Inbound's water out and lists the sections. */
+    /** The fluids command adds the water of two shelves, leaves a Fluid Inbound's water out and lists the shelves. */
     @ServusGameTest(timeoutTicks = 100)
     public static void fluidsCommandListsRacks(GameTestHelper helper) {
         TankerFixtures.warehouse(helper);
@@ -136,13 +136,13 @@ public final class FluidRackTankerGameTests {
                         "servus_warehouse fluids " + at.getX() + " " + at.getY() + " " + at.getZ());
                 String text = String.join("\n", lines);
                 helper.assertTrue(text.contains("Water: 8000 mB"), "the total is listed: " + text);
-                helper.assertTrue(text.contains("Fluid Rack sections:") && text.contains("Water 5000 / 48000 mB"), "the section is listed: " + text);
+                helper.assertTrue(text.contains("Fluid Rack shelves:") && text.contains("Water 5000 / 48000 mB"), "the shelf is listed: " + text);
                 helper.succeed();
             });
         });
     }
 
-    /** A tanker brings a Fluid Inbound's water to the only fluid store, an empty unzoned section. */
+    /** A tanker brings a Fluid Inbound's water to the only fluid store, an empty unzoned shelf. */
     @ServusGameTest(timeoutTicks = RUN + 20)
     public static void tankerPutsAwayIntoRack(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
@@ -157,7 +157,7 @@ public final class FluidRackTankerGameTests {
         });
     }
 
-    /** A kept Fluid Outbound tank is restocked from the water in a section. */
+    /** A kept Fluid Outbound tank is restocked from the water in a shelf. */
     @ServusGameTest(timeoutTicks = RUN * 2)
     public static void restockFromRack(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
@@ -168,14 +168,14 @@ public final class FluidRackTankerGameTests {
             FluidRackFixtures.fill(helper, bays[0], Fluids.WATER, 20000);
             Waits.when(helper, () -> TankerFixtures.amount(export) == 8000 && TankerFixtures.out(helper) == 0, RUN * 2 - 10,
                     () -> "the kept tank is restocked to 8000 mB, got " + TankerFixtures.amount(export), () -> {
-                helper.assertTrue(FluidRackFixtures.amount(helper, bays[0]) == 12000, "the section gave 8000 mB, holds "
+                helper.assertTrue(FluidRackFixtures.amount(helper, bays[0]) == 12000, "the shelf gave 8000 mB, holds "
                         + FluidRackFixtures.amount(helper, bays[0]));
                 helper.succeed();
             });
         });
     }
 
-    /** Water goes to a farther section zoned for water rather than a nearer unzoned one. */
+    /** Water goes to a farther shelf zoned for water rather than a nearer unzoned one. */
     @ServusGameTest(timeoutTicks = RUN + 20)
     public static void waterPrefersWaterZonedRack(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
@@ -187,14 +187,14 @@ public final class FluidRackTankerGameTests {
             zone(helper, far, waterZone(helper));
             TankerFixtures.fill(source, Fluids.WATER, 2000);
             Waits.when(helper, () -> FluidRackFixtures.amount(helper, far) == 2000 && TankerFixtures.out(helper) == 0, RUN,
-                    () -> "the water reaches the zoned section, got " + FluidRackFixtures.amount(helper, far), () -> {
-                helper.assertTrue(FluidRackFixtures.content(helper, near).isEmpty(), "the nearer unzoned section stays empty");
+                    () -> "the water reaches the zoned shelf, got " + FluidRackFixtures.amount(helper, far), () -> {
+                helper.assertTrue(FluidRackFixtures.content(helper, near).isEmpty(), "the nearer unzoned shelf stays empty");
                 helper.succeed();
             });
         });
     }
 
-    /** Lava has no room when the only section is zoned for water: no tanker drives and the Inbound names lava. */
+    /** Lava has no room when the only shelf is zoned for water: no tanker drives and the Inbound names lava. */
     @ServusGameTest(timeoutTicks = 200)
     public static void waterZoneRefusesLavaByTanker(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
@@ -206,13 +206,13 @@ public final class FluidRackTankerGameTests {
             TankerFixtures.fill(source, Fluids.LAVA, 2000);
             Waits.when(helper, () -> source.fluidActivity().noRoom() == Fluids.LAVA, 150, () -> "the Inbound names lava as without room", () -> {
                 helper.assertTrue(TankerFixtures.out(helper) == 0 && TankerFixtures.network(helper).queuedJobs() == 0, "no run is queued");
-                helper.assertTrue(FluidRackFixtures.content(helper, bays[0]).isEmpty(), "the section takes no lava");
+                helper.assertTrue(FluidRackFixtures.content(helper, bays[0]).isEmpty(), "the shelf takes no lava");
                 helper.succeed();
             });
         });
     }
 
-    /** The target section's port bay breaks while the tanker brings water: the water still ends in a fluid store. */
+    /** The target shelf's port bay breaks while the tanker brings water: the water still ends in a fluid store. */
     @ServusGameTest(timeoutTicks = RUN * 2)
     public static void brokenTargetRackReroutes(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
@@ -238,7 +238,7 @@ public final class FluidRackTankerGameTests {
     }
 
     /**
-     * While a tanker pumps at a section's port its view carries the coupling
+     * While a tanker pumps at a shelf's port its view carries the coupling
      * toward the rack, west of the rail; at the Inbound east of it the
      * station's hose arm docks instead and no coupling slides out. The
      * coupling is gone after the stop.

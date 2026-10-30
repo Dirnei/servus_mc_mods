@@ -5,7 +5,7 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.module.TankerLook;
 /**
  * The look of a Fluid Rack bay in block pixels, shared by its models and its
  * renderer, laid out for a rack facing north: the front at z 0, the back
- * board at z 15 to 16. Posts are 2 pixels square at the section's ends; the
+ * board at z 15 to 16. Posts are 2 pixels square at the shelf's ends; the
  * glass front is inset 0.05 from every frame part; the fluid sits 0.05
  * behind the glass and 0.1 off the floor and the beams. Pure Java.
  */

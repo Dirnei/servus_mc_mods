@@ -28,7 +28,7 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-/** Which blocks join a warehouse: rails, rack fronts and sections, and what counts as stock. */
+/** Which blocks join a warehouse: rails, rack fronts and shelves, and what counts as stock. */
 public final class WarehouseLinkGameTests {
 
     private static final BlockPos RAIL_RACK = new BlockPos(2, 1, 3);
@@ -203,11 +203,11 @@ public final class WarehouseLinkGameTests {
     }
 
     /**
-     * A section of three racks facing south at x 2 to 4 (left bay at x 4), a
+     * A shelf of three racks facing south at x 2 to 4 (left bay at x 4), a
      * rail only in front of the left bay leading to a terminal, and a garage
      * with one shuttle on that rail.
      */
-    private static Player sectionRailSetup(GameTestHelper helper) {
+    private static Player shelfRailSetup(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(180.0F);
         for (int x = 2; x <= 4; x++) {
@@ -225,12 +225,12 @@ public final class WarehouseLinkGameTests {
         return player;
     }
 
-    /** Bread in the right bay of a section is fetched through the rail in front of the left bay. */
+    /** Bread in the right bay of a shelf is fetched through the rail in front of the left bay. */
     @ServusGameTest(timeoutTicks = 400)
-    public static void rackSectionServedFromOneRail(GameTestHelper helper) {
-        Player player = sectionRailSetup(helper);
-        helper.assertTrue(HeavyRackBlock.section(helper.getLevel(), helper.absolutePos(new BlockPos(2, 1, SR_Z))).size() == 3,
-                "the three racks form one section");
+    public static void rackShelfServedFromOneRail(GameTestHelper helper) {
+        Player player = shelfRailSetup(helper);
+        helper.assertTrue(HeavyRackBlock.shelf(helper.getLevel(), helper.absolutePos(new BlockPos(2, 1, SR_Z))).size() == 3,
+                "the three racks form one shelf");
         HeavyRackBlockEntity right = helper.getBlockEntity(new BlockPos(2, 1, SR_Z), HeavyRackBlockEntity.class);
         right.items().insertItem(0, new ItemStack(Items.BREAD, 30), false);
         helper.runAfterDelay(10, () -> {
@@ -249,13 +249,13 @@ public final class WarehouseLinkGameTests {
         });
     }
 
-    /** A lone rack beside a section with a front rail, but without one of its own, is not part of the warehouse. */
+    /** A lone rack beside a shelf with a front rail, but without one of its own, is not part of the warehouse. */
     @ServusGameTest(timeoutTicks = 100)
-    public static void rackBesideSectionNotServed(GameTestHelper helper) {
-        Player player = sectionRailSetup(helper);
+    public static void rackBesideShelfNotServed(GameTestHelper helper) {
+        Player player = shelfRailSetup(helper);
         BlockPos lonePos = new BlockPos(1, 1, SR_Z);
         placeRackByHand(helper, player, lonePos);
-        helper.assertTrue(HeavyRackBlock.section(helper.getLevel(), helper.absolutePos(lonePos)).size() == 1,
+        helper.assertTrue(HeavyRackBlock.shelf(helper.getLevel(), helper.absolutePos(lonePos)).size() == 1,
                 "the fourth rack stands alone");
         HeavyRackBlockEntity lone = helper.getBlockEntity(lonePos, HeavyRackBlockEntity.class);
         lone.items().insertItem(0, new ItemStack(Items.BREAD, 30), false);
@@ -267,10 +267,10 @@ public final class WarehouseLinkGameTests {
         });
     }
 
-    /** A section joins through the rail in front of one bay and leaves when that rail is broken. */
+    /** A shelf joins through the rail in front of one bay and leaves when that rail is broken. */
     @ServusGameTest(timeoutTicks = 100)
-    public static void frontRailConnectsSection(GameTestHelper helper) {
-        Player player = sectionRailSetup(helper);
+    public static void frontRailConnectsShelf(GameTestHelper helper) {
+        Player player = shelfRailSetup(helper);
         HeavyRackBlockEntity left = helper.getBlockEntity(new BlockPos(2, 1, SR_Z), HeavyRackBlockEntity.class);
         left.items().insertItem(0, new ItemStack(Items.BREAD, 12), false);
         helper.runAfterDelay(10, () -> {
@@ -280,7 +280,7 @@ public final class WarehouseLinkGameTests {
             helper.setBlock(new BlockPos(4, 1, 6), Blocks.AIR.defaultBlockState());
             helper.runAfterDelay(10, () -> {
                 helper.assertTrue(TerminalWiring.stockOf(new StorageTerminalMenu(2, player.getInventory(), terminal), Items.BREAD) == 0,
-                        "breaking the front rail takes the section out");
+                        "breaking the front rail takes the shelf out");
                 helper.succeed();
             });
         });
@@ -306,7 +306,7 @@ public final class WarehouseLinkGameTests {
     /** A chest touching only the back of a connected rack is not listed. */
     @ServusGameTest(timeoutTicks = 100)
     public static void chestBehindRackNotLinked(GameTestHelper helper) {
-        Player player = sectionRailSetup(helper);
+        Player player = shelfRailSetup(helper);
         BlockPos chestPos = new BlockPos(3, 1, SR_Z - 1);
         helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
         helper.getBlockEntity(chestPos, ChestBlockEntity.class).setItem(0, new ItemStack(Items.APPLE, 7));

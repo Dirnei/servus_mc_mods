@@ -12,7 +12,7 @@ import java.util.List;
 public final class FluidRestockPlan {
 
     /**
-     * One fluid store holding the fluid: a Fluid Rack section.
+     * One fluid store holding the fluid: a Fluid Rack shelf.
      *
      * @param id       names the tank
      * @param free     its amount minus what runs already take from it

@@ -16,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
  * @param pos    the bay
  * @param zoneId its zone id, 0 without one
  * @param used   slots in use; mB for a Fluid Rack
- * @param total  all slots; the section's capacity in mB for a Fluid Rack
+ * @param total  all slots; the shelf's capacity in mB for a Fluid Rack
  * @param top    the most held items, one each
  * @param counts how many of each it holds; mB for a Fluid Rack
  * @param fluid  whether the bay is a Fluid Rack bay

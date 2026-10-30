@@ -57,7 +57,7 @@ public final class SlotLockGameTests {
         HopperBlockEntity hopper = helper.getBlockEntity(LONE_RACK.above(), HopperBlockEntity.class);
         hopper.setItem(0, new ItemStack(Items.COBBLESTONE, 5));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        HeavyRackMenu menu = HeavyRackMenu.forSection(1, player.getInventory(), rack);
+        HeavyRackMenu menu = HeavyRackMenu.forShelf(1, player.getInventory(), rack);
         menu.clicked(0, 0, ContainerInput.PICKUP, player);
         helper.assertTrue(menu.getCarried().isEmpty() && rack.items().getStackInSlot(0).getCount() == 20,
                 "a click on the OUT locked slot takes nothing");

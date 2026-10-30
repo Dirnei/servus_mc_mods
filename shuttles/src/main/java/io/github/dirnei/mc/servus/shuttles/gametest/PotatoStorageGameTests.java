@@ -25,7 +25,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
 
-/** The Data Potato on storage: the section report of a rack and the station report. */
+/** The Data Potato on storage: the shelf report of a rack and the station report. */
 public final class PotatoStorageGameTests {
 
     private static final String KEY = "message.servus_shuttles.potato.";
@@ -37,12 +37,12 @@ public final class PotatoStorageGameTests {
     }
 
     /**
-     * A section of three in zone "Ores" with cobblestone over 29 slots, 40 iron ore and one empty slot a put-away
+     * A shelf of three in zone "Ores" with cobblestone over 29 slots, 40 iron ore and one empty slot a put-away
      * locked reports its zone, 31 slots in use and its top items.
      */
     @ServusGameTest(timeoutTicks = 40)
-    public static void potatoReportsRackSection(GameTestHelper helper) {
-        HeavyRackBlockEntity[] bays = section(helper, 2, 3);
+    public static void potatoReportsRackShelf(GameTestHelper helper) {
+        HeavyRackBlockEntity[] bays = shelf(helper, 2, 3);
         for (HeavyRackBlockEntity bay : bays) {
             bay.setZone(ZoneFixtures.zone(helper, "Ores", ZoneFilter.EMPTY));
         }
@@ -77,8 +77,8 @@ public final class PotatoStorageGameTests {
     /** A full single bay is marked full; an empty unzoned bay says so. */
     @ServusGameTest(timeoutTicks = 40)
     public static void potatoReportsFullAndEmptyBays(GameTestHelper helper) {
-        HeavyRackBlockEntity full = section(helper, 1, 1)[0];
-        HeavyRackBlockEntity empty = section(helper, 5, 1)[0];
+        HeavyRackBlockEntity full = shelf(helper, 1, 1)[0];
+        HeavyRackBlockEntity empty = shelf(helper, 5, 1)[0];
         int bay = full.items().getSlots();
         for (int slot = 0; slot < bay; slot++) {
             full.items().setStackInSlot(slot, new ItemStack(Items.DIRT, 1));
@@ -148,7 +148,7 @@ public final class PotatoStorageGameTests {
     }
 
     /** A row of {@code count} joined racks facing north from x {@code first}, left (west) to right. */
-    private static HeavyRackBlockEntity[] section(GameTestHelper helper, int first, int count) {
+    private static HeavyRackBlockEntity[] shelf(GameTestHelper helper, int first, int count) {
         HeavyRackBlockEntity[] bays = new HeavyRackBlockEntity[count];
         for (int i = 0; i < count; i++) {
             BlockPos pos = new BlockPos(first + i, 1, ROW_Z);

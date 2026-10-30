@@ -62,7 +62,7 @@ public final class ServusShuttlesComponents {
                     .persistent(Identifier.CODEC)
                     .networkSynchronized(Identifier.STREAM_CODEC));
 
-    /** The share of its section's fluid a Fluid Rack bay held, carried by its dropped item. */
+    /** The share of its shelf's fluid a Fluid Rack bay held, carried by its dropped item. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<SimpleFluidContent>> RACK_FLUID =
             COMPONENTS.registerComponentType("rack_fluid", builder -> builder
                     .persistent(SimpleFluidContent.CODEC)

@@ -18,7 +18,7 @@ import net.minecraft.world.level.material.Fluids;
 
 /**
  * Tanker runs that restock the kept tanks of a Fluid Outbound from Fluid
- * Rack sections: amounts, runs on the way, the min load, missing stock, no
+ * Rack shelves: amounts, runs on the way, the min load, missing stock, no
  * tanker, leftovers and an Outbound that breaks during a run.
  */
 public final class TankerRestockGameTests {
@@ -48,7 +48,7 @@ public final class TankerRestockGameTests {
         return says(line, "gui.servus_shuttles.fluid_station.state.missing", fluid);
     }
 
-    /** A tank keeping 8 B and holding 2 B is filled from two sections in two Mk1 runs. */
+    /** A tank keeping 8 B and holding 2 B is filled from two shelves in two Mk1 runs. */
     @ServusGameTest(timeoutTicks = 2 * RUN + 20)
     public static void outboundRestockedFromRacks(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
@@ -122,7 +122,7 @@ public final class TankerRestockGameTests {
         });
     }
 
-    /** No section holds lava: no tanker drives, the lamp is red and the GUI says lava is missing from storage. */
+    /** No shelf holds lava: no tanker drives, the lamp is red and the GUI says lava is missing from storage. */
     @ServusGameTest(timeoutTicks = 200)
     public static void missingStockRedLamp(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
@@ -184,7 +184,7 @@ public final class TankerRestockGameTests {
         helper.runAfterDelay(2, () -> {
             TankerFixtures.fill(helper, TankerFixtures.FAR, Fluids.WATER, 4000);
             Waits.when(helper, () -> TankerFixtures.out(helper) == 1, RUN, () -> "a tanker drives out", () -> {
-                FluidRackFixtures.bay(helper, TankerFixtures.FAR).sectionHandler().drain(1500, false);
+                FluidRackFixtures.bay(helper, TankerFixtures.FAR).shelfHandler().drain(1500, false);
                 Waits.when(helper, () -> TankerFixtures.amount(outbound) == 2500 && TankerFixtures.out(helper) == 0, RUN,
                         () -> "the tanker brings the 2500 mB left, got " + TankerFixtures.amount(outbound), () -> {
                     helper.assertTrue(TankerFixtures.amount(helper, TankerFixtures.FAR) == 0, "the rack is empty");

@@ -9,21 +9,21 @@ import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
- * The bays of a Fluid Rack section behind one tank, reached from any bay. A
- * fill or drain moves the amount and then splits the section's new total
+ * The bays of a Fluid Rack shelf behind one tank, reached from any bay. A
+ * fill or drain moves the amount and then splits the shelf's new total
  * into the bays' shares again. It takes only one fluid at a time, and only
  * the fluids its zone lists when the zone lists any. Inside a transaction it
  * only simulates; the move runs when the transaction commits.
  */
-public final class FluidRackSectionHandler extends LegacyFluidHandler {
+public final class FluidRackShelfHandler extends LegacyFluidHandler {
 
     private final FluidRackBlockEntity bay;
 
-    FluidRackSectionHandler(FluidRackBlockEntity bay) {
+    FluidRackShelfHandler(FluidRackBlockEntity bay) {
         this.bay = bay;
     }
 
-    /** What the section holds in all and how much it may hold. */
+    /** What the shelf holds in all and how much it may hold. */
     public record Content(FluidStack fluid, int capacity) {
 
         public int room() {
@@ -36,7 +36,7 @@ public final class FluidRackSectionHandler extends LegacyFluidHandler {
         return level == null ? List.of(bay) : FluidRackBlock.bays(level, bay.getBlockPos());
     }
 
-    /** The section's fluid summed over its bays, and its capacity. */
+    /** The shelf's fluid summed over its bays, and its capacity. */
     public Content content() {
         return content(bays());
     }
@@ -60,7 +60,7 @@ public final class FluidRackSectionHandler extends LegacyFluidHandler {
         return new Content(fluid.isEmpty() ? FluidStack.EMPTY : fluid.copyWithAmount(total), capacity);
     }
 
-    /** Whether the section's zone lets this fluid in: it lists it, or lists no fluids. */
+    /** Whether the shelf's zone lets this fluid in: it lists it, or lists no fluids. */
     public boolean allows(Fluid fluid) {
         Set<Fluid> listed = bay.zoneFluids();
         return listed.isEmpty() || listed.contains(fluid);
@@ -126,14 +126,14 @@ public final class FluidRackSectionHandler extends LegacyFluidHandler {
         return held.isEmpty() || maxDrain <= 0 ? FluidStack.EMPTY : drain(held.copyWithAmount(maxDrain), simulate);
     }
 
-    /** Writes the section's new total as even shares into its bays and tells every bay. */
+    /** Writes the shelf's new total as even shares into its bays and tells every bay. */
     private static void spread(List<FluidRackBlockEntity> bays, FluidStack total) {
-        int[] shares = FluidRackSection.shares(total.getAmount(), bays.size());
+        int[] shares = FluidRackShelf.shares(total.getAmount(), bays.size());
         for (int i = 0; i < bays.size(); i++) {
             bays.get(i).setShare(shares[i] > 0 ? total.copyWithAmount(shares[i]) : FluidStack.EMPTY);
         }
         for (FluidRackBlockEntity each : bays) {
-            each.sectionChanged();
+            each.shelfChanged();
         }
     }
 }

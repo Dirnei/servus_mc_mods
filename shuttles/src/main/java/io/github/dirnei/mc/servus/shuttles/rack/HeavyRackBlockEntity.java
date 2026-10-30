@@ -118,14 +118,14 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
 
     /**
      * Whether the rack is a chest for hoppers and pipes: only while no
-     * warehouse rail stands in front of any bay of its section. Looked up live,
+     * warehouse rail stands in front of any bay of its shelf. Looked up live,
      * so a stale flag can never open a docked rack.
      */
     public boolean standalone() {
         if (level == null) {
             return true;
         }
-        List<BlockPos> bays = HeavyRackBlock.section(level, worldPosition);
+        List<BlockPos> bays = HeavyRackBlock.shelf(level, worldPosition);
         int[] offsets = new int[bays.size()];
         for (int i = 0; i < offsets.length; i++) {
             offsets[i] = i;
@@ -133,7 +133,7 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
         return !RackDock.closed(offsets, i -> HeavyRackBlock.railInFront(level, bays.get(i)));
     }
 
-    /** A rack is its own node kind: it links only to rails on its front and to its own section. */
+    /** A rack is its own node kind: it links only to rails on its front and to its own shelf. */
     @Override
     public WarehouseConnectionRule.NodeKind kind() {
         return WarehouseConnectionRule.NodeKind.RACK;
@@ -249,7 +249,7 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
 
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return HeavyRackMenu.forSection(containerId, playerInventory, this);
+        return HeavyRackMenu.forShelf(containerId, playerInventory, this);
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, HeavyRackBlockEntity rack) {

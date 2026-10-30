@@ -23,7 +23,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 
-/** A Heavy Duty Rack is a chest for hoppers and pipes only while no warehouse rail docks to its section. */
+/** A Heavy Duty Rack is a chest for hoppers and pipes only while no warehouse rail docks to its shelf. */
 public final class RackDockGameTests {
 
     private static final BlockPos RACK = new BlockPos(5, 1, 5);
@@ -104,14 +104,14 @@ public final class RackDockGameTests {
         });
     }
 
-    /** A rail in front of one bay closes the whole section of three. */
+    /** A rail in front of one bay closes the whole shelf of three. */
     @ServusGameTest(timeoutTicks = 40)
-    public static void oneDockedBayClosesSection(GameTestHelper helper) {
+    public static void oneDockedBayClosesShelf(GameTestHelper helper) {
         Player player = facingNorth(helper);
         for (int x = 2; x <= 4; x++) {
             placeByHand(helper, player, new BlockPos(x, 1, ROW_Z));
         }
-        helper.assertTrue(HeavyRackBlock.section(helper.getLevel(), helper.absolutePos(new BlockPos(3, 1, ROW_Z))).size() == 3, "the three racks form one section");
+        helper.assertTrue(HeavyRackBlock.shelf(helper.getLevel(), helper.absolutePos(new BlockPos(3, 1, ROW_Z))).size() == 3, "the three racks form one shelf");
         for (int x = 2; x <= 4; x++) {
             helper.assertTrue(open(helper, new BlockPos(x, 1, ROW_Z)), "without a rail bay " + x + " is open");
         }
@@ -122,14 +122,14 @@ public final class RackDockGameTests {
         helper.succeed();
     }
 
-    /** A bay joining a docked section is closed; once the docked bay goes, the rest opens again. */
+    /** A bay joining a docked shelf is closed; once the docked bay goes, the rest opens again. */
     @ServusGameTest(timeoutTicks = 40)
-    public static void joiningDockedSectionCloses(GameTestHelper helper) {
+    public static void joiningDockedShelfCloses(GameTestHelper helper) {
         Player player = facingNorth(helper);
         placeByHand(helper, player, new BlockPos(4, 1, ROW_Z));
         WarehouseFixtures.railOnStone(helper, new BlockPos(4, 1, ROW_Z + 1));
         placeByHand(helper, player, new BlockPos(3, 1, ROW_Z));
-        helper.assertTrue(HeavyRackBlock.section(helper.getLevel(), helper.absolutePos(new BlockPos(3, 1, ROW_Z))).size() == 2, "the new bay joins the section");
+        helper.assertTrue(HeavyRackBlock.shelf(helper.getLevel(), helper.absolutePos(new BlockPos(3, 1, ROW_Z))).size() == 2, "the new bay joins the shelf");
         helper.assertTrue(!open(helper, new BlockPos(3, 1, ROW_Z)), "the joining bay is closed");
         helper.setBlock(new BlockPos(4, 1, ROW_Z), Blocks.AIR.defaultBlockState());
         helper.assertTrue(open(helper, new BlockPos(3, 1, ROW_Z)), "with the docked bay gone the rest opens");
@@ -171,7 +171,7 @@ public final class RackDockGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos front = helper.absolutePos(RACK.north().north());
         player.setPos(front.getX() + 0.5, front.getY(), front.getZ() + 0.5);
-        HeavyRackMenu menu = HeavyRackMenu.forSection(1, player.getInventory(), rack);
+        HeavyRackMenu menu = HeavyRackMenu.forShelf(1, player.getInventory(), rack);
         helper.assertTrue(menu.stillValid(player), "the menu opens on a docked rack");
         player.getInventory().setItem(0, new ItemStack(Items.APPLE, 12));
         menu.quickMoveStack(player, menu.rackSlots() + 27);

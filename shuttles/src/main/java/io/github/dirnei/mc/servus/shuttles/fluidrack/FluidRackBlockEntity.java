@@ -41,9 +41,9 @@ import net.neoforged.neoforge.model.data.ModelData;
 import org.jspecify.annotations.Nullable;
 
 /**
- * One bay of a Fluid Rack: its share of the section's fluid, its wood and
- * its zone. The section's tank is the sum of its bays' shares (see {@link
- * FluidRackSectionHandler}); clients learn only the section's fluid and its
+ * One bay of a Fluid Rack: its share of the shelf's fluid, its wood and
+ * its zone. The shelf's tank is the sum of its bays' shares (see {@link
+ * FluidRackShelfHandler}); clients learn only the shelf's fluid and its
  * fill in {@code level_steps}, and only when that changes.
  */
 public class FluidRackBlockEntity extends StorageNodeBlockEntity {
@@ -63,7 +63,7 @@ public class FluidRackBlockEntity extends StorageNodeBlockEntity {
             setChanged();
         }
     };
-    private final FluidRackSectionHandler handler = new FluidRackSectionHandler(this);
+    private final FluidRackShelfHandler handler = new FluidRackShelfHandler(this);
     /** The planks block the rack was crafted from, or null for oak. */
     private @Nullable Identifier wood;
     private boolean dropOnRemove = true;
@@ -74,7 +74,7 @@ public class FluidRackBlockEntity extends StorageNodeBlockEntity {
     /** Client: what the glass front shows, as the server last sent it. */
     private Shown shown = Shown.EMPTY;
 
-    /** What clients draw: the section's fluid and its fill step out of {@code steps}. */
+    /** What clients draw: the shelf's fluid and its fill step out of {@code steps}. */
     private record Shown(Fluid fluid, int step, int steps) {
 
         static final Shown EMPTY = new Shown(Fluids.EMPTY, 0, 1);
@@ -84,7 +84,7 @@ public class FluidRackBlockEntity extends StorageNodeBlockEntity {
         super(ServusShuttlesBlockEntities.FLUID_RACK.get(), pos, state);
     }
 
-    /** The bay's own share of the section's fluid; change it only through the section. */
+    /** The bay's own share of the shelf's fluid; change it only through the shelf. */
     public FluidStack share() {
         return share.getFluid();
     }
@@ -93,8 +93,8 @@ public class FluidRackBlockEntity extends StorageNodeBlockEntity {
         share.setFluid(fluid.copy());
     }
 
-    /** The section's tank as pipes, buckets and the warehouse see it, from any of its bays. */
-    public FluidRackSectionHandler sectionHandler() {
+    /** The shelf's tank as pipes, buckets and the warehouse see it, from any of its bays. */
+    public FluidRackShelfHandler shelfHandler() {
         return handler;
     }
 
@@ -117,7 +117,7 @@ public class FluidRackBlockEntity extends StorageNodeBlockEntity {
             }
             total += held.getAmount();
         }
-        int[] shares = FluidRackSection.shares(total, bays.size());
+        int[] shares = FluidRackShelf.shares(total, bays.size());
         FluidStack kind = fluid.copy();
         for (int i = 0; i < bays.size(); i++) {
             bays.get(i).setShare(shares[i] > 0 ? kind.copyWithAmount(shares[i]) : FluidStack.EMPTY);
@@ -125,10 +125,10 @@ public class FluidRackBlockEntity extends StorageNodeBlockEntity {
     }
 
     /**
-     * The section changed (its fluid, zone or bays): tells the warehouse and
+     * The shelf changed (its fluid, zone or bays): tells the warehouse and
      * sends watching clients the new level when its step moved.
      */
-    void sectionChanged() {
+    void shelfChanged() {
         setChanged();
         if (level == null || level.isClientSide()) {
             return;
@@ -146,7 +146,7 @@ public class FluidRackBlockEntity extends StorageNodeBlockEntity {
         if (level == null) {
             return Shown.EMPTY;
         }
-        FluidRackSectionHandler.Content content = handler.content();
+        FluidRackShelfHandler.Content content = handler.content();
         int steps = ShuttlesStatsManager.INSTANCE.fluidRackLevelSteps();
         return new Shown(content.fluid().getFluid(), FluidLevel.step(content.fluid().getAmount(), content.capacity(), steps), steps);
     }
@@ -156,12 +156,12 @@ public class FluidRackBlockEntity extends StorageNodeBlockEntity {
         return shown.fluid() == Fluids.EMPTY ? FluidStack.EMPTY : new FluidStack(shown.fluid(), 1000);
     }
 
-    /** Client: how full the section shows, from 0 to 1 in the synced steps. */
+    /** Client: how full the shelf shows, from 0 to 1 in the synced steps. */
     public float shownFill() {
         return (float) shown.step() / Math.max(1, shown.steps());
     }
 
-    /** The fluids the section's zone lists; empty for an unzoned section or one that lists none. */
+    /** The fluids the shelf's zone lists; empty for an unzoned shelf or one that lists none. */
     public Set<Fluid> zoneFluids() {
         return zoneFilter().fluids();
     }
@@ -195,9 +195,9 @@ public class FluidRackBlockEntity extends StorageNodeBlockEntity {
     }
 
     /**
-     * Whether the section is a tank for pipes: only while no rail stands in
+     * Whether the shelf is a tank for pipes: only while no rail stands in
      * front of its port bay. Looked up live, so a stale flag never opens a
-     * docked section.
+     * docked shelf.
      */
     public boolean standalone() {
         if (level == null) {
@@ -207,7 +207,7 @@ public class FluidRackBlockEntity extends StorageNodeBlockEntity {
         return port == null || !FluidRackBlock.railInFront(level, port);
     }
 
-    /** Whether this bay carries its section's port. */
+    /** Whether this bay carries its shelf's port. */
     public boolean isPort() {
         BlockState state = level == null ? getBlockState() : level.getBlockState(worldPosition);
         return state.getBlock() instanceof FluidRackBlock && state.getValue(FluidRackBlock.PORT);
@@ -221,7 +221,7 @@ public class FluidRackBlockEntity extends StorageNodeBlockEntity {
                 && side == Conversions.toSide(state.getValue(FluidRackBlock.FACING));
     }
 
-    /** Every bay holds a rail on its front, so rails run along the whole section. */
+    /** Every bay holds a rail on its front, so rails run along the whole shelf. */
     @Override
     public boolean holdsRail(Side side) {
         BlockState state = level == null ? getBlockState() : level.getBlockState(worldPosition);

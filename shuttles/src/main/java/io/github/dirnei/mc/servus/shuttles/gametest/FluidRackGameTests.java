@@ -32,7 +32,7 @@ import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 /**
- * The Fluid Rack as a block: sections, the port, buckets, pipe access while
+ * The Fluid Rack as a block: shelves, the port, buckets, pipe access while
  * no rail stands at the port, dismantling and breaking, and zones. Racks in
  * these tests face north, so a player in front sees east on the left.
  */
@@ -61,31 +61,31 @@ public final class FluidRackGameTests {
         return helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), side);
     }
 
-    /** Three bays placed side by side form one section with the port on the middle bay only. */
+    /** Three bays placed side by side form one shelf with the port on the middle bay only. */
     @ServusGameTest(timeoutTicks = 40)
-    public static void threeBaysOneSectionPortInMiddle(GameTestHelper helper) {
+    public static void threeBaysOneShelfPortInMiddle(GameTestHelper helper) {
         BlockPos[] bays = three(3);
         FluidRackFixtures.row(helper, FRONT, bays);
         helper.runAfterDelay(2, () -> {
-            helper.assertTrue(FluidRackFixtures.section(helper, bays[0]).size() == 3, "one section of three, got "
-                    + FluidRackFixtures.section(helper, bays[0]));
+            helper.assertTrue(FluidRackFixtures.shelf(helper, bays[0]).size() == 3, "one shelf of three, got "
+                    + FluidRackFixtures.shelf(helper, bays[0]));
             helper.assertTrue(!FluidRackFixtures.port(helper, bays[0]) && FluidRackFixtures.port(helper, bays[1])
                     && !FluidRackFixtures.port(helper, bays[2]), "only the middle bay carries the port");
-            helper.assertTrue(FluidRackFixtures.bay(helper, bays[0]).sectionHandler().content().capacity() == 3 * PER_BAY,
-                    "the section holds three bays' worth");
+            helper.assertTrue(FluidRackFixtures.bay(helper, bays[0]).shelfHandler().content().capacity() == 3 * PER_BAY,
+                    "the shelf holds three bays' worth");
             helper.succeed();
         });
     }
 
-    /** A section of two has its port on the bay to the left of a player in front of it. */
+    /** A shelf of two has its port on the bay to the left of a player in front of it. */
     @ServusGameTest(timeoutTicks = 40)
     public static void portOfTwoOnTheLeft(GameTestHelper helper) {
         BlockPos west = new BlockPos(3, 1, 3);
         BlockPos east = west.east();
         FluidRackFixtures.row(helper, FRONT, west, east);
         helper.runAfterDelay(2, () -> {
-            helper.assertTrue(FluidRackFixtures.section(helper, west).equals(List.of(east, west)), "east is the left bay seen from the north, got "
-                    + FluidRackFixtures.section(helper, west));
+            helper.assertTrue(FluidRackFixtures.shelf(helper, west).equals(List.of(east, west)), "east is the left bay seen from the north, got "
+                    + FluidRackFixtures.shelf(helper, west));
             helper.assertTrue(FluidRackFixtures.port(helper, east) && !FluidRackFixtures.port(helper, west), "the port is on the left bay");
             helper.succeed();
         });
@@ -100,7 +100,7 @@ public final class FluidRackGameTests {
             helper.assertTrue(FluidRackFixtures.port(helper, bays[1]), "the middle bay carries the port first");
             helper.destroyBlock(bays[0]);
             helper.runAfterDelay(1, () -> {
-                helper.assertTrue(FluidRackFixtures.section(helper, bays[1]).size() == 2, "two bays are left in the section");
+                helper.assertTrue(FluidRackFixtures.shelf(helper, bays[1]).size() == 2, "two bays are left in the shelf");
                 helper.assertTrue(FluidRackFixtures.port(helper, bays[2]) && !FluidRackFixtures.port(helper, bays[1]),
                         "the port moved to the left bay of the two");
                 helper.succeed();
@@ -108,7 +108,7 @@ public final class FluidRackGameTests {
         });
     }
 
-    /** A rack item carrying lava placed beside a bay holding water stands as a section of its own. */
+    /** A rack item carrying lava placed beside a bay holding water stands as a shelf of its own. */
     @ServusGameTest(timeoutTicks = 40)
     public static void lavaDoesNotJoinWater(GameTestHelper helper) {
         BlockPos water = new BlockPos(3, 1, 3);
@@ -117,7 +117,7 @@ public final class FluidRackGameTests {
         helper.runAfterDelay(2, () -> {
             FluidRackFixtures.place(helper, lava, FRONT, FluidRackFixtures.carrying(Fluids.LAVA, 2000));
             helper.runAfterDelay(2, () -> {
-                helper.assertTrue(FluidRackFixtures.section(helper, lava).size() == 1, "the lava bay stands alone");
+                helper.assertTrue(FluidRackFixtures.shelf(helper, lava).size() == 1, "the lava bay stands alone");
                 helper.assertTrue(FluidRackFixtures.content(helper, water).is(Fluids.WATER) && FluidRackFixtures.amount(helper, water) == 4000,
                         "the water bay keeps its water");
                 helper.assertTrue(FluidRackFixtures.content(helper, lava).is(Fluids.LAVA) && FluidRackFixtures.amount(helper, lava) == 2000,
@@ -138,7 +138,7 @@ public final class FluidRackGameTests {
             FluidRackFixtures.row(helper, Direction.EAST, top);
             helper.runAfterDelay(2, () -> {
                 helper.assertTrue(helper.getBlockState(top[0]).getValue(FluidRackBlock.FACING) == FRONT, "the top row copies the facing below");
-                helper.assertTrue(FluidRackFixtures.section(helper, top[0]).size() == 3, "the top row is one section of three");
+                helper.assertTrue(FluidRackFixtures.shelf(helper, top[0]).size() == 3, "the top row is one shelf of three");
                 helper.assertTrue(FluidRackFixtures.content(helper, top[0]).isEmpty(), "the top row holds no water");
                 helper.assertTrue(FluidRackFixtures.amount(helper, bottom[2]) == 30000, "the bottom row keeps its water");
                 helper.assertTrue(FluidRackFixtures.port(helper, top[1]), "the top row has its own port");
@@ -189,7 +189,7 @@ public final class FluidRackGameTests {
         });
     }
 
-    /** A rail in front of a bay without the port shows no dock and leaves the section open to pipes. */
+    /** A rail in front of a bay without the port shows no dock and leaves the shelf open to pipes. */
     @ServusGameTest(timeoutTicks = 40)
     public static void railAtOtherBayDoesNotJoin(GameTestHelper helper) {
         BlockPos[] bays = three(3);
@@ -199,16 +199,16 @@ public final class FluidRackGameTests {
             WarehouseFixtures.railOnStone(helper, rail);
             helper.runAfterDelay(2, () -> {
                 helper.assertTrue(!helper.getBlockState(rail).getValue(RailBlock.dock(FRONT.getOpposite())), "the rail shows no dock");
-                helper.assertTrue(capability(helper, bays[0], Direction.UP) != null, "the section is still a tank for pipes");
-                helper.assertTrue(FluidRackFixtures.bay(helper, bays[0]).standalone(), "the section is not docked");
+                helper.assertTrue(capability(helper, bays[0], Direction.UP) != null, "the shelf is still a tank for pipes");
+                helper.assertTrue(FluidRackFixtures.bay(helper, bays[0]).standalone(), "the shelf is not docked");
                 helper.succeed();
             });
         });
     }
 
-    /** Rails hang in front of every bay of a raised section; only the port bay's rail docks. */
+    /** Rails hang in front of every bay of a raised shelf; only the port bay's rail docks. */
     @ServusGameTest(timeoutTicks = 40)
-    public static void railsHangAlongRaisedSection(GameTestHelper helper) {
+    public static void railsHangAlongRaisedShelf(GameTestHelper helper) {
         BlockPos[] bays = {new BlockPos(3, 4, 3), new BlockPos(4, 4, 3), new BlockPos(5, 4, 3)};
         FluidRackFixtures.row(helper, FRONT, bays);
         helper.runAfterDelay(2, () -> {
@@ -227,7 +227,7 @@ public final class FluidRackGameTests {
         });
     }
 
-    /** A water bucket on the front fills the section and leaves an empty bucket; the empty bucket takes it back. */
+    /** A water bucket on the front fills the shelf and leaves an empty bucket; the empty bucket takes it back. */
     @ServusGameTest(timeoutTicks = 40)
     public static void bucketFillsAndEmpties(GameTestHelper helper) {
         BlockPos rack = new BlockPos(3, 1, 3);
@@ -235,7 +235,7 @@ public final class FluidRackGameTests {
         helper.runAfterDelay(2, () -> {
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
             useBucket(helper, player, new ItemStack(Items.WATER_BUCKET), rack);
-            helper.assertTrue(FluidRackFixtures.amount(helper, rack) == 1000, "the section holds 1000 mB of water");
+            helper.assertTrue(FluidRackFixtures.amount(helper, rack) == 1000, "the shelf holds 1000 mB of water");
             helper.assertTrue(player.getMainHandItem().is(Items.BUCKET), "the player holds an empty bucket");
             useBucket(helper, player, player.getMainHandItem(), rack);
             helper.assertTrue(FluidRackFixtures.amount(helper, rack) == 0, "the bucket took the water back");
@@ -270,6 +270,7 @@ public final class FluidRackGameTests {
         helper.runAfterDelay(2, () -> {
             FluidRackFixtures.fill(helper, rack, Fluids.LAVA, 12000);
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            player.setShiftKeyDown(true);
             GameTestSteps.useCarrot(helper, player, rack, FRONT);
             helper.assertTrue(helper.getBlockState(rack).isAir(), "the bay is gone");
             List<ItemStack> drops = FluidRackFixtures.dropped(helper, rack);
@@ -285,7 +286,7 @@ public final class FluidRackGameTests {
         });
     }
 
-    /** Breaking the right bay of a section holding 30000 mB drops 10000 mB with it and leaves 20000 mB. */
+    /** Breaking the right bay of a shelf holding 30000 mB drops 10000 mB with it and leaves 20000 mB. */
     @ServusGameTest(timeoutTicks = 60)
     public static void breakingBayDropsShare(GameTestHelper helper) {
         BlockPos[] bays = three(3);
@@ -305,9 +306,9 @@ public final class FluidRackGameTests {
         });
     }
 
-    /** A handheld scan of one bay zones all three bays; a scan with No zone active clears the whole section. */
+    /** A handheld scan of one bay zones all three bays; a scan with No zone active clears the whole shelf. */
     @ServusGameTest(timeoutTicks = 40)
-    public static void scanZonesSectionAndNoZoneClears(GameTestHelper helper) {
+    public static void scanZonesShelfAndNoZoneClears(GameTestHelper helper) {
         BlockPos[] bays = three(3);
         FluidRackFixtures.row(helper, FRONT, bays);
         helper.runAfterDelay(2, () -> {
@@ -324,7 +325,7 @@ public final class FluidRackGameTests {
         });
     }
 
-    /** A bay placed beside a zoned section joins it and takes its zone. */
+    /** A bay placed beside a zoned shelf joins it and takes its zone. */
     @ServusGameTest(timeoutTicks = 40)
     public static void joiningBayTakesZone(GameTestHelper helper) {
         BlockPos first = new BlockPos(3, 1, 3);
@@ -335,14 +336,14 @@ public final class FluidRackGameTests {
             GameTestSteps.useOn(helper, player, ZoneFixtures.handheld(helper, "Cooling", ZoneFilter.EMPTY), first, FRONT);
             FluidRackFixtures.place(helper, second, FRONT, FluidRackFixtures.item());
             helper.runAfterDelay(2, () -> {
-                helper.assertTrue(FluidRackFixtures.section(helper, first).size() == 2, "the bays joined");
+                helper.assertTrue(FluidRackFixtures.shelf(helper, first).size() == 2, "the bays joined");
                 helper.assertTrue(FluidRackFixtures.bay(helper, second).zone().equals("Cooling"), "the new bay took the zone");
                 helper.succeed();
             });
         });
     }
 
-    /** A section zoned with a water bucket refuses a lava bucket; the player keeps it. */
+    /** A shelf zoned with a water bucket refuses a lava bucket; the player keeps it. */
     @ServusGameTest(timeoutTicks = 40)
     public static void waterZoneRefusesLavaBucket(GameTestHelper helper) {
         BlockPos rack = new BlockPos(3, 1, 3);
@@ -352,10 +353,10 @@ public final class FluidRackGameTests {
             GameTestSteps.useOn(helper, player,
                     ZoneFixtures.handheld(helper, "Cooling", new ZoneFilter(List.of(new ItemStack(Items.WATER_BUCKET)), List.of())), rack, FRONT);
             useBucket(helper, player, new ItemStack(Items.LAVA_BUCKET), rack);
-            helper.assertTrue(FluidRackFixtures.content(helper, rack).isEmpty(), "the section takes no lava");
+            helper.assertTrue(FluidRackFixtures.content(helper, rack).isEmpty(), "the shelf takes no lava");
             helper.assertTrue(player.getMainHandItem().is(Items.LAVA_BUCKET), "the player keeps the lava bucket");
             useBucket(helper, player, new ItemStack(Items.WATER_BUCKET), rack);
-            helper.assertTrue(FluidRackFixtures.amount(helper, rack) == 1000, "the section takes water");
+            helper.assertTrue(FluidRackFixtures.amount(helper, rack) == 1000, "the shelf takes water");
             helper.succeed();
         });
     }
@@ -371,7 +372,7 @@ public final class FluidRackGameTests {
                     ZoneFixtures.handheld(helper, "Back", new ZoneFilter(List.of(new ItemStack(Items.BREAD)), List.of("c:ores"))), rack, FRONT);
             FluidRackBlockEntity bay = FluidRackFixtures.bay(helper, rack);
             helper.assertTrue(bay.zone().equals("Back") && bay.zoneFluids().isEmpty(), "the zone lists no fluids");
-            helper.assertTrue(FluidRackFixtures.fill(helper, rack, Fluids.LAVA, 2000) == 2000, "the section takes lava");
+            helper.assertTrue(FluidRackFixtures.fill(helper, rack, Fluids.LAVA, 2000) == 2000, "the shelf takes lava");
             helper.succeed();
         });
     }

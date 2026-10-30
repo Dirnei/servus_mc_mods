@@ -49,9 +49,9 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Heavy Duty Rack: a chest sized bay that opens a GUI. Bays with the same
- * facing and wood form sections of a few bays: a bay joins the section beside it when
- * it is placed and that section has room, and the join never moves after
- * that. A section shares one GUI; every bay still stores its own slots.
+ * facing and wood form shelves of a few bays: a bay joins the shelf beside it when
+ * it is placed and that shelf has room, and the join never moves after
+ * that. A shelf shares one GUI; every bay still stores its own slots.
  */
 public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, PotatoInspectable {
 
@@ -62,7 +62,7 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
     /** Joined to the bay on the clockwise side: no post there, shelves run through. */
     public static final BooleanProperty RIGHT = BooleanProperty.create("right");
 
-    private static final int MAX_SECTION_WALK = 64;
+    private static final int MAX_SHELF_WALK = 64;
 
     public HeavyRackBlock(Properties properties) {
         super(properties);
@@ -96,11 +96,11 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
     }
 
     /**
-     * Bays in the section that starts at the neighbour in {@code direction}
-     * and extends away from {@code pos}, following that section's joins.
+     * Bays in the shelf that starts at the neighbour in {@code direction}
+     * and extends away from {@code pos}, following that shelf's joins.
      * Zero when no rack of the same facing and wood is there.
      */
-    private static int sectionSize(BlockState state, Identifier wood, BlockGetter level, BlockPos pos, Direction direction) {
+    private static int shelfSize(BlockState state, Identifier wood, BlockGetter level, BlockPos pos, Direction direction) {
         BooleanProperty onward = direction == state.getValue(FACING).getCounterClockWise() ? LEFT : RIGHT;
         BlockPos cursor = pos.relative(direction);
         BlockState current = level.getBlockState(cursor);
@@ -108,7 +108,7 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
             return 0;
         }
         int size = 1;
-        while (size < MAX_SECTION_WALK && current.getValue(onward)) {
+        while (size < MAX_SHELF_WALK && current.getValue(onward)) {
             cursor = cursor.relative(direction);
             current = level.getBlockState(cursor);
             if (!sameBay(state, wood, level, cursor)) {
@@ -120,20 +120,20 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
     }
 
     /**
-     * The bays of the section the rack at {@code pos} belongs to, from left to
-     * right as seen from the front. Two bays share a section only when both
+     * The bays of the shelf the rack at {@code pos} belongs to, from left to
+     * right as seen from the front. Two bays share a shelf only when both
      * carry the join towards each other. Empty when no rack stands there.
      */
-    public static List<BlockPos> section(BlockGetter level, BlockPos pos) {
+    public static List<BlockPos> shelf(BlockGetter level, BlockPos pos) {
         BlockState start = level.getBlockState(pos);
         if (!(start.getBlock() instanceof HeavyRackBlock)) {
             return List.of();
         }
         Direction right = start.getValue(FACING).getClockWise();
-        int[] offsets = RackSection.bays(
+        int[] offsets = RackShelf.bays(
                 offset -> joined(start, level.getBlockState(pos.relative(right, offset)), LEFT),
                 offset -> joined(start, level.getBlockState(pos.relative(right, offset)), RIGHT),
-                MAX_SECTION_WALK);
+                MAX_SHELF_WALK);
         List<BlockPos> bays = new ArrayList<>(offsets.length);
         for (int offset : offsets) {
             bays.add(pos.relative(right, offset));
@@ -152,9 +152,9 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
         Direction facing = RackFacing.of(context, block -> block instanceof HeavyRackBlock);
         BlockState state = defaultBlockState().setValue(FACING, facing);
         Identifier wood = HeavyRackBlockEntity.woodOf(context.getItemInHand());
-        int max = ShuttlesStatsManager.INSTANCE.rackBaysPerSection();
-        int leftSize = sectionSize(state, wood, level, pos, facing.getCounterClockWise());
-        int rightSize = sectionSize(state, wood, level, pos, facing.getClockWise());
+        int max = ShuttlesStatsManager.INSTANCE.rackBaysPerShelf();
+        int leftSize = shelfSize(state, wood, level, pos, facing.getCounterClockWise());
+        int rightSize = shelfSize(state, wood, level, pos, facing.getClockWise());
         Boolean leftBelow = joinFromBelow(state, level, pos, facing.getCounterClockWise(), LEFT, RIGHT);
         Boolean rightBelow = joinFromBelow(state, level, pos, facing.getClockWise(), RIGHT, LEFT);
         boolean joinLeft = leftBelow != null ? leftBelow && leftSize > 0 : RackRow.joinLeft(leftSize, max);
@@ -165,7 +165,7 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
     }
 
     /**
-     * The row below decides where sections split: the rack under this bay, or
+     * The row below decides where shelves split: the rack under this bay, or
      * the rack under the neighbour on that side, says whether the join exists.
      * Null when no rack stands under either.
      */
@@ -192,14 +192,14 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
         Direction facing = state.getValue(FACING);
         mirror(level, pos.relative(facing.getCounterClockWise()), RIGHT, state.getValue(LEFT), state);
         mirror(level, pos.relative(facing.getClockWise()), LEFT, state.getValue(RIGHT), state);
-        // Section links follow the join flags, which the graph cannot see change.
+        // Shelf links follow the join flags, which the graph cannot see change.
         for (BlockPos bay : List.of(pos, pos.relative(facing.getCounterClockWise()), pos.relative(facing.getClockWise()))) {
             if (level.getBlockEntity(bay) instanceof StorageNodeBlockEntity node) {
                 node.refreshLinks();
             }
         }
-        // A bay joining a docked section closes it to pipes; a fresh section may be open.
-        refreshDock(level, section(level, pos));
+        // A bay joining a docked shelf closes it to pipes; a fresh shelf may be open.
+        refreshDock(level, shelf(level, pos));
     }
 
     private static void mirror(Level level, BlockPos neighbourPos, BooleanProperty flag, boolean joined, BlockState placed) {
@@ -268,7 +268,7 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
             return InteractionResult.PASS;
         }
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof HeavyRackBlockEntity rack) {
-            player.openMenu(rack, buf -> HeavyRackMenu.writeSection(buf, level, pos));
+            player.openMenu(rack, buf -> HeavyRackMenu.writeShelf(buf, level, pos));
         }
         return InteractionResult.SUCCESS;
     }
@@ -278,7 +278,7 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
                                    boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof HeavyRackBlockEntity rack && rack.frontRailChanged()) {
-            refreshDock(level, section(level, pos));
+            refreshDock(level, shelf(level, pos));
         }
     }
 
@@ -290,7 +290,7 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
     }
 
     /**
-     * The section's pipe access may have changed: every bay drops its cached
+     * The shelf's pipe access may have changed: every bay drops its cached
      * capability and tells its neighbours, so ducts recompute their arms and
      * hoppers ask again. Event driven, never polled; it does not loop, because
      * the bays' front rail flags do not change on the second pass.
@@ -302,14 +302,14 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
         }
     }
 
-    /** A bay that leaves splits or shrinks the sections beside it: both may open to pipes. */
+    /** A bay that leaves splits or shrinks the shelves beside it: both may open to pipes. */
     @Override
     protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
         super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
         Direction facing = state.getValue(FACING);
         for (BlockPos side : List.of(pos.relative(facing.getCounterClockWise()), pos.relative(facing.getClockWise()))) {
             if (level.getBlockState(side).getBlock() instanceof HeavyRackBlock) {
-                refreshDock(level, section(level, side));
+                refreshDock(level, shelf(level, side));
             }
         }
     }

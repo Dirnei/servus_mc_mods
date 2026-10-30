@@ -255,13 +255,13 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
 
     /**
      * Whether this node links to the warehouse node on that side beyond the
-     * kind rules. Racks use it to link only to bays of their own section.
+     * kind rules. Racks use it to link only to bays of their own shelf.
      */
     public boolean linksTowards(Side side, StorageNodeBlockEntity neighbour) {
         return true;
     }
 
-    /** Re-evaluates this node's links after a change the graph cannot see, such as a section join. */
+    /** Re-evaluates this node's links after a change the graph cannot see, such as a shelf join. */
     public void refreshLinks() {
         refreshNetworkConnections();
     }

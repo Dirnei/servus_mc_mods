@@ -3,21 +3,21 @@ package io.github.dirnei.mc.servus.shuttles.rack;
 import java.util.function.IntPredicate;
 
 /**
- * Walks the bays of one rack section along a row. Offsets count bays to the
+ * Walks the bays of one rack shelf along a row. Offsets count bays to the
  * right of the start bay (negative to the left). Two neighbouring bays belong
- * to the same section only when both say so: the right one joins left and the
+ * to the same shelf only when both say so: the right one joins left and the
  * left one joins right. Pure Java.
  */
-public final class RackSection {
+public final class RackShelf {
 
-    private RackSection() {
+    private RackShelf() {
     }
 
     /**
      * @param joinsLeft  whether the bay at an offset is joined to its left neighbour
      * @param joinsRight whether the bay at an offset is joined to its right neighbour
      * @param limit      steps the walk may take in each direction
-     * @return the offsets of the section's bays from leftmost to rightmost, always containing 0
+     * @return the offsets of the shelf's bays from leftmost to rightmost, always containing 0
      */
     public static int[] bays(IntPredicate joinsLeft, IntPredicate joinsRight, int limit) {
         int left = 0;

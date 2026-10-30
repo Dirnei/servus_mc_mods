@@ -32,7 +32,7 @@ import org.joml.Vector3fc;
  *
  * <p>No two faces share a plane where they overlap: a flash box stands
  * {@link #FLASH_OFFSET} off the bay's faces and every further flashed bay one
- * {@link #STEP} further, so neighbouring bays of a section never draw on one
+ * {@link #STEP} further, so neighbouring bays of a shelf never draw on one
  * plane. The glow is drawn without depth test, so it cannot fight with blocks.
  */
 @EventBusSubscriber(modid = ServusShuttlesIds.MOD_ID, value = Dist.CLIENT)

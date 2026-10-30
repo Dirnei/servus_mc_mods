@@ -25,7 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
- * Draws what a Fluid Rack bay shows beyond its block model: the section's
+ * Draws what a Fluid Rack bay shows beyond its block model: the shelf's
  * fluid behind the glass front, from the floor up to the synced fill, the
  * same height in every bay and running through where bays join, and the
  * zone name on the top beam of the port bay.

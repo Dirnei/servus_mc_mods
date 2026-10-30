@@ -3,13 +3,13 @@ package io.github.dirnei.mc.servus.shuttles.handheld;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlock;
 import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackSectionHandler;
+import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackShelfHandler;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.rack.SectionFill;
+import io.github.dirnei.mc.servus.shuttles.rack.ShelfFill;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.zone.WarehouseZoneData;
@@ -106,8 +106,8 @@ public final class HandheldActions {
         return Optional.of(id);
     }
 
-    /** ZONE: puts the bay, its section when sneaking, or a Fluid Rack's whole section into the active zone. */
-    static void assign(Player player, ItemStack handheld, StorageNodeBlockEntity bay, boolean section) {
+    /** ZONE: puts the bay, its shelf when sneaking, or a Fluid Rack's whole shelf into the active zone. */
+    static void assign(Player player, ItemStack handheld, StorageNodeBlockEntity bay, boolean shelf) {
         MinecraftServer server = player.level().getServer();
         Optional<Integer> active = activeZone(server, handheld);
         if (active.isEmpty()) {
@@ -121,7 +121,7 @@ public final class HandheldActions {
         if (index == SweepTracker.SKIP) {
             return;
         }
-        List<StorageNodeBlockEntity> bays = targets(level, bay, section);
+        List<StorageNodeBlockEntity> bays = targets(level, bay, shelf);
         String before = zoneName(bay.zoneDefinition());
         if (bays.stream().allMatch(target -> target.zoneDefinition() == null ? zone == ZoneList.NONE : target.zoneId() == zone)) {
             if (index == 0) {
@@ -130,25 +130,25 @@ public final class HandheldActions {
             return;
         }
         if (bay instanceof FluidRackBlockEntity) {
-            FluidRackBlock.stampSection(level, pos, zone);
+            FluidRackBlock.stampShelf(level, pos, zone);
         } else {
             bays.forEach(target -> target.setZone(zone));
         }
         String after = zoneName(WarehouseZoneData.get(server).definition(zone));
         Component message = bays.size() > 1
-                ? Component.translatable(MESSAGE + "assigned_section", bays.size(), before, after)
+                ? Component.translatable(MESSAGE + "assigned_shelf", bays.size(), before, after)
                 : Component.translatable(MESSAGE + "assigned", code(bay), before, after);
         player.sendOverlayMessage(message);
         send(player, new HandheldScanPayload(bays.stream().map(StorageNodeBlockEntity::getBlockPos).toList(), true, index));
     }
 
-    /** The bays a ZONE scan sets: a Fluid Rack's section always, a rack's section when sneaking, else the bay. */
-    private static List<StorageNodeBlockEntity> targets(Level level, StorageNodeBlockEntity bay, boolean section) {
+    /** The bays a ZONE scan sets: a Fluid Rack's shelf always, a rack's shelf when sneaking, else the bay. */
+    private static List<StorageNodeBlockEntity> targets(Level level, StorageNodeBlockEntity bay, boolean shelf) {
         List<BlockPos> positions;
         if (bay instanceof FluidRackBlockEntity) {
-            positions = FluidRackBlock.section(level, bay.getBlockPos());
-        } else if (section && bay instanceof HeavyRackBlockEntity) {
-            positions = HeavyRackBlock.section(level, bay.getBlockPos());
+            positions = FluidRackBlock.shelf(level, bay.getBlockPos());
+        } else if (shelf && bay instanceof HeavyRackBlockEntity) {
+            positions = HeavyRackBlock.shelf(level, bay.getBlockPos());
         } else {
             return List.of(bay);
         }
@@ -180,7 +180,7 @@ public final class HandheldActions {
     }
 
     private static ItemKey topItem(HeavyRackBlockEntity rack) {
-        List<SectionFill.Entry<ItemKey>> top = SectionFill.of(rack.items().states(), 1).top();
+        List<ShelfFill.Entry<ItemKey>> top = ShelfFill.of(rack.items().states(), 1).top();
         return top.isEmpty() ? null : top.get(0).key();
     }
 
@@ -230,7 +230,7 @@ public final class HandheldActions {
         }
         int zone = bay.zoneDefinition() == null ? ZoneList.NONE : bay.zoneId();
         if (bay instanceof FluidRackBlockEntity fluidRack) {
-            FluidRackSectionHandler.Content content = fluidRack.sectionHandler().content();
+            FluidRackShelfHandler.Content content = fluidRack.shelfHandler().content();
             FluidStack fluid = content.fluid();
             List<ItemStack> top = fluid.isEmpty() ? List.of() : List.of(fluid.getFluid().getBucket().getDefaultInstance());
             List<Long> counts = fluid.isEmpty() ? List.of() : List.of((long) fluid.getAmount());
@@ -239,10 +239,10 @@ public final class HandheldActions {
         if (!(bay instanceof HeavyRackBlockEntity rack)) {
             return null;
         }
-        SectionFill<ItemKey> fill = SectionFill.of(rack.items().states(), INFO_TOP_ITEMS);
+        ShelfFill<ItemKey> fill = ShelfFill.of(rack.items().states(), INFO_TOP_ITEMS);
         List<ItemStack> top = new ArrayList<>();
         List<Long> counts = new ArrayList<>();
-        for (SectionFill.Entry<ItemKey> entry : fill.top()) {
+        for (ShelfFill.Entry<ItemKey> entry : fill.top()) {
             top.add(entry.key().stack(1));
             counts.add((long) entry.count());
         }

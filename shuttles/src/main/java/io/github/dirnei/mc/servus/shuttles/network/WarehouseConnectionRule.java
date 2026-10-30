@@ -9,7 +9,7 @@ import io.github.dirnei.mc.servus.foundation.graph.Side;
  * elevator segments beside it. Blocks shuttles
  * serve (racks, stations, Access Points, garages, Fluid
  * Racks, fluid stations) are rail only: they link only to rails (racks and Fluid Racks also
- * to bays of their own section), so
+ * to bays of their own shelf), so
  * they never join or pass on a warehouse by touching it. Rails link sideways to rails and to
  * elevator segments. Segments link vertically to segments and sideways to
  * rails and the controller, never to a rack or a station.

@@ -75,7 +75,7 @@ public final class StorageFillGameTests {
         });
     }
 
-    /** A Fluid Rack section counts; the water in a Fluid Inbound and a Fluid Outbound does not. */
+    /** A Fluid Rack shelf counts; the water in a Fluid Inbound and a Fluid Outbound does not. */
     @ServusGameTest(timeoutTicks = 100)
     public static void fluidStationsDoNotCount(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, CONTROLLER);
@@ -95,15 +95,15 @@ public final class StorageFillGameTests {
                 return report.fluid() == 3000 && report.fluidCapacity() == capacity;
             }, 60, () -> "3000 of " + capacity + " mB should count, got " + fill(controller.network().orElseThrow()), () -> {
                 helper.assertTrue(outbound.tank().getFluidAmount() == 4000 && inbound.tank().getFluidAmount() == 5000, "the stations hold water");
-                helper.assertTrue(WarehouseControllerMenu.status(controller).storage().fluidRacks() == 1, "the controller GUI counts one section");
+                helper.assertTrue(WarehouseControllerMenu.status(controller).storage().fluidRacks() == 1, "the controller GUI counts one shelf");
                 helper.succeed();
             });
         });
     }
 
-    /** A docked three bay Fluid Rack section counts its water against three bays' capacity, and the controller GUI counts it. */
+    /** A docked three bay Fluid Rack shelf counts its water against three bays' capacity, and the controller GUI counts it. */
     @ServusGameTest(timeoutTicks = 100)
-    public static void fluidRackSectionCounts(GameTestHelper helper) {
+    public static void fluidRackShelfCounts(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = WarehouseFixtures.controller(helper, CONTROLLER);
         RailFixtures.railAlongZ(helper, RAIL.getX(), 2, 9);
         BlockPos[] bays = {new BlockPos(3, 1, 4), new BlockPos(3, 1, 5), new BlockPos(3, 1, 6)};
@@ -116,7 +116,7 @@ public final class StorageFillGameTests {
                 return report.fluid() == 12000 && report.fluidCapacity() == capacity;
             }, 60, () -> "12000 of " + capacity + " mB should count, got " + fill(controller.network().orElseThrow()), () -> {
                 StorageRow row = WarehouseControllerMenu.status(controller).storage();
-                helper.assertTrue(row.fluidRacks() == 1, "the controller GUI counts one section, got " + row);
+                helper.assertTrue(row.fluidRacks() == 1, "the controller GUI counts one shelf, got " + row);
                 helper.succeed();
             });
         });

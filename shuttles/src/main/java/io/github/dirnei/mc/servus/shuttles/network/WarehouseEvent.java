@@ -29,7 +29,7 @@ public sealed interface WarehouseEvent {
     record OutputChanged(BlockPos pos) implements WarehouseEvent {
     }
 
-    /** The fluid in the Fluid Rack section of the bay at {@code pos} changed; its fluid stock is read again. */
+    /** The fluid in the Fluid Rack shelf of the bay at {@code pos} changed; its fluid stock is read again. */
     record FluidChanged(BlockPos pos) implements WarehouseEvent {
     }
 

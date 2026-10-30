@@ -14,14 +14,14 @@ class RackRowTest {
     }
 
     @Test
-    void joinsASectionWithRoom() {
+    void joinsAShelfWithRoom() {
         assertTrue(RackRow.joinLeft(1, 3));
         assertTrue(RackRow.joinLeft(2, 3));
         assertTrue(RackRow.joinRight(false, 0, 2, 3));
     }
 
     @Test
-    void refusesAFullSection() {
+    void refusesAFullShelf() {
         assertFalse(RackRow.joinLeft(3, 3));
         assertFalse(RackRow.joinRight(false, 0, 3, 3));
         assertFalse(RackRow.joinLeft(4, 3));
@@ -37,7 +37,7 @@ class RackRowTest {
     void refusesTheRightSideBeyondTheCap() {
         assertTrue(RackRow.joinLeft(2, 3));
         assertFalse(RackRow.joinRight(true, 2, 1, 3), "two plus one plus one would be four");
-        assertTrue(RackRow.joinRight(false, 3, 2, 3), "left was full, right section of two takes the bay");
+        assertTrue(RackRow.joinRight(false, 3, 2, 3), "left was full, right shelf of two takes the bay");
     }
 
     @Test

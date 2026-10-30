@@ -49,7 +49,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final double DEFAULT_WAKE_FE_PER_CHUNK_PER_TICK = 2;
     public static final double DEFAULT_CRAFTING_STATION_FE_PER_TICK = 5;
     public static final int DEFAULT_SITE_SNAPSHOT_INTERVAL = 100;
-    public static final int DEFAULT_RACK_BAYS_PER_SECTION = 3;
+    public static final int DEFAULT_RACK_BAYS_PER_SHELF = 3;
     public static final int DEFAULT_INBOUND_BUFFER_SLOTS = 9;
     public static final int DEFAULT_PUT_AWAY_PER_TICK = 1;
     public static final int DEFAULT_CPU_ORDERS_PER_CPU_BLOCK = 1;
@@ -88,7 +88,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final int DEFAULT_FERTILIZE_BELOW = 0;
     public static final int DEFAULT_TANKER_PUMP_TICKS = 40;
     public static final int DEFAULT_FLUID_RACK_CAPACITY_PER_BAY = 16000;
-    public static final int DEFAULT_FLUID_RACK_BAYS_PER_SECTION = 3;
+    public static final int DEFAULT_FLUID_RACK_BAYS_PER_SHELF = 3;
     public static final int DEFAULT_FLUID_RACK_LEVEL_STEPS = 16;
     public static final int DEFAULT_FLUID_CHECK_INTERVAL = 40;
     public static final int DEFAULT_TANKER_MIN_LOAD = 1000;
@@ -141,7 +141,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private volatile double shuttleFePerBlock = DEFAULT_SHUTTLE_FE_PER_BLOCK;
     private volatile double wakeFePerChunkPerTick = DEFAULT_WAKE_FE_PER_CHUNK_PER_TICK;
     private volatile double craftingStationFePerTick = DEFAULT_CRAFTING_STATION_FE_PER_TICK;
-    private volatile int rackBaysPerSection = DEFAULT_RACK_BAYS_PER_SECTION;
+    private volatile int rackBaysPerShelf = DEFAULT_RACK_BAYS_PER_SHELF;
     private volatile int inboundBufferSlots = DEFAULT_INBOUND_BUFFER_SLOTS;
     private volatile int putAwayPerTick = DEFAULT_PUT_AWAY_PER_TICK;
     private volatile int cpuOrdersPerCpuBlock = DEFAULT_CPU_ORDERS_PER_CPU_BLOCK;
@@ -180,7 +180,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private volatile int fertilizeBelow = DEFAULT_FERTILIZE_BELOW;
     private volatile int tankerPumpTicks = DEFAULT_TANKER_PUMP_TICKS;
     private volatile int fluidRackCapacityPerBay = DEFAULT_FLUID_RACK_CAPACITY_PER_BAY;
-    private volatile int fluidRackBaysPerSection = DEFAULT_FLUID_RACK_BAYS_PER_SECTION;
+    private volatile int fluidRackBaysPerShelf = DEFAULT_FLUID_RACK_BAYS_PER_SHELF;
     private volatile int fluidRackLevelSteps = DEFAULT_FLUID_RACK_LEVEL_STEPS;
     private volatile int fluidCheckInterval = DEFAULT_FLUID_CHECK_INTERVAL;
     private volatile int tankerMinLoad = DEFAULT_TANKER_MIN_LOAD;
@@ -226,7 +226,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         shuttleFePerBlock = costField(files.get(POWER), "shuttle_fe_per_block", DEFAULT_SHUTTLE_FE_PER_BLOCK);
         wakeFePerChunkPerTick = costField(files.get(POWER), "wake_fe_per_chunk_per_tick", DEFAULT_WAKE_FE_PER_CHUNK_PER_TICK);
         craftingStationFePerTick = costField(files.get(POWER), "crafting_station_fe_per_tick", DEFAULT_CRAFTING_STATION_FE_PER_TICK);
-        rackBaysPerSection = intField(files.get(RACK), "bays_per_section", DEFAULT_RACK_BAYS_PER_SECTION);
+        rackBaysPerShelf = baysPerShelf(files.get(RACK), DEFAULT_RACK_BAYS_PER_SHELF);
         inboundBufferSlots = intField(files.get(WAREHOUSE), "inbound_buffer_slots", DEFAULT_INBOUND_BUFFER_SLOTS);
         putAwayPerTick = intField(files.get(WAREHOUSE), "put_away_per_tick", DEFAULT_PUT_AWAY_PER_TICK);
         cpuOrdersPerCpuBlock = intField(files.get(CPU), "orders_per_cpu_block", DEFAULT_CPU_ORDERS_PER_CPU_BLOCK);
@@ -265,7 +265,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         fertilizeBelow = countField(files.get(FIELD), "fertilize_below", DEFAULT_FERTILIZE_BELOW);
         tankerPumpTicks = intField(files.get(WAREHOUSE), "tanker_pump_ticks", DEFAULT_TANKER_PUMP_TICKS);
         fluidRackCapacityPerBay = intField(files.get(FLUID_RACK), "capacity_per_bay", DEFAULT_FLUID_RACK_CAPACITY_PER_BAY);
-        fluidRackBaysPerSection = intField(files.get(FLUID_RACK), "bays_per_section", DEFAULT_FLUID_RACK_BAYS_PER_SECTION);
+        fluidRackBaysPerShelf = baysPerShelf(files.get(FLUID_RACK), DEFAULT_FLUID_RACK_BAYS_PER_SHELF);
         fluidRackLevelSteps = intField(files.get(FLUID_RACK), "level_steps", DEFAULT_FLUID_RACK_LEVEL_STEPS);
         fluidCheckInterval = intField(files.get(WAREHOUSE), "fluid_check_interval", DEFAULT_FLUID_CHECK_INTERVAL);
         tankerMinLoad = countField(files.get(WAREHOUSE), "tanker_min_load", DEFAULT_TANKER_MIN_LOAD);
@@ -309,6 +309,11 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
             return Math.max(0, object.get(field).getAsInt());
         }
         return fallback;
+    }
+
+    /** {@code bays_per_shelf}, or the older {@code bays_per_section} when a pack still uses it. */
+    private static int baysPerShelf(JsonElement element, int fallback) {
+        return intField(element, "bays_per_shelf", intField(element, "bays_per_section", fallback));
     }
 
     private static int intField(JsonElement element, String field, int fallback) {
@@ -500,7 +505,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         return rackDisplayCount;
     }
 
-    /** How many items the Data Potato lists for a rack section. */
+    /** How many items the Data Potato lists for a rack shelf. */
     public int rackPotatoTopItems() {
         return rackPotatoTopItems;
     }
@@ -510,8 +515,8 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         return handheldFindGlowSeconds;
     }
 
-    public int rackBaysPerSection() {
-        return rackBaysPerSection;
+    public int rackBaysPerShelf() {
+        return rackBaysPerShelf;
     }
 
     public int inboundBufferSlots() {
@@ -717,17 +722,17 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         return tankerPumpTicks;
     }
 
-    /** mB one Fluid Rack bay adds to its section's tank. */
+    /** mB one Fluid Rack bay adds to its shelf's tank. */
     public int fluidRackCapacityPerBay() {
         return fluidRackCapacityPerBay;
     }
 
-    /** Bays a Fluid Rack section may hold. */
-    public int fluidRackBaysPerSection() {
-        return fluidRackBaysPerSection;
+    /** Bays a Fluid Rack shelf may hold. */
+    public int fluidRackBaysPerShelf() {
+        return fluidRackBaysPerShelf;
     }
 
-    /** Steps in which clients learn the fill of a Fluid Rack section. */
+    /** Steps in which clients learn the fill of a Fluid Rack shelf. */
     public int fluidRackLevelSteps() {
         return fluidRackLevelSteps;
     }

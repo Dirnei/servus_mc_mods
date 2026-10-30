@@ -1,13 +1,13 @@
 package io.github.dirnei.mc.servus.shuttles.fluidrack;
 
 /**
- * The rules of one Fluid Rack section: which bay carries the port, how the
- * section's fluid is split into the bays' shares and which bays may join.
+ * The rules of one Fluid Rack shelf: which bay carries the port, how the
+ * shelf's fluid is split into the bays' shares and which bays may join.
  * Bays are counted from the left as seen from the front. Pure Java.
  */
-public final class FluidRackSection {
+public final class FluidRackShelf {
 
-    private FluidRackSection() {
+    private FluidRackShelf() {
     }
 
     /** The bay that carries the port: the middle one of three, the left one of two, the only one of one. */
@@ -33,10 +33,10 @@ public final class FluidRackSection {
     }
 
     /**
-     * Whether a bay holding {@code bayFluid} may join a section holding
-     * {@code sectionFluid}; null means empty. {@code K} is compared with {@code equals}.
+     * Whether a bay holding {@code bayFluid} may join a shelf holding
+     * {@code shelfFluid}; null means empty. {@code K} is compared with {@code equals}.
      */
-    public static <K> boolean canJoin(K sectionFluid, K bayFluid) {
-        return sectionFluid == null || bayFluid == null || sectionFluid.equals(bayFluid);
+    public static <K> boolean canJoin(K shelfFluid, K bayFluid) {
+        return shelfFluid == null || bayFluid == null || shelfFluid.equals(bayFluid);
     }
 }

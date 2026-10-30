@@ -70,7 +70,7 @@ public final class ShuttleFleet {
 
         /**
          * Travel nodes a shuttle may stand on to serve the block at that
-         * position: the front rails of a rack's section, every touching rail
+         * position: the front rails of a rack's shelf, every touching rail
          * for other blocks.
          */
         Set<NodePos> dockRails(NodePos storage);
@@ -148,7 +148,7 @@ public final class ShuttleFleet {
         long available(ItemKey key);
 
         /**
-         * The role of the fluid store: Storage for a Fluid Rack section of
+         * The role of the fluid store: Storage for a Fluid Rack shelf of
          * this warehouse whose port is still there, Import for a tank of a
          * Fluid Inbound and Export for a tank of a Fluid Outbound of this
          * warehouse; empty when none is loaded there.

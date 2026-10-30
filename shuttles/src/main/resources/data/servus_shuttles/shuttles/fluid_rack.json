@@ -1,5 +1,5 @@
 {
   "capacity_per_bay": 16000,
-  "bays_per_section": 3,
+  "bays_per_shelf": 3,
   "level_steps": 16
 }

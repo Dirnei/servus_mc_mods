@@ -36,7 +36,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-/** The Heavy Duty Rack: placing, wood, sections, its menu and climbing its sides. */
+/** The Heavy Duty Rack: placing, wood, shelves, its menu and climbing its sides. */
 public final class HeavyRackGameTests {
 
     private static final BlockPos STACK_BASE = new BlockPos(10, 1, 10);
@@ -184,9 +184,9 @@ public final class HeavyRackGameTests {
         return helper.getBlockState(new BlockPos(x, 1, SEC_Z)).getValue(side);
     }
 
-    /** Sections form in placement order and never move: three join, a fourth at either end stands alone. */
+    /** Shelves form in placement order and never move: three join, a fourth at either end stands alone. */
     @ServusGameTest(timeoutTicks = 100)
-    public static void rackSectionsStayPut(GameTestHelper helper) {
+    public static void rackShelvesStayPut(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(0.0F);
         for (int x = 4; x <= 6; x++) {
@@ -194,7 +194,7 @@ public final class HeavyRackGameTests {
         }
         helper.assertTrue(joined(helper, 4, HeavyRackBlock.RIGHT) && joined(helper, 5, HeavyRackBlock.LEFT), "bays 4 and 5 join");
         helper.assertTrue(joined(helper, 5, HeavyRackBlock.RIGHT) && joined(helper, 6, HeavyRackBlock.LEFT), "bays 5 and 6 join");
-        helper.assertTrue(!joined(helper, 4, HeavyRackBlock.LEFT) && !joined(helper, 6, HeavyRackBlock.RIGHT), "the section has posts at both ends");
+        helper.assertTrue(!joined(helper, 4, HeavyRackBlock.LEFT) && !joined(helper, 6, HeavyRackBlock.RIGHT), "the shelf has posts at both ends");
 
         placeRackByHand(helper, player, new BlockPos(7, 1, SEC_Z));
         helper.assertTrue(!joined(helper, 6, HeavyRackBlock.RIGHT) && !joined(helper, 7, HeavyRackBlock.LEFT), "a fourth bay on the right stands alone");
@@ -204,13 +204,13 @@ public final class HeavyRackGameTests {
 
         placeRackByHand(helper, player, new BlockPos(8, 1, SEC_Z));
         helper.assertTrue(joined(helper, 7, HeavyRackBlock.RIGHT) && joined(helper, 8, HeavyRackBlock.LEFT), "a fifth bay joins the lone fourth");
-        helper.assertTrue(!joined(helper, 7, HeavyRackBlock.LEFT), "the fourth still does not join the full section");
+        helper.assertTrue(!joined(helper, 7, HeavyRackBlock.LEFT), "the fourth still does not join the full shelf");
         helper.succeed();
     }
 
     /** An upper row placed shifted by one splits above the same post as the row below. */
     @ServusGameTest(timeoutTicks = 100)
-    public static void upperRowFollowsLowerSections(GameTestHelper helper) {
+    public static void upperRowFollowsLowerShelves(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(0.0F);
         for (int x = 1; x <= 5; x++) {
@@ -228,7 +228,7 @@ public final class HeavyRackGameTests {
         helper.assertTrue(up2.getValue(HeavyRackBlock.RIGHT) && up3.getValue(HeavyRackBlock.LEFT), "upper 2 and 3 join like below");
         helper.assertTrue(!up3.getValue(HeavyRackBlock.RIGHT) && !up4.getValue(HeavyRackBlock.LEFT), "upper row splits above the lower post");
         helper.assertTrue(up4.getValue(HeavyRackBlock.RIGHT) && up5.getValue(HeavyRackBlock.LEFT), "upper 4 and 5 join like below");
-        helper.assertTrue(!up5.getValue(HeavyRackBlock.RIGHT) && !up6.getValue(HeavyRackBlock.LEFT), "upper 6 has no rack below and the rack below 5 ends its section");
+        helper.assertTrue(!up5.getValue(HeavyRackBlock.RIGHT) && !up6.getValue(HeavyRackBlock.LEFT), "upper 6 has no rack below and the rack below 5 ends its shelf");
         helper.succeed();
     }
 
@@ -262,9 +262,9 @@ public final class HeavyRackGameTests {
         return helper.getBlockEntity(new BlockPos(x, 1, SM_Z), HeavyRackBlockEntity.class);
     }
 
-    /** The middle bay of a section of three opens all three bays, left to right, and shift click spills into the next bay. */
+    /** The middle bay of a shelf of three opens all three bays, left to right, and shift click spills into the next bay. */
     @ServusGameTest(timeoutTicks = 100)
-    public static void rackSectionSharesMenu(GameTestHelper helper) {
+    public static void rackShelfSharesMenu(GameTestHelper helper) {
         Player player = rackRow(helper, 2, 4);
         HeavyRackBlockEntity left = rackAt(helper, 2);
         HeavyRackBlockEntity middle = rackAt(helper, 3);
@@ -276,15 +276,15 @@ public final class HeavyRackGameTests {
         middle.items().setStackInSlot(0, new ItemStack(Items.DIRT, 5));
         right.items().setStackInSlot(0, new ItemStack(Items.SAND, 7));
 
-        HeavyRackMenu menu = HeavyRackMenu.forSection(1, player.getInventory(), middle);
-        helper.assertTrue(menu.rackSlots() == 3 * bay, "a section of three shows " + 3 * bay + " slots, had " + menu.rackSlots());
+        HeavyRackMenu menu = HeavyRackMenu.forShelf(1, player.getInventory(), middle);
+        helper.assertTrue(menu.rackSlots() == 3 * bay, "a shelf of three shows " + 3 * bay + " slots, had " + menu.rackSlots());
         helper.assertTrue(menu.rows() == (3 * bay + 8) / 9, "the GUI has a row per nine slots, had " + menu.rows());
         helper.assertTrue(menu.getSlot(0).getItem().is(Items.STONE), "the left bay comes first");
         helper.assertTrue(menu.getSlot(bay).getItem().is(Items.DIRT), "the middle bay follows the left one");
         helper.assertTrue(menu.getSlot(2 * bay).getItem().is(Items.SAND), "the right bay comes last");
-        HeavyRackMenu fromLeft = HeavyRackMenu.forSection(2, player.getInventory(), left);
-        helper.assertTrue(fromLeft.bays().equals(menu.bays()), "every bay of the section opens the same bays");
-        helper.assertTrue(menu.stillValid(player), "the menu is valid while the section stands");
+        HeavyRackMenu fromLeft = HeavyRackMenu.forShelf(2, player.getInventory(), left);
+        helper.assertTrue(fromLeft.bays().equals(menu.bays()), "every bay of the shelf opens the same bays");
+        helper.assertTrue(menu.stillValid(player), "the menu is valid while the shelf stands");
 
         player.getInventory().setItem(0, new ItemStack(Items.APPLE, 30));
         menu.quickMoveStack(player, menu.rackSlots() + 27);
@@ -294,7 +294,7 @@ public final class HeavyRackGameTests {
         helper.succeed();
     }
 
-    /** Breaking the right bay of a section spills only its items; the left bay keeps its own. */
+    /** Breaking the right bay of a shelf spills only its items; the left bay keeps its own. */
     @ServusGameTest(timeoutTicks = 100)
     public static void rackBayBreaksAlone(GameTestHelper helper) {
         rackRow(helper, 2, 3);
@@ -310,12 +310,12 @@ public final class HeavyRackGameTests {
         });
     }
 
-    /** The section menu turns invalid once a bay of the section is removed. */
+    /** The shelf menu turns invalid once a bay of the shelf is removed. */
     @ServusGameTest(timeoutTicks = 100)
-    public static void rackMenuClosesWhenSectionChanges(GameTestHelper helper) {
+    public static void rackMenuClosesWhenShelfChanges(GameTestHelper helper) {
         Player player = rackRow(helper, 2, 4);
-        HeavyRackMenu menu = HeavyRackMenu.forSection(1, player.getInventory(), rackAt(helper, 2));
-        helper.assertTrue(menu.stillValid(player), "the menu is valid while the section stands");
+        HeavyRackMenu menu = HeavyRackMenu.forShelf(1, player.getInventory(), rackAt(helper, 2));
+        helper.assertTrue(menu.stillValid(player), "the menu is valid while the shelf stands");
         helper.setBlock(new BlockPos(4, 1, SM_Z), Blocks.AIR.defaultBlockState());
         helper.assertTrue(!menu.stillValid(player), "the menu turns invalid once a bay is gone");
         helper.succeed();

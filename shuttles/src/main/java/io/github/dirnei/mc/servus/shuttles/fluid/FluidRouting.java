@@ -5,9 +5,9 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Where a tanker brings a fluid: the fluid stores (Fluid Rack sections)
+ * Where a tanker brings a fluid: the fluid stores (Fluid Rack shelves)
  * with room for it, in the order they are tried. Stores that prefer the
- * fluid come first (a section zoned for it), then stores holding it, then empty stores that accept it; within one
+ * fluid come first (a shelf zoned for it), then stores holding it, then empty stores that accept it; within one
  * rank the shorter way wins. Pure Java; {@code T} names a store.
  */
 public final class FluidRouting {

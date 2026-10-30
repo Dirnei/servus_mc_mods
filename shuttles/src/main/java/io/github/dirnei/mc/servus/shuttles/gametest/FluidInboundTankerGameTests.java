@@ -89,7 +89,7 @@ public final class FluidInboundTankerGameTests {
         });
     }
 
-    /** Water piped into the station goes to an empty Fluid Rack section by tanker. */
+    /** Water piped into the station goes to an empty Fluid Rack shelf by tanker. */
     @ServusGameTest(timeoutTicks = RUN + 20)
     public static void pumpToRackRun(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
@@ -110,7 +110,7 @@ public final class FluidInboundTankerGameTests {
         FluidInboundBlockEntity station = station(helper);
         BlockPos[] bays = racks(helper);
         helper.runAfterDelay(2, () -> {
-            FluidRackBlock.stampSection(helper.getLevel(), helper.absolutePos(bays[0]),
+            FluidRackBlock.stampShelf(helper.getLevel(), helper.absolutePos(bays[0]),
                     ZoneFixtures.zone(helper, "Cooling", new ZoneFilter(List.of(new ItemStack(Items.WATER_BUCKET)), List.of())));
             FluidStationFixtures.fill(station, Fluids.LAVA, 2000);
             Waits.when(helper, () -> WarehouseFixtures.blocked(helper, STATION), 150, () -> "the station's lamp turns red", () -> {

@@ -22,7 +22,7 @@ import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /**
- * Chest style menu for a whole rack section: the slots of every bay, bay
+ * Chest style menu for a whole rack shelf: the slots of every bay, bay
  * after bay from left to right, in rows of nine above the player inventory.
  * Each bay keeps storing its own slots.
  */
@@ -33,7 +33,7 @@ public class HeavyRackMenu extends AbstractContainerMenu implements LockedMenu {
     private final Level level;
     private final BlockPos clicked;
     private final ContainerLevelAccess access;
-    /** The section's bays from left to right. */
+    /** The shelf's bays from left to right. */
     private final List<BlockPos> bays;
     /** The block entity of each bay when the menu opened; entries may be null on the client. */
     private final List<HeavyRackBlockEntity> racks;
@@ -61,14 +61,14 @@ public class HeavyRackMenu extends AbstractContainerMenu implements LockedMenu {
         this.locks = MenuLocks.of(slots);
     }
 
-    /** Server side: the menu of the section the clicked bay belongs to. */
-    public static HeavyRackMenu forSection(int containerId, Inventory playerInventory, HeavyRackBlockEntity clickedRack) {
+    /** Server side: the menu of the shelf the clicked bay belongs to. */
+    public static HeavyRackMenu forShelf(int containerId, Inventory playerInventory, HeavyRackBlockEntity clickedRack) {
         Level level = clickedRack.getLevel();
         BlockPos clicked = clickedRack.getBlockPos();
         List<BlockPos> bays = new ArrayList<>();
         List<HeavyRackBlockEntity> racks = new ArrayList<>();
         List<ItemSlots> handlers = new ArrayList<>();
-        for (BlockPos bay : sectionOf(level, clicked)) {
+        for (BlockPos bay : shelfOf(level, clicked)) {
             if (level.getBlockEntity(bay) instanceof HeavyRackBlockEntity rack) {
                 bays.add(bay);
                 racks.add(rack);
@@ -83,19 +83,19 @@ public class HeavyRackMenu extends AbstractContainerMenu implements LockedMenu {
         return new HeavyRackMenu(containerId, playerInventory, clicked, bays, racks, handlers);
     }
 
-    private static List<BlockPos> sectionOf(Level level, BlockPos clicked) {
-        return level == null ? List.of(clicked) : HeavyRackBlock.section(level, clicked);
+    private static List<BlockPos> shelfOf(Level level, BlockPos clicked) {
+        return level == null ? List.of(clicked) : HeavyRackBlock.shelf(level, clicked);
     }
 
     /**
      * Writes what the client needs to build the same layout: the clicked bay,
-     * then each bay of the section with its slot count.
+     * then each bay of the shelf with its slot count.
      */
-    public static void writeSection(RegistryFriendlyByteBuf buf, Level level, BlockPos clicked) {
+    public static void writeShelf(RegistryFriendlyByteBuf buf, Level level, BlockPos clicked) {
         buf.writeBlockPos(clicked);
         List<BlockPos> bays = new ArrayList<>();
         List<Integer> sizes = new ArrayList<>();
-        for (BlockPos bay : sectionOf(level, clicked)) {
+        for (BlockPos bay : shelfOf(level, clicked)) {
             if (level.getBlockEntity(bay) instanceof HeavyRackBlockEntity rack) {
                 bays.add(bay);
                 sizes.add(rack.items().getSlots());
@@ -153,7 +153,7 @@ public class HeavyRackMenu extends AbstractContainerMenu implements LockedMenu {
         }
     }
 
-    /** The section's bays from left to right as the menu shows them. */
+    /** The shelf's bays from left to right as the menu shows them. */
     public List<BlockPos> bays() {
         return bays;
     }
@@ -188,7 +188,7 @@ public class HeavyRackMenu extends AbstractContainerMenu implements LockedMenu {
 
     /**
      * Valid while the player is in range of the clicked bay, every bay is still
-     * the same rack and the section has not changed.
+     * the same rack and the shelf has not changed.
      */
     @Override
     public boolean stillValid(Player player) {
@@ -201,6 +201,6 @@ public class HeavyRackMenu extends AbstractContainerMenu implements LockedMenu {
                 return false;
             }
         }
-        return HeavyRackBlock.section(level, clicked).equals(bays);
+        return HeavyRackBlock.shelf(level, clicked).equals(bays);
     }
 }

@@ -147,7 +147,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.storage.no_racks", "Items: no racks");
         add("gui.servus_shuttles.storage.no_fluid_storage", "Fluids: no fluid storage");
         add("gui.servus_shuttles.storage.bays", "%s rack bays");
-        add("gui.servus_shuttles.storage.fluid_racks", "%s Fluid Rack sections");
+        add("gui.servus_shuttles.storage.fluid_racks", "%s Fluid Rack shelves");
         add("gui.servus_shuttles.storage.full_zones", "Full: %s");
         add("gui.servus_shuttles.storage.no_zone", "(no zone)");
         add("gui.servus_shuttles.storage.slots", "%s / %s");
@@ -403,7 +403,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("message.servus_shuttles.handheld.choose_zone", "Choose a zone in the handheld's GUI first: right click the air");
         add("message.servus_shuttles.handheld.no_zone", "No zone");
         add("message.servus_shuttles.handheld.assigned", "%s  %s -> %s");
-        add("message.servus_shuttles.handheld.assigned_section", "%s bays  %s -> %s");
+        add("message.servus_shuttles.handheld.assigned_shelf", "%s bays  %s -> %s");
         add("gui.servus_shuttles.handheld.title", "Handheld HH-1");
         add("gui.servus_shuttles.handheld.tab.zones", "Zones");
         add("gui.servus_shuttles.handheld.tab.find", "Find");
@@ -430,7 +430,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("hud.servus_shuttles.handheld.choose_zone", "Choose a zone");
         add("hud.servus_shuttles.handheld.no_zone", "No zone");
         add("hud.servus_shuttles.handheld.bay", "This bay");
-        add("hud.servus_shuttles.handheld.zone_hint", "Sneak: whole section");
+        add("hud.servus_shuttles.handheld.zone_hint", "Sneak: whole shelf");
         add("hud.servus_shuttles.handheld.not_bound", "Not bound");
         add("hud.servus_shuttles.handheld.bind_hint", "Scan a controller");
         add("hud.servus_shuttles.handheld.find_hint", "Pick an item or scan a bay");
@@ -724,14 +724,14 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
     private void tooltipsAndReports() {
         add("tooltip.servus_shuttles.warehouse_controller.site", "Site: %s");
         add("tooltip.servus_shuttles.warehouse_controller.energy", "%s FE stored");
-        add("message.servus_shuttles.potato.rack_zone", "Rack section, zone: %s");
-        add("message.servus_shuttles.potato.rack_no_zone", "Rack section, no zone");
+        add("message.servus_shuttles.potato.rack_zone", "Rack shelf, zone: %s");
+        add("message.servus_shuttles.potato.rack_no_zone", "Rack shelf, no zone");
         add("message.servus_shuttles.potato.rack_slots", "%s bays: %s / %s slots used");
         add("message.servus_shuttles.potato.rack_slots_full", "%s bays: %s / %s slots used, full");
         add("message.servus_shuttles.potato.rack_empty", "Empty");
         add("message.servus_shuttles.potato.rack_item", "%s: %s");
-        add("message.servus_shuttles.potato.fluid_rack_zone", "Fluid Rack section, zone: %s");
-        add("message.servus_shuttles.potato.fluid_rack_no_zone", "Fluid Rack section, no zone");
+        add("message.servus_shuttles.potato.fluid_rack_zone", "Fluid Rack shelf, zone: %s");
+        add("message.servus_shuttles.potato.fluid_rack_no_zone", "Fluid Rack shelf, no zone");
         add("message.servus_shuttles.potato.fluid_rack_bays", "%s bays");
         add("message.servus_shuttles.potato.fluid_rack_fluid", "%s: %s of %s mB");
         add("message.servus_shuttles.potato.fluid_rack_empty", "Empty, holds %s mB");

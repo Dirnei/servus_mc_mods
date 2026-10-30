@@ -432,7 +432,7 @@ public final class WarehousePowerGameTests {
         });
     }
 
-    /** Without power a player still opens a rack's section and takes items out by hand. */
+    /** Without power a player still opens a rack's shelf and takes items out by hand. */
     @ServusGameTest(timeoutTicks = 100)
     public static void rackUsableByHandWithoutPower(GameTestHelper helper) {
         MiniWarehouse warehouse = MiniWarehouse.build(helper, ORIGIN).stock(new ItemStack(Items.IRON_INGOT, 20));
@@ -440,7 +440,7 @@ public final class WarehousePowerGameTests {
         helper.runAfterDelay(5, () -> {
             warehouse.controller().setEnergy(0);
             helper.assertTrue(warehouse.controller().noPower(), "no power");
-            HeavyRackMenu menu = HeavyRackMenu.forSection(1, player.getInventory(), warehouse.rack());
+            HeavyRackMenu menu = HeavyRackMenu.forShelf(1, player.getInventory(), warehouse.rack());
             int slot = -1;
             for (int i = 0; i < menu.slots.size(); i++) {
                 if (menu.getSlot(i).getItem().is(Items.IRON_INGOT)) {

@@ -24,7 +24,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
  * A warehouse for tanker runs in GameTests: the controller north of a north
  * to south rail on x 4 from z 2 to 11 and a garage east of the rail at z 3.
  * The Fluid Inbound and the Fluid Outbound stand east of the rail facing it,
- * at z 5 and z 7; Fluid Rack sections of one bay stand west of it facing it,
+ * at z 5 and z 7; Fluid Rack shelves of one bay stand west of it facing it,
  * at z 8 and z 10. Positions are relative to the test.
  */
 final class TankerFixtures {
@@ -33,7 +33,7 @@ final class TankerFixtures {
     static final BlockPos GARAGE = new BlockPos(5, 1, 3);
     static final BlockPos INBOUND = new BlockPos(5, 1, 5);
     static final BlockPos OUTBOUND = new BlockPos(5, 1, 7);
-    /** The port bays of the two one bay sections, the nearer one first. */
+    /** The port bays of the two one bay shelves, the nearer one first. */
     static final BlockPos NEAR = new BlockPos(3, 1, 8);
     static final BlockPos FAR = new BlockPos(3, 1, 10);
     /** The way the stations east of the rail face. */
@@ -86,14 +86,14 @@ final class TankerFixtures {
         return station;
     }
 
-    /** A Fluid Rack section of one bay at {@code bay}, west of the rail and facing it; it settles on the next tick. */
+    /** A Fluid Rack shelf of one bay at {@code bay}, west of the rail and facing it; it settles on the next tick. */
     static void rack(GameTestHelper helper, BlockPos bay) {
         FluidRackFixtures.place(helper, bay, Direction.EAST, FluidRackFixtures.item());
     }
 
-    /** Zones the section of the bay at {@code bay} for that fluid's bucket. */
+    /** Zones the shelf of the bay at {@code bay} for that fluid's bucket. */
     static void zone(GameTestHelper helper, BlockPos bay, Item bucket) {
-        FluidRackBlock.stampSection(helper.getLevel(), helper.absolutePos(bay),
+        FluidRackBlock.stampShelf(helper.getLevel(), helper.absolutePos(bay),
                 ZoneFixtures.zone(helper, "Zone", new ZoneFilter(List.of(new ItemStack(bucket)), List.of())));
     }
 
@@ -107,12 +107,12 @@ final class TankerFixtures {
         return station.tank().getFluidAmount();
     }
 
-    /** Fills the section of the bay at {@code bay} as a pipe would. */
+    /** Fills the shelf of the bay at {@code bay} as a pipe would. */
     static void fill(GameTestHelper helper, BlockPos bay, Fluid fluid, int amount) {
         FluidRackFixtures.fill(helper, bay, fluid, amount);
     }
 
-    /** What the section of the bay at {@code bay} holds. */
+    /** What the shelf of the bay at {@code bay} holds. */
     static int amount(GameTestHelper helper, BlockPos bay) {
         return FluidRackFixtures.amount(helper, bay);
     }

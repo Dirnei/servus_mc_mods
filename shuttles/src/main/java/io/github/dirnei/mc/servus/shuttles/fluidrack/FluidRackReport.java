@@ -8,7 +8,7 @@ import net.minecraft.world.level.Level;
 
 /**
  * The chat report of the Data Potato on a Fluid Rack: the zone, bays, fluid
- * and capacity of its whole section and whether it is docked. Server thread only.
+ * and capacity of its whole shelf and whether it is docked. Server thread only.
  */
 public final class FluidRackReport {
 
@@ -21,8 +21,8 @@ public final class FluidRackReport {
         if (!(level.getBlockEntity(pos) instanceof FluidRackBlockEntity rack)) {
             return List.of();
         }
-        int bays = FluidRackBlock.section(level, pos).size();
-        FluidRackSectionHandler.Content content = rack.sectionHandler().content();
+        int bays = FluidRackBlock.shelf(level, pos).size();
+        FluidRackShelfHandler.Content content = rack.shelfHandler().content();
         List<Component> report = new ArrayList<>();
         report.add(rack.zone().isEmpty() ? Component.translatable(KEY + "no_zone") : Component.translatable(KEY + "zone", rack.zone()));
         report.add(Component.translatable(KEY + "bays", bays));

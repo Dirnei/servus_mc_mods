@@ -21,7 +21,7 @@ public final class TankerLampGameTests {
         return WarehouseFixtures.activity(helper, TankerFixtures.INBOUND) == activity;
     }
 
-    /** The only section is zoned for water and lava comes in; once the zone is taken off, the run starts and the lamp turns green after it. */
+    /** The only shelf is zoned for water and lava comes in; once the zone is taken off, the run starts and the lamp turns green after it. */
     @ServusGameTest(timeoutTicks = RUN + 200)
     public static void roomAppearsRunsStart(GameTestHelper helper) {
         TankerFixtures.withTanker(helper);
@@ -32,9 +32,9 @@ public final class TankerLampGameTests {
             TankerFixtures.fill(source, Fluids.LAVA, 2000);
             Waits.when(helper, () -> lamp(helper, Activity.BLOCKED), 120, () -> "the lamp turns red first", () -> {
                 helper.assertTrue(TankerFixtures.out(helper) == 0 && TankerFixtures.network(helper).queuedJobs() == 0, "no tanker drives");
-                FluidRackBlock.stampSection(helper.getLevel(), helper.absolutePos(TankerFixtures.FAR), ZoneList.NONE);
+                FluidRackBlock.stampShelf(helper.getLevel(), helper.absolutePos(TankerFixtures.FAR), ZoneList.NONE);
                 Waits.when(helper, () -> TankerFixtures.amount(helper, TankerFixtures.FAR) == 2000 && lamp(helper, Activity.IDLE), RUN,
-                        () -> "the lava goes to the unzoned section and the lamp turns green", () -> {
+                        () -> "the lava goes to the unzoned shelf and the lamp turns green", () -> {
                     helper.assertTrue(TankerFixtures.amount(source) == 0, "the Inbound is empty");
                     helper.succeed();
                 });

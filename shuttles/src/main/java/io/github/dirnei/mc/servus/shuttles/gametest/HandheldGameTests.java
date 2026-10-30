@@ -84,15 +84,15 @@ public final class HandheldGameTests {
         helper.succeed();
     }
 
-    /** Sneaking takes every bay of the section at once. */
+    /** Sneaking takes every bay of the shelf at once. */
     @ServusGameTest(timeoutTicks = 20)
-    public static void sneakScanTakesSection(GameTestHelper helper) {
+    public static void sneakScanTakesShelf(GameTestHelper helper) {
         BlockPos[] bays = {new BlockPos(2, 1, 5), new BlockPos(3, 1, 5), new BlockPos(4, 1, 5)};
         BlockState base = ServusShuttlesBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH);
         helper.setBlock(bays[0], base.setValue(HeavyRackBlock.RIGHT, true));
         helper.setBlock(bays[1], base.setValue(HeavyRackBlock.LEFT, true).setValue(HeavyRackBlock.RIGHT, true));
         helper.setBlock(bays[2], base.setValue(HeavyRackBlock.LEFT, true));
-        helper.assertTrue(HeavyRackBlock.section(helper.getLevel(), helper.absolutePos(bays[1])).size() == 3, "the three bays are one section");
+        helper.assertTrue(HeavyRackBlock.shelf(helper.getLevel(), helper.absolutePos(bays[1])).size() == 3, "the three bays are one shelf");
         int food = ZoneFixtures.zone(helper, "Food", ZoneFilter.EMPTY);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);

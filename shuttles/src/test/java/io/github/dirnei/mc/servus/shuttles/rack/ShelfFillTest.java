@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class SectionFillTest {
+class ShelfFillTest {
 
     private static List<SlotFill.Slot<String>> slots(Object... pairs) {
         List<SlotFill.Slot<String>> slots = new ArrayList<>();
@@ -21,26 +21,26 @@ class SectionFillTest {
 
     @Test
     void totalsAddUpOverSeveralSlotsOfOneItem() {
-        SectionFill<String> fill = SectionFill.of(slots("cobble", 64, "iron", 40, "cobble", 64, "cobble", 8), 5);
-        assertEquals(List.of(new SectionFill.Entry<>("cobble", 136), new SectionFill.Entry<>("iron", 40)), fill.top());
+        ShelfFill<String> fill = ShelfFill.of(slots("cobble", 64, "iron", 40, "cobble", 64, "cobble", 8), 5);
+        assertEquals(List.of(new ShelfFill.Entry<>("cobble", 136), new ShelfFill.Entry<>("iron", 40)), fill.top());
         assertEquals(4, fill.used());
     }
 
     @Test
     void largestFirstAndTiesInSlotOrder() {
-        SectionFill<String> fill = SectionFill.of(slots("dirt", 10, "sand", 30, "gravel", 10), 5);
-        assertEquals(List.of("sand", "dirt", "gravel"), fill.top().stream().map(SectionFill.Entry::key).toList());
+        ShelfFill<String> fill = ShelfFill.of(slots("dirt", 10, "sand", 30, "gravel", 10), 5);
+        assertEquals(List.of("sand", "dirt", "gravel"), fill.top().stream().map(ShelfFill.Entry::key).toList());
     }
 
     @Test
     void topIsLimited() {
-        SectionFill<String> fill = SectionFill.of(slots("a", 5, "b", 4, "c", 3, "d", 2), 2);
-        assertEquals(List.of("a", "b"), fill.top().stream().map(SectionFill.Entry::key).toList());
+        ShelfFill<String> fill = ShelfFill.of(slots("a", 5, "b", 4, "c", 3, "d", 2), 2);
+        assertEquals(List.of("a", "b"), fill.top().stream().map(ShelfFill.Entry::key).toList());
     }
 
     @Test
     void emptySlotsCountTowardsTotalOnly() {
-        SectionFill<String> fill = SectionFill.of(slots(null, 0, "iron", 3, "iron", 0, null, 0), 5);
+        ShelfFill<String> fill = ShelfFill.of(slots(null, 0, "iron", 3, "iron", 0, null, 0), 5);
         assertEquals(1, fill.used());
         assertEquals(4, fill.total());
         assertFalse(fill.full());
@@ -51,21 +51,21 @@ class SectionFillTest {
     void lockedEmptySlotCountsAsUsed() {
         List<SlotFill.Slot<String>> slots = slots("iron", 3, null, 0);
         slots.set(1, new SlotFill.Slot<>(null, 0, 64, true));
-        SectionFill<String> fill = SectionFill.of(slots, 5);
+        ShelfFill<String> fill = ShelfFill.of(slots, 5);
         assertEquals(2, fill.used());
         assertTrue(fill.full());
-        assertEquals(List.of(new SectionFill.Entry<>("iron", 3)), fill.top());
+        assertEquals(List.of(new ShelfFill.Entry<>("iron", 3)), fill.top());
     }
 
     @Test
     void fullWhenEverySlotHoldsItems() {
-        SectionFill<String> fill = SectionFill.of(slots("a", 1, "b", 64), 5);
+        ShelfFill<String> fill = ShelfFill.of(slots("a", 1, "b", 64), 5);
         assertTrue(fill.full());
     }
 
     @Test
-    void emptySection() {
-        SectionFill<String> fill = SectionFill.of(slots(null, 0, null, 0), 5);
+    void emptyShelf() {
+        ShelfFill<String> fill = ShelfFill.of(slots(null, 0, null, 0), 5);
         assertTrue(fill.isEmpty());
         assertFalse(fill.full());
         assertTrue(fill.top().isEmpty());

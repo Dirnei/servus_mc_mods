@@ -10,7 +10,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rack.RackFacing;
 import io.github.dirnei.mc.servus.shuttles.rack.RackRow;
-import io.github.dirnei.mc.servus.shuttles.rack.RackSection;
+import io.github.dirnei.mc.servus.shuttles.rack.RackShelf;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneList;
@@ -49,9 +49,9 @@ import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Fluid Rack: a bay that joins the bays beside it into a section of up to
- * {@code bays_per_section}, like the Heavy Duty Rack, decided at placement.
- * A section holds one fluid, shared evenly by its bays, and has one port on
+ * Fluid Rack: a bay that joins the bays beside it into a shelf of up to
+ * {@code bays_per_shelf}, like the Heavy Duty Rack, decided at placement.
+ * A shelf holds one fluid, shared evenly by its bays, and has one port on
  * its {@link #PORT} bay. It opens no GUI: buckets fill and empty it by hand,
  * pipes reach it only while no rail stands in front of the port, and
  * tankers serve it through the port.
@@ -64,10 +64,10 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
     public static final BooleanProperty LEFT = BooleanProperty.create("left");
     /** Joined to the bay on the clockwise side: no post there, the frame runs through. */
     public static final BooleanProperty RIGHT = BooleanProperty.create("right");
-    /** The bay carries the section's port. */
+    /** The bay carries the shelf's port. */
     public static final BooleanProperty PORT = BooleanProperty.create("port");
 
-    private static final int MAX_SECTION_WALK = 64;
+    private static final int MAX_SHELF_WALK = 64;
 
     public FluidRackBlock(Properties properties) {
         super(properties);
@@ -94,14 +94,14 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
         return level.getBlockEntity(pos) instanceof FluidRackBlockEntity rack ? rack.wood() : FluidRackBlockEntity.DEFAULT_WOOD;
     }
 
-    /** Same row, same wood and a fluid the bay's section takes: only such bays join. */
+    /** Same row, same wood and a fluid the bay's shelf takes: only such bays join. */
     private static boolean sameBay(BlockState state, Identifier wood, @Nullable FluidKey fluid, BlockGetter level, BlockPos pos) {
         return sameRow(state, level.getBlockState(pos)) && wood.equals(woodAt(level, pos))
-                && FluidRackSection.canJoin(sectionFluid(level, pos), fluid);
+                && FluidRackShelf.canJoin(shelfFluid(level, pos), fluid);
     }
 
-    /** The fluid the section at that position holds, null when empty. */
-    private static @Nullable FluidKey sectionFluid(BlockGetter level, BlockPos pos) {
+    /** The fluid the shelf at that position holds, null when empty. */
+    private static @Nullable FluidKey shelfFluid(BlockGetter level, BlockPos pos) {
         for (FluidRackBlockEntity bay : bays(level, pos)) {
             if (!bay.share().isEmpty()) {
                 return FluidKey.of(bay.share());
@@ -111,34 +111,34 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
     }
 
     /**
-     * Bays in the section that starts at the neighbour in {@code direction}
+     * Bays in the shelf that starts at the neighbour in {@code direction}
      * and extends away from {@code pos}; zero when that bay may not be joined.
      */
-    private static int sectionSize(BlockState state, Identifier wood, @Nullable FluidKey fluid, BlockGetter level, BlockPos pos,
+    private static int shelfSize(BlockState state, Identifier wood, @Nullable FluidKey fluid, BlockGetter level, BlockPos pos,
                                    Direction direction) {
         BlockPos start = pos.relative(direction);
         if (!sameBay(state, wood, fluid, level, start)) {
             return 0;
         }
-        return section(level, start).size();
+        return shelf(level, start).size();
     }
 
     /**
-     * The bays of the section the rack at {@code pos} belongs to, from left to
+     * The bays of the shelf the rack at {@code pos} belongs to, from left to
      * right as a player standing in front of it sees them. Empty when no
      * Fluid Rack stands there.
      */
-    public static List<BlockPos> section(BlockGetter level, BlockPos pos) {
+    public static List<BlockPos> shelf(BlockGetter level, BlockPos pos) {
         BlockState start = level.getBlockState(pos);
         if (!(start.getBlock() instanceof FluidRackBlock)) {
             return List.of();
         }
         // The flags name the rack's own sides; a player facing the front sees them swapped.
         Direction viewerRight = start.getValue(FACING).getCounterClockWise();
-        int[] offsets = RackSection.bays(
+        int[] offsets = RackShelf.bays(
                 offset -> joined(start, level.getBlockState(pos.relative(viewerRight, offset)), RIGHT),
                 offset -> joined(start, level.getBlockState(pos.relative(viewerRight, offset)), LEFT),
-                MAX_SECTION_WALK);
+                MAX_SHELF_WALK);
         List<BlockPos> bays = new ArrayList<>(offsets.length);
         for (int offset : offsets) {
             bays.add(pos.relative(viewerRight, offset));
@@ -146,10 +146,10 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
         return List.copyOf(bays);
     }
 
-    /** The block entities of the section at that position, from left to right. */
+    /** The block entities of the shelf at that position, from left to right. */
     public static List<FluidRackBlockEntity> bays(BlockGetter level, BlockPos pos) {
         List<FluidRackBlockEntity> bays = new ArrayList<>();
-        for (BlockPos bay : section(level, pos)) {
+        for (BlockPos bay : shelf(level, pos)) {
             if (level.getBlockEntity(bay) instanceof FluidRackBlockEntity rack) {
                 bays.add(rack);
             }
@@ -157,10 +157,10 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
         return bays;
     }
 
-    /** The port bay of the section at that position, or null when no Fluid Rack stands there. */
+    /** The port bay of the shelf at that position, or null when no Fluid Rack stands there. */
     public static @Nullable BlockPos port(BlockGetter level, BlockPos pos) {
-        List<BlockPos> bays = section(level, pos);
-        return bays.isEmpty() ? null : bays.get(FluidRackSection.portIndex(bays.size()));
+        List<BlockPos> bays = shelf(level, pos);
+        return bays.isEmpty() ? null : bays.get(FluidRackShelf.portIndex(bays.size()));
     }
 
     private static boolean joined(BlockState start, BlockState state, BooleanProperty flag) {
@@ -176,12 +176,12 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
         ItemStack stack = context.getItemInHand();
         Identifier wood = FluidRackBlockEntity.woodOf(stack);
         FluidKey fluid = FluidRackBlockEntity.fluidOf(stack).map(FluidKey::of).orElse(null);
-        int max = ShuttlesStatsManager.INSTANCE.fluidRackBaysPerSection();
-        int leftSize = sectionSize(state, wood, fluid, level, pos, facing.getCounterClockWise());
-        int rightSize = sectionSize(state, wood, fluid, level, pos, facing.getClockWise());
-        if (leftSize > 0 && rightSize > 0 && !FluidRackSection.canJoin(sectionFluid(level, pos.relative(facing.getCounterClockWise())),
-                sectionFluid(level, pos.relative(facing.getClockWise())))) {
-            // Two sections of different fluids would meet in this bay: it joins the left one only.
+        int max = ShuttlesStatsManager.INSTANCE.fluidRackBaysPerShelf();
+        int leftSize = shelfSize(state, wood, fluid, level, pos, facing.getCounterClockWise());
+        int rightSize = shelfSize(state, wood, fluid, level, pos, facing.getClockWise());
+        if (leftSize > 0 && rightSize > 0 && !FluidRackShelf.canJoin(shelfFluid(level, pos.relative(facing.getCounterClockWise())),
+                shelfFluid(level, pos.relative(facing.getClockWise())))) {
+            // Two shelves of different fluids would meet in this bay: it joins the left one only.
             rightSize = 0;
         }
         Boolean leftBelow = joinFromBelow(state, level, pos, facing.getCounterClockWise(), LEFT, RIGHT);
@@ -192,7 +192,7 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
     }
 
     /**
-     * The row below decides where sections split: the rack under this bay, or
+     * The row below decides where shelves split: the rack under this bay, or
      * the rack under the neighbour on that side, says whether the join exists.
      * Null when no rack stands under either.
      */
@@ -211,7 +211,7 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
 
     /**
      * Mirrors a fresh bay's joins onto its neighbours, since a join is mutual.
-     * The section settles on the next tick, once a placed item's share and
+     * The shelf settles on the next tick, once a placed item's share and
      * zone are on the block entity.
      */
     @Override
@@ -239,20 +239,20 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
     }
 
     /**
-     * Brings the section at {@code pos} in order after it changed: one zone
+     * Brings the shelf at {@code pos} in order after it changed: one zone
      * for all bays (the zone of the bays already there wins), the fluid split
      * into even shares, the port on its bay, links and pipe access
      * looked at again and the warehouse told. Server only, event driven.
      */
     public static void settle(Level level, BlockPos pos) {
-        List<BlockPos> positions = section(level, pos);
+        List<BlockPos> positions = shelf(level, pos);
         List<FluidRackBlockEntity> bays = bays(level, pos);
         if (bays.isEmpty()) {
             return;
         }
         shareZone(bays, level.getBlockEntity(pos) instanceof FluidRackBlockEntity placed ? placed : null);
         FluidRackBlockEntity.rebalance(bays);
-        int port = FluidRackSection.portIndex(positions.size());
+        int port = FluidRackShelf.portIndex(positions.size());
         for (int i = 0; i < positions.size(); i++) {
             BlockPos bay = positions.get(i);
             BlockState state = level.getBlockState(bay);
@@ -262,7 +262,7 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
         }
         for (FluidRackBlockEntity bay : bays) {
             bay.refreshLinks();
-            bay.sectionChanged();
+            bay.shelfChanged();
         }
         refreshDock(level, positions);
     }
@@ -284,13 +284,13 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
         }
     }
 
-    /** Puts every bay of the section at that position into the zone with that id, or clears it with {@link ZoneList#NONE}. */
-    public static void stampSection(Level level, BlockPos pos, int zone) {
+    /** Puts every bay of the shelf at that position into the zone with that id, or clears it with {@link ZoneList#NONE}. */
+    public static void stampShelf(Level level, BlockPos pos, int zone) {
         for (FluidRackBlockEntity bay : bays(level, pos)) {
             bay.setZone(zone);
         }
         for (FluidRackBlockEntity bay : bays(level, pos)) {
-            bay.sectionChanged();
+            bay.shelfChanged();
         }
     }
 
@@ -323,7 +323,7 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
         return new FluidRackBlockEntity(pos, state);
     }
 
-    /** A fluid container on the front fills or empties the section; every other click passes, so no GUI opens. */
+    /** A fluid container on the front fills or empties the shelf; every other click passes, so no GUI opens. */
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                           Player player, InteractionHand hand, BlockHitResult hitResult) {
@@ -334,7 +334,7 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
         }
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof FluidRackBlockEntity rack) {
             // ItemAccess keeps the container of a creative player, like a vanilla bucket.
-            FluidUtil.interactWithFluidHandler(player, hand, pos, rack.sectionHandler());
+            FluidUtil.interactWithFluidHandler(player, hand, pos, rack.shelfHandler());
         }
         return InteractionResult.SUCCESS;
     }
@@ -350,7 +350,7 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
         super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
         if (!level.isClientSide() && state.getValue(PORT) && level.getBlockEntity(pos) instanceof FluidRackBlockEntity rack
                 && rack.frontRailChanged()) {
-            refreshDock(level, section(level, pos));
+            refreshDock(level, shelf(level, pos));
         }
     }
 
@@ -362,7 +362,7 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
     }
 
     /**
-     * The section's pipe access may have changed: every bay drops its cached
+     * The shelf's pipe access may have changed: every bay drops its cached
      * capability and tells its neighbours, so ducts recompute their arms.
      * Event driven, never polled.
      */
@@ -382,7 +382,7 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
         return super.playerWillDestroy(level, pos, state, player);
     }
 
-    /** A bay that leaves took its share with it: the sections beside it settle again. */
+    /** A bay that leaves took its share with it: the shelves beside it settle again. */
     @Override
     protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
         super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);

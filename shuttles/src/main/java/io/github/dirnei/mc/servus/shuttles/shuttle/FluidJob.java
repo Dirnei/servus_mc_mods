@@ -12,9 +12,9 @@ import net.minecraft.core.BlockPos;
  * put-away brings what is still left back to its source, a restock loses it.
  *
  * @param id         the job's id, unique in the world
- * @param source     the port bay of a Fluid Rack section or the lower half of a fluid station
+ * @param source     the port bay of a Fluid Rack shelf or the lower half of a fluid station
  * @param sourceTank its tank: the tank index on a fluid station, or {@link FluidStoreRef#RACK}
- * @param target     the port bay of the section or the lower half of the station the fluid goes to first
+ * @param target     the port bay of the shelf or the lower half of the station the fluid goes to first
  * @param targetTank its tank
  * @param key        the fluid
  * @param amount     how much at most; a shuttle that carries less takes less

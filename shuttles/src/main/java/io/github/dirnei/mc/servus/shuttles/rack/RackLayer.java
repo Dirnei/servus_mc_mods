@@ -19,9 +19,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 
 /**
- * A whole layer of racks over one section: an unsneaked click on the top of
+ * A whole layer of racks over one shelf: an unsneaked click on the top of
  * a rack with a rack item of its kind places one rack on every bay of the
- * clicked section, and a sneak click that walks up a column does the same on
+ * clicked shelf, and a sneak click that walks up a column does the same on
  * top of the column, when every spot above is free and the held stack has an
  * item per bay (or the player is in creative). Each bay is placed as a click
  * on the top of the bay below, so it takes that bay's facing and joins.
@@ -36,28 +36,28 @@ public final class RackLayer {
      * Server side only; the client predicts one rack.
      *
      * @param state   the state a rack of this kind places with, for the room check
-     * @param section the bays of the section a rack at a position belongs to; empty when no rack of this kind stands there
+     * @param shelf the bays of the shelf a rack at a position belongs to; empty when no rack of this kind stands there
      * @param placeOne places one rack for a context
      */
     public static boolean place(BlockPlaceContext context, BlockState state,
-                                BiFunction<BlockGetter, BlockPos, List<BlockPos>> section,
+                                BiFunction<BlockGetter, BlockPos, List<BlockPos>> shelf,
                                 Function<BlockPlaceContext, InteractionResult> placeOne) {
         Player player = context.getPlayer();
         if (player == null || player.isSecondaryUseActive() || context.getClickedFace() != Direction.UP
                 || context.replacingClickedOnBlock()) {
             return false;
         }
-        return layer(context, player, state, section, placeOne);
+        return layer(context, player, state, shelf, placeOne);
     }
 
     /**
      * A sneak click whose assist walks up a column: the layer goes over the
-     * section of the column's top rack instead of one rack on that column.
+     * shelf of the column's top rack instead of one rack on that column.
      * Returns false and places nothing when the walk does not go up or the
      * layer does not fit, so the assist places one rack. Server side only.
      */
     public static boolean placeUpColumn(BlockPlaceContext context, PlacementAssist assist, BlockState state,
-                                        BiFunction<BlockGetter, BlockPos, List<BlockPos>> section,
+                                        BiFunction<BlockGetter, BlockPos, List<BlockPos>> shelf,
                                         Function<BlockPlaceContext, InteractionResult> placeOne) {
         Player player = context.getPlayer();
         if (player == null || !PlacementAssists.applies(context, assist)) {
@@ -68,14 +68,14 @@ public final class RackLayer {
             return false;
         }
         BlockPos top = target.get().pos().below();
-        return layer(BlockPlaceContext.at(context, top, Direction.UP), player, state, section, placeOne);
+        return layer(BlockPlaceContext.at(context, top, Direction.UP), player, state, shelf, placeOne);
     }
 
     private static boolean layer(BlockPlaceContext context, Player player, BlockState state,
-                                 BiFunction<BlockGetter, BlockPos, List<BlockPos>> section,
+                                 BiFunction<BlockGetter, BlockPos, List<BlockPos>> shelf,
                                  Function<BlockPlaceContext, InteractionResult> placeOne) {
         Level level = context.getLevel();
-        List<BlockPos> bays = section.apply(level, context.getClickedPos().below());
+        List<BlockPos> bays = shelf.apply(level, context.getClickedPos().below());
         ItemStack stack = context.getItemInHand();
         if (bays.size() < 2 || !player.getAbilities().instabuild && stack.getCount() < bays.size()) {
             return false;

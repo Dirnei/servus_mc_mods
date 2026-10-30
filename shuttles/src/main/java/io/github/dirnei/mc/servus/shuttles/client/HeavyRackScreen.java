@@ -9,7 +9,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 /**
- * Chest style screen for a rack section, drawn with the vanilla generic
+ * Chest style screen for a rack shelf, drawn with the vanilla generic
  * container texture: its header, its first slot row once per row, so it
  * grows past six rows, and its player inventory part.
  */

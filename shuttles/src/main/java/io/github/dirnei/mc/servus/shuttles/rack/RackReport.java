@@ -13,7 +13,7 @@ import net.minecraft.world.level.Level;
 
 /**
  * The chat report of the Data Potato on a Heavy Duty Rack: the zone, bays and
- * slots of its whole section (a slot a job locked counts as used) and the
+ * slots of its whole shelf (a slot a job locked counts as used) and the
  * items it holds most. Server thread only.
  */
 public final class RackReport {
@@ -25,7 +25,7 @@ public final class RackReport {
 
     public static List<Component> of(Level level, BlockPos pos) {
         List<HeavyRackBlockEntity> bays = new ArrayList<>();
-        for (BlockPos bay : HeavyRackBlock.section(level, pos)) {
+        for (BlockPos bay : HeavyRackBlock.shelf(level, pos)) {
             if (level.getBlockEntity(bay) instanceof HeavyRackBlockEntity rack) {
                 bays.add(rack);
             }
@@ -41,7 +41,7 @@ public final class RackReport {
                 zones.add(bay.zone());
             }
         }
-        SectionFill<ItemKey> fill = SectionFill.of(slots, ShuttlesStatsManager.INSTANCE.rackPotatoTopItems());
+        ShelfFill<ItemKey> fill = ShelfFill.of(slots, ShuttlesStatsManager.INSTANCE.rackPotatoTopItems());
 
         List<Component> report = new ArrayList<>();
         report.add(zones.isEmpty() ? Component.translatable(KEY + "no_zone") : Component.translatable(KEY + "zone", String.join(", ", zones)));
@@ -49,7 +49,7 @@ public final class RackReport {
         if (fill.isEmpty()) {
             report.add(Component.translatable(KEY + "empty"));
         }
-        for (SectionFill.Entry<ItemKey> entry : fill.top()) {
+        for (ShelfFill.Entry<ItemKey> entry : fill.top()) {
             report.add(Component.translatable(KEY + "item", entry.key().stack(1).getHoverName(), entry.count()));
         }
         return report;
