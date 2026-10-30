@@ -199,6 +199,7 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 
 ### Open: Foundation
 
+- Switch the Delicacies `VesselRecipe` and the Brewery `BrewingRecipe` to Foundation's `SlotMatcher` and delete the Delicacies copy, once their changes are archived.
 - Ore and gem milling on the Mill: decide whether ores double, and which gems mill at all.
 - Deeper inspection with the Data Potato: throughput per channel, why items are stuck (a Packing Station's waiting shipments and what each target granted), machine reports.
 - Power Cable with a tiered transfer rate.

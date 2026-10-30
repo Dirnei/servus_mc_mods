@@ -7,6 +7,8 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.PartShapes;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import java.util.EnumMap;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -34,8 +36,13 @@ public class MixerBlock extends MachineBlock {
 
     public static final MapCodec<MixerBlock> CODEC = simpleCodec(MixerBlock::new);
 
-    /** The same for every facing, since only the chute's and port's tips, which stay out of it, are not symmetric. */
-    private static final VoxelShape SHAPE = PartShapes.shapeOf(MixerParts.shapeParts(), Direction.NORTH);
+    private static final Map<Direction, VoxelShape> SHAPES = new EnumMap<>(Direction.class);
+
+    static {
+        for (Direction facing : Direction.Plane.HORIZONTAL) {
+            SHAPES.put(facing, PartShapes.shapeOf(MixerParts.shapeParts(), facing));
+        }
+    }
 
     public MixerBlock(Properties properties) {
         super(properties);
@@ -53,7 +60,7 @@ public class MixerBlock extends MachineBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return SHAPE;
+        return SHAPES.get(state.getValue(FACING));
     }
 
     /** A fluid container fills or empties the tank; anything else acts as on every machine. */

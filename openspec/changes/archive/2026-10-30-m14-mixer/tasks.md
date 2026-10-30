@@ -31,8 +31,8 @@
 
 ## 7. Verification
 
-- [ ] 7.1 Full `gradlew build test` and `:foundation:runGameTestServer` green; the game launches with all mods (Foundation, Alchemy, Shuttles, Delicacies, Brewery).
-- [ ] 7.2 User play check in game:
+- [x] 7.1 Full `gradlew build test` and `:foundation:runGameTestServer` green; the game launches with all mods (Foundation, Alchemy, Shuttles, Delicacies, Brewery).
+- [x] 7.2 User play check in game:
   - The Mixer looks like the mockup: heavy iron base, open steel tub with a brass rim, steel bridge with a brass hub, two crossed heavy iron blades, steel chute, brass port on the back; no flicker from any angle, also while the paddle turns. The item shows the whole Mixer.
   - A Hand Crank goes onto the back or sides only; holding it turns the paddle and Dirt with a Water Bucket poured in becomes Mud in about three seconds; let go, the paddle coasts to a stop and the arrow stops. An Electric Motor does it faster.
   - Water shows as a surface in the tub with the blades through it; Dirt and Gravel without water show the mix surface; an empty tub shows the floor.
