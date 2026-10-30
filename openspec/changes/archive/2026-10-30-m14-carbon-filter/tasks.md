@@ -18,7 +18,7 @@
 
 ## 4. Finish
 
-- [ ] 4.1 Full gradle build, tests green, game launches with all mods; in game: mill charcoal, blast the powder, craft a filter with wheat (and with Delicacies flour), check the creative tab, JEI recipes, a used filter's bar and tooltip (via a GameTest or `/give` with the component), and composting Spent Filters. Verify: `gradlew build` and `gradlew test` green, client starts from main.
+- [x] 4.1 Full gradle build, tests green, game launches with all mods; in game: mill charcoal, blast the powder, craft a filter with wheat (and with Delicacies flour), check the creative tab, JEI recipes, a used filter's bar and tooltip (via a GameTest or `/give` with the component), and composting Spent Filters. Verify: `gradlew build` and `gradlew test` green, client starts from main.
 
 ## Workflow follow-up
 
